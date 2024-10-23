@@ -52,11 +52,11 @@ class RerunFlakyTest(os: Os, arch: Arch = Arch.AMD64) : BuildType({
     // Show all failed tests here, since that is what we are interested in
     failureConditions.supportTestRetry = false
 
-    val extraParameters = functionalTestExtraParameters("RerunFlakyTest", os, arch, "%$testJvmVersionParameter%", "%$testJvmVendorParameter%")
+    val extraParameters = functionalTestExtraParameters(listOf("RerunFlakyTest"), os, arch, "%$testJvmVersionParameter%", "%$testJvmVendorParameter%")
     val parameters = (
         buildToolGradleParameters(daemon) +
             listOf(extraParameters) +
-            functionalTestParameters(os)
+            functionalTestParameters(os, arch)
         ).joinToString(separator = " ")
 
     killProcessStep(KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS, os, arch)
@@ -70,7 +70,7 @@ class RerunFlakyTest(os: Os, arch: Arch = Arch.AMD64) : BuildType({
                 executionMode = BuildStep.ExecutionMode.ALWAYS
             }
         }
-        killProcessStep(KILL_PROCESSES_STARTED_BY_GRADLE, os, arch)
+        killProcessStep(KILL_PROCESSES_STARTED_BY_GRADLE, os, arch, BuildStep.ExecutionMode.ALWAYS)
     }
 
     steps {

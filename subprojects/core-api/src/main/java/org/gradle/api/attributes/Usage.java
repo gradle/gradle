@@ -19,7 +19,7 @@ package org.gradle.api.attributes;
 import org.gradle.api.Named;
 
 /**
- * Represents the usage of a variant. Typical usages include compilation or runtime.
+ * Represents the usage of a configuration. Typical usages include compilation or runtime.
  * This interface allows the user to customize usages by implementing this interface.
  *
  * @since 3.4
@@ -28,19 +28,14 @@ public interface Usage extends Named {
     Attribute<Usage> USAGE_ATTRIBUTE = Attribute.of("org.gradle.usage", Usage.class);
 
     /**
-     * The API variant of a component. The API dependencies
-     * can be further refined by using the {@link ApiType} attribute.
-     *
-     * <p>The artifacts are packaged as class path elements, either a JAR or a classes directory.</p>
+     * The Java API of a library, packaged as class path elements, either a JAR or a classes directory.
      *
      * @since 4.0
      */
     String JAVA_API = "java-api";
 
     /**
-     * The Java runtime variant of a component.
-     *
-     * <p>The artifacts are packaged as class path elements, either a JAR or a classes directory.</p>
+     * The Java runtime of a component, packaged as class path elements, either a JAR or a classes directory.
      *
      * @since 4.0
      */

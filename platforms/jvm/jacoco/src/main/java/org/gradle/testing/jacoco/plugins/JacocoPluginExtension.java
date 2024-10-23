@@ -35,6 +35,7 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskCollection;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.jacoco.JacocoAgentJar;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.JavaForkOptions;
@@ -83,6 +84,7 @@ public abstract class JacocoPluginExtension {
     /**
      * Version of Jacoco JARs to use.
      */
+    @ToBeReplacedByLazyProperty
     public String getToolVersion() {
         return toolVersion;
     }

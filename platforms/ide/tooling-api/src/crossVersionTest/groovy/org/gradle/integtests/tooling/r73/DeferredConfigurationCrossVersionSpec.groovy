@@ -18,7 +18,6 @@ package org.gradle.integtests.tooling.r73
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 
 @TargetGradleVersion(">=7.3")
 class DeferredConfigurationCrossVersionSpec extends ToolingApiSpecification {
@@ -30,10 +29,8 @@ class DeferredConfigurationCrossVersionSpec extends ToolingApiSpecification {
         setupBuild()
 
         when:
-        def model = withConnection {
-            def executer = action(new NoOpAction())
-            collectOutputs(executer)
-            executer.run()
+        def model = withConnection { connection ->
+            connection.action(new NoOpAction()).run()
         }
 
         then:
@@ -44,20 +41,18 @@ class DeferredConfigurationCrossVersionSpec extends ToolingApiSpecification {
         result.assertNotOutput(prefix)
     }
 
-    @ToolingApiVersion(">=4.8")
     def "does not configure build when phased action does not query any models"() {
         setupBuild()
 
         when:
         def projectsLoadedModel = null
         def buildFinishedModel = null
-        withConnection {
-            def builder = action()
-            builder.projectsLoaded(new NoOpAction()) { projectsLoadedModel = it }
-            builder.buildFinished(new NoOpAction()) { buildFinishedModel = it }
-            def executer = builder.build()
-            collectOutputs(executer)
-            executer.run()
+        withConnection { connection ->
+            connection.action()
+                .projectsLoaded(new NoOpAction()) { projectsLoadedModel = it }
+                .buildFinished(new NoOpAction()) { buildFinishedModel = it }
+                .build()
+                .run()
         }
 
         then:
@@ -73,10 +68,8 @@ class DeferredConfigurationCrossVersionSpec extends ToolingApiSpecification {
         setupBuild()
 
         when:
-        def model = withConnection {
-            def executer = action(new FetchGradleBuildAction())
-            collectOutputs(executer)
-            executer.run()
+        def model = withConnection { connection ->
+            connection.action(new FetchGradleBuildAction()).run()
         }
 
         then:
@@ -88,20 +81,18 @@ class DeferredConfigurationCrossVersionSpec extends ToolingApiSpecification {
         result.assertNotOutput(rootProjectMessage)
     }
 
-    @ToolingApiVersion(">=4.8")
     def "runs settings scripts and does not configure projects when phased action queries GradleProject model"() {
         setupBuild()
 
         when:
         def projectsLoadedModel = null
         def buildFinishedModel = null
-        withConnection {
-            def builder = action()
-            builder.projectsLoaded(new FetchGradleBuildAction()) { projectsLoadedModel = it }
-            builder.buildFinished(new FetchGradleBuildAction()) { buildFinishedModel = it }
-            def executer = builder.build()
-            collectOutputs(executer)
-            executer.run()
+        withConnection { connection ->
+            connection.action()
+                .projectsLoaded(new FetchGradleBuildAction()) { projectsLoadedModel = it }
+                .buildFinished(new FetchGradleBuildAction()) { buildFinishedModel = it }
+                .build()
+                .run()
         }
 
         then:
@@ -118,10 +109,8 @@ class DeferredConfigurationCrossVersionSpec extends ToolingApiSpecification {
         setupBuild()
 
         when:
-        def model = withConnection {
-            def executer = action(new FetchProjectAction())
-            collectOutputs(executer)
-            executer.run()
+        def model = withConnection { connection ->
+            connection.action(new FetchProjectAction()).run()
         }
 
         then:
@@ -133,20 +122,18 @@ class DeferredConfigurationCrossVersionSpec extends ToolingApiSpecification {
         result.assertOutputContains(rootProjectMessage)
     }
 
-    @ToolingApiVersion(">=4.8")
     def "configures projects when phased action queries some other model"() {
         setupBuild()
 
         when:
         def projectsLoadedModel = null
         def buildFinishedModel = null
-        withConnection {
-            def builder = action()
-            builder.projectsLoaded(new FetchProjectAction()) { projectsLoadedModel = it }
-            builder.buildFinished(new FetchProjectAction()) { buildFinishedModel = it }
-            def executer = builder.build()
-            collectOutputs(executer)
-            executer.run()
+        withConnection { connection ->
+            connection.action()
+                .projectsLoaded(new FetchProjectAction()) { projectsLoadedModel = it }
+                .buildFinished(new FetchProjectAction()) { buildFinishedModel = it }
+                .build()
+                .run()
         }
 
         then:

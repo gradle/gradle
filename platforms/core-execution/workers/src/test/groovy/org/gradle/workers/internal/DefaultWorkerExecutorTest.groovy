@@ -22,7 +22,7 @@ import org.gradle.initialization.layout.ProjectCacheDir
 import org.gradle.internal.Actions
 import org.gradle.internal.classloader.VisitableURLClassLoader
 import org.gradle.internal.classpath.CachedClasspathTransformer
-import org.gradle.internal.operations.BuildOperationExecutor
+import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.work.AsyncWorkTracker
 import org.gradle.internal.work.ConditionalExecution
@@ -49,7 +49,7 @@ class DefaultWorkerExecutorTest extends Specification {
     def inProcessWorkerFactory = Mock(WorkerFactory)
     def noIsolationWorkerFactory = Mock(WorkerFactory)
     def workerThreadRegistry = Mock(WorkerThreadRegistry)
-    def buildOperationExecutor = Mock(BuildOperationExecutor)
+    def buildOperationRunner = Mock(BuildOperationRunner)
     def asyncWorkTracker = Mock(AsyncWorkTracker)
     def forkOptionsFactory = TestFiles.execFactory(temporaryFolder.testDirectory)
     def objectFactory = Stub(ObjectFactory) {
@@ -76,9 +76,9 @@ class DefaultWorkerExecutorTest extends Specification {
         _ * instantiator.newInstance(DefaultClassLoaderWorkerSpec) >> { args -> new DefaultClassLoaderWorkerSpec(objectFactory) }
         _ * instantiator.newInstance(DefaultProcessWorkerSpec, _) >> { args -> new DefaultProcessWorkerSpec(args[1][0], objectFactory) }
         _ * instantiator.newInstance(DefaultWorkerExecutor.DefaultWorkQueue, _, _, _) >> { args -> new DefaultWorkerExecutor.DefaultWorkQueue(args[1][0], args[1][1], args[1][2]) }
-        _ * classpathTransformer.transform(_, _) >> { args -> args[0] }
+        _ * classpathTransformer.copyingTransform(_) >> { args -> args[0] }
         _ * projectCacheDir.getDir() >> temporaryFolder.testDirectory
-        workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, inProcessWorkerFactory, noIsolationWorkerFactory, forkOptionsFactory, workerThreadRegistry, buildOperationExecutor, asyncWorkTracker, workerDirectoryProvider, executionQueueFactory, classLoaderStructureProvider, actionExecutionSpecFactory, instantiator, classpathTransformer, temporaryFolder.testDirectory, projectCacheDir)
+        workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, inProcessWorkerFactory, noIsolationWorkerFactory, forkOptionsFactory, workerThreadRegistry, buildOperationRunner, asyncWorkTracker, workerDirectoryProvider, executionQueueFactory, classLoaderStructureProvider, actionExecutionSpecFactory, instantiator, classpathTransformer, temporaryFolder.testDirectory, projectCacheDir)
         _ * actionExecutionSpecFactory.newIsolatedSpec(_, _, _, _, _) >> Mock(IsolatedParametersActionExecutionSpec)
     }
 
@@ -96,15 +96,15 @@ class DefaultWorkerExecutorTest extends Specification {
         }
 
         when:
-        def daemonForkOptions = workerExecutor.getWorkerRequirement(runnable.class, configuration, null).forkOptions
+        DaemonForkOptions daemonForkOptions = workerExecutor.getWorkerRequirement(runnable.class, configuration, null).forkOptions
 
         then:
-        daemonForkOptions.javaForkOptions.minHeapSize == "128m"
-        daemonForkOptions.javaForkOptions.maxHeapSize == "128m"
-        daemonForkOptions.javaForkOptions.allJvmArgs.contains("-Dfoo=bar")
-        daemonForkOptions.javaForkOptions.allJvmArgs.contains("-foo")
-        daemonForkOptions.javaForkOptions.allJvmArgs.contains("-Xbootclasspath:${temporaryFolder.file('foo')}".toString())
-        daemonForkOptions.javaForkOptions.allJvmArgs.contains("-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005")
+        daemonForkOptions.jvmOptions.minHeapSize == "128m"
+        daemonForkOptions.jvmOptions.maxHeapSize == "128m"
+        daemonForkOptions.jvmOptions.allJvmArgs.contains("-Dfoo=bar")
+        daemonForkOptions.jvmOptions.allJvmArgs.contains("-foo")
+        daemonForkOptions.jvmOptions.allJvmArgs.contains("-Xbootclasspath:${temporaryFolder.file('foo')}".toString())
+        daemonForkOptions.jvmOptions.allJvmArgs.contains("-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005")
     }
 
     def "can add to classpath on executor"() {

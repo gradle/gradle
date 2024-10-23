@@ -19,6 +19,8 @@ package org.gradle.workers.internal;
 import com.google.common.base.Objects;
 import org.gradle.internal.classloader.ClassLoaderSpec;
 
+import javax.annotation.Nullable;
+
 public class HierarchicalClassLoaderStructure implements ClassLoaderStructure {
     private final ClassLoaderSpec self;
     private final HierarchicalClassLoaderStructure parent;
@@ -27,7 +29,7 @@ public class HierarchicalClassLoaderStructure implements ClassLoaderStructure {
         this(self, null);
     }
 
-    public HierarchicalClassLoaderStructure(ClassLoaderSpec self, HierarchicalClassLoaderStructure parent) {
+    public HierarchicalClassLoaderStructure(ClassLoaderSpec self, @Nullable HierarchicalClassLoaderStructure parent) {
         this.self = self;
         this.parent = parent;
     }

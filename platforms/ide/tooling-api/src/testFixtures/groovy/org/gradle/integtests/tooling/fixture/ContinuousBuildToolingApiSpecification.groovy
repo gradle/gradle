@@ -133,8 +133,6 @@ abstract class ContinuousBuildToolingApiSpecification extends ToolingApiSpecific
                     .forTasks(tasks as String[])
                     .withCancellationToken(token)
 
-                collectOutputs(launcher)
-
                 customizeLauncher(launcher)
 
                 launcher.run(buildResult)

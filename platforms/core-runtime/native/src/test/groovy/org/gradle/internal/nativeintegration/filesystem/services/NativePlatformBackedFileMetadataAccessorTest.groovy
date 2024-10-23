@@ -18,13 +18,15 @@ package org.gradle.internal.nativeintegration.filesystem.services
 
 import net.rubygrapefruit.platform.Native
 import net.rubygrapefruit.platform.file.Files
+import org.gradle.internal.file.AbstractFileMetadataAccessorTest
 import org.gradle.internal.file.FileMetadata
-import org.gradle.internal.nativeintegration.filesystem.FileMetadataAccessor
+import org.gradle.internal.file.FileMetadataAccessor
 import org.gradle.util.UsesNativeServices
-import static org.gradle.test.fixtures.FileMetadataTestFixture.maybeRoundLastModified
 
 import java.nio.file.LinkOption
 import java.nio.file.attribute.BasicFileAttributeView
+
+import static org.gradle.test.fixtures.FileMetadataTestFixture.maybeRoundLastModified
 
 @UsesNativeServices
 class NativePlatformBackedFileMetadataAccessorTest extends AbstractFileMetadataAccessorTest {

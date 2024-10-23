@@ -80,7 +80,7 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     private boolean failOnChangingVersions;
     private boolean verifyDependencies = true;
     private final Property<Boolean> useGlobalDependencySubstitutionRules;
-    private boolean returnAllVariants = false;
+    private boolean selectableVariantResults = false;
     private boolean keepStateRequiredForGraphResolution = false;
 
     @Inject
@@ -257,9 +257,9 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     @Override
     public boolean resolveGraphToDetermineTaskDependencies() {
         return assumeFluidDependencies
-                || dependencySubstitutions.rulesMayAddProjectDependency()
-                || useGlobalDependencySubstitutionRules.get() && globalDependencySubstitutionRules.rulesMayAddProjectDependency()
-                || vcsResolver.hasRules();
+            || dependencySubstitutions.rulesMayAddProjectDependency()
+            || (useGlobalDependencySubstitutionRules.get() && globalDependencySubstitutionRules.rulesMayAddProjectDependency())
+            || vcsResolver.hasRules();
     }
 
     @Override
@@ -400,14 +400,14 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     }
 
     @Override
-    public void setReturnAllVariants(boolean returnAllVariants) {
+    public void setIncludeAllSelectableVariantResults(boolean selectableVariantResults) {
         mutationValidator.validateMutation(STRATEGY);
-        this.returnAllVariants = returnAllVariants;
+        this.selectableVariantResults = selectableVariantResults;
     }
 
     @Override
-    public boolean getReturnAllVariants() {
-        return this.returnAllVariants;
+    public boolean getIncludeAllSelectableVariantResults() {
+        return this.selectableVariantResults;
     }
 
     @Override

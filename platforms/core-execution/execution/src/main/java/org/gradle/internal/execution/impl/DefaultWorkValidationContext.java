@@ -34,11 +34,9 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
 
-import static com.google.common.collect.ImmutableList.builder;
-
 public class DefaultWorkValidationContext implements WorkValidationContext {
     private final Set<Class<?>> types = new HashSet<>();
-    private final ImmutableList.Builder<Problem> problems = builder();
+    private final ImmutableList.Builder<Problem> problems = ImmutableList.builder();
     private final TypeOriginInspector typeOriginInspector;
 
     public DefaultWorkValidationContext(TypeOriginInspector typeOriginInspector) {
@@ -54,7 +52,7 @@ public class DefaultWorkValidationContext implements WorkValidationContext {
     public TypeValidationContext forType(Class<?> type, boolean cacheable) {
         types.add(type);
         Supplier<Optional<PluginId>> pluginId = () -> typeOriginInspector.findPluginDefining(type);
-        return new ProblemRecordingTypeValidationContext(type, pluginId) {
+        return new ProblemRecordingTypeValidationContext(type, pluginId, getProblemsService()) {
             @Override
             protected void recordProblem(Problem problem) {
                 if (DefaultTypeValidationContext.onlyAffectsCacheableWork(problem.getDefinition().getId()) && !cacheable) {

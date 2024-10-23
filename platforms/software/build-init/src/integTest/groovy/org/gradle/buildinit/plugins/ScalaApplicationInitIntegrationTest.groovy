@@ -16,8 +16,12 @@
 
 package org.gradle.buildinit.plugins
 
+import org.gradle.api.JavaVersion
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 
+@Requires(value = UnitTestPreconditions.Jdk22OrEarlier, reason = "Scala cannot compile on Java 23 yet")
 class ScalaApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSpec {
 
     public static final String SAMPLE_APP_CLASS = "org/example/App.scala"
@@ -28,7 +32,7 @@ class ScalaApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegrat
 
     def "creates sample source if no source present with #scriptDsl build scripts"() {
         when:
-        run('init', '--type', 'scala-application', '--dsl', scriptDsl.id)
+        run('init', '--type', 'scala-application', '--dsl', scriptDsl.id, '--java-version', JavaVersion.current().majorVersion)
 
         then:
         subprojectDir.file("src/main/scala").assertHasDescendants(SAMPLE_APP_CLASS)
@@ -55,7 +59,7 @@ class ScalaApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegrat
 
     def "creates build using test suites with #scriptDsl build scripts when using --incubating"() {
         when:
-        run('init', '--type', 'scala-application', '--dsl', scriptDsl.id, '--incubating')
+        run('init', '--type', 'scala-application', '--dsl', scriptDsl.id, '--incubating', '--java-version', JavaVersion.current().majorVersion)
 
         then:
         subprojectDir.file("src/main/scala").assertHasDescendants(SAMPLE_APP_CLASS)
@@ -83,10 +87,14 @@ class ScalaApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegrat
 
     def "creates with gradle.properties when using #scriptDsl build scripts with --incubating"() {
         when:
-        run('init', '--type', 'scala-application', '--dsl', scriptDsl.id, '--incubating')
+        run('init', '--type', 'scala-application', '--dsl', scriptDsl.id, '--incubating', '--java-version', JavaVersion.current().majorVersion)
 
         then:
-        gradlePropertiesGenerated()
+        gradlePropertiesGenerated {
+            assertCachingEnabled()
+            assertParallelEnabled()
+            assertConfigurationCacheEnabled()
+        }
 
         when:
         run("build")
@@ -106,7 +114,7 @@ class ScalaApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegrat
 
     def "specifying JUnit4 is not supported with #scriptDsl build scripts"() {
         when:
-        fails('init', '--type', 'scala-application', '--test-framework', 'junit-4', '--dsl', scriptDsl.id)
+        fails('init', '--type', 'scala-application', '--test-framework', 'junit-4', '--dsl', scriptDsl.id, '--java-version', JavaVersion.current().majorVersion)
 
         then:
         failure.assertHasCause("""The requested test framework 'junit-4' is not supported for 'scala-application' build type. Supported frameworks:
@@ -118,7 +126,7 @@ class ScalaApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegrat
 
     def "creates sample source with package and #scriptDsl build scripts"() {
         when:
-        run('init', '--type', 'scala-application', '--package', 'my.app', '--dsl', scriptDsl.id)
+        run('init', '--type', 'scala-application', '--package', 'my.app', '--dsl', scriptDsl.id, '--java-version', JavaVersion.current().majorVersion)
 
         then:
         subprojectDir.file("src/main/scala").assertHasDescendants("my/app/App.scala")
@@ -161,7 +169,7 @@ class ScalaApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegrat
                 }
         """
         when:
-        run('init', '--type', 'scala-application', '--dsl', scriptDsl.id)
+        run('init', '--type', 'scala-application', '--dsl', scriptDsl.id, '--overwrite', '--java-version', JavaVersion.current().majorVersion)
 
         then:
         subprojectDir.file("src/main/scala").assertHasDescendants("org/acme/SampleMain.scala")

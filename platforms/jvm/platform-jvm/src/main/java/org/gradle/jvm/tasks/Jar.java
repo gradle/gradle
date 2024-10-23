@@ -35,6 +35,7 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.bundling.Zip;
 import org.gradle.internal.execution.OutputChangeListener;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.serialization.Cached;
 import org.gradle.util.internal.ConfigureUtil;
 import org.gradle.work.DisableCachingByDefault;
@@ -108,6 +109,7 @@ public abstract class Jar extends Zip {
      * @since 2.14
      */
     @Override
+    @ToBeReplacedByLazyProperty
     public String getMetadataCharset() {
         return super.getMetadataCharset();
     }
@@ -134,6 +136,7 @@ public abstract class Jar extends Zip {
      * @since 2.14
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public String getManifestContentCharset() {
         return manifestContentCharset;
     }
@@ -161,6 +164,7 @@ public abstract class Jar extends Zip {
      * @return The manifest
      */
     @Internal
+    @ToBeReplacedByLazyProperty
     public Manifest getManifest() {
         return manifest;
     }
@@ -209,6 +213,7 @@ public abstract class Jar extends Zip {
     }
 
     @Internal
+    @ToBeReplacedByLazyProperty(comment = "This should probably stay eager")
     public CopySpec getMetaInf() {
         return metaInf.addChild();
     }

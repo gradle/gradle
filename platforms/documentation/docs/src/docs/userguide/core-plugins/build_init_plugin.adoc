@@ -64,7 +64,8 @@ The Build Init plugin supports generating various build _types_. These are liste
 
 The plugin adds the following tasks to the project:
 
-`init` — link:{groovyDslPath}/org.gradle.buildinit.tasks.InitBuild.html[InitBuild]::
+`init` — link:{groovyDslPath}/org.gradle.buildinit.tasks.InitBuild.html[InitBuild]
+
 Generates a Gradle build.
 
 Gradle plugins usually need to be _applied_ to a project before they can be used (see <<plugins.adoc#sec:using_plugins,Using plugins>>). However, the Build Init plugin is automatically applied to the root project of every build, which means you do not need to apply it explicitly in order to use it. You can simply execute the task named `init` in the directory where you would like to create the Gradle build. There is no need to create a “stub” `build.gradle` file in order to apply the plugin.
@@ -103,6 +104,8 @@ You can change the name of the generated project using the `--project-name` opti
 You can change the package used for generated source files using the `--package` option. It defaults to the project name.
 
 If the `--incubating` option is provided, Gradle will generate build scripts which may use the latest versions of APIs, which are marked `@Incubating` and remain <<feature_lifecycle.adoc#feature_lifecycle,subject to change>>. To disable this behavior, use `--no-incubating`.
+
+If the `--overwrite` option is provided, Gradle will overwrite any existing files in the directory where the `init` task runs. By default, `init` will prompt the user to continue if Gradle finds any files in the directory.
 
 All build types also set up <<gradle_wrapper.adoc#gradle_wrapper_reference, Gradle Wrapper>> in the build.
 

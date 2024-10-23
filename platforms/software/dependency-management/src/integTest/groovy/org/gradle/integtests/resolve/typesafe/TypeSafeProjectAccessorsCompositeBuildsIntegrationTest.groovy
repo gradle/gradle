@@ -16,18 +16,20 @@
 
 package org.gradle.integtests.resolve.typesafe
 
+import org.gradle.util.internal.ToBeImplemented
+
 class TypeSafeProjectAccessorsCompositeBuildsIntegrationTest extends AbstractTypeSafeProjectAccessorsIntegrationTest {
 
-    // This test documents the existing behavior, not necessarily what we
-    // intend to ship
-    def "included builds participate in type-safe accessors generation (included name=#otherName)"() {
+    // not necessarily planned to be implemented, but capturing the existing behavior
+    @ToBeImplemented
+    def "included builds participate in type-safe accessors generation"() {
         settingsFile << """
             rootProject.name = 'test'
 
-            include 'other'
+            includeBuild 'other'
         """
         file('other/settings.gradle') << """
-            rootProject.name = '${otherName}'
+            rootProject.name = 'other'
         """
 
         buildFile << """
@@ -37,12 +39,11 @@ class TypeSafeProjectAccessorsCompositeBuildsIntegrationTest extends AbstractTyp
         """
 
         when:
-        succeeds 'help'
+        fails 'help'
 
         then:
-        outputContains 'Dependency path: ":other"'
-
-        where:
-        otherName << ['other', 'make-it-harder']
+        failureCauseContains("Could not get unknown property 'other' for extension 'projects' of type org.gradle.accessors.dm.RootProjectAccessor")
+        // Desired behavior:
+//        outputContains 'Dependency path: ":other"'
     }
 }

@@ -16,6 +16,10 @@
 
 package org.gradle.execution;
 
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+
+@ServiceScope(Scope.Global.class)
 public interface WorkValidationWarningReporter {
     /**
      * Reports any validation warnings at the end of the build.

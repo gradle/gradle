@@ -44,6 +44,7 @@ fun performanceTestCommandLine(
     baselines: String,
     extraParameters: String = "",
     os: Os = Os.LINUX,
+    arch: Arch = Arch.AMD64,
     testJavaVersion: String = os.perfTestJavaVersion.major.toString(),
     testJavaVendor: String = os.perfTestJavaVendor.toString(),
 ) = listOf(
@@ -54,7 +55,7 @@ fun performanceTestCommandLine(
     "-PautoDownloadAndroidStudio=true",
     "-PrunAndroidStudioInHeadlessMode=true",
     "-Porg.gradle.java.installations.auto-download=false",
-    os.javaInstallationLocations()
+    os.javaInstallationLocations(arch)
 ) + listOf(
     "-Porg.gradle.performance.branchName" to "%teamcity.build.branch%",
     "-Porg.gradle.performance.db.url" to "%performance.db.url%",
@@ -62,10 +63,10 @@ fun performanceTestCommandLine(
 ).map { (key, value) -> os.escapeKeyValuePair(key, value) }
 
 const val individualPerformanceTestArtifactRules = """
-subprojects/*/build/test-results-*.zip => results
-subprojects/*/build/tmp/**/log.txt => failure-logs
-subprojects/*/build/tmp/**/profile.log => failure-logs
-subprojects/*/build/tmp/**/daemon-*.out.log => failure-logs
+testing/*/build/test-results-*.zip => results
+testing/*/build/tmp/**/log.txt => failure-logs
+testing/*/build/tmp/**/profile.log => failure-logs
+testing/*/build/tmp/**/daemon-*.out.log => failure-logs
 """
 
 // to avoid pathname too long error

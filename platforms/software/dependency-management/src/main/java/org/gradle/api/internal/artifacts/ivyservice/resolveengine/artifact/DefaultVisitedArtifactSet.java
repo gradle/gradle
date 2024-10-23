@@ -19,6 +19,14 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 import org.gradle.api.internal.artifacts.configurations.ResolutionHost;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults;
 import org.gradle.api.internal.artifacts.transform.ArtifactVariantSelector;
+import org.gradle.api.internal.artifacts.transform.AttributeMatchingArtifactVariantSelector;
+import org.gradle.api.internal.artifacts.transform.ConsumerProvidedVariantFinder;
+import org.gradle.api.internal.artifacts.transform.TransformUpstreamDependenciesResolver;
+import org.gradle.api.internal.artifacts.transform.TransformedVariantFactory;
+import org.gradle.api.internal.attributes.AttributeSchemaServices;
+import org.gradle.api.internal.attributes.AttributesFactory;
+import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
+import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler;
 
 /**
  * Selects artifacts from all visited artifacts in a graph.
@@ -28,25 +36,50 @@ public class DefaultVisitedArtifactSet implements VisitedArtifactSet {
     private final ResolutionHost resolutionHost;
     private final VisitedArtifactResults artifactsResults;
     private final ResolvedArtifactSetResolver artifactSetResolver;
-    private final ArtifactVariantSelector artifactVariantSelector;
+
+    private final ArtifactSelectionServices consumerServices;
 
     public DefaultVisitedArtifactSet(
         VisitedGraphResults graphResults,
         ResolutionHost resolutionHost,
         VisitedArtifactResults artifactsResults,
         ResolvedArtifactSetResolver artifactSetResolver,
-        ArtifactVariantSelector artifactVariantSelector
+        TransformedVariantFactory transformedVariantFactory,
+        TransformUpstreamDependenciesResolver dependenciesResolver,
+        ImmutableAttributesSchema consumerSchema,
+        ConsumerProvidedVariantFinder consumerProvidedVariantFinder,
+        AttributesFactory attributesFactory,
+        AttributeSchemaServices attributeSchemaServices,
+        ResolutionFailureHandler resolutionFailureHandler
     ) {
         this.graphResults = graphResults;
         this.resolutionHost = resolutionHost;
         this.artifactsResults = artifactsResults;
         this.artifactSetResolver = artifactSetResolver;
-        this.artifactVariantSelector = artifactVariantSelector;
+
+        ArtifactVariantSelector artifactVariantSelector = new AttributeMatchingArtifactVariantSelector(
+            consumerSchema,
+            consumerProvidedVariantFinder,
+            attributesFactory,
+            attributeSchemaServices,
+            resolutionFailureHandler
+        );
+
+        this.consumerServices = new ArtifactSelectionServices(
+            artifactVariantSelector,
+            transformedVariantFactory,
+            dependenciesResolver
+        );
     }
 
     @Override
     public SelectedArtifactSet select(ArtifactSelectionSpec spec) {
-        SelectedArtifactResults artifacts = artifactsResults.select(artifactVariantSelector, spec, false);
+        SelectedArtifactResults artifacts = artifactsResults.select(consumerServices, spec, false);
         return new DefaultSelectedArtifactSet(artifactSetResolver, graphResults, artifacts.getArtifacts(), resolutionHost);
+    }
+
+    @Override
+    public SelectedArtifactResults selectLegacy(ArtifactSelectionSpec spec, boolean lenient) {
+        return artifactsResults.select(consumerServices, spec, lenient);
     }
 }

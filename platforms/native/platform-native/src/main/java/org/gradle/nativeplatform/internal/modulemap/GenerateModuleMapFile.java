@@ -20,7 +20,6 @@ import com.google.common.collect.Lists;
 import com.google.common.io.Files;
 import org.apache.commons.io.FileUtils;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.specs.Spec;
 
 import java.io.File;
 import java.io.IOException;
@@ -34,12 +33,7 @@ public class GenerateModuleMapFile {
         List<String> lines = Lists.newArrayList(
             "module " + moduleName + " {"
         );
-        List<String> validHeaderDirs = filter(publicHeaderDirs, new Spec<String>() {
-            @Override
-            public boolean isSatisfiedBy(String path) {
-                return new File(path).exists();
-            }
-        });
+        List<String> validHeaderDirs = filter(publicHeaderDirs, path -> new File(path).exists());
         lines.addAll(collect(validHeaderDirs, path -> "\tumbrella \"" + path + "\""));
         lines.add("\texport *");
         lines.add("}");

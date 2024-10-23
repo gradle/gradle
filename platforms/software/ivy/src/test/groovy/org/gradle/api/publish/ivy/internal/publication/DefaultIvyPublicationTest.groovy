@@ -36,9 +36,8 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver
 import org.gradle.api.internal.attributes.AttributeDesugaring
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
-import org.gradle.api.internal.attributes.EmptySchema
 import org.gradle.api.internal.attributes.ImmutableAttributes
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory
+import org.gradle.api.internal.attributes.AttributesFactory
 import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.internal.component.UsageContext
 import org.gradle.api.model.ObjectFactory
@@ -146,7 +145,7 @@ class DefaultIvyPublicationTest extends Specification {
         moduleDependency.artifacts >> [artifact]
         moduleDependency.excludeRules >> [exclude]
         moduleDependency.attributes >> ImmutableAttributes.EMPTY
-        moduleDependency.requestedCapabilities >> []
+        moduleDependency.capabilitySelectors >> ([] as Set)
 
         and:
         publication.from(componentWithDependency(moduleDependency))
@@ -184,7 +183,7 @@ class DefaultIvyPublicationTest extends Specification {
         projectDependency.artifacts >> []
         projectDependency.excludeRules >> [exclude]
         projectDependency.attributes >> ImmutableAttributes.EMPTY
-        projectDependency.requestedCapabilities >> []
+        projectDependency.capabilitySelectors >> ([] as Set)
 
         when:
         publication.from(componentWithDependency(projectDependency))
@@ -365,10 +364,10 @@ class DefaultIvyPublicationTest extends Specification {
         def objectFactory = TestUtil.createTestServices {
             it.add(Instantiator, TestUtil.instantiatorFactory().decorateLenient())
             it.add(ProjectDependencyPublicationResolver, projectDependencyResolver)
-            it.add(ImmutableAttributesFactory, AttributeTestUtil.attributesFactory())
+            it.add(AttributesFactory, AttributeTestUtil.attributesFactory())
             it.add(PlatformSupport, DependencyManagementTestUtil.platformSupport())
             it.add(ImmutableModuleIdentifierFactory, new DefaultImmutableModuleIdentifierFactory())
-            it.add(AttributesSchemaInternal, EmptySchema.INSTANCE)
+            it.add(AttributesSchemaInternal, AttributeTestUtil.mutableSchema())
             it.add(AttributeDesugaring, new AttributeDesugaring(AttributeTestUtil.attributesFactory()))
             it.add(DefaultDependencyCoordinateResolverFactory)
         }.get(ObjectFactory)

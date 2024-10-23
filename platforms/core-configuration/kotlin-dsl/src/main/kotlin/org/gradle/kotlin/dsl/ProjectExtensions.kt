@@ -41,6 +41,7 @@ import org.gradle.kotlin.dsl.provider.fileCollectionOf
 import org.gradle.kotlin.dsl.provider.gradleKotlinDslOf
 import org.gradle.kotlin.dsl.support.ScriptHandlerScopeInternal
 import org.gradle.kotlin.dsl.support.invalidPluginsCall
+import org.gradle.kotlin.dsl.support.serviceOf
 
 import org.gradle.plugin.use.PluginDependenciesSpec
 
@@ -59,7 +60,7 @@ fun Project.buildscript(action: ScriptHandlerScope.() -> Unit): Unit =
  * Sets the default tasks of this project. These are used when no tasks names are provided when
  * starting the build.
  */
-@Suppress("nothing_to_inline")
+@Suppress("nothing_to_inline", "SpreadOperator")
 inline fun Project.defaultTasks(vararg tasks: Task) {
     defaultTasks(*tasks.map { it.name }.toTypedArray())
 }
@@ -252,7 +253,7 @@ fun Project.artifacts(configuration: ArtifactHandlerScope.() -> Unit) =
  * Locates a property on [Project].
  */
 operator fun Project.provideDelegate(any: Any?, property: KProperty<*>): PropertyDelegate =
-    propertyDelegateFor(this, property)
+    propertyDelegateFor(serviceOf(), this, property)
 
 
 /**

@@ -81,7 +81,7 @@ abstract class CachesCleaner : BuildService<CachesCleaner.Params> {
 
         // Remove script caches from TestKit integTest temp dir
         // location defined in TempTestKitDirProvider, copied here
-        val testKitTmpDir = File(File(System.getProperty("java.io.tmpdir")), String.format(".gradle-test-kit-%s", System.getProperty("user.name")))
+        val testKitTmpDir = File(File(System.getProperty("java.io.tmpdir")), ".gradle-test-kit-${System.getProperty("user.name")}")
         fileSystemOperations.removeCachedScripts(File(testKitTmpDir, "caches"))
         fileSystemOperations.removeTransformDir(File(testKitTmpDir, "caches"))
 

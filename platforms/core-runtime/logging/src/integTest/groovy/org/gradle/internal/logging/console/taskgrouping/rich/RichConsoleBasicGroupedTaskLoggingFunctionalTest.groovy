@@ -51,6 +51,7 @@ class RichConsoleBasicGroupedTaskLoggingFunctionalTest extends AbstractBasicGrou
         """
 
         when:
+        executer.withArgument("--no-problems-report")
         fails('failing')
 
         then:
@@ -140,7 +141,7 @@ class RichConsoleBasicGroupedTaskLoggingFunctionalTest extends AbstractBasicGrou
 
         when:
         def handle = server.expectConcurrentAndBlock('longRunningStart', 'task1')
-        def gradle = executer.withArgument('--parallel').withTasks('longRunning', 'task2').start()
+        def gradle = executer.withArgument('--parallel').withArgument("--no-problems-report").withTasks('longRunning', 'task2').start()
 
         then:
         handle.waitForAllPendingCalls()

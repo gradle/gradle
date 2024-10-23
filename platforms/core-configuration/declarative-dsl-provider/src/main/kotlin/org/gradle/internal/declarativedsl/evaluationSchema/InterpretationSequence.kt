@@ -16,33 +16,53 @@
 
 package org.gradle.internal.declarativedsl.evaluationSchema
 
+import org.gradle.declarative.dsl.evaluation.EvaluationSchema
+import org.gradle.declarative.dsl.evaluation.InterpretationSequence
+import org.gradle.declarative.dsl.evaluation.InterpretationSequenceStep
+import org.gradle.declarative.dsl.evaluation.InterpretationStepFeature
+import org.gradle.internal.declarativedsl.evaluator.conversion.EvaluationAndConversionSchema
+import org.gradle.internal.declarativedsl.evaluator.conversion.InterpretationSequenceStepWithConversion
 
-internal
-class InterpretationSequence(
-    val steps: Iterable<InterpretationSequenceStep<*>>
-)
+
+class DefaultInterpretationSequence(
+    override val steps: Iterable<InterpretationSequenceStep>
+) : InterpretationSequence
 
 
-internal
-interface InterpretationSequenceStep<R : Any> {
-    val stepIdentifier: String
-    fun evaluationSchemaForStep(): EvaluationSchema
-    fun topLevelReceiver(): R
-    fun whenEvaluated(resultReceiver: R)
+class DefaultStepIdentifier(override val key: String) : InterpretationSequenceStep.StepIdentifier
+
+
+class SimpleInterpretationSequenceStep(
+    override val stepIdentifier: InterpretationSequenceStep.StepIdentifier,
+    override val features: Set<InterpretationStepFeature> = emptySet(),
+    buildEvaluationAndConversionSchema: () -> EvaluationSchema
+) : InterpretationSequenceStep {
+
+    constructor(stepIdentifierString: String, features: Set<InterpretationStepFeature>, buildEvaluationAndConversionSchema: () -> EvaluationSchema) :
+        this(DefaultStepIdentifier(stepIdentifierString), features, buildEvaluationAndConversionSchema)
+
+    override val evaluationSchemaForStep: EvaluationSchema by lazy(buildEvaluationAndConversionSchema)
 }
 
 
 /**
- * Implements a straightforward interpretation sequence step that uses the specified [topLevelReceiver]
- * and produces an evaluation schema with [buildEvaluationSchema] immediately before the step runs.
+ * Implements a straightforward interpretation sequence step that uses the target as the top-level receiver
+ * and produces an evaluation schema with [buildEvaluationAndConversionSchema] lazily before the step runs.
  */
 internal
-class SimpleInterpretationSequenceStep<T : Any>(
-    override val stepIdentifier: String,
-    private val topLevelReceiver: T,
-    private val buildEvaluationSchema: () -> EvaluationSchema
-) : InterpretationSequenceStep<T> {
-    override fun evaluationSchemaForStep(): EvaluationSchema = buildEvaluationSchema()
-    override fun topLevelReceiver(): T = topLevelReceiver
-    override fun whenEvaluated(resultReceiver: T) = Unit
+class SimpleInterpretationSequenceStepWithConversion private constructor(
+    override val stepIdentifier: InterpretationSequenceStep.StepIdentifier,
+    override val features: Set<InterpretationStepFeature> = emptySet(),
+    buildEvaluationAndConversionSchema: () -> EvaluationAndConversionSchema
+) : InterpretationSequenceStepWithConversion<Any> {
+
+    constructor(
+        stepIdentifierString: String,
+        features: Set<InterpretationStepFeature> = emptySet(),
+        buildEvaluationAndConversionSchema: () -> EvaluationAndConversionSchema
+    ) : this(DefaultStepIdentifier(stepIdentifierString), features, buildEvaluationAndConversionSchema)
+
+    override val evaluationSchemaForStep: EvaluationAndConversionSchema by lazy(buildEvaluationAndConversionSchema)
+    override fun getTopLevelReceiverFromTarget(target: Any): Any = target
+    override fun whenEvaluated(resultReceiver: Any) = Unit
 }

@@ -58,6 +58,7 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.buildoption.FeatureFlags;
 import org.gradle.internal.file.Deleter;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.jvm.toolchain.JavaInstallationMetadata;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaToolchainService;
@@ -107,6 +108,7 @@ public abstract class GroovyCompile extends AbstractCompile implements HasCompil
     @Override
     @CompileClasspath
     @Incremental
+    @ToBeReplacedByLazyProperty
     public FileCollection getClasspath() {
         // Note that @CompileClasspath here is an approximation and must be fixed before de-incubating getAstTransformationClasspath()
         // See https://github.com/gradle/gradle/pull/9513
@@ -300,6 +302,7 @@ public abstract class GroovyCompile extends AbstractCompile implements HasCompil
      */
     @Override
     @Internal("tracked via stableSources")
+    @ToBeReplacedByLazyProperty
     public FileTree getSource() {
         return super.getSource();
     }
@@ -332,6 +335,7 @@ public abstract class GroovyCompile extends AbstractCompile implements HasCompil
      * @return The classpath.
      */
     @Classpath
+    @ToBeReplacedByLazyProperty
     public FileCollection getGroovyClasspath() {
         return groovyClasspath;
     }

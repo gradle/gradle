@@ -139,7 +139,7 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
     @Override
     public void visitDependencies(TaskDependencyResolveContext context) {
         // When used as an input, add the producing tasks if known
-        getProducer().visitProducerTasks(context);
+        getProducer().visitDependencies(context);
     }
 
     @Override

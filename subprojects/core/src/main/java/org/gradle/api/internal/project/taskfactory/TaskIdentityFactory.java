@@ -19,7 +19,7 @@ package org.gradle.api.internal.project.taskfactory;
 import org.gradle.api.Task;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.id.ConfigurationCacheableIdFactory;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -29,7 +29,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * when creating new instances and/or loading from the configuration cache.
  */
 @ThreadSafe
-@ServiceScope(Scopes.BuildTree.class)
+@ServiceScope(Scope.BuildTree.class)
 public class TaskIdentityFactory {
 
     private final ConfigurationCacheableIdFactory idFactory;

@@ -47,7 +47,7 @@ import java.util.stream.Stream;
 public class LockFileReaderWriter {
 
     private static final Logger LOGGER = Logging.getLogger(LockFileReaderWriter.class);
-    private static final String LIMITATIONS_DOC_LINK = " " + new DocumentationRegistry().getDocumentationRecommendationFor("information on limitations", "dependency_locking", "locking_limitations");
+    private static final String LIMITATIONS_DOC_LINK = new DocumentationRegistry().getDocumentationRecommendationFor("information on limitations", "dependency_locking", "locking_limitations");
     static final String FORMATTING_DOC_LINK = "Verify the lockfile content. " + new DocumentationRegistry().getDocumentationRecommendationFor("information on lock file format", "dependency_locking", "lock_state_location_and_format");
 
     static final String UNIQUE_LOCKFILE_NAME = "gradle.lockfile";
@@ -112,8 +112,7 @@ public class LockFileReaderWriter {
 
     private void checkValidRoot() {
         if (lockFilesRoot == null) {
-            throw new IllegalStateException("Dependency locking cannot be used for project '" + context.getProjectPath() + "'." +
-                LIMITATIONS_DOC_LINK);
+            throw new IllegalStateException("Dependency locking cannot be used for " + context.getDisplayName() + ". " + LIMITATIONS_DOC_LINK);
         }
     }
 

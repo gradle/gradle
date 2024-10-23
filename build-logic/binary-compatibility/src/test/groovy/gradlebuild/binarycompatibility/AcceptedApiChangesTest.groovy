@@ -22,7 +22,7 @@ class AcceptedApiChangesTest extends Specification {
 
     def "parses accepted change"() {
         when:
-        def changes = AcceptedApiChanges.parse("""
+        def changes = AcceptedApiChanges.parse(["""
             {
                 "acceptedApiChanges": [
                     {
@@ -33,7 +33,7 @@ class AcceptedApiChangesTest extends Specification {
                     }
                 ]
             }
-        """)
+        """])
 
         then:
         changes.acceptedChanges.size() == 1
@@ -47,7 +47,7 @@ class AcceptedApiChangesTest extends Specification {
 
     def "parses more than one change"() {
         when:
-        def changes = AcceptedApiChanges.parse("""
+        def changes = AcceptedApiChanges.parse(["""
             {
                 "acceptedApiChanges": [
                     {
@@ -64,10 +64,40 @@ class AcceptedApiChangesTest extends Specification {
                     }
                 ]
             }
-        """)
+        """])
 
         then:
         changes.acceptedChanges.size() == 2
     }
 
+    def "parses more than one change from different files"() {
+        when:
+        def changes = AcceptedApiChanges.parse(["""
+            {
+                "acceptedApiChanges": [
+                    {
+                        "type": "org.gradle.api.initialization.ConfigurableIncludedBuild",
+                        "member": "Implemented interface org.gradle.api.initialization.IncludedBuild",
+                        "changes": ["Interface has been removed"],
+                        "acceptation": "@Incubating interface has been removed"
+                    }
+                ]
+            }
+        """,
+        """
+            {
+                "acceptedApiChanges": [
+                    {
+                        "type": "other.Type",
+                        "member": "Method other.Type.someMethod",
+                        "changes": ["Method has been removed"],
+                        "acceptation": "I really want to do this"
+                    }
+                ]
+            }
+        """])
+
+        then:
+        changes.acceptedChanges.size() == 2
+    }
 }

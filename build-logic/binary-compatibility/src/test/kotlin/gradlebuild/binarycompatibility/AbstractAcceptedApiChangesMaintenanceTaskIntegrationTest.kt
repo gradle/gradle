@@ -29,12 +29,14 @@ import java.io.StringWriter
 abstract class AbstractAcceptedApiChangesMaintenanceTaskIntegrationTest {
     @TempDir
     lateinit var projectDir: File
-    lateinit var acceptedApiChangesFile: File
+    lateinit var firstAcceptedApiChangesFile: File
+    lateinit var secondAcceptedApiChangesFile: File
 
     @BeforeEach
     fun setUp() {
-        projectDir.resolve("src").resolve("changes").mkdirs()
-        acceptedApiChangesFile = projectDir.resolve("src/changes/accepted-public-api-changes.json")
+        projectDir.resolve("src").resolve("changes").resolve("accepted-changes").mkdirs()
+        firstAcceptedApiChangesFile = projectDir.resolve("src/changes/accepted-changes/accepted-public-api-changes.json")
+        secondAcceptedApiChangesFile = projectDir.resolve("src/changes/accepted-changes/second-accepted-public-api-changes.json")
 
         projectDir.resolve("build.gradle.kts")
             .writeText(
@@ -46,13 +48,13 @@ abstract class AbstractAcceptedApiChangesMaintenanceTaskIntegrationTest {
                     val verifyAcceptedApiChangesOrdering = tasks.register<gradlebuild.binarycompatibility.AlphabeticalAcceptedApiChangesTask>("verifyAcceptedApiChangesOrdering") {
                         group = "verification"
                         description = "Ensures the accepted api changes file is kept alphabetically ordered to make merging changes to it easier"
-                        apiChangesFile.set(layout.projectDirectory.file("${ TextUtil.normaliseFileSeparators(acceptedApiChangesFile.absolutePath) }"))
+                        apiChangesDirectory = layout.projectDirectory.dir("${ TextUtil.normaliseFileSeparators(firstAcceptedApiChangesFile.parentFile.absolutePath) }")
                     }
 
                     val sortAcceptedApiChanges = tasks.register<gradlebuild.binarycompatibility.SortAcceptedApiChangesTask>("sortAcceptedApiChanges") {
                         group = "verification"
                         description = "Sort the accepted api changes file alphabetically"
-                        apiChangesFile.set(layout.projectDirectory.file("${ TextUtil.normaliseFileSeparators(acceptedApiChangesFile.absolutePath) }"))
+                        apiChangesDirectory = layout.projectDirectory.dir("${ TextUtil.normaliseFileSeparators(firstAcceptedApiChangesFile.parentFile.absolutePath) }")
                     }
                 """.trimIndent()
             )
@@ -123,10 +125,12 @@ abstract class AbstractAcceptedApiChangesMaintenanceTaskIntegrationTest {
             .forwardStdError(standardError)
             .buildAndFail()
 
-        val expectedOutput = "API changes in file '${acceptedApiChangesFile.name}' should be in alphabetical order (by type and member), yet these changes were not:\n"
+        val files = listOf(firstAcceptedApiChangesFile, secondAcceptedApiChangesFile)
         val cleanupHint = "To automatically alphabetize these changes run: 'gradlew :architecture-test:sortAcceptedApiChanges'"
         with(standardError) {
-            assertContains(expectedOutput)
+            files.forEach {
+                assertContains("API changes in file '${it.name}' should be in alphabetical order (by type and member), yet these changes were not:\n")
+            }
             changes?.forEach { assertContains(it.toString()) }
             assertContains(cleanupHint)
         }

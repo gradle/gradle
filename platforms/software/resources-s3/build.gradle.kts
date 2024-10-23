@@ -7,19 +7,15 @@ description = "Implementation for interacting with S3 repositories"
 errorprone {
     disabledChecks.addAll(
         "NotJavadoc", // 1 occurrences
-        "StringCaseLocaleUsage", // 1 occurrences
-        "StringSplitter", // 1 occurrences
-        "UnusedMethod", // 2 occurrences
-        "UnusedVariable", // 1 occurrences
     )
 }
 
 dependencies {
-    api(project(":base-services"))
-    api(project(":core"))
-    api(project(":core-api"))
-    api(project(":resources"))
-    api(project(":resources-http"))
+    api(projects.serviceProvider)
+    api(projects.core)
+    api(projects.coreApi)
+    api(projects.resources)
+    api(projects.resourcesHttp)
 
     api(libs.awsS3Core)
     api(libs.awsS3S3)
@@ -31,23 +27,24 @@ dependencies {
     }
     api(libs.guava)
 
-    implementation(project(":hashing"))
+    implementation(projects.baseServices)
+    implementation(projects.hashing)
 
     implementation(libs.commonsLang)
     implementation(libs.slf4jApi)
 
-    testImplementation(testFixtures(project(":core")))
-    testImplementation(testFixtures(project(":dependency-management")))
-    testImplementation(testFixtures(project(":ivy")))
-    testImplementation(testFixtures(project(":maven")))
+    testImplementation(testFixtures(projects.core))
+    testImplementation(testFixtures(projects.dependencyManagement))
+    testImplementation(testFixtures(projects.ivy))
+    testImplementation(testFixtures(projects.maven))
 
-    integTestImplementation(project(":logging"))
+    integTestImplementation(projects.logging)
     integTestImplementation(libs.commonsIo)
     integTestImplementation(libs.groovyXml)
     integTestImplementation(libs.littleproxy)
     integTestImplementation(libs.jetty)
 
-    integTestDistributionRuntimeOnly(project(":distributions-basics"))
+    integTestDistributionRuntimeOnly(projects.distributionsBasics)
 }
 
 
@@ -59,4 +56,7 @@ dependencyAnalysis {
             exclude(libs.awsS3Sts)
         }
     }
+}
+tasks.isolatedProjectsIntegTest {
+    enabled = false
 }

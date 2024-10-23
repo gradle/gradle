@@ -21,8 +21,10 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.api.problems.ProblemSpec;
 import org.gradle.api.problems.Severity;
-import org.gradle.api.problems.internal.GradleCoreProblemGroup;
+import org.gradle.api.problems.internal.GeneralDataSpec;
+import org.gradle.api.problems.internal.InternalProblemSpec;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.specs.Spec;
 import org.gradle.util.internal.NameMatcher;
@@ -94,18 +96,27 @@ public class DefaultTaskSelector implements TaskSelector {
         String searchContext = getSearchContext(targetProject, includeSubprojects);
 
         if (context.getOriginalPath().getPath().equals(taskName)) {
-            throw new TaskSelectionException(matcher.formatErrorMessage("Task", searchContext));
+            throw getProblemsService().getInternalReporter().throwing(spec -> {
+                configureProblem(spec, matcher, context);
+                String message = matcher.formatErrorMessage("Task", searchContext);
+                spec.contextualLabel(message)
+                    .withException(new TaskSelectionException(message));
+            });
         }
         String message = String.format("Cannot locate %s that match '%s' as %s", context.getType(), context.getOriginalPath(),
             matcher.formatErrorMessage("task", searchContext));
 
-        throw getProblemsService().getInternalReporter().throwing(builder -> builder
-            .id("no-matches", "cannot locate task", GradleCoreProblemGroup.taskSelection())
+        throw getProblemsService().getInternalReporter().throwing(spec -> configureProblem(spec, matcher, context)
             .contextualLabel(message)
-            .fileLocation(Objects.requireNonNull(context.getOriginalPath().getName()))
-            .severity(Severity.ERROR)
             .withException(new TaskSelectionException(message)) // this instead of cause
         );
+    }
+
+    private static ProblemSpec configureProblem(ProblemSpec spec, NameMatcher matcher, SelectionContext context) {
+        matcher.configureProblemId(spec);
+        ((InternalProblemSpec) spec).additionalData(GeneralDataSpec.class, data -> data.put("requestedPath", Objects.requireNonNull(context.getOriginalPath().getPath())));
+        spec.severity(Severity.ERROR);
+        return spec;
     }
 
     @Nonnull

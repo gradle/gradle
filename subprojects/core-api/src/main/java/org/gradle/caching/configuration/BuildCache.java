@@ -16,6 +16,8 @@
 
 package org.gradle.caching.configuration;
 
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+
 /**
  * Configuration object for a build cache.
  *
@@ -26,6 +28,7 @@ public interface BuildCache {
     /**
      * Returns whether the build cache is enabled.
      */
+    @ToBeReplacedByLazyProperty
     boolean isEnabled();
 
     /**
@@ -36,6 +39,7 @@ public interface BuildCache {
     /**
      * Returns whether a given build can store outputs in the build cache.
      */
+    @ToBeReplacedByLazyProperty
     boolean isPush();
 
     /**

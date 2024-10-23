@@ -6,45 +6,44 @@ errorprone {
     disabledChecks.addAll(
         "MixedMutabilityReturnType", // 1 occurrences
         "ModifiedButNotUsed", // 1 occurrences
-        "StringCaseLocaleUsage", // 1 occurrences
-        "StringSplitter", // 1 occurrences
-        "UnusedMethod", // 5 occurrences
     )
 }
 dependencies {
-    api(project(":base-annotations"))
-    api(project(":base-services"))
-    api(project(":core"))
-    api(project(":core-api"))
-    api(project(":dependency-management"))
-    api(project(":files"))
-    api(project(":logging"))
-    api(project(":model-core"))
+    api(projects.stdlibJavaExtensions)
+    api(projects.serviceLookup)
+    api(projects.serviceProvider)
+    api(projects.baseServices)
+    api(projects.core)
+    api(projects.coreApi)
+    api(projects.files)
+    api(projects.logging)
+    api(projects.modelCore)
 
     api(libs.guava)
     api(libs.inject)
     api(libs.jsr305)
 
-    implementation(project(":execution"))
+    implementation(projects.dependencyManagement)
+    implementation(projects.execution)
 
     implementation(libs.commonsLang)
 
-    testImplementation(testFixtures(project(":core")))
-    testImplementation(testFixtures(project(":core-api")))
-    testImplementation(project(":native"))
-    testImplementation(project(":snapshots"))
-    testImplementation(project(":process-services"))
+    testImplementation(testFixtures(projects.core))
+    testImplementation(testFixtures(projects.coreApi))
+    testImplementation(projects.native)
+    testImplementation(projects.snapshots)
+    testImplementation(projects.processServices)
 
-    testFixturesApi(project(":file-collections"))
-    testFixturesApi(testFixtures(project(":diagnostics")))
-    testFixturesApi(testFixtures(project(":model-core")))
+    testFixturesApi(projects.fileCollections)
+    testFixturesApi(testFixtures(projects.diagnostics))
+    testFixturesApi(testFixtures(projects.modelCore))
 
     testFixturesImplementation(libs.guava)
 
-    testRuntimeOnly(project(":distributions-core")) {
+    testRuntimeOnly(projects.distributionsCore) {
         because("RuntimeShadedJarCreatorTest requires a distribution to access the ...-relocated.txt metadata")
     }
-    integTestDistributionRuntimeOnly(project(":distributions-core"))
+    integTestDistributionRuntimeOnly(projects.distributionsCore)
 }
 
 packageCycles {
@@ -54,3 +53,6 @@ packageCycles {
 integTest.usesJavadocCodeSnippets = true
 
 description = """Provides general purpose base types and interfaces for modeling projects, and provides runtime and language support."""
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

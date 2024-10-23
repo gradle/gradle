@@ -20,7 +20,6 @@ import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.task.TaskSuccessResult
@@ -53,7 +52,6 @@ class CacheableTaskOutcomeCrossVersionSpec extends ToolingApiSpecification {
         file("input").text = "input file"
     }
 
-    @ToolingApiVersion('>=3.3')
     @TargetGradleVersion('>=3.5')
     def "cacheable task is reported as FROM_CACHE"() {
         when:
@@ -70,24 +68,6 @@ class CacheableTaskOutcomeCrossVersionSpec extends ToolingApiSpecification {
         runCacheableBuild(pullFromCacheResults)
         then:
         cacheableTaskResult(pullFromCacheResults).fromCache
-        cacheableTaskResult(pullFromCacheResults).upToDate
-    }
-
-    @ToolingApiVersion('<3.3 >=3.0')
-    @TargetGradleVersion('>=3.5')
-    def "cacheable task is reported as UP-TO-DATE on older TAPI versions"() {
-        when:
-        def pushToCacheEvents = ProgressEvents.create()
-        runCacheableBuild(pushToCacheEvents)
-        then:
-        !cacheableTaskResult(pushToCacheEvents).upToDate
-
-        when:
-        file("build").deleteDir()
-        and:
-        def pullFromCacheResults = ProgressEvents.create()
-        runCacheableBuild(pullFromCacheResults)
-        then:
         cacheableTaskResult(pullFromCacheResults).upToDate
     }
 

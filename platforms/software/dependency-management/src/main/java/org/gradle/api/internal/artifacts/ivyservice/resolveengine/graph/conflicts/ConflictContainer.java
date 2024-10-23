@@ -51,6 +51,7 @@ class ConflictContainer<K, T> {
      * @param candidates candidates for given element
      * @param replacedBy optional element that replaces the target
      */
+    @Nullable
     public Conflict newElement(K target, Collection<? extends T> candidates, @Nullable K replacedBy) {
         if (candidates.isEmpty()) {
             return null;

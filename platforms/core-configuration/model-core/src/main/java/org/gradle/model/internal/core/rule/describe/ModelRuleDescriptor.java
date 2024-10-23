@@ -16,6 +16,9 @@
 
 package org.gradle.model.internal.core.rule.describe;
 
+import com.google.errorprone.annotations.FormatMethod;
+import com.google.errorprone.annotations.FormatString;
+
 /**
  * Describes a method rule.
  * All implementations of this class are expected to implement the equals and hashCode method
@@ -32,5 +35,6 @@ public interface ModelRuleDescriptor {
 
     ModelRuleDescriptor append(String child);
 
-    ModelRuleDescriptor append(String child, Object... args);
+    @FormatMethod
+    ModelRuleDescriptor append(@FormatString String child, Object... args);
 }

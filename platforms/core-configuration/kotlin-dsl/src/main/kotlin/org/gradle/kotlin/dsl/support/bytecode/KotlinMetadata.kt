@@ -246,13 +246,14 @@ fun newPropertyOf(
     getterFlags: Flags = inlineGetterFlags,
     receiverType: KmType,
     returnType: KmType,
-    getterSignature: JvmMethodSignature
+    getterSignature: JvmMethodSignature,
+    flags: Flags = readOnlyPropertyFlags,
 ): KmProperty {
-    val kmProperty = KmProperty(readOnlyPropertyFlags, name, getterFlags, 6)
+    val kmProperty = KmProperty(flags, name, getterFlags, 6)
     kmProperty.receiverParameterType = receiverType
     kmProperty.returnType = returnType
     kmProperty.getterSignature = getterSignature
-    kmProperty.syntheticMethodForAnnotations = null
+    kmProperty.syntheticMethodForAnnotations = getterSignature
     return kmProperty
 }
 
@@ -303,7 +304,7 @@ fun jvmGetterSignatureFor(propertyName: String, desc: String): JvmMethodSignatur
     JvmMethodSignature("get${propertyName.uppercaseFirstChar()}", desc)
 
 
-private
+internal
 val readOnlyPropertyFlags = flagsOf(
     Flag.IS_PUBLIC,
     Flag.Property.HAS_GETTER,
@@ -324,4 +325,4 @@ val publicFunctionFlags = flagsOf(Flag.IS_PUBLIC)
 
 
 internal
-val publicFunctionWithAnnotationsFlags = flagsOf(Flag.IS_PUBLIC, Flag.HAS_ANNOTATIONS)
+val publicFunctionWithAnnotationsFlags = publicFunctionFlags + flagsOf(Flag.HAS_ANNOTATIONS)

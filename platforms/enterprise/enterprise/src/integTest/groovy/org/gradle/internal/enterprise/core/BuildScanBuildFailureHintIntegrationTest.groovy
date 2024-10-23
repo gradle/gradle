@@ -17,7 +17,7 @@
 package org.gradle.internal.enterprise.core
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.internal.enterprise.GradleEnterprisePluginCheckInFixture
+import org.gradle.internal.enterprise.DevelocityPluginCheckInFixture
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 import spock.lang.Issue
@@ -35,7 +35,7 @@ class BuildScanBuildFailureHintIntegrationTest extends AbstractIntegrationSpec {
     private static final List<String> DUMMY_TASK_ONLY = [DUMMY_TASK_NAME]
     private static final List<String> DUMMY_TASK_AND_BUILD_SCAN = [DUMMY_TASK_NAME, "--$BuildScanOption.LONG_OPTION"]
 
-    def fixture = new GradleEnterprisePluginCheckInFixture(testDirectory, mavenRepo, createExecuter())
+    def fixture = new DevelocityPluginCheckInFixture(testDirectory, mavenRepo, createExecuter())
 
     def setup() {
         settingsFile << fixture.pluginManagement()

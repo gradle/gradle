@@ -27,7 +27,7 @@ import spock.lang.Issue
 class ModelMapIntegrationTest extends AbstractIntegrationSpec {
     def "provides basic meta-data for map"() {
         when:
-        buildScript '''
+        buildFile '''
             @Managed
             interface Thing {
             }
@@ -65,7 +65,7 @@ class ModelMapIntegrationTest extends AbstractIntegrationSpec {
 
     def "can view as ModelElement"() {
         when:
-        buildScript '''
+        buildFile '''
             @Managed
             interface Thing {
             }

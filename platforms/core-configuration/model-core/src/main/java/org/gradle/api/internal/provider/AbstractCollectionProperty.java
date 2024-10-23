@@ -28,7 +28,6 @@ import org.gradle.api.internal.provider.Collectors.ElementsFromCollectionProvide
 import org.gradle.api.internal.provider.Collectors.SingleElement;
 import org.gradle.api.provider.HasMultipleValues;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.provider.SupportsConvention;
 import org.gradle.internal.Cast;
 
 import javax.annotation.Nonnull;
@@ -36,6 +35,7 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Locale;
 import java.util.function.Supplier;
 
 /**
@@ -46,7 +46,7 @@ import java.util.function.Supplier;
  * <p>
  *     Elements stored in collection property values are implemented via various implementations of {@link Collector}.
  * </p>
- * <h3>Collection suppliers</h3>
+ * <h2>Collection suppliers</h2>
  * The value of a collection property is represented at any time as an instance of an implementation of {@link CollectionSupplier}, namely:
  * <ul>
  *     <li>{@link EmptySupplier}, the initial value of a collection (or after {@link #empty()} is invoked)</li>
@@ -57,7 +57,7 @@ import java.util.function.Supplier;
  *     the collecting supplier will wrap a {@link Collector} that lazily represents the yet-to-be realized contents of the collection - see below for details</li>
  * </ul>
  *
- * <h3>Collectors</h3>
+ * <h2>Collectors</h2>
  * <p>
  *     While a collection property's contents are being built up, its value is represented by a {@link CollectingSupplier}.
  *     The collecting supplier will wrap a {@link Collector} instance that represents the various forms that elements can be added to a collection property (before the collection is finalized), namely:
@@ -83,7 +83,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     private final Class<T> elementType;
     private final Supplier<ImmutableCollection.Builder<T>> collectionFactory;
     private final ValueCollector<T> valueCollector;
-    private CollectionSupplier<T, C> defaultValue = emptySupplier();
+    private CollectionSupplier<T, C> defaultValue;
 
     AbstractCollectionProperty(PropertyHost host, Class<? extends Collection> collectionType, Class<T> elementType, Supplier<ImmutableCollection.Builder<T>> collectionFactory) {
         super(host);
@@ -91,7 +91,17 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         this.elementType = elementType;
         this.collectionFactory = collectionFactory;
         valueCollector = new ValidatingValueCollector<>(collectionType, elementType, ValueSanitizers.forType(elementType));
+        init();
+    }
+
+    private void init() {
+        defaultValue = emptySupplier();
         init(defaultValue, noValueSupplier());
+    }
+
+    @Override
+    protected CollectionSupplier<T, C> getDefaultValue() {
+        return defaultValue;
     }
 
     @Override
@@ -104,7 +114,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     }
 
     private CollectionSupplier<T, C> noValueSupplier() {
-        return Cast.uncheckedCast(new NoValueSupplier<>(Value.missing()));
+        return new NoValueSupplier(Value.missing());
     }
 
     /**
@@ -127,7 +137,9 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     }
 
     private boolean isNoValueSupplier(CollectionSupplier<T, C> valueSupplier) {
-        return valueSupplier instanceof NoValueSupplier;
+        // Cannot use plain NoValueSupplier because of Java restrictions:
+        // a generic type [AbstractCollectionProperty<T, C>.]NoValueSupplier cannot be used in instanceof.
+        return valueSupplier instanceof AbstractCollectionProperty<?, ?>.NoValueSupplier;
     }
 
     @Override
@@ -192,7 +204,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     /**
      * Adds the given supplier as the new root supplier for this collection.
      *
-     * @param collector
+     * @param collector the collector to add
      * @param ignoreAbsent whether elements that are missing values should be ignored
      */
     private void addExplicitCollector(Collector<T> collector, boolean ignoreAbsent) {
@@ -219,7 +231,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         if (value.isMissing()) {
             setSupplier(noValueSupplier());
         } else if (value.hasFixedValue()) {
-            setSupplier(new FixedSupplier<>(value.getFixedValue(), Cast.uncheckedCast(value.getSideEffect())));
+            setSupplier(new FixedSupplier(value.getFixedValue(), Cast.uncheckedCast(value.getSideEffect())));
         } else {
             CollectingProvider<T, C> asCollectingProvider = Cast.uncheckedNonnullCast(value.getChangingValue());
             setSupplier(new CollectingSupplier(new ElementsFromCollectionProvider<>(asCollectingProvider)));
@@ -241,7 +253,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     @Override
     public void set(@Nullable final Iterable<? extends T> elements) {
         if (elements == null) {
-            doUnset(true);
+            unsetValueAndDefault();
         } else {
             setSupplier(new CollectingSupplier(new ElementsFromCollection<>(elements)));
         }
@@ -265,17 +277,10 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         setSupplier(new CollectingSupplier(new ElementsFromCollectionProvider<>(p)));
     }
 
-    @Override
-    public SupportsConvention unset() {
-        doUnset(false);
-        return this;
-    }
-
-    private void doUnset(boolean changeDefault) {
-        super.unset();
-        if (changeDefault) {
-            defaultValue = noValueSupplier();
-        }
+    private void unsetValueAndDefault() {
+        // assign no-value default before restoring to it
+        defaultValue = noValueSupplier();
+        unset();
     }
 
     @Override
@@ -305,11 +310,11 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     protected CollectionSupplier<T, C> finalValue(EvaluationContext.ScopeContext context, CollectionSupplier<T, C> value, ValueConsumer consumer) {
         Value<? extends C> result = value.calculateValue(consumer);
         if (!result.isMissing()) {
-            return new FixedSupplier<>(result.getWithoutSideEffect(), Cast.uncheckedCast(result.getSideEffect()));
+            return new FixedSupplier(result.getWithoutSideEffect(), Cast.uncheckedCast(result.getSideEffect()));
         } else if (result.getPathToOrigin().isEmpty()) {
             return noValueSupplier();
         } else {
-            return new NoValueSupplier<>(result);
+            return new NoValueSupplier(result);
         }
     }
 
@@ -336,10 +341,11 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
     @Override
     protected String describeContents() {
-        return String.format("%s(%s, %s)", collectionType.getSimpleName().toLowerCase(), elementType, describeValue());
+        String typeDisplayName = collectionType.getSimpleName().toLowerCase(Locale.ROOT);
+        return String.format("%s(%s, %s)", typeDisplayName, elementType, describeValue());
     }
 
-    class NoValueSupplier<T, C extends Collection<? extends T>> implements CollectionSupplier<T, C> {
+    class NoValueSupplier implements CollectionSupplier<T, C> {
         private final Value<? extends C> value;
 
         public NoValueSupplier(Value<? extends C> value) {
@@ -423,7 +429,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         }
     }
 
-    private static class FixedSupplier<T, C extends Collection<? extends T>> implements CollectionSupplier<T, C> {
+    private class FixedSupplier implements CollectionSupplier<T, C> {
         private final C value;
         private final SideEffect<? super C> sideEffect;
 
@@ -449,7 +455,9 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
         @Override
         public CollectionSupplier<T, C> plus(Collector<T> collector) {
-            throw new UnsupportedOperationException();
+            Collector<T> left = new FixedValueCollector<>(value, sideEffect);
+            PlusCollector<T> newCollector = new PlusCollector<>(left, collector);
+            return new CollectingSupplier(newCollector);
         }
 
         @Override
@@ -617,6 +625,59 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         }
     }
 
+    /**
+     * A fixed value collector, similar to {@link ElementsFromCollection} but with a side effect.
+     */
+    private static class FixedValueCollector<T, C extends Collection<T>> implements Collector<T> {
+        @Nullable
+        private final SideEffect<? super C> sideEffect;
+        private final C collection;
+
+        private FixedValueCollector(C collection, @Nullable SideEffect<? super C> sideEffect) {
+            this.collection = collection;
+            this.sideEffect = sideEffect;
+        }
+
+        @Override
+        public Value<Void> collectEntries(ValueConsumer consumer, ValueCollector<T> collector, ImmutableCollection.Builder<T> dest) {
+            collector.addAll(collection, dest);
+            return sideEffect != null
+                ? Value.present().withSideEffect(SideEffect.fixed(collection, sideEffect))
+                : Value.present();
+        }
+
+        @Override
+        public int size() {
+            return collection.size();
+        }
+
+        @Override
+        public void calculateExecutionTimeValue(Action<? super ExecutionTimeValue<? extends Iterable<? extends T>>> visitor) {
+            visitor.execute(ExecutionTimeValue.fixedValue(collection).withSideEffect(sideEffect));
+        }
+
+        @Override
+        public Collector<T> absentIgnoring() {
+            // always present
+            return this;
+        }
+
+        @Override
+        public ValueProducer getProducer() {
+            return ValueProducer.unknown();
+        }
+
+        @Override
+        public boolean calculatePresence(ValueConsumer consumer) {
+            return true;
+        }
+
+        @Override
+        public String toString() {
+            return collection.toString();
+        }
+    }
+
     private static abstract class AbstractPlusCollector<T> implements Collector<T> {
         protected final Collector<T> left;
         protected final Collector<T> right;
@@ -739,8 +800,8 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         }
     }
 
-    public void update(Transformer<? extends @org.jetbrains.annotations.Nullable Provider<? extends Iterable<? extends T>>, ? super Provider<C>> transform) {
-        Provider<? extends Iterable<? extends T>> newValue = transform.transform(shallowCopy());
+    public void replace(Transformer<? extends @org.jetbrains.annotations.Nullable Provider<? extends Iterable<? extends T>>, ? super Provider<C>> transformation) {
+        Provider<? extends Iterable<? extends T>> newValue = transformation.transform(shallowCopy());
         if (newValue != null) {
             set(newValue);
         } else {

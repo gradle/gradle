@@ -15,7 +15,7 @@
  */
 package org.gradle.internal.scripts;
 
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.scripts.ScriptingLanguage;
 
@@ -28,7 +28,7 @@ import java.util.List;
  *
  * @since 4.0
  */
-@ServiceScope(Scopes.Global.class)
+@ServiceScope(Scope.Global.class)
 public interface ScriptFileResolver {
 
     /**

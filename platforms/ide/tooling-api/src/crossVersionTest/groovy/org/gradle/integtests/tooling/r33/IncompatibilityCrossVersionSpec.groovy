@@ -96,16 +96,6 @@ class IncompatibilityCrossVersionSpec extends ToolingApiSpecification {
         assertWorks()
     }
 
-    // Gradle 3.x leaked internal types that fail when used with older
-    // versions of Gradle.
-    @Ignore
-    @TargetGradleVersion("=2.10")
-    def "can use plugin built with current Gradle with old version"() {
-        expect:
-        buildPluginWith(dist) // this is the "client-side" Gradle version, which is pegged to current.
-        assertWorks()
-    }
-
     private void assertWorks() {
         // So we don't try to use a classpath distribution
         toolingApi.requireDaemons()

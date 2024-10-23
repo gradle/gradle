@@ -25,9 +25,9 @@ import org.gradle.internal.instantiation.InstanceGenerator;
 import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.instantiation.PropertyRoleAnnotationHandler;
-import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceLookup;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.state.ManagedFactory;
 
 import javax.annotation.Nullable;
@@ -69,10 +69,13 @@ public class DefaultInstantiatorFactory implements InstantiatorFactory {
         this.managedFactory = new ManagedTypeFactory(injectOnlyScheme.deserializationInstantiator());
     }
 
-    private DefaultServiceRegistry defaultServiceRegistry() {
-        DefaultServiceRegistry services = new DefaultServiceRegistry("default services");
-        services.add(InstantiatorFactory.class, this);
-        return services;
+    private ServiceRegistry defaultServiceRegistry() {
+        return ServiceRegistryBuilder.builder()
+            .displayName("default services")
+            .provider(registration -> {
+                registration.add(InstantiatorFactory.class, this);
+            })
+            .build();
     }
 
     @Override

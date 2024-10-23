@@ -20,9 +20,9 @@ import org.gradle.api.artifacts.ComponentMetadata;
 import org.gradle.api.artifacts.ivy.IvyModuleDescriptor;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyModuleDescriptor;
 import org.gradle.api.internal.artifacts.repositories.resolver.ComponentMetadataAdapter;
+import org.gradle.internal.component.external.model.ExternalComponentResolveMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentGraphResolveState;
 import org.gradle.internal.component.external.model.ivy.IvyModuleResolveMetadata;
-import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 
 class CachedMetadataProvider implements MetadataProvider {
@@ -34,7 +34,9 @@ class CachedMetadataProvider implements MetadataProvider {
         cachedResult = result;
         usable = cachedResult.getState() == BuildableModuleComponentMetaDataResolveResult.State.Resolved;
         if (usable) {
-            cachedComponentMetadata = new ComponentMetadataAdapter(cachedResult.getMetaData().getModuleResolveMetadata());
+            @SuppressWarnings("deprecation")
+            ExternalComponentResolveMetadata legacyMetadata = cachedResult.getMetaData().getLegacyMetadata();
+            cachedComponentMetadata = new ComponentMetadataAdapter(legacyMetadata);
         } else {
             cachedComponentMetadata = null;
         }
@@ -47,9 +49,10 @@ class CachedMetadataProvider implements MetadataProvider {
 
     @Override
     public IvyModuleDescriptor getIvyModuleDescriptor() {
-        ModuleComponentResolveMetadata metaData = cachedResult.getMetaData().getModuleResolveMetadata();
-        if (metaData instanceof IvyModuleResolveMetadata) {
-            IvyModuleResolveMetadata ivyMetadata = (IvyModuleResolveMetadata) metaData;
+        @SuppressWarnings("deprecation")
+        ExternalComponentResolveMetadata legacyMetadata = cachedResult.getMetaData().getLegacyMetadata();
+        if (legacyMetadata instanceof IvyModuleResolveMetadata) {
+            IvyModuleResolveMetadata ivyMetadata = (IvyModuleResolveMetadata) legacyMetadata;
             return new DefaultIvyModuleDescriptor(ivyMetadata.getExtraAttributes(), ivyMetadata.getBranch(), ivyMetadata.getStatus());
         }
         return null;

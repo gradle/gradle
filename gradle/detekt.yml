@@ -1,0 +1,59 @@
+style:
+  MaxLineLength:
+    maxLineLength: 250                    # default is 120
+  ReturnCount:
+    max: 5                                # default is 2
+  DestructuringDeclarationWithTooManyEntries:
+    maxDestructuringEntries: 5            # default is 3
+  ForbiddenComment:
+    active: false
+  ExplicitItLambdaParameter:
+    active: false
+  WildcardImport:
+    excludeImports:
+      - 'org.gradle.kotlin.dsl.*'
+  MagicNumber:
+    active: false
+  NewLineAtEndOfFile:
+    active: false
+  SerialVersionUIDInSerializableClass:
+    active: false
+  UnusedImports:
+    active: true
+
+complexity:
+  LargeClass:
+    excludes: &testFolders
+      - '**/test/**'
+  TooManyFunctions:
+    active: false
+  LongParameterList:
+    functionThreshold: 15                 # default is 6
+    constructorThreshold: 15              # default is 7
+  LongMethod:
+    threshold: 100                        # default is 60
+    excludes: *testFolders
+  CyclomaticComplexMethod:
+    threshold: 25                         # default is 15
+  ComplexCondition:
+    active: false
+  NestedBlockDepth:
+    threshold: 7
+
+exceptions:
+  TooGenericExceptionCaught:
+    active: false
+  TooGenericExceptionThrown:
+    active: false
+  SwallowedException:
+    ignoredExceptionTypes:
+      - 'InterruptedException'            # default
+      - 'MalformedURLException'           # default
+      - 'NumberFormatException'           # default
+      - 'ParseException'                  # default
+      - 'InvocationTargetException'       # added by us
+
+naming:
+  MemberNameEqualsClassName:
+    active: false
+

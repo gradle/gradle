@@ -26,6 +26,7 @@ import org.gradle.internal.operations.BuildOperationProgressEventListenerAdapter
 import org.gradle.internal.operations.logging.BuildOperationLogger
 import org.gradle.internal.progress.NoOpProgressLoggerFactory
 import org.gradle.internal.time.Clock
+import org.gradle.internal.work.DefaultWorkerLimits
 import org.gradle.internal.work.WorkerLeaseService
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -58,8 +59,7 @@ abstract class NativeCompilerTest extends Specification {
 
     protected final BuildOperationListener buildOperationListener = Mock(BuildOperationListener)
     protected final Clock timeProvider = Mock(Clock)
-    private parallelismConfiguration = DefaultParallelismConfiguration.DEFAULT
-    protected BuildOperationExecutor buildOperationExecutor = BuildOperationExecutorSupport.builder(parallelismConfiguration)
+    protected BuildOperationExecutor buildOperationExecutor = BuildOperationExecutorSupport.builder(new DefaultWorkerLimits(DefaultParallelismConfiguration.getDefaultMaxWorkerCount()))
         .withWorkerLeaseService(workerLeaseService)
         .withTimeSupplier { timeProvider.currentTime }
         .withExecutionListenerFactory { new BuildOperationProgressEventListenerAdapter(buildOperationListener, new NoOpProgressLoggerFactory(), timeProvider) }

@@ -16,23 +16,21 @@
 
 package org.gradle.api.problems.internal;
 
-import javax.annotation.Nullable;
+import com.google.common.base.Preconditions;
 
 public class DefaultDocLink implements DocLink {
 
     private final String url;
 
     public DefaultDocLink(String url) {
-        this.url = url;
+        this.url = Preconditions.checkNotNull(url);
     }
 
-    @Nullable
     @Override
     public String getUrl() {
         return url;
     }
 
-    @Nullable
     @Override
     public String getConsultDocumentationMessage() {
         return "For more information, please refer to " + url + ".";

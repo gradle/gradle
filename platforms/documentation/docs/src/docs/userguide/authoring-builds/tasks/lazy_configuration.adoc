@@ -21,29 +21,29 @@ Gradle provides several ways to manage this using *lazy configuration*.
 image::writing-tasks-4.png[]
 
 [[lazy_properties]]
-== Lazy properties
+== Understanding Lazy properties
 
 Gradle provides lazy properties, which delay calculating a property’s value until it’s actually required.
 
 Lazy properties provide three main benefits:
 
-1. Build authors can wire together Gradle models without worrying when a particular property’s value will be known. +
+1. *Deferred Value Resolution:* Allows wiring Gradle models without needing to know when a property's value will be known.
 For example, you may want to set the input source files of a task based on the source directories property of an extension, but the extension property value isn't known until the build script or some other plugin configures them.
-2. Build authors can wire an output property of a task into an input property of some other task, and Gradle automatically determines the task dependencies based on this connection. +
+2. *Automatic Task Dependency Management:* Connects output of one task to input of another, automatically determining task dependencies.
 Property instances carry information about which task, if any, produces their value.
 Build authors do not need to worry about keeping task dependencies in sync with configuration changes.
-3. Build authors can avoid resource-intensive work during the configuration phase, which can greatly impact build performance. +
+3. *Improved Build Performance:* Avoids resource-intensive work during configuration, impacting build performance positively.
 For example, when a configuration value comes from parsing a file but is only used when functional tests are run, using a property instance to capture this means that the file is parsed only when the functional tests are run (and not when `clean` is run, for example).
 
 Gradle represents lazy properties with two interfaces:
 
-1. link:{javadocPath}/org/gradle/api/provider/Provider.html[Provider] represents a value that can only be queried and cannot be changed.
+link:{javadocPath}/org/gradle/api/provider/Provider.html[Provider] :: Represents a value that can only be queried and cannot be changed.
 ** Properties with these types are read-only.
 ** The method link:{javadocPath}/org/gradle/api/provider/Provider.html#get--[Provider.get()] returns the current value of the property.
 ** A `Provider` can be created from another `Provider` using link:{javadocPath}/org/gradle/api/provider/Provider.html#map-org.gradle.api.Transformer-[Provider.map(Transformer)].
 ** Many other types extend `Provider` and can be used wherever a `Provider` is required.
 
-2. link:{javadocPath}/org/gradle/api/provider/Property.html[Property] represents a value that can be queried and changed.
+link:{javadocPath}/org/gradle/api/provider/Property.html[Property] :: Represents a value that can be queried and changed.
 ** Properties with these types are configurable.
 ** `Property` extends the `Provider` interface.
 ** The method link:{javadocPath}/org/gradle/api/provider/Property.html#set-T-[Property.set(T)] specifies a value for the property, overwriting whatever value may have been present.
@@ -236,22 +236,9 @@ You can create a new `SetProperty` using link:{javadocPath}/org/gradle/api/model
 
 This type of property allows you to overwrite the entire collection value with link:{javadocPath}/org/gradle/api/provider/HasMultipleValues.html#set-java.lang.Iterable-[HasMultipleValues.set(Iterable)] and link:{javadocPath}/org/gradle/api/provider/HasMultipleValues.html#set-org.gradle.api.provider.Provider-[HasMultipleValues.set(Provider)] or add new elements through the various `add` methods:
 
-* link:{javadocPath}/org/gradle/api/provider/HasMultipleValues.html#add-T-[HasMultipleValues.add(T)] or link:{javadocPath}/org/gradle/api/provider/HasMultipleValues.html#append-T-[append(T)]: Add a single element to the collection
-* link:{javadocPath}/org/gradle/api/provider/HasMultipleValues.html#add-org.gradle.api.provider.Provider-[HasMultipleValues.add(Provider)] or link:{javadocPath}/org/gradle/api/provider/HasMultipleValues.html#append-org.gradle.api.provider.Provider-[append(Provider)]: Add a lazily calculated element to the collection
-* link:{javadocPath}/org/gradle/api/provider/HasMultipleValues.html#addAll-org.gradle.api.provider.Provider-[HasMultipleValues.addAll(Provider)]  or link:{javadocPath}/org/gradle/api/provider/HasMultipleValues.html#appendAll-org.gradle.api.provider.Provider-[appendAll(Provider)]: Add a lazily calculated collection of elements to the list
-
-The `add*(...)` and `append*(...)` variants add value(s) to the end of the collection.
-The table below summarizes the differences in behavior between the two groups of variants.
-
-[%header%autowidth,compact]
-|===
-|Behavior|`add*(...)`|`append*(...)`|
-|When a convention is defined|Ignores the convention|Commits the convention as the base value, if property had no value|
-|When property has no value|Property remains with no value|Arguments define the new value of the property|
-|When argument is a provider with no value|Property will have no value|Property will preserve existing value|
-|===
-
-IMPORTANT: Note the `append*()` variants are currently link:{userManualPath}/feature_lifecycle.html#sec:incubating_state[incubating], so they may change before promoted as stable.
+* link:{javadocPath}/org/gradle/api/provider/HasMultipleValues.html#add-T-[HasMultipleValues.add(T)]: Add a single element to the collection
+* link:{javadocPath}/org/gradle/api/provider/HasMultipleValues.html#add-org.gradle.api.provider.Provider-[HasMultipleValues.add(Provider)]: Add a lazily calculated element to the collection
+* link:{javadocPath}/org/gradle/api/provider/HasMultipleValues.html#addAll-org.gradle.api.provider.Provider-[HasMultipleValues.addAll(Provider)]: Add a lazily calculated collection of elements to the list
 
 Just like every `Provider`, the collection is calculated when link:{javadocPath}/org/gradle/api/provider/Provider.html#get--[Provider.get()] is called. The following example shows the link:{javadocPath}/org/gradle/api/provider/ListProperty.html[ListProperty] in action:
 
@@ -278,21 +265,7 @@ Gradle provides a lazy link:{javadocPath}/org/gradle/api/provider/MapProperty.ht
 You can create a `MapProperty` instance using link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#mapProperty-java.lang.Class-java.lang.Class-[ObjectFactory.mapProperty(Class, Class)].
 
 Similar to other property types, a `MapProperty` has a link:{javadocPath}/org/gradle/api/provider/MapProperty.html#set-java.util.Map-[set()] method that you can use to specify the value for the property.
-
 Some additional methods allow entries with lazy values to be added to the map.
-Both `put*(...)` and `insert*(...)` variants add entries(s) to the map.
-The table below summarizes the differences in behavior between the two groups of variants.
-
-[%header%autowidth,compact]
-|===
-|Behavior|`put*(...)`|`insert*(...)`|
-|When a convention is defined|Ignores the convention|Commits the convention as the base value, if property had no value|
-|When property has no value|Property remains with no value|Arguments define the new value of the property|
-|When the value is a provider with no value|Property will have no value|Property will preserve existing value|
-|===
-
-IMPORTANT: Note the `insert*()` variants are currently link:{userManualPath}/feature_lifecycle.html#sec:incubating_state[incubating], so they may change before promoted as stable.
-
 
 ====
 include::sample[dir="snippets/providers/mapProperty/kotlin",files="build.gradle.kts[]"]
@@ -320,6 +293,58 @@ include::sample[dir="snippets/providers/propertyConvention/groovy",files="build.
 $ gradle show
 include::{snippetsPath}/providers/propertyConvention/tests/propertyConvention.out[]
 ----
+
+=== Where to apply conventions from?
+
+There are several appropriate locations for setting a convention on a property at configuration time (i.e., before execution).
+
+====
+include::sample[dir="snippets/providers/propertyConventionCallsites/kotlin",files="build.gradle.kts[tags=convention-callsites]"]
+include::sample[dir="snippets/providers/propertyConventionCallsites/groovy",files="build.gradle[tags=convention-callsites]"]
+====
+
+==== From a plugin's `apply()` method
+
+Plugin authors may configure a convention on a lazy property from a plugin's `apply()` method, while performing preliminary configuration of the task or extension defining the property.
+This works well for regular plugins (meant to be distributed and used in the wild), and internal <<sharing_build_logic_between_subprojects.adoc#sec:sharing_logic_via_convention_plugins,convention plugins>> (which often configure properties defined by third party plugins in a uniform way for the entire build).
+
+====
+include::sample[dir="snippets/providers/propertyConventionCallsites/kotlin",files="build.gradle.kts[tags=convention-callsites-from-plugin]"]
+include::sample[dir="snippets/providers/propertyConventionCallsites/groovy",files="build.gradle[tags=convention-callsites-from-plugin]"]
+====
+
+==== From a build script
+
+Build engineers may configure a convention on a lazy property from shared build logic that is configuring tasks (for instance, from third-party plugins) in a standard way for the entire build.
+
+====
+include::sample[dir="snippets/providers/propertyConventionCallsites/kotlin",files="build.gradle.kts[tags=convention-callsites-from-buildscript]"]
+include::sample[dir="snippets/providers/propertyConventionCallsites/groovy",files="build.gradle[tags=convention-callsites-from-buildscript]"]
+====
+
+Note that for project-specific values, instead of conventions, you should prefer setting explicit values (using `Property.set(...)` or `ConfigurableFileCollection.setFrom(...)`, for instance),
+as conventions are only meant to define defaults.
+
+==== From the task initialization
+
+A task author may configure a convention on a lazy property from the task constructor or (if in Kotlin) initializer block.
+This approach works for properties with trivial defaults, but it is not appropriate if additional context (external to the task implementation) is required in order to set a suitable default.
+
+====
+include::sample[dir="snippets/providers/propertyConventionCallsites/kotlin",files="build.gradle.kts[tags=convention-callsites-from-constructor]"]
+include::sample[dir="snippets/providers/propertyConventionCallsites/groovy",files="build.gradle[tags=convention-callsites-from-constructor]"]
+====
+
+==== Next to the property declaration
+
+You may configure a convention on a lazy property next to the place where the property is declared.
+Note this option is not available for <<properties_providers.adoc#managed_properties,managed properties>>, and has the same caveats as configuring a convention from the task constructor.
+
+====
+include::sample[dir="snippets/providers/propertyConventionCallsites/kotlin",files="build.gradle.kts[tags=convention-callsites-from-declaration]"]
+include::sample[dir="snippets/providers/propertyConventionCallsites/groovy",files="build.gradle[tags=convention-callsites-from-declaration]"]
+====
+
 
 [[unmodifiable_property]]
 == Making a property unmodifiable
@@ -354,7 +379,7 @@ This method can be used when the value may be expensive to calculate or may not 
 You also want to ensure that all consumers of the property see the same value when they query the value.
 
 [[lazy_configuration_faqs]]
-== Guidelines
+== Using the Provider API
 
 Guidelines to be successful with the Provider API:
 
@@ -370,7 +395,7 @@ Guidelines to be successful with the Provider API:
 ** If it's a stable property, add a new link:{javadocPath}/org/gradle/api/provider/Property.html[Property] or link:{javadocPath}/org/gradle/api/provider/Provider.html[Provider] and deprecate the old one. You should wire the old getter/setters into the new property as appropriate.
 
 [[lazy_configuration_reference]]
-== Provider Files API Reference
+=== Provider Files API Reference
 
 Use these types for _read-only_ values:
 
@@ -397,7 +422,7 @@ Factories;;
 * link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:fileTree(java.lang.Object)[Project.fileTree(Object)] will produce a link:{javadocPath}/org/gradle/api/file/ConfigurableFileTree.html[ConfigurableFileTree], or you can use link:{javadocPath}/org/gradle/api/Project.html#zipTree-java.lang.Object-[Project.zipTree(Object)] and link:{javadocPath}/org/gradle/api/Project.html#tarTree-java.lang.Object-[Project.tarTree(Object)]
 * link:{javadocPath}/org/gradle/api/file/DirectoryProperty.html#getAsFileTree--[DirectoryProperty.getAsFileTree()]
 
-== Property Files API Reference
+=== Property Files API Reference
 
 Use these types for _mutable_ values:
 
@@ -421,7 +446,7 @@ link:{javadocPath}/org/gradle/api/file/SourceDirectorySet.html[SourceDirectorySe
 Factories;;
 * link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#sourceDirectorySet-java.lang.String-java.lang.String-[ObjectFactory.sourceDirectorySet(String, String)]
 
-== Lazy Collections API Reference
+=== Lazy Collections API Reference
 
 Use these types for _mutable_ values:
 
@@ -433,7 +458,7 @@ link:{javadocPath}/org/gradle/api/provider/SetProperty.html[SetProperty<T>]:: a 
 Factories;;
 * link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#setProperty-java.lang.Class-[ObjectFactory.setProperty(Class)]
 
-== Lazy Objects API Reference
+=== Lazy Objects API Reference
 
 Use these types for _read only_ values:
 

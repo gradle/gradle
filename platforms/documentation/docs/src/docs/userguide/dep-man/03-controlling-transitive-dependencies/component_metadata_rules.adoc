@@ -110,7 +110,7 @@ The following details of each variant can be adjusted:
 
 - The <<variant_model.adoc#sec:abm_configuration_attributes,attributes>> that identify the variant — `attributes {}` block
 - The <<component_capabilities.adoc#declaring-component-capabilities,capabilities>> the variant provides — `withCapabilities { }` block
-- The <<declaring_dependencies.adoc#declaring-dependencies,dependencies>> of the variant, including <<rich_versions.adoc#rich-version-constraints,rich versions>> — `withDependencies {}` block
+- The <<declaring_dependencies.adoc#declaring-basic-dependencies,dependencies>> of the variant, including <<rich_versions.adoc#rich-version-constraints,rich versions>> — `withDependencies {}` block
 - The <<dependency_constraints.adoc#sec:adding-constraints-transitive-deps,dependency constraints>> of the variant, including <<rich_versions.adoc#rich-version-constraints,rich versions>> — `withDependencyConstraints {}` block
 - The location of the published files that make up the actual content of the variant — `withFiles { }` block
 
@@ -159,7 +159,7 @@ include::sample[dir="snippets/dependencyManagement/customizingResolution-metadat
 ====
 
 Within the `withDependencies` block you have access to the full list of dependencies and can use all methods available on the Java collection interface to inspect and modify that list.
-In addition, there are `add(notation, configureAction)` methods accepting the usual notations similar to <<declaring_dependencies.adoc#declaring-dependencies,declaring dependencies>> in the build script.
+In addition, there are `add(notation, configureAction)` methods accepting the usual notations similar to <<declaring_dependencies.adoc#declaring-basic-dependencies,declaring dependencies>> in the build script.
 Dependency constraints can be inspected and modified the same way in the `withDependencyConstraints` block.
 
 If we take a closer look at the Jaxen 1.1.4 pom, we observe that the _dom4j_, _jdom_ and _xerces_ dependencies are still there but marked as _optional_.
@@ -280,6 +280,9 @@ And we add the corresponding native jar file so that each runtime variant now ca
 
 In the build script, we can now request a specific variant and Gradle will fail with a selection error if more information is needed to make a decision.
 
+Gradle is able to understand the common case where a single attribute is missing that would have removed the ambiguity.
+In this case, rather than listing information about all attributes on all available variants, Gradle helpfully lists only possible values for that attribute along with the variants each value would select.
+
 .Applying and utilising rule for LWGJ metadata
 ====
 include::sample[dir="snippets/dependencyManagement/customizingResolution-metadataRule/kotlin",files="build.gradle.kts[tags=lwgj-dependencies]"]
@@ -292,9 +295,10 @@ include::sample[dir="snippets/dependencyManagement/customizingResolution-metadat
    > Could not resolve org.lwjgl:lwjgl:3.2.3.
      Required by:
          project :
-      > Cannot choose between the following variants of org.lwjgl:lwjgl:3.2.3:
-          - natives-windows-runtime
-          - natives-windows-x86-runtime
+      > The consumer was configured to find a library for use during runtime, compatible with Java 11, packaged as a jar, preferably optimized for standard JVMs, and its dependencies declared externally, as well as attribute 'org.gradle.native.operatingSystem' with value 'windows'. There are several available matching variants of org.lwjgl:lwjgl:3.2.3
+       The only attribute distinguishing these variants is 'org.gradle.native.architecture'. Add this attribute to the consumer's configuration to resolve the ambiguity:
+          - Value: 'x86-64' selects variant: 'natives-windows-runtime'
+          - Value: 'x86' selects variant: 'natives-windows-x86-runtime'
 ----
 
 == Making different flavors of a library available through capabilities
@@ -359,7 +363,7 @@ include::sample[dir="snippets/dependencyManagement/customizingResolution-metadat
 == Modifying metadata on the component level for alignment
 
 While all the examples above made modifications to variants of a component, there is also a limited set of modifications that can be done to the metadata of the component itself.
-This information can influence the <<dependency_resolution.adoc#understanding_dependency_resolution,version selection>> process for a module during dependency resolution, which is performed _before_ one or multiple variants of a component are selected.
+This information can influence the <<dependency_resolution_adv.adoc#understanding_dependency_resolution,version selection>> process for a module during dependency resolution, which is performed _before_ one or multiple variants of a component are selected.
 
 The first API available on the component is `belongsTo()` to create virtual platforms for aligning versions of multiple modules without Gradle Module Metadata.
 It is explained in detail in the section on <<dependency_version_alignment.adoc#sec:align-versions-unpublished,aligning versions of modules not published with Gradle>>.
@@ -375,7 +379,7 @@ It is therefore recommended to only modify this attribute, if any, on the compon
 A dedicated API `setStatus(value)` is available for this.
 To modify another attribute for all variants of a component `withAllVariants { attributes {} }` should be utilised instead.
 
-A module's status is taken into consideration when a <<single_versions.adoc#single-version-declarations,_latest_ version selector>> is resolved.
+A module's status is taken into consideration when a <<dependency_versions.adoc#single-version-declarations,_latest_ version selector>> is resolved.
 Specifically, `latest.someStatus` will resolve to the highest module version that has status `someStatus` or a more mature status.
 For example, `latest.integration` will select the highest module version regardless of its status (because `integration` is the least mature status as explained below), whereas `latest.release` will select the highest module version with status `release`.
 
@@ -399,4 +403,3 @@ include::sample[dir="snippets/dependencyManagement/customizingResolution-metadat
 
 Compared to the default scheme, the rule inserts a new status `rc` and replaces `integration` with `nightly`.
 Existing modules with the state `integration` are mapped to `nightly`.
-

@@ -18,7 +18,6 @@ package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -26,6 +25,7 @@ import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ModuleComponentSelectorSerializer;
+import org.gradle.api.internal.artifacts.capability.CapabilitySelectorSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultExcludeRuleConverter;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ExcludeRuleConverter;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AttributeContainerSerializer;
@@ -42,6 +42,7 @@ import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -58,9 +59,13 @@ public abstract class AbstractRealisedModuleResolveMetadataSerializationHelper {
     private final ExcludeRuleConverter excludeRuleConverter;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
 
-    public AbstractRealisedModuleResolveMetadataSerializationHelper(AttributeContainerSerializer attributeContainerSerializer, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+    public AbstractRealisedModuleResolveMetadataSerializationHelper(
+        AttributeContainerSerializer attributeContainerSerializer,
+        CapabilitySelectorSerializer capabilitySelectorSerializer,
+        ImmutableModuleIdentifierFactory moduleIdentifierFactory
+    ) {
         this.attributeContainerSerializer = attributeContainerSerializer;
-        this.componentSelectorSerializer = new ModuleComponentSelectorSerializer(attributeContainerSerializer);
+        this.componentSelectorSerializer = new ModuleComponentSelectorSerializer(attributeContainerSerializer, capabilitySelectorSerializer);
         this.excludeRuleConverter = new DefaultExcludeRuleConverter(moduleIdentifierFactory);
         this.moduleIdentifierFactory = moduleIdentifierFactory;
     }
@@ -115,7 +120,7 @@ public abstract class AbstractRealisedModuleResolveMetadataSerializationHelper {
         for (int i = 0; i < variantsCount; i++) {
             String variantName = decoder.readString();
             int dependencyCount = decoder.readSmallInt();
-            List<GradleDependencyMetadata> dependencies = Lists.newArrayListWithExpectedSize(dependencyCount);
+            List<GradleDependencyMetadata> dependencies = new ArrayList<>(dependencyCount);
             for (int j = 0; j < dependencyCount; j++) {
                 dependencies.add(readDependencyMetadata(decoder));
             }
@@ -178,7 +183,7 @@ public abstract class AbstractRealisedModuleResolveMetadataSerializationHelper {
 
     protected List<ExcludeMetadata> readMavenExcludes(Decoder decoder) throws IOException {
         int excludeCount = decoder.readSmallInt();
-        List<ExcludeMetadata> excludes = Lists.newArrayListWithCapacity(excludeCount);
+        List<ExcludeMetadata> excludes = new ArrayList<>(excludeCount);
         for (int i = 0; i < excludeCount; i++) {
             String group = decoder.readString();
             String name = decoder.readString();

@@ -236,7 +236,7 @@ For instance, external libraries may rely on certain system properties to be set
 Or a library might not be compatible with the version of JDK that Gradle is running with and may need to be run with a different version.
 
 The Worker API can accommodate this using the `processIsolation()` method that causes the work to execute in a separate "worker daemon".
-These worker daemon processes will persist across builds and can be reused during subsequent builds.
+These worker processes will be session-scoped and can be reused within the same build session, but they won't persist across builds.
 However, if system resources get low, Gradle will stop unused worker daemons.
 
 To utilize a worker daemon, use the `processIsolation()` method when creating the `WorkQueue`.

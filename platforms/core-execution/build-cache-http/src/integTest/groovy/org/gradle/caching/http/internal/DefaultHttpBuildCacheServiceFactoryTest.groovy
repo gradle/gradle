@@ -16,15 +16,23 @@
 
 package org.gradle.caching.http.internal
 
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.TestUtil
+import org.junit.Rule
 import spock.lang.Specification
 
 import static org.gradle.caching.http.internal.DefaultHttpBuildCacheServiceFactory.extractCredentialsFromUserInfo
 
 class DefaultHttpBuildCacheServiceFactoryTest extends Specification {
 
+    @Rule
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
+
+    def objectFactory = TestUtil.objectFactory(tmpDir.testDirectory)
+
     def "extract username and password from userinfo #userinfo"() {
         when:
-        def credentials = extractCredentialsFromUserInfo(new URI("https://${userinfo}@myserver.local"))
+        def credentials = extractCredentialsFromUserInfo(objectFactory, new URI("https://${userinfo}@myserver.local"))
 
         then:
         credentials.username == username
@@ -41,7 +49,7 @@ class DefaultHttpBuildCacheServiceFactoryTest extends Specification {
     def "username cannot contain colon"() {
         // Known limitation. The user should use the DSL
         when:
-        def credentials = extractCredentialsFromUserInfo(new URI("https://us%3Aer:password@myserver.local"))
+        def credentials = extractCredentialsFromUserInfo(objectFactory, new URI("https://us%3Aer:password@myserver.local"))
 
         then:
         credentials.username == 'us'

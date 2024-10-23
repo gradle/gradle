@@ -26,7 +26,7 @@ class ReportingJvmMetadataDetectorTest extends Specification {
 
     def "delegates and reports each call"() {
         given:
-        def location = new InstallationLocation(new File("jdkHome"), "test")
+        def location = InstallationLocation.userDefined(new File("jdkHome"), "test")
         def metadata = Mock(JvmInstallationMetadata)
         def reporter = Mock(BiConsumer)
         def delegate = Mock(JvmMetadataDetector)

@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -59,7 +60,7 @@ public class ThrottlingOutputEventListener implements OutputEventListener {
     }
 
     private void scheduleUpdateNow() {
-        executor.scheduleAtFixedRate(new Runnable() {
+        ScheduledFuture<?> ignored = executor.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
                 try {

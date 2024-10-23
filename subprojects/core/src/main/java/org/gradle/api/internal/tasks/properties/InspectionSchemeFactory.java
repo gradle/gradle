@@ -23,17 +23,21 @@ import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.internal.properties.annotations.DefaultTypeMetadataStore;
 import org.gradle.internal.properties.annotations.NoOpPropertyAnnotationHandler;
 import org.gradle.internal.properties.annotations.PropertyAnnotationHandler;
+import org.gradle.internal.properties.annotations.MissingPropertyAnnotationHandler;
 import org.gradle.internal.properties.annotations.TypeAnnotationHandler;
 import org.gradle.internal.properties.annotations.TypeMetadataStore;
 import org.gradle.internal.properties.bean.DefaultPropertyWalker;
 import org.gradle.internal.properties.bean.PropertyWalker;
 import org.gradle.internal.reflect.annotations.TypeAnnotationMetadataStore;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.lang.annotation.Annotation;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+@ServiceScope(Scope.Global.class)
 public class InspectionSchemeFactory {
     private final Map<Class<? extends Annotation>, PropertyAnnotationHandler> allKnownPropertyHandlers;
     private final ImmutableList<TypeAnnotationHandler> allKnownTypeHandlers;
@@ -56,10 +60,20 @@ public class InspectionSchemeFactory {
         this.cacheFactory = cacheFactory;
     }
 
+
     /**
-     * Creates a new {@link InspectionScheme} with the given annotations enabled and using the given instantiation scheme.
+     * Creates a new {@link InspectionScheme} with the given annotations enabled and using the given instantiation scheme.  Assumes missing annotations
+     * should be handled as missing inputs or outputs.
      */
     public InspectionScheme inspectionScheme(Collection<Class<? extends Annotation>> annotations, Collection<Class<? extends Annotation>> propertyModifiers, InstantiationScheme instantiationScheme) {
+        return inspectionScheme(annotations, propertyModifiers, instantiationScheme, MissingPropertyAnnotationHandler.MISSING_INPUT_OUTPUT_HANDLER);
+    }
+
+    /**
+     * Creates a new {@link InspectionScheme} with the given annotations enabled and using the given instantiation scheme.  Uses the provided missing
+     * annotation handler to determine how to handle missing annotations.
+     */
+    public InspectionScheme inspectionScheme(Collection<Class<? extends Annotation>> annotations, Collection<Class<? extends Annotation>> propertyModifiers, InstantiationScheme instantiationScheme, MissingPropertyAnnotationHandler missingAnnotationProblemHandler) {
         ImmutableList.Builder<PropertyAnnotationHandler> propertyHandlers = ImmutableList.builderWithExpectedSize(annotations.size());
         for (Class<? extends Annotation> annotation : annotations) {
             PropertyAnnotationHandler propertyHandler = allKnownPropertyHandlers.get(annotation);
@@ -73,16 +87,16 @@ public class InspectionSchemeFactory {
                 propertyHandlers.add(new NoOpPropertyAnnotationHandler(annotation));
             }
         }
-        return new InspectionSchemeImpl(allKnownTypeHandlers, propertyHandlers.build(), propertyModifiers, typeAnnotationMetadataStore, cacheFactory);
+        return new InspectionSchemeImpl(allKnownTypeHandlers, propertyHandlers.build(), propertyModifiers, typeAnnotationMetadataStore, cacheFactory, missingAnnotationProblemHandler);
     }
 
     private static class InspectionSchemeImpl implements InspectionScheme {
         private final DefaultPropertyWalker propertyWalker;
         private final DefaultTypeMetadataStore metadataStore;
 
-        public InspectionSchemeImpl(List<TypeAnnotationHandler> typeHandlers, List<PropertyAnnotationHandler> propertyHandlers, Collection<Class<? extends Annotation>> propertyModifiers, TypeAnnotationMetadataStore typeAnnotationMetadataStore, CrossBuildInMemoryCacheFactory cacheFactory) {
+        public InspectionSchemeImpl(List<TypeAnnotationHandler> typeHandlers, List<PropertyAnnotationHandler> propertyHandlers, Collection<Class<? extends Annotation>> propertyModifiers, TypeAnnotationMetadataStore typeAnnotationMetadataStore, CrossBuildInMemoryCacheFactory cacheFactory, MissingPropertyAnnotationHandler missingAnnotationProblemHandler) {
             DefaultPropertyTypeResolver propertyTypeResolver = new DefaultPropertyTypeResolver();
-            metadataStore = new DefaultTypeMetadataStore(typeHandlers, propertyHandlers, propertyModifiers, typeAnnotationMetadataStore, propertyTypeResolver, cacheFactory);
+            metadataStore = new DefaultTypeMetadataStore(typeHandlers, propertyHandlers, propertyModifiers, typeAnnotationMetadataStore, propertyTypeResolver, cacheFactory, missingAnnotationProblemHandler);
             propertyWalker = new DefaultPropertyWalker(metadataStore, new ScriptSourceAwareImplementationResolver(), propertyHandlers);
         }
 

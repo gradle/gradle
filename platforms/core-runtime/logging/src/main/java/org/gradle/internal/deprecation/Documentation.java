@@ -17,19 +17,15 @@
 package org.gradle.internal.deprecation;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableMap;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.problems.internal.DocLink;
 
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nullable;
-import java.util.Map;
 
 public abstract class Documentation implements DocLink {
     public static final String RECOMMENDATION = "For more %s, please refer to %s in the Gradle documentation.";
     private static final DocumentationRegistry DOCUMENTATION_REGISTRY = new DocumentationRegistry();
-
-    public static final Documentation NO_DOCUMENTATION = new NullDocumentation();
 
     public static Documentation userManual(String id, String section) {
         return new UserGuide(id, section);
@@ -39,7 +35,7 @@ public abstract class Documentation implements DocLink {
         return new UserGuide(id, null);
     }
 
-    static Documentation upgradeGuide(int majorVersion, String upgradeGuideSection) {
+    public static Documentation upgradeGuide(int majorVersion, String upgradeGuideSection) {
         return new UpgradeGuide(majorVersion, upgradeGuideSection);
     }
 
@@ -47,18 +43,20 @@ public abstract class Documentation implements DocLink {
         return new DslReference(targetClass, property);
     }
 
-    @Nullable
+    public static Documentation kotlinDslExtensionReference(String extensionName) {
+        return new KotlinDslExtensionReference(extensionName);
+    }
+
     @Override
     public String getConsultDocumentationMessage() {
         return String.format(RECOMMENDATION, "information", getUrl());
     }
 
     private static abstract class SerializableDocumentation extends Documentation {
-        abstract Map<String, String> getProperties();
     }
 
     public static abstract class AbstractBuilder<T> {
-        public abstract T withDocumentation(DocLink documentation);
+        public abstract T withDocumentation(@Nullable DocLink documentation);
 
         /**
          * Allows proceeding without including any documentation reference.
@@ -66,7 +64,7 @@ public abstract class Documentation implements DocLink {
          */
         @CheckReturnValue
         public T undocumented() {
-            return withDocumentation(Documentation.NO_DOCUMENTATION);
+            return withDocumentation(null);
         }
 
         /**
@@ -102,27 +100,6 @@ public abstract class Documentation implements DocLink {
         }
     }
 
-    private static class NullDocumentation extends SerializableDocumentation {
-
-        private NullDocumentation() {
-        }
-
-        @Override
-        public String getUrl() {
-            return null;
-        }
-
-        @Override
-        public String getConsultDocumentationMessage() {
-            return null;
-        }
-
-        @Override
-        Map<String, String> getProperties() {
-            return ImmutableMap.of();
-        }
-    }
-
     private static class UserGuide extends SerializableDocumentation {
         private final String page;
         private final String section;
@@ -133,12 +110,6 @@ public abstract class Documentation implements DocLink {
             this.page = Preconditions.checkNotNull(id);
             this.section = section;
             this.topic = null;
-        }
-
-        private UserGuide(String topic, String id, @Nullable String section) {
-            this.page = Preconditions.checkNotNull(id);
-            this.section = section;
-            this.topic = topic;
         }
 
         @Override
@@ -152,16 +123,6 @@ public abstract class Documentation implements DocLink {
             return DOCUMENTATION_REGISTRY.getDocumentationRecommendationFor(topic, page, section);
         }
 
-        @Override
-        Map<String, String> getProperties() {
-            ImmutableMap.Builder<String, String> builder = ImmutableMap.<String, String>builder();
-            builder.put("page", page);
-            builder.put("section", section);
-            if (topic != null) {
-                builder.put("topic", topic);
-            }
-            return builder.build();
-        }
     }
 
     private static class UpgradeGuide extends UserGuide {
@@ -190,10 +151,20 @@ public abstract class Documentation implements DocLink {
             return DOCUMENTATION_REGISTRY.getDslRefForProperty(targetClass, property);
         }
 
-        @Override
-        Map<String, String> getProperties() {
-            return ImmutableMap.of("property", property, "targetClass", targetClass.getName());
+    }
+
+    private static class KotlinDslExtensionReference extends SerializableDocumentation {
+        private final String extensionName;
+
+        public KotlinDslExtensionReference(String extensionName) {
+            this.extensionName = extensionName;
         }
+
+        @Override
+        public String getUrl() {
+            return DOCUMENTATION_REGISTRY.getKotlinDslRefForExtension(extensionName);
+        }
+
     }
 
 }

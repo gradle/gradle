@@ -84,16 +84,12 @@ public final class JvmConstants {
     public static final String IMPLEMENTATION_CONFIGURATION_NAME = "implementation";
 
     /**
-     * The name of the configuration that defines the variant which advertises the
-     * public API dependencies of the component.
+     * The name of the configuration to define the API elements of a component.
+     * That is, the dependencies which are required to compile against that component.
+     *
+     * @since 3.4
      */
     public static final String API_ELEMENTS_CONFIGURATION_NAME = "apiElements";
-
-    /**
-     * The name of the configuration that defines the variant which advertises the
-     * private API dependencies of the component.
-     */
-    public static final String PRIVATE_API_ELEMENTS_CONFIGURATION_NAME = "privateApiElements";
 
     /**
      * The name of the configuration that is used to declare dependencies which are only required to compile a component,

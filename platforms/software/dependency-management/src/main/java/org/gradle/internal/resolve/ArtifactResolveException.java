@@ -39,12 +39,20 @@ public class ArtifactResolveException extends GradleException {
         super(format(component, message));
     }
 
+    public ArtifactResolveException(ComponentIdentifier component, String message, Throwable cause) {
+        super(format(component, message), cause);
+    }
+
     public ArtifactResolveException(ComponentArtifactIdentifier artifact, Throwable cause) {
         super(format(artifact, ""), cause);
     }
 
     public ArtifactResolveException(ComponentArtifactIdentifier artifact, String message) {
         super(format(artifact, message));
+    }
+
+    public ArtifactResolveException(ComponentArtifactIdentifier artifact, String message, Throwable cause) {
+        super(format(artifact, message), cause);
     }
 
     private static String format(ComponentArtifactIdentifier artifact, String message) {

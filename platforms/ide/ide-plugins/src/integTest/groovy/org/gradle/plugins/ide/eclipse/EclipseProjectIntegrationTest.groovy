@@ -26,7 +26,7 @@ class EclipseProjectIntegrationTest extends AbstractEclipseIntegrationSpec {
     @ToBeFixedForConfigurationCache
     void allowsConfiguringEclipseProject() {
         given:
-        buildScript """
+        buildFile """
 apply plugin: 'java'
 apply plugin: 'eclipse'
 
@@ -82,7 +82,7 @@ eclipse {
     @ToBeFixedForConfigurationCache
     void "allows custom matcher resource filter"() {
         given:
-        buildScript """
+        buildFile """
 apply plugin: 'java'
 apply plugin: 'eclipse'
 
@@ -123,7 +123,7 @@ eclipse {
     @ToBeFixedForConfigurationCache
     void "allows configuring multiple resource filters"() {
         given:
-        buildScript """
+        buildFile """
 apply plugin: 'java'
 apply plugin: 'eclipse'
 
@@ -181,7 +181,7 @@ eclipse {
     @ToBeFixedForConfigurationCache
     void "allows 'include only' type resource filter"() {
         given:
-        buildScript """
+        buildFile """
 apply plugin: 'java'
 apply plugin: 'eclipse'
 
@@ -222,7 +222,7 @@ eclipse {
     @ToBeFixedForConfigurationCache
     void "allows resource filter for files"() {
         given:
-        buildScript """
+        buildFile """
 apply plugin: 'java'
 apply plugin: 'eclipse'
 
@@ -263,7 +263,7 @@ eclipse {
     @ToBeFixedForConfigurationCache
     void "allows resource filter for folders"() {
         given:
-        buildScript """
+        buildFile """
 apply plugin: 'java'
 apply plugin: 'eclipse'
 
@@ -304,7 +304,7 @@ eclipse {
     @ToBeFixedForConfigurationCache
     void "allows non-recursive resource filter"() {
         given:
-        buildScript """
+        buildFile """
 apply plugin: 'java'
 apply plugin: 'eclipse'
 
@@ -364,7 +364,7 @@ eclipse {
 </projectDescription>'''
 
         and:
-        buildScript """
+        buildFile """
 apply plugin: 'java'
 apply plugin: 'eclipse'
 
@@ -466,7 +466,7 @@ eclipse {
         projectFile << projectFileOriginalText
 
         and:
-        buildScript """
+        buildFile """
 apply plugin: 'java'
 apply plugin: 'eclipse'
 
@@ -527,7 +527,7 @@ eclipse {
     @ToBeFixedForConfigurationCache
     void "allows nested matcher"() {
         given:
-        buildScript """
+        buildFile """
 apply plugin: 'java'
 apply plugin: 'eclipse'
 
@@ -605,7 +605,7 @@ eclipse {
 </projectDescription>'''
 
         and:
-        buildScript """
+        buildFile """
 apply plugin: 'java'
 apply plugin: 'eclipse'
 
@@ -642,7 +642,7 @@ org.eclipse.jdt.core.compiler.codegen.targetPlatform=1.3
 '''
 
         and:
-        buildScript """
+        buildFile """
 apply plugin: 'java'
 apply plugin: 'eclipse'
 
@@ -685,7 +685,7 @@ eclipseJdt.doLast() {
     void "setting project name within #hook is disallowed"(){
         given:
 
-        buildScript """
+        buildFile """
 apply plugin: 'java'
 apply plugin: 'eclipse'
 

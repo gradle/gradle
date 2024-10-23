@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -32,15 +31,16 @@ import org.gradle.internal.component.external.model.VariantMetadataRules;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.ComponentIdGenerator;
 import org.gradle.internal.component.model.ConfigurationMetadata;
-import org.gradle.internal.component.model.DefaultComponentGraphResolveState;
+import org.gradle.internal.component.model.DefaultExternalComponentGraphResolveState;
 import org.gradle.internal.component.model.VariantGraphResolveState;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-public class LenientPlatformGraphResolveState extends DefaultComponentGraphResolveState<LenientPlatformResolveMetadata, LenientPlatformResolveMetadata> {
+public class LenientPlatformGraphResolveState extends DefaultExternalComponentGraphResolveState<LenientPlatformResolveMetadata, LenientPlatformResolveMetadata> {
     private final ComponentIdGenerator componentIdGenerator;
     private final ResolveState resolveState;
 
@@ -125,7 +125,7 @@ public class LenientPlatformGraphResolveState extends DefaultComponentGraphResol
 
         private List<ModuleDependencyMetadata> registerPlatformEdge(@Nullable List<ModuleDependencyMetadata> result, Set<ModuleResolveState> modules, ModuleComponentIdentifier leafId, ModuleComponentSelector leafSelector, ComponentIdentifier platformId, boolean force) {
             if (result == null) {
-                result = Lists.newArrayListWithExpectedSize(modules.size());
+                result = new ArrayList<>(modules.size());
             }
             result.add(new LenientPlatformDependencyMetadata(
                 resolveState,

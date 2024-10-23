@@ -18,7 +18,6 @@ package org.gradle.plugins.ide.tooling.r50
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.model.idea.IdeaContentRoot
 import org.gradle.tooling.model.idea.IdeaModule
 import org.gradle.tooling.model.idea.IdeaProject
@@ -27,7 +26,6 @@ import org.gradle.tooling.model.idea.IdeaProject
  * NOTE: Starting with Gradle 5.0 the contract of IdeaModule#sourceDirs and IdeaModule#testSourceDirs changes in
  * a way that the resource directories are excluded.
  */
-@ToolingApiVersion(">=5.0")
 @TargetGradleVersion(">=5.0")
 class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
 

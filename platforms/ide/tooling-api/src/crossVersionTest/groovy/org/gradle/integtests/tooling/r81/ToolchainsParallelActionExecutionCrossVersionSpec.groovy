@@ -19,12 +19,13 @@ package org.gradle.integtests.tooling.r81
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.test.fixtures.Flaky
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.tooling.BuildActionFailureException
 import org.gradle.util.GradleVersion
 
 @ToolingApiVersion(">=8.1")
-@Flaky(because = 'https://github.com/gradle/gradle-private/issues/3829')
+@Requires(IntegTestPreconditions.NotEmbeddedExecutor)
 class ToolchainsParallelActionExecutionCrossVersionSpec extends ToolingApiSpecification {
 
     def setup() {

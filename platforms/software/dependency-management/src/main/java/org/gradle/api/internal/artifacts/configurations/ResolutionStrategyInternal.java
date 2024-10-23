@@ -111,7 +111,7 @@ public interface ResolutionStrategyInternal extends ResolutionStrategy {
 
     boolean isDependencyVerificationEnabled();
 
-    void setReturnAllVariants(boolean returnAllVariants);
+    void setIncludeAllSelectableVariantResults(boolean selectableVariantResults);
 
-    boolean getReturnAllVariants();
+    boolean getIncludeAllSelectableVariantResults();
 }

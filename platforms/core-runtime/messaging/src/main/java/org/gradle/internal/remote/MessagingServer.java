@@ -17,10 +17,13 @@
 package org.gradle.internal.remote;
 
 import org.gradle.api.Action;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
  * A {@code MessagingServer} allows the creation of multiple bi-directional uni-cast connections.
  */
+@ServiceScope(Scope.Global.class)
 public interface MessagingServer {
     /**
      * Creates an endpoint that peers can connect to. Assigns an arbitrary address.

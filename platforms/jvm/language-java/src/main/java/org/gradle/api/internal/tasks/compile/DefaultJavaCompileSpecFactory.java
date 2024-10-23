@@ -19,11 +19,10 @@ package org.gradle.api.internal.tasks.compile;
 import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.jvm.toolchain.JavaInstallationMetadata;
 
-import javax.annotation.Nullable;
 import java.io.File;
 
 public class DefaultJavaCompileSpecFactory extends AbstractJavaCompileSpecFactory<DefaultJavaCompileSpec> {
-    public DefaultJavaCompileSpecFactory(CompileOptions compileOptions, @Nullable JavaInstallationMetadata toolchain) {
+    public DefaultJavaCompileSpecFactory(CompileOptions compileOptions, JavaInstallationMetadata toolchain) {
         super(compileOptions, toolchain);
     }
 
@@ -33,12 +32,12 @@ public class DefaultJavaCompileSpecFactory extends AbstractJavaCompileSpecFactor
     }
 
     @Override
-    protected DefaultJavaCompileSpec getForkingSpec(File javaHome) {
-        return new DefaultForkingJavaCompileSpec(javaHome);
+    protected DefaultJavaCompileSpec getForkingSpec(File javaHome, int javaLanguageVersion) {
+        return new DefaultForkingJavaCompileSpec(javaHome, javaLanguageVersion);
     }
 
     @Override
-    protected DefaultJavaCompileSpec getDefaultSpec() {
+    protected DefaultJavaCompileSpec getInProcessSpec() {
         return new DefaultJavaCompileSpec();
     }
 
@@ -57,14 +56,21 @@ public class DefaultJavaCompileSpecFactory extends AbstractJavaCompileSpecFactor
 
     private static class DefaultForkingJavaCompileSpec extends DefaultJavaCompileSpec implements ForkingJavaCompileSpec {
         private final File javaHome;
+        private final int javaLanguageVersion;
 
-        private DefaultForkingJavaCompileSpec(File javaHome) {
+        private DefaultForkingJavaCompileSpec(File javaHome, int javaLanguageVersion) {
             this.javaHome = javaHome;
+            this.javaLanguageVersion = javaLanguageVersion;
         }
 
         @Override
         public File getJavaHome() {
             return javaHome;
+        }
+
+        @Override
+        public int getJavaLanguageVersion() {
+            return javaLanguageVersion;
         }
     }
 }

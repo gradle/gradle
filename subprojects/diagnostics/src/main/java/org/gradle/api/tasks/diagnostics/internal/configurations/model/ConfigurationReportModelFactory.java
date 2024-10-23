@@ -198,13 +198,13 @@ public final class ConfigurationReportModelFactory {
         private boolean hasCompatibilityRules(Attribute<?> attribute) {
             final AttributeMatchingStrategy<?> matchingStrategy = attributesSchema.getMatchingStrategy(attribute);
             final DefaultCompatibilityRuleChain<?> ruleChain = (DefaultCompatibilityRuleChain<?>) matchingStrategy.getCompatibilityRules();
-            return ruleChain.doesSomething();
+            return !ruleChain.getRules().isEmpty();
         }
 
         private boolean hasDisambiguationRules(Attribute<?> attribute) {
             final AttributeMatchingStrategy<?> matchingStrategy = attributesSchema.getMatchingStrategy(attribute);
             final DefaultDisambiguationRuleChain<?> ruleChain = (DefaultDisambiguationRuleChain<?>) matchingStrategy.getDisambiguationRules();
-            return ruleChain.doesSomething();
+            return !ruleChain.getRules().isEmpty();
         }
     }
 

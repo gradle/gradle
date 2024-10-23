@@ -19,7 +19,7 @@ package org.gradle.jvm.toolchain.internal;
 import com.google.common.collect.Lists;
 import net.rubygrapefruit.platform.MissingRegistryEntryException;
 import net.rubygrapefruit.platform.WindowsRegistry;
-import org.gradle.api.provider.ProviderFactory;
+import org.gradle.internal.nativeintegration.NativeIntegrationUnavailableException;
 import org.gradle.internal.os.OperatingSystem;
 
 import java.io.File;
@@ -29,13 +29,12 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class WindowsInstallationSupplier extends AutoDetectingInstallationSupplier {
+public class WindowsInstallationSupplier implements InstallationSupplier {
 
     private final WindowsRegistry windowsRegistry;
     private final OperatingSystem os;
 
-    public WindowsInstallationSupplier(WindowsRegistry registry, OperatingSystem os, ProviderFactory providerFactory) {
-        super(providerFactory);
+    public WindowsInstallationSupplier(WindowsRegistry registry, OperatingSystem os) {
         this.windowsRegistry = registry;
         this.os = os;
     }
@@ -46,7 +45,7 @@ public class WindowsInstallationSupplier extends AutoDetectingInstallationSuppli
     }
 
     @Override
-    protected Set<InstallationLocation> findCandidates() {
+    public Set<InstallationLocation> get() {
         if (os.isWindows()) {
             return findInstallationsInRegistry();
         }
@@ -63,15 +62,15 @@ public class WindowsInstallationSupplier extends AutoDetectingInstallationSuppli
             "SOFTWARE\\Wow6432Node\\JavaSoft\\Java Runtime Environment"
         ).stream().map(this::findJvms).flatMap(List::stream);
         return Stream.concat(openJdkInstallations, jvms)
-            .map(javaHome -> new InstallationLocation(new File(javaHome), getSourceName()))
+            .map(javaHome -> InstallationLocation.autoDetected(new File(javaHome), getSourceName()))
             .collect(Collectors.toSet());
     }
 
     private List<String> find(String sdkSubkey, String path, String value) {
         try {
-            return getVersions(sdkSubkey).stream()
-                .map(version -> getValue(sdkSubkey, path, value, version)).collect(Collectors.toList());
-        } catch (MissingRegistryEntryException e) {
+            List<String> versions = getVersions(sdkSubkey);
+            return versions.stream().map(version -> getValue(sdkSubkey, path, value, version)).collect(Collectors.toList());
+        } catch (MissingRegistryEntryException | NativeIntegrationUnavailableException e) {
             // Ignore
             return Collections.emptyList();
         }

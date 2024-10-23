@@ -16,7 +16,7 @@
 
 package org.gradle.internal.declarativedsl.mappingToJvm
 
-import org.gradle.internal.declarativedsl.analysis.ConfigureAccessor
+import org.gradle.declarative.dsl.schema.ConfigureAccessor
 
 
 interface RuntimeCustomAccessors {

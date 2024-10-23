@@ -19,19 +19,36 @@ package org.gradle.internal.enterprise.impl;
 
 import org.gradle.api.Action;
 import org.gradle.api.Project;
+import org.gradle.api.configuration.BuildFeatures;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.internal.enterprise.DevelocityBuildLifecycleService;
+
+import javax.inject.Inject;
 
 public class DefaultDevelocityBuildLifecycleService implements DevelocityBuildLifecycleService {
 
     private final Gradle gradle;
+    private final BuildFeatures buildFeatures;
 
-    public DefaultDevelocityBuildLifecycleService(Gradle gradle) {
+    @Inject
+    public DefaultDevelocityBuildLifecycleService(Gradle gradle, BuildFeatures buildFeatures) {
         this.gradle = gradle;
+        this.buildFeatures = buildFeatures;
     }
 
     @Override
     public void beforeProject(Action<? super Project> action) {
-        gradle.beforeProject(action);
+        // GradleLifecycle#beforeProject isolates the action to be safe with Isolated Projects.
+        // This brings additional serializability requirements for any state referenced by the action.
+        // Therefore, the new callback cannot be used without Isolated Projects, because it implies a breaking change in behavior
+        if (isIsolatedProjects()) {
+            gradle.getLifecycle().beforeProject(action::execute);
+        } else {
+            gradle.allprojects(action);
+        }
+    }
+
+    private boolean isIsolatedProjects() {
+        return buildFeatures.getIsolatedProjects().getActive().getOrElse(false);
     }
 }

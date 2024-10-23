@@ -33,8 +33,9 @@ import org.gradle.groovy.scripts.internal.CompileOperation;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Factory;
 import org.gradle.internal.logging.LoggingManagerInternal;
-import org.gradle.internal.service.DefaultServiceRegistry;
+import org.gradle.internal.service.CloseableServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.model.dsl.internal.transform.ClosureCreationInterceptingVerifier;
 import org.gradle.plugin.management.internal.PluginRequests;
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginHandler;
@@ -96,11 +97,16 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
 
         @Override
         public void apply(final Object target) {
-            DefaultServiceRegistry services = new DefaultServiceRegistry(scriptServices);
-            services.add(ScriptPluginFactory.class, scriptPluginFactory);
-            services.add(ClassLoaderScope.class, baseScope);
-            services.add(LoggingManagerInternal.class, loggingFactoryManager.create());
-            services.add(ScriptHandler.class, scriptHandler);
+            CloseableServiceRegistry services = ServiceRegistryBuilder.builder()
+                .displayName("script plugin services")
+                .parent(scriptServices)
+                .provider(registration -> {
+                    registration.add(ScriptPluginFactory.class, scriptPluginFactory);
+                    registration.add(ClassLoaderScope.class, baseScope);
+                    registration.add(LoggingManagerInternal.class, loggingFactoryManager.create());
+                    registration.add(ScriptHandler.class, scriptHandler);
+                })
+                .build();
 
             final ScriptTarget initialPassScriptTarget = initialPassTarget(target);
 

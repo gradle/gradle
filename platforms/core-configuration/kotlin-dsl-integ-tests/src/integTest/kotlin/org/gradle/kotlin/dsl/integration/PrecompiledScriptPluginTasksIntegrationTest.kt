@@ -24,6 +24,7 @@ import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Assert.assertFalse
@@ -35,20 +36,22 @@ import org.junit.Test
 class PrecompiledScriptPluginTasksIntegrationTest : AbstractKotlinIntegrationTest() {
 
     @Test
-    @Requires(
-        IntegTestPreconditions.NotEmbeddedExecutor::class,
-        reason = "ktlint plugin issue in embedded mode"
-    )
+    @Requires(UnitTestPreconditions.Jdk21OrEarlier::class)
     fun `generated code follows kotlin-dsl coding conventions`() {
 
         withBuildScript(
             """
             plugins {
                 `kotlin-dsl`
-                id("org.gradle.kotlin-dsl.ktlint-convention") version "0.9.0"
+                id("io.gitlab.arturbosch.detekt") version "1.23.6"
             }
 
             $repositoriesBlock
+
+            detekt {
+                // enable all default rules
+                buildUponDefaultConfig = true
+            }
             """
         )
 
@@ -75,7 +78,7 @@ class PrecompiledScriptPluginTasksIntegrationTest : AbstractKotlinIntegrationTes
 
         build("generateScriptPluginAdapters")
 
-        build("ktlintCheck", "-x", "ktlintKotlinScriptCheck")
+        build("detekt")
     }
 
     @Test

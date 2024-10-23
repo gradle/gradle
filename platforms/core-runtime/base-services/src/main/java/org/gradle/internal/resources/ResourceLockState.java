@@ -25,16 +25,12 @@ public interface ResourceLockState {
     /**
      * Registers a resource lock to be rolled back if the transform associated with this resource lock state
      * fails.
-     *
-     * @param resourceLock
      */
     void registerLocked(ResourceLock resourceLock);
 
     /**
      * Registers a resource lock that has been unlocked during the transform so that the coordination service can
      * notify threads waiting on a lock.
-     *
-     * @param resourceLock
      */
     void registerUnlocked(ResourceLock resourceLock);
 

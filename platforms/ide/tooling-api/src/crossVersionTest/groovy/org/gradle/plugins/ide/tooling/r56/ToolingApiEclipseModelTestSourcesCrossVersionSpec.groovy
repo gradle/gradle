@@ -16,16 +16,13 @@
 
 package org.gradle.plugins.ide.tooling.r56
 
-
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.model.eclipse.EclipseClasspathEntry
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.eclipse.EclipseProjectDependency
 import org.gradle.util.GradleVersion
 
-@ToolingApiVersion('>=5.6')
 @TargetGradleVersion(">=5.6")
 class ToolingApiEclipseModelTestSourcesCrossVersionSpec extends ToolingApiSpecification {
 

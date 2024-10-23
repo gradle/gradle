@@ -19,6 +19,8 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.properties.PropertyVisitor;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.lang.annotation.Annotation;
 
@@ -27,6 +29,7 @@ import java.lang.annotation.Annotation;
  *
  * <p>Each handler must be registered as a global service.</p>
  */
+@ServiceScope(Scope.Global.class)
 public interface PropertyAnnotationHandler {
     /**
      * The annotation type which this handler is responsible for.

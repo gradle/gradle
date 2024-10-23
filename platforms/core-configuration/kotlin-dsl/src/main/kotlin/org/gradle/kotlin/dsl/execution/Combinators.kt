@@ -93,7 +93,7 @@ class ParserRef<T> {
     }
 
     private
-    var parser: Parser<T> = { error("Parser cannot be used while it's being constructed") }
+    var parser: Parser<T> = { error("parser cannot be used while it's being constructed") }
 
     private
     val ref: Parser<T> = { parser() }
@@ -413,6 +413,7 @@ open class Combinator(
     }
 
 
+    @Suppress("LoopWithTooManyJumpStatements")
     internal
     fun statementSeparator(): Parser<Unit> = {
         var seenSeparator = false

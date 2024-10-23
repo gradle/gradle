@@ -16,11 +16,10 @@
 
 package org.gradle.internal.watch.registry.impl
 
-
-import net.rubygrapefruit.platform.file.FileWatcher
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.TestVirtualFileSystem
+import org.gradle.fileevents.FileWatcher
 import org.gradle.internal.file.FileMetadata.AccessType
 import org.gradle.internal.file.impl.DefaultFileMetadata
 import org.gradle.internal.snapshot.CaseSensitivity

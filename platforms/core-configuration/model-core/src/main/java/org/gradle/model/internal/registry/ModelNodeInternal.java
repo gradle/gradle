@@ -273,14 +273,4 @@ abstract class ModelNodeInternal implements MutableModelNode {
         rules.assertNoPlugins();
         rules.apply(modelRegistry, this);
     }
-
-    @Override
-    public boolean equals(Object obj) {
-        return this == obj;
-    }
-
-    @Override
-    public int hashCode() {
-        return super.hashCode();
-    }
 }

@@ -86,7 +86,8 @@ class CachedGroovyCompileIntegrationTest extends AbstractCachedCompileIntegratio
 
     def "joint Java and Groovy compilation can be cached"() {
         given:
-        buildScript """
+        buildFile.clear()
+        buildFile """
             plugins {
                 id 'groovy'
             }

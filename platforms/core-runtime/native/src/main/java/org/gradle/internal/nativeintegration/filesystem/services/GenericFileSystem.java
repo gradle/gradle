@@ -22,10 +22,10 @@ import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.file.FileException;
 import org.gradle.internal.file.FileMetadata;
+import org.gradle.internal.file.FileMetadataAccessor;
+import org.gradle.internal.file.FileModeAccessor;
+import org.gradle.internal.file.FileModeMutator;
 import org.gradle.internal.file.StatStatistics;
-import org.gradle.internal.nativeintegration.filesystem.FileMetadataAccessor;
-import org.gradle.internal.nativeintegration.filesystem.FileModeAccessor;
-import org.gradle.internal.nativeintegration.filesystem.FileModeMutator;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.nativeintegration.filesystem.Symlink;
 import org.slf4j.Logger;
@@ -34,6 +34,7 @@ import org.slf4j.LoggerFactory;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
+import java.util.Locale;
 import java.util.UUID;
 
 class GenericFileSystem implements FileSystem {
@@ -145,7 +146,7 @@ class GenericFileSystem implements FileSystem {
 
     private boolean probeCaseSensitive(File file, String content) {
         try {
-            File upperCased = new File(file.getPath().toUpperCase());
+            File upperCased = new File(file.getPath().toUpperCase(Locale.ROOT));
             return !hasContent(upperCased, content);
         } catch (IOException e) {
             // not fully accurate but a sensible fallback

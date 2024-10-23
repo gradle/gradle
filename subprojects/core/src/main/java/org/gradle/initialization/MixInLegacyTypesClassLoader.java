@@ -21,7 +21,7 @@ import groovy.lang.GroovySystem;
 import groovy.lang.MetaClass;
 import groovy.lang.MetaClassRegistry;
 import org.apache.commons.lang.StringUtils;
-import org.gradle.internal.classanalysis.AsmConstants;
+import org.gradle.model.internal.asm.AsmConstants;
 import org.gradle.internal.classloader.TransformingClassLoader;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
 import org.gradle.internal.classpath.ClassPath;
@@ -125,7 +125,7 @@ public class MixInLegacyTypesClassLoader extends TransformingClassLoader {
          * the converted classes only contain these kinds of constants.
          *
          * This is a mapping of the synthesized accessor name to the name of the backing field,
-         * i.e. "getFOO" -> "FOO"
+         * i.e. "getFOO" to "FOO"
          */
         private Map<String, String> missingStaticStringConstantGetters = new HashMap<String, String>();
         private Set<String> booleanGetGetters = new HashSet<String>();
@@ -150,7 +150,7 @@ public class MixInLegacyTypesClassLoader extends TransformingClassLoader {
             if (((access & PUBLIC_STATIC_FINAL) == PUBLIC_STATIC_FINAL) && Type.getDescriptor(String.class).equals(desc)) {
                 missingStaticStringConstantGetters.put("get" + name, name);
             }
-            if (((access & Opcodes.ACC_PRIVATE) > 0) && !isStatic(access) && (Type.getDescriptor(boolean.class).equals(desc))) {
+            if (((access & Opcodes.ACC_PRIVATE) > 0) && !isStatic(access) && Type.getDescriptor(boolean.class).equals(desc)) {
                 booleanFields.add(name);
             }
             return super.visitField(access, name, desc, signature, value);

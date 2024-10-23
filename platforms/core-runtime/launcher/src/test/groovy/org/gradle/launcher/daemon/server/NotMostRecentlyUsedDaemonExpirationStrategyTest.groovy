@@ -19,7 +19,7 @@ package org.gradle.launcher.daemon.server
 import org.gradle.launcher.daemon.registry.DaemonInfo
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus
 
-import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.Idle
+import static org.gradle.launcher.daemon.server.api.DaemonState.Idle
 
 class NotMostRecentlyUsedDaemonExpirationStrategyTest extends DaemonExpirationStrategyTest {
 

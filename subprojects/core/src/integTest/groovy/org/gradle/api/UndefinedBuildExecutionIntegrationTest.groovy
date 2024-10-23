@@ -18,6 +18,7 @@ package org.gradle.api
 
 import org.gradle.cache.internal.BuildScopeCacheDir
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.scripts.ScriptFileUtil
 import org.gradle.test.fixtures.file.TestFile
 
 import static org.gradle.integtests.fixtures.SuggestionsMessages.GET_HELP
@@ -186,7 +187,7 @@ class UndefinedBuildExecutionIntegrationTest extends AbstractIntegrationSpec {
         noExceptionThrown()
 
         where:
-        fileName << ["settings.gradle", "settings.gradle.kts"]
+        fileName << ScriptFileUtil.getValidSettingsFileNames()
     }
 
     def "does not treat buildSrc with no settings file as undefined build"() {

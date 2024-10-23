@@ -17,6 +17,7 @@
 package org.gradle.tooling.events.problems;
 
 import org.gradle.api.Incubating;
+import org.gradle.tooling.Failure;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -28,21 +29,23 @@ import java.util.List;
  */
 @Incubating
 public interface SingleProblemEvent extends ProblemEvent {
-    /**
-     * Returns the problem category.
-     *
-     * @return the problem category
-     * @since 8.8
-     */
-    ProblemCategory getCategory();
 
     /**
-     * Returns the problem label.
+     * Returns the problem definition.
+     *
+     * @return the definition
+     * @since 8.9
+     */
+    ProblemDefinition getDefinition();
+
+    /**
+     * Returns the contextual label.
      *
      * @return the problem label
-     * @since 8.8
+     * @since 8.9
      */
-    Label getLabel();
+    @Nullable
+    ContextualLabel getContextualLabel();
 
     /**
      * Returns the details string.
@@ -50,15 +53,8 @@ public interface SingleProblemEvent extends ProblemEvent {
      * @return the problem details
      * @since 8.8
      */
+    @Nullable
     Details getDetails();
-
-    /**
-     * Returns the problem severity.
-     *
-     * @return the problem severity
-     * @since 8.8
-     */
-    Severity getSeverity();
 
     /**
      * Returns the locations associated with this problem.
@@ -67,14 +63,6 @@ public interface SingleProblemEvent extends ProblemEvent {
      * @since 8.8
      */
     List<Location> getLocations();
-
-    /**
-     * Returns the link to the documentation
-     *
-     * @return the locations
-     * @since 8.8
-     */
-    DocumentationLink getDocumentationLink();
 
     /**
      * Returns the list of solutions.
@@ -86,12 +74,19 @@ public interface SingleProblemEvent extends ProblemEvent {
 
     /**
      * Returns the failure associated with this problem.
-     * <br>
-     * <code>null</code> if run against a Gradle version prior to 8.8
      *
      * @return the failure
      * @since 8.8
      */
     @Nullable
-    FailureContainer getFailure();
+    Failure getFailure();
+
+    /**
+     * Returns the additional data associated with this problem.
+     *
+     * @return the additional data
+     * @since 8.9
+     */
+    @Nullable
+    AdditionalData getAdditionalData();
 }

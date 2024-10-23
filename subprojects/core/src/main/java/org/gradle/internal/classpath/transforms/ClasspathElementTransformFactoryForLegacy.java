@@ -22,10 +22,9 @@ import org.gradle.api.internal.file.archive.ZipInput;
 import org.gradle.api.internal.file.archive.impl.FileZipInput;
 import org.gradle.internal.classpath.ClasspathBuilder;
 import org.gradle.internal.classpath.ClasspathWalker;
-import org.gradle.internal.classpath.types.InstrumentingTypeRegistry;
 import org.gradle.internal.file.FileException;
 import org.gradle.internal.hash.Hasher;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.internal.GFileUtils;
 import org.gradle.util.internal.JarUtil;
@@ -35,7 +34,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 
-@ServiceScope(Scopes.UserHome.class)
+@ServiceScope(Scope.UserHome.class)
 public class ClasspathElementTransformFactoryForLegacy implements ClasspathElementTransformFactory {
 
     private final ClasspathBuilder classpathBuilder;
@@ -52,7 +51,7 @@ public class ClasspathElementTransformFactoryForLegacy implements ClasspathEleme
     }
 
     @Override
-    public ClasspathElementTransform createTransformer(File source, ClassTransform classTransform, InstrumentingTypeRegistry typeRegistry) {
+    public ClasspathElementTransform createTransformer(File source, ClassTransform classTransform) {
         Boolean isMultiReleaseJar = null;
 
         if (source.isFile()) {
@@ -77,9 +76,9 @@ public class ClasspathElementTransformFactoryForLegacy implements ClasspathEleme
             }
         }
         if (isMultiReleaseJar != null && isMultiReleaseJar) {
-            return new MultiReleaseClasspathElementTransformForLegacy(source, classpathBuilder, classpathWalker, typeRegistry, classTransform);
+            return new MultiReleaseClasspathElementTransformForLegacy(source, classpathBuilder, classpathWalker, classTransform);
         }
-        return new BaseClasspathElementTransform(source, classpathBuilder, classpathWalker, typeRegistry, classTransform);
+        return new BaseClasspathElementTransform(source, classpathBuilder, classpathWalker, classTransform);
     }
 
     private boolean isJarSignatureFile(String entryName) {

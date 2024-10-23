@@ -21,14 +21,14 @@ import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.artifacts.dsl.DependencyFactory;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
-import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
-import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint;
 import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.plugin.management.internal.PluginCoordinates;
@@ -66,21 +66,24 @@ public class ArtifactRepositoriesPluginResolver implements PluginResolver {
             // in case the user provides an explicit or transitive required version.
             // The resolution will fail if there is no user-provided required version, however it avoids us failing here
             // if the weak version is not present but never selected.
-            return PluginResolutionResult.found(new ExternalPluginResolution(pluginRequest, autoApplied));
+            return PluginResolutionResult.found(new ExternalPluginResolution(getDependencyFactory(), pluginRequest, autoApplied));
         } else {
             return handleNotFound("could not resolve plugin artifact '" + getNotation(markerDependency) + "'");
         }
     }
 
     static class ExternalPluginResolution implements PluginResolution {
+        private final DependencyFactory dependencyFactory;
         private final PluginRequestInternal pluginRequest;
         private final boolean useWeakVersion;
 
         /**
+         * @param dependencyFactory Creates dependency instances
          * @param pluginRequest The original plugin request.
          * @param useWeakVersion Whether a preferred version should be used for the plugin dependency.
          */
-        public ExternalPluginResolution(PluginRequestInternal pluginRequest, boolean useWeakVersion) {
+        public ExternalPluginResolution(DependencyFactory dependencyFactory, PluginRequestInternal pluginRequest, boolean useWeakVersion) {
+            this.dependencyFactory = dependencyFactory;
             this.pluginRequest = pluginRequest;
             this.useWeakVersion = useWeakVersion;
         }
@@ -115,13 +118,15 @@ public class ArtifactRepositoriesPluginResolver implements PluginResolver {
         }
 
         private void visitDependency(PluginResolutionVisitor visitor, ModuleIdentifier module) {
-            DefaultMutableVersionConstraint versionConstraint;
-            if (useWeakVersion) {
-                versionConstraint = DefaultMutableVersionConstraint.withPreferredVersion(getPluginVersion());
-            } else {
-                versionConstraint = DefaultMutableVersionConstraint.withVersion(getPluginVersion());
-            }
-            visitor.visitDependency(new DefaultExternalModuleDependency(module, versionConstraint, null));
+            ExternalModuleDependency dependency = dependencyFactory.create(module.getGroup(), module.getName(), null);
+            dependency.version(version -> {
+                if (useWeakVersion) {
+                    version.prefer(getPluginVersion());
+                } else {
+                    version.require(getPluginVersion());
+                }
+            });
+            visitor.visitDependency(dependency);
         }
 
         private static void visitModuleReplacements(PluginResolutionVisitor visitor, PluginCoordinates altCoords, String id, ModuleIdentifier module) {
@@ -158,8 +163,14 @@ public class ArtifactRepositoriesPluginResolver implements PluginResolver {
         return PluginResolutionResult.notFound(SOURCE_NAME, message, detail.toString());
     }
 
-    /*
+    /**
      * Checks whether the plugin marker artifact exists in the backing artifacts repositories.
+     *
+     * TODO: Performing resolution here is likely quite inefficient. This performs resolution
+     * for each plugin request that is not already found on the classpath. Doing this allows
+     * us to produce a better error message at the cost of performance. We should limit the
+     * number of resolutions we perform in the buildscript context in order to avoid IO and
+     * serial bottlenecks before the build can start configuration and thus perform actual work.
      */
     private boolean exists(ModuleDependency dependency) {
         ConfigurationContainer configurations = resolutionServices.getConfigurationContainer();
@@ -175,13 +186,17 @@ public class ArtifactRepositoriesPluginResolver implements PluginResolver {
         ModuleVersionSelector selector = pluginRequest.getModule();
         if (selector == null) {
             String id = pluginRequest.getId().getId();
-            return new DefaultExternalModuleDependency(id, id + PLUGIN_MARKER_SUFFIX, pluginRequest.getVersion());
+            return getDependencyFactory().create(id, id + PLUGIN_MARKER_SUFFIX, pluginRequest.getVersion());
         } else {
-            return new DefaultExternalModuleDependency(selector.getGroup(), selector.getName(), selector.getVersion());
+            return getDependencyFactory().create(selector.getGroup(), selector.getName(), selector.getVersion());
         }
     }
 
     private String getNotation(Dependency dependency) {
         return Joiner.on(':').join(dependency.getGroup(), dependency.getName(), dependency.getVersion());
+    }
+
+    private DependencyFactory getDependencyFactory() {
+        return resolutionServices.getDependencyFactory();
     }
 }

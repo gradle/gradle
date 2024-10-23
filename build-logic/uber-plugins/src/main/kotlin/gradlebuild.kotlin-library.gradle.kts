@@ -22,8 +22,9 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     kotlin("jvm")
-    id("gradlebuild.java-library")
-    id("gradlebuild.ktlint")
+    id("gradlebuild.jvm-library")
+    id("gradlebuild.detekt")
+    id("gradlebuild.private-javadoc")
 }
 
 configurations.transitiveSourcesElements {

@@ -22,7 +22,6 @@ import javax.annotation.Nullable;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 @NonNullApi
 public class DefaultProblem implements Serializable, Problem {
@@ -31,8 +30,8 @@ public class DefaultProblem implements Serializable, Problem {
     private final List<String> solutions;
     private final List<ProblemLocation> problemLocations;
     private final String details;
-    private final RuntimeException exception;
-    private final Map<String, Object> additionalData;
+    private final Throwable exception;
+    private final AdditionalData additionalData;
 
     protected DefaultProblem(
         ProblemDefinition problemDefinition,
@@ -40,8 +39,8 @@ public class DefaultProblem implements Serializable, Problem {
         List<String> solutions,
         List<ProblemLocation> problemLocations,
         @Nullable String details,
-        RuntimeException exception,
-        Map<String, Object> additionalData
+        Throwable exception,
+        @Nullable AdditionalData additionalData
     ) {
         this.problemDefinition = problemDefinition;
         this.contextualLabel = contextualLabel;
@@ -81,18 +80,18 @@ public class DefaultProblem implements Serializable, Problem {
 
     @Nullable
     @Override
-    public RuntimeException getException() {
+    public Throwable getException() {
         return exception;
     }
 
     @Override
-    public Map<String, Object> getAdditionalData() {
+    public AdditionalData getAdditionalData() {
         return additionalData;
     }
 
     @Override
-    public InternalProblemBuilder toBuilder() {
-        return new DefaultProblemBuilder(this);
+    public InternalProblemBuilder toBuilder(AdditionalDataBuilderFactory additionalDataBuilderFactory) {
+        return new DefaultProblemBuilder(this, additionalDataBuilderFactory);
     }
 
     private static boolean equals(@Nullable Object a, @Nullable Object b) {

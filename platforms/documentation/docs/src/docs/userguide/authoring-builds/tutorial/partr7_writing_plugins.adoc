@@ -39,20 +39,38 @@ Learn the basics of writing and applying Gradle plugins.
 
 Let's tie our custom `LicenseTask` to our plugin.
 
-Update the `LicensePlugin` with the code below:
+Update the `LicensePlugin` with the code for the `Plugin` below (don't change anything else in the file):
 
-.gradle/license-plugin/plugin/src/main/kotlin/com/gradle/LicensePlugin.kt
+[.multi-language-sample]
+=====
+.gradle/license-plugin/plugin/src/main/kotlin/license/LicensePlugin.kt
 [source,kotlin]
 ----
 class LicensePlugin: Plugin<Project> {
     override fun apply(project: Project) {
         project.tasks.register("license", LicenseTask::class.java) { task ->
             task.description = "add a license header to source code"   // Add description
-            task.group = "from license plugin"                          // Add group
+            task.group = "from license plugin"                         // Add group
         }
     }
 }
 ----
+=====
+[.multi-language-sample]
+=====
+.gradle/license-plugin/plugin/src/main/kotlin/license/LicensePlugin.groovy
+[source, groovy]
+----
+class LicensePlugin implements Plugin<Project> {
+    void apply(Project project) {
+        project.tasks.register("license", LicenseTask) { task ->
+            task.setDescription("add a license header to source code")  // Add description
+            task.setGroup("from license plugin")                        // Add group
+        }
+    }
+}
+----
+=====
 
 == Step 2. Add a license.txt file
 
@@ -78,16 +96,30 @@ Add a file called `license.txt` to the root directory of the project and add the
 
 == Step 3. Apply the Plugin
 
-Apply the plugin to the `app` subproject:
+Apply the plugin to the `app` subproject (if not done already):
 
+[.multi-language-sample]
+=====
 .app/build.gradle.kts
 [source,kotlin]
 ----
 plugins {
     application
-    id("com.gradle.license") // Apply custom plugin
+    id("com.tutorial.license") // Apply custom plugin
 }
 ----
+=====
+[.multi-language-sample]
+=====
+.app/build.gradle
+[source, groovy]
+----
+plugins {
+    id 'application'
+    id('com.tutorial.license') // Apply custom plugin
+}
+----
+=====
 
 Make sure the plugin is correctly applied by listing the available tasks in the `app` subproject:
 
@@ -183,3 +215,11 @@ public class App {
     }
 }
 ----
+
+Congratulations, you have completed the tutorial!
+
+== Step 4. Next steps
+We recommend going through each section of the User Manual.
+
+[.text-right]
+**Next Step:** <<multi_project_builds.adoc#multi_project_builds,Structuring Builds>> >>

@@ -129,16 +129,6 @@ public class ProgressLogEventGenerator implements OutputEventListener {
             listener.onOutput(event);
         }
 
-        public void startHeader() {
-            assert state == State.None;
-            if (hasLoggingHeader) {
-                state = State.HeaderStarted;
-                doOutput(plainTextEvent(startTime, loggingHeader));
-            } else {
-                state = State.HeaderCompleted;
-            }
-        }
-
         public void completeHeader() {
             switch (state) {
                 case None:

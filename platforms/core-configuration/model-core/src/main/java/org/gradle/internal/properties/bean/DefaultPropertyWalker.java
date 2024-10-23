@@ -27,8 +27,10 @@ import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.properties.PropertyVisitor;
+import org.gradle.internal.properties.annotations.NestedValidationUtil;
 import org.gradle.internal.properties.annotations.PropertyAnnotationHandler;
 import org.gradle.internal.properties.annotations.PropertyMetadata;
 import org.gradle.internal.properties.annotations.TypeMetadata;
@@ -37,7 +39,6 @@ import org.gradle.internal.properties.annotations.TypeMetadataWalker;
 import org.gradle.internal.properties.annotations.TypeMetadataWalker.InstanceMetadataWalker;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.internal.snapshot.impl.ImplementationValue;
-import org.gradle.internal.properties.annotations.NestedValidationUtil;
 
 import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
@@ -87,7 +88,11 @@ public class DefaultPropertyWalker implements PropertyWalker {
 
             @Override
             public void visitLeaf(Object parent, String qualifiedName, PropertyMetadata propertyMetadata) {
-                PropertyValue cachedValue = new CachedPropertyValue(() -> propertyMetadata.getPropertyValue(parent), propertyMetadata.getDeclaredType().getRawType());
+                PropertyValue cachedValue = new CachedPropertyValue(
+                    () -> propertyMetadata.getPropertyValue(parent),
+                    propertyMetadata.getDeclaredType().getRawType(),
+                    propertyMetadata.isAnnotationPresent(ReplacesEagerProperty.class)
+                );
                 PropertyAnnotationHandler handler = handlers.get(propertyMetadata.getPropertyType());
                 if (handler == null) {
                     throw new IllegalStateException("Property handler should not be null for: " + propertyMetadata.getPropertyType());
@@ -102,9 +107,19 @@ public class DefaultPropertyWalker implements PropertyWalker {
         private final Supplier<Object> cachedInvoker;
         private final Class<?> declaredType;
 
-        public CachedPropertyValue(Supplier<Object> supplier, Class<?> declaredType) {
+        public CachedPropertyValue(
+            Supplier<Object> supplier,
+            Class<?> declaredType,
+            boolean isUpgradedProperty
+        ) {
             this.declaredType = declaredType;
-            this.cachedInvoker = Suppliers.memoize(() -> DeprecationLogger.whileDisabled(supplier::get));
+            this.cachedInvoker = Suppliers.memoize(() -> {
+                Object value = DeprecationLogger.whileDisabled(supplier::get);
+                if (isUpgradedProperty && isConfigurable()) {
+                    ((HasConfigurableValueInternal) value).markAsUpgradedProperty();
+                }
+                return value;
+            });
         }
 
         @Override

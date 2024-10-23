@@ -18,9 +18,12 @@ package org.gradle.internal.resource.connector;
 
 import org.gradle.authentication.Authentication;
 import org.gradle.internal.resource.transfer.ExternalResourceConnector;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.Set;
 
+@ServiceScope(Scope.Global.class)
 public interface ResourceConnectorFactory {
     Set<String> getSupportedProtocols();
 

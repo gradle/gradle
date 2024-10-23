@@ -22,6 +22,7 @@ import org.gradle.integtests.fixtures.TestResources
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.internal.TextUtil
 import org.junit.Rule
@@ -140,7 +141,7 @@ Joe!""")
             task javadoc(type: Javadoc) {
                 destinationDir = file("build/javadoc")
                 source "src/main/java"
-                executable = new File(".").getAbsoluteFile().toPath().relativize(new File("${executable}").toPath()).toString()
+                executable = new File(".").getCanonicalFile().toPath().relativize(new File("${executable}").toPath()).toString()
             }
         """
 
@@ -253,51 +254,6 @@ Joe!""")
         expect:
         succeeds("javadoc")
         file("build/tmp/javadoc/javadoc.options").assertContents(containsNormalizedString("-exclude 'foo'"))
-    }
-
-    @Issue("https://github.com/gradle/gradle/issues/1484")
-    def "can use various multi-value options"() {
-        buildFile << """
-            apply plugin: 'java'
-
-            javadoc {
-                options {
-                    addMultilineStringsOption("addMultilineStringsOption").setValue([
-                        "a",
-                        "b",
-                        "c"
-                    ])
-                    addStringsOption("addStringsOption", " ").setValue([
-                        "a",
-                        "b",
-                        "c"
-                    ])
-                    addMultilineMultiValueOption("addMultilineMultiValueOption").setValue([
-                        [ "a" ],
-                        [ "b", "c" ]
-                    ])
-                }
-            }
-        """
-        writeSourceFile()
-        expect:
-        if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_17)) {
-            executer.expectDeprecationWarnings(2)
-        } else {
-            executer.expectDeprecationWarning() // Error output triggers are "deprecated" warning check
-        }
-        fails("javadoc") // we're using unsupported options to verify that we do the right thing
-
-        file("build/tmp/javadoc/javadoc.options").assertContents(containsNormalizedString("-addMultilineStringsOption 'a'\n" +
-            "-addMultilineStringsOption 'b'\n" +
-            "-addMultilineStringsOption 'c'"))
-
-        file("build/tmp/javadoc/javadoc.options").assertContents(containsNormalizedString("""-addStringsOption 'a b c'"""))
-
-        file("build/tmp/javadoc/javadoc.options").assertContents(containsNormalizedString("-addMultilineMultiValueOption \n" +
-            "'a' \n" +
-            "-addMultilineMultiValueOption \n" +
-            "'b' 'c' "))
     }
 
     @Issue("https://github.com/gradle/gradle/issues/1502")
@@ -510,11 +466,11 @@ Joe!""")
     }
 
     // bootclasspath has been removed in Java 9+
-    @Requires(UnitTestPreconditions.Jdk8OrEarlier)
+    @Requires(IntegTestPreconditions.BestJreAvailable)
     @Issue("https://github.com/gradle/gradle/issues/19817")
     def "shows deprecation if bootclasspath is provided as a path instead of a single file"() {
-        def jre = AvailableJavaHomes.getBestJre()
-        def bootClasspath = TextUtil.escapeString(jre.absolutePath) + "/lib/rt.jar${File.pathSeparator}someotherpath"
+        def rtJar = new File(AvailableJavaHomes.bestJre, "lib/rt.jar")
+        def bootClasspath = TextUtil.escapeString(rtJar.absolutePath) + "${File.pathSeparator}someotherpath"
         buildFile << """
             plugins {
                 id 'java'
@@ -532,6 +488,14 @@ Joe!""")
             " The path separator is not a valid element of a file path. Problematic paths in 'file collection' are: '${Paths.get(bootClasspath)}'." +
             " Add the individual files to the file collection instead." +
             " Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#file_collection_to_classpath")
+    }
+
+    private def stylesheetFileRelativePath(String name) {
+        if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_22)) {
+            return "resource-files/$name"
+        } else {
+            return name
+        }
     }
 
     def "can use custom stylesheet file"() {
@@ -554,7 +518,7 @@ Joe!""")
         when:
         succeeds "javadoc"
         then:
-        file("build/docs/javadoc/custom.css").assertContents(containsNormalizedString("/* This is a custom stylesheet */"))
+        file("build/docs/javadoc/${stylesheetFileRelativePath("custom.css")}").assertContents(containsNormalizedString("/* This is a custom stylesheet */"))
 
         when:
         succeeds("javadoc")
@@ -592,7 +556,7 @@ Joe!""")
         when:
         succeeds "javadoc"
         then:
-        file("build/docs/javadoc/custom.css").assertContents(containsNormalizedString("/* This is a custom stylesheet */"))
+        file("build/docs/javadoc/${stylesheetFileRelativePath("custom.css")}").assertContents(containsNormalizedString("/* This is a custom stylesheet */"))
 
         when:
         succeeds("javadoc")
@@ -647,6 +611,61 @@ Joe!""")
         then:
         file("build/docs/javadoc/pkg/Foo.html").assertExists()
         file("build/docs/javadoc/pkg/internal/IFoo.html").assertDoesNotExist()
+    }
+
+    def "isVerbose is deprecated"() {
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+            javadoc {
+                print("Javadoc is verbose: " + isVerbose())
+            }
+        """
+        writeSourceFile()
+
+        when:
+        executer.expectDocumentedDeprecationWarning("The Javadoc.isVerbose() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use the getOptions().isVerbose() method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_javadoc_verbose")
+
+        then:
+        succeeds("javadoc")
+        outputContains("Javadoc is verbose: false")
+    }
+
+    def "setVerbose(true) is deprecated"() {
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+            javadoc {
+                setVerbose(true)
+            }
+        """
+        writeSourceFile()
+
+        when:
+        executer.expectDocumentedDeprecationWarning("The Javadoc.setVerbose(true) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use the getOptions().verbose() method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_javadoc_verbose")
+
+        then:
+        succeeds("javadoc")
+    }
+
+    def "setVerbose(false) is deprecated with additional details"() {
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+            javadoc {
+                setVerbose(false)
+            }
+        """
+        writeSourceFile()
+
+        when:
+        executer.expectDocumentedDeprecationWarning("The Javadoc.setVerbose(false) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Passing false to this method does nothing. You may want to call getOptions().quiet(). Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_javadoc_verbose")
+
+        then:
+        succeeds("javadoc")
     }
 
     private TestFile writeSourceFile() {

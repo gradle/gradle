@@ -16,23 +16,5 @@
 
 package org.gradle.internal.declarativedsl.project
 
-import org.gradle.api.Action
-import org.gradle.api.artifacts.ProjectDependency
-import org.gradle.declarative.dsl.model.annotations.Configuring
-import org.gradle.declarative.dsl.model.annotations.Restricted
 
-
-internal
-interface ProjectTopLevelReceiver {
-    @get:Restricted
-    val dependencies: RestrictedDependenciesHandler
-
-    @Configuring
-    fun dependencies(configure: Action<in RestrictedDependenciesHandler>)
-
-    @Restricted
-    fun project(path: String): ProjectDependency
-}
-
-
-interface RestrictedDependenciesHandler
+interface ProjectTopLevelReceiver

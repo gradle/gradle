@@ -1,5 +1,6 @@
 plugins {
     id("gradlebuild.distribution.api-java")
+    id("gradlebuild.instrumented-java-project")
 }
 
 description = "Implementation of the Maven Publish Plugin that provides the ability to publish build artifacts to Maven repositories."
@@ -8,24 +9,22 @@ errorprone {
     disabledChecks.addAll(
         "DefaultCharset", // 1 occurrences
         "EqualsUnsafeCast", // 1 occurrences
-        "StringCaseLocaleUsage", // 1 occurrences
-        "UnusedMethod", // 4 occurrences
-        "UnusedVariable", // 3 occurrences
     )
 }
 
 dependencies {
-    api(project(":base-annotations"))
-    api(project(":base-services"))
-    api(project(":core"))
-    api(project(":core-api"))
-    api(project(":dependency-management"))
-    api(project(":file-collections"))
-    api(project(":logging"))
-    api(project(":messaging"))
-    api(project(":model-core"))
-    api(project(":publish"))
-    api(project(":resources"))
+    api(projects.stdlibJavaExtensions)
+    api(projects.serviceProvider)
+    api(projects.baseServices)
+    api(projects.core)
+    api(projects.coreApi)
+    api(projects.dependencyManagement)
+    api(projects.fileCollections)
+    api(projects.logging)
+    api(projects.messaging)
+    api(projects.modelCore)
+    api(projects.publish)
+    api(projects.resources)
 
     api(libs.guava)
     api(libs.inject)
@@ -37,40 +36,41 @@ dependencies {
         because("We use the metadata model classes to create repository metadata files")
     }
 
-    implementation(project(":functional"))
-    implementation(project(":hashing"))
-    implementation(project(":logging-api"))
+    implementation(projects.functional)
+    implementation(projects.hashing)
+    implementation(projects.loggingApi)
+    implementation(projects.serviceLookup)
 
     implementation(libs.commonsLang)
     implementation(libs.plexusUtils)
     implementation(libs.slf4jApi)
 
-    testImplementation(project(":native"))
-    testImplementation(project(":process-services"))
-    testImplementation(project(":snapshots"))
-    testImplementation(project(":resources-http"))
+    testImplementation(projects.native)
+    testImplementation(projects.processServices)
+    testImplementation(projects.snapshots)
+    testImplementation(projects.resourcesHttp)
 
     testImplementation(libs.xmlunit)
 
-    testImplementation(testFixtures(project(":core")))
-    testImplementation(testFixtures(project(":model-core")))
-    testImplementation(testFixtures(project(":dependency-management")))
+    testImplementation(testFixtures(projects.core))
+    testImplementation(testFixtures(projects.modelCore))
+    testImplementation(testFixtures(projects.dependencyManagement))
 
-    integTestImplementation(project(":enterprise-operations"))
+    integTestImplementation(projects.enterpriseOperations)
 
-    testFixturesApi(project(":base-services")) {
+    testFixturesApi(projects.baseServices) {
         because("Test fixtures export the Action class")
     }
-    testFixturesImplementation(project(":logging"))
-    testFixturesImplementation(project(":core-api"))
-    testFixturesImplementation(project(":internal-integ-testing"))
-    testFixturesImplementation(project(":dependency-management"))
+    testFixturesImplementation(projects.logging)
+    testFixturesImplementation(projects.coreApi)
+    testFixturesImplementation(projects.internalIntegTesting)
+    testFixturesImplementation(projects.dependencyManagement)
 
-    testRuntimeOnly(project(":distributions-core")) {
+    testRuntimeOnly(projects.distributionsCore) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
-    integTestDistributionRuntimeOnly(project(":distributions-jvm"))
-    crossVersionTestDistributionRuntimeOnly(project(":distributions-jvm"))
+    integTestDistributionRuntimeOnly(projects.distributionsJvm)
+    crossVersionTestDistributionRuntimeOnly(projects.distributionsJvm)
 }
 
 strictCompile {
@@ -84,3 +84,6 @@ packageCycles {
 }
 
 integTest.usesJavadocCodeSnippets = true
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

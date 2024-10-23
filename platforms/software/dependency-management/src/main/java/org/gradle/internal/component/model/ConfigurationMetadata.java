@@ -22,7 +22,7 @@ import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
-import org.gradle.internal.component.external.model.maven.MavenDependencyDescriptor;
+import org.gradle.internal.component.external.model.ivy.IvyDependencyDescriptor;
 
 import java.util.List;
 import java.util.Set;
@@ -36,12 +36,12 @@ import java.util.Set;
  * @see VariantGraphResolveMetadata
  * @see ConfigurationGraphResolveMetadata
  */
-public interface ConfigurationMetadata extends VariantArtifactGraphResolveMetadata, HasAttributes {
+public interface ConfigurationMetadata extends HasAttributes {
     /**
      * The set of configurations that this configuration extends. Includes this configuration.
      *
      * It would be good to remove this from the API, as consumers of this interface generally have no need
-     * for this information. However it _is_ currently used by {@link MavenDependencyDescriptor#selectLegacyConfigurations}
+     * for this information. However it _is_ currently used by {@link IvyDependencyDescriptor#selectLegacyConfigurations}
      * to determine if the target 'runtime' configuration includes the target 'compile' configuration.
      */
     ImmutableSet<String> getHierarchy();
@@ -67,13 +67,12 @@ public interface ConfigurationMetadata extends VariantArtifactGraphResolveMetada
     /**
      * Returns the artifacts associated with this configuration, if known.
      */
-    @Override
     ImmutableList<? extends ComponentArtifactMetadata> getArtifacts();
 
     /**
      * Returns the variants of this configuration. Should include at least one value. Exactly one variant must be selected and the artifacts of that variant used.
      */
-    Set<? extends VariantResolveMetadata> getVariants();
+    Set<? extends VariantResolveMetadata> getArtifactVariants();
 
     /**
      * Returns the exclusions to apply to this configuration:
@@ -85,8 +84,6 @@ public interface ConfigurationMetadata extends VariantArtifactGraphResolveMetada
     boolean isTransitive();
 
     boolean isVisible();
-
-    boolean isCanBeConsumed();
 
     /**
      * Find the component artifact with the given IvyArtifactName, creating a new one if none matches.

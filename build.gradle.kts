@@ -1,5 +1,4 @@
 plugins {
-    id("gradlebuild.build-environment")
     id("gradlebuild.root-build")
 
     id("gradlebuild.teamcity-import-test-data")  // CI: Import Test tasks' JUnit XML if they're UP-TO-DATE or FROM-CACHE
@@ -16,6 +15,11 @@ description = "Adaptable, fast automation for all"
 dependencyAnalysis {
     issues {
         all {
+            onUnusedAnnotationProcessors {
+                // Ignore check for internal-instrumentation-processor, since we apply
+                // it to all distribution.api-java projects but projects might not have any upgrade
+                exclude(":internal-instrumentation-processor")
+            }
             ignoreSourceSet("archTest", "crossVersionTest", "docsTest", "integTest", "jmh", "peformanceTest", "smokeTest", "testInterceptors", "testFixtures", "smokeIdeTest")
         }
     }

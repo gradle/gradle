@@ -47,7 +47,7 @@ public abstract class AbstractTypeAnnotationHandler implements TypeAnnotationHan
     ) {
         visitor.visitTypeProblem(problem ->
             problem.withAnnotationType(classWithAnnotationAttached)
-                .id("invalid-use-of-type-annotation", "is incorrectly annotated", GradleCoreProblemGroup.validation().type())
+                .id("invalid-use-of-type-annotation", "Incorrect use of type annotation", GradleCoreProblemGroup.validation().type())
                 .contextualLabel("is incorrectly annotated with @" + annotationType.getSimpleName())
                 .documentedAt(Documentation.userManual("validation_problems", "invalid_use_of_cacheable_annotation"))
                 .severity(Severity.ERROR)

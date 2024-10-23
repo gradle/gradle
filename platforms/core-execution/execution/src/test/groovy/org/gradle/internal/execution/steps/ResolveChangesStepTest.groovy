@@ -127,7 +127,6 @@ class ResolveChangesStepTest extends StepSpec<ValidationFinishedContext> {
             return delegateResult
         }
         _ * changes.changeDescriptions >> ImmutableList.of("changed")
-        _ * changes.beforeExecutionState >> beforeExecutionState
         _ * context.nonIncrementalReason >> Optional.empty()
         _ * context.beforeExecutionState >> Optional.of(beforeExecutionState)
         _ * context.previousExecutionState >> Optional.of(previousExecutionState)

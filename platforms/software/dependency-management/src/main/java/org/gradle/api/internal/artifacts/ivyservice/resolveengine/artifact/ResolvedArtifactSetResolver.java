@@ -22,6 +22,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.Depe
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.work.WorkerLeaseService;
 
@@ -33,16 +34,19 @@ import javax.inject.Inject;
 public class ResolvedArtifactSetResolver {
 
     private final WorkerLeaseService workerLeaseService;
+    private final BuildOperationRunner buildOperationRunner;
     private final BuildOperationExecutor buildOperationExecutor;
     private final DependencyVerificationOverride dependencyVerificationOverride;
 
     @Inject
     public ResolvedArtifactSetResolver(
         WorkerLeaseService workerLeaseService,
+        BuildOperationRunner buildOperationRunner,
         BuildOperationExecutor buildOperationExecutor,
         DependencyVerificationOverride dependencyVerificationOverride
     ) {
         this.workerLeaseService = workerLeaseService;
+        this.buildOperationRunner = buildOperationRunner;
         this.buildOperationExecutor = buildOperationExecutor;
         this.dependencyVerificationOverride = dependencyVerificationOverride;
     }
@@ -55,7 +59,7 @@ public class ResolvedArtifactSetResolver {
     }
 
     public void visitArtifacts(ResolvedArtifactSet artifacts, ArtifactVisitor visitor, ResolutionHost resolutionHost) {
-        buildOperationExecutor.run(new RunnableBuildOperation() {
+        buildOperationRunner.run(new RunnableBuildOperation() {
             @Override
             public void run(BuildOperationContext context) {
                 ParallelResolveArtifactSet.wrap(artifacts, buildOperationExecutor).visit(visitor);

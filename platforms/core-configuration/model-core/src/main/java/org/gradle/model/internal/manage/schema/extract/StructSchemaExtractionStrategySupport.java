@@ -57,7 +57,7 @@ public abstract class StructSchemaExtractionStrategySupport implements ModelSche
         }
 
         CandidateMethods candidateMethods = ModelSchemaUtils.getCandidateMethods(type.getRawClass());
-        Iterable<ModelPropertyExtractionContext> candidateProperties = selectProperties(extractionContext, candidateMethods);
+        Iterable<ModelPropertyExtractionContext> candidateProperties = selectProperties(candidateMethods);
 
         List<ModelPropertyExtractionResult<?>> extractedProperties = extractProperties(candidateProperties);
         List<ModelSchemaAspect> aspects = aspectExtractor.extract(extractionContext, extractedProperties);
@@ -100,7 +100,7 @@ public abstract class StructSchemaExtractionStrategySupport implements ModelSche
 
     protected abstract boolean isTarget(ModelType<?> type);
 
-    private Iterable<ModelPropertyExtractionContext> selectProperties(final ModelSchemaExtractionContext<?> context, CandidateMethods candidateMethods) {
+    private Iterable<ModelPropertyExtractionContext> selectProperties(CandidateMethods candidateMethods) {
         Map<String, ModelPropertyExtractionContext> propertiesMap = new TreeMap<>();
         for (Map.Entry<Wrapper<Method>, Collection<Method>> entry : candidateMethods.allMethods().entrySet()) {
             Method method = entry.getKey().get();

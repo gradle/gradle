@@ -5,14 +5,12 @@ plugins {
 
 description = "Tools to work with functional code, including data structures"
 
-errorprone {
-    disabledChecks.addAll(
-        "UnnecessaryLambda", // 1 occurrences
-    )
-}
-
 dependencies {
     api(libs.jsr305)
 
-    implementation(project(":base-annotations"))
+    implementation(projects.stdlibJavaExtensions)
+    implementation(libs.guava)
+}
+tasks.isolatedProjectsIntegTest {
+    enabled = false
 }

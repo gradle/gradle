@@ -28,7 +28,7 @@ import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.vfs.VirtualFileSystem
 
 import static com.google.common.collect.ImmutableList.of
-import static org.gradle.internal.RenderingUtils.oxfordListOf
+import static org.gradle.internal.RenderingUtils.quotedOxfordListOf
 import static org.gradle.internal.deprecation.Documentation.userManual
 import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.convertToSingleLine
 import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.renderMinimalInformationAbout
@@ -98,7 +98,7 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
         WorkValidationExceptionChecker.check(ex) {
             def validationProblem1 = dummyValidationProblemWithLink('java.lang.Object', null, 'Validation error #1', 'Test')
             def validationProblem2 = dummyValidationProblemWithLink('java.lang.Object', null, 'Validation error #2', 'Test')
-            hasMessage """Some problems were found with the configuration of job ':test' (types ${oxfordListOf(of('ValidateStepTest.JobType', 'ValidateStepTest.SecondaryJobType'), 'and')}).
+            hasMessage """Some problems were found with the configuration of job ':test' (types ${quotedOxfordListOf(of('ValidateStepTest.JobType', 'ValidateStepTest.SecondaryJobType'), 'and')}).
   - ${validationProblem1.trim()}
   - ${validationProblem2.trim()}"""
         }

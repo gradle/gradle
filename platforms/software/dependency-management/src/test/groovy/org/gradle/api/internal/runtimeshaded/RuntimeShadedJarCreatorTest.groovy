@@ -103,7 +103,7 @@ class RuntimeShadedJarCreatorTest extends Specification {
         def jarFile2 = inputFilesDir.file('lib2.jar')
         createJarFileWithClassFiles(jarFile2, ['org/gradle/MySecondClass'])
         def jarFile3 = inputFilesDir.file('lib3.jar')
-        def serviceType = 'org.gradle.internal.service.scopes.PluginServiceRegistry'
+        def serviceType = 'org.gradle.internal.service.scopes.GradleModuleServices'
         createJarFileWithProviderConfigurationFile(jarFile3, serviceType, 'org.gradle.api.internal.artifacts.DependencyServices')
         def jarFile4 = inputFilesDir.file('lib4.jar')
         createJarFileWithProviderConfigurationFile(jarFile4, serviceType, """
@@ -156,11 +156,11 @@ org.gradle.api.internal.tasks.CompileServices
                 'org/gradle/MyFirstClass.class',
                 'META-INF/',
                 'META-INF/services/',
-                'META-INF/services/org.gradle.internal.service.scopes.PluginServiceRegistry',
+                'META-INF/services/org.gradle.internal.service.scopes.GradleModuleServices',
                 'META-INF/services/org.gradle.internal.other.Service',
                 'META-INF/.gradle-runtime-shaded']
         }
-        outputJar.md5Hash == "55b2497496d71392a4fa9010352aaf38"
+        outputJar.md5Hash == "898989a29248bd8e44197d087164496a"
     }
 
     def "excludes module-info.class from jar"() {
@@ -198,13 +198,13 @@ org.gradle.api.internal.tasks.CompileServices
     def "merges provider-configuration file with the same name"() {
         given:
         def inputFilesDir = tmpDir.createDir('inputFiles')
-        def serviceType = 'org.gradle.internal.service.scopes.PluginServiceRegistry'
+        def serviceType = 'org.gradle.internal.service.scopes.GradleModuleServices'
         def jarFile1 = inputFilesDir.file('lib1.jar')
         createJarFileWithProviderConfigurationFile(jarFile1, serviceType, 'org.gradle.api.internal.artifacts.DependencyServices')
         def jarFile2 = inputFilesDir.file('lib2.jar')
         createJarFileWithProviderConfigurationFile(jarFile2, serviceType, """
 
-org.gradle.plugin.use.internal.PluginUsePluginServiceRegistry
+org.gradle.plugin.use.internal.PluginUseGradleModuleServices
 
 """)
         def jarFile3 = inputFilesDir.file('lib3.jar')
@@ -228,7 +228,7 @@ org.gradle.api.internal.tasks.CompileServices
             IoActions.withResource(jar.getInputStream(providerConfigJarEntry), new Action<InputStream>() {
                 void execute(InputStream inputStream) {
                     assert inputStream.text == """org.gradle.api.internal.artifacts.DependencyServices
-org.gradle.plugin.use.internal.PluginUsePluginServiceRegistry
+org.gradle.plugin.use.internal.PluginUseGradleModuleServices
 org.gradle.api.internal.tasks.CompileServices"""
                 }
             })

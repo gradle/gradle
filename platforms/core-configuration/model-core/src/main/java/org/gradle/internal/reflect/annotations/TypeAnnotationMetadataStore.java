@@ -17,6 +17,8 @@
 package org.gradle.internal.reflect.annotations;
 
 import org.gradle.internal.reflect.validation.TypeValidationContext;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
  * A validating metadata store that handles annotations on types and their JavaBeans properties.
@@ -51,6 +53,7 @@ import org.gradle.internal.reflect.validation.TypeValidationContext;
  * {@code is}-getter is automatically ignored in favor of the {@code get}-getter.
  * </p>
  */
+@ServiceScope(Scope.Global.class)
 public interface TypeAnnotationMetadataStore {
     TypeAnnotationMetadata getTypeAnnotationMetadata(Class<?> type);
 }

@@ -17,7 +17,7 @@
 package org.gradle.deployment.internal
 
 import org.gradle.api.model.ObjectFactory
-import org.gradle.internal.operations.TestBuildOperationExecutor
+import org.gradle.internal.operations.TestBuildOperationRunner
 import spock.lang.Specification
 
 class DefaultDeploymentRegistryTest extends Specification {
@@ -48,12 +48,12 @@ class DefaultDeploymentRegistryTest extends Specification {
 
     def objectFactory = Mock(ObjectFactory)
     def pendingChangesManager = Mock(PendingChangesManager)
-    def buildOperationExecutor = new TestBuildOperationExecutor()
-    def registry = new DefaultDeploymentRegistry(pendingChangesManager, buildOperationExecutor, objectFactory)
+    def buildOperationRunner = new TestBuildOperationRunner()
+    def registry = new DefaultDeploymentRegistry(pendingChangesManager, buildOperationRunner, objectFactory)
 
     def "creating registry registers with pending changes listener"() {
         when:
-        def registry = new DefaultDeploymentRegistry(pendingChangesManager, buildOperationExecutor, objectFactory)
+        def registry = new DefaultDeploymentRegistry(pendingChangesManager, buildOperationRunner, objectFactory)
         then:
         1 * pendingChangesManager.addListener(_)
         when:

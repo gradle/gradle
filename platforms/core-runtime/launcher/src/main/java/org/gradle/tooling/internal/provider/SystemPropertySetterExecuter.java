@@ -18,17 +18,17 @@ package org.gradle.tooling.internal.provider;
 
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.internal.invocation.BuildAction;
-import org.gradle.launcher.exec.BuildActionExecuter;
+import org.gradle.launcher.exec.BuildActionExecutor;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionResult;
 
 import java.util.Properties;
 
-public class SystemPropertySetterExecuter implements BuildActionExecuter<BuildActionParameters, BuildRequestContext> {
+public class SystemPropertySetterExecuter implements BuildActionExecutor<BuildActionParameters, BuildRequestContext> {
 
-    private final BuildActionExecuter<BuildActionParameters, BuildRequestContext> delegate;
+    private final BuildActionExecutor<BuildActionParameters, BuildRequestContext> delegate;
 
-    public SystemPropertySetterExecuter(BuildActionExecuter<BuildActionParameters, BuildRequestContext> delegate) {
+    public SystemPropertySetterExecuter(BuildActionExecutor<BuildActionParameters, BuildRequestContext> delegate) {
         this.delegate = delegate;
     }
 

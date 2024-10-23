@@ -19,7 +19,7 @@ package org.gradle.api.internal.tasks.compile.incremental.compilerapi;
 import org.gradle.api.internal.tasks.compile.incremental.compilerapi.constants.ConstantToDependentsMapping;
 import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.DependentsSet;
 import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.DependentSetSerializer;
-import org.gradle.api.internal.tasks.compile.incremental.serialization.HierarchicalNameSerializer;
+import org.gradle.internal.serialize.HierarchicalNameSerializer;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;

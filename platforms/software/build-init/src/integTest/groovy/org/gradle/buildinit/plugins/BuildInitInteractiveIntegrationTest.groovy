@@ -18,20 +18,25 @@ package org.gradle.buildinit.plugins
 
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
+import org.gradle.integtests.fixtures.executer.ExecutionResult
+import org.gradle.integtests.fixtures.executer.GradleHandle
+import org.gradle.integtests.fixtures.executer.UnexpectedBuildFailure
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.util.internal.TextUtil
 import spock.lang.Issue
 
 class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
-
     def buildTypePrompt = "Select type of build to generate:"
     def dslPrompt = "Select build script DSL:"
     def incubatingPrompt = "Generate build using new APIs and behavior (some features may change in the next minor release)?"
     def basicType = "4: Basic (build structure only)"
     def basicTypeOption = 4
     def applicationOption = 1
-    def projectNamePrompt = "Project name (default: some-thing)"
+    def defaultProjectName = "some-thing"
+    def defaultFileName = "some-file"
+    def projectNamePrompt = "Project name (default: $defaultProjectName)"
     def convertMavenBuildPrompt = "Found a Maven build. Generate a Gradle build from this?"
+    def overwriteFilesPrompt = "Found existing files in the project directory: '${testDirectory.file(defaultProjectName)}'." + System.lineSeparator() + "Directory will be modified and existing files may be overwritten.  Continue? (default: no)"
     def javaOption = 1
     def languageSelectionOptions = [
         "Select implementation language:",
@@ -48,10 +53,7 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
 
     def "prompts user when run from an interactive session"() {
         when:
-        executer.withForceInteractive(true)
-        executer.withStdinPipe()
-        executer.withTasks("init")
-        def handle = executer.start()
+        def handle = startInteractiveExecutorWithTasks("init")
 
         // Select 'basic'
         ConcurrentTestUtil.poll(60) {
@@ -88,8 +90,8 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
         ConcurrentTestUtil.poll(60) {
             assert handle.standardOutput.contains(documentationRegistry.getSampleForMessage())
         }
-        handle.stdinPipe.close()
-        handle.waitForFinish()
+
+        closeInteractiveExecutor(handle)
 
         then:
         ScriptDslFixture.of(BuildInitDsl.KOTLIN, targetDir, null).assertGradleFilesGenerated()
@@ -97,10 +99,12 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
 
     def "does not prompt for options provided on the command-line"() {
         when:
-        executer.withForceInteractive(true)
-        executer.withStdinPipe()
-        executer.withTasks("init", "--incubating", "--dsl", "kotlin", "--type", "basic")
-        def handle = executer.start()
+        def handle = startInteractiveExecutorWithTasks(
+            "init",
+            "--incubating",
+            "--dsl", "kotlin",
+            "--type", "basic"
+        )
 
         // Select default project name
         ConcurrentTestUtil.poll(60) {
@@ -113,19 +117,147 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
         ConcurrentTestUtil.poll(60) {
             assert handle.standardOutput.contains(msg)
         }
-        handle.stdinPipe.close()
-        handle.waitForFinish()
+
+        closeInteractiveExecutor(handle)
 
         then:
         ScriptDslFixture.of(BuildInitDsl.KOTLIN, targetDir, null).assertGradleFilesGenerated()
     }
 
+    def "prompts to overwrite files if any exist and defaults to no"() {
+        given: "a file exists in the build directory"
+        targetDir.file(defaultFileName).touch()
+
+        when:
+        def handle = startInteractiveExecutorWithTasks(
+            "init",
+            "--incubating",
+            "--dsl", "groovy",
+            "--type", "basic",
+            "--project-name", defaultProjectName
+        )
+
+        ConcurrentTestUtil.poll(60) {
+            assertPromptedToOverwriteExistingFiles(handle)
+        }
+        handle.stdinPipe.write(TextUtil.platformLineSeparator.bytes) // Select 'no'
+
+        def result = handle.waitForFailure()
+
+        then:
+        result.assertHasDescription("Execution failed for task ':init'")
+        assertBuildAborted(handle)
+        assertSuggestedResolutionsToExistingFilesProblem(handle)
+    }
+
+    def "prompts to overwrite files if any exist and honors yes"() {
+        given: "a file exists in the build directory"
+        targetDir.file(defaultFileName).touch()
+
+        when:
+        def handle = startInteractiveExecutorWithTasks(
+            "init",
+            "--incubating",
+            "--dsl", "groovy",
+            "--type", "basic",
+            "--project-name", defaultProjectName
+        )
+
+        ConcurrentTestUtil.poll(60) {
+            assertPromptedToOverwriteExistingFiles(handle)
+        }
+        handle.stdinPipe.write("yes".bytes) // Select 'yes'
+        handle.stdinPipe.write(TextUtil.platformLineSeparator.bytes)
+
+        closeInteractiveExecutor(handle)
+
+        then:
+        rootProjectDslFixtureFor(BuildInitDsl.GROOVY).assertGradleFilesGenerated()
+    }
+
+    def "prompts to overwrite files if any exist and does not creates gradle files for no option"() {
+        given: "a file exists in the build directory"
+        targetDir.file(defaultFileName).touch()
+
+        when:
+        def handle = startInteractiveExecutorWithTasks(
+            "init",
+            "--incubating",
+            "--dsl", "groovy",
+            "--type", "basic",
+            "--project-name", defaultProjectName
+        )
+
+        // Select 'no'
+        ConcurrentTestUtil.poll(60) {
+            assertPromptedToOverwriteExistingFiles(handle)
+        }
+        handle.stdinPipe.write(('no' + TextUtil.platformLineSeparator).bytes)
+        handle.stdinPipe.close()
+
+        def result = handle.waitForFailure()
+
+        then:
+        result.assertHasDescription("Execution failed for task ':init'")
+        assertPromptedToOverwriteExistingFiles(handle)
+        assertSuggestedResolutionsToExistingFilesProblem(handle)
+
+        and:
+        ScriptDslFixture.of(BuildInitDsl.GROOVY, targetDir, null).assertGradleFilesNotGenerated()
+    }
+
+    def "does not prompt to overwrite files for option given on command-line"() {
+        given: "a file exists in the build directory"
+        targetDir.file(defaultFileName).touch()
+
+        when:
+        def handle = startInteractiveExecutorWithTasks(
+            "init",
+            "--incubating",
+            "--dsl", "groovy",
+            "--type", "basic",
+            "--project-name", defaultProjectName,
+            "--overwrite",
+        )
+
+        closeInteractiveExecutor(handle)
+
+        then:
+        assert !handle.standardOutput.contains("Found existing files in the project directory")
+
+        and:
+        ScriptDslFixture.of(BuildInitDsl.GROOVY, targetDir, null).assertGradleFilesGenerated()
+    }
+
+    def "does not prompt to overwrite files for no-option given on command-line"() {
+        given: "a file exists in the build directory"
+        targetDir.file(defaultFileName).touch()
+
+        when:
+        def handle = startInteractiveExecutorWithTasks(
+            "init",
+            "--incubating",
+            "--dsl", "groovy",
+            "--type", "basic",
+            "--project-name", defaultProjectName,
+            "--no-overwrite",
+        )
+
+        and:
+        closeInteractiveExecutor(handle)
+
+        then:
+        thrown(UnexpectedBuildFailure)
+        assertBuildAborted(handle)
+        assertSuggestedResolutionsToExistingFilesProblem(handle)
+
+        and:
+        rootProjectDslFixtureFor(BuildInitDsl.GROOVY).assertGradleFilesNotGenerated()
+    }
+
     def "user can provide details for Java build"() {
         when:
-        executer.withForceInteractive(true)
-        executer.withStdinPipe()
-        executer.withTasks("init")
-        def handle = executer.start()
+        def handle = startInteractiveExecutorWithTasks("init")
 
         // Select 'application'
         ConcurrentTestUtil.poll(60) {
@@ -184,8 +316,7 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
         ConcurrentTestUtil.poll(60) {
             assert handle.standardOutput.contains(documentationRegistry.getSampleForMessage())
         }
-        handle.stdinPipe.close()
-        handle.waitForFinish()
+        closeInteractiveExecutor(handle)
 
         then:
         dslFixtureFor(BuildInitDsl.KOTLIN).assertGradleFilesGenerated()
@@ -193,28 +324,23 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
 
     def "user can interrupt the build without generating files"() {
         when:
-        executer.withForceInteractive(true)
-        executer.withStdinPipe()
-        executer.withTasks("init")
-        def handle = executer.start()
+        def handle = startInteractiveExecutorWithTasks("init")
 
         // Interrupt input
         handle.stdinPipe.close()
-
         def result = handle.waitForFailure()
 
         then:
         result.assertHasDescription("Execution failed for task ':init'.")
         result.assertHasCause("Build cancelled.")
+
+        and:
         rootProjectDslFixtureFor(BuildInitDsl.GROOVY).assertGradleFilesNotGenerated()
     }
 
     def "user can interrupt the build after multiple prompts without generating files"() {
         when:
-        executer.withForceInteractive(true)
-        executer.withStdinPipe()
-        executer.withTasks("init")
-        def handle = executer.start()
+        def handle = startInteractiveExecutorWithTasks("init")
 
         // Select 'application'
         ConcurrentTestUtil.poll(60) {
@@ -238,17 +364,17 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
         then:
         result.assertHasDescription("Execution failed for task ':init'.")
         result.assertHasCause("Build cancelled.")
+
+        and:
         rootProjectDslFixtureFor(BuildInitDsl.GROOVY).assertGradleFilesNotGenerated()
     }
 
-    def "prompts user when run from an interactive session and pom.xml present"() {
-        when:
+    def "does not prompt user to overwrite when run from an interactive session and pom.xml present"() {
+        given:
         pom()
 
-        executer.withForceInteractive(true)
-        executer.withStdinPipe()
-        executer.withTasks("init")
-        def handle = executer.start()
+        when:
+        def handle = startInteractiveExecutorWithTasks("init")
 
         // Select 'yes'
         ConcurrentTestUtil.poll(60) {
@@ -272,25 +398,22 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
         ConcurrentTestUtil.poll(60) {
             assert handle.standardOutput.contains(documentationRegistry.getDocumentationRecommendationFor("information", "migrating_from_maven"))
         }
-        handle.stdinPipe.close()
-        handle.waitForFinish()
-
-        !handle.standardOutput.contains(buildTypePrompt)
-        !handle.standardOutput.contains(dslPrompt)
-        !handle.standardOutput.contains(projectNamePrompt)
+        closeInteractiveExecutor(handle)
 
         then:
+        !handle.standardOutput.contains(buildTypePrompt)
+        !handle.standardOutput.contains(projectNamePrompt)
+
+        and:
         rootProjectDslFixtureFor(BuildInitDsl.GROOVY).assertGradleFilesGenerated()
     }
 
     def "user can skip Maven conversion when pom.xml present"() {
-        when:
+        given:
         pom()
 
-        executer.withForceInteractive(true)
-        executer.withStdinPipe()
-        executer.withTasks("init")
-        def handle = executer.start()
+        when:
+        def handle = startInteractiveExecutorWithTasks("init")
 
         // Select 'no'
         ConcurrentTestUtil.poll(60) {
@@ -328,8 +451,7 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
         ConcurrentTestUtil.poll(60) {
             assert handle.standardOutput.contains(documentationRegistry.getSampleForMessage())
         }
-        handle.stdinPipe.close()
-        handle.waitForFinish()
+        closeInteractiveExecutor(handle)
 
         then:
         ScriptDslFixture.of(BuildInitDsl.KOTLIN, targetDir, null).assertGradleFilesGenerated()
@@ -338,9 +460,7 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
     @Issue("https://github.com/gradle/gradle/issues/26598")
     def "user can provide all necessary options to generate java application non-interactively"() {
         when:
-        executer.withForceInteractive(true)
-        executer.withStdinPipe()
-        executer.withTasks(
+        def handle = startInteractiveExecutorWithTasks(
             "init",
             "--type", "java-application",
             "--dsl", "groovy",
@@ -351,9 +471,7 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
             "--no-split-project",
             "--java-version", "14"
         )
-        def handle = executer.start()
-        handle.stdinPipe.close()
-        handle.waitForFinish()
+        closeInteractiveExecutor(handle)
 
         then:
         ScriptDslFixture.of(BuildInitDsl.GROOVY, targetDir, null).assertGradleFilesGenerated("app")
@@ -361,15 +479,11 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
 
     def "user can use defaults and provide no options to generate a basic project non-interactively"() {
         when:
-        executer.withForceInteractive(true)
-        executer.withStdinPipe()
-        executer.withTasks(
+        def handle = startInteractiveExecutorWithTasks(
             "init",
-            "--use-defaults",
+            "--use-defaults"
         )
-        def handle = executer.start()
-        handle.stdinPipe.close()
-        handle.waitForFinish()
+        closeInteractiveExecutor(handle)
 
         then:
         ScriptDslFixture.of(BuildInitDsl.KOTLIN, targetDir, null).assertGradleFilesGenerated()
@@ -377,18 +491,41 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
 
     def "user can use defaults to generate java application non-interactively"() {
         when:
-        executer.withForceInteractive(true)
-        executer.withStdinPipe()
-        executer.withTasks(
+        def handle = startInteractiveExecutorWithTasks(
             "init",
             "--use-defaults",
             "--type", "java-application",
         )
-        def handle = executer.start()
-        handle.stdinPipe.close()
-        handle.waitForFinish()
+        closeInteractiveExecutor(handle)
 
         then:
         ScriptDslFixture.of(BuildInitDsl.KOTLIN, targetDir, null).assertGradleFilesGenerated("app")
+    }
+
+    private GradleHandle startInteractiveExecutorWithTasks(String... names) {
+        executer.withForceInteractive(true)
+        executer.withStdinPipe()
+        executer.withTasks(names)
+        executer.start()
+    }
+
+    private static ExecutionResult closeInteractiveExecutor(GradleHandle handle) {
+        handle.stdinPipe.close()
+        handle.waitForFinish()
+    }
+
+    private void assertPromptedToOverwriteExistingFiles(GradleHandle handle) {
+        assert handle.standardOutput.contains(overwriteFilesPrompt)
+    }
+
+    private void assertBuildAborted(GradleHandle handle) {
+        assert handle.errorOutput.contains("Aborting build initialization due to existing files in the project directory: '${testDirectory.file(defaultProjectName)}'.")
+    }
+
+    private void assertSuggestedResolutionsToExistingFilesProblem(GradleHandle handle) {
+        handle.errorOutput.with {
+            assert it.contains("Remove any existing files in the project directory and run the init task again.")
+            assert it.contains("Enable the --overwrite option to allow existing files to be overwritten.")
+        }
     }
 }

@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.internal.consumer.connection;
 
-import org.gradle.api.Transformer;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.internal.protocol.BuildParameters;
 import org.gradle.tooling.internal.protocol.BuildResult;
@@ -26,7 +25,7 @@ import org.gradle.tooling.internal.protocol.InternalParameterAcceptingConnection
 class ParameterizedActionRunner extends CancellableActionRunner {
     private final InternalParameterAcceptingConnection executor;
 
-    ParameterizedActionRunner(InternalParameterAcceptingConnection executor, Transformer<RuntimeException, RuntimeException> exceptionTransformer, VersionDetails versionDetails) {
+    ParameterizedActionRunner(InternalParameterAcceptingConnection executor, CancellationExceptionTransformer exceptionTransformer, VersionDetails versionDetails) {
         super(null, exceptionTransformer, versionDetails);
         this.executor = executor;
     }

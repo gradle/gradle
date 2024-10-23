@@ -16,6 +16,8 @@
 
 package org.gradle.api.credentials;
 
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+
 import javax.annotation.Nullable;
 
 /**
@@ -33,6 +35,7 @@ public interface HttpHeaderCredentials extends Credentials {
      * @return The header name. May be null.
      */
     @Nullable
+    @ToBeReplacedByLazyProperty
     String getName();
 
     /**
@@ -48,6 +51,7 @@ public interface HttpHeaderCredentials extends Credentials {
      * @return The header value. May be null.
      */
     @Nullable
+    @ToBeReplacedByLazyProperty
     String getValue();
 
     /**

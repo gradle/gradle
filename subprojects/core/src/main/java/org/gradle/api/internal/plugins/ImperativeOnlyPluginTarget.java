@@ -16,19 +16,29 @@
 
 package org.gradle.api.internal.plugins;
 
+import org.apache.commons.lang3.reflect.TypeUtils;
 import org.gradle.api.Plugin;
+import org.gradle.api.problems.Severity;
+import org.gradle.api.problems.internal.GradleCoreProblemGroup;
+import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
+import org.gradle.internal.deprecation.Documentation;
 
 import javax.annotation.Nullable;
+import java.lang.reflect.Type;
 
 import static org.gradle.internal.Cast.uncheckedCast;
 
 public class ImperativeOnlyPluginTarget<T extends PluginAwareInternal> implements PluginTarget {
 
+    private final PluginTargetType targetType;
     private final T target;
+    private final InternalProblems problems;
 
-    public ImperativeOnlyPluginTarget(T target) {
+    public ImperativeOnlyPluginTarget(PluginTargetType targetType, T target, InternalProblems problems) {
+        this.targetType = targetType;
         this.target = target;
+        this.problems = problems;
     }
 
     @Override
@@ -40,7 +50,38 @@ public class ImperativeOnlyPluginTarget<T extends PluginAwareInternal> implement
     public void applyImperative(@Nullable String pluginId, Plugin<?> plugin) {
         // TODO validate that the plugin accepts this kind of argument
         Plugin<T> cast = uncheckedCast(plugin);
-        cast.apply(target);
+        try {
+            cast.apply(target);
+        } catch (ClassCastException e) {
+            maybeThrowOnTargetMismatch(plugin);
+            throw e;
+        }
+    }
+
+    private void maybeThrowOnTargetMismatch(Plugin<?> plugin) {
+        Type typeParameter = TypeUtils.getTypeArguments(plugin.getClass(), Plugin.class).get(Plugin.class.getTypeParameters()[0]);
+        if (!(typeParameter instanceof Class<?>)) {
+            return;
+        }
+
+        PluginTargetType actualTargetType = PluginTargetType.from((Class<?>) typeParameter);
+        if (actualTargetType == null || targetType.equals(actualTargetType)) {
+            return;
+        }
+
+        throw problems.getInternalReporter()
+            .throwing(spec -> {
+                String message = String.format(
+                    "The plugin must be applied %s, but was applied %s",
+                    actualTargetType.getApplyTargetDescription(), targetType.getApplyTargetDescription()
+                );
+
+                spec.id("target-type-mismatch", "Unexpected plugin type", GradleCoreProblemGroup.pluginApplication())
+                    .severity(Severity.ERROR)
+                    .withException(new IllegalArgumentException(message))
+                    .contextualLabel(message)
+                    .documentedAt(Documentation.userManual("custom_plugins", "project_vs_settings_vs_init_plugins").toString());
+            });
     }
 
     @Override

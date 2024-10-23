@@ -35,6 +35,7 @@ import static org.gradle.integtests.fixtures.SuggestionsMessages.INFO_DEBUG
 import static org.gradle.integtests.fixtures.SuggestionsMessages.SCAN
 import static org.gradle.integtests.fixtures.SuggestionsMessages.STACKTRACE_MESSAGE
 import static org.junit.Assume.assumeNotNull
+import static org.junit.Assume.assumeTrue
 
 class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec implements JavaToolchainFixture {
 
@@ -235,6 +236,9 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec implem
         """
 
         when:
+        if (forkOption == "java home") {
+            executer.expectDocumentedDeprecationWarning("The ForkOptions.setJavaHome(File) method has been deprecated. This is scheduled to be removed in Gradle 9.0. The 'javaHome' property of ForkOptions is deprecated and will be removed in Gradle 9. Use JVM toolchains or the 'executable' property instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_fork_options_java_home")
+        }
         // not adding the other JDK to the installations
         withInstallations(currentJdk).run(":compileJava", "--info")
 
@@ -265,6 +269,9 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec implem
         """
 
         when:
+        if (forkOption == "java home") {
+            executer.expectDocumentedDeprecationWarning("The ForkOptions.setJavaHome(File) method has been deprecated. This is scheduled to be removed in Gradle 9.0. The 'javaHome' property of ForkOptions is deprecated and will be removed in Gradle 9. Use JVM toolchains or the 'executable' property instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_fork_options_java_home")
+        }
         run(":compileJava", "--info")
 
         then:
@@ -378,8 +385,36 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec implem
                 GET_HELP)
     }
 
+    def "fails if no toolchain has a compiler"() {
+        def jre = AvailableJavaHomes.differentVersionJreOnly
+        assumeNotNull(jre)
+        buildFile << """
+            apply plugin: "java"
+
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(${jre.javaVersionMajor})
+                }
+            }
+        """
+
+        when:
+        withInstallations(jre).fails("compileJava")
+
+        then:
+        failure.assertHasCause("No locally installed toolchains match and toolchain auto-provisioning is not enabled.")
+            .assertHasResolutions(
+                DocumentationUtils.normalizeDocumentationLink("Learn more about toolchain auto-detection at https://docs.gradle.org/current/userguide/toolchains.html#sec:auto_detection."),
+                STACKTRACE_MESSAGE,
+                INFO_DEBUG,
+                SCAN,
+                GET_HELP)
+    }
+
     def "can use compile daemon with tools jar"() {
         def jdk = AvailableJavaHomes.getJdk(JavaVersion.VERSION_1_8)
+        assumeTrue(JavaVersion.current() != JavaVersion.VERSION_1_8)
+
         buildFile << """
             apply plugin: "java"
 
@@ -424,7 +459,7 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec implem
         classJavaVersion(javaClassFile("Foo.class")) == JavaVersion.toVersion(jdk.javaVersion)
 
         where:
-        javaVersion << JavaVersion.values().findAll { it.isJava8Compatible() }
+        javaVersion << JavaVersion.values().findAll { it.isJava8Compatible() && it != JavaVersion.current() }
     }
 
     /**
@@ -433,7 +468,7 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec implem
      */
     @Requires(UnitTestPreconditions.Jdk9OrLater)
     def "Java deprecation messages with different JDKs"() {
-        def jdk = AvailableJavaHomes.getJdk(javaVersion)
+        def jdk = javaVersion == JavaVersion.current() ? Jvm.current() : AvailableJavaHomes.getJdk(javaVersion)
 
         buildFile << """
             plugins {
@@ -466,7 +501,6 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec implem
             }
         """
 
-        //noinspection GrDeprecatedAPIUsage
         executer.expectDeprecationWarning("$fileWithDeprecation:5: warning: $deprecationMessage")
 
         when:
@@ -581,6 +615,7 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec implem
     }
 
     private TestFile configureForkOptionsJavaHome(Jvm jdk) {
+        executer.expectDocumentedDeprecationWarning("The ForkOptions.setJavaHome(File) method has been deprecated. This is scheduled to be removed in Gradle 9.0. The 'javaHome' property of ForkOptions is deprecated and will be removed in Gradle 9. Use JVM toolchains or the 'executable' property instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_fork_options_java_home")
         buildFile << """
             compileJava {
                 options.fork = true

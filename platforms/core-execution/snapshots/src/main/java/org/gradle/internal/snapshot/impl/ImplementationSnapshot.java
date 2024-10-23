@@ -23,19 +23,16 @@ import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.internal.snapshot.impl.UnknownImplementationSnapshot.UnknownReason;
 
 import javax.annotation.Nullable;
-import java.io.Serializable;
-import java.lang.invoke.SerializedLambda;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.Optional;
+
+import static org.gradle.internal.snapshot.impl.SerializedLambdaQueries.isLambdaClass;
+import static org.gradle.internal.snapshot.impl.SerializedLambdaQueries.isLambdaClassName;
+import static org.gradle.internal.snapshot.impl.SerializedLambdaQueries.serializedLambdaFor;
 
 /**
  * Identifies a type in a classloader hierarchy. The type is identified by its name,
  * the classloader hierarchy by its hash code.
  */
 public abstract class ImplementationSnapshot implements ValueSnapshot {
-
-    private static final String GENERATED_LAMBDA_CLASS_SUFFIX = "$$Lambda";
 
     protected final String classIdentifier;
 
@@ -53,10 +50,6 @@ public abstract class ImplementationSnapshot implements ValueSnapshot {
         return of(className, classLoaderHash, isLambdaClass(value.getClass()), value);
     }
 
-    private static boolean isLambdaClass(Class<?> type) {
-        return type.isSynthetic() && isLambdaClassName(type.getName());
-    }
-
     private static ImplementationSnapshot of(
         String classIdentifier,
         @Nullable HashCode classLoaderHash,
@@ -68,40 +61,12 @@ public abstract class ImplementationSnapshot implements ValueSnapshot {
         }
 
         if (isLambda) {
-            return Optional.ofNullable(value)
-                .flatMap(ImplementationSnapshot::serializedLambdaFor)
+            return serializedLambdaFor(value)
                 .<ImplementationSnapshot>map(it -> new LambdaImplementationSnapshot(classLoaderHash, it))
                 .orElseGet(() -> new UnknownImplementationSnapshot(classIdentifier, UnknownReason.UNTRACKED_LAMBDA));
         }
 
         return new ClassImplementationSnapshot(classIdentifier, classLoaderHash);
-    }
-
-    private static Optional<SerializedLambda> serializedLambdaFor(Object lambda) {
-        if (!(lambda instanceof Serializable)) {
-            return Optional.empty();
-        }
-        for (Class<?> lambdaClass = lambda.getClass(); lambdaClass != null; lambdaClass = lambdaClass.getSuperclass()) {
-            try {
-                Method replaceMethod = lambdaClass.getDeclaredMethod("writeReplace");
-                replaceMethod.setAccessible(true);
-                Object serializedForm = replaceMethod.invoke(lambda);
-                if (serializedForm instanceof SerializedLambda) {
-                    return Optional.of((SerializedLambda) serializedForm);
-                } else {
-                    return Optional.empty();
-                }
-            } catch (NoSuchMethodException e) {
-                // continue
-            } catch (InvocationTargetException | IllegalAccessException e) {
-                return Optional.empty();
-            }
-        }
-        return Optional.empty();
-    }
-
-    private static boolean isLambdaClassName(String className) {
-        return className.contains(GENERATED_LAMBDA_CLASS_SUFFIX);
     }
 
     protected ImplementationSnapshot(String classIdentifier) {

@@ -401,8 +401,8 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
   - foo2
   - foo3
 All of them match the consumer attributes:
-  - Variant 'foo2' capability test:b:unspecified declares attribute 'buildType' with value 'debug', attribute 'flavor' with value 'ONE'
-  - Variant 'foo3' capability test:b:unspecified declares attribute 'buildType' with value 'debug', attribute 'flavor' with value 'ONE'"""
+  - Variant 'foo2' capability 'test:b:unspecified' declares attribute 'buildType' with value 'debug', attribute 'flavor' with value 'ONE'
+  - Variant 'foo3' capability 'test:b:unspecified' declares attribute 'buildType' with value 'debug', attribute 'flavor' with value 'ONE'"""
     }
 
     def "can select best compatible match when single best matches are found on individual attributes"() {
@@ -1173,7 +1173,7 @@ All of them match the consumer attributes:
 
         then:
         failure.assertHasDescription("Could not determine the dependencies of task ':a:check'.")
-        failure.assertHasCause("Could not resolve all task dependencies for configuration ':a:compile'.")
+        failure.assertHasCause("Could not resolve all dependencies for configuration ':a:compile'.")
         failure.assertHasCause("Could not resolve project :b.")
         failure.assertHasCause("Could not determine whether value paid is compatible with value free using FlavorCompatibilityRule.")
         failure.assertHasCause("Could not create an instance of type FlavorCompatibilityRule.")
@@ -1234,7 +1234,7 @@ All of them match the consumer attributes:
 
         then:
         failure.assertHasDescription("Could not determine the dependencies of task ':a:check'.")
-        failure.assertHasCause("Could not resolve all task dependencies for configuration ':a:compile'.")
+        failure.assertHasCause("Could not resolve all dependencies for configuration ':a:compile'.")
         failure.assertHasCause("Could not resolve project :b.")
         failure.assertHasCause("Could not determine whether value paid is compatible with value free using FlavorCompatibilityRule.")
         failure.assertHasCause("broken!")
@@ -1307,7 +1307,7 @@ All of them match the consumer attributes:
 
         then:
         failure.assertHasDescription("Could not determine the dependencies of task ':a:check'.")
-        failure.assertHasCause("Could not resolve all task dependencies for configuration ':a:compile'.")
+        failure.assertHasCause("Could not resolve all dependencies for configuration ':a:compile'.")
         failure.assertHasCause("Could not resolve project :b.")
         failure.assertHasCause("Could not select value from candidates [free, paid] using FlavorSelectionRule.")
         failure.assertHasCause("Could not create an instance of type FlavorSelectionRule.")
@@ -1380,7 +1380,7 @@ All of them match the consumer attributes:
 
         then:
         failure.assertHasDescription("Could not determine the dependencies of task ':a:check'.")
-        failure.assertHasCause("Could not resolve all task dependencies for configuration ':a:compile'.")
+        failure.assertHasCause("Could not resolve all dependencies for configuration ':a:compile'.")
         failure.assertHasCause("Could not resolve project :b.")
         failure.assertHasCause("Could not select value from candidates [free, paid] using FlavorSelectionRule.")
         failure.assertHasCause("broken!")

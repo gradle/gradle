@@ -38,7 +38,7 @@ import org.gradle.api.tasks.diagnostics.internal.graph.nodes.ResolvedDependencyE
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.Section;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.UnresolvedDependencyEdge;
 import org.gradle.internal.InternalTransformer;
-import org.gradle.internal.component.ResolutionFailureHandler;
+import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler;
 import org.gradle.internal.exceptions.ResolutionProvider;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.util.internal.CollectionUtils;
@@ -49,6 +49,7 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 public class DependencyInsightReporter {
@@ -109,7 +110,7 @@ public class DependencyInsightReporter {
             reasonShortDescription = null;
             extraDetails.add(selectionReasonsSection);
         } else {
-            reasonShortDescription = reasonSections.isEmpty() ? null : reasonSections.get(0).getDescription().toLowerCase();
+            reasonShortDescription = reasonSections.isEmpty() ? null : reasonSections.get(0).getDescription().toLowerCase(Locale.ROOT);
         }
 
         buildFailureSection(dependency, alreadyReportedErrors, extraDetails);

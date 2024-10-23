@@ -80,9 +80,13 @@ class ProjectTheExtensionCrossVersionSpec extends CrossVersionIntegrationSpec {
             convention.plugins["myConvention"] = objects.newInstance<MyConvention>()
             $usageCode
         """
+
         version(distribution)
             .inDirectory(file("plugin"))
             .withTasks("publish")
+            // The expected deprecations for conventions change too much between versions
+            // for checking deprecations to be worthwhile.
+            .noDeprecationChecks()
             .run()
     }
 
@@ -99,10 +103,14 @@ class ProjectTheExtensionCrossVersionSpec extends CrossVersionIntegrationSpec {
             tasks.register("myTask")
             $usageCode
         """
+
         version(distribution)
             .inDirectory(file("consumer"))
             .withTasks("myTask")
             .withArgument("-s")
+            // The expected deprecations for conventions change too much between versions
+            // for checking deprecations to be worthwhile.
+            .noDeprecationChecks()
             .run()
     }
 

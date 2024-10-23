@@ -16,13 +16,13 @@
 
 package org.gradle.cache;
 
-import org.gradle.internal.Factory;
+import java.util.function.Supplier;
 
 public interface AsyncCacheAccess {
     /**
      * Submits the given action for execution without waiting for the result.
      *
-     * An implementation may execute the action immediately or later. All actions submitted by this method must complete before any action submitted to {@link #read(Factory)} is executed. Actions submitted using this method must run in the order that they are submitted.
+     * An implementation may execute the action immediately or later. All actions submitted by this method must complete before any action submitted to {@link #read(Supplier)} is executed. Actions submitted using this method must run in the order that they are submitted.
      */
     void enqueue(Runnable task);
 
@@ -31,7 +31,7 @@ public interface AsyncCacheAccess {
      *
      * All actions submitted using {@link #enqueue(Runnable)} must complete before the action is executed.
      */
-    <T> T read(Factory<T> task);
+    <T> T read(Supplier<T> task);
 
     /**
      * Blocks until all submitted actions have completed. Rethrows any update failure.

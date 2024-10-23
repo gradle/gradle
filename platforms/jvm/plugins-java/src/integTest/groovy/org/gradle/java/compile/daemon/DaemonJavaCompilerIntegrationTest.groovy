@@ -16,13 +16,13 @@
 package org.gradle.java.compile.daemon
 
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.java.compile.JavaCompilerIntegrationSpec
+import org.gradle.internal.jvm.Jvm
+import org.gradle.java.compile.AbstractJavaCompilerIntegrationSpec
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
-import org.gradle.util.internal.TextUtil
+import org.gradle.test.preconditions.IntegTestPreconditions
 import spock.lang.Issue
 
-class DaemonJavaCompilerIntegrationTest extends JavaCompilerIntegrationSpec {
+class DaemonJavaCompilerIntegrationTest extends AbstractJavaCompilerIntegrationSpec {
 
     @Override
     String compilerConfiguration() {
@@ -55,10 +55,10 @@ class DaemonJavaCompilerIntegrationTest extends JavaCompilerIntegrationSpec {
 
                 doLast {
                     assert services.get(WorkerDaemonClientsManager).idleClients.find {
-                        new File(it.forkOptions.javaForkOptions.executable).canonicalPath == Jvm.current().javaExecutable.canonicalPath &&
-                        it.forkOptions.javaForkOptions.minHeapSize == "128m" &&
-                        it.forkOptions.javaForkOptions.maxHeapSize == "256m" &&
-                        it.forkOptions.javaForkOptions.systemProperties['foo'] == "bar"
+                        new File(it.forkOptions.executable).canonicalPath == Jvm.current().javaExecutable.canonicalPath &&
+                        it.forkOptions.jvmOptions.minHeapSize == "128m" &&
+                        it.forkOptions.jvmOptions.maxHeapSize == "256m" &&
+                        it.forkOptions.jvmOptions.mutableSystemProperties['foo'] == "bar"
                     }
                 }
             }
@@ -81,19 +81,64 @@ class DaemonJavaCompilerIntegrationTest extends JavaCompilerIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/3098")
-    @Requires([
-        UnitTestPreconditions.Jdk8OrEarlier,
-        UnitTestPreconditions.JdkOracle
-    ])
+    @Requires(IntegTestPreconditions.BestJreAvailable)
     def "handles -bootclasspath being specified"() {
-        def jre = AvailableJavaHomes.getBestJre()
-        def bootClasspath = TextUtil.escapeString(jre.absolutePath) + "/lib/rt.jar"
         goodCode()
         buildFile << """
             tasks.withType(JavaCompile) {
-                options.bootstrapClasspath = project.layout.files("$bootClasspath")
+                ${configureBoostrapClasspath(Jvm.current())}
             }
         """
+
+        expect:
+        succeeds "compileJava"
+    }
+
+    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
+    def "computes target jvm version when using toolchain"() {
+        given:
+        def jdk = AvailableJavaHomes.differentVersion
+        def javaVersion = jdk.javaVersion.getMajorVersion()
+
+        and:
+        goodCode()
+        buildFile << """
+            java.toolchain {
+                languageVersion = JavaLanguageVersion.of(${javaVersion})
+            }
+
+            assert configurations.apiElements.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == ${javaVersion}
+            assert configurations.runtimeElements.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == ${javaVersion}
+            assert configurations.compileClasspath.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == ${javaVersion}
+            assert configurations.runtimeClasspath.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == ${javaVersion}
+        """
+
+        expect:
+        executer.withArgument("-Porg.gradle.java.installations.paths=" + jdk.javaHome.absolutePath)
+        succeeds("compileJava")
+    }
+
+    def "setting forkOptions is deprecated"() {
+        goodCode()
+        buildFile << """
+            tasks.withType(JavaCompile) {
+                options.setForkOptions(options.forkOptions)
+            }
+        """
+        executer.expectDocumentedDeprecationWarning("The CompileOptions.setForkOptions(ForkOptions) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Setting a new instance of forkOptions is unnecessary. Please use the forkOptions(Action) method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_nested_properties_setters")
+
+        expect:
+        succeeds "compileJava"
+    }
+
+    def "setting debugOptions is deprecated"() {
+        goodCode()
+        buildFile << """
+            tasks.withType(JavaCompile) {
+                options.setDebugOptions(options.debugOptions)
+            }
+        """
+        executer.expectDocumentedDeprecationWarning("The CompileOptions.setDebugOptions(DebugOptions) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Setting a new instance of debugOptions is unnecessary. Please use the debugOptions(Action) method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_nested_properties_setters")
 
         expect:
         succeeds "compileJava"

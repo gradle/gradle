@@ -17,13 +17,13 @@
 package org.gradle.internal.enterprise.core
 
 import org.gradle.integtests.fixtures.KotlinScriptIntegrationTest
-import org.gradle.internal.enterprise.GradleEnterprisePluginCheckInFixture
+import org.gradle.internal.enterprise.DevelocityPluginCheckInFixture
 
 import static org.gradle.initialization.StartParameterBuildOptions.BuildScanOption
 
 class BuildScanAutoApplyKotlinIntegrationTest extends KotlinScriptIntegrationTest {
 
-    private final GradleEnterprisePluginCheckInFixture fixture = new GradleEnterprisePluginCheckInFixture(testDirectory, mavenRepo, createExecuter())
+    private final DevelocityPluginCheckInFixture fixture = new DevelocityPluginCheckInFixture(testDirectory, mavenRepo, createExecuter())
 
     def "can automatically apply plugin when --scan is provided on command-line"() {
         given:

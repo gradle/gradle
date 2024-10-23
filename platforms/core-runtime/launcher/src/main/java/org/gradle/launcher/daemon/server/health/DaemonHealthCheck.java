@@ -17,12 +17,15 @@
 package org.gradle.launcher.daemon.server.health;
 
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationListener;
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationResult;
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStrategy;
 
 import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.DO_NOT_EXPIRE;
 
+@ServiceScope(Scope.Global.class)
 public class DaemonHealthCheck {
     private final DaemonExpirationStrategy strategy;
     private final DaemonExpirationListener listenerBroadcast;

@@ -17,13 +17,9 @@
 package org.gradle.internal.vfs.impl
 
 import org.gradle.internal.snapshot.CaseSensitivity
-import org.gradle.internal.snapshot.FileSystemLocationSnapshot
 import org.gradle.internal.snapshot.SnapshotHierarchy
 import org.gradle.internal.snapshot.TestSnapshotFixture
-import org.gradle.internal.vfs.VirtualFileSystem
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
-
-import java.util.function.Supplier
 
 class AbstractVirtualFileSystemTest extends ConcurrentSpec implements TestSnapshotFixture {
 
@@ -38,12 +34,12 @@ class AbstractVirtualFileSystemTest extends ConcurrentSpec implements TestSnapsh
         def location = '/my/location/new'
         when:
         start {
-            vfs.store(location, { ->
+            vfs.store(location) { ->
                 instant.snapshottingStarted
                 thread.blockUntil.invalidated
                 instant.snapshottingFinished
                 return directory(location, [])
-            } as Supplier<FileSystemLocationSnapshot>)
+            }
         }
         async {
             thread.blockUntil.snapshottingStarted
@@ -60,7 +56,7 @@ class AbstractVirtualFileSystemTest extends ConcurrentSpec implements TestSnapsh
         def location = '/my/location/new'
         when:
         start {
-            vfs.store(location, { vfsStore ->
+            vfs.storeWithAction(location) { vfsStore ->
                 instant.snapshottingStarted
                 vfsStore.store(regularFile("${location}/some/child"))
                 vfsStore.store(regularFile("${location}/other/child"))
@@ -70,7 +66,7 @@ class AbstractVirtualFileSystemTest extends ConcurrentSpec implements TestSnapsh
                 vfsStore.store(regularFile("${location}/some/child2"))
                 instant.snapshottingFinished
                 return directory(location, [])
-            } as VirtualFileSystem.StoringAction)
+            }
         }
         async {
             thread.blockUntil.partialSnapshotsStored
@@ -92,12 +88,12 @@ class AbstractVirtualFileSystemTest extends ConcurrentSpec implements TestSnapsh
         def location = '/my/location/new'
         when:
         start {
-            vfs.store(location, { ->
+            vfs.store(location) { ->
                 instant.snapshottingStarted
                 thread.blockUntil.invalidated
                 instant.snapshottingFinished
                 return directory(location, [])
-            } as Supplier<FileSystemLocationSnapshot>)
+            }
         }
         async {
             thread.blockUntil.snapshottingStarted
@@ -115,9 +111,9 @@ class AbstractVirtualFileSystemTest extends ConcurrentSpec implements TestSnapsh
 
         when:
         vfs.invalidate(['/my/location/new/something'])
-        vfs.store(location, { ->
-            return directory(location, [])
-        } as Supplier<FileSystemLocationSnapshot>)
+        vfs.store(location) { ->
+            directory(location, [])
+        }
         then:
         vfs.findSnapshot(location).present
     }

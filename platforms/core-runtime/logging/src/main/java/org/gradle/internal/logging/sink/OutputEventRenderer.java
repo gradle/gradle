@@ -16,7 +16,6 @@
 
 package org.gradle.internal.logging.sink;
 
-import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.api.logging.configuration.ConsoleOutput;
@@ -31,9 +30,9 @@ import org.gradle.internal.logging.console.ConsoleLayoutCalculator;
 import org.gradle.internal.logging.console.DefaultColorMap;
 import org.gradle.internal.logging.console.DefaultWorkInProgressFormatter;
 import org.gradle.internal.logging.console.FlushConsoleListener;
+import org.gradle.internal.logging.console.GlobalUserInputReceiver;
 import org.gradle.internal.logging.console.StyledTextOutputBackedRenderer;
 import org.gradle.internal.logging.console.ThrottlingOutputEventListener;
-import org.gradle.internal.logging.console.UserInputReceiver;
 import org.gradle.internal.logging.console.UserInputConsoleRenderer;
 import org.gradle.internal.logging.console.UserInputStandardOutputRenderer;
 import org.gradle.internal.logging.console.WorkInProgressRenderer;
@@ -54,6 +53,7 @@ import org.gradle.internal.nativeintegration.console.FallbackConsoleMetaData;
 import org.gradle.internal.time.Clock;
 
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.ThreadSafe;
 import java.io.OutputStream;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -66,7 +66,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
     private final Object lock = new Object();
     private final AtomicReference<LogLevel> logLevel = new AtomicReference<LogLevel>(LogLevel.LIFECYCLE);
     private final Clock clock;
-    private final UserInputReceiver userInput;
+    private final GlobalUserInputReceiver userInput;
     private final ListenerBroadcast<OutputEventListener> formatters = new ListenerBroadcast<OutputEventListener>(OutputEventListener.class);
     private final OutputEventTransformer transformer = new OutputEventTransformer(formatters.getSource(), lock);
 
@@ -80,7 +80,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
     private ListenerBroadcast<StandardOutputListener> userStdoutListeners;
     private ListenerBroadcast<StandardOutputListener> userStderrListeners;
 
-    public OutputEventRenderer(final Clock clock, UserInputReceiver userInput) {
+    public OutputEventRenderer(final Clock clock, GlobalUserInputReceiver userInput) {
         this.clock = clock;
         this.userInput = userInput;
     }
@@ -308,7 +308,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
                     )
                 ),
                 userInput
-        ));
+            ));
     }
 
     private OutputEventListener throttled(OutputEventListener consoleChain) {

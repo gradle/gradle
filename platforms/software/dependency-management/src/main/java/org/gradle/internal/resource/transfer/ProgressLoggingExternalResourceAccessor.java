@@ -19,7 +19,7 @@ package org.gradle.internal.resource.transfer;
 import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
-import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.ExternalResourceName;
@@ -30,26 +30,27 @@ import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 
 import javax.annotation.Nullable;
 import java.net.URI;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class ProgressLoggingExternalResourceAccessor extends AbstractProgressLoggingHandler implements ExternalResourceAccessor {
     private final ExternalResourceAccessor delegate;
-    private final BuildOperationExecutor buildOperationExecutor;
+    private final BuildOperationRunner buildOperationRunner;
 
-    public ProgressLoggingExternalResourceAccessor(ExternalResourceAccessor delegate, BuildOperationExecutor buildOperationExecutor) {
+    public ProgressLoggingExternalResourceAccessor(ExternalResourceAccessor delegate, BuildOperationRunner buildOperationRunner) {
         this.delegate = delegate;
-        this.buildOperationExecutor = buildOperationExecutor;
+        this.buildOperationRunner = buildOperationRunner;
     }
 
     @Nullable
     @Override
     public <T> T withContent(ExternalResourceName location, boolean revalidate, ExternalResource.ContentAndMetadataAction<T> action) throws ResourceException {
-        return buildOperationExecutor.call(new DownloadOperation<>(location, revalidate, action));
+        return buildOperationRunner.call(new DownloadOperation<>(location, revalidate, action));
     }
 
     @Override
     @Nullable
     public ExternalResourceMetaData getMetaData(ExternalResourceName location, boolean revalidate) {
-        return buildOperationExecutor.call(new MetadataOperation(location, revalidate));
+        return buildOperationRunner.call(new MetadataOperation(location, revalidate));
     }
 
     private BuildOperationDescriptor.Builder createBuildOperationDetails(ExternalResourceName resourceName) {
@@ -88,9 +89,11 @@ public class ProgressLoggingExternalResourceAccessor extends AbstractProgressLog
     private static class ReadOperationResult implements ExternalResourceReadBuildOperationType.Result {
 
         private final long bytesRead;
+        private final boolean missing;
 
-        private ReadOperationResult(long bytesRead) {
+        private ReadOperationResult(long bytesRead, boolean missing) {
             this.bytesRead = bytesRead;
+            this.missing = missing;
         }
 
         @Override
@@ -99,10 +102,17 @@ public class ProgressLoggingExternalResourceAccessor extends AbstractProgressLog
         }
 
         @Override
-        public String toString() {
-            return "ExternalResourceReadBuildOperationType.Result{bytesRead=" + bytesRead + '}';
+        public boolean isMissing() {
+            return missing;
         }
 
+        @Override
+        public String toString() {
+            return "ExternalResourceReadBuildOperationType.Result{" +
+                "bytesRead=" + bytesRead +
+                ", missing=" + missing +
+                '}';
+        }
     }
 
     private class DownloadOperation<T> implements CallableBuildOperation<T> {
@@ -119,9 +129,11 @@ public class ProgressLoggingExternalResourceAccessor extends AbstractProgressLog
         @Override
         public T call(BuildOperationContext context) {
             ResourceOperation downloadOperation = createResourceOperation(context, ResourceOperation.Type.download);
+            AtomicReference<ExternalResourceMetaData> metadata = new AtomicReference<>();
             try {
                 return delegate.withContent(location, revalidate, (inputStream, metaData) -> {
                     downloadOperation.setContentLength(metaData.getContentLength());
+                    metadata.set(metaData);
                     if(metaData.wasMissing()) {
                         context.failed(ResourceExceptions.getMissing(metaData.getLocation()));
                         return null;
@@ -130,7 +142,11 @@ public class ProgressLoggingExternalResourceAccessor extends AbstractProgressLog
                     return action.execute(stream, metaData);
                 });
             } finally {
-                context.setResult(new ReadOperationResult(downloadOperation.getTotalProcessedBytes()));
+                ExternalResourceMetaData externalResourceMetaData = metadata.get();
+                context.setResult(new ReadOperationResult(
+                    downloadOperation.getTotalProcessedBytes(),
+                    externalResourceMetaData != null && externalResourceMetaData.wasMissing()
+                ));
             }
         }
 

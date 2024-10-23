@@ -33,8 +33,8 @@ import org.gradle.cache.internal.scopes.DefaultCacheScopeMapping
 import org.gradle.cache.internal.scopes.DefaultGlobalScopedCacheBuilderFactory
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
 import org.gradle.initialization.layout.GlobalCacheDir
-import org.gradle.internal.agents.AgentStatus
 import org.gradle.internal.id.LongIdGenerator
+import org.gradle.internal.instrumentation.agent.AgentStatus
 import org.gradle.internal.jvm.inspection.CachingJvmMetadataDetector
 import org.gradle.internal.jvm.inspection.DefaultJvmMetadataDetector
 import org.gradle.internal.jvm.inspection.DefaultJvmVersionDetector

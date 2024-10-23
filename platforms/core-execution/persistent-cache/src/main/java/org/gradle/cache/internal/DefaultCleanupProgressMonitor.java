@@ -46,6 +46,10 @@ public class DefaultCleanupProgressMonitor implements CleanupProgressMonitor {
         updateProgress();
     }
 
+    public long getDeleted() {
+        return deleted;
+    }
+
     private void updateProgress() {
         buildOperationContext.progress(mandatoryNumber(deleted, " entry", " entries") + " deleted"
             + optionalNumber(", ", skipped, " skipped"));

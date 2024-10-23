@@ -19,7 +19,6 @@ package org.gradle.integtests.tooling.r65
 import org.gradle.integtests.tooling.CancellationSpec
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.TestResultHandler
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.Flaky
 import org.gradle.tooling.BuildCancelledException
 import org.gradle.tooling.GradleConnector
@@ -32,7 +31,6 @@ import spock.util.concurrent.PollingConditions
 
 @Timeout(120)
 @Retry(count = 3)
-@ToolingApiVersion(">=6.5")
 class ToolingApiShutdownCrossVersionSpec extends CancellationSpec {
 
     def waitFor
@@ -73,7 +71,6 @@ class ToolingApiShutdownCrossVersionSpec extends CancellationSpec {
 
     @Timeout(30)
     @TargetGradleVersion(">=6.8")
-    @ToolingApiVersion(">=6.8")
     def "disconnect during hanging build does not block the client"() {
         setup:
         file("gradle.properties") << "systemProp.org.gradle.internal.testing.daemon.hang=60000"

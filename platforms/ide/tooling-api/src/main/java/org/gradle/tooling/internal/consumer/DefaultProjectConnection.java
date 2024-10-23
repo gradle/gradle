@@ -15,7 +15,6 @@
  */
 package org.gradle.tooling.internal.consumer;
 
-import org.gradle.api.Transformer;
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildActionExecuter;
 import org.gradle.tooling.BuildLauncher;
@@ -118,9 +117,9 @@ class DefaultProjectConnection implements ProjectConnection {
                 }
             },
             new ResultHandlerAdapter<Void>(new BlockingResultHandler<Void>(Void.class),
-                new ExceptionTransformer(new Transformer<String, Throwable>() {
+                new ConnectionExceptionTransformer(new ConnectionExceptionTransformer.ConnectionFailureMessageProvider() {
                     @Override
-                    public String transform(Throwable throwable) {
+                    public String getConnectionFailureMessage(Throwable throwable) {
                         return String.format("Could not notify daemons about changed paths: %s.", connection.getDisplayName());
                     }
                 })

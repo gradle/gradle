@@ -3,12 +3,14 @@ package configurations
 import com.alibaba.fastjson.JSONObject
 import com.alibaba.fastjson.annotation.JSONField
 import common.functionalTestExtraParameters
+import common.getBuildScanCustomValueParam
 import jetbrains.buildServer.configs.kotlin.BuildSteps
 import jetbrains.buildServer.configs.kotlin.buildFeatures.perfmon
 import model.CIBuildModel
 import model.Stage
 import model.StageName
 import model.TestCoverage
+import model.TestType
 
 const val functionalTestTag = "FunctionalTest"
 
@@ -31,6 +33,7 @@ sealed class ParallelizationMethod {
             val methodJsonObject = jsonObject.getJSONObject("parallelizationMethod") ?: return None
             return when (methodJsonObject.getString("name")) {
                 null -> None
+                None::class.simpleName -> None
                 TestDistribution::class.simpleName -> TestDistribution
                 TeamCityParallelTests::class.simpleName -> TeamCityParallelTests(methodJsonObject.getIntValue("numberOfBatches"))
                 else -> throw IllegalArgumentException("Unknown parallelization method")
@@ -49,17 +52,17 @@ class FunctionalTest(
     parallelizationMethod: ParallelizationMethod = ParallelizationMethod.None,
     subprojects: List<String> = listOf(),
     extraParameters: String = "",
-    maxParallelForks: String = "%maxParallelForks%",
     extraBuildSteps: BuildSteps.() -> Unit = {},
     preBuildSteps: BuildSteps.() -> Unit = {}
-) : BaseGradleBuildType(stage = stage, init = {
+) : OsAwareBaseGradleBuildType(os = testCoverage.os, stage = stage, init = {
     this.name = name
     this.description = description
     this.id(id)
     val testTasks = getTestTaskName(testCoverage, subprojects)
 
     val assembledExtraParameters = mutableListOf(
-        functionalTestExtraParameters(functionalTestTag, testCoverage.os, testCoverage.arch, testCoverage.testJvmVersion.major.toString(), testCoverage.vendor.name),
+        stage.getBuildScanCustomValueParam(testCoverage),
+        functionalTestExtraParameters(listOf(functionalTestTag), testCoverage.os, testCoverage.arch, testCoverage.testJvmVersion.major.toString(), testCoverage.vendor.name),
         "-PflakyTests=${determineFlakyTestStrategy(stage)}",
         extraParameters,
         parallelizationMethod.extraBuildParameters
@@ -103,7 +106,8 @@ private fun determineFlakyTestStrategy(stage: Stage): String {
 }
 
 fun getTestTaskName(testCoverage: TestCoverage, subprojects: List<String>): String {
-    val testTaskName = "${testCoverage.testType.name}Test"
+    val testTaskName =
+        if (testCoverage.testType == TestType.isolatedProjects) "isolatedProjectsIntegTest" else "${testCoverage.testType.name}Test"
     return when {
         subprojects.isEmpty() -> {
             testTaskName

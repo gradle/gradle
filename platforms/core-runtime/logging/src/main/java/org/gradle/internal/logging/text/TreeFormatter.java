@@ -392,7 +392,7 @@ public class TreeFormatter implements DiagnosticsVisitor {
 
         @Override
         public String nextPrefix() {
-            return "  " + (++cur) + ". ";
+            return "  " + ++cur + ". ";
         }
     }
 }

@@ -17,16 +17,20 @@
 package configurations
 
 import common.KillProcessMode.KILL_ALL_GRADLE_PROCESSES
+import common.KillProcessMode.KILL_PROCESSES_STARTED_BY_GRADLE
 import common.Os
 import common.applyPerformanceTestSettings
+import common.buildScanTagParam
 import common.buildToolGradleParameters
 import common.checkCleanM2AndAndroidUserHome
+import common.getBuildScanCustomValueParam
 import common.gradleWrapper
 import common.individualPerformanceTestArtifactRules
 import common.killProcessStep
 import common.performanceTestCommandLine
 import common.removeSubstDirOnWindows
 import common.substDirOnWindows
+import jetbrains.buildServer.configs.kotlin.BuildStep
 import jetbrains.buildServer.configs.kotlin.BuildSteps
 import jetbrains.buildServer.configs.kotlin.ParameterDisplay
 import model.CIBuildModel
@@ -52,9 +56,10 @@ class PerformanceTest(
         this.name = "$description${if (performanceTestBuildSpec.withoutDependencies) " (without dependencies)" else ""}"
         val type = performanceTestBuildSpec.type
         val os = performanceTestBuildSpec.os
+        val arch = performanceTestBuildSpec.arch
         val buildTypeThis = this
         val performanceTestTaskNames = getPerformanceTestTaskNames(performanceSubProject, testProjects, performanceTestTaskSuffix)
-        applyPerformanceTestSettings(os = os, arch = os.defaultArch, timeout = type.timeout)
+        applyPerformanceTestSettings(os = os, arch = arch, timeout = type.timeout)
         artifactRules = individualPerformanceTestArtifactRules
 
         params {
@@ -65,7 +70,7 @@ class PerformanceTest(
                 allowEmpty = true,
                 description = "The baselines you want to run performance tests against. Empty means default baseline."
             )
-            param("performance.channel", performanceTestBuildSpec.channel())
+            param("env.PERFORMANCE_CHANNEL", performanceTestBuildSpec.channel())
             param("env.PERFORMANCE_DB_PASSWORD_TCAGENT", "%performance.db.password.tcagent%")
             when (os) {
                 Os.WINDOWS -> param("env.PATH", "%env.PATH%;C:/Program Files/7-zip")
@@ -89,19 +94,25 @@ class PerformanceTest(
                         name = "GRADLE_RUNNER${if (repeatIndex == 0) "" else "_2"}"
                         tasks = ""
                         workingDir = os.perfTestWorkingDir
+
+                        val typeExtraParameters = if (type.extraParameters.isEmpty()) "" else " ${type.extraParameters}"
+
                         gradleParams = (
                             performanceTestCommandLine(
-                                "${if (repeatIndex == 0) "clean" else ""} ${performanceTestTaskNames.joinToString(" ") { "$it --channel %performance.channel% ${type.extraParameters}" }}",
+                                "${if (repeatIndex == 0) "clean" else ""} ${performanceTestTaskNames.joinToString(" ") { "$it$typeExtraParameters" }}",
                                 "%performance.baselines%",
                                 extraParameters,
-                                os
+                                os,
+                                arch
                             ) + "-DenableTestDistribution=%enableTestDistribution%" +
                                 buildToolGradleParameters() +
-                                buildScanTag("PerformanceTest")
+                                stage.getBuildScanCustomValueParam() +
+                                buildScanTagParam("PerformanceTest")
                             ).joinToString(separator = " ")
                     }
                 }
                 removeSubstDirOnWindows(os)
+                killProcessStep(buildTypeThis, KILL_PROCESSES_STARTED_BY_GRADLE, os, executionMode = BuildStep.ExecutionMode.ALWAYS)
                 checkCleanM2AndAndroidUserHome(os)
             }
         }

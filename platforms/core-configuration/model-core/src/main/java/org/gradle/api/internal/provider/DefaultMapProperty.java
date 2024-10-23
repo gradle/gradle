@@ -29,6 +29,7 @@ import org.gradle.api.internal.provider.MapCollectors.EntryWithValueFromProvider
 import org.gradle.api.internal.provider.MapCollectors.SingleEntry;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Provider;
+import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -55,7 +56,7 @@ import static org.gradle.internal.Cast.uncheckedNonnullCast;
  * @param <K> the type of entry key
  * @param <V> the type of entry value
  */
-public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSupplier<K, V>> implements MapProperty<K, V>, MapProviderInternal<K, V> {
+public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSupplier<K, V>> implements MapProperty<K, V>, MapProviderInternal<K, V>, MapPropertyInternal<K, V> {
     private static final String NULL_KEY_FORBIDDEN_MESSAGE = String.format("Cannot add an entry with a null key to a property of type %s.", Map.class.getSimpleName());
     private static final String NULL_VALUE_FORBIDDEN_MESSAGE = String.format("Cannot add an entry with a null value to a property of type %s.", Map.class.getSimpleName());
 
@@ -71,7 +72,17 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         this.valueType = valueType;
         keyCollector = new ValidatingValueCollector<>(Set.class, keyType, ValueSanitizers.forType(keyType));
         entryCollector = new ValidatingMapEntryCollector<>(keyType, valueType, ValueSanitizers.forType(keyType), ValueSanitizers.forType(valueType));
-        init(defaultValue, getDefaultConvention());
+        init();
+    }
+
+    private void init() {
+        defaultValue = emptySupplier();
+        init(defaultValue, noValueSupplier());
+    }
+
+    @Override
+    public MapSupplier<K, V> getDefaultValue() {
+        return defaultValue;
     }
 
     @Override
@@ -148,9 +159,9 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
     @SuppressWarnings("unchecked")
     public void set(@Nullable Map<? extends K, ? extends V> entries) {
         if (entries == null) {
-            doUnset(true);
+            unsetValueAndDefault();
         } else {
-            setSupplier(new CollectingSupplier(new MapCollectors.EntriesFromMap<>(entries), false));
+            setSupplier(new CollectingSupplier(new EntriesFromMap<>(entries), false));
         }
     }
 
@@ -285,22 +296,20 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
 
     @Override
     public MapProperty<K, V> unset() {
-        doUnset(false);
-        return this;
+        return Cast.uncheckedNonnullCast(super.unset());
     }
 
-    private void doUnset(boolean changeDefault) {
-        super.unset();
-        if (changeDefault) {
-            defaultValue = noValueSupplier();
-        }
+    private void unsetValueAndDefault() {
+        // assign no-value default before restoring to it
+        defaultValue = noValueSupplier();
+        unset();
     }
 
     public void fromState(ExecutionTimeValue<? extends Map<? extends K, ? extends V>> value) {
         if (value.isMissing()) {
             setSupplier(noValueSupplier());
         } else if (value.hasFixedValue()) {
-            setSupplier(new FixedSupplier<>(uncheckedNonnullCast(value.getFixedValue()), uncheckedCast(value.getSideEffect())));
+            setSupplier(new FixedSupplier(uncheckedNonnullCast(value.getFixedValue()), uncheckedCast(value.getSideEffect())));
         } else {
             CollectingProvider<K, V> asCollectingProvider = uncheckedNonnullCast(value.getChangingValue());
             setSupplier(new CollectingSupplier(new EntriesFromMapProvider<>(asCollectingProvider)));
@@ -312,8 +321,8 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         return new KeySetProvider();
     }
 
-    public void update(Transformer<? extends @org.jetbrains.annotations.Nullable Provider<? extends Map<? extends K, ? extends V>>, ? super Provider<Map<K, V>>> transform) {
-        Provider<? extends Map<? extends K, ? extends V>> newValue = transform.transform(shallowCopy());
+    public void replace(Transformer<? extends @org.jetbrains.annotations.Nullable Provider<? extends Map<? extends K, ? extends V>>, ? super Provider<Map<K, V>>> transformation) {
+        Provider<? extends Map<? extends K, ? extends V>> newValue = transformation.transform(shallowCopy());
         if (newValue != null) {
             set(newValue);
         } else {
@@ -323,7 +332,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
 
     @Override
     protected String describeContents() {
-        return String.format("Map(%s->%s, %s)", keyType.getSimpleName().toLowerCase(), valueType.getSimpleName(), describeValue());
+        return String.format("Map(%s->%s, %s)", keyType.getSimpleName(), valueType.getSimpleName(), describeValue());
     }
 
     @Override
@@ -335,7 +344,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
     protected MapSupplier<K, V> finalValue(EvaluationContext.ScopeContext context, MapSupplier<K, V> value, ValueConsumer consumer) {
         Value<? extends Map<K, V>> result = value.calculateValue(consumer);
         if (!result.isMissing()) {
-            return new FixedSupplier<>(result.getWithoutSideEffect(), uncheckedCast(result.getSideEffect()));
+            return new FixedSupplier(result.getWithoutSideEffect(), uncheckedCast(result.getSideEffect()));
         } else if (result.getPathToOrigin().isEmpty()) {
             return noValueSupplier();
         } else {
@@ -482,7 +491,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         }
     }
 
-    private static class FixedSupplier<K, V> implements MapSupplier<K, V> {
+    private class FixedSupplier implements MapSupplier<K, V> {
         private final Map<K, V> entries;
         private final SideEffect<? super Map<K, V>> sideEffect;
 
@@ -508,7 +517,9 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
 
         @Override
         public MapSupplier<K, V> plus(MapCollector<K, V> collector) {
-            throw new UnsupportedOperationException();
+            MapCollector<K, V> left = new FixedValueCollector<>(entries, sideEffect);
+            PlusCollector<K, V> newCollector = new PlusCollector<>(left, collector);
+            return new CollectingSupplier(newCollector);
         }
 
         @Override
@@ -724,6 +735,60 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
 
         public void putAll(Provider<? extends Map<? extends K, ? extends V>> provider) {
             addCollector(new EntriesFromMapProvider<>(checkMapProvider(provider)));
+        }
+    }
+
+    /**
+     * A fixed value collector, similar to {@link EntriesFromMap} but with a side effect.
+     */
+    private static class FixedValueCollector<K, V> implements MapCollector<K, V> {
+        @Nullable
+        private final SideEffect<? super Map<K, V>> sideEffect;
+        private final Map<K, V> entries;
+
+        private FixedValueCollector(Map<K, V> entries, @Nullable SideEffect<? super Map<K, V>> sideEffect) {
+            this.entries = entries;
+            this.sideEffect = sideEffect;
+        }
+
+        @Override
+        public Value<Void> collectEntries(ValueConsumer consumer, MapEntryCollector<K, V> collector, Map<K, V> dest) {
+            collector.addAll(entries.entrySet(), dest);
+            return sideEffect != null
+                ? Value.present().withSideEffect(SideEffect.fixed(entries, sideEffect))
+                : Value.present();
+        }
+
+        @Override
+        public Value<Void> collectKeys(ValueConsumer consumer, ValueCollector<K> collector, ImmutableCollection.Builder<K> dest) {
+            collector.addAll(entries.keySet(), dest);
+            return Value.present();
+        }
+
+        @Override
+        public void calculateExecutionTimeValue(Action<ExecutionTimeValue<? extends Map<? extends K, ? extends V>>> visitor) {
+            visitor.execute(ExecutionTimeValue.fixedValue(entries).withSideEffect(sideEffect));
+        }
+
+        @Override
+        public MapCollector<K, V> absentIgnoring() {
+            // always present
+            return this;
+        }
+
+        @Override
+        public ValueProducer getProducer() {
+            return ValueProducer.unknown();
+        }
+
+        @Override
+        public boolean calculatePresence(ValueConsumer consumer) {
+            return true;
+        }
+
+        @Override
+        public String toString() {
+            return entries.toString();
         }
     }
 

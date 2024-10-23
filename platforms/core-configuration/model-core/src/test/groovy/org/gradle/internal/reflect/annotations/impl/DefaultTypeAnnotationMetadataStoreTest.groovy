@@ -20,8 +20,8 @@ import groovy.transform.Generated
 import groovy.transform.Memoized
 import groovy.transform.PackageScope
 import org.gradle.api.file.FileCollection
-import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.problems.Severity
+import org.gradle.api.problems.internal.InternalProblems
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.reflect.DefaultTypeValidationContext
 import org.gradle.internal.reflect.annotations.AnnotationCategory
@@ -54,8 +54,6 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
         }
     }
 
-    private final DocumentationRegistry documentationRegistry = new DocumentationRegistry()
-
     def store = new DefaultTypeAnnotationMetadataStore(
         [TestType],
         [(Large): TYPE, (Small): TYPE, (Color): COLOR],
@@ -64,6 +62,7 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
         [Object, GroovyObject],
         [MutableType, MutableSubType],
         [Ignored, Ignored2],
+        [],
         { Method method -> method.isAnnotationPresent(Generated) },
         new TestCrossBuildInMemoryCacheFactory())
 
@@ -321,7 +320,7 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
     @SuppressWarnings("unused")
     static class TypeWithIgnoredFieldAndGetterInput {
         @Ignored
-        private String ignoredByField;
+        private String ignoredByField
 
         @Small
         String getIgnoredByField() {
@@ -775,7 +774,7 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
             }
         }
 
-        def validationContext = DefaultTypeValidationContext.withoutRootType(false)
+        def validationContext = DefaultTypeValidationContext.withoutRootType(false, Stub(InternalProblems.class))
         metadata.visitValidationFailures(validationContext)
         List<String> actualErrors = validationContext.problems
             .collect({ (normaliseLineSeparators(TypeValidationProblemRenderer.renderMinimalInformationAbout(it)) + (it.definition.severity == Severity.ERROR ? " [STRICT]" : "") as String) })

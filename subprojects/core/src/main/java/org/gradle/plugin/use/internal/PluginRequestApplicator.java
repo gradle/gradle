@@ -20,7 +20,7 @@ import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.internal.service.scopes.EventScope;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.service.scopes.StatefulListener;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
@@ -28,7 +28,7 @@ import org.gradle.plugin.management.internal.PluginRequests;
 
 import javax.annotation.Nullable;
 
-@ServiceScope(Scopes.Build.class)
+@ServiceScope(Scope.Build.class)
 public interface PluginRequestApplicator {
 
     /**
@@ -41,7 +41,7 @@ public interface PluginRequestApplicator {
      */
     void applyPlugins(PluginRequests requests, ScriptHandlerInternal scriptHandler, @Nullable PluginManagerInternal target, ClassLoaderScope classLoaderScope);
 
-    @EventScope(Scopes.Build.class)
+    @EventScope(Scope.Build.class)
     @StatefulListener
     interface PluginApplicationListener {
 

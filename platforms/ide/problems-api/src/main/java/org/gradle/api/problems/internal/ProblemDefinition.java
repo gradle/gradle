@@ -33,7 +33,6 @@ import javax.annotation.Nullable;
  * </ul>
  * <p>
  * The category and the label uniquely identify the problem definition, the remaining fields only supply additional information.
- * <p>
  */
 public interface ProblemDefinition {
 

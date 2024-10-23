@@ -17,9 +17,13 @@
 package org.gradle.caching.http;
 
 import org.gradle.api.Action;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.tasks.Nested;
 import org.gradle.caching.configuration.AbstractBuildCache;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 import javax.annotation.Nullable;
+import javax.inject.Inject;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -46,7 +50,6 @@ import java.net.URL;
  * <p>
  * Requests that fail during request transmission, after having established a TCP connection, will automatically be retried.
  * This includes dropped connections, read or write timeouts, and low level network failures such as a connection resets.
- * Requests will be retried 3 times, before giving up and disabling use of the cache for the remainder of the build.
  *
  * @since 3.5
  */
@@ -58,13 +61,19 @@ public abstract class HttpBuildCache extends AbstractBuildCache {
     private boolean useExpectContinue;
 
     public HttpBuildCache() {
-        this.credentials = new HttpBuildCacheCredentials();
+        this.credentials = getObjectFactory().newInstance(HttpBuildCacheCredentials.class);
+    }
+
+    @Inject
+    protected ObjectFactory getObjectFactory() {
+        throw new UnsupportedOperationException();
     }
 
     /**
      * Returns the URI to the cache.
      */
     @Nullable
+    @Nested
     public URI getUrl() {
         return url;
     }
@@ -93,6 +102,7 @@ public abstract class HttpBuildCache extends AbstractBuildCache {
     /**
      * Returns the credentials used to access the HTTP cache backend.
      */
+    @Nested
     public HttpBuildCacheCredentials getCredentials() {
         return credentials;
     }
@@ -119,6 +129,7 @@ public abstract class HttpBuildCache extends AbstractBuildCache {
      *
      * @since 4.2
      */
+    @ToBeReplacedByLazyProperty
     public boolean isAllowUntrustedServer() {
         return allowUntrustedServer;
     }
@@ -150,6 +161,7 @@ public abstract class HttpBuildCache extends AbstractBuildCache {
      *
      * @since 6.0
      */
+    @ToBeReplacedByLazyProperty
     public boolean isAllowInsecureProtocol() {
         return allowInsecureProtocol;
     }
@@ -189,6 +201,7 @@ public abstract class HttpBuildCache extends AbstractBuildCache {
      * @see #setUseExpectContinue(boolean)
      * @since 7.2
      */
+    @ToBeReplacedByLazyProperty
     public boolean isUseExpectContinue() {
         return useExpectContinue;
     }

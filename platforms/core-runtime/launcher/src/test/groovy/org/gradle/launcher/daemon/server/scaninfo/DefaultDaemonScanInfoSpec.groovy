@@ -21,7 +21,7 @@ import org.gradle.BuildResult
 import org.gradle.api.Action
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.event.ListenerManager
-import org.gradle.internal.service.scopes.Scopes
+import org.gradle.internal.service.scopes.Scope
 import org.gradle.launcher.daemon.registry.DaemonRegistry
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationListener
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationResult
@@ -84,7 +84,7 @@ class DefaultDaemonScanInfoSpec extends ConcurrentSpec {
     }
 
     def "should not deadlock with daemon scan info"() {
-        def manager = new DefaultListenerManager(Scopes.Global)
+        def manager = new DefaultListenerManager(Scope.Global)
         def daemonScanInfo = new DefaultDaemonScanInfo(new DaemonRunningStats(), 1000, false, Mock(DaemonRegistry), manager)
         daemonScanInfo.notifyOnUnhealthy {
             println "Hello"
@@ -98,7 +98,7 @@ class DefaultDaemonScanInfoSpec extends ConcurrentSpec {
             }
             start {
                 sleep 100
-                manager.createChild(Scopes.Build).getBroadcaster(BuildListener).buildFinished(null)
+                manager.createChild(Scope.Build).getBroadcaster(BuildListener).buildFinished(null)
             }
         }
 

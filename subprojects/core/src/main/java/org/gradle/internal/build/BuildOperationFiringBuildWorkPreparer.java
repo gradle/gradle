@@ -24,12 +24,12 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.execution.plan.ExecutionPlan;
 import org.gradle.execution.plan.FinalizedExecutionPlan;
 import org.gradle.execution.plan.QueryableExecutionPlan;
+import org.gradle.execution.plan.ToPlannedNodeConverterRegistry;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
-import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.operations.trace.CustomOperationTraceSerialization;
-import org.gradle.execution.plan.ToPlannedNodeConverterRegistry;
 import org.gradle.internal.taskgraph.NodeIdentity;
 
 import javax.annotation.Nonnull;
@@ -47,12 +47,12 @@ import static org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
 
 @NonNullApi
 public class BuildOperationFiringBuildWorkPreparer implements BuildWorkPreparer {
-    private final BuildOperationExecutor buildOperationExecutor;
+    private final BuildOperationRunner buildOperationRunner;
     private final BuildWorkPreparer delegate;
     private final ToPlannedNodeConverterRegistry converterRegistry;
 
-    public BuildOperationFiringBuildWorkPreparer(BuildOperationExecutor buildOperationExecutor, BuildWorkPreparer delegate, ToPlannedNodeConverterRegistry converterRegistry) {
-        this.buildOperationExecutor = buildOperationExecutor;
+    public BuildOperationFiringBuildWorkPreparer(BuildOperationRunner buildOperationRunner, BuildWorkPreparer delegate, ToPlannedNodeConverterRegistry converterRegistry) {
+        this.buildOperationRunner = buildOperationRunner;
         this.delegate = delegate;
         this.converterRegistry = converterRegistry;
     }
@@ -64,7 +64,7 @@ public class BuildOperationFiringBuildWorkPreparer implements BuildWorkPreparer 
 
     @Override
     public void populateWorkGraph(GradleInternal gradle, ExecutionPlan plan, Consumer<? super ExecutionPlan> action) {
-        buildOperationExecutor.run(new PopulateWorkGraph(delegate, gradle, plan, action, converterRegistry));
+        buildOperationRunner.run(new PopulateWorkGraph(delegate, gradle, plan, action, converterRegistry));
     }
 
     @Override

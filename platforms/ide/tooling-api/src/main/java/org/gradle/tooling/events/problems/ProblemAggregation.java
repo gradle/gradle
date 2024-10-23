@@ -32,27 +32,18 @@ import java.util.List;
 public interface ProblemAggregation {
 
     /**
-     * Returns the problem category that is common for all aggregated problems.
+     * Returns the definition of the problem.
      *
-     * @return the problem category
-     * @since 8.6
+     * @return the definition
+     * @since 8.9
      */
-    ProblemCategory getCategory();
-
-    /**
-     * Returns the problem label that is common for all aggregated problems.
-     *
-     * @return the problem label
-     * @since 8.6
-     */
-    Label getLabel();
+    ProblemDefinition getDefinition();
 
     /**
      * The list of aggregated problems.
      *
      * @return The list of aggregated problems.
-     * @since 8.6
+     * @since 8.8
      */
-    List<ProblemDescriptor> getProblemDescriptors();
-
+    List<ProblemContext> getProblemContext();
 }

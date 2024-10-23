@@ -29,7 +29,7 @@ class TryTest extends Specification {
         expect:
         !Try.failure(new RuntimeException()).successful
     }
-    
+
     def "converts failing callable"() {
         def failure = new Exception("Failure")
         def runtimeFailure = new RuntimeException("Runtime exception")
@@ -127,5 +127,98 @@ class TryTest extends Specification {
         Try.failure(failure).ifSuccessfulOrElse({ assert false }, { failureInvoked = true; assert it == failure })
         then:
         failureInvoked
+    }
+
+    def "can hold null as success"() {
+        expect:
+        success.isSuccessful()
+        success.get() == null
+
+        where:
+        success << [Try.successful(null), Try.ofFailable { null }]
+    }
+
+    def "can compare null-holding try with other"() {
+        when:
+        def a = Try.successful(null)
+        def b = Try.successful(null)
+
+        then:
+        a !== b
+        a.equals(a)
+        a.equals(b)
+        b.equals(a)
+    }
+
+    def "can compare null-holding try with non-null"() {
+        when:
+        def a = Try.successful(null as String)
+        def b = Try.successful("value")
+
+        then:
+        !a.equals(b)
+        !b.equals(a)
+    }
+
+    def "null try has a hashcode"() {
+        when:
+        def a = Try.successful(null)
+        a.hashCode()
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "cannot hold null as failure"() {
+        when:
+        Try.failure(null)
+
+        then:
+        NullPointerException ex = thrown()
+        ex.message == "null failure is not allowed"
+    }
+
+    def "can map null try"() {
+        when:
+        def mapped = Try.successful(null).map {
+            assert it == null
+            "value"
+        }
+
+        then:
+        mapped.get() == "value"
+    }
+
+    def "can map successful to null"() {
+        when:
+        def mapped = Try.successful("value").map {
+            null
+        }
+
+        then:
+        mapped.isSuccessful()
+        mapped.get() == null
+    }
+
+    def "can tryMap successful to null"() {
+        when:
+        def mapped = Try.successful("value").tryMap {
+            null
+        }
+
+        then:
+        mapped.isSuccessful()
+        mapped.get() == null
+    }
+
+    def "can flatMap null try"() {
+        when:
+        def mapped = Try.successful(null).flatMap {
+            assert it == null
+            Try.successful("value")
+        }
+
+        then:
+        mapped.get() == "value"
     }
 }

@@ -16,14 +16,17 @@
 
 package org.gradle.api.problems.internal
 
+import com.google.common.collect.HashMultimap
 import org.gradle.api.problems.Severity
 import org.gradle.api.problems.SharedProblemGroup
 import org.gradle.internal.deprecation.Documentation
+import org.gradle.internal.operations.CurrentBuildOperationRef
 import org.gradle.internal.operations.OperationIdentifier
 import spock.lang.Specification
 
 class DefaultProblemTest extends Specification {
     def "unbound builder result is equal to original"() {
+        def additionalData = Mock(AdditionalData)
         def problem = createTestProblem(severity, additionalData)
 
         def newProblem = problem.toBuilder().build()
@@ -40,9 +43,7 @@ class DefaultProblemTest extends Specification {
         newProblem == problem
 
         where:
-        severity         | additionalData
-        Severity.WARNING | [:]
-        Severity.ERROR   | [data1: "data2"]
+        severity << [Severity.WARNING, Severity.ERROR]
     }
 
     def "unbound builder result with modified #changedAspect is not equal"() {
@@ -61,7 +62,6 @@ class DefaultProblemTest extends Specification {
         where:
         changedAspect | changeClosure
         "severity"    | { it.severity(Severity.WARNING) }
-        "additionalData" | { it.additionalData("asdf", "adsf") }
         "locations"   | { it.fileLocation("file") }
         "details"     | { it.details("details") }
     }
@@ -70,8 +70,8 @@ class DefaultProblemTest extends Specification {
     def "unbound builder result with a change and check report"() {
         given:
         def emitter = Mock(ProblemEmitter)
-        def problemReporter = new DefaultProblemReporter(emitter, [])
-        def problem = createTestProblem(Severity.WARNING, [:])
+        def problemReporter = new DefaultProblemReporter([emitter], null, CurrentBuildOperationRef.instance(), HashMultimap.create(), new AdditionalDataBuilderFactory())
+        def problem = createTestProblem(Severity.WARNING)
         def builder = problem.toBuilder()
         def newProblem = builder
             .solution("solution")
@@ -96,7 +96,7 @@ class DefaultProblemTest extends Specification {
         newProblem.class == DefaultProblem
     }
 
-    private static createTestProblem(Severity severity = Severity.ERROR, Map<String, String> additionalData = [data1: "data2"]) {
+    private static createTestProblem(Severity severity = Severity.ERROR, AdditionalData additionalData = null) {
         new DefaultProblem(
             new DefaultProblemDefinition(
                 new DefaultProblemId('message', "displayName", SharedProblemGroup.generic()),
@@ -125,7 +125,7 @@ class DefaultProblemTest extends Specification {
             [],
             'description',
             new RuntimeException('cause'),
-            [:]
+            null
         )
 
         when:

@@ -28,6 +28,7 @@ import org.gradle.internal.serialize.Serializer;
 import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * An implementation of an artifact cache manager which performs operations in a read-only
@@ -58,7 +59,7 @@ public class ReadOnlyArtifactCacheLockingAccessCoordinator implements ArtifactCa
     }
 
     @Override
-    public <T> T withFileLock(Factory<? extends T> action) {
+    public <T> T withFileLock(Supplier<? extends T> action) {
         return cache.withFileLock(action);
     }
 
@@ -68,7 +69,7 @@ public class ReadOnlyArtifactCacheLockingAccessCoordinator implements ArtifactCa
     }
 
     @Override
-    public <T> T useCache(Factory<? extends T> action) {
+    public <T> T useCache(Supplier<? extends T> action) {
         return cache.useCache(action);
     }
 

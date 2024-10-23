@@ -21,6 +21,7 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.cache.CacheConfigurationsInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.cache.CacheCleanupStrategyFactory;
 import org.gradle.cache.IndexedCache;
 import org.gradle.cache.UnscopedCacheBuilderFactory;
 import org.gradle.cache.internal.UsedGradleVersions;
@@ -35,6 +36,7 @@ import java.io.Closeable;
 import java.io.File;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 public class DefaultArtifactCaches implements ArtifactCachesProvider {
     private final static Logger LOGGER = Logging.getLogger(DefaultArtifactCaches.class);
@@ -49,11 +51,11 @@ public class DefaultArtifactCaches implements ArtifactCachesProvider {
             UnscopedCacheBuilderFactory unscopedCacheBuilderFactory,
             WritableArtifactCacheLockingParameters params,
             DocumentationRegistry documentationRegistry,
-            CacheConfigurationsInternal cacheConfigurations
-                                 ) {
+            CacheConfigurationsInternal cacheConfigurations,
+            CacheCleanupStrategyFactory cacheCleanupStrategyFactory) {
         writableCacheMetadata = new DefaultArtifactCacheMetadata(cacheBuilderFactory);
         writableCacheAccessCoordinator = new LateInitWritableArtifactCacheLockingAccessCoordinator(() -> {
-            return new WritableArtifactCacheLockingAccessCoordinator(unscopedCacheBuilderFactory, writableCacheMetadata, params.getFileAccessTimeJournal(), params.getUsedGradleVersions(), cacheConfigurations);
+            return new WritableArtifactCacheLockingAccessCoordinator(unscopedCacheBuilderFactory, writableCacheMetadata, params.getFileAccessTimeJournal(), params.getUsedGradleVersions(), cacheConfigurations, cacheCleanupStrategyFactory);
         });
         String roCache = System.getenv(READONLY_CACHE_ENV_VAR);
         if (StringUtils.isNotEmpty(roCache)) {
@@ -80,12 +82,12 @@ public class DefaultArtifactCaches implements ArtifactCachesProvider {
             LOGGER.warn("The " + READONLY_CACHE_ENV_VAR + " environment variable was set to " + cacheDir + " which doesn't exist!");
             return null;
         }
-        File root = CacheLayout.ROOT.getPath(cacheDir);
+        File root = CacheLayout.MODULES.getPath(cacheDir);
         if (!root.exists()) {
             String docLink = documentationRegistry.getDocumentationRecommendationFor("instructions on how to do this", "dependency_resolution", "sub:shared-readonly-cache");
             LOGGER.warn("The read-only dependency cache is disabled because of a configuration problem:");
             LOGGER.warn("Read-only cache is configured but the directory layout isn't expected. You must have a pre-populated " +
-                CacheLayout.ROOT.getKey() + " directory at " + root + " . " + docLink);
+                CacheLayout.MODULES.getKey() + " directory at " + root + " . " + docLink);
             return null;
         }
         return cacheDir;
@@ -159,7 +161,7 @@ public class DefaultArtifactCaches implements ArtifactCachesProvider {
         }
 
         @Override
-        public <T> T withFileLock(Factory<? extends T> action) {
+        public <T> T withFileLock(Supplier<? extends T> action) {
             return getDelegate().withFileLock(action);
         }
 
@@ -169,7 +171,7 @@ public class DefaultArtifactCaches implements ArtifactCachesProvider {
         }
 
         @Override
-        public <T> T useCache(Factory<? extends T> action) {
+        public <T> T useCache(Supplier<? extends T> action) {
             return getDelegate().useCache(action);
         }
 

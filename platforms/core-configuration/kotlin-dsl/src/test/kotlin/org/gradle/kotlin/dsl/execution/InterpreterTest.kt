@@ -49,8 +49,7 @@ class InterpreterTest : TestWithTempFiles() {
     @Test
     fun `caches specialized programs`() {
 
-        val scriptPath =
-            "/src/settings.gradle.kts"
+        val scriptPath = "/src/settings.gradle.kts"
 
         val shortScriptDisplayName = Describables.of("short display name")
         val longScriptDisplayName = Describables.of("long display name")
@@ -69,6 +68,8 @@ class InterpreterTest : TestWithTempFiles() {
 
         val sourceHash = TestHashCodes.hashCodeFrom(42)
         val compilationClassPathHash = TestHashCodes.hashCodeFrom(11)
+        val accessorsClassPathHash = TestHashCodes.hashCodeFrom(0)
+        val accessorsClassPath = ClassPath.EMPTY
         val stage1TemplateId = "Settings/TopLevel/stage1"
         val stage2TemplateId = "Settings/TopLevel/stage2"
 
@@ -102,7 +103,7 @@ class InterpreterTest : TestWithTempFiles() {
         val stage2CacheDir = root.resolve("stage2").apply { mkdir() }
 
         val stage1ProgramId = ProgramId(stage1TemplateId, sourceHash, parentClassLoader)
-        val stage2ProgramId = ProgramId(stage2TemplateId, sourceHash, targetScopeExportClassLoader, null, compilationClassPathHash)
+        val stage2ProgramId = ProgramId(stage2TemplateId, sourceHash, targetScopeExportClassLoader, accessorsClassPathHash, compilationClassPathHash)
 
         val mockServiceRegistry = mock<ServiceRegistry> {
             on { get(GradleUserHomeTemporaryFileProvider::class.java) } doReturn GradleUserHomeTemporaryFileProvider {
@@ -111,8 +112,6 @@ class InterpreterTest : TestWithTempFiles() {
         }
 
         val host = mock<Interpreter.Host> {
-
-            on { hashOf(eq(testRuntimeClassPath)) } doReturn compilationClassPathHash
 
             on { serviceRegistryFor(any(), any()) } doReturn mockServiceRegistry
 
@@ -125,7 +124,7 @@ class InterpreterTest : TestWithTempFiles() {
                     any(),
                     eq(stage1ProgramId),
                     same(testRuntimeClassPath),
-                    same(ClassPath.EMPTY),
+                    same(accessorsClassPath),
                     any()
                 )
             } doAnswer {
@@ -138,7 +137,7 @@ class InterpreterTest : TestWithTempFiles() {
                     any(),
                     eq(stage2ProgramId),
                     same(testRuntimeClassPath),
-                    same(ClassPath.EMPTY),
+                    same(accessorsClassPath),
                     any()
                 )
             } doAnswer {
@@ -146,14 +145,14 @@ class InterpreterTest : TestWithTempFiles() {
                 stage2CacheDir
             }
 
-            on {
-                compilationClassPathOf(any())
-            } doAnswer {
-                testRuntimeClassPath
-            }
+            on { compilationClassPathOf(any()) } doAnswer { testRuntimeClassPath }
+            on { hashOf(eq(testRuntimeClassPath)) } doReturn compilationClassPathHash
+
+            on { accessorsClassPathFor(any()) } doReturn accessorsClassPath
+            on { hashOf(eq(accessorsClassPath)) } doReturn accessorsClassPathHash
 
             on {
-                loadClassInChildScopeOf(any(), any(), any(), any(), any(), same(ClassPath.EMPTY))
+                loadClassInChildScopeOf(any(), any(), any(), any(), any(), same(accessorsClassPath))
             } doAnswer {
 
                 val location = it.getArgument<File>(3)
@@ -203,7 +202,7 @@ class InterpreterTest : TestWithTempFiles() {
                     ClassLoaderScopeOrigin.Script(scriptPath, longScriptDisplayName, shortScriptDisplayName),
                     stage1CacheDir,
                     "Program",
-                    ClassPath.EMPTY
+                    accessorsClassPath
                 )
 
                 verify(host).cache(
@@ -225,7 +224,7 @@ class InterpreterTest : TestWithTempFiles() {
                     ClassLoaderScopeOrigin.Script(scriptPath, longScriptDisplayName, shortScriptDisplayName),
                     stage2CacheDir,
                     "Program",
-                    ClassPath.EMPTY
+                    accessorsClassPath
                 )
 
                 val specializedProgram = classLoaders[1].loadClass("Program")

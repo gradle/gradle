@@ -16,19 +16,24 @@
 
 package org.gradle.internal.declarativedsl.project
 
-import org.gradle.internal.declarativedsl.analysis.ConfigureAccessor
-import org.gradle.internal.declarativedsl.analysis.DataConstructor
-import org.gradle.internal.declarativedsl.analysis.DataMemberFunction
-import org.gradle.internal.declarativedsl.analysis.FunctionSemantics
-import org.gradle.internal.declarativedsl.analysis.SchemaMemberFunction
+import org.gradle.api.plugins.ExtensionAware
+import org.gradle.declarative.dsl.model.annotations.Restricted
+import org.gradle.declarative.dsl.schema.ConfigureAccessor
+import org.gradle.declarative.dsl.schema.DataConstructor
+import org.gradle.declarative.dsl.schema.SchemaMemberFunction
+import org.gradle.internal.declarativedsl.analysis.ConfigureAccessorInternal
+import org.gradle.internal.declarativedsl.analysis.DefaultDataMemberFunction
+import org.gradle.internal.declarativedsl.analysis.FunctionSemanticsInternal
+import org.gradle.internal.declarativedsl.evaluationSchema.AnalysisSchemaComponent
+import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchemaBuilder
+import org.gradle.internal.declarativedsl.evaluationSchema.FixedTypeDiscovery
+import org.gradle.internal.declarativedsl.evaluationSchema.ObjectConversionComponent
+import org.gradle.internal.declarativedsl.evaluationSchema.ifConversionSupported
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeCustomAccessors
 import org.gradle.internal.declarativedsl.schemaBuilder.DataSchemaBuilder
 import org.gradle.internal.declarativedsl.schemaBuilder.FunctionExtractor
 import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery
 import org.gradle.internal.declarativedsl.schemaBuilder.toDataTypeRef
-import org.gradle.api.plugins.ExtensionAware
-import org.gradle.declarative.dsl.model.annotations.Restricted
-import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchemaComponent
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 
@@ -36,26 +41,30 @@ import kotlin.reflect.KFunction
 /**
  * Introduces schema representations of Gradle extensions registered on an [ExtensionAware] object.
  *
- * Inspects a given [target] extension owner and checks for its extensions which have types annotated with [Restricted] (maybe in supertypes).
+ * Inspects a given [extensionContainer] extension owner and checks for its extensions which have types annotated with [Restricted] (maybe in supertypes).
  *
  * Given that, introduces the following features in the schema:
- * * [typeDiscovery] ensuring that the types of the extensions get discovered and included in the schema (but just those types, not recursing)
- * * [functionExtractors] which introduce configuring functions for the extensions
- * * [runtimeCustomAccessors] as the runtime counterpart for the configuring functions, telling the runtime how to access the extensions.
+ * * Type discovery ensuring that the types of the extensions get discovered and included in the schema (but just those types, not recursing)
+ * * Function extractors which introduce configuring functions for the extensions
+ *
+ * If object conversion is enabled ([ifConversionSupported]):
+ * * Runtime custom accessors as the runtime counterpart for the configuring functions, telling the runtime how to access the extensions.
  */
 internal
+fun EvaluationSchemaBuilder.thirdPartyExtensions(schemaTypeToExtend: KClass<*>, extensionContainer: ExtensionAware) {
+    val extensions = getExtensionInfo(extensionContainer)
+    registerAnalysisSchemaComponent(ThirdPartyExtensionsComponent(schemaTypeToExtend, extensions))
+    ifConversionSupported {
+        registerObjectConversionComponent(ThirdPartyExtensionsConversionComponent(extensions))
+    }
+}
+
+
+private
 class ThirdPartyExtensionsComponent(
     private val schemaTypeToExtend: KClass<*>,
-    private val target: ExtensionAware,
-    private val accessorIdPrefix: String,
-) : EvaluationSchemaComponent {
-
-    private
-    val extensions: List<ExtensionInfo> = run {
-        val annotationChecker = CachedHierarchyAnnotationChecker(Restricted::class)
-        getExtensionInfo(target, accessorIdPrefix, annotationChecker::isAnnotatedMaybeInSupertypes)
-    }
-
+    private val extensions: List<ExtensionInfo>,
+) : AnalysisSchemaComponent {
     override fun typeDiscovery(): List<TypeDiscovery> = listOf(
         FixedTypeDiscovery(schemaTypeToExtend, extensions.map { it.type })
     )
@@ -63,19 +72,30 @@ class ThirdPartyExtensionsComponent(
     override fun functionExtractors(): List<FunctionExtractor> = listOf(
         extensionConfiguringFunctions(schemaTypeToExtend, extensions)
     )
-
-    override fun runtimeCustomAccessors(): List<RuntimeCustomAccessors> = listOf(
-        RuntimeExtensionAccessors(extensions)
-    )
 }
 
 
 private
-fun getExtensionInfo(extensionOwner: ExtensionAware, accessorIdPrefix: String, includeExtension: (KClass<*>) -> Boolean): List<ExtensionInfo> =
-    extensionOwner.extensions.extensionsSchema.elements.mapNotNull {
+const val SETTINGS_EXTENSION_ACCESSOR_PREFIX = "settingsExtension"
+
+
+private
+class ThirdPartyExtensionsConversionComponent(private val extensions: List<ExtensionInfo>) : ObjectConversionComponent {
+    override fun runtimeCustomAccessors(): List<RuntimeCustomAccessors> =
+        listOf(RuntimeExtensionAccessors(extensions))
+}
+
+
+private
+fun getExtensionInfo(target: ExtensionAware): List<ExtensionInfo> {
+    val annotationChecker = CachedHierarchyAnnotationChecker(Restricted::class)
+    return target.extensions.extensionsSchema.elements.mapNotNull {
         val type = it.publicType.concreteClass.kotlin
-        if (includeExtension(type)) ExtensionInfo(it.name, type, accessorIdPrefix) { extensionOwner.extensions.getByName(it.name) } else null
+        if (annotationChecker.isAnnotatedMaybeInSupertypes(type))
+            ExtensionInfo(it.name, type, SETTINGS_EXTENSION_ACCESSOR_PREFIX) { target.extensions.getByName(it.name) }
+        else null
     }
+}
 
 
 private
@@ -87,14 +107,15 @@ data class ExtensionInfo(
 ) {
     val customAccessorId = "$accessorIdPrefix:$name"
 
-    val schemaFunction = DataMemberFunction(
+    val schemaFunction = DefaultDataMemberFunction(
         ProjectTopLevelReceiver::class.toDataTypeRef(),
         name,
         emptyList(),
         isDirectAccessOnly = true,
-        semantics = FunctionSemantics.AccessAndConfigure(
-            accessor = ConfigureAccessor.Custom(type.toDataTypeRef(), customAccessorId),
-            FunctionSemantics.AccessAndConfigure.ReturnType.UNIT
+        semantics = FunctionSemanticsInternal.DefaultAccessAndConfigure(
+            accessor = ConfigureAccessorInternal.DefaultCustom(type.toDataTypeRef(), customAccessorId),
+            FunctionSemanticsInternal.DefaultAccessAndConfigure.DefaultReturnType.DefaultUnit,
+            FunctionSemanticsInternal.DefaultConfigureBlockRequirement.DefaultRequired
         )
     )
 }

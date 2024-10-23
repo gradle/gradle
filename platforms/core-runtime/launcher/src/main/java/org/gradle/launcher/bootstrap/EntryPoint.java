@@ -15,8 +15,10 @@
  */
 package org.gradle.launcher.bootstrap;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.Action;
 import org.gradle.api.logging.configuration.ShowStacktrace;
+import org.gradle.configuration.DefaultBuildClientMetaData;
 import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.internal.buildevents.BuildExceptionReporter;
 import org.gradle.internal.logging.DefaultLoggingConfiguration;
@@ -39,7 +41,7 @@ import java.io.PrintStream;
  * testing as it's difficult to test something that will call System.exit().
  */
 public abstract class EntryPoint {
-    private PrintStream originalStdErr = System.err;
+    private final PrintStream originalStdErr = System.err;
 
     /**
      * Unless the createCompleter() method is overridden, the JVM will exit before returning from this method.
@@ -62,14 +64,16 @@ public abstract class EntryPoint {
         }
     }
 
+    @VisibleForTesting
     protected ExecutionCompleter createCompleter() {
         return new ProcessCompleter();
     }
 
+    @VisibleForTesting
     protected Action<Throwable> createErrorHandler() {
         DefaultLoggingConfiguration loggingConfiguration = new DefaultLoggingConfiguration();
         loggingConfiguration.setShowStacktrace(ShowStacktrace.ALWAYS_FULL);
-        return new BuildExceptionReporter(new StreamingStyledTextOutputFactory(originalStdErr), loggingConfiguration, new GradleLauncherMetaData());
+        return new BuildExceptionReporter(new StreamingStyledTextOutputFactory(originalStdErr), loggingConfiguration, new DefaultBuildClientMetaData(new GradleLauncherMetaData()));
     }
 
     protected abstract void doAction(String[] args, ExecutionListener listener);

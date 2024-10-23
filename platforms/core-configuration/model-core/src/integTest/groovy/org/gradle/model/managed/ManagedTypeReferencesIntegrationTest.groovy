@@ -24,7 +24,7 @@ class ManagedTypeReferencesIntegrationTest extends AbstractIntegrationSpec {
 
     def "rule can provide a managed model element that references another managed model element"() {
         when:
-        buildScript '''
+        buildFile '''
             @Managed
             interface Platform {
                 String getDisplayName()
@@ -95,7 +95,7 @@ class ManagedTypeReferencesIntegrationTest extends AbstractIntegrationSpec {
 
     def "reference can have null value when parent model element is realized"() {
         when:
-        buildScript '''
+        buildFile '''
             @Managed
             interface Platform {
                 String getDisplayName()

@@ -16,26 +16,20 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import com.google.common.collect.ImmutableList;
-import org.gradle.api.attributes.Attribute;
-import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BrokenResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantSet;
-import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.api.internal.attributes.AttributeValue;
-import org.gradle.api.internal.attributes.AttributesSchemaInternal;
+import org.gradle.api.internal.attributes.AttributeSchemaServices;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
-import org.gradle.internal.component.ResolutionFailureHandler;
-import org.gradle.internal.component.model.AttributeMatcher;
+import org.gradle.api.internal.attributes.AttributesFactory;
+import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
+import org.gradle.api.internal.attributes.matching.AttributeMatcher;
 import org.gradle.internal.component.model.AttributeMatchingExplanationBuilder;
+import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 /**
  * A {@link ArtifactVariantSelector} that uses attribute matching to select a matching set of artifacts.
@@ -47,51 +41,54 @@ import java.util.Set;
  * to allow the caller to handle failures in a consistent manner as during graph variant selection.
  */
 public class AttributeMatchingArtifactVariantSelector implements ArtifactVariantSelector {
+
+    private final ImmutableAttributesSchema consumerSchema;
     private final ConsumerProvidedVariantFinder consumerProvidedVariantFinder;
-    private final AttributesSchemaInternal schema;
-    private final ImmutableAttributesFactory attributesFactory;
-    private final TransformedVariantFactory transformedVariantFactory;
-    private final TransformUpstreamDependenciesResolverFactory dependenciesResolverFactory;
+    private final AttributesFactory attributesFactory;
+    private final AttributeSchemaServices attributeSchemaServices;
     private final ResolutionFailureHandler failureProcessor;
 
-    AttributeMatchingArtifactVariantSelector(
+    public AttributeMatchingArtifactVariantSelector(
+        ImmutableAttributesSchema consumerSchema,
         ConsumerProvidedVariantFinder consumerProvidedVariantFinder,
-        AttributesSchemaInternal schema,
-        ImmutableAttributesFactory attributesFactory,
-        TransformedVariantFactory transformedVariantFactory,
-        TransformUpstreamDependenciesResolverFactory dependenciesResolverFactory,
+        AttributesFactory attributesFactory,
+        AttributeSchemaServices attributeSchemaServices,
         ResolutionFailureHandler failureProcessor
     ) {
+        this.consumerSchema = consumerSchema;
         this.consumerProvidedVariantFinder = consumerProvidedVariantFinder;
-        this.schema = schema;
         this.attributesFactory = attributesFactory;
-        this.transformedVariantFactory = transformedVariantFactory;
-        this.dependenciesResolverFactory = dependenciesResolverFactory;
+        this.attributeSchemaServices = attributeSchemaServices;
         this.failureProcessor = failureProcessor;
     }
 
     @Override
-    public ResolvedArtifactSet select(ResolvedVariantSet producer, ImmutableAttributes requestAttributes, boolean allowNoMatchingVariants, ResolvedArtifactTransformer resolvedArtifactTransformer) {
+    public ResolvedArtifactSet select(
+        ResolvedVariantSet producer,
+        ImmutableAttributes requestAttributes,
+        boolean allowNoMatchingVariants
+    ) {
         try {
-            return doSelect(producer, allowNoMatchingVariants, resolvedArtifactTransformer, AttributeMatchingExplanationBuilder.logging(), requestAttributes);
+            return doSelect(producer, requestAttributes, allowNoMatchingVariants);
         } catch (Exception t) {
-            return new BrokenResolvedArtifactSet(failureProcessor.unknownArtifactVariantSelectionFailure(schema, producer, t));
+            return new BrokenResolvedArtifactSet(failureProcessor.unknownArtifactVariantSelectionFailure(producer, requestAttributes, t));
         }
     }
 
-    private ResolvedArtifactSet doSelect(ResolvedVariantSet producer, boolean allowNoMatchingVariants, ResolvedArtifactTransformer resolvedArtifactTransformer, AttributeMatchingExplanationBuilder explanationBuilder, ImmutableAttributes requestAttributes) {
-        AttributeMatcher matcher = schema.withProducer(producer.getSchema());
+    private ResolvedArtifactSet doSelect(
+        ResolvedVariantSet producer,
+        ImmutableAttributes requestAttributes,
+        boolean allowNoMatchingVariants
+    ) {
+        AttributeMatcher matcher = attributeSchemaServices.getMatcher(consumerSchema, producer.getProducerSchema());
         ImmutableAttributes componentRequested = attributesFactory.concat(requestAttributes, producer.getOverriddenAttributes());
-        final List<ResolvedVariant> variants = ImmutableList.copyOf(producer.getVariants());
+        final List<ResolvedVariant> variants = producer.getCandidates();
 
-        List<? extends ResolvedVariant> matches = matcher.matches(variants, componentRequested, explanationBuilder);
+        List<? extends ResolvedVariant> matches = matcher.matchMultipleCandidates(variants, componentRequested, AttributeMatchingExplanationBuilder.logging());
         if (matches.size() == 1) {
             return matches.get(0).getArtifacts();
         } else if (matches.size() > 1) {
-            // Request is ambiguous. Rerun matching again, except capture an explanation this time for reporting.
-            TraceDiscardedVariants newExpBuilder = new TraceDiscardedVariants();
-            matches = matcher.matches(variants, componentRequested, newExpBuilder);
-            throw failureProcessor.ambiguousArtifactVariantsFailure(schema, matcher, producer.asDescribable().getDisplayName(), componentRequested, matches);
+            throw failureProcessor.ambiguousArtifactsFailure(matcher, producer, componentRequested, matches);
         }
 
         // We found no matches. Attempt to construct artifact transform chains which produce matching variants.
@@ -99,29 +96,36 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
 
         // If there are multiple potential artifact transform variants, perform attribute matching to attempt to find the best.
         if (transformedVariants.size() > 1) {
-            transformedVariants = tryDisambiguate(matcher, transformedVariants, componentRequested, explanationBuilder);
+            transformedVariants = tryDisambiguate(matcher, transformedVariants, componentRequested, AttributeMatchingExplanationBuilder.logging());
         }
 
         if (transformedVariants.size() == 1) {
             TransformedVariant result = transformedVariants.get(0);
-            return resolvedArtifactTransformer.asTransformed(result.getRoot(), result.getTransformedVariantDefinition(), dependenciesResolverFactory, transformedVariantFactory);
+            return producer.transformCandidate(result.getRoot(), result.getTransformedVariantDefinition());
         }
 
         if (!transformedVariants.isEmpty()) {
-            throw failureProcessor.ambiguousArtifactTransformationFailure(schema, producer.asDescribable().getDisplayName(), componentRequested, transformedVariants);
+            throw failureProcessor.ambiguousArtifactTransformsFailure(producer, componentRequested, transformedVariants);
         }
 
         if (allowNoMatchingVariants) {
             return ResolvedArtifactSet.EMPTY;
         }
 
-        throw failureProcessor.noMatchingArtifactVariantFailure(schema, matcher, producer.asDescribable().getDisplayName(), componentRequested, variants);
+        throw failureProcessor.noCompatibleArtifactFailure(matcher, producer, componentRequested, variants);
     }
 
     /**
-     * Attempt to disambiguate between multiple potential transform candidates. This first performs attribute matching on the {@code candidates}.
-     * If that does not produce a single result, then a subset of the results of attribute matching is returned, where the candidates which have
-     * incompatible attributes values with the <strong>last</strong> candidate are included.
+     * Given a set of potential transform chains, attempt to reduce the set to a minimal set of preferred candidates.
+     * Ideally, this method would return a single candidate.
+     * <p>
+     * This method starts by performing attribute matching on the candidates. This leverages disambiguation rules
+     * from the {@link AttributeMatcher} to reduce the set of candidates. Return a single candidate only one remains.
+     * <p>
+     * If there are multiple results after disambiguation, return a subset of the results such that all candidates have
+     * incompatible attributes values when matched with the <strong>last</strong> candidate. In some cases, this step is
+     * able to arbitrarily reduces the candidate set to a single candidate as long as all remaining candidates are
+     * compatible with each other.
      */
     private static List<TransformedVariant> tryDisambiguate(
         AttributeMatcher matcher,
@@ -129,7 +133,7 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
         ImmutableAttributes componentRequested,
         AttributeMatchingExplanationBuilder explanationBuilder
     ) {
-        List<TransformedVariant> matches = matcher.matches(candidates, componentRequested, explanationBuilder);
+        List<TransformedVariant> matches = matcher.matchMultipleCandidates(candidates, componentRequested, explanationBuilder);
         if (matches.size() == 1) {
             return matches;
         }
@@ -145,49 +149,11 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
         // Find any other candidate which does not match with the last candidate.
         for (int i = 0; i < matches.size() - 1; i++) {
             TransformedVariant current = matches.get(i);
-            if (candidatesDifferent(matcher, current, last)) {
+            if (!matcher.areMutuallyCompatible(current.getAttributes(), last.getAttributes())) {
                 differentTransforms.add(current);
             }
         }
 
         return differentTransforms;
-    }
-
-    /**
-     * Determines whether two candidates differ based on their attributes.
-     *
-     * @return true if for each shared candidate key, according to the attribute schema, the corresponding attribute value
-     *      in each candidate is compatible. false otherwise.
-     */
-    private static boolean candidatesDifferent(AttributeMatcher matcher, TransformedVariant firstCandidate, TransformedVariant secondCandidate) {
-        // We check both directions to verify these candidates differ. If a.matches(b) but !b.matches(a), we still consider variants a and b to be matching.
-        // This is because attribute schema compatibility rules can be directional, where for two attribute values x and y, x may be compatible with y
-        // while y may not be compatible with x. We accept compatibility in either direction as sufficient for this method.
-        return !matcher.isMatching(firstCandidate.getAttributes(), secondCandidate.getAttributes()) &&
-            !matcher.isMatching(secondCandidate.getAttributes(), firstCandidate.getAttributes());
-    }
-
-    private static class TraceDiscardedVariants implements AttributeMatchingExplanationBuilder {
-
-        private final Set<HasAttributes> discarded = new HashSet<>();
-
-        @Override
-        public boolean canSkipExplanation() {
-            return false;
-        }
-
-        @Override
-        public <T extends HasAttributes> void candidateDoesNotMatchAttributes(T candidate, AttributeContainerInternal requested) {
-            recordDiscardedCandidate(candidate);
-        }
-
-        public <T extends HasAttributes> void recordDiscardedCandidate(T candidate) {
-            discarded.add(candidate);
-        }
-
-        @Override
-        public <T extends HasAttributes> void candidateAttributeDoesNotMatch(T candidate, Attribute<?> attribute, Object requestedValue, AttributeValue<?> candidateValue) {
-            recordDiscardedCandidate(candidate);
-        }
     }
 }

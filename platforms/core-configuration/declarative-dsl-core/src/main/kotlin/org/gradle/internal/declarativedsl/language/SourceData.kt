@@ -28,4 +28,15 @@ interface SourceData {
 }
 
 
+object SyntheticallyProduced : SourceData {
+    override val sourceIdentifier: SourceIdentifier = SourceIdentifier("<synthetic>")
+    override val indexRange: IntRange = IntRange.EMPTY
+    override val lineRange: IntRange = IntRange.EMPTY
+    override val startColumn: Int = 0
+    override val endColumn: Int = 0
+
+    override fun text(): String = ""
+}
+
+
 data class SourceIdentifier(val fileIdentifier: String)

@@ -17,7 +17,8 @@
 package org.gradle.cache.internal.cacheops;
 
 public class CacheAccessOperationsStack {
-    private final ThreadLocal<CacheOperationStack> stackForThread = new ThreadLocal<CacheOperationStack>();
+    @SuppressWarnings("ThreadLocalUsage")
+    private final ThreadLocal<CacheOperationStack> stackForThread = new ThreadLocal<>();
 
     public void pushCacheAction() {
         CacheOperationStack stack = getOrCreateStack();

@@ -17,10 +17,10 @@
 package org.gradle.execution.plan;
 
 import org.gradle.internal.resources.ResourceLockCoordinationService;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-@ServiceScope(Scopes.Build.class)
+@ServiceScope(Scope.Build.class)
 public class ExecutionPlanFactory {
     private final String displayName;
     private final TaskNodeFactory taskNodeFactory;

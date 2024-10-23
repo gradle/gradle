@@ -19,7 +19,9 @@ package gradlebuild.kotlin.tasks
 
 import com.thoughtworks.qdox.JavaProjectBuilder
 import com.thoughtworks.qdox.library.OrderedClassLibraryBuilder
+import com.thoughtworks.qdox.model.JavaClass
 import com.thoughtworks.qdox.model.JavaMethod
+import com.thoughtworks.qdox.model.JavaSource
 
 import gradlebuild.basics.util.ReproduciblePropertiesWriter
 
@@ -78,11 +80,29 @@ abstract class ParameterNamesIndex : DefaultTask() {
         isolatedClassLoaderFor(classpath).use { loader ->
             javaProjectBuilderFor(loader)
                 .sequenceOfJavaSourcesFrom(sources)
-                .flatMap { it.classes.asSequence().filter { it.isPublic } }
-                .flatMap { it.methods.asSequence().filter { it.isPublic && it.parameterTypes.isNotEmpty() } }
+                .flatMap { source -> source.publicClasses }
+                .flatMap { publicClass -> sequenceOf(publicClass) + publicClass.publicNestedClasses }
+                .flatMap { it.publicMethods }
+                .filter { it.parameterTypes.isNotEmpty() }
                 .map { method -> fullyQualifiedSignatureOf(method) to commaSeparatedParameterNamesOf(method) }
                 .toMap(linkedMapOf())
         }
+
+    private
+    val JavaSource.publicClasses
+        get() = classes.filterPublic()
+
+    private
+    val JavaClass.publicNestedClasses
+        get() = nestedClasses.filterPublic()
+
+    private
+    fun Iterable<JavaClass>.filterPublic() =
+        asSequence().filter { it.isPublic }
+
+    private
+    val JavaClass.publicMethods
+        get() = methods.asSequence().filter { it.isPublic }
 
     private
     fun fullyQualifiedSignatureOf(method: JavaMethod): String =

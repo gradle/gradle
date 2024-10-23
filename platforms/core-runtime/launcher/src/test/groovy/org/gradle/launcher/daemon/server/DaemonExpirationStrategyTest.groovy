@@ -21,11 +21,11 @@ import org.gradle.launcher.daemon.context.DaemonContext
 import org.gradle.launcher.daemon.registry.DaemonInfo
 import org.gradle.launcher.daemon.registry.DaemonRegistry
 import org.gradle.launcher.daemon.registry.EmbeddedDaemonRegistry
-import org.gradle.launcher.daemon.server.api.DaemonStateControl
+import org.gradle.launcher.daemon.server.api.DaemonState
 import org.gradle.internal.time.MockClock
 import spock.lang.Specification
 
-import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.Busy
+import static org.gradle.launcher.daemon.server.api.DaemonState.Busy
 
 abstract class DaemonExpirationStrategyTest extends Specification {
     DaemonRegistry registry
@@ -35,7 +35,7 @@ abstract class DaemonExpirationStrategyTest extends Specification {
         registry = new EmbeddedDaemonRegistry()
     }
 
-    DaemonInfo registerDaemon(DaemonStateControl.State state, long lastIdle = -1) {
+    DaemonInfo registerDaemon(DaemonState state, long lastIdle = -1) {
         final String uid = UUID.randomUUID().toString()
         final int id = registry.getAll().size() + 1
         final long lastIdleTime = lastIdle == -1L ? id * 1000 : lastIdle;

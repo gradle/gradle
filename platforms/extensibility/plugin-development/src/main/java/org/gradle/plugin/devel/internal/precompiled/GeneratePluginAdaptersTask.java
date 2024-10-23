@@ -162,8 +162,10 @@ public abstract class GeneratePluginAdaptersTask extends DefaultTask {
             writer.println("/**");
             writer.println(" * Precompiled " + scriptPlugin.getId() + " script plugin.");
             writer.println(" **/");
+            writer.println("@SuppressWarnings(\"DefaultPackage\")");
             writer.println("public class " + scriptPlugin.getPluginAdapterClassName() + " implements org.gradle.api.Plugin<" + targetClass + "> {");
             writer.println("    private static final String MIN_SUPPORTED_GRADLE_VERSION = \"5.0\";");
+            writer.println("    @Override");
             writer.println("    public void apply(" + targetClass + " target) {");
             writer.println("        assertSupportedByCurrentGradleVersion();");
             writer.println("        try {");

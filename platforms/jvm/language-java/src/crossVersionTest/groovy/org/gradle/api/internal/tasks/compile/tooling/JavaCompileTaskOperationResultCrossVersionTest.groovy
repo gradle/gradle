@@ -16,11 +16,9 @@
 
 package org.gradle.api.internal.tasks.compile.tooling
 
-
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.language.fixtures.HelperProcessorFixture
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.task.TaskSuccessResult
@@ -31,7 +29,6 @@ import java.time.Duration
 
 import static org.gradle.tooling.events.task.java.JavaCompileTaskOperationResult.AnnotationProcessorResult.Type.ISOLATING
 
-@ToolingApiVersion('>=5.1')
 @TargetGradleVersion('>=4.6')
 class JavaCompileTaskOperationResultCrossVersionTest extends ToolingApiSpecification {
 

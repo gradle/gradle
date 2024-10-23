@@ -15,9 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts;
 
-import com.google.common.collect.ImmutableList;
-import org.gradle.api.GradleException;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.GraphValidationException;
 import org.gradle.internal.exceptions.ResolutionProvider;
 import org.gradle.internal.logging.text.TreeFormatter;
@@ -33,12 +30,8 @@ public class VersionConflictException extends GraphValidationException implement
 
     private final List<String> resolutions;
 
-    private VersionConflictException(
-        String message,
-        Collection<Conflict> conflicts,
-        List<String> resolutions
-    ) {
-        super(message);
+    public VersionConflictException(Collection<Conflict> conflicts, List<String> resolutions) {
+        super(buildMessage(conflicts));
         this.conflicts = conflicts;
         this.resolutions = resolutions;
     }
@@ -64,37 +57,8 @@ public class VersionConflictException extends GraphValidationException implement
         return formatter.toString();
     }
 
-    private static String getDependencyNotation(Collection<Conflict> conflicts) {
-        return conflicts.stream()
-            .findFirst()
-            .map(p -> {
-                ModuleVersionIdentifier identifier = p.getVersions().get(0);
-                return identifier.getGroup() + ":" + identifier.getName();
-            })
-            .orElseThrow(() -> new GradleException("This "));
-    }
-
-    private static List<String> createResolutions(String projectPath, String configurationName, String dependencyNotation) {
-        if (projectPath.equals(":")) {
-            projectPath = "";
-        }
-
-        return ImmutableList.of("Run with " + projectPath + ":dependencyInsight --configuration " +
-            configurationName + " --dependency " + dependencyNotation + " to get more insight on how to solve the conflict.");
-    }
-
     @Override
     public List<String> getResolutions() {
         return resolutions;
-    }
-
-    public static VersionConflictException create(
-        String projectPath,
-        String configurationName,
-        Collection<Conflict> conflicts
-    ) {
-        String message = buildMessage(conflicts);
-        List<String> resolutions = createResolutions(projectPath, configurationName, getDependencyNotation(conflicts));
-        return new VersionConflictException(message, ImmutableList.copyOf(conflicts), resolutions);
     }
 }

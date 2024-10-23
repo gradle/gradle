@@ -17,28 +17,39 @@
 package gradlebuild.jvm.argumentproviders
 
 import gradlebuild.basics.BuildEnvironment
+import gradlebuild.basics.toolchainInstallationPaths
 import org.gradle.api.Named
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.testing.Test
+import org.gradle.jvm.toolchain.internal.LocationListInstallationSupplier.JAVA_INSTALLATIONS_PATHS_PROPERTY
 import org.gradle.process.CommandLineArgumentProvider
 
 
 class CiEnvironmentProvider(private val test: Test) : CommandLineArgumentProvider, Named {
+    private val toolchainInstallationPaths = test.project.toolchainInstallationPaths
+
     @Internal
     override fun getName() = "ciEnvironment"
 
     override fun asArguments(): Iterable<String> {
         return if (BuildEnvironment.isCiServer) {
-            getRepoMirrorSystemProperties() + mapOf(
-                "org.gradle.test.maxParallelForks" to test.maxParallelForks,
-                "org.gradle.ci.agentCount" to 2,
-                "org.gradle.ci.agentNum" to BuildEnvironment.agentNum
-            ).map {
-                "-D${it.key}=${it.value}"
-            }
+            getRepoMirrorSystemProperties() +
+                getToolchainInstallationPathsProperty() +
+                mapOf(
+                    "org.gradle.test.maxParallelForks" to test.maxParallelForks,
+                    "org.gradle.ci.agentCount" to 2,
+                    "org.gradle.ci.agentNum" to BuildEnvironment.agentNum
+                ).map {
+                    "-D${it.key}=${it.value}"
+                }
         } else {
             listOf()
         }
+    }
+
+    private
+    fun getToolchainInstallationPathsProperty(): List<String> {
+        return toolchainInstallationPaths.map { listOf("-D$JAVA_INSTALLATIONS_PATHS_PROPERTY=$it") }.getOrElse(emptyList())
     }
 
     private

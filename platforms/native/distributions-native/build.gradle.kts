@@ -5,19 +5,19 @@ plugins {
 description = "The collector project for the 'native' portion of the Gradle distribution"
 
 dependencies {
-    coreRuntimeOnly(platform(project(":core-platform")))
+    coreRuntimeOnly(platform(projects.corePlatform))
 
-    agentsRuntimeOnly(project(":instrumentation-agent"))
+    agentsRuntimeOnly(projects.instrumentationAgent)
 
-    pluginsRuntimeOnly(platform(project(":distributions-jvm"))) {
+    pluginsRuntimeOnly(platform(projects.distributionsJvm)) {
         because("the project dependency 'toolingNative -> ide' currently links this to the JVM ecosystem")
     }
-    pluginsRuntimeOnly(platform(project(":distributions-publishing"))) {
+    pluginsRuntimeOnly(platform(projects.distributionsPublishing)) {
         because("configuring publishing is part of the 'language native' support")
     }
 
-    pluginsRuntimeOnly(project(":language-native"))
-    pluginsRuntimeOnly(project(":tooling-native"))
-    pluginsRuntimeOnly(project(":ide-native"))
-    pluginsRuntimeOnly(project(":testing-native"))
+    pluginsRuntimeOnly(projects.languageNative)
+    pluginsRuntimeOnly(projects.toolingNative)
+    pluginsRuntimeOnly(projects.ideNative)
+    pluginsRuntimeOnly(projects.testingNative)
 }

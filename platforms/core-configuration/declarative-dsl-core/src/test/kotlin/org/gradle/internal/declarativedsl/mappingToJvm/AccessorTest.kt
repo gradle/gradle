@@ -18,13 +18,13 @@ package org.gradle.internal.declarativedsl.mappingToJvm
 
 import org.gradle.declarative.dsl.model.annotations.Configuring
 import org.gradle.declarative.dsl.model.annotations.Restricted
-import org.gradle.internal.declarativedsl.analysis.ConfigureAccessor
-import org.gradle.internal.declarativedsl.analysis.DataConstructor
-import org.gradle.internal.declarativedsl.analysis.DataMemberFunction
-import org.gradle.internal.declarativedsl.analysis.DataTopLevelFunction
-import org.gradle.internal.declarativedsl.analysis.FunctionSemantics
-import org.gradle.internal.declarativedsl.analysis.FunctionSemantics.AccessAndConfigure.ReturnType.UNIT
-import org.gradle.internal.declarativedsl.analysis.SchemaMemberFunction
+import org.gradle.declarative.dsl.schema.ConfigureAccessor
+import org.gradle.declarative.dsl.schema.DataConstructor
+import org.gradle.declarative.dsl.schema.DataTopLevelFunction
+import org.gradle.declarative.dsl.schema.SchemaMemberFunction
+import org.gradle.internal.declarativedsl.analysis.ConfigureAccessorInternal
+import org.gradle.internal.declarativedsl.analysis.DefaultDataMemberFunction
+import org.gradle.internal.declarativedsl.analysis.FunctionSemanticsInternal
 import org.gradle.internal.declarativedsl.demo.resolve
 import org.gradle.internal.declarativedsl.schemaBuilder.DataSchemaBuilder
 import org.gradle.internal.declarativedsl.schemaBuilder.DefaultFunctionExtractor
@@ -35,23 +35,33 @@ import org.gradle.internal.declarativedsl.schemaBuilder.plus
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
 import org.gradle.internal.declarativedsl.schemaBuilder.toDataTypeRef
 import org.gradle.internal.declarativedsl.schemaBuilder.treatInterfaceAsConfigureLambda
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.Test
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
-import kotlin.test.Test
-import kotlin.test.assertEquals
 
 
-object AccessorTest {
+class AccessorTest {
     @Test
     fun `uses custom accessor in mapping to JVM`() {
         val resolution = schema.resolve(
             """
             configureCustomInstance {
                 x = 123
+                enum = B
             }""".trimIndent()
         )
-        assertEquals(123, runtimeInstanceFromResult(schema, resolution, configureLambdas, runtimeCustomAccessors, ::MyReceiver).myHiddenInstance.x)
+        assertEquals(123, runtimeInstanceFromResult(schema, resolution, configureLambdas, runtimeCustomAccessors, ::MyReceiver).myHiddenInstance.value.x)
+        assertEquals(Enum.B, runtimeInstanceFromResult(schema, resolution, configureLambdas, runtimeCustomAccessors, ::MyReceiver).myHiddenInstance.value.enum)
     }
+
+    @Test
+    fun `triggers the custom accessor with empty block`() {
+        val resolution = schema.resolve("configureCustomInstance { }")
+        assertTrue(runtimeInstanceFromResult(schema, resolution, configureLambdas, runtimeCustomAccessors, ::MyReceiver).myHiddenInstance.isInitialized())
+    }
+
 
     @Test
     fun `accesses receiver from runtime lambda argument mapping to JVM`() {
@@ -73,7 +83,7 @@ object AccessorTest {
     val runtimeCustomAccessors = object : RuntimeCustomAccessors {
         override fun getObjectFromCustomAccessor(receiverObject: Any, accessor: ConfigureAccessor.Custom): Any? =
             if (receiverObject is MyReceiver && accessor.customAccessorIdentifier == "test")
-                receiverObject.myHiddenInstance
+                receiverObject.myHiddenInstance.value
             else null
     }
 
@@ -82,12 +92,16 @@ object AccessorTest {
         override fun memberFunctions(kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<SchemaMemberFunction> =
             if (kClass == MyReceiver::class) {
                 listOf(
-                    DataMemberFunction(
+                    DefaultDataMemberFunction(
                         MyReceiver::class.toDataTypeRef(),
                         "configureCustomInstance",
                         emptyList(),
                         false,
-                        FunctionSemantics.AccessAndConfigure(ConfigureAccessor.Custom(Configured::class.toDataTypeRef(), "test"), UNIT)
+                        FunctionSemanticsInternal.DefaultAccessAndConfigure(
+                            ConfigureAccessorInternal.DefaultCustom(Configured::class.toDataTypeRef(), "test"),
+                            FunctionSemanticsInternal.DefaultAccessAndConfigure.DefaultReturnType.DefaultUnit,
+                            FunctionSemanticsInternal.DefaultConfigureBlockRequirement.DefaultRequired
+                        )
                     )
                 )
             } else emptyList()
@@ -108,17 +122,19 @@ object AccessorTest {
     class MyReceiver {
         val myLambdaReceiver = Configured()
 
+        @Suppress("unused")
         @Configuring
         fun configureLambdaArgument(configure: Configured.() -> Unit) {
             configure(myLambdaReceiver)
         }
 
+        @Suppress("unused")
         @Configuring
         fun configureLambdaArgumentWithCustomInterface(configure: MyFunctionalInterface<Configured>) {
             configure.action(myLambdaReceiver)
         }
 
-        val myHiddenInstance = Configured()
+        val myHiddenInstance = lazy { Configured() }
     }
 
     internal
@@ -133,5 +149,12 @@ object AccessorTest {
 
         @get:Restricted
         var y: String = ""
+
+        @get:Restricted
+        var enum: Enum = Enum.A
+    }
+
+    enum class Enum {
+        A, B, C
     }
 }

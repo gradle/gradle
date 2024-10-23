@@ -17,6 +17,9 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+
+import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
 
 abstract class AbstractExecutionResultExecTaskIntegrationTest extends AbstractIntegrationSpec {
     protected abstract void makeExecProject()
@@ -31,6 +34,7 @@ abstract class AbstractExecutionResultExecTaskIntegrationTest extends AbstractIn
 
     protected abstract String getExecResultDsl()
 
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "returns null ExecResult when task haven't executed"() {
         makeExecProject()
         writeSucceedingExec()
@@ -49,6 +53,7 @@ abstract class AbstractExecutionResultExecTaskIntegrationTest extends AbstractIn
         result.assertTasksExecutedAndNotSkipped(':verify')
     }
 
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "returns ExecResult when is executed"() {
         makeExecProject()
         writeSucceedingExec()
@@ -69,6 +74,7 @@ abstract class AbstractExecutionResultExecTaskIntegrationTest extends AbstractIn
         result.assertTasksExecutedAndNotSkipped(':compileJava', ":$taskNameUnderTest", ':verify')
     }
 
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "execute with non-zero exit value and ignore exit value should not throw exception"() {
         makeExecProject()
         writeFailingExec()

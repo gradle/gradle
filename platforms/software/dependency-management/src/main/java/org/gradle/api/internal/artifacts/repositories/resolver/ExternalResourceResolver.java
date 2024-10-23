@@ -35,14 +35,16 @@ import org.gradle.api.internal.artifacts.repositories.metadata.MetadataSource;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.action.InstantiatingAction;
+import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
+import org.gradle.internal.component.model.ComponentArtifactResolveMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
-import org.gradle.internal.component.model.ComponentResolveMetadata;
+import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.DefaultModuleDescriptorArtifactMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleDescriptorArtifactMetadata;
@@ -75,10 +77,11 @@ import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-public abstract class ExternalResourceResolver<T extends ModuleComponentResolveMetadata> implements ConfiguredModuleComponentRepository {
+public abstract class ExternalResourceResolver implements ConfiguredModuleComponentRepository {
     private static final Logger LOGGER = LoggerFactory.getLogger(ExternalResourceResolver.class);
 
     private final String name;
@@ -143,8 +146,6 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
     public String getName() {
         return name;
     }
-
-    protected abstract Class<T> getSupportedMetadataType();
 
     @Override
     public boolean isDynamicResolveMode() {
@@ -253,8 +254,15 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
 
     protected abstract boolean isMetaDataArtifact(ArtifactType artifactType);
 
-    protected Set<ModuleComponentArtifactMetadata> findOptionalArtifacts(ModuleComponentResolveMetadata module, String type, String classifier) {
-        ModuleComponentArtifactMetadata artifact = module.artifact(type, "jar", classifier);
+    protected Set<ModuleComponentArtifactMetadata> findOptionalArtifacts(ComponentArtifactResolveMetadata module, String type, String classifier) {
+        if (!(module.getId() instanceof ModuleComponentIdentifier)) {
+            return Collections.emptySet();
+        }
+
+        ModuleComponentIdentifier moduleId = (ModuleComponentIdentifier) module.getId();
+        IvyArtifactName ivyArtifactName = new DefaultIvyArtifactName(moduleId.getModule(), type, "jar", classifier);
+
+        ModuleComponentArtifactMetadata artifact = new DefaultModuleComponentArtifactMetadata(moduleId, ivyArtifactName);
         if (createArtifactResolver(module.getSources()).artifactExists(artifact, new DefaultResourceAwareResolveResult())) {
             return ImmutableSet.of(artifact);
         }
@@ -304,17 +312,17 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
     }
 
     private void publishChecksums(ExternalResourceName destination, File content) {
-        publishChecksum(destination, content, "sha1", 40);
+        publishChecksum(destination, content, "sha1");
 
         if (!ExternalResourceResolver.disableExtraChecksums()) {
-            publishPossiblyUnsupportedChecksum(destination, content, "sha-256", 64);
-            publishPossiblyUnsupportedChecksum(destination, content, "sha-512", 128);
+            publishPossiblyUnsupportedChecksum(destination, content, "sha-256");
+            publishPossiblyUnsupportedChecksum(destination, content, "sha-512");
         }
     }
 
-    private void publishPossiblyUnsupportedChecksum(ExternalResourceName destination, File content, String algorithm, int length) {
+    private void publishPossiblyUnsupportedChecksum(ExternalResourceName destination, File content, String algorithm) {
         try {
-            publishChecksum(destination, content, algorithm, length);
+            publishChecksum(destination, content, algorithm);
         } catch (Exception ex) {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.warn("Cannot upload checksum for " + content.getName() + " because the remote repository doesn't support " + algorithm + ". This will not fail the build.", ex);
@@ -324,13 +332,13 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
         }
     }
 
-    private void publishChecksum(ExternalResourceName destination, File content, String algorithm, int length) {
-        byte[] checksum = createChecksumFile(content, algorithm.toUpperCase(), length);
+    private void publishChecksum(ExternalResourceName destination, File content, String algorithm) {
+        byte[] checksum = createChecksumFile(content, algorithm.toUpperCase(Locale.ROOT));
         ExternalResourceName checksumDestination = destination.append("." + algorithm.replaceAll("-", ""));
         repository.resource(checksumDestination).put(new ByteArrayReadableContent(checksum));
     }
 
-    private byte[] createChecksumFile(File src, String algorithm, int checksumLength) {
+    private byte[] createChecksumFile(File src, String algorithm) {
         HashCode hash = checksumService.hash(src, algorithm);
         String formattedHashString = hash.toString();
         try {
@@ -350,22 +358,21 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
 
     protected abstract class AbstractRepositoryAccess implements ModuleComponentRepositoryAccess<ModuleComponentResolveMetadata> {
         @Override
-        public void resolveArtifactsWithType(ComponentResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
-            T moduleMetaData = getSupportedMetadataType().cast(component);
+        public void resolveArtifactsWithType(ComponentArtifactResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
             if (artifactType == ArtifactType.JAVADOC) {
-                resolveJavadocArtifacts(moduleMetaData, result);
+                resolveJavadocArtifacts(component, result);
             } else if (artifactType == ArtifactType.SOURCES) {
-                resolveSourceArtifacts(moduleMetaData, result);
+                resolveSourceArtifacts(component, result);
             } else if (isMetaDataArtifact(artifactType)) {
-                resolveMetaDataArtifacts(moduleMetaData, result);
+                resolveMetaDataArtifacts(component, result);
             }
         }
 
-        protected abstract void resolveMetaDataArtifacts(T module, BuildableArtifactSetResolveResult result);
+        protected abstract void resolveMetaDataArtifacts(ComponentArtifactResolveMetadata module, BuildableArtifactSetResolveResult result);
 
-        protected abstract void resolveJavadocArtifacts(T module, BuildableArtifactSetResolveResult result);
+        protected abstract void resolveJavadocArtifacts(ComponentArtifactResolveMetadata module, BuildableArtifactSetResolveResult result);
 
-        protected abstract void resolveSourceArtifacts(T module, BuildableArtifactSetResolveResult result);
+        protected abstract void resolveSourceArtifacts(ComponentArtifactResolveMetadata module, BuildableArtifactSetResolveResult result);
     }
 
     protected abstract class LocalRepositoryAccess extends AbstractRepositoryAccess {
@@ -383,8 +390,13 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
         }
 
         @Override
-        protected final void resolveMetaDataArtifacts(T module, BuildableArtifactSetResolveResult result) {
-            ModuleDescriptorArtifactMetadata artifact = getMetaDataArtifactFor(module.getId());
+        protected final void resolveMetaDataArtifacts(ComponentArtifactResolveMetadata module, BuildableArtifactSetResolveResult result) {
+            if (!(module.getId() instanceof ModuleComponentIdentifier)) {
+                return;
+            }
+
+            ModuleComponentIdentifier moduleId = (ModuleComponentIdentifier) module.getId();
+            ModuleDescriptorArtifactMetadata artifact = getMetaDataArtifactFor(moduleId);
             result.resolved(Collections.singleton(artifact));
         }
 
@@ -416,31 +428,31 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
         }
 
         @Override
-        public void resolveArtifactsWithType(ComponentResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
+        public void resolveArtifactsWithType(ComponentArtifactResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
             super.resolveArtifactsWithType(component, artifactType, result);
             checkArtifactsResolved(component, artifactType, result);
         }
 
-        private void checkArtifactsResolved(ComponentResolveMetadata component, Object context, BuildableTypedResolveResult<?, ? super ArtifactResolveException> result) {
+        private void checkArtifactsResolved(ComponentArtifactResolveMetadata component, Object context, BuildableTypedResolveResult<?, ? super ArtifactResolveException> result) {
             if (!result.hasResult()) {
                 result.failed(new ArtifactResolveException(component.getId(),
-                    String.format("Cannot locate %s for '%s' in repository '%s'", context, component, name)));
+                    String.format("Cannot locate %s for '%s' in repository '%s'", context, component.getId().getDisplayName(), name)));
             }
         }
 
         @Override
-        protected final void resolveMetaDataArtifacts(T module, BuildableArtifactSetResolveResult result) {
+        protected final void resolveMetaDataArtifacts(ComponentArtifactResolveMetadata module, BuildableArtifactSetResolveResult result) {
             // Meta data artifacts are determined locally
         }
 
         @Override
-        protected void resolveJavadocArtifacts(T module, BuildableArtifactSetResolveResult result) {
+        protected void resolveJavadocArtifacts(ComponentArtifactResolveMetadata module, BuildableArtifactSetResolveResult result) {
             // Probe for artifact with classifier
             result.resolved(findOptionalArtifacts(module, "javadoc", "javadoc"));
         }
 
         @Override
-        protected void resolveSourceArtifacts(T module, BuildableArtifactSetResolveResult result) {
+        protected void resolveSourceArtifacts(ComponentArtifactResolveMetadata module, BuildableArtifactSetResolveResult result) {
             // Probe for artifact with classifier
             result.resolved(findOptionalArtifacts(module, "source", "sources"));
         }

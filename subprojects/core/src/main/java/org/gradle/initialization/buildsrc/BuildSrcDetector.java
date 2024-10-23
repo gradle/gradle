@@ -26,11 +26,21 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.stream.Stream;
 
+import static org.gradle.internal.scripts.ScriptFileUtil.getValidBuildFileNames;
+import static org.gradle.internal.scripts.ScriptFileUtil.getValidSettingsFileNames;
+
 public class BuildSrcDetector {
     private static final Logger LOGGER = LoggerFactory.getLogger(BuildSrcDetector.class);
-    private static final String[] GRADLE_BUILD_FILES = new String[] {
-            "settings.gradle", "settings.gradle.kts", "build.gradle", "build.gradle.kts"
-    };
+    private static final String[] GRADLE_BUILD_FILES;
+
+    static {
+        String[] settingsFileNames = getValidSettingsFileNames();
+        String[] buildFileNames = getValidBuildFileNames();
+
+        GRADLE_BUILD_FILES = new String[settingsFileNames.length + buildFileNames.length];
+        System.arraycopy(settingsFileNames, 0, GRADLE_BUILD_FILES, 0, settingsFileNames.length);
+        System.arraycopy(buildFileNames, 0, GRADLE_BUILD_FILES, settingsFileNames.length, buildFileNames.length);
+    }
 
     public static boolean isValidBuildSrcBuild(File buildSrcDir) {
         if (!buildSrcDir.exists()) {

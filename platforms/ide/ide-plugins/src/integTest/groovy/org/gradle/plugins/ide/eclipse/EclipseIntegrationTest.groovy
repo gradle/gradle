@@ -536,9 +536,9 @@ dependencies {
     String getActualXml(File file) {
         def gradleUserHomeDir = executer.getGradleUserHomeDir()
         def homeDir = gradleUserHomeDir.absolutePath.replace(File.separator, '/')
-        def pattern = Pattern.compile(Pattern.quote(homeDir) + "/caches/${CacheLayout.ROOT.getKey()}/${CacheLayout.FILE_STORE.getKey()}/([^/]+/[^/]+/[^/]+)/[a-z0-9]+/")
+        def pattern = Pattern.compile(Pattern.quote(homeDir) + "/caches/${CacheLayout.MODULES.getKey()}/${CacheLayout.FILE_STORE.getKey()}/([^/]+/[^/]+/[^/]+)/[a-z0-9]+/")
         def text = file.text.replaceAll(pattern, '@CACHE_DIR@/$1/@SHA1@/')
-        pattern = Pattern.compile("GRADLE_USER_HOME/${CacheLayout.ROOT.getKey()}/${CacheLayout.FILE_STORE.getKey()}/([^/]+/[^/]+/[^/]+)/[a-z0-9]+/")
+        pattern = Pattern.compile("GRADLE_USER_HOME/${CacheLayout.MODULES.getKey()}/${CacheLayout.FILE_STORE.getKey()}/([^/]+/[^/]+/[^/]+)/[a-z0-9]+/")
         text = text.replaceAll(pattern, 'GRADLE_USER_HOME/@CACHE@/$1/@SHA1@/')
 
         //remove trailing slashes for windows paths

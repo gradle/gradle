@@ -36,7 +36,7 @@ class DefaultOutputFilesRepositoryTest extends Specification {
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
-    def outputFiles = new TestInMemoryIndexedCache<String, Boolean>(BaseSerializerFactory.BOOLEAN_SERIALIZER)
+    def outputFiles = new TestInMemoryIndexedCache<String, DefaultOutputFilesRepository.OutputKind>(new BaseSerializerFactory().getSerializerFor(DefaultOutputFilesRepository.OutputKind))
     def cacheAccess = Stub(PersistentCache) {
         createIndexedCache(_) >> outputFiles
     }

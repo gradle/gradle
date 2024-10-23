@@ -104,6 +104,7 @@ class ProgressEvents implements ProgressListener {
                         || descriptor.displayName.startsWith('Configure project ')
                         || descriptor.displayName.startsWith('Cross-configure project ')
                         || descriptor.displayName.startsWith('Resolve files of')
+                        || descriptor.displayName.startsWith('Fingerprint transform inputs')
                         || descriptor.displayName.startsWith('Identifying ')
                         || descriptor.displayName.startsWith('Execute unit of work')
                         || descriptor.displayName.startsWith('Execute transform')

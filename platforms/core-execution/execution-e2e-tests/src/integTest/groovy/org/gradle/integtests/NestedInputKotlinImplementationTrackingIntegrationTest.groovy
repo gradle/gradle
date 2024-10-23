@@ -19,13 +19,12 @@ package org.gradle.integtests
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.integtests.fixtures.KotlinDslTestUtil
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import spock.lang.Issue
-
-import static org.junit.Assume.assumeFalse
 
 @LeaksFileHandles
 class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
@@ -137,8 +136,8 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractInt
         project2.file('build/tmp/myTask/output.txt').text == "hello"
     }
 
+    @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
     def "task action defined in latest Kotlin can be tracked when using language version #kotlinLanguageVersion"() {
-        assumeFalse(GradleContextualExecuter.embedded)
         file("buildSrc/build.gradle.kts") << """
             plugins {
                 kotlin("jvm") version("${new KotlinGradlePluginVersions().latestStableOrRC}")
@@ -166,6 +165,8 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractInt
                     apiVersion.set(KotlinVersion.fromVersion("${kotlinLanguageVersion}"))
                     languageVersion.set(KotlinVersion.fromVersion("${kotlinLanguageVersion}"))
                 }
+                // Work around JVM validation issue: https://youtrack.jetbrains.com/issue/KT-66919
+                jvmTargetValidationMode = org.jetbrains.kotlin.gradle.dsl.jvm.JvmTargetValidationMode.WARNING
             }
         """
         file("buildSrc/src/main/kotlin/MyPlugin.kt") << """
@@ -190,7 +191,7 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractInt
         """
 
         when:
-        if (['1.4', '1.5'].contains(kotlinLanguageVersion)) {
+        if (['1.4', '1.5', '1.6'].contains(kotlinLanguageVersion)) {
             executer.expectDeprecationWarning("w: Language version $kotlinLanguageVersion is deprecated and its support will be removed in a future version of Kotlin")
         }
         run "myTask"

@@ -5,11 +5,11 @@ plugins {
 description = "The collector project for the 'publishing' portion of the Gradle distribution"
 
 dependencies {
-    coreRuntimeOnly(platform(project(":core-platform")))
+    coreRuntimeOnly(platform(projects.corePlatform))
 
-    agentsRuntimeOnly(project(":instrumentation-agent"))
+    agentsRuntimeOnly(projects.instrumentationAgent)
 
-    pluginsRuntimeOnly(platform(project(":distributions-basics")))
+    pluginsRuntimeOnly(platform(projects.distributionsBasics))
 
-    pluginsRuntimeOnly(project(":signing"))
+    pluginsRuntimeOnly(projects.signing)
 }

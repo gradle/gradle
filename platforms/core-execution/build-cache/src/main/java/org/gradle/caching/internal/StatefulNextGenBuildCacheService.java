@@ -48,7 +48,7 @@ public interface StatefulNextGenBuildCacheService extends BuildCacheService, Clo
             writer = new NextGenWriter() {
                 @Override
                 public InputStream openStream() throws IOException {
-                    UnsynchronizedByteArrayOutputStream data = new UnsynchronizedByteArrayOutputStream();
+                    UnsynchronizedByteArrayOutputStream data = UnsynchronizedByteArrayOutputStream.builder().get();
                     writeTo(data);
                     return data.toInputStream();
                 }

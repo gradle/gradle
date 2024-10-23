@@ -16,13 +16,17 @@
 
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import javax.annotation.concurrent.ThreadSafe;
 import org.apache.ivy.Ivy;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 @ThreadSafe
 @SuppressWarnings("overloads")
+@ServiceScope(Scope.Global.class)
 public interface IvyContextManager {
     /**
      * Executes the given action against an Ivy instance. Sets up the Ivy context before the action and cleans up at the end.

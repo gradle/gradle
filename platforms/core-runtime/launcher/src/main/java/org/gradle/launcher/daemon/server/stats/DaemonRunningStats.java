@@ -16,9 +16,12 @@
 
 package org.gradle.launcher.daemon.server.stats;
 
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
 
+@ServiceScope(Scope.Global.class)
 public class DaemonRunningStats {
 
     private final long startTime = System.currentTimeMillis();

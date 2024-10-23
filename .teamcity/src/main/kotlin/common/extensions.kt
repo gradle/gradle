@@ -20,8 +20,6 @@ import common.KillProcessMode.KILL_ALL_GRADLE_PROCESSES
 import configurations.CompileAll
 import configurations.FunctionalTest
 import configurations.branchesFilterExcluding
-import configurations.buildScanCustomValue
-import configurations.buildScanTag
 import configurations.checkCleanDirUnixLike
 import configurations.checkCleanDirWindows
 import configurations.enablePullRequestFeature
@@ -108,7 +106,9 @@ fun BuildType.applyDefaultSettings(os: Os = Os.LINUX, arch: Arch = Arch.AMD64, b
         build/tmp/teŝt files/** => $hiddenArtifactDestination/teŝt-files
         build/errorLogs/** => $hiddenArtifactDestination/errorLogs
         subprojects/internal-build-reports/build/reports/incubation/all-incubating.html => incubation-reports
+        testing/architecture-test/build/reports/binary-compatibility/report.html => binary-compatibility-reports
         build/reports/dependency-verification/** => dependency-verification-reports
+        build/reports/problems/problems-report.html
     """.trimIndent()
 
     paramsForBuildToolBuild(buildJvm, os, arch)
@@ -155,9 +155,7 @@ fun javaHome(jvm: Jvm, os: Os, arch: Arch = Arch.AMD64) = "%${os.name.lowercase(
 fun BuildType.paramsForBuildToolBuild(buildJvm: Jvm = BuildToolBuildJvm, os: Os, arch: Arch = Arch.AMD64) {
     params {
         param("env.BOT_TEAMCITY_GITHUB_TOKEN", "%github.bot-teamcity.token%")
-        param("env.GRADLE_CACHE_REMOTE_PASSWORD", "%gradle.cache.remote.password%")
-        param("env.GRADLE_CACHE_REMOTE_URL", "%gradle.cache.remote.url%")
-        param("env.GRADLE_CACHE_REMOTE_USERNAME", "%gradle.cache.remote.username%")
+        param("env.GRADLE_CACHE_REMOTE_SERVER", "%gradle.cache.remote.server%")
 
         param("env.JAVA_HOME", javaHome(buildJvm, os, arch))
         param("env.GRADLE_OPTS", "-Xmx1536m")
@@ -179,15 +177,21 @@ fun BuildSteps.checkCleanM2AndAndroidUserHome(os: Os = Os.LINUX, buildType: Buil
         name = "CHECK_CLEAN_M2_ANDROID_USER_HOME"
         executionMode = BuildStep.ExecutionMode.ALWAYS
         scriptContent = if (os == Os.WINDOWS) {
-            checkCleanDirWindows("%teamcity.agent.jvm.user.home%\\.m2\\repository") + checkCleanDirWindows("%teamcity.agent.jvm.user.home%\\.m2\\.gradle-enterprise") + checkCleanDirWindows(
-                "%teamcity.agent.jvm.user.home%\\.android",
-                false
-            )
+            checkCleanDirWindows("%teamcity.agent.jvm.user.home%\\.m2\\repository") +
+                checkCleanDirWindows("%teamcity.agent.jvm.user.home%\\.m2\\.gradle-enterprise") +
+                checkCleanDirWindows("%teamcity.agent.jvm.user.home%\\.m2\\.develocity") +
+                checkCleanDirWindows(
+                    "%teamcity.agent.jvm.user.home%\\.android",
+                    false
+                )
         } else {
-            checkCleanDirUnixLike("%teamcity.agent.jvm.user.home%/.m2/repository") + checkCleanDirUnixLike("%teamcity.agent.jvm.user.home%/.m2/.gradle-enterprise") + checkCleanDirUnixLike(
-                "%teamcity.agent.jvm.user.home%/.android",
-                false
-            )
+            checkCleanDirUnixLike("%teamcity.agent.jvm.user.home%/.m2/repository") +
+                checkCleanDirUnixLike("%teamcity.agent.jvm.user.home%/.m2/.gradle-enterprise") +
+                checkCleanDirUnixLike("%teamcity.agent.jvm.user.home%/.m2/.develocity") +
+                checkCleanDirUnixLike(
+                    "%teamcity.agent.jvm.user.home%/.android",
+                    false
+                )
         }
         skipConditionally(buildType)
     }
@@ -243,7 +247,13 @@ fun Dependencies.compileAllDependency(compileAllId: String) {
     }
 }
 
-fun functionalTestExtraParameters(buildScanTag: String, os: Os, arch: Arch, testJvmVersion: String, testJvmVendor: String): String {
+fun functionalTestExtraParameters(
+    buildScanTags: List<String>,
+    os: Os,
+    arch: Arch,
+    testJvmVersion: String,
+    testJvmVendor: String
+): String {
     val buildScanValues = mapOf(
         "coverageOs" to os.name.lowercase(),
         "coverageArch" to arch.name.lowercase(),
@@ -255,15 +265,15 @@ fun functionalTestExtraParameters(buildScanTag: String, os: Os, arch: Arch, test
             "-PtestJavaVersion=$testJvmVersion",
             "-PtestJavaVendor=$testJvmVendor"
         ) +
-            listOf(buildScanTag(buildScanTag)) +
-            buildScanValues.map { buildScanCustomValue(it.key, it.value) }
+            buildScanTags.map { buildScanTagParam(it) } +
+            buildScanValues.map { buildScanCustomValueParam(it.key, it.value) }
         ).filter { it.isNotBlank() }.joinToString(separator = " ")
 }
 
-fun functionalTestParameters(os: Os): List<String> {
+fun functionalTestParameters(os: Os, arch: Arch = Arch.AMD64): List<String> {
     return listOf(
         "-PteamCityBuildId=%teamcity.build.id%",
-        os.javaInstallationLocations(),
+        os.javaInstallationLocations(arch),
         "-Porg.gradle.java.installations.auto-download=false",
         "-Porg.gradle.java.installations.auto-detect=false",
     )

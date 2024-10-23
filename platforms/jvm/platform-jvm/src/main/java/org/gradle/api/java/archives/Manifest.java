@@ -19,6 +19,7 @@ import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.internal.HasInternalProtocol;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 import java.util.Map;
 
@@ -30,6 +31,7 @@ public interface Manifest {
     /**
      * Returns the main attributes of the manifest.
      */
+    @ToBeReplacedByLazyProperty
     Attributes getAttributes();
 
     /**
@@ -37,6 +39,7 @@ public interface Manifest {
      *
      * @return A map with the sections, where the key represents the section name and value the section attributes.
      */
+    @ToBeReplacedByLazyProperty
     Map<String, Attributes> getSections();
 
     /**

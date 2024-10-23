@@ -17,15 +17,12 @@
 package org.gradle.api.tasks.diagnostics
 
 
-import org.gradle.api.tasks.diagnostics.internal.DependencyReportRenderer
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
 
 class BuildEnvironmentReportTaskTest extends AbstractProjectBuilderSpec {
     private BuildEnvironmentReportTask task
-    private DependencyReportRenderer renderer
     def setup() {
-        renderer = Mock(DependencyReportRenderer)
         task = TestUtil.createTask(BuildEnvironmentReportTask.class, project)
     }
 
@@ -35,7 +32,6 @@ class BuildEnvironmentReportTaskTest extends AbstractProjectBuilderSpec {
         project.buildscript.configurations.create("conf2")
 
         when:
-        task.setRenderer(renderer)
         task.generate()
 
         then:

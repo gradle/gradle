@@ -16,26 +16,29 @@
 
 package org.gradle.cache.internal
 
-import org.gradle.api.Action
 import org.gradle.cache.FileLock
 import org.gradle.cache.FileLockManager
 import org.gradle.cache.FileLockReleasedSignal
 import org.gradle.cache.internal.filelock.DefaultLockOptions
 import org.gradle.cache.internal.locklistener.DefaultFileLockContentionHandler
 import org.gradle.cache.internal.locklistener.FileLockContentionHandler
+import org.gradle.cache.internal.locklistener.InetAddressProvider
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.internal.concurrent.DefaultExecutorFactory
 import org.gradle.internal.remote.internal.inet.InetAddressFactory
 import org.gradle.internal.time.Time
+import org.gradle.test.fixtures.Flaky
 
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
+import java.util.function.Consumer
 
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 import static org.gradle.util.internal.TextUtil.escapeString
 
+@Flaky(because = "https://github.com/gradle/gradle-private/issues/4441")
 class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegrationSpec {
     def addressFactory = new InetAddressFactory()
 
@@ -232,14 +235,14 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
             import org.gradle.cache.FileLockManager
             import org.gradle.internal.logging.events.OutputEventListener
             import org.gradle.internal.nativeintegration.services.NativeServices
-            import org.gradle.internal.nativeintegration.services.NativeServices.NativeIntegrationEnabled
+            import org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode
             import org.gradle.internal.service.DefaultServiceRegistry
             import org.gradle.internal.service.scopes.GlobalScopeServices
             import org.gradle.internal.service.ServiceRegistryBuilder
             import org.gradle.internal.service.scopes.GradleUserHomeScopeServices
             import org.gradle.workers.WorkParameters
             import org.gradle.workers.WorkAction
-            import org.gradle.internal.agents.AgentStatus
+            import org.gradle.internal.instrumentation.agent.AgentStatus
             import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
 
             abstract class WorkerTask extends DefaultTask {
@@ -292,7 +295,7 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
 
                  static def getInstance(File gradleUserHome) {
                     if (instance == null) {
-                        NativeServices.initializeOnWorker(gradleUserHome, NativeIntegrationEnabled.ENABLED)
+                        NativeServices.initializeOnWorker(gradleUserHome, NativeServicesMode.ENABLED)
                         def global = new ZincCompilerServices(gradleUserHome)
                         ServiceRegistryBuilder builder = ServiceRegistryBuilder.builder()
                         builder.parent(global)
@@ -363,8 +366,18 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
         socketReceiverThread.start()
     }
 
-    def setupLockOwner(Action<FileLockReleasedSignal> whenContended = null) {
-        receivingFileLockContentionHandler = new DefaultFileLockContentionHandler(new DefaultExecutorFactory(), addressFactory)
+    def setupLockOwner(Consumer<FileLockReleasedSignal> whenContended = null) {
+        receivingFileLockContentionHandler = new DefaultFileLockContentionHandler(new DefaultExecutorFactory(), new InetAddressProvider() {
+            @Override
+            InetAddress getWildcardBindingAddress() {
+                return addressFactory.wildcardBindingAddress
+            }
+
+            @Override
+            Iterable<InetAddress> getCommunicationAddresses() {
+                return addressFactory.communicationAddresses
+            }
+        })
         def fileLockManager = new DefaultFileLockManager(new ProcessMetaDataProvider() {
             String getProcessIdentifier() { return "pid" }
             String getProcessDisplayName() { return "process" }

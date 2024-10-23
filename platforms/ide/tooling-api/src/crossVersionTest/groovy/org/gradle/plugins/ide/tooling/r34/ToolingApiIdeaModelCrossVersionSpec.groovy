@@ -18,7 +18,6 @@ package org.gradle.plugins.ide.tooling.r34
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.model.UnsupportedMethodException
 import org.gradle.tooling.model.idea.IdeaModule
 import org.gradle.tooling.model.idea.IdeaModuleDependency
@@ -29,7 +28,6 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
         settingsFile << "rootProject.name = 'root'"
     }
 
-    @ToolingApiVersion(">=3.4")
     @TargetGradleVersion(">=3.4")
     def "jdkName property from idea module model is available in the tooling API"() {
         given:
@@ -74,8 +72,7 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
         ideaProject.modules.find { it.name == 'child3' }.jdkName == null
     }
 
-    @ToolingApiVersion(">=3.4")
-    @TargetGradleVersion(">=2.6 <3.4")
+    @TargetGradleVersion(">=3.0 <3.4")
     def "jdkName property from idea module model is not available in the tooling before 3.4"() {
         when:
         def ideaProject = withConnection { connection -> connection.getModel(IdeaProject) }
@@ -86,7 +83,6 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
         e.message.startsWith("Unsupported method: IdeaModule.getJdkName()")
     }
 
-    @ToolingApiVersion(">=3.4")
     @TargetGradleVersion(">=3.4 <4.5")
     def "provides correct dependencies when using java-library plugin"() {
         given:
@@ -136,8 +132,6 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
         hasDependency(module, "e", "TEST")
     }
 
-
-    @ToolingApiVersion(">=3.4")
     @TargetGradleVersion(">=4.5")
     def "provides minimal set of dependencies when using java-library plugin"() {
         given:

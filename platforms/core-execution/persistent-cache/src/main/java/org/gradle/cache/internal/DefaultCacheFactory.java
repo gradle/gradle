@@ -15,7 +15,6 @@
  */
 package org.gradle.cache.internal;
 
-import org.gradle.api.Action;
 import org.gradle.cache.CacheCleanupStrategy;
 import org.gradle.cache.CacheOpenException;
 import org.gradle.cache.FileLockManager;
@@ -23,11 +22,8 @@ import org.gradle.cache.IndexedCache;
 import org.gradle.cache.IndexedCacheParameters;
 import org.gradle.cache.LockOptions;
 import org.gradle.cache.PersistentCache;
-import org.gradle.internal.Factory;
-import org.gradle.internal.FileUtils;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.serialize.Serializer;
 
 import javax.annotation.Nullable;
@@ -40,18 +36,18 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 public class DefaultCacheFactory implements CacheFactory, Closeable {
     private final Map<File, DirCacheReference> dirCaches = new HashMap<>();
     private final FileLockManager lockManager;
     private final ExecutorFactory executorFactory;
-    private final BuildOperationRunner buildOperationRunner;
     private final Lock lock = new ReentrantLock();
 
-    public DefaultCacheFactory(FileLockManager fileLockManager, ExecutorFactory executorFactory, BuildOperationRunner buildOperationRunner) {
+    public DefaultCacheFactory(FileLockManager fileLockManager, ExecutorFactory executorFactory) {
         this.lockManager = fileLockManager;
         this.executorFactory = executorFactory;
-        this.buildOperationRunner = buildOperationRunner;
     }
 
     void onOpen(Object cache) {
@@ -61,7 +57,7 @@ public class DefaultCacheFactory implements CacheFactory, Closeable {
     }
 
     @Override
-    public PersistentCache open(File cacheDir, String displayName, Map<String, ?> properties, LockOptions lockOptions, @Nullable Action<? super PersistentCache> initializer, @Nullable CacheCleanupStrategy cacheCleanupStrategy) throws CacheOpenException {
+    public PersistentCache open(File cacheDir, String displayName, Map<String, ?> properties, LockOptions lockOptions, @Nullable Consumer<? super PersistentCache> initializer, CacheCleanupStrategy cacheCleanupStrategy) throws CacheOpenException {
         lock.lock();
         try {
             return doOpen(cacheDir, displayName, properties, lockOptions, initializer, cacheCleanupStrategy);
@@ -91,21 +87,21 @@ public class DefaultCacheFactory implements CacheFactory, Closeable {
         String displayName,
         Map<String, ?> properties,
         LockOptions lockOptions,
-        @Nullable Action<? super PersistentCache> initializer,
-        @Nullable CacheCleanupStrategy cacheCleanupStrategy
+        @Nullable Consumer<? super PersistentCache> initializer,
+        CacheCleanupStrategy cacheCleanupStrategy
     ) {
-        File canonicalDir = FileUtils.canonicalize(cacheDir);
-        DirCacheReference dirCacheReference = dirCaches.get(canonicalDir);
+        DirCacheReference dirCacheReference = dirCaches.get(cacheDir);
         if (dirCacheReference == null) {
             ReferencablePersistentCache cache;
             if (!properties.isEmpty() || initializer != null) {
-                cache = new DefaultPersistentDirectoryCache(canonicalDir, displayName, properties, lockOptions, initializer, cacheCleanupStrategy, lockManager, executorFactory, buildOperationRunner);
+                Consumer<? super PersistentCache> initAction = initializer != null ? initializer : __ -> {};
+                cache = new DefaultPersistentDirectoryCache(cacheDir, displayName, properties, lockOptions, initAction, cacheCleanupStrategy, lockManager, executorFactory);
             } else {
-                cache = new DefaultPersistentDirectoryStore(canonicalDir, displayName, lockOptions, cacheCleanupStrategy, lockManager, executorFactory, buildOperationRunner);
+                cache = new DefaultPersistentDirectoryStore(cacheDir, displayName, lockOptions, cacheCleanupStrategy, lockManager, executorFactory);
             }
             cache.open();
             dirCacheReference = new DirCacheReference(cache, properties, lockOptions);
-            dirCaches.put(canonicalDir, dirCacheReference);
+            dirCaches.put(cacheDir, dirCacheReference);
         } else {
             if (!lockOptions.equals(dirCacheReference.lockOptions)) {
                 throw new IllegalStateException(String.format("Cache '%s' is already open with different lock options.", cacheDir));
@@ -203,7 +199,7 @@ public class DefaultCacheFactory implements CacheFactory, Closeable {
         }
 
         @Override
-        public <T> T withFileLock(Factory<? extends T> action) {
+        public <T> T withFileLock(Supplier<? extends T> action) {
             return reference.cache.withFileLock(action);
         }
 
@@ -213,7 +209,7 @@ public class DefaultCacheFactory implements CacheFactory, Closeable {
         }
 
         @Override
-        public <T> T useCache(Factory<? extends T> action) {
+        public <T> T useCache(Supplier<? extends T> action) {
             return reference.cache.useCache(action);
         }
 

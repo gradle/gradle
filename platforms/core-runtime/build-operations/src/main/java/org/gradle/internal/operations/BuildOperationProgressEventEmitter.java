@@ -16,7 +16,7 @@
 
 package org.gradle.internal.operations;
 
-import org.gradle.internal.service.scopes.Scopes.Global;
+import org.gradle.internal.service.scopes.Scope.Global;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.Nullable;

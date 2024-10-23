@@ -54,7 +54,7 @@ public class DefaultConvention implements org.gradle.api.plugins.Convention, Ext
     private final InstanceGenerator instanceGenerator;
 
     private Map<String, Object> plugins;
-    private Map<Object, BeanDynamicObject> dynamicObjects;
+    private IdentityHashMap<Object, BeanDynamicObject> dynamicObjects;
 
     public DefaultConvention(InstanceGenerator instanceGenerator) {
         this.instanceGenerator = instanceGenerator;
@@ -285,6 +285,7 @@ public class DefaultConvention implements org.gradle.api.plugins.Convention, Ext
         }
 
         @Nullable
+        @SuppressWarnings("unused") // Groovy magic method
         public Object propertyMissing(String name) {
             return getProperty(name);
         }
@@ -305,6 +306,7 @@ public class DefaultConvention implements org.gradle.api.plugins.Convention, Ext
             return DynamicInvokeResult.notFound();
         }
 
+        @SuppressWarnings("unused")  // Groovy magic method
         public void propertyMissing(String name, Object value) {
             setProperty(name, value);
         }
@@ -328,6 +330,7 @@ public class DefaultConvention implements org.gradle.api.plugins.Convention, Ext
         }
 
         @Nullable
+        @SuppressWarnings("unused") // Groovy magic method
         public Object methodMissing(String name, Object args) {
             return invokeMethod(name, (Object[]) args);
         }

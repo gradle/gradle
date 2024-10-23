@@ -95,7 +95,7 @@ class StaticVersionsReadOnlyCacheDependencyResolutionTest extends AbstractReadOn
         """
 
         when:
-        fileInReadReadOnlyCache("modules-${CacheLayout.ROOT.version}/metadata-${CacheLayout.META_DATA.version}/${file}.bin").bytes = [0, 0, 0]
+        fileInReadReadOnlyCache("modules-${CacheLayout.MODULES.version}/metadata-${CacheLayout.META_DATA.version}/${file}.bin").bytes = [0, 0, 0]
         withReadOnlyCache()
 
         core.allowAll()

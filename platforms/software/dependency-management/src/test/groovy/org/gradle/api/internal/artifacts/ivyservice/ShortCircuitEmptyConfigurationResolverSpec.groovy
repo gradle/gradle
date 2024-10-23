@@ -16,31 +16,28 @@
 package org.gradle.api.internal.artifacts.ivyservice
 
 import org.gradle.api.artifacts.Dependency
-import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.internal.artifacts.ConfigurationResolver
-import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.ResolveContext
 import org.gradle.api.internal.artifacts.ResolverResults
-import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingState
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSelectionSpec
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor
+import org.gradle.api.internal.attributes.AttributeDesugaring
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.specs.Specs
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
+import org.gradle.util.AttributeTestUtil
 import spock.lang.Specification
 
 class ShortCircuitEmptyConfigurationResolverSpec extends Specification {
 
     def delegate = Mock(ConfigurationResolver)
     def resolveContext = Stub(ResolveContext)
-    def componentIdentifierFactory = Mock(ComponentIdentifierFactory)
-    def moduleIdentifierFactory = new DefaultImmutableModuleIdentifierFactory()
 
-    def dependencyResolver = new ShortCircuitEmptyConfigurationResolver(delegate, componentIdentifierFactory, moduleIdentifierFactory, Stub(BuildIdentifier))
+    def dependencyResolver = new ShortCircuitEmptyConfigurationResolver(delegate, new AttributeDesugaring(AttributeTestUtil.attributesFactory()))
 
     def "returns empty build dependencies when no dependencies"() {
         def depVisitor = Mock(TaskDependencyResolveContext)

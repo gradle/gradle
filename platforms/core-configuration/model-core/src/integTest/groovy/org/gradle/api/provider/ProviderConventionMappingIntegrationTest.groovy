@@ -75,6 +75,34 @@ class ProviderConventionMappingIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'mytask'
     }
 
+    def "convention mapping can be used with FileSystemLocation properties and a #valueType value"() {
+        buildFile << """
+            abstract class MyTask extends DefaultTask {
+                @Internal abstract DirectoryProperty getFoo()
+                @Internal abstract RegularFileProperty getBar()
+
+                @TaskAction
+                void useIt() {
+                    assert foo.asFile.get().name == "foo"
+                    assert bar.asFile.get().name == "bar"
+                }
+            }
+            tasks.register("mytask", MyTask) {
+                def layout = project.layout
+                conventionMapping.map("foo") { $directoryExpression }
+                conventionMapping.map("bar") { $fileExpression }
+            }
+        """
+
+        expect:
+        succeeds 'mytask'
+
+        where:
+        valueType            | directoryExpression                      | fileExpression
+        "File"               | 'file("foo")'                            | 'file("bar")'
+        "FileSystemLocation" | 'layout.buildDirectory.dir("foo").get()' | 'layout.buildDirectory.file("bar").get()'
+    }
+
     def "convention mapping cannot be used with Property and a Provider value"() {
         buildFile << """
             abstract class MyTask extends DefaultTask {

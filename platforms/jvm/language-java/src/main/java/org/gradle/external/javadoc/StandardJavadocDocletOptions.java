@@ -27,6 +27,7 @@ import org.gradle.api.tasks.PathSensitive;
 import org.gradle.external.javadoc.internal.GroupsJavadocOptionFileOption;
 import org.gradle.external.javadoc.internal.JavadocOptionFile;
 import org.gradle.external.javadoc.internal.LinksOfflineJavadocOptionFileOption;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -273,6 +274,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * javadoc -d /user/doc com.mypackage
      */
     @Override
+    @ToBeReplacedByLazyProperty
     public File getDestinationDirectory() {
         return destinationDirectory.getValue();
     }
@@ -307,6 +309,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * then clicking on the "Use" link in the navigation bar.
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public boolean isUse() {
         return use.getValue();
     }
@@ -331,6 +334,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * To tell what version of the Javadoc tool you are using, use the -J-version option.
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public boolean isVersion() {
         return version.getValue();
     }
@@ -354,6 +358,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * Includes the @author text in the generated docs.
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public boolean isAuthor() {
         return author.getValue();
     }
@@ -378,6 +383,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * plus a file for any index entries that start with non-alphabetical characters.
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public boolean isSplitIndex() {
         return splitIndex.getValue();
     }
@@ -406,6 +412,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * javadoc -windowtitle "Java 2 Platform" com.mypackage
      */
     @Override
+    @ToBeReplacedByLazyProperty
     public String getWindowTitle() {
         return windowTitle.getValue();
     }
@@ -430,6 +437,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * javadoc -header "<b>Java 2 Platform </b><br>v1.4" com.mypackage
      */
     @Override
+    @ToBeReplacedByLazyProperty
     public String getHeader() {
         return header.getValue();
     }
@@ -454,6 +462,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * though if it does, it must be enclosed in quotes. Any internal quotation marks within title may have to be escaped.
      * javadoc -doctitle "Java&lt;sup&gt;&lt;font size=\"-2\"&gt;TM&lt;/font&gt;&lt;/sup&gt;" com.mypackage
      */
+    @ToBeReplacedByLazyProperty
     @Nullable @Optional @Input
     public String getDocTitle() {
         return docTitle.getValue();
@@ -475,6 +484,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * The footer will be placed to the right of the lower navigation bar. footer may contain HTML tags and white space,
      * though if it does, it must be enclosed in quotes. Any internal quotation marks within footer may have to be escaped.
      */
+    @ToBeReplacedByLazyProperty
     @Nullable @Optional @Input
     public String getFooter() {
         return footer.getValue();
@@ -497,6 +507,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * The text may contain HTML tags and white space, though if it does, it must be enclosed in quotes.
      * Any internal quotation marks within text may have to be escaped.
      */
+    @ToBeReplacedByLazyProperty
     @Nullable @Optional @Input
     public String getBottom() {
         return bottom.getValue();
@@ -530,6 +541,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * if you want to link to a file system that has no web server, you can use a file: link -- however,
      * do this only if everyone wanting to access the generated documentation shares the same file system.
      */
+    @ToBeReplacedByLazyProperty
     @Nullable @Optional @Input
     public List<String> getLinks() {
         return links.getValue();
@@ -573,6 +585,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * This can be a URL (http: or file:) or file path, and can be absolute or relative. If relative,
      * make it relative to the current directory from where javadoc was run. Do not include the package-list filename.
      */
+    @ToBeReplacedByLazyProperty
     @Nullable @Optional @Input
     public List<JavadocOfflineLink> getLinksOffline() {
         return linksOffline.getValue();
@@ -606,6 +619,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * public String getLabel()
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public boolean isLinkSource() {
         return linkSource.getValue();
     }
@@ -665,6 +679,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * Other Packages
      * <br>java.new
      */
+    @ToBeReplacedByLazyProperty
     @Nullable @Optional @Input
     public Map<String, List<String>> getGroups() {
         return groups.getValue();
@@ -700,6 +715,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * This is useful when writing code and you don't want to be distracted by the deprecated code.
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public boolean isNoDeprecated() {
         return noDeprecated.getValue();
     }
@@ -726,6 +742,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * This is useful if your source code contains no deprecated API, and you want to make the navigation bar cleaner.
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public boolean isNoDeprecatedList() {
         return noDeprecatedList.getValue();
     }
@@ -749,6 +766,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * Omits from the generated docs the "Since" sections associated with the @since tags.
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public boolean isNoSince() {
         return noSince.getValue();
     }
@@ -774,6 +792,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * The hierarchy is produced by default.
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public boolean isNoTree() {
         return noTree.getValue();
     }
@@ -797,6 +816,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * Omits the index from the generated docs. The index is produced by default.
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public boolean isNoIndex() {
         return noIndex.getValue();
     }
@@ -820,6 +840,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * Omits the HELP link in the navigation bars at the top and bottom of each page of output.
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public boolean isNoHelp() {
         return noHelp.getValue();
     }
@@ -846,6 +867,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * such as converting the files to PostScript or PDF for print only.
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public boolean isNoNavBar() {
         return noNavBar.getValue();
     }
@@ -870,6 +892,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * <p>
      * javadoc -helpfile C:/user/myhelp.html java.awt
      */
+    @ToBeReplacedByLazyProperty
     @Nullable @Optional @PathSensitive(NAME_ONLY) @InputFile
     public File getHelpFile() {
         return helpFile.getValue();
@@ -891,6 +914,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * <p>
      * javadoc -stylesheetfile C:/user/mystylesheet.css com.mypackage
      */
+    @ToBeReplacedByLazyProperty
     @Nullable @Optional @PathSensitive(NAME_ONLY) @InputFile
     public File getStylesheetFile() {
         return stylesheetFile.getValue();
@@ -914,6 +938,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * which helps to properly document default serializable fields and writeExternal methods.
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public boolean isSerialWarn() {
         return serialWarn.getValue();
     }
@@ -945,6 +970,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * <p>
      * Also see -encoding and -docencoding.
      */
+    @ToBeReplacedByLazyProperty
     @Nullable @Optional @Input
     public String getCharSet() {
         return charSet.getValue();
@@ -968,6 +994,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * <p>
      * Also see -encoding and -charset.
      */
+    @ToBeReplacedByLazyProperty
     @Nullable @Optional @Input
     public String getDocEncoding() {
         return docEncoding.getValue();
@@ -986,6 +1013,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * -keywords.
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public boolean isKeyWords() {
         return keyWords.getValue();
     }
@@ -1006,6 +1034,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
     /**
      * -tag tagname:Xaoptcmf:"taghead".
      */
+    @ToBeReplacedByLazyProperty
     @Nullable @Optional @Input
     public List<String> getTags() {
         return tags.getValue();
@@ -1031,6 +1060,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
     /**
      * -taglet class.
      */
+    @ToBeReplacedByLazyProperty
     @Nullable @Optional @Input
     public List<String> getTaglets() {
         return taglets.getValue();
@@ -1052,6 +1082,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
     /**
      * -tagletpath tagletpathlist.
      */
+    @ToBeReplacedByLazyProperty
     @Nullable @Optional @Classpath
     public List<File> getTagletPath() {
         return tagletPath.getValue();
@@ -1074,6 +1105,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * -docfilessubdirs.
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public boolean isDocFilesSubDirs() {
         return docFilesSubDirs.getValue();
     }
@@ -1094,6 +1126,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
     /**
      * -excludedocfilessubdir name1:name2...
      */
+    @ToBeReplacedByLazyProperty
     @Nullable @Optional @Input
     public List<String> getExcludeDocFilesSubDir() {
         return excludeDocFilesSubDir.getValue();
@@ -1115,6 +1148,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
     /**
      * -noqualifier all | packagename1:packagename2:...
      */
+    @ToBeReplacedByLazyProperty
     @Nullable @Optional @Input
     public List<String> getNoQualifiers() {
         return noQualifiers.getValue();
@@ -1134,6 +1168,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
     }
 
     @Input
+    @ToBeReplacedByLazyProperty
     public boolean isNoTimestamp() {
         return noTimestamp.getValue();
     }
@@ -1155,6 +1190,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * -nocomment.
      */
     @Input
+    @ToBeReplacedByLazyProperty
     public boolean isNoComment() {
         return noComment.getValue();
     }

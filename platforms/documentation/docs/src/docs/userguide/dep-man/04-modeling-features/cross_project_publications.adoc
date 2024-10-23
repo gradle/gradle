@@ -52,7 +52,7 @@ In cases where the consumer resolves to different artifacts in different context
 == Simple sharing of artifacts between projects
 
 First, a producer needs to declare a configuration which is going to be _exposed_ to consumers.
-As explained in the <<declaring_dependencies.adoc#sec:resolvable-consumable-configs, configurations chapter>>, this corresponds to a _consumable configuration_.
+As explained in the <<declaring_dependencies_adv.adoc#sec:resolvable-consumable-configs, configurations chapter>>, this corresponds to a _consumable configuration_.
 
 Let's imagine that the consumer requires _instrumented classes_ from the producer, but that this artifact is _not_ the main one.
 The producer can expose its instrumented classes by creating a configuration that will "carry" this artifact:
@@ -96,7 +96,7 @@ If you plan to publish the component which has this dependency, this will likely
 If you need to publish the component on a remote repository, follow the instructions of the <<#sec:variant-aware-sharing,variant-aware cross publication documentation>>.
 
 In this case, we're adding the dependency to the _instrumentedClasspath_ configuration, which is a _consumer specific configuration_.
-In Gradle terminology, this is called a <<declaring_dependencies.adoc#sec:resolvable-consumable-configs,resolvable configuration>>, which is defined this way:
+In Gradle terminology, this is called a <<declaring_dependencies_adv.adoc#sec:resolvable-consumable-configs,resolvable configuration>>, which is defined this way:
 
 .Declaring a resolvable configuration on the consumer
 ====

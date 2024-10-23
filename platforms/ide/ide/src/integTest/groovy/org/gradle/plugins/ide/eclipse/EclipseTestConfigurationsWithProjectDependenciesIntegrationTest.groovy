@@ -16,6 +16,7 @@
 package org.gradle.plugins.ide.eclipse
 
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import spock.lang.Issue
 
 class EclipseTestConfigurationsWithProjectDependenciesIntegrationTest extends AbstractEclipseTestSourcesIntegrationTest {
 
@@ -175,6 +176,49 @@ class EclipseTestConfigurationsWithProjectDependenciesIntegrationTest extends Ab
             dependencies {
                 implementation project(':b')
                 testImplementation project(':b')
+            }
+        """
+
+        when:
+        run 'eclipse'
+
+        then:
+        assertProjectDependencyDoesNotHaveTestAttribute('a', 'b')
+    }
+
+    @Issue('https://github.com/gradle/gradle/issues/21968')
+    @ToBeFixedForConfigurationCache
+    def 'dependencies for different features present in test and non-test configurations are not marked with test classpath attribute'() {
+        given:
+        settingsFile << """
+            rootProject.name='test'
+        """
+
+        file('a/build.gradle') << """
+            // introduce "atestImplementation" because configurations are visited in alphabetically order and "testImplementation" would be skipped without special handling
+            sourceSets {
+                atest
+            }
+
+            dependencies {
+                implementation(project(':b'))
+                atestImplementation(project(':b')) {
+                    capabilities {
+                        requireCapability('test:b-feature')
+                    }
+                }
+            }
+        """
+
+        file('b/build.gradle') << """
+            sourceSets {
+                functionalTest
+            }
+
+            java {
+                registerFeature('feature') {
+                    usingSourceSet(sourceSets.functionalTest)
+                }
             }
         """
 

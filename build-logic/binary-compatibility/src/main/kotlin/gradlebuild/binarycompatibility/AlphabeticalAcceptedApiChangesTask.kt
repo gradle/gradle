@@ -19,32 +19,50 @@ package gradlebuild.binarycompatibility
 import org.gradle.api.GradleException
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.TaskAction
+import java.io.File
 
 
 /**
- * This [Task][org.gradle.api.Task] checks that the contents of a given accepted API changes file
+ * This [Task][org.gradle.api.Task] checks that the contents of a given accepted API changes files
  * are present in alphabetical order (by type, then member), and throws an exception and reports
  * any changes that are not.
  */
 @CacheableTask
 abstract class AlphabeticalAcceptedApiChangesTask : AbstractAcceptedApiChangesMaintenanceTask() {
+
     @TaskAction
     fun execute() {
         val originalChanges = loadChanges()
-        val sortedChanges = sortChanges(originalChanges)
+        val sortedChanges = originalChanges.mapValues {
+            sortChanges(it.value)
+        }
 
-        val mismatches = originalChanges.filterIndexed { index, acceptedApiChange -> sortedChanges[index] != acceptedApiChange }
+        val mismatches = originalChanges.mapValues {
+            findMismatches(it.value, sortedChanges[it.key]!!)
+        }.filterValues {
+            it.isNotEmpty()
+        }
+
         if (mismatches.isNotEmpty()) {
-            val formattedMismatches = mismatches.joinToString(separator = "\n", transform = { "\t" + it })
+            val formattedMismatches = mismatches.mapValues { mismatch ->
+                mismatch.value.joinToString(separator = "\n", transform = { "\t" + it })
+            }
             throw GradleException(buildErrorMessage(formattedMismatches))
         }
     }
 
     private
-    fun buildErrorMessage(formattedMismatches: String): String {
-        return "API changes in file '${apiChangesFile.get().asFile.name}' should be in alphabetical order (by type and member), yet these changes were not:\n" +
-            "$formattedMismatches\n" +
-            "\n" +
-            "To automatically alphabetize these changes run: 'gradlew :architecture-test:sortAcceptedApiChanges'"
+    fun findMismatches(originalChanges: List<AcceptedApiChange>, sortedChanges: List<AcceptedApiChange>): List<AcceptedApiChange> {
+        return originalChanges.filterIndexed { index, acceptedApiChange -> sortedChanges[index] != acceptedApiChange }
+    }
+
+    private
+    fun buildErrorMessage(formattedMismatches: Map<File, String>): String {
+        val messages = formattedMismatches.map {
+            "API changes in file '${it.key.name}' should be in alphabetical order (by type and member), yet these changes were not:\n" +
+                "$formattedMismatches\n"
+        }.joinToString(separator = "\n")
+
+        return "$messages\nTo automatically alphabetize these changes run: 'gradlew :architecture-test:sortAcceptedApiChanges'"
     }
 }

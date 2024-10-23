@@ -32,15 +32,13 @@ class PmdCustomRulesIntegrationTest extends AbstractPmdPluginVersionIntegrationT
 
             pmd {
                 $customRuleSetConfig
-            }
-
-            dependencies {
-                implementation "${calculateDefaultDependencyNotation()}"
+                toolVersion = '$version'
+                incrementalAnalysis = ${supportIncrementalAnalysis()}
             }
         """
 
         file("src/main/java/org/gradle/ruleusing/Class1.java") << breakingDefaultRulesCode()
-        file("rules.xml") << unusedPrivateMethodRuleXml()
+        file("rules.xml") << customRuleSet()
 
         expect:
         succeeds(":pmdMain")
@@ -59,14 +57,14 @@ class PmdCustomRulesIntegrationTest extends AbstractPmdPluginVersionIntegrationT
                 id "pmd"
                 id "java-library"
             }
+            pmd {
+                toolVersion = '$version'
+                incrementalAnalysis = ${supportIncrementalAnalysis()}
+            }
 
             ${requiredSourceCompatibility()}
 
             ${mavenCentralRepository()}
-
-            dependencies {
-                implementation "${calculateDefaultDependencyNotation()}"
-            }
         """
 
         file("src/main/java/org/gradle/ruleusing/Class1.java") << breakingDefaultRulesCode()
@@ -74,20 +72,6 @@ class PmdCustomRulesIntegrationTest extends AbstractPmdPluginVersionIntegrationT
         expect:
         fails(":pmdMain")
         errorOutput.contains("PMD rule violations were found")
-    }
-
-    private static unusedPrivateMethodRuleXml() {
-        """
-            <ruleset name="auxclasspath"
-                xmlns="http://pmd.sf.net/ruleset/2.0.0"
-                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                xsi:schemaLocation="http://pmd.sf.net/ruleset/2.0.0 http://pmd.sf.net/ruleset_2_0_0.xsd"
-                xsi:noNamespaceSchemaLocation="http://pmd.sf.net/ruleset_2_0_0.xsd">
-
-                <rule ref="category/java/bestpractices.xml/UnusedPrivateMethod"/>
-
-            </ruleset>
-        """
     }
 
     private static breakingDefaultRulesCode() {

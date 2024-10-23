@@ -18,6 +18,8 @@ package org.gradle.internal.classpath;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.specs.Spec;
 
 import javax.annotation.Nullable;
@@ -45,10 +47,52 @@ import static com.google.common.base.Preconditions.checkArgument;
  */
 public class TransformedClassPath implements ClassPath {
 
-    /**
-     * A marker file put next to the instrumented entry to indicate that it is instrumented.
-     */
-    public static final String INSTRUMENTED_MARKER_FILE_NAME = ".gradle-instrumented.marker";
+    @NonNullApi
+    public enum FileMarker {
+        /**
+         * A marker file put next to the instrumentation entry to indicate that this is part of instrumentation.
+         * This is currently used just to not delete the folders for performance testing.
+         */
+        INSTRUMENTATION_CLASSPATH_MARKER(".gradle-instrumented-classpath.marker"),
+        /**
+         * A marker file put next to the instrumented entry to indicate that it is using agent instrumentation.
+         */
+        AGENT_INSTRUMENTATION_MARKER(".gradle-agent-instrumented.marker"),
+        /**
+         * A marker file put next to the instrumented entry to indicate that it is using legacy instrumentation.
+         */
+        LEGACY_INSTRUMENTATION_MARKER(".gradle-legacy-instrumented.marker"),
+        /**
+         * A marker file put next to the instrumented entry to indicate that original file doesn't exist so there was no instrumentation.
+         */
+        ORIGINAL_FILE_DOES_NOT_EXIST_MARKER(".original-file-does-not-exist.marker"),
+        UNKNOWN_FILE_MARKER("");
+
+        private static final Map<String, FileMarker> FILE_MARKER_MAP;
+        static {
+            ImmutableMap.Builder<String, FileMarker> builder = ImmutableMap.builder();
+            for (FileMarker fileMarker : values()) {
+                builder.put(fileMarker.fileName, fileMarker);
+            }
+            FILE_MARKER_MAP = builder.build();
+        }
+
+        private final String fileName;
+
+        FileMarker(String fileName) {
+            this.fileName = fileName;
+        }
+
+        public String getFileName() {
+            return fileName;
+        }
+
+        public static FileMarker of(String fileName) {
+            FileMarker marker = FILE_MARKER_MAP.get(fileName);
+            return marker == null ? UNKNOWN_FILE_MARKER : marker;
+        }
+    }
+
     public static final String INSTRUMENTED_DIR_NAME = "instrumented";
     public static final String ORIGINAL_DIR_NAME = "original";
     public static final String INSTRUMENTED_ENTRY_PREFIX = "instrumented-";
@@ -248,89 +292,83 @@ public class TransformedClassPath implements ClassPath {
     }
 
     /**
-     * Constructs a TransformedClassPath out of the ordinary JAR/directory list, potentially produced by the instrumenting ArtifactTransform.
-     * The list is interpreted as follows:
-     * <ul>
-     *     <li>An entry after {@link TransformedClassPath#INSTRUMENTED_MARKER_FILE_NAME} is considered an instrumented entry and the following entry is considered the original of this instrumented entry.</li>
-     *     <li>A "jar" or directory entry not preceded by {@link TransformedClassPath#INSTRUMENTED_MARKER_FILE_NAME} is considered non-transformed original entry and is appended to the resulting classpath as is.</li>
-     *     <li>The order of entries is kept intact.</li>
-     * </ul>
-     * <p>
-     * In most cases, it is better to use {@link Builder}.
+     * Constructs a TransformedClassPath out of the ordinary JAR/directory list, strict produced by the instrumenting ArtifactTransform.
      *
-     * @param classPath the classpath to transform
-     * @return the transformed classpath built from the input
-     * @throws IllegalArgumentException if the {@code classPath} is already a {@link TransformedClassPath} or if it doesn't conform to the spec.
-     */
-    public static TransformedClassPath fromInstrumentingArtifactTransformOutput(ClassPath classPath) {
-        checkArgument(!(classPath instanceof TransformedClassPath), "Cannot build the TransformedClassPath out of TransformedClassPath %s", classPath);
-        return fromInstrumentingArtifactTransformOutputWithExpectedSize(classPath, computeResultSizeOfInstrumentingArtifactTransformOutput(classPath));
-    }
-
-    /**
-     * Handle a classpath that can potentially be the output of the instrumenting artifact transform. The rules for conversion are:
-     * <ol>
-     *     <li>The {@link TransformedClassPath} is returned as is, because it already bears the instrumentation mappings.</li>
-     *     <li>The classpath that only contains original entries is returned as is, because there's no instrumentation mappings to apply.</li>
-     *     <li>The classpath that conforms to {@link #fromInstrumentingArtifactTransformOutput(ClassPath)} requirements is converted to {@link TransformedClassPath} accordingly.</li>
-     * </ol>
+     * Artifact transform classpath should always contain pairs or triplets of files, where first file is a marker file, followed by other entries for instrumented artifact,
+     * e.g. [marker file 1, instrumented entry 1, original entry 1, marker file 2, instrumented entry 2, original entry 2,...].
+     *
+     * Marker files rules are as follows:
+     * <ul>
+     *      <li>An entry after {@link FileMarker#AGENT_INSTRUMENTATION_MARKER} is considered an instrumented entry and the following entry is considered the original of this instrumented entry.</li>
+     *      <li>An entry after {@link FileMarker#LEGACY_INSTRUMENTATION_MARKER} is instrumented entry without original entry, but it's added to a classpath as "original", to comply with legacy setup.</li>
+     *      <li>An entry after {@link FileMarker#ORIGINAL_FILE_DOES_NOT_EXIST_MARKER} is a marker that indicates there is no original/instrumented entry, it's skipped</li>
+     *      <li>An entry after {@link FileMarker#INSTRUMENTATION_CLASSPATH_MARKER} is a marker that indicates that this is an instrumented classpath, it's skipped</li>
+     * </ul>
+     *
+     * Any combination that doesn't follow given rules will throw an exception.
      *
      * @param classPath the classpath to process
      * @return the classpath that carries the instrumentation mappings if needed
      */
-    public static ClassPath handleInstrumentingArtifactTransform(ClassPath classPath) {
-        if (classPath.isEmpty() || classPath instanceof TransformedClassPath) {
-            return classPath;
+    public static ClassPath handleInstrumentingArtifactTransform(List<File> classPath) {
+        if (classPath.isEmpty()) {
+            return DefaultClassPath.of(classPath);
         }
 
-        int resultSize = computeResultSizeOfInstrumentingArtifactTransformOutput(classPath);
-        if (resultSize == classPath.getAsFiles().size()) {
-            // There is no instrumented entries in the list, so the classpath can be used without transformation.
-            return classPath;
-        }
+        return fromInstrumentingArtifactTransformOutput(classPath);
+    }
 
-        return fromInstrumentingArtifactTransformOutputWithExpectedSize(classPath, resultSize);
+    private static ClassPath fromInstrumentingArtifactTransformOutput(List<File> inputFiles) {
+        Map<File, File> transformedEntries = Maps.newLinkedHashMapWithExpectedSize(inputFiles.size());
+        for (int i = 0; i < inputFiles.size();) {
+            File markerFile = inputFiles.get(i++);
+            FileMarker fileMarker = FileMarker.of(markerFile.getName());
+            switch (fileMarker) {
+                case AGENT_INSTRUMENTATION_MARKER:
+                    // Agent instrumentation always contain 3 entries:
+                    // [a marker, a transformed file, an original file or a copy of it]
+                    checkArgument(i + 1 < inputFiles.size(), "Missing the instrumented or original entry for classpath %s", inputFiles);
+                    File instrumentedEntry = inputFiles.get(i++);
+                    File originalEntry = inputFiles.get(i++);
+                    checkArgument(
+                        areInstrumentedAndOriginalEntriesValid(instrumentedEntry, originalEntry),
+                        "Instrumented entry %s doesn't match original entry %s",
+                        instrumentedEntry.getAbsolutePath(),
+                        originalEntry.getAbsolutePath()
+                    );
+                    putIfAbsent(transformedEntries, originalEntry, instrumentedEntry);
+                    break;
+                case LEGACY_INSTRUMENTATION_MARKER:
+                    // Legacy instrumentation always contain 2 entries:
+                    // [a marker, a transformed file]
+                    checkArgument(i < inputFiles.size(), "Missing the instrumented entry for classpath %s", inputFiles);
+                    File legacyInstrumentedEntry = inputFiles.get(i++);
+                    putIfAbsent(transformedEntries, legacyInstrumentedEntry, legacyInstrumentedEntry);
+                    break;
+                case INSTRUMENTATION_CLASSPATH_MARKER:
+                case ORIGINAL_FILE_DOES_NOT_EXIST_MARKER:
+                    // Ignore these markers
+                    break;
+                case UNKNOWN_FILE_MARKER:
+                default:
+                    throw new IllegalArgumentException("Unexpected marker file: " + markerFile + " in instrumented buildscript classpath. " +
+                        "Possible reason: Injecting custom artifact transform in between instrumentation stages is not supported.");
+            }
+        }
+        Builder result = builderWithExactSize(transformedEntries.size());
+        for (Map.Entry<File, File> entry : transformedEntries.entrySet()) {
+            result.add(entry.getKey(), entry.getValue());
+        }
+        return result.build();
     }
 
     /**
-     * Each instrumented entry has a corresponding original entry, but not necessarily vice versa, so the number of originals is the size of the result.
+     * Base-services still uses Java 6, so we can't use Map#putIfAbsent.
      */
-    private static int computeResultSizeOfInstrumentingArtifactTransformOutput(ClassPath classPath) {
-        int resultSize = 0;
-        for (int i = 0; i < classPath.getAsFiles().size(); ++i) {
-            File inputFile = classPath.getAsFiles().get(i);
-            if (isInstrumentedMarkerFile(inputFile)) {
-                // Marker file will be followed by instrumented entry and original entry.
-                i += 2;
-            }
-            ++resultSize;
+    private static <K, V> void putIfAbsent(Map<K, V> map, K key, V value) {
+        if (!map.containsKey(key)) {
+            map.put(key, value);
         }
-        return resultSize;
-    }
-
-    private static TransformedClassPath fromInstrumentingArtifactTransformOutputWithExpectedSize(ClassPath classPath, int resultSize) {
-        List<File> inputFiles = classPath.getAsFiles();
-
-        Builder result = builderWithExactSize(resultSize);
-        for (int i = 0; i < inputFiles.size(); ++i) {
-            File inputFile = inputFiles.get(i);
-            if (isInstrumentedMarkerFile(inputFile)) {
-                checkArgument(i + 2 < inputFiles.size(), "Missing the instrumented or original entry for classpath %s", inputFiles);
-                File instrumentedEntry = inputFiles.get(i + 1);
-                File originalEntry = inputFiles.get(i + 2);
-                checkArgument(
-                    areInstrumentedAndOriginalEntriesValid(instrumentedEntry, originalEntry),
-                    "Instrumented entry %s doesn't match original entry %s",
-                    instrumentedEntry.getAbsolutePath(),
-                    originalEntry.getAbsolutePath());
-                result.add(originalEntry, instrumentedEntry);
-                i += 2;
-            } else {
-                result.addUntransformed(inputFile);
-            }
-        }
-
-        return result.build();
     }
 
     private static boolean areInstrumentedAndOriginalEntriesValid(File instrumentedEntry, File originalEntry) {
@@ -338,10 +376,6 @@ public class TransformedClassPath implements ClassPath {
             && instrumentedEntry.getParentFile().getName().equals(INSTRUMENTED_DIR_NAME)
             && !originalEntry.equals(instrumentedEntry)
             && instrumentedEntry.getName().equals(INSTRUMENTED_ENTRY_PREFIX + originalEntry.getName());
-    }
-
-    private static boolean isInstrumentedMarkerFile(File classPathEntry) {
-        return classPathEntry.getName().equals(INSTRUMENTED_MARKER_FILE_NAME);
     }
 
     /**

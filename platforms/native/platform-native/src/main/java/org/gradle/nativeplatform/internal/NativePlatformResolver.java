@@ -15,7 +15,6 @@
  */
 package org.gradle.nativeplatform.internal;
 
-import org.gradle.api.specs.Spec;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.platform.internal.NativePlatforms;
 import org.gradle.platform.base.internal.PlatformRequirement;
@@ -36,11 +35,7 @@ public class NativePlatformResolver implements PlatformResolver<NativePlatform> 
 
     @Override
     public NativePlatform resolve(final PlatformRequirement platformRequirement) {
-        return CollectionUtils.findFirst(nativePlatforms.defaultPlatformDefinitions(), new Spec<NativePlatform>() {
-            @Override
-            public boolean isSatisfiedBy(NativePlatform element) {
-                return element.getName().equals(platformRequirement.getPlatformName());
-            }
-        });
+        return CollectionUtils.<NativePlatform>findFirst(nativePlatforms.defaultPlatformDefinitions(),
+            element -> element.getName().equals(platformRequirement.getPlatformName()));
     }
 }

@@ -80,6 +80,7 @@ typealias CompileBuildOperationRunner = (String, String, () -> String) -> String
  * Compiles the given [residual program][ResidualProgram] to an [ExecutableProgram] subclass named `Program`
  * stored in the given [outputDir].
  */
+@Suppress("LongParameterList")
 internal
 class ResidualProgramCompiler(
     private val outputDir: File,
@@ -196,7 +197,7 @@ class ResidualProgramCompiler(
                 is Program.Plugins -> emitCompiledPluginsBlock(program)
                 is Program.PluginManagement -> emitStage1Sequence(program)
                 is Program.Stage1Sequence -> emitStage1Sequence(program.pluginManagement, program.buildscript, program.plugins)
-                else -> throw IllegalStateException("Expecting a residual program with plugins, got `$program'")
+                else -> error("Expecting a residual program with plugins, got `$program'")
             }
         }
     }
@@ -485,8 +486,10 @@ class ResidualProgramCompiler(
         LDC(programTarget.name + "/" + programKind.name + "/stage2")
         // Move HashCode value to a static field so it's cached across invocations
         loadHashCode(originalSourceHash)
-        if (requiresSecondStageAccessors(programTarget, programKind)) emitAccessorsClassPathForScriptHost()
-        else GETSTATIC(ClassPath::EMPTY)
+        when {
+            requiresSecondStageAccessors(programKind) -> emitAccessorsClassPathForScriptHost()
+            else -> GETSTATIC(ClassPath::EMPTY)
+        }
         invokeHost(
             ExecutableProgram.Host::evaluateSecondStageOf.name,
             "(" +
@@ -500,8 +503,8 @@ class ResidualProgramCompiler(
     }
 
     private
-    fun requiresSecondStageAccessors(programTarget: ProgramTarget, programKind: ProgramKind) =
-        programTarget == ProgramTarget.Project && programKind == ProgramKind.TopLevel
+    fun requiresSecondStageAccessors(programKind: ProgramKind) =
+        programKind == ProgramKind.TopLevel
 
     private
     val stagedProgram = Type.getType(ExecutableProgram.StagedProgram::class.java)

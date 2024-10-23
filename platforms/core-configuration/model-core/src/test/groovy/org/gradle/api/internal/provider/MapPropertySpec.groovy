@@ -1487,7 +1487,7 @@ The value of this property is derived from: <source>""")
         def execTimeValue = property.calculateExecutionTimeValue()
 
         then:
-        assertMapIs([b: '2', c: '3', d: '4'], execTimeValue.toValue().get())
+        assertEqualValues([b: '2', c: '3', d: '4'], execTimeValue.toValue().get())
     }
 
     def "execution time value is missing if any undefined-safe operations are performed in the tail"() {
@@ -1651,14 +1651,11 @@ The value of this property is derived from: <source>""")
         return brokenSupplier(String)
     }
 
-    private void assertValueIs(Map<String, String> expected, MapProperty<String, String> property = this.property) {
-        assert property.present
-        def actual = property.get()
-        assertImmutable(actual)
-        assertMapIs(expected, actual)
+    protected void assertValueIs(Map<String, String> expected, MapProperty<String, String> property = this.property) {
+        assertPropertyValueIs(expected, property)
     }
 
-    protected void assertMapIs(Map<String, String> expected, Map<String, String> actual) {
+    protected void assertEqualValues(Map<String, String> expected, Map<String, String> actual) {
         actual.each {
             assert it.key instanceof String
             assert it.value instanceof String
@@ -1675,82 +1672,82 @@ The value of this property is derived from: <source>""")
         }
     }
 
-    def "update can modify property"() {
+    def "replace can modify property"() {
         given:
         property.set(someValue())
 
         when:
-        property.update { it.map { someOtherValue() } }
+        property.replace { it.map { someOtherValue() } }
 
         then:
         property.get() == someOtherValue()
     }
 
-    def "update can modify property with convention"() {
+    def "replace can modify property with convention"() {
         given:
         property.convention(someValue())
 
         when:
-        property.update { it.map { someOtherValue() } }
+        property.replace { it.map { someOtherValue() } }
 
         then:
         property.get() == someOtherValue()
     }
 
-    def "update is not applied to later property modifications"() {
+    def "replace is not applied to later property modifications"() {
         given:
         property.set(someValue())
 
         when:
-        property.update { it.map { m -> m.collectEntries { k, v -> [v, k] } } }
+        property.replace { it.map { m -> m.collectEntries { k, v -> [v, k] } } }
         property.set(someOtherValue())
 
         then:
         property.get() == someOtherValue()
     }
 
-    def "update argument is live"() {
+    def "replace argument is live"() {
         given:
         def upstream = property().value(someValue())
         property.set(upstream)
 
         when:
-        property.update { it.map { m -> m.collectEntries { k, v -> [v, k] } } }
+        property.replace { it.map { m -> m.collectEntries { k, v -> [v, k] } } }
         upstream.set(someOtherValue())
 
         then:
         property.get() == someOtherValue().collectEntries { k, v -> [v, k] }
     }
 
-    def "returning null from update unsets the property"() {
+    def "returning null from replace unsets the property"() {
         given:
         property.set(someValue())
 
         when:
-        property.update { null }
+        property.replace { null }
 
         then:
         !property.isPresent()
     }
 
-    def "returning null from update unsets the property falling back to convention"() {
+    def "returning null from replace unsets the property falling back to convention"() {
         given:
         property.value(someValue()).convention(someOtherValue())
 
         when:
-        property.update { null }
+        property.replace { null }
 
         then:
         property.get() == someOtherValue()
     }
 
-    def "update transformation runs eagerly"() {
+    def "replace transformation runs eagerly"() {
         given:
         Transformer<Provider<String>, Provider<String>> transform = Mock()
         property.set(someValue())
 
         when:
-        property.update(transform)
+        property.replace(transform)
 
         then:
         1 * transform.transform(_)
@@ -1965,16 +1962,16 @@ The value of this property is derived from: <source>""")
 
         where:
         valueDescription             | initializer                                             || stringValue
-        "default"                    | { property() }                                          || "Map(string->String, {})"
-        "empty"                      | { property().value([:]) }                               || "Map(string->String, {})"
-        "unset"                      | { propertyWithNoValue() }                               || "Map(string->String, missing)"
-        "[k: v]"                     | { property().value(k: "v") }                            || "Map(string->String, {k=v})"
-        "[k1: v1, k2: v2]"           | { property().value(k1: "v1", k2: "v2") }                || "Map(string->String, {k1=v1, k2=v2})"
-        "[k1: v1] + [k2: v2]"        | { property().tap { put("k1", "v1"); put("k2", "v2") } } || "Map(string->String, {k1=v1} + {k2=v2})"
-        "provider {k: v}"            | { property().value(Providers.of([k: "v"])) }            || "Map(string->String, fixed(class ${LinkedHashMap.name}, {k=v}))"
-        "[k: provider {v}]"          | { property().tap { put("k", Providers.of("v")) } }      || "Map(string->String, entry{k=fixed(class ${String.name}, v)})"
+        "default"                    | { property() }                                          || "Map(String->String, {})"
+        "empty"                      | { property().value([:]) }                               || "Map(String->String, {})"
+        "unset"                      | { propertyWithNoValue() }                               || "Map(String->String, missing)"
+        "[k: v]"                     | { property().value(k: "v") }                            || "Map(String->String, {k=v})"
+        "[k1: v1, k2: v2]"           | { property().value(k1: "v1", k2: "v2") }                || "Map(String->String, {k1=v1, k2=v2})"
+        "[k1: v1] + [k2: v2]"        | { property().tap { put("k1", "v1"); put("k2", "v2") } } || "Map(String->String, {k1=v1} + {k2=v2})"
+        "provider {k: v}"            | { property().value(Providers.of([k: "v"])) }            || "Map(String->String, fixed(class ${LinkedHashMap.name}, {k=v}))"
+        "[k: provider {v}]"          | { property().tap { put("k", Providers.of("v")) } }      || "Map(String->String, entry{k=fixed(class ${String.name}, v)})"
 
         // The following case abuses Groovy lax type-checking to put an invalid value into the property.
-        "[k: (Object) provider {v}]" | { property().value(k: Providers.of("v")) }              || "Map(string->String, {k=fixed(class ${String.name}, v)})"
+        "[k: (Object) provider {v}]" | { property().value(k: Providers.of("v")) }              || "Map(String->String, {k=fixed(class ${String.name}, v)})"
     }
 }

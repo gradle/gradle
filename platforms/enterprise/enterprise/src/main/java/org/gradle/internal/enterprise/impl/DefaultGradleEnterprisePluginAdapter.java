@@ -89,15 +89,10 @@ public class DefaultGradleEnterprisePluginAdapter implements GradleEnterprisePlu
         requiredServices.getBackgroundJobExecutors().stop();
 
         if (pluginService != null) {
-            pluginService.getEndOfBuildListener().buildFinished(new GradleEnterprisePluginEndOfBuildListener.BuildResult() {
-                @Nullable
-                @Override
-                public Throwable getFailure() {
-                    return buildFailure;
-                }
-            });
+            pluginService.getEndOfBuildListener().buildFinished(new DefaultDevelocityPluginResult(buildFailure));
         }
     }
+
 
     private void createPluginService() {
         pluginService = pluginServiceFactory.create(config, requiredServices, buildState);
@@ -105,4 +100,17 @@ public class DefaultGradleEnterprisePluginAdapter implements GradleEnterprisePlu
         buildOperationNotificationListenerRegistrar.register(pluginService.getBuildOperationNotificationListener());
     }
 
+    private static class DefaultDevelocityPluginResult implements GradleEnterprisePluginEndOfBuildListener.BuildResult {
+        private final Throwable buildFailure;
+
+        public DefaultDevelocityPluginResult(@Nullable Throwable buildFailure) {
+            this.buildFailure = buildFailure;
+        }
+
+        @Nullable
+        @Override
+        public Throwable getFailure() {
+            return buildFailure;
+        }
+    }
 }

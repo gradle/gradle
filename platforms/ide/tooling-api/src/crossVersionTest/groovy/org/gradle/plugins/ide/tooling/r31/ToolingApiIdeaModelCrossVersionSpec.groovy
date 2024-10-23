@@ -16,9 +16,8 @@
 
 package org.gradle.plugins.ide.tooling.r31
 
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.fixture.WithOldConfigurationsSupport
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.tooling.model.idea.IdeaModuleDependency
@@ -27,8 +26,6 @@ import org.gradle.tooling.model.idea.IdeaSingleEntryLibraryDependency
 import org.gradle.util.GradleVersion
 
 class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification implements WithOldConfigurationsSupport {
-    @ToolingApiVersion(">=3.1")
-    @TargetGradleVersion(">=2.6")
     def "Provides target module name for module dependencies"() {
 
 
@@ -58,8 +55,6 @@ project(':impl') {
         mod.targetModuleName == 'api'
     }
 
-    @ToolingApiVersion(">3.0")
-    @TargetGradleVersion(">=2.6")
     def "can query dependencies for model produced from BuildAction"() {
         def fakeRepo = new MavenFileRepository(file("repo"))
         def dependency = fakeRepo.module("foo.bar", "coolLib", "1.0")

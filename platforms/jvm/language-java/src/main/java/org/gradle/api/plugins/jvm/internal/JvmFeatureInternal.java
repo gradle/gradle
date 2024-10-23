@@ -207,15 +207,6 @@ public interface JvmFeatureInternal extends Named {
     Configuration getApiElementsConfiguration();
 
     /**
-     * Get the consumable configuration which produces the {@code privateApiElements} variant of this feature.
-     * This configuration includes all private API dependencies as well as the feature's
-     * compilation outputs, but does not include {@code runtimeOnly} dependencies.
-     *
-     * @return The {@code privateApiElements} configuration.
-     */
-    Configuration getPrivateApiElementsConfiguration();
-
-    /**
      * Get the consumable configuration which produces the {@code runtimeElements} variant of this feature.
      * This configuration includes all runtime dependencies as well as the feature's
      * compilation outputs, but does not include {@code compileOnly} dependencies.

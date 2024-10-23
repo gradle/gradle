@@ -33,20 +33,23 @@ public class JpmsConfiguration {
         "--add-opens=java.base/java.lang=ALL-UNNAMED",
         "--add-opens=java.base/java.lang.invoke=ALL-UNNAMED",
         "--add-opens=java.base/java.util=ALL-UNNAMED",
-        "--add-opens=java.prefs/java.util.prefs=ALL-UNNAMED" // required by PreferenceCleaningGroovySystemLoader
+        "--add-opens=java.prefs/java.util.prefs=ALL-UNNAMED", // required by PreferenceCleaningGroovySystemLoader
+        "--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED", // Required by JdkTools and JdkJavaCompiler
+        "--add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED" // Required by JdkTools and JdkJavaCompiler
     ));
 
     public static final List<String> GRADLE_DAEMON_JPMS_ARGS;
 
     static {
-        List<String> gradleDaemonJvmArgs = new ArrayList<String>();
-        gradleDaemonJvmArgs.addAll(GROOVY_JPMS_ARGS);
+        List<String> gradleDaemonJvmArgs = new ArrayList<String>(GROOVY_JPMS_ARGS);
 
         List<String> configurationCacheJpmsArgs = Collections.unmodifiableList(Arrays.asList(
+            "--add-opens=java.base/java.util=ALL-UNNAMED", // for overriding environment variables
             "--add-opens=java.prefs/java.util.prefs=ALL-UNNAMED", // required by JavaObjectSerializationCodec.kt
             "--add-opens=java.base/java.nio.charset=ALL-UNNAMED", // required by BeanSchemaKt
             "--add-opens=java.base/java.net=ALL-UNNAMED", // required by JavaObjectSerializationCodec
-            "--add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED" // serialized from org.gradle.internal.file.StatStatistics$Collector
+            "--add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED", // serialized from org.gradle.internal.file.StatStatistics$Collector
+            "--add-opens=java.xml/javax.xml.namespace=ALL-UNNAMED" // serialized from IvyDescriptorFileGenerator.Model
         ));
         gradleDaemonJvmArgs.addAll(configurationCacheJpmsArgs);
 

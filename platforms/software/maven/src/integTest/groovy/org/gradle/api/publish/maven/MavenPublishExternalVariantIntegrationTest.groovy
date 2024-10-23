@@ -24,8 +24,7 @@ import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTes
  * Tests behavior of publishing variants that depend on components with multiple coordinates.
  *
  * Particularly,
- * {@link org.gradle.api.publish.internal.mapping.ResolutionBackedVariantDependencyResolver},
- * {@link org.gradle.api.publish.internal.mapping.ResolutionBackedComponentDependencyResolver}, and
+ * {@link org.gradle.api.publish.internal.mapping.ResolutionBackedPublicationDependencyResolver} and
  * {@link org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectDependencyPublicationResolver}
  * are exercised.
  */
@@ -366,8 +365,12 @@ class MavenPublishExternalVariantIntegrationTest extends AbstractMavenPublishInt
         publishes(multiCoordinateComponent {
             compilation("first")
             compilation("second") {
-                attributes = "attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, 'second'))"
+                attributes = "attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, 'other'))"
                 capabilities = "capability('org:other-second:1.0')"
+            }
+            compilation("third") {
+                attributes = "attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, 'other'))"
+                capabilities = 'capability("\${project.group}:\${project.name}-third:1.0")'
             }
         })
 
@@ -376,6 +379,11 @@ class MavenPublishExternalVariantIntegrationTest extends AbstractMavenPublishInt
                 firstImplementation create(project(':other')) {
                     capabilities {
                         requireCapability("org:other-second:1.0")
+                    }
+                }
+                firstImplementation create(project(':other')) {
+                    capabilities {
+                        requireFeature("third")
                     }
                 }
             }
@@ -387,13 +395,13 @@ class MavenPublishExternalVariantIntegrationTest extends AbstractMavenPublishInt
         then:
         def first = javaLibrary(mavenRepo.module('org', 'root-first', '1.0'))
         def resolved = first.parsedPom.scopes.runtime.dependencies.values()
-        resolved*.artifactId == ["other-second"]
+        resolved*.artifactId == ["other-second", "other-third"]
 
         when:
         def resolution = mavenResolver.resolveDependency("org", "root-first", "1.0")
 
         then:
-        resolution.firstLevelDependencies == ["org:other-second:jar:1.0"]
+        resolution.firstLevelDependencies == ["org:other-second:jar:1.0", "org:other-third:jar:1.0"]
 
         when:
         succeeds ":printFirstRuntimeClasspath"
@@ -945,6 +953,8 @@ class MavenPublishExternalVariantIntegrationTest extends AbstractMavenPublishInt
                     maven { url "${mavenRepo.uri}" }
                 }
             }
+
+            group = "org"
 
             // Need to implement SoftwareComponentInternal since publishing assumes all components are internal.
             abstract class RootComponent implements ComponentWithVariants, org.gradle.api.internal.component.SoftwareComponentInternal {

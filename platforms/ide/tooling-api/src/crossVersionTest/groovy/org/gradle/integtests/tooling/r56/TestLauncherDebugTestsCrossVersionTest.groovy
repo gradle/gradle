@@ -19,13 +19,11 @@ package org.gradle.integtests.tooling.r56
 import org.gradle.integtests.fixtures.jvm.JDWPUtil
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.fixture.WithOldConfigurationsSupport
 import org.gradle.tooling.BuildException
 import org.junit.Rule
 import spock.lang.Timeout
 
-@ToolingApiVersion(">=5.6")
 @TargetGradleVersion(">=5.6")
 @Timeout(60)
 class TestLauncherDebugTestsCrossVersionTest extends ToolingApiSpecification implements WithOldConfigurationsSupport {

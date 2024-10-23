@@ -224,7 +224,11 @@ public class Collectors {
                 return false;
             }
             ElementsFromCollection<?> that = (ElementsFromCollection<?>) o;
-            return Objects.equal(value, that.value);
+
+            // We're fine with having weak contract of Iterable/Collection.equals.
+            @SuppressWarnings("UndefinedEquals")
+            boolean result = Objects.equal(value, that.value);
+            return result;
         }
 
         @Override
@@ -277,7 +281,7 @@ public class Collectors {
             return collectEntriesFromValue(collector, collection, value);
         }
 
-        private <T> ValueSupplier.Value<Void> collectEntriesFromValue(ValueCollector<T> collector, ImmutableCollection.Builder<T> collection, ValueSupplier.Value<? extends Iterable<? extends T>> value) {
+        private ValueSupplier.Value<Void> collectEntriesFromValue(ValueCollector<T> collector, ImmutableCollection.Builder<T> collection, ValueSupplier.Value<? extends Iterable<? extends T>> value) {
             if (value.isMissing()) {
                 return ignoreAbsent ? Value.present() : value.asType();
             }

@@ -1,8 +1,13 @@
 plugins {
     id("gradlebuild.distribution.api-java")
+    id("gradlebuild.instrumented-java-project")
 }
 
 description = "Source for JavaCompile, JavaExec and Javadoc tasks, it also contains logic for incremental Java compilation"
+
+gradlebuildJava {
+    usesJdkInternals = true
+}
 
 errorprone {
     disabledChecks.addAll(
@@ -12,35 +17,36 @@ errorprone {
         "InvalidInlineTag", // 3 occurrences
         "MissingCasesInEnumSwitch", // 1 occurrences
         "MixedMutabilityReturnType", // 3 occurrences
-        "OperatorPrecedence", // 2 occurrences
-        "UnusedMethod", // 4 occurrences
-        "UnusedVariable", // 1 occurrences
     )
 }
 
 dependencies {
-    api(project(":base-annotations"))
-    api(project(":base-services"))
-    api(project(":build-events"))
-    api(project(":build-operations"))
-    api(project(":core"))
-    api(project(":core-api"))
-    api(project(":dependency-management"))
-    api(project(":file-collections"))
-    api(project(":files"))
-    api(project(":hashing"))
-    api(project(":language-jvm"))
-    api(project(":messaging"))
-    api(project(":persistent-cache"))
-    api(project(":platform-base"))
-    api(project(":platform-jvm"))
-    api(project(":problems-api"))
-    api(project(":process-services"))
-    api(project(":snapshots"))
-    api(project(":test-suites-base"))
-    api(project(":toolchains-jvm"))
-    api(project(":worker-processes"))
-    api(project(":workers"))
+    api(projects.stdlibJavaExtensions)
+    api(projects.serialization)
+    api(projects.serviceProvider)
+    api(projects.baseServices)
+    api(projects.buildEvents)
+    api(projects.buildOperations)
+    api(projects.core)
+    api(projects.coreApi)
+    api(projects.dependencyManagement)
+    api(projects.fileCollections)
+    api(projects.fileOperations)
+    api(projects.files)
+    api(projects.hashing)
+    api(projects.languageJvm)
+    api(projects.persistentCache)
+    api(projects.platformBase)
+    api(projects.platformJvm)
+    api(projects.problemsApi)
+    api(projects.processServices)
+    api(projects.snapshots)
+    api(projects.testSuitesBase)
+    api(projects.toolchainsJvm)
+    api(projects.toolchainsJvmShared)
+    api(projects.workerMain)
+    api(projects.workers)
+    api(projects.buildProcessServices)
 
     api(libs.asm)
     api(libs.fastutil)
@@ -49,60 +55,62 @@ dependencies {
     api(libs.jsr305)
     api(libs.inject)
 
-    implementation(project(":file-temp"))
-    implementation(project(":logging-api"))
-    implementation(project(":model-core"))
-    implementation(project(":tooling-api"))
+    implementation(projects.concurrent)
+    implementation(projects.serviceLookup)
+    implementation(projects.time)
+    implementation(projects.fileTemp)
+    implementation(projects.jvmServices)
+    implementation(projects.logging)
+    implementation(projects.loggingApi)
+    implementation(projects.logging)
+    implementation(projects.modelCore)
+    implementation(projects.toolingApi)
+    implementation(projects.problemsRendering)
 
     api(libs.slf4jApi)
     implementation(libs.commonsLang)
     implementation(libs.ant)
     implementation(libs.commonsCompress)
 
-    runtimeOnly(project(":java-compiler-plugin"))
+    runtimeOnly(projects.javaCompilerPlugin)
 
-    testImplementation(project(":base-services-groovy"))
-    testImplementation(testFixtures(project(":core")))
-    testImplementation(testFixtures(project(":platform-base")))
-    testImplementation(testFixtures(project(":toolchains-jvm")))
+    testImplementation(projects.baseServicesGroovy)
+    testImplementation(testFixtures(projects.core))
+    testImplementation(testFixtures(projects.platformBase))
+    testImplementation(testFixtures(projects.toolchainsJvm))
 
     testImplementation(libs.commonsIo)
     testImplementation(libs.nativePlatform) {
         because("Required for SystemInfo")
     }
 
+    integTestImplementation(projects.messaging)
     // TODO: Make these available for all integration tests? Maybe all tests?
     integTestImplementation(libs.jetbrainsAnnotations)
 
-    testFixturesApi(testFixtures(project(":language-jvm")))
-    testFixturesImplementation(project(":base-services"))
-    testFixturesImplementation(project(":enterprise-operations"))
-    testFixturesImplementation(project(":core"))
-    testFixturesImplementation(project(":core-api"))
-    testFixturesImplementation(project(":model-core"))
-    testFixturesImplementation(project(":internal-integ-testing"))
-    testFixturesImplementation(project(":platform-base"))
-    testFixturesImplementation(project(":persistent-cache"))
+    testFixturesApi(testFixtures(projects.languageJvm))
+    testFixturesImplementation(projects.baseServices)
+    testFixturesImplementation(projects.enterpriseOperations)
+    testFixturesImplementation(projects.core)
+    testFixturesImplementation(projects.coreApi)
+    testFixturesImplementation(projects.modelCore)
+    testFixturesImplementation(projects.internalIntegTesting)
+    testFixturesImplementation(projects.platformBase)
+    testFixturesImplementation(projects.persistentCache)
     testFixturesImplementation(libs.slf4jApi)
 
-    testRuntimeOnly(project(":distributions-core")) {
+    testRuntimeOnly(projects.distributionsCore) {
         because("ProjectBuilder test (JavaLanguagePluginTest) loads services from a Gradle distribution.")
     }
 
-    integTestDistributionRuntimeOnly(project(":distributions-jvm"))
-    crossVersionTestDistributionRuntimeOnly(project(":distributions-basics"))
+    integTestDistributionRuntimeOnly(projects.distributionsJvm)
+    crossVersionTestDistributionRuntimeOnly(projects.distributionsBasics)
 }
 
 tasks.withType<Test>().configureEach {
     if (!javaVersion.isJava9Compatible) {
         classpath += javaLauncher.get().metadata.installationPath.files("lib/tools.jar")
     }
-}
-
-tasks.withType<JavaCompile>().configureEach {
-    options.release = null
-    sourceCompatibility = "8"
-    targetCompatibility = "8"
 }
 
 strictCompile {
@@ -117,7 +125,18 @@ packageCycles {
 
 integTest.usesJavadocCodeSnippets = true
 
-// Remove as part of fixing https://github.com/gradle/configuration-cache/issues/585
-tasks.configCacheIntegTest {
-    systemProperties["org.gradle.configuration-cache.internal.test-disable-load-after-store"] = "true"
+tasks.javadoc {
+    // This project accesses JDK internals.
+    // We would ideally add --add-exports flags for the required packages, however
+    // due to limitations in the javadoc modeling API, we cannot specify multiple
+    // flags for the same key.
+    // Instead, we disable failure on javadoc errors.
+    isFailOnError = false
+    options {
+        this as StandardJavadocDocletOptions
+        addBooleanOption("quiet", true)
+    }
+}
+tasks.isolatedProjectsIntegTest {
+    enabled = false
 }

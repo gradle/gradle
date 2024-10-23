@@ -32,5 +32,11 @@ class SigningOperationIntegrationSpec extends SigningIntegrationSpec {
 
         then:
         failure.assertHasErrorOutput("You cannot create an instance from the abstract class 'org.gradle.plugins.signing.SignOperation'.")
+
+        and:
+        verifyAll(receivedProblem) {
+            fqid == 'compilation:groovy-dsl:compilation-failed'
+            contextualLabel == "Could not compile build file '${buildFile.absolutePath}'."
+        }
     }
 }

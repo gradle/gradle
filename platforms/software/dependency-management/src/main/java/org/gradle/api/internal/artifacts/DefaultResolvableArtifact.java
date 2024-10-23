@@ -30,7 +30,7 @@ import org.gradle.internal.component.local.model.TransformedComponentFileArtifac
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.model.CalculatedValue;
-import org.gradle.internal.model.CalculatedValueContainerFactory;
+import org.gradle.internal.model.CalculatedValueFactory;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -42,10 +42,10 @@ public class DefaultResolvableArtifact implements ResolvableArtifact {
     private final TaskDependencyContainer buildDependencies;
     private final CalculatedValue<File> fileSource;
     private final WorkNodeAction resolvedArtifactDependency;
-    private final CalculatedValueContainerFactory calculatedValueContainerFactory;
+    private final CalculatedValueFactory calculatedValueFactory;
     private final ResolvedArtifact publicView;
 
-    public DefaultResolvableArtifact(@Nullable ModuleVersionIdentifier owner, IvyArtifactName artifact, ComponentArtifactIdentifier artifactId, TaskDependencyContainer builtBy, CalculatedValue<File> fileSource, CalculatedValueContainerFactory calculatedValueContainerFactory) {
+    public DefaultResolvableArtifact(@Nullable ModuleVersionIdentifier owner, IvyArtifactName artifact, ComponentArtifactIdentifier artifactId, TaskDependencyContainer builtBy, CalculatedValue<File> fileSource, CalculatedValueFactory calculatedValueFactory) {
         this.owner = owner;
         this.artifact = artifact;
         this.artifactId = artifactId;
@@ -58,7 +58,7 @@ public class DefaultResolvableArtifact implements ResolvableArtifact {
         } else {
             this.resolvedArtifactDependency = null;
         }
-        this.calculatedValueContainerFactory = calculatedValueContainerFactory;
+        this.calculatedValueFactory = calculatedValueFactory;
         this.publicView = new DefaultResolvedArtifact(artifactId, fileSource, owner, artifact);
     }
 
@@ -114,7 +114,7 @@ public class DefaultResolvableArtifact implements ResolvableArtifact {
         }
 
         ComponentArtifactIdentifier newId = new TransformedComponentFileArtifactIdentifier(artifactId.getComponentIdentifier(), file.getName(), originalFileName);
-        return new PreResolvedResolvableArtifact(owner, artifactName, newId, file, TaskDependencyContainer.EMPTY, calculatedValueContainerFactory);
+        return new PreResolvedResolvableArtifact(owner, artifactName, newId, file, TaskDependencyContainer.EMPTY, calculatedValueFactory);
     }
 
     @Override

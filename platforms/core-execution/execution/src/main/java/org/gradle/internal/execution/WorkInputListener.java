@@ -18,7 +18,7 @@ package org.gradle.internal.execution;
 
 import org.gradle.internal.properties.InputBehavior;
 import org.gradle.internal.service.scopes.EventScope;
-import org.gradle.internal.service.scopes.Scopes.Global;
+import org.gradle.internal.service.scopes.Scope.Global;
 
 import java.util.EnumSet;
 
@@ -29,7 +29,6 @@ import java.util.EnumSet;
 public interface WorkInputListener {
     /**
      * Called when the execution of the given work item is imminent, or would have been if the primary inputs would not have been empty.
-     * <p>
      *
      * @param work the identity of the unit of work to be executed
      * @param relevantBehaviors the file system inputs relevant to the task execution

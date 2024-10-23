@@ -34,7 +34,7 @@ fun FlyweightCapableTreeStructure<LighterASTNode>.sourceData(
         sourceIdentifier,
         sourceCode,
         sourceOffset,
-        this.root
+        root.range()
     )
 
 
@@ -42,10 +42,13 @@ class LightTreeSourceData(
     override val sourceIdentifier: SourceIdentifier,
     private val sourceCode: String,
     private val sourceOffset: Int,
-    private val node: LighterASTNode
+    private val nodeRange: IntRange,
 ) : SourceData {
+
+    override fun toString(): String = "LightTreeSourceData(${sourceIdentifier.fileIdentifier}:$nodeRange)"
+
     override val indexRange: IntRange by lazy {
-        val originalRange = node.range()
+        val originalRange = nodeRange
         val first = originalRange.first - sourceOffset
         val last = originalRange.last - sourceOffset
         first..last
@@ -64,9 +67,8 @@ class LightTreeSourceData(
     override
     val endColumn: Int
         get() = lineColumnInfo.endColumn
-
     override
-    fun text(): String = node.asText
+    fun text(): String = sourceCode.substring((indexRange.first + sourceOffset)..(indexRange.last + sourceOffset))
 
     private
     class LineColumnInfo(val startLine: Int, val startColumn: Int, val endLine: Int, val endColumn: Int) {
@@ -91,7 +93,7 @@ class LightTreeSourceData(
                 val realEndIndex = offset + offsetRelativeIndexRange.last
                 check(text.isValidIndex(realEndIndex))
 
-                check(realStartIndex <= realEndIndex)
+                check(realEndIndex - realStartIndex >= -1) // -1 is for empty intervals
 
                 var startLine = -1
                 var startColumn = -1
@@ -109,6 +111,10 @@ class LightTreeSourceData(
                     if (i == realEndIndex) {
                         endLine = line
                         endColumn = column
+                        if (realStartIndex == realEndIndex + 1) { // might be an empty range, e.g. 20..19
+                            startLine = line
+                            startColumn = column + 1
+                        }
                         break
                     }
 
@@ -151,14 +157,16 @@ fun FlyweightCapableTreeStructure<LighterASTNode>.print(
 
 internal
 fun FlyweightCapableTreeStructure<LighterASTNode>.children(
-    node: LighterASTNode
+    node: LighterASTNode,
+    filter: (LighterASTNode) -> Boolean = { true }
 ): List<LighterASTNode> {
     val ref = Ref<Array<LighterASTNode?>>()
     getChildren(node, ref)
     return ref.get()
         .filterNotNull()
         .filter { it.isUseful }
-} // TODO: any usages that need to be checked for parsing errors?
+        .filter { filter(it) }
+}
 
 
 internal
@@ -175,6 +183,55 @@ fun FlyweightCapableTreeStructure<LighterASTNode>.getFirstChildExpressionUnwrapp
 internal
 val LighterASTNode.asText: String
     get() = this.toString()
+
+
+internal
+val LighterASTNode.unescapedValue: String
+    get() {
+        val escape = this.asText
+        return escapedStringToCharacter(escape)?.toString()
+            ?: escape.replace("\\", "").replace("u", "\\u")
+    }
+
+fun escapedStringToCharacter(text: String): Char? {
+    assert(text.isNotEmpty() && text[0] == '\\') {
+        "Only escaped sequences must be passed to this routine: $text"
+    }
+
+    // Escape
+    val escape = text.substring(1) // strip the slash
+    when (escape.length) {
+        0 -> {
+            // bare slash
+            return null
+        }
+        1 -> {
+            // one-char escape
+            return when (escape[0]) {
+                't' -> '\t'
+                'b' -> '\b'
+                'n' -> '\n'
+                'r' -> '\r'
+                '\'' -> '\''
+                '\"' -> '\"'
+                '\\' -> '\\'
+                '$' -> '$'
+                else -> null
+            }
+        }
+        5 -> {
+            // unicode escape
+            if (escape[0] == 'u') {
+                val intValue = escape.substring(1).toIntOrNull(16)
+                // If error occurs it will be reported below
+                if (intValue != null) {
+                    return intValue.toChar()
+                }
+            }
+        }
+    }
+    return null
+}
 
 
 internal
@@ -200,7 +257,7 @@ fun LighterASTNode.isKind(expected: IElementType) =
 
 internal
 fun LighterASTNode.sourceData(sourceIdentifier: SourceIdentifier, sourceCode: String, sourceOffset: Int) =
-    LightTreeSourceData(sourceIdentifier, sourceCode, sourceOffset, this)
+    LightTreeSourceData(sourceIdentifier, sourceCode, sourceOffset, this.range())
 
 
 private
@@ -210,7 +267,7 @@ fun LighterASTNode.print(indent: String) {
 
 
 internal
-fun LighterASTNode.range() = startOffset..endOffset
+fun LighterASTNode.range() = startOffset.until(endOffset)
 
 
 private

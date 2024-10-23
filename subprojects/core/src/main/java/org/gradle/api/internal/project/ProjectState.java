@@ -73,6 +73,11 @@ public interface ProjectState extends ModelContainer<ProjectInternal> {
     Path getIdentityPath();
 
     /**
+     * Gets the identity of this project, containing the identity within the build tree and the owning build.
+     */
+    ProjectIdentity getIdentity();
+
+    /**
      * Returns a path for this project within its containing build. These are not unique within a build tree. Use instead {@link #getIdentityPath()} to uniquely this project.
      */
     Path getProjectPath();

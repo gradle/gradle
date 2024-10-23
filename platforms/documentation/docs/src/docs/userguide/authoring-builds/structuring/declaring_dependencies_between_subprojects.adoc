@@ -21,7 +21,7 @@ What if one project needs the artifact produced by another project?
 image::structuring-builds-2.png[]
 
 This is a common use case for multi-project builds.
-Gradle offers <<declaring_dependencies.adoc#sub:project_dependencies,project dependencies>> for this.
+Gradle offers <<declaring_dependencies_adv.adoc#sub:project_dependencies,project dependencies>> for this.
 
 [[sec:project_jar_dependencies]]
 == Depending on another project

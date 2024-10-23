@@ -5,16 +5,15 @@ import org.gradle.internal.declarativedsl.language.SourceIdentifier
 
 
 interface LanguageTreeBuilder {
-    fun build(tree: LightTree, sourceCode: String, sourceOffset: Int, sourceIdentifier: SourceIdentifier): LanguageTreeResult
+    fun build(parsedLightTree: ParsedLightTree, sourceIdentifier: SourceIdentifier): LanguageTreeResult
 }
 
 
 class DefaultLanguageTreeBuilder : LanguageTreeBuilder {
     override fun build(
-        tree: LightTree,
-        sourceCode: String,
-        sourceOffset: Int,
+        parsedLightTree: ParsedLightTree,
         sourceIdentifier: SourceIdentifier
     ): LanguageTreeResult =
-        GrammarToTree(sourceIdentifier, sourceCode, sourceOffset).script(tree)
+        GrammarToTree(sourceIdentifier, parsedLightTree.wrappedCode, parsedLightTree.originalCodeOffset, parsedLightTree.suffixLength)
+            .script(parsedLightTree.lightTree)
 }

@@ -18,11 +18,9 @@ package org.gradle.plugins.ide.tooling.r72
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.model.gradle.GradleBuild
 
-@ToolingApiVersion(">=4.10")
 @TargetGradleVersion('>=7.2')
 class CompositeBuildCrossVersionSpec extends ToolingApiSpecification {
     def "includes buildSrc builds in model"() {

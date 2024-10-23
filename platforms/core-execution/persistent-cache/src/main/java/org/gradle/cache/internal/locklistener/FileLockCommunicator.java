@@ -16,7 +16,6 @@
 
 package org.gradle.cache.internal.locklistener;
 
-import org.gradle.internal.remote.internal.inet.InetAddressFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,13 +39,13 @@ public class FileLockCommunicator {
     private static final String SOCKET_CANNOT_ASSIGN_ADDRESS_ERROR_MESSAGE = "Cannot assign requested address";
 
     private final DatagramSocket socket;
-    private final InetAddressFactory addressFactory;
+    private final InetAddressProvider inetAddressProvider;
     private volatile boolean stopped;
 
-    public FileLockCommunicator(InetAddressFactory addressFactory) {
-        this.addressFactory = addressFactory;
+    public FileLockCommunicator(InetAddressProvider inetAddressProvider) {
+        this.inetAddressProvider = inetAddressProvider;
         try {
-            socket = new DatagramSocket(0, addressFactory.getWildcardBindingAddress());
+            socket = new DatagramSocket(0, inetAddressProvider.getWildcardBindingAddress());
         } catch (SocketException e) {
             throw throwAsUncheckedException(e);
         }
@@ -56,7 +55,7 @@ public class FileLockCommunicator {
         boolean pingSentSuccessfully = false;
         try {
             byte[] bytesToSend = FileLockPacketPayload.encode(lockId, UNLOCK_REQUEST);
-            for (InetAddress address : addressFactory.getCommunicationAddresses()) {
+            for (InetAddress address : inetAddressProvider.getCommunicationAddresses()) {
                 try {
                     socket.send(new DatagramPacket(bytesToSend, bytesToSend.length, address, ownerPort));
                     pingSentSuccessfully = true;

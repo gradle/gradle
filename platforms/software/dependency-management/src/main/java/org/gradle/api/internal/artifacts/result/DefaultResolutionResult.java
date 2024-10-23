@@ -21,8 +21,10 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
+import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.internal.provider.DefaultProvider;
+import org.gradle.api.internal.artifacts.resolver.ResolutionAccess;
+import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Actions;
 import org.gradle.util.internal.ConfigureUtil;
@@ -34,28 +36,37 @@ import java.util.Set;
 
 import static org.gradle.api.internal.artifacts.result.DefaultResolvedComponentResult.eachElement;
 
-@SuppressWarnings("rawtypes")
 public class DefaultResolutionResult implements ResolutionResult {
 
-    private final MinimalResolutionResult minimal;
+    private final ResolutionAccess resolutionAccess;
+    private final AttributeDesugaring attributeDesugaring;
 
-    public DefaultResolutionResult(MinimalResolutionResult minimal) {
-        this.minimal = minimal;
+    public DefaultResolutionResult(
+        ResolutionAccess resolutionAccess,
+        AttributeDesugaring attributeDesugaring
+    ) {
+        this.resolutionAccess = resolutionAccess;
+        this.attributeDesugaring = attributeDesugaring;
     }
 
     @Override
     public ResolvedComponentResult getRoot() {
-        return minimal.getRootSource().get();
+        return getRootComponent().get();
     }
 
     @Override
     public Provider<ResolvedComponentResult> getRootComponent() {
-        return new DefaultProvider<>(() -> minimal.getRootSource().get());
+        return resolutionAccess.getPublicView().getRootComponent();
+    }
+
+    @Override
+    public Provider<ResolvedVariantResult> getRootVariant() {
+        return resolutionAccess.getPublicView().getRootVariant();
     }
 
     @Override
     public AttributeContainer getRequestedAttributes() {
-        return minimal.getRequestedAttributes();
+        return attributeDesugaring.desugar(resolutionAccess.getAttributes());
     }
 
     @Override
@@ -71,6 +82,7 @@ public class DefaultResolutionResult implements ResolutionResult {
     }
 
     @Override
+    @SuppressWarnings("rawtypes")
     public void allDependencies(final Closure closure) {
         allDependencies(ConfigureUtil.configureUsing(closure));
     }
@@ -88,6 +100,7 @@ public class DefaultResolutionResult implements ResolutionResult {
     }
 
     @Override
+    @SuppressWarnings("rawtypes")
     public void allComponents(final Closure closure) {
         allComponents(ConfigureUtil.configureUsing(closure));
     }
@@ -101,11 +114,11 @@ public class DefaultResolutionResult implements ResolutionResult {
             return false;
         }
         DefaultResolutionResult that = (DefaultResolutionResult) o;
-        return Objects.equals(minimal, that.minimal);
+        return Objects.equals(resolutionAccess, that.resolutionAccess);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(minimal);
+        return resolutionAccess.hashCode();
     }
 }

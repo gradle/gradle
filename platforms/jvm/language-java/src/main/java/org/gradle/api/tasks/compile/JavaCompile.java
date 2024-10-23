@@ -55,10 +55,12 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.file.Deleter;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.internal.jvm.JavaModuleDetector;
-import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.jvm.toolchain.JavaCompiler;
 import org.gradle.jvm.toolchain.JavaInstallationMetadata;
 import org.gradle.jvm.toolchain.JavaToolchainService;
@@ -117,6 +119,7 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
      */
     @Override
     @Internal("tracked via stableSources")
+    @ToBeReplacedByLazyProperty
     public FileTree getSource() {
         return super.getSource();
     }
@@ -217,7 +220,7 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
     }
 
     private void performCompilation(JavaCompileSpec spec, Compiler<JavaCompileSpec> compiler) {
-        WorkResult result = new CompileJavaBuildOperationReportingCompiler(this, compiler, getServices().get(BuildOperationExecutor.class)).execute(spec);
+        WorkResult result = new CompileJavaBuildOperationReportingCompiler(this, compiler, getServices().get(BuildOperationRunner.class)).execute(spec);
         setDidWork(result.getDidWork());
     }
 
@@ -259,7 +262,8 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
         File toolchainJavaHome = javaCompilerTool.getMetadata().getInstallationPath().getAsFile();
 
         ForkOptions forkOptions = getOptions().getForkOptions();
-        File customJavaHome = forkOptions.getJavaHome();
+        @SuppressWarnings("deprecation")
+        File customJavaHome = DeprecationLogger.whileDisabled(forkOptions::getJavaHome);
         if (customJavaHome != null) {
             JavaExecutableUtils.validateMatchingFiles(
                 customJavaHome, "Toolchain from `javaHome` property on `ForkOptions`",
@@ -343,6 +347,7 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
     @Override
     @CompileClasspath
     @Incremental
+    @ToBeReplacedByLazyProperty
     public FileCollection getClasspath() {
         return super.getClasspath();
     }

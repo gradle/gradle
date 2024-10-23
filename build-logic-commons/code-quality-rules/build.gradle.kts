@@ -19,17 +19,10 @@ plugins {
 }
 description = "Provides a custom CodeNarc rule used by the Gradle build"
 
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(11)
-        vendor = JvmVendorSpec.ADOPTIUM
-    }
-}
-
 group = "gradlebuild"
 
 dependencies {
-    api(platform(project(":build-platform")))
+    api(platform(projects.buildPlatform))
     compileOnly(localGroovy())
     compileOnly("org.codenarc:CodeNarc") {
         exclude(group = "org.apache.groovy")

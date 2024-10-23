@@ -26,7 +26,6 @@ import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.HasScriptServices;
@@ -80,6 +79,11 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
 
     Project evaluate();
 
+    /***
+     * This method should be used by internal Gradle code to trigger project evaluation.
+     */
+    ProjectInternal evaluateUnchecked();
+
     ProjectInternal bindAllModelRules();
 
     @Override
@@ -116,6 +120,8 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
      */
     @Override
     Map<String, Project> getChildProjects();
+
+    Map<String, Project> getChildProjects(ProjectInternal referrer);
 
     /**
      * Returns a mapping of the direct child project names to the child project instances.
@@ -182,11 +188,13 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
 
     void fireDeferredConfiguration();
 
+    @Override
+    @Nonnull
+    ProjectIdentity getProjectIdentity();
+
     /**
      * Returns a unique path for this project within its containing build.
      */
-    @Override
-    @Nonnull
     Path getProjectPath();
 
     /**
@@ -235,8 +243,6 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
      */
     Property<Object> getInternalStatus();
 
-    DependencyMetaDataProvider getDependencyMetaDataProvider();
-
     /**
      * When we get the {@link ConfigurationContainer} from internal locations, we'll override
      * this getter to promise to return a {@link RoleBasedConfigurationContainerInternal} instance, to avoid
@@ -246,6 +252,15 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
      */
     @Override
     RoleBasedConfigurationContainerInternal getConfigurations();
+
+    void setLifecycleActionsState(@Nullable Object state);
+
+    /**
+     * The state of the execution of {@link org.gradle.api.invocation.GradleLifecycle} actions of this project.
+     * Its mutation NOT considered a mutable state access.
+     * */
+    @Nullable
+    Object getLifecycleActionsState();
 
     interface DetachedResolver {
         RepositoryHandler getRepositories();

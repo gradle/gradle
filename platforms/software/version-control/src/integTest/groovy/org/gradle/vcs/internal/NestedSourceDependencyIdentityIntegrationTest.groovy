@@ -95,7 +95,7 @@ class NestedSourceDependencyIdentityIntegrationTest extends AbstractIntegrationS
 
         then:
         failure.assertHasDescription("Could not determine the dependencies of task ':${buildName}:compileJava'.")
-        failure.assertHasCause("Could not resolve all task dependencies for configuration ':${buildName}:compileClasspath'.")
+        failure.assertHasCause("Could not resolve all dependencies for configuration ':${buildName}:compileClasspath'.")
         failure.assertHasCause("""Cannot resolve external dependency test:test:1.2 because no repositories are defined.
 Required by:
     project :${buildName}""")

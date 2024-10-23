@@ -4,36 +4,35 @@ plugins {
 
 description = "Implementation for interacting with repositories over sftp"
 
-errorprone {
-    disabledChecks.addAll(
-        "UnusedMethod", // 2 occurrences
-    )
-}
-
 dependencies {
-    api(project(":base-services"))
-    api(project(":core-api"))
-    api(project(":resources"))
+    api(projects.concurrent)
+    api(projects.stdlibJavaExtensions)
+    api(projects.serviceProvider)
+    api(projects.coreApi)
+    api(projects.resources)
 
     api(libs.jsch)
 
-    implementation(project(":core"))
+    implementation(projects.core)
 
     implementation(libs.commonsIo)
     implementation(libs.guava)
     implementation(libs.jsr305)
     implementation(libs.slf4jApi)
 
-    testImplementation(testFixtures(project(":core")))
-    testImplementation(testFixtures(project(":dependency-management")))
-    testImplementation(testFixtures(project(":ivy")))
-    testImplementation(testFixtures(project(":maven")))
+    testImplementation(testFixtures(projects.core))
+    testImplementation(testFixtures(projects.dependencyManagement))
+    testImplementation(testFixtures(projects.ivy))
+    testImplementation(testFixtures(projects.maven))
 
-    integTestImplementation(project(":logging"))
+    integTestImplementation(projects.logging)
     integTestImplementation(libs.jetty)
     integTestImplementation(libs.sshdCore)
     integTestImplementation(libs.sshdScp)
     integTestImplementation(libs.sshdSftp)
 
-    integTestDistributionRuntimeOnly(project(":distributions-basics"))
+    integTestDistributionRuntimeOnly(projects.distributionsBasics)
+}
+tasks.isolatedProjectsIntegTest {
+    enabled = false
 }

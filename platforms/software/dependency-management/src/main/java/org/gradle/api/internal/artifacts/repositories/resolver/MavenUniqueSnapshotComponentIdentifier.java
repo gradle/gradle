@@ -18,10 +18,12 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
+import org.gradle.internal.scan.UsedByScanPlugin;
 
 /**
  * A component identifier for a Maven unique snapshot module.
  */
+@UsedByScanPlugin("scan")
 public class MavenUniqueSnapshotComponentIdentifier extends DefaultModuleComponentIdentifier {
     private final String timestamp;
     private final int hashCode;

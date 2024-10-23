@@ -16,7 +16,7 @@
 
 package org.gradle.internal.enterprise.impl
 
-import org.gradle.configurationcache.InputTrackingState
+import org.gradle.internal.cc.impl.InputTrackingState
 import spock.lang.Specification
 
 import java.util.concurrent.FutureTask

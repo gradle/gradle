@@ -1,4 +1,4 @@
-NOTE: You can open this sample inside an IDE using the https://www.jetbrains.com/help/idea/gradle.html#gradle_import_project_start[IntelliJ's Gradle import] or https://projects.eclipse.org/projects/tools.buildship[Eclipse Buildship].
+NOTE: You can open this sample in an <<gradle_ides.adoc#gradle_ides,IDE that supports Gradle>>.
 
 This sample shows how link:{userManualPath}/artifact_transforms.html[artifact transforms] can be utilised to turn traditional Java libraries into Java Modules by adding additional information to the corresponding Jars.
 For that, a plugin called `extra-java-module-info` is defined in the `buildSrc` folder.

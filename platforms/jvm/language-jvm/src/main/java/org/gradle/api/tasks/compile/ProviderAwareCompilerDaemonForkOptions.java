@@ -21,6 +21,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.util.internal.CollectionUtils;
 
@@ -45,6 +46,7 @@ public class ProviderAwareCompilerDaemonForkOptions extends BaseForkOptions {
      */
     @Optional
     @Nested
+    @ToBeReplacedByLazyProperty
     public List<CommandLineArgumentProvider> getJvmArgumentProviders() {
         return jvmArgumentProviders;
     }
@@ -56,6 +58,7 @@ public class ProviderAwareCompilerDaemonForkOptions extends BaseForkOptions {
      * @return The immutable list of arguments. Returns an empty list if there are no arguments.
      */
     @Internal
+    @ToBeReplacedByLazyProperty
     public List<String> getAllJvmArgs() {
         ImmutableList.Builder<String> builder = ImmutableList.builder();
         builder.addAll(CollectionUtils.stringize(getJvmArgs()));

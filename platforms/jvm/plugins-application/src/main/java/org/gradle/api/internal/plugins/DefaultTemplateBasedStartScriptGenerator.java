@@ -24,7 +24,6 @@ import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.resources.CharSourceBackedTextResource;
 import org.gradle.api.resources.TextResource;
-import org.gradle.internal.io.IoUtils;
 import org.gradle.jvm.application.scripts.JavaAppStartScriptGenerationDetails;
 import org.gradle.jvm.application.scripts.TemplateBasedScriptGenerator;
 import org.gradle.util.internal.TextUtil;
@@ -72,16 +71,14 @@ public class DefaultTemplateBasedStartScriptGenerator implements TemplateBasedSc
     }
 
     private String generateStartScriptContentFromTemplate(final Map<String, String> binding) {
-        return IoUtils.get(getTemplate().asReader(), reader -> {
-            try {
-                SimpleTemplateEngine engine = new SimpleTemplateEngine();
-                Template template = engine.createTemplate(reader);
-                String output = template.make(binding).toString();
-                return TextUtil.convertLineSeparators(output, lineSeparator);
-            } catch (IOException e) {
-                throw new UncheckedIOException(e);
-            }
-        });
+        try (Reader reader = getTemplate().asReader()) {
+            SimpleTemplateEngine engine = new SimpleTemplateEngine();
+            Template template = engine.createTemplate(reader);
+            String output = template.make(binding).toString();
+            return TextUtil.convertLineSeparators(output, lineSeparator);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     protected static TextResource utf8ClassPathResource(final Class<?> clazz, final String filename) {

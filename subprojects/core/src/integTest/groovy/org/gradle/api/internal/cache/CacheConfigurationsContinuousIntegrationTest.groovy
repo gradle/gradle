@@ -18,6 +18,7 @@ package org.gradle.api.internal.cache
 
 import org.gradle.cache.internal.GradleUserHomeCleanupFixture
 import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.time.TimestampSuppliers
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GradleVersion
@@ -25,6 +26,7 @@ import org.gradle.util.internal.TextUtil
 
 import static org.gradle.cache.internal.VersionSpecificCacheCleanupFixture.MarkerFileType.NOT_USED_WITHIN_30_DAYS
 import static org.gradle.cache.internal.VersionSpecificCacheCleanupFixture.MarkerFileType.USED_TODAY
+import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
 
 
 class CacheConfigurationsContinuousIntegrationTest extends AbstractContinuousIntegrationTest implements GradleUserHomeCleanupFixture {
@@ -49,6 +51,7 @@ class CacheConfigurationsContinuousIntegrationTest extends AbstractContinuousInt
                     snapshotWrappers.removeUnusedEntriesAfterDays = 5
                     downloadedResources.removeUnusedEntriesAfterDays = 10
                     createdResources.removeUnusedEntriesAfterDays = 5
+                    buildCache.removeUnusedEntriesAfterDays = 15
                 }
             }
         """
@@ -59,6 +62,7 @@ class CacheConfigurationsContinuousIntegrationTest extends AbstractContinuousInt
                 snapshotWrappers { ${assertValueIsSameInDays(5)} }
                 downloadedResources { ${assertValueIsSameInDays(10)} }
                 createdResources { ${assertValueIsSameInDays(5)} }
+                buildCache { ${assertValueIsSameInDays(15)} }
             }
         """
 
@@ -83,6 +87,7 @@ class CacheConfigurationsContinuousIntegrationTest extends AbstractContinuousInt
         file('build/foo/foo').text == 'baz'
     }
 
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "can change cache configurations in between builds in a session"() {
         executer.requireOwnGradleUserHomeDir()
 
@@ -94,14 +99,15 @@ class CacheConfigurationsContinuousIntegrationTest extends AbstractContinuousInt
             beforeSettings { settings ->
                 def retentionFile = new File(settings.rootDir, '${retentionFileName}')
                 def retentionFileProperty = settings.services.get(ObjectFactory).fileProperty().fileValue(retentionFile)
-                def retentionTimeStampProvider = settings.providers.fileContents(retentionFileProperty).asText.map { it as long }
+                def retentionTimestamp = settings.providers.fileContents(retentionFileProperty).asText.get() as long
                 settings.caches {
                     markingStrategy = MarkingStrategy.NONE
                     cleanup = Cleanup.DISABLED
-                    releasedWrappers.removeUnusedEntriesOlderThan = retentionTimeStampProvider
-                    snapshotWrappers.removeUnusedEntriesOlderThan = retentionTimeStampProvider
-                    downloadedResources.removeUnusedEntriesOlderThan = retentionTimeStampProvider
-                    createdResources.removeUnusedEntriesOlderThan = retentionTimeStampProvider
+                    releasedWrappers.removeUnusedEntriesOlderThan = retentionTimestamp
+                    snapshotWrappers.removeUnusedEntriesOlderThan = retentionTimestamp
+                    downloadedResources.removeUnusedEntriesOlderThan = retentionTimestamp
+                    createdResources.removeUnusedEntriesOlderThan = retentionTimestamp
+                    buildCache.removeUnusedEntriesOlderThan = retentionTimestamp
                 }
             }
         """
@@ -116,10 +122,11 @@ class CacheConfigurationsContinuousIntegrationTest extends AbstractContinuousInt
                     def caches = services.get(CacheConfigurations)
                     caches.with {
                         assert markingStrategy.get() == MarkingStrategy.NONE
-                        releasedWrappers { assert removeUnusedEntriesOlderThan.get() == retentionTimestamp }
-                        snapshotWrappers { assert removeUnusedEntriesOlderThan.get() == retentionTimestamp }
-                        downloadedResources { assert removeUnusedEntriesOlderThan.get() == retentionTimestamp}
-                        createdResources { assert removeUnusedEntriesOlderThan.get() == retentionTimestamp }
+                        releasedWrappers { assert entryRetention.get().timeInMillis == retentionTimestamp }
+                        snapshotWrappers { assert entryRetention.get().timeInMillis == retentionTimestamp }
+                        downloadedResources { assert entryRetention.get().timeInMillis == retentionTimestamp}
+                        createdResources { assert entryRetention.get().timeInMillis == retentionTimestamp }
+                        buildCache { assert entryRetention.get().timeInMillis == retentionTimestamp }
                     }
                 }
             }
@@ -251,10 +258,13 @@ class CacheConfigurationsContinuousIntegrationTest extends AbstractContinuousInt
         getGcFile(currentCacheDir).assertDoesNotExist()
     }
 
-    static String assertValueIsSameInDays(configuredDaysAgo) {
+    static String assertValueIsSameInDays(int configuredDaysAgo) {
         return """
-            def timestamp = removeUnusedEntriesOlderThan.get()
-            def daysAgo = java.util.concurrent.TimeUnit.MILLISECONDS.toDays(System.currentTimeMillis() - timestamp)
+            def retentionValue = entryRetention.get()
+            assert retentionValue.relative == true
+
+            def timestamp = retentionValue.timeInMillis
+            def daysAgo = java.util.concurrent.TimeUnit.MILLISECONDS.toDays(timestamp)
             assert daysAgo == ${configuredDaysAgo}
         """
     }

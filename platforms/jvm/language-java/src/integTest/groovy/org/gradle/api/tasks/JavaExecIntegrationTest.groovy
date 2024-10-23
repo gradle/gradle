@@ -74,7 +74,7 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
 
         buildFile << """
             tasks.withType(JavaExec) {
-                executable = new File(".").getAbsoluteFile().toPath().relativize(new File("${executable}").toPath()).toString()
+                executable = new File(".").getCanonicalFile().toPath().relativize(new File("${executable}").toPath()).toString()
             }
         """
 

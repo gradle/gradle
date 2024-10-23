@@ -20,10 +20,11 @@ import com.google.common.base.MoreObjects;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.model.ObjectFactory;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.util.Objects;
 
-public class SpecificInstallationToolchainSpec extends DefaultToolchainSpec {
+public abstract class SpecificInstallationToolchainSpec extends DefaultToolchainSpec {
 
     public static class Key implements JavaToolchainSpecInternal.Key {
 
@@ -53,8 +54,9 @@ public class SpecificInstallationToolchainSpec extends DefaultToolchainSpec {
 
     private final File javaHome;
 
-    private SpecificInstallationToolchainSpec(ObjectFactory factory, File javaHome) {
-        super(factory);
+    @Inject
+    public SpecificInstallationToolchainSpec(File javaHome) {
+        super();
         this.javaHome = javaHome;
 
         // disallow changing property values
@@ -64,7 +66,7 @@ public class SpecificInstallationToolchainSpec extends DefaultToolchainSpec {
     public static SpecificInstallationToolchainSpec fromJavaHome(ObjectFactory objectFactory, File javaHome) {
         if (javaHome.exists()) {
             if (javaHome.isDirectory()) {
-                return new SpecificInstallationToolchainSpec(objectFactory, javaHome);
+                return objectFactory.newInstance(SpecificInstallationToolchainSpec.class, javaHome);
             } else {
                 throw new InvalidUserDataException("The configured Java home is not a directory (" + javaHome.getAbsolutePath() + ")");
             }
@@ -74,7 +76,7 @@ public class SpecificInstallationToolchainSpec extends DefaultToolchainSpec {
     }
 
     public static SpecificInstallationToolchainSpec fromJavaExecutable(ObjectFactory objectFactory, String executable) {
-        return new SpecificInstallationToolchainSpec(objectFactory, JavaExecutableUtils.resolveJavaHomeOfExecutable(executable));
+        return objectFactory.newInstance(SpecificInstallationToolchainSpec.class, JavaExecutableUtils.resolveJavaHomeOfExecutable(executable));
     }
 
     @Override
@@ -98,7 +100,7 @@ public class SpecificInstallationToolchainSpec extends DefaultToolchainSpec {
 
     @Override
     public String getDisplayName() {
-        return MoreObjects.toStringHelper("SpecificToolchain").add("javaHome", javaHome).toString();
+        return MoreObjects.toStringHelper("SpecificToolchain ").add("javaHome", javaHome).toString();
     }
 
     @Override

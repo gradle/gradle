@@ -35,6 +35,7 @@ import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Factory;
 import org.gradle.internal.classloader.ClasspathUtil;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.resource.ResourceLocation;
 import org.gradle.util.internal.ConfigureUtil;
 
@@ -64,6 +65,7 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
     private ClassPath resolvedClasspath;
     private RepositoryHandler repositoryHandler;
     private DependencyHandler dependencyHandler;
+    private ScriptClassPathResolutionContext resolutionContext;
     private RoleBasedConfigurationContainerInternal configContainer;
     private Configuration classpathConfiguration;
 
@@ -79,7 +81,7 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
         this.classLoaderScope = classLoaderScope;
         this.dependencyLockingHandler = dependencyResolutionServices.getDependencyLockingHandler();
         this.buildLogicBuilder = buildLogicBuilder;
-        JavaEcosystemSupport.configureSchema(dependencyResolutionServices.getAttributesSchema(), dependencyResolutionServices.getObjectFactory());
+        JavaEcosystemSupport.configureServices(dependencyResolutionServices.getAttributesSchema(), dependencyResolutionServices.getAttributeDescribers(), dependencyResolutionServices.getObjectFactory());
     }
 
     @Override
@@ -102,7 +104,7 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
     public ClassPath getInstrumentedScriptClassPath() {
         if (resolvedClasspath == null) {
             if (classpathConfiguration != null) {
-                Factory<ClassPath> classPathFactory = () -> buildLogicBuilder.resolveClassPath(classpathConfiguration, dependencyHandler, configContainer);
+                Factory<ClassPath> classPathFactory = () -> buildLogicBuilder.resolveClassPath(classpathConfiguration, resolutionContext);
                 if (getBoolean(DISABLE_RESET_CONFIGURATION_SYSTEM_PROPERTY)) {
                     resolvedClasspath = classPathFactory.create();
                 } else {
@@ -153,11 +155,17 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
         }
         if (dependencyHandler == null) {
             dependencyHandler = dependencyResolutionServices.getDependencyHandler();
-            buildLogicBuilder.prepareDependencyHandler(dependencyHandler);
+            resolutionContext = buildLogicBuilder.prepareDependencyHandler(dependencyHandler);
         }
         if (classpathConfiguration == null) {
             classpathConfiguration = configContainer.migratingUnlocked(CLASSPATH_CONFIGURATION, ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE);
-            buildLogicBuilder.prepareClassPath(classpathConfiguration, dependencyHandler);
+            configContainer.beforeCollectionChanges(methodName ->
+                DeprecationLogger.deprecateAction("Mutating " + configContainer.getDisplayName() + " using " + methodName)
+                .willBecomeAnErrorInGradle9()
+                .withUpgradeGuideSection(8, "mutating_buildscript_configurations")
+                .nagUser()
+            );
+            buildLogicBuilder.prepareClassPath(classpathConfiguration, resolutionContext);
         }
     }
 

@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+@file:Suppress("FunctionNaming", "FunctionParameterNaming")
+
 package org.gradle.kotlin.dsl.support.bytecode
 
 import org.jetbrains.org.objectweb.asm.ClassVisitor

@@ -21,7 +21,6 @@ import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.id.IdGenerator;
-import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.time.Clock;
 
 import java.io.Serializable;
@@ -39,11 +38,8 @@ class JUnitPlatformTestClassProcessorFactory implements WorkerTestClassProcessor
     }
 
     @Override
-    public TestClassProcessor create(ServiceRegistry serviceRegistry) {
+    public TestClassProcessor create(IdGenerator<?> idGenerator, ActorFactory actorFactory, Clock clock) {
         try {
-            IdGenerator<?> idGenerator = serviceRegistry.get(IdGenerator.class);
-            Clock clock = serviceRegistry.get(Clock.class);
-            ActorFactory actorFactory = serviceRegistry.get(ActorFactory.class);
             Class<?> clazz = getClass().getClassLoader().loadClass("org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestClassProcessor");
             Constructor<?> constructor = clazz.getConstructor(JUnitPlatformSpec.class, IdGenerator.class, ActorFactory.class, Clock.class);
             return (TestClassProcessor) constructor.newInstance(spec, idGenerator, actorFactory, clock);

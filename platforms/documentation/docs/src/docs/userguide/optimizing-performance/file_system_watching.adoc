@@ -52,7 +52,7 @@ Gradle supports file system watching on the following operating systems:
 ** CentOS Stream 8 or later
 ** Red Hat Enterprise Linux (RHEL) 8 or later
 ** Amazon Linux 2 or later
-* macOS 10.14 (Mojave) or later on Intel and ARM architectures
+* macOS 12 (Monterey) or later on Intel and ARM architectures
 
 == Supported File Systems
 
@@ -149,7 +149,7 @@ If you receive the `java.io.IOException: Too many open files` error on macOS, ra
 See https://superuser.com/a/443168/8117[this post] for more details.
 
 [[sec:inotify_watches_limit]]
-===  Adjust inotify Limits on Linux
+===  Adjust inotify watches limit on Linux
 
 File system watching uses http://en.wikipedia.org/wiki/Inotify[inotify] on Linux.
 Depending on the size of your build, it may be necessary to increase inotify limits.
@@ -177,3 +177,16 @@ sudo sysctl -p --system
 Each used inotify watch takes up to 1KB of memory.
 Assuming inotify uses all the 512K watches then file system watching could use up to 500MB.
 In a memory-constrained environment, you may want to disable file system watching.
+
+[[sec:inotify_instances_limit]]
+===  Inspect inotify instances limit on Linux
+
+File system watching initializes one inotify instance per daemon.
+You can see the current limit of inotify instances per user by running:
+
+[source,bash]
+----
+cat /proc/sys/fs/inotify/max_user_instances
+----
+
+The default per-user instances limit should be high enough, so we don't recommend increasing that value manually.

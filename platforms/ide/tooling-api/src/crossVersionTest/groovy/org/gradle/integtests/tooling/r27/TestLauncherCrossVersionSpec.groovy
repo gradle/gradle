@@ -27,7 +27,7 @@ import spock.lang.Timeout
 
 import static org.gradle.integtests.tooling.fixture.TextUtil.normaliseLineSeparators
 
-@TargetGradleVersion(">=2.7")
+@TargetGradleVersion(">=3.0")
 @Timeout(120)
 class TestLauncherCrossVersionSpec extends TestLauncherSpec {
 
@@ -67,26 +67,6 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
         events.tests.size() == (supportsEfficientClassFiltering() ? 14 : 16)
 
         assertTestNotExecuted(className: "example2.MyOtherTest2", methodName: "baz", task: ":test")
-        assertTestNotExecuted(className: "example2.MyOtherTest2", methodName: "baz", task: ":secondTest")
-    }
-
-    @TargetGradleVersion("=2.6")
-    def "executes all methods if provider does not support selective test method execution"() {
-        when:
-        launchTests { TestLauncher launcher ->
-            launcher.withJvmTestMethods("example.MyTest", "foo")
-        }
-        then:
-
-        assertTestExecuted(className: "example.MyTest", methodName: "foo", task: ":test")
-        assertTestExecuted(className: "example.MyTest", methodName: "foo", task: ":secondTest")
-        assertTestExecuted(className: "example.MyTest", methodName: "foo2", task: ":secondTest")
-        assertTestExecuted(className: "example.MyTest", methodName: "foo2", task: ":test")
-        events.tests.size() == (supportsEfficientClassFiltering() ? 10 : 14)
-
-        assertTestNotExecuted(className: "example2.MyOtherTest", methodName: "bar", task: ":test")
-        assertTestNotExecuted(className: "example2.MyOtherTest2", methodName: "baz", task: ":test")
-        assertTestNotExecuted(className: "example2.MyOtherTest", methodName: "bar", task: ":secondTest")
         assertTestNotExecuted(className: "example2.MyOtherTest2", methodName: "baz", task: ":secondTest")
     }
 
@@ -159,7 +139,7 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
         Test method util.TestUtil.someUtilMethod()"""
     }
 
-    @TargetGradleVersion(">=2.7 <8.4")
+    @TargetGradleVersion(">=3.0 <8.4")
     def "throws exception with meaningful error message on failing tests"() {
         setup:
         withFailingTest()

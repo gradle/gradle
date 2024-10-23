@@ -27,21 +27,25 @@ abstract class SigningProjectSpec extends AbstractProjectBuilderSpec {
         assert project != null : "You haven't created a project"
     }
 
-    def methodMissing(String name, args) {
+    protected def getSigning() {
         assertProject()
-        project."$name"(*args)
+        return project.extensions.getByType(SigningExtension)
     }
 
-    def propertyMissing(String name) {
-        project."$name"
+    protected def signing(Closure action) {
+        return project.signing(action)
     }
 
-    def propertyMissing(String name, value) {
-        project."$name" = value
+    protected def getConfigurations() {
+        return project.configurations
+    }
+
+    protected def getJar() {
+        return project.jar
     }
 
     def applyPlugin() {
-        apply plugin: "signing"
+        project.apply plugin: "signing"
     }
 
     def addProperties(Map props) {
@@ -96,8 +100,8 @@ abstract class SigningProjectSpec extends AbstractProjectBuilderSpec {
     }
 
     def useJavadocAndSourceJars() {
-        apply plugin: "java"
-        java {
+        project.apply plugin: "java"
+        project.java {
             withJavadocJar()
             withSourcesJar()
         }

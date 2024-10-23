@@ -24,6 +24,7 @@ import org.gradle.integtests.fixtures.ScalaCoverage
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.scala.ScalaCompilationFixture
+import org.junit.Assume
 
 import static org.gradle.api.JavaVersion.VERSION_11
 import static org.gradle.api.JavaVersion.VERSION_1_8
@@ -36,7 +37,10 @@ class ScalaDocIntegrationTest extends MultiVersionIntegrationSpec implements Dir
 
     def getOtherScalaVersion() {
         def currentScalaVersion = version.toString()
-        return ScalaCoverage.SUPPORTED_BY_JDK.find { it != currentScalaVersion }
+        def otherVersion = ScalaCoverage.SUPPORTED_BY_JDK.find { it != currentScalaVersion }
+        // Occasionally there can be no other version of scala supported by this JDK
+        Assume.assumeNotNull(otherVersion)
+        return otherVersion
     }
 
     def getDocsPath() {
@@ -49,7 +53,7 @@ class ScalaDocIntegrationTest extends MultiVersionIntegrationSpec implements Dir
 
     def "scaladoc produces output"() {
         classes.baseline()
-        buildScript(classes.buildScript())
+        buildFile(classes.buildScript())
 
         when:
         succeeds scaladoc
@@ -63,7 +67,7 @@ class ScalaDocIntegrationTest extends MultiVersionIntegrationSpec implements Dir
         def newScalaVersion = getOtherScalaVersion()
 
         classes.baseline()
-        buildScript(classes.buildScript())
+        buildFile(classes.buildScript())
 
         when:
         succeeds scaladoc
@@ -78,7 +82,8 @@ class ScalaDocIntegrationTest extends MultiVersionIntegrationSpec implements Dir
 
         when:
         this.classes.scalaVersion = newScalaVersion
-        buildScript(this.classes.buildScript())
+        buildFile.clear()
+        buildFile(this.classes.buildScript())
         succeeds scaladoc
         then:
         executedAndNotSkipped scaladoc
@@ -86,7 +91,7 @@ class ScalaDocIntegrationTest extends MultiVersionIntegrationSpec implements Dir
 
     def "scaladoc is loaded from cache"() {
         classes.baseline()
-        buildScript(classes.buildScript())
+        buildFile(classes.buildScript())
 
         when:
         withBuildCache().run scaladoc
@@ -104,7 +109,7 @@ class ScalaDocIntegrationTest extends MultiVersionIntegrationSpec implements Dir
 
     def "scaladoc uses maxMemory"() {
         classes.baseline()
-        buildScript(classes.buildScript())
+        buildFile(classes.buildScript())
         buildFile << """
             scaladoc.maxMemory = '234M'
         """
@@ -122,7 +127,7 @@ class ScalaDocIntegrationTest extends MultiVersionIntegrationSpec implements Dir
         settingsFile << """
             include(':utils')
         """
-        buildScript(classes.buildScript())
+        buildFile(classes.buildScript())
 
         def utilsDir = file("utils")
         def utilsClasses = new ScalaCompilationFixture(utilsDir)
@@ -142,7 +147,7 @@ class ScalaDocIntegrationTest extends MultiVersionIntegrationSpec implements Dir
 
     def "can exclude classes from Scaladoc generation"() {
         classes.baseline()
-        buildScript(classes.buildScript())
+        buildFile(classes.buildScript())
 
         when:
         succeeds scaladoc
@@ -172,7 +177,7 @@ class ScalaDocIntegrationTest extends MultiVersionIntegrationSpec implements Dir
         def jdk11 = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.getJdk(VERSION_11))
 
         classes.baseline()
-        buildScript(classes.buildScript())
+        buildFile(classes.buildScript())
 
         buildFile << """
             tasks.withType(ScalaDoc) {

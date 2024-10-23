@@ -25,11 +25,14 @@ import org.gradle.api.artifacts.transform.InputArtifact;
 import org.gradle.api.artifacts.transform.InputArtifactDependencies;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.internal.DefaultNamedDomainObjectSet;
+import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes;
+import org.gradle.api.internal.plugins.software.SoftwareType;
 import org.gradle.api.internal.project.taskfactory.DefaultTaskClassInfoStore;
 import org.gradle.api.internal.project.taskfactory.TaskClassInfoStore;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
 import org.gradle.api.internal.tasks.properties.InspectionSchemeFactory;
 import org.gradle.api.internal.tasks.properties.TaskScheme;
+import org.gradle.api.internal.tasks.properties.annotations.AbstractOutputPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.CacheableTaskTypeAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.DestroysPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.LocalStatePropertyAnnotationHandler;
@@ -79,6 +82,7 @@ import org.gradle.internal.execution.model.annotations.ModifierAnnotationCategor
 import org.gradle.internal.execution.model.annotations.ServiceReferencePropertyAnnotationHandler;
 import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.internal.instantiation.InstantiatorFactory;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.operations.BuildOperationAncestryTracker;
 import org.gradle.internal.operations.BuildOperationListenerManager;
 import org.gradle.internal.properties.annotations.NestedBeanAnnotationHandler;
@@ -89,6 +93,8 @@ import org.gradle.internal.properties.bean.PropertyWalker;
 import org.gradle.internal.reflect.annotations.TypeAnnotationMetadataStore;
 import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadataStore;
 import org.gradle.internal.scripts.ScriptOrigin;
+import org.gradle.internal.service.Provides;
+import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.util.internal.ConfigureUtil;
 import org.gradle.work.DisableCachingByDefault;
 import org.gradle.work.Incremental;
@@ -98,8 +104,10 @@ import java.lang.annotation.Annotation;
 import java.util.Collection;
 import java.util.List;
 
-@SuppressWarnings("unused")
-public class ExecutionGlobalServices {
+import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.OPTIONAL;
+import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.REPLACES_EAGER_PROPERTY;
+
+public class ExecutionGlobalServices implements ServiceRegistrationProvider {
     @VisibleForTesting
     public static final ImmutableSet<Class<? extends Annotation>> PROPERTY_TYPE_ANNOTATIONS = ImmutableSet.of(
         Console.class,
@@ -117,7 +125,8 @@ public class ExecutionGlobalServices {
         OutputDirectory.class,
         OutputFile.class,
         OutputFiles.class,
-        ServiceReference.class
+        ServiceReference.class,
+        SoftwareType.class
     );
 
     @VisibleForTesting
@@ -126,14 +135,22 @@ public class ExecutionGlobalServices {
         ReplacedBy.class
     );
 
+    @VisibleForTesting
+    public static final ImmutableSet<Class<? extends Annotation>> IGNORED_METHOD_ANNOTATIONS_ALLOWED_MODIFIERS = ImmutableSet.of(
+        ReplacesEagerProperty.class
+    );
+
+    @Provides
     WorkExecutionTracker createWorkExecutionTracker(BuildOperationAncestryTracker ancestryTracker, BuildOperationListenerManager operationListenerManager) {
         return new DefaultWorkExecutionTracker(ancestryTracker, operationListenerManager);
     }
 
+    @Provides
     AnnotationHandlerRegistar createAnnotationRegistry(List<AnnotationHandlerRegistration> registrations) {
         return builder -> registrations.forEach(registration -> builder.addAll(registration.getAnnotations()));
     }
 
+    @Provides
     TypeAnnotationMetadataStore createAnnotationMetadataStore(CrossBuildInMemoryCacheFactory cacheFactory, AnnotationHandlerRegistar annotationRegistry) {
         ImmutableSet.Builder<Class<? extends Annotation>> builder = ImmutableSet.builder();
         builder.addAll(PROPERTY_TYPE_ANNOTATIONS);
@@ -143,7 +160,8 @@ public class ExecutionGlobalServices {
                 CacheableTask.class,
                 CacheableTransform.class,
                 DisableCachingByDefault.class,
-                UntrackedTask.class
+                UntrackedTask.class,
+                RegistersSoftwareTypes.class
             ),
             ModifierAnnotationCategory.asMap(builder.build()),
             ImmutableSet.of(
@@ -170,10 +188,12 @@ public class ExecutionGlobalServices {
                 Property.class
             ),
             IGNORED_METHOD_ANNOTATIONS,
+            IGNORED_METHOD_ANNOTATIONS_ALLOWED_MODIFIERS,
             method -> method.isAnnotationPresent(Generated.class),
             cacheFactory);
     }
 
+    @Provides
     InspectionSchemeFactory createInspectionSchemeFactory(
         List<TypeAnnotationHandler> typeHandlers,
         List<PropertyAnnotationHandler> propertyHandlers,
@@ -183,6 +203,7 @@ public class ExecutionGlobalServices {
         return new InspectionSchemeFactory(typeHandlers, propertyHandlers, typeAnnotationMetadataStore, cacheFactory);
     }
 
+    @Provides
     TaskScheme createTaskScheme(InspectionSchemeFactory inspectionSchemeFactory, InstantiatorFactory instantiatorFactory, AnnotationHandlerRegistar annotationRegistry) {
         InstantiationScheme instantiationScheme = instantiatorFactory.decorateScheme();
         ImmutableSet.Builder<Class<? extends Annotation>> allPropertyTypes = ImmutableSet.builder();
@@ -215,96 +236,124 @@ public class ExecutionGlobalServices {
                 PathSensitive.class,
                 SkipWhenEmpty.class,
                 IgnoreEmptyDirectories.class,
-                NormalizeLineEndings.class
+                NormalizeLineEndings.class,
+                ReplacesEagerProperty.class
             ),
             instantiationScheme);
         return new TaskScheme(instantiationScheme, inspectionScheme);
     }
 
+    @Provides
     PropertyWalker createPropertyWalker(TaskScheme taskScheme) {
         return taskScheme.getInspectionScheme().getPropertyWalker();
     }
 
+    @Provides
     TaskClassInfoStore createTaskClassInfoStore(CrossBuildInMemoryCacheFactory cacheFactory) {
         return new DefaultTaskClassInfoStore(cacheFactory);
     }
 
+    @Provides
     TypeAnnotationHandler createDoNotCacheByDefaultTypeAnnotationHandler() {
         return new DisableCachingByDefaultTypeAnnotationHandler();
     }
 
+    @Provides
     TypeAnnotationHandler createCacheableTaskAnnotationHandler() {
         return new CacheableTaskTypeAnnotationHandler();
     }
 
+    @Provides
     TypeAnnotationHandler createUntrackedAnnotationHandler() {
         return new UntrackedTaskTypeAnnotationHandler();
     }
 
+    @Provides
     PropertyAnnotationHandler createConsoleAnnotationHandler() {
         return new NoOpPropertyAnnotationHandler(Console.class);
     }
 
+    @Provides
     PropertyAnnotationHandler createInternalAnnotationHandler() {
         return new NoOpPropertyAnnotationHandler(Internal.class);
     }
 
+    @Provides
     PropertyAnnotationHandler createServiceReferenceAnnotationHandler() {
         return new ServiceReferencePropertyAnnotationHandler();
     }
 
+    @Provides
     PropertyAnnotationHandler createReplacedByAnnotationHandler() {
         return new NoOpPropertyAnnotationHandler(ReplacedBy.class);
     }
 
+    @Provides
     PropertyAnnotationHandler createOptionValuesAnnotationHandler() {
         return new NoOpPropertyAnnotationHandler(OptionValues.class);
     }
 
+    @Provides
+    PropertyAnnotationHandler createReplacesEagerPropertyAnnotationHandler() {
+        return new NoOpPropertyAnnotationHandler(ReplacesEagerProperty.class);
+    }
+
+    @Provides
     PropertyAnnotationHandler createInputPropertyAnnotationHandler() {
         return new InputPropertyAnnotationHandler();
     }
 
+    @Provides
     PropertyAnnotationHandler createInputFilePropertyAnnotationHandler() {
         return new InputFilePropertyAnnotationHandler();
     }
 
+    @Provides
     PropertyAnnotationHandler createInputFilesPropertyAnnotationHandler() {
         return new InputFilesPropertyAnnotationHandler();
     }
 
+    @Provides
     PropertyAnnotationHandler createInputDirectoryPropertyAnnotationHandler() {
         return new InputDirectoryPropertyAnnotationHandler();
     }
 
-    OutputFilePropertyAnnotationHandler createOutputFilePropertyAnnotationHandler() {
+    @Provides
+    AbstractOutputPropertyAnnotationHandler createOutputFilePropertyAnnotationHandler() {
         return new OutputFilePropertyAnnotationHandler();
     }
 
-    OutputFilesPropertyAnnotationHandler createOutputFilesPropertyAnnotationHandler() {
+    @Provides
+    AbstractOutputPropertyAnnotationHandler createOutputFilesPropertyAnnotationHandler() {
         return new OutputFilesPropertyAnnotationHandler();
     }
 
-    OutputDirectoryPropertyAnnotationHandler createOutputDirectoryPropertyAnnotationHandler() {
+    @Provides
+    AbstractOutputPropertyAnnotationHandler createOutputDirectoryPropertyAnnotationHandler() {
         return new OutputDirectoryPropertyAnnotationHandler();
     }
 
-    OutputDirectoriesPropertyAnnotationHandler createOutputDirectoriesPropertyAnnotationHandler() {
+    @Provides
+    AbstractOutputPropertyAnnotationHandler createOutputDirectoriesPropertyAnnotationHandler() {
         return new OutputDirectoriesPropertyAnnotationHandler();
     }
 
+    @Provides
     PropertyAnnotationHandler createDestroysPropertyAnnotationHandler() {
         return new DestroysPropertyAnnotationHandler();
     }
 
+    @Provides
     PropertyAnnotationHandler createLocalStatePropertyAnnotationHandler() {
         return new LocalStatePropertyAnnotationHandler();
     }
 
+    @Provides
     PropertyAnnotationHandler createNestedBeanPropertyAnnotationHandler() {
-        return new NestedBeanAnnotationHandler(ImmutableSet.of(Optional.class));
+        return new NestedBeanAnnotationHandler(ModifierAnnotationCategory.annotationsOf(OPTIONAL, REPLACES_EAGER_PROPERTY));
     }
 
+    @Provides
     WorkInputListeners createWorkInputListeners(ListenerManager listenerManager) {
         return new DefaultWorkInputListeners(listenerManager);
     }
@@ -313,10 +362,12 @@ public class ExecutionGlobalServices {
         Collection<Class<? extends Annotation>> getAnnotations();
     }
 
+    @ServiceScope(Scope.Global.class)
     interface AnnotationHandlerRegistar {
         void registerPropertyTypeAnnotations(ImmutableSet.Builder<Class<? extends Annotation>> builder);
     }
 
+    @Provides
     ImmutableWorkspaceMetadataStore createImmutableWorkspaceMetadataStore() {
         return new DefaultImmutableWorkspaceMetadataStore();
     }

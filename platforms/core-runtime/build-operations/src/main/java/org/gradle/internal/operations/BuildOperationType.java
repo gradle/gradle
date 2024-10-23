@@ -18,47 +18,48 @@ package org.gradle.internal.operations;
 
 /**
  * A type token for a type of a rich build operation that provides structured metadata.
- *
+ * <p>
  * The type tokens indicate the type of details and result objects associated with operations of this type.
- * The type token should be a non-instantiable and non extensible class.
- *
+ * The type token should be a non-instantiable and non-extensible class.
+ * <p>
  * The producer side APIs in Gradle do not currently enforce (at compile-time or run-time) details or result types.
  * Over time, they will be evolved to enforce usage of correct types.
- *
+ * <p>
  * Currently, the only reason to use structured details/results objects is to expose
  * information to the build scan plugin.
  * The build scan plugin will use the details and result types,
  * but will not link against the containing BuildOperationType type.
  * It is only used on the producer side.
- *
+ * <p>
  * The details object should effectively provide the identifying context for the operation.
  * This is information that is known before the operation is executed.
- *
+ * <p>
  * The result object should convey the outcome.
  * This is information that is known after the operation is executed.
- *
+ * <p>
  * These details and result types need to maintain backwards binary compatibility.
  * They should be interfaces with minimal dependencies, and should avoid internal Gradle types.
  * The convention for these types is to make them inner types of the BuildOperationType token type,
  * named {@code Details} and {@code Result}.
  * However, this is not required – the types can go anywhere.
- *
+ * <p>
  * The information exposed by details and results objects ultimately needs to be serialized.
- * As such, these objects should be designed for serialization to non Java formats (e.g. JSON).
- *
- * - Should be practically immutable
- * - Should only expose primitive(ish) JDK types, or other structured types only exposing JDK types
- * - Collection like structures should have deterministic order - either sorted, or meaningful
- * - Should expose either java.util.List or java.util.Map over specialised collection types
- *
+ * As such, these objects should be designed for serialization to non-Java formats (e.g. JSON).
+ * <ul>
+ *  <li>Should be practically immutable
+ *  <li>Should only expose primitive(ish) JDK types, or other structured types only exposing JDK types
+ *  <li>Collection like structures should have deterministic order - either sorted, or meaningful
+ *  <li>Should expose either java.util.List or java.util.Map over specialised collection types
+ * </ul>
+ * <p>
  * Implementations can assume that their getters will be called at-most-once.
- *
+ * <p>
  * The lifecycle of details and result objects are effectively undetermined.
  * The build scan plugin will retain the objects for a short time after the operation has
  * completed, in order to "process" them on a separate thread.
  * It can be assumed that this processing happens relatively quickly,
  * after which the objects are no longer retained.
- *
+ * <p>
  * Consideration should be given to the package space of the details and result types.
  * They should be housed in a logical package space, which may not be the same as the class
  * that executes the actual operation being represented, as often that is internal detail that may change.

@@ -83,9 +83,10 @@ class GradleImplDepsConcurrencyIntegrationTest extends BaseGradleImplDepsIntegra
             }
 
             task resolveDependencies {
+                def files = configurations.gradleImplDeps
+                def outputFile = file('deps.txt')
                 doLast {
-                    def files = configurations.gradleImplDeps.resolve()
-                    file('deps.txt').text = files.collect {
+                    outputFile.text = files.collect {
                         org.gradle.internal.hash.Hashing.md5().hashFile(it).toString()
                     }.join(',')
                 }

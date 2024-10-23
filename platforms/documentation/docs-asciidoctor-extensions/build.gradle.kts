@@ -11,7 +11,7 @@ dependencies {
     api("org.asciidoctor:asciidoctorj:$asciiDoctorVersion")
 
     implementation("commons-io:commons-io:2.11.0")
-    implementation(project(":docs-asciidoctor-extensions-base"))
+    implementation(projects.docsAsciidoctorExtensionsBase)
 }
 
 java {

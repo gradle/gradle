@@ -19,6 +19,8 @@ package org.gradle.internal.execution.model;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.internal.fingerprint.FileNormalizer;
 
+import java.util.Locale;
+
 // TODO Break this up between simple normalizers and Java classpath normalizers
 //      The latter should be moved to :normalization-java
 public enum InputNormalizer implements FileNormalizer {
@@ -34,7 +36,7 @@ public enum InputNormalizer implements FileNormalizer {
 
     InputNormalizer(boolean ignoreDirectories) {
         this.ignoreDirectories = ignoreDirectories;
-        this.description = name().toLowerCase().replace('_', ' ');
+        this.description = name().toLowerCase(Locale.ROOT).replace('_', ' ');
     }
 
     public static FileNormalizer determineNormalizerForPathSensitivity(PathSensitivity pathSensitivity) {

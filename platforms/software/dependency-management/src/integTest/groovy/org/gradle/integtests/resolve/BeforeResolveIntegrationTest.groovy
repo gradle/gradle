@@ -367,4 +367,47 @@ task resolveDependencies {
         executer.expectDocumentedDeprecationWarning("Mutating the dependencies of configuration ':implementation' after it has been resolved or consumed. This behavior has been deprecated. This will fail with an error in Gradle 9.0. After a Configuration has been resolved, consumed as a variant, or used for generating published metadata, it should not be modified. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutate_configuration_after_locking")
         succeeds("resolve")
     }
+
+    @Issue("https://github.com/gradle/gradle/issues/27947")
+    def "exclude added in beforeResolve is not ignored"() {
+        mavenRepo.module("org", "direct")
+            .dependsOn(mavenRepo.module("org", "transitive").publish())
+            .publish()
+
+        buildFile << """
+            ${mavenTestRepository()}
+
+            configurations {
+                dependencyScope("implementation")
+                consumable("default") {
+                    extendsFrom(implementation)
+                }
+                resolvable("runtimeClasspath") {
+                    extendsFrom(implementation)
+                }
+            }
+
+            configurations.runtimeClasspath.incoming.beforeResolve {
+                dependencies.find { it instanceof ExternalModuleDependency && it.name.contains("direct") }
+                            .exclude(group: "org", module: "transitive")
+            }
+
+            dependencies {
+                implementation(project)
+                implementation("org:direct:1.0")
+            }
+
+            task resolve {
+                dependsOn(configurations.runtimeClasspath)
+                def files = configurations.runtimeClasspath
+                doLast {
+                    assert(!files*.name.contains("transitive-1.0.jar"))
+                }
+            }
+        """
+
+        expect:
+        executer.expectDocumentedDeprecationWarning("Mutating the dependency attributes of configuration ':implementation' after it has been resolved or consumed. This behavior has been deprecated. This will fail with an error in Gradle 9.0. After a Configuration has been resolved, consumed as a variant, or used for generating published metadata, it should not be modified. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutate_configuration_after_locking")
+        succeeds("resolve")
+    }
 }

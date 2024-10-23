@@ -16,6 +16,7 @@
 package org.gradle.api.artifacts;
 
 import org.gradle.api.Describable;
+import org.gradle.internal.HasInternalProtocol;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
 import javax.annotation.Nullable;
@@ -26,7 +27,7 @@ import java.util.List;
  * Each of {@link #getPreferredVersion()}, {@link #getRequiredVersion()} and {@link #getStrictVersion()} is represented by a version String,
  * that can be compared against a module version to determine if the version matches.
  *
- * <h4>Version syntax</h4>
+ * <h2>Version syntax</h2>
  * <p>
  * Gradle supports different ways of declaring a version String:
  * <ul>
@@ -52,7 +53,7 @@ import java.util.List;
  *     <li>A Maven SNAPSHOT version identifier: e.g. 1.0-SNAPSHOT, 1.4.9-beta1-SNAPSHOT</li>
  * </ul>
  *
- * <h4>Version ordering</h4>
+ * <h2>Version ordering</h2>
  *
  * Versions have an implicit ordering. Version ordering is used to:
  * <ul>
@@ -92,6 +93,7 @@ import java.util.List;
  * @since 4.4
  */
 @UsedByScanPlugin
+@HasInternalProtocol
 public interface VersionConstraint extends Describable {
     /**
      * The branch to select versions from. When not {@code null} selects only those versions that were built from the specified branch.

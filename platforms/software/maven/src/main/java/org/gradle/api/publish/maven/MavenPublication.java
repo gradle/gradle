@@ -20,7 +20,9 @@ import org.gradle.api.Action;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.VersionMappingStrategy;
+import org.gradle.api.tasks.Nested;
 import org.gradle.internal.HasInternalProtocol;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 /**
  * A {@code MavenPublication} is the representation/configuration of how Gradle should publish something in Maven format.
@@ -55,8 +57,9 @@ import org.gradle.internal.HasInternalProtocol;
  * method or directly by an action (or closure) passed into {@link #pom(org.gradle.api.Action)}.
  * As a last resort, it is possible to modify the generated POM using the {@link MavenPom#withXml(org.gradle.api.Action)} method.
  * </p>
- * <h4>Example of publishing a Java module with a source artifact and a customized POM</h4>
+ *
  * <pre class='autoTested'>
+ * // Example of publishing a Java module with a source artifact and a customized POM
  * plugins {
  *     id 'java'
  *     id 'maven-publish'
@@ -110,6 +113,7 @@ public interface MavenPublication extends Publication {
      *
      * @return The POM that will be published.
      */
+    @Nested
     MavenPom getPom();
 
     /**
@@ -268,6 +272,7 @@ public interface MavenPublication extends Publication {
     /**
      * Returns the groupId for this publication.
      */
+    @ToBeReplacedByLazyProperty
     String getGroupId();
 
     /**
@@ -278,6 +283,7 @@ public interface MavenPublication extends Publication {
     /**
      * Returns the artifactId for this publication.
      */
+    @ToBeReplacedByLazyProperty
     String getArtifactId();
 
     /**
@@ -288,6 +294,7 @@ public interface MavenPublication extends Publication {
     /**
      * Returns the version for this publication.
      */
+    @ToBeReplacedByLazyProperty
     String getVersion();
 
     /**

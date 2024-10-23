@@ -22,6 +22,8 @@ import org.junit.Rule
 import spock.lang.Specification
 
 import static BuildSrcDetector.isValidBuildSrcBuild
+import static org.gradle.internal.scripts.ScriptFileUtil.getValidBuildFileNames
+import static org.gradle.internal.scripts.ScriptFileUtil.getValidSettingsFileNames
 
 class BuildSrcDetectorTest extends Specification {
 
@@ -77,6 +79,6 @@ class BuildSrcDetectorTest extends Specification {
         isValidBuildSrcBuild(buildSrcDir)
 
         where:
-        fileName << ["build.gradle", "build.gradle.kts", "settings.gradle", "settings.gradle.kts"]
+        fileName << getValidSettingsFileNames() + getValidBuildFileNames()
     }
 }

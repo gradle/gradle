@@ -690,7 +690,7 @@ dependencies {
 Searched in the following locations:
   - ${m.pom.uri}
 Required by:
-    project :""")
+    root project :""")
         failure.assertHasResolutions(repositoryHint("Maven POM"),
             STACKTRACE_MESSAGE,
             INFO_DEBUG,

@@ -23,6 +23,8 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.internal.HasInternalProtocol;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
  * <p>A {@code ConfigurationContainer} is responsible for declaring and managing configurations. See also {@link Configuration}.</p>
@@ -95,6 +97,7 @@ import org.gradle.internal.HasInternalProtocol;
  * Please see the <a href="https://docs.gradle.org/current/userguide/declaring_dependencies.html#sec:what-are-dependency-configurations" target="_top">Managing Dependency Configurations</a> User Manual chapter for more information.
  */
 @HasInternalProtocol
+@ServiceScope(Scope.Project.class)
 public interface ConfigurationContainer extends NamedDomainObjectContainer<Configuration> {
     /**
      * {@inheritDoc}

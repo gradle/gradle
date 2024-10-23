@@ -20,8 +20,10 @@ import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.FileSystemLocationProperty;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
+import org.gradle.api.internal.file.FileSystemLocationPropertyInternal;
 import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.api.provider.HasMultipleValues;
 import org.gradle.api.provider.MapProperty;
@@ -42,7 +44,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
-import static org.gradle.util.internal.GUtil.uncheckedCall;
+import static org.gradle.internal.UncheckedException.uncheckedCall;
 
 @SuppressWarnings({"deprecation", "FieldNamingConvention"})
 public class ConventionAwareHelper implements ConventionMapping, org.gradle.api.internal.HasConvention {
@@ -83,7 +85,8 @@ public class ConventionAwareHelper implements ConventionMapping, org.gradle.api.
                     throw new IllegalStateException(String.format("Could not access property %s.%s", sourceType.getSimpleName(), propertyName), e);
                 }
                 if (!mapConventionOn(target, mapping)) {
-                    throw new IllegalStateException(String.format("Unexpected convention-supporting type used in property %s.%s", sourceType.getSimpleName(), propertyName, getter.getReturnType().getName()));
+                    throw new IllegalStateException(String.format(
+                        "Unexpected convention-supporting type %s used in property %s.%s", getter.getReturnType().getName(), sourceType.getSimpleName(), propertyName));
                 }
             } else {
                 throw DocumentedFailure.builder()
@@ -98,7 +101,10 @@ public class ConventionAwareHelper implements ConventionMapping, org.gradle.api.
     }
 
     private boolean mapConventionOn(SupportsConvention target, MappedPropertyImpl mapping) {
-        if (target instanceof Property) {
+        if (target instanceof FileSystemLocationProperty) {
+            FileSystemLocationPropertyInternal<?> asFileSystemLocationProperty = Cast.uncheckedNonnullCast(target);
+            asFileSystemLocationProperty.conventionFromAnyFile(new DefaultProvider<>(() -> mapping.getValue(_convention, _source)));
+        } else if (target instanceof Property) {
             Property<Object> asProperty = Cast.uncheckedNonnullCast(target);
             asProperty.convention(new DefaultProvider<>(() -> mapping.getValue(_convention, _source)));
         } else if (target instanceof MapProperty) {

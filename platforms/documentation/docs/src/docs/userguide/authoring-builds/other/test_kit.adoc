@@ -18,7 +18,7 @@
 The Gradle TestKit (a.k.a. just TestKit) is a library that aids in testing Gradle plugins and build logic generally. At this time, it is focused on _functional_ testing. That is, testing build logic by exercising it as part of a programmatically executed build. Over time, the TestKit will likely expand to facilitate other kinds of tests.
 
 [[sec:testkit_usage]]
-== Usage
+== Using TestKit
 
 To use the TestKit, include the following in your plugin's build:
 
@@ -149,7 +149,7 @@ The TestKit provides two ways to specify a location that is regularly cleaned, s
 * The link:{javadocPath}/org/gradle/testkit/runner/GradleRunner.html#withTestKitDir-java.io.File-[GradleRunner.withTestKitDir(file testKitDir)] method.
 
 [[sub:gradle-runner-gradle-version]]
-== The Gradle version used to test
+== Setting the Gradle version used to test
 
 The Gradle runner requires a Gradle distribution in order to execute the build. The TestKit does not depend on all of Gradle's implementation.
 

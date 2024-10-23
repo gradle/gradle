@@ -19,7 +19,7 @@ package org.gradle.internal.classpath;
 import org.gradle.api.GradleException;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.internal.GFileUtils;
 
@@ -39,7 +39,7 @@ import java.nio.file.StandardCopyOption;
  * otherwise this implementation can help you to avoid having partially written files.
  */
 @NonNullApi
-@ServiceScope(Scopes.UserHome.class)
+@ServiceScope(Scope.UserHome.class)
 public class DefaultClasspathBuilder implements ClasspathBuilder {
 
     private final TemporaryFileProvider temporaryFileProvider;

@@ -18,12 +18,9 @@ package org.gradle.integtests.tooling.r410
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.model.gradle.GradleBuild
 
-
 class GradleBuildModelCrossVersionSpec extends ToolingApiSpecification {
-    @ToolingApiVersion(">=3.3")
     @TargetGradleVersion(">=4.10")
     def "nested included builds are visible only in the model of the containing build"() {
         given:
@@ -61,7 +58,6 @@ class GradleBuildModelCrossVersionSpec extends ToolingApiSpecification {
         buildC.includedBuilds.empty
     }
 
-    @ToolingApiVersion(">=4.10")
     @TargetGradleVersion(">=4.10")
     def "root build model exposes all builds that participate in the composite when nested included builds are present"() {
         given:
@@ -95,7 +91,6 @@ class GradleBuildModelCrossVersionSpec extends ToolingApiSpecification {
         buildC.editableBuilds.empty
     }
 
-    @ToolingApiVersion(">=4.10")
     @TargetGradleVersion(">=3.3")
     def "root build model exposes all builds that participate in the composite"() {
         given:

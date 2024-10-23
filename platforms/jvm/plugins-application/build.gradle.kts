@@ -16,29 +16,32 @@
 
 plugins {
     id("gradlebuild.distribution.api-java")
+    id("gradlebuild.instrumented-java-project")
 }
 
 description = "Contains the Application plugin, and its supporting classes.  This plugin is used for creating runnable Java application projects."
 
 dependencies {
-    api(project(":core"))
-    api(project(":core-api"))
+    api(projects.core)
+    api(projects.coreApi)
 
     api(libs.inject)
     api(libs.jsr305)
 
-    implementation(project(":base-annotations"))
-    implementation(project(":base-services"))
-    implementation(project(":language-java"))
-    implementation(project(":language-jvm"))
-    implementation(project(":logging"))
-    implementation(project(":model-core"))
-    implementation(project(":platform-jvm"))
-    implementation(project(":plugins-distribution"))
-    implementation(project(":plugins-java"))
-    implementation(project(":plugins-java-base"))
-    implementation(project(":process-services"))
-    implementation(project(":toolchains-jvm"))
+    implementation(projects.baseServices)
+    implementation(projects.fileOperations)
+    implementation(projects.languageJava)
+    implementation(projects.languageJvm)
+    implementation(projects.logging)
+    implementation(projects.modelCore)
+    implementation(projects.platformJvm)
+    implementation(projects.pluginsDistribution)
+    implementation(projects.pluginsJava)
+    implementation(projects.pluginsJavaBase)
+    implementation(projects.processServices)
+    implementation(projects.stdlibJavaExtensions)
+    implementation(projects.toolchainsJvm)
+    implementation(projects.toolchainsJvmShared)
 
     implementation(libs.ant)
     implementation(libs.commonsLang)
@@ -46,19 +49,19 @@ dependencies {
     implementation(libs.groovyTemplates)
     implementation(libs.guava)
 
-    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(projects.core))
 
-    integTestImplementation(testFixtures(project(":enterprise-operations")))
-    integTestImplementation(testFixtures(project(":language-java")))
-    integTestImplementation(testFixtures(project(":model-core")))
-    integTestImplementation(testFixtures(project(":plugins-java")))
-    integTestImplementation(testFixtures(project(":plugins-java-base")))
-    integTestImplementation(testFixtures(project(":resources-http")))
+    integTestImplementation(testFixtures(projects.enterpriseOperations))
+    integTestImplementation(testFixtures(projects.languageJava))
+    integTestImplementation(testFixtures(projects.modelCore))
+    integTestImplementation(testFixtures(projects.pluginsJava))
+    integTestImplementation(testFixtures(projects.pluginsJavaBase))
+    integTestImplementation(testFixtures(projects.resourcesHttp))
 
-    testRuntimeOnly(project(":distributions-core")) {
+    testRuntimeOnly(projects.distributionsCore) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
-    integTestDistributionRuntimeOnly(project(":distributions-jvm"))
+    integTestDistributionRuntimeOnly(projects.distributionsJvm)
 }
 
 packageCycles {
@@ -67,3 +70,6 @@ packageCycles {
 
 integTest.usesJavadocCodeSnippets = true
 testFilesCleanup.reportOnly = true
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

@@ -4,29 +4,21 @@ plugins {
 
 description = "Implementation for interacting with repositories over HTTP"
 
-errorprone {
-    disabledChecks.addAll(
-        "StringCaseLocaleUsage", // 2 occurrences
-        "UnusedMethod", // 4 occurrences
-        "UnusedVariable", // 1 occurrences
-    )
-}
-
 dependencies {
-    api(project(":base-annotations"))
-    api(project(":base-services"))
-    api(project(":core-api"))
-    api(project(":core"))
-    api(project(":logging"))
-    api(project(":resources"))
+    api(projects.stdlibJavaExtensions)
+    api(projects.serviceProvider)
+    api(projects.coreApi)
+    api(projects.core)
+    api(projects.logging)
+    api(projects.resources)
 
     api(libs.commonsHttpclient)
     api(libs.httpcore)
     api(libs.jsr305)
 
-    implementation(project(":hashing"))
-    implementation(project(":logging-api"))
-    implementation(project(":model-core"))
+    implementation(projects.baseServices)
+    implementation(projects.hashing)
+    implementation(projects.loggingApi)
 
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)
@@ -35,15 +27,18 @@ dependencies {
     implementation(libs.jsoup)
     implementation(libs.slf4jApi)
 
-    testImplementation(project(":internal-integ-testing"))
+    testImplementation(projects.internalIntegTesting)
     testImplementation(libs.jettyWebApp)
-    testImplementation(testFixtures(project(":core")))
-    testImplementation(testFixtures(project(":logging")))
+    testImplementation(testFixtures(projects.core))
+    testImplementation(testFixtures(projects.logging))
 
-    testFixturesImplementation(project(":base-services"))
-    testFixturesImplementation(project(":logging"))
-    testFixturesImplementation(project(":internal-integ-testing"))
+    testFixturesImplementation(projects.baseServices)
+    testFixturesImplementation(projects.logging)
+    testFixturesImplementation(projects.internalIntegTesting)
     testFixturesImplementation(libs.slf4jApi)
 
-    integTestDistributionRuntimeOnly(project(":distributions-core"))
+    integTestDistributionRuntimeOnly(projects.distributionsCore)
+}
+tasks.isolatedProjectsIntegTest {
+    enabled = false
 }

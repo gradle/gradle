@@ -18,11 +18,12 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult;
 
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.DefaultResolvedDependency;
 import org.gradle.api.internal.artifacts.DependencyGraphNodeResult;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
-import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
-import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifierSerializer;
+import org.gradle.api.internal.artifacts.ModuleVersionIdentifierSerializer;
+import org.gradle.api.internal.artifacts.configurations.ResolutionHost;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactResults;
 import org.gradle.api.logging.Logger;
@@ -58,22 +59,31 @@ public class TransientConfigurationResultsBuilder {
 
     private final BinaryStore binaryStore;
     private final Store<TransientConfigurationResults> cache;
-    private final BuildOperationExecutor buildOperationProcessor;
-    private final ResolvedConfigurationIdentifierSerializer resolvedConfigurationIdentifierSerializer;
+    private final BuildOperationExecutor buildOperationExecutor;
+    private final ResolutionHost resolutionHost;
+    private final ModuleVersionIdentifierSerializer moduleVersionIdSerializer;
     private BinaryStore.BinaryData binaryData;
 
-    public TransientConfigurationResultsBuilder(BinaryStore binaryStore, Store<TransientConfigurationResults> cache, ImmutableModuleIdentifierFactory moduleIdentifierFactory, BuildOperationExecutor buildOperationProcessor) {
-        this.resolvedConfigurationIdentifierSerializer = new ResolvedConfigurationIdentifierSerializer(moduleIdentifierFactory);
+    public TransientConfigurationResultsBuilder(
+        BinaryStore binaryStore,
+        Store<TransientConfigurationResults> cache,
+        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+        BuildOperationExecutor buildOperationExecutor,
+        ResolutionHost resolutionHost
+    ) {
+        this.moduleVersionIdSerializer = new ModuleVersionIdentifierSerializer(moduleIdentifierFactory);
         this.binaryStore = binaryStore;
         this.cache = cache;
-        this.buildOperationProcessor = buildOperationProcessor;
+        this.buildOperationExecutor = buildOperationExecutor;
+        this.resolutionHost = resolutionHost;
     }
 
-    public void resolvedDependency(final Long id, final ResolvedConfigurationIdentifier details) {
+    public void resolvedDependency(final Long id, ModuleVersionIdentifier moduleVersionId, String variantName) {
         binaryStore.write(encoder -> {
             encoder.writeByte(NODE);
             encoder.writeSmallLong(id);
-            resolvedConfigurationIdentifierSerializer.write(encoder, details);
+            moduleVersionIdSerializer.write(encoder, moduleVersionId);
+            encoder.writeString(variantName);
         });
     }
 
@@ -114,7 +124,7 @@ public class TransientConfigurationResultsBuilder {
         synchronized (lock) {
             return cache.load(() -> {
                 try {
-                    return binaryData.read(decoder -> deserialize(decoder, graphResults, artifactResults, buildOperationProcessor));
+                    return binaryData.read(decoder -> deserialize(decoder, graphResults, artifactResults, buildOperationExecutor, resolutionHost));
                 } finally {
                     try {
                         binaryData.close();
@@ -126,7 +136,13 @@ public class TransientConfigurationResultsBuilder {
         }
     }
 
-    private TransientConfigurationResults deserialize(Decoder decoder, ResolvedGraphResults graphResults, SelectedArtifactResults artifactResults, BuildOperationExecutor buildOperationProcessor) {
+    private TransientConfigurationResults deserialize(
+        Decoder decoder,
+        ResolvedGraphResults graphResults,
+        SelectedArtifactResults artifactResults,
+        BuildOperationExecutor buildOperationProcessor,
+        ResolutionHost resolutionHost
+    ) {
         Timer clock = Time.startTimer();
         Map<Long, DefaultResolvedDependency> allDependencies = new HashMap<>();
         Map<Dependency, DependencyGraphNodeResult> firstLevelDependencies = new LinkedHashMap<>();
@@ -142,8 +158,9 @@ public class TransientConfigurationResultsBuilder {
                 switch (type) {
                     case NODE:
                         id = decoder.readSmallLong();
-                        ResolvedConfigurationIdentifier details = resolvedConfigurationIdentifierSerializer.read(decoder);
-                        allDependencies.put(id, new DefaultResolvedDependency(details, buildOperationProcessor));
+                        ModuleVersionIdentifier moduleVersionId = moduleVersionIdSerializer.read(decoder);
+                        String variantName = decoder.readString();
+                        allDependencies.put(id, new DefaultResolvedDependency(variantName, moduleVersionId, buildOperationProcessor, resolutionHost));
                         break;
                     case ROOT:
                         id = decoder.readSmallLong();

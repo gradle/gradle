@@ -16,12 +16,15 @@
 
 package org.gradle.internal.build.event.types;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.tooling.internal.protocol.events.InternalJvmTestDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalOperationDescriptor;
 
+import javax.annotation.Nullable;
 import java.io.Serializable;
 
+@NonNullApi
 public class DefaultTestDescriptor implements Serializable, InternalJvmTestDescriptor, InternalOperationDescriptor {
 
     private final OperationIdentifier id;
@@ -41,9 +44,9 @@ public class DefaultTestDescriptor implements Serializable, InternalJvmTestDescr
         String operationDisplayName,
         String displayName,
         String testKind,
-        String suiteName,
-        String className,
-        String methodName,
+        @Nullable String suiteName,
+        @Nullable String className,
+        @Nullable String methodName,
         OperationIdentifier parentId,
         String taskPath
     ) {
@@ -85,16 +88,19 @@ public class DefaultTestDescriptor implements Serializable, InternalJvmTestDescr
     }
 
     @Override
+    @Nullable
     public String getSuiteName() {
         return suiteName;
     }
 
     @Override
+    @Nullable
     public String getClassName() {
         return className;
     }
 
     @Override
+    @Nullable
     public String getMethodName() {
         return methodName;
     }

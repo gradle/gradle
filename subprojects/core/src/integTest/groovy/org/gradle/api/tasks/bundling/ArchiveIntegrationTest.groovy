@@ -19,6 +19,7 @@ import org.apache.commons.lang.RandomStringUtils
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.tasks.Copy
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
 import org.gradle.test.fixtures.archive.ArchiveTestFixture
 import org.gradle.test.fixtures.archive.TarTestFixture
@@ -31,6 +32,7 @@ import org.hamcrest.CoreMatchers
 import org.junit.Rule
 import spock.lang.Issue
 
+import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
 import static org.hamcrest.CoreMatchers.equalTo
 
 @TestReproducibleArchives
@@ -319,6 +321,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         run 'myTar'
     }
 
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "can choose compression method for tarTree"() {
         given:
         TestFile tar = file('tar-contents')

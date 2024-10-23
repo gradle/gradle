@@ -16,7 +16,7 @@
 
 package org.gradle.internal.operations;
 
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
@@ -35,7 +35,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
  *
  * @since 3.5
  */
-@ServiceScope(Scopes.Global.class)
+@ServiceScope(Scope.Global.class)
 public interface BuildOperationListenerManager {
 
     void addListener(BuildOperationListener listener);

@@ -536,6 +536,9 @@
                 <td>org.gradle.api.tasks.scala.ScalaDoc</td>
             </tr>
             <tr>
+                <td>org.gradle.buildconfiguration.tasks.UpdateDaemonJvm</td>
+            </tr>
+            <tr>
                 <td>org.gradle.buildinit.tasks.InitBuild</td>
             </tr>
             <tr>

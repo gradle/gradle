@@ -25,4 +25,15 @@ public interface NodeExecutionContext {
      * Locates the given execution service.
      */
     <T> T getService(Class<T> type) throws ServiceLookupException;
+
+    /**
+     * Whether this context is coming from an execution graph.
+     * <p>
+     * For ad-hoc execution of nodes we use the global context and not the context that would be created as
+     * part of executing the execution graph. This is happening when a node value is requested
+     * without scheduling and executing the node first.
+     */
+    default boolean isPartOfExecutionGraph() {
+        return true;
+    }
 }

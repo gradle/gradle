@@ -17,6 +17,7 @@
 package org.gradle.api.publish.ivy;
 
 import org.gradle.api.publish.PublicationArtifact;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 import javax.annotation.Nullable;
 
@@ -28,6 +29,7 @@ public interface IvyArtifact extends PublicationArtifact {
      * The name used to publish the artifact file, never <code>null</code>.
      * Defaults to the name of the module that this artifact belongs to.
      */
+    @ToBeReplacedByLazyProperty
     String getName();
 
     /**
@@ -39,6 +41,7 @@ public interface IvyArtifact extends PublicationArtifact {
     /**
      * The type used to publish the artifact file, never <code>null</code>.
      */
+    @ToBeReplacedByLazyProperty
     String getType();
 
     /**
@@ -51,6 +54,7 @@ public interface IvyArtifact extends PublicationArtifact {
      * The extension used to publish the artifact file, never <code>null</code>.
      * For an artifact without an extension, this value will be an empty String.
      */
+    @ToBeReplacedByLazyProperty
     String getExtension();
 
     /**
@@ -64,6 +68,7 @@ public interface IvyArtifact extends PublicationArtifact {
      * A <code>null</code> value (the default) indicates that this artifact will be published without a classifier.
      */
     @Nullable
+    @ToBeReplacedByLazyProperty
     String getClassifier();
 
     /**
@@ -79,6 +84,7 @@ public interface IvyArtifact extends PublicationArtifact {
      * @return The value of 'conf' for this artifact.
      */
     @Nullable
+    @ToBeReplacedByLazyProperty
     String getConf();
 
     /**

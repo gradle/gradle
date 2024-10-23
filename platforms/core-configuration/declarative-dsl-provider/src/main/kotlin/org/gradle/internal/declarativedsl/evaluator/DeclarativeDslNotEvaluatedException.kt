@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,121 +16,13 @@
 
 package org.gradle.internal.declarativedsl.evaluator
 
-import org.gradle.internal.declarativedsl.analysis.ErrorReason
-import org.gradle.internal.declarativedsl.analysis.ResolutionError
-import org.gradle.internal.declarativedsl.language.LanguageTreeElement
-import org.gradle.internal.declarativedsl.language.SourceData
-import org.gradle.internal.declarativedsl.objectGraph.AssignmentTraceElement
-import org.gradle.api.GradleException
-import org.gradle.groovy.scripts.ScriptSource
-import org.gradle.internal.declarativedsl.evaluator.DeclarativeKotlinScriptEvaluator.EvaluationResult.NotEvaluated.StageFailure
-import org.gradle.internal.declarativedsl.language.ParsingError
-import org.gradle.internal.declarativedsl.language.SingleFailureResult
-import org.gradle.internal.declarativedsl.language.UnsupportedConstruct
+import org.gradle.internal.declarativedsl.evaluator.runner.EvaluationResult.NotEvaluated.StageFailure
 
 
-internal
 class DeclarativeDslNotEvaluatedException(
-    private val scriptSource: ScriptSource,
+    private val scriptSourceIdentifier: String,
     private val stageFailures: List<StageFailure>
-) : GradleException() {
+) : Exception() {
     override val message: String
-        get() = buildString {
-            appendLine("Failed to interpret the declarative DSL file '${scriptSource.fileName}':")
-            stageFailures.forEach { stageFailure ->
-                when (stageFailure) {
-                    is StageFailure.FailuresInLanguageTree -> {
-                        appendLine("Failures in building the language tree:".indent(1))
-                        if (stageFailure.failures.isNotEmpty()) {
-                            formatFailuresInLanguageTree(stageFailure.failures).forEach {
-                                appendLine(it.indent(2))
-                            }
-                        }
-                    }
-
-                    is StageFailure.FailuresInResolution -> {
-                        appendLine("Failures in resolution:".indent(1))
-                        stageFailure.errors.forEach {
-                            appendLine(formatResolutionError(it).indent(2))
-                        }
-                    }
-
-                    StageFailure.NoParseResult -> appendLine("Failed to parse due to syntax errors")
-                    is StageFailure.NoSchemaAvailable -> appendLine("No associated schema for ${stageFailure.target}")
-                    is StageFailure.UnassignedValuesUsed -> {
-                        appendLine("Unassigned value usages".indent(1))
-                        stageFailure.usages.forEach { unassigned ->
-                            appendLine(describedUnassignedValueUsage(unassigned).indent(2))
-                        }
-                    }
-                }
-            }
-        }
-
-    private
-    fun formatFailuresInLanguageTree(failures: List<SingleFailureResult>): List<String> = buildList {
-        failures.forEach { failure ->
-            when (failure) {
-                is UnsupportedConstruct -> add(formatUnsupportedConstruct(failure))
-                is ParsingError -> add(formatParsingError(failure))
-            }
-        }
-    }
-
-    private
-    fun formatUnsupportedConstruct(unsupportedConstruct: UnsupportedConstruct) =
-        // TODO: use a proper phrase instead of the feature enum value name
-        "${locationPrefixString(unsupportedConstruct.erroneousSource)}: unsupported language feature: ${unsupportedConstruct.languageFeature}"
-
-    private
-    fun formatParsingError(parsingError: ParsingError) =
-        "${locationPrefixString(parsingError.erroneousSource)}: parsing error: ${parsingError.message}"
-
-
-    private
-    fun formatResolutionError(resolutionError: ResolutionError): String =
-        elementLocationString(resolutionError.element) + ": " + describeResolutionErrorReason(resolutionError.errorReason)
-
-    private
-    fun describeResolutionErrorReason(errorReason: ErrorReason) = when (errorReason) {
-        is ErrorReason.AmbiguousFunctions ->
-            "ambiguous functions: " +
-                errorReason.functions.joinToString(",") { resolution ->
-                    resolution.schemaFunction.simpleName + "(" + resolution.binding.binding.keys.joinToString { it.name?.plus(": ").orEmpty() + it.type } + ")"
-                }
-
-        is ErrorReason.AmbiguousImport -> "ambiguous import '${errorReason.fqName}'"
-        is ErrorReason.AssignmentTypeMismatch -> "assignment type mismatch, expected '${errorReason.expected}', got '${errorReason.actual}'"
-        ErrorReason.DanglingPureExpression -> "dangling pure expression"
-        is ErrorReason.DuplicateLocalValue -> "duplicate local 'val ${errorReason.name}'"
-        is ErrorReason.ExternalReassignment -> "assignment to external property"
-        ErrorReason.MissingConfigureLambda -> "a configuring block expected but not found"
-        is ErrorReason.ReadOnlyPropertyAssignment -> "assignment to read-only property '${errorReason.property.name}"
-        ErrorReason.UnitAssignment -> "assignment of a Unit value"
-        ErrorReason.UnresolvedAssignmentLhs -> "unresolved assignment target"
-        ErrorReason.UnresolvedAssignmentRhs -> "unresolved assigned value"
-        is ErrorReason.UnresolvedReference -> "unresolved reference '${errorReason.reference.sourceData.text()}'"
-        ErrorReason.UnusedConfigureLambda -> "a configuring block is not expected"
-        is ErrorReason.ValReassignment -> "assignment to a local 'val ${errorReason.localVal.name}'"
-        is ErrorReason.UnresolvedFunctionCallArguments -> "unresolved function call arguments for '${errorReason.functionCall.name}'"
-        is ErrorReason.UnresolvedFunctionCallReceiver -> "unresolved function call receiver for '${errorReason.functionCall.name}'"
-        is ErrorReason.UnresolvedFunctionCallSignature -> "unresolved function call signature for '${errorReason.functionCall.name}'"
-        ErrorReason.AccessOnCurrentReceiverOnlyViolation -> "this member can only be accessed on a current receiver"
-        is ErrorReason.NonReadableProperty -> "property cannot be used as a value: '${errorReason.property.name}'"
-    }
-
-    private
-    fun describedUnassignedValueUsage(unassigned: AssignmentTraceElement.UnassignedValueUsed) =
-        "${elementLocationString(unassigned.lhs.receiverObject.originElement)}: ${unassigned.lhs} := (unassigned) ${unassigned.rhs}"
-
-    private
-    fun elementLocationString(languageTreeElement: LanguageTreeElement): String =
-        locationPrefixString(languageTreeElement.sourceData)
-
-    private
-    fun locationPrefixString(ast: SourceData): String =
-        if (ast.lineRange.first != -1) "${ast.lineRange.first}:${ast.startColumn}" else ""
-
-    private
-    fun String.indent(level: Int = 1) = " ".repeat(level * 2) + this
+        get() = EvaluationFailureMessageGenerator.generateFailureMessage(scriptSourceIdentifier, stageFailures)
 }

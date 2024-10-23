@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.internal.consumer.connection;
 
-import org.gradle.api.Transformer;
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildActionFailureException;
 import org.gradle.tooling.internal.consumer.parameters.BuildCancellationTokenAdapter;
@@ -32,10 +31,10 @@ import java.io.File;
 
 class CancellableActionRunner implements ActionRunner {
     private final InternalCancellableConnection executor;
-    private final Transformer<RuntimeException, RuntimeException> exceptionTransformer;
+    private final CancellationExceptionTransformer exceptionTransformer;
     private final VersionDetails versionDetails;
 
-    CancellableActionRunner(InternalCancellableConnection executor, Transformer<RuntimeException, RuntimeException> exceptionTransformer, VersionDetails versionDetails) {
+    CancellableActionRunner(InternalCancellableConnection executor, CancellationExceptionTransformer exceptionTransformer, VersionDetails versionDetails) {
         this.executor = executor;
         this.exceptionTransformer = exceptionTransformer;
         this.versionDetails = versionDetails;

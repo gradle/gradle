@@ -16,14 +16,15 @@
 
 package org.gradle.internal.declarativedsl.mappingToJvm
 
-import org.gradle.internal.declarativedsl.analysis.ParameterValueBinding
+import org.gradle.declarative.dsl.schema.FunctionSemantics
+import org.gradle.declarative.dsl.schema.SchemaFunction
 import org.gradle.internal.declarativedsl.schemaBuilder.ConfigureLambdaHandler
 import kotlin.reflect.KClass
 import kotlin.reflect.full.memberFunctions
 
 
 interface RuntimeFunctionResolver {
-    fun resolve(receiverClass: KClass<*>, name: String, parameterValueBinding: ParameterValueBinding): Resolution
+    fun resolve(receiverClass: KClass<*>, schemaFunction: SchemaFunction): Resolution
 
     sealed interface Resolution {
         data class Resolved(val function: DeclarativeRuntimeFunction) : Resolution
@@ -33,10 +34,13 @@ interface RuntimeFunctionResolver {
 
 
 class MemberFunctionResolver(private val configureLambdaHandler: ConfigureLambdaHandler) : RuntimeFunctionResolver {
-    override fun resolve(receiverClass: KClass<*>, name: String, parameterValueBinding: ParameterValueBinding): RuntimeFunctionResolver.Resolution {
+    override fun resolve(receiverClass: KClass<*>, schemaFunction: SchemaFunction): RuntimeFunctionResolver.Resolution {
+        // TODO: `convertBinding` is invoked here without actual arguments or receiver instance; the actual function repeats the binding conversion afterwards; this probably needs reshaping
+        val parameterBindingStub = schemaFunction.parameters.associateWith { Any() }
+        val hasConfigureLambda = (schemaFunction.semantics as? FunctionSemantics.ConfigureSemantics)?.configureBlockRequirement?.allows ?: false
+
         receiverClass.memberFunctions.forEach { function ->
-            // TODO: `convertBinding` is invoked here with the receiverClass passed as the receiver and non-resolved argument origins; this probably needs a different API shape
-            if (function.name == name && FunctionBinding.convertBinding(function, receiverClass, parameterValueBinding.bindingMap, parameterValueBinding.providesConfigureBlock, configureLambdaHandler) != null) {
+            if (function.name == schemaFunction.simpleName && FunctionBinding.convertBinding(function, Any(), parameterBindingStub, hasConfigureLambda, configureLambdaHandler) != null) {
                 return RuntimeFunctionResolver.Resolution.Resolved(ReflectionFunction(function, configureLambdaHandler))
             }
         }
@@ -47,9 +51,9 @@ class MemberFunctionResolver(private val configureLambdaHandler: ConfigureLambda
 
 
 class CompositeFunctionResolver(private val resolvers: List<RuntimeFunctionResolver>) : RuntimeFunctionResolver {
-    override fun resolve(receiverClass: KClass<*>, name: String, parameterValueBinding: ParameterValueBinding): RuntimeFunctionResolver.Resolution {
+    override fun resolve(receiverClass: KClass<*>, schemaFunction: SchemaFunction): RuntimeFunctionResolver.Resolution {
         resolvers.forEach {
-            val resolution = it.resolve(receiverClass, name, parameterValueBinding)
+            val resolution = it.resolve(receiverClass, schemaFunction)
             if (resolution is RuntimeFunctionResolver.Resolution.Resolved)
                 return resolution
         }

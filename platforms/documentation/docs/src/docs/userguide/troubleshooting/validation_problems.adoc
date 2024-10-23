@@ -281,7 +281,7 @@ someTask {
 ```
 
 In some cases, adding a dependency on the producing task is not desired, for example when the consumer generates reports for possible multiple tasks.
-In this case you can introduce an <<more_about_tasks.adoc#sec:ordering_tasks,ordering>> between the two tasks by using link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:mustRunAfter(java.lang.Object++[]++)[Task.mustRunAfter()].
+In this case you can introduce an <<controlling_task_execution.adoc#sec:ordering_tasks,ordering>> between the two tasks by using link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:mustRunAfter(java.lang.Object++[]++)[Task.mustRunAfter()].
 
 [[input_file_does_not_exist]]
 == Input file doesn't exist
@@ -402,7 +402,7 @@ To address this, look at the message which indicates the list of possible soluti
 
 Please find below the list of unsupported value types:
 
-`ResolvedArtifactResult`:: <<incremental_build#sec:task_input_using_dependency_resolution_results, Using dependency resolution results as task inputs>>
+`ResolvedArtifactResult`:: <<programmatic_dependency_resolution#sec:artifact_resolution, Mapping ResolvedArtifactResult as a task input>>
 `java.net.URL`:: This type is not supported on properties annotated with @Input because up-to-date checks might to be inconsistent for this type, leading to incorrect build results.
 This is caused by a known issue in Java where the serialization of `java.net.URL` is incorrect.
 See the https://bugs.openjdk.org/browse/JDK-8075619[OpenJDK bug report] for more details.

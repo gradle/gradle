@@ -4,22 +4,17 @@ plugins {
 
 description = "Implementation for interacting with Google Cloud Storage (GCS) repositories"
 
-errorprone {
-    disabledChecks.addAll(
-        "StringCaseLocaleUsage", // 1 occurrences
-        "UnusedMethod", // 1 occurrences
-    )
-}
 
 dependencies {
-    api(project(":base-services"))
-    api(project(":resources"))
+    api(projects.serviceProvider)
+    api(projects.resources)
 
     api(libs.gcs)
     api(libs.jsr305)
 
-    implementation(project(":hashing"))
-    implementation(project(":logging-api"))
+    implementation(projects.stdlibJavaExtensions)
+    implementation(projects.hashing)
+    implementation(projects.loggingApi)
 
     implementation(libs.commonsLang)
     implementation(libs.googleApiClient)
@@ -29,23 +24,26 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.slf4jApi)
 
-    testImplementation(testFixtures(project(":core")))
-    testImplementation(testFixtures(project(":dependency-management")))
-    testImplementation(testFixtures(project(":ivy")))
-    testImplementation(testFixtures(project(":maven")))
+    testImplementation(testFixtures(projects.core))
+    testImplementation(testFixtures(projects.dependencyManagement))
+    testImplementation(testFixtures(projects.ivy))
+    testImplementation(testFixtures(projects.maven))
 
     testImplementation(libs.groovy)
 
-    integTestImplementation(project(":core-api"))
-    integTestImplementation(project(":model-core"))
+    integTestImplementation(projects.coreApi)
+    integTestImplementation(projects.modelCore)
 
     integTestImplementation(libs.commonsIo)
     integTestImplementation(libs.jetty)
     integTestImplementation(libs.joda)
 
-    integTestDistributionRuntimeOnly(project(":distributions-basics"))
+    integTestDistributionRuntimeOnly(projects.distributionsBasics)
 }
 
 strictCompile {
     ignoreDeprecations()
+}
+tasks.isolatedProjectsIntegTest {
+    enabled = false
 }

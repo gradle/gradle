@@ -16,14 +16,15 @@
 
 package org.gradle.internal.execution.steps;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.api.problems.internal.Problem;
+
+import java.util.List;
 
 public class ValidationFinishedContext extends BeforeExecutionContext {
 
-    private final ImmutableList<? extends Problem> validationProblems;
+    private final List<? extends Problem> validationProblems;
 
-    public ValidationFinishedContext(BeforeExecutionContext parent, ImmutableList<? extends Problem> validationProblems) {
+    public ValidationFinishedContext(BeforeExecutionContext parent, List<? extends Problem> validationProblems) {
         super(parent);
         this.validationProblems = validationProblems;
     }
@@ -35,7 +36,7 @@ public class ValidationFinishedContext extends BeforeExecutionContext {
     /**
      * Returns the list of validation warnings encountered so far.
      */
-    public ImmutableList<? extends Problem> getValidationProblems() {
+    public List<? extends Problem> getValidationProblems() {
         return validationProblems;
     }
 }

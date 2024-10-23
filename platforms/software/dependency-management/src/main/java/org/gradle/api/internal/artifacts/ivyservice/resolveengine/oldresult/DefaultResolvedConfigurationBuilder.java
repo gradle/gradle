@@ -55,7 +55,7 @@ public class DefaultResolvedConfigurationBuilder implements ResolvedConfiguratio
 
     @Override
     public void newResolvedDependency(DependencyGraphNode node) {
-        builder.resolvedDependency(node.getNodeId(), node.getResolvedConfigurationId());
+        builder.resolvedDependency(node.getNodeId(), node.getComponent().getId(), node.getMetadata().getName());
     }
 
     @Override

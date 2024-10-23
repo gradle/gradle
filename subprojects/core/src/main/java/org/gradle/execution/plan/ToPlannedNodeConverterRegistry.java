@@ -18,7 +18,7 @@ package org.gradle.execution.plan;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.NonNullApi;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.taskgraph.NodeIdentity;
 
@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
  */
 @NonNullApi
 @ThreadSafe
-@ServiceScope(Scopes.UserHome.class)
+@ServiceScope(Scope.UserHome.class)
 public class ToPlannedNodeConverterRegistry {
 
     private static final ToPlannedNodeConverter MISSING_MARKER = new MissingToPlannedNodeConverter();

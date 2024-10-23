@@ -21,8 +21,7 @@ import org.gradle.api.internal.file.FileTreeInternal
 import org.gradle.api.internal.file.collections.DirectoryFileTree
 import org.gradle.api.internal.file.collections.MinimalFileTree
 import org.gradle.api.provider.Provider
-import org.gradle.cache.internal.DecompressionCoordinator
-import org.gradle.cache.internal.TestCaches
+import org.gradle.cache.internal.TestDecompressionCoordinators
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import org.junit.Rule
@@ -40,7 +39,7 @@ class AbstractArchiveFileTreeSpec extends Specification {
         def visitor = Mock(MinimalFileTree.MinimalFileTreeStructureVisitor)
         def backingFile = tmpDir.createFile("thing.bin")
 
-        def fileTree = new TestArchiveFileTree(TestCaches.decompressionCache(tmpDir.createDir("cache-dir")), backingFile)
+        def fileTree = new TestArchiveFileTree(TestDecompressionCoordinators.decompressionCoordinator(tmpDir.createDir("cache-dir")), backingFile)
 
         when:
         fileTree.visitStructure(visitor, owner)

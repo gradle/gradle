@@ -25,7 +25,7 @@ import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.deprecation.DeprecationMessageBuilder;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.model.StateTransitionControllerFactory;
-import org.gradle.internal.service.scopes.BuildScopeServices;
+import org.gradle.internal.service.ServiceRegistry;
 
 import java.io.File;
 
@@ -45,7 +45,7 @@ public class DefaultBuildLifecycleControllerFactory implements BuildLifecycleCon
     }
 
     @Override
-    public BuildLifecycleController newInstance(BuildDefinition buildDefinition, BuildScopeServices buildScopeServices) {
+    public BuildLifecycleController newInstance(BuildDefinition buildDefinition, ServiceRegistry buildScopeServices) {
         StartParameter startParameter = buildDefinition.getStartParameter();
 
         @SuppressWarnings("deprecation")

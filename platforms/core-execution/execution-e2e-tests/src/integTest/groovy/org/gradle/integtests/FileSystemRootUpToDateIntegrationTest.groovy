@@ -48,7 +48,7 @@ class FileSystemRootUpToDateIntegrationTest extends AbstractIntegrationSpec {
             }
         """
         when:
-        buildScript script
+        buildFile script
 
         then:
         succeeds taskName
@@ -85,7 +85,7 @@ class FileSystemRootUpToDateIntegrationTest extends AbstractIntegrationSpec {
             }
         """
         when:
-        buildScript script
+        buildFile script
 
         then:
         succeeds taskName

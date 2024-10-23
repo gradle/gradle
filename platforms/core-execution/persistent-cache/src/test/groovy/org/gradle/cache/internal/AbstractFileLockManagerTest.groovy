@@ -21,18 +21,19 @@ import org.gradle.cache.FileIntegrityViolationException
 import org.gradle.cache.FileLock
 import org.gradle.cache.FileLockManager
 import org.gradle.cache.InsufficientLockModeException
-import org.gradle.cache.internal.filelock.LockInfoSerializer
 import org.gradle.cache.internal.filelock.DefaultLockOptions
+import org.gradle.cache.internal.filelock.LockInfoSerializer
 import org.gradle.cache.internal.locklistener.FileLockContentionHandler
-import org.gradle.internal.Factory
 import org.gradle.internal.concurrent.CompositeStoppable
-import org.gradle.internal.id.IdGenerator
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.junit.Rule
 import spock.lang.Specification
+
+import java.util.function.LongSupplier
+import java.util.function.Supplier
 
 import static org.gradle.cache.FileLockManager.LockMode.Exclusive
 import static org.gradle.cache.FileLockManager.LockMode.Shared
@@ -41,7 +42,7 @@ abstract class AbstractFileLockManagerTest extends Specification {
     @Rule
     final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     def metaDataProvider = Mock(ProcessMetaDataProvider)
-    def generator = Stub(IdGenerator)
+    def generator = Stub(LongSupplier)
     def contentionHandler = Stub(FileLockContentionHandler)
 
     FileLockManager manager = new DefaultFileLockManager(metaDataProvider, 5000, contentionHandler, generator)
@@ -62,7 +63,7 @@ abstract class AbstractFileLockManagerTest extends Specification {
         metaDataProvider.processIdentifier >> '123'
         metaDataProvider.processDisplayName >> 'process'
         contentionHandler.reservePort() >> 34
-        generator.generateId() >> 678L
+        generator.asLong >> 678L
     }
 
     def cleanup() {
@@ -260,10 +261,10 @@ abstract class AbstractFileLockManagerTest extends Specification {
 
     def "cannot lock a file twice in single process"() {
         given:
-        createLock(Exclusive);
+        createLock(Exclusive)
 
         when:
-        createLock(Exclusive);
+        createLock(Exclusive)
 
         then:
         thrown(IllegalStateException)
@@ -271,10 +272,10 @@ abstract class AbstractFileLockManagerTest extends Specification {
 
     def "cannot lock twice in single process for mixed modes"() {
         given:
-        createLock(Exclusive);
+        createLock(Exclusive)
 
         when:
-        createLock(Shared);
+        createLock(Shared)
 
         then:
         thrown(IllegalStateException)
@@ -282,10 +283,10 @@ abstract class AbstractFileLockManagerTest extends Specification {
 
     def "cannot lock twice in single process for shared mode"() {
         given:
-        createLock(Shared);
+        createLock(Shared)
 
         when:
-        createLock(Shared);
+        createLock(Shared)
 
         then:
         thrown(IllegalStateException)
@@ -306,7 +307,7 @@ abstract class AbstractFileLockManagerTest extends Specification {
         lock.close()
 
         when:
-        lock.readFile({} as Factory)
+        lock.readFile({} as Supplier)
 
         then:
         thrown(IllegalStateException)

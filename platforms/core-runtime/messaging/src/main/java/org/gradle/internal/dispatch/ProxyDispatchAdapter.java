@@ -23,8 +23,6 @@ import java.util.List;
 
 /**
  * Adapts from interface T to a {@link Dispatch}
- *
- * @param <T>
  */
 public class ProxyDispatchAdapter<T> {
     private final Class<T> type;

@@ -37,7 +37,7 @@ import java.util.List;
  * <strong>Do not build on-top of this visitor. If you want to track cross-project dependencies,
  * use {@link org.gradle.api.internal.artifacts.configurations.ProjectComponentObservationListener}</strong>
  *
- * TODO: The logic in this visitor should be integrated directly into the DefaultLocalConfigurationMetadataBuilder
+ * TODO: The logic in this visitor should be integrated directly into the DefaultLocalVariantMetadataBuilder
  * so that we instantly mark configurations as observed as their metadata is constructed. That would be an improvement
  * over this visitor, since here we only mark a configuration observed if its metadata is present in the final graph.
  * There are likely scenarios that this visitor does not cover, where a configuration's metadata is observed but
@@ -70,7 +70,7 @@ public class ResolvedLocalComponentsResultGraphVisitor implements DependencyGrap
             // This check is here for historical reasons, as removing it would be a breaking change.
             // We should just leave this here, since this observation mechanism is being replaced anyway.
             if (projectComponentId.getBuild().equals(thisBuild)) {
-                resolvedProjectConfigurations.add(new ResolvedProjectConfiguration(projectComponentId.getIdentityPath(), node.getResolvedConfigurationId().getConfiguration()));
+                resolvedProjectConfigurations.add(new ResolvedProjectConfiguration(projectComponentId.getIdentityPath(), node.getMetadata().getName()));
             }
         }
     }

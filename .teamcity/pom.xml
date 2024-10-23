@@ -4,7 +4,7 @@
     <name>Gradle_Check Config DSL Script</name>
     <properties>
         <kotlin.version>1.8.22</kotlin.version>
-        <teamcity.dsl.version>2023.11</teamcity.dsl.version>
+        <teamcity.dsl.version>2024.03</teamcity.dsl.version>
         <mockk.version>1.9</mockk.version>
         <bytebuddy.version>1.10.6</bytebuddy.version>
         <junit.version>5.8.1</junit.version>

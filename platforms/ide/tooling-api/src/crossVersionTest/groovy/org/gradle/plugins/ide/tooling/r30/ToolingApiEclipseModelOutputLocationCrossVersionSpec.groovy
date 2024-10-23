@@ -18,27 +18,13 @@ package org.gradle.plugins.ide.tooling.r30
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.tooling.model.UnsupportedMethodException
 import org.gradle.tooling.model.eclipse.EclipseOutputLocation
 import org.gradle.tooling.model.eclipse.EclipseProject
 
-@ToolingApiVersion('>=3.0')
-@TargetGradleVersion(">=3.0")
 class ToolingApiEclipseModelOutputLocationCrossVersionSpec extends ToolingApiSpecification {
 
     def setup() {
         settingsFile << 'rootProject.name = "root"'
-    }
-
-    @TargetGradleVersion(">=2.6 <3.0")
-    def "Old versions throw runtime exception when querying output location"() {
-        when:
-        EclipseProject project = loadToolingModel(EclipseProject)
-        project.getOutputLocation()
-
-        then:
-        thrown UnsupportedMethodException
     }
 
     @TargetGradleVersion(">=3.0 <4.4")

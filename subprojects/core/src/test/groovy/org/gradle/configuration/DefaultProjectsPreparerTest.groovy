@@ -15,12 +15,13 @@
  */
 package org.gradle.configuration
 
+
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.execution.ProjectConfigurer
 import org.gradle.internal.buildtree.BuildModelParameters
-import org.gradle.internal.operations.BuildOperationExecutor
+import org.gradle.internal.operations.BuildOperationRunner
 import spock.lang.Specification
 
 class DefaultProjectsPreparerTest extends Specification {
@@ -29,8 +30,8 @@ class DefaultProjectsPreparerTest extends Specification {
     def rootProject = Mock(ProjectInternal)
     def projectConfigurer = Mock(ProjectConfigurer)
     def modelParameters = Mock(BuildModelParameters)
-    def buildOperationExecutor = Mock(BuildOperationExecutor)
-    def configurer = new DefaultProjectsPreparer(projectConfigurer, modelParameters, buildOperationExecutor)
+    def buildOperationRunner = Mock(BuildOperationRunner)
+    def configurer = new DefaultProjectsPreparer(projectConfigurer, modelParameters, buildOperationRunner)
 
     def setup() {
         gradle.startParameter >> startParameter

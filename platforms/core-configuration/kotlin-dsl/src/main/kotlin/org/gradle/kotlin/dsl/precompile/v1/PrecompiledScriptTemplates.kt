@@ -159,7 +159,7 @@ open class PrecompiledProjectScript(
      */
     @Suppress("unused")
     open fun buildscript(@Suppress("unused_parameter") block: ScriptHandlerScope.() -> Unit) {
-        throw IllegalStateException("The `buildscript` block is not supported on Kotlin script plugins, please use the `plugins` block or project level dependencies.")
+        error("The `buildscript` block is not supported on Kotlin script plugins, please use the `plugins` block or project level dependencies.")
     }
 
     /**
@@ -190,7 +190,6 @@ open class PrecompiledProjectScript(
 }
 
 
-internal
 object PrecompiledInitScriptCompilationConfiguration : ScriptCompilationConfiguration({
     isStandalone(false)
     baseClass(PrecompiledInitScript::class)
@@ -199,7 +198,6 @@ object PrecompiledInitScriptCompilationConfiguration : ScriptCompilationConfigur
 })
 
 
-internal
 object PrecompiledSettingsScriptCompilationConfiguration : ScriptCompilationConfiguration({
     isStandalone(false)
     baseClass(PrecompiledSettingsScript::class)
@@ -208,7 +206,6 @@ object PrecompiledSettingsScriptCompilationConfiguration : ScriptCompilationConf
 })
 
 
-internal
 object PrecompiledProjectScriptCompilationConfiguration : ScriptCompilationConfiguration({
     isStandalone(false)
     baseClass(PrecompiledProjectScript::class)

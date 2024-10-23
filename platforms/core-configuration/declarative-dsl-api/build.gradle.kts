@@ -6,5 +6,8 @@ plugins {
 description = "Annotation classes used by the Declarative DSL"
 
 dependencies {
-    implementation(project(":base-annotations"))
+    implementation(projects.stdlibJavaExtensions)
+}
+tasks.isolatedProjectsIntegTest {
+    enabled = false
 }

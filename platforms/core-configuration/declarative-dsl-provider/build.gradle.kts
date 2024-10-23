@@ -19,22 +19,35 @@ plugins {
 }
 
 dependencies {
-    api(project(":base-services"))
-    api(project(":core"))
-    api(project(":core-api"))
-    api(project(":declarative-dsl-api"))
-    api(project(":declarative-dsl-core"))
-    api(libs.futureKotlin("stdlib"))
+    api(projects.serviceProvider)
+    api(projects.core)
+    api(projects.coreApi)
+    api(projects.declarativeDslApi)
+    api(projects.declarativeDslCore)
+    api(projects.declarativeDslEvaluator)
+    api(projects.declarativeDslToolingModels)
+    api(libs.kotlinStdlib)
     api(libs.inject)
+
+    implementation(projects.declarativeDslInternalUtils)
+    implementation(projects.baseServices)
+    implementation(projects.resources)
+    implementation(projects.serviceLookup)
+    implementation(libs.guava)
+    implementation(libs.kotlinReflect)
 
     testImplementation(libs.mockitoKotlin2)
 
-    implementation(project(":resources"))
-    implementation(libs.futureKotlin("compiler-embeddable"))
-    implementation(libs.futureKotlin("reflect"))
+    integTestImplementation(projects.internalTesting)
+    integTestImplementation(projects.logging)
+    integTestImplementation(testFixtures(projects.declarativeDslProvider))
+    integTestImplementation(testFixtures(projects.toolingApi))
 
-    integTestImplementation(project(":internal-testing"))
-    integTestImplementation(project(":logging"))
+    testFixturesImplementation(projects.internalTesting)
+    testFixturesImplementation(projects.internalIntegTesting)
 
-    integTestDistributionRuntimeOnly(project(":distributions-full"))
+    integTestDistributionRuntimeOnly(projects.distributionsFull)
+}
+tasks.isolatedProjectsIntegTest {
+    enabled = false
 }

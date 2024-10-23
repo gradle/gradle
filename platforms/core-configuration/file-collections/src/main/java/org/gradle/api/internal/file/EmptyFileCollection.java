@@ -19,6 +19,7 @@ package org.gradle.api.internal.file;
 import com.google.common.collect.ImmutableSet;
 
 import java.io.File;
+import java.util.Optional;
 import java.util.Set;
 
 final class EmptyFileCollection extends AbstractFileCollection {
@@ -47,5 +48,30 @@ final class EmptyFileCollection extends AbstractFileCollection {
     @Override
     public FileTreeInternal getAsFileTree() {
         return new EmptyFileTree(FileTreeInternal.DEFAULT_TREE_DISPLAY_NAME);
+    }
+
+    @Override
+    public Optional<FileCollectionExecutionTimeValue> calculateExecutionTimeValue() {
+        FileCollectionExecutionTimeValue executionTimeValue = displayName.equals(DEFAULT_COLLECTION_DISPLAY_NAME)
+            ? EmptyExecutionTimeValue.INSTANCE
+            : new EmptyExecutionTimeValue(displayName);
+
+        return Optional.of(executionTimeValue);
+    }
+
+    private static class EmptyExecutionTimeValue implements FileCollectionExecutionTimeValue {
+
+        private static final EmptyExecutionTimeValue INSTANCE = new EmptyExecutionTimeValue(DEFAULT_COLLECTION_DISPLAY_NAME);
+
+        private final String displayName;
+
+        public EmptyExecutionTimeValue(String displayName) {
+            this.displayName = displayName;
+        }
+
+        @Override
+        public FileCollectionInternal toFileCollection(FileCollectionFactory fileCollectionFactory) {
+            return FileCollectionFactory.empty(displayName);
+        }
     }
 }

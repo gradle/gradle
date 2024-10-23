@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.userinput
 
 import org.gradle.api.tasks.TasksWithInputsAndOutputs
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.util.internal.TextUtil
 
 import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.EOF
@@ -150,6 +151,7 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
         "n"      | _
     }
 
+    @ToBeFixedForIsolatedProjects(because = "subprojects")
     def "can ask yes/no question when build is executed in parallel"() {
         given:
         withParallel()

@@ -197,6 +197,7 @@ public class Download implements IDownload {
      * @return Base64 encoded user info
      * @throws RuntimeException if no public Base64 encoder is available on this JVM
      */
+    @SuppressWarnings("StringCharset")
     private String base64Encode(String userInfo) {
         ClassLoader loader = getClass().getClassLoader();
         try {

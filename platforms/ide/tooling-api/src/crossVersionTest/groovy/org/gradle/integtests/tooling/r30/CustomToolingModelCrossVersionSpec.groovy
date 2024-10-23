@@ -16,9 +16,7 @@
 
 package org.gradle.integtests.tooling.r30
 
-
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.r16.CustomModel
 
 class CustomToolingModelCrossVersionSpec extends ToolingApiSpecification {
@@ -65,7 +63,6 @@ class CustomPlugin implements Plugin<Project> {
 """
     }
 
-    @ToolingApiVersion(">=3.0")
     def "retains underlying object identity in model returned to client"() {
         when:
         def model = withConnection { connection ->
@@ -79,7 +76,6 @@ class CustomPlugin implements Plugin<Project> {
         model.findThing("child").is(model.thing)
     }
 
-    @ToolingApiVersion(">=3.0")
     def "retains underlying object identity in model returned to client via build action"() {
         settingsFile << "include 'a', 'b'"
 
@@ -93,7 +89,6 @@ class CustomPlugin implements Plugin<Project> {
         model.things[0].is(model.thing)
     }
 
-    @ToolingApiVersion(">=3.0")
     def "retains underlying object identity in complex model returned to client via build action"() {
         settingsFile << "include 'a', 'b'"
 

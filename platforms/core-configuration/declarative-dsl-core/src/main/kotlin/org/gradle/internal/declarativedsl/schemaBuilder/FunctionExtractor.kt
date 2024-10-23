@@ -20,18 +20,20 @@ import org.gradle.declarative.dsl.model.annotations.AccessFromCurrentReceiverOnl
 import org.gradle.declarative.dsl.model.annotations.Adding
 import org.gradle.declarative.dsl.model.annotations.Builder
 import org.gradle.declarative.dsl.model.annotations.Configuring
-import org.gradle.internal.declarativedsl.analysis.ConfigureAccessor
-import org.gradle.internal.declarativedsl.analysis.DataBuilderFunction
-import org.gradle.internal.declarativedsl.analysis.DataConstructor
-import org.gradle.internal.declarativedsl.analysis.DataMemberFunction
-import org.gradle.internal.declarativedsl.analysis.DataParameter
-import org.gradle.internal.declarativedsl.analysis.DataTopLevelFunction
-import org.gradle.internal.declarativedsl.analysis.FunctionSemantics
-import org.gradle.internal.declarativedsl.analysis.FunctionSemantics.ConfigureSemantics.ConfigureBlockRequirement.NOT_ALLOWED
-import org.gradle.internal.declarativedsl.analysis.FunctionSemantics.ConfigureSemantics.ConfigureBlockRequirement.OPTIONAL
-import org.gradle.internal.declarativedsl.analysis.FunctionSemantics.ConfigureSemantics.ConfigureBlockRequirement.REQUIRED
-import org.gradle.internal.declarativedsl.analysis.ParameterSemantics
-import org.gradle.internal.declarativedsl.analysis.SchemaMemberFunction
+import org.gradle.declarative.dsl.schema.DataConstructor
+import org.gradle.declarative.dsl.schema.DataParameter
+import org.gradle.declarative.dsl.schema.DataTopLevelFunction
+import org.gradle.declarative.dsl.schema.FunctionSemantics
+import org.gradle.declarative.dsl.schema.ParameterSemantics
+import org.gradle.declarative.dsl.schema.SchemaMemberFunction
+import org.gradle.internal.declarativedsl.analysis.ConfigureAccessorInternal
+import org.gradle.internal.declarativedsl.analysis.DefaultDataBuilderFunction
+import org.gradle.internal.declarativedsl.analysis.DefaultDataConstructor
+import org.gradle.internal.declarativedsl.analysis.DefaultDataMemberFunction
+import org.gradle.internal.declarativedsl.analysis.DefaultDataParameter
+import org.gradle.internal.declarativedsl.analysis.DefaultDataTopLevelFunction
+import org.gradle.internal.declarativedsl.analysis.FunctionSemanticsInternal
+import org.gradle.internal.declarativedsl.analysis.ParameterSemanticsInternal
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlin.reflect.KParameter
@@ -45,9 +47,9 @@ import kotlin.reflect.typeOf
 
 
 interface FunctionExtractor {
-    fun memberFunctions(kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<SchemaMemberFunction>
-    fun constructors(kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<DataConstructor>
-    fun topLevelFunction(function: KFunction<*>, preIndex: DataSchemaBuilder.PreIndex): DataTopLevelFunction?
+    fun memberFunctions(kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<SchemaMemberFunction> = emptyList()
+    fun constructors(kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<DataConstructor> = emptyList()
+    fun topLevelFunction(function: KFunction<*>, preIndex: DataSchemaBuilder.PreIndex): DataTopLevelFunction? = null
 }
 
 
@@ -106,38 +108,40 @@ class DefaultFunctionExtractor(
 
         val returnType = function.returnType
 
-        checkInScope(returnType, preIndex)
+        returnType.checkInScope(preIndex, inType, function)
         val returnClass = function.returnType.classifier as KClass<*>
         val fnParams = function.parameters
 
-        val semanticsFromSignature = inferFunctionSemanticsFromSignature(function, function.returnType, inType, preIndex, configureLambdas)
-        val maybeConfigureTypeRef = when (semanticsFromSignature) { // there is not necessarily a lambda parameter of this type: it might by an adding function with no lambda
+        val semanticsFromSignature = inferFunctionSemanticsFromSignature(function, inType, preIndex, configureLambdas)
+        val maybeConfigureTypeRef = when (semanticsFromSignature) { // there is not necessarily a lambda parameter of this type: it might be an adding function with no lambda
             is FunctionSemantics.ConfigureSemantics -> semanticsFromSignature.configuredType
             else -> null
         }
 
         val params = fnParams
-            .filterIndexed { index, it ->
-                it != function.instanceParameter && run {
+            .filterIndexed { index, param ->
+                param != function.instanceParameter && run {
                     // is value parameter, not a configuring block:
                     val isNotLastParameter = index != fnParams.lastIndex
-                    val isNotConfigureLambda = configureLambdas.getTypeConfiguredByLambda(it.type)?.let { it.toDataTypeRefOrError() != maybeConfigureTypeRef } ?: true
+                    val isNotConfigureLambda = configureLambdas.getTypeConfiguredByLambda(param.type)?.let { typeConfiguredByLambda ->
+                        param.parameterTypeToRefOrError(inType, function) { typeConfiguredByLambda } != maybeConfigureTypeRef
+                    } ?: true
                     isNotLastParameter || isNotConfigureLambda
                 }
             }
-            .map { fnParam -> dataParameter(function, fnParam, returnClass, semanticsFromSignature, preIndex) }
+            .map { fnParam -> dataParameter(inType, function, fnParam, returnClass, semanticsFromSignature, preIndex) }
 
         val isDirectAccessOnly = function.annotations.any { it is AccessFromCurrentReceiverOnly }
 
         return if (semanticsFromSignature is FunctionSemantics.Builder) {
-            DataBuilderFunction(
+            DefaultDataBuilderFunction(
                 thisTypeRef,
                 function.name,
                 isDirectAccessOnly,
                 params.single(),
             )
         } else {
-            DataMemberFunction(
+            DefaultDataMemberFunction(
                 thisTypeRef,
                 function.name,
                 params,
@@ -155,9 +159,9 @@ class DefaultFunctionExtractor(
     ): DataConstructor {
         val params = constructor.parameters
         val dataParams = params.map { param ->
-            dataParameter(constructor, param, kClass, FunctionSemantics.Pure(kClass.toDataTypeRef()), preIndex)
+            dataParameter(kClass, constructor, param, kClass, FunctionSemanticsInternal.DefaultPure(kClass.toDataTypeRef()), preIndex)
         }
-        return DataConstructor(dataParams, kClass.toDataTypeRef())
+        return DefaultDataConstructor(dataParams, kClass.toDataTypeRef())
     }
 
     private
@@ -168,17 +172,17 @@ class DefaultFunctionExtractor(
         check(function.instanceParameter == null)
 
         val returnType = function.returnType
-        checkInScope(returnType, preIndex)
+        returnType.checkInScope(preIndex, function = function)
 
         val returnTypeClassifier = function.returnType
-        val semanticsFromSignature = FunctionSemantics.Pure(returnTypeClassifier.toDataTypeRefOrError())
+        val semanticsFromSignature = FunctionSemanticsInternal.DefaultPure(function.returnTypeToRefOrError(null))
 
         val fnParams = function.parameters
         val params = fnParams.filterIndexed { index, _ ->
             index != fnParams.lastIndex || configureLambdas.getTypeConfiguredByLambda(returnTypeClassifier) == null
-        }.map { dataParameter(function, it, function.returnType.toKClass(), semanticsFromSignature, preIndex) }
+        }.map { dataParameter(null, function, it, function.returnType.toKClass(), semanticsFromSignature, preIndex) }
 
-        return DataTopLevelFunction(
+        return DefaultDataTopLevelFunction(
             function.javaMethod!!.declaringClass.`package`.name,
             function.name,
             params,
@@ -188,6 +192,7 @@ class DefaultFunctionExtractor(
 
     private
     fun dataParameter(
+        receiver: KClass<*>?,
         function: KFunction<*>,
         fnParam: KParameter,
         returnClass: KClass<*>,
@@ -195,9 +200,9 @@ class DefaultFunctionExtractor(
         preIndex: DataSchemaBuilder.PreIndex
     ): DataParameter {
         val paramType = fnParam.type
-        checkInScope(paramType, preIndex)
+        paramType.checkInScope(preIndex, receiver, function)
         val paramSemantics = getParameterSemantics(functionSemantics, function, fnParam, returnClass, preIndex)
-        return DataParameter(fnParam.name, paramType.toDataTypeRefOrError(), fnParam.isOptional, paramSemantics)
+        return DefaultDataParameter(fnParam.name, fnParam.parameterTypeToRefOrError(receiver, function), fnParam.isOptional, paramSemantics)
     }
 
     private
@@ -213,28 +218,38 @@ class DefaultFunctionExtractor(
             if (functionSemantics is FunctionSemantics.NewObjectFunctionSemantics) fnParam.name?.let(::add)
         }
         propertyNamesToCheck.forEach { propertyName ->
-            val isPropertyLike =
-                preIndex.getAllProperties(returnClass).any { it.name == propertyName }
-            if (isPropertyLike) {
+            val propertyMatchedByName = preIndex.getAllProperties(returnClass).find { it.name == propertyName }
+            if (functionSemantics is FunctionSemantics.AccessAndConfigure) {
+                return ParameterSemanticsInternal.DefaultIdentityKey(propertyMatchedByName)
+            } else if (propertyMatchedByName != null) {
                 val storeProperty = checkNotNull(preIndex.getProperty(returnClass, propertyName))
-                return ParameterSemantics.StoreValueInProperty(storeProperty)
+                return ParameterSemanticsInternal.DefaultStoreValueInProperty(storeProperty)
             }
         }
-        return ParameterSemantics.Unknown
+        return if (functionSemantics is FunctionSemantics.AccessAndConfigure)
+            ParameterSemanticsInternal.DefaultIdentityKey(null)
+        else ParameterSemanticsInternal.DefaultUnknown
     }
 
     private
     fun inferFunctionSemanticsFromSignature(
         function: KFunction<*>,
-        returnTypeClassifier: KType,
         inType: KClass<*>?,
         preIndex: DataSchemaBuilder.PreIndex,
         configureLambdas: ConfigureLambdaHandler
     ): FunctionSemantics {
+        val lastParam = function.parameters.last()
+        val configuredType = configureLambdas.getTypeConfiguredByLambda(lastParam.type)
+        val blockRequirement = when {
+            configuredType == null -> FunctionSemanticsInternal.DefaultConfigureBlockRequirement.DefaultNotAllowed
+            lastParam.isOptional -> FunctionSemanticsInternal.DefaultConfigureBlockRequirement.DefaultOptional
+            else -> FunctionSemanticsInternal.DefaultConfigureBlockRequirement.DefaultRequired
+        }
+
         return when {
             function.annotations.any { it is Builder } -> {
                 check(inType != null)
-                FunctionSemantics.Builder(returnTypeClassifier.toDataTypeRefOrError())
+                FunctionSemanticsInternal.DefaultBuilder(function.returnTypeToRefOrError(inType))
             }
 
             function.annotations.any { it is Adding } -> {
@@ -244,15 +259,7 @@ class DefaultFunctionExtractor(
                     "an @Adding function with a Unit return type may not accept configuring lambdas"
                 }
 
-                val lastParam = function.parameters[function.parameters.lastIndex]
-                val hasConfigureLambda =
-                    configureLambdas.isConfigureLambdaForType(function.returnType, lastParam.type)
-                val blockRequirement = when {
-                    !hasConfigureLambda -> NOT_ALLOWED
-                    hasConfigureLambda && lastParam.isOptional -> OPTIONAL
-                    else -> REQUIRED
-                }
-                FunctionSemantics.AddAndConfigure(returnTypeClassifier.toDataTypeRefOrError(), blockRequirement)
+                FunctionSemanticsInternal.DefaultAddAndConfigure(function.returnTypeToRefOrError(inType), blockRequirement)
             }
 
             function.annotations.any { it is Configuring } -> {
@@ -263,26 +270,36 @@ class DefaultFunctionExtractor(
                 val annotationPropertyName = annotation.propertyName
                 val propertyName = annotationPropertyName.ifEmpty { function.name }
 
-                val configuredType = configureLambdas.getTypeConfiguredByLambda(function.parameters.last().type)
-                check(configuredType != null) { "a @Configuring function must accept a configuring lambda" }
+                check(configuredType != null) { "@Configuring function $function must accept a configuring lambda" }
 
                 val propertyType = preIndex.getPropertyType(inType, propertyName)
-                check(propertyType == null || propertyType.isSubtypeOf(configuredType)) { "configure lambda type is inconsistent with property type" }
+                check(propertyType == null || propertyType.isSubtypeOf(configuredType)) {
+                    "configure lambda type ($configuredType) is inconsistent with property type ($propertyType) in function $function"
+                }
 
                 val property = preIndex.getProperty(inType, propertyName)
-                check(annotationPropertyName.isEmpty() || propertyType != null) { "a property name '$annotationPropertyName' is specified for @Configuring function but no such property was found" }
+                check(annotationPropertyName.isEmpty() || propertyType != null) {
+                    "a property name ($annotationPropertyName) is specified for @Configuring function $function but no such property was found"
+                }
 
                 val returnType = when (function.returnType) {
-                    typeOf<Unit>() -> FunctionSemantics.AccessAndConfigure.ReturnType.UNIT
-                    propertyType, configuredType -> FunctionSemantics.AccessAndConfigure.ReturnType.CONFIGURED_OBJECT
-                    else -> error("cannot infer the return type of a configuring function; it must be Unit or the configured object type")
+                    typeOf<Unit>() -> FunctionSemanticsInternal.DefaultAccessAndConfigure.DefaultReturnType.DefaultUnit
+                    propertyType, configuredType -> FunctionSemanticsInternal.DefaultAccessAndConfigure.DefaultReturnType.DefaultConfiguredObject
+                    else -> error("cannot infer the return type of a configuring function $function; it must be Unit or the configured object type")
                 }
-                check(function.parameters.filter { it != function.instanceParameter }.size == 1) { "a configuring function may not accept any other parameters" }
-                val accessor = if (property != null) ConfigureAccessor.Property(property) else ConfigureAccessor.ConfiguringLambdaArgument(configuredType.toDataTypeRefOrError())
-                FunctionSemantics.AccessAndConfigure(accessor, returnType)
+                val accessor =
+                    if (property != null) ConfigureAccessorInternal.DefaultProperty(property)
+                    else ConfigureAccessorInternal.DefaultConfiguringLambdaArgument(lastParam.parameterTypeToRefOrError(inType, function) { configuredType })
+
+                // TODO: when "definitely existing" objects get properly implemented, ensure that functions configuring them do not accept parameters
+                FunctionSemanticsInternal.DefaultAccessAndConfigure(
+                    accessor,
+                    returnType,
+                    blockRequirement
+                )
             }
 
-            else -> FunctionSemantics.Pure(returnTypeClassifier.toDataTypeRefOrError())
+            else -> FunctionSemanticsInternal.DefaultPure(function.returnTypeToRefOrError(inType))
         }
     }
 

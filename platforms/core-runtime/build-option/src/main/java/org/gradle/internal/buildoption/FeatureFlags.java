@@ -16,13 +16,13 @@
 
 package org.gradle.internal.buildoption;
 
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
  * A service that determines whether a feature flag is enabled or not.
  */
-@ServiceScope(Scopes.BuildTree.class)
+@ServiceScope(Scope.BuildTree.class)
 public interface FeatureFlags {
     boolean isEnabled(FeatureFlag flag);
 

@@ -18,25 +18,27 @@ package org.gradle.api.internal.initialization;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.internal.classpath.ClassPath;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
  * Resolves a build script classpath to a set of files in a composite build, ensuring that the
  * required tasks are executed to build artifacts in included builds.
  */
-@ServiceScope(Scopes.Build.class)
+@ServiceScope(Scope.Build.class)
 public interface ScriptClassPathResolver {
 
     /**
      * Prepares the given dependencyHandler for script classpath resolution and instrumentation.
+     *
+     * It returns a resolution context that should be passed to the other methods in this interface.
      */
-    void prepareDependencyHandler(DependencyHandler dependencyHandler);
+    ScriptClassPathResolutionContext prepareDependencyHandler(DependencyHandler dependencyHandler);
 
     /**
      * Prepares the given configuration for script classpath resolution, setting the relevant attributes and other metadata.
      */
-    void prepareClassPath(Configuration configuration, DependencyHandler dependencyHandler);
+    void prepareClassPath(Configuration configuration, ScriptClassPathResolutionContext resolutionContext);
 
-    ClassPath resolveClassPath(Configuration classpath);
+    ClassPath resolveClassPath(Configuration classpath, ScriptClassPathResolutionContext resolutionContext);
 }

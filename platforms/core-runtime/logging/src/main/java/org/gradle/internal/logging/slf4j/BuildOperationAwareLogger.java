@@ -27,6 +27,7 @@ import org.slf4j.helpers.MessageFormatter;
 
 import javax.annotation.Nullable;
 
+@SuppressWarnings("OverridingMethodInconsistentArgumentNamesChecker")
 abstract class BuildOperationAwareLogger implements Logger {
 
     @Override

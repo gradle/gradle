@@ -17,6 +17,9 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+
+import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
 
 class NamedDomainObjectCollectionSchemaIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
@@ -34,6 +37,7 @@ class NamedDomainObjectCollectionSchemaIntegrationTest extends AbstractIntegrati
         """
     }
 
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "collection schema from project.container is public type"() {
         buildFile """
             interface PubType {}
@@ -64,6 +68,7 @@ class NamedDomainObjectCollectionSchemaIntegrationTest extends AbstractIntegrati
         succeeds("assertSchema")
     }
 
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "built-in container types presents public type in schema"() {
         buildFile """
             apply plugin: 'java'
@@ -92,7 +97,6 @@ class NamedDomainObjectCollectionSchemaIntegrationTest extends AbstractIntegrati
                         'compileOnly':'Configuration',
                         'default':'Configuration',
                         'implementation':'Configuration',
-                        'privateApiElements': 'Configuration',
                         'runtimeClasspath':'Configuration',
                         'mainSourceElements':'Configuration',
                         'runtimeElements':'Configuration',

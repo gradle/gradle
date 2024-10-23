@@ -69,7 +69,7 @@ class ContinueIntegrationTest extends AbstractIntegrationSpec {
     }
 
     private TestFile buildScript() {
-        buildScript """
+        buildFile """
             def failing = tasks.register("failTask") {
                 doFirst {
                     throw new RuntimeException("failTask failed")

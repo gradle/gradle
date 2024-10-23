@@ -6,15 +6,16 @@ This release features [1](), [2](), ... [n](), and more.
 Include only their name, impactful features should be called out separately below.
  [Some person](https://github.com/some-person)
 
- THiS LIST SHOULD BE ALPHABETIZED BY [PERSON NAME] - the docs:updateContributorsInReleaseNotes task will enforce this ordering, which is case-insensitive.
+ THIS LIST SHOULD BE ALPHABETIZED BY [PERSON NAME] - the docs:updateContributorsInReleaseNotes task will enforce this ordering, which is case-insensitive.
 -->
+
 We would like to thank the following community members for their contributions to this release of Gradle:
 
-Be sure to check out the [Public Roadmap](https://blog.gradle.org/roadmap-announcement) for insight into what's planned for future releases.
+Be sure to check out the [public roadmap](https://blog.gradle.org/roadmap-announcement) for insight into what's planned for future releases.
 
 ## Upgrade instructions
 
-Switch your build to use Gradle @version@ by updating your wrapper:
+Switch your build to use Gradle @version@ by updating the [Wrapper](userguide/gradle_wrapper.html) in your project:
 
 `./gradlew wrapper --gradle-version=@version@`
 
@@ -40,7 +41,7 @@ Example:
 > nothing that affects the build configuration has changed.
 
 #### FILL-IN-FEATURE
-> HIGHLIGHT the usecase or existing problem the feature solves
+> HIGHLIGHT the use case or existing problem the feature solves
 > EXPLAIN how the new release addresses that problem or use case
 > PROVIDE a screenshot or snippet illustrating the new feature, if applicable
 > LINK to the full documentation for more details
@@ -52,76 +53,34 @@ Example:
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
-#### Ability to set conventions on file collections
+<a name="build-authoring"></a>
+### Build authoring improvements
 
-Plugin-provided tasks often expose file collections that are meant to be customizable by build engineers (for instance, the classpath for the JavaCompile task).
-Up until now, for plugin authors to define default values for file collections, they have had to resort to configuring those defaults as initial values.
-Conventions provide a better model for that: plugin authors recommend default values via conventions, and users choose to accept, add on top, or completely 
-replace them when defining their actual value.
+Gradle provides rich APIs for plugin authors and build engineers to develop custom build logic.
 
-This release introduces a  pair of [`convention(...)`](javadoc/org/gradle/api/file/ConfigurableFileCollection.html#convention-java.lang.Object...-) methods 
-on `ConfigurableFileCollection` that define the default value of a file collection if no explicit value is previously set via `setFrom(...)` or `from(...)`.
+#### `DependencyConstraintHandler` now has `addProvider` methods
 
-```kotlin
-val files = objects.fileCollection().convention("dir1")
-files.from("dir2")
-
-println(files.elements.get()) // [.../dir1, .../dir2]
-```
-
-`#from(...)` will honor the convention if one is configured when invoked, so the order of operations will matter. 
-
-To forcefully override or prevent a convention (i.e., regardless of the order of those operations), one should use `#setFrom()` instead:
+The [`DependencyConstraintHandler`](javadoc/org/gradle/api/artifacts/dsl/DependencyConstraintHandler.html) now has `addProvider` methods, similar to the 
+[`DependencyHandler`](javadoc/org/gradle/api/artifacts/dsl/DependencyHandler.html).
 
 ```kotlin
-val files = objects.fileCollection().convention("dir1")
-files.setFrom("dir2")
-
-
-println(files.elements.get()) // [.../dir2]
+dependencies {
+    constraints {
+        // Existing API:
+        add("implementation", provider { "org.foo:bar:1.0" })
+        add("implementation", provider { "org.foo:bar:1.0" }) {
+            because("newer versions have bugs")
+        }
+        // New methods:
+        addProvider("implementation", provider { "org.foo:bar:1.0" })
+        addProvider("implementation", provider { "org.foo:bar:1.0" }) {
+            because("newer versions have bugs")
+        }
+    }
+}
 ```
 
-This feature caters to plugin developers.
-It is analogous to the [`convention(...)`](javadoc/org/gradle/api/provider/Property.html#convention-T-) methods that have been available on lazy properties since Gradle 5.1.
-
-#### Improved error handling for toolchain resolvers
-
-When attempting to download Java toolchains from the configured resolvers, errors will be better handled now, and all resolvers will be tried.
-
-While mapping toolchain specs to download URLs, resolvers aren't supposed to throw exceptions. 
-But it is possible for them to do that, and when it happens, Gradle should try to use other configured resolvers in their stead.
-However, it wasn't the case before this fix.
-
-Also, auto-provisioning can fail even after a successful toolchain spec to URL mapping (for example, during the actual download and validating of the toolchain)
-In such a case, Gradle should retry the auto-provisioning process with other configured resolvers.
-This was also not the case before the fix.
-
-
-<a name="other"></a>
-### Other improvements
-
-#### Tests metadata improvements in tooling API
-
-IDEs and other tools leverage the tooling API to access information about tests executed by Gradle.
-Each test event sent via the tooling API includes a test descriptor containing metadata such as a human-readable name, class name, and method name.
-
-We introduced a new method to the `TestOperationDescriptor` interface to provide the test display name – `getTestDisplayName`.
-It returns the display name of the test that can be used by IDEs to present the test in a human-readable format.
-It is transparently passed from the frameworks, enabling IDEs to use them without requiring transformations.
-Previously, the display name could be obtained only by parsing the operation display name, which was not always reliable.
-
-Additionally, for JUnit5 and Spock, we updated the test descriptor for dynamic and parameterized tests to include information about the class name and method name containing the test.
-These enhancements enable IDEs to offer improved navigation and reporting capabilities for dynamic and parameterized tests.
-
-#### Fix IDE performance issues with large projects
-
-A performance issue in the Tooling API causing delays at the end of task execution in large projects has been identified and fixed by a community member.
-This problem occurred while transmitting task information for executed tasks to the IDE. 
-
-After executing approximately 15,000 tasks, the IDE would encounter a delay of several seconds. 
-The root cause was that much more information than needed was serialized via the Tooling API.
-We added a test to the fix to ensure there will be no future regression, demonstrating a performance improvement of around 12%.
-The environments that benefit from this fix are Android Studio, IntelliJ IDEA, Eclipse, and other Tooling API clients.
+This clarifies that adding a provider is possible, and that there is no immediately usable return value. The ability to pass a provider to `DependencyConstraintHandler.add` is unaffected.
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE

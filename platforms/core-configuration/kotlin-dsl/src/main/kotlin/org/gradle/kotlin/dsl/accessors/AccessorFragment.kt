@@ -19,7 +19,7 @@ package org.gradle.kotlin.dsl.accessors
 import kotlinx.metadata.KmPackage
 import kotlinx.metadata.jvm.JvmMethodSignature
 
-import org.gradle.internal.classanalysis.AsmConstants.ASM_LEVEL
+import org.gradle.model.internal.asm.AsmConstants.ASM_LEVEL
 
 import org.jetbrains.org.objectweb.asm.ClassVisitor
 import org.jetbrains.org.objectweb.asm.ClassWriter
@@ -41,7 +41,8 @@ typealias BytecodeWriter = BytecodeFragmentScope.() -> Unit
 internal
 class BytecodeFragmentScope(
     val signature: JvmMethodSignature,
-    writer: ClassWriter
+    writer: ClassWriter,
+    val useLowPriorityInOverloadResolution: Boolean
 ) : ClassVisitor(ASM_LEVEL, writer)
 
 
@@ -52,7 +53,8 @@ typealias MetadataWriter = MetadataFragmentScope.() -> Unit
 internal
 data class MetadataFragmentScope(
     val signature: JvmMethodSignature,
-    val kmPackage: KmPackage
+    val kmPackage: KmPackage,
+    val useLowPriorityInOverloadResolution: Boolean
 )
 
 

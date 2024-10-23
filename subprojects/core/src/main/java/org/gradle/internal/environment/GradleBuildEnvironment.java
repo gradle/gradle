@@ -17,8 +17,11 @@
 package org.gradle.internal.environment;
 
 import org.gradle.internal.scan.UsedByScanPlugin;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 @UsedByScanPlugin
+@ServiceScope(Scope.Global.class)
 public interface GradleBuildEnvironment {
 
     boolean isLongLivingProcess();

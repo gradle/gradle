@@ -28,6 +28,7 @@ import org.gradle.util.internal.DeferredUtil;
 import org.gradle.util.internal.TextUtil;
 
 import javax.annotation.Nullable;
+import java.util.Locale;
 import java.util.function.Supplier;
 
 import static org.gradle.internal.deprecation.Documentation.userManual;
@@ -50,8 +51,9 @@ public abstract class AbstractValidatingProperty implements ValidatingProperty {
     public static void reportValueNotSet(String propertyName, TypeValidationContext context, boolean hasConfigurableValue) {
         context.visitPropertyProblem(problem -> {
             ProblemSpec problemSpec = problem.forProperty(propertyName)
-                .id(TextUtil.screamingSnakeToKebabCase(VALUE_NOT_SET), "doesn't have a configured value", GradleCoreProblemGroup.validation().property())
-                .documentedAt(userManual("validation_problems", VALUE_NOT_SET.toLowerCase()))
+                .id(TextUtil.screamingSnakeToKebabCase(VALUE_NOT_SET), "Value not set", GradleCoreProblemGroup.validation().property())
+                .contextualLabel("doesn't have a configured value")
+                .documentedAt(userManual("validation_problems", VALUE_NOT_SET.toLowerCase(Locale.ROOT)))
                 .severity(Severity.ERROR)
                 .details("This property isn't marked as optional and no value has been configured");
             if (hasConfigurableValue) {

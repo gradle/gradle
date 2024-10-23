@@ -109,7 +109,7 @@ testImplementation - Implementation only dependencies for source set 'test'. (n)
 ...
 ----
 
-Consult the <<dependency_management_terminology.adoc#dependency_management_terminology,Dependency Management chapter>> to learn more.
+Consult the <<glossary.adoc#dependency_management_terminology,Dependency Management chapter>> to learn more.
 
 [.text-right]
 **Next Step:** <<task_basics.adoc#task_basics,Learn about Tasks>> >>

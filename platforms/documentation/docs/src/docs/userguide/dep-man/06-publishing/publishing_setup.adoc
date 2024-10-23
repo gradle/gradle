@@ -42,7 +42,7 @@ Let's take a look at those steps in more detail:
 [[publishing_overview:what]]
 What to publish::
 Gradle needs to know what files and information to publish so that consumers can use your project.
-This is typically a combination of <<dependency_management_terminology.adoc#sub:terminology_artifact,artifacts>> and metadata that Gradle calls a <<dependency_management_terminology.adoc#sub:terminology_publication,publication>>.
+This is typically a combination of <<glossary.adoc#sub:terminology_artifact,artifacts>> and metadata that Gradle calls a <<glossary.adoc#sub:terminology_publication,publication>>.
 Exactly what a publication contains depends on the type of repository it's being published to.
 +
 For example, a publication destined for a Maven repository includes:
@@ -58,7 +58,7 @@ From Gradle 6.0 onwards, this includes `SHA256` and `SHA512` checksums.
 
 [[publishing_overview:where]]
 Where to publish::
-Gradle needs to know where to publish artifacts so that consumers can get hold of them. This is done via <<dependency_management_terminology.adoc#sub:terminology_repository,repositories>>, which store and make available all sorts of artifact.
+Gradle needs to know where to publish artifacts so that consumers can get hold of them. This is done via <<glossary.adoc#sub:terminology_repository,repositories>>, which store and make available all sorts of artifact.
 Gradle also needs to interact with the repository, which is why you must provide the type of the repository and its location.
 
 [[publishing_overview:how]]
@@ -94,7 +94,7 @@ include::sample[dir="snippets/publishing/javaLibrary/groovy",files="build.gradle
 ====
 
 This defines a publication called "myLibrary" that can be published to a Maven repository by virtue of its type: link:{groovyDslPath}/org.gradle.api.publish.maven.MavenPublication.html[MavenPublication].
-This publication consists of just the production JAR artifact and its metadata, which combined are represented by the `java` <<dependency_management_terminology.adoc#sub:terminology_component,component>> of the project.
+This publication consists of just the production JAR artifact and its metadata, which combined are represented by the `java` <<glossary.adoc#sub:terminology_component,component>> of the project.
 
 NOTE: Components are the standard way of defining a publication. They are provided by plugins, usually of the language or platform variety. For example, the Java Plugin defines the `components.java` link:{javadocPath}/org/gradle/api/component/SoftwareComponent.html[SoftwareComponent], while the War Plugin defines `components.web`.
 

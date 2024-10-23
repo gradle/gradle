@@ -16,6 +16,7 @@
 
 package org.gradle.api.problems.internal;
 
+import org.gradle.api.Action;
 import org.gradle.api.problems.ProblemGroup;
 import org.gradle.api.problems.Severity;
 
@@ -59,9 +60,6 @@ public interface InternalProblemBuilder extends InternalProblemSpec {
     InternalProblemBuilder offsetInFileLocation(String path, int offset, int length);
 
     @Override
-    InternalProblemBuilder pluginLocation(String pluginId);
-
-    @Override
     InternalProblemBuilder stackLocation();
 
     @Override
@@ -71,10 +69,10 @@ public interface InternalProblemBuilder extends InternalProblemSpec {
     InternalProblemBuilder solution(String solution);
 
     @Override
-    InternalProblemBuilder additionalData(String key, Object value);
+    <U extends AdditionalDataSpec> InternalProblemBuilder additionalData(Class<? extends U> specType, Action<? super U> config);
 
     @Override
-    InternalProblemBuilder withException(RuntimeException e);
+    InternalProblemBuilder withException(Throwable t);
 
     @Override
     InternalProblemBuilder severity(Severity severity);

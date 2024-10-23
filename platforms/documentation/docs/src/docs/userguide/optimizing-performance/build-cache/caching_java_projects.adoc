@@ -103,7 +103,7 @@ include::sample[dir="snippets/buildCache/integration-tests/groovy",files="build.
 <1> Create a class implementing link:{javadocPath}/org/gradle/process/CommandLineArgumentProvider.html[`CommandLineArgumentProvider`].
 <2> Declare the inputs and outputs with the corresponding path sensitivity.
 <3> `asArguments` needs to return the JVM arguments passing the desired system properties to the test JVM.
-<4> Add an instance of the newly created class as JVM argument provider to the integration test task.footnote:managedTypes[The `CommandLineArgumentProvider` in this example is implemented as a <<custom_gradle_types.adoc#custom_gradle_types,managed type>>.]
+<4> Add an instance of the newly created class as JVM argument provider to the integration test task.footnote:managedTypes[The `CommandLineArgumentProvider` in this example is implemented as a <<properties_providers.adoc#managed_types,managed type>>.]
 
 === Ignoring system properties
 

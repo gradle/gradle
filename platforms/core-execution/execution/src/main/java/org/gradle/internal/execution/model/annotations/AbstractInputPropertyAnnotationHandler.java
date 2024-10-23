@@ -31,6 +31,7 @@ import org.gradle.util.internal.TextUtil;
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import static org.gradle.internal.deprecation.Documentation.userManual;
 
@@ -67,7 +68,7 @@ abstract class AbstractInputPropertyAnnotationHandler extends AbstractPropertyAn
             validationContext.visitPropertyProblem(problem -> {
                     ProblemSpec describedProblem = problem
                         .forProperty(propertyMetadata.getPropertyName())
-                        .id(TextUtil.screamingSnakeToKebabCase(UNSUPPORTED_VALUE_TYPE), "property with unsupported annotation", GradleCoreProblemGroup.validation().property())
+                        .id(TextUtil.screamingSnakeToKebabCase(UNSUPPORTED_VALUE_TYPE), "Unsupported value type", GradleCoreProblemGroup.validation().property())
                         .contextualLabel(
                             String.format(
                                 "has @%s annotation used on property of type '%s'",
@@ -75,7 +76,7 @@ abstract class AbstractInputPropertyAnnotationHandler extends AbstractPropertyAn
                                 TypeOf.typeOf(propertyMetadata.getDeclaredType().getType()).getSimpleName()
                             )
                         )
-                        .documentedAt(userManual("validation_problems", UNSUPPORTED_VALUE_TYPE.toLowerCase()))
+                        .documentedAt(userManual("validation_problems", UNSUPPORTED_VALUE_TYPE.toLowerCase(Locale.ROOT)))
                         .severity(Severity.ERROR)
                         .details(String.format("%s is not supported on task properties annotated with @%s", unsupportedType.getSimpleName(), annotationType.getSimpleName()));
                     for (String possibleSolution : possibleSolutions) {

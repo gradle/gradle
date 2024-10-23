@@ -59,11 +59,12 @@ class ProblemsServiceModelBuilderCrossVersionTest extends ToolingApiSpecificatio
                     return modelName == '${CustomModel.name}'
                 }
                 Object buildAll(String modelName, Project project) {
-                    problemsService.${pre86api ? "create" : "forNamespace(\"org.example.plugin\").reporting"} {
+
+                    problemsService.${targetVersion >= GradleVersion.version("8.11") ? 'getReporter().reporting' : pre86api ? "create" : "forNamespace(\"org.example.plugin\").reporting"} {
                         it.${targetVersion < GradleVersion.version("8.8") ? 'label("label").category("testcategory")' : 'id("testcategory", "label")'}
                             .withException(new RuntimeException("test"))
                             ${pre86api ? ".undocumented()" : ""}
-                            ${includeAdditionalMetadata ? ".additionalData(\"keyToString\", \"value\")" : ""}
+                            ${includeAdditionalMetadata ? targetVersion < GradleVersion.version("8.9") ? '.additionalData("keyToString", "value")"' : '.additionalData(org.gradle.api.problems.internal.GeneralData) { it.put("keyToString", "value") }' : ""}
                     }${pre86api ? ".report()" : ""}
                     return new CustomModel()
                 }

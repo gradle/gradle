@@ -51,7 +51,6 @@ import java.util.Set;
  * <li>exposing an instance of {@link DependencyCollector} to add dependencies without explicitly calling {@link DependencyCollector#addConstraint(DependencyConstraint)} or {@link DependencyCollector#addConstraint(Provider)}</li>
  * <li>exposing an instance of {@link DependencyModifier} to modify dependencies without explicitly calling {@link DependencyModifier#modify(ModuleDependency)}</li>
  * </ul>
- * </p>
  *
  * <p>
  * There are {@code call(...)} equivalents for all the {@code add(...)} and {@code addConstraint(...)} methods in {@link DependencyCollector}.
@@ -110,7 +109,7 @@ public class DependenciesExtensionModule {
 
     @Nullable
     private static String extract(Map<String, CharSequence> map, String key) {
-        return (map.containsKey(key)) ? map.get(key).toString() : null;
+        return map.containsKey(key) ? map.get(key).toString() : null;
     }
 
     /**

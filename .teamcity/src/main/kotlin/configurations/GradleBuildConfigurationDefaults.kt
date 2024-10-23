@@ -9,6 +9,7 @@ import common.KillProcessMode.KILL_PROCESSES_STARTED_BY_GRADLE
 import common.Os
 import common.VersionedSettingsBranch
 import common.applyDefaultSettings
+import common.buildScanTagParam
 import common.buildToolGradleParameters
 import common.checkCleanM2AndAndroidUserHome
 import common.cleanUpGitUntrackedFilesAndDirectories
@@ -30,6 +31,9 @@ import jetbrains.buildServer.configs.kotlin.buildFeatures.parallelTests
 import jetbrains.buildServer.configs.kotlin.buildFeatures.pullRequests
 import model.CIBuildModel
 import model.StageName
+
+const val GRADLE_RUNNER_STEP_NAME = "GRADLE_RUNNER"
+const val GRADLE_RETRY_RUNNER_STEP_NAME = "GRADLE_RETRY_RUNNER"
 
 fun checkCleanDirUnixLike(dir: String, exitOnFailure: Boolean = true) = """
     REPO=$dir
@@ -110,12 +114,13 @@ fun BaseGradleBuildType.gradleRunnerStep(
     model: CIBuildModel,
     gradleTasks: String,
     os: Os = Os.LINUX,
+    arch: Arch = Arch.AMD64,
     extraParameters: String = "",
     daemon: Boolean = true,
     maxParallelForks: String = "%maxParallelForks%",
     isRetry: Boolean = false,
 ) {
-    val stepName: String = if (isRetry) "GRADLE_RETRY_RUNNER" else "GRADLE_RUNNER"
+    val stepName: String = if (isRetry) GRADLE_RETRY_RUNNER_STEP_NAME else GRADLE_RUNNER_STEP_NAME
     val stepExecutionMode: ExecutionMode = if (isRetry) ExecutionMode.RUN_ONLY_ON_FAILURE else ExecutionMode.DEFAULT
     val extraBuildScanTags: List<String> = if (isRetry) listOf("RetriedBuild") else emptyList()
 
@@ -123,9 +128,9 @@ fun BaseGradleBuildType.gradleRunnerStep(
     val parameters = (
         buildToolGradleParameters(daemon, maxParallelForks = maxParallelForks) +
             listOf(extraParameters) +
-            buildScanTags.map { buildScanTag(it) } +
-            functionalTestParameters(os)
-        ).joinToString(separator = " ")
+            buildScanTags.map { buildScanTagParam(it) } +
+            functionalTestParameters(os, arch)
+        ).joinToString(separator = " ") + if (isRetry) " -PretryBuild" else ""
 
     steps {
         gradleWrapper(this@gradleRunnerStep) {
@@ -146,6 +151,7 @@ fun applyDefaults(
     gradleTasks: String,
     dependsOnQuickFeedbackLinux: Boolean = false,
     os: Os = Os.LINUX,
+    arch: Arch = Arch.AMD64,
     extraParameters: String = "",
     timeout: Int = 90,
     daemon: Boolean = true,
@@ -155,10 +161,11 @@ fun applyDefaults(
     buildType.applyDefaultSettings(os, timeout = timeout, buildJvm = buildJvm)
 
     buildType.killProcessStep(KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS, os)
-    buildType.gradleRunnerStep(model, gradleTasks, os, extraParameters, daemon)
+    buildType.gradleRunnerStep(model, gradleTasks, os, arch, extraParameters, daemon)
 
     buildType.steps {
         extraSteps()
+        killProcessStep(buildType, KILL_PROCESSES_STARTED_BY_GRADLE, os, arch, executionMode = ExecutionMode.ALWAYS)
         checkCleanM2AndAndroidUserHome(os, buildType)
     }
 
@@ -176,7 +183,7 @@ private fun BaseGradleBuildType.addRetrySteps(
 ) {
     killProcessStep(KILL_ALL_GRADLE_PROCESSES, os, arch, executionMode = ExecutionMode.RUN_ONLY_ON_FAILURE)
     cleanUpGitUntrackedFilesAndDirectories()
-    gradleRunnerStep(model, gradleTasks, os, extraParameters, daemon, maxParallelForks = maxParallelForks, isRetry = true)
+    gradleRunnerStep(model, gradleTasks, os, arch, extraParameters, daemon, maxParallelForks = maxParallelForks, isRetry = true)
 }
 
 fun applyTestDefaults(
@@ -201,9 +208,9 @@ fun applyTestDefaults(
     }
 
     buildType.killProcessStep(KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS, os, arch)
-    buildType.gradleRunnerStep(model, gradleTasks, os, extraParameters, daemon, maxParallelForks = maxParallelForks)
+    buildType.gradleRunnerStep(model, gradleTasks, os, arch, extraParameters, daemon, maxParallelForks = maxParallelForks)
     buildType.addRetrySteps(model, gradleTasks, os, arch, extraParameters)
-    buildType.killProcessStep(KILL_PROCESSES_STARTED_BY_GRADLE, os, arch)
+    buildType.killProcessStep(KILL_PROCESSES_STARTED_BY_GRADLE, os, arch, executionMode = ExecutionMode.ALWAYS)
 
     buildType.steps {
         extraSteps()
@@ -213,8 +220,6 @@ fun applyTestDefaults(
     applyDefaultDependencies(model, buildType, dependsOnQuickFeedbackLinux)
 }
 
-fun buildScanTag(tag: String) = """"-Dscan.tag.$tag""""
-fun buildScanCustomValue(key: String, value: String) = """"-Dscan.value.$key=$value""""
 fun applyDefaultDependencies(model: CIBuildModel, buildType: BuildType, dependsOnQuickFeedbackLinux: Boolean) {
     if (dependsOnQuickFeedbackLinux) {
         // wait for quick feedback phase to finish successfully

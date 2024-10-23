@@ -29,7 +29,7 @@ class PluginApplicationOrderIntegrationSpec extends AbstractPluginSpec {
         """
 
         when:
-        buildScript """
+        buildFile """
             plugins {
                 id 'java'
                 id '$PLUGIN_ID' version '$VERSION'

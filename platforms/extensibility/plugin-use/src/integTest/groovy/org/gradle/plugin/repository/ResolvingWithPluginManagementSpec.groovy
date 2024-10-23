@@ -61,7 +61,7 @@ class ResolvingWithPluginManagementSpec extends AbstractDependencyResolutionTest
     def 'setting different version in resolutionStrategy will affect plugin choice'() {
         given:
         publishTestPlugin()
-        buildScript """
+        buildFile """
           plugins {
               id "org.example.plugin" version '1000'
           }
@@ -89,7 +89,7 @@ class ResolvingWithPluginManagementSpec extends AbstractDependencyResolutionTest
     def 'when no version is specified, resolution fails'() {
         given:
         publishTestPlugin()
-        buildScript """
+        buildFile """
           plugins {
               id "org.example.plugin" version '1.2'
           }
@@ -117,7 +117,7 @@ class ResolvingWithPluginManagementSpec extends AbstractDependencyResolutionTest
     def 'when invalid version is specified, resolution fails'() {
         given:
         publishTestPlugin()
-        buildScript """
+        buildFile """
           plugins {
               id "org.example.plugin" version '1.2'
           }
@@ -145,7 +145,7 @@ class ResolvingWithPluginManagementSpec extends AbstractDependencyResolutionTest
     def 'when version range is specified, resolution succeeds'() {
         given:
         publishTestPlugin()
-        buildScript """
+        buildFile """
           plugins {
               id "org.example.plugin" version '1.2'
           }
@@ -173,7 +173,7 @@ class ResolvingWithPluginManagementSpec extends AbstractDependencyResolutionTest
     def 'when invalid artifact version is specified, resolution fails'() {
         given:
         publishTestPlugin()
-        buildScript """
+        buildFile """
           plugins {
               id "org.example.plugin" version '1.2'
           }
@@ -201,7 +201,7 @@ class ResolvingWithPluginManagementSpec extends AbstractDependencyResolutionTest
     def 'when artifact version range is specified, resolution succeeds'() {
         given:
         publishTestPlugin()
-        buildScript """
+        buildFile """
           plugins {
               id "org.example.plugin" version '1.2'
           }
@@ -229,7 +229,7 @@ class ResolvingWithPluginManagementSpec extends AbstractDependencyResolutionTest
     def 'can specify an artifact to use'() {
         given:
         publishTestPlugin()
-        buildScript """
+        buildFile """
           plugins {
               id "org.example.plugin"
           }
@@ -257,7 +257,7 @@ class ResolvingWithPluginManagementSpec extends AbstractDependencyResolutionTest
     def 'rules are executed in declaration order'() {
         given:
         publishTestPlugin()
-        buildScript """
+        buildFile """
           plugins {
               id "org.example.plugin"
           }
@@ -290,7 +290,7 @@ class ResolvingWithPluginManagementSpec extends AbstractDependencyResolutionTest
     def 'Build fails when a rule throws an exception'() {
         given:
         publishTestPlugin()
-        buildScript """
+        buildFile """
           plugins {
               id "org.example.plugin"
           }
@@ -315,7 +315,7 @@ class ResolvingWithPluginManagementSpec extends AbstractDependencyResolutionTest
     def "Can specify repo in init script."() {
         given:
         publishTestPlugin()
-        buildScript """
+        buildFile """
            plugins {
              id "org.example.plugin" version "1.0"
            }
@@ -366,7 +366,7 @@ class ResolvingWithPluginManagementSpec extends AbstractDependencyResolutionTest
 
     def "fails build for unresolvable custom artifact"() {
         given:
-        buildScript helloWorldPlugin('0.2')
+        buildFile helloWorldPlugin('0.2')
 
         settingsFile << """
             pluginManagement {
@@ -390,7 +390,7 @@ class ResolvingWithPluginManagementSpec extends AbstractDependencyResolutionTest
 
     def "succeeds build for resolvable custom artifact"() {
         given:
-        buildScript helloWorldPlugin('0.2')
+        buildFile helloWorldPlugin('0.2')
 
         settingsFile << """
             pluginManagement {
@@ -416,7 +416,7 @@ class ResolvingWithPluginManagementSpec extends AbstractDependencyResolutionTest
         given:
         def repo = new IvyFileRepository(file("ivy-repo"), true, '[organisation]/[module]/[revision]', '[module]-[revision].ivy', '[artifact]-[revision](-[classifier]).[ext]')
         publishTestPlugin(repo)
-        buildScript """
+        buildFile """
             plugins {
               id "org.example.plugin" version '1.0'
           }

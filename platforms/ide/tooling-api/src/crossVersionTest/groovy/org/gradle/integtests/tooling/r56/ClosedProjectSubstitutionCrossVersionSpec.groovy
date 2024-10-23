@@ -18,7 +18,6 @@ package org.gradle.integtests.tooling.r56
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.eclipse.EclipseWorkspace
 import org.gradle.tooling.model.eclipse.EclipseWorkspaceProject
@@ -26,7 +25,6 @@ import org.gradle.tooling.model.eclipse.EclipseWorkspaceProject
 import java.util.regex.Pattern
 
 @TargetGradleVersion(">=5.6")
-@ToolingApiVersion(">=5.6")
 class ClosedProjectSubstitutionCrossVersionSpec extends ToolingApiSpecification {
 
     def "will substitute and run build dependencies for closed projects on startup"() {

@@ -19,7 +19,10 @@ package org.gradle.internal.execution.history.changes;
 import org.gradle.api.Describable;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.PreviousExecutionState;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
+@ServiceScope(Scope.Global.class)
 public interface ExecutionStateChangeDetector {
     int MAX_OUT_OF_DATE_MESSAGES = 3;
 

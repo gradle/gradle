@@ -28,7 +28,6 @@ import java.util.Optional;
 import java.util.Set;
 
 import static java.util.Collections.singleton;
-import static java.util.Optional.of;
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.KOTLIN;
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework.NONE;
 import static org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption.SINGLE_PROJECT;
@@ -96,6 +95,6 @@ public class BasicBuildGenerator extends AbstractBuildGenerator {
 
     @Override
     public Optional<String> getFurtherReading(InitSettings settings) {
-        return of(documentationRegistry.getSampleForMessage());
+        return Optional.of(documentationRegistry.getSampleForMessage());
     }
 }

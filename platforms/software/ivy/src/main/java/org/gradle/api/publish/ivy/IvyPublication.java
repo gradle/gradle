@@ -20,7 +20,9 @@ import org.gradle.api.Action;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.VersionMappingStrategy;
+import org.gradle.api.tasks.Nested;
 import org.gradle.internal.HasInternalProtocol;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 /**
  * An {@code IvyPublication} is the representation/configuration of how Gradle should publish something in Ivy format, to an Ivy repository.
@@ -61,9 +63,9 @@ import org.gradle.internal.HasInternalProtocol;
  * For any other tweaks to the publication, it is possible to modify the generated Ivy descriptor file prior to publication. This is done using
  * the {@link IvyModuleDescriptorSpec#withXml(org.gradle.api.Action)} method, normally via a Closure passed to the {@link #descriptor(org.gradle.api.Action)} method.
  * </p>
- * <h4>Example of publishing a java component with an added source jar and custom module description</h4>
  *
  * <pre class='autoTested'>
+ * // Example of publishing a java component with an added source jar and custom module description
  * plugins {
  *     id 'java'
  *     id 'ivy-publish'
@@ -105,10 +107,10 @@ public interface IvyPublication extends Publication {
 
     /**
      * The module descriptor that will be published.
-     * <p>
      *
      * @return The module descriptor that will be published.
      */
+    @Nested
     IvyModuleDescriptorSpec getDescriptor();
 
     /**
@@ -317,6 +319,7 @@ public interface IvyPublication extends Publication {
     /**
      * Returns the organisation for this publication.
      */
+    @ToBeReplacedByLazyProperty
     String getOrganisation();
 
     /**
@@ -327,6 +330,7 @@ public interface IvyPublication extends Publication {
     /**
      * Returns the module for this publication.
      */
+    @ToBeReplacedByLazyProperty
     String getModule();
 
     /**
@@ -337,6 +341,7 @@ public interface IvyPublication extends Publication {
     /**
      * Returns the revision for this publication.
      */
+    @ToBeReplacedByLazyProperty
     String getRevision();
 
     /**

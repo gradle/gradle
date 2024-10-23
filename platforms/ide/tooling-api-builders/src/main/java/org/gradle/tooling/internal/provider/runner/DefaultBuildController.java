@@ -23,6 +23,7 @@ import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.buildtree.BuildTreeModelController;
+import org.gradle.internal.buildtree.BuildTreeModelSideEffectExecutor;
 import org.gradle.internal.work.WorkerThreadRegistry;
 import org.gradle.tooling.internal.gradle.GradleBuildIdentity;
 import org.gradle.tooling.internal.gradle.GradleProjectIdentity;
@@ -34,9 +35,9 @@ import org.gradle.tooling.internal.protocol.InternalStreamedValueRelay;
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
 import org.gradle.tooling.internal.provider.connection.ProviderBuildResult;
-import org.gradle.tooling.internal.provider.serialization.StreamedValue;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
+import org.gradle.tooling.internal.provider.serialization.StreamedValue;
 import org.gradle.tooling.provider.model.UnknownModelException;
 import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier;
 import org.gradle.tooling.provider.model.internal.ToolingModelScope;
@@ -55,6 +56,7 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
     private final BuildStateRegistry buildStateRegistry;
     private final ToolingModelParameterCarrier.Factory parameterCarrierFactory;
     private final BuildEventConsumer buildEventConsumer;
+    private final BuildTreeModelSideEffectExecutor sideEffectExecutor;
     private final PayloadSerializer payloadSerializer;
 
     public DefaultBuildController(
@@ -64,6 +66,7 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
         BuildStateRegistry buildStateRegistry,
         ToolingModelParameterCarrier.Factory parameterCarrierFactory,
         BuildEventConsumer buildEventConsumer,
+        BuildTreeModelSideEffectExecutor sideEffectExecutor,
         PayloadSerializer payloadSerializer
     ) {
         this.workerThreadRegistry = workerThreadRegistry;
@@ -72,6 +75,7 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
         this.buildStateRegistry = buildStateRegistry;
         this.parameterCarrierFactory = parameterCarrierFactory;
         this.buildEventConsumer = buildEventConsumer;
+        this.sideEffectExecutor = sideEffectExecutor;
         this.payloadSerializer = payloadSerializer;
     }
 
@@ -176,6 +180,9 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
     @Override
     public void dispatch(Object value) {
         SerializedPayload serializedModel = payloadSerializer.serialize(value);
-        buildEventConsumer.dispatch(new StreamedValue(serializedModel));
+        StreamedValue streamedValue = new StreamedValue(serializedModel);
+        BuildEventConsumer buildEventConsumer = this.buildEventConsumer;
+        sideEffectExecutor.runIsolatableSideEffect(() -> buildEventConsumer.dispatch(streamedValue));
     }
+
 }

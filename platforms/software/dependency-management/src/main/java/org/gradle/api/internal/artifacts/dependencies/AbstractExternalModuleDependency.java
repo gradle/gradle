@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.dependencies;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ExternalModuleDependency;
@@ -24,10 +25,16 @@ import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.MutableVersionConstraint;
 import org.gradle.api.artifacts.VersionConstraint;
+import org.gradle.api.internal.artifacts.capability.SpecificCapabilitySelector;
+import org.gradle.api.internal.artifacts.capability.FeatureCapabilitySelector;
+import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.ModuleVersionSelectorStrictSpec;
+import org.gradle.api.internal.artifacts.capability.DefaultSpecificCapabilitySelector;
+import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 
 import javax.annotation.Nullable;
+import java.util.List;
 
 public abstract class AbstractExternalModuleDependency extends AbstractModuleDependency implements ExternalModuleDependency {
     private final ModuleIdentifier moduleIdentifier;
@@ -123,6 +130,31 @@ public abstract class AbstractExternalModuleDependency extends AbstractModuleDep
             throw new InvalidUserDataException("Name must not be null!");
         }
         return DefaultModuleIdentifier.newId(group, name);
+    }
+
+    @Override
+    @SuppressWarnings("deprecation")
+    public List<Capability> getRequestedCapabilities() {
+        return getCapabilitySelectors().stream()
+            .map(c -> {
+                if (c instanceof SpecificCapabilitySelector) {
+                    return ((DefaultSpecificCapabilitySelector) c).getBackingCapability();
+                } else if (c instanceof FeatureCapabilitySelector) {
+                    return new DefaultImmutableCapability(
+                        getGroup(),
+                        getName() + "-" + ((FeatureCapabilitySelector) c).getFeatureName(),
+                        getVersion()
+                    );
+                } else {
+                    throw new UnsupportedOperationException("Unsupported capability selector type: " + c.getClass().getName());
+                }
+            })
+            .collect(ImmutableList.toImmutableList());
+    }
+
+    @Override
+    public String toString() {
+        return getGroup() + ":" + getName() + ":" + getVersionConstraint().getDisplayName();
     }
 
     @Override

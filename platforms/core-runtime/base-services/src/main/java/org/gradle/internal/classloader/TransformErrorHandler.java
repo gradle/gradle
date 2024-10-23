@@ -21,7 +21,7 @@ import com.google.common.base.Throwables;
 import javax.annotation.Nullable;
 
 /**
- * A helper to handle transform errors in {@link org.gradle.internal.agents.InstrumentingClassLoader}.
+ * A helper to handle transform errors in {@link InstrumentingClassLoader}.
  * The agent cannot abort the class loading by throwing an exception during instrumentation.
  * Instead, this class allows to record the exception and rethrow it after class loading is mostly done.
  * The suggested pattern is to override the {@link ClassLoader#findClass(String)}:
@@ -51,6 +51,7 @@ import javax.annotation.Nullable;
  * This class is thread-safe, though it only tracks pending exceptions per-thread.
  */
 public class TransformErrorHandler {
+    @SuppressWarnings("ThreadLocalUsage")
     private final ThreadLocal<ClassNotFoundException> lastError = new ThreadLocal<ClassNotFoundException>();
     private final String classLoaderName;
 

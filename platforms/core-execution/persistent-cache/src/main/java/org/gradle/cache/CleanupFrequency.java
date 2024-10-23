@@ -16,7 +16,9 @@
 
 package org.gradle.cache;
 
-import java.util.concurrent.TimeUnit;
+import javax.annotation.Nullable;
+import java.time.Duration;
+import java.time.Instant;
 
 /**
  * Represents when cache cleanup should be triggered.
@@ -24,20 +26,17 @@ import java.util.concurrent.TimeUnit;
  * @since 8.0
  */
 public interface CleanupFrequency {
-    long NEVER_CLEANED = 0;
-
     /**
      * Trigger cleanup once every 24 hours.
      */
     CleanupFrequency DAILY = new CleanupFrequency() {
         @Override
-        public boolean requiresCleanup(long lastCleanupTimestamp) {
-            if (lastCleanupTimestamp == NEVER_CLEANED) {
+        public boolean requiresCleanup(@Nullable Instant lastCleanupTime) {
+            if (lastCleanupTime == null) {
                 return true;
             } else {
-                long duration = System.currentTimeMillis() - lastCleanupTimestamp;
-                long timeInHours = TimeUnit.MILLISECONDS.toHours(duration);
-                return timeInHours >= 24;
+                return Duration.between(lastCleanupTime, Instant.now())
+                    .toHours() >= 24;
             }
         }
     };
@@ -47,7 +46,7 @@ public interface CleanupFrequency {
      */
     CleanupFrequency ALWAYS = new CleanupFrequency() {
         @Override
-        public boolean requiresCleanup(long lastCleanupTimestamp) {
+        public boolean requiresCleanup(@Nullable Instant lastCleanupTime) {
             return true;
         }
 
@@ -62,12 +61,12 @@ public interface CleanupFrequency {
      */
     CleanupFrequency NEVER = new CleanupFrequency() {
         @Override
-        public boolean requiresCleanup(long lastCleanupTimestamp) {
+        public boolean requiresCleanup(@Nullable Instant lastCleanupTime) {
             return false;
         }
     };
 
-    boolean requiresCleanup(long lastCleanupTimestamp);
+    boolean requiresCleanup(@Nullable Instant lastCleanupTime);
     default boolean shouldCleanupOnEndOfSession() {
         return false;
     }

@@ -74,7 +74,7 @@ public class SourceFoldersCreator {
      * @return source folders that live outside of the project
      */
     public List<SourceFolder> getBasicExternalSourceFolders(Iterable<SourceSet> sourceSets, Function<File, String> provideRelativePath, File defaultOutputDir) {
-        List<SourceFolder> basicSourceFolders = basicProjectRelativeFolders(sourceSets, provideRelativePath, defaultOutputDir);
+        List<SourceFolder> basicSourceFolders = basicProjectRelativeFolders(sourceSets, provideRelativePath);
         return collectRegularAndExternalSourceFolders(basicSourceFolders, (sourceFoldersLeft, sourceFoldersRight) -> ImmutableList.copyOf(sourceFoldersRight));
     }
 
@@ -123,7 +123,7 @@ public class SourceFoldersCreator {
         return folder;
     }
 
-    private List<SourceFolder> basicProjectRelativeFolders(Iterable<SourceSet> sourceSets, Function<File, String> provideRelativePath, File defaultOutputDir) {
+    private List<SourceFolder> basicProjectRelativeFolders(Iterable<SourceSet> sourceSets, Function<File, String> provideRelativePath) {
         ImmutableList.Builder<SourceFolder> entries = ImmutableList.builder();
         List<SourceSet> sortedSourceSets = sortSourceSetsAsPerUsualConvention(sourceSets);
         for (SourceSet sourceSet : sortedSourceSets) {

@@ -44,13 +44,13 @@ abstract class AbstractFileSystemAccessTest extends Specification {
     final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     def fileHasher = new AllowingHasher(TestFiles.fileHasher())
-    def stat = new AllowingStat(TestFiles.fileSystem())
+    def fileSystem = new AllowingStat(TestFiles.fileSystem())
     def updateListener = Mock(FileSystemAccess.WriteListener)
     def statisticsCollector = Mock(DirectorySnapshotterStatistics.Collector)
     def fileSystemAccess = new DefaultFileSystemAccess(
         fileHasher,
         new StringInterner(),
-        stat,
+        fileSystem::stat,
         TestFiles.virtualFileSystem(),
         updateListener,
         statisticsCollector
@@ -58,7 +58,7 @@ abstract class AbstractFileSystemAccessTest extends Specification {
 
     void allowFileSystemAccess(boolean allow) {
         fileHasher.allowHashing(allow)
-        stat.allowStat(allow)
+        fileSystem.allowStat(allow)
     }
 
     FileSystemLocationSnapshot read(File file) {

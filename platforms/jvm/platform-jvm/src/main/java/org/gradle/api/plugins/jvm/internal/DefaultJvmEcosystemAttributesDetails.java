@@ -17,7 +17,6 @@ package org.gradle.api.plugins.jvm.internal;
 
 import org.gradle.api.attributes.Bundling;
 import org.gradle.api.attributes.Category;
-import org.gradle.api.attributes.ApiType;
 import org.gradle.api.attributes.DocsType;
 import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.attributes.Usage;
@@ -50,18 +49,6 @@ public class DefaultJvmEcosystemAttributesDetails implements JvmEcosystemAttribu
     @Override
     public JvmEcosystemAttributesDetails runtimeUsage() {
         attributes.attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_RUNTIME));
-        return this;
-    }
-
-    @Override
-    public JvmEcosystemAttributesDetails publicApiType() {
-        attributes.attribute(ApiType.TYPE_ATTRIBUTE, objectFactory.named(ApiType.class, ApiType.PUBLIC));
-        return this;
-    }
-
-    @Override
-    public JvmEcosystemAttributesDetails privateApiType() {
-        attributes.attribute(ApiType.TYPE_ATTRIBUTE, objectFactory.named(ApiType.class, ApiType.PRIVATE));
         return this;
     }
 

@@ -18,13 +18,17 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import org.gradle.api.Action;
 import org.gradle.api.attributes.HasAttributes;
-import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.model.VariantResolveMetadata;
 
 import javax.annotation.Nullable;
 
+/**
+ * A set of artifacts that may be selected from a variant. This would be better named
+ * {@code VariantArtifactSet}.
+ */
 public interface ResolvedVariant extends HasAttributes {
     DisplayName asDescribable();
 
@@ -36,7 +40,7 @@ public interface ResolvedVariant extends HasAttributes {
     VariantResolveMetadata.Identifier getIdentifier();
 
     @Override
-    AttributeContainerInternal getAttributes();
+    ImmutableAttributes getAttributes();
 
     ResolvedArtifactSet getArtifacts();
 

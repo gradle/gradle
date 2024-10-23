@@ -1,8 +1,8 @@
-// tag::dependency-declaration[]
 repositories {
     mavenCentral()
 }
 
+// tag::dependency-declaration[]
 configurations {
     create("scm")
 }

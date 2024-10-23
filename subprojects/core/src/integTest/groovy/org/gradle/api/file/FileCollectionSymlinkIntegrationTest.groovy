@@ -365,6 +365,7 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec imple
     }
 
     def "broken symlink in #inputType.simpleName fails validation"() {
+        enableProblemsApiCheck()
         def brokenInputFile = file('brokenInput').createLink("brokenInputFileTarget")
         buildFile << """
             class CustomTask extends DefaultTask {
@@ -388,6 +389,22 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec imple
             missing(brokenInputFile)
             includeLink()
         })
+
+        verifyAll(receivedProblem(0)) {
+            fqid == 'validation:property-validation:input-file-does-not-exist'
+
+            def inputNameLc = inputName.toLowerCase()
+            contextualLabel == "Type \'CustomTask\' property \'brokenInputFile\' specifies ${inputNameLc} \'$brokenInputFile\' which doesn\'t exist"
+            details == 'An input file was expected to be present but it doesn\'t exist'
+            solutions == [
+                "Make sure the ${inputNameLc} exists before the task is called",
+                "Make sure that the task which produces the $inputNameLc is declared as an input",
+            ].collect{it.toString() }
+            additionalData.asMap == [
+                'typeName' : 'CustomTask',
+                'propertyName' : 'brokenInputFile',
+            ]
+        }
 
         where:
         inputName   | inputType

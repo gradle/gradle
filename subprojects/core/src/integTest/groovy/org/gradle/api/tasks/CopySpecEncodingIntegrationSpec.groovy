@@ -26,7 +26,7 @@ class CopySpecEncodingIntegrationSpec extends AbstractIntegrationSpec {
         given:
         file('files').createDir()
         file('files/accents.c').write('éàüî $one', 'ISO-8859-1')
-        buildScript """
+        buildFile """
             task (copy, type: Copy) {
                 from 'files'
                 into 'dest'
@@ -61,7 +61,7 @@ class CopySpecEncodingIntegrationSpec extends AbstractIntegrationSpec {
         given:
         file('files').createDir()
         file('files/accents.c').write('éàüî $one', 'ISO-8859-1')
-        buildScript """
+        buildFile """
             task (copy, type: Copy) {
                 from 'files'
                 into 'dest'
@@ -97,7 +97,7 @@ class CopySpecEncodingIntegrationSpec extends AbstractIntegrationSpec {
         given:
         file('files').createDir()
         file('files/accents.c').write('éàüî $one', 'ISO-8859-1')
-        buildScript """
+        buildFile """
             task copy {
                 def fs = services.get(FileSystemOperations)
                 doLast {
@@ -122,7 +122,7 @@ class CopySpecEncodingIntegrationSpec extends AbstractIntegrationSpec {
         given:
         file('files').createDir()
         file('files/accents.c').write('éàüî $one', 'ISO-8859-1')
-        buildScript """
+        buildFile """
             task copy {
                 def fs = services.get(FileSystemOperations)
                 doLast {

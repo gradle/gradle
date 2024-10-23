@@ -7,7 +7,6 @@ import java.net.URI;
 
 // tag::download[]
 public abstract class Download extends DefaultTask {
-
     @Input
     public abstract Property<URI> getUri(); // abstract getter of type Property<T>
 

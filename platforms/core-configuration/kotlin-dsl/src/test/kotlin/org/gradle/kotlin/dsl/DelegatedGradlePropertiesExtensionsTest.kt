@@ -1,20 +1,23 @@
 package org.gradle.kotlin.dsl
 
-import org.gradle.api.Project
-import org.gradle.api.InvalidUserCodeException
-import org.gradle.api.initialization.Settings
-
-import org.gradle.api.internal.DynamicObjectAware
-import org.gradle.internal.metaobject.DynamicObject
-import org.gradle.internal.metaobject.DynamicInvokeResult
-
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.inOrder
 import com.nhaarman.mockito_kotlin.mock
-
+import org.gradle.api.InvalidUserCodeException
+import org.gradle.api.Project
+import org.gradle.api.initialization.Settings
+import org.gradle.api.internal.DynamicObjectAware
+import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.project.DefaultDynamicLookupRoutine
+import org.gradle.api.internal.project.DynamicLookupRoutine
+import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.invocation.Gradle
+import org.gradle.internal.metaobject.DynamicInvokeResult
+import org.gradle.internal.metaobject.DynamicObject
+import org.gradle.internal.service.ServiceRegistry
+import org.gradle.kotlin.dsl.support.get
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.nullValue
-
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Assert.fail
 import org.junit.Test
@@ -157,9 +160,19 @@ class DelegatedGradlePropertiesExtensionsTest {
     private
     fun mockForSettings(existing: Pair<String, Any?>? = null, absent: String? = null): DynamicDelegatedPropertiesMock.SettingsMock =
         dynamicObjectMockFor(existing, absent).let { dynamicObject ->
+            val serviceRegistryMock = mock<ServiceRegistry> {
+                onGeneric { get<DynamicLookupRoutine>() } doReturn DefaultDynamicLookupRoutine()
+            }
+            val gradleInternalMock = mock<GradleInternal>(name = "gradleInternal") {
+                on { services } doReturn serviceRegistryMock
+            }
+            val gradleMock = mock<Gradle>(name = "gradle") {
+                on { gradle } doReturn gradleInternalMock
+            }
             DynamicDelegatedPropertiesMock.SettingsMock(
                 mock<DynamicAwareSettingsMockType>(name = "settings") {
                     on { asDynamicObject } doReturn dynamicObject
+                    on { gradle } doReturn gradleMock
                 },
                 dynamicObject
             )
@@ -168,9 +181,13 @@ class DelegatedGradlePropertiesExtensionsTest {
     private
     fun mockForProject(existing: Pair<String, Any?>? = null, absent: String? = null): DynamicDelegatedPropertiesMock.ProjectMock =
         dynamicObjectMockFor(existing, absent).let { dynamicObject ->
+            val serviceRegistryMock = mock<ServiceRegistry> {
+                onGeneric { get<DynamicLookupRoutine>() } doReturn DefaultDynamicLookupRoutine()
+            }
             DynamicDelegatedPropertiesMock.ProjectMock(
                 mock<DynamicAwareProjectMockType>(name = "project") {
                     on { asDynamicObject } doReturn dynamicObject
+                    on { services } doReturn serviceRegistryMock
                 },
                 dynamicObject
             )
@@ -180,7 +197,7 @@ class DelegatedGradlePropertiesExtensionsTest {
     interface DynamicAwareSettingsMockType : Settings, DynamicObjectAware
 
     private
-    interface DynamicAwareProjectMockType : Project, DynamicObjectAware
+    interface DynamicAwareProjectMockType : ProjectInternal, DynamicObjectAware
 
     private
     sealed class DynamicDelegatedPropertiesMock<out T : Any>(private val target: T, private val dynamicObject: DynamicObject) {

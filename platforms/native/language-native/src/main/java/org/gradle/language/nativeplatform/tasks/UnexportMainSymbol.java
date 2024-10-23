@@ -33,11 +33,13 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.language.swift.tasks.internal.SymbolHider;
+import org.gradle.process.ExecOperations;
 import org.gradle.process.ExecSpec;
 import org.gradle.work.ChangeType;
 import org.gradle.work.FileChange;
 import org.gradle.work.InputChanges;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 
@@ -112,7 +114,7 @@ public abstract class UnexportMainSymbol extends DefaultTask {
                 throw UncheckedException.throwAsUncheckedException(e);
             }
         } else {
-            getProject().exec(new Action<ExecSpec>() {
+            getExecOperations().exec(new Action<ExecSpec>() {
                 @Override
                 public void execute(ExecSpec execSpec) {
                     // TODO: should use target platform to make this decision
@@ -138,4 +140,7 @@ public abstract class UnexportMainSymbol extends DefaultTask {
     private File relocatedObject(File object) {
         return outputDirectory.file(object.getName()).get().getAsFile();
     }
+
+    @Inject
+    protected abstract ExecOperations getExecOperations();
 }

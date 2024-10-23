@@ -81,9 +81,11 @@ class ScalaBasePluginIntegrationTest extends MultiVersionIntegrationSpec {
             }
 
             task verify {
+                def customCompileClasspathState = provider { configurations.customCompileClasspath.state.toString() }
+                def customRuntimeClasspathState = provider { configurations.customRuntimeClasspath.state.toString() }
                 doLast {
-                    assert configurations.customCompileClasspath.state.toString() == "UNRESOLVED"
-                    assert configurations.customRuntimeClasspath.state.toString() == "UNRESOLVED"
+                    assert customCompileClasspathState.get() == "UNRESOLVED"
+                    assert customRuntimeClasspathState.get() == "UNRESOLVED"
                 }
             }
         """

@@ -16,6 +16,7 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.executer.ArtifactBuilder
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
@@ -187,6 +188,7 @@ try {
         c > b
     }
 
+    @ToBeFixedForIsolatedProjects(because = "allprojects")
     def "init script can inject configuration into the root project and all projects"() {
         given:
         createDirs("a", "b")

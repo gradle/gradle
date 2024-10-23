@@ -4,12 +4,13 @@ on:
     # Execute every day at 00:05 to avoid conflicts with other workflows
     - cron: '5 0 * * *'
 
-permissions:
-  issues: write
-  pull-requests: write
+permissions: {}
 
 jobs:
   requeue:
+    permissions:
+      issues: write
+      pull-requests: write
     runs-on: ubuntu-latest
     steps:
       - uses: actions/stale@v9

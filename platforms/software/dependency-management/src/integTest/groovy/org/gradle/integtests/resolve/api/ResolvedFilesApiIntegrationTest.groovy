@@ -101,6 +101,11 @@ task show {
 """
 
         when:
+        executer.expectDocumentedDeprecationWarning("The Configuration.files(Closure) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use Configuration.getIncoming().artifactView(Action) with a componentFilter instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_filtered_configuration_file_and_filecollection_methods")
+        executer.expectDocumentedDeprecationWarning("The Configuration.fileCollection(Closure) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use Configuration.getIncoming().artifactView(Action) with a componentFilter instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_filtered_configuration_file_and_filecollection_methods")
+        executer.expectDocumentedDeprecationWarning("The Configuration.fileCollection(Closure) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use Configuration.getIncoming().artifactView(Action) with a componentFilter instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_filtered_configuration_file_and_filecollection_methods")
+        executer.expectDocumentedDeprecationWarning("The ResolvedConfiguration.getFiles(Spec) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use an ArtifactView with a componentFilter instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_filtered_configuration_file_and_filecollection_methods")
+        executer.expectDocumentedDeprecationWarning("The LenientConfiguration.getFiles(Spec) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use a lenient ArtifactView with a componentFilter instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_filtered_configuration_file_and_filecollection_methods")
         run 'show'
 
         then:
@@ -184,6 +189,7 @@ task show {
 }
 """
         expect:
+        2.times { maybeExpectDeprecation(expression) }
         succeeds("show")
         output.contains("files: [a-free.jar, b-paid.jar]")
         result.assertTasksExecuted(':a:freeJar', ':b:paidJar', ':show')
@@ -248,6 +254,7 @@ task show {
 }
 """
         expect:
+        2.times { maybeExpectDeprecation(expression) }
         succeeds("show")
         output.contains("files: [a-free.jar, b-paid.jar]")
         result.assertTasksExecuted(':a:freeJar', ':b:paidJar', ':show')
@@ -296,6 +303,7 @@ task show {
 }
 """
         expect:
+        maybeExpectDeprecation(expression)
         fails("show")
         failure.assertHasCause("""The consumer was configured to find attribute 'usage' with value 'compile'. However we cannot choose between the following variants of project :a:
   - Configuration ':a:compile' variant free declares attribute 'usage' with value 'compile':
@@ -368,6 +376,7 @@ task show {
 """
 
         expect:
+        maybeExpectDeprecation(expression)
         fails("show")
         failure.assertHasCause("""No variants of project :a match the consumer attributes:
   - Configuration ':a:compile' variant free declares attribute 'usage' with value 'compile':
@@ -427,6 +436,7 @@ task show {
         m.pom.expectGetBroken()
 
         when:
+        maybeExpectDeprecation(expression)
         fails 'show'
 
         then:
@@ -475,6 +485,7 @@ task show {
         m2.artifact.expectGet()
 
         when:
+        maybeExpectDeprecation(expression)
         fails 'show'
 
         then:
@@ -510,6 +521,7 @@ task show {
 }
 """
         when:
+        maybeExpectDeprecation(expression)
         fails 'show'
 
         then:
@@ -569,6 +581,7 @@ task show {
         m2.artifact.expectGetBroken()
 
         when:
+        maybeExpectDeprecation(expression)
         fails 'show'
 
         then:
@@ -593,6 +606,40 @@ task show {
         "configurations.compile.incoming.artifactView({componentFilter { true }}).artifacts.artifactFiles" | _
     }
 
+    def "filtered file and fileCollection methods are deprecated"() {
+        given:
+        buildFile << """
+            configurations {
+                conf
+            }
+
+            def dep = dependencies.create("org:dep:1.0")
+
+            task resolve {
+                Closure depClosure = { d -> true }
+                Spec<Dependency> depSpec = (d) -> true
+
+                configurations.conf.files(dep)
+                configurations.conf.files(depSpec)
+                configurations.conf.files(depClosure)
+                configurations.conf.fileCollection(dep)
+                configurations.conf.fileCollection(depSpec)
+                configurations.conf.fileCollection(depClosure)
+            }
+        """
+
+        when:
+        executer.expectDocumentedDeprecationWarning("The Configuration.files(Dependency...) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use Configuration.getIncoming().artifactView(Action) with a componentFilter instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_filtered_configuration_file_and_filecollection_methods")
+        executer.expectDocumentedDeprecationWarning("The Configuration.files(Spec) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use Configuration.getIncoming().artifactView(Action) with a componentFilter instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_filtered_configuration_file_and_filecollection_methods")
+        executer.expectDocumentedDeprecationWarning("The Configuration.files(Closure) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use Configuration.getIncoming().artifactView(Action) with a componentFilter instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_filtered_configuration_file_and_filecollection_methods")
+        executer.expectDocumentedDeprecationWarning("The Configuration.fileCollection(Dependency...) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use Configuration.getIncoming().artifactView(Action) with a componentFilter instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_filtered_configuration_file_and_filecollection_methods")
+        executer.expectDocumentedDeprecationWarning("The Configuration.fileCollection(Spec) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use Configuration.getIncoming().artifactView(Action) with a componentFilter instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_filtered_configuration_file_and_filecollection_methods")
+        executer.expectDocumentedDeprecationWarning("The Configuration.fileCollection(Closure) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use Configuration.getIncoming().artifactView(Action) with a componentFilter instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_filtered_configuration_file_and_filecollection_methods")
+
+        then:
+        succeeds "help"
+    }
+
     private String freeAndPaidFlavoredJars(String prefix) {
         """
             task freeJar(type: Jar) { archiveFileName = '$prefix-free.jar' }
@@ -609,5 +656,16 @@ task show {
                 }
             }
         """
+    }
+
+    def maybeExpectDeprecation(String expression) {
+        if (expression.contains("files { true }")) {
+            executer.expectDocumentedDeprecationWarning("The Configuration.files(Closure) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use Configuration.getIncoming().artifactView(Action) with a componentFilter instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_filtered_configuration_file_and_filecollection_methods")
+        } else if (expression.contains("fileCollection { true }")) {
+            executer.expectDocumentedDeprecationWarning("The Configuration.fileCollection(Closure) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use Configuration.getIncoming().artifactView(Action) with a componentFilter instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_filtered_configuration_file_and_filecollection_methods")
+        } else if (expression.contains("configurations.compile.resolvedConfiguration.getFiles { true }")) {
+            executer.expectDocumentedDeprecationWarning("The ResolvedConfiguration.getFiles(Spec) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use an ArtifactView with a componentFilter instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_filtered_configuration_file_and_filecollection_methods")
+        }
+        true
     }
 }

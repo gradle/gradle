@@ -26,7 +26,7 @@ In general, declaring additional variants is often the best solution to publish 
 
 To perform such additions or modifications, the `AdhocComponentWithVariants` interface declares two methods called `addVariantsFromConfiguration` and `withVariantsFromConfiguration` which accept two parameters:
 
-- the <<declaring_dependencies.adoc#sec:resolvable-consumable-configs,outgoing configuration>> that is used as a variant source
+- the <<declaring_dependencies_adv.adoc#sec:resolvable-consumable-configs,outgoing configuration>> that is used as a variant source
 - a customization action which allows you to _filter_ which variants are going to be published
 
 To utilise these methods, you must make sure that the `SoftwareComponent` you work with is itself an `AdhocComponentWithVariants`, which is the case for the components created by the Java plugins (Java, Java Library, Java Platform).
@@ -114,7 +114,7 @@ In general, there are two options:
 - Create a publication only with artifacts
 - Add artifacts to a publication based on a component with metadata (not recommended, instead <<sec:adding-variants-to-existing-components,adjust a component>> or use a <<#sec:publishing-custom-components,adhoc component publication>> which will both also produce metadata fitting your artifacts)
 
-To create a publication based on artifacts, start by defining a custom artifact and attaching it to a Gradle <<dependency_management_terminology.adoc#sub:terminology_configuration,configuration>> of your choice.
+To create a publication based on artifacts, start by defining a custom artifact and attaching it to a Gradle <<glossary.adoc#sub:terminology_configuration,configuration>> of your choice.
 The following sample defines an RPM artifact that is produced by an `rpm` task (not shown) and attaches that artifact to the `conf` configuration:
 
 .Defining a custom artifact for a configuration

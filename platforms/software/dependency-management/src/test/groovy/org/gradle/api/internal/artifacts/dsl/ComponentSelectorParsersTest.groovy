@@ -21,8 +21,8 @@ import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.artifacts.component.ProjectComponentSelector
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
-import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
+import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
@@ -115,7 +115,7 @@ class ComponentSelectorParsersTest extends Specification {
         when:
         def buildId = new DefaultBuildIdentifier(Path.path(":build"))
         def projectState = Mock(ProjectState) {
-            getComponentIdentifier() >> new DefaultProjectComponentIdentifier(buildId, Path.path(":id:bar"), Path.path(":bar"), "name")
+            getIdentity() >> new ProjectIdentity(buildId, Path.path(":id:bar"), Path.path(":bar"), "name")
         }
         def project = Mock(ProjectInternal) {
             getIdentityPath() >> Path.path(":id:bar")

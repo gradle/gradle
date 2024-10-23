@@ -33,7 +33,7 @@ object ProgramParser {
 
         val topLevelBlockIds = TopLevelBlockId.topLevelBlockIdFor(target)
 
-        return lex(source.text, *topLevelBlockIds).map { (comments, annotations, topLevelBlocks) ->
+        return lex(source.text, topLevelBlockIds).map { (comments, annotations, topLevelBlocks) ->
 
             checkForSingleBlocksOf(topLevelBlockIds, topLevelBlocks)
 

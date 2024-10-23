@@ -18,15 +18,15 @@ package org.gradle.internal.component.model;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.artifacts.capability.CapabilitySelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
-import org.gradle.api.capabilities.Capability;
-import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 
 import javax.annotation.Nullable;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Information about a locally resolved dependency.
@@ -91,46 +91,35 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         return selector;
     }
 
-    /**
-     * Choose a single target configuration based on: a) the consumer attributes, b) the target configuration name and c) the target component
-     *
-     * Use attribute matching to choose a single variant when:
-     * - The target configuration name is not specified AND
-     * - The target component has variants.
-     *
-     * Otherwise, revert to legacy selection of target configuration.
-     *
-     * @return A List containing a single `ConfigurationMetadata` representing the target variant.
-     */
     @Override
     public GraphVariantSelectionResult selectVariants(
         GraphVariantSelector variantSelector,
         ImmutableAttributes consumerAttributes,
         ComponentGraphResolveState targetComponentState,
-        AttributesSchemaInternal consumerSchema,
-        Collection<? extends Capability> explicitRequestedCapabilities
+        ImmutableAttributesSchema consumerSchema,
+        Set<CapabilitySelector> explicitRequestedCapabilities
     ) {
-        // If the target component is variant-aware, and we haven't requested an explicit configuration, use variant aware matching.
-        boolean variantAware = targetComponentState.getCandidatesForGraphVariantSelection().isUseVariants();
-        if (dependencyConfiguration == null && variantAware) {
+        // If a specific variant is requested by name, select it.
+        if (dependencyConfiguration != null) {
+            VariantGraphResolveState selected = variantSelector.selectVariantByConfigurationName(dependencyConfiguration, consumerAttributes, targetComponentState, consumerSchema);
+            return new GraphVariantSelectionResult(Collections.singletonList(selected), false);
+        }
+
+        // Use attribute matching if it is supported.
+        if (!targetComponentState.getCandidatesForGraphVariantSelection().getVariantsForAttributeMatching().isEmpty()) {
             VariantGraphResolveState selected = variantSelector.selectByAttributeMatching(
                 consumerAttributes,
-                explicitRequestedCapabilities, targetComponentState,
+                explicitRequestedCapabilities,
+                targetComponentState,
                 consumerSchema,
                 getArtifacts()
             );
             return new GraphVariantSelectionResult(Collections.singletonList(selected), true);
         }
 
-        // Otherwise, select a legacy configuration.
-        VariantGraphResolveState selected;
-        if (dependencyConfiguration != null) {
-            selected = variantSelector.selectConfigurationByName(dependencyConfiguration, consumerAttributes, targetComponentState, consumerSchema);
-        } else {
-            selected = variantSelector.selectLegacyConfiguration(consumerAttributes, targetComponentState, consumerSchema);
-        }
-
-        return new GraphVariantSelectionResult(ImmutableList.of(selected), false);
+        // Otherwise, select the legacy configuration.
+        VariantGraphResolveState selected = variantSelector.selectLegacyVariant(consumerAttributes, targetComponentState, consumerSchema, variantSelector.getFailureHandler());
+        return new GraphVariantSelectionResult(Collections.singletonList(selected), false);
     }
 
     @Override

@@ -1,18 +1,28 @@
 package org.gradle.internal.declarativedsl.analysis
 
+import org.gradle.declarative.dsl.schema.DataBuilderFunction
+import org.gradle.declarative.dsl.schema.DataClass
+import org.gradle.declarative.dsl.schema.DataMemberFunction
+import org.gradle.declarative.dsl.schema.DataParameter
+import org.gradle.declarative.dsl.schema.DataType
+import org.gradle.declarative.dsl.schema.DataTypeRef
+import org.gradle.declarative.dsl.schema.FunctionSemantics
+import org.gradle.declarative.dsl.schema.ParameterSemantics
+import org.gradle.declarative.dsl.schema.SchemaFunction
+import org.gradle.declarative.dsl.schema.SchemaMemberFunction
 import org.gradle.internal.declarativedsl.analysis.FunctionCallResolver.FunctionResolutionAndBinding
-import org.gradle.internal.declarativedsl.language.DataType
 import org.gradle.internal.declarativedsl.language.Expr
 import org.gradle.internal.declarativedsl.language.FunctionArgument
 import org.gradle.internal.declarativedsl.language.FunctionCall
-import org.gradle.internal.declarativedsl.language.PropertyAccess
+import org.gradle.internal.declarativedsl.language.NamedReference
 import org.gradle.internal.declarativedsl.language.asChainOrNull
 
 
 interface FunctionCallResolver {
     fun doResolveFunctionCall(
         context: AnalysisContext,
-        functionCall: FunctionCall
+        functionCall: FunctionCall,
+        expectedType: DataTypeRef?
     ): ObjectOrigin.FunctionOrigin?
 
     data class FunctionResolutionAndBinding(
@@ -37,13 +47,14 @@ class FunctionCallResolverImpl(
 
     override fun doResolveFunctionCall(
         context: AnalysisContext,
-        functionCall: FunctionCall
+        functionCall: FunctionCall,
+        expectedType: DataTypeRef?
     ): ObjectOrigin.FunctionOrigin? = with(context) {
         val argResolutions = lazy {
             var hasErrors = false
             val result = buildMap<FunctionArgument.ValueArgument, ObjectOrigin> {
                 functionCall.args.filterIsInstance<FunctionArgument.ValueArgument>().forEach {
-                    val resolution = expressionResolver.doResolveExpression(context, it.expr)
+                    val resolution = expressionResolver.doResolveExpression(context, it.expr, null)
                     if (resolution == null) {
                         hasErrors = true
                     } else {
@@ -86,7 +97,7 @@ class FunctionCallResolverImpl(
 
         1 -> {
             val resolution = overloads.single()
-            doProduceAndHandleFunctionResult(resolution, argResolutions.value, functionCall, resolution.receiver)
+            doProduceAndHandleFunctionResultOrNull(resolution, argResolutions.value, functionCall, resolution.receiver)
         }
 
         else -> {
@@ -106,7 +117,7 @@ class FunctionCallResolverImpl(
         val overloads: List<FunctionResolutionAndBinding> = buildList {
             when (functionCall.receiver) {
                 is Expr -> {
-                    val receiver = expressionResolver.doResolveExpression(context, functionCall.receiver)
+                    val receiver = expressionResolver.doResolveExpression(context, functionCall.receiver, null)
                     if (receiver != null) {
                         addAll(findMemberFunction(receiver, functionCall, argResolutions.value))
                     } else {
@@ -138,21 +149,25 @@ class FunctionCallResolverImpl(
     }
 
     private
-    fun AnalysisContext.doProduceAndHandleFunctionResult(
+    fun AnalysisContext.doProduceAndHandleFunctionResultOrNull(
         function: FunctionResolutionAndBinding,
         argResolutions: Map<FunctionArgument.ValueArgument, ObjectOrigin>,
         functionCall: FunctionCall,
         receiver: ObjectOrigin?
     ): ObjectOrigin.FunctionOrigin? {
-        val newFunctionCallId = nextInstant()
+        val newFunctionCallId = nextCallId()
         val valueBinding = function.binding.toValueBinding(argResolutions, functionCall.args.lastOrNull() is FunctionArgument.Lambda)
         val semantics = function.schemaFunction.semantics
 
         checkBuilderSemantics(semantics, receiver, function)
 
-        val result: ObjectOrigin.FunctionOrigin = invocationResultObjectOrigin(
+        val result: ObjectOrigin.FunctionInvocationOrigin = invocationResultObjectOrigin(
             semantics, function, functionCall, valueBinding, newFunctionCallId
         )
+
+        if (!doCheckParameterSemantics(result, functionCall)) {
+            return null
+        }
 
         doRecordSemanticsSideEffects(functionCall, semantics, receiver, result, function, argResolutions)
         doAnalyzeAndCheckConfiguringSemantics(functionCall, semantics, function, result, newFunctionCallId, valueBinding)
@@ -160,43 +175,52 @@ class FunctionCallResolverImpl(
         return result
     }
 
+    private fun AnalysisContext.doCheckParameterSemantics(functionOrigin: ObjectOrigin.FunctionInvocationOrigin, functionCall: FunctionCall): Boolean =
+        if (functionOrigin.function.semantics is FunctionSemantics.AccessAndConfigure) {
+            functionOrigin.parameterBindings.bindingMap.all { (param, arg) ->
+                checkIdentityKeyParameterSemantics(functionCall, param, arg)
+            }
+        } else true
+
     private
     fun AnalysisContext.doAnalyzeAndCheckConfiguringSemantics(
         call: FunctionCall,
         semantics: FunctionSemantics,
         function: FunctionResolutionAndBinding,
         result: ObjectOrigin.FunctionOrigin,
-        newFunctionCallId: Long,
+        newOperationId: OperationId,
         valueBinding: ParameterValueBinding
     ) {
         if (semantics !is FunctionSemantics.ConfigureSemantics)
             return
 
-        val (expectsConfigureLambda, requiresConfigureLambda) = semantics.configureBlockRequirement.run { allows to requires }
+        val configureReceiver = when (semantics) {
+            is FunctionSemantics.AccessAndConfigure -> configureReceiverObject(
+                semantics,
+                function,
+                call,
+                valueBinding,
+                newOperationId
+            ).also {
+                result.receiver?.let { receiver -> recordNestedObjectAccess(receiver, it) }
+            }
+
+            is FunctionSemantics.AddAndConfigure -> ObjectOrigin.AddAndConfigureReceiver(result)
+        }
 
         val lambda = call.args.filterIsInstance<FunctionArgument.Lambda>().singleOrNull()
+        val (expectsConfigureLambda, requiresConfigureLambda) = semantics.configureBlockRequirement.run { allows to requires }
         if (expectsConfigureLambda) {
             if (lambda != null) {
-                val configureReceiver = when (semantics) {
-                    is FunctionSemantics.AccessAndConfigure -> configureReceiverObject(
-                        semantics,
-                        function,
-                        call,
-                        valueBinding,
-                        newFunctionCallId
-                    )
-
-                    is FunctionSemantics.AddAndConfigure -> ObjectOrigin.AddAndConfigureReceiver(result)
-                }
                 withScope(AnalysisScope(currentScopes.last(), configureReceiver, lambda)) {
                     codeAnalyzer.analyzeStatementsInProgramOrder(this, lambda.block.statements)
                 }
             } else {
                 if (requiresConfigureLambda)
-                    error("expected a configuring lambda in the call of ${function.schemaFunction}, but it was not provided")
+                    error("Expected a configuring lambda in the call of ${function.schemaFunction.format(function.receiver)}, but it was not provided")
             }
         } else if (lambda != null) {
-            error("a lambda is not expected in the call of ${function.schemaFunction}, but it was provided")
+            error("A lambda is not expected in the call of ${function.schemaFunction.format(function.receiver)}, but it was provided")
         }
     }
 
@@ -218,13 +242,31 @@ class FunctionCallResolverImpl(
             else -> AssignmentMethod.AsConstructed
         }
         function.binding.binding.forEach { (param, arg) ->
-            val paramSemantics = param.semantics
-            if (paramSemantics is ParameterSemantics.StoreValueInProperty) {
-                val property = paramSemantics.dataProperty
-                recordAssignment(PropertyReferenceResolution(result, property), argResolutions.getValue(arg), assignmentMethod, call)
+            val argumentOrigin = argResolutions.getValue(arg)
+
+            when (val paramSemantics = param.semantics) {
+                is ParameterSemantics.StoreValueInProperty -> {
+                    val property = paramSemantics.dataProperty
+                    recordAssignment(PropertyReferenceResolution(result, property), argumentOrigin, assignmentMethod, call)
+                }
+
+                is ParameterSemantics.IdentityKey -> {
+                    paramSemantics.basedOnProperty?.let { property ->
+                        recordAssignment(PropertyReferenceResolution(result, property), argumentOrigin, assignmentMethod, call)
+                    }
+                }
+
+                is ParameterSemantics.Unknown -> Unit
             }
         }
     }
+
+    private fun AnalysisContext.checkIdentityKeyParameterSemantics(functionCall: FunctionCall, parameter: DataParameter, argumentOrigin: ObjectOrigin): Boolean =
+        if (argumentOrigin !is ObjectOrigin.ConstantOrigin) {
+            errorCollector.collect(ResolutionError(functionCall, ErrorReason.OpaqueArgumentForIdentityParameter(functionCall, parameter, argumentOrigin)))
+            false
+        } else true
+
 
     private
     fun checkBuilderSemantics(
@@ -236,9 +278,9 @@ class FunctionCallResolverImpl(
             require(receiver != null)
 
             val parameter = function.schemaFunction.parameters.singleOrNull()
-                ?: error("builder functions must have a single parameter")
+                ?: interpretationFailure("${function.schemaFunction.format(function.receiver, lowercase = false)} is a builder function and should have a single parameter")
             parameter.semantics as? ParameterSemantics.StoreValueInProperty
-                ?: error("a builder function must assign its parameter to a property")
+                ?: interpretationFailure("${function.schemaFunction.format(function.receiver, lowercase = false)} is a builder function and must assign its parameter to a property")
         }
     }
 
@@ -248,25 +290,25 @@ class FunctionCallResolverImpl(
         function: FunctionResolutionAndBinding,
         functionCall: FunctionCall,
         valueBinding: ParameterValueBinding,
-        newFunctionCallId: Long
+        newOperationId: OperationId
     ) = when (semantics) {
         is FunctionSemantics.Builder -> ObjectOrigin.BuilderReturnedReceiver(
             function.schemaFunction,
             checkNotNull(function.receiver),
             functionCall,
             valueBinding,
-            newFunctionCallId
+            newOperationId
         )
 
         is FunctionSemantics.AccessAndConfigure -> when (semantics.returnType) {
-            FunctionSemantics.AccessAndConfigure.ReturnType.UNIT ->
-                newObjectInvocationResult(function, valueBinding, functionCall, newFunctionCallId)
+            is FunctionSemantics.AccessAndConfigure.ReturnType.Unit ->
+                newObjectInvocationResult(function, valueBinding, functionCall, newOperationId)
 
-            FunctionSemantics.AccessAndConfigure.ReturnType.CONFIGURED_OBJECT ->
-                configureReceiverObject(semantics, function, functionCall, valueBinding, newFunctionCallId)
+            is FunctionSemantics.AccessAndConfigure.ReturnType.ConfiguredObject ->
+                configureReceiverObject(semantics, function, functionCall, valueBinding, newOperationId)
         }
 
-        else -> newObjectInvocationResult(function, valueBinding, functionCall, newFunctionCallId)
+        else -> newObjectInvocationResult(function, valueBinding, functionCall, newOperationId)
     }
 
     private
@@ -275,11 +317,10 @@ class FunctionCallResolverImpl(
         function: FunctionResolutionAndBinding,
         functionCall: FunctionCall,
         binding: ParameterValueBinding,
-        newFunctionCallId: Long
+        newOperationId: OperationId
     ): ObjectOrigin.AccessAndConfigureReceiver {
         require(function.receiver != null)
-        require(functionCall.args.all { it is FunctionArgument.Lambda })
-        return ObjectOrigin.AccessAndConfigureReceiver(function.receiver, function.schemaFunction, functionCall, binding, newFunctionCallId, semantics.accessor)
+        return ObjectOrigin.AccessAndConfigureReceiver(function.receiver, function.schemaFunction, functionCall, binding, newOperationId, semantics.accessor)
     }
 
     private
@@ -317,10 +358,10 @@ class FunctionCallResolverImpl(
         val receiver = functionCall.receiver
 
         // TODO: extension functions are not supported now; so it's either an FQN function reference or imported one
-        if (receiver is PropertyAccess && receiver.asChainOrNull() != null || receiver == null) {
-            val packageNameParts = (receiver as? PropertyAccess)?.asChainOrNull()?.nameParts.orEmpty()
+        if (receiver is NamedReference && receiver.asChainOrNull() != null || receiver == null) {
+            val packageNameParts = (receiver as? NamedReference)?.asChainOrNull()?.nameParts.orEmpty()
             val candidates = buildList {
-                val fqn = FqName(packageNameParts.joinToString("."), functionCall.name)
+                val fqn = DefaultFqName(packageNameParts.joinToString("."), functionCall.name)
                 schema.externalFunctionsByFqName[fqn]?.let { add(it) }
 
                 if (receiver == null) {
@@ -346,14 +387,14 @@ class FunctionCallResolverImpl(
         function: FunctionResolutionAndBinding,
         valueBinding: ParameterValueBinding,
         functionCall: FunctionCall,
-        newFunctionCallId: Long
+        newOperationId: OperationId
     ) = when (function.receiver) {
         is ObjectOrigin -> ObjectOrigin.NewObjectFromMemberFunction(
-            function.schemaFunction as SchemaMemberFunction, function.receiver, valueBinding, functionCall, newFunctionCallId
+            function.schemaFunction as SchemaMemberFunction, function.receiver, valueBinding, functionCall, newOperationId
         )
 
         null -> ObjectOrigin.NewObjectFromTopLevelFunction(
-            function.schemaFunction, valueBinding, functionCall, newFunctionCallId
+            function.schemaFunction, valueBinding, functionCall, newOperationId
         )
     }
 
@@ -366,15 +407,15 @@ class FunctionCallResolverImpl(
         val candidateTypes = buildList<DataType> {
             val receiverAsChain = functionCall.receiver?.asChainOrNull()
             if (receiverAsChain != null) {
-                val fqn = FqName(receiverAsChain.nameParts.joinToString("."), functionCall.name)
-                val typeByFqn = schema.dataClassesByFqName[fqn]
+                val fqn = DefaultFqName(receiverAsChain.nameParts.joinToString("."), functionCall.name)
+                val typeByFqn = schema.dataClassTypesByFqName[fqn]
                 if (typeByFqn != null) {
                     add(typeByFqn)
                 }
             } else if (functionCall.receiver == null) {
                 val importedName = imports[functionCall.name]
                 if (importedName != null) {
-                    val maybeType = schema.dataClassesByFqName[importedName]
+                    val maybeType = schema.dataClassTypesByFqName[importedName]
                     if (maybeType != null) {
                         add(maybeType)
                     }

@@ -183,6 +183,23 @@ class ClassBytesRepositoryTest : AbstractKotlinIntegrationTest() {
         }
     }
 
+    @Test
+    fun `ignores empty jars`() {
+        val entries = listOf(
+            withClassJar("some.jar", DeepThought::class.java),
+            withFile("empty.jar")
+        )
+        ClassBytesRepository(
+            platformClassLoader = ClassLoaderUtils.getPlatformClassLoader(),
+            classPathFiles = entries
+        ).use { repository ->
+            assertThat(
+                repository.allSourceNames,
+                equalTo(listOf(canonicalNameOf<DeepThought>()))
+            )
+        }
+    }
+
     private
     val ClassBytesRepository.allSourceNames: List<String>
         get() = allClassesBytesBySourceName().map { it.first }.toList()

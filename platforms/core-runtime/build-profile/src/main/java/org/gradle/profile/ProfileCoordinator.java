@@ -17,11 +17,11 @@
 package org.gradle.profile;
 
 import org.gradle.initialization.RootBuildLifecycleListener;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.time.Clock;
 
-@ServiceScope(Scopes.BuildTree.class)
+@ServiceScope(Scope.BuildTree.class)
 public class ProfileCoordinator implements RootBuildLifecycleListener {
     private final BuildProfile profile;
     private final ReportGeneratingProfileListener generator;

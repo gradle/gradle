@@ -19,7 +19,7 @@ package org.gradle.api.artifacts;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 
 /**
- * Identifies a variant of a component by module identifier and variant name.
+ * Identifies a variant of a component by component identifier and variant name.
  *
  * @since 6.0
  */

@@ -1,48 +1,49 @@
 plugins {
     id("gradlebuild.distribution.api-java")
+    id("gradlebuild.instrumented-java-project")
 }
 
 description = "Version control integration (with git) for source dependencies"
 
 errorprone {
     disabledChecks.addAll(
-        "StringSplitter", // 1 occurrences
-        "UnusedMethod", // 13 occurrences
         "UnusedVariable", // 3 occurrences
     )
 }
 
 dependencies {
-    api(project(":base-services"))
-    api(project(":core"))
-    api(project(":core-api"))
-    api(project(":dependency-management"))
-    api(project(":file-collections"))
-    api(project(":persistent-cache"))
+    api(projects.concurrent)
+    api(projects.serviceProvider)
+    api(projects.baseServices)
+    api(projects.core)
+    api(projects.coreApi)
+    api(projects.dependencyManagement)
+    api(projects.fileCollections)
 
     api(libs.jgit)
     api(libs.inject)
     api(libs.jsr305)
 
-    implementation(project(":files"))
-    implementation(project(":functional"))
-    implementation(project(":hashing"))
-    implementation(project(":logging-api"))
-    implementation(project(":messaging"))
-    implementation(project(":resources"))
+    implementation(projects.stdlibJavaExtensions)
+    implementation(projects.persistentCache)
+    implementation(projects.serialization)
+    implementation(projects.files)
+    implementation(projects.functional)
+    implementation(projects.hashing)
+    implementation(projects.loggingApi)
 
     implementation(libs.guava)
     implementation(libs.jgitSsh) {
         exclude("org.apache.sshd", "sshd-osgi") // Because it duplicates sshd-core and sshd-commons contents
     }
 
-    testImplementation(project(":native"))
-    testImplementation(project(":snapshots"))
-    testImplementation(project(":process-services"))
-    testImplementation(testFixtures(project(":core")))
+    testImplementation(projects.native)
+    testImplementation(projects.snapshots)
+    testImplementation(projects.processServices)
+    testImplementation(testFixtures(projects.core))
 
-    testFixturesImplementation(project(":base-services"))
-    testFixturesImplementation(project(":internal-integ-testing"))
+    testFixturesImplementation(projects.baseServices)
+    testFixturesImplementation(projects.internalIntegTesting)
 
     testFixturesImplementation(libs.jgit)
     testFixturesImplementation(libs.jgitSsh) {
@@ -52,7 +53,10 @@ dependencies {
     testFixturesImplementation(libs.commonsHttpclient)
     testFixturesImplementation(libs.guava)
 
-    integTestImplementation(project(":enterprise-operations"))
-    integTestImplementation(project(":launcher"))
-    integTestDistributionRuntimeOnly(project(":distributions-basics"))
+    integTestImplementation(projects.enterpriseOperations)
+    integTestImplementation(projects.launcher)
+    integTestDistributionRuntimeOnly(projects.distributionsBasics)
+}
+tasks.isolatedProjectsIntegTest {
+    enabled = false
 }

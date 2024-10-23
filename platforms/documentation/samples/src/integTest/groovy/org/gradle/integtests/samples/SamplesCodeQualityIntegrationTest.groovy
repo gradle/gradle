@@ -29,7 +29,8 @@ class SamplesCodeQualityIntegrationTest extends AbstractSampleIntegrationTest {
     Sample sample = new Sample(testDirectoryProvider)
 
     @UsesSample('codeQuality/codeQuality')
-    @Requires([UnitTestPreconditions.StableGroovy, UnitTestPreconditions.Jdk11OrLater]) // FIXME KM temporarily disabling while CodeNarc runs in Worker API with multiple Groovy runtimes
+    // JDK 21 or less is required until we bump PMD to 7.0.0
+    @Requires([UnitTestPreconditions.StableGroovy, UnitTestPreconditions.Jdk11OrLater, UnitTestPreconditions.Jdk21OrEarlier]) // FIXME KM temporarily disabling while CodeNarc runs in Worker API with multiple Groovy runtimes
     def "can generate reports with #dsl dsl"() {
         TestFile projectDir = sample.dir.file(dsl)
         TestFile buildDir = projectDir.file('build')

@@ -34,6 +34,7 @@ import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import org.junit.experimental.categories.Category
 import java.io.File
 import kotlin.reflect.KClass
 import kotlin.script.dependencies.KotlinScriptExternalDependencies
@@ -42,7 +43,7 @@ import kotlin.script.dependencies.ScriptContents.Position
 import kotlin.script.dependencies.ScriptDependenciesResolver.ReportSeverity
 
 
-@Flaky(because = "https://github.com/gradle/gradle-private/issues/3717")
+@Category(Flaky::class) // https://github.com/gradle/gradle-private/issues/3717
 class KotlinScriptDependenciesResolverTest : AbstractKotlinIntegrationTest() {
 
     @Before

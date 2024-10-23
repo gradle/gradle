@@ -25,6 +25,7 @@ import org.gradle.api.publish.maven.internal.publisher.MavenDuplicatePublication
 import org.gradle.api.publish.maven.internal.publisher.MavenPublishers;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.PathSensitivity;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.serialization.Transient;
 import org.gradle.work.DisableCachingByDefault;
 
@@ -65,6 +66,7 @@ public abstract class AbstractPublishToMaven extends DefaultTask {
      * @return The publication to be published
      */
     @Internal
+    @ToBeReplacedByLazyProperty
     public MavenPublication getPublication() {
         return publication.get();
     }

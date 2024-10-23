@@ -69,6 +69,7 @@ class JavaCompileTaskOperationResultIntegTest extends AbstractIntegrationSpec {
                 void apply(Project project) {
                     def listener = project.gradle.sharedServices.registerIfAbsent("listener", JavaCompileListener) { }
                     project.tasks.withType(JavaCompile) { task ->
+                        def registry = registry // Bring registry into scope for cc compatibility
                         task.doFirst {
                             registry.onTaskCompletion(listener)
                         }

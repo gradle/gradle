@@ -20,12 +20,13 @@ import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.integtests.fixtures.jvm.TestJavaClassUtil
 import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.util.GradleVersion
 import org.junit.Assume
 
-import static org.gradle.internal.classanalysis.JavaClassUtil.getClassMajorVersion
+import static org.gradle.internal.serialize.JavaClassUtil.getClassMajorVersion
 
 @Flaky(because = "https://github.com/gradle/gradle-private/issues/3901")
 class CrossCompilationIntegrationTest extends AbstractIntegrationSpec {
@@ -96,8 +97,8 @@ class CrossCompilationIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         new JarTestFixture(file("build/libs/oldjava.jar")).javaVersion == version
-        getClassMajorVersion(file("build/classes/java/main/Thing.class")) == getClassMajorVersion(version)
-        getClassMajorVersion(file("build/classes/java/test/ThingTest.class")) == getClassMajorVersion(version)
+        getClassMajorVersion(file ( "build/classes/java/main/Thing.class")) == TestJavaClassUtil.getClassVersion(version)
+        getClassMajorVersion(file("build/classes/java/test/ThingTest.class")) == TestJavaClassUtil.getClassVersion(version)
         new DefaultTestExecutionResult(testDirectory).assertTestClassesExecuted("ThingTest")
 
         where:

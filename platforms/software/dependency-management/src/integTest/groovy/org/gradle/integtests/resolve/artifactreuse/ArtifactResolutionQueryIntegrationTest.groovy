@@ -128,4 +128,39 @@ project('resolve') {
         expect:
         succeeds('query')
     }
+
+    @ToBeFixedForConfigurationCache(because = "task uses artifact query API")
+    def "can resolve sources and javadoc for ivy repo"() {
+        given:
+        ivyRepo.module('group', "artifact", '1.0')
+            .configuration("javadoc")
+            .configuration("sources")
+            .artifact(classifier: 'sources', conf: 'sources')
+            .artifact(classifier: 'javadoc', conf: 'javadoc')
+            .publish()
+
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+            ${ivyTestRepository()}
+            dependencies {
+                implementation 'group:artifact:1.0'
+            }
+            task query {
+                doLast {
+                    def id = configurations.compileClasspath.incoming.resolutionResult
+                        .allDependencies.first().selected.id
+                    ArtifactResolutionResult result = dependencies.createArtifactResolutionQuery()
+                        .forComponents(id)
+                        .withArtifacts(JvmLibrary, JavadocArtifact, SourcesArtifact)
+                        .execute()
+                    assert result.resolvedComponents.first().artifactResults*.file*.name == ['artifact-1.0-javadoc.jar', 'artifact-1.0-sources.jar']
+                }
+            }
+        """
+
+        expect:
+        succeeds('query')
+    }
 }

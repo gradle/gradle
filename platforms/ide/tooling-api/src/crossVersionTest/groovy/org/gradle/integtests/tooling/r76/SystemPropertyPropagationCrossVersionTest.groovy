@@ -42,7 +42,7 @@ class SystemPropertyPropagationCrossVersionTest extends ToolingApiSpecification 
         '''
     }
 
-    @TargetGradleVersion(">=2.6 <7.6")
+    @TargetGradleVersion(">=3.0 <7.6")
     def "Custom system properties are ignored in older Gradle versions"() {
         setup:
         if (targetDist.version < GradleVersion.version('4.9') ) {

@@ -145,7 +145,7 @@ class ScalaCompileJavaToolchainIntegrationTest1 extends AbstractScalaCompileJava
         JavaVersion.forClass(classFile("scala", "test", "ScalaTest.class").bytes) == JavaVersion.VERSION_1_8
 
         where:
-        javaVersion << JavaVersion.values().findAll { JavaVersion.VERSION_1_8 <= it && it <= JavaVersion.VERSION_22 }
+        javaVersion << JavaVersion.values().findAll { JavaVersion.VERSION_1_8 <= it && it <= JavaVersion.VERSION_23 }
     }
 }
 
@@ -163,6 +163,7 @@ class ScalaCompileJavaToolchainIntegrationTest2 extends AbstractScalaCompileJava
                 }
             """
         } else {
+            executer.expectDocumentedDeprecationWarning("The ForkOptions.setJavaHome(File) method has been deprecated. This is scheduled to be removed in Gradle 9.0. The 'javaHome' property of ForkOptions is deprecated and will be removed in Gradle 9. Use JVM toolchains or the 'executable' property instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_fork_options_java_home")
             buildFile << """
                 compileScala {
                     options.fork = true

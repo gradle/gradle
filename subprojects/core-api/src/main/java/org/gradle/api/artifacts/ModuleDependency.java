@@ -18,6 +18,8 @@ package org.gradle.api.artifacts;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
+import org.gradle.api.artifacts.capability.CapabilitySelector;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.HasConfigurableAttributes;
 import org.gradle.api.capabilities.Capability;
@@ -30,10 +32,15 @@ import java.util.Set;
 import static groovy.lang.Closure.DELEGATE_FIRST;
 
 /**
- * A {@code ModuleDependency} is a {@link org.gradle.api.artifacts.Dependency} on a module outside the current project.
- *
+ * A {@code ModuleDependency} is a {@link org.gradle.api.artifacts.Dependency} on a component that exists
+ * outside of the current project.
  * <p>
- * For examples on configuring the exclude rules please refer to {@link #exclude(java.util.Map)}.
+ * Modules can supply {@link ModuleDependency#getArtifacts() multiple artifacts} in addition to the
+ * {@link #addArtifact(DependencyArtifact) implicit default artifact}.  Non-default artifacts
+ * available in a module can be selected by a consumer by specifying a classifier or extension
+ * when declaring a dependency on that module.
+ * <p>
+ * For examples on configuring exclude rules for modules please refer to {@link #exclude(java.util.Map)}.
  */
 public interface ModuleDependency extends Dependency, HasConfigurableAttributes<ModuleDependency> {
     /**
@@ -45,7 +52,7 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
      * might pull in exactly the same transitive dependency.
      * To guarantee that the transitive dependency is excluded from the entire configuration
      * please use per-configuration exclude rules: {@link Configuration#getExcludeRules()}.
-     * In fact, in majority of cases the actual intention of configuring per-dependency exclusions
+     * In fact, in a majority of cases the actual intention of configuring per-dependency exclusions
      * is really excluding a dependency from the entire configuration (or classpath).
      * <p>
      * If your intention is to exclude a particular transitive dependency
@@ -81,6 +88,16 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
 
     /**
      * Returns the artifacts belonging to this dependency.
+     * <p>
+     * Initially, a dependency has no artifacts, so this can return an empty set.  Typically, however, a producer
+     * project will add a single artifact to a module, which will be represented in this collection via a
+     * single element.  But this is <strong>NOT</strong> always true.  Modules can use
+     * custom classifiers or extensions to distinguish multiple artifacts that they contain.
+     * <p>
+     * In general, projects publishing using Gradle should favor supplying multiple artifacts by supplying
+     * multiple variants, each containing a different artifact, that are selectable through variant-aware
+     * dependency resolution.  This mechanism where a module contains multiple artifacts is primarily
+     * intended to support dependencies on non-Gradle-published components.
      *
      * @see #addArtifact(DependencyArtifact)
      */
@@ -145,15 +162,22 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
     ModuleDependency setTransitive(boolean transitive);
 
     /**
-     * Returns the requested target configuration of this dependency. This is the name of the configuration in the target module that should be used when
-     * selecting the matching configuration. If {@code null}, a default configuration should be used.
+     * Returns the requested target configuration of this dependency.
+     * <p>
+     * If non-null, this overrides variant-aware dependency resolution and selects the
+     * variant in the target component matching the requested configuration name.
      */
     @Nullable
     String getTargetConfiguration();
 
     /**
-     * Sets the requested target configuration of this dependency. This is the name of the configuration in the target module that should be used when
-     * selecting the matching configuration. If {@code null}, a default configuration will be used.
+     * Sets the requested target configuration of this dependency.
+     * <p>
+     * This overrides variant-aware dependency resolution and selects the variant in the
+     * target component matching the requested configuration name.
+     * <p>
+     * Using this method is <strong>discouraged</strong> except for selecting
+     * configurations from Ivy components.
      *
      * @since 4.0
      */
@@ -199,18 +223,31 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
     ModuleDependency capabilities(Action<? super ModuleDependencyCapabilitiesHandler> configureAction);
 
     /**
-     * Returns the set of requested capabilities for this dependency.
-     * @return An immutable view of requested capabilities. Updates must be done calling {@link #capabilities(Action)}.
+     * Returns the explicitly requested capabilities for this dependency.
+     * <p>
+     * Prefer {@link #getCapabilitySelectors()}. This method is not Isolated Projects compatible.
+     *
+     * @return An immutable view of all explicitly requested capabilities. Updates must be done calling {@link #capabilities(Action)}.
      *
      * @since 5.3
      */
     List<Capability> getRequestedCapabilities();
 
     /**
+     * Returns the set of capabilities that are requested for this dependency
+     *
+     * @return A view of all requested capabilities. Updates must be done calling {@link #capabilities(Action)}.
+     *
+     * @since 8.11
+     */
+    @Incubating
+    Set<CapabilitySelector> getCapabilitySelectors();
+
+    /**
      * Endorse version constraints with {@link VersionConstraint#getStrictVersion()} strict versions} from the target module.
      *
      * Endorsing strict versions of another module/platform means that all strict versions will be interpreted during dependency
-     * resolution as if they where defined by the endorsing module itself.
+     * resolution as if they were defined by the endorsing module itself.
      *
      * @since 6.0
      */

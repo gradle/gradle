@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.daemon.DaemonFixture
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.tooling.model.gradle.GradleBuild
 import org.junit.Rule
@@ -28,7 +27,6 @@ import org.junit.Rule
 import java.nio.file.Path
 import java.nio.file.Paths
 
-@ToolingApiVersion(">=6.1")
 class InvalidateVirtualFileSystemAfterChangeCrossVersionSpec extends ToolingApiSpecification {
     @Rule BlockingHttpServer server = new BlockingHttpServer()
     GradleExecuter executer
@@ -45,7 +43,7 @@ class InvalidateVirtualFileSystemAfterChangeCrossVersionSpec extends ToolingApiS
         executer = toolingApi.createExecuter()
     }
 
-    @TargetGradleVersion(">=2.6")
+    @TargetGradleVersion(">=3.0")
     def "no daemon is started for request"() {
         when:
         withConnection { connection ->
@@ -113,7 +111,7 @@ class InvalidateVirtualFileSystemAfterChangeCrossVersionSpec extends ToolingApiS
         build?.waitForFinish()
     }
 
-    @TargetGradleVersion(">=2.6 <6.1")
+    @TargetGradleVersion(">=3.0 <6.1")
     def "invalidating paths has no effect on older daemons"() {
         when:
         createIdleDaemon()

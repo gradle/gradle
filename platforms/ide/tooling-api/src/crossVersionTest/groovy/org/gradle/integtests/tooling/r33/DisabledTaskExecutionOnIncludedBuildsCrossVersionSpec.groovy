@@ -18,12 +18,9 @@ package org.gradle.integtests.tooling.r33
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.BuildException
-import org.gradle.tooling.BuildLauncher
 import org.gradle.tooling.model.gradle.BuildInvocations
 
-@ToolingApiVersion('>=3.3')
 @TargetGradleVersion('>=3.3')
 class DisabledTaskExecutionOnIncludedBuildsCrossVersionSpec extends ToolingApiSpecification {
 
@@ -43,8 +40,8 @@ class DisabledTaskExecutionOnIncludedBuildsCrossVersionSpec extends ToolingApiSp
         def includedTask = projects[0].tasks.find { it.name == 'tasks' }
 
         when:
-        withBuild { BuildLauncher launcher ->
-            launcher.forLaunchables(includedTask)
+        fails { connection ->
+            connection.newBuild().forLaunchables(includedTask).run()
         }
 
         then:
@@ -68,16 +65,16 @@ class DisabledTaskExecutionOnIncludedBuildsCrossVersionSpec extends ToolingApiSp
         def includedSelector = invocations[0].taskSelectors[0]
 
         when:
-        withBuild { BuildLauncher launcher ->
-            launcher.forLaunchables(includedSelector)
+        fails { connection ->
+            connection.newBuild().forLaunchables(includedSelector).run()
         }
 
         then:
         thrown(BuildException)
 
         when:
-        withBuild { BuildLauncher launcher ->
-            launcher.forLaunchables(includedTask)
+        fails { connection ->
+            connection.newBuild().forLaunchables(includedTask).run()
         }
 
         then:

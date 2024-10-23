@@ -68,7 +68,7 @@ abstract class BasicZincScalaCompilerIntegrationTest extends MultiVersionIntegra
         given:
         file("build.gradle") << """
             dependencies {
-                scalaCompilerPlugins "org.typelevel:kind-projector_$version:0.13.2"
+                scalaCompilerPlugins "org.typelevel:kind-projector_$version:0.13.3"
             }
         """
 

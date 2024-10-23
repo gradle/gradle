@@ -25,6 +25,7 @@ import org.gradle.api.internal.artifacts.configurations.ResolutionHost;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults;
 import org.gradle.api.specs.Spec;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -62,7 +63,7 @@ public class DefaultResolvedConfiguration implements ResolvedConfiguration {
 
         List<Throwable> failures = new ArrayList<>();
         graphResults.visitFailures(failures::add);
-        resolutionHost.rethrowFailure("dependencies", failures);
+        resolutionHost.rethrowFailuresAndReportProblems("dependencies", failures);
     }
 
     @Override
@@ -71,18 +72,32 @@ public class DefaultResolvedConfiguration implements ResolvedConfiguration {
     }
 
     @Override
+    @Deprecated
     public Set<File> getFiles() throws ResolveException {
+        DeprecationLogger.deprecateMethod(ResolvedConfiguration.class, "getFiles()")
+            .withAdvice("Use Configuration#getFiles instead.")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "deprecate_legacy_configuration_get_files")
+            .nagUser();
+
         ResolvedFilesCollectingVisitor visitor = new ResolvedFilesCollectingVisitor();
         visitedArtifacts.select(configuration.getImplicitSelectionSpec()).visitArtifacts(visitor, false);
-        resolutionHost.rethrowFailure("files", visitor.getFailures());
+        resolutionHost.rethrowFailuresAndReportProblems("files", visitor.getFailures());
         return visitor.getFiles();
     }
 
     @Override
+    @Deprecated
     public Set<File> getFiles(final Spec<? super Dependency> dependencySpec) throws ResolveException {
+        DeprecationLogger.deprecateMethod(ResolvedConfiguration.class, "getFiles(Spec)")
+            .withAdvice("Use an ArtifactView with a componentFilter instead.")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "deprecate_filtered_configuration_file_and_filecollection_methods")
+            .nagUser();
+
         ResolvedFilesCollectingVisitor visitor = new ResolvedFilesCollectingVisitor();
         configuration.select(dependencySpec).visitArtifacts(visitor, false);
-        resolutionHost.rethrowFailure("files", visitor.getFailures());
+        resolutionHost.rethrowFailuresAndReportProblems("files", visitor.getFailures());
         return visitor.getFiles();
     }
 
@@ -93,16 +108,25 @@ public class DefaultResolvedConfiguration implements ResolvedConfiguration {
     }
 
     @Override
+    @Deprecated
     public Set<ResolvedDependency> getFirstLevelModuleDependencies(Spec<? super Dependency> dependencySpec) throws ResolveException {
+        DeprecationLogger.deprecateMethod(ResolvedConfiguration.class, "getFirstLevelModuleDependencies(Spec)")
+            .withAdvice("Use getFirstLevelModuleDependencies() instead.")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "deprecate_filtered_configuration_file_and_filecollection_methods")
+            .nagUser();
+
         rethrowFailure();
-        return configuration.getFirstLevelModuleDependencies(dependencySpec);
+
+        // Disable deprecation, since the lenient configuration method also emits a deprecation warning
+        return DeprecationLogger.whileDisabled(() -> configuration.getFirstLevelModuleDependencies(dependencySpec));
     }
 
     @Override
     public Set<ResolvedArtifact> getResolvedArtifacts() throws ResolveException {
         ArtifactCollectingVisitor visitor = new ArtifactCollectingVisitor();
         visitedArtifacts.select(configuration.getImplicitSelectionSpec()).visitArtifacts(visitor, false);
-        resolutionHost.rethrowFailure("artifacts", visitor.getFailures());
+        resolutionHost.rethrowFailuresAndReportProblems("artifacts", visitor.getFailures());
         return visitor.getArtifacts();
     }
 }

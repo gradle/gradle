@@ -53,7 +53,9 @@ import org.gradle.internal.instantiation.generator.DefaultInstantiatorFactory
 import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.model.StateTransitionControllerFactory
 import org.gradle.internal.service.DefaultServiceRegistry
+import org.gradle.internal.service.Provides
 import org.gradle.internal.service.ServiceRegistration
+import org.gradle.internal.service.ServiceRegistrationProvider
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.state.ManagedFactoryRegistry
 import org.gradle.test.fixtures.file.TestDirectoryProvider
@@ -63,6 +65,8 @@ import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.testfixtures.internal.ProjectBuilderImpl
 
+import java.util.function.Supplier
+
 class TestUtil {
     public static final Closure TEST_CLOSURE = {}
     private static InstantiatorFactory instantiatorFactory
@@ -70,19 +74,28 @@ class TestUtil {
     private static ServiceRegistry services
 
     private final File rootDir
+    private final File userHomeDir
 
     private TestUtil(File rootDir) {
+        this(rootDir, new File(rootDir, "userHome"))
+    }
+
+    private TestUtil(File rootDir, File userHomeDir) {
         NativeServicesTestFixture.initialize()
         this.rootDir = rootDir
+        this.userHomeDir = userHomeDir
     }
 
     static InstantiatorFactory instantiatorFactory() {
         if (instantiatorFactory == null) {
-            NativeServicesTestFixture.initialize()
-            def annotationHandlers = ProjectBuilderImpl.getGlobalServices().getAll(InjectAnnotationHandler.class)
-            instantiatorFactory = new DefaultInstantiatorFactory(new TestCrossBuildInMemoryCacheFactory(), annotationHandlers, new OutputPropertyRoleAnnotationHandler([]))
+            instantiatorFactory = createInstantiatorFactory({ [] })
         }
         return instantiatorFactory
+    }
+
+    static InstantiatorFactory createInstantiatorFactory(Supplier<List<InjectAnnotationHandler>> injectHandlers) {
+        NativeServicesTestFixture.initialize()
+        return new DefaultInstantiatorFactory(new TestCrossBuildInMemoryCacheFactory(), injectHandlers.get(), new OutputPropertyRoleAnnotationHandler([]))
     }
 
     static ManagedFactoryRegistry managedFactoryRegistry() {
@@ -146,21 +159,25 @@ class TestUtil {
             it.add(DocumentationRegistry, new DocumentationRegistry())
             it.add(FileCollectionFactory, fileCollectionFactory)
             it.add(DefaultPropertyFactory)
-            it.addProvider(new Object() {
+            it.addProvider(new ServiceRegistrationProvider() {
+                @Provides
                 InstantiatorFactory createInstantiatorFactory() {
                     TestUtil.instantiatorFactory()
                 }
 
+                @Provides
                 ObjectFactory createObjectFactory(InstantiatorFactory instantiatorFactory, NamedObjectInstantiator namedObjectInstantiator, DomainObjectCollectionFactory domainObjectCollectionFactory, TaskDependencyFactory taskDependencyFactory, PropertyFactory propertyFactory) {
                     def filePropertyFactory = new DefaultFilePropertyFactory(PropertyHost.NO_OP, fileResolver, fileCollectionFactory)
                     return new DefaultObjectFactory(instantiatorFactory.decorate(services), namedObjectInstantiator, TestFiles.directoryFileTreeFactory(), TestFiles.patternSetFactory, propertyFactory, filePropertyFactory, taskDependencyFactory, fileCollectionFactory, domainObjectCollectionFactory)
                 }
 
+                @Provides
                 ProjectLayout createProjectLayout() {
                     def filePropertyFactory = new DefaultFilePropertyFactory(PropertyHost.NO_OP, fileResolver, fileCollectionFactory)
                     return new DefaultProjectLayout(fileResolver.resolve("."), fileResolver, DefaultTaskDependencyFactory.withNoAssociatedProject(), PatternSets.getNonCachingPatternSetFactory(), PropertyHost.NO_OP, fileCollectionFactory, filePropertyFactory, filePropertyFactory)
                 }
 
+                @Provides
                 ChecksumService createChecksumService() {
                     new ChecksumService() {
                         @Override
@@ -214,16 +231,16 @@ class TestUtil {
         return new FeaturePreviews()
     }
 
-    static TestUtil create(File rootDir) {
-        return new TestUtil(rootDir)
+    static TestUtil create(File rootDir, File userHomeDir = null) {
+        return new TestUtil(rootDir, userHomeDir)
     }
 
     static TestUtil create(TestDirectoryProvider testDirectoryProvider) {
         return new TestUtil(testDirectoryProvider.testDirectory)
     }
 
-    public <T extends Task> T task(Class<T> type) {
-        return createTask(type, createRootProject(this.rootDir))
+    <T extends Task> T task(Class<T> type) {
+        return createTask(type, createRootProject(this.rootDir, this.userHomeDir))
     }
 
     static <T extends Task> T createTask(Class<T> type, ProjectInternal project) {
@@ -243,15 +260,18 @@ class TestUtil {
     }
 
     ProjectInternal rootProject() {
-        createRootProject(rootDir)
+        createRootProject(rootDir, userHomeDir)
     }
 
-    static ProjectInternal createRootProject(File rootDir) {
-        return ProjectBuilder
+    static ProjectInternal createRootProject(File rootDir, File userHomeDir = null) {
+        def builder = ProjectBuilder
             .builder()
             .withProjectDir(rootDir)
             .withName("test-project")
-            .build()
+        if (userHomeDir != null) {
+            builder.withGradleUserHomeDir(userHomeDir)
+        }
+        return builder.build()
     }
 
     static ProjectInternal createChildProject(ProjectInternal parent, String name, File projectDir = null) {

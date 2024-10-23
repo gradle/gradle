@@ -49,12 +49,25 @@ $ cd authoring-tutorial
 ----
 
 Run `gradle init` with parameters to generate a Java application:
-[source,text]
-----
-$ gradle init --use-defaults --type java-application
-----
 
-NOTE: In this tutorial, Kotlin DSL is used to build a simple Java project (as it is the default DSL starting in Gradle 8.2). All examples are macOS based.
+[.multi-language-sample]
+=====
+[source, kotlin]
+----
+$ gradle init --type java-application  --dsl kotlin
+----
+=====
+[.multi-language-sample]
+=====
+[source, groovy]
+----
+$ gradle init --type java-application  --dsl groovy
+----
+=====
+
+Select defaults for any additional prompts.
+
+NOTE: In this tutorial, all examples are macOS based.
 
 == Step 2. Understanding the Directory layout
 
@@ -62,31 +75,68 @@ The *project root directory* contains all source files from your project.
 
 When you are done with Gradle `init`, the directory should look as follows:
 
+[.multi-language-sample]
+=====
+[source, kotlin]
 ----
 .
 ├── gradle                              // <1>
+    ├── libs.version.toml               // <2>
 │   └── wrapper
-├── gradlew                             // <2>
-├── gradlew.bat                         // <2>
-├── settings.gradle.kts                 // <3>
+├── gradlew                             // <3>
+├── gradlew.bat                         // <3>
+├── settings.gradle.kts                 // <4>
 └── app
-    ├── build.gradle.kts                // <4>
+    ├── build.gradle.kts                // <5>
     └── src
         ├── main
-        │   └── java                    // <5>
+        │   └── java                    // <6>
         │       └── demo
         │           └── App.java
         └── test
-            └── java                    // <6>
+            └── java                    // <7>
                 └── demo
                     └── AppTest.java
 ----
 <1> Generated folder for wrapper files
-<2> Gradle wrapper start scripts
-<3> Settings file to define build name and subprojects
-<4> Build script for `app` subproject
-<5> Default Java source folder for `app` subproject
-<6> Default Java test source folder for `app` subproject
+<2> Version catalog for dependencies
+<3> Gradle wrapper start scripts
+<4> Settings file to define build name and subprojects
+<5> Build script for `app` subproject
+<6> Default Java source folder for `app` subproject
+<7> Default Java test source folder for `app` subproject
+=====
+[.multi-language-sample]
+=====
+[source, groovy]
+----
+.
+├── gradle                              // <1>
+    ├── libs.version.toml               // <2>
+│   └── wrapper
+├── gradlew                             // <3>
+├── gradlew.bat                         // <3>
+├── settings.gradle                     // <4>
+└── app
+    ├── build.gradle                    // <5>
+    └── src
+        ├── main
+        │   └── java                    // <6>
+        │       └── demo
+        │           └── App.java
+        └── test
+            └── java                    // <7>
+                └── demo
+                    └── AppTest.java
+----
+<1> Generated folder for wrapper files
+<2> Version catalog for dependencies
+<3> Gradle wrapper start scripts
+<4> Settings file to define build name and subprojects
+<5> Build script for `app` subproject
+<6> Default Java source folder for `app` subproject
+<7> Default Java test source folder for `app` subproject
+=====
 
 The `authoring-tutorial` folder is the *root project directory*.
 Inside the root project directory are one or more subprojects, build scripts, and the Gradle wrapper.
@@ -97,14 +147,26 @@ The `GRADLE_USER_HOME`, which defaults to `USER_HOME/.gradle`, is also where Gra
 
 == Step 3. Review the Gradle Files
 
-The `settings.gradle.kts` file has two interesting lines:
+The `settings.gradle(.kts)` file has two interesting lines:
 
+[.multi-language-sample]
+=====
 .settings.gradle.kts
 [source, kotlin]
 ----
 rootProject.name = "authoring-tutorial"
 include("app")
 ----
+=====
+[.multi-language-sample]
+=====
+.settings.gradle
+[source, groovy]
+----
+rootProject.name = 'authoring-tutorial'
+include('app')
+----
+=====
 
 - `rootProject.name` assigns a name to the build, overriding the default behavior of naming the build after its directory name.
 - `include("app")` defines that the build consists of one subproject called `app` that contains its own source code and build logic.
@@ -114,6 +176,8 @@ More subprojects can be added by additional `include()` statements.
 Our build contains one subproject called `app` representing the Java application we are building.
 It is configured in the `app/build.gradle(.kts)` file:
 
+[.multi-language-sample]
+=====
 .build.gradle.kts
 [source, kotlin]
 ----
@@ -126,9 +190,9 @@ repositories {
 }
 
 dependencies {
-    testImplementation("org.junit.jupiter:junit-jupiter:5.9.3")     // <3>
+    testImplementation(libs.junit.jupiter)                          // <3>
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-    implementation("com.google.guava:guava:32.1.1-jre")             // <4>
+    implementation(libs.guava)                                      // <4>
 }
 
 java {
@@ -147,11 +211,52 @@ tasks.named<Test>("test") {
 ----
 <1> Apply the application plugin to add support for building a CLI application in Java.
 <2> Use Maven Central for resolving dependencies.
-<3> Use JUnit Jupiter for testing.
-<4> This dependency is used by the application.
+<3> Use JUnit Jupiter for testing (using the version catalog).
+<4> This dependency is used by the application (referred using the version catalog).
 <5> Define the toolchain version.
 <6> Define the main class for the application.
 <7> Use JUnit Platform for unit tests.
+=====
+[.multi-language-sample]
+=====
+[source, groovy]
+----
+plugins {
+    id 'application'                                                // <1>
+}
+
+repositories {
+    mavenCentral()                                                  // <2>
+}
+
+dependencies {
+    testImplementation libs.junit.jupiter                           // <3>
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    implementation libs.guava                                       // <4>
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(11)                // <5>
+    }
+}
+
+application {
+    mainClass = 'org.example.App'                                   // <6>
+}
+
+tasks.named('test') {
+    useJUnitPlatform()                                              // <7>
+}
+----
+<1> Apply the application plugin to add support for building a CLI application in Java.
+<2> Use Maven Central for resolving dependencies.
+<3> Use JUnit Jupiter for testing (using the version catalog).
+<4> This dependency is used by the application (referred using the version catalog).
+<5> Define the toolchain version.
+<6> Define the main class for the application.
+<7> Use JUnit Platform for unit tests.
+=====
 
 The build script in the `app` subproject directory declares the dependencies the `app` code will need to be assembled and tested.
 
@@ -202,12 +307,24 @@ The test instantiates the `App` class, invokes a method on it, and checks that i
 
 The Application plugin, which was automatically added by `gradle init`, facilitates creating an executable JVM application:
 
+[.multi-language-sample]
+=====
 [source, kotlin]
 ----
 plugins {
     id("application")
 }
 ----
+=====
+[.multi-language-sample]
+=====
+[source, groovy]
+----
+plugins {
+    id 'application'
+}
+----
+=====
 
 Applying the Application plugin implicitly applies the Java plugin and adds tasks like `assemble`, `build`, and `run` to our project.
 
@@ -288,7 +405,7 @@ Publishing a build scan to scans.gradle.com requires accepting the Gradle Terms 
 Gradle Terms of Service accepted.
 
 Publishing build scan...
-https://gradle.com/s/7ee5saas3seo2
+https://gradle.com/s/link
 ----
 
 Click the link and explore which tasks were executed, which dependencies were downloaded, and many more details:

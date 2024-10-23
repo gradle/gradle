@@ -14,6 +14,15 @@
 
 = Build cache performance
 
+++++
+<div class="badge-wrapper">
+    <a class="badge" href="https://dpeuniversity.gradle.com/app/courses/4fcbecbc-7cff-449a-a509-07cf70403f0c/" target="_blank">
+        <span class="badge-type button--blue">LEARN</span>
+        <span class="badge-text">Maintaining Optimal Gradle Build Cache Performance&nbsp;&nbsp;&nbsp;&gt;</span>
+    </a>
+</div>
+++++
+
 The sole reason to use any build cache is to make builds faster.
 But how much faster can you go when using the cache?
 Measuring the impact is both important and complicated, as cache performance is determined by many factors.

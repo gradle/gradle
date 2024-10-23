@@ -16,10 +16,8 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts
 
-
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingAccessCoordinator
 import org.gradle.cache.IndexedCache
-import org.gradle.internal.Factory
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier
 import org.gradle.internal.file.FileAccessTracker
 import org.gradle.internal.hash.TestHashCodes
@@ -33,6 +31,7 @@ import spock.lang.Specification
 import spock.lang.Subject
 
 import java.nio.file.Path
+import java.util.function.Supplier
 
 class DefaultModuleArtifactCacheTest extends Specification {
 
@@ -166,7 +165,7 @@ class DefaultModuleArtifactCacheTest extends Specification {
 
     def createEntryInPersistentCache() {
         1 * cacheAccessCoordinator.createCache(persistentCacheFile, _, _) >> persistentIndexedCache
-        1 * cacheAccessCoordinator.useCache(_) >> { Factory<?> factory -> factory.create()}
+        1 * cacheAccessCoordinator.useCache(_) >> { Supplier factory -> factory.get()}
         def key = new ArtifactAtRepositoryKey("RepoID", Stub(ModuleComponentArtifactIdentifier))
         1 * persistentIndexedCache.getIfPresent(key) >> cachedArtifact
         key

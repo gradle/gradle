@@ -17,47 +17,188 @@
 package org.gradle.api.internal.tasks.compile;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.gradle.api.problems.ProblemReporter;
+import com.sun.tools.javac.api.ClientCodeWrapper;
+import com.sun.tools.javac.api.DiagnosticFormatter;
+import com.sun.tools.javac.util.Context;
+import com.sun.tools.javac.util.JCDiagnostic;
+import com.sun.tools.javac.util.JavacMessages;
+import com.sun.tools.javac.util.Log;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.api.problems.ProblemSpec;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.Severity;
+import org.gradle.api.problems.internal.GeneralDataSpec;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
+import org.gradle.api.problems.internal.InternalProblemReporter;
+import org.gradle.api.problems.internal.InternalProblemSpec;
+import org.gradle.api.problems.internal.Problem;
 
-import javax.annotation.Nullable;
 import javax.tools.Diagnostic;
 import javax.tools.DiagnosticListener;
 import javax.tools.JavaFileObject;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static javax.tools.Diagnostic.NOPOS;
 
 /**
  * A {@link DiagnosticListener} that consumes {@link Diagnostic} messages, and reports them as Gradle {@link Problems}.
- *
- * @since 8.5
  */
+// If this annotation is not present, all diagnostic messages would be wrapped in a ClientCodeWrapper.
+// We don't need this wrapping feature, hence the trusted annotation.
+@ClientCodeWrapper.Trusted
 public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileObject> {
 
-    private final ProblemReporter problemReporter;
+    public static final String FORMATTER_FALLBACK_MESSAGE = "Failed to format diagnostic message, falling back to default message formatting";
 
-    public DiagnosticToProblemListener(ProblemReporter problemReporter) {
+    private static final Logger LOGGER = Logging.getLogger(DiagnosticToProblemListener.class);
+
+    private final InternalProblemReporter problemReporter;
+    private final Function<Diagnostic<? extends JavaFileObject>, String> messageFormatter;
+    private final List<Problem> problemsReported = new ArrayList<>();
+
+    private int errorCount = 0;
+    private int warningCount = 0;
+
+    public DiagnosticToProblemListener(InternalProblemReporter problemReporter, Context context) {
         this.problemReporter = problemReporter;
+        this.messageFormatter = diagnostic -> {
+            try {
+                DiagnosticFormatter<JCDiagnostic> formatter = Log.instance(context).getDiagnosticFormatter();
+                return formatter.format((JCDiagnostic) diagnostic, JavacMessages.instance(context).getCurrentLocale());
+            } catch (Exception ex) {
+                // If for some reason the formatter fails, we can still get the message
+                LOGGER.info(FORMATTER_FALLBACK_MESSAGE);
+                return diagnostic.getMessage(Locale.getDefault());
+            }
+        };
     }
 
     @Override
     public void report(Diagnostic<? extends JavaFileObject> diagnostic) {
-        problemReporter.reporting(spec -> buildProblem(diagnostic, spec));
+        switch (diagnostic.getKind()) {
+            case ERROR:
+                errorCount++;
+                break;
+            case WARNING:
+            case MANDATORY_WARNING:
+                warningCount++;
+                break;
+            default:
+                break;
+        }
+
+        Problem reportedProblem = problemReporter.create(spec -> buildProblem(diagnostic, spec));
+        problemsReported.add(reportedProblem);
+        problemReporter.report(reportedProblem);
+    }
+
+    /**
+     * This method is responsible for printing the number of errors and warnings after writing the diagnostics out to the console.
+     * This count is normally printed by the compiler itself, but when a {@link DiagnosticListener} is registered, the compiled will stop reporting the number of errors and warnings.
+     *
+     * An example output with the last two lines being the count:
+     * <pre>
+     * /.../src/main/java/Foo.java:10: error: ';' expected
+     *                     String s = "Hello, World!"
+     *                                               ^
+     * /.../Bar.java:10: warning: [cast] redundant cast to String
+     *                     String s = (String)"Hello World";
+     *                                ^
+     * 1 error
+     * 1 warning
+     * </pre>
+     *
+     * @see com.sun.tools.javac.main.JavaCompiler#printCount(String, int)
+     */
+    String diagnosticCounts() {
+        Log logger = Log.instance(new Context());
+        Optional<String> error = diagnosticCount(logger, "error", errorCount);
+        Optional<String> warning = diagnosticCount(logger, "warn", warningCount);
+
+        return Stream.of(error, warning)
+            .filter(Optional::isPresent)
+            .map(Optional::get)
+            .collect(Collectors.joining(System.lineSeparator()));
+    }
+
+    /**
+     * Formats and prints the number of diagnostics of a given kind.
+     * <p>
+     * E.g.:
+     * <pre>
+     * 1 error
+     * 2 warnings
+     * </pre>
+     *
+     * @param logger the logger used to localize the message
+     * @param kind the kind of diagnostic (error, or warn)
+     * @param number the total number of diagnostics of the given kind
+     * @return the human-readable count of diagnostics of the given kind, or {@code #Optional.empty()} if there are no diagnostics of the given kind
+     */
+    private static Optional<String> diagnosticCount(Log logger, String kind, int number) {
+        // Compiler only handles 'error' and 'warn' kinds
+        if (!("error".equals(kind) || "warn".equals(kind))) {
+            throw new IllegalArgumentException("kind must be either 'error' or 'warn'");
+        }
+        // If there are no diagnostics of this kind, we don't need to print anything
+        if (number == 0) {
+            return Optional.empty();
+        }
+
+        // See the distributions' respective `compiler.java` files to see the keys used for localization.
+        // We are using the following keys:
+        //  - count.error and count.error.plural
+        //  - count.warn and count.warn.plural
+        StringBuilder keyBuilder = new StringBuilder("count.");
+        keyBuilder.append(kind);
+        if (number > 1) {
+            keyBuilder.append(".plural");
+        }
+
+        return Optional.of(logger.localize(keyBuilder.toString(), number));
     }
 
     @VisibleForTesting
-    static void buildProblem(Diagnostic<? extends JavaFileObject> diagnostic, ProblemSpec spec) {
-        spec.id(mapKindToId(diagnostic.getKind()), mapKindToLabel(diagnostic.getKind()), GradleCoreProblemGroup.compilation().java());
-        spec.severity(mapKindToSeverity(diagnostic.getKind()));
-        addDetails(spec, diagnostic.getMessage(Locale.getDefault()));
+    void buildProblem(Diagnostic<? extends JavaFileObject> diagnostic, ProblemSpec spec) {
+        Severity severity = mapKindToSeverity(diagnostic.getKind());
+        spec.severity(severity);
+        addId(spec, diagnostic);
+        addFormattedMessage(spec, diagnostic);
+        addDetails(spec, diagnostic);
         addLocations(spec, diagnostic);
+        if (severity == Severity.ERROR) {
+            spec.solution(CompilationFailedException.RESOLUTION_MESSAGE);
+        }
     }
 
-    private static void addDetails(ProblemSpec spec, @Nullable String diagnosticMessage) {
-        if (diagnosticMessage != null) {
-            spec.details(diagnosticMessage);
+    private static void addId(ProblemSpec spec, Diagnostic<? extends JavaFileObject> diagnostic) {
+        String idName = diagnostic.getCode().replace('.', '-');
+        spec.id(idName, mapKindToDisplayName(diagnostic.getKind()), GradleCoreProblemGroup.compilation().java());
+    }
+
+    private void addFormattedMessage(ProblemSpec spec, Diagnostic<? extends JavaFileObject> diagnostic) {
+        String formatted = messageFormatter.apply(diagnostic);
+        System.err.println(formatted);
+        ((InternalProblemSpec) spec).additionalData(GeneralDataSpec.class, data -> data.put("formatted", formatted)); // TODO (donat) Introduce custom additional data type for compilation problems
+    }
+
+    private static void addDetails(ProblemSpec spec, Diagnostic<? extends JavaFileObject> diagnostic) {
+        String message = diagnostic.getMessage(Locale.getDefault());
+        String[] messageLines = message.split("\n");
+
+        // Contextual label is always the first line of the message
+        spec.contextualLabel(messageLines[0]);
+        // If we have some multi-line messages (see compiler.java), we can add the complete message as details
+        if (messageLines.length > 1) {
+            spec.details(message);
         }
     }
 
@@ -65,21 +206,20 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
         String resourceName = diagnostic.getSource() != null ? getPath(diagnostic.getSource()) : null;
         int line = clampLocation(diagnostic.getLineNumber());
         int column = clampLocation(diagnostic.getColumnNumber());
-        int start = clampLocation(diagnostic.getStartPosition());
+        int position = clampLocation(diagnostic.getPosition());
         int end = clampLocation(diagnostic.getEndPosition());
 
         // We only set the location if we have a resource to point to
         if (resourceName != null) {
-            spec.fileLocation(resourceName);
             // If we know the line ...
-            if (line > 0) {
+            if (NOPOS != line) {
                 // ... and the column ...
-                if (column > 0) {
+                if (NOPOS != column) {
                     // ... and we know how long the error is (i.e. end - start)
-                    // (end should be greater than start, so we can prevent negative lengths)
-                    if (0 < start && start <= end) {
+                    // (documentation says that getEndPosition() will be NOPOS if and only if the getPosition() is NOPOS)
+                    if (NOPOS != position) {
                         // ... we can report the line, column, and extent ...
-                        spec.lineInFileLocation(resourceName, line, column, end - start);
+                        spec.lineInFileLocation(resourceName, line, column, end - position);
                     } else {
                         // ... otherwise we can still report the line and column
                         spec.lineInFileLocation(resourceName, line, column);
@@ -88,14 +228,17 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
                     // ... otherwise we can still report the line
                     spec.lineInFileLocation(resourceName, line);
                 }
-            }
+            } else
+                // If we know the offsets ...
+                // (offset doesn't require line and column to be set, hence the separate check)
+                // (documentation says that getEndPosition() will be NOPOS iff getPosition() is NOPOS)
+                if (NOPOS != position && end > position) {
+                    // ... we can report the start and extent
+                    spec.offsetInFileLocation(resourceName, position, end - position);
+                } else {
+                    spec.fileLocation(resourceName);
+                }
 
-            // If we know the offsets ...
-            // (offset doesn't require line and column to be set, hence the separate check)
-            if (0 < start && start <= end) {
-                // ... we can report the start and extent
-                spec.offsetInFileLocation(resourceName, start, end - start);
-            }
         }
     }
 
@@ -109,7 +252,7 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
      */
     private static int clampLocation(long value) {
         if (value > Integer.MAX_VALUE) {
-            return Math.toIntExact(Diagnostic.NOPOS);
+            return Math.toIntExact(NOPOS);
         } else {
             return (int) value;
         }
@@ -119,23 +262,7 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
         return fileObject.getName();
     }
 
-    private static String mapKindToId(Diagnostic.Kind kind) {
-        switch (kind) {
-            case ERROR:
-                return "java-compilation-error";
-            case WARNING:
-            case MANDATORY_WARNING:
-                return "java-compilation-warning";
-            case NOTE:
-                return "java-compilation-note";
-            case OTHER:
-                return "java-compilation-problem";
-            default:
-                return"unknown-java-compilation-problem";
-        }
-    }
-
-    private static String mapKindToLabel(Diagnostic.Kind kind) {
+    private static String mapKindToDisplayName(Diagnostic.Kind kind) {
         switch (kind) {
             case ERROR:
                 return "Java compilation error";
@@ -165,4 +292,7 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
         }
     }
 
+    public List<Problem> getReportedProblems() {
+        return Collections.unmodifiableList(problemsReported);
+    }
 }

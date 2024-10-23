@@ -19,7 +19,7 @@ package org.gradle.internal.reflect.validation
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.services.BuildService
 import org.gradle.integtests.fixtures.executer.GradleExecuter
-import org.gradle.internal.reflect.JavaReflectionUtil
+import org.gradle.model.internal.asm.AsmClassGeneratorUtils
 
 import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.convertToSingleLine
 
@@ -483,7 +483,7 @@ trait ValidationMessageChecker {
         }
 
         Class<?> getWrapperType() {
-            JavaReflectionUtil.getWrapperTypeForPrimitiveType(primitiveType)
+            AsmClassGeneratorUtils.getWrapperTypeForPrimitiveType(primitiveType)
         }
     }
 
@@ -597,6 +597,16 @@ trait ValidationMessageChecker {
             this.reason = "ancestor '$ancestor' is not a directory"
             this
         }
+    }
+
+    static String getOppositeKind(String kindLocal) {
+        switch (kindLocal) {
+            case 'file':
+                return 'directory'
+            case 'directory':
+                return 'file'
+        }
+        return 'unexpected file type'
     }
 
     static class IncorrectInputMessage extends ValidationMessageDisplayConfiguration<IncorrectInputMessage> {

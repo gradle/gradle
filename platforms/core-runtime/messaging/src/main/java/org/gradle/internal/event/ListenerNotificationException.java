@@ -33,6 +33,7 @@ public class ListenerNotificationException extends DefaultMultiCauseException {
         this.event = event;
     }
 
+    @Nullable
     public MethodInvocation getEvent() {
         return event;
     }

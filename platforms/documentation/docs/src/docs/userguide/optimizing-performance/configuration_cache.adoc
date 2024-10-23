@@ -54,7 +54,7 @@ The first time you run a particular set of tasks, there will be no entry in the 
 1. Run init scripts.
 2. Run the settings script for the build, applying any requested settings plugins.
 3. Configure and build the `buildSrc` project, if present.
-4. Run the builds scripts for the build, applying any requested project plugins.
+4. Run the build scripts for the build, applying any requested project plugins.
 5. Calculate the task graph for the requested tasks, running any deferred configuration actions.
 
 Following the configuration phase, Gradle writes a snapshot of the task graph to a new configuration cache entry, for later Gradle invocations.
@@ -197,6 +197,29 @@ or in a `gradle.properties` file:
 org.gradle.configuration-cache.max-problems=5
 ----
 
+[[config_cache:usage:parallel]]
+=== Enabling parallel configuration caching
+
+Configuration cache storing and loading are done sequentially by default. Parallel storing and loading provide
+better performance, however not all builds are compatible with it.
+
+To enable parallel configuration caching on the command line:
+
+----
+❯ gradle -Dorg.gradle.configuration-cache.parallel=true
+----
+
+or in a `gradle.properties` file:
+
+[source,properties]
+----
+org.gradle.configuration-cache.parallel=true
+----
+
+The parallel configuration caching feature is _incubating_, as not all builds are guaranteed to work correctly.
+Common symptoms are `ConcurrentModificationException` exceptions during the <<build_lifecycle#sec:configuration,configuration phase>>.
+The feature should work well for <<multi_project_configuration_and_execution#sec:decoupled_projects,decoupled>> multi-project builds.
+
 [[config_cache:usage:invalidate]]
 === Invalidating the cache
 
@@ -322,12 +345,12 @@ link:{gradle-issues}13462[[.green]#✓#]:: <<antlr_plugin.adoc#antlr_plugin,ANTL
 
 a|
 [horizontal]
-link:{gradle-issues}13484[[.red]#✖#]:: <<cpp_application_plugin.adoc#cpp_application_plugin,C++ Application>>
-link:{gradle-issues}13485[[.red]#✖#]:: <<cpp_library_plugin.adoc#cpp_library_plugin,C++ Library>>
-link:{gradle-issues}13514[[.red]#✖#]:: <<cpp_unit_test_plugin.adoc#cpp_unit_test_plugin,C++ Unit Test>>
-link:{gradle-issues}13515[[.red]#✖#]:: <<swift_application_plugin.adoc#swift_application_plugin,Swift Application>>
-link:{gradle-issues}13487[[.red]#✖#]:: <<swift_library_plugin.adoc#swift_library_plugin,Swift Library>>
-link:{gradle-issues}13488[[.red]#✖#]:: <<xctest_plugin.adoc#xctest_plugin,XCTest>>
+link:{gradle-issues}30806[[.yellow]#⚠#]:: <<cpp_application_plugin.adoc#cpp_application_plugin,C++ Application>>
+link:{gradle-issues}30806[[.yellow]#⚠#]:: <<cpp_library_plugin.adoc#cpp_library_plugin,C++ Library>>
+link:{gradle-issues}13514[[.green]#✓#]:: <<cpp_unit_test_plugin.adoc#cpp_unit_test_plugin,C++ Unit Test>>
+link:{gradle-issues}13515[[.green]#✓#]:: <<swift_application_plugin.adoc#swift_application_plugin,Swift Application>>
+link:{gradle-issues}13487[[.green]#✓#]:: <<swift_library_plugin.adoc#swift_library_plugin,Swift Library>>
+link:{gradle-issues}13488[[.green]#✓#]:: <<xctest_plugin.adoc#xctest_plugin,XCTest>>
 
 a|
 [horizontal]
@@ -356,8 +379,8 @@ a|
 [horizontal]
 link:{gradle-issues}13479[[.red]#✖#]:: <<eclipse_plugin.adoc#eclipse_plugin,Eclipse>>
 link:{gradle-issues}13480[[.red]#✖#]:: <<idea_plugin.adoc#idea_plugin,IntelliJ IDEA>>
-link:{gradle-issues}13482[[.red]#✖#]:: <<visual_studio_plugin.adoc#visual_studio_plugin,Visual Studio>>
-link:{gradle-issues}13483[[.red]#✖#]:: <<xcode_plugin.adoc#xcode_plugin,Xcode>>
+link:{gradle-issues}13482[[.green]#✓#]:: <<visual_studio_plugin.adoc#visual_studio_plugin,Visual Studio>>
+link:{gradle-issues}13483[[.green]#✓#]:: <<xcode_plugin.adoc#xcode_plugin,Xcode>>
 
 a|
 [horizontal]
@@ -365,7 +388,7 @@ link:{gradle-issues}13455[[.green]#✓#]:: <<base_plugin.adoc#base_plugin,Base>>
 link:{gradle-issues}13456[[.green]#✓#]:: <<build_init_plugin.adoc#build_init_plugin,Build Init>>
 link:{gradle-issues}13470[[.green]#✓#]:: <<signing_plugin.adoc#signing_plugin,Signing>>
 link:{gradle-issues}24537[[.green]#✓#]:: <<java_gradle_plugin.adoc#java_gradle_plugin,Java Plugin Development>>
-link:{gradle-issues}23029[[.green]#✓#]:: <<custom_plugins.adoc#sec:precompiled_plugins,Groovy DSL Plugin Development>>
+link:{gradle-issues}23029[[.green]#✓#]:: <<implementing_gradle_plugins_precompiled.adoc#implemention_precompiled_plugins,Groovy DSL Plugin Development>>
 link:{gradle-issues}13472[[.green]#✓#]:: <<kotlin_dsl.adoc#sec:kotlin-dsl_plugin,Kotlin DSL Plugin Development>>
 link:{gradle-issues}13473[[.green]#✓#]:: <<project_report_plugin.adoc#project_report_plugin,Project Report Plugin>>
 
@@ -536,7 +559,7 @@ For example, running tests after making some changes to the source code.
 When working on a plugin, progressively target the contributed or configured tasks.
 
 Explore by turning problems into warnings::
-Don't stop at the first build failure and <<configuration_cache#config_cache:usage:ignore_problems, turn problems into warnings>> to discover how your build and plugins behave.
+Don't stop at the first build failure; <<configuration_cache#config_cache:usage:ignore_problems, turn problems into warnings>> to discover how your build and plugins behave.
 If a build fails, use the HTML report to reason about the reported problems related to the failure.
 Continue running more useful tasks.
 +
@@ -586,7 +609,7 @@ Enable the configuration cache by default, configure CI to disable it, and if re
 
 Build logic or plugin implementations can detect if the configuration cache is enabled for a given build, and react to it accordingly.
 The link:{javadocPath}/org/gradle/api/configuration/BuildFeature.html#getActive--[active] status of the configuration cache is provided in the corresponding link:{javadocPath}/org/gradle/api/configuration/BuildFeatures.html#getConfigurationCache--[build feature].
-You can access it by <<custom_gradle_types#service_injection, injecting>> the link:{javadocPath}/org/gradle/api/configuration/BuildFeatures.html[`BuildFeatures`] service into your code.
+You can access it by <<service_injection.adoc#service_injection, injecting>> the link:{javadocPath}/org/gradle/api/configuration/BuildFeatures.html[`BuildFeatures`] service into your code.
 
 You can use this information to configure features of your plugin differently or to disable an optional feature that is not yet compatible.
 Another example involves providing additional guidance for your users, should they need to adjust their setup or be informed of temporary limitations.
@@ -771,7 +794,7 @@ Some cases can be fixed in the same way as for <<configuration_cache#config_cach
 Often, similar things are available on both `Project` and `Task`.
 For example if you need a `Logger` in your task actions you should use `Task.logger` instead of `Project.logger`.
 
-Otherwise, you can use <<custom_gradle_types#service_injection,injected services>> instead of the methods of `Project`.
+Otherwise, you can use <<service_injection.adoc#service_injection,injected services>> instead of the methods of `Project`.
 
 Here's an example of a problematic task type using the `Project` object at execution time:
 
@@ -1179,7 +1202,8 @@ See link:{gradle-issues}20969[gradle/gradle#20969].
 
 Gradle allows objects that support the link:https://docs.oracle.com/javase/8/docs/platform/serialization/spec/serialTOC.html[Java Object Serialization] protocol to be stored in the configuration cache.
 
-The implementation is currently limited to serializable classes that implement the `java.io.Serializable` interface and define one of the following combination of methods:
+The implementation is currently limited to serializable classes that
+either implement the `java.io.Externalizable` interface, or implement the `java.io.Serializable` interface and define one of the following combination of methods:
 
 - a `writeObject` method combined with a `readObject` method to control exactly which information to store;
 - a `writeObject` method with no corresponding `readObject`; `writeObject` must eventually call `ObjectOutputStream.defaultWriteObject`;
@@ -1189,7 +1213,6 @@ The implementation is currently limited to serializable classes that implement t
 
 The following _Java Object Serialization_ features are **not** supported:
 
-- serializable classes implementing the `java.io.Externalizable` interface; objects of such classes are discarded by the configuration cache during serialization and reported as problems;
 - the `serialPersistentFields` member to explicitly declare which fields are serializable; the member, if present, is ignored; the configuration cache considers all but `transient` fields serializable;
 - the following methods of `ObjectOutputStream` are not supported and will throw `UnsupportedOperationException`:
 ** `reset()`, `writeFields()`, `putFields()`, `writeChars(String)`, `writeBytes(String)` and `writeUnshared(Any?)`.

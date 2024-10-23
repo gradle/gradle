@@ -28,7 +28,7 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
 
     def "can use plugins block in project build scripts"() {
         when:
-        buildScript """
+        buildFile """
           plugins {
             id "java"
             id "noop" version "1.0"
@@ -41,7 +41,7 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
 
     def "buildscript blocks are allowed before plugin statements"() {
         when:
-        buildScript """
+        buildFile """
             buildscript {}
             plugins {}
         """
@@ -52,7 +52,7 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
 
     def "buildscript blocks are not allowed after plugin blocks"() {
         when:
-        buildScript """
+        buildFile """
             plugins {}
             buildscript {}
         """
@@ -73,7 +73,7 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
 
     def "build logic cannot precede plugins block"() {
         when:
-        buildScript """
+        buildFile """
             someThing()
             plugins {}
         """
@@ -90,7 +90,7 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
 
     def "build logic cannot precede any plugins block"() {
         when:
-        buildScript """
+        buildFile """
             plugins {}
             someThing()
             plugins {}
@@ -139,7 +139,7 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
 
         when:
         scriptPlugin << "plugins {}"
-        buildScript "apply from: 'plugin.gradle'"
+        buildFile "apply from: 'plugin.gradle'"
 
         then:
         fails "help"
@@ -155,7 +155,7 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
 
         when:
         scriptPlugin << "plugins {}"
-        buildScript "task foo; apply from: 'plugin.gradle', to: foo"
+        buildFile "task foo; apply from: 'plugin.gradle', to: foo"
 
         then:
         fails "help"
@@ -168,7 +168,7 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
 
     def "illegal syntax in plugins block - #code"() {
         when:
-        buildScript("""plugins {\n$code\n}""")
+        buildFile("""plugins {\n$code\n}""")
 
         then:
         fails "help"
@@ -210,7 +210,7 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
     def "allowed syntax in plugins block - #code"() {
         given:
         when:
-        buildScript("""plugins {\n$code\n}""")
+        buildFile("""plugins {\n$code\n}""")
 
         then:
         succeeds "help"
@@ -236,7 +236,7 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
 
     def "illegal value in plugins block - #code"() {
         when:
-        buildScript("""plugins {\n$code\n}""")
+        buildFile("""plugins {\n$code\n}""")
 
         then:
         fails "help"
@@ -263,7 +263,7 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
     bar = 444
     foo.bar = 555
 """
-        buildScript("""plugins {\n$code\n}""")
+        buildFile("""plugins {\n$code\n}""")
 
         then:
         succeeds "help"
@@ -302,7 +302,7 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
 
     def "fails to interpolate unknown property in project plugins block"() {
         when:
-        buildScript("""plugins {\n$code\n}""")
+        buildFile("""plugins {\n$code\n}""")
 
         then:
         fails "help"

@@ -17,7 +17,6 @@
 package org.gradle.ide.visualstudio
 
 import org.gradle.ide.visualstudio.fixtures.AbstractVisualStudioIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 
 import static org.apache.commons.io.FileUtils.copyFile
@@ -61,7 +60,6 @@ class VisualStudioSoftwareModelIncrementalIntegrationTest extends AbstractVisual
         """
     }
 
-    @ToBeFixedForConfigurationCache
     def "visual studio tasks re-execute when source files are added"() {
         app.writeSources(file("src/main"))
 
@@ -92,7 +90,6 @@ class VisualStudioSoftwareModelIncrementalIntegrationTest extends AbstractVisual
         skipped getComponentTasks("main")
     }
 
-    @ToBeFixedForConfigurationCache
     def "visual studio tasks re-execute when header files are added"() {
         app.writeSources(file("src/main"))
 
@@ -123,7 +120,6 @@ class VisualStudioSoftwareModelIncrementalIntegrationTest extends AbstractVisual
         skipped getComponentTasks("main")
     }
 
-    @ToBeFixedForConfigurationCache
     def "visual studio tasks re-execute when output file locations change"() {
         assumeFalse(toolChain.meets(WINDOWS_GCC))
         app.writeSources(file("src/main"))
@@ -199,7 +195,6 @@ class VisualStudioSoftwareModelIncrementalIntegrationTest extends AbstractVisual
         skipped getComponentTasks("main")
     }
 
-    @ToBeFixedForConfigurationCache
     def "visual studio tasks re-execute when a new variant is introduced"() {
         assumeFalse(toolChain.meets(WINDOWS_GCC))
         app.writeSources(file("src/main"))
@@ -223,8 +218,8 @@ class VisualStudioSoftwareModelIncrementalIntegrationTest extends AbstractVisual
         run "visualStudio"
 
         then:
-        executedAndNotSkipped ":appVisualStudioSolution"
-        executedAndNotSkipped getComponentTasks("main")
+        executedAndNotSkipped ":appVisualStudioSolution", getProjectTask("main")
+        skipped getFiltersTask("main")
 
         and:
         final projectFile = projectFile("mainExe.vcxproj")
@@ -241,7 +236,6 @@ class VisualStudioSoftwareModelIncrementalIntegrationTest extends AbstractVisual
         skipped getComponentTasks("main")
     }
 
-    @ToBeFixedForConfigurationCache
     def "visual studio tasks re-execute when compiler macros change"() {
         app.writeSources(file("src/main"))
 
@@ -267,8 +261,8 @@ class VisualStudioSoftwareModelIncrementalIntegrationTest extends AbstractVisual
         run "visualStudio"
 
         then:
-        skipped ":appVisualStudioSolution"
-        executedAndNotSkipped getComponentTasks("main")
+        skipped ":appVisualStudioSolution", getFiltersTask("main")
+        executedAndNotSkipped getProjectTask("main")
 
         and:
         final projectFile = projectFile("mainExe.vcxproj")

@@ -16,12 +16,12 @@
 
 package org.gradle.initialization.properties;
 
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.Map;
 
-@ServiceScope(Scopes.Build.class)
+@ServiceScope(Scope.Build.class)
 public interface ProjectPropertiesLoader {
 
     Map<String, Object> loadProjectProperties();
