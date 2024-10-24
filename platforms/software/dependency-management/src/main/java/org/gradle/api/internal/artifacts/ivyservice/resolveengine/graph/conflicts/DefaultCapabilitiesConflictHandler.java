@@ -276,6 +276,7 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
 
         private final Set<NodeState> nodes;
         private final Set<Capability> descriptors;
+        private final Map<NodeState, Set<NodeState>> nodeToDependentNodes;
 
         private CapabilityConflict(String group, String name, Set<NodeState> nodes) {
             this.group = group;
@@ -289,7 +290,27 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
                 }
             }
             this.descriptors = builder.build();
+
+            nodeToDependentNodes = buildDependentRelationships(nodes);
         }
+
+        private Map<NodeState, Set<NodeState>> buildDependentRelationships(Set<NodeState> nodes) {
+            HashMap<NodeState, Set<NodeState>> nodeToDependents = new HashMap<>();
+            for (NodeState node : nodes) {
+                HashSet<NodeState> parents = new HashSet<>();
+                for (NodeState possibleDependent : nodes) {
+                    if (node == possibleDependent) {
+                        continue;
+                    }
+                    if (possibleDependent.dependsTransitivelyOn(node)) {
+                        parents.add(possibleDependent);
+                    }
+                }
+                nodeToDependents.put(node, parents);
+            }
+            return nodeToDependents;
+        }
+
 
         /**
          * Many things can happen in-between detection of a conflict and resolution of the conflict. By the time
@@ -302,7 +323,7 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
         public CapabilityConflict withSelectedNodes() {
             Set<NodeState> selectedNodes = new LinkedHashSet<>();
             for (NodeState node : nodes) {
-                if (node.isSelected()) {
+                if (node.isSelected() || nodeToDependentNodes.get(node).stream().anyMatch(NodeState::isSelected)) {
                     selectedNodes.add(node);
                 }
             }

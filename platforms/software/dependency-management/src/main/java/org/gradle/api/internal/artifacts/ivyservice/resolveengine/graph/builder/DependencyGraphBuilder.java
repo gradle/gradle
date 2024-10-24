@@ -187,6 +187,11 @@ public class DependencyGraphBuilder {
                     continue;
                 }
 
+                if (node.getComponent().isRejected()) {
+                    // Do not process rejected nodes
+                    continue;
+                }
+
                 // Register capabilities for this node
                 if (registerCapabilities(resolveState, node)) {
                     // We have a conflict, so we need to resolve it first, since this node may not win the conflict.
