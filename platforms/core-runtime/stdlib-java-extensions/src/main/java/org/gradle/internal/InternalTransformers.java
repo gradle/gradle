@@ -67,6 +67,7 @@ public abstract class InternalTransformers {
 
     private static class ToStringTransformer<T> implements InternalTransformer<String, T> {
         @Override
+        @SuppressWarnings({"NullAway", "ConstantValue"}) // Can't express a nullable generic return type without type annotations
         public String transform(T original) {
             return original == null ? null : original.toString();
         }
@@ -116,15 +117,6 @@ public abstract class InternalTransformers {
                 @SuppressWarnings("unchecked")
                 Class<T> aClass = (Class<T>) original.getClass();
                 return aClass;
-            }
-        };
-    }
-
-    public static <R> InternalTransformer<R, Object> toTransformer(final Factory<R> factory) {
-        return new InternalTransformer<R, Object>() {
-            @Override
-            public R transform(Object original) {
-                return factory.create();
             }
         };
     }

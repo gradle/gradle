@@ -21,6 +21,7 @@ import javax.annotation.Nullable;
 public final class OperationProgressEvent {
 
     private final long time;
+    @Nullable
     private final Object details;
 
     public OperationProgressEvent(long time, @Nullable Object details) {

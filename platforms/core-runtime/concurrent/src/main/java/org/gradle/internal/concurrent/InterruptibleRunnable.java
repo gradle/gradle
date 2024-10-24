@@ -16,6 +16,7 @@
 
 package org.gradle.internal.concurrent;
 
+import javax.annotation.Nullable;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -29,6 +30,7 @@ public final class InterruptibleRunnable implements Runnable {
     private final Lock stateLock = new ReentrantLock();
     private final Runnable delegate;
     private boolean interrupted;
+    @Nullable
     private Thread thread;
 
     public InterruptibleRunnable(Runnable delegate) {

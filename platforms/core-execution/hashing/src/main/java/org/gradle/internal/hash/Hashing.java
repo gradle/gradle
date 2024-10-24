@@ -20,6 +20,7 @@ import com.google.common.base.Charsets;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.Files;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -279,6 +280,7 @@ public class Hashing {
 
     private static class MessageDigestHasher implements PrimitiveHasher {
         private final ByteBuffer buffer = ByteBuffer.allocate(8).order(ByteOrder.LITTLE_ENDIAN);
+        @Nullable
         private MessageDigest digest;
 
         public MessageDigestHasher(MessageDigest digest) {
