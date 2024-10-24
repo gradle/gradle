@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,26 +18,24 @@ package org.gradle.execution.plan;
 
 import org.gradle.api.Action;
 import org.gradle.api.Task;
+import org.gradle.api.internal.tasks.TaskPromise;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-/**
- * Resolves dependencies to {@link TaskNode} objects. Uses the same logic as {@link #TASK_AS_TASK}.
- */
 @ServiceScope(Scope.Build.class)
-public class TaskNodeDependencyResolver implements DependencyResolver {
+public class TaskNodePromiseDependencyResolver implements DependencyResolver {
     private final TaskNodeFactory taskNodeFactory;
 
-    public TaskNodeDependencyResolver(TaskNodeFactory taskNodeFactory) {
+    public TaskNodePromiseDependencyResolver(TaskNodeFactory taskNodeFactory) {
         this.taskNodeFactory = taskNodeFactory;
     }
 
     @Override
     public boolean resolve(Task task, Object node, final Action<? super NodePromise> resolveAction) {
-        return TASK_AS_TASK.resolve(
-            task,
-            node,
-            resolved -> resolveAction.execute(NodePromise.of(taskNodeFactory.getOrCreateNode(resolved)))
-        );
+        if (node instanceof TaskPromise) {
+            resolveAction.execute(NodePromise.of(() -> taskNodeFactory.getOrCreateNode(((TaskPromise) node).get())));
+            return true;
+        }
+        return false;
     }
 }

@@ -480,13 +480,23 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
             return null;
         }
         project.getOwner().ensureTasksDiscovered();
-
         return project.getTasks().findByName(StringUtils.substringAfterLast(path, Project.PATH_SEPARATOR));
     }
 
     @Override
-    public Task resolveTask(String path) {
-        return getByPath(path);
+    public TaskPromise resolveTask(String path) {
+        Path.validatePath(path);
+        if (!path.contains(Project.PATH_SEPARATOR)) {
+            return TaskPromises.of(findByName(path));
+        }
+
+        String projectPath = StringUtils.substringBeforeLast(path, Project.PATH_SEPARATOR);
+        String projectPathOrRoot = Strings.isNullOrEmpty(projectPath) ? Project.PATH_SEPARATOR : projectPath;
+        ProjectInternal project = projectRegistry.getProject(this.project.absoluteProjectPath(projectPathOrRoot));
+        if (project == null) {
+            return TaskPromises.missing(path, this.project);
+        }
+        return TaskPromises.of(project, path);
     }
 
     @Override

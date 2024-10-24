@@ -19,7 +19,7 @@ package org.gradle.api.internal.artifacts.transform;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.execution.plan.DependencyResolver;
-import org.gradle.execution.plan.Node;
+import org.gradle.execution.plan.NodePromise;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -29,11 +29,11 @@ import org.gradle.internal.service.scopes.ServiceScope;
 @ServiceScope({Scope.Build.class, Scope.Project.class})
 public class TransformStepNodeDependencyResolver implements DependencyResolver {
     @Override
-    public boolean resolve(Task task, Object node, Action<? super Node> resolveAction) {
+    public boolean resolve(Task task, Object node, Action<? super NodePromise> resolveAction) {
         if (node instanceof DefaultTransformNodeDependency) {
             DefaultTransformNodeDependency transformNodeDependency = (DefaultTransformNodeDependency) node;
             for (TransformStepNode transformStepNode : transformNodeDependency.getNodes()) {
-                resolveAction.execute(transformStepNode);
+                resolveAction.execute(NodePromise.of(transformStepNode));
             }
             return true;
         }

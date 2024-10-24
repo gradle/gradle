@@ -106,6 +106,7 @@ import org.gradle.execution.plan.OrdinalGroupFactory;
 import org.gradle.execution.plan.TaskDependencyResolver;
 import org.gradle.execution.plan.TaskNodeDependencyResolver;
 import org.gradle.execution.plan.TaskNodeFactory;
+import org.gradle.execution.plan.TaskNodePromiseDependencyResolver;
 import org.gradle.execution.plan.ToPlannedNodeConverterRegistry;
 import org.gradle.execution.plan.WorkNodeDependencyResolver;
 import org.gradle.execution.selection.BuildTaskSelector;
@@ -254,6 +255,7 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         registration.add(DefaultNodeValidator.class);
         registration.add(TaskNodeFactory.class);
         registration.add(TaskNodeDependencyResolver.class);
+        registration.add(TaskNodePromiseDependencyResolver.class);
         registration.add(WorkNodeDependencyResolver.class);
         registration.add(TaskDependencyResolver.class);
         registration.add(DefaultBuildWorkGraphController.class);

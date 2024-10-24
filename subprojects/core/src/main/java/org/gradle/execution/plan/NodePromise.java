@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,27 @@
 
 package org.gradle.execution.plan;
 
-import org.gradle.api.internal.tasks.WorkDependencyResolver;
+import java.util.function.Supplier;
 
-/**
- * Resolves dependencies to {@link Node} objects.
- */
-public interface DependencyResolver extends WorkDependencyResolver<NodePromise> {
+public interface NodePromise {
+
+    static NodePromise of(Supplier<Node> node) {
+        return new NodePromise() {
+            @Override
+            public Node get() {
+                return node.get();
+            }
+        };
+    }
+
+    static NodePromise of(Node node) {
+        return new NodePromise() {
+            @Override
+            public Node get() {
+                return node;
+            }
+        };
+    }
+
+    Node get();
 }

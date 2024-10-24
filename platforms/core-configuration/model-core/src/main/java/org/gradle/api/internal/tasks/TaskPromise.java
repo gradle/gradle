@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.execution.plan;
+package org.gradle.api.internal.tasks;
 
-import org.gradle.api.internal.tasks.WorkDependencyResolver;
+import org.gradle.api.Task;
 
-/**
- * Resolves dependencies to {@link Node} objects.
- */
-public interface DependencyResolver extends WorkDependencyResolver<NodePromise> {
+public interface TaskPromise {
+    Task get();
 }

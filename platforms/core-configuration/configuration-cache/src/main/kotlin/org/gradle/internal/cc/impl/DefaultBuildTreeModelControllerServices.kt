@@ -81,7 +81,7 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
 
         private
         val isolatedProjectsTasksConfigureOnDemand =
-            InternalFlag("org.gradle.internal.isolated-projects.configure-on-demand.tasks", false)
+            InternalFlag("org.gradle.internal.isolated-projects.configure-on-demand.tasks", true)
     }
 
     override fun servicesForBuildTree(requirements: BuildActionModelRequirements): BuildTreeModelControllerServices.Supplier {

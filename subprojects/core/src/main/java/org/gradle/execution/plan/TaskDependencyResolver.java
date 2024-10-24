@@ -25,12 +25,13 @@ import org.gradle.internal.service.scopes.ServiceScope;
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @NonNullApi
 @ServiceScope(Scope.Build.class)
 public class TaskDependencyResolver {
     private final List<DependencyResolver> dependencyResolvers;
-    private CachingTaskDependencyResolveContext<Node> context;
+    private CachingTaskDependencyResolveContext<NodePromise> context;
 
     public TaskDependencyResolver(List<DependencyResolver> dependencyResolvers) {
         this.dependencyResolvers = dependencyResolvers;
@@ -41,11 +42,17 @@ public class TaskDependencyResolver {
         context = createTaskDependencyResolverContext(dependencyResolvers);
     }
 
-    private static CachingTaskDependencyResolveContext<Node> createTaskDependencyResolverContext(List<DependencyResolver> workResolvers) {
-        return new CachingTaskDependencyResolveContext<Node>(workResolvers);
+    private static CachingTaskDependencyResolveContext<NodePromise> createTaskDependencyResolverContext(
+        List<DependencyResolver> workResolvers
+    ) {
+        return new CachingTaskDependencyResolveContext<>(workResolvers);
     }
 
     public Set<Node> resolveDependenciesFor(@Nullable TaskInternal task, Object dependencies) {
-        return context.getDependencies(task, dependencies);
+        // TODO:configuration batch NodePromises by owning Project and run build operations in parallel
+        return context.getDependencies(task, dependencies)
+            .parallelStream()
+            .map(NodePromise::get)
+            .collect(Collectors.toSet());
     }
 }
