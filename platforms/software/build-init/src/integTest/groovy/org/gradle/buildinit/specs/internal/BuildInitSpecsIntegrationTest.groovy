@@ -25,20 +25,20 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
-import spock.lang.Ignore
+import org.gradle.util.internal.TextUtil
 
 @Requires(UnitTestPreconditions.Jdk17OrLater)
 class BuildInitSpecsIntegrationTest extends AbstractInitIntegrationSpec implements TestsBuildInitSpecsViaPlugin, JavaToolchainFixture {
     private static final String DECLARATIVE_JVM_PLUGIN_ID = "org.gradle.experimental.jvm-ecosystem"
-    private static final String DECLARATIVE_PLUGIN_VERSION = "0.1.13"
+    private static final String DECLARATIVE_PLUGIN_VERSION = "0.1.15"
     private static final String DECLARATIVE_PLUGIN_SPEC = "$DECLARATIVE_JVM_PLUGIN_ID:$DECLARATIVE_PLUGIN_VERSION"
 
     // Just need an arbitrary Plugin<Settings> here, so use the Declarative Prototype.  Note that we can't use JVM, because
-    // An exception occurred applying plugin request [id: 'org.gradle.experimental.jvm-ecosystem', version: '0.1.14', apply: true]
+    // An exception occurred applying plugin request [id: 'org.gradle.experimental.jvm-ecosystem', version: '0.1.15', apply: true]
     //> Failed to apply plugin 'org.gradle.jvm-toolchain-management'.
     //   > Cannot add extension with name 'jvm', as there is an extension already registered with that name.
     private static final String ARBITRARY_PLUGIN_ID = "org.gradle.experimental.declarative-common"
-    private static final String ARBITRARY_PLUGIN_VERSION = "0.1.14"
+    private static final String ARBITRARY_PLUGIN_VERSION = "0.1.15"
     private static final String ARBITRARY_PLUGIN_SPEC = "$ARBITRARY_PLUGIN_ID:$ARBITRARY_PLUGIN_VERSION"
 
     def "can specify 3rd party plugin using argument to init"() {
@@ -251,7 +251,6 @@ class BuildInitSpecsIntegrationTest extends AbstractInitIntegrationSpec implemen
         assertWrapperGenerated()
     }
 
-    @Ignore // TODO: Restore after new declarative-prototype is available where StaticProjectSpec implements getType
     @LeaksFileHandles
     @Requires(UnitTestPreconditions.Jdk17OrLater)
     def "can generate declarative project type using argument to init"() {
@@ -261,7 +260,7 @@ class BuildInitSpecsIntegrationTest extends AbstractInitIntegrationSpec implemen
 
         then:
         assertResolvedPlugin(DECLARATIVE_JVM_PLUGIN_ID, DECLARATIVE_PLUGIN_VERSION)
-        assertLoadedSpec("Declarative Java Application Project", "declarative-java-application-project")
+        assertLoadedSpec("Declarative Java Application Project", "java-application")
 
         // Smoke test 2 DCL files
         assertProjectFileGenerated("settings.gradle.dcl", """pluginManagement {
@@ -272,7 +271,7 @@ class BuildInitSpecsIntegrationTest extends AbstractInitIntegrationSpec implemen
 }
 
 plugins {
-    id("$DECLARATIVE_JVM_PLUGIN_ID") version "$DECLARATIVE_PLUGIN_VERSION"
+    id("$DECLARATIVE_JVM_PLUGIN_ID").version("$DECLARATIVE_PLUGIN_VERSION")
 }
 
 rootProject.name = "example-java-app"
@@ -333,7 +332,6 @@ defaults {
         canBuildGeneratedProject(AvailableJavaHomes.getJdk21())
     }
 
-    @Ignore // TODO: Restore after new declarative-prototype is available where StaticProjectSpec implements getType
     @Requires(UnitTestPreconditions.Jdk17OrLater)
     def "gives decent error message when triggered with unknown init-type after loading project specs"() {
         when:
@@ -349,9 +347,9 @@ defaults {
         fails args
 
         then:
-        failure.assertHasCause("""Project spec with type: 'unknown-project-type' was not found!
+        failure.assertHasCause(TextUtil.toPlatformLineSeparators("""Build init spec with type: 'unknown-project-type' was not found!
 Known types:
- - declarative-java-application-project""")
+ - java-application"""))
     }
 
     private void initSucceedsWithPluginSupplyingSpec(String pluginsProp = null, String type = null) {

@@ -86,7 +86,7 @@ public final class BuildInitSpecRegistry {
 
         switch (matchingSpecs.size()) {
             case 0:
-                throw new IllegalStateException("Project spec with type: '" + type + "' was not found!" + System.lineSeparator() +
+                throw new IllegalStateException("Build init spec with type: '" + type + "' was not found!" + System.lineSeparator() +
                     "Known types:" + System.lineSeparator() +
                     getAllSpecs().stream()
                         .map(BuildInitSpec::getType)

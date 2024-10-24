@@ -80,7 +80,7 @@ class BuildInitSpecRegistryTest extends Specification {
 
         then: "Unknown spec type can't be found"
         def e = thrown(IllegalStateException)
-        e.message == TextUtil.toPlatformLineSeparators("""Project spec with type: 'unknown' was not found!
+        e.message == TextUtil.toPlatformLineSeparators("""Build init spec with type: 'unknown' was not found!
 Known types:
  - type1
  - type2""")
