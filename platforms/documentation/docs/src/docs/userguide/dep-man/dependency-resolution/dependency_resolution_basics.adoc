@@ -41,7 +41,7 @@ The graph itself focuses on component variants, not the artifacts (files) associ
 - link:{javadocPath}/org/gradle/api/artifacts/result/ResolvedComponentResult.html[ResolvedComponentResult] - Represents a resolved component in the raw dependency graph.
 - link:{javadocPath}/org/gradle/api/artifacts/result/ResolvedVariantResult.html[ResolvedVariantResult] - Represents a resolved variant of a component in the raw dependency graph.
 
-See <<graph_resolution_resolution.adoc#graph_resolution_resolution,Dependency Graph Resolution>> to learn more.
+See <<dependency_graph_resolution.adoc#graph_resolution_resolution,Dependency Graph Resolution>> to learn more.
 
 == 2. Artifact Resolution
 
@@ -56,4 +56,4 @@ The `ArtifactView` API provides flexible ways to access these resolved artifacts
 - link:{javadocPath}/org/gradle/api/file/FileCollection.html[FileCollection] - A flat list of files, which is the most commonly way to work with resolved artifacts.
 - link:{javadocPath}/org/gradle/api/artifacts/ArtifactCollection.html[ArtifactCollection] - Offers access to both the metadata and the files of resolved artifacts, allowing for more advanced artifact handling.
 
-See <<artifact-resolution.adoc#artifact-resolution,Artifact Resolution>> to learn more.
+See <<artifact_resolution.adoc#artifact-resolution,Artifact Resolution>> to learn more.
