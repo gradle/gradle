@@ -29,7 +29,7 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * High-level controller for build-cache operations; can load and store {@link CacheableEntity}s with a given {@link BuildCacheKey}.
+ * High-level controller for build cache operations; can load and store {@link CacheableEntity}s with a given {@link BuildCacheKey}.
  *
  * <p>Note that some implementations are mutable and may change behavior over the lifetime of a build.</p>
  */
