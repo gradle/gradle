@@ -1303,6 +1303,26 @@ public class NodeState implements DependencyGraphNode {
         }
     }
 
+    public boolean dependsTransitivelyOn(NodeState node) {
+        HashSet<NodeState> visited = new HashSet<>();
+        return dependsTransitivelyOn(node, visited);
+    }
+
+    private boolean dependsTransitivelyOn(NodeState node, HashSet<NodeState> visited) {
+        for (EdgeState outgoingEdge : getOutgoingEdges()) {
+            if (outgoingEdge.getTargetComponent() != null) {
+                for (NodeState nodeState : outgoingEdge.getTargetComponent().getNodes()) {
+                    if (visited.add(nodeState)) {
+                        if (nodeState == node || nodeState.dependsTransitivelyOn(node, visited)) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
     private static class NonTransitiveVariantDependencyMetadata extends DelegatingDependencyMetadata {
         private final DependencyMetadata dependencyMetadata;
 

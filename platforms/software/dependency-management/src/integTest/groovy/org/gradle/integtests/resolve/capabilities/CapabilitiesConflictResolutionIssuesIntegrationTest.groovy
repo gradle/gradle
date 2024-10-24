@@ -31,6 +31,36 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
         """
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/30969")
+    def "capability conflict does not cause build to hang"() {
+        mavenRepo.module("org.hamcrest", "hamcrest-core", "2.2")
+            .dependsOn(mavenRepo.module("org.hamcrest", "hamcrest", "2.2").publish())
+            .publish()
+
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+
+            ${mavenTestRepository()}
+
+            dependencies {
+                implementation("org.hamcrest:hamcrest-core:2.2")
+            }
+
+            dependencies.components.withModule('org.hamcrest:hamcrest-core') {
+                allVariants {
+                    withCapabilities {
+                        addCapability('org.hamcrest', 'hamcrest', id.version)
+                    }
+                }
+            }
+        """
+
+        expect:
+        succeeds(":dependencies", "--configuration", "runtimeClasspath")
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/14770")
     def "capabilities resolution shouldn't put graph in inconsistent state"() {
         file("shared/build.gradle") << """
@@ -400,7 +430,7 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
 
         when:
         resolve.prepare()
-        succeeds(":checkDeps")
+        succeeds(":checkDeps", "-s")
 
         then:
         resolve.expectGraph {
