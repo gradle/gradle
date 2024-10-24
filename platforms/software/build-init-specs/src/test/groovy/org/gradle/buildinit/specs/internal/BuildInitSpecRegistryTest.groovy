@@ -15,9 +15,9 @@
  */
 package org.gradle.buildinit.specs.internal
 
-import org.gradle.buildinit.specs.BuiltInitGenerator
+import org.gradle.buildinit.specs.BuildInitGenerator
 import org.gradle.builtinit.specs.internal.TestBuildInitSpec
-import org.gradle.builtinit.specs.internal.TestBuiltInitGenerator
+import org.gradle.builtinit.specs.internal.TestBuildInitGenerator
 import org.gradle.util.internal.TextUtil
 import spock.lang.Specification
 
@@ -32,13 +32,13 @@ class BuildInitSpecRegistryTest extends Specification {
 
     def "registry provides loaded specs"() {
         given:
-        def generator = new TestBuiltInitGenerator()
+        def generator = new TestBuildInitGenerator()
         def spec1 = new TestBuildInitSpec("type1", "My Name")
         def spec2 = new TestBuildInitSpec("type2", "My Other Name")
         def registry = new BuildInitSpecRegistry()
 
         when:
-        registry.register([(generator.class) : [spec1, spec2]])
+        registry.register(generator.class, [spec1, spec2])
 
         then: "loaded specs can be found"
         !registry.isEmpty()
@@ -63,11 +63,11 @@ class BuildInitSpecRegistryTest extends Specification {
 
     def "registry can look up spec by type"() {
         given:
-        def generator = new TestBuiltInitGenerator()
+        def generator = new TestBuildInitGenerator()
         def spec1 = new TestBuildInitSpec("type1", "My Name")
         def spec2 = new TestBuildInitSpec("type2", "My Other Name")
         def registry = new BuildInitSpecRegistry()
-        registry.register([(generator.class) : [spec1, spec2]])
+        registry.register(generator.class, [spec1, spec2])
 
         when: "loaded specs can be found by type"
         def result = registry.getSpecByType("type1")
@@ -88,13 +88,13 @@ Known types:
 
     def "multiple specs with same type cannot be registered"() {
         given:
-        def generator = new TestBuiltInitGenerator()
+        def generator = new TestBuildInitGenerator()
         def spec1 = new TestBuildInitSpec("type", "My Name")
         def spec2 = new TestBuildInitSpec("type", "My Other Name")
         def registry = new BuildInitSpecRegistry()
 
         when:
-        registry.register([(generator.class) : [spec1, spec2]])
+        registry.register(generator.class, [spec1, spec2])
 
         then:
         def e = thrown(IllegalStateException)
@@ -103,14 +103,14 @@ Known types:
 
     def "multiple specs with same type cannot be registered across multiple calls"() {
         given:
-        def generator = new TestBuiltInitGenerator()
+        def generator = new TestBuildInitGenerator()
         def spec1 = new TestBuildInitSpec("type", "My Name")
         def spec2 = new TestBuildInitSpec("type", "My Other Name")
         def registry = new BuildInitSpecRegistry()
 
         when:
-        registry.register([(generator.class) : [spec1]])
-        registry.register([(generator.class) : [spec2]])
+        registry.register(generator.class, [spec1])
+        registry.register(generator.class, [spec2])
 
         then:
         def e = thrown(IllegalStateException)
@@ -119,14 +119,14 @@ Known types:
 
     def "Additional specs can be registered to an existing generator across multiple calls"() {
         given:
-        def generator = new TestBuiltInitGenerator()
+        def generator = new TestBuildInitGenerator()
         def spec1 = new TestBuildInitSpec("type", "My Name")
         def spec2 = new TestBuildInitSpec("type-2", "My Other Name")
         def registry = new BuildInitSpecRegistry()
 
         when:
-        registry.register([(generator.class) : [spec1]])
-        registry.register([(generator.class) : [spec2]])
+        registry.register(generator.class, [spec1])
+        registry.register(generator.class, [spec2])
 
         then:
         !registry.isEmpty()
@@ -139,14 +139,15 @@ Known types:
 
     def "multiple specs with same type cannot be registered to different generators"() {
         given:
-        def generator1 = new TestBuiltInitGenerator()
-        def generator2 = Mock(BuiltInitGenerator)
+        def generator1 = new TestBuildInitGenerator()
+        def generator2 = Mock(BuildInitGenerator)
         def spec1 = new TestBuildInitSpec("type", "My Name")
         def spec2 = new TestBuildInitSpec("type", "My Other Name")
         def registry = new BuildInitSpecRegistry()
 
         when:
-        registry.register([(generator1.class) : [spec1], (generator2.class) : [spec2]] )
+        registry.register(generator1.class, [spec1])
+        registry.register(generator2.class, [spec2])
 
         then:
         def e = thrown(IllegalStateException)
@@ -155,15 +156,15 @@ Known types:
 
     def "multiple specs with same type cannot be registered to different generators across multiple register calls"() {
         given:
-        def generator1 = new TestBuiltInitGenerator()
-        def generator2 = Mock(BuiltInitGenerator)
+        def generator1 = new TestBuildInitGenerator()
+        def generator2 = Mock(BuildInitGenerator)
         def spec1 = new TestBuildInitSpec("type", "My Name")
         def spec2 = new TestBuildInitSpec("type", "My Other Name")
         def registry = new BuildInitSpecRegistry()
 
         when:
-        registry.register([(generator1.class) : [spec1]] )
-        registry.register([(generator2.class) : [spec2]] )
+        registry.register(generator1.class, [spec1])
+        registry.register(generator2.class, [spec2])
 
         then:
         def e = thrown(IllegalStateException)

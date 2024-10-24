@@ -53,7 +53,7 @@ public interface BuildInitSpec extends Describable {
      * This will be used to allow the user to select a project type when running the {@code init} task
      * non-interactively by supplying the {@code --type} parameter to the init task.
      * <p>
-     * Each project type can be registered to only a single {@link BuiltInitGenerator}.
+     * Each project type can be registered to only a single {@link BuildInitGenerator}.
      *
      * @return type id for this type of project
      * @implSpec Must be unique amongst all project types contributed by a plugin.
