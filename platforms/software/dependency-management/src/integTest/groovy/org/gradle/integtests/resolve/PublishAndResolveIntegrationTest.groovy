@@ -34,7 +34,7 @@ class PublishAndResolveIntegrationTest extends AbstractDependencyResolutionTest 
 
                 repositories {
                     ivy {
-                        url '${ivyRepo.uri}'
+                        url = "${ivyRepo.uri}"
                     }
                 }
             }
@@ -126,7 +126,7 @@ class PublishAndResolveIntegrationTest extends AbstractDependencyResolutionTest 
             publishing {
                 repositories {
                     ivy {
-                        url '${ivyRepo.uri}'
+                        url = "${ivyRepo.uri}"
                     }
                 }
                 publications {

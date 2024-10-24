@@ -47,7 +47,7 @@ class IvyPublishValidationIntegTest extends AbstractIvyPublishIntegTest {
 
             publishing {
                 repositories {
-                    ivy { url "${ivyRepo.uri}" }
+                    ivy { url = "${ivyRepo.uri}" }
                 }
                 publications {
                     ivy(IvyPublication) {
@@ -108,7 +108,7 @@ class IvyPublishValidationIntegTest extends AbstractIvyPublishIntegTest {
 
             publishing {
                 repositories {
-                    ivy { url "${ivyRepo.uri}" }
+                    ivy { url = "${ivyRepo.uri}" }
                 }
                 publications {
                     ivy(IvyPublication) {
@@ -149,7 +149,7 @@ class IvyPublishValidationIntegTest extends AbstractIvyPublishIntegTest {
 
             publishing {
                 repositories {
-                    ivy { url "${ivyRepo.uri}" }
+                    ivy { url = "${ivyRepo.uri}" }
                 }
                 publications {
                     ivy(IvyPublication)
@@ -175,7 +175,7 @@ class IvyPublishValidationIntegTest extends AbstractIvyPublishIntegTest {
 
             publishing {
                 repositories {
-                    ivy { url "${ivyRepo.uri}" }
+                    ivy { url = "${ivyRepo.uri}" }
                 }
                 publications {
                     ivy(IvyPublication) {
@@ -214,7 +214,7 @@ class IvyPublishValidationIntegTest extends AbstractIvyPublishIntegTest {
                 repositories {
                     ivy {
                         name '${repoName}'
-                        url "${ivyRepo.uri}"
+                        url = "${ivyRepo.uri}"
                     }
                 }
                 publications {

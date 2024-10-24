@@ -64,7 +64,7 @@ class MavenCustomPackagingResolveIntegrationTest extends AbstractHttpDependencyR
                 remote
             }
             repositories {
-                maven { url "$mavenHttpRepo.uri" }
+                maven { url = "$mavenHttpRepo.uri" }
             }
             dependencies {
                 remote "remote:remote:1.0"
@@ -104,7 +104,7 @@ class MavenCustomPackagingResolveIntegrationTest extends AbstractHttpDependencyR
                 id 'java'
             }
             repositories {
-                maven { url "$mavenHttpRepo.uri" }
+                maven { url = "$mavenHttpRepo.uri" }
             }
             dependencies {
                 implementation "remote:remote:1.0"
@@ -145,7 +145,7 @@ class MavenCustomPackagingResolveIntegrationTest extends AbstractHttpDependencyR
                 remote
             }
             repositories {
-                maven { url "$mavenHttpRepo.uri" }
+                maven { url = "$mavenHttpRepo.uri" }
             }
             dependencies {
                 remote "remote:remote:1.0"
@@ -201,7 +201,7 @@ class MavenCustomPackagingResolveIntegrationTest extends AbstractHttpDependencyR
                 }
             }
             repositories {
-                maven { url "$mavenHttpRepo.uri" }
+                maven { url = "$mavenHttpRepo.uri" }
             }
             dependencies {
                 conf "remote:remote:1.0"
@@ -242,7 +242,7 @@ class MavenCustomPackagingResolveIntegrationTest extends AbstractHttpDependencyR
                 remote
             }
             repositories {
-                maven { url "$mavenHttpRepo.uri" }
+                maven { url = "$mavenHttpRepo.uri" }
             }
             dependencies {
                 remote "consumer:consumer:1.0"

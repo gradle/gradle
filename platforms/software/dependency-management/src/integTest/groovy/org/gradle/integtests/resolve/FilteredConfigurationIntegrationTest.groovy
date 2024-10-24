@@ -35,7 +35,7 @@ include "child1", "child2"
         buildFile << """
 allprojects {
     repositories {
-        maven { url '${mavenRepo.uri}' }
+        maven { url = '${mavenRepo.uri}' }
     }
     configurations {
         compile
@@ -105,7 +105,7 @@ include "child1", "child2"
         buildFile << """
 allprojects {
     repositories {
-        maven { url '${mavenRepo.uri}' }
+        maven { url = '${mavenRepo.uri}' }
     }
     configurations {
         compile

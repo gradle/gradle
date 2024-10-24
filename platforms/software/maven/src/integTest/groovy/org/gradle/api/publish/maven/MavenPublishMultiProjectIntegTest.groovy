@@ -246,7 +246,7 @@ project(":project2") {
 
     publishing {
         repositories {
-            maven { url "${mavenRepo.uri}" }
+            maven { url = "${mavenRepo.uri}" }
         }
         publications {
             maven(MavenPublication) {
@@ -316,7 +316,7 @@ project(":$platformName") {
     }
     publishing {
         repositories {
-            maven { url "${mavenRepo.uri}" }
+            maven { url = "${mavenRepo.uri}" }
         }
         publications {
             maven(MavenPublication) { from components.javaPlatform }
@@ -333,7 +333,7 @@ project(":library") {
     }
     publishing {
         repositories {
-            maven { url "${mavenRepo.uri}" }
+            maven { url = "${mavenRepo.uri}" }
         }
         publications {
             maven(MavenPublication) { from components.java }
@@ -397,7 +397,7 @@ subprojects {
 
     publishing {
         repositories {
-            maven { url "${mavenRepo.uri}" }
+            maven { url = "${mavenRepo.uri}" }
         }
         publications {
             maven(MavenPublication) {

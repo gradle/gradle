@@ -52,7 +52,7 @@ abstract class AbstractRedirectResolveBaseIntegrationTest extends AbstractHttpDe
         """
             repositories {
                 ivy {
-                    url "$frontServerBaseUrl/repo"
+                    url = "$frontServerBaseUrl/repo"
                     metadataSources {
                         ivyDescriptor()
                         artifact()

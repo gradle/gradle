@@ -8,7 +8,7 @@ buildscript {
 <% } %>
 <% if (binding.hasVariable("buildScanPluginVersion")) { %>
         maven {
-            url 'https://repo.gradle.org/gradle/enterprise-libs-snapshots-local/'
+            url = 'https://repo.gradle.org/gradle/enterprise-libs-snapshots-local/'
         }
 <% } %>
     }

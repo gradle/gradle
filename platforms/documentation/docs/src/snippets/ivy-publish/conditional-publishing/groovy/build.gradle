@@ -26,11 +26,11 @@ publishing {
         // change URLs to point to your repos, e.g. http://my.org/repo
         ivy {
             name "external"
-            url layout.buildDirectory.dir('repos/external')
+            url = layout.buildDirectory.dir('repos/external')
         }
         ivy {
             name "internal"
-            url layout.buildDirectory.dir('repos/internal')
+            url = layout.buildDirectory.dir('repos/internal')
         }
     }
 }

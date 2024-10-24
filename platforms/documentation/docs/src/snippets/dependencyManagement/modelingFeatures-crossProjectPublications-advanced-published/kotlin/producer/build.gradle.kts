@@ -7,7 +7,7 @@ plugins {
 publishing {
     repositories {
         maven {
-            setUrl("${buildDir}/repo")
+            url = uri(layout.buildDirectory.dir("repo"))
         }
     }
     publications {
@@ -29,7 +29,7 @@ if (project.hasProperty("customRepository")) {
     // tag::gradle_metadata_source[]
     repositories {
         maven {
-            setUrl("http://repo.mycompany.com/repo")
+            url = uri("http://repo.mycompany.com/repo")
             metadataSources {
                 gradleMetadata()
             }

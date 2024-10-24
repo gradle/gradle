@@ -34,7 +34,7 @@ class IvyPublishCoordinatesIntegTest extends AbstractIvyPublishIntegTest {
 
             publishing {
                 repositories {
-                    ivy { url "${ivyRepo.uri}" }
+                    ivy { url = "${ivyRepo.uri}" }
                 }
                 publications {
                     ivy(IvyPublication) {
@@ -83,7 +83,7 @@ class IvyPublishCoordinatesIntegTest extends AbstractIvyPublishIntegTest {
 
             publishing {
                 repositories {
-                    ivy { url "${ivyRepo.uri}" }
+                    ivy { url = "${ivyRepo.uri}" }
                 }
                 publications {
                     ivy(IvyPublication) {
@@ -161,7 +161,7 @@ class IvyPublishCoordinatesIntegTest extends AbstractIvyPublishIntegTest {
 
             publishing {
                 repositories {
-                    ivy { url "${ivyRepo.uri}" }
+                    ivy { url = "${ivyRepo.uri}" }
                 }
                 publications {
                     main(IvyPublication) {
@@ -206,7 +206,7 @@ include 'projectB'
 
             publishing {
                 repositories {
-                    ivy { url "${ivyRepo.uri}" }
+                    ivy { url = "${ivyRepo.uri}" }
                 }
                 publications {
                     main(IvyPublication) {
@@ -239,11 +239,11 @@ include 'projectB'
                 repositories {
                     ivy {
                         name "ivy1"
-                        url "${ivyRepo.uri}"
+                        url = "${ivyRepo.uri}"
                     }
                     ivy {
                         name "ivy2"
-                        url "${ivyRepo.uri}"
+                        url = "${ivyRepo.uri}"
                     }
                 }
                 publications {

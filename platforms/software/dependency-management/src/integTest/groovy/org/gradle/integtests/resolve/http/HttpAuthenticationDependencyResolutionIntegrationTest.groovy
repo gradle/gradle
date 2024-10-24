@@ -50,7 +50,7 @@ class HttpAuthenticationDependencyResolutionIntegrationTest extends AbstractHttp
         buildFile << """
 repositories {
     ivy {
-        url "${ivyHttpRepo.uri}"
+        url = "${ivyHttpRepo.uri}"
 
         credentials {
             password 'password'
@@ -112,7 +112,7 @@ task listJars {
         buildFile << """
 repositories {
     maven {
-        url "${mavenHttpRepo.uri}"
+        url = "${mavenHttpRepo.uri}"
 
         credentials {
             password 'password'
@@ -179,7 +179,7 @@ task listJars {
         buildFile << """
 repositories {
     maven {
-        url "${mavenHttpRepo.uri}"
+        url = "${mavenHttpRepo.uri}"
         credentials(org.gradle.api.credentials.HttpHeaderCredentials) {
             name = "TestHttpHeaderName"
             value = "TestHttpHeaderValue"
@@ -223,7 +223,7 @@ task listJars {
         buildFile << """
 repositories {
     maven {
-        url "${redirectServer.uri}/repo"
+        url = "${redirectServer.uri}/repo"
         credentials(org.gradle.api.credentials.HttpHeaderCredentials) {
             name = "TestHttpHeaderName"
             value = "TestHttpHeaderValue"
@@ -271,7 +271,7 @@ task listJars {
         buildFile << """
 repositories {
     ivy {
-        url "${ivyHttpRepo.uri}"
+        url = "${ivyHttpRepo.uri}"
         $creds
     }
 }
@@ -314,7 +314,7 @@ dependencies {
         buildFile << """
 repositories {
     maven {
-        url "${mavenHttpRepo.uri}"
+        url = "${mavenHttpRepo.uri}"
        $creds
     }
 }
@@ -356,7 +356,7 @@ dependencies {
         buildFile << """
 repositories {
     ivy {
-        url "${ivyHttpRepo.uri}"
+        url = "${ivyHttpRepo.uri}"
         credentials {
             username = 'username'
             password = 'password'
@@ -402,7 +402,7 @@ dependencies {
         buildFile << """
 repositories {
     maven {
-        url "${mavenHttpRepo.uri}"
+        url = "${mavenHttpRepo.uri}"
         credentials {
             username = 'username'
             password = 'password'
@@ -447,7 +447,7 @@ dependencies {
         buildFile << """
 repositories {
     ivy {
-        url "${ivyHttpRepo.uri}"
+        url = "${ivyHttpRepo.uri}"
         credentials {
             username = 'username'
             password = 'password'
@@ -485,7 +485,7 @@ dependencies {
         buildFile << """
 repositories {
     maven {
-        url "${mavenHttpRepo.uri}"
+        url = "${mavenHttpRepo.uri}"
         credentials {
             username = 'username'
             password = 'password'
@@ -537,7 +537,7 @@ task resolve {
         buildFile.text = baseBuild + """
 repositories {
     maven {
-        url "${mavenHttpRepo.uri}"
+        url = "${mavenHttpRepo.uri}"
         credentials {
             username = 'username'
             password = 'password'
@@ -559,7 +559,7 @@ repositories {
         buildFile.text = baseBuild + """
 repositories {
     maven {
-        url "${mavenHttpRepo.uri}"
+        url = "${mavenHttpRepo.uri}"
     }
 }
 """

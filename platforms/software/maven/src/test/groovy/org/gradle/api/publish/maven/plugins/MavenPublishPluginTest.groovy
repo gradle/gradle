@@ -119,8 +119,8 @@ class MavenPublishPluginTest extends AbstractProjectBuilderSpec {
         publishing.publications.create("test", MavenPublication)
 
         when:
-        def repo1 = publishing.repositories.maven { url "foo" }
-        def repo2 = publishing.repositories.maven { url "foo"; name "other" }
+        def repo1 = publishing.repositories.maven { url = "foo" }
+        def repo2 = publishing.repositories.maven { url = "foo"; name "other" }
         publishing.repositories.ivy {}
 
         then:

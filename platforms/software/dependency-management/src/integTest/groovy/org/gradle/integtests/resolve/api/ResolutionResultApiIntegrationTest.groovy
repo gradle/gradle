@@ -48,7 +48,7 @@ class ResolutionResultApiIntegrationTest extends AbstractDependencyResolutionTes
         file("build.gradle") << """
             version = '5.0'
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
             configurations {
                 conf
@@ -108,7 +108,7 @@ baz:1.0 requested
             }
 
             repositories {
-               maven { url "${mavenRepo.uri}" }
+               maven { url = "${mavenRepo.uri}" }
             }
 
             dependencies {
@@ -176,7 +176,7 @@ baz:1.0 requested
             }
 
             repositories {
-               maven { url "${mavenRepo.uri}" }
+               maven { url = "${mavenRepo.uri}" }
             }
 
             dependencies {
@@ -239,7 +239,7 @@ baz:1.0 requested
         buildFile << """
 
             repositories {
-               maven { url "${mavenRepo.uri}" }
+               maven { url = "${mavenRepo.uri}" }
             }
 
             configurations {
@@ -303,7 +303,7 @@ baz:1.0 requested
         buildFile << """
 
             repositories {
-               maven { url "${mavenRepo.uri}" }
+               maven { url = "${mavenRepo.uri}" }
             }
 
             configurations {
@@ -359,7 +359,7 @@ baz:1.0 requested
         buildFile << """
 
             repositories {
-               maven { url "${mavenRepo.uri}" }
+               maven { url = "${mavenRepo.uri}" }
             }
 
             configurations {
@@ -431,7 +431,7 @@ baz:1.0 requested
         buildFile << """
             allprojects {
                repositories {
-                  maven { url "${mavenRepo.uri}" }
+                  maven { url = "${mavenRepo.uri}" }
                }
 
                 apply plugin: 'java-library'
@@ -544,7 +544,7 @@ testCompileClasspath
 
             allprojects {
                repositories {
-                  maven { url "${mavenRepo.uri}" }
+                  maven { url = "${mavenRepo.uri}" }
                }
             }
 
@@ -607,7 +607,7 @@ testRuntimeClasspath
 
             allprojects {
                repositories {
-                  maven { url "${mavenRepo.uri}" }
+                  maven { url = "${mavenRepo.uri}" }
                }
             }
 

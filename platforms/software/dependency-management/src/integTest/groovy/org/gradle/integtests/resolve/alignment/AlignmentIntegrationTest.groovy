@@ -1072,7 +1072,7 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
         given:
         buildFile << """
             repositories {
-                def repo = maven { url "$emptyRepo.uri" }
+                def repo = maven { url = "$emptyRepo.uri" }
                 remove(repo)
                 addFirst(repo)
             }

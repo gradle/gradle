@@ -1,6 +1,6 @@
 buildscript {
     repositories {
-        ivy { url '../plugin/build/repo' }
+        ivy { url = file('../plugin/build/repo') }
     }
     dependencies {
         classpath 'org.gradle.sample:plugin:1.0'

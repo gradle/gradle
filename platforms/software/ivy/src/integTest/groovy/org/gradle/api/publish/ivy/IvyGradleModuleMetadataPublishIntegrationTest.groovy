@@ -73,7 +73,7 @@ class TestCapability implements Capability {
 
             publishing {
                 repositories {
-                    ivy { url "${ivyRepo.uri}" }
+                    ivy { url = "${ivyRepo.uri}" }
                 }
                 publications {
                     ivy(IvyPublication) {
@@ -117,7 +117,7 @@ class TestCapability implements Capability {
 
             publishing {
                 repositories {
-                    ivy { url "${ivyRepo.uri}" }
+                    ivy { url = "${ivyRepo.uri}" }
                 }
                 publications {
                     ivy(IvyPublication) {
@@ -165,7 +165,7 @@ class TestCapability implements Capability {
 
             publishing {
                 repositories {
-                    ivy { url "${ivyRepo.uri}" }
+                    ivy { url = "${ivyRepo.uri}" }
                 }
                 publications {
                     ivy(IvyPublication) {
@@ -216,7 +216,7 @@ class TestCapability implements Capability {
 
             publishing {
                 repositories {
-                    ivy { url "${ivyRepo.uri}" }
+                    ivy { url = "${ivyRepo.uri}" }
                 }
                 publications {
                     ivy(IvyPublication) {
@@ -261,7 +261,7 @@ class TestCapability implements Capability {
 
             publishing {
                 repositories {
-                    ivy { url "${ivyRepo.uri}" }
+                    ivy { url = "${ivyRepo.uri}" }
                 }
                 publications {
                     ivy(IvyPublication) {
@@ -306,7 +306,7 @@ class TestCapability implements Capability {
 
             publishing {
                 repositories {
-                    ivy { url "${ivyRepo.uri}" }
+                    ivy { url = "${ivyRepo.uri}" }
                 }
                 publications {
                     ivy(IvyPublication) {
@@ -352,7 +352,7 @@ class TestCapability implements Capability {
 
             publishing {
                 repositories {
-                    ivy { url "${ivyRepo.uri}" }
+                    ivy { url = "${ivyRepo.uri}" }
                 }
                 publications {
                     ivy(IvyPublication) {
@@ -391,7 +391,7 @@ class TestCapability implements Capability {
 
             publishing {
                 repositories {
-                    ivy { url "${ivyRepo.uri}" }
+                    ivy { url = "${ivyRepo.uri}" }
                 }
                 publications {
                     ivy(IvyPublication) {
@@ -430,7 +430,7 @@ class TestCapability implements Capability {
 
                 publishing {
                     repositories {
-                        ivy { url "${ivyRepo.uri}" }
+                        ivy { url = "${ivyRepo.uri}" }
                     }
                 }
             }
@@ -522,7 +522,7 @@ class TestCapability implements Capability {
 
             publishing {
                 repositories {
-                    ivy { url "${ivyRepo.uri}" }
+                    ivy { url = "${ivyRepo.uri}" }
                 }
                 publications {
                     ivy(IvyPublication) {
@@ -588,7 +588,7 @@ class TestCapability implements Capability {
 
             publishing {
                 repositories {
-                    ivy { url "${ivyRepo.uri}" }
+                    ivy { url = "${ivyRepo.uri}" }
                 }
                 publications {
                     ivy(IvyPublication) {
@@ -642,7 +642,7 @@ class TestCapability implements Capability {
 
             publishing {
                 repositories {
-                    ivy { url "${ivyRepo.uri}" }
+                    ivy { url = "${ivyRepo.uri}" }
                 }
                 publications {
                     ivy(IvyPublication) {
@@ -703,7 +703,7 @@ class TestCapability implements Capability {
 
             publishing {
                 repositories {
-                    ivy { url "${ivyRepo.uri}" }
+                    ivy { url = "${ivyRepo.uri}" }
                 }
                 publications {
                     ivy(IvyPublication) {
@@ -747,7 +747,7 @@ class TestCapability implements Capability {
 
             publishing {
                 repositories {
-                    ivy { url "${ivyRepo.uri}" }
+                    ivy { url = "${ivyRepo.uri}" }
                 }
                 publications {
                     ivy(IvyPublication) {
@@ -806,7 +806,7 @@ class TestCapability implements Capability {
 
             publishing {
                 repositories {
-                    ivy { url "${ivyRepo.uri}" }
+                    ivy { url = "${ivyRepo.uri}" }
                 }
                 publications {
                     ivy(IvyPublication) {
@@ -869,7 +869,7 @@ class TestCapability implements Capability {
 
             publishing {
                 repositories {
-                    ivy { url "${ivyRepo.uri}" }
+                    ivy { url = "${ivyRepo.uri}" }
                 }
                 publications {
                     ivy(IvyPublication) {
@@ -935,7 +935,7 @@ class TestCapability implements Capability {
 
             publishing {
                 repositories {
-                    ivy { url "${ivyRepo.uri}" }
+                    ivy { url = "${ivyRepo.uri}" }
                 }
                 publications {
                     ivy(IvyPublication) {
@@ -980,7 +980,7 @@ class TestCapability implements Capability {
 
             publishing {
                 repositories {
-                    ivy { url "${ivyRepo.uri}" }
+                    ivy { url = "${ivyRepo.uri}" }
                 }
                 publications {
                     ivy(IvyPublication) {

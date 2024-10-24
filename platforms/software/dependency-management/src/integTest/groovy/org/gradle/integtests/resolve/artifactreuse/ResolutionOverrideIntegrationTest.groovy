@@ -31,7 +31,7 @@ class ResolutionOverrideIntegrationTest extends AbstractHttpDependencyResolution
         and:
         buildFile << """
 repositories {
-    maven { url "${mavenHttpRepo.uri}" }
+    maven { url = "${mavenHttpRepo.uri}" }
 }
 configurations { compile }
 dependencies { compile 'org.name:projectA:1.2' }
@@ -81,7 +81,7 @@ task retrieve(type: Sync) {
         buildFile << """
 repositories {
     maven {
-        url "${mavenHttpRepo.uri}"
+        url = "${mavenHttpRepo.uri}"
     }
 }
 configurations { missing }
@@ -120,7 +120,7 @@ task showMissing {
         buildFile << """
 repositories {
     maven {
-        url "${mavenHttpRepo.uri}"
+        url = "${mavenHttpRepo.uri}"
     }
 }
 configurations { compile }
@@ -166,7 +166,7 @@ task retrieve(type: Sync) {
         and:
         buildFile << """
 repositories {
-    maven { url "${mavenHttpRepo.uri}" }
+    maven { url = "${mavenHttpRepo.uri}" }
 }
 configurations { compile }
 configurations.all {
@@ -210,7 +210,7 @@ task retrieve(type: Sync) {
         given:
         buildFile << """
 repositories {
-    maven { url "${mavenHttpRepo.uri}" }
+    maven { url = "${mavenHttpRepo.uri}" }
 }
 configurations { compile }
 dependencies { compile 'org.name:projectA:1.2' }

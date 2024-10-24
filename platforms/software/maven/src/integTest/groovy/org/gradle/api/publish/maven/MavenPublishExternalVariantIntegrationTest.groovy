@@ -59,7 +59,7 @@ class MavenPublishExternalVariantIntegrationTest extends AbstractMavenPublishInt
 
             publishing {
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = "${mavenRepo.uri}" }
                 }
                 publications {
                     maven(MavenPublication) {
@@ -556,7 +556,7 @@ class MavenPublishExternalVariantIntegrationTest extends AbstractMavenPublishInt
         })
 
         file("other/build.gradle") << """
-            repositories { maven { url "${mavenRepo.uri}" } }
+            repositories { maven { url = "${mavenRepo.uri}" } }
             dependencies {
                 firstImplementation "com:example:2.0"
             }
@@ -631,7 +631,7 @@ class MavenPublishExternalVariantIntegrationTest extends AbstractMavenPublishInt
 
             publishing {
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = "${mavenRepo.uri}" }
                 }
                 publications {
                     maven(MavenPublication) {
@@ -648,7 +648,7 @@ class MavenPublishExternalVariantIntegrationTest extends AbstractMavenPublishInt
             ${multiCoordinateComponent {
                 compilation("first")
             }}
-            repositories { maven { url "${mavenRepo.uri}" } }
+            repositories { maven { url = "${mavenRepo.uri}" } }
             dependencies {
                 firstImplementation project(":other")
                 firstImplementation "org:foo:3.0"
@@ -781,7 +781,7 @@ class MavenPublishExternalVariantIntegrationTest extends AbstractMavenPublishInt
                 }
             }
 
-            repositories { maven { url "${mavenRepo.uri}" } }
+            repositories { maven { url = "${mavenRepo.uri}" } }
             dependencies {
                 someConf "org:bar:1.0"
                 firstImplementation "org:foo:1.0"
@@ -809,7 +809,7 @@ class MavenPublishExternalVariantIntegrationTest extends AbstractMavenPublishInt
         })
 
         buildFile << """
-            repositories { maven { url "${mavenRepo.uri}" } }
+            repositories { maven { url = "${mavenRepo.uri}" } }
             dependencies {
                 firstImplementation "org:foo:1.0"
             }
@@ -950,7 +950,7 @@ class MavenPublishExternalVariantIntegrationTest extends AbstractMavenPublishInt
 
             publishing {
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = "${mavenRepo.uri}" }
                 }
             }
 

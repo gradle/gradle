@@ -37,7 +37,7 @@ class DependencyResolveRulesDisableGlobalDependencySubstitutionIntegrationTest e
         createDirs("m1", "m2", "m3")
         settingsFile << """
             dependencyResolutionManagement {
-                repositories.maven { url "${mavenRepo.uri}" }
+                repositories.maven { url = "${mavenRepo.uri}" }
             }
             includeBuild '.' // enable global substitution for this build
             include 'm1', 'm2', 'm3'

@@ -61,7 +61,7 @@ class AuthenticatedPluginRepositorySpec extends AbstractHttpDependencyResolution
           pluginManagement {
             repositories {
               ${repoType} {
-                  url "${repoUrl}"
+                  url = "${repoUrl}"
                   credentials {
                       password '${PASSWORD}'
                       username '${USERNAME}'

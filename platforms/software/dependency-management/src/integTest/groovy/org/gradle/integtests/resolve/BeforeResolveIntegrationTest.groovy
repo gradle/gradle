@@ -30,7 +30,7 @@ class BeforeResolveIntegrationTest extends AbstractDependencyResolutionTest {
 
         buildFile << """
 repositories {
-    maven { url '${mavenRepo.uri}' }
+    maven { url = '${mavenRepo.uri}' }
 }
 configurations {
     conf
@@ -110,7 +110,7 @@ configurations.conf.incoming.beforeResolve { resolvableDependencies ->
 
         buildFile << """
 repositories {
-    maven { url '${mavenRepo.uri}' }
+    maven { url = '${mavenRepo.uri}' }
 }
 configurations {
     conf
@@ -180,7 +180,7 @@ task copyFiles(type:Copy) {
             }
 
             repositories {
-                maven { url '${mavenRepo.uri}' }
+                maven { url = '${mavenRepo.uri}' }
             }
 
             dependencies {
@@ -237,7 +237,7 @@ configurations {
 }
 
 repositories {
-    maven { url '${mavenRepo.uri}' }
+    maven { url = '${mavenRepo.uri}' }
 }
 
 configurations.b.incoming.beforeResolve { resolvableDependencies ->
@@ -277,7 +277,7 @@ task resolveDependencies {
         buildFile << """
             allprojects {
                 repositories {
-                    maven { url '${mavenRepo.uri}' }
+                    maven { url = '${mavenRepo.uri}' }
                 }
             }
             configurations {

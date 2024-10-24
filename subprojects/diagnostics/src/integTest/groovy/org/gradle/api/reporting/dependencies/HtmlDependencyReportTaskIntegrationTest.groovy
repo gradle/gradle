@@ -43,7 +43,7 @@ class HtmlDependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
             apply plugin : 'project-report'
             description = 'dummy description'
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
             configurations { compile }
             configurations { testCompile }
@@ -109,7 +109,7 @@ class HtmlDependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
         file("build.gradle") << """
             apply plugin : 'project-report'
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
             configurations { compile }
             dependencies {
@@ -144,7 +144,7 @@ class HtmlDependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
         file("build.gradle") << """
             apply plugin : 'project-report'
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
             configurations { compile }
             dependencies {
@@ -175,7 +175,7 @@ class HtmlDependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
         file("build.gradle") << """
             apply plugin : 'project-report'
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
             configurations { compile }
             dependencies {
@@ -292,7 +292,7 @@ class HtmlDependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
         file("build.gradle") << """
             apply plugin : 'project-report'
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
             configurations { compile }
             dependencies {
@@ -372,7 +372,7 @@ class HtmlDependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
         file("build.gradle") << """
             apply plugin : 'project-report'
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
             configurations { compile }
             dependencies {
@@ -409,7 +409,7 @@ rootProject.name = 'root'
             allprojects {
                 version = '1.0'
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = "${mavenRepo.uri}" }
                 }
                 configurations {
                     api
@@ -528,7 +528,7 @@ rootProject.name = 'root'
             apply plugin : 'project-report'
 
             repositories {
-               maven { url "${mavenRepo.uri}" }
+               maven { url = "${mavenRepo.uri}" }
             }
             configurations {
                 api.canBeConsumed = false
@@ -563,7 +563,7 @@ rootProject.name = 'root'
             apply plugin : 'project-report'
 
             repositories {
-               maven { url "${mavenRepo.uri}" }
+               maven { url = "${mavenRepo.uri}" }
             }
             configurations {
                 migratingUnlocked('compileOnly', org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration.LEGACY_TO_CONSUMABLE)
@@ -596,7 +596,7 @@ rootProject.name = 'root'
             apply plugin : 'project-report'
 
             repositories {
-               maven { url "${mavenRepo.uri}" }
+               maven { url = "${mavenRepo.uri}" }
             }
             configurations {
                 undeclarable {
@@ -621,7 +621,7 @@ rootProject.name = 'root'
             apply plugin : 'project-report'
 
             repositories {
-               maven { url "${mavenRepo.uri}" }
+               maven { url = "${mavenRepo.uri}" }
             }
             configurations {
                 declarable {

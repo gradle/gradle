@@ -104,7 +104,7 @@ class MavenPublishCustomComponentIntegTest extends AbstractMavenPublishIntegTest
         otherSettings << "rootProject.name = 'consumer'"
         otherBuild << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
 
             configurations {
@@ -152,7 +152,7 @@ class MavenPublishCustomComponentIntegTest extends AbstractMavenPublishIntegTest
             MyComponentWithUsages.publishedDependency = dependencies.add("foo", "group:module:1.0")
             publishing {
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = "${mavenRepo.uri}" }
                 }
             }
 

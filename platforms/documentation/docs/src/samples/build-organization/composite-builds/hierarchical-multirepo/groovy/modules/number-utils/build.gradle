@@ -9,7 +9,7 @@ version "1.0"
 publishing {
     repositories {
         maven {
-            url file("../../local-repo")
+            url = file("../../local-repo")
         }
     }
     publications {

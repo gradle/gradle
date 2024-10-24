@@ -82,7 +82,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
         module.pom.expectGetBroken()
         buildFile << """
             buildscript {
-                repositories { maven { url '${mavenHttpRepo.uri}' } }
+                repositories { maven { url = '${mavenHttpRepo.uri}' } }
                 dependencies { classpath 'org:foo:1.0' }
             }
         """
@@ -116,7 +116,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
         module.pom.expectGetBroken()
         settingsFile << """
         pluginManagement {
-            repositories { maven { url '${mavenHttpRepo.uri}' } }
+            repositories { maven { url = '${mavenHttpRepo.uri}' } }
         }
         """
         buildFile << """
@@ -281,7 +281,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
             repositories {
                 ivy {
                     name = 'custom repo'
-                    url 'http://myCompanyBucket/ivyrepo'
+                    url = 'http://myCompanyBucket/ivyrepo'
                     artifactPattern 'http://myCompanyBucket/ivyrepo/[organisation]/[module]/[artifact]-[revision]'
                     ivyPattern 'http://myCompanyBucket/ivyrepo/[organisation]/[module]/ivy-[revision].xml'
                     patternLayout {
@@ -432,7 +432,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
     }
 
     private static String mavenRepoBlock() {
-        "repositories { maven { url '<<URL>>' } }"
+        "repositories { maven { url = '<<URL>>' } }"
     }
 
     private static Map expectedMavenRepo() {
@@ -468,7 +468,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
     }
 
     private static String ivyRepoBlock() {
-        "repositories { ivy { url '<<URL>>' } }"
+        "repositories { ivy { url = '<<URL>>' } }"
     }
 
     private static Map expectedIvyRepo() {

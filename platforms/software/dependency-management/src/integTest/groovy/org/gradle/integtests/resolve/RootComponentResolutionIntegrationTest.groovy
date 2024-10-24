@@ -41,7 +41,7 @@ class RootComponentResolutionIntegrationTest extends AbstractIntegrationSpec {
             }
 
             // To ensure we do not run into short-circuit resolver
-            repositories { maven { url "${mavenRepo.uri}" } }
+            repositories { maven { url = "${mavenRepo.uri}" } }
             dependencies {
                 conf "org:foo:1.0"
             }
@@ -81,7 +81,7 @@ class RootComponentResolutionIntegrationTest extends AbstractIntegrationSpec {
             }
 
             // To ensure we do not run into short-circuit resolver
-            repositories { maven { url "${mavenRepo.uri}" } }
+            repositories { maven { url = "${mavenRepo.uri}" } }
             dependencies {
                 conf "org:foo:1.0"
             }

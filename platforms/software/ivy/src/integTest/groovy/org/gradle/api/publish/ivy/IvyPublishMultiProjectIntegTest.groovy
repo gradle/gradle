@@ -210,7 +210,7 @@ project(":project1") {
 
     publishing {
         repositories {
-            ivy { url "${ivyRepo.uri}" }
+            ivy { url = "${ivyRepo.uri}" }
         }
         publications {
             ivy(IvyPublication) {
@@ -272,7 +272,7 @@ project(':project2') {
 
     publishing {
         repositories {
-            ivy { url "${ivyRepo.uri}" }
+            ivy { url = "${ivyRepo.uri}" }
         }
         publications {
             ivy(IvyPublication) {
@@ -312,7 +312,7 @@ subprojects {
 
     publishing {
         repositories {
-            ivy { url "${ivyRepo.uri}" }
+            ivy { url = "${ivyRepo.uri}" }
         }
         publications {
             ivy(IvyPublication) {

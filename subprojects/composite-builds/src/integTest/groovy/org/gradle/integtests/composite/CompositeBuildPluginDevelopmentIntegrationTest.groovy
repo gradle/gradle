@@ -231,7 +231,7 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
             buildscript {
                 repositories {
                     repositories {
-                        maven { url "${mavenRepo.uri}" }
+                        maven { url = "${mavenRepo.uri}" }
                     }
                 }
                 dependencies {
@@ -260,7 +260,7 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
             buildscript {
                 repositories {
                     repositories {
-                        maven { url "${mavenRepo.uri}" }
+                        maven { url = "${mavenRepo.uri}" }
                     }
                 }
                 dependencies {
@@ -396,7 +396,7 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
             buildscript {
                 repositories {
                     repositories {
-                        maven { url "${mavenRepo.uri}" }
+                        maven { url = "${mavenRepo.uri}" }
                     }
                 }
             }
@@ -419,7 +419,7 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
             publishing {
                 repositories {
                     maven {
-                        url '${mavenRepo.uri}'
+                        url = "${mavenRepo.uri}"
                     }
                 }
             }
@@ -433,7 +433,7 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
             publishing {
                 repositories {
                     maven {
-                        url '${mavenRepo.uri}'
+                        url = "${mavenRepo.uri}"
                     }
                 }
             }
@@ -791,7 +791,7 @@ task resolve {
             pluginManagement {
                 $resolutionStrategy
                 repositories {
-                    maven { url '${mavenRepo.uri}' }
+                    maven { url = '${mavenRepo.uri}' }
                 }
             }
         """ + build.settingsFile.text

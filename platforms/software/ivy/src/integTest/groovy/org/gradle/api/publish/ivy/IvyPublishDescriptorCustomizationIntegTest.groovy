@@ -38,7 +38,7 @@ class IvyPublishDescriptorCustomizationIntegTest extends AbstractIvyPublishInteg
 
             publishing {
                 repositories {
-                    ivy { url "${ivyRepo.uri}" }
+                    ivy { url = "${ivyRepo.uri}" }
                 }
                 publications {
                     ivy(IvyPublication) {
@@ -238,7 +238,7 @@ class IvyPublishDescriptorCustomizationIntegTest extends AbstractIvyPublishInteg
         buildFile << """
             publishing {
                 repositories {
-                    ivy { url "${mavenRepo.uri}" }
+                    ivy { url = "${mavenRepo.uri}" }
                 }
                 publications {
                     ivy {

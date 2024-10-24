@@ -101,7 +101,7 @@ abstract class AbstractProjectDependencyConflictResolutionIntegrationSpec extend
 """)
 
         moduleDefinition('ProjectA', """
-            repositories { maven { url "${mavenRepo.uri}" } }
+            repositories { maven { url = "${mavenRepo.uri}" } }
 
             configurations { conf }
 

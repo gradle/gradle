@@ -39,7 +39,7 @@ configurations {
     compile.extendsFrom conf
 }
 repositories {
-    maven { url '${mavenRepo.uri}' }
+    maven { url = '${mavenRepo.uri}' }
 }
 
 """
@@ -232,7 +232,7 @@ subprojects {
     apply plugin: 'java'
 
     repositories {
-        maven { url '${mavenRepo.uri}' }
+        maven { url = '${mavenRepo.uri}' }
     }
 }
 
@@ -288,7 +288,7 @@ include 'consumer', 'producer'
     apply plugin: 'java'
 
     repositories {
-        maven { url '${mavenRepo.uri}' }
+        maven { url = '${mavenRepo.uri}' }
     }
     configurations {
         implementation {
@@ -314,11 +314,11 @@ include 'consumer', 'producer'
         buildFile << """
     apply plugin: 'java'
     repositories {
-        maven { url '${mavenRepo.uri}' }
+        maven { url = '${mavenRepo.uri}' }
     }
 
     repositories {
-        maven { url '${mavenRepo.uri}' }
+        maven { url = '${mavenRepo.uri}' }
     }
     dependencies {
         implementation 'org.test:producer:1.0'
@@ -343,7 +343,7 @@ include 'consumer', 'producer'
         given:
         buildFile.text = """
             repositories {
-                maven { url '${mavenRepo.uri}' }
+                maven { url = '${mavenRepo.uri}' }
             }
 
             configurations {
@@ -372,7 +372,7 @@ include 'consumer', 'producer'
         given:
         buildFile.text = """
             repositories {
-                maven { url '${mavenRepo.uri}' }
+                maven { url = '${mavenRepo.uri}' }
             }
 
             configurations {

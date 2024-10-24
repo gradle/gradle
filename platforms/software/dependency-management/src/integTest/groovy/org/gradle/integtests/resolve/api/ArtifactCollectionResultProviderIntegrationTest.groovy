@@ -39,7 +39,7 @@ class ArtifactCollectionResultProviderIntegrationTest extends AbstractHttpDepend
                 compile
             }
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
             dependencies {
                 compile 'org.external:external-lib:1.0'

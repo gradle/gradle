@@ -452,7 +452,7 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
                 repositories {
                     maven {
                         name "$repoName"
-                        url "$uri"
+                        url = "$uri"
                         ${credentialsBlock}
                     }
                 }

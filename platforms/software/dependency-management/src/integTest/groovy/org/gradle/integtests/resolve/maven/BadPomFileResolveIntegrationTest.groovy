@@ -38,7 +38,7 @@ class BadPomFileResolveIntegrationTest extends AbstractHttpDependencyResolutionT
         and:
         buildFile << """
             repositories {
-                maven { url "${mavenRepo().uri}" }
+                maven { url = "${mavenRepo().uri}" }
             }
             configurations { compile }
             dependencies {
@@ -61,7 +61,7 @@ class BadPomFileResolveIntegrationTest extends AbstractHttpDependencyResolutionT
         buildFile << """
 repositories {
     maven {
-        url "${mavenHttpRepo.uri}"
+        url = "${mavenHttpRepo.uri}"
     }
 }
 configurations { compile }
@@ -91,7 +91,7 @@ dependencies {
         buildFile << """
 repositories {
     maven {
-        url "${mavenRepo.uri}"
+        url = "${mavenRepo.uri}"
     }
 }
 configurations { compile }
@@ -125,7 +125,7 @@ dependencies {
 
         buildFile << """
 repositories {
-    maven { url '${mavenHttpRepo.uri}' }
+    maven { url = '${mavenHttpRepo.uri}' }
 }
 configurations { compile }
 dependencies { compile 'org:child:1.0' }
@@ -159,7 +159,7 @@ Searched in the following locations:
 
         buildFile << """
 repositories {
-    maven { url '${mavenHttpRepo.uri}' }
+    maven { url = '${mavenHttpRepo.uri}' }
 }
 configurations { compile }
 dependencies { compile 'org:child:1.0' }
@@ -186,7 +186,7 @@ dependencies { compile 'org:child:1.0' }
         buildFile << """
 repositories {
     maven {
-        url "${mavenRepo.uri}"
+        url = "${mavenRepo.uri}"
     }
 }
 configurations { compile }
@@ -221,7 +221,7 @@ dependencies {
         buildFile << """
 repositories {
     maven {
-        url "${mavenHttpRepo.uri}"
+        url = "${mavenHttpRepo.uri}"
     }
 }
 configurations { compile }
