@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import org.gradle.api.provider.Property
+import java.net.URI
 
 class Helper(private val providers: ProviderFactory) {
     val originalUrls: Map<String, String> = mapOf(
@@ -49,8 +51,18 @@ class Helper(private val providers: ProviderFactory) {
         handler.all {
             if (this is UrlArtifactRepository) {
                 // see https://github.com/gradle/gradle/issues/37612
-                @Suppress("USELESS_ELVIS")
-                val currentUrl = this.url?.toString() ?: return@all
+                // TODO: Remove the Property<URI> branch after Gradle 9.0 when buildSrc uses a Gradle with the migrated UrlArtifactRepository API
+                @Suppress("USELESS_CAST")
+                val anyUrl: Any? = this.url as Any?
+                val resolvedUrl: URI? = when (anyUrl) {
+                    null -> null
+                    is Property<*> -> {
+                        @Suppress("UNCHECKED_CAST")
+                        (anyUrl as Property<URI>).orNull
+                    }
+                    else -> anyUrl as URI
+                }
+                val currentUrl = resolvedUrl?.toString() ?: return@all
                 originalUrls.forEach { name, originalUrl ->
                     if (normalizeUrl(originalUrl) == normalizeUrl(currentUrl) && mirrorUrls.containsKey(name)) {
                         mirrorUrls.get(name)?.let { this.setUrl(it) }
