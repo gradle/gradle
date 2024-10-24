@@ -92,17 +92,27 @@ public class CalculatedValueContainerFactory implements CalculatedValueFactory {
 
         @Override
         public V computeIfAbsent(K key, Function<K, V> factory) {
-            CalculatedValue<V> value = cache.computeIfAbsent(key, k ->
+            CalculatedValue<V> value = getCalculatedValue(key, factory);
+            // Calculate the value after adding the entry to the map, so that the value
+            // container can take care of thread synchronization
+            value.finalizeIfNotAlready();
+            return value.get();
+        }
+
+        private CalculatedValue<V> getCalculatedValue(K key, Function<K, V> factory) {
+            // Attempt to fetch the calculated value without locking
+            CalculatedValue<V> value = cache.get(key);
+            if (value != null) {
+                return value;
+            }
+
+            // The calculated value is not present. Maybe compute the value with locking
+            return cache.computeIfAbsent(key, k ->
                 calculatedValueContainerFactory.create(
                     Describables.of(k, type),
                     context -> factory.apply(k)
                 )
             );
-
-            // Calculate the value after adding the entry to the map, so that the value
-            // container can take care of thread synchronization
-            value.finalizeIfNotAlready();
-            return value.get();
         }
 
         @Override

@@ -18,6 +18,7 @@ package org.gradle.composite.internal;
 
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.BuildTreeLocalComponentProvider;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentCache;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentProvider;
@@ -77,14 +78,19 @@ public class DefaultBuildTreeLocalComponentProvider implements BuildTreeLocalCom
     public LocalComponentGraphResolveState getComponent(ProjectComponentIdentifier projectIdentifier, Path currentBuildPath) {
         boolean isLocalProject = projectIdentifier.getBuild().getBuildPath().equals(currentBuildPath.getPath());
         if (isLocalProject) {
-            return getLocalComponent(projectIdentifier, projectStateRegistry.stateFor(projectIdentifier));
+            return getLocalComponent(projectIdentifier);
         } else {
             return getLocalComponentWithForeignId(projectIdentifier);
         }
     }
 
-    private LocalComponentGraphResolveState getLocalComponent(ProjectComponentIdentifier projectIdentifier, ProjectState projectState) {
-        return originalComponents.computeIfAbsent(projectIdentifier, id -> localComponentCache.computeIfAbsent(projectState, localComponentProvider::getComponent));
+    private LocalComponentGraphResolveState getLocalComponent(ProjectComponentIdentifier projectIdentifier) {
+        return originalComponents.computeIfAbsent(projectIdentifier, id ->
+            localComponentCache.computeIfAbsent(
+                ((DefaultProjectComponentIdentifier) projectIdentifier).getIdentityPath(),
+                path -> localComponentProvider.getComponent(projectStateRegistry.stateFor(path))
+            )
+        );
     }
 
     private LocalComponentGraphResolveState getLocalComponentWithForeignId(ProjectComponentIdentifier projectIdentifier) {
@@ -105,7 +111,7 @@ public class DefaultBuildTreeLocalComponentProvider implements BuildTreeLocalCom
         }
 
         // Get the local component, then transform it to have a foreign identifier
-        LocalComponentGraphResolveState originalComponent = getLocalComponent(projectIdentifier, projectState);
+        LocalComponentGraphResolveState originalComponent = getLocalComponent(projectIdentifier);
         ProjectComponentIdentifier foreignIdentifier = buildState.idToReferenceProjectFromAnotherBuild(projectIdentifier);
         return originalComponent.copy(foreignIdentifier, originalArtifact -> {
             // Currently need to resolve the file, so that the artifact can be used in both a script classpath and
