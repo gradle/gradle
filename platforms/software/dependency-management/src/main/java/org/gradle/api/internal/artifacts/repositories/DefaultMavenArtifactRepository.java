@@ -16,9 +16,8 @@
 package org.gradle.api.internal.artifacts.repositories;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import org.gradle.api.Action;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ComponentMetadataListerDetails;
 import org.gradle.api.artifacts.ComponentMetadataSupplierDetails;
@@ -51,7 +50,9 @@ import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransp
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.ProviderFactory;
+import org.gradle.api.provider.SetProperty;
 import org.gradle.internal.Cast;
 import org.gradle.internal.action.InstantiatingAction;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
@@ -73,10 +74,9 @@ import org.jspecify.annotations.NonNull;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 
 public class DefaultMavenArtifactRepository extends AbstractAuthenticationSupportedRepository<MavenRepositoryDescriptor> implements MavenArtifactRepository, ResolutionAwareRepository {
     private static final DefaultMavenPomMetadataSource.MavenMetadataValidator NO_OP_VALIDATION_SERVICES = (repoName, metadata, artifactResolver) -> true;
@@ -85,7 +85,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
     private final FileResolver fileResolver;
     private final RepositoryTransportFactory transportFactory;
     private final DefaultUrlArtifactRepository urlArtifactRepository;
-    private List<Object> additionalUrls = new ArrayList<>();
+    private final SetProperty<URI> additionalUrls;
     private final LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder;
     private final FileStore<ModuleComponentArtifactIdentifier> artifactFileStore;
     private final MetaDataParser<MutableMavenModuleResolveMetadata> pomParser;
@@ -156,6 +156,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         this.checksumService = checksumService;
         this.metadataSources.setDefaults();
         this.instantiatorFactory = instantiatorFactory;
+        this.additionalUrls = objectFactory.setProperty(URI.class);
     }
 
     @Override
@@ -164,58 +165,28 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
     }
 
     @Override
-    public URI getUrl() {
+    public Property<URI> getUrl() {
         return urlArtifactRepository.getUrl();
     }
 
     @Override
-    public void setUrl(URI url) {
-        invalidateDescriptor();
-        urlArtifactRepository.setUrl(url);
-    }
-
-    @Override
     public void setUrl(Object url) {
-        invalidateDescriptor();
         urlArtifactRepository.setUrl(url);
     }
 
     @Override
-    public void setAllowInsecureProtocol(boolean allowInsecureProtocol) {
-        invalidateDescriptor();
-        urlArtifactRepository.setAllowInsecureProtocol(allowInsecureProtocol);
+    public Property<Boolean> getAllowInsecureProtocol() {
+        return urlArtifactRepository.getAllowInsecureProtocol();
     }
 
     @Override
-    public boolean isAllowInsecureProtocol() {
-        return urlArtifactRepository.isAllowInsecureProtocol();
-    }
-
-    @Override
-    public Set<URI> getArtifactUrls() {
-        Set<URI> result = new LinkedHashSet<>();
-        for (Object additionalUrl : additionalUrls) {
-            result.add(fileResolver.resolveUri(additionalUrl));
-        }
-        return result;
+    public SetProperty<URI> getArtifactUrls() {
+        return additionalUrls;
     }
 
     @Override
     public void artifactUrls(Object... urls) {
-        invalidateDescriptor();
-        additionalUrls.addAll(ImmutableList.copyOf(urls));
-    }
-
-    @Override
-    public void setArtifactUrls(Set<URI> urls) {
-        invalidateDescriptor();
-        setArtifactUrls((Iterable<?>) urls);
-    }
-
-    @Override
-    public void setArtifactUrls(Iterable<?> urls) {
-        invalidateDescriptor();
-        additionalUrls = Lists.newArrayList(urls);
+        Arrays.stream(urls).map(fileResolver::resolveUri).forEach(additionalUrls::add);
     }
 
     @Override
@@ -225,7 +196,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
             .setAuthenticated(usesCredentials())
             .setAuthenticationSchemes(getAuthenticationSchemes())
             .setMetadataSources(metadataSources.asList())
-            .setArtifactUrls(Sets.newHashSet(getArtifactUrls()))
+            .setArtifactUrls(getArtifactUrls().get())
             .create();
     }
 
@@ -233,11 +204,11 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
     protected Collection<URI> getRepositoryUrls() {
         // In a similar way to Ivy, Maven may use other hosts for additional artifacts, but not POMs
         ImmutableList.Builder<URI> builder = ImmutableList.builder();
-        URI root = getUrl();
+        URI root = getUrl().getOrNull();
         if (root != null) {
             builder.add(root);
         }
-        builder.addAll(getArtifactUrls());
+        builder.addAll(getArtifactUrls().get());
         return builder.build();
     }
 
@@ -253,10 +224,14 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
     }
 
     private MavenResolver createResolver(URI rootUri) {
-        RepositoryTransport transport = getTransport(rootUri.getScheme());
+        String scheme = rootUri.getScheme();
+        if (scheme == null){
+            throw new InvalidUserDataException("Repository URL must have a scheme: '" + rootUri + "'. If you are using a local repository, please use 'file()' or derive it from project.layout.");
+        }
+        RepositoryTransport transport = getTransport(scheme);
         MavenMetadataLoader mavenMetadataLoader = new MavenMetadataLoader(transport.getResourceAccessor(), resourcesFileStore);
         ImmutableMetadataSources metadataSources = createMetadataSources(mavenMetadataLoader);
-        Instantiator injector = createInjectorForMetadataSuppliers(transport, instantiatorFactory, getUrl(), resourcesFileStore);
+        Instantiator injector = createInjectorForMetadataSuppliers(transport, instantiatorFactory, getUrl().get(), resourcesFileStore);
         InstantiatingAction<ComponentMetadataSupplierDetails> supplier = createComponentMetadataSupplierFactory(injector, isolatableFactory);
         InstantiatingAction<ComponentMetadataListerDetails> lister = createComponentMetadataVersionLister(injector, isolatableFactory);
         return new MavenResolver(getDescriptor(), rootUri, transport, locallyAvailableResourceFinder, artifactFileStore, metadataSources, MavenMetadataArtifactProvider.INSTANCE, mavenMetadataLoader, supplier, lister, injector, checksumService);
@@ -264,7 +239,6 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
 
     @Override
     public void metadataSources(Action<? super MetadataSources> configureAction) {
-        invalidateDescriptor();
         metadataSources.reset();
         configureAction.execute(metadataSources);
     }
@@ -348,7 +322,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
     private static class DefaultDescriber implements Transformer<String, MavenArtifactRepository> {
         @Override
         public String transform(MavenArtifactRepository repository) {
-            URI url = repository.getUrl();
+            URI url = repository.getUrl().getOrNull();
             if (url == null) {
                 return repository.getName();
             }

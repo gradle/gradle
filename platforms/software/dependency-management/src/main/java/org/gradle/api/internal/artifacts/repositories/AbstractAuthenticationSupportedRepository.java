@@ -38,7 +38,7 @@ import java.util.List;
 
 public abstract class AbstractAuthenticationSupportedRepository<T extends RepositoryDescriptor> extends AbstractResolutionAwareArtifactRepository<T> implements AuthenticationSupportedInternal {
     private final AuthenticationSupporter delegate;
-    private final ProviderFactory providerFactory;
+    protected final ProviderFactory providerFactory;
 
     AbstractAuthenticationSupportedRepository(Instantiator instantiator, AuthenticationContainer authenticationContainer, ObjectFactory objectFactory, ProviderFactory providerFactory, VersionParser versionParser) {
         super(objectFactory, versionParser);
