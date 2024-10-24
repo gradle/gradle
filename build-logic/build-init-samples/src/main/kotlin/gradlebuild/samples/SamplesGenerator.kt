@@ -162,16 +162,6 @@ Enter selection (default: Single application project) [1..2] 1
         else
             "link:{userManualPath}/${descriptor.language.getName()}_plugin.html[${descriptor.language} Plugin]"
 
-        val configurationCacheCompatMatrixLink = "link:{userManualPath}/configuration_cache.html#config_cache:plugins:core"
-        val configurationCacheCompatibility = when (descriptor.language) {
-            Language.SWIFT -> {
-                "WARNING: The XCTest Plugin is not compatible with the $configurationCacheCompatMatrixLink[configuration cache]."
-            }
-            else -> {
-                ""
-            }
-        }
-
         projectLayoutSetupRegistry.templateOperationFactory.newTemplateOperation()
             .withTemplate(templateFolder.template("$templateFragment.adoc"))
             .withTarget(settings.target.file("../README.adoc").asFile)
@@ -195,7 +185,6 @@ Enter selection (default: Single application project) [1..2] 1
             .withBinding("testFrameworkChoice", testFrameworkChoice)
             .withBinding("tasksExecuted", "" + tasksExecuted(descriptor))
             .withBinding("languagePluginDocsLink", "" + languagePluginDocsLink)
-            .withBinding("configurationCacheCompatibility", configurationCacheCompatibility)
             .create().generate()
     }
 
