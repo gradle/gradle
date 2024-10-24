@@ -16,6 +16,8 @@
 package org.gradle.process.internal;
 
 import com.google.common.collect.Maps;
+import org.gradle.api.internal.provider.Providers;
+import org.gradle.api.provider.Provider;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.process.ProcessForkOptions;
 
@@ -24,6 +26,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class DefaultProcessForkOptions implements ProcessForkOptions {
+    // TODO(mlopatkin) this may be a good candidate for the CC deduplication.
+    // TODO(PAPI-migration) consider making this provider an input to the configuration cache when environment becomes MapProperty.
+    protected static final Provider<Map<String, String>> CURRENT_ENVIRONMENT_VARIABLES = Providers.changing(System::getenv);
+
     protected final PathToFileResolver resolver;
     private Object executable;
     private File workingDir;
@@ -81,13 +87,13 @@ public class DefaultProcessForkOptions implements ProcessForkOptions {
     @Override
     public Map<String, Object> getEnvironment() {
         if (environment == null) {
-            setEnvironment(getInheritableEnvironment());
+            environment = getInheritableEnvironment();
         }
         return environment;
     }
 
-    protected Map<String, ?> getInheritableEnvironment() {
-        return System.getenv();
+    protected Map<String, Object> getInheritableEnvironment() {
+        return new DerivedEnvironmentVarsMap(CURRENT_ENVIRONMENT_VARIABLES::get);
     }
 
     public Map<String, String> getActualEnvironment() {
