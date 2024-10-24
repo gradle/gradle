@@ -16,8 +16,9 @@
 
 package org.gradle.api.artifacts.repositories;
 
+import org.gradle.api.internal.provider.ProviderApiDeprecationLogger;
 import org.gradle.api.provider.Property;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 
 import java.net.URI;
 
@@ -30,20 +31,10 @@ public interface UrlArtifactRepository {
 
     /**
      * The base URL of this repository.
-     *
-     * @return The URL.
      * @since 6.0
      */
-    @ToBeReplacedByLazyProperty
-    URI getUrl();
-
-    /**
-     * Sets the base URL of this repository.
-     *
-     * @param url The base URL.
-     * @since 6.0
-     */
-    void setUrl(URI url);
+    @ReplacesEagerProperty
+    Property<URI> getUrl();
 
     /**
      * Sets the base URL of this repository.
@@ -67,18 +58,18 @@ public interface UrlArtifactRepository {
      * <p>
      * See also:
      * <a href="https://medium.com/bugbountywriteup/want-to-take-over-the-java-ecosystem-all-you-need-is-a-mitm-1fc329d898fb">Want to take over the Java ecosystem? All you need is a MITM!</a>
-     * @since 6.0
      */
-    @ToBeReplacedByLazyProperty
-    boolean isAllowInsecureProtocol();
+    @ReplacesEagerProperty(originalType = boolean.class)
+    Property<Boolean> getAllowInsecureProtocol();
 
     /**
-     * Specifies whether it is acceptable to communicate with a repository over an insecure HTTP connection.
-     *
-     * @see #isAllowInsecureProtocol()
-     * @since 6.0
+     * Added for Kotlin source compatibility.
      */
-    void setAllowInsecureProtocol(boolean allowInsecureProtocol);
+    @Deprecated
+    default Property<Boolean> getIsAllowInsecureProtocol() {
+        ProviderApiDeprecationLogger.logDeprecation(UrlArtifactRepository.class, "getIsAllowInsecureProtocol()", "getAllowInsecureProtocol()");
+        return getAllowInsecureProtocol();
+    }
 
     /**
      * Specifies whether to continue checking other repositories if this repository is disabled due to connection or communication errors.
@@ -86,8 +77,8 @@ public interface UrlArtifactRepository {
      * The conventional value for this property is {@code false}, which means to not continue to check other repositories after this one.
      *
      * @return a property that control the behavior to continue or not
-     * @since 9.3.0
      * @see <a href="https://docs.gradle.org/current/userguide/graph_resolution.html#sec:repository-disabling">Disabled repositories</a>
+     * @since 9.3.0
      */
     Property<Boolean> getAllowInsecureContinueWhenDisabled();
 }
