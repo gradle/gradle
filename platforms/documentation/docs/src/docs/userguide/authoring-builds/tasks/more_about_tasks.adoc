@@ -704,7 +704,7 @@ Gradle marks the tasks for the production code as `UP-TO-DATE`, indicating that 
 ----
 $./gradlew :app:build
 
-lkassovic@MacBook-Pro temp1 % ./gradlew :app:build
+gradle@MacBook-Pro temp1 % ./gradlew :app:build
 > Task :app:compileJava UP-TO-DATE
 > Task :app:processResources NO-SOURCE
 > Task :app:classes UP-TO-DATE

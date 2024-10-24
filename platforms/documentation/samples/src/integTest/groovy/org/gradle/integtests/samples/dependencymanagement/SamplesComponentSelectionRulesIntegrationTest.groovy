@@ -49,7 +49,7 @@ class SamplesComponentSelectionRulesIntegrationTest extends AbstractSampleIntegr
         run "printRejectConfig"
 
         then:
-        output.contains "Resolved: api-1.4.jar"
+        output.contains "Resolved: api-1.5.jar"
 
         where:
         dsl << ['groovy', 'kotlin']
