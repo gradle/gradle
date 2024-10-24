@@ -13,6 +13,27 @@
 // limitations under the License.
 
 [[upgrading_version_8]]
+= Upgrading your build from Gradle 8.x to Gradle 9.0
+
+[[unix_file_permissions_removed]]
+==== Unix mode based file permissions removed ====
+
+A new API for defining file permissions has been added in Gradle 8.3, see:
+
+- link:{javadocPath}/org/gradle/api/file/FilePermissions.html[FilePermissions].
+- link:{javadocPath}/org/gradle/api/file/ConfigurableFilePermissions.html[ConfigurableFilePermissions].
+
+The new API has now been promoted to stable and the old methods have been deprecated in Gradle 8.8.
+In Gradle 9.0 these old methods have been completely removed:
+
+- `org.gradle.api.file.CopyProcessingSpec.getFileMode()`
+- `org.gradle.api.file.CopyProcessingSpec.setFileMode(Integer)`
+- `org.gradle.api.file.CopyProcessingSpec.getDirMode()`
+- `org.gradle.api.file.CopyProcessingSpec.setDirMode(Integer)`
+- `org.gradle.api.file.FileTreeElement.getMode()`
+- `org.gradle.api.file.FileCopyDetails.setMode(int)`
+
+
 = Upgrading your build from Gradle 8.x to the latest
 
 This chapter provides the information you need to migrate your Gradle 8.x builds to the latest Gradle release.

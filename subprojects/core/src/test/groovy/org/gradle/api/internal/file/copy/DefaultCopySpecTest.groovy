@@ -385,9 +385,7 @@ class DefaultCopySpecTest extends Specification {
         spec.caseSensitive
         spec.includeEmptyDirs
         spec.duplicatesStrategy == DuplicatesStrategy.INCLUDE
-        spec.fileMode == null
         !spec.filePermissions.isPresent()
-        spec.dirMode == null
         !spec.dirPermissions.isPresent()
         spec.filteringCharset == Charset.defaultCharset().name()
     }
@@ -404,18 +402,12 @@ class DefaultCopySpecTest extends Specification {
         !spec.caseSensitive
         !spec.includeEmptyDirs
         spec.duplicatesStrategy == DuplicatesStrategy.EXCLUDE
-        spec.fileMode == 0444
         toPermissionString(spec.filePermissions.get()) == "r--r--r--"
-        spec.dirMode == 0655
         toPermissionString(spec.dirPermissions.get()) == "rw-r-xr-x"
         spec.filteringCharset == 'UTF8'
 
         where:
         method             | setter
-        "mode"                  | { DefaultCopySpec spec, ObjectFactory objectFactory ->
-            spec.fileMode = 0444
-            spec.dirMode = 0655
-        }
         "property"              | { DefaultCopySpec spec, ObjectFactory objectFactory ->
             spec.filePermissions.value(new DefaultConfigurableFilePermissions(objectFactory, 0444))
             spec.dirPermissions.value(new DefaultConfigurableFilePermissions(objectFactory, 0655))
@@ -435,8 +427,8 @@ class DefaultCopySpecTest extends Specification {
         spec.caseSensitive = false
         spec.includeEmptyDirs = false
         spec.duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-        spec.fileMode = 1
-        spec.dirMode = 2
+        spec.filePermissions { it.unix(1) }
+        spec.dirPermissions { it.unix(2) }
         spec.filteringCharset = "ISO_8859_1"
 
         DefaultCopySpec child = unpackWrapper(spec."${method}"("child") {})
@@ -445,8 +437,8 @@ class DefaultCopySpecTest extends Specification {
         !child.caseSensitive
         !child.includeEmptyDirs
         child.duplicatesStrategy == DuplicatesStrategy.EXCLUDE
-        child.fileMode == 1
-        child.dirMode == 2
+        child.filePermissions.get().toUnixNumeric() == 1
+        child.dirPermissions.get().toUnixNumeric() == 2
         child.filteringCharset == "ISO_8859_1"
 
         where:
