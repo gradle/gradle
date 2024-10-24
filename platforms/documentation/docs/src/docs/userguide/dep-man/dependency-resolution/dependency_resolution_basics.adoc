@@ -34,7 +34,6 @@ In the _graph resolution_ phase, Gradle downloads and examines component metadat
 
 The `ResolutionResult` represents the output of the graph resolution phase, which focuses solely on the nodes in the dependency graph, not the artifacts (files) they expose:
 
-- link:{javadocPath}/org/gradle/api/file/FileCollection.html[FileCollection] - A flat list of files. This is the most common way to access dependency resolution results.
 - link:{javadocPath}/org/gradle/api/artifacts/result/ResolvedComponentResult.html[ResolvedComponentResult] and link:{javadocPath}/org/gradle/api/artifacts/result/ResolvedVariantResult.html[ResolvedVariantResult] - Exposes the raw dependency graph without resolving artifacts, describing the relationships between components and variants.
 
 == Artifact Resolution
@@ -44,6 +43,7 @@ In the _artifact resolution_ phase, artifacts are selected typically using the s
 An `ArtifactView` operates on top of the resolved dependency graph (i.e., `ResolutionResult`).
 It queries the graph for specific artifacts, enabling artifact resolution with different attributes:
 
+- link:{javadocPath}/org/gradle/api/file/FileCollection.html[FileCollection] - A flat list of files. This is the most common way to access dependency resolution results.
 - link:{javadocPath}/org/gradle/api/artifacts/ArtifactCollection.html[ArtifactCollection] - Provides access to the metadata for each resolved artifact in addition to the file itself.
 
 
