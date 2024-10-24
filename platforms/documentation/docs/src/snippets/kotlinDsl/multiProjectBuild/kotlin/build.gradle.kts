@@ -5,7 +5,7 @@ import ratpack.gradle.RatpackExtension
 
 // tag::root[]
 plugins {
-    id("com.github.johnrengelman.shadow") version "7.1.2" apply false
+    id("com.github.johnrengelman.shadow") version "8.1.0" apply false
     id("io.ratpack.ratpack-java") version "1.8.2" apply false
 }
 // end::root[]
