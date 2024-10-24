@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[[artifact_resolution]]
+[[artifact-resolution]]
 = Artifact Resolution
 
 After constructing a dependency graph, Gradle can perform *artifact resolution* on the resolved graph.
