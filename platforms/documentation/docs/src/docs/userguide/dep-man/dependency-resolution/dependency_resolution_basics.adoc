@@ -16,36 +16,44 @@
 = Dependency Resolution Basics
 
 Dependency resolution in Gradle can largely be thought of as a two-step process.
-The first being _graph resolution_, and the second being _artifact resolution_:
+
+First, the _graph resolution_ phase constructs the dependency graph based on declared dependencies.
+Second, the _artifact resolution_ phase fetches the actual files (artifacts) for the resolved components:
 
 1. **Graph resolution phase**:
-- Driven by declared dependencies
-- Uses attributes assigned to the configuration
+- Driven by declared dependencies and their metadata
+- Uses attributes defined in the configuration
 
 2. **Artifact resolution phase**:
-- Based on nodes in the dependency graph
+- Based on nodes in the resolved dependency graph
 - Matches the variant of each node
 
-The results of these processes are presented through a variety of types, each catering to different use cases.
+The outcome of these processes can be accessed via different APIs, each designed for specific use cases.
 
-== Graph Resolution
+== 1. Graph Resolution
 
-In the _graph resolution_ phase, Gradle downloads and examines component metadata (GMM, POM, and IVY XML) for declared and transitive dependencies to construct a *dependency graph*.
+During the _graph resolution_ phase, Gradle downloads and analyzes component metadata (GMM, POM, or Ivy XML) for declared and transitive dependencies.
+This information is used to construct a *dependency graph*, which models the relationships between different components and their variants.
 
-The `ResolutionResult` represents the output of the graph resolution phase, which focuses solely on the nodes in the dependency graph, not the artifacts (files) they expose:
+The `ResolutionResult` API represents the output of the graph resolution phase, providing access to the resolved dependency graph without triggering artifact downloads.
+The graph itself focuses on component variants, not the artifacts (files) associated with those variants:
 
-- link:{javadocPath}/org/gradle/api/artifacts/result/ResolvedComponentResult.html[ResolvedComponentResult] and link:{javadocPath}/org/gradle/api/artifacts/result/ResolvedVariantResult.html[ResolvedVariantResult] - Exposes the raw dependency graph without resolving artifacts, describing the relationships between components and variants.
+- link:{javadocPath}/org/gradle/api/artifacts/result/ResolvedComponentResult.html[ResolvedComponentResult] - Represents a resolved component in the raw dependency graph.
+- link:{javadocPath}/org/gradle/api/artifacts/result/ResolvedVariantResult.html[ResolvedVariantResult] - Represents a resolved variant of a component in the raw dependency graph.
 
-== Artifact Resolution
+See <<graph_resolution_resolution.adoc#graph_resolution_resolution,Dependency Graph Resolution>> to learn more.
 
-In the _artifact resolution_ phase, artifacts are selected typically using the same attributes that built the *dependency graph*.
+== 2. Artifact Resolution
 
-An `ArtifactView` operates on top of the resolved dependency graph (i.e., `ResolutionResult`).
-It queries the graph for specific artifacts, enabling artifact resolution with different attributes:
+Once the *dependency graph* is resolved, the _artifact resolution_ phase determines which actual files (artifacts) need to be downloaded or retrieved.
 
-- link:{javadocPath}/org/gradle/api/file/FileCollection.html[FileCollection] - A flat list of files. This is the most common way to access dependency resolution results.
-- link:{javadocPath}/org/gradle/api/artifacts/ArtifactCollection.html[ArtifactCollection] - Provides access to the metadata for each resolved artifact in addition to the file itself.
+An `ArtifactView` operates on top of the resolved graph, defined by the `ResolutionResult`.
+It allows you to query for specific artifacts based on attributes.
+The same attributes used during _graph resolution_ typically guide _artifact selection_.
 
+The `ArtifactView` API provides flexible ways to access these resolved artifacts:
 
+- link:{javadocPath}/org/gradle/api/file/FileCollection.html[FileCollection] - A flat list of files, which is the most commonly way to work with resolved artifacts.
+- link:{javadocPath}/org/gradle/api/artifacts/ArtifactCollection.html[ArtifactCollection] - Offers access to both the metadata and the files of resolved artifacts, allowing for more advanced artifact handling.
 
-
+See <<artifact-resolution.adoc#artifact-resolution,Artifact Resolution>> to learn more.
