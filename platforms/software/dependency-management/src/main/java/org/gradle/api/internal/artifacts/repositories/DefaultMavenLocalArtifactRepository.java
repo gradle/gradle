@@ -32,6 +32,7 @@ import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransp
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.maven.MutableMavenModuleResolveMetadata;
@@ -54,6 +55,7 @@ public abstract class DefaultMavenLocalArtifactRepository extends DefaultMavenAr
     private final ChecksumService checksumService;
 
     @Inject
+    @SuppressWarnings("this-escape")
     public DefaultMavenLocalArtifactRepository(FileResolver fileResolver, RepositoryTransportFactory transportFactory,
                                                LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder, InstantiatorFactory instantiatorFactory,
                                                FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
@@ -66,10 +68,11 @@ public abstract class DefaultMavenLocalArtifactRepository extends DefaultMavenAr
                                                ObjectFactory objectFactory,
                                                DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory,
                                                ChecksumService checksumService,
+                                               ProviderFactory providerFactory,
                                                VersionParser versionParser,
                                                MavenMirrorResolver mavenMirrorResolver
     ) {
-        super(new DefaultDescriber(), fileResolver, transportFactory, locallyAvailableResourceFinder, instantiatorFactory, artifactFileStore, pomParser, metadataParser, authenticationContainer, null, fileResourceRepository, metadataFactory, isolatableFactory, objectFactory, urlArtifactRepositoryFactory, checksumService, null, versionParser, mavenMirrorResolver);
+        super(new DefaultDescriber(), fileResolver, transportFactory, locallyAvailableResourceFinder, instantiatorFactory, artifactFileStore, pomParser, metadataParser, authenticationContainer, null, fileResourceRepository, metadataFactory, isolatableFactory, objectFactory, urlArtifactRepositoryFactory, checksumService, providerFactory, versionParser, mavenMirrorResolver);
         this.checksumService = checksumService;
     }
 

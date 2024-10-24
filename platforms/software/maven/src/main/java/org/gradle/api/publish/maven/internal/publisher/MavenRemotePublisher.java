@@ -46,6 +46,7 @@ public class MavenRemotePublisher extends AbstractMavenPublisher {
     private static final Logger LOGGER = LoggerFactory.getLogger(MavenRemotePublisher.class);
     private final BuildCommencedTimeProvider timeProvider;
 
+    @SuppressWarnings("this-escape")
     public MavenRemotePublisher(Factory<File> temporaryDirFactory, BuildCommencedTimeProvider timeProvider) {
         super(temporaryDirFactory);
         this.timeProvider = timeProvider;
@@ -54,7 +55,7 @@ public class MavenRemotePublisher extends AbstractMavenPublisher {
     @Override
     public void publish(MavenNormalizedPublication publication, @Nullable MavenArtifactRepository artifactRepository) {
         assert artifactRepository != null;
-        URI repositoryUrl = artifactRepository.getUrl();
+        URI repositoryUrl = artifactRepository.getUrl().get();
         LOGGER.info("Publishing to repository '{}' ({})", artifactRepository.getName(), repositoryUrl);
 
         String protocol = repositoryUrl.getScheme().toLowerCase(Locale.ROOT);
