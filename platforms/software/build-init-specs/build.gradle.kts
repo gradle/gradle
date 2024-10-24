@@ -26,8 +26,6 @@ dependencies {
 
     implementation(projects.loggingApi)
 
-    implementation(libs.guava)
-
     testImplementation(testFixtures(project))
     testImplementation(testFixtures(projects.logging))
 

@@ -38,7 +38,7 @@ class BuildInitSpecRegistryTest extends Specification {
         def registry = new BuildInitSpecRegistry()
 
         when:
-        registry.register([(generator.class) : [spec1, spec2]])
+        registry.register(generator.class, [spec1, spec2])
 
         then: "loaded specs can be found"
         !registry.isEmpty()
@@ -67,7 +67,7 @@ class BuildInitSpecRegistryTest extends Specification {
         def spec1 = new TestBuildInitSpec("type1", "My Name")
         def spec2 = new TestBuildInitSpec("type2", "My Other Name")
         def registry = new BuildInitSpecRegistry()
-        registry.register([(generator.class) : [spec1, spec2]])
+        registry.register(generator.class, [spec1, spec2])
 
         when: "loaded specs can be found by type"
         def result = registry.getSpecByType("type1")
@@ -94,7 +94,7 @@ Known types:
         def registry = new BuildInitSpecRegistry()
 
         when:
-        registry.register([(generator.class) : [spec1, spec2]])
+        registry.register(generator.class, [spec1, spec2])
 
         then:
         def e = thrown(IllegalStateException)
@@ -109,8 +109,8 @@ Known types:
         def registry = new BuildInitSpecRegistry()
 
         when:
-        registry.register([(generator.class) : [spec1]])
-        registry.register([(generator.class) : [spec2]])
+        registry.register(generator.class, [spec1])
+        registry.register(generator.class, [spec2])
 
         then:
         def e = thrown(IllegalStateException)
@@ -125,8 +125,8 @@ Known types:
         def registry = new BuildInitSpecRegistry()
 
         when:
-        registry.register([(generator.class) : [spec1]])
-        registry.register([(generator.class) : [spec2]])
+        registry.register(generator.class, [spec1])
+        registry.register(generator.class, [spec2])
 
         then:
         !registry.isEmpty()
@@ -146,7 +146,8 @@ Known types:
         def registry = new BuildInitSpecRegistry()
 
         when:
-        registry.register([(generator1.class) : [spec1], (generator2.class) : [spec2]] )
+        registry.register(generator1.class, [spec1])
+        registry.register(generator2.class, [spec2])
 
         then:
         def e = thrown(IllegalStateException)
@@ -162,8 +163,8 @@ Known types:
         def registry = new BuildInitSpecRegistry()
 
         when:
-        registry.register([(generator1.class) : [spec1]] )
-        registry.register([(generator2.class) : [spec2]] )
+        registry.register(generator1.class, [spec1])
+        registry.register(generator2.class, [spec2])
 
         then:
         def e = thrown(IllegalStateException)

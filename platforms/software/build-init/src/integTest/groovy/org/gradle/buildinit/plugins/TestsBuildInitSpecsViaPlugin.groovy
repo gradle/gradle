@@ -75,16 +75,10 @@ trait TestsBuildInitSpecsViaPlugin {
 
                 org.gradle.buildinit.specs.internal.BuildInitSpecRegistry registry = getBuildInitSpecRegistry()
 
-                Map<Class<? extends org.gradle.buildinit.specs.BuildInitGenerator>, List<org.gradle.buildinit.specs.BuildInitSpec>> specsByGenerator = new HashMap<>()
-                specsByGenerator.put(
+                registry.register(
                     MyGenerator.class,
-                    java.util.Arrays.asList(
-                        new MyBuildSpec("first-project-type"),
-                        new MyBuildSpec("second-project-type")
-                    )
+                    java.util.Arrays.asList(new MyBuildSpec("first-project-type"), new MyBuildSpec("second-project-type"))
                 );
-
-                registry.register(specsByGenerator);
 
                 logger.warning("MyPlugin applied.");
         """, "org.example.myplugin")
