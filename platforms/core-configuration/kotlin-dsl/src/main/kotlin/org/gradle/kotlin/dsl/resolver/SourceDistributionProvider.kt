@@ -28,6 +28,7 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.kotlin.dsl.*
 import org.gradle.util.GradleVersion
 import java.io.File
+import java.net.URI
 
 
 interface SourceDistributionProvider {
@@ -90,7 +91,7 @@ class SourceDistributionResolver(private val project: Project) : SourceDistribut
     fun createSourceRepository() = ivy {
         val repoName = repositoryNameFor(gradleVersion)
         name = "Gradle $repoName"
-        setUrl("https://services.gradle.org/$repoName")
+        url.set(URI.create("https://services.gradle.org/$repoName"))
         metadataSources {
             artifact()
         }

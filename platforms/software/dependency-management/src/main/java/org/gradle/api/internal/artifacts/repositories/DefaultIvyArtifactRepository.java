@@ -54,6 +54,7 @@ import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransp
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.internal.action.InstantiatingAction;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
@@ -143,7 +144,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
 
     @Override
     public String getDisplayName() {
-        URI url = getUrl();
+        URI url = getUrl().getOrNull();
         if (url == null) {
             return super.getDisplayName();
         }
@@ -164,7 +165,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         Set<String> schemes = getSchemes();
         validate(schemes);
 
-        URI url = urlArtifactRepository.getUrl();
+        URI url = urlArtifactRepository.getUrl().getOrNull();
         IvyRepositoryDescriptor.Builder builder = new IvyRepositoryDescriptor.Builder(getName(), url)
             .setAuthenticated(usesCredentials())
             .setAuthenticationSchemes(getAuthenticationSchemes())
@@ -192,7 +193,10 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
 
     private Set<String> getSchemes() {
         if (schemes == null) {
-            URI uri = getUrl();
+            URI uri = getUrl().getOrNull();
+            if (uri != null && uri.getScheme() == null) {
+                throw new InvalidUserDataException("Repository URL must have a scheme: '" + uri + "'. If you are using a local repository, please use 'file()' or derive it from project.layout.");
+            }
             // use a local variable to prepare the set,
             // so that other threads do not see the half-initialized
             // list of schemes and fail in strange ways
@@ -205,7 +209,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
     }
 
     private IvyResolver createResolver(RepositoryTransport transport) {
-        Instantiator injector = createInjectorForMetadataSuppliers(transport, instantiatorFactory, getUrl(), externalResourcesFileStore);
+        Instantiator injector = createInjectorForMetadataSuppliers(transport, instantiatorFactory, getUrl().getOrNull(), externalResourcesFileStore);
         InstantiatingAction<ComponentMetadataSupplierDetails> supplierFactory = createComponentMetadataSupplierFactory(injector, isolatableFactory);
         InstantiatingAction<ComponentMetadataListerDetails> listerFactory = createComponentMetadataVersionLister(injector, isolatableFactory);
         return new IvyResolver(getDescriptor(), transport, locallyAvailableResourceFinder, metaDataProvider.dynamicResolve, artifactFileStore, supplierFactory, listerFactory, createMetadataSources(), IvyMetadataArtifactProvider.INSTANCE, injector, checksumService);
@@ -248,17 +252,21 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
     }
 
     @Override
-    public URI getUrl() {
+    public Property<URI> getUrl() {
         return urlArtifactRepository.getUrl();
     }
 
+    @Override
+    public void setUrl(Object url) {
+        urlArtifactRepository.setUrl(url);
+    }
 
     @Override
     protected Collection<URI> getRepositoryUrls() {
         // Ivy can resolve files from multiple hosts, so we need to look at all
         // of the possible URLs used by the Ivy resolver to identify all of the repositories
         ImmutableList.Builder<URI> builder = ImmutableList.builder();
-        URI root = getUrl();
+        URI root = getUrl().getOrNull();
         if (root != null) {
             builder.add(root);
         }
@@ -278,26 +286,8 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
     }
 
     @Override
-    public void setUrl(URI url) {
-        invalidateDescriptor();
-        urlArtifactRepository.setUrl(url);
-    }
-
-    @Override
-    public void setUrl(Object url) {
-        invalidateDescriptor();
-        urlArtifactRepository.setUrl(url);
-    }
-
-    @Override
-    public void setAllowInsecureProtocol(boolean allowInsecureProtocol) {
-        invalidateDescriptor();
-        urlArtifactRepository.setAllowInsecureProtocol(allowInsecureProtocol);
-    }
-
-    @Override
-    public boolean isAllowInsecureProtocol() {
-        return urlArtifactRepository.isAllowInsecureProtocol();
+    public Property<Boolean> getAllowInsecureProtocol() {
+        return urlArtifactRepository.getAllowInsecureProtocol();
     }
 
     @Override
@@ -518,5 +508,4 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
             return ignoreGradleMetadataRedirection;
         }
     }
-
 }
