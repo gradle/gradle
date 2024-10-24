@@ -138,6 +138,12 @@ The role of each configuration is described in the following tables:
 |===
 | Configuration name | Role | Consumable? | Resolvable? | Description
 
+| `annotationProcessor`
+| Declaring annotation processors
+| no
+| yes
+| This configuration is used to declare annotation processors, ensuring they are available during the compile phase for code generation.
+
 | `api`
 | Declaring API dependencies
 | no
