@@ -31,6 +31,7 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.cli.converter.BuildLayoutConverter;
 import org.gradle.launcher.daemon.client.DaemonClientFactory;
 import org.gradle.launcher.daemon.client.DaemonClientGlobalServices;
+import org.gradle.launcher.daemon.client.DaemonPingClient;
 import org.gradle.launcher.daemon.client.DaemonStopClient;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.exec.BuildExecutor;
@@ -59,6 +60,21 @@ public class ConnectionScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
+    PingCoordinator createPingCoordinator(
+        ListenerManager listenerManager,
+        DaemonClientFactory daemonClientFactory,
+        ServiceRegistry services,
+        FileCollectionFactory fileCollectionFactory
+    ) {
+        ServiceRegistry clientServices =
+            daemonClientFactory.createMessageDaemonServices(services, new DaemonParameters(new BuildLayoutConverter().defaultValues(), fileCollectionFactory));
+        DaemonPingClient client = clientServices.get(DaemonPingClient.class);
+        PingCoordinator pingCoordinator = new PingCoordinator(client);
+        listenerManager.addListener(pingCoordinator);
+        return pingCoordinator;
+    }
+
+    @Provides
     ProviderConnection createProviderConnection(
         BuildExecutor buildActionExecuter,
         DaemonClientFactory daemonClientFactory,
@@ -68,22 +84,23 @@ public class ConnectionScopeServices implements ServiceRegistrationProvider {
         GlobalUserInputReceiver userInput,
         UserInputReader userInputReader,
         // This is here to trigger creation of the ShutdownCoordinator. Could do this in a nicer way
-        ShutdownCoordinator shutdownCoordinator) {
+        ShutdownCoordinator shutdownCoordinator
+    ) {
         ClassLoaderCache classLoaderCache = new ClassLoaderCache();
         return new ProviderConnection(
-                serviceRegistry,
-                buildLayoutFactory,
-                daemonClientFactory,
-                buildActionExecuter,
-                new PayloadSerializer(
-                        new WellKnownClassLoaderRegistry(
-                            new ClientSidePayloadClassLoaderRegistry(
-                                new DefaultPayloadClassLoaderRegistry(
-                                    classLoaderCache,
-                                    new ClientSidePayloadClassLoaderFactory(
-                                        new ModelClassLoaderFactory())),
-                                new ClasspathInferer(),
-                                classLoaderCache))),
+            serviceRegistry,
+            buildLayoutFactory,
+            daemonClientFactory,
+            buildActionExecuter,
+            new PayloadSerializer(
+                new WellKnownClassLoaderRegistry(
+                    new ClientSidePayloadClassLoaderRegistry(
+                        new DefaultPayloadClassLoaderRegistry(
+                            classLoaderCache,
+                            new ClientSidePayloadClassLoaderFactory(
+                                new ModelClassLoaderFactory())),
+                        new ClasspathInferer(),
+                        classLoaderCache))),
             fileCollectionFactory,
             userInput,
             userInputReader

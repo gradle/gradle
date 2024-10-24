@@ -112,6 +112,6 @@ public class DaemonClientFactory {
      */
     public ServiceRegistry createMessageDaemonServices(ServiceLookup clientLoggingServices, DaemonParameters daemonParameters) {
         // These can always run inside the current JVM since we should not be forking a daemon to run them
-        return createBuildClientServices(clientLoggingServices, daemonParameters, new DaemonRequestContext(new DaemonJvmCriteria.LauncherJvm(), Collections.emptyList(), false, NativeServices.NativeServicesMode.NOT_SET, DaemonPriority.NORMAL), new ByteArrayInputStream(new byte[0]));
+        return createBuildClientServices(clientLoggingServices, daemonParameters, new DaemonRequestContext(new DaemonJvmCriteria.LauncherJvm(), Collections.emptyList(), false, NativeServices.NativeServicesMode.ENABLED, DaemonPriority.NORMAL), new ByteArrayInputStream(new byte[0]));
     }
 }

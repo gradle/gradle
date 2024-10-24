@@ -47,6 +47,7 @@ import org.gradle.tooling.internal.protocol.InternalBuildProgressListener;
 import org.gradle.tooling.internal.protocol.InternalInvalidatableVirtualFileSystemConnection;
 import org.gradle.tooling.internal.protocol.InternalParameterAcceptingConnection;
 import org.gradle.tooling.internal.protocol.InternalPhasedActionConnection;
+import org.gradle.tooling.internal.protocol.InternalPingConnection;
 import org.gradle.tooling.internal.protocol.InternalStopWhenIdleConnection;
 import org.gradle.tooling.internal.protocol.test.InternalTestExecutionConnection;
 import org.slf4j.Logger;
@@ -82,7 +83,9 @@ public class DefaultToolingImplementationLoader implements ToolingImplementation
 
             ProtocolToModelAdapter adapter = new ProtocolToModelAdapter(new ConsumerTargetTypeProvider());
             ModelMapping modelMapping = new ModelMapping();
-            if (connection instanceof InternalStopWhenIdleConnection) {
+            if (connection instanceof InternalPingConnection) {
+                return createConnection(new PingConsumerConnection(connection, modelMapping, adapter), connectionParameters);
+            } else if (connection instanceof InternalStopWhenIdleConnection) {
                 return createConnection(new StopWhenIdleConsumerConnection(connection, modelMapping, adapter), connectionParameters);
             } else if (connection instanceof InternalInvalidatableVirtualFileSystemConnection) {
                 return createConnection(new NotifyDaemonsAboutChangedPathsConsumerConnection(connection, modelMapping, adapter), connectionParameters);

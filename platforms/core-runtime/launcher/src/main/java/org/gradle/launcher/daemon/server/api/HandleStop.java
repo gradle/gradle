@@ -17,6 +17,7 @@
 package org.gradle.launcher.daemon.server.api;
 
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.launcher.daemon.protocol.Ping;
 import org.gradle.launcher.daemon.protocol.Stop;
 import org.gradle.launcher.daemon.protocol.StopWhenIdle;
 import org.gradle.launcher.daemon.protocol.Success;
@@ -41,6 +42,8 @@ public class HandleStop implements DaemonCommandAction {
         } else if (execution.getCommand() instanceof StopWhenIdle) {
             hangShutdownForTesting();
             listenerBroadcast.onExpirationEvent(new DaemonExpirationResult(DaemonExpirationStatus.GRACEFUL_EXPIRE, EXPIRATION_REASON));
+            execution.getConnection().completed(new Success(null));
+        } else if (execution.getCommand() instanceof Ping) {
             execution.getConnection().completed(new Success(null));
         } else {
             execution.proceed();
