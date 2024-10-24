@@ -18,8 +18,9 @@ package org.gradle.api.artifacts.repositories;
 import org.gradle.api.Action;
 import org.gradle.api.ActionConfiguration;
 import org.gradle.api.artifacts.ComponentMetadataSupplier;
+import org.gradle.api.provider.Property;
+import org.gradle.api.tasks.Optional;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 import java.net.URI;
 
@@ -30,7 +31,6 @@ import java.net.URI;
  * <p>
  * When used to upload metadata and artifact files, only a single, primary pattern will be used:
  * <ol>
- * <li>If a URL is specified via {@link #setUrl(Object)} then that URL will be used for upload, combined with the applied {@link #layout(String)}.</li>
  * <li>If no URL has been specified but additional patterns have been added via {@link #artifactPattern} or {@link #ivyPattern}, then the first defined pattern will be used.</li>
  * </ol>
  * <p>
@@ -48,21 +48,10 @@ public interface IvyArtifactRepository extends ArtifactRepository, UrlArtifactRe
 
     /**
      * The base URL of this repository.
-     *
-     * @return The URL.
      */
     @Override
-    @ToBeReplacedByLazyProperty
-    URI getUrl();
-
-    /**
-     * Sets the base URL of this repository.
-     *
-     * @param url The base URL.
-     * @since 4.0
-     */
-    @Override
-    void setUrl(URI url);
+    @Optional
+    Property<URI> getUrl();
 
     /**
      * Sets the base URL of this repository. The provided value is evaluated as per {@link org.gradle.api.Project#uri(Object)}. This means,
@@ -80,9 +69,8 @@ public interface IvyArtifactRepository extends ArtifactRepository, UrlArtifactRe
      * ivy pattern is supplied via {@link #ivyPattern(String)}.
      *
      * If this pattern is not a fully-qualified URL, it will be interpreted as a file relative to the project directory.
-     * It is not interpreted relative the URL specified in {@link #setUrl(Object)}.
      *
-     * Patterns added in this way will be in addition to any layout-based patterns added via {@link #setUrl(Object)}.
+     * Patterns added in this way will be in addition to any layout-based patterns added via {@link #getUrl()}.
      *
      * @param pattern The artifact pattern.
      */
@@ -92,9 +80,8 @@ public interface IvyArtifactRepository extends ArtifactRepository, UrlArtifactRe
      * Adds an independent pattern that will be used to locate ivy files in this repository.
      *
      * If this pattern is not a fully-qualified URL, it will be interpreted as a file relative to the project directory.
-     * It is not interpreted relative the URL specified in {@link #setUrl(Object)}.
      *
-     * Patterns added in this way will be in addition to any layout-based patterns added via {@link #setUrl(Object)}.
+     * Patterns added in this way will be in addition to any layout-based patterns added via {@link #getUrl()}.
      *
      * @param pattern The ivy pattern.
      */

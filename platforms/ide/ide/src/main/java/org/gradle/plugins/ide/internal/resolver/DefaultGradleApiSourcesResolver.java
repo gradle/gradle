@@ -27,6 +27,7 @@ import org.gradle.language.base.artifact.SourcesArtifact;
 import org.gradle.util.internal.VersionNumber;
 
 import java.io.File;
+import java.net.URI;
 import java.util.Collections;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -76,12 +77,12 @@ public class DefaultGradleApiSourcesResolver implements GradleApiSourcesResolver
     private MavenArtifactRepository addGradleLibsRepository() {
         return resolver.getRepositories().maven(a -> {
             a.setName("Gradle Libs");
-            a.setUrl(gradleLibsRepoUrl());
+            a.getUrl().set(gradleLibsRepoUrl());
         });
     }
 
-    private static String gradleLibsRepoUrl() {
+    private static URI gradleLibsRepoUrl() {
         String repoOverride = System.getenv(GRADLE_LIBS_REPO_OVERRIDE_VAR);
-        return repoOverride != null ? repoOverride : GRADLE_LIBS_REPO_URL;
+        return URI.create(repoOverride != null ? repoOverride : GRADLE_LIBS_REPO_URL);
     }
 }
