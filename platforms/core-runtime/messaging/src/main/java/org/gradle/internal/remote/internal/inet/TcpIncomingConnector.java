@@ -56,6 +56,9 @@ public class TcpIncomingConnector implements IncomingConnector {
         int localPort;
         try {
             serverSocket = ServerSocketChannel.open();
+            // NOTE: we use non-blocking IO as there is no reliable way when using blocking IO to shutdown reads while
+            // keeping writes active. For example, Socket.shutdownInput() does not work on Windows.
+            serverSocket.configureBlocking(false);
             serverSocket.socket().bind(new InetSocketAddress(addressFactory.getLocalBindingAddress(), 0));
             localPort = serverSocket.socket().getLocalPort();
         } catch (Exception e) {
