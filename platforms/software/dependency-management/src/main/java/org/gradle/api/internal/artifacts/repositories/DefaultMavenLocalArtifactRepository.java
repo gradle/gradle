@@ -31,6 +31,7 @@ import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransp
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.maven.MutableMavenModuleResolveMetadata;
@@ -63,9 +64,10 @@ public class DefaultMavenLocalArtifactRepository extends DefaultMavenArtifactRep
                                                ObjectFactory objectFactory,
                                                DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory,
                                                ChecksumService checksumService,
+                                               ProviderFactory providerFactory,
                                                VersionParser versionParser
     ) {
-        super(fileResolver, transportFactory, locallyAvailableResourceFinder, instantiatorFactory, artifactFileStore, pomParser, metadataParser, authenticationContainer, null, fileResourceRepository, metadataFactory, isolatableFactory, objectFactory, urlArtifactRepositoryFactory, checksumService, null, versionParser);
+        super(fileResolver, transportFactory, locallyAvailableResourceFinder, instantiatorFactory, artifactFileStore, pomParser, metadataParser, authenticationContainer, null, fileResourceRepository, metadataFactory, isolatableFactory, objectFactory, urlArtifactRepositoryFactory, checksumService, providerFactory, versionParser);
         this.checksumService = checksumService;
     }
 

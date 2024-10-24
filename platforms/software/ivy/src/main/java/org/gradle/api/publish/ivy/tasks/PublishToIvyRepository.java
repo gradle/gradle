@@ -146,7 +146,7 @@ public abstract class PublishToIvyRepository extends DefaultTask {
         PublishSpec spec = this.spec.get();
         IvyNormalizedPublication publication = spec.publication;
         IvyArtifactRepository repository = spec.repository.get(getServices());
-        getDuplicatePublicationTracker().checkCanPublish(publication, repository.getUrl(), repository.getName());
+        getDuplicatePublicationTracker().checkCanPublish(publication, repository.getUrl().getOrNull(), repository.getName());
         doPublish(publication, repository);
     }
 
@@ -210,8 +210,8 @@ public abstract class PublishToIvyRepository extends DefaultTask {
             private Object writeReplace() {
                 return new DefaultRepositorySpec(
                     repository.getName(),
-                    repository.getUrl(),
-                    repository.isAllowInsecureProtocol(),
+                    repository.getUrl().getOrNull(),
+                    repository.getAllowInsecureProtocol().get(),
                     credentialsSpec(),
                     repository.getRepositoryLayout(),
                     repository.additionalArtifactPatterns(),
@@ -252,10 +252,10 @@ public abstract class PublishToIvyRepository extends DefaultTask {
             IvyArtifactRepository get(ServiceRegistry services) {
                 DefaultIvyArtifactRepository repository = (DefaultIvyArtifactRepository) services.get(BaseRepositoryFactory.class).createIvyRepository();
                 repository.setName(name);
-                repository.setUrl(repositoryUrl);
+                repository.getUrl().set(repositoryUrl);
                 artifactPatterns.forEach(repository::artifactPattern);
                 ivyPatterns.forEach(repository::ivyPattern);
-                repository.setAllowInsecureProtocol(allowInsecureProtocol);
+                repository.getAllowInsecureProtocol().set(allowInsecureProtocol);
                 repository.setRepositoryLayout(layout);
                 if (credentials != null) {
                     Provider<? extends Credentials> provider = services.get(ProviderFactory.class).credentials(credentials.getType(), name);
