@@ -141,37 +141,37 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
     @Override
     public ArtifactRepository createGradlePluginPortal() {
         MavenArtifactRepository mavenRepository = createMavenRepository(new NamedMavenRepositoryDescriber(PLUGIN_PORTAL_DEFAULT_URL));
-        mavenRepository.setUrl(System.getProperty(PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY, PLUGIN_PORTAL_DEFAULT_URL));
+        mavenRepository.getUrl().set(URI.create(System.getProperty(PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY, PLUGIN_PORTAL_DEFAULT_URL)));
         mavenRepository.metadataSources(MavenArtifactRepository.MetadataSources::mavenPom);
         return mavenRepository;
     }
 
     @Override
     public MavenArtifactRepository createMavenLocalRepository() {
-        MavenArtifactRepository mavenRepository = instantiator.newInstance(DefaultMavenLocalArtifactRepository.class, fileResolver, transportFactory, locallyAvailableResourceFinder, instantiatorFactory, artifactFileStore, pomParser, metadataParser, createAuthenticationContainer(), fileResourceRepository, mavenMetadataFactory, isolatableFactory, objectFactory, urlArtifactRepositoryFactory, checksumService, versionParser);
+        MavenArtifactRepository mavenRepository = instantiator.newInstance(DefaultMavenLocalArtifactRepository.class, fileResolver, transportFactory, locallyAvailableResourceFinder, instantiatorFactory, artifactFileStore, pomParser, metadataParser, createAuthenticationContainer(), fileResourceRepository, mavenMetadataFactory, isolatableFactory, objectFactory, urlArtifactRepositoryFactory, checksumService, providerFactory, versionParser);
         File localMavenRepository = localMavenRepositoryLocator.getLocalMavenRepository();
-        mavenRepository.setUrl(localMavenRepository);
+        mavenRepository.getUrl().set(localMavenRepository.toURI());
         return mavenRepository;
     }
 
     @Override
     public MavenArtifactRepository createJCenterRepository() {
         MavenArtifactRepository mavenRepository = createMavenRepository(new NamedMavenRepositoryDescriber(DefaultRepositoryHandler.BINTRAY_JCENTER_URL));
-        mavenRepository.setUrl(DefaultRepositoryHandler.BINTRAY_JCENTER_URL);
+        mavenRepository.getUrl().set(URI.create(DefaultRepositoryHandler.BINTRAY_JCENTER_URL));
         return mavenRepository;
     }
 
     @Override
     public MavenArtifactRepository createMavenCentralRepository() {
         MavenArtifactRepository mavenRepository = createMavenRepository(new NamedMavenRepositoryDescriber(RepositoryHandler.MAVEN_CENTRAL_URL));
-        mavenRepository.setUrl(RepositoryHandler.MAVEN_CENTRAL_URL);
+        mavenRepository.getUrl().set(URI.create(RepositoryHandler.MAVEN_CENTRAL_URL));
         return mavenRepository;
     }
 
     @Override
     public MavenArtifactRepository createGoogleRepository() {
         MavenArtifactRepository mavenRepository = createMavenRepository(new NamedMavenRepositoryDescriber(RepositoryHandler.GOOGLE_URL));
-        mavenRepository.setUrl(RepositoryHandler.GOOGLE_URL);
+        mavenRepository.getUrl().set(URI.create(RepositoryHandler.GOOGLE_URL));
         return mavenRepository;
     }
 
@@ -208,7 +208,7 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
 
         @Override
         public String transform(MavenArtifactRepository repository) {
-            URI url = repository.getUrl();
+            URI url = repository.getUrl().getOrNull();
             if (url == null || defaultUrl.equals(url.toString())) {
                 return repository.getName();
             }
