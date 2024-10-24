@@ -42,7 +42,6 @@ import spock.lang.Specification
 class JavaEcosystemAttributeMatcherTest extends Specification {
 
     def describers = Mock(AttributeDescriberRegistry)
-    def explanationBuilder = Stub(AttributeMatchingExplanationBuilder)
     def matcher = newMatcher()
 
     AttributeMatcher newMatcher() {
@@ -327,7 +326,7 @@ class JavaEcosystemAttributeMatcherTest extends Specification {
     def matchConfigurations(List<List<AttributeContainerInternal>> candidates, ImmutableAttributes requested) {
         // The first element in each configuration array is the implicit variant.
         def implicitVariants = candidates.collect { it.first() }
-        def configurationMatches = matcher.matchMultipleCandidates(implicitVariants, requested, explanationBuilder)
+        def configurationMatches = matcher.matchMultipleCandidates(implicitVariants, requested)
 
         // This test is checking only for successful (single) matches. If we matched multiple configurations
         // in the first round, something is wrong here. Fail before attempting the second round of variant matching.
@@ -335,7 +334,7 @@ class JavaEcosystemAttributeMatcherTest extends Specification {
 
         // Get all the variants for the configuration which was selected and apply variant matching on them.
         def configurationVariants = candidates.get(implicitVariants.indexOf(configurationMatches.get(0)))
-        def variantMatches = matcher.matchMultipleCandidates(configurationVariants, requested, explanationBuilder)
+        def variantMatches = matcher.matchMultipleCandidates(configurationVariants, requested)
 
         // Once again, the purpose of this test is for successful results. Something is wrong if we have
         // multiple matched variants.

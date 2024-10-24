@@ -28,7 +28,6 @@ import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema
 import org.gradle.api.internal.attributes.matching.AttributeMatcher
 import org.gradle.internal.Describables
-import org.gradle.internal.component.model.AttributeMatchingExplanationBuilder
 import org.gradle.internal.component.resolution.failure.exception.ArtifactSelectionException
 import org.gradle.util.AttributeTestUtil
 import spock.lang.Specification
@@ -60,7 +59,7 @@ class DefaultArtifactVariantSelectorTest extends Specification {
         variant1.artifacts >> variant1Artifacts
         variant2.attributes >> typeAttributes("jar")
 
-        attributeMatcher.matchMultipleCandidates(_ as Collection, typeAttributes("classes"), _ as AttributeMatchingExplanationBuilder) >> [variant1]
+        attributeMatcher.matchMultipleCandidates(_ as Collection, typeAttributes("classes")) >> [variant1]
 
         expect:
         def result = newSelector().select(set, typeAttributes("classes"), false)
@@ -82,7 +81,7 @@ class DefaultArtifactVariantSelectorTest extends Specification {
         variant2.asDescribable() >> Describables.of('<variant2>')
         variant2.attributes >> typeAttributes("jar")
 
-        attributeMatcher.matchMultipleCandidates(_ as Collection, typeAttributes("classes"), _ as AttributeMatchingExplanationBuilder) >> [variant1, variant2]
+        attributeMatcher.matchMultipleCandidates(_ as Collection, typeAttributes("classes")) >> [variant1, variant2]
         attributeMatcher.isMatchingValue(_, _, _) >> true
 
         when:
@@ -113,8 +112,8 @@ class DefaultArtifactVariantSelectorTest extends Specification {
         variant2.attributes >> typeAttributes("classes")
         variant2.asDescribable() >> Describables.of('<variant2>')
 
-        attributeMatcher.matchMultipleCandidates(ImmutableList.copyOf(variants), _, _) >> []
-        attributeMatcher.matchMultipleCandidates(transformedVariants, _, _) >> transformedVariants
+        attributeMatcher.matchMultipleCandidates(ImmutableList.copyOf(variants), _) >> []
+        attributeMatcher.matchMultipleCandidates(transformedVariants, _) >> transformedVariants
         matchingCache.findTransformedVariants(_, _) >> transformedVariants
 
         def selector = newSelector()
@@ -150,7 +149,7 @@ Found the following transforms:
         variant1.attributes >> typeAttributes("jar")
         variant2.attributes >> typeAttributes("classes")
 
-        attributeMatcher.matchMultipleCandidates(_, _, _) >> []
+        attributeMatcher.matchMultipleCandidates(_, _) >> []
 
         matchingCache.findTransformedVariants(_, _) >> []
 
@@ -174,7 +173,7 @@ Found the following transforms:
         variant2.attributes >> typeAttributes("classes")
         variant2.asDescribable() >> Describables.of('<variant2>')
 
-        attributeMatcher.matchMultipleCandidates(_, _, _) >> []
+        attributeMatcher.matchMultipleCandidates(_, _) >> []
 
         matchingCache.findTransformedVariants(_, _) >> []
 

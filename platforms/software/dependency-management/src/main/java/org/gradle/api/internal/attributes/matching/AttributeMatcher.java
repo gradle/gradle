@@ -20,7 +20,6 @@ import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.attributes.AttributeValue;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.internal.component.model.AttributeMatchingExplanationBuilder;
 
 import java.util.Collection;
 import java.util.List;
@@ -53,8 +52,7 @@ public interface AttributeMatcher {
      */
     <T extends HasAttributes> List<T> matchMultipleCandidates(
         Collection<? extends T> candidates,
-        ImmutableAttributes requested,
-        AttributeMatchingExplanationBuilder builder
+        ImmutableAttributes requested
     );
 
     // TODO: Merge this with ResolutionCandidateAssessor

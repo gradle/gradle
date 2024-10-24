@@ -118,7 +118,7 @@ public class GraphVariantSelector {
         }
 
         // Perform attribute matching on the candidates satisfying our capability selectors
-        List<VariantGraphResolveState> matches = attributeMatcher.matchMultipleCandidates(variantsProvidingRequestedCapabilities, consumerAttributes, AttributeMatchingExplanationBuilder.logging());
+        List<VariantGraphResolveState> matches = attributeMatcher.matchMultipleCandidates(variantsProvidingRequestedCapabilities, consumerAttributes);
         if (matches.size() < 2) {
             return zeroOrSingleVariant(matches);
         }
@@ -132,7 +132,7 @@ public class GraphVariantSelector {
 
         // there are still more than one candidate, but this time we know only a subset strictly matches the required attributes
         // so we perform another round of selection on the remaining candidates
-        matches = attributeMatcher.matchMultipleCandidates(matches, consumerAttributes, AttributeMatchingExplanationBuilder.logging());
+        matches = attributeMatcher.matchMultipleCandidates(matches, consumerAttributes);
         if (matches.size() < 2) {
             return zeroOrSingleVariant(matches);
         }

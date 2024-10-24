@@ -20,7 +20,6 @@ import org.gradle.api.attributes.plugin.GradlePluginApiVersion
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema
 import org.gradle.api.internal.attributes.matching.AttributeMatcher
-import org.gradle.internal.component.model.AttributeMatchingExplanationBuilder
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.TestUtil
 import spock.lang.Specification
@@ -29,7 +28,6 @@ class GradlePluginVariantsSupportTest extends Specification {
 
     def attributes = AttributeTestUtil.attributesFactory()
     def objects = TestUtil.objectFactory()
-    def ep = Stub(AttributeMatchingExplanationBuilder)
     def matcher = newMatcher()
 
     static AttributeMatcher newMatcher() {
@@ -48,7 +46,7 @@ class GradlePluginVariantsSupportTest extends Specification {
         def producer = versionAttribute('7.0')
 
         then:
-        accepts == (matcher.matchMultipleCandidates([producer], consumer, ep) == [producer])
+        accepts == (matcher.matchMultipleCandidates([producer], consumer) == [producer])
         accepts == matcher.isMatchingCandidate(producer, consumer)
 
         where:
@@ -77,7 +75,7 @@ class GradlePluginVariantsSupportTest extends Specification {
         ]
 
         then:
-        matcher.matchMultipleCandidates(producer, consumer, ep) == [versionAttribute('7.0')]
+        matcher.matchMultipleCandidates(producer, consumer) == [versionAttribute('7.0')]
 
     }
 
@@ -95,7 +93,7 @@ class GradlePluginVariantsSupportTest extends Specification {
         ]
 
         then:
-        matcher.matchMultipleCandidates(producer, consumer, ep) == [versionAttribute('7.1')]
+        matcher.matchMultipleCandidates(producer, consumer) == [versionAttribute('7.1')]
     }
 
     def "fails to select one candidate if there is no clear preference"() {
@@ -110,7 +108,7 @@ class GradlePluginVariantsSupportTest extends Specification {
         ]
 
         then:
-        matcher.matchMultipleCandidates(producer, consumer, ep) == [versionAttribute('7.1'), versionAttribute('7.1')]
+        matcher.matchMultipleCandidates(producer, consumer) == [versionAttribute('7.1'), versionAttribute('7.1')]
     }
 
     private ImmutableAttributes versionAttribute(String version) {
