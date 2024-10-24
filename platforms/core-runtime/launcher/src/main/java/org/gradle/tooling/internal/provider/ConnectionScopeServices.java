@@ -28,11 +28,10 @@ import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.launcher.cli.converter.BuildLayoutConverter;
 import org.gradle.launcher.daemon.client.DaemonClientFactory;
 import org.gradle.launcher.daemon.client.DaemonClientGlobalServices;
 import org.gradle.launcher.daemon.client.DaemonStopClientExecuter;
-import org.gradle.launcher.daemon.configuration.DaemonParameters;
+import org.gradle.launcher.daemon.client.NotifyDaemonClientExecuter;
 import org.gradle.launcher.exec.BuildExecutor;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.provider.serialization.ClassLoaderCache;
@@ -64,7 +63,12 @@ public class ConnectionScopeServices implements ServiceRegistrationProvider {
 
     @Provides
     DaemonStopClientExecuter createDaemonStopClientFactory(DaemonClientFactory daemonClientFactory, FileCollectionFactory fileCollectionFactory) {
-        return new DaemonStopClientExecuter(loggingServices, daemonClientFactory, new DaemonParameters(new BuildLayoutConverter().defaultValues(), fileCollectionFactory));
+        return new DaemonStopClientExecuter(loggingServices, daemonClientFactory);
+    }
+
+    @Provides
+    NotifyDaemonClientExecuter createNotifyDaemonClientExecuter(DaemonClientFactory daemonClientFactory, FileCollectionFactory fileCollectionFactory) {
+        return new NotifyDaemonClientExecuter(loggingServices, daemonClientFactory);
     }
 
     @Provides
@@ -76,8 +80,8 @@ public class ConnectionScopeServices implements ServiceRegistrationProvider {
         FileCollectionFactory fileCollectionFactory,
         GlobalUserInputReceiver userInput,
         UserInputReader userInputReader,
-        // This is here to trigger creation of the ShutdownCoordinator. Could do this in a nicer way
-        ShutdownCoordinator shutdownCoordinator) {
+        ShutdownCoordinator shutdownCoordinator,
+        NotifyDaemonClientExecuter notifyDaemonClientExecuter) {
         ClassLoaderCache classLoaderCache = new ClassLoaderCache();
         return new ProviderConnection(
                 serviceRegistry,
@@ -95,7 +99,9 @@ public class ConnectionScopeServices implements ServiceRegistrationProvider {
                                 classLoaderCache))),
             fileCollectionFactory,
             userInput,
-            userInputReader
+            userInputReader,
+            shutdownCoordinator,
+            notifyDaemonClientExecuter
         );
     }
 

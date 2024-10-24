@@ -239,13 +239,13 @@ public class DefaultConnection implements ConnectionVersion4,
 
     @Override
     public void notifyDaemonsAboutChangedPaths(List<String> changedPaths, BuildParameters operationParameters) {
-        ProviderOperationParameters providerParameters = validateAndConvert(operationParameters);
-        connection.notifyDaemonsAboutChangedPaths(changedPaths, providerParameters);
+        ProviderOperationParameters parameters = validateAndConvert(operationParameters);
+        connection.notifyDaemonsAboutChangedPaths(changedPaths, parameters);
     }
 
     @Override
     public void stopWhenIdle(BuildParameters operationParameters) {
-        ProviderOperationParameters providerParameters = validateAndConvert(operationParameters);
-        connection.stopWhenIdle(providerParameters);
+        ProviderOperationParameters parameters = validateAndConvert(operationParameters);
+        connection.stopWhenIdle(parameters);
     }
 }

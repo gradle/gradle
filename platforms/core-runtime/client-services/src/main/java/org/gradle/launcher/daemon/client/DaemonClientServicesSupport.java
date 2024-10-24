@@ -15,7 +15,6 @@
  */
 package org.gradle.launcher.daemon.client;
 
-import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.UnscopedCacheBuilderFactory;
@@ -84,7 +83,6 @@ public abstract class DaemonClientServicesSupport implements ServiceRegistration
         return buildStandardInput;
     }
 
-
     @Provides
     CacheFactory createCacheFactory(FileLockManager fileLockManager, ExecutorFactory executorFactory) {
         return new DefaultCacheFactory(fileLockManager, executorFactory);
@@ -123,21 +121,6 @@ public abstract class DaemonClientServicesSupport implements ServiceRegistration
     @Provides
     JvmVersionDetector createJvmVersionDetector(JvmMetadataDetector detector) {
         return new DefaultJvmVersionDetector(detector);
-    }
-
-    @Provides
-    DaemonStopClient createDaemonStopClient(DaemonConnector connector, IdGenerator<UUID> idGenerator) {
-        return new DaemonStopClient(connector, idGenerator);
-    }
-
-    @Provides
-    NotifyDaemonAboutChangedPathsClient createNotifyDaemonAboutChangedPathsClient(DaemonConnector connector, IdGenerator<UUID> idGenerator, DaemonRegistry daemonRegistry) {
-        return new NotifyDaemonAboutChangedPathsClient(connector, idGenerator, daemonRegistry);
-    }
-
-    @Provides
-    ReportDaemonStatusClient createReportDaemonStatusClient(DaemonRegistry registry, DaemonConnector connector, IdGenerator<UUID> idGenerator, DocumentationRegistry documentationRegistry) {
-        return new ReportDaemonStatusClient(registry, connector, idGenerator, documentationRegistry);
     }
 
     @Provides

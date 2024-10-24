@@ -50,7 +50,7 @@ import org.gradle.launcher.configuration.BuildLayoutResult;
 import org.gradle.launcher.configuration.InitialProperties;
 import org.gradle.launcher.daemon.client.DaemonClient;
 import org.gradle.launcher.daemon.client.DaemonClientFactory;
-import org.gradle.launcher.daemon.client.NotifyDaemonAboutChangedPathsClient;
+import org.gradle.launcher.daemon.client.NotifyDaemonClientExecuter;
 import org.gradle.launcher.daemon.configuration.DaemonBuildOptions;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.context.DaemonRequestContext;
@@ -112,6 +112,8 @@ public class ProviderConnection {
     private final FileCollectionFactory fileCollectionFactory;
     private final GlobalUserInputReceiver userInputReceiver;
     private final UserInputReader userInputReader;
+    private final ShutdownCoordinator shutdownCoordinator;
+    private final NotifyDaemonClientExecuter notifyDaemonClientExecuter;
 
     private GradleVersion consumerVersion;
 
@@ -123,7 +125,9 @@ public class ProviderConnection {
         PayloadSerializer payloadSerializer,
         FileCollectionFactory fileCollectionFactory,
         GlobalUserInputReceiver userInputReceiver,
-        UserInputReader userInputReader
+        UserInputReader userInputReader,
+        ShutdownCoordinator shutdownCoordinator,
+        NotifyDaemonClientExecuter notifyDaemonClientExecuter
     ) {
         this.buildLayoutFactory = buildLayoutFactory;
         this.daemonClientFactory = daemonClientFactory;
@@ -133,6 +137,8 @@ public class ProviderConnection {
         this.fileCollectionFactory = fileCollectionFactory;
         this.userInputReceiver = userInputReceiver;
         this.userInputReader = userInputReader;
+        this.shutdownCoordinator = shutdownCoordinator;
+        this.notifyDaemonClientExecuter = notifyDaemonClientExecuter;
     }
 
     public void configure(ProviderConnectionParameters parameters, GradleVersion consumerVersion) {
@@ -235,18 +241,13 @@ public class ProviderConnection {
     }
 
     public void notifyDaemonsAboutChangedPaths(List<String> changedPaths, ProviderOperationParameters providerParameters) {
-        ServiceRegistry requestSpecificLoggingServices = LoggingServiceRegistry.newNestedLogging();
         Parameters params = initParams(providerParameters);
-        ServiceRegistry clientServices = daemonClientFactory.createMessageDaemonServices(requestSpecificLoggingServices, params.daemonParams);
-        NotifyDaemonAboutChangedPathsClient client = clientServices.get(NotifyDaemonAboutChangedPathsClient.class);
-        client.notifyDaemonsAboutChangedPaths(changedPaths);
+        notifyDaemonClientExecuter.execute(params.daemonParams.getBaseDir(), client -> client.notifyDaemonsAboutChangedPaths(changedPaths));
     }
 
     public void stopWhenIdle(ProviderOperationParameters providerParameters) {
-        ServiceRegistry requestSpecificLoggingServices = LoggingServiceRegistry.newNestedLogging();
         Parameters params = initParams(providerParameters);
-        ServiceRegistry clientServices = daemonClientFactory.createMessageDaemonServices(requestSpecificLoggingServices, params.daemonParams);
-        ((ShutdownCoordinator) clientServices.find(ShutdownCoordinator.class)).stop();
+        shutdownCoordinator.stopStartedDaemons(params.daemonParams.getBaseDir());
     }
 
     private Object run(
@@ -337,7 +338,7 @@ public class ProviderConnection {
 
         AllProperties properties = new LayoutToPropertiesConverter(buildLayoutFactory).convert(initialProperties, buildLayoutResult);
 
-        DaemonParameters daemonParams = new DaemonParameters(buildLayoutResult, fileCollectionFactory);
+        DaemonParameters daemonParams = new DaemonParameters(buildLayoutResult.getGradleUserHomeDir(), fileCollectionFactory);
         new DaemonBuildOptions().propertiesConverter().convert(properties.getProperties(), daemonParams);
         if (operationParameters.getDaemonBaseDir() != null) {
             daemonParams.setBaseDir(operationParameters.getDaemonBaseDir());

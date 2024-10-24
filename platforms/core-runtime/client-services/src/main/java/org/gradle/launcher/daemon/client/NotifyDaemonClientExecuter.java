@@ -25,25 +25,22 @@ import org.gradle.internal.service.scopes.ServiceScope;
 import java.io.File;
 import java.util.function.Consumer;
 
-/**
- * Stops the associated DaemonStopClient services
- */
 @NonNullApi
 @ServiceScope(Scope.Global.class)
-public class DaemonStopClientExecuter {
+public class NotifyDaemonClientExecuter {
 
     private final ServiceRegistry loggingServices;
     private final DaemonClientFactory daemonClientFactory;
 
-    public DaemonStopClientExecuter(ServiceRegistry loggingServices, DaemonClientFactory daemonClientFactory) {
+    public NotifyDaemonClientExecuter(ServiceRegistry loggingServices, DaemonClientFactory daemonClientFactory) {
         this.loggingServices = loggingServices;
         this.daemonClientFactory = daemonClientFactory;
     }
 
-    public void execute(File daemonBaseDir, Consumer<DaemonStopClient> action) {
+    public void execute(File daemonBaseDir, Consumer<NotifyDaemonAboutChangedPathsClient> action) {
         ServiceRegistry clientServices = daemonClientFactory.createMessageDaemonServices(loggingServices, daemonBaseDir);
         try {
-            DaemonStopClient daemonStopClient = clientServices.get(DaemonStopClient.class);
+            NotifyDaemonAboutChangedPathsClient daemonStopClient = clientServices.get(NotifyDaemonAboutChangedPathsClient.class);
             action.accept(daemonStopClient);
         } finally {
             CompositeStoppable.stoppable(clientServices).stop();
