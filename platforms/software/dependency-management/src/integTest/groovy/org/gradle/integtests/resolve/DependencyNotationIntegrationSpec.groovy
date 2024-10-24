@@ -83,6 +83,7 @@ task checkDeps {
         succeeds 'checkDeps'
     }
 
+    @ToBeFixedForConfigurationCache(because = "Task uses the Configuration API")
     def "understands project notations"() {
         when:
         createDirs("otherProject")
@@ -106,16 +107,14 @@ dependencies {
 }
 
 task checkDeps {
-    def rootOne = configurations.conf.incoming.resolutionResult.rootComponent
-    def rootTwo = configurations.confTwo.incoming.resolutionResult.rootComponent
     doLast {
-        def depsOne = rootOne.get().dependencies*.requested
-        assert depsOne.size() == 1
-        assert depsOne.find { it.projectPath == ':otherProject' }
+        def deps = configurations.conf.incoming.dependencies
+        assert deps.size() == 1
+        assert deps.find { it.path == ':otherProject' && it.targetConfiguration == null }
 
-        def depsTwo = rootTwo.get().dependencies*.requested
-        assert depsTwo.size() == 1
-        assert depsTwo.find { it.projectPath == ':otherProject' }
+        deps = configurations.confTwo.incoming.dependencies
+        assert deps.size() == 1
+        assert deps.find { it.path == ':otherProject' && it.targetConfiguration == 'otherConf' }
     }
 }
 """

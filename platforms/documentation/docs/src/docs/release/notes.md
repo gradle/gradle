@@ -238,6 +238,9 @@ dependencies {
 }
 ```
 
+#### Introduced Isolated Projects safe project path accessor on `ProjectDependency`
+This release introduces `ProjectDependency#getPath()` for accessing the identity of the target of a project dependency.
+
 <a name="native-toolchains"></a>
 ### Native toolchains support
 

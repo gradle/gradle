@@ -96,15 +96,7 @@ abstract class DependencyCollectorDslIntegrationTest extends AbstractIntegration
     }
 
     def setup() {
-        file("subproject/build.gradle") << """
-            configurations {
-                consumable("default") {
-                    outgoing {
-                        artifact(file("subproject.jar"))
-                    }
-                }
-            }
-        """
+        createDirs("subproject")
         settingsFile("""
             include "subproject"
 
@@ -256,32 +248,17 @@ abstract class DependencyCollectorDslIntegrationTest extends AbstractIntegration
 
         var dep = testingCollectorConf.dependencies.iterator().next()
         assert(dep ${instanceOf(dsl)} ProjectDependency)
-
-        configurations.consumable("default") {
-            outgoing {
-                artifact(file("${PROJECT_NAME}.jar"))
-            }
-        }
-
-        configurations.resolvable("res")
-        configurations["res"].fromDependencyCollector(dependencies.testingCollector)
-
-        tasks.register("resolve") {
-            var files = configurations["res"].incoming.files
-            doLast {
-                assert(files.singleFile.name == "${expectedProjectFile}")
-            }
-        }
+        assert(${cast("dep", "ProjectDependency", dsl)}.path == ${expectedProjectExpression}.path)
         """
 
         expect:
-        succeeds("resolve")
+        succeeds("help")
 
         where:
-        expression              | expectedProjectFile
-        project()               | "${PROJECT_NAME}.jar"
-        project(":subproject")  | "subproject.jar"
-        testFixtures(project()) | "${PROJECT_NAME}.jar"
+        expression              | expectedProjectExpression
+        project()               | "project"
+        project(":subproject")  | "project.project(\":subproject\")"
+        testFixtures(project()) | "project"
     }
 
     def "bundles add dependencies that show up in related configuration"() {

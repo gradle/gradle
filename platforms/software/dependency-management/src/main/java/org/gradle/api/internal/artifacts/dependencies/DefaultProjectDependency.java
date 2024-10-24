@@ -69,6 +69,11 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
     }
 
     @Override
+    public String getPath() {
+        return dependencyProject.getPath();
+    }
+
+    @Override
     @Deprecated
     public Project getDependencyProject() {
         DeprecationLogger.deprecateMethod(ProjectDependency.class, "getDependencyProject()")

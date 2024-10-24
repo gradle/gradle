@@ -163,6 +163,20 @@ The link:{javadocPath}/org/gradle/api/artifacts/ProjectDependency.html#getDepend
 
 Accessing the mutable project instance of other projects should be avoided.
 
+In many cases, details about a project dependency are exposed by a link:{javadocPath}/org/gradle/api/artifacts/result/DependencyResult.html[DependencyResult], which can be obtained via a link:{javadocPath}/org/gradle/api/artifacts/result/ResolutionResult.html[ResolutionResult].
+See the user guide section on <<programmatic_dependency_resolution#sec:graph_resolution,programmatic dependency resolution>> for more details on this API.
+
+In other cases, where only the identity of the target project is necessary, use the new Isolated Projects safe project path method: link:{javadocPath}/org/gradle/api/artifacts/ProjectDependency.html#getPath()[`ProjectDependency#getPath()`]
+
+If accessing the target project is absolutely necessary, consider this direct replacement:
+Note, this approach will not fetch project instances from a different build.
+[source,kotlin]
+----
+val projectDependency: ProjectDependency = getSomeProjectDependency()
+val deprecated = projectDependency.dependencyProject
+val replacement = project.project(projectDependency.path)
+----
+
 [[deprecate_legacy_configuration_get_files]]
 ==== Deprecated `ResolvedConfiguration.getFiles()` and `LenientConfiguration.getFiles()`
 
