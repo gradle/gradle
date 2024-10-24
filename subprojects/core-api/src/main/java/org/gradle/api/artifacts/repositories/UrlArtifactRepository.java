@@ -16,7 +16,9 @@
 
 package org.gradle.api.artifacts.repositories;
 
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.api.internal.provider.ProviderApiDeprecationLogger;
+import org.gradle.api.provider.Property;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 
 import java.net.URI;
 
@@ -29,18 +31,9 @@ public interface UrlArtifactRepository {
 
     /**
      * The base URL of this repository.
-     *
-     * @return The URL.
      */
-    @ToBeReplacedByLazyProperty
-    URI getUrl();
-
-    /**
-     * Sets the base URL of this repository.
-     *
-     * @param url The base URL.
-     */
-    void setUrl(URI url);
+    @ReplacesEagerProperty
+    Property<URI> getUrl();
 
     /**
      * Sets the base URL of this repository.
@@ -64,13 +57,15 @@ public interface UrlArtifactRepository {
      * See also:
      * <a href="https://medium.com/bugbountywriteup/want-to-take-over-the-java-ecosystem-all-you-need-is-a-mitm-1fc329d898fb">Want to take over the Java ecosystem? All you need is a MITM!</a>
      */
-    @ToBeReplacedByLazyProperty
-    boolean isAllowInsecureProtocol();
+    @ReplacesEagerProperty(originalType = boolean.class)
+    Property<Boolean> getAllowInsecureProtocol();
 
     /**
-     * Specifies whether it is acceptable to communicate with a repository over an insecure HTTP connection.
-     *
-     * @see #isAllowInsecureProtocol()
+     * Added for Kotlin source compatibility.
      */
-    void setAllowInsecureProtocol(boolean allowInsecureProtocol);
+    @Deprecated
+    default Property<Boolean> getIsAllowInsecureProtocol() {
+        ProviderApiDeprecationLogger.logDeprecation(UrlArtifactRepository.class, "getIsAllowInsecureProtocol()", "getAllowInsecureProtocol()");
+        return getAllowInsecureProtocol();
+    }
 }
