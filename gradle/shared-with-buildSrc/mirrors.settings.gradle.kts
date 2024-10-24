@@ -55,10 +55,10 @@ class Helper(private val providers: ProviderFactory) {
             if (this is MavenArtifactRepository) {
                 originalUrls.forEach { name, originalUrl ->
                     // TODO: Remove after Gradle 9.0
-                    val anyUrl: Any = this.url
-                    @Suppress("UNCHECKED_CAST")
+                    @Suppress("CAST_NEVER_SUCCEEDS", "USELESS_CAST")
+                    val anyUrl = this.url as Any
                     val oldUrl = when (anyUrl) {
-                        is Property<*> -> (anyUrl as Property<URI>).get()
+                        is Property<*> -> (anyUrl as Property<*>).get() as URI
                         else -> anyUrl as URI
                     }
                     if (normalizeUrl(originalUrl) == normalizeUrl(oldUrl.toString()) && mirrorUrls.containsKey(name)) {
