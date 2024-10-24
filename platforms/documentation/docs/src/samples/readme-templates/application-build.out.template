@@ -1,3 +1,4 @@
+Calculating task graph as no cached configuration is available for tasks: build
 ${extraKotlinCheckTask.raw}${extraCompileJava.raw}> Task :${subprojectName.raw}:compile${language.raw}
 > Task :${subprojectName.raw}:processResources NO-SOURCE
 > Task :${subprojectName.raw}:classes${classesUpToDate.raw}
@@ -15,3 +16,4 @@ ${extraCompileTestJava.raw}> Task :${subprojectName.raw}:compileTest${language.r
 
 BUILD SUCCESSFUL in 0s
 ${tasksExecuted.raw} actionable tasks: ${tasksExecuted.raw} executed
+Configuration cache entry stored.

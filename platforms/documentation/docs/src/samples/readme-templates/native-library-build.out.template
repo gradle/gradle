@@ -1,3 +1,4 @@
+Calculating task graph as no cached configuration is available for tasks: build
 > Task :${subprojectName.raw}:compileDebug${language.raw}
 > Task :${subprojectName.raw}:linkDebug
 > Task :${subprojectName.raw}:assemble
@@ -11,3 +12,4 @@
 
 BUILD SUCCESSFUL in 0s
 6 actionable tasks: 6 executed
+Configuration cache entry stored.
