@@ -21,11 +21,10 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantSet;
 import org.gradle.api.internal.attributes.AttributeSchemaServices;
-import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.AttributesFactory;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.api.internal.attributes.matching.AttributeMatcher;
-import org.gradle.internal.component.model.AttributeMatchingExplanationBuilder;
 import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler;
 
 import java.util.ArrayList;
@@ -84,7 +83,7 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
         ImmutableAttributes componentRequested = attributesFactory.concat(requestAttributes, producer.getOverriddenAttributes());
         final List<ResolvedVariant> variants = producer.getCandidates();
 
-        List<? extends ResolvedVariant> matches = matcher.matchMultipleCandidates(variants, componentRequested, AttributeMatchingExplanationBuilder.logging());
+        List<? extends ResolvedVariant> matches = matcher.matchMultipleCandidates(variants, componentRequested);
         if (matches.size() == 1) {
             return matches.get(0).getArtifacts();
         } else if (matches.size() > 1) {
@@ -96,7 +95,7 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
 
         // If there are multiple potential artifact transform variants, perform attribute matching to attempt to find the best.
         if (transformedVariants.size() > 1) {
-            transformedVariants = tryDisambiguate(matcher, transformedVariants, componentRequested, AttributeMatchingExplanationBuilder.logging());
+            transformedVariants = tryDisambiguate(matcher, transformedVariants, componentRequested);
         }
 
         if (transformedVariants.size() == 1) {
@@ -130,10 +129,9 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
     private static List<TransformedVariant> tryDisambiguate(
         AttributeMatcher matcher,
         List<TransformedVariant> candidates,
-        ImmutableAttributes componentRequested,
-        AttributeMatchingExplanationBuilder explanationBuilder
+        ImmutableAttributes componentRequested
     ) {
-        List<TransformedVariant> matches = matcher.matchMultipleCandidates(candidates, componentRequested, explanationBuilder);
+        List<TransformedVariant> matches = matcher.matchMultipleCandidates(candidates, componentRequested);
         if (matches.size() == 1) {
             return matches;
         }

@@ -133,7 +133,8 @@ class DependencyGraphBuilderTest extends Specification {
             Mock(DependencyMetadataFactory),
             new DefaultExcludeRuleConverter(new DefaultImmutableModuleIdentifierFactory())
         ),
-        TestUtil.calculatedValueContainerFactory()
+        TestUtil.calculatedValueContainerFactory(),
+        TestUtil.loadingCacheFactory()
     )
 
     def variantSelector = new GraphVariantSelector(AttributeTestUtil.services(), DependencyManagementTestUtil.newFailureHandler())

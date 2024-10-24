@@ -16,22 +16,24 @@
 
 package org.gradle.internal.model;
 
-import java.util.Map;
-import java.util.function.Function;
-
 /**
- * A cache backed by calculated values. This map is thread-safe.
+ * A cache that loads values on demand as they are requested.
  */
-public interface CalculatedValueCache<K, V> {
+public interface LoadingCache<K, V> {
 
     /**
-     * @see Map#computeIfAbsent(Object, Function)
+     * Get the value corresponding to the given key, loading the value
+     * on demand if it is not already present in the cache.
+     *
+     * @param key The key to look up.
+     *
+     * @return The value corresponding to the key.
      */
-    V computeIfAbsent(K key, Function<K, V> factory);
+    V get(K key);
 
     /**
-     * @see Map#clear()
+     * Invalidates the cache, releasing all resources associated with it.
      */
-    void clear();
+    void invalidate();
 
 }
