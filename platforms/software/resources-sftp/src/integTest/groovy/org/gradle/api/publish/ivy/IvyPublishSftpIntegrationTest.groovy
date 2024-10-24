@@ -48,7 +48,7 @@ class IvyPublishSftpIntegrationTest extends AbstractIvyPublishIntegTest {
             publishing {
                 repositories {
                     ivy {
-                        url "${ivySftpRepo.uri}"
+                        url = uri("${ivySftpRepo.uri}")
                         credentials(PasswordCredentials)
                     }
                 }
@@ -78,7 +78,7 @@ class IvyPublishSftpIntegrationTest extends AbstractIvyPublishIntegTest {
             publishing {
                 repositories {
                     ivy {
-                        url "${ivySftpRepo.uri}"
+                        url = uri("${ivySftpRepo.uri}")
                         credentials(PasswordCredentials)
                         layout "$layout"
                     }
@@ -147,7 +147,7 @@ class IvyPublishSftpIntegrationTest extends AbstractIvyPublishIntegTest {
             publishing {
                 repositories {
                     ivy {
-                        url "${ivySftpRepo.uri}"
+                        url = uri("${ivySftpRepo.uri}")
                         credentials(PasswordCredentials)
                         patternLayout {
                             artifact "${ivySftpRepo.baseArtifactPattern}"

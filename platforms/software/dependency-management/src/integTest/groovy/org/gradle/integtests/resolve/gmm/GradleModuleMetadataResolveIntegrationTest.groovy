@@ -87,7 +87,7 @@ class GradleModuleMetadataResolveIntegrationTest extends AbstractIntegrationSpec
 
             repositories {
                 maven {
-                    url "${mavenRepo.uri}"
+                    url = uri("${mavenRepo.uri}")
                     metadataSources {
                         gradleMetadata()
                     }

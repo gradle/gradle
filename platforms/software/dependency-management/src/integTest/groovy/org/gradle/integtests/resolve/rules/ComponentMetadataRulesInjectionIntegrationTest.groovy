@@ -74,7 +74,7 @@ task resolve {
 
         buildFile << """
 repositories {
-    ivy { url "${ivyRepo.uri}" }
+    ivy { url = uri("${ivyRepo.uri}") }
 }
 
 configurations {

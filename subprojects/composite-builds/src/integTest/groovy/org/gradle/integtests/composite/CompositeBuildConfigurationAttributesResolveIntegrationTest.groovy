@@ -150,7 +150,7 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
             def flavor = Attribute.of('flavor', String)
             allprojects {
                 repositories {
-                    maven { url = '${mavenRepo.uri}' }
+                    maven { url = uri('${mavenRepo.uri}') }
                 }
                 dependencies {
                     attributesSchema {
@@ -265,7 +265,7 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
             def flavor = Attribute.of('flavor', String)
             allprojects {
                 repositories {
-                    ivy { url = '${ivyRepo.uri}' }
+                    ivy { url = uri('${ivyRepo.uri}') }
                 }
                 dependencies {
                     attributesSchema {
@@ -808,7 +808,7 @@ All of them match the consumer attributes:
         settingsFile.text = """
             pluginManagement {
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = uri("${mavenRepo.uri}") }
                 }
             }
             include 'a', 'b'
@@ -888,7 +888,7 @@ All of them match the consumer attributes:
         file('includedBuild/settings.gradle') << """
             pluginManagement {
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = uri("${mavenRepo.uri}") }
                 }
             }
             rootProject.name = 'external'
@@ -946,7 +946,7 @@ All of them match the consumer attributes:
             } """ : """
             buildscript {
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = uri("${mavenRepo.uri}") }
                 }
                 dependencies {
                     classpath 'com.acme.typed-attributes:com.acme.typed-attributes.gradle.plugin:$version'
@@ -991,7 +991,7 @@ All of them match the consumer attributes:
                 publishing {
                     repositories {
                         maven {
-                            url "${mavenRepo.uri}"
+                            url = uri("${mavenRepo.uri}")
                         }
                     }
                     publications {

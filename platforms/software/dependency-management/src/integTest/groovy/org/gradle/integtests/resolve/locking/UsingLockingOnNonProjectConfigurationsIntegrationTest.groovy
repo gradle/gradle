@@ -41,7 +41,7 @@ rootProject.name = 'foo'
 buildscript {
     repositories {
         maven {
-            url = '$mavenRepo.uri'
+            url = uri('$mavenRepo.uri')
         }
     }
     configurations.classpath {
@@ -77,7 +77,7 @@ rootProject.name = 'foo'
 buildscript {
     repositories {
         maven {
-            url = '$mavenRepo.uri'
+            url = uri('$mavenRepo.uri')
         }
     }
     dependencyLocking {
@@ -119,7 +119,7 @@ rootProject.name = 'foo'
 buildscript {
     repositories {
         maven {
-            url = '$mavenRepo.uri'
+            url = uri('$mavenRepo.uri')
         }
     }
     configurations.classpath {
@@ -135,7 +135,7 @@ buildscript {
 
 repositories {
     maven {
-        url = '$mavenRepo.uri'
+        url = uri('$mavenRepo.uri')
     }
 }
 
@@ -177,7 +177,7 @@ rootProject.name = 'foo'
 buildscript {
     repositories {
         maven {
-            url = '$mavenRepo.uri'
+            url = uri('$mavenRepo.uri')
         }
     }
     dependencyLocking {
@@ -206,7 +206,7 @@ buildscript {
 pluginManagement {
     repositories {
         maven {
-            url '$pluginRepo.uri'
+            url = uri('$pluginRepo.uri')
         }
     }
 }
@@ -216,7 +216,7 @@ rootProject.name = 'foo-plugin'
 buildscript {
     repositories {
         maven {
-            url = '$mavenRepo.uri'
+            url = uri('$mavenRepo.uri')
         }
     }
     configurations.classpath {
@@ -254,7 +254,7 @@ plugins {
 pluginManagement {
     repositories {
         maven {
-            url '$pluginRepo.uri'
+            url = uri('$pluginRepo.uri')
         }
     }
 }
@@ -264,7 +264,7 @@ rootProject.name = 'foo-plugin'
 buildscript {
     repositories {
         maven {
-            url = '$mavenRepo.uri'
+            url = uri('$mavenRepo.uri')
         }
     }
     configurations.classpath {
@@ -326,7 +326,7 @@ rootProject.name = 'foo'
 buildscript {
     repositories {
         maven {
-            url = '$mavenRepo.uri'
+            url = uri('$mavenRepo.uri')
         }
     }
     configurations.classpath {
@@ -338,7 +338,7 @@ buildscript {
 }
 repositories {
     maven {
-        url = '$mavenRepo.uri'
+        url = uri('$mavenRepo.uri')
     }
 }
 configurations {
@@ -369,7 +369,7 @@ dependencies {
 buildscript {
     repositories {
         maven {
-            url = '$mavenRepo.uri'
+            url = uri('$mavenRepo.uri')
         }
     }
 
@@ -387,7 +387,7 @@ rootProject.name = 'foo-bar-locking'
 buildscript {
     repositories {
         maven {
-            url = '$mavenRepo.uri'
+            url = uri('$mavenRepo.uri')
         }
     }
     configurations.classpath {
@@ -417,7 +417,7 @@ buildscript {
         settingsFile.text = """
             pluginManagement {
                 repositories {
-                    maven { url "$pluginRepo.uri" }
+                    maven { url = uri("$pluginRepo.uri") }
                 }
             }
             buildscript {

@@ -217,7 +217,7 @@ class JavaConfigurationSetupIntegrationTest extends AbstractIntegrationSpec {
                id('java-library')
             }
             repositories {
-                maven { url '$mavenRepo.uri' }
+                maven { url = uri('$mavenRepo.uri') }
             }
             dependencies {
                compileOnlyApi 'org:a:1.0'

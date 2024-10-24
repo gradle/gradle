@@ -50,7 +50,7 @@ import org.gradle.api.internal.artifacts.DefaultModuleIdentifier as DMI
 allprojects {
     apply plugin: 'java'
     repositories {
-       maven { url '${blockingServer.uri}/repo' }
+       maven { url = uri('${blockingServer.uri}/repo') }
     }
 
     dependencies {
@@ -103,7 +103,7 @@ project('resolve') {
             apply plugin: 'java'
             repositories {
                 maven {
-                    url '${mavenHttpRepo.uri}'
+                    url = uri("${mavenHttpRepo.uri}")
                     content {
                         onlyForAttribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.LIBRARY))
                     }

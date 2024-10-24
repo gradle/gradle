@@ -64,7 +64,7 @@ class TargetJVMVersionOnPluginTooNewFailureDescriberIntegrationTest extends Abst
             }
             publishing {
                 repositories {
-                    maven { url = '${mavenRepo.uri}' }
+                    maven { url = uri('${mavenRepo.uri}') }
                 }
             }
         """
@@ -73,7 +73,7 @@ class TargetJVMVersionOnPluginTooNewFailureDescriberIntegrationTest extends Abst
         consumer.file('settings.gradle') << """
             pluginManagement {
                 repositories {
-                    maven { url = '${mavenRepo.uri}' }
+                    maven { url = uri('${mavenRepo.uri}') }
                 }
             }
         """
@@ -148,7 +148,7 @@ class TargetJVMVersionOnPluginTooNewFailureDescriberIntegrationTest extends Abst
             }
             publishing {
                 repositories {
-                    maven { url = '${mavenRepo.uri}' }
+                    maven { url = uri('${mavenRepo.uri}') }
                 }
             }
         """
@@ -157,7 +157,7 @@ class TargetJVMVersionOnPluginTooNewFailureDescriberIntegrationTest extends Abst
         consumer.file('settings.gradle') << """
             pluginManagement {
                 repositories {
-                    maven { url = '${mavenRepo.uri}' }
+                    maven { url = uri('${mavenRepo.uri}') }
                 }
             }
         """
@@ -224,7 +224,7 @@ class TargetJVMVersionOnPluginTooNewFailureDescriberIntegrationTest extends Abst
             }
             publishing {
                 repositories {
-                    maven { url = '${mavenRepo.uri}' }
+                    maven { url = uri('${mavenRepo.uri}') }
                 }
             }
         """
@@ -236,7 +236,7 @@ class TargetJVMVersionOnPluginTooNewFailureDescriberIntegrationTest extends Abst
             pluginManagement {
                 includeBuild '../producer'
                 repositories {
-                    maven { url = '${mavenRepo.uri}' }
+                    maven { url = uri('${mavenRepo.uri}') }
                 }
             }
         """

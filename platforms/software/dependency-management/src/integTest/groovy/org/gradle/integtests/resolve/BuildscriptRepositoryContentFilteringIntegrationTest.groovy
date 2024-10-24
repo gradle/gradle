@@ -27,13 +27,13 @@ class BuildscriptRepositoryContentFilteringIntegrationTest extends AbstractHttpD
         def repositories = """
     repositories {
         maven {
-            url "${mavenHttpRepo.uri}"
+            url = uri("${mavenHttpRepo.uri}")
             content {
                 $notation
             }
         }
         ivy {
-            url "${ivyHttpRepo.uri}"
+            url = uri("${ivyHttpRepo.uri}")
         }
     }
 """
@@ -85,12 +85,12 @@ plugins {
 pluginManagement {
     repositories {
         ivy {
-            url "irrelevant"
+            url = uri("irrelevant")
         }
         exclusiveContent {
             forRepository {
                 maven {
-                    url "whatever"
+                    url = uri("whatever")
                 }
             }
             filter {
@@ -107,7 +107,7 @@ rootProject.name = 'test-exclusive'
 buildscript {
     repositories {
         maven {
-            url 'another'
+            url = uri('another')
         }
     }
 }
@@ -131,11 +131,11 @@ plugins {
         def repositories = """
     repositories {
         maven {
-            url "${mavenHttpRepo.uri}"
+            url = uri("${mavenHttpRepo.uri}")
             mavenContent { releasesOnly() }
         }
         ivy {
-            url "${ivyHttpRepo.uri}"
+            url = uri("${ivyHttpRepo.uri}")
         }
     }
 """
@@ -189,11 +189,11 @@ plugins {
         def repositories = """
     repositories {
         maven {
-            url "${mavenHttpRepo.uri}"
+            url = uri("${mavenHttpRepo.uri}")
             mavenContent { snapshotsOnly() }
         }
         ivy {
-            url "${ivyHttpRepo.uri}"
+            url = uri("${ivyHttpRepo.uri}")
         }
     }
 """

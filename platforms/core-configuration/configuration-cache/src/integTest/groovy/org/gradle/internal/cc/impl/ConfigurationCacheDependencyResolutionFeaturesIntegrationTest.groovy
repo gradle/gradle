@@ -232,7 +232,7 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
     private static String repositoriesBlockFor(List<RepoFixture> fixtures) {
         """
             repositories {
-                ${fixtures.collect { "maven { url = '${it.uri}' }" }.join('\n')}
+                ${fixtures.collect { "maven { url = uri('${it.uri}') }" }.join('\n')}
             }
         """
     }
@@ -255,7 +255,7 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
                 implementation
             }
 
-            repositories { maven { url = '${remoteRepo.uri}' } }
+            repositories { maven { url = uri('${remoteRepo.uri}') } }
 
             dependencies {
                 implementation('thing:lib:1.3') {
@@ -318,7 +318,7 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
                 }
             }
 
-            repositories { maven { url = '${remoteRepo.uri}' } }
+            repositories { maven { url = uri('${remoteRepo.uri}') } }
 
             dependencies {
                 implementation('thing:lib:1.3') {
@@ -640,7 +640,7 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
                 }
             }
 
-            repositories { maven { url = '${remoteRepo.uri}' } }
+            repositories { maven { url = uri('${remoteRepo.uri}') } }
 
             dependencies {
                 implementation 'thing:lib:1.+'
@@ -722,7 +722,7 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
                 implementation
             }
 
-            repositories { maven { url = '${remoteRepo.uri}' } }
+            repositories { maven { url = uri('${remoteRepo.uri}') } }
 
             dependencies {
                 implementation 'thing:lib:1.3'
@@ -852,7 +852,7 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
                 buildFile << """
                     repositories {
                         maven {
-                            url = '${mavenRepo.uri}'
+                            url = uri('${mavenRepo.uri}')
                         }
                     }
                 """
@@ -934,7 +934,7 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
                 buildFile << """
                     repositories {
                         ivy {
-                            url = '${ivyRepo.uri}'
+                            url = uri('${ivyRepo.uri}')
                         }
                     }
                 """

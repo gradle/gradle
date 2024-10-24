@@ -53,7 +53,7 @@ public interface PublishingExtension {
      *     // Create an ivy publication destination named “releases”
      *     ivy {
      *       name "releases"
-     *       url "http://my.org/ivy-repos/releases"
+     *       url = uri("http://my.org/ivy-repos/releases")
      *     }
      *   }
      * }

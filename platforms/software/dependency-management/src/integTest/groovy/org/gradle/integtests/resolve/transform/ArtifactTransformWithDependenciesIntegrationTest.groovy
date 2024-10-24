@@ -60,7 +60,7 @@ class ArtifactTransformWithDependenciesIntegrationTest extends AbstractHttpDepen
 allprojects {
     repositories {
         maven {
-            url = '${mavenHttpRepo.uri}'
+            url = uri('${mavenHttpRepo.uri}')
             metadataSources { gradleMetadata() }
         }
     }
@@ -175,7 +175,7 @@ allprojects {
             allprojects {
                 repositories {
                     maven {
-                        url = '${mavenHttpRepo.uri}'
+                        url = uri('${mavenHttpRepo.uri}')
                         metadataSources { gradleMetadata() }
                     }
                 }
@@ -369,7 +369,7 @@ project(':common') {
         buildFile << """
             allprojects {
                 repositories {
-                    maven { url = '${mavenHttpRepo.uri}' }
+                    maven { url = uri('${mavenHttpRepo.uri}') }
                 }
                 configurations.outgoing.outgoing.variants {
                     additional {
@@ -478,7 +478,7 @@ project(':common') {
         buildFile << """
             allprojects {
                 repositories {
-                    maven { url = '${mavenHttpRepo.uri}' }
+                    maven { url = uri('${mavenHttpRepo.uri}') }
                 }
                 dependencies {
                     artifactTypes {
@@ -619,7 +619,7 @@ project(':common') {
         buildFile << """
             allprojects {
                 repositories {
-                    maven { url = '${mavenRepo.uri}' }
+                    maven { url = uri('${mavenRepo.uri}') }
                 }
             }
             project(':lib') {

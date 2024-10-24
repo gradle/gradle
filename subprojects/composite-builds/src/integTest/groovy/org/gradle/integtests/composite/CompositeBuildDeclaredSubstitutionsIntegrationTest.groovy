@@ -42,7 +42,7 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
                     version "2.0"
 
                     repositories {
-                        maven { url "${mavenRepo.uri}" }
+                        maven { url = uri("${mavenRepo.uri}") }
                     }
                 }
 """
@@ -141,7 +141,7 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
         dependency buildB, "org.test:XXX:1.0"
         buildC.buildFile.text = """
             buildscript {
-                repositories { maven { url = "${mavenRepo.uri}" } }
+                repositories { maven { url = uri("${mavenRepo.uri}") } }
                 dependencies { classpath "org.test:plugin:1.0" }
             }
         """ + buildC.buildFile.text

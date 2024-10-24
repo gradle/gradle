@@ -1248,7 +1248,7 @@ include(':platform')
         createBuildScripts("""
             publishing {
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = uri("${mavenRepo.uri}") }
                 }
                 publications {
                     maven(MavenPublication) {
@@ -1337,7 +1337,7 @@ include(':platform')
 
             publishing {
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = uri("${mavenRepo.uri}") }
                 }
             }
             group = 'org.gradle.test'

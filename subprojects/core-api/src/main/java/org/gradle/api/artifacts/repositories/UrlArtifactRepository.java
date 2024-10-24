@@ -16,7 +16,15 @@
 
 package org.gradle.api.artifacts.repositories;
 
+import org.gradle.api.file.FileSystemLocation;
+import org.gradle.api.provider.Property;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
+
+import java.io.File;
 import java.net.URI;
+import java.net.URL;
+import java.nio.file.Path;
 
 /**
  * A repository that supports resolving artifacts from a URL.
@@ -27,24 +35,76 @@ public interface UrlArtifactRepository {
 
     /**
      * The base URL of this repository.
-     *
-     * @return The URL.
      */
-    URI getUrl();
+    @ReplacesEagerProperty(replacedAccessors = {
+        @ReplacedAccessor(originalType = URI.class, value = ReplacedAccessor.AccessorType.GETTER, name = "getUrl"),
+    })
+    Property<URI> getUrl();
 
     /**
      * Sets the base URL of this repository.
      *
      * @param url The base URL.
+     * <p>The provided value is evaluated as per {@link org.gradle.api.Project#uri(Object)}. This means, for example, you can pass in a {@code File} object, or a relative path to be evaluated relative
+     * to the project directory.
+     * @deprecated Use {@link #getUrl()} instead.
      */
+    @Deprecated
+    void setUrl(CharSequence url);
+
+    /**
+     * Sets the base URL of this repository.
+     *
+     * @param url The base URL.
+     * <p>The provided value is evaluated as per {@link org.gradle.api.Project#uri(Object)}. This means, for example, you can pass in a {@code File} object, or a relative path to be evaluated relative
+     * to the project directory.
+     * @deprecated Use {@link #getUrl()} instead.
+     */
+    @Deprecated
+    void setUrl(File url);
+
+    /**
+     * Sets the base URL of this repository.
+     *
+     * @param url The base URL.
+     * <p>The provided value is evaluated as per {@link org.gradle.api.Project#uri(Object)}. This means, for example, you can pass in a {@code File} object, or a relative path to be evaluated relative
+     * to the project directory.
+     * @deprecated Use {@link #getUrl()} instead.
+     */
+    @Deprecated
+    void setUrl(FileSystemLocation url);
+
+    /**
+     * Sets the base URL of this repository.
+     *
+     * @param url The base URL.
+     * <p>The provided value is evaluated as per {@link org.gradle.api.Project#uri(Object)}. This means, for example, you can pass in a {@code File} object, or a relative path to be evaluated relative
+     * to the project directory.
+     * @deprecated Use {@link #getUrl()} instead.
+     */
+    @Deprecated
+    void setUrl(Path url);
+
+    /**
+     * Sets the base URL of this repository.
+     *
+     * @param url The base URL.
+     * <p>The provided value is evaluated as per {@link org.gradle.api.Project#uri(Object)}. This means, for example, you can pass in a {@code File} object, or a relative path to be evaluated relative
+     * to the project directory.
+     * @deprecated Use {@link #getUrl()} instead.
+     */
+    @Deprecated
+    void setUrl(URL url);
+    /**
+     * Sets the base URL of this repository.
+     *
+     * @param url The base URL.
+     * <p>The provided value is evaluated as per {@link org.gradle.api.Project#uri(Object)}. This means, for example, you can pass in a {@code File} object, or a relative path to be evaluated relative
+     * to the project directory.
+     * @deprecated Use {@link #getUrl()} instead.
+     */
+    @Deprecated
     void setUrl(URI url);
-
-    /**
-     * Sets the base URL of this repository.
-     *
-     * @param url The base URL.
-     */
-    void setUrl(Object url);
 
     /**
      * Specifies whether it is acceptable to communicate with a repository over an insecure HTTP connection.
@@ -61,12 +121,6 @@ public interface UrlArtifactRepository {
      * See also:
      * <a href="https://medium.com/bugbountywriteup/want-to-take-over-the-java-ecosystem-all-you-need-is-a-mitm-1fc329d898fb">Want to take over the Java ecosystem? All you need is a MITM!</a>
      */
-    boolean isAllowInsecureProtocol();
-
-    /**
-     * Specifies whether it is acceptable to communicate with a repository over an insecure HTTP connection.
-     *
-     * @see #isAllowInsecureProtocol()
-     */
-    void setAllowInsecureProtocol(boolean allowInsecureProtocol);
+    @ReplacesEagerProperty(originalType = boolean.class)
+    Property<Boolean> getAllowInsecureProtocol();
 }

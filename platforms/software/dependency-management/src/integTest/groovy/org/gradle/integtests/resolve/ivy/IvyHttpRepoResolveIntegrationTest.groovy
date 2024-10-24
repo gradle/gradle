@@ -51,7 +51,7 @@ class IvyHttpRepoResolveIntegrationTest extends AbstractIvyRemoteRepoResolveInte
         buildFile << """
             repositories {
                 ivy {
-                    url "${remoteIvyRepo.uri}"
+                    url = uri("${remoteIvyRepo.uri}")
                     credentials(AwsCredentials) {
                         accessKey "someKey"
                         secretKey "someSecret"
@@ -88,7 +88,7 @@ class IvyHttpRepoResolveIntegrationTest extends AbstractIvyRemoteRepoResolveInte
         buildFile << """
             repositories {
                 ivy {
-                    url "${server.remoteIvyRepo.uri}"
+                    url = uri("${server.remoteIvyRepo.uri}")
                     $server.validCredentials
                 }
             }
@@ -137,11 +137,11 @@ class IvyHttpRepoResolveIntegrationTest extends AbstractIvyRemoteRepoResolveInte
         buildFile << """
             repositories {
                 ivy {
-                    url "${repo1.uri}"
+                    url = uri("${repo1.uri}")
                     $server.validCredentials
                 }
                 ivy {
-                    url "${repo2.uri}"
+                    url = uri("${repo2.uri}")
                     $server.validCredentials
                 }
             }
@@ -189,7 +189,7 @@ class IvyHttpRepoResolveIntegrationTest extends AbstractIvyRemoteRepoResolveInte
         buildFile << """
             repositories {
                 ivy {
-                    url '${remoteIvyRepo.uri}'
+                    url = uri("${remoteIvyRepo.uri}")
                 }
             }
             configurations { compile }

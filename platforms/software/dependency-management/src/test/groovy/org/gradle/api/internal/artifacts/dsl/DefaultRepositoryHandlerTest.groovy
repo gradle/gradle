@@ -73,11 +73,10 @@ class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTes
         when:
         MavenArtifactRepository repository = Mock(TestMavenArtifactRepository) { getName() >> "name" }
         1 * repositoryFactory.createMavenCentralRepository() >> repository
-        1 * repository.setArtifactUrls(["abc"])
         repository.getName() >> "name"
 
         then:
-        handler.mavenCentral(artifactUrls: ["abc"]).is(repository)
+        handler.mavenCentral(url: "abc").is(repository)
     }
 
     def testMavenLocalWithNoArgs() {

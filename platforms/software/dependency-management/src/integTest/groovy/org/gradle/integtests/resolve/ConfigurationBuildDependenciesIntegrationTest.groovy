@@ -280,7 +280,7 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
         buildFile << """
             allprojects {
                 repositories {
-                    maven { url '$mavenHttpRepo.uri' }
+                    maven { url = uri('$mavenHttpRepo.uri') }
                 }
             }
 
@@ -318,7 +318,7 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
         buildFile << """
             allprojects {
                 repositories {
-                    maven { url '$mavenHttpRepo.uri' }
+                    maven { url = uri('$mavenHttpRepo.uri') }
                 }
             }
 
@@ -362,7 +362,7 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
         buildFile << """
             allprojects {
                 repositories {
-                    maven { url '$mavenHttpRepo.uri' }
+                    maven { url = uri('$mavenHttpRepo.uri') }
                 }
             }
 

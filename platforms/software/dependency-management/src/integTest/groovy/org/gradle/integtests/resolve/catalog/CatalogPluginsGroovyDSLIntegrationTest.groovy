@@ -196,7 +196,7 @@ dependencyResolutionManagement {
             buildscript {
                 repositories {
                     maven {
-                        url = "${pluginPortal.uri}"
+                        url = uri("${pluginPortal.uri}")
                     }
                 }
                 dependencies {

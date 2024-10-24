@@ -46,7 +46,7 @@ embedded mode
         settingsFile << "rootProject.name = 'test'"
         buildFile << """
             repositories {
-                maven { url '${mavenRepo.uri}' }
+                maven { url = uri('${mavenRepo.uri}') }
             }
             configurations {
                 conf

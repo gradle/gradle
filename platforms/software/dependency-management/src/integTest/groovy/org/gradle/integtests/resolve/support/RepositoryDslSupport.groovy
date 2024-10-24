@@ -25,7 +25,7 @@ trait RepositoryDslSupport {
         """
         repositories {
             maven {
-                url "${url}"
+                url = uri("${url}")
             }
         }
         """
@@ -35,7 +35,7 @@ trait RepositoryDslSupport {
         """
         repositories {
             maven {
-                url "${url}"
+                url = uri("${url}")
                 credentials(PasswordCredentials) {
                     username "myUsername"
                     password "myPassword"
@@ -49,7 +49,7 @@ trait RepositoryDslSupport {
         """
         repositories {
             maven {
-                url "${s3Url}"
+                url = uri("${s3Url}")
                 credentials(AwsCredentials) {
                     accessKey "myAccessKey"
                     secretKey "mySecret"
@@ -64,7 +64,7 @@ trait RepositoryDslSupport {
         """
 repositories {
     ivy {
-        url "${url}"
+        url = uri("${url}")
         credentials {
             username 'targetUser'
             password 'targetPassword'

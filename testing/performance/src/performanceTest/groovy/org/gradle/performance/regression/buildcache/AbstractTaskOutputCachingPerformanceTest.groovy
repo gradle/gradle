@@ -91,7 +91,7 @@ class AbstractTaskOutputCachingPerformanceTest extends AbstractCrossVersionPerfo
                     directory = '${cacheDir.absoluteFile.toURI()}'
                 }
                 remote(httpCacheClass) {
-                    url = '${buildCacheServer.uri}/'
+                    url = uri('${buildCacheServer.uri}/')
                     push = ${pushToRemote}
                 }
             }

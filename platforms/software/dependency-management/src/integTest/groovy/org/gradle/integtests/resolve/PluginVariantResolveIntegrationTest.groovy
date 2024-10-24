@@ -32,7 +32,7 @@ class PluginVariantResolveIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << """
             pluginManagement {
                 repositories {
-                    maven { url = "$repoLoc" }
+                    maven { url = uri("$repoLoc") }
                 }
             }
 
@@ -61,7 +61,7 @@ class PluginVariantResolveIntegrationTest extends AbstractIntegrationSpec {
                 buildscript {
                     repositories {
                         maven {
-                            url "%repoloc%"
+                            url = uri("%repoloc%")
                         }
                     }
                     dependencies {
@@ -121,7 +121,7 @@ class PluginVariantResolveIntegrationTest extends AbstractIntegrationSpec {
                     repositories {
                        maven {
                            name 'build'
-                           url "\$buildDir/repo"
+                           url = uri("\$buildDir/repo")
                        }
                     }
                 }

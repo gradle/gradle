@@ -134,7 +134,7 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
             }
 
             repositories {
-                maven { url 'dummy' }
+                maven { url = uri('dummy') }
             }
         """
 
@@ -164,7 +164,7 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
             }
 
             repositories {
-                maven { url 'dummy' }
+                maven { url = uri('dummy') }
             }
         """
 
@@ -206,7 +206,7 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
             }
 
             repositories {
-                maven { url 'dummy' }
+                maven { url = uri('dummy') }
             }
         """
 
@@ -243,7 +243,7 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
                 }
 
                 repositories {
-                    maven { url 'dummy' }
+                    maven { url = uri('dummy') }
                 }
                 println "Repository registered in \$it"
             }
@@ -451,7 +451,7 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
             dependencyResolutionManagement {
                 repositories {
                     maven {
-                        url "this should be ignored"
+                        url = uri("this should be ignored")
                     }
                 }
             }
@@ -517,7 +517,7 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
             }
 
             repositories {
-                maven { url 'dummy' }
+                maven { url = uri('dummy') }
             }
         """
         settingsFile << """
@@ -569,7 +569,7 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
                 doLast {
                     gradle.settings.dependencyResolutionManagement {
                         repositories {
-                            maven { url = 'dummy' }
+                            maven { url = uri('dummy') }
                         }
                     }
                 }
@@ -790,7 +790,7 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
         buildFile << """
             repositories {
                 maven {
-                    url "dummy"
+                    url = uri("dummy")
                 }
             }
 
@@ -832,7 +832,7 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
 settingsEvaluated {
   it.dependencyResolutionManagement {
     repositories {
-      maven { url '/doesnt/matter'}
+      maven { url = uri('/doesnt/matter') }
     }
   }
 }
@@ -854,10 +854,11 @@ settingsEvaluated {
         file("settings-plugin/src/main/java/org/gradle/test/RepoConventionPlugin.java") << """package org.gradle.test;
         import org.gradle.api.Plugin;
         import org.gradle.api.initialization.Settings;
+        import java.net.URI;
 
         public class RepoConventionPlugin implements Plugin<Settings> {
             public void apply(Settings settings) {
-                settings.getDependencyResolutionManagement().getRepositories().maven(mvn -> mvn.setUrl(\"${mavenHttpRepo.uri}\"));
+                settings.getDependencyResolutionManagement().getRepositories().maven(mvn -> mvn.getUrl().set(URI.create(\"${mavenHttpRepo.uri}\")));
             }
         }
         """
@@ -884,7 +885,7 @@ settingsEvaluated {
 
         public class RepoConventionPlugin implements Plugin<Project> {
             public void apply(Project project) {
-                project.getRepositories().maven(mvn -> mvn.setUrl(\"${mavenHttpRepo.uri}\"));
+                project.getRepositories().maven(mvn -> mvn.getUrl().set(project.uri(\"${mavenHttpRepo.uri}\")));
             }
         }
         """

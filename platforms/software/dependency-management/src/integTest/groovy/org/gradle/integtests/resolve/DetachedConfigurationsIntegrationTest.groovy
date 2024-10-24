@@ -58,7 +58,7 @@ class DetachedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
                     foo
                 }
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = uri("${mavenRepo.uri}") }
                 }
 
                 tasks.register("checkDependencies", CheckDependencies) {

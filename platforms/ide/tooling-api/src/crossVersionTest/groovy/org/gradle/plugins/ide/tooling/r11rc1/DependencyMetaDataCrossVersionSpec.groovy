@@ -59,7 +59,7 @@ class DependencyMetaDataCrossVersionSpec extends ToolingApiSpecification impleme
 apply plugin: 'java'
 
 repositories {
-    maven { url "${fakeRepo.toURI()}" }
+    maven { url = uri("${fakeRepo.toURI()}") }
 }
 
 dependencies {

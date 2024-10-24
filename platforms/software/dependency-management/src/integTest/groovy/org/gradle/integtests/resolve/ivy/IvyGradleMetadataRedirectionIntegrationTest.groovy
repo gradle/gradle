@@ -33,7 +33,7 @@ class IvyGradleMetadataRedirectionIntegrationTest extends AbstractHttpDependency
             apply plugin: 'java-library'
 
             repositories {
-                ivy { url "${ivyHttpRepo.uri}" }
+                ivy { url = uri("${ivyHttpRepo.uri}") }
             }
         """
         prepareResolution()
@@ -126,7 +126,7 @@ class IvyGradleMetadataRedirectionIntegrationTest extends AbstractHttpDependency
 
             repositories {
                 ivy {
-                    url "${ivyHttpRepo.uri}"
+                    url = uri("${ivyHttpRepo.uri}")
                     metadataSources {
                         ivyDescriptor()
                         artifact()

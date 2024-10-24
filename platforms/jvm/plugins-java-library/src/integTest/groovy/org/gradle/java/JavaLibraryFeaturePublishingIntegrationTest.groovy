@@ -47,7 +47,7 @@ class JavaLibraryFeaturePublishingIntegrationTest extends AbstractIntegrationSpe
 
             publishing {
                 repositories {
-                    maven { url "\${buildDir}/repo" }
+                    maven { url = uri("\${buildDir}/repo") }
                 }
                 publications {
                     maven(MavenPublication) {

@@ -96,7 +96,7 @@ abstract class AbstractModuleDependencyResolveTest extends AbstractHttpDependenc
         """
             repositories {
                 maven {
-                    url "${mavenHttpRepo.uri}"
+                    url = uri("${mavenHttpRepo.uri}")
                 }
             }
         """
@@ -106,7 +106,7 @@ abstract class AbstractModuleDependencyResolveTest extends AbstractHttpDependenc
         """
             repositories {
                 ivy {
-                    url "${ivyHttpRepo.uri}"
+                    url = uri("${ivyHttpRepo.uri}")
                 }
             }
         """

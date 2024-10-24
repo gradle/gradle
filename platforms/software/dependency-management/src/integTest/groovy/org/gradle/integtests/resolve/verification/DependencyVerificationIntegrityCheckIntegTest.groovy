@@ -276,7 +276,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
             .publish()
         buildFile << """
             repositories {
-                ivy { url "${ivyHttpRepo.uri}" }
+                ivy { url = uri("${ivyHttpRepo.uri}") }
             }
 
             dependencies {
@@ -436,7 +436,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
         pluginManagement {
             repositories {
                 maven {
-                    url '$pluginRepo.uri'
+                    url = uri('$pluginRepo.uri')
                 }
             }
         }
@@ -465,7 +465,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
         buildFile << """
           buildscript {
              repositories {
-                maven { url "${pluginRepo.uri}" }
+                maven { url = uri("${pluginRepo.uri}") }
              }
              dependencies {
                 classpath 'com:myplugin:1.0'
@@ -573,7 +573,7 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
         def buildSrc = file("buildSrc/build.gradle")
         buildSrc << """
             repositories {
-                maven { url "${mavenHttpRepo.uri}" }
+                maven { url = uri("${mavenHttpRepo.uri}") }
             }
             dependencies {
                implementation "org:bar:1.0"
@@ -615,7 +615,7 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
             group = "org"
             version = "1.1-SNAPSHOT"
             repositories {
-                maven { url "${mavenHttpRepo.uri}" }
+                maven { url = uri("${mavenHttpRepo.uri}") }
             }
             dependencies {
                compileOnly "org:bar:1.0"
@@ -1067,7 +1067,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
         file("init.gradle") << """
             initscript {
                 repositories {
-                    maven { url "${mavenHttpRepo.uri}" }
+                    maven { url = uri("${mavenHttpRepo.uri}") }
                 }
                 dependencies {
                     classpath 'org:foo:1.0'
@@ -1131,7 +1131,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
                 }
             }
             repositories {
-                maven { url "${repoDir.toURI()}" }
+                maven { url = uri("${repoDir.toURI()}") }
             }
             dependencies {
                 components.all(SamplesVariantRule)

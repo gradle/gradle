@@ -28,7 +28,7 @@ class IvyComponentMetadataRulesChangingModulesIntegrationTest extends ComponentM
 """
 repositories {
     ivy {
-        url "$repo.uri"
+        url = uri("$repo.uri")
     }
 }
 """

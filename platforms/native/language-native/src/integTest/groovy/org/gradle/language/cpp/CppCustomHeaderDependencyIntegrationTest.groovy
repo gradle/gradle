@@ -54,7 +54,7 @@ class CppCustomHeaderDependencyIntegrationTest extends AbstractInstalledToolChai
 
             repositories {
                 ${repoType} {
-                    url file('lib/repo')
+                    url = uri('lib/repo')
                 }
             }
 
@@ -142,7 +142,7 @@ class CppCustomHeaderDependencyIntegrationTest extends AbstractInstalledToolChai
                 }
                 repositories {
                     ${repoType} {
-                        url file('repo')
+                        url = uri('repo')
                     }
                 }
             }

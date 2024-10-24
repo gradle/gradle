@@ -159,7 +159,7 @@ distributions {
 }
 
 repositories {
-    maven { url '$mavenRepo.uri' }
+    maven { url = uri('$mavenRepo.uri') }
 }
 
 dependencies {

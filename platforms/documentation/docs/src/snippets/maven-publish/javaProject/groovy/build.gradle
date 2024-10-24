@@ -38,8 +38,8 @@ publishing {
 publishing {
     repositories {
         maven {
-            def releasesRepoUrl = layout.buildDirectory.dir('repos/releases')
-            def snapshotsRepoUrl = layout.buildDirectory.dir('repos/snapshots')
+            def releasesRepoUrl = uri(layout.buildDirectory.dir('repos/releases'))
+            def snapshotsRepoUrl = uri(layout.buildDirectory.dir('repos/snapshots'))
 // end::repo-url-from-variable[]
             url = project.hasProperty('release') ? releasesRepoUrl : snapshotsRepoUrl
 // end::repo-url-from-project-property[]

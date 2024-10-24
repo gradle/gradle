@@ -1397,7 +1397,7 @@ Required by:
             configurations.create("default").extendsFrom(configurations.conf)
 
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = uri("${mavenRepo.uri}") }
             }
 
             task jar(type: Jar) {
@@ -1544,7 +1544,7 @@ configurations.all {
         buildFile << """
 
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = uri("${mavenRepo.uri}") }
             }
 
             configurations {
@@ -1617,7 +1617,7 @@ configurations.all {
         buildFile << """
 
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = uri("${mavenRepo.uri}") }
             }
 
             configurations {
@@ -1674,7 +1674,7 @@ configurations.all {
             apply plugin: 'java-library'
 
             repositories {
-                maven { url = "${mavenRepo.uri}" }
+                maven { url = uri("${mavenRepo.uri}") }
             }
 
             dependencies {

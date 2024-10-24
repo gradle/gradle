@@ -793,7 +793,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
             }
 
             repositories {
-                maven { url = '${remoteRepo.uri}' }
+                maven { url = uri('${remoteRepo.uri}') }
             }
         """
     }
@@ -881,7 +881,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
                 implementation 'group:thing3:1.2'
             }
             repositories {
-                maven { url = '${remoteRepo.uri}' }
+                maven { url = uri('${remoteRepo.uri}') }
             }
         """
 
@@ -985,7 +985,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         setupBuildWithColorTransformImplementation()
         buildFile << """
             repositories {
-                maven { url = "${mavenRepo.uri}" }
+                maven { url = uri("${mavenRepo.uri}") }
             }
 
             dependencies {
@@ -1054,7 +1054,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         setupBuildWithColorTransformImplementation(buildSrcBuildFile)
         buildSrcBuildFile << """
             repositories {
-                maven { url = '${mavenRepo.uri}' }
+                maven { url = uri('${mavenRepo.uri}') }
             }
             dependencies {
                 artifactTypes {
@@ -1234,7 +1234,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
             }
 
             repositories {
-                maven { url = '${remoteRepo.uri}' }
+                maven { url = uri('${remoteRepo.uri}') }
             }
 
             dependencies {

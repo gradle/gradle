@@ -34,10 +34,10 @@ class IvyDynamicRevisionMultiRepoResolveIntegrationTest extends AbstractDependen
         buildFile << """
   repositories {
       ivy {
-          url "${repo1.uri}"
+          url = uri("${repo1.uri}")
       }
       ivy {
-          url "${repo2.uri}"
+          url = uri("${repo2.uri}")
       }
 
   }

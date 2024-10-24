@@ -549,7 +549,7 @@ Cannot publish module metadata because an artifact from the 'java' component has
 
             publishing {
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = uri("${mavenRepo.uri}") }
                 }
                 $publications
             }

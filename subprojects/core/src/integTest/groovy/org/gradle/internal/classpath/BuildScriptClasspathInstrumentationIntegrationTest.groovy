@@ -160,7 +160,7 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
 
             buildscript {
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = uri("${mavenRepo.uri}") }
                 }
                 dependencies {
                     classpath "${first[0]}"
@@ -206,7 +206,7 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         settingsFile << """
             pluginManagement {
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = uri("${mavenRepo.uri}") }
                 }
             }
 
@@ -271,7 +271,7 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         buildFile << """
             buildscript {
                  repositories {
-                    maven { url "$mavenRepo.uri" }
+                    maven { url = uri("$mavenRepo.uri") }
                 }
                 dependencies {
                     classpath(files("./subproject/animals/build/libs/animals-1.0.jar"))
@@ -432,7 +432,7 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         when:
         buildFile.text = """
             buildscript {
-                repositories { maven { url "${mavenRemote.uri}" } }
+                repositories { maven { url = uri("${mavenRemote.uri}") } }
                 dependencies { classpath "$artifactCoordinates" }
             }
         """
@@ -443,7 +443,7 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         when:
         buildFile.text = """
             buildscript {
-                repositories { maven { url "${normaliseFileSeparators(mavenRepo.uri.toString())}" } }
+                repositories { maven { url = uri("${normaliseFileSeparators(mavenRepo.uri.toString())}") } }
                 dependencies { classpath "$artifactCoordinates" }
             }
         """
@@ -639,7 +639,7 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
             publishing {
                 repositories {
                     maven {
-                        url '${mavenRepo.uri}'
+                        url = uri("${mavenRepo.uri}")
                     }
                 }
             }

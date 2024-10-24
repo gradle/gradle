@@ -37,7 +37,7 @@ publishing {
     repositories {
         // change URLs to point to your repo, e.g. http://my.org/repo
         ivy {
-            url = layout.buildDirectory.dir("repo")
+            url = uri(layout.buildDirectory.dir("repo"))
         }
     }
 // tag::custom-artifact[]

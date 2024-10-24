@@ -18,8 +18,14 @@ package org.gradle.api.artifacts.repositories;
 import org.gradle.api.Action;
 import org.gradle.api.ActionConfiguration;
 import org.gradle.api.artifacts.ComponentMetadataSupplier;
+import org.gradle.api.file.FileSystemLocation;
+import org.gradle.api.provider.Property;
+import org.gradle.api.tasks.Optional;
 
+import java.io.File;
 import java.net.URI;
+import java.net.URL;
+import java.nio.file.Path;
 
 /**
  * An artifact repository which uses an Ivy format to store artifacts and meta-data.
@@ -28,7 +34,6 @@ import java.net.URI;
  * <p>
  * When used to upload metadata and artifact files, only a single, primary pattern will be used:
  * <ol>
- * <li>If a URL is specified via {@link #setUrl(Object)} then that URL will be used for upload, combined with the applied {@link #layout(String)}.</li>
  * <li>If no URL has been specified but additional patterns have been added via {@link #artifactPattern} or {@link #ivyPattern}, then the first defined pattern will be used.</li>
  * </ol>
  * <p>
@@ -46,20 +51,10 @@ public interface IvyArtifactRepository extends ArtifactRepository, UrlArtifactRe
 
     /**
      * The base URL of this repository.
-     *
-     * @return The URL.
      */
     @Override
-    URI getUrl();
-
-    /**
-     * Sets the base URL of this repository.
-     *
-     * @param url The base URL.
-     * @since 4.0
-     */
-    @Override
-    void setUrl(URI url);
+    @Optional
+    Property<URI> getUrl();
 
     /**
      * Sets the base URL of this repository. The provided value is evaluated as per {@link org.gradle.api.Project#uri(Object)}. This means,
@@ -68,18 +63,79 @@ public interface IvyArtifactRepository extends ArtifactRepository, UrlArtifactRe
      * File are resolved based on the supplied URL and the configured {@link #layout(String)} for this repository.
      *
      * @param url The base URL.
+     * @deprecated Use {@link #getUrl()} instead.
      */
+    @Deprecated
     @Override
-    void setUrl(Object url);
+    void setUrl(CharSequence url);
+    /**
+     * Sets the base URL of this repository. The provided value is evaluated as per {@link org.gradle.api.Project#uri(Object)}. This means,
+     * for example, you can pass in a File object or a relative path which is evaluated relative to the project directory.
+     *
+     * File are resolved based on the supplied URL and the configured {@link #layout(String)} for this repository.
+     *
+     * @param url The base URL.
+     * @deprecated Use {@link #getUrl()} instead.
+     */
+    @Deprecated
+    @Override
+    void setUrl(File url);
+    /**
+     * Sets the base URL of this repository. The provided value is evaluated as per {@link org.gradle.api.Project#uri(Object)}. This means,
+     * for example, you can pass in a File object or a relative path which is evaluated relative to the project directory.
+     *
+     * File are resolved based on the supplied URL and the configured {@link #layout(String)} for this repository.
+     *
+     * @param url The base URL.
+     * @deprecated Use {@link #getUrl()} instead.
+     */
+    @Deprecated
+    @Override
+    void setUrl(FileSystemLocation url);
+    /**
+     * Sets the base URL of this repository. The provided value is evaluated as per {@link org.gradle.api.Project#uri(Object)}. This means,
+     * for example, you can pass in a File object or a relative path which is evaluated relative to the project directory.
+     *
+     * File are resolved based on the supplied URL and the configured {@link #layout(String)} for this repository.
+     *
+     * @param url The base URL.
+     * @deprecated Use {@link #getUrl()} instead.
+     */
+    @Deprecated
+    @Override
+    void setUrl(Path url);
+    /**
+     * Sets the base URL of this repository. The provided value is evaluated as per {@link org.gradle.api.Project#uri(Object)}. This means,
+     * for example, you can pass in a File object or a relative path which is evaluated relative to the project directory.
+     *
+     * File are resolved based on the supplied URL and the configured {@link #layout(String)} for this repository.
+     *
+     * @param url The base URL.
+     * @deprecated Use {@link #getUrl()} instead.
+     */
+    @Deprecated
+    @Override
+    void setUrl(URL url);
+    /**
+     * Sets the base URL of this repository. The provided value is evaluated as per {@link org.gradle.api.Project#uri(Object)}. This means,
+     * for example, you can pass in a File object or a relative path which is evaluated relative to the project directory.
+     *
+     * File are resolved based on the supplied URL and the configured {@link #layout(String)} for this repository.
+     *
+     * @param url The base URL.
+     * @deprecated Use {@link #getUrl()} instead.
+     */
+    @Deprecated
+    @Override
+    void setUrl(URI url);
 
     /**
      * Adds an independent pattern that will be used to locate artifact files in this repository. This pattern will be used to locate ivy files as well, unless a specific
      * ivy pattern is supplied via {@link #ivyPattern(String)}.
      *
      * If this pattern is not a fully-qualified URL, it will be interpreted as a file relative to the project directory.
-     * It is not interpreted relative the URL specified in {@link #setUrl(Object)}.
      *
-     * Patterns added in this way will be in addition to any layout-based patterns added via {@link #setUrl(Object)}.
+     * Patterns added in this way will be in addition to any layout-based patterns added via {@link #getUrl()}.
      *
      * @param pattern The artifact pattern.
      */
@@ -89,9 +145,8 @@ public interface IvyArtifactRepository extends ArtifactRepository, UrlArtifactRe
      * Adds an independent pattern that will be used to locate ivy files in this repository.
      *
      * If this pattern is not a fully-qualified URL, it will be interpreted as a file relative to the project directory.
-     * It is not interpreted relative the URL specified in {@link #setUrl(Object)}.
      *
-     * Patterns added in this way will be in addition to any layout-based patterns added via {@link #setUrl(Object)}.
+     * Patterns added in this way will be in addition to any layout-based patterns added via {@link #getUrl()}.
      *
      * @param pattern The ivy pattern.
      */

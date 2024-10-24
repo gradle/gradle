@@ -24,7 +24,7 @@ class IvyCustomStatusLatestVersionIntegrationTest extends AbstractHttpDependency
         buildFile << """
 repositories {
     ivy {
-        url "${ivyRepo.uri}"
+        url = uri("${ivyRepo.uri}")
     }
 }
 
@@ -71,7 +71,7 @@ task retrieve(type: Sync) {
         buildFile << """
 repositories {
     ivy {
-        url "${ivyHttpRepo.uri}"
+        url = uri("${ivyHttpRepo.uri}")
     }
 }
 configurations { compile }
@@ -132,7 +132,7 @@ task retrieve(type: Sync) {
         buildFile << """
 repositories {
     ivy {
-        url "${ivyHttpRepo.uri}"
+        url = uri("${ivyHttpRepo.uri}")
     }
 }
 class StatusRule implements ComponentMetadataRule {
@@ -217,7 +217,7 @@ task retrieve(type: Sync) {
         buildFile << """
 repositories {
     ivy {
-        url "${ivyHttpRepo.uri}"
+        url = uri("${ivyHttpRepo.uri}")
     }
 }
 configurations { compile }

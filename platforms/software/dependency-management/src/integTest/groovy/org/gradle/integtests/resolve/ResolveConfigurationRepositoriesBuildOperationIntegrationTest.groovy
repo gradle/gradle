@@ -82,7 +82,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
         module.pom.expectGetBroken()
         buildFile << """
             buildscript {
-                repositories { maven { url '${mavenHttpRepo.uri}' } }
+                repositories { maven { url = uri('${mavenHttpRepo.uri}') } }
                 dependencies { classpath 'org:foo:1.0' }
             }
         """
@@ -116,7 +116,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
         module.pom.expectGetBroken()
         settingsFile << """
         pluginManagement {
-            repositories { maven { url '${mavenHttpRepo.uri}' } }
+            repositories { maven { url = uri('${mavenHttpRepo.uri}') } }
         }
         """
         buildFile << """
@@ -152,12 +152,12 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
         publishTestPlugin('plugin2', 'org.example.plugin2', 'org.example.plugin:plugin2:1.0')
         settingsFile << """
         pluginManagement {
-            repositories { maven { url = '$mavenRepo.uri' } }
+            repositories { maven { url = uri('$mavenRepo.uri') } }
         }
         """
         buildFile << """
             buildscript {
-                repositories { maven { url = '$mavenRepo.uri' } }
+                repositories { maven { url = uri('$mavenRepo.uri') } }
                 dependencies { classpath "org.example.plugin:plugin2:1.0" }
             }
             plugins {
@@ -165,7 +165,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
                 id 'java'
             }
             apply plugin: 'org.example.plugin2'
-            repositories { maven { url = '$mavenRepo.uri' } }
+            repositories { maven { url = uri('$mavenRepo.uri') } }
             task resolve {
                 def files = configurations.compileClasspath
                 doLast { files.files }
@@ -214,7 +214,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
             repositories {
                 maven {
                     name = 'custom repo'
-                    url = 'http://foo.com'
+                    url = uri('http://foo.com')
                     artifactUrls 'http://foo.com/artifacts1'
                     metadataSources { gradleMetadata(); artifact() }
                     credentials {
@@ -281,7 +281,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
             repositories {
                 ivy {
                     name = 'custom repo'
-                    url 'http://myCompanyBucket/ivyrepo'
+                    url = uri('http://myCompanyBucket/ivyrepo')
                     artifactPattern 'http://myCompanyBucket/ivyrepo/[organisation]/[module]/[artifact]-[revision]'
                     ivyPattern 'http://myCompanyBucket/ivyrepo/[organisation]/[module]/ivy-[revision].xml'
                     patternLayout {
@@ -394,10 +394,10 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
         }
 
         where:
-        definition               | success | artifactPattern
-        "url = 'http://foo.com'" | true    | false
-        "artifactPattern 'foo'"  | true    | true
-        ''                       | false   | false
+        definition                    | success | artifactPattern
+        "url = uri('http://foo.com')" | true    | false
+        "artifactPattern 'foo'"       | true    | true
+        ''                            | false   | false
     }
 
     def "flat-dir repository attributes are stored"() {
@@ -432,7 +432,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
     }
 
     private static String mavenRepoBlock() {
-        "repositories { maven { url '<<URL>>' } }"
+        "repositories { maven { url = uri('<<URL>>') } }"
     }
 
     private static Map expectedMavenRepo() {
@@ -468,7 +468,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
     }
 
     private static String ivyRepoBlock() {
-        "repositories { ivy { url '<<URL>>' } }"
+        "repositories { ivy { url = uri('<<URL>>') } }"
     }
 
     private static Map expectedIvyRepo() {

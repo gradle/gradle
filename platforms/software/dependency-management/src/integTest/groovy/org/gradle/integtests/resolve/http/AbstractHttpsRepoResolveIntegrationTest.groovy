@@ -158,7 +158,7 @@ credentials {
         buildFile << """
 repositories {
     $repoType {
-        url '${server.uri}/repo1'
+        url = uri('${server.uri}/repo1')
         ${withCredentials ? credentials : ''}
     }
 }

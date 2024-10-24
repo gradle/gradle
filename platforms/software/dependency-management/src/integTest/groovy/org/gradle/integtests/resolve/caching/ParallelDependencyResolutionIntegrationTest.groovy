@@ -48,7 +48,7 @@ class ParallelDependencyResolutionIntegrationTest extends AbstractHttpDependency
 
                 repositories {
                     maven {
-                        url '${mavenHttpRepo.uri}'
+                        url = uri("${mavenHttpRepo.uri}")
                     }
                 }
 
@@ -87,7 +87,7 @@ class ParallelDependencyResolutionIntegrationTest extends AbstractHttpDependency
 
                 repositories {
                     ivy {
-                        url '${ivyHttpRepo.uri}'
+                        url = uri('${ivyHttpRepo.uri}')
                     }
                 }
 

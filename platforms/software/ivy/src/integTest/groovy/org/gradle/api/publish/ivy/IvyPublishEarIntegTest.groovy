@@ -41,7 +41,7 @@ class IvyPublishEarIntegTest extends AbstractIvyPublishIntegTest {
             publishing {
                 repositories {
                     ivy {
-                        url '${ivyRepo.uri}'
+                        url = uri("${ivyRepo.uri}")
                     }
                 }
                 publications {

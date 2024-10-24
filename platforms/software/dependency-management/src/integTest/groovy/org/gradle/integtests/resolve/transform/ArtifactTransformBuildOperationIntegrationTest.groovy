@@ -132,7 +132,7 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         buildFile << """
             allprojects {
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = uri("${mavenRepo.uri}") }
                 }
 
                 dependencies {

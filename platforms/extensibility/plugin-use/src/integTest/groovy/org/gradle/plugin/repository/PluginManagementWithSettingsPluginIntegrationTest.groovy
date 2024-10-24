@@ -119,7 +119,7 @@ class PluginManagementWithSettingsPluginIntegrationTest extends AbstractIntegrat
                         exclusiveContent {
                             forRepository {
                                 maven {
-                                    url = "$projectPluginRepo.uri"
+                                    url = uri("$projectPluginRepo.uri")
                                 }
                             }
                             filter {
@@ -164,7 +164,7 @@ class PluginManagementWithSettingsPluginIntegrationTest extends AbstractIntegrat
                     exclusiveContent {
                         forRepository {
                             maven {
-                                url = "$projectPluginRepo.uri"
+                                url = uri("$projectPluginRepo.uri")
                             }
                         }
                         filter {

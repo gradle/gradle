@@ -16,9 +16,15 @@
 package org.gradle.api.artifacts.repositories;
 
 import org.gradle.api.Action;
+import org.gradle.api.file.FileSystemLocation;
+import org.gradle.api.provider.Property;
+import org.gradle.api.provider.SetProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 
+import java.io.File;
 import java.net.URI;
-import java.util.Set;
+import java.net.URL;
+import java.nio.file.Path;
 
 /**
  * An artifact repository which uses a Maven format to store artifacts and meta-data.
@@ -29,41 +35,101 @@ public interface MavenArtifactRepository extends ArtifactRepository, UrlArtifact
 
     /**
      * The base URL of this repository. This URL is used to find both POMs and artifact files. You can add additional URLs to use to look for artifact files, such as jars, using {@link
-     * #setArtifactUrls(Iterable)}.
-     *
-     * @return The URL.
+     * #getArtifactUrls()}.
      */
     @Override
-    URI getUrl();
+    Property<URI> getUrl();
 
     /**
      * Sets the base URL of this repository. This URL is used to find both POMs and artifact files. You can add additional URLs to use to look for artifact files, such as jars, using {@link
-     * #setArtifactUrls(Iterable)}.
-     *
-     * @param url The base URL.
-     * @since 4.0
-     */
-    @Override
-    void setUrl(URI url);
-
-    /**
-     * Sets the base URL of this repository. This URL is used to find both POMs and artifact files. You can add additional URLs to use to look for artifact files, such as jars, using {@link
-     * #setArtifactUrls(Iterable)}.
+     * #getArtifactUrls()}}.
      *
      * <p>The provided value is evaluated as per {@link org.gradle.api.Project#uri(Object)}. This means, for example, you can pass in a {@code File} object, or a relative path to be evaluated relative
      * to the project directory.
      *
      * @param url The base URL.
+     * @deprecated Use {@link #getUrl()} instead.
      */
+    @Deprecated
     @Override
-    void setUrl(Object url);
+    void setUrl(CharSequence url);
+
+    /**
+     * Sets the base URL of this repository. This URL is used to find both POMs and artifact files. You can add additional URLs to use to look for artifact files, such as jars, using {@link
+     * #getArtifactUrls()}}.
+     *
+     * <p>The provided value is evaluated as per {@link org.gradle.api.Project#uri(Object)}. This means, for example, you can pass in a {@code File} object, or a relative path to be evaluated relative
+     * to the project directory.
+     *
+     * @param url The base URL.
+     * @deprecated Use {@link #getUrl()} instead.
+     */
+    @Deprecated
+    @Override
+    void setUrl(File url);
+
+    /**
+     * Sets the base URL of this repository. This URL is used to find both POMs and artifact files. You can add additional URLs to use to look for artifact files, such as jars, using {@link
+     * #getArtifactUrls()}}.
+     *
+     * <p>The provided value is evaluated as per {@link org.gradle.api.Project#uri(Object)}. This means, for example, you can pass in a {@code File} object, or a relative path to be evaluated relative
+     * to the project directory.
+     *
+     * @param url The base URL.
+     * @deprecated Use {@link #getUrl()} instead.
+     */
+    @Deprecated
+    @Override
+    void setUrl(FileSystemLocation url);
+
+    /**
+     * Sets the base URL of this repository. This URL is used to find both POMs and artifact files. You can add additional URLs to use to look for artifact files, such as jars, using {@link
+     * #getArtifactUrls()}}.
+     *
+     * <p>The provided value is evaluated as per {@link org.gradle.api.Project#uri(Object)}. This means, for example, you can pass in a {@code File} object, or a relative path to be evaluated relative
+     * to the project directory.
+     *
+     * @param url The base URL.
+     * @deprecated Use {@link #getUrl()} instead.
+     */
+    @Deprecated
+    @Override
+    void setUrl(Path url);
+
+    /**
+     * Sets the base URL of this repository. This URL is used to find both POMs and artifact files. You can add additional URLs to use to look for artifact files, such as jars, using {@link
+     * #getArtifactUrls()}}.
+     *
+     * <p>The provided value is evaluated as per {@link org.gradle.api.Project#uri(Object)}. This means, for example, you can pass in a {@code File} object, or a relative path to be evaluated relative
+     * to the project directory.
+     *
+     * @param url The base URL.
+     * @deprecated Use {@link #getUrl()} instead.
+     */
+    @Deprecated
+    @Override
+    void setUrl(URL url);
+    /**
+     * Sets the base URL of this repository. This URL is used to find both POMs and artifact files. You can add additional URLs to use to look for artifact files, such as jars, using {@link
+     * #getArtifactUrls()}}.
+     *
+     * <p>The provided value is evaluated as per {@link org.gradle.api.Project#uri(Object)}. This means, for example, you can pass in a {@code File} object, or a relative path to be evaluated relative
+     * to the project directory.
+     *
+     * @param url The base URL.
+     * @deprecated Use {@link #getUrl()} instead.
+     */
+    @Deprecated
+    @Override
+    void setUrl(URI url);
 
     /**
      * Returns the additional URLs to use to find artifact files. Note that these URLs are not used to find POM files.
      *
      * @return The additional URLs. Returns an empty list if there are no such URLs.
      */
-    Set<URI> getArtifactUrls();
+    @ReplacesEagerProperty(adapter = MavenArtifactRepositoryAdapter.class)
+    SetProperty<URI> getArtifactUrls();
 
     /**
      * Adds some additional URLs to use to find artifact files. Note that these URLs are not used to find POM files.
@@ -74,24 +140,6 @@ public interface MavenArtifactRepository extends ArtifactRepository, UrlArtifact
      * @param urls The URLs to add.
      */
     void artifactUrls(Object... urls);
-
-    /**
-     * Sets the additional URLs to use to find artifact files. Note that these URLs are not used to find POM files.
-     *
-     * @param urls The URLs.
-     * @since 4.0
-     */
-    void setArtifactUrls(Set<URI> urls);
-
-    /**
-     * Sets the additional URLs to use to find artifact files. Note that these URLs are not used to find POM files.
-     *
-     * <p>The provided values are evaluated as per {@link org.gradle.api.Project#uri(Object)}. This means, for example, you can pass in a {@code File} object, or a relative path to be evaluated
-     * relative to the project directory.
-     *
-     * @param urls The URLs.
-     */
-    void setArtifactUrls(Iterable<?> urls);
 
     /**
      * Configures the metadata sources for this repository. This method will replace any previously configured sources

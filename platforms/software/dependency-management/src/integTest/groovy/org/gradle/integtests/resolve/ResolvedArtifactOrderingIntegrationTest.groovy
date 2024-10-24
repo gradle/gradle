@@ -30,7 +30,7 @@ class ResolvedArtifactOrderingIntegrationTest extends AbstractHttpDependencyReso
         buildFile << """
             allprojects {
                 repositories {
-                    maven { url '$mavenRepo.uri' }
+                    maven { url = uri('$mavenRepo.uri') }
                 }
                 configurations {
                     common

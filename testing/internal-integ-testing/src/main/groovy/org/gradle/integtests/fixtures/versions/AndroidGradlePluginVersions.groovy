@@ -135,7 +135,7 @@ class AndroidGradlePluginVersions {
         return """
             maven {
                 name = 'agp-nightly-build-$nightlyBuildId'
-                url = 'https://androidx.dev/studio/builds/$nightlyBuildId/artifacts/artifacts/repository/'
+                url = uri('https://androidx.dev/studio/builds/$nightlyBuildId/artifacts/artifacts/repository/')
             }
         """
     }

@@ -36,7 +36,7 @@ class MavenLocalDependencyWithGradleMetadataResolutionIntegrationTest extends Ab
         buildFile << """
 repositories {
     maven {
-        url = '${mavenRepo.uri}'
+        url = uri('${mavenRepo.uri}')
         metadataSources { gradleMetadata() }
     }
 }
@@ -104,7 +104,7 @@ dependencies {
         buildFile << """
 repositories {
     maven {
-        url = '${mavenRepo.uri}'
+        url = uri('${mavenRepo.uri}')
     }
 }
 def attr = Attribute.of("buildType", String)
@@ -188,7 +188,7 @@ dependencies {
         buildFile << """
 repositories {
     maven {
-        url = '${mavenRepo.uri}'
+        url = uri('${mavenRepo.uri}')
     }
 }
 def attr = Attribute.of("buildType", String)
@@ -262,7 +262,7 @@ dependencies {
         buildFile << """
 repositories {
     maven {
-        url = '${mavenRepo.uri}'
+        url = uri('${mavenRepo.uri}')
     }
 }
 configurations {
@@ -320,7 +320,7 @@ dependencies {
         buildFile << """
 repositories {
     maven {
-        url = '${mavenRepo.uri}'
+        url = uri('${mavenRepo.uri}')
     }
 }
 configurations {
@@ -411,7 +411,7 @@ dependencies {
         buildFile << """
 repositories {
     maven {
-        url = '${mavenRepo.uri}'
+        url = uri('${mavenRepo.uri}')
     }
 }
 def attr = Attribute.of("buildType", String)

@@ -133,7 +133,7 @@ class MavenPublishHttpsIntegTest extends AbstractMavenPublishIntegTest {
             publishing {
                 repositories {
                     maven {
-                        url '${mavenRemoteRepo.uri}'
+                        url = uri("${mavenRemoteRepo.uri}")
                     }
                 }
                 publications {

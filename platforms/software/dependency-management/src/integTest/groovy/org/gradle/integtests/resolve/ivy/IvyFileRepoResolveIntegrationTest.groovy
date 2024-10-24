@@ -132,7 +132,7 @@ task retrieve(type: Sync) {
         buildFile << """
 repositories {
     ivy {
-        url "${ivyRepo().uri}"
+        url = uri("${ivyRepo().uri}")
         authentication {
             auth(BasicAuthentication)
         }

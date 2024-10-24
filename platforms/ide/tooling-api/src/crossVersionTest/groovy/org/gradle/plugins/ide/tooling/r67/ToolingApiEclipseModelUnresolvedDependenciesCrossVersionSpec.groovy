@@ -36,7 +36,7 @@ class ToolingApiEclipseModelUnresolvedDependenciesCrossVersionSpec extends Tooli
 
             repositories {
                 maven {
-                    url '${mavenRepo.uri}'
+                    url = uri("${mavenRepo.uri}")
                 }
             }
             dependencies {

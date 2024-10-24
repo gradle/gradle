@@ -61,7 +61,7 @@ class MavenScopesTestIntegTest extends AbstractIntegrationSpec {
                     }
                 }
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = uri("${mavenRepo.uri}") }
                 }
             }
             """
@@ -107,7 +107,7 @@ class MavenScopesTestIntegTest extends AbstractIntegrationSpec {
                     }
                 }
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = uri("${mavenRepo.uri}") }
                 }
             }
             """
@@ -153,7 +153,7 @@ class MavenScopesTestIntegTest extends AbstractIntegrationSpec {
                     }
                 }
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = uri("${mavenRepo.uri}") }
                 }
             }
             """
@@ -203,7 +203,7 @@ class MavenScopesTestIntegTest extends AbstractIntegrationSpec {
                     }
                 }
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = uri("${mavenRepo.uri}") }
                 }
             }
             """
@@ -246,7 +246,7 @@ class MavenScopesTestIntegTest extends AbstractIntegrationSpec {
                     }
                 }
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = uri("${mavenRepo.uri}") }
                 }
             }
             """
@@ -288,7 +288,7 @@ class MavenScopesTestIntegTest extends AbstractIntegrationSpec {
                     }
                 }
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = uri("${mavenRepo.uri}") }
                 }
             }
             """

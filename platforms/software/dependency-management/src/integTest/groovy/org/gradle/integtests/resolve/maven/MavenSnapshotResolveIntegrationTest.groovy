@@ -72,7 +72,7 @@ dependencies {
         given:
         buildFile << """
 repositories {
-    maven { url "${repo2.uri}" }
+    maven { url = uri("${repo2.uri}") }
 }
 
 dependencies {
@@ -132,7 +132,7 @@ task retrieve(type: Sync) {
 repositories.clear() // Do not use default repo
 repositories {
     maven {
-        url "${repo1.uri}"
+        url = uri("${repo1.uri}")
         artifactUrls "${repo2.uri}"
     }
 }
@@ -500,7 +500,7 @@ include 'a', 'b'
         buildFile << """
 subprojects {
     repositories {
-        maven { url "${mavenHttpRepo.uri}" }
+        maven { url = uri("${mavenHttpRepo.uri}") }
     }
 
     configurations { compile }
@@ -866,7 +866,7 @@ task retrieve(type: Sync) {
 repositories.clear() // Not using default repo
 repositories {
     maven {
-        url "${fileRepo.uri}"
+        url = uri("${fileRepo.uri}")
     }
 }
 
@@ -1030,7 +1030,7 @@ Required by:
 repositories.clear()
 repositories {
     maven {
-      url "${mavenHttpRepo.uri}"
+      url = uri("${mavenHttpRepo.uri}")
       metadataSources {
           ${metadataSources.code}
       }

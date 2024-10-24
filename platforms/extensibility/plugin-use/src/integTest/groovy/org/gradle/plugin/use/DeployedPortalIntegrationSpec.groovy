@@ -167,7 +167,7 @@ class DeployedPortalIntegrationSpec extends AbstractIntegrationSpec {
                     exclusiveContent {
                       forRepository {
                         maven {
-                          url = "${mavenRepo.uri}"
+                          url = uri("${mavenRepo.uri}")
                           metadataSources {
                             artifact()
                           }
@@ -208,7 +208,7 @@ class DeployedPortalIntegrationSpec extends AbstractIntegrationSpec {
                         }
                     }
                     maven {
-                        url = "${mavenRepo.uri}"
+                        url = uri("${mavenRepo.uri}")
                         metadataSources {
                             artifact()
                         }
@@ -242,7 +242,7 @@ class DeployedPortalIntegrationSpec extends AbstractIntegrationSpec {
                   forRepository {
                     // For R8/D8 releases
                     maven {
-                        url = "${mavenRepo.uri}"
+                        url = uri("${mavenRepo.uri}")
                     }
                   }
                   filter {

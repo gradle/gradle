@@ -114,7 +114,7 @@ class GradleImplDepsCompatibilityIntegrationTest extends BaseGradleImplDepsInteg
             }
 
             repositories {
-                maven { url '${buildContext.localRepository.toURI().toURL()}' }
+                maven { url = uri('${buildContext.localRepository.toURI().toURL()}') }
             }
         """
 

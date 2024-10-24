@@ -93,7 +93,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
         buildFile << """
             allprojects {
                 configurations.create("tools") { }
-                repositories.maven { url = '${mavenRepo.uri}' }
+                repositories.maven { url = uri('${mavenRepo.uri}') }
                 ext.inputFiles = configurations.tools
             }
 

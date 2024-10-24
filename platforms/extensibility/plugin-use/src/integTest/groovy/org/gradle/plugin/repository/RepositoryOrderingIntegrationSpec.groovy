@@ -35,7 +35,7 @@ class RepositoryOrderingIntegrationSpec extends AbstractIntegrationSpec {
         and:
         buildFile """
             buildscript {
-                repositories { maven { url "$buildscriptRepoUri" } }
+                repositories { maven { url = uri("$buildscriptRepoUri") } }
                 dependencies { classpath "my:plugin:1.0" }
             }
 
@@ -61,7 +61,7 @@ class RepositoryOrderingIntegrationSpec extends AbstractIntegrationSpec {
         when:
         settingsFile << """
             pluginManagement {
-                repositories { maven { url = "$pluginManagementRepoUri" } }
+                repositories { maven { url = uri("$pluginManagementRepoUri") } }
             }
         """.stripIndent()
 

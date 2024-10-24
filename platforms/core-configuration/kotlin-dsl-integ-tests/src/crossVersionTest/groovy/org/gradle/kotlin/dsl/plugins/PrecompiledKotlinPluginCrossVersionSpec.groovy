@@ -146,7 +146,7 @@ class PrecompiledKotlinPluginCrossVersionSpec extends CrossVersionIntegrationSpe
         file("consumer/init.gradle.kts").text = """
             initscript {
                 repositories {
-                    maven(url = "${mavenRepo.uri}")
+                    maven(url = uri("${mavenRepo.uri}"))
                 }
                 dependencies {
                     classpath("com.example:plugin:1.0")
@@ -157,7 +157,7 @@ class PrecompiledKotlinPluginCrossVersionSpec extends CrossVersionIntegrationSpe
         file("consumer/settings.gradle.kts").text = """
             pluginManagement {
                 repositories {
-                    maven(url = "${mavenRepo.uri}")
+                    maven(url = uri("${mavenRepo.uri}"))
                 }
             }
             ${supportsSettingsPluginsBlock ? """
@@ -167,7 +167,7 @@ class PrecompiledKotlinPluginCrossVersionSpec extends CrossVersionIntegrationSpe
             """ : """
             buildscript {
                 repositories {
-                    maven(url = "${mavenRepo.uri}")
+                    maven(url = uri("${mavenRepo.uri}"))
                 }
                 dependencies {
                     classpath("com.example:plugin:1.0")

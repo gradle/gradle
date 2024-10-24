@@ -86,7 +86,7 @@ class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec imp
         file("settings.gradle.dcl") << """
             pluginManagement {
                 repositories {
-                    maven { url("$mavenHttpRepo.uri") }
+                    maven { url = uri("$mavenHttpRepo.uri") }
                 }
             }
             plugins {

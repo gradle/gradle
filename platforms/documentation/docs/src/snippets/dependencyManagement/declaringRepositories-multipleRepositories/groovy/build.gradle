@@ -2,10 +2,10 @@
 repositories {
     mavenCentral()
     maven {
-        url "https://repo.spring.io/release"
+        url = uri("https://repo.spring.io/release")
     }
     maven {
-        url "https://repository.jboss.org/maven2"
+        url = uri("https://repository.jboss.org/maven2")
     }
 }
 // end::multiple-repositories[]

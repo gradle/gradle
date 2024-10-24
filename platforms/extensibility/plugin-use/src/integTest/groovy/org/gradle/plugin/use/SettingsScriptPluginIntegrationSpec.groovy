@@ -170,7 +170,7 @@ pluginManagement {
         file("settings.gradle") << """
 pluginManagement {
     repositories {
-        maven { url = "$pluginRepo.uri" }
+        maven { url = uri("$pluginRepo.uri") }
     }
     plugins {
         id("com.test-settings") version "1.0"

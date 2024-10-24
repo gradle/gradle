@@ -47,7 +47,7 @@ version = '1.0'
 publishing {
     repositories {
         ivy {
-            url "${ivyRepo.uri}"
+            url = uri("${ivyRepo.uri}")
             credentials(AwsCredentials)
         }
     }

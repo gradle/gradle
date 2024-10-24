@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.repositories.AuthenticationContainer;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepositoryMetaDataProvider;
 import org.gradle.api.artifacts.repositories.IvyPatternRepositoryLayout;
+import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager;
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextualMetaDataParser;
@@ -53,7 +54,9 @@ import org.gradle.api.internal.artifacts.repositories.resolver.IvyResolver;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.provider.ProviderApiDeprecationLogger;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.internal.action.InstantiatingAction;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
@@ -61,6 +64,8 @@ import org.gradle.internal.component.external.model.ModuleComponentArtifactMetad
 import org.gradle.internal.component.external.model.ivy.MutableIvyModuleResolveMetadata;
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.instantiation.InstantiatorFactory;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.local.FileResourceRepository;
@@ -68,7 +73,10 @@ import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 
 import javax.annotation.Nullable;
+import java.io.File;
 import java.net.URI;
+import java.net.URL;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashSet;
@@ -143,7 +151,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
 
     @Override
     public String getDisplayName() {
-        URI url = getUrl();
+        URI url = getUrl().getOrNull();
         if (url == null) {
             return super.getDisplayName();
         }
@@ -164,7 +172,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         Set<String> schemes = getSchemes();
         validate(schemes);
 
-        URI url = urlArtifactRepository.getUrl();
+        URI url = urlArtifactRepository.getUrl().getOrNull();
         IvyRepositoryDescriptor.Builder builder = new IvyRepositoryDescriptor.Builder(getName(), url)
             .setAuthenticated(usesCredentials())
             .setAuthenticationSchemes(getAuthenticationSchemes())
@@ -192,7 +200,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
 
     private Set<String> getSchemes() {
         if (schemes == null) {
-            URI uri = getUrl();
+            URI uri = getUrl().getOrNull();
             // use a local variable to prepare the set,
             // so that other threads do not see the half-initialized
             // list of schemes and fail in strange ways
@@ -205,7 +213,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
     }
 
     private IvyResolver createResolver(RepositoryTransport transport) {
-        Instantiator injector = createInjectorForMetadataSuppliers(transport, instantiatorFactory, getUrl(), externalResourcesFileStore);
+        Instantiator injector = createInjectorForMetadataSuppliers(transport, instantiatorFactory, getUrl().getOrNull(), externalResourcesFileStore);
         InstantiatingAction<ComponentMetadataSupplierDetails> supplierFactory = createComponentMetadataSupplierFactory(injector, isolatableFactory);
         InstantiatingAction<ComponentMetadataListerDetails> listerFactory = createComponentMetadataVersionLister(injector, isolatableFactory);
         return new IvyResolver(getDescriptor(), transport, locallyAvailableResourceFinder, metaDataProvider.dynamicResolve, artifactFileStore, supplierFactory, listerFactory, createMetadataSources(), IvyMetadataArtifactProvider.INSTANCE, injector, checksumService);
@@ -248,17 +256,19 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
     }
 
     @Override
-    public URI getUrl() {
+    @ReplacesEagerProperty(replacedAccessors = {
+        @ReplacedAccessor(originalType = URI.class, value = ReplacedAccessor.AccessorType.GETTER, name = "getUrl"),
+    })
+    public Property<URI> getUrl() {
         return urlArtifactRepository.getUrl();
     }
-
 
     @Override
     protected Collection<URI> getRepositoryUrls() {
         // Ivy can resolve files from multiple hosts, so we need to look at all
         // of the possible URLs used by the Ivy resolver to identify all of the repositories
         ImmutableList.Builder<URI> builder = ImmutableList.builder();
-        URI root = getUrl();
+        URI root = getUrl().getOrNull();
         if (root != null) {
             builder.add(root);
         }
@@ -278,26 +288,52 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
     }
 
     @Override
+    @Deprecated
+    public void setUrl(CharSequence url) {
+        ProviderApiDeprecationLogger.logDeprecation(IvyArtifactRepository.class, "setUrl(Object)", "getUrl");
+        invalidateDescriptor();
+        urlArtifactRepository.getUrl().set(fileResolver.resolveUri(url));
+    }
+    @Override
+    @Deprecated
+    public void setUrl(File url) {
+        ProviderApiDeprecationLogger.logDeprecation(IvyArtifactRepository.class, "setUrl(Object)", "getUrl");
+        invalidateDescriptor();
+        urlArtifactRepository.getUrl().set(fileResolver.resolveUri(url));
+    }
+    @Override
+    @Deprecated
+    public void setUrl(FileSystemLocation url) {
+        ProviderApiDeprecationLogger.logDeprecation(IvyArtifactRepository.class, "setUrl(Object)", "getUrl");
+        invalidateDescriptor();
+        urlArtifactRepository.getUrl().set(fileResolver.resolveUri(url));
+    }
+    @Override
+    @Deprecated
+    public void setUrl(Path url) {
+        ProviderApiDeprecationLogger.logDeprecation(IvyArtifactRepository.class, "setUrl(Object)", "getUrl");
+        invalidateDescriptor();
+        urlArtifactRepository.getUrl().set(fileResolver.resolveUri(url));
+    }
+    @Override
+    @Deprecated
+    public void setUrl(URL url) {
+        ProviderApiDeprecationLogger.logDeprecation(IvyArtifactRepository.class, "setUrl(Object)", "getUrl");
+        invalidateDescriptor();
+        urlArtifactRepository.getUrl().set(fileResolver.resolveUri(url));
+    }
+    @Override
+    @Deprecated
     public void setUrl(URI url) {
+        // called by groovy code, so no deprecation warning
         invalidateDescriptor();
-        urlArtifactRepository.setUrl(url);
+        urlArtifactRepository.getUrl().set(fileResolver.resolveUri(url));
     }
 
     @Override
-    public void setUrl(Object url) {
-        invalidateDescriptor();
-        urlArtifactRepository.setUrl(url);
-    }
-
-    @Override
-    public void setAllowInsecureProtocol(boolean allowInsecureProtocol) {
-        invalidateDescriptor();
-        urlArtifactRepository.setAllowInsecureProtocol(allowInsecureProtocol);
-    }
-
-    @Override
-    public boolean isAllowInsecureProtocol() {
-        return urlArtifactRepository.isAllowInsecureProtocol();
+    @ReplacesEagerProperty(originalType = boolean.class)
+    public Property<Boolean> getAllowInsecureProtocol() {
+        return urlArtifactRepository.getAllowInsecureProtocol();
     }
 
     @Override

@@ -127,7 +127,7 @@ class ConfigurationCacheMavenPublishIntegrationTest extends AbstractConfiguratio
             repositories {
                 maven {
                     name "${repositoryName}"
-                    url "${remoteRepo.uri}"
+                    url = uri("${remoteRepo.uri}")
                     allowInsecureProtocol true
                     // no credentials
                 }
@@ -220,7 +220,7 @@ class ConfigurationCacheMavenPublishIntegrationTest extends AbstractConfiguratio
         settingsFile "rootProject.name = 'root'"
         buildFile buildFileConfiguration("""
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = uri("${mavenRepo.uri}") }
             }
         """)
         def configurationCache = newConfigurationCacheFixture()
@@ -322,7 +322,7 @@ class ConfigurationCacheMavenPublishIntegrationTest extends AbstractConfiguratio
             repositories {
                 maven {
                     name "${repositoryName}"
-                    url "${remoteRepo.uri}"
+                    url = uri("${remoteRepo.uri}")
                     allowInsecureProtocol true
                     ${credentialsBlock}
                 }

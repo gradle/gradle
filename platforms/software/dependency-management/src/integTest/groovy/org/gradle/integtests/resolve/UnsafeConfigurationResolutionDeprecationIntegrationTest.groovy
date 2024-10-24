@@ -39,7 +39,7 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
 
             project(':bar') {
                 repositories {
-                    maven { url '${mavenRepo.uri}' }
+                    maven { url = uri('${mavenRepo.uri}') }
                 }
 
                 configurations {
@@ -68,7 +68,7 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
 
         buildFile << """
             repositories {
-                maven { url '${mavenRepo.uri}' }
+                maven { url = uri('${mavenRepo.uri}') }
             }
 
             configurations {
@@ -139,7 +139,7 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
 
         buildFile << """
             repositories {
-                maven { url '${mavenRepo.uri}' }
+                maven { url = uri('${mavenRepo.uri}') }
             }
 
             configurations {
@@ -212,7 +212,7 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
 
         buildFile << """
             repositories {
-                maven { url '${mavenRepo.uri}' }
+                maven { url = uri('${mavenRepo.uri}') }
             }
 
             configurations {
@@ -261,7 +261,7 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
         buildFile << """
             project(':baz') {
                 repositories {
-                    maven { url '${mavenRepo.uri}' }
+                    maven { url = uri('${mavenRepo.uri}') }
                 }
 
                 configurations {
@@ -295,7 +295,7 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
 
         buildFile << """
             repositories {
-                maven { url '${mavenRepo.uri}' }
+                maven { url = uri('${mavenRepo.uri}') }
             }
 
             configurations {
@@ -323,7 +323,7 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
 
         buildFile << """
             repositories {
-                maven { url '${mavenRepo.uri}' }
+                maven { url = uri('${mavenRepo.uri}') }
             }
 
             configurations {
@@ -355,7 +355,7 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
             allprojects {
                 beforeEvaluate {
                     repositories {
-                        maven { url '${mavenRepo.uri}' }
+                        maven { url = uri('${mavenRepo.uri}') }
                     }
 
                     configurations {

@@ -93,7 +93,7 @@ class ProjectTheExtensionCrossVersionSpec extends CrossVersionIntegrationSpec {
     private void pluginAppliedWith(GradleDistribution distribution) {
         file("consumer/settings.gradle.kts").text = """
             pluginManagement {
-                repositories { maven(url = "${mavenRepo.uri}") }
+                repositories { maven(url = uri("${mavenRepo.uri}")) }
             }
         """
         file("consumer/build.gradle.kts").text = """

@@ -181,7 +181,7 @@ class UndeclaredDependencyResolutionIntegrationTest extends AbstractIntegrationS
 
         buildFile << """
             repositories {
-                maven { url = "${mavenRepo.uri}" }
+                maven { url = uri("${mavenRepo.uri}") }
             }
 
             dependencies {
@@ -238,7 +238,7 @@ class UndeclaredDependencyResolutionIntegrationTest extends AbstractIntegrationS
 
         buildFile << """
             repositories {
-                maven { url = "${mavenRepo.uri}" }
+                maven { url = uri("${mavenRepo.uri}") }
             }
 
             dependencies {

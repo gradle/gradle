@@ -28,7 +28,7 @@ configurations {
 }
 dependencies {
     repositories {
-        ivy { url "${ivyRepo.uri}" }
+        ivy { url = uri("${ivyRepo.uri}") }
     }
     compile 'ivy.configuration:projectA:1.2'
 }
@@ -93,7 +93,7 @@ configurations {
     compile
 }
 repositories {
-    ivy { url "${ivyRepo.uri}" }
+    ivy { url = uri("${ivyRepo.uri}") }
 }
 dependencies {
     compile group: 'test', name: 'target', version: '1.0', configuration: 'x86_windows'
@@ -123,7 +123,7 @@ configurations {
     compile
 }
 repositories {
-    ivy { url "${ivyRepo.uri}" }
+    ivy { url = uri("${ivyRepo.uri}") }
 }
 dependencies {
     compile group: 'test', name: 'target', version: '1.0', configuration: 'something'
@@ -147,7 +147,7 @@ configurations {
 }
 dependencies {
     repositories {
-        ivy { url "${ivyHttpRepo.uri}" }
+        ivy { url = uri("${ivyHttpRepo.uri}") }
     }
     compile group: 'ivy.configuration', name: 'projectA', version: '1.2', configuration: 'a'
 }
@@ -233,7 +233,7 @@ configurations {
 dependencies {
     repositories {
         ivy {
-            url "${ivyRepo.uri}"
+            url = uri("${ivyRepo.uri}")
             resolve.dynamicMode = project.hasProperty('useDynamicResolve')
         }
     }
@@ -284,14 +284,14 @@ task retrieve(type: Sync) {
         buildFile << """
 repositories {
     ivy {
-        url "${repo1.uri}"
+        url = uri("${repo1.uri}")
         metadataSources {
             ivyDescriptor()
             artifact()
         }
     }
     ivy {
-        url "${repo2.uri}"
+        url = uri("${repo2.uri}")
         metadataSources {
             ivyDescriptor()
             artifact()
@@ -341,7 +341,7 @@ task retrieve(type: Sync) {
         compile
     }
     repositories {
-        ivy { url "${ivyRepo.uri}" }
+        ivy { url = uri("${ivyRepo.uri}") }
     }
     dependencies {
         compile group: 'ivy.configuration', name: 'projectA', version: '1.2', configuration: 'a'

@@ -83,7 +83,7 @@ class MavenPublishPomPackagingJavaIntegTest extends AbstractMavenPublishIntegTes
 
             publishing {
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = uri("${mavenRepo.uri}") }
                 }
                 publications {
                     maven(MavenPublication) {

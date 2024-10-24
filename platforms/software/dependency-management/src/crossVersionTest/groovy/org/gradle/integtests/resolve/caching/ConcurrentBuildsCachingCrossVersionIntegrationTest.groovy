@@ -37,7 +37,7 @@ class ConcurrentBuildsCachingCrossVersionIntegrationTest extends AbstractCacheRe
 
         buildFile << """
 repositories {
-    maven { url "${mavenHttpRepo.uri}" }
+    maven { url = uri("${mavenHttpRepo.uri}") }
 }
 configurations {
     a

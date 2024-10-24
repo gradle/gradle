@@ -62,7 +62,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
 
             allprojects {
                 repositories {
-                    maven { url '${mavenHttpRepo.uri}' }
+                    maven { url = uri('${mavenHttpRepo.uri}') }
                 }
             }
         """
@@ -1540,7 +1540,7 @@ resultsFile:
 
             allprojects {
                 repositories {
-                    maven { url "${mavenHttpRepo.uri}" }
+                    maven { url = uri("${mavenHttpRepo.uri}") }
                 }
 
                 if ($scheduled) {
@@ -1810,7 +1810,7 @@ resultsFile:
         buildFile << declareAttributes() << multiProjectWithJarSizeTransform() << """
             allprojects {
                 repositories {
-                    maven { url '$ivyHttpRepo.uri' }
+                    maven { url = uri('$ivyHttpRepo.uri') }
                 }
                 configurations.all {
                     resolutionStrategy.cacheDynamicVersionsFor(0, "seconds")

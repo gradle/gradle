@@ -40,7 +40,7 @@ def flavor = Attribute.of('flavor', String)
 
 allprojects {
     repositories {
-        ivy { url '${ivyHttpRepo.uri}' }
+        ivy { url = uri('${ivyHttpRepo.uri}') }
     }
     dependencies {
         attributesSchema {

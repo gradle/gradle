@@ -86,7 +86,7 @@ class DependencyConstraintsBugsIntegrationTest extends AbstractHttpDependencyRes
 
         buildFile << """
             repositories {
-                maven { url "${mavenHttpRepo.uri}" }
+                maven { url = uri("${mavenHttpRepo.uri}") }
             }
             configurations {
                 conf

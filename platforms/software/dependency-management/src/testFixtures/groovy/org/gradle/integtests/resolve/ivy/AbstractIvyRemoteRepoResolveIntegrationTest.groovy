@@ -45,7 +45,7 @@ abstract class AbstractIvyRemoteRepoResolveIntegrationTest extends AbstractInteg
         buildFile << """
             repositories {
                 ivy {
-                    url "${remoteIvyRepo.uri}"
+                    url = uri("${remoteIvyRepo.uri}")
                     $server.validCredentials
                     layout '$layout'
                 }
@@ -83,7 +83,7 @@ abstract class AbstractIvyRemoteRepoResolveIntegrationTest extends AbstractInteg
         buildFile << """
             repositories {
                 ivy {
-                    url "${remoteIvyRepo.uri}"
+                    url = uri("${remoteIvyRepo.uri}")
                     $server.validCredentials
                     patternLayout {
                         artifact "${remoteIvyRepo.baseArtifactPattern}"
@@ -134,7 +134,7 @@ abstract class AbstractIvyRemoteRepoResolveIntegrationTest extends AbstractInteg
             repositories {
                 ivy {
                     $server.validCredentials
-                    url "${emptyRepo.uri}"
+                    url = uri("${emptyRepo.uri}")
                     artifactPattern "${thirdPartyIvyRepo.artifactPattern}"
                     artifactPattern "${companyIvyRepo.artifactPattern}"
                     ivyPattern "${thirdPartyIvyRepo.ivyPattern}"
@@ -184,11 +184,11 @@ abstract class AbstractIvyRemoteRepoResolveIntegrationTest extends AbstractInteg
         buildFile << """
             repositories {
                 ivy {
-                    url "${repo1.uri}"
+                    url = uri("${repo1.uri}")
                     $server.validCredentials
                 }
                 ivy {
-                    url "${repo2.uri}"
+                    url = uri("${repo2.uri}")
                     $server.validCredentials
                 }
             }
@@ -238,7 +238,7 @@ abstract class AbstractIvyRemoteRepoResolveIntegrationTest extends AbstractInteg
         buildFile << """
             repositories {
                 ivy {
-                    url "${server.remoteIvyRepo.uri}"
+                    url = uri("${server.remoteIvyRepo.uri}")
                     $server.validCredentials
                 }
             }
@@ -280,7 +280,7 @@ abstract class AbstractIvyRemoteRepoResolveIntegrationTest extends AbstractInteg
         buildFile << """
             repositories {
                 ivy {
-                    url "${server.remoteIvyRepo.uri}"
+                    url = uri("${server.remoteIvyRepo.uri}")
                     $server.validCredentials
                 }
             }
@@ -323,7 +323,7 @@ abstract class AbstractIvyRemoteRepoResolveIntegrationTest extends AbstractInteg
         buildFile << """
             repositories {
                 ivy {
-                    url "${server.remoteIvyRepo.uri}"
+                    url = uri("${server.remoteIvyRepo.uri}")
                     $server.validCredentials
                     metadataSources { artifact() }
                 }
@@ -373,7 +373,7 @@ abstract class AbstractIvyRemoteRepoResolveIntegrationTest extends AbstractInteg
             dependencies {
                 repositories {
                     ivy {
-                        url "${server.remoteIvyRepo.uri}"
+                        url = uri("${server.remoteIvyRepo.uri}")
                         $server.validCredentials
                         resolve.dynamicMode = project.hasProperty('useDynamicResolve')
                     }

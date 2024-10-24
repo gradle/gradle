@@ -109,7 +109,7 @@ class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelect
         buildFile << """
             configurations { conf }
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = uri("${mavenRepo.uri}") }
             }
 
             dependencies {

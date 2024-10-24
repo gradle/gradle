@@ -1036,7 +1036,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         buildFile << """
             repositories {
                 maven {
-                    url = '${mavenRepo.uri}'
+                    url = uri('${mavenRepo.uri}')
                     metadataSources { gradleMetadata() }
                 }
             }
@@ -1117,7 +1117,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         buildFile << """
             repositories {
                 maven {
-                    url = '${mavenRepo.uri}'
+                    url = uri('${mavenRepo.uri}')
                     metadataSources { gradleMetadata() }
                 }
             }

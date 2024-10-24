@@ -81,7 +81,7 @@ class GradlePluginWithVariantsPublicationIntegrationTest extends AbstractIntegra
             }
             publishing {
                 repositories {
-                    maven { url = '${mavenRepo.uri}' }
+                    maven { url = uri('${mavenRepo.uri}') }
                 }
             }
         """
@@ -91,7 +91,7 @@ class GradlePluginWithVariantsPublicationIntegrationTest extends AbstractIntegra
         consumer.file('settings.gradle') << """
             pluginManagement {
                 repositories {
-                    maven { url = '${mavenRepo.uri}' }
+                    maven { url = uri('${mavenRepo.uri}') }
                 }
             }
         """
@@ -171,7 +171,7 @@ class GradlePluginWithVariantsPublicationIntegrationTest extends AbstractIntegra
             }
             publishing {
                 repositories {
-                    maven { url = '${mavenRepo.uri}' }
+                    maven { url = uri('${mavenRepo.uri}') }
                 }
             }
         """
@@ -180,7 +180,7 @@ class GradlePluginWithVariantsPublicationIntegrationTest extends AbstractIntegra
         consumer.file('settings.gradle') << """
             pluginManagement {
                 repositories {
-                    maven { url = '${mavenRepo.uri}' }
+                    maven { url = uri('${mavenRepo.uri}') }
                 }
             }
         """
@@ -222,7 +222,7 @@ class GradlePluginWithVariantsPublicationIntegrationTest extends AbstractIntegra
         consumer.file('settings.gradle') << """
             pluginManagement {
                 repositories {
-                    maven { url = '${mavenRepo.uri}' }
+                    maven { url = uri('${mavenRepo.uri}') }
                 }
             }
         """
@@ -267,7 +267,7 @@ class GradlePluginWithVariantsPublicationIntegrationTest extends AbstractIntegra
             }
             publishing {
                 repositories {
-                    maven { url = '${mavenRepo.uri}' }
+                    maven { url = uri('${mavenRepo.uri}') }
                 }
             }
         """
@@ -276,7 +276,7 @@ class GradlePluginWithVariantsPublicationIntegrationTest extends AbstractIntegra
         consumer.file('settings.gradle') << """
             pluginManagement {
                 repositories {
-                    maven { url = '${mavenRepo.uri}' }
+                    maven { url = uri('${mavenRepo.uri}') }
                 }
             }
         """
@@ -363,7 +363,7 @@ class GradlePluginWithVariantsPublicationIntegrationTest extends AbstractIntegra
             }
             publishing {
                 repositories {
-                    maven { url = '${mavenRepo.uri}' }
+                    maven { url = uri('${mavenRepo.uri}') }
                 }
             }
         """
@@ -373,7 +373,7 @@ class GradlePluginWithVariantsPublicationIntegrationTest extends AbstractIntegra
         consumer.file('settings.gradle') << """
             pluginManagement {
                 repositories {
-                    maven { url = '${mavenRepo.uri}' }
+                    maven { url = uri('${mavenRepo.uri}') }
                 }
             }
         """

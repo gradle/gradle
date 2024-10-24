@@ -114,7 +114,7 @@ abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec imp
             }
             repositories {
                 maven {
-                    url "${mavenRepo.uri}"
+                    url = uri("${mavenRepo.uri}")
                     metadataSources {
                         ${params.resolveModuleMetadata?'gradleMetadata':'mavenPom'}()
                         ${params.resolveModuleMetadata?'':'ignoreGradleMetadataRedirection()'}

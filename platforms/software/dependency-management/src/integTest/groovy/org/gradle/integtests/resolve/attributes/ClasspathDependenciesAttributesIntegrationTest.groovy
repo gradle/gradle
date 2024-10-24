@@ -55,7 +55,7 @@ class ClasspathDependenciesAttributesIntegrationTest extends AbstractModuleDepen
         settingsFile.text = """
 pluginManagement {
     repositories {
-        maven { url = '$mavenRepo.uri'}
+        maven { url = uri('$mavenRepo.uri')}
     }
     resolutionStrategy {
         eachPlugin {
@@ -74,7 +74,7 @@ plugins {
 }
 
 repositories {
-    maven { url = '$mavenRepo.uri'}
+    maven { url = uri('$mavenRepo.uri')}
 }
 
 dependencies {
@@ -129,7 +129,7 @@ task printDeps {
         settingsFile.text = """
 pluginManagement {
     repositories {
-        maven { url = '$mavenRepo.uri' }
+        maven { url = uri('$mavenRepo.uri') }
     }
     resolutionStrategy {
         eachPlugin {
@@ -148,7 +148,7 @@ plugins {
 }
 
 repositories {
-    maven { url = '$mavenRepo.uri' }
+    maven { url = uri('$mavenRepo.uri') }
 }
 """
 

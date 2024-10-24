@@ -99,7 +99,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         given:
         buildFile << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = uri("${mavenRepo.uri}") }
             }
             dependencies {
                 compile 'test:test:1.3'
@@ -394,7 +394,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         buildFile << """
             allprojects {
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = uri("${mavenRepo.uri}") }
                 }
             }
 
@@ -1151,7 +1151,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         given:
         buildFile << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = uri("${mavenRepo.uri}") }
             }
             dependencies {
                 compile 'test:test:1.3'
@@ -1196,7 +1196,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         given:
         buildFile << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = uri("${mavenRepo.uri}") }
             }
             dependencies {
                 compile 'test:test:1.3'
@@ -1478,7 +1478,7 @@ Found the following transforms:
         given:
         buildFile << """
             repositories {
-                maven { url '${mavenHttpRepo.uri}' }
+                maven { url = uri('${mavenHttpRepo.uri}') }
             }
             configurations {
                 config1 {
@@ -1703,7 +1703,7 @@ Found the following transforms:
             ${configurationAndTransform('FileSizer')}
 
             repositories {
-                ivy { url "${ivyHttpRepo.uri}" }
+                ivy { url = uri("${ivyHttpRepo.uri}") }
             }
 
             dependencies {
@@ -2109,7 +2109,7 @@ Found the following transforms:
         given:
         buildFile << """
             repositories {
-                maven { url '$mavenHttpRepo.uri' }
+                maven { url = uri('$mavenHttpRepo.uri') }
             }
 
             def a = file("a.jar")
@@ -2209,7 +2209,7 @@ Found the following transforms:
             }
 
             repositories {
-                maven { url '$mavenRepo.uri' }
+                maven { url = uri('$mavenRepo.uri') }
             }
 
             dependencies {
@@ -2270,7 +2270,7 @@ Found the following transforms:
 
         buildFile << """
             repositories {
-                maven { url '$mavenRepo.uri' }
+                maven { url = uri('$mavenRepo.uri') }
             }
 
             dependencies {
@@ -2333,7 +2333,7 @@ Found the following transforms:
         given:
         buildFile << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = uri("${mavenRepo.uri}") }
             }
             dependencies {
                 compile 'test:test:1.3:foo'
@@ -2389,7 +2389,7 @@ Found the following transforms:
         taskTypeLogsArtifactCollectionDetails()
         buildFile << """
             repositories {
-                ivy { url "${ivyRepo.uri}" }
+                ivy { url = uri("${ivyRepo.uri}") }
             }
             configurations {
                 compile1 {
@@ -2466,12 +2466,12 @@ Found the following transforms:
         buildFile << """
             project(":a") {
                 repositories {
-                    maven { url "${repo1.uri}" }
+                    maven { url = uri("${repo1.uri}") }
                 }
             }
             project(":b") {
                 repositories {
-                    maven { url "${repo2.uri}" }
+                    maven { url = uri("${repo2.uri}") }
                 }
             }
             allprojects {

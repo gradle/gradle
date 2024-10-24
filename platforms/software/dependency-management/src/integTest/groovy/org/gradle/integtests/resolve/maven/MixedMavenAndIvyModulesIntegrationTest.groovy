@@ -30,8 +30,8 @@ class MixedMavenAndIvyModulesIntegrationTest extends AbstractDependencyResolutio
         """
         buildFile << """
             repositories {
-                maven { url '${mavenRepo.uri}' }
-                ivy { url '${ivyRepo.uri}' }
+                maven { url = uri('${mavenRepo.uri}') }
+                ivy { url = uri("${ivyRepo.uri}") }
             }
             configurations {
                 conf

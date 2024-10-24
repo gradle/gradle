@@ -181,7 +181,7 @@ class ReadOnlyDependencyCacheWithinContainerTest extends AbstractReadOnlyCacheDe
             repositories {
                 maven {
                    allowInsecureProtocol = true
-                   url "http://host.testcontainers.internal:${server.port}/repo"
+                   url = uri("http://host.testcontainers.internal:${server.port}/repo")
                 }
             }
 

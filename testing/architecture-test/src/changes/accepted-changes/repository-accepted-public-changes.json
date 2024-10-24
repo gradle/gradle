@@ -1,0 +1,313 @@
+{
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.api.artifacts.repositories.UrlArtifactRepository",
+            "member": "Method org.gradle.api.artifacts.repositories.UrlArtifactRepository.setUrl(java.io.File)",
+            "acceptation": "Added for backward source compatibility",
+            "changes": [
+                "Method added to interface",
+                "Deprecated annotation was added"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.repositories.UrlArtifactRepository",
+            "member": "Method org.gradle.api.artifacts.repositories.UrlArtifactRepository.setUrl(java.lang.CharSequence)",
+            "acceptation": "Added for backward source compatibility",
+            "changes": [
+                "Method added to interface",
+                "Deprecated annotation was added"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.repositories.UrlArtifactRepository",
+            "member": "Method org.gradle.api.artifacts.repositories.UrlArtifactRepository.setUrl(java.lang.Object)",
+            "acceptation": "Replaced with property and typed methods for source compatibility",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.repositories.UrlArtifactRepository",
+            "member": "Method org.gradle.api.artifacts.repositories.UrlArtifactRepository.setUrl(java.net.URL)",
+            "acceptation": "Added for backward source compatibility",
+            "changes": [
+                "Method added to interface",
+                "Deprecated annotation was added"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.repositories.UrlArtifactRepository",
+            "member": "Method org.gradle.api.artifacts.repositories.UrlArtifactRepository.setUrl(java.nio.file.Path)",
+            "acceptation": "Added for backward source compatibility",
+            "changes": [
+                "Method added to interface",
+                "Deprecated annotation was added"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.repositories.UrlArtifactRepository",
+            "member": "Method org.gradle.api.artifacts.repositories.UrlArtifactRepository.setUrl(org.gradle.api.file.FileSystemLocation)",
+            "acceptation": "Added for backward source compatibility",
+            "changes": [
+                "Method added to interface",
+                "Deprecated annotation was added"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.RepositoryHandlerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.RepositoryHandlerExtensionsKt.ivy(org.gradle.api.artifacts.dsl.RepositoryHandler,java.io.File)",
+            "acceptation": "Added for backward source compatibility",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.RepositoryHandlerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.RepositoryHandlerExtensionsKt.ivy(org.gradle.api.artifacts.dsl.RepositoryHandler,java.io.File,kotlin.jvm.functions.Function1)",
+            "acceptation": "Added for backward source compatibility",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.RepositoryHandlerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.RepositoryHandlerExtensionsKt.ivy(org.gradle.api.artifacts.dsl.RepositoryHandler,java.lang.CharSequence)",
+            "acceptation": "Added for backward source compatibility",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.RepositoryHandlerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.RepositoryHandlerExtensionsKt.ivy(org.gradle.api.artifacts.dsl.RepositoryHandler,java.lang.CharSequence,kotlin.jvm.functions.Function1)",
+            "acceptation": "Added for backward source compatibility",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.RepositoryHandlerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.RepositoryHandlerExtensionsKt.ivy(org.gradle.api.artifacts.dsl.RepositoryHandler,java.lang.Object)",
+            "acceptation": "Replaced with typed methods for source compatibility",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.RepositoryHandlerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.RepositoryHandlerExtensionsKt.ivy(org.gradle.api.artifacts.dsl.RepositoryHandler,java.lang.Object,kotlin.jvm.functions.Function1)",
+            "acceptation": "Replaced with typed methods for source compatibility",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.RepositoryHandlerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.RepositoryHandlerExtensionsKt.ivy(org.gradle.api.artifacts.dsl.RepositoryHandler,java.lang.String)",
+            "acceptation": "Replaces untyped method",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.RepositoryHandlerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.RepositoryHandlerExtensionsKt.ivy(org.gradle.api.artifacts.dsl.RepositoryHandler,java.lang.String,kotlin.jvm.functions.Function1)",
+            "acceptation": "Replaces untyped method",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.RepositoryHandlerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.RepositoryHandlerExtensionsKt.ivy(org.gradle.api.artifacts.dsl.RepositoryHandler,java.net.URI)",
+            "acceptation": "Replaces untyped method",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.RepositoryHandlerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.RepositoryHandlerExtensionsKt.ivy(org.gradle.api.artifacts.dsl.RepositoryHandler,java.net.URI,kotlin.jvm.functions.Function1)",
+            "acceptation": "Replaces untyped method",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.RepositoryHandlerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.RepositoryHandlerExtensionsKt.ivy(org.gradle.api.artifacts.dsl.RepositoryHandler,java.net.URL)",
+            "acceptation": "Added for backward source compatibility",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.RepositoryHandlerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.RepositoryHandlerExtensionsKt.ivy(org.gradle.api.artifacts.dsl.RepositoryHandler,java.net.URL,kotlin.jvm.functions.Function1)",
+            "acceptation": "Added for backward source compatibility",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.RepositoryHandlerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.RepositoryHandlerExtensionsKt.ivy(org.gradle.api.artifacts.dsl.RepositoryHandler,java.nio.file.Path)",
+            "acceptation": "Added for backward source compatibility",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.RepositoryHandlerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.RepositoryHandlerExtensionsKt.ivy(org.gradle.api.artifacts.dsl.RepositoryHandler,java.nio.file.Path,kotlin.jvm.functions.Function1)",
+            "acceptation": "Added for backward source compatibility",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.RepositoryHandlerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.RepositoryHandlerExtensionsKt.ivy(org.gradle.api.artifacts.dsl.RepositoryHandler,org.gradle.api.file.FileSystemLocation)",
+            "acceptation": "Added for backward source compatibility",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.RepositoryHandlerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.RepositoryHandlerExtensionsKt.ivy(org.gradle.api.artifacts.dsl.RepositoryHandler,org.gradle.api.file.FileSystemLocation,kotlin.jvm.functions.Function1)",
+            "acceptation": "Added for backward source compatibility",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.RepositoryHandlerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.RepositoryHandlerExtensionsKt.maven(org.gradle.api.artifacts.dsl.RepositoryHandler,java.io.File)",
+            "acceptation": "Added for backward source compatibility",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.RepositoryHandlerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.RepositoryHandlerExtensionsKt.maven(org.gradle.api.artifacts.dsl.RepositoryHandler,java.io.File,kotlin.jvm.functions.Function1)",
+            "acceptation": "Added for backward source compatibility",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.RepositoryHandlerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.RepositoryHandlerExtensionsKt.maven(org.gradle.api.artifacts.dsl.RepositoryHandler,java.lang.CharSequence)",
+            "acceptation": "Added for backward source compatibility",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.RepositoryHandlerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.RepositoryHandlerExtensionsKt.maven(org.gradle.api.artifacts.dsl.RepositoryHandler,java.lang.CharSequence,kotlin.jvm.functions.Function1)",
+            "acceptation": "Added for backward source compatibility",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.RepositoryHandlerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.RepositoryHandlerExtensionsKt.maven(org.gradle.api.artifacts.dsl.RepositoryHandler,java.lang.Object)",
+            "acceptation": "Replaced with typed methods for source compatibility",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.RepositoryHandlerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.RepositoryHandlerExtensionsKt.maven(org.gradle.api.artifacts.dsl.RepositoryHandler,java.lang.Object,kotlin.jvm.functions.Function1)",
+            "acceptation": "Replaced with typed methods for source compatibility",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.RepositoryHandlerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.RepositoryHandlerExtensionsKt.maven(org.gradle.api.artifacts.dsl.RepositoryHandler,java.lang.String)",
+            "acceptation": "Replaces untyped method",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.RepositoryHandlerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.RepositoryHandlerExtensionsKt.maven(org.gradle.api.artifacts.dsl.RepositoryHandler,java.lang.String,kotlin.jvm.functions.Function1)",
+            "acceptation": "Replaces untyped method",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.RepositoryHandlerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.RepositoryHandlerExtensionsKt.maven(org.gradle.api.artifacts.dsl.RepositoryHandler,java.net.URI)",
+            "acceptation": "Replaces untyped method",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.RepositoryHandlerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.RepositoryHandlerExtensionsKt.maven(org.gradle.api.artifacts.dsl.RepositoryHandler,java.net.URI,kotlin.jvm.functions.Function1)",
+            "acceptation": "Replaces untyped method",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.RepositoryHandlerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.RepositoryHandlerExtensionsKt.maven(org.gradle.api.artifacts.dsl.RepositoryHandler,java.net.URL)",
+            "acceptation": "Added for backward source compatibility",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.RepositoryHandlerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.RepositoryHandlerExtensionsKt.maven(org.gradle.api.artifacts.dsl.RepositoryHandler,java.net.URL,kotlin.jvm.functions.Function1)",
+            "acceptation": "Added for backward source compatibility",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.RepositoryHandlerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.RepositoryHandlerExtensionsKt.maven(org.gradle.api.artifacts.dsl.RepositoryHandler,java.nio.file.Path)",
+            "acceptation": "Added for backward source compatibility",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.RepositoryHandlerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.RepositoryHandlerExtensionsKt.maven(org.gradle.api.artifacts.dsl.RepositoryHandler,java.nio.file.Path,kotlin.jvm.functions.Function1)",
+            "acceptation": "Added for backward source compatibility",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.RepositoryHandlerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.RepositoryHandlerExtensionsKt.maven(org.gradle.api.artifacts.dsl.RepositoryHandler,org.gradle.api.file.FileSystemLocation)",
+            "acceptation": "Added for backward source compatibility",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.RepositoryHandlerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.RepositoryHandlerExtensionsKt.maven(org.gradle.api.artifacts.dsl.RepositoryHandler,org.gradle.api.file.FileSystemLocation,kotlin.jvm.functions.Function1)",
+            "acceptation": "Added for backward source compatibility",
+            "changes": [
+                "Method added to public class"
+            ]
+        }
+    ]
+}

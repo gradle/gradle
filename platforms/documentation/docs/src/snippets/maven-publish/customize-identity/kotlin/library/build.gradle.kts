@@ -10,7 +10,8 @@ repositories {
 publishing {
     repositories {
         maven {
-            url = uri("${rootProject.buildDir}/repo") // change to point to your repo, e.g. http://my.org/repo
+            // change to point to your repo, e.g. http://my.org/repo
+            url = uri(rootProject.layout.buildDirectory.dir("repo"))
         }
     }
 }

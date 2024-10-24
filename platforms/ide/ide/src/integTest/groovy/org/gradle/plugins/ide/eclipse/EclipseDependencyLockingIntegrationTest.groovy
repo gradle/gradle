@@ -38,7 +38,7 @@ apply plugin: 'java'
 apply plugin: 'eclipse'
 
 repositories {
-    maven { url "${mvnRepo.uri}" }
+    maven { url = uri("${mvnRepo.uri}") }
 }
 
 configurations {
@@ -75,7 +75,7 @@ apply plugin: 'java'
 apply plugin: 'eclipse'
 
 repositories {
-    maven { url "${mvnRepo.uri}" }
+    maven { url = uri("${mvnRepo.uri}") }
 }
 
 configurations {

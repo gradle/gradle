@@ -38,7 +38,7 @@ class PluginClasspathLeakIntegrationTest extends AbstractIntegrationSpec {
 
                 repositories {
                     maven {
-                        url '${mavenRepo.uri}'
+                        url = uri("${mavenRepo.uri}")
                     }
                     mavenCentral()
                 }
@@ -100,7 +100,7 @@ class PluginClasspathLeakIntegrationTest extends AbstractIntegrationSpec {
                     repositories {
                         maven {
                             name = 'repo'
-                            url = '${mavenRepo.uri}'
+                            url = uri('${mavenRepo.uri}')
                         }
                     }
                 }

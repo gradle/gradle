@@ -247,7 +247,7 @@ class WatchedDirectoriesFileSystemWatchingIntegrationTest extends AbstractFileSy
         def projectDir = file("project")
         projectDir.file("build.gradle") << """
             configurations { implementation }
-            repositories { ${repositoryType} { url "${repo.uri}" } }
+            repositories { ${repositoryType} { url = uri("${repo.uri}") } }
             dependencies { implementation 'group:projectA:9.1' }
 
             task retrieve(type: Sync) {
@@ -282,7 +282,7 @@ class WatchedDirectoriesFileSystemWatchingIntegrationTest extends AbstractFileSy
 
         projectDir.file("build.gradle") << """
             repositories {
-                maven { url "${mavenHttpRepository.uri}" }
+                maven { url = uri("${mavenHttpRepository.uri}") }
             }
             configurations { compile }
             dependencies {

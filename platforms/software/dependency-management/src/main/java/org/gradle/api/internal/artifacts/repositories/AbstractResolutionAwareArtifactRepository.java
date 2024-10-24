@@ -22,29 +22,19 @@ import org.gradle.api.model.ObjectFactory;
 
 public abstract class AbstractResolutionAwareArtifactRepository<T extends RepositoryDescriptor> extends AbstractArtifactRepository implements ResolutionAwareRepository {
 
-    private T descriptor;
-
     protected AbstractResolutionAwareArtifactRepository(ObjectFactory objectFactory, VersionParser versionParser) {
         super(objectFactory, versionParser);
     }
 
     @Override
     final public T getDescriptor() {
-        if (descriptor == null) {
-            descriptor = createDescriptor();
-        }
-        return descriptor;
+        //FIXME: should be cached, but we need to make sure it's invalidated when the repository changes
+        //Currently, it's not possible to wire an action on property change
+        return createDescriptor();
     }
 
     protected void invalidateDescriptor() {
-        descriptor = null;
     }
 
     protected abstract T createDescriptor();
-
-    @Override
-    public void setName(String name) {
-        invalidateDescriptor();
-        super.setName(name);
-    }
 }

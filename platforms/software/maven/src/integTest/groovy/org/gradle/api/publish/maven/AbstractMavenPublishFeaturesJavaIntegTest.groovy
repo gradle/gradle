@@ -46,7 +46,7 @@ abstract class AbstractMavenPublishFeaturesJavaIntegTest extends AbstractMavenPu
 
             publishing {
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = uri("${mavenRepo.uri}") }
                 }
             }
             group = 'org.gradle.test'

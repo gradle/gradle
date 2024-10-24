@@ -284,7 +284,7 @@ class ResolveArtifactsProgressCrossVersionSpec extends ToolingApiSpecification {
             def kind = Attribute.of('kind', String)
 
             repositories {
-                maven { url = '${mavenHttpRepo.uri}' }
+                maven { url = uri('${mavenHttpRepo.uri}') }
             }
 
             configurations {

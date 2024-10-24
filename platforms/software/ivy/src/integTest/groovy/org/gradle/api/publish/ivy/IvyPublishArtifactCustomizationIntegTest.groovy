@@ -479,7 +479,7 @@ The following types/formats are supported:
 
             publishing {
                 repositories {
-                    ivy { url "${ivyRepo.uri}" }
+                    ivy { url = uri("${ivyRepo.uri}") }
                 }
                 $publications
             }
@@ -516,7 +516,7 @@ The following types/formats are supported:
 
             publishing {
                 repositories {
-                    ivy { url "${ivyRepo.uri}" }
+                    ivy { url = uri("${ivyRepo.uri}") }
                 }
                 publications {
                     maven(IvyPublication) {

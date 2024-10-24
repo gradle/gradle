@@ -36,7 +36,7 @@ class IvyModuleArtifactResolutionIntegrationTest extends AbstractHttpDependencyR
     def initBuild(IvyRepository repo) {
         buildFile << """
 repositories {
-    ivy { url '$repo.uri' }
+    ivy { url = uri('$repo.uri') }
 }
 """
     }
@@ -132,7 +132,7 @@ repositories {
         buildFile.text = """
 repositories {
     ivy {
-        url '${httpRepo.uri}'
+        url = uri("${httpRepo.uri}")
         patternLayout {
             artifact '[module]/[revision]/[artifact](.[ext])'
             ivy '[module]/[revision]/alternate-ivy.xml'

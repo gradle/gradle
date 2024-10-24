@@ -46,7 +46,7 @@ class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec {
         and:
         buildFile << """
 allprojects {
-    repositories { maven { url '$mavenRepo.uri' } }
+    repositories { maven { url = uri('$mavenRepo.uri') } }
 }
 project(":a") {
     configurations {
@@ -103,7 +103,7 @@ project(":b") {
         and:
         buildFile << """
 allprojects {
-    repositories { maven { url '$mavenRepo.uri' } }
+    repositories { maven { url = uri('$mavenRepo.uri') } }
 }
 project(":a") {
     apply plugin: 'base'
@@ -325,7 +325,7 @@ project(':b') {
         buildFile << """
 allprojects {
     apply plugin: 'base'
-    repositories { maven { url '${mavenRepo.uri}' } }
+    repositories { maven { url = uri('${mavenRepo.uri}') } }
 }
 
 project(":a") {
@@ -408,7 +408,7 @@ project(":b") {
         buildFile << """
 allprojects {
     apply plugin: 'java'
-    repositories { maven { url '${mavenRepo.uri}' } }
+    repositories { maven { url = uri('${mavenRepo.uri}') } }
 }
 project(':a') {
     dependencies {

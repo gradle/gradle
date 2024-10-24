@@ -92,7 +92,7 @@ class DistributionPluginIntegrationTest extends WellBehavedPluginTest {
 
             publishing {
                 repositories {
-                    maven { url "${file("repo").toURI()}" }
+                    maven { url = uri("${file("repo").toURI()}") }
                 }
                 publications {
                     maven(MavenPublication) {

@@ -134,7 +134,7 @@ class IvyPublishHttpsIntegTest extends AbstractIvyPublishIntegTest {
             publishing {
                 repositories {
                     ivy {
-                        url '${ivyRemoteRepo.uri}'
+                        url = uri("${ivyRemoteRepo.uri}")
                     }
                 }
                 publications {

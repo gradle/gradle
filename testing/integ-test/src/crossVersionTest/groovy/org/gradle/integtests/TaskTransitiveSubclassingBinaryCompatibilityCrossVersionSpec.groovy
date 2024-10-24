@@ -56,7 +56,7 @@ class TaskTransitiveSubclassingBinaryCompatibilityCrossVersionSpec extends Cross
                 repositories {
                     maven {
                         name = "localRepo"
-                        setUrl(new File(project.buildDir, 'repo'))
+                        url = uri(layout.buildDirectory.dir('repo'))
                     }
                 }
             }
@@ -96,7 +96,7 @@ class TaskTransitiveSubclassingBinaryCompatibilityCrossVersionSpec extends Cross
             pluginManagement {
                 repositories {
                     maven {
-                        url file('plugin/build/repo')
+                        url = uri('plugin/build/repo')
                     }
                 }
             }

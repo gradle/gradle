@@ -35,7 +35,7 @@ abstract class AbstractGradleMetadataMavenSnapshotCrossVersionIntegrationTest ex
                 version = '1.0-SNAPSHOT'
 
                 repositories {
-                    maven { url "\${rootProject.buildDir}/repo" }
+                    maven { url = uri("\${rootProject.buildDir}/repo") }
                 }
                 ${mavenCentralRepository()}
             }
@@ -50,7 +50,7 @@ abstract class AbstractGradleMetadataMavenSnapshotCrossVersionIntegrationTest ex
 
             publishing {
                 repositories {
-                    maven { url "\${rootProject.buildDir}/repo" }
+                    maven { url = uri("\${rootProject.buildDir}/repo") }
                 }
 
                 publications {

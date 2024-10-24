@@ -149,7 +149,7 @@ apply plugin: "java"
 apply plugin: "eclipse"
 
 repositories {
-    maven { url "${mavenRepo.uri}" }
+    maven { url = uri("${mavenRepo.uri}") }
 }
 
 dependencies {
@@ -169,7 +169,7 @@ apply plugin: "java"
 apply plugin: "eclipse"
 
 repositories {
-    maven { url "${mavenRepo.uri}" }
+    maven { url = uri("${mavenRepo.uri}") }
 }
 
 eclipse {
@@ -282,7 +282,7 @@ apply plugin: 'java'
 apply plugin: 'eclipse'
 
 repositories {
-    maven { url "${mavenRepo.uri}" }
+    maven { url = uri("${mavenRepo.uri}") }
 }
 
 configurations {
@@ -308,7 +308,7 @@ apply plugin: 'java'
 apply plugin: 'eclipse'
 
 repositories {
-    maven { url "${mavenRepo.uri}" }
+    maven { url = uri("${mavenRepo.uri}") }
 }
 
 dependencies {
@@ -496,7 +496,7 @@ apply plugin: "java"
 apply plugin: "eclipse"
 
 repositories {
-    maven { url "${mavenRepo}" }
+    maven { url = uri("${mavenRepo}") }
 }
 
 dependencies {

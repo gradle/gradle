@@ -76,7 +76,7 @@ class DependencyHandlerProviderIntegrationTest extends AbstractHttpDependencyRes
         buildFile << """
         repositories {
             maven {
-                url = "${mavenRepo.uri}"
+                url = uri("${mavenRepo.uri}")
             }
         }
         configurations { conf }

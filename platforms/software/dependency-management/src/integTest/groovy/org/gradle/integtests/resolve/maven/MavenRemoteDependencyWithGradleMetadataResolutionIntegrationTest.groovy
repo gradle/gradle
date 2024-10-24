@@ -46,7 +46,7 @@ class MavenRemoteDependencyWithGradleMetadataResolutionIntegrationTest extends A
         buildFile << """
 repositories {
     maven {
-        url = '${mavenHttpRepo.uri}'
+        url = uri('${mavenHttpRepo.uri}')
     }
 }
 configurations { compile }
@@ -104,7 +104,7 @@ dependencies {
         buildFile << """
 repositories {
     maven {
-        url = '${mavenHttpRepo.uri}'
+        url = uri('${mavenHttpRepo.uri}')
     }
 }
 configurations { compile }
@@ -192,7 +192,7 @@ dependencies {
         buildFile << """
 repositories {
     maven {
-        url = '${mavenHttpRepo.uri}'
+        url = uri('${mavenHttpRepo.uri}')
     }
 }
 def attr = Attribute.of("buildType", String)
@@ -273,7 +273,7 @@ task checkRelease {
         buildFile << """
 repositories {
     maven {
-        url = '${mavenHttpRepo.uri}'
+        url = uri('${mavenHttpRepo.uri}')
     }
 }
 def attr = Attribute.of("buildType", String)
@@ -354,7 +354,7 @@ task checkRelease {
         buildFile << """
 repositories {
     maven {
-        url = '${mavenHttpRepo.uri}'
+        url = uri('${mavenHttpRepo.uri}')
     }
 }
 configurations {
@@ -428,7 +428,7 @@ task checkDebug {
         buildFile << """
 repositories {
     maven {
-        url = '${mavenHttpRepo.uri}'
+        url = uri('${mavenHttpRepo.uri}')
     }
 }
 configurations {
@@ -536,7 +536,7 @@ task checkDebug {
         buildFile << """
 repositories {
     maven {
-        url = '${mavenHttpRepo.uri}'
+        url = uri('${mavenHttpRepo.uri}')
     }
 }
 def attr = Attribute.of("buildType", String)
@@ -611,7 +611,7 @@ task checkRelease {
         buildFile << """
 repositories {
     maven {
-        url = '${mavenHttpRepo.uri}'
+        url = uri('${mavenHttpRepo.uri}')
     }
 }
 
@@ -670,7 +670,7 @@ task checkRelease {
         buildFile << """
 repositories {
     maven {
-        url = '${mavenHttpRepo.uri}'
+        url = uri('${mavenHttpRepo.uri}')
     }
 }
 configurations { compile }
@@ -721,7 +721,7 @@ Required by:
         buildFile << """
 repositories {
     maven {
-        url = '${mavenHttpRepo.uri}'
+        url = uri('${mavenHttpRepo.uri}')
     }
 }
 configurations { compile }
@@ -765,7 +765,7 @@ dependencies {
         buildFile << """
 repositories {
     maven {
-        url = '${mavenHttpRepo.uri}'
+        url = uri('${mavenHttpRepo.uri}')
     }
 }
 configurations { compile }
@@ -824,7 +824,7 @@ dependencies {
         buildFile << """
 repositories {
     maven {
-        url = '${mavenHttpRepo.uri}'
+        url = uri('${mavenHttpRepo.uri}')
     }
 }
 configurations { compile }

@@ -104,7 +104,7 @@ class ProjectBuilderCrossVersionIntegrationTest extends MultiVersionIntegrationS
                     }
                     repositories {
                         maven {
-                            url '${repoDir.toURI().toURL()}'
+                            url = uri('${repoDir.toURI().toURL()}')
                         }
                     }
                 }
@@ -153,7 +153,7 @@ class ProjectBuilderCrossVersionIntegrationTest extends MultiVersionIntegrationS
             }
 
             repositories {
-                maven { url '${repoDir.toURI().toURL()}' }
+                maven { url = uri('${repoDir.toURI().toURL()}') }
                 ${mavenCentralRepositoryDefinition()}
             }
         """

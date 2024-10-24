@@ -33,7 +33,7 @@ publishing {
     repositories {
         maven {
             name = 'myRepo'
-            url = layout.buildDirectory.dir("repo")
+            url = uri(layout.buildDirectory.dir("repo"))
         }
     }
 // tag::enable-build-id[]

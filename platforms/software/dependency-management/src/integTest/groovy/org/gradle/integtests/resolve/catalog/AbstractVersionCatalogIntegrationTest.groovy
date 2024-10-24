@@ -34,7 +34,7 @@ abstract class AbstractVersionCatalogIntegrationTest extends AbstractHttpDepende
             dependencyResolutionManagement {
                 repositories {
                     maven {
-                        url = "${mavenHttpRepo.uri}"
+                        url = uri("${mavenHttpRepo.uri}")
                     }
                 }
             }

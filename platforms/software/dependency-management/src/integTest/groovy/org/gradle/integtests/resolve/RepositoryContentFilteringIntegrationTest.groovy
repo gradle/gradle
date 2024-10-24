@@ -638,24 +638,6 @@ class RepositoryContentFilteringIntegrationTest extends AbstractHttpDependencyRe
         }
     }
 
-    def "mavenContent does not resolve repository url eagerly"() {
-        given:
-        buildFile << """
-            repositories {
-                maven {
-                    url = { throw new RuntimeException("url resolved") }
-                    mavenContent { snapshotsOnly() }
-                }
-            }
-            dependencies {
-                conf "org:foo:latest.integration"
-            }
-        """
-
-        expect:
-        succeeds("help")
-    }
-
     def "can filter dynamic versions using #notation"() {
         def modIvy = ivyHttpRepo.module('org', 'foo', '1.1').publish()
         def modMaven = mavenHttpRepo.module('org', 'foo', '1.0').publish()
@@ -728,7 +710,7 @@ class RepositoryContentFilteringIntegrationTest extends AbstractHttpDependencyRe
         void maven(String conf = "") {
             dsl << """
                 maven {
-                    url "${mavenHttpRepo.uri}"
+                    url = uri("${mavenHttpRepo.uri}")
                     $conf
                 }
             """
@@ -737,7 +719,7 @@ class RepositoryContentFilteringIntegrationTest extends AbstractHttpDependencyRe
         void ivy(String conf = "") {
             dsl << """
                 ivy {
-                    url "${ivyHttpRepo.uri}"
+                    url = uri("${ivyHttpRepo.uri}")
                     $conf
                 }
             """

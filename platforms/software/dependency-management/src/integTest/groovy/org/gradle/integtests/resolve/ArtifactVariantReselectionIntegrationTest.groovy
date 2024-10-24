@@ -35,7 +35,7 @@ class ArtifactVariantReselectionIntegrationTest extends AbstractIntegrationSpec 
                 id("java-library")
             }
 
-            repositories { maven { url "${mavenRepo.uri}" } }
+            repositories { maven { url = uri("${mavenRepo.uri}") } }
 
             dependencies {
                 implementation 'com:foo:1.0'

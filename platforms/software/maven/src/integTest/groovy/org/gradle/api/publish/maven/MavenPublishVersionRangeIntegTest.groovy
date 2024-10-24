@@ -33,7 +33,7 @@ class MavenPublishVersionRangeIntegTest extends AbstractMavenPublishIntegTest {
 
             publishing {
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = uri("${mavenRepo.uri}") }
                 }
                 publications {
                     maven(MavenPublication) {
