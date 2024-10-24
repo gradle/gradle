@@ -73,11 +73,11 @@ public class DefaultDisambiguationRuleChain<T> implements DisambiguationRuleChai
         return rules;
     }
 
-    private static class ExceptionHandler<T> implements InstantiatingAction.ExceptionHandler<MultipleCandidatesDetails<T>> {
+    public static class ExceptionHandler<T> implements InstantiatingAction.ExceptionHandler<MultipleCandidatesDetails<T>> {
 
-        private final Class<? extends AttributeDisambiguationRule<T>> rule;
+        private final Class<?> rule;
 
-        private ExceptionHandler(Class<? extends AttributeDisambiguationRule<T>> rule) {
+        public ExceptionHandler(Class<?> rule) {
 
             this.rule = rule;
         }

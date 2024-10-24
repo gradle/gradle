@@ -23,10 +23,6 @@ import org.gradle.api.Action;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.CompatibilityCheckDetails;
 import org.gradle.api.attributes.MultipleCandidatesDetails;
-import org.gradle.api.internal.attributes.CompatibilityCheckResult;
-import org.gradle.api.internal.attributes.CompatibilityRule;
-import org.gradle.api.internal.attributes.DisambiguationRule;
-import org.gradle.api.internal.attributes.MultipleCandidatesResult;
 
 import javax.annotation.Nullable;
 import java.util.Objects;
@@ -56,8 +52,7 @@ public class ImmutableAttributesSchema {
     private final ImmutableMap<String, Attribute<?>> attributesByName;
     private final int hashCode;
 
-    // package-private to allow instantiation from ImmutableAttributesSchemaFactory
-    ImmutableAttributesSchema(
+    public ImmutableAttributesSchema(
         ImmutableMap<Attribute<?>, ImmutableAttributeMatchingStrategy<?>> strategies,
         ImmutableList<Attribute<?>> precedence
     ) {
@@ -98,23 +93,23 @@ public class ImmutableAttributesSchema {
     /**
      * Get the disambiguation rule for the given attribute.
      */
-    public <T> DisambiguationRule<T> disambiguationRules(Attribute<T> attribute) {
+    public <T> ImmutableList<Action<? super MultipleCandidatesDetails<T>>> disambiguationRules(Attribute<T> attribute) {
         ImmutableAttributeMatchingStrategy<T> matchingStrategy = getStrategy(attribute);
         if (matchingStrategy != null) {
             return matchingStrategy.getDisambiguationRules();
         }
-        return DisambiguationRule.doNothing();
+        return ImmutableList.of();
     }
 
     /**
      * Get the compatibility rule for the given attribute.
      */
-    public <T> CompatibilityRule<T> compatibilityRules(Attribute<T> attribute) {
+    public <T> ImmutableList<Action<? super CompatibilityCheckDetails<T>>> compatibilityRules(Attribute<T> attribute) {
         ImmutableAttributeMatchingStrategy<T> matchingStrategy = getStrategy(attribute);
         if (matchingStrategy != null) {
             return matchingStrategy.getCompatibilityRules();
         }
-        return CompatibilityRule.doNothing();
+        return ImmutableList.of();
     }
 
     /**
@@ -134,7 +129,7 @@ public class ImmutableAttributesSchema {
 
     @Nullable
     @SuppressWarnings("unchecked")
-    <T> ImmutableAttributeMatchingStrategy<T> getStrategy(Attribute<T> attribute) {
+    public <T> ImmutableAttributeMatchingStrategy<T> getStrategy(Attribute<T> attribute) {
         return (ImmutableAttributeMatchingStrategy<T>) strategies.get(attribute);
     }
 
@@ -158,22 +153,22 @@ public class ImmutableAttributesSchema {
     }
 
     public static class ImmutableAttributeMatchingStrategy<T> {
-        final ChainedCompatibilityRule<T> compatibilityRules;
-        final ChainedDisambiguationRule<T> disambiguationRules;
+        final ImmutableList<Action<? super CompatibilityCheckDetails<T>>> compatibilityRules;
+        final ImmutableList<Action<? super MultipleCandidatesDetails<T>>> disambiguationRules;
 
         public ImmutableAttributeMatchingStrategy(
             ImmutableList<Action<? super CompatibilityCheckDetails<T>>> compatibilityRules,
             ImmutableList<Action<? super MultipleCandidatesDetails<T>>> disambiguationRules
         ) {
-            this.compatibilityRules = new ChainedCompatibilityRule<>(compatibilityRules);
-            this.disambiguationRules = new ChainedDisambiguationRule<>(disambiguationRules);
+            this.compatibilityRules = compatibilityRules;
+            this.disambiguationRules = disambiguationRules;
         }
 
-        public CompatibilityRule<T> getCompatibilityRules() {
+        public ImmutableList<Action<? super CompatibilityCheckDetails<T>>> getCompatibilityRules() {
             return compatibilityRules;
         }
 
-        public DisambiguationRule<T> getDisambiguationRules() {
+        public ImmutableList<Action<? super MultipleCandidatesDetails<T>>> getDisambiguationRules() {
             return disambiguationRules;
         }
 
@@ -187,6 +182,7 @@ public class ImmutableAttributesSchema {
             }
 
             ImmutableAttributeMatchingStrategy<?> that = (ImmutableAttributeMatchingStrategy<?>) o;
+            //noinspection EqualsBetweenInconvertibleTypes
             return compatibilityRules.equals(that.compatibilityRules) &&
                 disambiguationRules.equals(that.disambiguationRules);
         }
@@ -195,93 +191,6 @@ public class ImmutableAttributesSchema {
         public int hashCode() {
             return Objects.hash(compatibilityRules, disambiguationRules);
         }
-
-        static class ChainedCompatibilityRule<T> implements CompatibilityRule<T> {
-
-            final ImmutableList<Action<? super CompatibilityCheckDetails<T>>> rules;
-
-            public ChainedCompatibilityRule(ImmutableList<Action<? super CompatibilityCheckDetails<T>>> rules) {
-                this.rules = rules;
-            }
-
-            @Override
-            public void execute(CompatibilityCheckResult<T> result) {
-                for (Action<? super CompatibilityCheckDetails<T>> rule : rules) {
-                    rule.execute(result);
-                    if (result.hasResult()) {
-                        return;
-                    }
-                }
-            }
-
-            @Override
-            public boolean doesSomething() {
-                return !rules.isEmpty();
-            }
-
-            @Override
-            public boolean equals(Object o) {
-                if (this == o) {
-                    return true;
-                }
-                if (o == null || getClass() != o.getClass()) {
-                    return false;
-                }
-
-                ChainedCompatibilityRule<?> that = (ChainedCompatibilityRule<?>) o;
-                //noinspection EqualsBetweenInconvertibleTypes
-                return rules.equals(that.rules);
-            }
-
-            @Override
-            public int hashCode() {
-                return rules.hashCode();
-            }
-        }
-
-        static class ChainedDisambiguationRule<T> implements DisambiguationRule<T> {
-
-            final ImmutableList<Action<? super MultipleCandidatesDetails<T>>> rules;
-
-            public ChainedDisambiguationRule(ImmutableList<Action<? super MultipleCandidatesDetails<T>>> rules) {
-                this.rules = rules;
-            }
-
-            @Override
-            public void execute(MultipleCandidatesResult<T> details) {
-                for (Action<? super MultipleCandidatesDetails<T>> rule : rules) {
-                    rule.execute(details);
-                    if (details.hasResult()) {
-                        return;
-                    }
-                }
-            }
-
-            @Override
-            public boolean doesSomething() {
-                return !rules.isEmpty();
-            }
-
-            @Override
-            public boolean equals(Object o) {
-                if (this == o) {
-                    return true;
-                }
-                if (o == null || getClass() != o.getClass()) {
-                    return false;
-                }
-
-                ChainedDisambiguationRule<?> that = (ChainedDisambiguationRule<?>) o;
-                //noinspection EqualsBetweenInconvertibleTypes
-                return rules.equals(that.rules);
-            }
-
-            @Override
-            public int hashCode() {
-                return rules.hashCode();
-            }
-        }
-
     }
 
 }

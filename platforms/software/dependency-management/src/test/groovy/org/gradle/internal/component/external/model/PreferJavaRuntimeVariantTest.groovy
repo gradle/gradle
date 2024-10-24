@@ -17,11 +17,13 @@
 package org.gradle.internal.component.external.model
 
 import org.gradle.api.attributes.Usage
-import org.gradle.api.internal.attributes.MultipleCandidatesResult
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema
+import org.gradle.api.internal.attributes.matching.DefaultAttributeSelectionSchema
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.TestUtil
 import spock.lang.Specification
+
+import javax.annotation.Nullable
 
 class PreferJavaRuntimeVariantTest extends Specification {
 
@@ -32,33 +34,38 @@ class PreferJavaRuntimeVariantTest extends Specification {
 
     def "should prefer the runtime variant if the consumer doesn't express any preference and that runtime is in the candidates"() {
         given:
-        def rule = schema.disambiguationRules(Usage.USAGE_ATTRIBUTE)
-        MultipleCandidatesResult<Usage> candidates = Mock(MultipleCandidatesResult)
-        candidates.getConsumerValue() >> consumerValue
-        candidates.getCandidateValues() >> candidateValues.collect { usage(it) }
 
         when:
-        rule.execute(candidates)
+        Set<Usage> result = new DefaultAttributeSelectionSchema(schema).disambiguate(
+            Usage.USAGE_ATTRIBUTE,
+            usage(consumerValue),
+            candidateValues.collect { usage(it) } as Set
+        )
 
         then:
-        count * candidates.closestMatch({ it.name == Usage.JAVA_RUNTIME })
+        if (expected == null) {
+            assert result == null
+        } else {
+            assert result == ([usage(expected)] as Set)
+        }
 
         where:
-        consumerValue      | candidateValues                                 | choosesRuntime
-        null               | [Usage.JAVA_API]                                | false
-        null               | [Usage.JAVA_RUNTIME]                            | true
-        null               | [Usage.JAVA_RUNTIME, Usage.JAVA_API]            | true
-        null               | [Usage.JAVA_API, Usage.JAVA_RUNTIME]            | true
-        null               | [Usage.JAVA_API, "unknown", Usage.JAVA_RUNTIME] | true
-        null               | [Usage.JAVA_API, "unknown"]                     | false
-        Usage.JAVA_API     | [Usage.JAVA_API, "unknown", Usage.JAVA_RUNTIME] | false
-        Usage.JAVA_RUNTIME | [Usage.JAVA_API, "unknown", Usage.JAVA_RUNTIME] | false
-        "unknown"          | [Usage.JAVA_API, "unknown", Usage.JAVA_RUNTIME] | false
-
-        count = choosesRuntime ? 1 : 0
+        consumerValue      | candidateValues                                 | expected
+        null               | [Usage.JAVA_API]                                | null
+        null               | [Usage.JAVA_RUNTIME]                            | Usage.JAVA_RUNTIME
+        null               | [Usage.JAVA_RUNTIME, Usage.JAVA_API]            | Usage.JAVA_RUNTIME
+        null               | [Usage.JAVA_API, Usage.JAVA_RUNTIME]            | Usage.JAVA_RUNTIME
+        null               | [Usage.JAVA_API, "unknown", Usage.JAVA_RUNTIME] | Usage.JAVA_RUNTIME
+        null               | [Usage.JAVA_API, "unknown"]                     | null
+        Usage.JAVA_API     | [Usage.JAVA_API, "unknown", Usage.JAVA_RUNTIME] | Usage.JAVA_API
+        Usage.JAVA_RUNTIME | [Usage.JAVA_API, "unknown", Usage.JAVA_RUNTIME] | Usage.JAVA_RUNTIME
+        "unknown"          | [Usage.JAVA_API, "unknown", Usage.JAVA_RUNTIME] | "unknown"
     }
 
-    private static Usage usage(String name) {
+    private static Usage usage(@Nullable String name) {
+        if (name == null) {
+            return null
+        }
         TestUtil.objectFactory().named(Usage, name)
     }
 }
