@@ -74,13 +74,15 @@ class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTes
     @ExpectDeprecation("The RepositoryHandler.mavenCentral(Map) method has been deprecated.")
     public void testMavenCentralWithMap() {
         when:
-        MavenArtifactRepository repository = Mock(TestMavenArtifactRepository) { getName() >> "name" }
+        MavenArtifactRepository repository = Mock(TestMavenArtifactRepository) {
+            getName() >> "name"
+            getUrl() >> TestUtil.propertyFactory().property(URI)
+        }
         1 * repositoryFactory.createMavenCentralRepository() >> repository
-        1 * repository.setArtifactUrls(["abc"])
         repository.getName() >> "name"
 
         then:
-        handler.mavenCentral(artifactUrls: ["abc"]).is(repository)
+        handler.mavenCentral(url: "abc").is(repository)
     }
 
     def testMavenLocalWithNoArgs() {
