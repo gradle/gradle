@@ -19,6 +19,7 @@ package org.gradle.process.internal;
 import org.gradle.api.Action;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.process.CommandLineArgumentProvider;
@@ -33,18 +34,26 @@ import java.util.Map;
 
 public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements JavaForkOptionsInternal {
     private final JvmOptions options;
+    private final FileCollectionFactory fileCollectionFactory;
+    private final ObjectFactory objectFactory;
     private List<CommandLineArgumentProvider> jvmArgumentProviders;
 
     @Inject
-    public DefaultJavaForkOptions(PathToFileResolver resolver, FileCollectionFactory fileCollectionFactory, JavaDebugOptions debugOptions) {
+    public DefaultJavaForkOptions(
+        ObjectFactory objectFactory,
+        PathToFileResolver resolver,
+        FileCollectionFactory fileCollectionFactory
+    ) {
         super(resolver);
-        options = new JvmOptions(fileCollectionFactory, debugOptions);
+        this.objectFactory = objectFactory;
+        this.fileCollectionFactory = fileCollectionFactory;
+        this.options = new JvmOptions(objectFactory, fileCollectionFactory);
     }
 
     @Override
     public List<String> getAllJvmArgs() {
         if (hasJvmArgumentProviders(this)) {
-            JvmOptions copy = options.createCopy();
+            JvmOptions copy = options.createCopy(objectFactory, fileCollectionFactory);
             for (CommandLineArgumentProvider jvmArgumentProvider : jvmArgumentProviders) {
                 copy.jvmArgs(jvmArgumentProvider.asArguments());
             }
@@ -227,8 +236,8 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
     }
 
     @Override
-    public EffectiveJavaForkOptions toEffectiveJvmForkOptions() {
-        JvmOptions copy = options.createCopy();
+    public EffectiveJavaForkOptions toEffectiveJavaForkOptions(ObjectFactory objectFactory, FileCollectionFactory fileCollectionFactory) {
+        JvmOptions copy = options.createCopy(objectFactory, fileCollectionFactory);
         if (jvmArgumentProviders != null) {
             for (CommandLineArgumentProvider jvmArgumentProvider : jvmArgumentProviders) {
                 copy.jvmArgs(jvmArgumentProvider.asArguments());

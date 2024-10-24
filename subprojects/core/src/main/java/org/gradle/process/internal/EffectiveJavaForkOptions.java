@@ -16,11 +16,14 @@
 
 package org.gradle.process.internal;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import org.gradle.api.NonNullApi;
+import org.gradle.api.file.FileCollection;
 import org.gradle.process.JavaForkOptions;
 
 import java.io.File;
-import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.gradle.process.internal.util.MergeOptionsUtil.containsAll;
@@ -29,22 +32,23 @@ import static org.gradle.process.internal.util.MergeOptionsUtil.normalized;
 
 /**
  * Represents effective options for forking a Java process.
+ * It intentionally does not expose JvmOptions directly, as JvmOptions is not immutable yet.
  *
  * Strongly relates to {@link JavaForkOptions}.
  */
 @NonNullApi
 public class EffectiveJavaForkOptions {
 
-    private final JvmOptions jvmOptions;
     private final String executable;
     private final File workingDir;
     private final Map<String, Object> environment;
+    private final ReadOnlyJvmOptions jvmOptions;
 
     public EffectiveJavaForkOptions(String executable, File workingDir, Map<String, Object> environment, JvmOptions jvmOptions) {
-        this.jvmOptions = jvmOptions;
         this.executable = executable;
         this.workingDir = workingDir;
-        this.environment = new LinkedHashMap<>(environment);
+        this.environment = ImmutableMap.copyOf(environment);
+        this.jvmOptions = new ReadOnlyJvmOptions(jvmOptions);
     }
 
     public File getWorkingDir() {
@@ -59,7 +63,7 @@ public class EffectiveJavaForkOptions {
         return environment;
     }
 
-    public JvmOptions getJvmOptions() {
+    public ReadOnlyJvmOptions getJvmOptions() {
         return jvmOptions;
     }
 
@@ -95,5 +99,54 @@ public class EffectiveJavaForkOptions {
             ", environment=" + environment +
             ", jvmOptions=" + jvmOptions +
             '}';
+    }
+
+    @NonNullApi
+    public static class ReadOnlyJvmOptions {
+        private final JvmOptions delegate;
+
+        public ReadOnlyJvmOptions(JvmOptions delegate) {
+            this.delegate = delegate;
+        }
+
+        public String getMinHeapSize() {
+            return delegate.getMinHeapSize();
+        }
+
+        public String getMaxHeapSize() {
+            return delegate.getMaxHeapSize();
+        }
+
+        public boolean getDebug() {
+            return delegate.getDebug();
+        }
+
+        public boolean getEnableAssertions() {
+            return delegate.getEnableAssertions();
+        }
+
+        public String getDefaultCharacterEncoding() {
+            return delegate.getDefaultCharacterEncoding();
+        }
+
+        public FileCollection getBootstrapClasspath() {
+            return delegate.getBootstrapClasspath();
+        }
+
+        public List<String> getJvmArgs() {
+            return ImmutableList.copyOf(delegate.getJvmArgs());
+        }
+
+        public List<String> getAllJvmArgs() {
+            return ImmutableList.copyOf(delegate.getAllJvmArgs());
+        }
+
+        public Map<String, Object> getMutableSystemProperties() {
+            return ImmutableMap.copyOf(delegate.getMutableSystemProperties());
+        }
+
+        public void copyTo(JavaForkOptions target) {
+            this.delegate.copyTo(target);
+        }
     }
 }

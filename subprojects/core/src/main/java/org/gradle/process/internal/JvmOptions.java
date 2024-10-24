@@ -22,6 +22,7 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.cache.internal.HeapProportionalCacheSizer;
 import org.gradle.process.JavaDebugOptions;
 import org.gradle.process.JavaForkOptions;
@@ -86,17 +87,21 @@ public class JvmOptions {
 
     protected final Map<String, Object> immutableSystemProperties = new TreeMap<>();
 
-    public JvmOptions(FileCollectionFactory fileCollectionFactory, JavaDebugOptions debugOptions) {
+    public JvmOptions(ObjectFactory objectFactory, FileCollectionFactory fileCollectionFactory) {
+        this(fileCollectionFactory, objectFactory.newInstance(DefaultJavaDebugOptions.class, objectFactory));
+    }
+
+    public JvmOptions(FileCollectionFactory fileCollectionFactory) {
+        this(fileCollectionFactory, new DefaultJavaDebugOptions());
+    }
+
+    private JvmOptions(FileCollectionFactory fileCollectionFactory, DefaultJavaDebugOptions debugOptions) {
         this.debugOptions = debugOptions;
         this.fileCollectionFactory = fileCollectionFactory;
         immutableSystemProperties.put(FILE_ENCODING_KEY, Charset.defaultCharset().name());
         immutableSystemProperties.put(USER_LANGUAGE_KEY, DEFAULT_LOCALE.getLanguage());
         immutableSystemProperties.put(USER_COUNTRY_KEY, DEFAULT_LOCALE.getCountry());
         immutableSystemProperties.put(USER_VARIANT_KEY, DEFAULT_LOCALE.getVariant());
-    }
-
-    public JvmOptions(FileCollectionFactory fileCollectionFactory) {
-        this(fileCollectionFactory, new DefaultJavaDebugOptions());
     }
 
     /**
@@ -386,8 +391,8 @@ public class JvmOptions {
         target.systemProperties(immutableSystemProperties);
     }
 
-    public JvmOptions createCopy() {
-        JvmOptions target = new JvmOptions(fileCollectionFactory);
+    public JvmOptions createCopy(ObjectFactory objectFactory, FileCollectionFactory fileCollectionFactory) {
+        JvmOptions target = new JvmOptions(objectFactory, fileCollectionFactory);
         target.setJvmArgs(extraJvmArgs);
         target.setSystemProperties(mutableSystemProperties);
         target.setMinHeapSize(minHeapSize);
@@ -403,10 +408,6 @@ public class JvmOptions {
 
     private void copyDebugOptionsTo(JavaDebugOptions otherOptions) {
         copyDebugOptions(debugOptions, otherOptions);
-    }
-
-    private void copyDebugOptionsFrom(JavaDebugOptions otherOptions) {
-        copyDebugOptions(otherOptions, debugOptions);
     }
 
     static void copyDebugOptions(JavaDebugOptions from, JavaDebugOptions to) {

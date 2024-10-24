@@ -16,6 +16,8 @@
 
 package org.gradle.process.internal;
 
+import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.process.JavaForkOptions;
 
 public interface JavaForkOptionsInternal extends JavaForkOptions {
@@ -32,5 +34,8 @@ public interface JavaForkOptionsInternal extends JavaForkOptions {
      */
     void checkDebugConfiguration(Iterable<?> arguments);
 
-    EffectiveJavaForkOptions toEffectiveJvmForkOptions();
+    /**
+     * Creates EffectiveJavaForkOptions.
+     */
+    EffectiveJavaForkOptions toEffectiveJavaForkOptions(ObjectFactory objectFactory, FileCollectionFactory fileCollectionFactory);
 }

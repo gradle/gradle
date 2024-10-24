@@ -19,9 +19,9 @@ package org.gradle.workers.internal;
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.process.JavaForkOptions;
+import org.gradle.process.internal.EffectiveJavaForkOptions;
 import org.gradle.process.internal.JavaForkOptionsFactory;
 import org.gradle.process.internal.JavaForkOptionsInternal;
-import org.gradle.process.internal.EffectiveJavaForkOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,13 +50,13 @@ public class DaemonForkOptionsBuilder {
     private static final Logger LOGGER = LoggerFactory.getLogger(DaemonForkOptionsBuilder.class);
 
     private final JavaForkOptionsInternal javaForkOptions;
-    private final JavaForkOptionsFactory forkOptionsFactory;
+    private final JavaForkOptionsFactory javaForkOptionsFactory;
     private KeepAliveMode keepAliveMode = KeepAliveMode.DAEMON;
     private ClassLoaderStructure classLoaderStructure = null;
 
     public DaemonForkOptionsBuilder(JavaForkOptionsFactory forkOptionsFactory) {
-        this.forkOptionsFactory = forkOptionsFactory;
         this.javaForkOptions = forkOptionsFactory.newJavaForkOptions();
+        this.javaForkOptionsFactory = forkOptionsFactory;
     }
 
     public DaemonForkOptionsBuilder keepAliveMode(KeepAliveMode keepAliveMode) {
@@ -75,7 +75,7 @@ public class DaemonForkOptionsBuilder {
     }
 
     public DaemonForkOptions build() {
-        EffectiveJavaForkOptions forkOptions = buildJavaForkOptions().toEffectiveJvmForkOptions();
+        EffectiveJavaForkOptions forkOptions = javaForkOptionsFactory.toEffectiveJavaForkOptions(javaForkOptions);
         if (OperatingSystem.current().isWindows() && keepAliveMode == KeepAliveMode.DAEMON) {
             List<String> jvmArgs = forkOptions.getJvmOptions().getAllJvmArgs();
             Optional<String> unreliableArgument = findUnreliableArgument(jvmArgs);
@@ -109,9 +109,5 @@ public class DaemonForkOptionsBuilder {
             }
         }
         return Optional.empty();
-    }
-
-    private JavaForkOptionsInternal buildJavaForkOptions() {
-        return forkOptionsFactory.immutableCopy(javaForkOptions);
     }
 }
