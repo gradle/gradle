@@ -855,6 +855,14 @@ $END_MARKER
         /**
          * Marks that this node was selected due to conflict resolution.
          */
+        NodeBuilder byConflictResolution() {
+            reasons << 'conflict resolution'
+            this
+        }
+
+        /**
+         * Marks that this node was selected due to conflict resolution.
+         */
         NodeBuilder byConflictResolution(String message) {
             reasons << "${ComponentSelectionCause.CONFLICT_RESOLUTION.defaultReason}: $message".toString()
             this

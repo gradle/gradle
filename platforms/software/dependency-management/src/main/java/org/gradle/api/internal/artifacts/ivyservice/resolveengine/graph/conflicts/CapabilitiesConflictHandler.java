@@ -19,21 +19,20 @@ import org.gradle.api.Describable;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.NodeState;
-import org.gradle.api.internal.capabilities.CapabilityInternal;
 
 import java.util.Collection;
 
 public interface CapabilitiesConflictHandler extends ConflictHandler<CapabilitiesConflictHandler.Candidate, ConflictResolutionResult> {
 
     /**
-     * Has the given capability been seen as a non-default capability on a node?
-     * This is needed to determine if default capabilities need to enter conflict detection.
+     * Was the given capability already seen which might require a conflict check later?
+     * This is needed to determine if also implicit capabilities need to enter conflict detection.
      */
-    boolean hasSeenNonDefaultCapabilityExplicitly(CapabilityInternal capability);
+    boolean hasSeenCapability(Capability capability);
 
     interface Candidate {
         NodeState getNode();
-        CapabilityInternal getCapability();
+        Capability getCapability();
         Collection<NodeState> getImplicitCapabilityProviders();
     }
 

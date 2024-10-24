@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflic
 
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.dsl.ModuleReplacementsData;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ConflictResolverDetails;
@@ -103,5 +104,10 @@ public class DefaultConflictHandler implements ModuleConflictHandler {
                 selected.addCause(moduleReplacement);
             }
         }
+    }
+
+    @Override
+    public boolean hasKnownConflictFor(ModuleVersionIdentifier id) {
+        return conflicts.hasMatchingConflict(state -> state.getId().equals(id));
     }
 }
