@@ -53,8 +53,10 @@ import java.util.TreeSet;
 public abstract class GenerateSwiftPackageManagerManifest extends DefaultTask {
     private final RegularFileProperty manifestFile;
     private final Property<Package> packageProperty;
+    private final String projectName;
 
     public GenerateSwiftPackageManagerManifest() {
+        projectName = getProject().getName();
         ObjectFactory objectFactory = getProject().getObjects();
         manifestFile = objectFactory.fileProperty();
         packageProperty = objectFactory.property(Package.class);
@@ -86,7 +88,7 @@ public abstract class GenerateSwiftPackageManagerManifest extends DefaultTask {
                 writer.println("import PackageDescription");
                 writer.println();
                 writer.println("let package = Package(");
-                writer.println("    name: \"" + getProject().getName() + "\",");
+                writer.println("    name: \"" + projectName + "\",");
                 writer.println("    products: [");
                 for (AbstractProduct product : srcPackage.getProducts()) {
                     if (product.isExecutable()) {

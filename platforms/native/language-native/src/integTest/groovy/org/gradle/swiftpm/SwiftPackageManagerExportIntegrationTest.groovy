@@ -21,7 +21,6 @@ import org.gradle.util.internal.VersionNumber
 
 class SwiftPackageManagerExportIntegrationTest extends AbstractSwiftPackageManagerExportIntegrationTest {
 
-    @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def "produces manifest for build with no native components"() {
         given:
         createDirs("lib1", "lib2")
@@ -59,7 +58,6 @@ let package = Package(
         }
     }
 
-    @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def "can configure the location of the generated manifest file"() {
         given:
         buildFile << """
@@ -78,7 +76,6 @@ let package = Package(
         file("Package.swift").assertDoesNotExist()
     }
 
-    @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def "can exclude certain products from the generated file"() {
         given:
         createDirs("lib1", "lib2", "app")

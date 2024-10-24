@@ -34,10 +34,15 @@ public abstract class Cached<T> {
 
     public abstract T get();
 
+    public static boolean isResolving() {
+        return Deferred.RESOLVING.get() > 0;
+    }
+
     private static class Deferred<T> extends Cached<T> implements java.io.Serializable {
 
         private Callable<T> computation;
         private Try<T> result;
+        private static final ThreadLocal<Integer> RESOLVING = ThreadLocal.withInitial(() -> 0);
 
         public Deferred(Callable<T> computation) {
             this.computation = computation;
@@ -50,7 +55,9 @@ public abstract class Cached<T> {
 
         private Try<T> result() {
             if (result == null) {
+                RESOLVING.set(RESOLVING.get() + 1);
                 result = Try.ofFailable(computation);
+                RESOLVING.set(RESOLVING.get() - 1);
                 computation = null;
             }
             return result;

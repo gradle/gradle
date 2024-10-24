@@ -33,6 +33,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
 
         when:
         executer.withArgument("--no-problems-report")
+        expectTaskProjectDeprecation()
         run "dependentComponents"
 
         then:
@@ -47,6 +48,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
 
         when:
         executer.withArgument("--no-problems-report")
+        expectTaskProjectDeprecation()
         run 'dependentComponents', '--component', component
 
         then:
@@ -65,6 +67,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
 
         when:
         executer.withArgument("--no-problems-report")
+        expectTaskProjectDeprecation()
         fails 'dependentComponents', '--component', 'unknown'
 
         then:
@@ -77,6 +80,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
 
         when:
         executer.withArgument("--no-problems-report")
+        expectTaskProjectDeprecation()
         fails 'dependentComponents', '--test-suites', '--component', 'unknown', '--component', 'anonymous', '--component', 'whatever', '--component', 'lib', '--component', 'main', '--component', 'libTest'
 
         then:
@@ -89,6 +93,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
 
         when:
         executer.withArgument("--no-problems-report")
+        expectTaskProjectDeprecation()
         run 'dependentComponents', '--component', 'lib', '--component', 'main'
 
         then:
@@ -115,6 +120,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         }
 
         when:
+        expectTaskProjectDeprecation()
         run 'dependentComponents'
 
         then:
@@ -149,6 +155,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         '''.stripIndent()
 
         when:
+        expectTaskProjectDeprecation()
         run 'dependentComponents', option
 
         then:
@@ -193,6 +200,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
 
         when:
         executer.withArgument("--no-problems-report")
+        expectTaskProjectDeprecation()
         run 'dependentComponents'
 
         then:
@@ -207,6 +215,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
 
         when:
         executer.withArgument("--no-problems-report")
+        expectTaskProjectDeprecation()
         run 'libraries:dependentComponents', '--component', 'foo'
 
         then:
@@ -280,6 +289,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
 
         expect:
         executer.withArgument("--no-problems-report")
+        expectTaskProjectDeprecation()
         succeeds 'dependentComponents'
     }
 
@@ -289,6 +299,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
 
         when:
         executer.withArgument("--no-problems-report")
+        expectTaskProjectDeprecation()
         run 'dependentComponents'
 
         then:
@@ -303,6 +314,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         buildFile simpleBuildWithTestSuites()
 
         when:
+        expectTaskProjectDeprecation()
         run 'dependentComponents', option
 
         then:
@@ -358,6 +370,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
 
         when:
         executer.withArgument("--no-problems-report")
+        expectTaskProjectDeprecation()
         fails 'dependentComponents'
 
         then:
@@ -393,6 +406,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
 
         when:
         executer.withArgument("--no-problems-report")
+        expectTaskProjectDeprecation()
         fails 'dependentComponents'
 
         then:
@@ -428,6 +442,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
 
         when:
         executer.withArgument("--no-problems-report")
+        expectTaskProjectDeprecation()
         fails 'api:dependentComponents'
 
         then:
@@ -467,6 +482,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
 
         when:
         executer.withArgument("--no-problems-report")
+        expectTaskProjectDeprecation()
         succeeds("dependentComponents")
 
         then:
@@ -500,6 +516,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
 
         when:
         executer.withArgument("--no-problems-report")
+        expectTaskProjectDeprecation()
         run 'dependentComponents'
 
         then:
@@ -513,6 +530,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
 
         when:
         executer.withArgument("--no-problems-report")
+        expectTaskProjectDeprecation()
         run 'dependentComponents', option
 
         then:
@@ -765,5 +783,11 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
                 }
             }
         '''.stripIndent()
+    }
+
+    void expectTaskProjectDeprecation() {
+        executer.expectDocumentedDeprecationWarning("Invocation of Task.project at execution time has been deprecated. "+
+            "This will fail with an error in Gradle 9.0. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#task_project")
     }
 }

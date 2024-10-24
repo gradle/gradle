@@ -31,6 +31,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
 
     def setup() {
         writeBuildFile()
+        expectTaskProjectDeprecation = true
     }
 
     private void goodCode(TestFile root = testDirectory) {
@@ -122,6 +123,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
     @ToBeFixedForConfigurationCache(because = ":buildDashboard")
     void 'build dashboard for a project with no other reports lists just the dashboard'() {
         when:
+        expectTaskProjectDeprecation()
         run('buildDashboard')
 
         then:
@@ -137,6 +139,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         goodTests()
 
         when:
+        expectTaskProjectDeprecation()
         run('check', 'buildDashboard')
 
         then:
@@ -153,6 +156,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         goodTests()
 
         when:
+        expectTaskProjectDeprecation()
         run('buildDashboard')
 
         then:
@@ -170,6 +174,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         goodTests()
 
         when:
+        expectTaskProjectDeprecation()
         run('buildDashboard', 'check')
 
         then:
@@ -186,6 +191,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         goodTests()
 
         when:
+        expectTaskProjectDeprecation()
         run('test')
 
         then:
@@ -202,6 +208,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         badTests()
 
         when:
+        expectTaskProjectDeprecation()
         runAndFail('check')
 
         then:
@@ -262,6 +269,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         goodCode()
 
         expect:
+        expectTaskProjectDeprecation()
         run('buildDashboard')
         executedAndNotSkipped(':buildDashboard')
 
@@ -272,6 +280,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         buildDashboardFile.delete()
 
         then:
+        expectTaskProjectDeprecation()
         run('buildDashboard')
         executedAndNotSkipped(':buildDashboard')
     }
@@ -284,6 +293,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         withCodenarc()
 
         when:
+        expectTaskProjectDeprecation()
         run('check')
         executedAndNotSkipped(':buildDashboard')
 
@@ -300,6 +310,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         """
 
         and:
+        expectTaskProjectDeprecation()
         run('check')
         executedAndNotSkipped(':buildDashboard')
 
@@ -317,6 +328,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         goodTests()
 
         when:
+        expectTaskProjectDeprecation()
         run('buildDashboard')
         executedAndNotSkipped(':buildDashboard')
 
@@ -328,6 +340,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         hasUnavailableReport(':test', 'junitXml')
 
         when:
+        expectTaskProjectDeprecation()
         run('test')
         executedAndNotSkipped(':buildDashboard')
 
@@ -347,6 +360,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         setupSubproject()
 
         when:
+        expectTaskProjectDeprecation()
         run('buildDashboard', 'check')
 
         then:
@@ -368,6 +382,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         """
 
         when:
+        expectTaskProjectDeprecation()
         run("test", "jacocoTestReport")
 
         then:
@@ -386,6 +401,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         withCodenarc()
 
         when:
+        expectTaskProjectDeprecation()
         run("check")
 
         then:
