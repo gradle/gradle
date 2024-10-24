@@ -18,18 +18,18 @@ package org.gradle.builtinit.specs.internal
 
 import org.gradle.api.file.Directory
 import org.gradle.buildinit.specs.BuildInitConfig
-import org.gradle.buildinit.specs.BuiltInitGenerator
+import org.gradle.buildinit.specs.BuildInitGenerator
 
 /**
- * A sample {@link BuiltInitGenerator} implementation for testing purposes.
+ * A sample {@link BuildInitGenerator} implementation for testing purposes.
  * <p>
  * Always creates a file named {@link #OUTPUT_FILE} with the given output text.
  */
-class TestBuiltInitGenerator implements BuiltInitGenerator {
+class TestBuildInitGenerator implements BuildInitGenerator {
     public static final OUTPUT_FILE = "project.output"
     private String output
 
-    TestBuiltInitGenerator(String output = "Hello, World!") {
+    TestBuildInitGenerator(String output = "Hello, World!") {
         this.output = output
     }
 

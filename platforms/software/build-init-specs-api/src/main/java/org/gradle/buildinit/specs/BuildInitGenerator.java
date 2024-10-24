@@ -28,7 +28,7 @@ import org.gradle.api.file.Directory;
  * @since 8.12
  */
 @Incubating
-public interface BuiltInitGenerator {
+public interface BuildInitGenerator {
     /**
      * Generates a project from the given configuration in the given directory.
      *

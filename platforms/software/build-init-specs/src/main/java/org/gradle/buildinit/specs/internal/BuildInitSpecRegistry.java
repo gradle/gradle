@@ -19,8 +19,8 @@ package org.gradle.buildinit.specs.internal;
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.buildinit.specs.BuildInitGenerator;
 import org.gradle.buildinit.specs.BuildInitSpec;
-import org.gradle.buildinit.specs.BuiltInitGenerator;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -41,7 +41,7 @@ public final class BuildInitSpecRegistry {
 
     private static final Logger LOGGER = Logging.getLogger(BuildInitSpecRegistry.class);
 
-    private final Map<Class<? extends BuiltInitGenerator>, List<BuildInitSpec>> specsByGeneratorType = new HashMap<>();
+    private final Map<Class<? extends BuildInitGenerator>, List<BuildInitSpec>> specsByGeneratorType = new HashMap<>();
 
     // TODO: simplify registration - just args of (generator, spec), or (generator, list<spec>) no maps needed
     /**
@@ -54,7 +54,7 @@ public final class BuildInitSpecRegistry {
      * @param newSpecsByGeneratorType map from generator class to list of specs it can generate
      */
     @VisibleForTesting
-    void register(Map<Class<? extends BuiltInitGenerator>, List<BuildInitSpec>> newSpecsByGeneratorType) {
+    void register(Map<Class<? extends BuildInitGenerator>, List<BuildInitSpec>> newSpecsByGeneratorType) {
         newSpecsByGeneratorType.forEach((generator, newSpecs) -> {
             List<BuildInitSpec> currentSpecsForGenerator = specsByGeneratorType.computeIfAbsent(generator, k -> new ArrayList<>());
             newSpecs.forEach(newSpec -> {
@@ -105,7 +105,7 @@ public final class BuildInitSpecRegistry {
     }
 
     /**
-     * Returns the {@link BuiltInitGenerator} type that can be used to generate a project
+     * Returns the {@link BuildInitGenerator} type that can be used to generate a project
      * with the given {@link BuildInitSpec}.
      * <p>
      * This searches by project type.
@@ -113,11 +113,11 @@ public final class BuildInitSpecRegistry {
      * @param spec the project spec to find the generator for
      * @return the type of generator that can be used to generate a project with the given spec
      */
-    public Class<? extends BuiltInitGenerator> getGeneratorForSpec(BuildInitSpec spec) {
+    public Class<? extends BuildInitGenerator> getGeneratorForSpec(BuildInitSpec spec) {
         return doGetGeneratorForSpec(spec).orElseThrow(() -> new IllegalStateException("Spec: '" + spec.getDisplayName() + "' with type: '" + spec.getType() + "' is not registered!"));
     }
 
-    private Optional<Class<? extends BuiltInitGenerator>> doGetGeneratorForSpec(BuildInitSpec spec) {
+    private Optional<Class<? extends BuildInitGenerator>> doGetGeneratorForSpec(BuildInitSpec spec) {
         return specsByGeneratorType.entrySet().stream()
             .filter(entry -> isSpecWithTypePresent(spec, entry.getValue()))
             .findFirst()

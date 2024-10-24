@@ -51,9 +51,9 @@ import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
 import org.gradle.buildinit.plugins.internal.modifiers.Language;
 import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption;
 import org.gradle.buildinit.specs.BuildInitConfig;
+import org.gradle.buildinit.specs.BuildInitGenerator;
 import org.gradle.buildinit.specs.BuildInitParameter;
 import org.gradle.buildinit.specs.BuildInitSpec;
-import org.gradle.buildinit.specs.BuiltInitGenerator;
 import org.gradle.buildinit.specs.internal.BuildInitSpecRegistry;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
@@ -301,7 +301,7 @@ public abstract class InitBuild extends DefaultTask {
 
     private void doInitSpecProjectGeneration(UserInputHandler inputHandler) {
         BuildInitConfig config = inputHandler.askUser(this::selectAndConfigureSpec).get();
-        BuiltInitGenerator generator = createGenerator(config);
+        BuildInitGenerator generator = createGenerator(config);
         generator.generate(config, projectDir);
         generateWrapper();
     }
@@ -334,8 +334,8 @@ public abstract class InitBuild extends DefaultTask {
         };
     }
 
-    private BuiltInitGenerator createGenerator(BuildInitConfig config) {
-        Class<? extends BuiltInitGenerator> generator = getBuildInitSpecRegistry().getGeneratorForSpec(config.getBuildSpec());
+    private BuildInitGenerator createGenerator(BuildInitConfig config) {
+        Class<? extends BuildInitGenerator> generator = getBuildInitSpecRegistry().getGeneratorForSpec(config.getBuildSpec());
         return getObjectFactory().newInstance(generator);
     }
 

@@ -30,7 +30,7 @@ import org.gradle.test.fixtures.plugin.PluginBuilder
  * was resolved and its included spec was loaded.
  */
 @SelfType(AbstractIntegrationSpec)
-trait TestsBuiltInitSpecsViaPlugin {
+trait TestsBuildInitSpecsViaPlugin {
     def setup() {
         setupRepositoriesViaInit()
     }
@@ -75,7 +75,7 @@ trait TestsBuiltInitSpecsViaPlugin {
 
                 org.gradle.buildinit.specs.internal.BuildInitSpecRegistry registry = getBuildInitSpecRegistry()
 
-                Map<Class<? extends org.gradle.buildinit.specs.BuiltInitGenerator>, List<org.gradle.buildinit.specs.BuildInitSpec>> specsByGenerator = new HashMap<>()
+                Map<Class<? extends org.gradle.buildinit.specs.BuildInitGenerator>, List<org.gradle.buildinit.specs.BuildInitSpec>> specsByGenerator = new HashMap<>()
                 specsByGenerator.put(
                     MyGenerator.class,
                     java.util.Arrays.asList(
@@ -127,9 +127,9 @@ trait TestsBuiltInitSpecsViaPlugin {
 
             import org.gradle.api.file.Directory;
             import org.gradle.buildinit.specs.BuildInitConfig;
-            import org.gradle.buildinit.specs.BuiltInitGenerator;
+            import org.gradle.buildinit.specs.BuildInitGenerator;
 
-            public class MyGenerator implements BuiltInitGenerator {
+            public class MyGenerator implements BuildInitGenerator {
                 @Override
                 public void generate(BuildInitConfig config, Directory location) {
                     try {
