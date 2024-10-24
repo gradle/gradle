@@ -16,6 +16,9 @@
 
 package org.gradle.api.artifacts.repositories;
 
+import org.gradle.api.provider.Property;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
+
 import java.net.URI;
 
 /**
@@ -27,24 +30,9 @@ public interface UrlArtifactRepository {
 
     /**
      * The base URL of this repository.
-     *
-     * @return The URL.
      */
-    URI getUrl();
-
-    /**
-     * Sets the base URL of this repository.
-     *
-     * @param url The base URL.
-     */
-    void setUrl(URI url);
-
-    /**
-     * Sets the base URL of this repository.
-     *
-     * @param url The base URL.
-     */
-    void setUrl(Object url);
+    @ReplacesEagerProperty
+    Property<URI> getUrl();
 
     /**
      * Specifies whether it is acceptable to communicate with a repository over an insecure HTTP connection.
@@ -61,12 +49,6 @@ public interface UrlArtifactRepository {
      * See also:
      * <a href="https://medium.com/bugbountywriteup/want-to-take-over-the-java-ecosystem-all-you-need-is-a-mitm-1fc329d898fb">Want to take over the Java ecosystem? All you need is a MITM!</a>
      */
-    boolean isAllowInsecureProtocol();
-
-    /**
-     * Specifies whether it is acceptable to communicate with a repository over an insecure HTTP connection.
-     *
-     * @see #isAllowInsecureProtocol()
-     */
-    void setAllowInsecureProtocol(boolean allowInsecureProtocol);
+    @ReplacesEagerProperty(originalType = boolean.class)
+    Property<Boolean> getAllowInsecureProtocol();
 }

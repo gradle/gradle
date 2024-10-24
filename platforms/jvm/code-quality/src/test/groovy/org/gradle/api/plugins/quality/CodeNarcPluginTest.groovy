@@ -64,7 +64,7 @@ class CodeNarcPluginTest extends AbstractProjectBuilderSpec {
         MavenFileRepository repo = new MavenFileRepository(temporaryFolder.createDir("repo"))
         project.repositories {
             maven {
-                url repo.uri
+                url.set(repo.uri)
             }
         }
         repo.module("org.codenarc", "CodeNarc", CodeNarcPlugin.STABLE_VERSION).publish()
@@ -89,7 +89,7 @@ class CodeNarcPluginTest extends AbstractProjectBuilderSpec {
         MavenFileRepository repo = new MavenFileRepository(temporaryFolder.createDir("repo"))
         project.repositories {
             maven {
-                url repo.uri
+                url.set(repo.uri)
             }
         }
         repo.module("org.codenarc", "CodeNarc", CodeNarcPlugin.STABLE_VERSION).publish()

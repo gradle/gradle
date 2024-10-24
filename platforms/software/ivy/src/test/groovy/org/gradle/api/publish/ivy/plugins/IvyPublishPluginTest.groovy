@@ -49,7 +49,7 @@ class IvyPublishPluginTest extends PlatformBaseSpecification {
     def "creates publish task for publication and repository"() {
         when:
         publishing.publications.create("test", IvyPublication)
-        publishing.repositories { ivy { url = "http://foo.com" } }
+        publishing.repositories { ivy { url.set(URI.create("http://foo.com")) } }
         realizeTasks()
         def publishTask = project.tasks["publishTestPublicationToIvyRepository"]
 
@@ -108,8 +108,8 @@ class IvyPublishPluginTest extends PlatformBaseSpecification {
         when:
         publishing.publications.create("test", IvyPublication)
         publishing.publications.create("test2", IvyPublication)
-        publishing.repositories { ivy { url = "http://foo.com" } }
-        publishing.repositories { ivy { name='other'; url = "http://bar.com" } }
+        publishing.repositories { ivy { url.set(URI.create("http://foo.com")) } }
+        publishing.repositories { ivy { name='other'; url.set(URI.create("http://bar.com")) } }
 
         then:
         project.tasks["publishAllPublicationsToIvyRepository"].dependsOn.containsAll([

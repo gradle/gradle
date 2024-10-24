@@ -41,7 +41,7 @@ trait TestsBuildInitSpecsViaPlugin {
                 settings.pluginManagement {
                     repositories {
                         maven {
-                            url '${mavenRepo.uri}'
+                            url = '${mavenRepo.uri}'
                         }
 
                         ${RepoScriptBlockUtil.googleRepositoryDefinition()} // For AGP, needed by D-G prototype

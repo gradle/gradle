@@ -44,7 +44,7 @@ class CppStaticLibraryPublishingIntegrationTest extends AbstractCppPublishingInt
                 group = 'some.group'
                 version = '1.2'
                 publishing {
-                    repositories { maven { url '${mavenRepo.uri}' } }
+                    repositories { maven { url = '${mavenRepo.uri}' } }
                 }
 
                 components.withType(CppComponent) {
@@ -83,7 +83,7 @@ class CppStaticLibraryPublishingIntegrationTest extends AbstractCppPublishingInt
         consumer.file('settings.gradle') << ''
         consumer.file("build.gradle") << """
             apply plugin: 'cpp-application'
-            repositories { maven { url '${mavenRepo.uri}' } }
+            repositories { maven { url = '${mavenRepo.uri}' } }
             dependencies { implementation 'some.group:deck:1.2' }
         """
         app.main.writeToProject(consumer)
@@ -112,7 +112,7 @@ class CppStaticLibraryPublishingIntegrationTest extends AbstractCppPublishingInt
                 group = 'some.group'
                 version = '1.2'
                 publishing {
-                    repositories { maven { url '${mavenRepo.uri}' } }
+                    repositories { maven { url = '${mavenRepo.uri}' } }
                 }
 
                 components.withType(CppComponent) {
@@ -151,7 +151,7 @@ class CppStaticLibraryPublishingIntegrationTest extends AbstractCppPublishingInt
         consumer.file('settings.gradle') << ''
         consumer.file("build.gradle") << """
             apply plugin: 'cpp-application'
-            repositories { maven { url '${mavenRepo.uri}' } }
+            repositories { maven { url = '${mavenRepo.uri}' } }
             dependencies { implementation 'some.group:deck:1.2' }
         """
         app.main.writeToProject(consumer)

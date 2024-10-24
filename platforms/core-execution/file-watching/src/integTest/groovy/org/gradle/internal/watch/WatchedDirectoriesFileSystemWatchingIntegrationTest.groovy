@@ -247,7 +247,7 @@ class WatchedDirectoriesFileSystemWatchingIntegrationTest extends AbstractFileSy
         def projectDir = file("project")
         projectDir.file("build.gradle") << """
             configurations { implementation }
-            repositories { ${repositoryType} { url "${repo.uri}" } }
+            repositories { ${repositoryType} { url = uri("${repo.uri}") } }
             dependencies { implementation 'group:projectA:9.1' }
 
             task retrieve(type: Sync) {
@@ -259,6 +259,7 @@ class WatchedDirectoriesFileSystemWatchingIntegrationTest extends AbstractFileSy
 
         when:
         withWatchFs().run "retrieve", "--info"
+        println("file: ${file(".").absolutePath}")
         then:
         assertWatchedHierarchies([projectDir])
 
@@ -282,7 +283,7 @@ class WatchedDirectoriesFileSystemWatchingIntegrationTest extends AbstractFileSy
 
         projectDir.file("build.gradle") << """
             repositories {
-                maven { url "${mavenHttpRepository.uri}" }
+                maven { url = "${mavenHttpRepository.uri}" }
             }
             configurations { compile }
             dependencies {

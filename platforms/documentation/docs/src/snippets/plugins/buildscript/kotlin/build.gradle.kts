@@ -5,7 +5,7 @@ import java.io.File
 buildscript {
     repositories {
         maven {
-            url = uri("https://plugins.gradle.org/m2/")
+            url = "https://plugins.gradle.org/m2/"
         }
         mavenCentral()  // Where to find the plugin
     }

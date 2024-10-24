@@ -15,9 +15,17 @@
  */
 package org.gradle.kotlin.dsl
 
+import org.gradle.api.Incubating
+import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository
+import org.gradle.api.file.FileSystemLocation
+import org.gradle.api.provider.Property
+import org.gradle.api.provider.Provider
+import java.io.File
+import java.net.URI
+import java.net.URISyntaxException
 
 
 /**
@@ -30,11 +38,12 @@ import org.gradle.api.artifacts.repositories.MavenArtifactRepository
  * @return The added repository.
  *
  * @see [RepositoryHandler.maven]
- * @see [MavenArtifactRepository.setUrl]
+ * @see [MavenArtifactRepository.getUrl]
+ * @deprecated Use ```maven { url = ... }``` instead.
  */
+@Deprecated("Use maven { url = ... } instead.", replaceWith = ReplaceWith("maven { url = ... }"))
 fun RepositoryHandler.maven(url: Any) =
-    maven { setUrl(url) }
-
+    maven { getUrl().set(convertToURI(url)) }
 
 /**
  * Adds and configures a Maven repository.
@@ -48,13 +57,14 @@ fun RepositoryHandler.maven(url: Any) =
  *
  * @see [RepositoryHandler.maven]
  * @see [MavenArtifactRepository.setUrl]
+ * @deprecated Use ```maven { url = ... }``` instead.
  */
+@Deprecated("Use maven { url = ... } instead.", replaceWith = ReplaceWith("maven { url = ... }"))
 fun RepositoryHandler.maven(url: Any, action: MavenArtifactRepository.() -> Unit) =
     maven {
-        setUrl(url)
+        getUrl().set(convertToURI(url))
         action()
     }
-
 
 /**
  * Adds and configures an Ivy repository.
@@ -67,10 +77,11 @@ fun RepositoryHandler.maven(url: Any, action: MavenArtifactRepository.() -> Unit
  * @return The added repository.
  *
  * @see [RepositoryHandler.ivy]
+ * @deprecated Use ```ivy { url = ... }``` instead.
  */
+@Deprecated("Use ivy { url = ... } instead.", replaceWith = ReplaceWith("ivy { url = ... }"))
 fun RepositoryHandler.ivy(url: Any) =
-    ivy { setUrl(url) }
-
+    ivy { getUrl().set(convertToURI(url)) }
 
 /**
  * Adds and configures an Ivy repository.
@@ -84,9 +95,89 @@ fun RepositoryHandler.ivy(url: Any) =
  * @return The added repository.
  *
  * @see [RepositoryHandler.ivy]
+ * @deprecated Use ```ivy { url = ... }``` instead.
  */
+@Deprecated("Use ivy { url = ... } instead.", replaceWith = ReplaceWith("ivy { url = ... }"))
 fun RepositoryHandler.ivy(url: Any, action: IvyArtifactRepository.() -> Unit) =
     ivy {
-        setUrl(url)
+        getUrl().set(convertToURI(url))
         action()
     }
+
+private fun convertToURI(url: Any?): URI {
+    return when (url) {
+        is URI -> url
+        is String -> try {
+            URI(url)
+        } catch (e: URISyntaxException) {
+            throw InvalidUserDataException("Invalid URI: $url", e)
+        }
+        is File -> url.toURI()
+        is FileSystemLocation -> url.asFile.toURI()
+        else -> throw InvalidUserDataException("Unsupported URI type: ${url?.javaClass}")
+    }
+}
+
+/**
+ * @since 9.0
+ */
+@Incubating
+fun Property<URI>.assign(value: String) {
+    val uri = try {
+        URI(value)
+    } catch (e: URISyntaxException) {
+        throw InvalidUserDataException("Invalid URI: $value", e)
+    }
+    set(uri)
+}
+
+/**
+ * @since 9.0
+ */
+@Incubating
+fun Property<URI>.assign(value: File) {
+    set(value.toURI())
+}
+
+/**
+ * @since 9.0
+ */
+@Incubating
+fun Property<URI>.assign(value: FileSystemLocation) {
+    assign(value.asFile)
+}
+
+/**
+ * @since 9.0
+ */
+@Incubating
+fun Property<URI>.assign(value: Provider<String>) {
+    set(
+        value.map { url ->
+            try {
+                URI(url)
+            } catch (e: URISyntaxException) {
+                throw InvalidUserDataException("Invalid URI: $url", e)
+            }
+        }
+    )
+}
+
+/**
+ * @since 9.0
+ */
+@Incubating
+@JvmName("assingProviderFile")
+fun Property<URI>.assign(value: Provider<out File>) {
+    set(value.map { it.toURI() })
+}
+
+/**
+ * @since 9.0
+ */
+@Incubating
+@JvmName("assingProviderFileSystemLocation")
+fun Property<URI>.assign(value: Provider<out FileSystemLocation>) {
+    assign(value.map { it.asFile })
+}
+

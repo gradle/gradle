@@ -103,7 +103,7 @@ class SamplesToolingApiIntegrationTest extends AbstractIntegrationSpec {
         assert index >= 0
         buildScript = buildScript.substring(0, index) + """
 repositories {
-    maven { url "${buildContext.localRepository.toURI()}" }
+    maven { url = "${buildContext.localRepository.toURI()}" }
 }
 run {
     args = ["${TextUtil.escapeString(buildContext.gradleHomeDir.absolutePath)}", "${TextUtil.escapeString(executer.gradleUserHomeDir.absolutePath)}"]
@@ -125,7 +125,7 @@ run {
         assert index >= 0
         buildScript = buildScript.substring(0, index) + """
 repositories {
-    maven { url "${buildContext.localRepository.toURI()}" }
+    maven { url = "${buildContext.localRepository.toURI()}" }
 }
 """ + buildScript.substring(index)
 

@@ -61,14 +61,14 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
     final ImmutableModuleIdentifierFactory moduleIdentifierFactory = Mock()
     final GradleModuleMetadataParser moduleMetadataParser = new GradleModuleMetadataParser(Mock(AttributesFactory), moduleIdentifierFactory, Mock(NamedObjectInstantiator))
     final IvyMutableModuleMetadataFactory metadataFactory = DependencyManagementTestUtil.ivyMetadataFactory()
-    final DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory = new DefaultUrlArtifactRepository.Factory(fileResolver)
+    final DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory = new DefaultUrlArtifactRepository.Factory(fileResolver, TestUtil.objectFactory())
     final ProviderFactory providerFactory = Mock()
 
     final DefaultIvyArtifactRepository repository = newRepo()
 
     def "default values"() {
         expect:
-        repository.url == null
+        !repository.url.isPresent()
         !repository.resolve.dynamicMode
     }
 
@@ -122,11 +122,10 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
 
     def "uses ivy patterns with specified url and default layout"() {
         repository.name = 'name'
-        repository.url = 'https://host'
+        repository.getUrl().set(URI.create('https://host/'))
         repository.layout 'ivy'
 
         given:
-        fileResolver.resolveUri('https://host') >> new URI('https://host/')
         standardMockHttpTransport()
 
         when:
@@ -144,10 +143,9 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
 
     def "uses gradle patterns with specified url and default layout"() {
         repository.name = 'name'
-        repository.url = 'https://host'
+        repository.getUrl().set(URI.create('https://host/'))
 
         given:
-        fileResolver.resolveUri('https://host') >> new URI('https://host/')
         standardMockHttpTransport()
 
         when:
@@ -165,11 +163,10 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
 
     def "uses maven patterns with specified url and maven layout"() {
         repository.name = 'name'
-        repository.url = 'https://host'
+        repository.getUrl().set(URI.create('https://host/'))
         repository.layout 'maven'
 
         given:
-        fileResolver.resolveUri('https://host') >> new URI('https://host/')
         standardMockHttpTransport()
 
         when:
@@ -188,14 +185,13 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
 
     def "uses specified base url with configured pattern layout"() {
         repository.name = 'name'
-        repository.url = 'https://host'
+        repository.getUrl().set(URI.create('https://host/'))
         repository.patternLayout {
             artifact '[module]/[revision]/[artifact](.[ext])'
             ivy '[module]/[revision]/ivy.xml'
         }
 
         given:
-        fileResolver.resolveUri('https://host') >> new URI('https://host/')
         standardMockHttpTransport()
 
         when:
@@ -214,7 +210,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
 
     def "when requested uses maven patterns with configured pattern layout"() {
         repository.name = 'name'
-        repository.url = 'https://host'
+        repository.getUrl().set(URI.create('https://host/'))
         repository.patternLayout {
             artifact '[module]/[revision]/[artifact](.[ext])'
             ivy '[module]/[revision]/ivy.xml'
@@ -222,7 +218,6 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         }
 
         given:
-        fileResolver.resolveUri('https://host') >> new URI('https://host/')
         standardMockHttpTransport()
 
         when:
@@ -241,7 +236,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
 
     def "combines layout patterns with additionally specified patterns"() {
         repository.name = 'name'
-        repository.url = 'https://host/'
+        repository.getUrl().set(URI.create('https://host/'))
         repository.artifactPattern 'https://host/[other]/artifact'
         repository.ivyPattern 'https://host/[other]/ivy'
 
@@ -264,7 +259,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
 
     def "uses artifact pattern for ivy files when no ivy pattern provided"() {
         repository.name = 'name'
-        repository.url = 'https://host'
+        repository.getUrl().set(URI.create('https://host/'))
         repository.patternLayout {
             artifact '[layoutPattern]'
         }
@@ -297,8 +292,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
 
     def "can set a custom metadata rule"() {
         repository.name = 'name'
-        repository.url = 'https://host'
-        fileResolver.resolveUri('https://host') >> new URI('https://host/')
+        repository.getUrl().set(URI.create('https://host/'))
         standardMockHttpTransport()
 
         given:
@@ -314,8 +308,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
 
     def "can inject configuration into a custom metadata rule"() {
         repository.name = 'name'
-        repository.url = 'https://host'
-        fileResolver.resolveUri('https://host') >> new URI('https://host/')
+        repository.getUrl().set(URI.create('https://host/'))
         standardMockHttpTransport()
 
         given:
@@ -332,8 +325,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
 
     def "can set a custom version lister"() {
         repository.name = 'name'
-        repository.url = 'https://host'
-        fileResolver.resolveUri('https://host') >> new URI('https://host/')
+        repository.getUrl().set(URI.create('https://host/'))
         standardMockHttpTransport()
 
         given:
@@ -349,8 +341,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
 
     def "can inject configuration into a custom version lister"() {
         repository.name = 'name'
-        repository.url = 'https://host'
-        fileResolver.resolveUri('https://host') >> new URI('https://host/')
+        repository.getUrl().set(URI.create('https://host/'))
         standardMockHttpTransport()
 
         given:
@@ -366,8 +357,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
 
     def "can retrieve metadataSources"() {
         repository.name = 'name'
-        repository.url = 'https://host'
-        fileResolver.resolveUri('https://host') >> new URI('https://host/')
+        repository.getUrl().set(URI.create('https://host/'))
         standardMockHttpTransport()
 
         given:
@@ -397,19 +387,16 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         def different = newRepo()
 
         given:
-        repo.url = new URI("http://localhost")
-        same.url = new URI("http://localhost")
-        different.url = new URI("http://localhost/repo")
-
-        and:
-        _ * fileResolver.resolveUri(_) >> { URI uri -> uri }
+        repo.getUrl().set(new URI("http://localhost"))
+        same.getUrl().set(new URI("http://localhost"))
+        different.getUrl().set(new URI("http://localhost/repo"))
 
         expect:
         same.descriptor.id == repo.descriptor.id
         different.descriptor.id != repo.descriptor.id
 
         when:
-        different.url = new URI("http://localhost")
+        different.getUrl().set(new URI("http://localhost"))
 
         then:
         different.descriptor.id == repo.descriptor.id
@@ -421,14 +408,11 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         def different = newRepo()
 
         given:
-        repo.url = new URI("http://localhost")
+        repo.getUrl().set(new URI("http://localhost"))
         repo.layout(layout)
-        same.url = new URI("http://localhost")
+        same.getUrl().set(new URI("http://localhost"))
         same.layout(layout)
-        different.url = new URI("http://localhost")
-
-        and:
-        _ * fileResolver.resolveUri({ it instanceof URI }) >> { URI uri -> uri }
+        different.getUrl().set(new URI("http://localhost"))
 
         expect:
         same.descriptor.id == repo.descriptor.id
@@ -450,15 +434,12 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         def different = newRepo()
 
         given:
-        repo.url = new URI("http://localhost")
+        repo.getUrl().set(new URI("http://localhost"))
         repo.patternLayout { it.m2compatible = true }
-        same.url = new URI("http://localhost")
+        same.getUrl().set(new URI("http://localhost"))
         same.patternLayout { it.m2compatible = true }
-        different.url = new URI("http://localhost")
+        different.getUrl().set(new URI("http://localhost"))
         different.patternLayout { it.m2compatible = false }
-
-        and:
-        _ * fileResolver.resolveUri({ it instanceof URI }) >> { URI uri -> uri }
 
         expect:
         same.descriptor.id == repo.descriptor.id
@@ -471,19 +452,16 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         def different = newRepo()
 
         given:
-        repo.url = new URI("http://localhost")
+        repo.getUrl().set(new URI("http://localhost"))
         repo.patternLayout {
             patterns(it)
         }
-        same.url = new URI("http://localhost")
+        same.getUrl().set(new URI("http://localhost"))
         same.patternLayout {
             patterns(it)
         }
-        different.url = new URI("http://localhost")
+        different.getUrl().set(new URI("http://localhost"))
         different.patternLayout {}
-
-        and:
-        _ * fileResolver.resolveUri({ it instanceof URI }) >> { URI uri -> uri }
 
         expect:
         same.descriptor.id == repo.descriptor.id
@@ -514,15 +492,15 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         def different = newRepo()
 
         given:
-        repo.url = new URI("http://localhost")
-        repo.ivyPattern("http://localhost/[thing]")
-        same.url = new URI("http://localhost")
-        same.ivyPattern("http://localhost/[thing]")
-        different.url = new URI("http://localhost")
-
-        and:
         _ * fileResolver.resolveUri({ it instanceof URI }) >> { URI uri -> uri }
         _ * fileResolver.resolveUri({ it instanceof String }) >> { String uri -> new URI(uri) }
+
+        and:
+        repo.getUrl().set(new URI("http://localhost"))
+        repo.ivyPattern("http://localhost/[thing]")
+        same.getUrl().set(new URI("http://localhost"))
+        same.ivyPattern("http://localhost/[thing]")
+        different.getUrl().set(new URI("http://localhost"))
 
         expect:
         same.descriptor.id == repo.descriptor.id
@@ -541,15 +519,15 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         def different = newRepo()
 
         given:
-        repo.url = new URI("http://localhost")
-        repo.artifactPattern("http://localhost/[thing]")
-        same.url = new URI("http://localhost")
-        same.artifactPattern("http://localhost/[thing]")
-        different.url = new URI("http://localhost")
-
-        and:
         _ * fileResolver.resolveUri({ it instanceof URI }) >> { URI uri -> uri }
         _ * fileResolver.resolveUri({ it instanceof String }) >> { String uri -> new URI(uri) }
+
+        and:
+        repo.getUrl().set(new URI("http://localhost"))
+        repo.artifactPattern("http://localhost/[thing]")
+        same.getUrl().set(new URI("http://localhost"))
+        same.artifactPattern("http://localhost/[thing]")
+        different.getUrl().set( new URI("http://localhost"))
 
         expect:
         same.descriptor.id == repo.descriptor.id
@@ -568,14 +546,11 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         def different = newRepo()
 
         given:
-        repo.url = new URI("http://localhost")
+        repo.getUrl().set(new URI("http://localhost"))
         source(repo)
-        same.url = new URI("http://localhost")
+        same.getUrl().set(new URI("http://localhost"))
         source(same)
-        different.url = new URI("http://localhost")
-
-        and:
-        _ * fileResolver.resolveUri(_) >> { URI uri -> uri }
+        different.getUrl().set(new URI("http://localhost"))
 
         expect:
         same.descriptor.id == repo.descriptor.id

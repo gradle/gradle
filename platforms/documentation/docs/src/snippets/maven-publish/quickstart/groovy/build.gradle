@@ -24,7 +24,7 @@ publishing {
     repositories {
         maven {
             // change to point to your repo, e.g. http://my.org/repo
-            url = layout.buildDirectory.dir('repo')
+            url = layout.buildDirectory.dir("repo")
         }
     }
 }

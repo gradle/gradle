@@ -227,7 +227,7 @@ class ToolingApiIntegrationTest extends AbstractIntegrationSpec {
             apply plugin: 'application'
 
             repositories {
-                maven { url "${buildContext.localRepository.toURI()}" }
+                maven { url = "${buildContext.localRepository.toURI()}" }
                 ${RepoScriptBlockUtil.gradleRepositoryDefinition()}
             }
 

@@ -37,7 +37,7 @@ class ProjectDependenciesIntegrationTest extends AbstractDependencyResolutionTes
             }
             repositories {
                 //resolving project must declare the repo
-                maven { url '${mavenRepo.uri}' }
+                maven { url = '${mavenRepo.uri}' }
             }
             println "Resolved at configuration time: " + configurations.runtimeClasspath.files*.name
         """

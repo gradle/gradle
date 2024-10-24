@@ -455,7 +455,7 @@ class ResolutionIssuesIntegrationTest extends AbstractIntegrationSpec {
                 ${mavenCentralRepository()}
                 repositories {
                     google()
-                    maven { url 'https://jitpack.io' }
+                    maven { url = 'https://jitpack.io' }
                 }
             }
 
@@ -463,7 +463,7 @@ class ResolutionIssuesIntegrationTest extends AbstractIntegrationSpec {
                 ${mavenCentralRepository()}
                 repositories {
                     google()
-                    maven { url 'https://jitpack.io' }
+                    maven { url = 'https://jitpack.io' }
                 }
             }
         """

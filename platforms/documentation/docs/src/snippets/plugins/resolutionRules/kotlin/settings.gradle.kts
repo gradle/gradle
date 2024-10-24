@@ -9,11 +9,11 @@ pluginManagement {
     }
     repositories {
         maven {
-            url = uri("./maven-repo")
+            url = file("./maven-repo")
         }
         gradlePluginPortal()
         ivy {
-            url = uri("./ivy-repo")
+            url = file("./ivy-repo")
         }
     }
 }

@@ -63,7 +63,7 @@ abstract class AbstractGcsDependencyResolutionTest extends AbstractDependencyRes
         """
         repositories {
             maven {
-                url "${mavenGcsRepo.uri}"
+                url = "${mavenGcsRepo.uri}"
             }
         }
         """

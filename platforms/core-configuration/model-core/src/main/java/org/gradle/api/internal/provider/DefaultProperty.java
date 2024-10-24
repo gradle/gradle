@@ -18,11 +18,14 @@ package org.gradle.api.internal.provider;
 
 import com.google.common.base.Preconditions;
 import org.gradle.api.Transformer;
+import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;
+import java.io.File;
+import java.net.URI;
 
 /**
  * The implementation for general-purpose (atomic, non-composite) properties, where
@@ -69,10 +72,32 @@ public class DefaultProperty<T> extends AbstractProperty<T, ProviderInternal<? e
 
     @Override
     public void setFromAnyValue(Object object) {
+        if (type.equals(URI.class)) {
+            if (object instanceof Provider) {
+                object = Cast.<Provider<?>>uncheckedNonnullCast(object).map(this::convertToURI);
+            } else {
+                object = convertToURI(object);
+            }
+        }
         if (object instanceof Provider) {
             set(Cast.<Provider<T>>uncheckedNonnullCast(object));
         } else {
             set(Cast.<T>uncheckedNonnullCast(object));
+        }
+    }
+
+    // This is a workaround to support setting URI properties from strings in Groovy DSL.
+    private Object convertToURI(Object object) {
+        if (object instanceof URI) {
+            return object;
+        } else if (object instanceof CharSequence) {
+            return URI.create(object.toString());
+        } else if (object instanceof File) {
+            return ((File) object).toURI();
+        } else if (object instanceof FileSystemLocation) {
+            return ((FileSystemLocation) object).getAsFile().toURI();
+        } else {
+            return object; // delegate error handling to the original code
         }
     }
 

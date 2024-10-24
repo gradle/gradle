@@ -142,7 +142,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
                 }
             }
 
-            repositories { maven { url "${mavenRepo.uri}" } }
+            repositories { maven { url = "${mavenRepo.uri}" } }
 
             dependencies {
                 deps "org:foo:1.0"

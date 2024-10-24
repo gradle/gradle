@@ -33,7 +33,7 @@ import org.gradle.util.Configurable;
  *
  * <pre class='autoTested'>
  * repositories.maven { name 'myResolver' }
- * repositories.myResolver.url = 'some-url'
+ * repositories.myResolver.url = uri('some-url')
  * </pre>
  *
  * <p>A dynamic method is added for each resolver which takes a configuration closure. This is equivalent to calling
@@ -42,7 +42,7 @@ import org.gradle.util.Configurable;
  * <pre class='autoTested'>
  * repositories.maven { name 'myResolver' }
  * repositories.myResolver {
- *     url 'some-url'
+ *     url = uri('some-url')
  * }
  * </pre>
  */

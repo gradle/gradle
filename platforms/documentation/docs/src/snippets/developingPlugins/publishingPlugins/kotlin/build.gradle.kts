@@ -53,7 +53,7 @@ publishing {
     repositories {
         maven {
             name = "localPluginRepository"
-            url = uri("../local-plugin-repository")
+            url = file("../local-plugin-repository")
         }
     }
 }

@@ -33,7 +33,7 @@ class PlatformResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
 
             allprojects {
                 repositories {
-                    maven { url "${mavenHttpRepo.uri}" }
+                    maven { url = "${mavenHttpRepo.uri}" }
                 }
                 group = 'org.test'
                 version = '1.9'

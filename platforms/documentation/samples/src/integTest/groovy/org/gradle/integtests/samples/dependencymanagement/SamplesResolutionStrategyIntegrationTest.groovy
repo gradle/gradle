@@ -59,7 +59,7 @@ class SamplesResolutionStrategyIntegrationTest extends AbstractIntegrationSpec {
         if (dsl == 'groovy') {
             return """
                 configurations { conf }
-                repositories { maven { url "${mavenRepo.uri}" } }
+                repositories { maven { url = "${mavenRepo.uri}" } }
                 dependencies {
                     conf "org:foo:1.0"
                     conf "org.gradle:gradle-core:1.4"
@@ -77,7 +77,7 @@ class SamplesResolutionStrategyIntegrationTest extends AbstractIntegrationSpec {
         else if (dsl == 'kotlin') {
             return """
                 configurations { create("conf") }
-                repositories { maven { url = uri("${mavenRepo.uri}") } }
+                repositories { maven { url = "${mavenRepo.uri}" } }
                 dependencies {
                     "conf"("org:foo:1.0")
                     "conf"("org.gradle:gradle-core:1.4")

@@ -209,7 +209,7 @@ class PublicApiIntegrationTest extends AbstractIntegrationSpec implements JavaTo
 
             repositories {
                 maven {
-                    url = uri("${apiJarRepoLocation.toURI()}")
+                    url = "${apiJarRepoLocation.toURI()}"
                 }
                 mavenCentral()
             }

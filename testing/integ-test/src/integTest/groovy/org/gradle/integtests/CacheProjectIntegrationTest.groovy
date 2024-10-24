@@ -165,7 +165,7 @@ class CacheProjectIntegrationTest extends AbstractIntegrationTest {
         String content = """
 repositories {
     maven{
-        url "${repo.uri}"
+        url = "${repo.uri}"
     }
 }
 configurations { compile }

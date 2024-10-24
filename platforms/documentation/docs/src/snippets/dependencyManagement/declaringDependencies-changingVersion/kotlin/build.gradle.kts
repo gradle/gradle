@@ -7,7 +7,7 @@ plugins {
 repositories {
     mavenCentral()
     maven {
-        url = uri("https://repo.spring.io/snapshot/")
+        url = "https://repo.spring.io/snapshot/"
     }
 }
 // end::repo-intro[]

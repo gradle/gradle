@@ -88,7 +88,7 @@ class KotlinInitScriptIntegrationTest : AbstractKotlinIntegrationTest() {
                         buildscript.repositories {
                             maven {
                                 name = "test-repository"
-                                url = uri("${testRepositoryDir.toURI()}")
+                                url = "${testRepositoryDir.toURI()}"
                             }
                         }
                     }

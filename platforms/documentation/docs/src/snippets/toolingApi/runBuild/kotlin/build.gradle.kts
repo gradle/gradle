@@ -6,7 +6,7 @@ val toolingApiVersion = gradle.gradleVersion
 
 // tag::use-tooling-api[]
 repositories {
-    maven { url = uri("https://repo.gradle.org/gradle/libs-releases") }
+    maven { url = "https://repo.gradle.org/gradle/libs-releases" }
 }
 
 dependencies {

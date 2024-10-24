@@ -29,7 +29,7 @@ class ExternalResourceNameIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile << """
         repositories {
-            ivy { url "${hostPrefix}MISSING/folder/ivy" }
+            ivy { url = file("${hostPrefix}MISSING/folder/ivy") }
         }
         configurations { conf }
         dependencies {

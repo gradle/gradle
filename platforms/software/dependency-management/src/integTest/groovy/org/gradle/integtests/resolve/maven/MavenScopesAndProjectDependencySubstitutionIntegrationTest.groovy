@@ -35,8 +35,8 @@ class MavenScopesAndProjectDependencySubstitutionIntegrationTest extends Abstrac
         buildFile << """
             allprojects {
                 repositories {
-                    maven { url '${mavenRepo.uri}' }
-                    ivy { url '${ivyRepo.uri}' }
+                    maven { url = '${mavenRepo.uri}' }
+                    ivy { url = "${ivyRepo.uri}" }
                 }
             }
             project(':child1') {

@@ -53,7 +53,7 @@ class IvyPublishChangingUrlIntegTest extends AbstractIvyPublishIntegTest {
             // This build service manages the mapping between repository id -> repository URL
             // In this simplified case, there's just one URL. The Nexus plugin does something similar
             abstract class StagingRepositoryDescriptorRegistryBuildService implements BuildService<org.gradle.api.services.BuildServiceParameters.None> {
-                Object url = "${repo1.uri}"
+                URI url = URI.create("${repo1.uri}")
             }
 
             def registry = rootProject.gradle.sharedServices.registerIfAbsent("urlRegistry", StagingRepositoryDescriptorRegistryBuildService) {
@@ -80,7 +80,7 @@ class IvyPublishChangingUrlIntegTest extends AbstractIvyPublishIntegTest {
                 @TaskAction
                 void initializeRepository() {
                     // Imagine this is hitting some webservice to calculate a new URL
-                    repositoryRegistry.get().url = "${repo2.uri}"
+                    repositoryRegistry.get().url = URI.create("${repo2.uri}")
                 }
             }
             task initializeRepository(type: InitializeRepository) {

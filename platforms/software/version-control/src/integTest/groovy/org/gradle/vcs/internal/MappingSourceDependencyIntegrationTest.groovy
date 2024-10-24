@@ -27,7 +27,7 @@ class MappingSourceDependencyIntegrationTest extends AbstractSourceDependencyInt
                 vcsMappings {
                     withModule("${coords}") {
                         from(${GitVersionControlSpec.name}) {
-                            url = uri("$gitRepo")
+                            url = "$gitRepo"
                             ${repoDef}
                         }
                     }

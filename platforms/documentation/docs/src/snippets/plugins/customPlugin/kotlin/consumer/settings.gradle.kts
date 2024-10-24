@@ -4,9 +4,9 @@ pluginManagement {
         maven {
 // end::use-plugin[]
             val producerName: String? by settings
-            val repoLocation = "../$producerName/build/repo"
+            val repoLocation = file("../$producerName/build/repo")
 // tag::use-plugin[]
-            url = uri(repoLocation)
+            url = repoLocation
         }
     }
 // end::use-plugin[]

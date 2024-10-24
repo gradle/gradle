@@ -49,7 +49,7 @@ class JavaLibraryPublishedTargetJvmEnvironmentIntegrationTest extends AbstractHt
             }
 
             repositories {
-                maven { url '${mavenHttpRepo.uri}' }
+                maven { url = '${mavenHttpRepo.uri}' }
             }
 
             dependencies {

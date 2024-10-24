@@ -57,7 +57,7 @@ class SourceDependencyBuildOperationIntegrationTest extends AbstractIntegrationS
                 vcsMappings {
                     withModule("org.test:${dependencyName}") {
                         from(GitVersionControlSpec) {
-                            url = uri("${repo.url}")
+                            url = "${repo.url}"
                         }
                     }
                 }

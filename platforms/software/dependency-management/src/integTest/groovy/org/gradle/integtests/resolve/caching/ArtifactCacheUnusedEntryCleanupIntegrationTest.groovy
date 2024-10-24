@@ -413,7 +413,7 @@ class ArtifactCacheUnusedEntryCleanupIntegrationTest extends AbstractHttpDepende
         module.publish()
         buildFile.text = """
             repositories {
-                maven { url '$mavenHttpRepo.uri' }
+                maven { url = '$mavenHttpRepo.uri' }
             }
         """
 

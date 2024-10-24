@@ -39,7 +39,7 @@ class MavenPublishCoordinatesIntegTest extends AbstractMavenPublishIntegTest {
 
             publishing {
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = "${mavenRepo.uri}" }
                 }
                 publications {
                     maven(MavenPublication) {
@@ -96,7 +96,7 @@ class MavenPublishCoordinatesIntegTest extends AbstractMavenPublishIntegTest {
 
             publishing {
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = "${mavenRepo.uri}" }
                 }
                 publications {
                     impl(MavenPublication) {
@@ -160,7 +160,7 @@ class MavenPublishCoordinatesIntegTest extends AbstractMavenPublishIntegTest {
 
             publishing {
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = "${mavenRepo.uri}" }
                 }
                 publications {
                     main(MavenPublication) {
@@ -212,7 +212,7 @@ include 'projectB'
 
             publishing {
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = "${mavenRepo.uri}" }
                 }
                 publications {
                     main(MavenPublication) {
@@ -243,8 +243,8 @@ include 'projectB'
 
             publishing {
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = "${mavenRepo.uri}" }
+                    maven { url = "${mavenRepo.uri}" }
                 }
                 publications {
                     main(MavenPublication) {

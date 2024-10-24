@@ -193,7 +193,7 @@ class DependencyVerificationSignatureWriteIntegTest extends AbstractSignatureVer
         pluginManagement {
             repositories {
                 maven {
-                    url '$pluginRepo.uri'
+                    url = '$pluginRepo.uri'
                 }
             }
         }
@@ -221,7 +221,7 @@ class DependencyVerificationSignatureWriteIntegTest extends AbstractSignatureVer
         buildFile << """
           buildscript {
              repositories {
-                maven { url "${pluginRepo.uri}" }
+                maven { url = "${pluginRepo.uri}" }
              }
              dependencies {
                 classpath 'com:myplugin:1.0'
@@ -696,7 +696,7 @@ class DependencyVerificationSignatureWriteIntegTest extends AbstractSignatureVer
             }
             repositories {
                 maven {
-                    url = uri("${mavenHttpRepo.uri}")
+                    url = "${mavenHttpRepo.uri}"
                 }
             }
         """
@@ -745,7 +745,7 @@ class DependencyVerificationSignatureWriteIntegTest extends AbstractSignatureVer
             }
             repositories {
                 maven {
-                    url = uri("${mavenHttpRepo.uri}")
+                    url = "${mavenHttpRepo.uri}"
                 }
             }
         """
@@ -802,7 +802,7 @@ class DependencyVerificationSignatureWriteIntegTest extends AbstractSignatureVer
             }
             repositories {
                 maven {
-                    url = uri("${mavenHttpRepo.uri}")
+                    url = "${mavenHttpRepo.uri}"
                 }
             }
         """
@@ -890,7 +890,7 @@ class DependencyVerificationSignatureWriteIntegTest extends AbstractSignatureVer
             }
             repositories {
                 maven {
-                    url = uri("${mavenHttpRepo.uri}")
+                    url = "${mavenHttpRepo.uri}"
                 }
             }
         """

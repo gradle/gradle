@@ -681,7 +681,7 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
     private
     fun repositoriesBlockFor(repository: File): String = """
         repositories {
-            maven { url = uri("${repository.toURI()}") }
+            maven { url = "${repository.toURI()}" }
         }
     """
 

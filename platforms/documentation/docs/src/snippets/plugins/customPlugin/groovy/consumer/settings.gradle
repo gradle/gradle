@@ -3,9 +3,9 @@ pluginManagement {
     repositories {
         maven {
 // end::use-plugin[]
-            def repoLocation = "../$producerName/build/repo"
+            def repoLocation = file("../$producerName/build/repo")
 // tag::use-plugin[]
-            url = uri(repoLocation)
+            url = repoLocation
         }
     }
 // end::use-plugin[]

@@ -153,7 +153,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractKotlinIntegrationTest() {
                         publishing {
                             repositories {
                                 maven {
-                                    url = uri("maven-repo")
+                                    url = file("maven-repo")
                                 }
                             }
                         }
@@ -179,7 +179,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractKotlinIntegrationTest() {
                         repositories {
                             gradlePluginPortal()
                             maven {
-                                url = uri("../external-plugin/maven-repo")
+                                url = file("../external-plugin/maven-repo")
                             }
                         }
                         dependencies {
@@ -203,7 +203,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractKotlinIntegrationTest() {
                 pluginManagement {
                     repositories {
                         maven {
-                            url = uri("external-plugin/maven-repo")
+                            url = file("external-plugin/maven-repo")
                         }
                     }
                     includeBuild("build-logic")

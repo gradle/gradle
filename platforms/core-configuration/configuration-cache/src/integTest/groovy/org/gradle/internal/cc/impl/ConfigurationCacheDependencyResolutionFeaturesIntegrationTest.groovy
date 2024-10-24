@@ -232,7 +232,7 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
     private static String repositoriesBlockFor(List<RepoFixture> fixtures) {
         """
             repositories {
-                ${fixtures.collect { "maven { url = '${it.uri}' }" }.join('\n')}
+                ${fixtures.collect { "maven { url = uri('${it.uri}') }" }.join('\n')}
             }
         """
     }

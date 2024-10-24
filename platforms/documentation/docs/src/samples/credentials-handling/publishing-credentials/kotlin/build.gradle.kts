@@ -21,7 +21,7 @@ publishing {
         maven {
             name = "mySecureRepository"
             credentials(PasswordCredentials::class)
-            // url = uri(<<some repository url>>)
+            // url = <<some repository url>>
         }
     }
 // end::repositories[]

@@ -27,7 +27,7 @@ class MappingSourceDependencyMultiprojectIntegrationTest extends AbstractSourceD
                 vcsMappings {
                     withModule("${coords}") {
                         from(${GitVersionControlSpec.name}) {
-                            url = uri("$gitRepo")
+                            url = "$gitRepo"
                             ${repoDef}
                         }
                     }
@@ -44,7 +44,7 @@ class MappingSourceDependencyMultiprojectIntegrationTest extends AbstractSourceD
                     all { details ->
                         if (details.requested.group == "org.test") {
                             from(GitVersionControlSpec) {
-                                url = "${repo.url}"
+                                url = uri("${repo.url}")
                             }
                         }
                     }
@@ -89,7 +89,7 @@ class MappingSourceDependencyMultiprojectIntegrationTest extends AbstractSourceD
                     all { details ->
                         if (details.requested.group == "org.test") {
                             from(GitVersionControlSpec) {
-                                url = "${repo.url}"
+                                url = uri("${repo.url}")
                                 rootDir = details.requested.module
                             }
                         }

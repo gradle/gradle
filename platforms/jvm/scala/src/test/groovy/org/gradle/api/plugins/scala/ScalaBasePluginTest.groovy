@@ -56,7 +56,7 @@ class ScalaBasePluginTest extends AbstractProjectBuilderSpec {
         File mavenRepo = project.getLayout().getBuildDirectory().dir("repo").get().asFile
         project.repositories {
             mavenLocal {
-                url = mavenRepo.absolutePath
+                url.set(mavenRepo.toURI())
             }
         }
         def zincArtifactId = "zinc_${ScalaBasePlugin.DEFAULT_SCALA_ZINC_VERSION}"

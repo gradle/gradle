@@ -54,7 +54,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
                 configurations.default.outgoing.artifact(producer.output)
             }
             repositories {
-                maven { url = uri('${remoteRepo.uri}') }
+                maven { url = '${remoteRepo.uri}' }
             }
             configurations {
                 implementation
@@ -326,7 +326,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         buildFile << """
             repositories {
                 maven {
-                    url = uri('${remoteRepo.uri}')
+                    url = '${remoteRepo.uri}'
                     metadataSources { gradleMetadata() }
                 }
             }

@@ -215,7 +215,7 @@ class CatalogPluginsKotlinDSLIntegrationTest extends AbstractVersionCatalogInteg
             buildscript {
                 repositories {
                     maven {
-                        url = uri("${pluginPortal.uri}")
+                        url = "${pluginPortal.uri}"
                     }
                 }
                 dependencies {

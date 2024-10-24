@@ -47,7 +47,7 @@ class DependencyResolveRulesPreferProjectModulesIntegrationTest extends Abstract
             }
 
             project(":Subproject_with_preferProjectModules") {
-                repositories { maven { url "${mavenRepo.uri}" } }
+                repositories { maven { url = "${mavenRepo.uri}" } }
 
                 configurations { conf }
                 configurations.create("default").extendsFrom(configurations.conf)
@@ -63,7 +63,7 @@ class DependencyResolveRulesPreferProjectModulesIntegrationTest extends Abstract
             }
 
             project(":Subproject_without_preferProjectModules") {
-                repositories { maven { url "${mavenRepo.uri}" } }
+                repositories { maven { url = "${mavenRepo.uri}" } }
 
                 configurations { conf }
                 configurations.create("default").extendsFrom(configurations.conf)
@@ -133,7 +133,7 @@ class DependencyResolveRulesPreferProjectModulesIntegrationTest extends Abstract
             }
 
             project(":ProjectA") {
-                repositories { maven { url "${mavenRepo.uri}" } }
+                repositories { maven { url = "${mavenRepo.uri}" } }
 
                 configurations {
                     baseConf

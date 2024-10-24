@@ -61,14 +61,14 @@ group = 'org.gradle.crossversion'
 version = '1.9'
 
 repositories {
-    ivy { url "${repo.uri}" }
+    ivy { url = "${repo.uri}" }
 }
 dependencies {
     implementation "org.gradle:test-project:1.2"
 }
 publishing {
     repositories {
-        ivy { url "${repo.uri}" }
+        ivy { url = "${repo.uri}" }
     }
     publications {
         ivy(IvyPublication) {
@@ -92,7 +92,7 @@ configurations {
 }
 repositories {
     if (${previous.fullySupportsIvyRepository}) {
-        ivy { url "${repo.uri}" }
+        ivy { url = "${repo.uri}" }
     } else {
         add(Class.forName('org.apache.ivy.plugins.resolver.FileSystemResolver').getConstructor().newInstance()) {
             name = 'repo'

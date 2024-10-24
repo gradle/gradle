@@ -276,7 +276,7 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
                 repositories {
                     maven {
                         name "m2"
-                        url layout.buildDirectory.dir("m2Repo")
+                        url = layout.buildDirectory.dir("m2Repo")
                     }
                 }
             }
@@ -328,7 +328,7 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
                 }
                 repositories {
                     ivy {
-                        url layout.buildDirectory.dir("ivyRepo")
+                        url = layout.buildDirectory.dir("ivyRepo")
                         $declaration
                     }
                 }
@@ -455,7 +455,7 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
                 repositories {
                     maven {
                         name "m2"
-                        url layout.buildDirectory.dir("m2Repo")
+                        url = layout.buildDirectory.dir("m2Repo")
                     }
                 }
             }
@@ -573,10 +573,10 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
                 }
                 repositories {
                     maven {
-                        url layout.buildDirectory.dir("m2Repo")
+                        url = layout.buildDirectory.dir("m2Repo")
                     }
                     ivy {
-                        url layout.buildDirectory.dir("ivyRepo")
+                        url = layout.buildDirectory.dir("ivyRepo")
                         patternLayout {
                             artifact "[artifact]-[revision](-[classifier])(.[ext])"
                             ivy "[artifact]-[revision](-[classifier])(.[ext])"
@@ -637,10 +637,10 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
                 }
                 repositories {
                     maven {
-                        url layout.buildDirectory.dir("m2Repo")
+                        url = layout.buildDirectory.dir("m2Repo")
                     }
                     ivy {
-                        url layout.buildDirectory.dir("ivyRepo")
+                        url = layout.buildDirectory.dir("ivyRepo")
                         patternLayout {
                             artifact "[artifact]-[revision](-[classifier])(.[ext])"
                             ivy "[artifact]-[revision](-[classifier])(.[ext])"
@@ -785,7 +785,7 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
                 repositories {
                     maven {
                         name "m2"
-                        url layout.buildDirectory.dir("m2Repo")
+                        url = layout.buildDirectory.dir("m2Repo")
                     }
                 }
             }

@@ -34,7 +34,7 @@ class ConcurrentBuildsCachingIntegrationTest extends AbstractHttpDependencyResol
 
         buildFile << """
 repositories {
-    maven { url "${mavenHttpRepo.uri}" }
+    maven { url = "${mavenHttpRepo.uri}" }
 }
 configurations {
     a

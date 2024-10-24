@@ -1,11 +1,11 @@
 // tag::maven-ivy-repository-no-auth[]
 repositories {
     maven {
-        url = uri("http://repo.mycompany.com/maven2")
+        url = "http://repo.mycompany.com/maven2"
     }
 
     ivy {
-        url = uri("http://repo.mycompany.com/repo")
+        url = "http://repo.mycompany.com/repo"
     }
 }
 // end::maven-ivy-repository-no-auth[]
@@ -13,7 +13,7 @@ repositories {
 // tag::maven-ivy-repository-auth[]
 repositories {
     maven {
-        url = uri("sftp://repo.mycompany.com:22/maven2")
+        url = "sftp://repo.mycompany.com:22/maven2"
         credentials {
             username = "user"
             password = "password"
@@ -21,7 +21,7 @@ repositories {
     }
 
     ivy {
-        url = uri("sftp://repo.mycompany.com:22/repo")
+        url = "sftp://repo.mycompany.com:22/repo"
         credentials {
             username = "user"
             password = "password"
@@ -33,7 +33,7 @@ repositories {
 // tag::maven-ivy-s3-repository[]
 repositories {
     maven {
-        url = uri("s3://myCompanyBucket/maven2")
+        url = "s3://myCompanyBucket/maven2"
         credentials(AwsCredentials::class) {
             accessKey = "someKey"
             secretKey = "someSecret"
@@ -43,7 +43,7 @@ repositories {
     }
 
     ivy {
-        url = uri("s3://myCompanyBucket/ivyrepo")
+        url = "s3://myCompanyBucket/ivyrepo"
         credentials(AwsCredentials::class) {
             accessKey = "someKey"
             secretKey = "someSecret"
@@ -57,14 +57,14 @@ repositories {
 // tag::maven-ivy-s3-repository-with-iam[]
 repositories {
     maven {
-        url = uri("s3://myCompanyBucket/maven2")
+        url = "s3://myCompanyBucket/maven2"
         authentication {
             create<AwsImAuthentication>("awsIm") // load from EC2 role or env var
         }
     }
 
     ivy {
-        url = uri("s3://myCompanyBucket/ivyrepo")
+        url = "s3://myCompanyBucket/ivyrepo"
         authentication {
             create<AwsImAuthentication>("awsIm")
         }
@@ -75,11 +75,11 @@ repositories {
 // tag::maven-ivy-gcs-repository[]
 repositories {
     maven {
-        url = uri("gcs://myCompanyBucket/maven2")
+        url = "gcs://myCompanyBucket/maven2"
     }
 
     ivy {
-        url = uri("gcs://myCompanyBucket/ivyrepo")
+        url = "gcs://myCompanyBucket/ivyrepo"
     }
 }
 // end::maven-ivy-gcs-repository[]
@@ -105,7 +105,7 @@ repositories {
 // tag::maven-like-repo[]
 repositories {
     maven {
-        url = uri("http://repo.mycompany.com/maven2")
+        url = "http://repo.mycompany.com/maven2"
     }
 }
 // end::maven-like-repo[]
@@ -114,7 +114,7 @@ repositories {
 repositories {
     maven {
         // Look for POMs and artifacts, such as JARs, here
-        url = uri("http://repo2.mycompany.com/maven2")
+        url = "http://repo2.mycompany.com/maven2"
         // Look for artifacts here if not found at the above location
         artifactUrls("http://repo.mycompany.com/jars")
         artifactUrls("http://repo.mycompany.com/jars2")
@@ -125,7 +125,7 @@ repositories {
 // tag::authenticated-maven-repo[]
 repositories {
     maven {
-        url = uri("http://repo.mycompany.com/maven2")
+        url = "http://repo.mycompany.com/maven2"
         credentials {
             username = "user"
             password = "password"
@@ -137,7 +137,7 @@ repositories {
 // tag::header-authenticated-maven-repo[]
 repositories {
     maven {
-        url = uri("http://repo.mycompany.com/maven2")
+        url = "http://repo.mycompany.com/maven2"
         credentials(HttpHeaderCredentials::class) {
             name = "Private-Token"
             value = "TOKEN"
@@ -167,7 +167,7 @@ repositories {
 // tag::ivy-repo[]
 repositories {
     ivy {
-        url = uri("http://repo.mycompany.com/repo")
+        url = "http://repo.mycompany.com/repo"
     }
 }
 // end::ivy-repo[]
@@ -176,7 +176,7 @@ repositories {
 repositories {
     ivy {
         // URL can refer to a local directory
-        url = uri("../local-repo")
+        url = file("../local-repo")
     }
 }
 // end::local-ivy-repo[]
@@ -184,7 +184,7 @@ repositories {
 // tag::ivy-repo-with-maven-layout[]
 repositories {
     ivy {
-        url = uri("http://repo.mycompany.com/repo")
+        url = "http://repo.mycompany.com/repo"
         layout("maven")
     }
 }
@@ -196,7 +196,7 @@ repositories {
 // tag::ivy-repo-with-pattern-layout[]
 repositories {
     ivy {
-        url = uri("http://repo.mycompany.com/repo")
+        url = "http://repo.mycompany.com/repo"
         patternLayout {
             artifact("[module]/[revision]/[type]/[artifact].[ext]")
         }
@@ -207,7 +207,7 @@ repositories {
 // tag::ivy-repo-with-m2compatible-layout[]
 repositories {
     ivy {
-        url = uri("http://repo.mycompany.com/repo")
+        url = "http://repo.mycompany.com/repo"
         patternLayout {
             artifact("[organisation]/[module]/[revision]/[artifact]-[revision].[ext]")
             setM2compatible(true)
@@ -219,7 +219,7 @@ repositories {
 // tag::ivy-repo-with-custom-pattern[]
 repositories {
     ivy {
-        url = uri("http://repo.mycompany.com/repo")
+        url = "http://repo.mycompany.com/repo"
         patternLayout {
             artifact("3rd-party-artifacts/[organisation]/[module]/[revision]/[artifact]-[revision].[ext]")
             artifact("company-artifacts/[organisation]/[module]/[revision]/[artifact]-[revision].[ext]")
@@ -232,7 +232,7 @@ repositories {
 // tag::maven-repo-with-metadata-sources[]
 repositories {
     maven {
-        url = uri("http://repo.mycompany.com/repo")
+        url = "http://repo.mycompany.com/repo"
         metadataSources {
             mavenPom()
             artifact()
@@ -244,7 +244,7 @@ repositories {
 // tag::maven-repo-with-ignore-gradle-metadata-redirection[]
 repositories {
     maven {
-        url = uri("http://repo.mycompany.com/repo")
+        url = "http://repo.mycompany.com/repo"
         metadataSources {
             mavenPom()
             artifact()
@@ -257,7 +257,7 @@ repositories {
 // tag::authenticated-ivy-repo[]
 repositories {
     ivy {
-        url = uri("http://repo.mycompany.com")
+        url = "http://repo.mycompany.com"
         credentials {
             username = "user"
             password = "password"
@@ -277,7 +277,7 @@ tasks.register("lookup") {
 // tag::digest-authentication[]
 repositories {
     maven {
-        url = uri("https://repo.mycompany.com/maven2")
+        url = "https://repo.mycompany.com/maven2"
         credentials {
             username = "user"
             password = "password"
@@ -292,7 +292,7 @@ repositories {
 // tag::preemptive-authentication[]
 repositories {
     maven {
-        url = uri("https://repo.mycompany.com/maven2")
+        url = "https://repo.mycompany.com/maven2"
         credentials {
             username = "user"
             password = "password"

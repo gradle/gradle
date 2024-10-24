@@ -81,7 +81,7 @@ class ComponentMetadataRulesMissingMetadataIntegrationTest extends AbstractInteg
 
             repositories {
                 maven {
-                    url = uri("${mavenRepo.uri}")
+                    url = "${mavenRepo.uri}"
                     metadataSources {
                         mavenPom()
                         artifact()
@@ -176,7 +176,7 @@ class ComponentMetadataRulesMissingMetadataIntegrationTest extends AbstractInteg
 
             repositories {
                 maven {
-                    url = uri("${mavenRepo.uri}")
+                    url = "${mavenRepo.uri}"
                     metadataSources {
                         mavenPom()
                         artifact()

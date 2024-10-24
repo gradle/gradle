@@ -235,7 +235,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
                 text.replace(
                     result.start(0),
                     result.end(0),
-                    "mavenCentral()\n        maven(url = uri(\"https://androidx.dev/storage/compose-compiler/repository/\"))"
+                    "mavenCentral()\n        maven(url = \"https://androidx.dev/storage/compose-compiler/repository/\")"
                 )
             }
             if (!matched) {

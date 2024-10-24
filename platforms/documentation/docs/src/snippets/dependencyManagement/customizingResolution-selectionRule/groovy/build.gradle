@@ -4,7 +4,7 @@ plugins {
 
 repositories {
     ivy {
-        url layout.projectDirectory.dir("repo")
+        url = layout.projectDirectory.dir("repo")
     }
 }
 

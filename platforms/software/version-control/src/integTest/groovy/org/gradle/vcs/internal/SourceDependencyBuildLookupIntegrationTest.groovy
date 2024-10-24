@@ -32,7 +32,7 @@ class SourceDependencyBuildLookupIntegrationTest extends AbstractIntegrationSpec
                 vcsMappings {
                     withModule("org.test:buildB") { details ->
                         from(GitVersionControlSpec) {
-                            url = uri('$repo.url')
+                            url = '$repo.url'
                         }
                     }
                 }

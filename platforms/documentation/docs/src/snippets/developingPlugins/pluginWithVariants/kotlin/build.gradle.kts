@@ -56,6 +56,6 @@ gradlePlugin {
 
 publishing {
     repositories {
-        maven { url = uri(layout.buildDirectory.dir("local-repo")) }
+        maven { url = layout.buildDirectory.dir("local-repo") }
     }
 }

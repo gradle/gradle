@@ -89,7 +89,7 @@ class DependencyManagementIntegrationTest : AbstractKotlinIntegrationTest() {
 
             repositories {
                 ivy {
-                    url = uri("${existing("repo").normalisedPath}")
+                    url = file("${existing("repo").normalisedPath}")
                     patternLayout {
                         artifact("[organisation]/[module]-[revision].[ext]")
                     }
@@ -143,15 +143,15 @@ class DependencyManagementIntegrationTest : AbstractKotlinIntegrationTest() {
             """
             val foo = configurations.dependencyScope("foo")
             val bar = configurations.dependencyScope("bar") { }
-            
+
             dependencies {
                 foo("in-block:accessor:1.0")
                 bar("in-block:accessor:1.0")
             }
-            
+
             repositories {
                 ivy {
-                    url = uri("${existing("repo").normalisedPath}")
+                    url = file("${existing("repo").normalisedPath}")
                     patternLayout {
                         artifact("[organisation]/[module]-[revision].[ext]")
                     }

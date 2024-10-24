@@ -42,7 +42,7 @@ class PluginManagementWithSettingsPluginIntegrationTest extends AbstractIntegrat
         withLocalSettingsPlugin("""
             settings.getPluginManagement().getRepositories().maven(repo -> {
                 try {
-                    repo.setUrl(new ${URI.name}("$projectPluginRepo.uri"));
+                    repo.getUrl().set(new ${URI.name}("$projectPluginRepo.uri"));
                 } catch(${URISyntaxException.name} e) { }
             });
         """)
@@ -72,7 +72,7 @@ class PluginManagementWithSettingsPluginIntegrationTest extends AbstractIntegrat
                 spec.forRepository(() -> {
                     return settings.getPluginManagement().getRepositories().maven(repo -> {
                         try {
-                            repo.setUrl(new ${URI.name}("$projectPluginRepo.uri"));
+                            repo.getUrl().set(new ${URI.name}("$projectPluginRepo.uri"));
                         } catch(${URISyntaxException.name} e) { }
                     });
                 });
@@ -119,7 +119,7 @@ class PluginManagementWithSettingsPluginIntegrationTest extends AbstractIntegrat
                         exclusiveContent {
                             forRepository {
                                 maven {
-                                    url = "$projectPluginRepo.uri"
+                                    url = uri("$projectPluginRepo.uri")
                                 }
                             }
                             filter {
@@ -164,7 +164,7 @@ class PluginManagementWithSettingsPluginIntegrationTest extends AbstractIntegrat
                     exclusiveContent {
                         forRepository {
                             maven {
-                                url = "$projectPluginRepo.uri"
+                                url = uri("$projectPluginRepo.uri")
                             }
                         }
                         filter {

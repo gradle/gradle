@@ -49,7 +49,7 @@ class ParallelSourceDependencyIntegrationTest extends AbstractIntegrationSpec {
             }
             sourceControl.vcsMappings.withModule("test:test") {
                 from(GitVersionControlSpec) {
-                    url = uri('${repo.url}')
+                    url = '${repo.url}'
                 }
             }
         """

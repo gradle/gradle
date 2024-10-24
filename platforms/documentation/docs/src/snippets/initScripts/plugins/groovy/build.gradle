@@ -12,7 +12,7 @@ class RepositoryData {
 }
 
 tasks.register('showRepositories') {
-    def repositoryData = repositories.collect { new RepositoryData(it.name, it.url) }
+    def repositoryData = repositories.collect { new RepositoryData(it.name, it.url.get()) }
     doLast {
         repositoryData.each {
             println "repository: ${it.name} ('${it.url}')"

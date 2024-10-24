@@ -17,12 +17,25 @@
 package gradlebuild.basics
 
 import org.gradle.api.artifacts.dsl.RepositoryHandler
+import org.gradle.api.provider.Property
+import java.net.URI
 
 
 fun RepositoryHandler.googleApisJs() {
     ivy {
         name = "googleApisJs"
-        setUrl("https://ajax.googleapis.com/ajax/libs")
+        val uri = URI.create("https://ajax.googleapis.com/ajax/libs")
+        // TODO: Remove after Gradle 9.0
+        @Suppress("INCOMPATIBLE_TYPES")
+        if (this.url is Property<*>) {
+            @Suppress("USELESS_CAST")
+            val urlProperty = url as Property<URI>
+            urlProperty.set(uri)
+        } else {
+            @Suppress("deprecation")
+            val setter = this.javaClass.getMethod("setUrl", URI::class.java)
+            setter.invoke(this, uri)
+        }
         patternLayout {
             artifact("[organization]/[revision]/[module].[ext]")
             ivy("[organization]/[revision]/[module].xml")

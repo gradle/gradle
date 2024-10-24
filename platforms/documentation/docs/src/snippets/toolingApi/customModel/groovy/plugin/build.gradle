@@ -12,7 +12,7 @@ dependencies {
 
 publishing {
     repositories {
-        ivy { url 'build/repo' }
+        ivy { url = layout.buildDirectory.dir("repo") }
     }
     publications {
         ivy(IvyPublication) {

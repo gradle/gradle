@@ -38,7 +38,7 @@ publishing {
     repositories {
         // change URLs to point to your repo, e.g. http://my.org/repo
         maven {
-            url = uri(layout.buildDirectory.dir("repo"))
+            url = layout.buildDirectory.dir("repo")
         }
     }
 // tag::custom-artifact-publication[]

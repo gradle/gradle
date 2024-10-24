@@ -34,7 +34,7 @@ class MixedDependencyLockingIntegrationTest extends AbstractDependencyResolution
 repositories {
     maven {
         name 'repo'
-        url '${mavenRepo.uri}'
+        url = "${mavenRepo.uri}"
     }
 }
 configurations {
@@ -77,7 +77,7 @@ dependencies {
 repositories {
     maven {
         name 'repo'
-        url '${mavenRepo.uri}'
+        url = "${mavenRepo.uri}"
     }
 }
 configurations {
@@ -111,7 +111,7 @@ dependencies {
 repositories {
     maven {
         name 'repo'
-        url '${mavenRepo.uri}'
+        url = "${mavenRepo.uri}"
     }
 }
 configurations {
@@ -146,7 +146,7 @@ dependencies {
 repositories {
     maven {
         name 'repo'
-        url '${mavenRepo.uri}'
+        url = "${mavenRepo.uri}"
     }
 }
 configurations {

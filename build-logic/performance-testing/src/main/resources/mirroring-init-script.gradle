@@ -61,20 +61,22 @@ class MirrorPlugin implements Plugin<Gradle> {
 
     void withMirrors(RepositoryHandler repos) {
         repos.all { repo ->
-            if (repo instanceof MavenArtifactRepository) {
-                mirror(repo)
-            } else if (repo instanceof IvyArtifactRepository) {
+            if (repo instanceof UrlArtifactRepository) {
                 mirror(repo)
             }
         }
     }
 
-    void mirror(MavenArtifactRepository repo) {
-        repo.url = mirrors.get(normalizeUrl(repo.url), repo.url.toString())
-    }
-
-    void mirror(IvyArtifactRepository repo) {
-        repo.url = mirrors.get(normalizeUrl(repo.url), repo.url.toString())
+    void mirror(UrlArtifactRepository repo) {
+        // TODO: Remove after Gradle 9.0
+        if (repo.url instanceof Property) {
+            def urlProperty = repo.url as Property<URI>
+            def oldUrl = urlProperty.get()
+            urlProperty.set(URI.create(mirrors.get(normalizeUrl(oldUrl), oldUrl.toString())))
+        } else {
+            def setter = UrlArtifactRepository.getMethod("setUrl", String)
+            setter.invoke(this, mirrors.get(normalizeUrl(repo.url), repo.url.toString()))
+        }
     }
 
     // We see them as equal:

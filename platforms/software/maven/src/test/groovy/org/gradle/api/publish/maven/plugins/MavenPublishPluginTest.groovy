@@ -85,7 +85,7 @@ class MavenPublishPluginTest extends AbstractProjectBuilderSpec {
     def "creates publish tasks for each publication and repository"() {
         when:
         publishing.publications.create("test", MavenPublication)
-        publishing.repositories { maven { url = "http://foo.com" } }
+        publishing.repositories { maven { url.set(URI.create("http://foo.com")) } }
 
         then:
         project.tasks["publishTestPublicationToMavenRepository"] instanceof PublishToMavenRepository
@@ -119,8 +119,8 @@ class MavenPublishPluginTest extends AbstractProjectBuilderSpec {
         publishing.publications.create("test", MavenPublication)
 
         when:
-        def repo1 = publishing.repositories.maven { url "foo" }
-        def repo2 = publishing.repositories.maven { url "foo"; name "other" }
+        def repo1 = publishing.repositories.maven { url.set(URI.create("foo")) }
+        def repo2 = publishing.repositories.maven { url.set(URI.create("foo")); name = "other" }
         publishing.repositories.ivy {}
 
         then:
@@ -180,8 +180,8 @@ class MavenPublishPluginTest extends AbstractProjectBuilderSpec {
         when:
         publishing.publications.create("test", MavenPublication)
         publishing.publications.create("test2", MavenPublication)
-        publishing.repositories { maven { url = "http://foo.com" } }
-        publishing.repositories { maven { name='other'; url = "http://bar.com" } }
+        publishing.repositories { maven { url.set(URI.create("http://foo.com")) } }
+        publishing.repositories { maven { name='other'; url.set(URI.create("http://bar.com")) } }
 
         then:
         project.tasks["publishAllPublicationsToMavenRepository"].dependsOn.containsAll([

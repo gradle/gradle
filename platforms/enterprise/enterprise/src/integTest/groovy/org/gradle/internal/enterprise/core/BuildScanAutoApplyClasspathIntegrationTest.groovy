@@ -93,7 +93,7 @@ abstract class BuildScanAutoApplyClasspathIntegrationTest extends AbstractIntegr
             }
 
             repositories {
-                 maven { url '${mavenRepo.uri}' }
+                 maven { url = '${mavenRepo.uri}' }
             }
 
             gradlePlugin {
@@ -133,7 +133,7 @@ abstract class BuildScanAutoApplyClasspathIntegrationTest extends AbstractIntegr
             pluginManagement {
                 includeBuild 'build-src'
                 repositories {
-                    maven { url '${mavenRepo.uri}' }
+                    maven { url = '${mavenRepo.uri}' }
                 }
             }
 

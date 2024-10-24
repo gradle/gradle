@@ -35,7 +35,7 @@ class NestedSourceDependencyIdentityIntegrationTest extends AbstractIntegrationS
                 vcsMappings {
                     withModule("org.test:buildB") {
                         from(GitVersionControlSpec) {
-                            url = uri("${repoB.url}")
+                            url = "${repoB.url}"
                         }
                     }
                 }
@@ -65,7 +65,7 @@ class NestedSourceDependencyIdentityIntegrationTest extends AbstractIntegrationS
                 vcsMappings {
                     withModule("org.test:${moduleName}") {
                         from(GitVersionControlSpec) {
-                            url = uri("${repoC.url}")
+                            url = "${repoC.url}"
                         }
                     }
                 }

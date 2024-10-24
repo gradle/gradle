@@ -39,7 +39,7 @@ class MavenPublishIdentifierValidationIntegTest extends AbstractMavenPublishInte
 
             publishing {
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = "${mavenRepo.uri}" }
                 }
                 publications {
                     maven(MavenPublication) {
@@ -84,7 +84,7 @@ class MavenPublishIdentifierValidationIntegTest extends AbstractMavenPublishInte
 
             publishing {
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = "${mavenRepo.uri}" }
                 }
                 publications {
                     maven(MavenPublication) {
@@ -122,7 +122,7 @@ class MavenPublishIdentifierValidationIntegTest extends AbstractMavenPublishInte
 
             publishing {
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = "${mavenRepo.uri}" }
                 }
                 publications {
                     maven(MavenPublication)
@@ -151,7 +151,7 @@ class MavenPublishIdentifierValidationIntegTest extends AbstractMavenPublishInte
                 repositories {
                     maven {
                         name '${repoName}'
-                        url "${mavenRepo.uri}"
+                        url = "${mavenRepo.uri}"
                     }
                 }
                 publications {

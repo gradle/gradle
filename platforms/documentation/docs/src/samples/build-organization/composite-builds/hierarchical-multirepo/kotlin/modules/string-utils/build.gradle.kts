@@ -17,7 +17,7 @@ repositories {
 publishing {
     repositories {
         maven {
-            setUrl(file("../../local-repo"))
+            url = file("../../local-repo")
         }
     }
     publications {

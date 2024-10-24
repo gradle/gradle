@@ -1,0 +1,36 @@
+{
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.api.artifacts.repositories.UrlArtifactRepository",
+            "member": "Method org.gradle.api.artifacts.repositories.UrlArtifactRepository.setUrl(java.lang.Object)",
+            "acceptation": "Not worth preserving",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.RepositoryHandlerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.RepositoryHandlerExtensionsKt.access$convertToURI(java.lang.Object)",
+            "acceptation": "This method is private",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.RepositoryHandlerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.RepositoryHandlerExtensionsKt.assingProviderFile(org.gradle.api.provider.Property,org.gradle.api.provider.Provider)",
+            "acceptation": "It is incubating, but JavaDoc and annotations are not preserved because of JVMName annotation",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.RepositoryHandlerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.RepositoryHandlerExtensionsKt.assingProviderFileSystemLocation(org.gradle.api.provider.Property,org.gradle.api.provider.Provider)",
+            "acceptation": "It is incubating, but JavaDoc and annotations are not preserved because of JVMName annotation",
+            "changes": [
+                "Method added to public class"
+            ]
+        }
+    ]
+}

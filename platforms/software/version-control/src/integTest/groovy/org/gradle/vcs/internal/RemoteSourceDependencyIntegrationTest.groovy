@@ -49,12 +49,12 @@ class RemoteSourceDependencyIntegrationTest extends AbstractIntegrationSpec {
             }
             sourceControl.vcsMappings.withModule("test:testA") {
                 from(GitVersionControlSpec) {
-                    url = uri('${repoA.url}')
+                    url = '${repoA.url}'
                 }
             }
             sourceControl.vcsMappings.withModule("test:testB") {
                 from(GitVersionControlSpec) {
-                    url = uri('${repoB.url}')
+                    url = '${repoB.url}'
                 }
             }
         """
@@ -77,12 +77,12 @@ class RemoteSourceDependencyIntegrationTest extends AbstractIntegrationSpec {
             }
             sourceControl.vcsMappings.withModule("test:testB") {
                 from(GitVersionControlSpec) {
-                    url = uri('${repoB.url}')
+                    url = '${repoB.url}'
                 }
             }
             sourceControl.vcsMappings.withModule("test:testC") {
                 from(GitVersionControlSpec) {
-                    url = uri('${repoC.url}')
+                    url = '${repoC.url}'
                 }
             }
         """
@@ -106,7 +106,7 @@ class RemoteSourceDependencyIntegrationTest extends AbstractIntegrationSpec {
             }
             sourceControl.vcsMappings.withModule("test:testC") {
                 from(GitVersionControlSpec) {
-                    url = uri('${repoC.url}')
+                    url = '${repoC.url}'
                 }
             }
         """

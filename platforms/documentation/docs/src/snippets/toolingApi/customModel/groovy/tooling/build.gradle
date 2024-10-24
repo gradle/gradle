@@ -5,8 +5,8 @@ plugins {
 def toolingApiVersion = gradle.gradleVersion
 
 repositories {
-    ivy { url '../plugin/build/repo' }
-    maven { url 'https://repo.gradle.org/gradle/libs-releases' }
+    ivy { url = file('../plugin/build/repo') }
+    maven { url = 'https://repo.gradle.org/gradle/libs-releases' }
 }
 
 dependencies {

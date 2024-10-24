@@ -19,6 +19,7 @@ import org.gradle.build.event.BuildEventsListenerRegistry
 import org.gradle.internal.nativeintegration.network.HostnameLookup
 import org.gradle.tooling.events.FinishEvent
 import org.gradle.tooling.events.OperationCompletionListener
+import java.net.URI
 
 
 class Helper(private val providers: ProviderFactory) {
@@ -53,8 +54,22 @@ class Helper(private val providers: ProviderFactory) {
         handler.all {
             if (this is MavenArtifactRepository) {
                 originalUrls.forEach { name, originalUrl ->
-                    if (normalizeUrl(originalUrl) == normalizeUrl(this.url.toString()) && mirrorUrls.containsKey(name)) {
-                        mirrorUrls.get(name)?.let { this.setUrl(it) }
+                    // TODO: Remove after Gradle 9.0
+                    @Suppress("INCOMPATIBLE_TYPES")
+                    if (this.url is URI) {
+                        val setter = this.javaClass.getMethod("setUrl", URI::class.java)
+                        if (normalizeUrl(originalUrl) == normalizeUrl(this.url.toString()) && mirrorUrls.containsKey(name)) {
+                            @Suppress("deprecation")
+                            mirrorUrls.get(name)?.let {
+                                setter.invoke(this, URI.create(it))
+                            }
+                        }
+                    } else {
+                        @Suppress("CAST_NEVER_SUCCEEDS")
+                        val urlProperty = this.url as Property<URI>
+                        if (normalizeUrl(originalUrl) == normalizeUrl(urlProperty.get().toString()) && mirrorUrls.containsKey(name)) {
+                            mirrorUrls.get(name)?.let { urlProperty.set(URI.create(it)) }
+                        }
                     }
                 }
             }

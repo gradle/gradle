@@ -4,7 +4,7 @@ plugins {
 
 repositories {
     maven {
-        setUrl(uri("../repo"))
+        url = file("../repo")
     }
     mavenCentral()
 }

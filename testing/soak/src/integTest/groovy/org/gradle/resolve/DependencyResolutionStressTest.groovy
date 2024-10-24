@@ -62,7 +62,7 @@ class DependencyResolutionStressTest extends Specification {
 import java.util.zip.*
 
 repositories {
-    ivy { url '${server.uri}' }
+    ivy { url = "${server.uri}" }
 }
 
 configurations {

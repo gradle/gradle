@@ -47,7 +47,7 @@ class SourceDependencyIdentityIntegrationTest extends AbstractIntegrationSpec {
                 vcsMappings {
                     withModule("org.test:${moduleName}") {
                         from(GitVersionControlSpec) {
-                            url = uri("${repo.url}")
+                            url = "${repo.url}"
                         }
                     }
                 }

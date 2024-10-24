@@ -38,7 +38,9 @@ class GradleImplDepsShadingIssuesIntegrationTest extends BaseGradleImplDepsInteg
 
                 void apply(Project project) {
                     def conf = project.configurations.create('bug')
-                    project.${mavenCentralRepository()}
+                    project.repositories {
+                        mavenCentral()
+                    }
 
                     project.dependencies {
                         bug 'junit:junit:4.13'

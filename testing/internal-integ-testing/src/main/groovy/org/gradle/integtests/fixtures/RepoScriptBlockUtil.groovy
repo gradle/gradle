@@ -44,7 +44,7 @@ class RepoScriptBlockUtil {
             """
                     ${type} {
                         name '${name}'
-                        url '${url}'
+                        url = uri('${url}')
                     }
                 """
         }
@@ -81,8 +81,8 @@ class RepoScriptBlockUtil {
 
         void configure(RepositoryHandler repositories) {
             repositories.maven { MavenArtifactRepository repo ->
-                repo.name = getName()
-                repo.url = mirrorUrl
+                repo.setName(getName())
+                repo.getUrl().set(URI.create(mirrorUrl))
             }
         }
 
@@ -157,12 +157,14 @@ class RepoScriptBlockUtil {
         return mirrors
     }
 
+    // adapted from build-logic/performance-testing/src/main/resources/mirroring-init-script.gradle
     static String mirrorInitScript() {
         def mirrorConditions = MirroredRepository.values().collect { MirroredRepository mirror ->
             """
-                if (normalizeUrl(repo.url) == normalizeUrl('${mirror.originalUrl}')) {
-                    repo.url = '${mirror.mirrorUrl}'
-                }
+            if (repo.getUrl().getOrNull().toString() == normalizeUrl('${mirror.originalUrl}')) {
+                URI replacement = URI.create('${mirror.mirrorUrl}')
+                repo.getUrl().set(replacement)
+            }
             """
         }.join("")
         return """
@@ -217,19 +219,13 @@ class RepoScriptBlockUtil {
 
                 static void withMirrors(RepositoryHandler repos) {
                     repos.all { repo ->
-                        if (repo instanceof MavenArtifactRepository) {
-                            mirror(repo)
-                        } else if (repo instanceof IvyArtifactRepository) {
+                        if (repo instanceof UrlArtifactRepository) {
                             mirror(repo)
                         }
                     }
                 }
 
-                static void mirror(MavenArtifactRepository repo) {
-                    ${mirrorConditions}
-                }
-
-                static void mirror(IvyArtifactRepository repo) {
+                static void mirror(UrlArtifactRepository repo) {
                     ${mirrorConditions}
                 }
 

@@ -243,7 +243,7 @@ class ConfigurationCacheIvyPublishIntegrationTest extends AbstractConfigurationC
             repositories {
                 ivy {
                     name "${repositoryName}"
-                    url "${remoteRepo.uri}"
+                    url = "${remoteRepo.uri}"
                     allowInsecureProtocol true
                     ${credentialsBlock}
                 }
@@ -264,7 +264,7 @@ class ConfigurationCacheIvyPublishIntegrationTest extends AbstractConfigurationC
             repositories {
                 ivy {
                     name "${repositoryName}"
-                    url "${repository.uri}"
+                    url = "${repository.uri}"
                     ${credentialsBlock}
                 }
             }

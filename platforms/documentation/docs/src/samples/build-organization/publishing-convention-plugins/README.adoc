@@ -115,7 +115,7 @@ pluginManagement {
         gradlePluginPortal()
         maven {
             // replace the path with the actual path to the repository
-            url = uri("<path-to>/convention-plugins/build/repo")
+            url = "<path-to>/convention-plugins/build/repo"
         }
     }
 }
@@ -138,7 +138,7 @@ pluginManagement {
         gradlePluginPortal()
         maven {
             // replace the path with the actual path to the repository
-            url = uri('<path-to>/convention-plugins/build/repo')
+            url = '<path-to>/convention-plugins/build/repo'
         }
     }
 }

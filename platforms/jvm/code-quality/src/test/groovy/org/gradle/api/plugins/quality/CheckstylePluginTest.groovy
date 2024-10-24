@@ -241,7 +241,7 @@ class CheckstylePluginTest extends AbstractProjectBuilderSpec {
         MavenFileRepository repo = new MavenFileRepository(temporaryFolder.createDir("repo"))
         project.repositories {
             maven {
-                url repo.uri
+                url = repo.uri
             }
         }
         repo.module("com.puppycrawl.tools", "checkstyle", CheckstylePlugin.DEFAULT_CHECKSTYLE_VERSION).publish()

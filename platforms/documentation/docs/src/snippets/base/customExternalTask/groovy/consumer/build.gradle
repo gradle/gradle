@@ -3,9 +3,9 @@ buildscript {
     repositories {
         maven {
 // end::use-task[]
-            def repoLocation = "../task/build/repo"
+            def repoLocation = file("../task/build/repo")
 // tag::use-task[]
-            url = uri(repoLocation)
+            url = repoLocation
         }
     }
     dependencies {

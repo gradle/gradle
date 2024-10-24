@@ -503,7 +503,7 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
         """
             repositories {
                 maven {
-                    url = uri("$localPluginRepoPath")
+                    url = file("$localPluginRepoPath")
                 }
             }
         """.stripIndent()
@@ -514,7 +514,7 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
         file("$pluginBundleName/settings.gradle").createFile()
         file("$pluginBundleName/build.gradle") << """
             apply plugin: "maven-publish"
-            publishing { repositories { maven { url = uri("../$localPluginRepoPath") } } }
+            publishing { repositories { maven { url = file("../$localPluginRepoPath") } } }
         """.stripIndent()
 
         executer.inDirectory(file(pluginBundleName)).withTasks("publish").run()

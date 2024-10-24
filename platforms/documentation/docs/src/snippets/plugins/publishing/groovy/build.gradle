@@ -24,10 +24,10 @@ gradlePlugin {
 publishing {
     repositories {
         maven {
-            url layout.buildDirectory.dir("maven-repo")
+            url = layout.buildDirectory.dir("maven-repo")
         }
         ivy {
-            url layout.buildDirectory.dir("ivy-repo")
+            url = layout.buildDirectory.dir("ivy-repo")
         }
     }
 }

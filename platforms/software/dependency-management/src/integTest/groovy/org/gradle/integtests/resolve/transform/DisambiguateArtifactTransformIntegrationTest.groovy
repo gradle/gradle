@@ -70,7 +70,7 @@ def artifactType = Attribute.of('artifactType', String)
 
 allprojects {
     repositories {
-        maven { url "${mavenRepo.uri}" }
+        maven { url = "${mavenRepo.uri}" }
     }
 }
 project(':lib') {
@@ -163,7 +163,7 @@ def extraAttribute = Attribute.of('extra', String)
 
 allprojects {
     repositories {
-        maven { url "${mavenRepo.uri}" }
+        maven { url = "${mavenRepo.uri}" }
     }
 }
 project(':lib') {
@@ -366,7 +366,7 @@ apply plugin: 'java'
 
 allprojects {
     repositories {
-        maven { url "${mavenRepo.uri}" }
+        maven { url = "${mavenRepo.uri}" }
     }
 }
 
@@ -427,7 +427,7 @@ apply plugin: 'java-library'
 
 allprojects {
     repositories {
-        maven { url "${mavenRepo.uri}" }
+        maven { url = "${mavenRepo.uri}" }
     }
 }
 
