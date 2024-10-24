@@ -16,9 +16,9 @@
 
 package org.gradle.internal.declarativedsl.settings
 
-import groovy.test.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
+import org.gradle.util.internal.ToBeImplemented
 import org.hamcrest.Matchers
 import org.junit.Rule
 
@@ -77,7 +77,7 @@ class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec imp
     /**
      * This test is not yet implemented because it requires a custom repository to be set up which is not possible yet with the declarative dsl.
      */
-    @NotYetImplemented
+    @ToBeImplemented
     def 'can declare and configure a custom software type from plugin published to a custom repository'() {
         given:
         def pluginBuilder = withSoftwareTypePlugins()
@@ -97,14 +97,17 @@ class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec imp
         file("build.gradle.dcl") << declarativeScriptThatConfiguresOnlyTestSoftwareType
 
         when:
-        run(":printTestSoftwareTypeExtensionConfiguration")
+        fails(":printTestSoftwareTypeExtensionConfiguration")
 
         then:
-        assertThatDeclaredValuesAreSetProperly()
+        failureDescriptionContains("unresolved function call signature for 'maven'")
 
-        and:
-        outputContains("Applying SoftwareTypeImplPlugin")
-        outputDoesNotContain("Applying AnotherSoftwareTypeImplPlugin")
+//        then:
+//        assertThatDeclaredValuesAreSetProperly()
+//
+//        and:
+//        outputContains("Applying SoftwareTypeImplPlugin")
+//        outputDoesNotContain("Applying AnotherSoftwareTypeImplPlugin")
     }
 
     def 'can declare multiple custom software types from a single settings plugin'() {
