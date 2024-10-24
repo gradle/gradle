@@ -46,7 +46,7 @@ class DefaultMavenLocalRepositoryTest extends Specification {
     final AuthenticationContainer authenticationContainer = Stub()
     final FileResourceRepository fileResourceRepository = Mock()
     final MavenMutableModuleMetadataFactory mavenMetadataFactory = DependencyManagementTestUtil.mavenMetadataFactory()
-    final DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory = new DefaultUrlArtifactRepository.Factory(resolver)
+    final DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory = new DefaultUrlArtifactRepository.Factory(resolver, TestUtil.objectFactory(), TestUtil.providerFactory())
 
     final DefaultMavenArtifactRepository repository = createRepository()
 
@@ -67,21 +67,19 @@ class DefaultMavenLocalRepositoryTest extends Specification {
             TestUtil.objectFactory(),
             urlArtifactRepositoryFactory,
             TestUtil.checksumService,
+            TestUtil.providerFactory(),
             new VersionParser()
-
         )
     }
 
     def "creates local repository"() {
         given:
-        def file = new File('repo')
-        def uri = file.toURI()
-        _ * resolver.resolveUri('repo-dir') >> uri
+        def uri = new File('repo').toURI()
         transportFactory.createTransport('file', 'repo', _, _) >> transport()
 
         and:
         repository.name = 'repo'
-        repository.url = 'repo-dir'
+        repository.url = uri
 
         when:
         def repo = repository.createResolver()

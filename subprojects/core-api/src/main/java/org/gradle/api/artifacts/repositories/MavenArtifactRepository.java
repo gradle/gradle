@@ -16,9 +16,9 @@
 package org.gradle.api.artifacts.repositories;
 
 import org.gradle.api.Action;
+import org.gradle.api.provider.Property;
 import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 import java.net.URI;
 import java.util.Set;
@@ -31,30 +31,18 @@ import java.util.Set;
 public interface MavenArtifactRepository extends ArtifactRepository, UrlArtifactRepository, AuthenticationSupported, MetadataSupplierAware {
 
     /**
-     * The base URL of this repository. This URL is used to find both POMs and artifact files.
-     *
-     * @return The URL.
+     * The base URL of this repository. This URL is used to find both POMs and artifact files. You can add additional URLs to use to look for artifact files, such as jars, using {@link
+     * #getArtifactUrls()}.
      */
     @Override
-    @ToBeReplacedByLazyProperty
-    URI getUrl();
+    Property<URI> getUrl();
 
     /**
-     * Sets the base URL of this repository. This URL is used to find both POMs and artifact files.
+     * Sets the base URL of this repository. This URL is used to find both POMs and artifact files. You can add additional URLs to use to look for artifact files, such as jars, using {@link
+     * #getArtifactUrls()}.
      *
      * @param url The base URL.
      * @since 4.0
-     */
-    @Override
-    void setUrl(URI url);
-
-    /**
-     * Sets the base URL of this repository. This URL is used to find both POMs and artifact files.
-     *
-     * <p>The provided value is evaluated as per {@link org.gradle.api.Project#uri(Object)}. This means, for example, you can pass in a {@code File} object, or a relative path to be evaluated relative
-     * to the project directory.
-     *
-     * @param url The base URL.
      */
     @Override
     @HiddenInDefinition
