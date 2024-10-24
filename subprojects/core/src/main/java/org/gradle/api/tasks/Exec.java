@@ -15,6 +15,9 @@
  */
 package org.gradle.api.tasks;
 
+import org.gradle.api.provider.Property;
+import org.gradle.internal.instrumentation.api.annotations.BytecodeUpgrade;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.work.DisableCachingByDefault;
 
@@ -82,34 +85,17 @@ public abstract class Exec extends AbstractExecTask<Exec> {
      * {@inheritDoc}
      */
     @Override
-    @ToBeReplacedByLazyProperty
-    public boolean isIgnoreExitValue() {
-        return super.isIgnoreExitValue();
+    @ReplacesEagerProperty(adapter = Exec.IgnoreExitValueAdapter.class)
+    public Property<Boolean> getIgnoreExitValue() {
+        return super.getIgnoreExitValue();
     }
-
     /**
      * {@inheritDoc}
      */
     @Override
-    public Exec setIgnoreExitValue(boolean ignoreExitValue) {
-        return super.setIgnoreExitValue(ignoreExitValue);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    @ToBeReplacedByLazyProperty
-    public InputStream getStandardInput() {
+    @ReplacesEagerProperty(adapter = Exec.StandardInputAdapter.class)
+    public Property<InputStream> getStandardInput() {
         return super.getStandardInput();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Exec setStandardInput(InputStream inputStream) {
-        return super.setStandardInput(inputStream);
     }
 
     /**
@@ -117,8 +103,8 @@ public abstract class Exec extends AbstractExecTask<Exec> {
      */
     @Internal
     @Override
-    @ToBeReplacedByLazyProperty
-    public OutputStream getStandardOutput() {
+    @ReplacesEagerProperty(adapter = Exec.StandardOutputAdapter.class)
+    public Property<OutputStream> getStandardOutput() {
         return super.getStandardOutput();
     }
 
@@ -126,24 +112,52 @@ public abstract class Exec extends AbstractExecTask<Exec> {
      * {@inheritDoc}
      */
     @Override
-    public Exec setStandardOutput(OutputStream outputStream) {
-        return super.setStandardOutput(outputStream);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    @ToBeReplacedByLazyProperty
-    public OutputStream getErrorOutput() {
+    @ReplacesEagerProperty(adapter = Exec.ErrorOutputAdapter.class)
+    public Property<OutputStream> getErrorOutput() {
         return super.getErrorOutput();
     }
 
     /**
-     * {@inheritDoc}
+     * No need to upgrade getter since it's already upgraded via BaseExecSpec
      */
-    @Override
-    public Exec setErrorOutput(OutputStream outputStream) {
-        return super.setErrorOutput(outputStream);
+    static class IgnoreExitValueAdapter {
+        @BytecodeUpgrade
+        static Exec setIgnoreExitValue(Exec task, boolean value) {
+            task.getIgnoreExitValue().set(value);
+            return task;
+        }
+    }
+
+    /**
+     * No need to upgrade getter since it's already upgraded via BaseExecSpec
+     */
+    static class StandardInputAdapter {
+        @BytecodeUpgrade
+        static Exec setStandardInput(Exec task, InputStream value) {
+            task.getStandardInput().set(value);
+            return task;
+        }
+    }
+
+    /**
+     * No need to upgrade getter since it's already upgraded via BaseExecSpec
+     */
+    static class StandardOutputAdapter {
+        @BytecodeUpgrade
+        static Exec setStandardOutput(Exec task, OutputStream value) {
+            task.getStandardOutput().set(value);
+            return task;
+        }
+    }
+
+    /**
+     * No need to upgrade getter since it's already upgraded via BaseExecSpec
+     */
+    static class ErrorOutputAdapter {
+        @BytecodeUpgrade
+        static Exec setErrorOutput(Exec task, OutputStream value) {
+            task.getErrorOutput().set(value);
+            return task;
+        }
     }
 }

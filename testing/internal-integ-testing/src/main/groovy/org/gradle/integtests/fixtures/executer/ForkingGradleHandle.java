@@ -102,10 +102,9 @@ class ForkingGradleHandle extends OutputScrapingGradleHandle {
     private ExecHandle buildExecHandle() {
         AbstractExecHandleBuilder builder = execHandleFactory.create();
         assert builder != null;
-        return builder
-            .setStandardOutput(standardOutputCapturer.getOutputStream())
-            .setErrorOutput(errorOutputCapturer.getOutputStream())
-            .build();
+        builder.getStandardOutput().set(standardOutputCapturer.getOutputStream());
+        builder.getErrorOutput().set(errorOutputCapturer.getOutputStream());
+        return builder.build();
     }
 
     private void printExecHandleSettings() {

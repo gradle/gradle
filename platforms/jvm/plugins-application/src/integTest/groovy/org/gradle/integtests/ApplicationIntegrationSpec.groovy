@@ -22,6 +22,7 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.util.TestUtil
 
 import static org.hamcrest.CoreMatchers.startsWith
 
@@ -423,7 +424,7 @@ class Main {
         installDir.file("bin/${applicationName}.bat").assertIsFile()
         installDir.file("lib/application.jar").assertIsFile()
 
-        def builder = new ScriptExecuter()
+        def builder = TestUtil.newInstance(ScriptExecuter)
         builder.workingDir installDir.file('bin')
         builder.executable applicationName
         builder.standardOutput = new ByteArrayOutputStream()

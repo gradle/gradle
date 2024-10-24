@@ -16,6 +16,8 @@
 package org.gradle.process.internal;
 
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.process.BaseExecSpec;
@@ -32,25 +34,27 @@ import java.util.concurrent.Executor;
 
 public abstract class AbstractExecHandleBuilder extends DefaultProcessForkOptions implements BaseExecSpec {
     private static final EmptyStdInStreamsHandler DEFAULT_STDIN = new EmptyStdInStreamsHandler();
+    private static final InputStream DEFAULT_INPUT_STREAM = SafeStreams.emptyInput();
     private final BuildCancellationToken buildCancellationToken;
     private final List<ExecHandleListener> listeners = new ArrayList<>();
-    private final ProcessStreamsSpec streamsSpec = new ProcessStreamsSpec();
-    private StreamsHandler inputHandler = DEFAULT_STDIN;
+    private final ProcessStreamsSpec streamsSpec;
     private String displayName;
-    private boolean ignoreExitValue;
+    private final Property<Boolean> ignoreExitValue;
     private boolean redirectErrorStream;
     private StreamsHandler streamsHandler;
     private int timeoutMillis = Integer.MAX_VALUE;
     protected boolean daemon;
     private final Executor executor;
 
-    AbstractExecHandleBuilder(PathToFileResolver fileResolver, Executor executor, BuildCancellationToken buildCancellationToken) {
+    AbstractExecHandleBuilder(ObjectFactory objectFactory, PathToFileResolver fileResolver, Executor executor, BuildCancellationToken buildCancellationToken) {
         super(fileResolver);
         this.buildCancellationToken = buildCancellationToken;
         this.executor = executor;
-        streamsSpec.setStandardOutput(SafeStreams.systemOut());
-        streamsSpec.setErrorOutput(SafeStreams.systemErr());
-        streamsSpec.setStandardInput(SafeStreams.emptyInput());
+        this.streamsSpec = new ProcessStreamsSpec(objectFactory);
+        this.streamsSpec.getStandardOutput().set(SafeStreams.systemOut());
+        this.streamsSpec.getErrorOutput().set(SafeStreams.systemErr());
+        this.streamsSpec.getStandardInput().set(DEFAULT_INPUT_STREAM);
+        this.ignoreExitValue = objectFactory.property(Boolean.class).convention(false);
     }
 
     public abstract List<String> getAllArguments();
@@ -68,52 +72,23 @@ public abstract class AbstractExecHandleBuilder extends DefaultProcessForkOption
     }
 
     @Override
-    public AbstractExecHandleBuilder setStandardInput(InputStream inputStream) {
-        streamsSpec.setStandardInput(inputStream);
-        this.inputHandler = new ForwardStdinStreamsHandler(inputStream);
-        return this;
-    }
-
-    public StreamsHandler getInputHandler() {
-        return inputHandler;
-    }
-
-    @Override
-    public InputStream getStandardInput() {
+    public Property<InputStream> getStandardInput() {
         return streamsSpec.getStandardInput();
     }
 
     @Override
-    public AbstractExecHandleBuilder setStandardOutput(OutputStream outputStream) {
-        streamsSpec.setStandardOutput(outputStream);
-        return this;
-    }
-
-    @Override
-    public OutputStream getStandardOutput() {
+    public Property<OutputStream> getStandardOutput() {
         return streamsSpec.getStandardOutput();
     }
 
     @Override
-    public AbstractExecHandleBuilder setErrorOutput(OutputStream outputStream) {
-        streamsSpec.setErrorOutput(outputStream);
-        return this;
-    }
-
-    @Override
-    public OutputStream getErrorOutput() {
+    public Property<OutputStream> getErrorOutput() {
         return streamsSpec.getErrorOutput();
     }
 
     @Override
-    public boolean isIgnoreExitValue() {
+    public Property<Boolean> getIgnoreExitValue() {
         return ignoreExitValue;
-    }
-
-    @Override
-    public AbstractExecHandleBuilder setIgnoreExitValue(boolean ignoreExitValue) {
-        this.ignoreExitValue = ignoreExitValue;
-        return this;
     }
 
     public String getDisplayName() {
@@ -137,8 +112,18 @@ public abstract class AbstractExecHandleBuilder extends DefaultProcessForkOption
         }
 
         StreamsHandler effectiveOutputHandler = getEffectiveStreamsHandler();
+        StreamsHandler inputHandler = getStandardInput()
+            .map(AbstractExecHandleBuilder::mapInputStreamToStreamsHandler)
+            .getOrElse(DEFAULT_STDIN);
         return new DefaultExecHandle(getDisplayName(), getWorkingDir(), executable, getEffectiveArguments(), getActualEnvironment(),
             effectiveOutputHandler, inputHandler, listeners, redirectErrorStream, timeoutMillis, daemon, executor, buildCancellationToken);
+    }
+
+    private static StreamsHandler mapInputStreamToStreamsHandler(InputStream input) {
+        if (input == DEFAULT_INPUT_STREAM) {
+            return DEFAULT_STDIN;
+        }
+        return new ForwardStdinStreamsHandler(input);
     }
 
     private StreamsHandler getEffectiveStreamsHandler() {
@@ -147,7 +132,11 @@ public abstract class AbstractExecHandleBuilder extends DefaultProcessForkOption
             effectiveHandler = this.streamsHandler;
         } else {
             boolean shouldReadErrorStream = !redirectErrorStream;
-            effectiveHandler = new OutputStreamsForwarder(streamsSpec.getStandardOutput(), streamsSpec.getErrorOutput(), shouldReadErrorStream);
+            effectiveHandler = new OutputStreamsForwarder(
+                streamsSpec.getStandardOutput().get(),
+                streamsSpec.getErrorOutput().get(),
+                shouldReadErrorStream
+            );
         }
         return effectiveHandler;
     }

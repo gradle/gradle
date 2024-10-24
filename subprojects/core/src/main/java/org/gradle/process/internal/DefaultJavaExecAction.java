@@ -47,7 +47,7 @@ public class DefaultJavaExecAction extends JavaExecHandleBuilder implements Java
     public ExecResult execute() {
         ExecHandle execHandle = build();
         ExecResult execResult = execHandle.start().waitForFinish();
-        if (!isIgnoreExitValue()) {
+        if (!getIgnoreExitValue().get()) {
             execResult.assertNormalExitValue();
         }
         return execResult;

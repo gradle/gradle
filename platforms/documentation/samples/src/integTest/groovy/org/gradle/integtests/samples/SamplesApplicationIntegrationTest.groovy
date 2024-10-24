@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.ScriptExecuter
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.util.TestUtil
 import org.junit.Rule
 
 @Requires(UnitTestPreconditions.Jdk9OrLater)
@@ -103,7 +104,7 @@ application {
         installDir.file("${executableDir}/my-app").text.contains("MODULE_PATH=")
         installDir.file("${executableDir}/my-app.bat").text.contains("MODULE_PATH=")
 
-        def builder = new ScriptExecuter()
+        def builder = TestUtil.newInstance(ScriptExecuter)
         builder.workingDir installDir.file(executableDir)
         builder.executable 'my-app'
         builder.standardOutput = new ByteArrayOutputStream()
@@ -112,8 +113,8 @@ application {
         def result = builder.run()
         result.assertNormalExitValue()
 
-        assert builder.standardOutput.toString().contains('Greetings from the sample application.')
-        assert builder.errorOutput.toString() == ''
+        assert builder.standardOutput.get().toString().contains('Greetings from the sample application.')
+        assert builder.errorOutput.get().toString() == ''
     }
 
 }

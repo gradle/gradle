@@ -16,13 +16,12 @@
 
 package org.gradle.process.internal;
 
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.DefaultBuildCancellationToken;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.process.CommandLineArgumentProvider;
 
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.List;
 import java.util.concurrent.Executor;
 
@@ -33,12 +32,12 @@ public class DefaultExecHandleBuilder extends AbstractExecHandleBuilder implemen
 
     private final ProcessArgumentsSpec argumentsSpec = new ProcessArgumentsSpec(this);
 
-    public DefaultExecHandleBuilder(PathToFileResolver fileResolver, Executor executor) {
-        this(fileResolver, executor, new DefaultBuildCancellationToken());
+    public DefaultExecHandleBuilder(ObjectFactory objectFactory, PathToFileResolver fileResolver, Executor executor) {
+        this(objectFactory, fileResolver, executor, new DefaultBuildCancellationToken());
     }
 
-    public DefaultExecHandleBuilder(PathToFileResolver fileResolver, Executor executor, BuildCancellationToken buildCancellationToken) {
-        super(fileResolver, executor, buildCancellationToken);
+    public DefaultExecHandleBuilder(ObjectFactory objectFactory, PathToFileResolver fileResolver, Executor executor, BuildCancellationToken buildCancellationToken) {
+        super(objectFactory, fileResolver, executor, buildCancellationToken);
     }
 
     @Override
@@ -114,12 +113,6 @@ public class DefaultExecHandleBuilder extends AbstractExecHandleBuilder implemen
     }
 
     @Override
-    public DefaultExecHandleBuilder setIgnoreExitValue(boolean ignoreExitValue) {
-        super.setIgnoreExitValue(ignoreExitValue);
-        return this;
-    }
-
-    @Override
     public DefaultExecHandleBuilder workingDir(Object dir) {
         super.workingDir(dir);
         return this;
@@ -134,18 +127,6 @@ public class DefaultExecHandleBuilder extends AbstractExecHandleBuilder implemen
     @Override
     public DefaultExecHandleBuilder redirectErrorStream() {
         super.redirectErrorStream();
-        return this;
-    }
-
-    @Override
-    public DefaultExecHandleBuilder setStandardOutput(OutputStream outputStream) {
-        super.setStandardOutput(outputStream);
-        return this;
-    }
-
-    @Override
-    public DefaultExecHandleBuilder setStandardInput(InputStream inputStream) {
-        super.setStandardInput(inputStream);
         return this;
     }
 

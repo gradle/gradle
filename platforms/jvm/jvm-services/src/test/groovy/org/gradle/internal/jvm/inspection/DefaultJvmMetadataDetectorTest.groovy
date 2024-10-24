@@ -18,6 +18,7 @@ package org.gradle.internal.jvm.inspection
 
 import org.gradle.api.JavaVersion
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.provider.Property
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.jvm.toolchain.internal.InstallationLocation
 import org.gradle.process.ExecResult
@@ -480,11 +481,14 @@ class DefaultJvmMetadataDetectorTest extends Specification {
         def execHandleFactory = Mock(ExecHandleFactory)
         def exec = Mock(ExecHandleBuilder)
         execHandleFactory.newExec() >> exec
+        exec.getStandardOutput() >> Mock(Property)
         PrintStream output
-        exec.setStandardOutput(_ as OutputStream) >> { OutputStream outputStream ->
+        exec.getStandardOutput().set(_ as OutputStream) >> { OutputStream outputStream ->
             output = new PrintStream(outputStream)
             null
         }
+        exec.getErrorOutput() >> _
+        exec.getIgnoreExitValue() >> _
         def handle = Mock(ExecHandle)
         handle.start() >> handle
         handle.waitForFinish() >> {

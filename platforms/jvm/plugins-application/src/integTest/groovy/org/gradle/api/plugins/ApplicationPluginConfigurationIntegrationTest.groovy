@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ScriptExecuter
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.util.TestUtil
 import org.gradle.util.internal.TextUtil
 
 class ApplicationPluginConfigurationIntegrationTest extends AbstractIntegrationSpec {
@@ -51,7 +52,7 @@ class ApplicationPluginConfigurationIntegrationTest extends AbstractIntegrationS
         run("installDist")
 
         def out = new ByteArrayOutputStream()
-        def executer = new ScriptExecuter()
+        def executer = TestUtil.newInstance(ScriptExecuter)
         executer.workingDir = testDirectory
         executer.standardOutput = out
         executer.commandLine = "build/install/test/bin/test"
@@ -96,7 +97,7 @@ class ApplicationPluginConfigurationIntegrationTest extends AbstractIntegrationS
         run("installDist")
 
         def out = new ByteArrayOutputStream()
-        def executer = new ScriptExecuter()
+        def executer = TestUtil.newInstance(ScriptExecuter)
         executer.workingDir = testDirectory
         executer.standardOutput = out
         executer.commandLine = "build/install/test/bin/test"

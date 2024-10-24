@@ -170,8 +170,8 @@ public class XCTestExecuter implements TestExecuter<XCTestTestExecutionSpec> {
 
         private ExecHandle executeTest(String testName, OutputStream outputStream, OutputStream errorStream) {
             execHandleBuilder.setArgs(toTestArgs(testName));
-            execHandleBuilder.setStandardOutput(outputStream);
-            execHandleBuilder.setErrorOutput(errorStream);
+            execHandleBuilder.getStandardOutput().set(outputStream);
+            execHandleBuilder.getErrorOutput().set(errorStream);
             return execHandleBuilder.build();
         }
 

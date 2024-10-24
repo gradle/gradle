@@ -263,7 +263,7 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
 
             builder.getMainClass().set("org.gradle.launcher.Main");
             builder.args(invocation.args);
-            builder.setStandardInput(connectStdIn());
+            builder.getStandardInput().set(connectStdIn());
 
             return builder;
         };

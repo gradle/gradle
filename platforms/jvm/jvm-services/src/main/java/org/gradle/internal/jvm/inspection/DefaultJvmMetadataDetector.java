@@ -107,9 +107,9 @@ public class DefaultJvmMetadataDetector implements JvmMetadataDetector {
             ByteArrayOutputStream errorOutput = new ByteArrayOutputStream();
             String mainClassname = Files.getNameWithoutExtension(probe.getName());
             exec.args("-Xmx32m", "-Xms32m", "-cp", ".", mainClassname);
-            exec.setStandardOutput(out);
-            exec.setErrorOutput(errorOutput);
-            exec.setIgnoreExitValue(true);
+            exec.getStandardOutput().set(out);
+            exec.getErrorOutput().set(errorOutput);
+            exec.getIgnoreExitValue().set(true);
             ExecResult result = exec.build().start().waitForFinish();
             int exitValue = result.getExitValue();
             if (exitValue == 0) {

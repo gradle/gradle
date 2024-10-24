@@ -169,7 +169,7 @@ public class ApplicationClassesInSystemClassLoaderWorkerImplementationFactory {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
-        execSpec.setStandardInput(buffer.getInputStream());
+        execSpec.getStandardInput().set(buffer.getInputStream());
     }
 
     private List<String> writeOptionsFile(boolean runAsModule, Collection<File> workerMainClassPath, Collection<URL> implementationModulePath, Collection<File> applicationClasspath, Set<File> applicationModulePath, File optionsFile) {

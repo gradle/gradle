@@ -30,6 +30,7 @@ import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.testfixtures.internal.NativeServicesTestFixture;
 import org.gradle.util.GradleVersion;
+import org.gradle.util.TestUtil;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -195,7 +196,7 @@ public class NoDaemonGradleExecuter extends AbstractGradleExecuter {
                 }
 
                 NativeServicesTestFixture.initialize();
-                DefaultExecHandleBuilder builder = new DefaultExecHandleBuilder(TestFiles.pathToFileResolver(), Executors.newCachedThreadPool()) {
+                DefaultExecHandleBuilder builder = new DefaultExecHandleBuilder(TestUtil.objectFactory(), TestFiles.pathToFileResolver(), Executors.newCachedThreadPool()) {
                     @Override
                     public File getWorkingDir() {
                         // Override this, so that the working directory is not canonicalised. Some int tests require that
@@ -215,7 +216,7 @@ public class NoDaemonGradleExecuter extends AbstractGradleExecuter {
 
                 builder.environment(invocation.environmentVars);
                 builder.workingDir(getWorkingDir());
-                builder.setStandardInput(connectStdIn());
+                builder.getStandardInput().set(connectStdIn());
 
                 builder.args(invocation.args);
 

@@ -21,6 +21,7 @@ import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.internal.provider.ProviderApiDeprecationLogger;
 import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
@@ -29,6 +30,8 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.internal.JavaExecExecutableUtils;
 import org.gradle.api.tasks.options.Option;
+import org.gradle.internal.instrumentation.api.annotations.BytecodeUpgrade;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.jvm.toolchain.JavaLauncher;
@@ -680,18 +683,9 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      * {@inheritDoc}
      */
     @Override
-    public JavaExec setStandardInput(InputStream inputStream) {
-        javaExecSpec.setStandardInput(inputStream);
-        return this;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
     @Internal
-    @ToBeReplacedByLazyProperty
-    public InputStream getStandardInput() {
+    @ReplacesEagerProperty(adapter = JavaExec.StandardInputAdapter.class)
+    public Property<InputStream> getStandardInput() {
         return javaExecSpec.getStandardInput();
     }
 
@@ -699,18 +693,9 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      * {@inheritDoc}
      */
     @Override
-    public JavaExec setStandardOutput(OutputStream outputStream) {
-        javaExecSpec.setStandardOutput(outputStream);
-        return this;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
     @Internal
-    @ToBeReplacedByLazyProperty
-    public OutputStream getStandardOutput() {
+    @ReplacesEagerProperty(adapter = JavaExec.StandardOutputAdapter.class)
+    public Property<OutputStream> getStandardOutput() {
         return javaExecSpec.getStandardOutput();
     }
 
@@ -718,18 +703,9 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      * {@inheritDoc}
      */
     @Override
-    public JavaExec setErrorOutput(OutputStream outputStream) {
-        javaExecSpec.setErrorOutput(outputStream);
-        return this;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
     @Internal
-    @ToBeReplacedByLazyProperty
-    public OutputStream getErrorOutput() {
+    @ReplacesEagerProperty(adapter = JavaExec.ErrorOutputAdapter.class)
+    public Property<OutputStream> getErrorOutput() {
         return javaExecSpec.getErrorOutput();
     }
 
@@ -737,19 +713,21 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      * {@inheritDoc}
      */
     @Override
-    public JavaExecSpec setIgnoreExitValue(boolean ignoreExitValue) {
-        javaExecSpec.setIgnoreExitValue(ignoreExitValue);
-        return this;
+    @Input
+    @ReplacesEagerProperty(adapter = JavaExec.IgnoreExitValueAdapter.class)
+    public Property<Boolean> getIgnoreExitValue() {
+        return javaExecSpec.getIgnoreExitValue();
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    @Input
-    @ToBeReplacedByLazyProperty
-    public boolean isIgnoreExitValue() {
-        return javaExecSpec.isIgnoreExitValue();
+    @Internal
+    @Deprecated
+    public Property<Boolean> getIsIgnoreExitValue() {
+        ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsIgnoreExitValue()", "getIgnoreExitValue()");
+        return getIgnoreExitValue();
     }
 
     /**
@@ -823,5 +801,49 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
     private Iterable<String> jvmArgsConventionValue() {
         Iterable<String> jvmArgs = getConventionMapping().getConventionValue(null, "jvmArgs", false);
         return jvmArgs != null ? jvmArgs : emptyList();
+    }
+
+    /**
+     * No need to upgrade getter since it's already upgraded via BaseExecSpec
+     */
+    static class IgnoreExitValueAdapter {
+        @BytecodeUpgrade
+        static JavaExecSpec setIgnoreExitValue(JavaExec task, boolean value) {
+            task.getIgnoreExitValue().set(value);
+            return task;
+        }
+    }
+
+    /**
+     * No need to upgrade getter since it's already upgraded via BaseExecSpec
+     */
+    static class StandardInputAdapter {
+        @BytecodeUpgrade
+        static JavaExec setStandardInput(JavaExec task, InputStream value) {
+            task.getStandardInput().set(value);
+            return task;
+        }
+    }
+
+    /**
+     * No need to upgrade getter since it's already upgraded via BaseExecSpec
+     */
+    static class StandardOutputAdapter {
+        @BytecodeUpgrade
+        static JavaExec setStandardOutput(JavaExec task, OutputStream value) {
+            task.getStandardOutput().set(value);
+            return task;
+        }
+    }
+
+    /**
+     * No need to upgrade getter since it's already upgraded via BaseExecSpec
+     */
+    static class ErrorOutputAdapter {
+        @BytecodeUpgrade
+        static JavaExec setErrorOutput(JavaExec task, OutputStream value) {
+            task.getErrorOutput().set(value);
+            return task;
+        }
     }
 }

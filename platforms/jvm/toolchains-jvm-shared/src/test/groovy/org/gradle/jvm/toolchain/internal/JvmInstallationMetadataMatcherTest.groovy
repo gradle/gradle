@@ -18,6 +18,7 @@ package org.gradle.jvm.toolchain.internal
 
 import org.gradle.api.JavaVersion
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.provider.Property
 import org.gradle.internal.jvm.inspection.DefaultJvmMetadataDetector
 import org.gradle.internal.jvm.inspection.MetadataProbe
 import org.gradle.internal.jvm.inspection.ProbedSystemProperty
@@ -86,11 +87,14 @@ class JvmInstallationMetadataMatcherTest extends Specification {
 
         def execHandleFactory = Mock(ExecHandleFactory)
         def exec = Mock(ExecHandleBuilder)
+        def standardOutput = Mock(Property)
         execHandleFactory.newExec() >> exec
+        exec.getErrorOutput() >> _
+        exec.getIgnoreExitValue() >> _
         PrintStream output
-        exec.setStandardOutput(_ as OutputStream) >> { OutputStream outputStream ->
+        exec.getStandardOutput() >> standardOutput
+        standardOutput.set(_ as OutputStream) >> { OutputStream outputStream ->
             output = new PrintStream(outputStream)
-            null
         }
         def handle = Mock(ExecHandle)
         handle.start() >> handle

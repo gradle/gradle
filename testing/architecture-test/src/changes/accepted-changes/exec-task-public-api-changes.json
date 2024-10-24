@@ -1,0 +1,15 @@
+{
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.api.tasks.Exec",
+            "member": "Class org.gradle.api.tasks.Exec",
+            "acceptation": "Invalid report for removed method AbstractExecTask.setIgnoreExitValue, since it's also upgraded",
+            "changes": [
+                "org.gradle.api.tasks.AbstractExecTask.setErrorOutput(java.io.OutputStream)",
+                "org.gradle.api.tasks.AbstractExecTask.setIgnoreExitValue(boolean)",
+                "org.gradle.api.tasks.AbstractExecTask.setStandardInput(java.io.InputStream)",
+                "org.gradle.api.tasks.AbstractExecTask.setStandardOutput(java.io.OutputStream)"
+            ]
+        }
+    ]
+}

@@ -61,7 +61,7 @@ public class CommandLineJavaCompiler implements Compiler<JavaCompileSpec>, Seria
         builder.setWorkingDir(spec.getWorkingDir());
         builder.setExecutable(executable);
         argumentsGenerator.collectArguments(spec, new ExecSpecBackedArgCollector(builder));
-        builder.setIgnoreExitValue(true);
+        builder.getIgnoreExitValue().set(true);
         return builder.build();
     }
 

@@ -87,8 +87,8 @@ public class DefaultOsXJavaHomeCommand implements OsXJavaHomeCommand {
         execHandleBuilder.workingDir(new File(".").getAbsoluteFile());
         execHandleBuilder.commandLine("/usr/libexec/java_home", "-V");
         execHandleBuilder.getEnvironment().remove("JAVA_VERSION"); //JAVA_VERSION filters the content of java_home's output
-        execHandleBuilder.setErrorOutput(outputStream); // verbose output is written to stderr
-        execHandleBuilder.setStandardOutput(new ByteArrayOutputStream());
+        execHandleBuilder.getErrorOutput().set(outputStream); // verbose output is written to stderr
+        execHandleBuilder.getStandardOutput().set(new ByteArrayOutputStream());
         execHandleBuilder.build().start().waitForFinish().assertNormalExitValue();
     }
 }

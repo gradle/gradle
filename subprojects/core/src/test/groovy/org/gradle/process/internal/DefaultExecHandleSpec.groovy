@@ -23,6 +23,7 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.process.ExecResult
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.TestUtil
 import org.gradle.util.internal.GUtil
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
@@ -43,11 +44,11 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
         def out = new ByteArrayOutputStream()
         def err = new ByteArrayOutputStream()
 
-        def execHandle = handle()
-                .args(args(TestApp.class, "arg1", "arg2"))
-                .setStandardOutput(out)
-                .setErrorOutput(err)
-                .build()
+        def execHandle = handle().tap {
+            args(argsOf(TestApp.class, "arg1", "arg2"))
+            standardOutput.set(out)
+            errorOutput.set(err)
+        }.build()
 
         when:
         def result = execHandle.start().waitForFinish()
@@ -71,7 +72,7 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
     void "waiting for process returns quickly if process already completed"() {
         given:
         def execHandle = handle()
-                .args(args(TestApp.class))
+                .args(argsOf(TestApp.class))
                 .build()
 
         def handle = execHandle.start()
@@ -86,7 +87,7 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
 
     void "understands when application exits with non-zero"() {
         given:
-        def execHandle = handle().args(args(BrokenApp.class)).build()
+        def execHandle = handle().args(argsOf(BrokenApp.class)).build()
 
         when:
         def result = execHandle.start().waitForFinish()
@@ -115,7 +116,7 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
     }
 
     void "aborts process"() {
-        def execHandle = handle().args(args(SlowApp.class)).build()
+        def execHandle = handle().args(argsOf(SlowApp.class)).build()
 
         when:
         execHandle.start()
@@ -142,7 +143,7 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
 
     void "can abort after process has completed"() {
         given:
-        def execHandle = handle().args(args(TestApp.class)).build()
+        def execHandle = handle().args(argsOf(TestApp.class)).build()
         execHandle.start().waitForFinish()
 
         when:
@@ -157,7 +158,7 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
 
     void "can abort after process has failed"() {
         given:
-        def execHandle = handle().args(args(BrokenApp.class)).build()
+        def execHandle = handle().args(argsOf(BrokenApp.class)).build()
         execHandle.start().waitForFinish()
 
         when:
@@ -172,7 +173,7 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
 
     void "can abort after process has been aborted"() {
         given:
-        def execHandle = handle().args(args(SlowApp.class)).build()
+        def execHandle = handle().args(argsOf(SlowApp.class)).build()
         execHandle.start()
         execHandle.abort()
 
@@ -188,7 +189,7 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
 
     void "clients can listen to notifications"() {
         ExecHandleListener listener = Mock()
-        def execHandle = handle().listener(listener).args(args(TestApp.class)).build()
+        def execHandle = handle().listener(listener).args(argsOf(TestApp.class)).build()
 
         when:
         execHandle.start()
@@ -203,7 +204,7 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
 
     void "clients can listen to notifications when execution fails"() {
         ExecHandleListener listener = Mock()
-        def execHandle = handle().listener(listener).args(args(BrokenApp.class)).build()
+        def execHandle = handle().listener(listener).args(argsOf(BrokenApp.class)).build()
 
         when:
         execHandle.start()
@@ -219,7 +220,7 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
     void "propagates listener start notification failure"() {
         def failure = new RuntimeException()
         ExecHandleListener listener = Mock()
-        def execHandle = handle().listener(listener).args(args(TestApp.class)).build()
+        def execHandle = handle().listener(listener).args(argsOf(TestApp.class)).build()
 
         when:
         execHandle.start()
@@ -241,7 +242,7 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
     void "propagates listener finish notification failure"() {
         def failure = new RuntimeException()
         ExecHandleListener listener = Mock()
-        def execHandle = handle().listener(listener).args(args(TestApp.class)).build()
+        def execHandle = handle().listener(listener).args(argsOf(TestApp.class)).build()
 
         when:
         execHandle.start()
@@ -261,7 +262,7 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
     void "propagates listener finish notification failure after execution fails"() {
         def failure = new RuntimeException()
         ExecHandleListener listener = Mock()
-        def execHandle = handle().listener(listener).args(args(BrokenApp.class)).build()
+        def execHandle = handle().listener(listener).args(argsOf(BrokenApp.class)).build()
 
         when:
         execHandle.start()
@@ -280,7 +281,11 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
 
     void "forks daemon and aborts it"() {
         def output = new ByteArrayOutputStream()
-        def execHandle = handle().setDaemon(true).setStandardOutput(output).args(args(SlowDaemonApp.class)).build()
+        def execHandle = handle().tap {
+            setDaemon(true)
+            standardOutput.set(output)
+            args(argsOf(SlowDaemonApp.class))
+        }.build()
 
         when:
         execHandle.start()
@@ -297,7 +302,11 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
     @Ignore //not yet implemented
     void "aborts daemon"() {
         def output = new ByteArrayOutputStream()
-        def execHandle = handle().setDaemon(true).setStandardOutput(output).args(args(SlowDaemonApp.class)).build()
+        def execHandle = handle().tap {
+            setDaemon(true)
+            standardOutput.set(output)
+            args(argsOf(SlowDaemonApp.class))
+        }.build()
 
         when:
         execHandle.start()
@@ -317,8 +326,13 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
 
     void "detaching does not trigger 'finished' notification"() {
         def out = new ByteArrayOutputStream()
-        ExecHandleListener listener = Mock()
-        def execHandle = handle().setDaemon(true).listener(listener).setStandardOutput(out).args(args(SlowDaemonApp.class)).build()
+        ExecHandleListener execHandleListener = Mock()
+        def execHandle = handle().tap {
+            setDaemon(true)
+            listener(execHandleListener)
+            standardOutput.set(out)
+            args(argsOf(SlowDaemonApp.class))
+        }.build()
 
         when:
         execHandle.start()
@@ -326,9 +340,9 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
 
         then:
         out.toString().contains "I'm the daemon"
-        1 * listener.beforeExecutionStarted(execHandle)
-        1 * listener.executionStarted(execHandle)
-        0 * listener.executionFinished(_, _)
+        1 * execHandleListener.beforeExecutionStarted(execHandle)
+        1 * execHandleListener.executionStarted(execHandle)
+        0 * execHandleListener.executionFinished(_, _)
 
         cleanup:
         execHandle.abort()
@@ -336,7 +350,10 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
 
     void "can detach from long daemon and then wait for finish"() {
         def out = new ByteArrayOutputStream()
-        def execHandle = handle().setStandardOutput(out).args(args(SlowDaemonApp.class, "200")).build()
+        def execHandle = handle().tap {
+            standardOutput.set(out)
+            args(argsOf(SlowDaemonApp.class, "200"))
+        }.build()
 
         when:
         execHandle.start()
@@ -354,7 +371,10 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
 
     void "can detach from fast app then wait for finish"() {
         def out = new ByteArrayOutputStream()
-        def execHandle = handle().setStandardOutput(out).args(args(TestApp.class)).build()
+        def execHandle = handle().tap {
+            standardOutput.set(out)
+            args(argsOf(TestApp.class))
+        }.build()
 
         when:
         execHandle.start()
@@ -368,7 +388,7 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
     @Ignore //not yet implemented
     //it may not be easily testable
     void "detach detects when process did not start or died prematurely"() {
-        def execHandle = handle().args(args(BrokenApp.class)).build()
+        def execHandle = handle().args(argsOf(BrokenApp.class)).build()
 
         when:
         execHandle.start()
@@ -382,7 +402,11 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
 
     void "can redirect error stream"() {
         def out = new ByteArrayOutputStream()
-        def execHandle = handle().args(args(TestApp.class)).setStandardOutput(out).redirectErrorStream().build()
+        def execHandle = handle().tap {
+            args(argsOf(TestApp.class))
+            standardOutput.set(out)
+            redirectErrorStream()
+        }.build()
 
         when:
         execHandle.start()
@@ -395,7 +419,7 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
     void "exec handle collaborates with streams handler"() {
         given:
         def streamsHandler = Mock(StreamsHandler)
-        def execHandle = handle().args(args(TestApp.class)).setDisplayName("foo proc").streamsHandler(streamsHandler).build()
+        def execHandle = handle().args(argsOf(TestApp.class)).setDisplayName("foo proc").streamsHandler(streamsHandler).build()
 
         when:
         execHandle.start()
@@ -413,7 +437,7 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
     @Ignore //not yet implemented
     void "exec handle can detach with timeout"() {
         given:
-        def execHandle = handle().args(args(SlowApp.class)).setTimeout(1).build()
+        def execHandle = handle().args(argsOf(SlowApp.class)).setTimeout(1).build()
 
         when:
         execHandle.start()
@@ -427,7 +451,7 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
     @Ignore //not yet implemented
     void "exec handle can wait with timeout"() {
         given:
-        def execHandle = handle().args(args(SlowApp.class)).setTimeout(1).build()
+        def execHandle = handle().args(argsOf(SlowApp.class)).setTimeout(1).build()
 
         when:
         execHandle.start()
@@ -448,7 +472,7 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
     }
 
     private DefaultExecHandleBuilder handle() {
-        new DefaultExecHandleBuilder(TestFiles.pathToFileResolver(), executor, buildCancellationToken)
+        new DefaultExecHandleBuilder(TestUtil.objectFactory(), TestFiles.pathToFileResolver(), executor, buildCancellationToken)
             .executable(Jvm.current().getJavaExecutable().getAbsolutePath())
             .setTimeout(20000) //sanity timeout
             .workingDir(tmpDir.getTestDirectory())
@@ -463,7 +487,7 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
         }
     }
 
-    private List args(Class mainClass, String... args) {
+    private static List argsOf(Class mainClass, String... args) {
         GUtil.flattenElements(mainClass.getName(), args)
     }
 

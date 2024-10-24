@@ -16,49 +16,36 @@
 
 package org.gradle.process.internal;
 
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
+
+import javax.inject.Inject;
 import java.io.InputStream;
 import java.io.OutputStream;
 
 
 public class ProcessStreamsSpec {
 
-    private InputStream standardInput;
-    private OutputStream standardOutput;
-    private OutputStream errorOutput;
+    private final Property<InputStream> standardInput;
+    private final Property<OutputStream> standardOutput;
+    private final Property<OutputStream> errorOutput;
 
-    public ProcessStreamsSpec setStandardInput(InputStream inputStream) {
-        if (inputStream == null) {
-            throw new IllegalArgumentException("inputStream == null!");
-        }
-        standardInput = inputStream;
-        return this;
+    @Inject
+    public ProcessStreamsSpec(ObjectFactory objectFactory) {
+        this.standardInput = objectFactory.property(InputStream.class);
+        this.standardOutput = objectFactory.property(OutputStream.class);
+        this.errorOutput = objectFactory.property(OutputStream.class);
     }
 
-    public InputStream getStandardInput() {
+    public Property<InputStream> getStandardInput() {
         return standardInput;
     }
 
-    public ProcessStreamsSpec setStandardOutput(OutputStream outputStream) {
-        if (outputStream == null) {
-            throw new IllegalArgumentException("outputStream == null!");
-        }
-        standardOutput = outputStream;
-        return this;
-    }
-
-    public OutputStream getStandardOutput() {
+    public Property<OutputStream> getStandardOutput() {
         return standardOutput;
     }
 
-    public ProcessStreamsSpec setErrorOutput(OutputStream outputStream) {
-        if (outputStream == null) {
-            throw new IllegalArgumentException("outputStream == null!");
-        }
-        errorOutput = outputStream;
-        return this;
-    }
-
-    public OutputStream getErrorOutput() {
+    public Property<OutputStream> getErrorOutput() {
         return errorOutput;
     }
 }

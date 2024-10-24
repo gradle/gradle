@@ -140,7 +140,7 @@ public abstract class DefaultExecActionFactory implements ExecFactory {
 
     @Override
     public ExecAction newExecAction() {
-        return new DefaultExecAction(fileResolver, executor, buildCancellationToken);
+        return new DefaultExecAction(objectFactory, fileResolver, executor, buildCancellationToken);
     }
 
     @Override
@@ -180,7 +180,7 @@ public abstract class DefaultExecActionFactory implements ExecFactory {
 
     @Override
     public ExecHandleBuilder newExec() {
-        return new DefaultExecHandleBuilder(fileResolver, executor, buildCancellationToken);
+        return new DefaultExecHandleBuilder(objectFactory, fileResolver, executor, buildCancellationToken);
     }
 
     @Override
@@ -336,7 +336,7 @@ public abstract class DefaultExecActionFactory implements ExecFactory {
 
         @Override
         public ExecAction newDecoratedExecAction() {
-            DefaultExecAction execAction = instantiator.newInstance(DefaultExecAction.class, fileResolver, executor, buildCancellationToken);
+            DefaultExecAction execAction = instantiator.newInstance(DefaultExecAction.class, objectFactory, fileResolver, executor, buildCancellationToken);
             ExecHandleListener listener = getExecHandleListener();
             if (listener != null) {
                 execAction.listener(listener);

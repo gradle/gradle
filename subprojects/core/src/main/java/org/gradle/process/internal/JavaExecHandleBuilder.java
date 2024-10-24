@@ -80,7 +80,7 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
         @Nullable JavaModuleDetector javaModuleDetector,
         JavaForkOptionsInternal javaOptions
     ) {
-        super(fileResolver, executor, buildCancellationToken);
+        super(objectFactory, fileResolver, executor, buildCancellationToken);
         this.fileCollectionFactory = fileCollectionFactory;
         this.temporaryFileProvider = temporaryFileProvider;
         this.javaModuleDetector = javaModuleDetector;
@@ -413,12 +413,6 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
     @Override
     public JavaForkOptions copyTo(JavaForkOptions options) {
         throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public JavaExecHandleBuilder setIgnoreExitValue(boolean ignoreExitValue) {
-        super.setIgnoreExitValue(ignoreExitValue);
-        return this;
     }
 
     @Override

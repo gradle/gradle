@@ -28,7 +28,7 @@ public class DaemonExecHandleBuilder {
     public ExecHandle build(List<String> args, File workingDir, DaemonOutputConsumer outputConsumer, InputStream inputStream, ExecHandleBuilder builder) {
         builder.commandLine(args);
         builder.setWorkingDir(workingDir);
-        builder.setStandardInput(inputStream);
+        builder.getStandardInput().set(inputStream);
         builder.redirectErrorStream();
         builder.setTimeout(30000);
         builder.setDaemon(true);
