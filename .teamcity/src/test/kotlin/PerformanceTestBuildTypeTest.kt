@@ -87,9 +87,7 @@ class PerformanceTestBuildTypeTest {
             "-PmaxParallelForks=%maxParallelForks%",
             pluginPortalUrlOverride,
             "-s",
-            "--no-configuration-cache",
             "%additional.gradle.parameters%",
-            "--daemon",
             "--continue",
             "-DbuildScan.PartOf=PullRequestFeedback,ReadyforNightly,ReadyforRelease",
             "-Dscan.tag.PerformanceTest"
@@ -153,9 +151,7 @@ class PerformanceTestBuildTypeTest {
             "-PmaxParallelForks=%maxParallelForks%",
             pluginPortalUrlOverride,
             "-s",
-            "--no-configuration-cache",
             "%additional.gradle.parameters%",
-            "--daemon",
             "--continue",
             "-DbuildScan.PartOf=PullRequestFeedback,ReadyforNightly,ReadyforRelease",
             "-Dscan.tag.PerformanceTest"
