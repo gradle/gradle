@@ -26,10 +26,14 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class DefaultBuildTreeFinishExecutor implements BuildTreeFinishExecutor {
     private final BuildStateRegistry buildStateRegistry;
     private final ExceptionAnalyser exceptionAnalyser;
     private final BuildLifecycleController buildLifecycleController;
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultBuildTreeFinishExecutor.class);
 
     public DefaultBuildTreeFinishExecutor(
         BuildStateRegistry buildStateRegistry,
@@ -48,8 +52,15 @@ public class DefaultBuildTreeFinishExecutor implements BuildTreeFinishExecutor {
 
         buildStateRegistry.visitBuilds(buildState -> {
             if (buildState instanceof NestedBuildState) {
-                ExecutionResult<Void> result = ((NestedBuildState) buildState).finishBuild();
-                finishNestedBuildsFailures.addAll(result.getFailures());
+                try {
+                    ExecutionResult<Void> result = ((NestedBuildState) buildState).finishBuild();
+                    finishNestedBuildsFailures.addAll(result.getFailures());
+                } catch (Throwable throwable) {
+                    finishNestedBuildsFailures.add(throwable);
+                    RuntimeException exception = exceptionAnalyser.transform(finishNestedBuildsFailures);
+                    LOGGER.error("Cannot finish the build correctly", exception);
+                    throw throwable;
+                }
             }
         });
 
