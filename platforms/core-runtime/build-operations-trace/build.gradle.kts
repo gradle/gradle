@@ -32,6 +32,6 @@ dependencies {
     implementation(projects.baseServices)
     implementation(projects.buildOption)
 
-    implementation(libs.groovyJson)
+    implementation(libs.jacksonDatabind)
     implementation(libs.jsr305)
 }

@@ -139,7 +139,7 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
 
         @Override
         public BuildOperationDescriptor.Builder description() {
-            return BuildOperationDescriptor.displayName("Execute transform");
+            return BuildOperationDescriptor.displayName("Execute transform chain: " + artifact.getId().getDisplayName());
         }
 
         @Override
