@@ -109,7 +109,7 @@ class SourceDistributionResolver(private val project: Project) : SourceDistribut
     private
     fun RepositoryHandler.createSourceRepository(repo: GradleDistRepoDescriptor) = ivy {
         name = "Gradle ${repo.name}"
-        url = repo.repoBaseUrl
+        url.set(repo.repoBaseUrl)
         metadataSources {
             artifact()
         }

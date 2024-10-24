@@ -57,7 +57,7 @@ class DefaultBaseRepositoryFactoryTest extends Specification {
     final ImmutableModuleIdentifierFactory moduleIdentifierFactory = Mock()
     final MavenMutableModuleMetadataFactory mavenMetadataFactory = DependencyManagementTestUtil.mavenMetadataFactory()
     final IvyMutableModuleMetadataFactory ivyMetadataFactory = DependencyManagementTestUtil.ivyMetadataFactory()
-    final DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory = new DefaultUrlArtifactRepository.Factory(fileResolver)
+    final DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory = new DefaultUrlArtifactRepository.Factory(fileResolver, TestUtil.objectFactory(), TestUtil.providerFactory())
     final ProviderFactory providerFactory = Mock()
 
     final DefaultBaseRepositoryFactory factory = new DefaultBaseRepositoryFactory(
@@ -86,7 +86,7 @@ class DefaultBaseRepositoryFactoryTest extends Specification {
         then:
         def repo = factory.createGoogleRepository()
         repo instanceof DefaultMavenArtifactRepository
-        repo.url == googleUrl
+        repo.url.get() == googleUrl
     }
 
     def testCreateLocalMavenRepo() {
@@ -100,7 +100,7 @@ class DefaultBaseRepositoryFactoryTest extends Specification {
         then:
         def repo = factory.createMavenLocalRepository()
         repo instanceof DefaultMavenLocalArtifactRepository
-        repo.url == repoDir.toURI()
+        repo.url.get() == repoDir.toURI()
     }
 
     def testCreateMavenCentralRepo() {
@@ -114,7 +114,7 @@ class DefaultBaseRepositoryFactoryTest extends Specification {
 
         then:
         repo instanceof DefaultMavenArtifactRepository
-        repo.url == centralUrl
+        repo.url.get() == centralUrl
 
         then:
         def contentDescriptor = (repo as DefaultMavenArtifactRepository).getRepositoryDescriptorCopy()
