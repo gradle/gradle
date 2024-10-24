@@ -35,7 +35,7 @@ For example, a script named `code-quality.gradle(.kts)` located in `src/main/gro
 [source, kotlin]
 ----
 plugins {
-    id("kotlin-dsl")
+    `kotlin-dsl`
 }
 ----
 .app/build.gradle.kts
@@ -71,7 +71,7 @@ On the other hand, a script named `code-quality.gradle.kts` located in `src/main
 [source, kotlin]
 ----
 plugins {
-    id("kotlin-dsl")
+    `kotlin-dsl`
 }
 ----
 .app/build.gradle.kts
