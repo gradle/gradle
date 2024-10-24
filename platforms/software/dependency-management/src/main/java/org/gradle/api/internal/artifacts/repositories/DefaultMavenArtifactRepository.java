@@ -19,6 +19,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ComponentMetadataListerDetails;
 import org.gradle.api.artifacts.ComponentMetadataSupplierDetails;
@@ -51,6 +52,7 @@ import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransp
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.internal.Cast;
 import org.gradle.internal.action.InstantiatingAction;
@@ -144,31 +146,18 @@ public abstract class DefaultMavenArtifactRepository extends AbstractAuthenticat
     }
 
     @Override
-    public URI getUrl() {
+    public Property<URI> getUrl() {
         return urlArtifactRepository.getUrl();
     }
 
     @Override
-    public void setUrl(URI url) {
-        invalidateDescriptor();
-        urlArtifactRepository.setUrl(url);
-    }
-
-    @Override
     public void setUrl(Object url) {
-        invalidateDescriptor();
         urlArtifactRepository.setUrl(url);
     }
 
     @Override
-    public void setAllowInsecureProtocol(boolean allowInsecureProtocol) {
-        invalidateDescriptor();
-        urlArtifactRepository.setAllowInsecureProtocol(allowInsecureProtocol);
-    }
-
-    @Override
-    public boolean isAllowInsecureProtocol() {
-        return urlArtifactRepository.isAllowInsecureProtocol();
+    public Property<Boolean> getAllowInsecureProtocol() {
+        return urlArtifactRepository.getAllowInsecureProtocol();
     }
 
     @Override
@@ -236,7 +225,7 @@ public abstract class DefaultMavenArtifactRepository extends AbstractAuthenticat
     protected Collection<URI> getRepositoryUrls() {
         // In a similar way to Ivy, Maven may use other hosts for additional artifacts, but not POMs
         ImmutableList.Builder<URI> builder = ImmutableList.builder();
-        URI root = getUrl();
+        URI root = getUrl().getOrNull();
         if (root != null) {
             builder.add(root);
         }
@@ -256,10 +245,14 @@ public abstract class DefaultMavenArtifactRepository extends AbstractAuthenticat
     }
 
     private MavenResolver createResolver(URI rootUri) {
-        RepositoryTransport transport = getTransport(rootUri.getScheme());
+        String scheme = rootUri.getScheme();
+        if (scheme == null){
+            throw new InvalidUserDataException("Repository URL must have a scheme: '" + rootUri + "'. If you are using a local repository, please use 'file()' or derive it from project.layout.");
+        }
+        RepositoryTransport transport = getTransport(scheme);
         MavenMetadataLoader mavenMetadataLoader = new MavenMetadataLoader(transport.getResourceAccessor(), resourcesFileStore);
         ImmutableMetadataSources metadataSources = createMetadataSources(mavenMetadataLoader);
-        Instantiator injector = createInjectorForMetadataSuppliers(transport, instantiatorFactory, getUrl(), resourcesFileStore);
+        Instantiator injector = createInjectorForMetadataSuppliers(transport, instantiatorFactory, getUrl().get(), resourcesFileStore);
         InstantiatingAction<ComponentMetadataSupplierDetails> supplier = createComponentMetadataSupplierFactory(injector, isolatableFactory);
         InstantiatingAction<ComponentMetadataListerDetails> lister = createComponentMetadataVersionLister(injector, isolatableFactory);
         return new MavenResolver(getDescriptor(), rootUri, transport, locallyAvailableResourceFinder, artifactFileStore, metadataSources, MavenMetadataArtifactProvider.INSTANCE, mavenMetadataLoader, supplier, lister, injector, checksumService, getAllowInsecureContinueWhenDisabled().get());
@@ -267,7 +260,6 @@ public abstract class DefaultMavenArtifactRepository extends AbstractAuthenticat
 
     @Override
     public void metadataSources(Action<? super MetadataSources> configureAction) {
-        invalidateDescriptor();
         metadataSources.reset();
         configureAction.execute(metadataSources);
     }
@@ -351,7 +343,7 @@ public abstract class DefaultMavenArtifactRepository extends AbstractAuthenticat
     static class DefaultDescriber implements Transformer<String, MavenArtifactRepository> {
         @Override
         public String transform(MavenArtifactRepository repository) {
-            URI url = repository.getUrl();
+            URI url = repository.getUrl().getOrNull();
             if (url == null) {
                 return repository.getName();
             }

@@ -20,6 +20,10 @@ import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.UrlArtifactRepository;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.internal.deprecation.Documentation;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -34,57 +38,55 @@ import java.util.function.Supplier;
 
 public class DefaultUrlArtifactRepository {
 
-    private @Nullable Object url;
-    private @Nullable URI resolvedUrl;
-    private boolean allowInsecureProtocol;
-    private final FileResolver fileResolver;
+    private final Property<URI> url;
+    private final Property<Boolean> allowInsecureProtocol;
     private final String repositoryType;
+    private final FileResolver fileResolver;
     private final Supplier<String> displayNameSupplier;
+    private final ProviderFactory providers;
 
     DefaultUrlArtifactRepository(
         FileResolver fileResolver,
+        final ObjectFactory objectFactory,
+        final ProviderFactory providers,
         final String repositoryType,
         final Supplier<String> displayNameSupplier
     ) {
         this.fileResolver = fileResolver;
+        this.providers = providers;
         this.repositoryType = repositoryType;
         this.displayNameSupplier = displayNameSupplier;
+        this.url = objectFactory.property(URI.class);
+        this.allowInsecureProtocol = objectFactory.property(Boolean.class).convention(false);
     }
 
-    public URI getUrl() {
-        if (url == null) {
-            return null;
-        }
-
-        // We must always resolve the URL in case the backing Object is live/mutable
-        // However, we always try to return the same URI instance if the backing object hasn't changed
-        URI latestUrl = fileResolver.resolveUri(url);
-        if (!latestUrl.equals(resolvedUrl)) {
-            resolvedUrl = latestUrl;
-        }
-
-        return resolvedUrl;
+    public Property<URI> getUrl() {
+        return url;
     }
 
-    public void setUrl(URI url) {
-        this.url = url;
-    }
-
+    @SuppressWarnings("unchecked")
     public void setUrl(Object url) {
-        this.url = url;
+        // TODO: Handle deprecation in 9.0
+        // ProviderApiDeprecationLogger.logDeprecation(UrlArtifactRepository.class, "setUrl(Object)", "getUrl");
+        if (url instanceof URI) {
+            this.getUrl().set((URI) url);
+        } else if (url instanceof Provider) {
+            this.getUrl().set(((Provider<Object>) url).map(uri -> uri instanceof URI
+                ? (URI) uri
+                : fileResolver.resolveUri(uri)
+            ));
+        } else {
+            this.getUrl().set(providers.provider(() -> fileResolver.resolveUri(url)));
+        }
     }
 
-    public void setAllowInsecureProtocol(boolean allowInsecureProtocol) {
-        this.allowInsecureProtocol = allowInsecureProtocol;
-    }
-
-    public boolean isAllowInsecureProtocol() {
+    public Property<Boolean> getAllowInsecureProtocol() {
         return allowInsecureProtocol;
     }
 
     @NonNull
     public URI validateUrl() {
-        URI rootUri = getUrl();
+        URI rootUri = getUrl().getOrNull();
         if (rootUri == null) {
             throw new InvalidUserDataException(String.format(
                 "You must specify a URL for a %s repository.",
@@ -121,12 +123,11 @@ public class DefaultUrlArtifactRepository {
     }
 
     HttpRedirectVerifier createRedirectVerifier() {
-        @Nullable
-        URI uri = getUrl();
+        URI uri = getUrl().getOrNull();
         return HttpRedirectVerifierFactory
             .create(
                 uri,
-                allowInsecureProtocol,
+                getAllowInsecureProtocol().get(),
                 this::throwExceptionDueToInsecureProtocol,
                 redirection -> throwExceptionDueToInsecureRedirect(uri, redirection)
             );
@@ -135,14 +136,18 @@ public class DefaultUrlArtifactRepository {
     @ServiceScope(Scope.Project.class)
     public static class Factory {
         private final FileResolver fileResolver;
+        private final ObjectFactory objectFactory;
+        private final ProviderFactory providers;
 
         @Inject
-        public Factory(FileResolver fileResolver) {
+        public Factory(FileResolver fileResolver, ObjectFactory objectFactory, ProviderFactory providers) {
             this.fileResolver = fileResolver;
+            this.objectFactory = objectFactory;
+            this.providers = providers;
         }
 
         DefaultUrlArtifactRepository create(String repositoryType, Supplier<String> displayNameSupplier) {
-            return new DefaultUrlArtifactRepository(fileResolver, repositoryType, displayNameSupplier);
+            return new DefaultUrlArtifactRepository(fileResolver, objectFactory, providers, repositoryType, displayNameSupplier);
         }
     }
 }
