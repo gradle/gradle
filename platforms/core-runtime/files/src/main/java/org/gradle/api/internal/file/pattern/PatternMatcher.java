@@ -40,10 +40,12 @@ public abstract class PatternMatcher {
     public abstract boolean test(String[] segments, boolean isFile);
 
     public PatternMatcher and(final PatternMatcher other) {
+        assert other != MATCH_ALL;
         return new And(PatternMatcher.this, other);
     }
 
     public PatternMatcher or(final PatternMatcher other) {
+        assert other != MATCH_ALL;
         return new Or(PatternMatcher.this, other);
     }
 
