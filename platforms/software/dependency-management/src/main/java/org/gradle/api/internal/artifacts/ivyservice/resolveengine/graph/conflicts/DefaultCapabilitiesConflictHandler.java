@@ -38,6 +38,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static java.util.Collections.emptySet;
+
 public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictHandler {
     private final List<Resolver> resolvers;
 
@@ -81,7 +83,9 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
                 ModuleIdentifier rootModuleId = rootId;
                 candidatesForConflict.removeIf(n -> !n.isRoot() && n.getComponent().getId().getModule().equals(rootModuleId));
             }
-            if (candidatesForConflict.size() > 1) {
+
+            // For a conflict we want at least 2 nodes, and at least one of them should not be rejected
+            if (candidatesForConflict.size() > 1 && !candidatesForConflict.stream().allMatch(n -> n.getComponent().isRejected())) {
                 CapabilityConflict conflict = new CapabilityConflict(capability.getGroup(), capability.getName(), candidatesForConflict);
                 if (capabilityIdToConflict.put(capability.getCapabilityId(), conflict) == null) {
                     // No previous conflict, enqueue the capability for resolution
@@ -114,9 +118,10 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
     @Override
     public void resolveNextConflict(Action<ConflictResolutionResult> resolutionAction) {
         String capabilityInConflict = conflicts.remove();
-        CapabilityConflict conflict = capabilityIdToConflict.remove(capabilityInConflict).withSelectedNodes();
+        CapabilityConflict conflict = capabilityIdToConflict.remove(capabilityInConflict).withSelectedOrRelatedNodes();
         capabilityWithoutVersionToNodes.put(capabilityInConflict, conflict.nodes);
-        if (conflict.nodes.isEmpty()) {
+        // Do not process conflicts that have no nodes or all nodes are rejected - which means we saw them already and none are a resolution candidate
+        if (conflict.nodes.isEmpty() || conflict.nodes.stream().allMatch(node -> node.getComponent().isRejected())) {
             return;
         }
 
@@ -279,9 +284,14 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
         private final Map<NodeState, Set<NodeState>> nodeToDependentNodes;
 
         private CapabilityConflict(String group, String name, Set<NodeState> nodes) {
+            this(group, name, nodes, buildDependentRelationships(nodes));
+        }
+
+        private CapabilityConflict(String group, String name, Set<NodeState> nodes, Map<NodeState, Set<NodeState>> nodeToDependentNodes) {
             this.group = group;
             this.name = name;
             this.nodes = nodes;
+            this.nodeToDependentNodes = nodeToDependentNodes;
             final ImmutableSet.Builder<Capability> builder = new ImmutableSet.Builder<>();
             for (final NodeState node : nodes) {
                 Capability capability = node.findCapability(group, name);
@@ -290,23 +300,20 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
                 }
             }
             this.descriptors = builder.build();
-
-            nodeToDependentNodes = buildDependentRelationships(nodes);
         }
 
-        private Map<NodeState, Set<NodeState>> buildDependentRelationships(Set<NodeState> nodes) {
+        private static Map<NodeState, Set<NodeState>> buildDependentRelationships(Set<NodeState> nodes) {
             HashMap<NodeState, Set<NodeState>> nodeToDependents = new HashMap<>();
             for (NodeState node : nodes) {
-                HashSet<NodeState> parents = new HashSet<>();
-                for (NodeState possibleDependent : nodes) {
-                    if (node == possibleDependent) {
+                Set<NodeState> reachableNodes = node.getReachableNodes();
+                for (NodeState possibleDependency : nodes) {
+                    if (node == possibleDependency) {
                         continue;
                     }
-                    if (possibleDependent.dependsTransitivelyOn(node)) {
-                        parents.add(possibleDependent);
+                    if (reachableNodes.contains(possibleDependency)) {
+                        nodeToDependents.computeIfAbsent(possibleDependency, k -> new HashSet<>()).add(node);
                     }
                 }
-                nodeToDependents.put(node, parents);
             }
             return nodeToDependents;
         }
@@ -317,17 +324,20 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
          * we resolve the conflict, some or all of the nodes that originally conflicted may no longer be present
          * in the graph.
          *
+         * However, we also need to preserve any no longer selected node that was a dependency (direct or transitive)
+         * of another valid conflict participant that has deselected its children.
+         *
          * @return a new conflict containing only nodes that are still present in the graph. This new conflict
          * may contain no nodes.
          */
-        public CapabilityConflict withSelectedNodes() {
+        public CapabilityConflict withSelectedOrRelatedNodes() {
             Set<NodeState> selectedNodes = new LinkedHashSet<>();
             for (NodeState node : nodes) {
-                if (node.isSelected() || nodeToDependentNodes.get(node).stream().anyMatch(NodeState::isSelected)) {
+                if (node.isSelected() || nodeToDependentNodes.getOrDefault(node, emptySet()).stream().anyMatch(NodeState::isSelected)) {
                     selectedNodes.add(node);
                 }
             }
-            return new CapabilityConflict(group, name, selectedNodes);
+            return new CapabilityConflict(group, name, selectedNodes, nodeToDependentNodes);
         }
     }
 
