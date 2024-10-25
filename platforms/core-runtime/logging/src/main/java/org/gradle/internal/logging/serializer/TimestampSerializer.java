@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,26 +16,19 @@
 
 package org.gradle.internal.logging.serializer;
 
-import org.gradle.internal.logging.events.UserInputResumeEvent;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.time.Timestamp;
 
-public class UserInputResumeEventSerializer implements Serializer<UserInputResumeEvent> {
-    private final Serializer<Timestamp> timestampSerializer;
-
-    public UserInputResumeEventSerializer(Serializer<Timestamp> timestampSerializer) {
-        this.timestampSerializer = timestampSerializer;
+public class TimestampSerializer implements Serializer<Timestamp> {
+    @Override
+    public Timestamp read(Decoder decoder) throws Exception {
+        return Timestamp.ofMillis(decoder.readLong());
     }
 
     @Override
-    public void write(Encoder encoder, UserInputResumeEvent event) throws Exception {
-        timestampSerializer.write(encoder, event.getTime());
-    }
-
-    @Override
-    public UserInputResumeEvent read(Decoder decoder) throws Exception {
-        return new UserInputResumeEvent(timestampSerializer.read(decoder));
+    public void write(Encoder encoder, Timestamp value) throws Exception {
+        encoder.writeLong(value.getTimeMs());
     }
 }

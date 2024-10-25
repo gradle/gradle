@@ -30,7 +30,7 @@ class ProgressStartEventSerializerTest extends LogSerializerSpec {
     ProgressStartEventSerializer serializer
 
     def setup() {
-        serializer = new ProgressStartEventSerializer()
+        serializer = new ProgressStartEventSerializer(new TimestampSerializer())
     }
 
     def "can serialize ProgressStartEvent messages"(BuildOperationCategory category) {

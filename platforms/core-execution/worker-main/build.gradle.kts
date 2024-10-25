@@ -24,6 +24,7 @@ dependencies {
     implementation(projects.enterpriseLogging)
     implementation(projects.serviceProvider)
     implementation(projects.serviceRegistryBuilder)
+    implementation(projects.time)
 
     implementation(libs.slf4jApi)
 

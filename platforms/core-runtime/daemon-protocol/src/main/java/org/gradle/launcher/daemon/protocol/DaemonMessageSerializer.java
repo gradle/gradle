@@ -48,6 +48,7 @@ import org.gradle.internal.logging.serializer.SelectOptionPromptEventSerializer;
 import org.gradle.internal.logging.serializer.SpanSerializer;
 import org.gradle.internal.logging.serializer.StyledTextOutputEventSerializer;
 import org.gradle.internal.logging.serializer.TextQuestionPromptEventSerializer;
+import org.gradle.internal.logging.serializer.TimestampSerializer;
 import org.gradle.internal.logging.serializer.UserInputRequestEventSerializer;
 import org.gradle.internal.logging.serializer.UserInputResumeEventSerializer;
 import org.gradle.internal.logging.serializer.YesNoQuestionPromptEventSerializer;
@@ -59,6 +60,7 @@ import org.gradle.internal.serialize.DefaultSerializerRegistry;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.ListSerializer;
 import org.gradle.internal.serialize.Serializer;
+import org.gradle.internal.time.Timestamp;
 import org.gradle.launcher.daemon.diagnostics.DaemonDiagnostics;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionResult;
@@ -80,6 +82,8 @@ public class DaemonMessageSerializer {
         BaseSerializerFactory factory = new BaseSerializerFactory();
         Serializer<LogLevel> logLevelSerializer = factory.getSerializerFor(LogLevel.class);
         Serializer<Throwable> throwableSerializer = factory.getSerializerFor(Throwable.class);
+        Serializer<Timestamp> timestampSerializer = new TimestampSerializer();
+
         DefaultSerializerRegistry registry = new DefaultSerializerRegistry();
 
         // Lifecycle messages
@@ -100,17 +104,17 @@ public class DaemonMessageSerializer {
         registry.register(CloseInput.class, new CloseInputSerializer());
 
         // Output events
-        registry.register(LogEvent.class, new LogEventSerializer(logLevelSerializer, throwableSerializer));
+        registry.register(LogEvent.class, new LogEventSerializer(timestampSerializer, logLevelSerializer, throwableSerializer));
         registry.register(UserInputRequestEvent.class, new UserInputRequestEventSerializer());
-        registry.register(YesNoQuestionPromptEvent.class, new YesNoQuestionPromptEventSerializer());
-        registry.register(BooleanQuestionPromptEvent.class, new BooleanQuestionPromptEventSerializer());
-        registry.register(TextQuestionPromptEvent.class, new TextQuestionPromptEventSerializer());
-        registry.register(IntQuestionPromptEvent.class, new IntQuestionPromptEventSerializer());
-        registry.register(SelectOptionPromptEvent.class, new SelectOptionPromptEventSerializer());
-        registry.register(UserInputResumeEvent.class, new UserInputResumeEventSerializer());
+        registry.register(YesNoQuestionPromptEvent.class, new YesNoQuestionPromptEventSerializer(timestampSerializer));
+        registry.register(BooleanQuestionPromptEvent.class, new BooleanQuestionPromptEventSerializer(timestampSerializer));
+        registry.register(TextQuestionPromptEvent.class, new TextQuestionPromptEventSerializer(timestampSerializer));
+        registry.register(IntQuestionPromptEvent.class, new IntQuestionPromptEventSerializer(timestampSerializer));
+        registry.register(SelectOptionPromptEvent.class, new SelectOptionPromptEventSerializer(timestampSerializer));
+        registry.register(UserInputResumeEvent.class, new UserInputResumeEventSerializer(timestampSerializer));
         registry.register(ReadStdInEvent.class, new ReadStdInEventSerializer());
-        registry.register(StyledTextOutputEvent.class, new StyledTextOutputEventSerializer(logLevelSerializer, new ListSerializer<>(new SpanSerializer(factory.getSerializerFor(StyledTextOutput.Style.class)))));
-        registry.register(ProgressStartEvent.class, new ProgressStartEventSerializer());
+        registry.register(StyledTextOutputEvent.class, new StyledTextOutputEventSerializer(timestampSerializer, logLevelSerializer, new ListSerializer<>(new SpanSerializer(factory.getSerializerFor(StyledTextOutput.Style.class)))));
+        registry.register(ProgressStartEvent.class, new ProgressStartEventSerializer(timestampSerializer));
         registry.register(ProgressCompleteEvent.class, new ProgressCompleteEventSerializer());
         registry.register(ProgressEvent.class, new ProgressEventSerializer());
         registry.register(LogLevelChangeEvent.class, new LogLevelChangeEventSerializer(logLevelSerializer));

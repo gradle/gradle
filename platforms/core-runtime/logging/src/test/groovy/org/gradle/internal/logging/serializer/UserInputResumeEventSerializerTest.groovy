@@ -22,7 +22,7 @@ import spock.lang.Subject
 
 class UserInputResumeEventSerializerTest extends LogSerializerSpec {
 
-    @Subject def serializer = new UserInputResumeEventSerializer()
+    @Subject def serializer = new UserInputResumeEventSerializer(new TimestampSerializer())
 
     def "can serialize user input resume event"() {
         given:

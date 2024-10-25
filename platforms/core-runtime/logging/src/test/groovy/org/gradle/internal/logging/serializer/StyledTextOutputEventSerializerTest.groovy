@@ -32,10 +32,10 @@ class StyledTextOutputEventSerializerTest extends LogSerializerSpec {
     def setup() {
         BaseSerializerFactory serializerFactory = new BaseSerializerFactory()
         Serializer<LogLevel> logLevelSerializer = serializerFactory.getSerializerFor(LogLevel.class)
-        serializer = new StyledTextOutputEventSerializer(
-            logLevelSerializer,
-            new ListSerializer<StyledTextOutputEvent.Span>(
-                new SpanSerializer(serializerFactory.getSerializerFor(StyledTextOutput.Style.class))))
+        serializer = new StyledTextOutputEventSerializer(new TimestampSerializer(),
+                logLevelSerializer,
+                new ListSerializer<StyledTextOutputEvent.Span>(
+                        new SpanSerializer(serializerFactory.getSerializerFor(StyledTextOutput.Style.class))))
     }
 
     def "can serialize StyledTextOutputEvent messages"() {

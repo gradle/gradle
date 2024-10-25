@@ -20,17 +20,24 @@ import org.gradle.internal.logging.events.TextQuestionPromptEvent;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
+import org.gradle.internal.time.Timestamp;
 
 public class TextQuestionPromptEventSerializer implements Serializer<TextQuestionPromptEvent> {
+    private final Serializer<Timestamp> timestampSerializer;
+
+    public TextQuestionPromptEventSerializer(Serializer<Timestamp> timestampSerializer) {
+        this.timestampSerializer = timestampSerializer;
+    }
+
     @Override
     public void write(Encoder encoder, TextQuestionPromptEvent value) throws Exception {
-        encoder.writeLong(value.getTimestamp());
+        timestampSerializer.write(encoder, value.getTime());
         encoder.writeString(value.getQuestion());
         encoder.writeString(value.getDefaultValue());
     }
 
     @Override
     public TextQuestionPromptEvent read(Decoder decoder) throws Exception {
-        return new TextQuestionPromptEvent(decoder.readLong(), decoder.readString(), decoder.readString());
+        return new TextQuestionPromptEvent(timestampSerializer.read(decoder), decoder.readString(), decoder.readString());
     }
 }

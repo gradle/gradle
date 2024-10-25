@@ -22,15 +22,21 @@ import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.ListSerializer;
 import org.gradle.internal.serialize.Serializer;
+import org.gradle.internal.time.Timestamp;
 
 import java.util.List;
 
 public class SelectOptionPromptEventSerializer implements Serializer<SelectOptionPromptEvent> {
     private final Serializer<List<String>> optionsSerializer = new ListSerializer<String>(BaseSerializerFactory.STRING_SERIALIZER);
+    private final Serializer<Timestamp> timestampSerializer;
+
+    public SelectOptionPromptEventSerializer(Serializer<Timestamp> timestampSerializer) {
+        this.timestampSerializer = timestampSerializer;
+    }
 
     @Override
     public void write(Encoder encoder, SelectOptionPromptEvent value) throws Exception {
-        encoder.writeLong(value.getTimestamp());
+        timestampSerializer.write(encoder, value.getTime());
         encoder.writeString(value.getQuestion());
         optionsSerializer.write(encoder, value.getOptions());
         encoder.writeSmallInt(value.getDefaultOption());
@@ -38,6 +44,6 @@ public class SelectOptionPromptEventSerializer implements Serializer<SelectOptio
 
     @Override
     public SelectOptionPromptEvent read(Decoder decoder) throws Exception {
-        return new SelectOptionPromptEvent(decoder.readLong(), decoder.readString(), optionsSerializer.read(decoder), decoder.readSmallInt());
+        return new SelectOptionPromptEvent(timestampSerializer.read(decoder), decoder.readString(), optionsSerializer.read(decoder), decoder.readSmallInt());
     }
 }

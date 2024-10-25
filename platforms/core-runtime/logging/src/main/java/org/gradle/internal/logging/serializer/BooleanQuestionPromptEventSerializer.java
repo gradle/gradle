@@ -20,17 +20,24 @@ import org.gradle.internal.logging.events.BooleanQuestionPromptEvent;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
+import org.gradle.internal.time.Timestamp;
 
 public class BooleanQuestionPromptEventSerializer implements Serializer<BooleanQuestionPromptEvent> {
+    private final Serializer<Timestamp> timestampSerializer;
+
+    public BooleanQuestionPromptEventSerializer(Serializer<Timestamp> timestampSerializer) {
+        this.timestampSerializer = timestampSerializer;
+    }
+
     @Override
     public void write(Encoder encoder, BooleanQuestionPromptEvent value) throws Exception {
-        encoder.writeLong(value.getTimestamp());
+        timestampSerializer.write(encoder, value.getTime());
         encoder.writeString(value.getQuestion());
         encoder.writeBoolean(value.getDefaultValue());
     }
 
     @Override
     public BooleanQuestionPromptEvent read(Decoder decoder) throws Exception {
-        return new BooleanQuestionPromptEvent(decoder.readLong(), decoder.readString(), decoder.readBoolean());
+        return new BooleanQuestionPromptEvent(timestampSerializer.read(decoder), decoder.readString(), decoder.readBoolean());
     }
 }

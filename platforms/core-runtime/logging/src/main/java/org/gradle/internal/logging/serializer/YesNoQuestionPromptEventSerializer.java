@@ -20,16 +20,23 @@ import org.gradle.internal.logging.events.YesNoQuestionPromptEvent;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
+import org.gradle.internal.time.Timestamp;
 
 public class YesNoQuestionPromptEventSerializer implements Serializer<YesNoQuestionPromptEvent> {
+    private final Serializer<Timestamp> timestampSerializer;
+
+    public YesNoQuestionPromptEventSerializer(Serializer<Timestamp> timestampSerializer) {
+        this.timestampSerializer = timestampSerializer;
+    }
+
     @Override
     public void write(Encoder encoder, YesNoQuestionPromptEvent value) throws Exception {
-        encoder.writeLong(value.getTimestamp());
+        timestampSerializer.write(encoder, value.getTime());
         encoder.writeString(value.getQuestion());
     }
 
     @Override
     public YesNoQuestionPromptEvent read(Decoder decoder) throws Exception {
-        return new YesNoQuestionPromptEvent(decoder.readLong(), decoder.readString());
+        return new YesNoQuestionPromptEvent(timestampSerializer.read(decoder), decoder.readString());
     }
 }

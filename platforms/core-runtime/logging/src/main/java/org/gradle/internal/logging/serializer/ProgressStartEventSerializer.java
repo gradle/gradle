@@ -22,6 +22,7 @@ import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
+import org.gradle.internal.time.Timestamp;
 
 /**
  * Since Gradle creates a high volume of progress events, this serializer trades simplicity
@@ -45,7 +46,10 @@ public class ProgressStartEventSerializer implements Serializer<ProgressStartEve
     private static final short BUILD_OP_CATEGORY_OFFSET = 12;
     private static final short BUILD_OP_CATEGORY_MASK = 0x7;
 
-    public ProgressStartEventSerializer() {
+    private final Serializer<Timestamp> timestampSerializer;
+
+    public ProgressStartEventSerializer(Serializer<Timestamp> timestampSerializer) {
+        this.timestampSerializer = timestampSerializer;
         BuildOperationCategory maxCategory = BuildOperationCategory.values()[BuildOperationCategory.values().length - 1];
         if ((BUILD_OP_CATEGORY_MASK & maxCategory.ordinal()) != maxCategory.ordinal()) {
             // Too many build operation categories to fit into the flags assigned to encode the category - so you will need to adjust the mask above
@@ -111,7 +115,7 @@ public class ProgressStartEventSerializer implements Serializer<ProgressStartEve
         if (parentProgressOperationId != null) {
             encoder.writeSmallLong(parentProgressOperationId.getId());
         }
-        encoder.writeLong(event.getTimestamp());
+        timestampSerializer.write(encoder, event.getTime());
         if ((flags & CATEGORY_NAME) != 0) {
             encoder.writeString(event.getCategory());
         }
@@ -143,7 +147,7 @@ public class ProgressStartEventSerializer implements Serializer<ProgressStartEve
             parentProgressOperationId = new OperationIdentifier(decoder.readSmallLong());
         }
 
-        long timestamp = decoder.readLong();
+        Timestamp timestamp = timestampSerializer.read(decoder);
 
         String category;
         if ((flags & CATEGORY_IS_TASK) != 0) {

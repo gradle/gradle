@@ -22,19 +22,22 @@ import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
+import org.gradle.internal.time.Timestamp;
 
 public class LogEventSerializer implements Serializer<LogEvent> {
-    private final Serializer<Throwable> throwableSerializer;
+    private final Serializer<Timestamp> timestampSerializer;
     private final Serializer<LogLevel> logLevelSerializer;
+    private final Serializer<Throwable> throwableSerializer;
 
-    public LogEventSerializer(Serializer<LogLevel> logLevelSerializer, Serializer<Throwable> throwableSerializer) {
+    public LogEventSerializer(Serializer<Timestamp> timestampSerializer, Serializer<LogLevel> logLevelSerializer, Serializer<Throwable> throwableSerializer) {
+        this.timestampSerializer = timestampSerializer;
         this.logLevelSerializer = logLevelSerializer;
         this.throwableSerializer = throwableSerializer;
     }
 
     @Override
     public void write(Encoder encoder, LogEvent event) throws Exception {
-        encoder.writeLong(event.getTimestamp());
+        timestampSerializer.write(encoder, event.getTime());
         encoder.writeString(event.getCategory());
         logLevelSerializer.write(encoder, event.getLogLevel());
         encoder.writeNullableString(event.getMessage());
@@ -49,7 +52,7 @@ public class LogEventSerializer implements Serializer<LogEvent> {
 
     @Override
     public LogEvent read(Decoder decoder) throws Exception {
-        long timestamp = decoder.readLong();
+        Timestamp timestamp = timestampSerializer.read(decoder);
         String category = decoder.readString();
         LogLevel logLevel = logLevelSerializer.read(decoder);
         String message = decoder.readNullableString();

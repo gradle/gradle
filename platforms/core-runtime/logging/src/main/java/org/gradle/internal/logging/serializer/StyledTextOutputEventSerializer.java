@@ -22,21 +22,24 @@ import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
+import org.gradle.internal.time.Timestamp;
 
 import java.util.List;
 
 public class StyledTextOutputEventSerializer implements Serializer<StyledTextOutputEvent> {
+    private final Serializer<Timestamp> timestampSerializer;
     private final Serializer<LogLevel> logLevelSerializer;
     private final Serializer<List<StyledTextOutputEvent.Span>> spanSerializer;
 
-    public StyledTextOutputEventSerializer(Serializer<LogLevel> logLevelSerializer, Serializer<List<StyledTextOutputEvent.Span>> spanSerializer) {
+    public StyledTextOutputEventSerializer(Serializer<Timestamp> timestampSerializer, Serializer<LogLevel> logLevelSerializer, Serializer<List<StyledTextOutputEvent.Span>> spanSerializer) {
+        this.timestampSerializer = timestampSerializer;
         this.logLevelSerializer = logLevelSerializer;
         this.spanSerializer = spanSerializer;
     }
 
     @Override
     public void write(Encoder encoder, StyledTextOutputEvent event) throws Exception {
-        encoder.writeLong(event.getTimestamp());
+        timestampSerializer.write(encoder, event.getTime());
         encoder.writeString(event.getCategory());
         logLevelSerializer.write(encoder, event.getLogLevel());
         if (event.getBuildOperationId() == null) {
@@ -50,7 +53,7 @@ public class StyledTextOutputEventSerializer implements Serializer<StyledTextOut
 
     @Override
     public StyledTextOutputEvent read(Decoder decoder) throws Exception {
-        long timestamp = decoder.readLong();
+        Timestamp timestamp = timestampSerializer.read(decoder);
         String category = decoder.readString();
         LogLevel logLevel = logLevelSerializer.read(decoder);
         OperationIdentifier buildOperationId = decoder.readBoolean() ? new OperationIdentifier(decoder.readSmallLong()) : null;
