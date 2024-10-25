@@ -68,8 +68,12 @@ public class ShutdownCoordinator implements DaemonStartListener, Stoppable {
     public void stopStartedDaemons(ServiceRegistry requestSpecificLoggingServices, File daemonBaseDir) {
         synchronized (daemons) {
             Set<DaemonConnectDetails> startedDaemons = daemons.get(daemonBaseDir);
-            if (startedDaemons != null) {
-                client.execute(requestSpecificLoggingServices, daemonBaseDir, daemonStopClient -> daemonStopClient.gracefulStop(startedDaemons));
+            if (startedDaemons != null && !startedDaemons.isEmpty()) {
+                try {
+                    client.execute(requestSpecificLoggingServices, daemonBaseDir, daemonStopClient -> daemonStopClient.gracefulStop(startedDaemons));
+                } finally {
+                    startedDaemons.clear();
+                }
             }
         }
     }
