@@ -85,29 +85,12 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
             dependencies {
                 implementation("org.hamcrest:hamcrest-core:2.2")
             }
-
-            dependencies.components.withModule('org.hamcrest:hamcrest-core') {
-                allVariants {
-                    withCapabilities {
-                        addCapability('org.hamcrest', 'hamcrest', id.version)
-                    }
-                }
-            }
-
-            configurations.runtimeClasspath {
-                resolutionStrategy {
-                    capabilitiesResolution {
-                        withCapability("org.hamcrest:hamcrest") {
-                            def result = candidates.find {
-                                it.id.group == "org.hamcrest" && it.id.module == "${winner}"
-                            }
-                            assert result != null
-                            select(result)
-                        }
-                    }
-                }
-            }
         """
+
+        capability("org.hamcrest", "hamcrest") {
+            forModule("org.hamcrest:hamcrest-core")
+            selectModule("org.hamcrest", winner)
+        }
 
         when:
         resolve.prepare()
@@ -156,29 +139,12 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
             dependencies {
                 implementation("org:parent:2.2")
             }
-
-            dependencies.components.withModule('org:parent') {
-                allVariants {
-                    withCapabilities {
-                        addCapability('org', 'child', id.version)
-                    }
-                }
-            }
-
-            configurations.runtimeClasspath {
-                resolutionStrategy {
-                    capabilitiesResolution {
-                        withCapability("org:child") {
-                            def result = candidates.find {
-                                it.id.group == "org" && it.id.module == "${winner}"
-                            }
-                            assert result != null
-                            select(result)
-                        }
-                    }
-                }
-            }
         """
+
+        capability("org", "child") {
+            forModule("org:parent")
+            selectModule("org", winner)
+        }
 
         when:
         resolve.prepare()
@@ -212,16 +178,93 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
         winner << ["parent", "child"]
     }
 
-    /*
-TODO: Write this test
+    @Issue("https://github.com/gradle/gradle/issues/30969")
+    def "parent child capability conflict can also conflict with a third node"() {
+        mavenRepo.module("org", "A")
+            .dependsOn(mavenRepo.module("org", "B").publish())
+            .publish()
 
-R -> A -> B
+        mavenRepo.module("org", "x")
+            .dependsOn(mavenRepo.module("org", "y")
+                .dependsOn(mavenRepo.module("org", "C").publish())
+                .publish())
+            .publish()
 
-R -> x -> y -> C
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
 
-conflict(A, B)  (remember dependency relationship)
+            ${mavenTestRepository()}
 
- */
+            dependencies {
+                implementation("org:A:1.0")
+                implementation("org:x:1.0")
+            }
+        """
+
+        capability("org", "capability") {
+            forModule("org:A")
+            forModule("org:B")
+            forModule("org:C")
+            withResolutionRule(rule)
+        }
+
+        when:
+        resolve.prepare()
+        succeeds("checkDeps")
+
+        then:
+        if (winner == "A") {
+            resolve.expectGraph {
+                root(":", ":test:") {
+                    module("org:A:1.0") {
+                        edge("org:B:1.0", "org:A:1.0") {
+                            byConflictResolution("Explicit selection of org:A:1.0 variant runtime")
+                        }
+                    }
+                    module("org:x:1.0") {
+                        module("org:y:1.0") {
+                            edge("org:C:1.0", "org:A:1.0")
+                        }
+                    }
+                }
+            }
+        } else if (winner == "B") {
+            resolve.expectGraph {
+                root(":", ":test:") {
+                    edge("org:A:1.0", "org:B:1.0") {
+                        notRequested()
+                        byConflictResolution("Explicit selection of org:B:1.0 variant runtime")
+                    }
+                    module("org:x:1.0") {
+                        module("org:y:1.0") {
+                            edge("org:C:1.0", "org:B:1.0")
+                        }
+                    }
+                }
+            }
+        } else if (winner == "C") {
+            resolve.expectGraph {
+                root(":", ":test:") {
+                    edge("org:A:1.0", "org:C:1.0") {
+                        byConflictResolution("Explicit selection of org:C:1.0 variant runtime")
+                    }
+                    module("org:x:1.0") {
+                        module("org:y:1.0") {
+                            module("org:C:1.0")
+                        }
+                    }
+                }
+            }
+        }
+
+        where:
+        rule                                                            | winner
+        [[group: "org", module: "A"]]                                   | "A"
+        [[group: "org", module: "B"], [group: "org", module: "A"]]      | "B"
+        [[group: "org", module: "C"]]                                   | "C"
+    }
 
     @Issue("https://github.com/gradle/gradle/issues/14770")
     def "capabilities resolution shouldn't put graph in inconsistent state"() {
@@ -911,6 +954,38 @@ conflict(A, B)  (remember dependency relationship)
                                 }
                                 assert result != null
                                 select(result)
+                            }
+                        }
+                    }
+                }
+            """
+        }
+
+        def withResolutionRule(List<Map<String, String>> order) {
+            buildFile << """
+                configurations.runtimeClasspath {
+                    resolutionStrategy {
+                        capabilitiesResolution {
+                            withCapability("$group:$artifactId") {
+                                def result = null
+            """
+
+            order.each { winner ->
+                def group = winner.group
+                def module = winner.module
+                buildFile << """
+                                result = candidates.find {
+                                    it.id.group == "${group}" && it.id.module == "${module}"
+                                }
+                                if (result != null) {
+                                    select(result)
+                                    return
+                                }
+                """
+            }
+
+            buildFile << """
+                                assert result != null
                             }
                         }
                     }

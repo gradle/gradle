@@ -61,7 +61,7 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
     public PotentialConflict registerCandidate(CapabilitiesConflictHandler.Candidate candidate) {
         CapabilityInternal capability = candidate.getCapability();
 
-        ConflictedNodesTracker tracker = capabilityWithoutVersionToTracker.computeIfAbsent(capability.getCapabilityId(), k -> new ConflictedNodesTracker(capability, conflicts));
+        ConflictedNodesTracker tracker = capabilityWithoutVersionToTracker.computeIfAbsent(capability.getCapabilityId(), k -> new ConflictedNodesTracker(capability));
         // TODO: Is there a way to not do this filtering here?
         tracker.removeIf(n -> !n.isSelected());
         tracker.addAll(candidate.getImplicitCapabilityProviders());
@@ -91,7 +91,9 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
             // For a conflict we want at least 2 nodes, and at least one of them should not be rejected
             // TODO: Seems odd to filter for rejected nodes here
             if (candidatesForConflict.size() > 1 && !candidatesForConflict.stream().allMatch(n -> n.getComponent().isRejected())) {
-                tracker.createConflict(candidatesForConflict);
+                if (tracker.createOrUpdateConflict(candidatesForConflict)) {
+                    conflicts.add(tracker.capabilityId);
+                }
 
                 return new PotentialConflict() {
                     @Override
@@ -351,20 +353,23 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
      * It also keeps track of the history of conflicts that were processed.
      */
     private static class ConflictedNodesTracker implements Iterable<NodeState> {
-        private final Deque<String> conflictsQueue;
         private final String group;
         private final String name;
         private final String capabilityId;
         private final List<Set<NodeState>> previousConflictedNodes = new ArrayList<>();
 
         private Set<NodeState> currentConflictedNodes = new LinkedHashSet<>();
-        private CapabilityConflict conflict;
 
-        private ConflictedNodesTracker(CapabilityInternal capability, Deque<String> conflicts) {
-            conflictsQueue = conflicts;
+        /**
+         * If non-null, the capability tracked by this tracker has a pending conflict
+         * that must be resolved.
+         */
+        private CapabilityConflict pendingConflict;
+
+        private ConflictedNodesTracker(CapabilityInternal capability) {
             this.group = capability.getGroup();
             this.name = capability.getName();
-            capabilityId = capability.getCapabilityId();
+            this.capabilityId = capability.getCapabilityId();
         }
 
         /**
@@ -376,8 +381,8 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
          * between conflict participants.
          */
         private CapabilityConflict updateClearAndReturnConflict() {
-            CapabilityConflict currentConflict = conflict;
-            conflict = null;
+            CapabilityConflict currentConflict = pendingConflict;
+            this.pendingConflict = null;
 
             Set<NodeState> selectedNodes = new LinkedHashSet<>();
             boolean didFilter = false;
@@ -429,12 +434,14 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
          * If we saw the conflict before, record relationship between nodes
          *
          * @param candidatesForConflict the conflict candidates
+         *
+         * @return true if this is the first time this tracker sees this conflict and
+         *         if a conflict on this capability will need to be resolved.
          */
-        private void createConflict(Set<NodeState> candidatesForConflict) {
-            if (conflict == null) {
-                conflictsQueue.add(capabilityId);
-            }
-            conflict = new CapabilityConflict(group, name, candidatesForConflict, previousConflictedNodes.contains(candidatesForConflict));
+        private boolean createOrUpdateConflict(Set<NodeState> candidatesForConflict) {
+            boolean newConflict = pendingConflict == null;
+            this.pendingConflict = new CapabilityConflict(group, name, candidatesForConflict, previousConflictedNodes.contains(candidatesForConflict));
+            return newConflict;
         }
     }
 }
