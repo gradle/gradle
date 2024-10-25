@@ -33,11 +33,14 @@ import java.util.Collection;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Predicate;
 
+import static java.util.Collections.emptyMap;
 import static java.util.Collections.emptySet;
 
 public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictHandler {
@@ -46,7 +49,7 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
     /**
      * Tracks capabilities present on nodes as a non-default capability.
      */
-    private final Map<String, Set<NodeState>> capabilityWithoutVersionToNodes = new HashMap<>();
+    private final Map<String, ConflictedNodesTracker> capabilityWithoutVersionToNodes = new HashMap<>();
 
     private final Deque<String> conflicts = new ArrayDeque<>();
     private final Map<String, CapabilityConflict> capabilityIdToConflict = new HashMap<>();
@@ -59,7 +62,8 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
     public PotentialConflict registerCandidate(CapabilitiesConflictHandler.Candidate candidate) {
         CapabilityInternal capability = candidate.getCapability();
 
-        Set<NodeState> nodes = capabilityWithoutVersionToNodes.computeIfAbsent(capability.getCapabilityId(), k -> new LinkedHashSet<>());
+        ConflictedNodesTracker nodes = capabilityWithoutVersionToNodes.computeIfAbsent(capability.getCapabilityId(), k -> new ConflictedNodesTracker());
+        // TODO: Is there a way to not do this filtering here?
         nodes.removeIf(n -> !n.isSelected());
         nodes.addAll(candidate.getImplicitCapabilityProviders());
 
@@ -73,7 +77,7 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
                 }
             }
 
-            Set<NodeState> candidatesForConflict = new LinkedHashSet<>(nodes);
+            Set<NodeState> candidatesForConflict = new LinkedHashSet<>(nodes.currentConflictedNodes);
             if (rootId != null && candidatesForConflict.size() > 1) {
                 // This is a special case for backwards compatibility: it is possible to have
                 // a cycle where the root component depends on a library which transitively
@@ -86,7 +90,9 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
 
             // For a conflict we want at least 2 nodes, and at least one of them should not be rejected
             if (candidatesForConflict.size() > 1 && !candidatesForConflict.stream().allMatch(n -> n.getComponent().isRejected())) {
-                CapabilityConflict conflict = new CapabilityConflict(capability.getGroup(), capability.getName(), candidatesForConflict);
+
+                // If we saw the conflict already, record relationship between nodes
+                CapabilityConflict conflict = new CapabilityConflict(capability.getGroup(), capability.getName(), candidatesForConflict, nodes.wasConflictSeenPreviously(candidatesForConflict));
                 if (capabilityIdToConflict.put(capability.getCapabilityId(), conflict) == null) {
                     // No previous conflict, enqueue the capability for resolution
                     conflicts.add(capability.getCapabilityId());
@@ -118,8 +124,13 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
     @Override
     public void resolveNextConflict(Action<ConflictResolutionResult> resolutionAction) {
         String capabilityInConflict = conflicts.remove();
+        // If we encounter a conflict with deselected nodes, its possible that the deselection was
+        // caused by the conflict deselection (it can happen for other reasons too)
+        // Record this fact, so that later if we see the conflict again, we can compute node relationships
+        // between conflict participants.
         CapabilityConflict conflict = capabilityIdToConflict.remove(capabilityInConflict).withSelectedOrRelatedNodes();
-        capabilityWithoutVersionToNodes.put(capabilityInConflict, conflict.nodes);
+
+        capabilityWithoutVersionToNodes.get(capabilityInConflict).updateCurrentNodes(conflict.nodes);
         // Do not process conflicts that have no nodes or all nodes are rejected - which means we saw them already and none are a resolution candidate
         if (conflict.nodes.isEmpty() || conflict.nodes.stream().allMatch(node -> node.getComponent().isRejected())) {
             return;
@@ -295,8 +306,8 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
         private final Set<Capability> descriptors;
         private final Map<NodeState, Set<NodeState>> nodeToDependentNodes;
 
-        private CapabilityConflict(String group, String name, Set<NodeState> nodes) {
-            this(group, name, nodes, buildDependentRelationships(nodes));
+        private CapabilityConflict(String group, String name, Set<NodeState> nodes, boolean alreadySeen) {
+            this(group, name, nodes, alreadySeen ? buildDependentRelationships(nodes) : emptyMap());
         }
 
         private CapabilityConflict(String group, String name, Set<NodeState> nodes, Map<NodeState, Set<NodeState>> nodeToDependentNodes) {
@@ -350,6 +361,55 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
                 }
             }
             return new CapabilityConflict(group, name, selectedNodes, nodeToDependentNodes);
+        }
+    }
+
+    /**
+     * Wrapper object tracking recorded conflict participants.
+     *
+     * It also keeps track of the history of conflicts that were processed.
+     */
+    private static class ConflictedNodesTracker implements Iterable<NodeState> {
+        private Set<NodeState> currentConflictedNodes = new LinkedHashSet<>();
+        private List<Set<NodeState>> previousConflictedNodes = new ArrayList<>();
+
+        /**
+         * Update the current conflicted nodes.
+         *
+         * When invoked, it will save the previous state of the conflicted nodes.
+         *
+         * @param newNodes the new set of conflicted nodes
+         */
+        private void updateCurrentNodes(Set<NodeState> newNodes) {
+            if (!currentConflictedNodes.equals(newNodes)) {
+                previousConflictedNodes.add(currentConflictedNodes);
+                currentConflictedNodes = newNodes;
+            }
+        }
+
+        public boolean removeIf(Predicate<? super NodeState> pre) {
+            return currentConflictedNodes.removeIf(pre);
+        }
+
+        public void addAll(Collection<NodeState> extraNodes) {
+            currentConflictedNodes.addAll(extraNodes);
+        }
+
+        public boolean add(NodeState node) {
+            return currentConflictedNodes.add(node);
+        }
+
+        public int size() {
+            return currentConflictedNodes.size();
+        }
+
+        @Override
+        public Iterator<NodeState> iterator() {
+            return currentConflictedNodes.iterator();
+        }
+
+        public boolean wasConflictSeenPreviously(Set<NodeState> candidatesForConflict) {
+            return previousConflictedNodes.contains(candidatesForConflict);
         }
     }
 
