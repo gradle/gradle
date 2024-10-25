@@ -27,6 +27,7 @@ import javax.annotation.Nullable;
 @SuppressWarnings("deprecation")
 public class LogEvent extends RenderableOutputEvent implements org.gradle.internal.logging.events.operations.LogEventBuildOperationProgressDetails {
     private final String message;
+    @Nullable
     private final Throwable throwable;
 
     public LogEvent(long timestamp, String category, LogLevel logLevel, String message, @Nullable Throwable throwable) {
@@ -34,10 +35,15 @@ public class LogEvent extends RenderableOutputEvent implements org.gradle.intern
     }
 
     public LogEvent(long timestamp, String category, LogLevel logLevel, String message, @Nullable Throwable throwable, @Nullable OperationIdentifier buildOperationIdentifier) {
-        super(Timestamp.ofMillis(timestamp), category, logLevel, buildOperationIdentifier);
+        this(Timestamp.ofMillis(timestamp), category, logLevel, message, throwable, buildOperationIdentifier);
+    }
+
+    public LogEvent(Timestamp timestamp, String category, LogLevel logLevel, String message, @Nullable Throwable throwable, @Nullable OperationIdentifier buildOperationIdentifier) {
+        super(timestamp, category, logLevel, buildOperationIdentifier);
         this.message = message;
         this.throwable = throwable;
     }
+
 
     @Override
     public String getMessage() {

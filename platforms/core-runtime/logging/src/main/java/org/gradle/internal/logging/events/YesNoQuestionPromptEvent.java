@@ -28,7 +28,11 @@ public class YesNoQuestionPromptEvent extends PromptOutputEvent {
     private final String question;
 
     public YesNoQuestionPromptEvent(long timestamp, String question) {
-        super(Timestamp.ofMillis(timestamp));
+        this(Timestamp.ofMillis(timestamp), question);
+    }
+
+    public YesNoQuestionPromptEvent(Timestamp timestamp, String question) {
+        super(timestamp);
         this.question = question;
     }
 

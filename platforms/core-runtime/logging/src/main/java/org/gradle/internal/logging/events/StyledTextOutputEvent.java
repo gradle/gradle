@@ -39,7 +39,11 @@ public class StyledTextOutputEvent extends RenderableOutputEvent implements org.
     }
 
     public StyledTextOutputEvent(long timestamp, String category, LogLevel logLevel, @Nullable OperationIdentifier buildOperationIdentifier, List<Span> spans) {
-        super(Timestamp.ofMillis(timestamp), category, logLevel, buildOperationIdentifier);
+        this(Timestamp.ofMillis(timestamp), category, logLevel, buildOperationIdentifier, spans);
+    }
+
+    public StyledTextOutputEvent(Timestamp timestamp, String category, LogLevel logLevel, @Nullable OperationIdentifier buildOperationIdentifier, List<Span> spans) {
+        super(timestamp, category, logLevel, buildOperationIdentifier);
         this.spans = new ArrayList<Span>(spans);
     }
 

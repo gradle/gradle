@@ -27,7 +27,11 @@ public class SelectOptionPromptEvent extends PromptOutputEvent {
     private final int defaultOption;
 
     public SelectOptionPromptEvent(long timestamp, String question, List<String> options, int defaultOption) {
-        super(Timestamp.ofMillis(timestamp));
+        this(Timestamp.ofMillis(timestamp), question, options, defaultOption);
+    }
+    
+    public SelectOptionPromptEvent(Timestamp timestamp, String question, List<String> options, int defaultOption) {
+        super(timestamp);
         this.question = question;
         this.options = options;
         this.defaultOption = defaultOption;

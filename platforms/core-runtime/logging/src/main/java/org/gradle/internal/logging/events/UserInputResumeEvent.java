@@ -22,7 +22,10 @@ import org.gradle.internal.time.Timestamp;
 
 public class UserInputResumeEvent extends RenderableOutputEvent implements InteractiveEvent {
     public UserInputResumeEvent(long timestamp) {
-        super(Timestamp.ofMillis(timestamp), "prompt", LogLevel.QUIET, null);
+        this(Timestamp.ofMillis(timestamp));
+    }
+    public UserInputResumeEvent(Timestamp timestamp) {
+        super(timestamp, "prompt", LogLevel.QUIET, null);
     }
 
     @Override

@@ -62,7 +62,7 @@ public class DefaultUserInputHandler extends AbstractUserInputHandler {
 
         @Override
         public Boolean askYesNoQuestion(String question) {
-            YesNoQuestionPromptEvent prompt = new YesNoQuestionPromptEvent(clock.getCurrentTime(), question);
+            YesNoQuestionPromptEvent prompt = new YesNoQuestionPromptEvent(clock.getTimestamp(), question);
             return prompt(prompt, BooleanUtils::toBoolean);
         }
 

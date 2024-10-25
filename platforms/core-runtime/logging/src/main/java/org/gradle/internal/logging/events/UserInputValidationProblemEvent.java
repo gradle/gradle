@@ -25,7 +25,11 @@ public class UserInputValidationProblemEvent extends RenderableOutputEvent imple
     private final String prompt;
 
     public UserInputValidationProblemEvent(long timestamp, String prompt) {
-        super(Timestamp.ofMillis(timestamp), "prompt", LogLevel.QUIET, null);
+        this(Timestamp.ofMillis(timestamp), prompt);
+    }
+
+    public UserInputValidationProblemEvent(Timestamp timestamp, String prompt) {
+        super(timestamp, "prompt", LogLevel.QUIET, null);
         this.prompt = prompt;
     }
 
