@@ -16,20 +16,25 @@
 
 package org.gradle.tooling.internal.provider;
 
+import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.launcher.daemon.client.DaemonStartListener;
 import org.gradle.launcher.daemon.client.DaemonStopClientExecuter;
 import org.gradle.launcher.daemon.context.DaemonConnectDetails;
+import org.gradle.launcher.daemon.registry.DaemonDir;
 
 import java.io.File;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.CopyOnWriteArraySet;
 
 @ServiceScope(Scope.Global.class)
-public class ShutdownCoordinator implements DaemonStartListener {
-    private final Set<DaemonConnectDetails> daemons = new CopyOnWriteArraySet<DaemonConnectDetails>();
+public class ShutdownCoordinator implements DaemonStartListener, Stoppable {
+    private final Map<File, Set<DaemonConnectDetails>> daemons = new HashMap<>();
     private final DaemonStopClientExecuter client;
 
     public ShutdownCoordinator(DaemonStopClientExecuter client) {
@@ -37,11 +42,35 @@ public class ShutdownCoordinator implements DaemonStartListener {
     }
 
     @Override
-    public void daemonStarted(DaemonConnectDetails daemon) {
-        daemons.add(daemon);
+    public void daemonStarted(DaemonDir daemonDir, DaemonConnectDetails daemon) {
+        synchronized (daemons) {
+            final Set<DaemonConnectDetails> startedDaemons;
+            if (!daemons.containsKey(daemonDir.getBaseDir())) {
+                startedDaemons = new HashSet<>();
+                daemons.put(daemonDir.getBaseDir(), startedDaemons);
+            } else {
+                startedDaemons = daemons.get(daemonDir.getBaseDir());
+            }
+            startedDaemons.add(daemon);
+        }
     }
 
     public void stopStartedDaemons(ServiceRegistry requestSpecificLoggingServices, File daemonBaseDir) {
-        client.execute(requestSpecificLoggingServices, daemonBaseDir, daemonStopClient -> daemonStopClient.gracefulStop(daemons));
+        synchronized (daemons) {
+            Set<DaemonConnectDetails> startedDaemons = daemons.get(daemonBaseDir);
+            if (startedDaemons != null) {
+                client.execute(requestSpecificLoggingServices, daemonBaseDir, daemonStopClient -> daemonStopClient.gracefulStop(startedDaemons));
+            }
+        }
+    }
+
+    @Override
+    public void stop() {
+        ServiceRegistry requestSpecificLoggingServices = LoggingServiceRegistry.newNestedLogging();
+        synchronized (daemons) {
+            for (File daemonBaseDir : daemons.keySet()) {
+                stopStartedDaemons(requestSpecificLoggingServices, daemonBaseDir);
+            }
+        }
     }
 }
