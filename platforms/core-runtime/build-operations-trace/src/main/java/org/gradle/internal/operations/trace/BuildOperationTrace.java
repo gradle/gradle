@@ -29,8 +29,6 @@ import com.fasterxml.jackson.databind.introspect.AnnotatedMember;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.ser.BeanPropertyWriter;
 import com.fasterxml.jackson.databind.ser.BeanSerializerModifier;
-import com.google.common.base.Charsets;
-import com.google.common.base.StandardSystemProperty;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.StartParameter;
@@ -55,15 +53,17 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.internal.GFileUtils;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.BufferedOutputStream;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -71,7 +71,6 @@ import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -243,95 +242,76 @@ public class BuildOperationTrace implements Stoppable {
     }
 
     private void writeSummaryTree(final List<BuildOperationRecord> roots) throws IOException {
-        com.google.common.io.Files.asCharSink(file(basePath, "-tree.txt"), Charsets.UTF_8).writeLines(new Iterable<String>() {
-            @Override
-            @Nonnull
-            public Iterator<String> iterator() {
+        Path outputPath = Paths.get(basePath + "-tree.txt");
+        try (BufferedWriter writer = Files.newBufferedWriter(outputPath, StandardCharsets.UTF_8)) {
+            Deque<Queue<BuildOperationRecord>> stack = new ArrayDeque<>(Collections.singleton(new ArrayDeque<>(roots)));
+            StringBuilder stringBuilder = new StringBuilder();
 
-                final Deque<Queue<BuildOperationRecord>> stack = new ArrayDeque<>(Collections.singleton(new ArrayDeque<>(roots)));
-                final StringBuilder stringBuilder = new StringBuilder();
+            while (!stack.isEmpty()) {
+                if (stack.peek().isEmpty()) {
+                    stack.pop();
+                    continue;
+                }
 
-                return new Iterator<String>() {
-                    @Override
-                    public boolean hasNext() {
-                        if (stack.isEmpty()) {
-                            return false;
-                        } else if (stack.peek().isEmpty()) {
-                            stack.pop();
-                            return hasNext();
-                        } else {
-                            return true;
-                        }
+                Queue<BuildOperationRecord> children = stack.element();
+                BuildOperationRecord record = children.remove();
+
+                stringBuilder.setLength(0);
+
+                int indents = stack.size() - 1;
+                for (int i = 0; i < indents; ++i) {
+                    stringBuilder.append("  ");
+                }
+
+                if (!record.children.isEmpty()) {
+                    stack.addFirst(new ArrayDeque<>(record.children));
+                }
+
+                stringBuilder.append(record.displayName);
+
+                if (record.details != null) {
+                    stringBuilder.append(" ");
+                    try {
+                        stringBuilder.append(objectMapper.writeValueAsString(record.details));
+                    } catch (JsonProcessingException e) {
+                        throw UncheckedException.throwAsUncheckedException(e);
                     }
+                }
 
-                    @Override
-                    public String next() {
-                        Queue<BuildOperationRecord> children = stack.element();
-                        BuildOperationRecord record = children.remove();
+                if (record.result != null) {
+                    stringBuilder.append(" ");
+                    try {
+                        stringBuilder.append(objectMapper.writeValueAsString(record.result));
+                    } catch (JsonProcessingException e) {
+                        throw UncheckedException.throwAsUncheckedException(e);
+                    }
+                }
 
-                        stringBuilder.setLength(0);
+                stringBuilder.append(" [");
+                stringBuilder.append(record.endTime - record.startTime);
+                stringBuilder.append("ms]");
 
-                        int indents = stack.size() - 1;
+                stringBuilder.append(" (");
+                stringBuilder.append(record.id);
+                stringBuilder.append(")");
 
+                if (!record.progress.isEmpty()) {
+                    for (BuildOperationRecord.Progress progress : record.progress) {
+                        stringBuilder.append(System.lineSeparator());
                         for (int i = 0; i < indents; ++i) {
                             stringBuilder.append("  ");
                         }
-
-                        if (!record.children.isEmpty()) {
-                            stack.addFirst(new ArrayDeque<>(record.children));
-                        }
-
-                        stringBuilder.append(record.displayName);
-
-                        if (record.details != null) {
-                            stringBuilder.append(" ");
-                            try {
-                                stringBuilder.append(objectMapper.writeValueAsString(record.details));
-                            } catch (JsonProcessingException e) {
-                                throw UncheckedException.throwAsUncheckedException(e);
-                            }
-                        }
-
-                        if (record.result != null) {
-                            stringBuilder.append(" ");
-                            try {
-                                stringBuilder.append(objectMapper.writeValueAsString(record.result));
-                            } catch (JsonProcessingException e) {
-                                throw UncheckedException.throwAsUncheckedException(e);
-                            }
-                        }
-
-                        stringBuilder.append(" [");
-                        stringBuilder.append(record.endTime - record.startTime);
-                        stringBuilder.append("ms]");
-
-                        stringBuilder.append(" (");
-                        stringBuilder.append(record.id);
-                        stringBuilder.append(")");
-
-                        if (!record.progress.isEmpty()) {
-                            for (BuildOperationRecord.Progress progress : record.progress) {
-                                stringBuilder.append(StandardSystemProperty.LINE_SEPARATOR.value());
-                                for (int i = 0; i < indents; ++i) {
-                                    stringBuilder.append("  ");
-                                }
-                                stringBuilder.append("- ")
-                                    .append(progress.details).append(" [")
-                                    .append(progress.time - record.startTime)
-                                    .append("]");
-                            }
-                        }
-
-                        return stringBuilder.toString();
+                        stringBuilder.append("- ")
+                            .append(progress.details).append(" [")
+                            .append(progress.time - record.startTime)
+                            .append("]");
                     }
+                }
 
-                    @Override
-                    public void remove() {
-                        throw new UnsupportedOperationException();
-                    }
-                };
+                writer.write(stringBuilder.toString());
+                writer.newLine();
             }
-        });
+        }
     }
 
     public static BuildOperationTree read(String basePath) {
