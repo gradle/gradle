@@ -49,7 +49,7 @@ public class DefaultUserInputReceiver implements GlobalUserInputReceiver {
                 PromptOutputEvent.PromptResult<?> result = event.convert(CharMatcher.javaIsoControl().removeFrom(StringUtils.trim(text)));
                 if (result.newPrompt != null) {
                     // Need to prompt the user again
-                    console.onOutput(new UserInputValidationProblemEvent(event.getTimestamp(), result.newPrompt));
+                    console.onOutput(new UserInputValidationProblemEvent(event.getTime(), result.newPrompt));
                     return null;
                 } else {
                     // Send result

@@ -20,6 +20,7 @@ import org.gradle.internal.logging.console.DefaultUserInputReceiver
 import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.internal.logging.events.PromptOutputEvent
 import org.gradle.internal.logging.events.ReadStdInEvent
+import org.gradle.internal.time.Timestamp
 import org.gradle.launcher.daemon.protocol.CloseInput
 import org.gradle.launcher.daemon.protocol.ForwardInput
 import org.gradle.launcher.daemon.protocol.UserResponse
@@ -120,6 +121,7 @@ class DaemonClientInputForwarderTest extends ConcurrentSpecification {
 
     def "collects additional line of text when invalid user response received"() {
         def event = Stub(PromptOutputEvent)
+        _ * event.time >> Timestamp.ofMillis(100L)
         _ * event.convert("bad") >> PromptOutputEvent.PromptResult.newPrompt("try again")
         _ * event.convert("ok") >> PromptOutputEvent.PromptResult.response(12)
 
