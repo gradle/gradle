@@ -67,7 +67,7 @@ public class LoggingBackedStyledTextOutput extends AbstractLineChoppingStyledTex
         spans.add(new StyledTextOutputEvent.Span(this.style, buffer.toString()));
         buffer.setLength(0);
         OperationIdentifier buildOperationId = CurrentBuildOperationRef.instance().getId();
-        listener.onOutput(new StyledTextOutputEvent(clock.getCurrentTime(), category, logLevel, buildOperationId, spans));
+        listener.onOutput(new StyledTextOutputEvent(clock.getTimestamp(), category, logLevel, buildOperationId, spans));
         spans = new ArrayList<StyledTextOutputEvent.Span>();
     }
 }

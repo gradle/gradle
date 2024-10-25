@@ -46,7 +46,7 @@ public class OutputEventListenerBackedLogger extends BuildOperationAwareLogger {
 
     @Override
     void log(LogLevel logLevel, Throwable throwable, String message, OperationIdentifier operationIdentifier) {
-        LogEvent logEvent = new LogEvent(clock.getCurrentTime(), name, logLevel, message, throwable, operationIdentifier);
+        LogEvent logEvent = new LogEvent(clock.getTimestamp(), name, logLevel, message, throwable, operationIdentifier);
         OutputEventListener outputEventListener = context.getOutputEventListener();
         try {
             outputEventListener.onOutput(logEvent);

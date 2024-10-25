@@ -169,7 +169,7 @@ abstract class PrintStreamLoggingSystem implements LoggingSourceSystem {
         @Override
         public void onOutput(CharSequence output) {
             OperationIdentifier buildOperationId = CurrentBuildOperationRef.instance().getId();
-            StyledTextOutputEvent event = new StyledTextOutputEvent(clock.getCurrentTime(), category, null, buildOperationId, output.toString());
+            StyledTextOutputEvent event = new StyledTextOutputEvent(clock.getTimestamp(), category, null, buildOperationId, output.toString());
             listener.onOutput(event);
         }
     }

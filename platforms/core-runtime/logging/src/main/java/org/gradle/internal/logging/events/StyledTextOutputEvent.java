@@ -35,6 +35,10 @@ public class StyledTextOutputEvent extends RenderableOutputEvent implements org.
     private final List<Span> spans;
 
     public StyledTextOutputEvent(long timestamp, String category, LogLevel logLevel, @Nullable OperationIdentifier buildOperationIdentifier, String text) {
+        this(Timestamp.ofMillis(timestamp), category, logLevel, buildOperationIdentifier, text);
+    }
+
+    public StyledTextOutputEvent(Timestamp timestamp, String category, LogLevel logLevel, @Nullable OperationIdentifier buildOperationIdentifier, String text) {
         this(timestamp, category, logLevel, buildOperationIdentifier, Collections.singletonList(new Span(StyledTextOutput.Style.Normal, text)));
     }
 
@@ -65,12 +69,12 @@ public class StyledTextOutputEvent extends RenderableOutputEvent implements org.
     }
 
     public StyledTextOutputEvent withLogLevel(LogLevel logLevel) {
-        return new StyledTextOutputEvent(getTimestamp(), getCategory(), logLevel, getBuildOperationId(), spans);
+        return new StyledTextOutputEvent(getTime(), getCategory(), logLevel, getBuildOperationId(), spans);
     }
 
     @Override
     public StyledTextOutputEvent withBuildOperationId(OperationIdentifier buildOperationId) {
-        return new StyledTextOutputEvent(getTimestamp(), getCategory(), getLogLevel(), buildOperationId, spans);
+        return new StyledTextOutputEvent(getTime(), getCategory(), getLogLevel(), buildOperationId, spans);
     }
 
     @Override
