@@ -40,7 +40,7 @@ public class PersistentJvmMetadataDetector implements JvmMetadataDetector, Close
 
     public PersistentJvmMetadataDetector(JvmMetadataDetector delegate, CacheBuilder cacheBuilder, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
         this.delegate = delegate;
-        this.cache = cacheBuilder.withInitialLockMode(FileLockManager.LockMode.OnDemand).open();
+        this.cache = cacheBuilder.withInitialLockMode(FileLockManager.LockMode.None).open();
         // TODO: This cache should be cleaned up
         IndexedCacheParameters<File, JvmInstallationMetadata> parameters = IndexedCacheParameters.of(
             "metadata",
@@ -54,7 +54,7 @@ public class PersistentJvmMetadataDetector implements JvmMetadataDetector, Close
     public JvmInstallationMetadata getMetadata(InstallationLocation javaInstallationLocation) {
         // If the Java installation was auto-provisioned, we can trust that it will not change
         if (javaInstallationLocation.isAutoProvisioned()) {
-            return indexedCache.get(javaInstallationLocation.getLocation(), key -> delegate.getMetadata(javaInstallationLocation));
+            return cache.useCache(() -> indexedCache.get(javaInstallationLocation.getLocation(), key -> delegate.getMetadata(javaInstallationLocation)));
         } else {
             // Otherwise, we need to reprobe each time
             return delegate.getMetadata(javaInstallationLocation);
