@@ -49,7 +49,7 @@ class LoggingBuildOperationProgressBroadcasterTest extends Specification {
         bridge.onOutput(eventWithBuildOperationId)
 
         then:
-        1 * buildOperationProgressEventEmitter.emit(_, _, _) >> { OperationIdentifier operationIdentifier, long timestamp, Object details ->
+        1 * buildOperationProgressEventEmitter.emit(_, _, _) >> { OperationIdentifier operationIdentifier, def timestamp, Object details ->
             assert operationIdentifier == testOperationId
             assert details == eventWithBuildOperationId
         }
@@ -59,7 +59,7 @@ class LoggingBuildOperationProgressBroadcasterTest extends Specification {
         bridge.onOutput(eventWithFallbackBuildOperationId)
 
         then:
-        1 * buildOperationProgressEventEmitter.emit(_, _, _) >> { OperationIdentifier operationIdentifier, long timestamp, Object details ->
+        1 * buildOperationProgressEventEmitter.emit(_, _, _) >> { OperationIdentifier operationIdentifier, def timestamp, Object details ->
             assert operationIdentifier == fallbackOperationId
             assert details == eventWithFallbackBuildOperationId
         }

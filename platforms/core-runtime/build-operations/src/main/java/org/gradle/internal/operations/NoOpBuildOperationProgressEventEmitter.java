@@ -16,11 +16,13 @@
 
 package org.gradle.internal.operations;
 
+import org.gradle.internal.time.Timestamp;
+
 import javax.annotation.Nullable;
 
 public class NoOpBuildOperationProgressEventEmitter implements BuildOperationProgressEventEmitter {
     @Override
-    public void emit(OperationIdentifier operationIdentifier, long time, @Nullable Object details) {}
+    public void emit(OperationIdentifier operationIdentifier, Timestamp time, @Nullable Object details) {}
 
     @Override
     public void emitNow(@Nullable OperationIdentifier operationIdentifier, @Nullable Object details) {}

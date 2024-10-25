@@ -34,21 +34,17 @@ public class DefaultBuildOperationProgressEventEmitter implements BuildOperation
     }
 
     @Override
-    public void emit(@Nullable OperationIdentifier operationIdentifier, long time, @Nullable Object details) {
+    public void emit(@Nullable OperationIdentifier operationIdentifier, Timestamp time, @Nullable Object details) {
         // Explicit check in case of unsafe CurrentBuildOperationRef usage
         if (operationIdentifier == null) {
             throw new IllegalArgumentException("operationIdentifier is null");
         }
-        doEmit(operationIdentifier, Timestamp.ofMillis(time), details);
+        doEmit(operationIdentifier, time, details);
     }
 
     @Override
     public void emitNow(@Nullable OperationIdentifier operationIdentifier, @Nullable Object details) {
-        // Explicit check in case of unsafe CurrentBuildOperationRef usage
-        if (operationIdentifier == null) {
-            throw new IllegalArgumentException("operationIdentifier is null");
-        }
-        doEmit(operationIdentifier, clock.getTimestamp(), details);
+        emit(operationIdentifier, clock.getTimestamp(), details);
     }
 
     @Override

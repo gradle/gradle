@@ -18,6 +18,7 @@ package org.gradle.internal.operations;
 
 import org.gradle.internal.service.scopes.Scope.Global;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.gradle.internal.time.Timestamp;
 
 import javax.annotation.Nullable;
 
@@ -26,7 +27,7 @@ import javax.annotation.Nullable;
  */
 @ServiceScope(Global.class)
 public interface BuildOperationProgressEventEmitter {
-    void emit(OperationIdentifier operationIdentifier, long time, @Nullable Object details);
+    void emit(OperationIdentifier operationIdentifier, Timestamp time, @Nullable Object details);
 
     void emitNow(@Nullable OperationIdentifier operationIdentifier, @Nullable Object details);
     void emitNowIfCurrent(Object details);
