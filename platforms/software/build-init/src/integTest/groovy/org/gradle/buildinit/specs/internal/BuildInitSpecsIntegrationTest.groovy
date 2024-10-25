@@ -25,7 +25,6 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
-import org.gradle.util.internal.TextUtil
 
 @Requires(UnitTestPreconditions.Jdk17OrLater)
 class BuildInitSpecsIntegrationTest extends AbstractInitIntegrationSpec implements TestsBuildInitSpecsViaPlugin, JavaToolchainFixture {
