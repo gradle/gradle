@@ -241,13 +241,15 @@ public class ProviderConnection {
     }
 
     public void notifyDaemonsAboutChangedPaths(List<String> changedPaths, ProviderOperationParameters providerParameters) {
+        ServiceRegistry requestSpecificLoggingServices = LoggingServiceRegistry.newNestedLogging();
         Parameters params = initParams(providerParameters);
-        notifyDaemonClientExecuter.execute(params.daemonParams.getBaseDir(), client -> client.notifyDaemonsAboutChangedPaths(changedPaths));
+        notifyDaemonClientExecuter.execute(requestSpecificLoggingServices, params.daemonParams.getBaseDir(), client -> client.notifyDaemonsAboutChangedPaths(changedPaths));
     }
 
     public void stopWhenIdle(ProviderOperationParameters providerParameters) {
+        ServiceRegistry requestSpecificLoggingServices = LoggingServiceRegistry.newNestedLogging();
         Parameters params = initParams(providerParameters);
-        shutdownCoordinator.stopStartedDaemons(params.daemonParams.getBaseDir());
+        shutdownCoordinator.stopStartedDaemons(requestSpecificLoggingServices, params.daemonParams.getBaseDir());
     }
 
     private Object run(

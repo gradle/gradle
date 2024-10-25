@@ -44,12 +44,6 @@ import org.gradle.tooling.internal.provider.serialization.WellKnownClassLoaderRe
  * Shared services for a tooling API provider connection.
  */
 public class ConnectionScopeServices implements ServiceRegistrationProvider {
-    private final ServiceRegistry loggingServices;
-
-    public ConnectionScopeServices(ServiceRegistry loggingServices) {
-        this.loggingServices = loggingServices;
-    }
-
     void configure(ServiceRegistration serviceRegistration) {
         serviceRegistration.addProvider(new DaemonClientGlobalServices());
     }
@@ -63,12 +57,12 @@ public class ConnectionScopeServices implements ServiceRegistrationProvider {
 
     @Provides
     DaemonStopClientExecuter createDaemonStopClientFactory(DaemonClientFactory daemonClientFactory, FileCollectionFactory fileCollectionFactory) {
-        return new DaemonStopClientExecuter(loggingServices, daemonClientFactory);
+        return new DaemonStopClientExecuter(daemonClientFactory);
     }
 
     @Provides
     NotifyDaemonClientExecuter createNotifyDaemonClientExecuter(DaemonClientFactory daemonClientFactory, FileCollectionFactory fileCollectionFactory) {
-        return new NotifyDaemonClientExecuter(loggingServices, daemonClientFactory);
+        return new NotifyDaemonClientExecuter(daemonClientFactory);
     }
 
     @Provides

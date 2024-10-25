@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.provider;
 
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.launcher.daemon.client.DaemonStartListener;
@@ -40,7 +41,7 @@ public class ShutdownCoordinator implements DaemonStartListener {
         daemons.add(daemon);
     }
 
-    public void stopStartedDaemons(File daemonBaseDir) {
-        client.execute(daemonBaseDir, daemonStopClient -> daemonStopClient.gracefulStop(daemons));
+    public void stopStartedDaemons(ServiceRegistry requestSpecificLoggingServices, File daemonBaseDir) {
+        client.execute(requestSpecificLoggingServices, daemonBaseDir, daemonStopClient -> daemonStopClient.gracefulStop(daemons));
     }
 }

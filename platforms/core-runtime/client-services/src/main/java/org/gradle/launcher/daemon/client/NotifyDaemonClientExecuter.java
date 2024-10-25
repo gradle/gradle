@@ -29,15 +29,13 @@ import java.util.function.Consumer;
 @ServiceScope(Scope.Global.class)
 public class NotifyDaemonClientExecuter {
 
-    private final ServiceRegistry loggingServices;
     private final DaemonClientFactory daemonClientFactory;
 
-    public NotifyDaemonClientExecuter(ServiceRegistry loggingServices, DaemonClientFactory daemonClientFactory) {
-        this.loggingServices = loggingServices;
+    public NotifyDaemonClientExecuter(DaemonClientFactory daemonClientFactory) {
         this.daemonClientFactory = daemonClientFactory;
     }
 
-    public void execute(File daemonBaseDir, Consumer<NotifyDaemonAboutChangedPathsClient> action) {
+    public void execute(ServiceRegistry loggingServices, File daemonBaseDir, Consumer<NotifyDaemonAboutChangedPathsClient> action) {
         ServiceRegistry clientServices = daemonClientFactory.createMessageDaemonServices(loggingServices, daemonBaseDir);
         try {
             NotifyDaemonAboutChangedPathsClient daemonStopClient = clientServices.get(NotifyDaemonAboutChangedPathsClient.class);

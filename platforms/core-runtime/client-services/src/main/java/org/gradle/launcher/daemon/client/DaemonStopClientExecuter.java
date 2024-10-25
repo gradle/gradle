@@ -32,15 +32,13 @@ import java.util.function.Consumer;
 @ServiceScope(Scope.Global.class)
 public class DaemonStopClientExecuter {
 
-    private final ServiceRegistry loggingServices;
     private final DaemonClientFactory daemonClientFactory;
 
-    public DaemonStopClientExecuter(ServiceRegistry loggingServices, DaemonClientFactory daemonClientFactory) {
-        this.loggingServices = loggingServices;
+    public DaemonStopClientExecuter(DaemonClientFactory daemonClientFactory) {
         this.daemonClientFactory = daemonClientFactory;
     }
 
-    public void execute(File daemonBaseDir, Consumer<DaemonStopClient> action) {
+    public void execute(ServiceRegistry loggingServices, File daemonBaseDir, Consumer<DaemonStopClient> action) {
         ServiceRegistry clientServices = daemonClientFactory.createMessageDaemonServices(loggingServices, daemonBaseDir);
         try {
             DaemonStopClient daemonStopClient = clientServices.get(DaemonStopClient.class);

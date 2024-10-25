@@ -121,7 +121,7 @@ public class DefaultConnection implements ConnectionVersion4,
         buildProcessState = new BuildProcessState(true, AgentStatus.disabled(), ClassPath.EMPTY, loggingServices, NativeServices.getInstance()) {
             @Override
             protected void addProviders(ServiceRegistryBuilder builder) {
-                builder.provider(new ConnectionScopeServices(loggingServices));
+                builder.provider(new ConnectionScopeServices());
             }
         };
         adapter = buildProcessState.getServices().get(ProtocolToModelAdapter.class);
@@ -239,13 +239,13 @@ public class DefaultConnection implements ConnectionVersion4,
 
     @Override
     public void notifyDaemonsAboutChangedPaths(List<String> changedPaths, BuildParameters operationParameters) {
-        ProviderOperationParameters parameters = validateAndConvert(operationParameters);
-        connection.notifyDaemonsAboutChangedPaths(changedPaths, parameters);
+        ProviderOperationParameters providerParameters = validateAndConvert(operationParameters);
+        connection.notifyDaemonsAboutChangedPaths(changedPaths, providerParameters);
     }
 
     @Override
     public void stopWhenIdle(BuildParameters operationParameters) {
-        ProviderOperationParameters parameters = validateAndConvert(operationParameters);
-        connection.stopWhenIdle(parameters);
+        ProviderOperationParameters providerParameters = validateAndConvert(operationParameters);
+        connection.stopWhenIdle(providerParameters);
     }
 }
