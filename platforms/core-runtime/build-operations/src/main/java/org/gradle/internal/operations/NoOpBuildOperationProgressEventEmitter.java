@@ -20,16 +20,13 @@ import javax.annotation.Nullable;
 
 public class NoOpBuildOperationProgressEventEmitter implements BuildOperationProgressEventEmitter {
     @Override
-    public void emit(OperationIdentifier operationIdentifier, long timestamp, @Nullable Object details) {}
+    public void emit(OperationIdentifier operationIdentifier, long time, @Nullable Object details) {}
 
     @Override
     public void emitNow(@Nullable OperationIdentifier operationIdentifier, @Nullable Object details) {}
 
     @Override
     public void emitNowIfCurrent(Object details) {}
-
-    @Override
-    public void emitIfCurrent(long time, Object details) {}
 
     @Override
     public void emitNowForCurrent(Object details) {}
