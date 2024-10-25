@@ -17,9 +17,10 @@
 package org.gradle.internal.logging.events;
 
 import org.gradle.api.logging.LogLevel;
-import org.gradle.internal.operations.logging.LogEventLevel;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.operations.OperationIdentifier;
+import org.gradle.internal.operations.logging.LogEventLevel;
+import org.gradle.internal.time.Timestamp;
 
 import javax.annotation.Nullable;
 
@@ -33,7 +34,7 @@ public class LogEvent extends RenderableOutputEvent implements org.gradle.intern
     }
 
     public LogEvent(long timestamp, String category, LogLevel logLevel, String message, @Nullable Throwable throwable, @Nullable OperationIdentifier buildOperationIdentifier) {
-        super(timestamp, category, logLevel, buildOperationIdentifier);
+        super(Timestamp.ofMillis(timestamp), category, logLevel, buildOperationIdentifier);
         this.message = message;
         this.throwable = throwable;
     }

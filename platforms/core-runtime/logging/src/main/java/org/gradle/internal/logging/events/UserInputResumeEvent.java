@@ -18,10 +18,11 @@ package org.gradle.internal.logging.events;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.operations.OperationIdentifier;
+import org.gradle.internal.time.Timestamp;
 
 public class UserInputResumeEvent extends RenderableOutputEvent implements InteractiveEvent {
     public UserInputResumeEvent(long timestamp) {
-        super(timestamp, "prompt", LogLevel.QUIET, null);
+        super(Timestamp.ofMillis(timestamp), "prompt", LogLevel.QUIET, null);
     }
 
     @Override

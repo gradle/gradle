@@ -16,6 +16,7 @@
 
 package org.gradle.internal.logging.events;
 
+import org.gradle.internal.time.Timestamp;
 import org.gradle.util.internal.TextUtil;
 
 import java.util.List;
@@ -26,7 +27,7 @@ public class SelectOptionPromptEvent extends PromptOutputEvent {
     private final int defaultOption;
 
     public SelectOptionPromptEvent(long timestamp, String question, List<String> options, int defaultOption) {
-        super(timestamp);
+        super(Timestamp.ofMillis(timestamp));
         this.question = question;
         this.options = options;
         this.defaultOption = defaultOption;

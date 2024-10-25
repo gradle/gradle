@@ -19,6 +19,7 @@ package org.gradle.internal.logging.events;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.operations.OperationIdentifier;
+import org.gradle.internal.time.Timestamp;
 
 import javax.annotation.Nullable;
 
@@ -28,7 +29,7 @@ import javax.annotation.Nullable;
  * The response is delivered to the {@link org.gradle.api.internal.tasks.userinput.UserInputReader} service.
  */
 public abstract class PromptOutputEvent extends RenderableOutputEvent implements InteractiveEvent {
-    public PromptOutputEvent(long timestamp) {
+    public PromptOutputEvent(Timestamp timestamp) {
         super(timestamp, "prompt", LogLevel.QUIET, null);
     }
 

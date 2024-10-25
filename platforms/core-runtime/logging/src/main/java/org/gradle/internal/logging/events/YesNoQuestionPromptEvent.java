@@ -19,6 +19,7 @@ package org.gradle.internal.logging.events;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
+import org.gradle.internal.time.Timestamp;
 
 import java.util.List;
 
@@ -27,7 +28,7 @@ public class YesNoQuestionPromptEvent extends PromptOutputEvent {
     private final String question;
 
     public YesNoQuestionPromptEvent(long timestamp, String question) {
-        super(timestamp);
+        super(Timestamp.ofMillis(timestamp));
         this.question = question;
     }
 

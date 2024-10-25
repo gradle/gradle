@@ -27,12 +27,7 @@ public abstract class RenderableOutputEvent extends CategorisedOutputEvent {
     @Nullable
     private final OperationIdentifier buildOperationId;
 
-    protected RenderableOutputEvent(long timestamp, String category, LogLevel logLevel, @Nullable OperationIdentifier buildOperationId) {
-        this(Timestamp.ofMillis(timestamp), category, logLevel, buildOperationId);
-
-    }
-
-    public RenderableOutputEvent(Timestamp timestamp, String category, LogLevel logLevel, @Nullable OperationIdentifier buildOperationId) {
+    protected RenderableOutputEvent(Timestamp timestamp, String category, LogLevel logLevel, @Nullable OperationIdentifier buildOperationId) {
         super(timestamp, category, logLevel);
         this.buildOperationId = buildOperationId;
     }

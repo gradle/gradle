@@ -19,12 +19,13 @@ package org.gradle.internal.logging.events;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.operations.OperationIdentifier;
+import org.gradle.internal.time.Timestamp;
 
 public class UserInputValidationProblemEvent extends RenderableOutputEvent implements InteractiveEvent {
     private final String prompt;
 
     public UserInputValidationProblemEvent(long timestamp, String prompt) {
-        super(timestamp, "prompt", LogLevel.QUIET, null);
+        super(Timestamp.ofMillis(timestamp), "prompt", LogLevel.QUIET, null);
         this.prompt = prompt;
     }
 

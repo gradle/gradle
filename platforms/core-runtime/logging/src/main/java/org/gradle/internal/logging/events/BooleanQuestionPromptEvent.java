@@ -19,6 +19,7 @@ package org.gradle.internal.logging.events;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
+import org.gradle.internal.time.Timestamp;
 
 import java.util.List;
 import java.util.Locale;
@@ -29,7 +30,7 @@ public class BooleanQuestionPromptEvent extends PromptOutputEvent {
     private final boolean defaultValue;
 
     public BooleanQuestionPromptEvent(long timestamp, String question, boolean defaultValue) {
-        super(timestamp);
+        super(Timestamp.ofMillis(timestamp));
         this.question = question;
         this.defaultValue = defaultValue;
     }

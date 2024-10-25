@@ -21,6 +21,7 @@ import org.gradle.internal.SystemProperties;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.logging.LogEventLevel;
+import org.gradle.internal.time.Timestamp;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -38,7 +39,7 @@ public class StyledTextOutputEvent extends RenderableOutputEvent implements org.
     }
 
     public StyledTextOutputEvent(long timestamp, String category, LogLevel logLevel, @Nullable OperationIdentifier buildOperationIdentifier, List<Span> spans) {
-        super(timestamp, category, logLevel, buildOperationIdentifier);
+        super(Timestamp.ofMillis(timestamp), category, logLevel, buildOperationIdentifier);
         this.spans = new ArrayList<Span>(spans);
     }
 
