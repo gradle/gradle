@@ -20,16 +20,19 @@ import org.gradle.internal.logging.events.ProgressEvent
 import org.gradle.internal.logging.events.ProgressStartEvent
 import org.gradle.internal.operations.DefaultBuildOperationIdFactory
 import org.gradle.internal.operations.OperationIdentifier
-import org.gradle.internal.time.Clock
+import org.gradle.internal.time.MockClock
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
 class DefaultProgressLoggerFactoryTest extends ConcurrentSpec {
     def progressListener = Mock(ProgressListener)
-    def timeProvider = Mock(Clock)
+    def timeProvider = MockClock.create()
     def buildOperationIdFactory = new DefaultBuildOperationIdFactory()
     def factory = new DefaultProgressLoggerFactory(progressListener, timeProvider, buildOperationIdFactory)
 
     def progressLoggerBroadcastsEvents() {
+        given:
+        timeProvider.withStartTime(100L)
+
         when:
         def logger = factory.newOperation('logger')
         logger.description = 'description'
@@ -37,7 +40,6 @@ class DefaultProgressLoggerFactoryTest extends ConcurrentSpec {
 
         then:
         logger != null
-        1 * timeProvider.getCurrentTime() >> 100L
         1 * progressListener.started(!null) >> { ProgressStartEvent event ->
             assert event.timestamp == 100L
             assert event.category == 'logger'
@@ -55,10 +57,11 @@ class DefaultProgressLoggerFactoryTest extends ConcurrentSpec {
         }
 
         when:
+        timeProvider.increment(200L)
+
         logger.completed('completed', false)
 
         then:
-        1 * timeProvider.getCurrentTime() >> 300L
         1 * progressListener.completed(!null) >> { ProgressCompleteEvent event ->
             assert event.timestamp == 300L
             assert event.status == 'completed'

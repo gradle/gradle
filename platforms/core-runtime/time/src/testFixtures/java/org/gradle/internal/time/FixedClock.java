@@ -16,20 +16,37 @@
 
 package org.gradle.internal.time;
 
-
+/**
+ * A clock that always returns the same time.
+ */
 public class FixedClock implements Clock {
-    long current;
+    private final long current;
 
-    public FixedClock() {
-        this(System.currentTimeMillis());
-    }
-
-    public FixedClock(long startTime) {
+    private FixedClock(long startTime) {
         current = startTime;
     }
 
     @Override
     public long getCurrentTime() {
         return current;
+    }
+
+    /**
+     * Creates a clock that always returns 0 as the current time.
+     *
+     * @return the clock
+     */
+    public static Clock create() {
+        return new FixedClock(0L);
+    }
+
+    /**
+     * Creates a clock that always returns {@code startTime} as the current time.
+     *
+     * @param startTime start time in milliseconds since epoch
+     * @return the clock
+     */
+    public static Clock createAt(long startTime) {
+        return new FixedClock(startTime);
     }
 }

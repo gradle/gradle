@@ -28,6 +28,7 @@ dependencies {
     testImplementation(projects.serviceRegistryImpl)
     testImplementation(libs.commonsIo)
     testImplementation(testFixtures(projects.serialization))
+    testImplementation(testFixtures(projects.time))
 
     integTestDistributionRuntimeOnly(projects.distributionsCore)
 }

@@ -34,6 +34,7 @@ import org.gradle.internal.operations.DefaultBuildOperationRef
 import org.gradle.internal.operations.OperationIdentifier
 import org.gradle.internal.operations.OperationProgressEvent
 import org.gradle.internal.time.Clock
+import org.gradle.internal.time.FixedClock
 import org.gradle.problems.Location
 import org.gradle.problems.ProblemDiagnostics
 import org.gradle.problems.buildtree.ProblemDiagnosticsFactory
@@ -55,11 +56,11 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
     final diagnosticsFactory = Stub(ProblemDiagnosticsFactory)
 
     final handler = new LoggingDeprecatedFeatureHandler()
-    final Clock clock = Mock(Clock)
+    final Clock clock = FixedClock.create()
     final BuildOperationListener buildOperationListener = Mock()
     final CurrentBuildOperationRef currentBuildOperationRef = new CurrentBuildOperationRef()
     final BuildOperationProgressEventEmitter progressBroadcaster = new DefaultBuildOperationProgressEventEmitter(
-        clock::getCurrentTime, currentBuildOperationRef, buildOperationListener)
+        clock, currentBuildOperationRef, buildOperationListener)
 
     def setup() {
         _ * diagnosticsFactory.newStream() >> problemStream

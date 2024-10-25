@@ -26,7 +26,7 @@ import spock.lang.Specification
 import java.util.concurrent.TimeUnit
 
 class DefaultCacheConfigurationsTest extends Specification {
-    def clock = new FixedClock()
+    def clock = FixedClock.create()
     def cacheConfigurations = TestUtil.objectFactory().newInstance(DefaultCacheConfigurations.class, Mock(LegacyCacheCleanupEnablement), clock)
 
     def "timestamp supplier uses last configured retention value"() {

@@ -16,7 +16,7 @@
 
 package org.gradle.launcher.daemon.server.health.gc
 
-import org.gradle.internal.time.Clock
+import org.gradle.internal.time.FixedClock
 import spock.lang.Specification
 
 import java.lang.management.GarbageCollectorMXBean
@@ -27,7 +27,7 @@ class GarbageCollectionCheckTest extends Specification {
     def "throwables are not propagated out of the run method"() {
         given:
         def check = new GarbageCollectionCheck(
-            Mock(Clock),
+            FixedClock.create(),
             Mock(GarbageCollectorMXBean),
             ManagementFactory.memoryPoolMXBeans.find { it.type == MemoryType.HEAP }.name,
             Mock(SlidingWindow),
