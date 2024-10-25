@@ -40,4 +40,9 @@ public interface PropertyMetadata {
 
     @Nullable
     Object getPropertyValue(Object object);
+
+    boolean isNestedInput(Object object);
+
+    @Nullable
+    Object getInputSource(Object node);
 }

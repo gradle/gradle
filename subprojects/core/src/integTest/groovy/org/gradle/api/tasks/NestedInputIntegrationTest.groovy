@@ -1276,6 +1276,67 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         skipped ":crashTask"
     }
 
+    def "input sources are treated as nested inputs"() {
+        buildFile """
+            abstract class MyInputSource implements InputSource<String, Parameters> {
+
+                interface Parameters extends InputSourceParameters {
+                    @InputFile
+                    @PathSensitive(PathSensitivity.NONE)
+                    RegularFileProperty getMyNestedInputFile()
+                }
+
+                @Override
+                String obtain(){
+                    return parameters.myNestedInputFile.get().asFile.absolutePath
+                }
+            }
+            def myInputSource = project.providers.inputOf(MyInputSource) {
+                parameters {
+                    myNestedInputFile = file(project.providers.gradleProperty("inputFile"))
+                }
+            }
+
+            abstract class MyTask extends DefaultTask {
+                @Optional
+                @Input
+                abstract Property<String> getMyInput()
+
+                @OutputFile
+                abstract RegularFileProperty getMyOutput()
+
+                @TaskAction
+                void letsGo() {
+                    myOutput.get().asFile.text = new File(myInput.get()).text
+                }
+            }
+
+            tasks.register("myTask", MyTask) {
+                myInput = myInputSource
+                myOutput = file("build/outputFile.txt")
+            }
+
+        """
+
+        when:
+        file("input1.txt").text = "hello"
+        run("myTask", "-PinputFile=input1.txt")
+        then:
+        executedAndNotSkipped(":myTask")
+
+        when:
+        file("input2.txt").text = "hello"
+        run("myTask", "-PinputFile=input2.txt")
+        then:
+        skipped(":myTask")
+
+        when:
+        file("input3.txt").text = "hello1"
+        run("myTask", "-PinputFile=input3.txt", "--info")
+        then:
+        executedAndNotSkipped(":myTask")
+    }
+
     private TestFile nestedBeanWithAction(TestFile projectDir = temporaryFolder.testDirectory) {
         return projectDir.file("buildSrc/src/main/java/NestedBeanWithAction.java") << """
             import org.gradle.api.tasks.Nested;

@@ -125,6 +125,17 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
         return new OrElseProvider<>(this, Providers.internal(provider));
     }
 
+    @Override
+    public boolean isInputSource() {
+        return false;
+    }
+
+    @Nullable
+    @Override
+    public Object getInputSource() {
+        throw new IllegalStateException("No input source present" );
+    }
+
     @Deprecated
     @Override
     public final Provider<T> forUseAtConfigurationTime() {

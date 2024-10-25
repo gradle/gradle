@@ -171,4 +171,9 @@ public interface ProviderInternal<T> extends Provider<T>, ValueSupplier, TaskDep
     default ProviderInternal<T> withSideEffect(@Nullable SideEffect<? super T> sideEffect) {
         return WithSideEffectProvider.of(this, sideEffect);
     }
+
+    boolean isInputSource();
+
+    @Nullable
+    Object getInputSource();
 }

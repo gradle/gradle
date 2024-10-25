@@ -64,8 +64,10 @@ import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.project.taskfactory.TaskClassInfoStore;
 import org.gradle.api.internal.project.taskfactory.TaskFactory;
 import org.gradle.api.internal.properties.GradleProperties;
+import org.gradle.api.internal.provider.DefaultInputSourceProviderFactory;
 import org.gradle.api.internal.provider.DefaultProviderFactory;
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory;
+import org.gradle.api.internal.provider.InputSourceProviderFactory;
 import org.gradle.api.internal.provider.ValueSourceProviderFactory;
 import org.gradle.api.internal.provider.sources.process.ExecSpecFactory;
 import org.gradle.api.internal.provider.sources.process.ProcessOutputProviderFactory;
@@ -437,6 +439,26 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
+    protected InputSourceProviderFactory createInputSourceProviderFactory(
+        InstantiatorFactory instantiatorFactory,
+        IsolatableFactory isolatableFactory,
+        ServiceRegistry services,
+        GradleProperties gradleProperties,
+        ExecFactory execFactory,
+        ListenerManager listenerManager,
+        CalculatedValueFactory calculatedValueFactory
+    ) {
+        return new DefaultInputSourceProviderFactory(
+            instantiatorFactory,
+            isolatableFactory,
+            gradleProperties,
+            calculatedValueFactory,
+            new DefaultExecOperations(execFactory.forContext().withoutExternalProcessStartedListener().build()),
+            services
+        );
+    }
+
+    @Provides
     protected ExecSpecFactory createExecSpecFactory(ExecActionFactory execActionFactory) {
         return new DefaultExecSpecFactory(execActionFactory);
     }
@@ -450,11 +472,12 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
     protected ProviderFactory createProviderFactory(
         Instantiator instantiator,
         ValueSourceProviderFactory valueSourceProviderFactory,
+        InputSourceProviderFactory inputSourceProviderFactory,
         ProcessOutputProviderFactory processOutputProviderFactory,
         ListenerManager listenerManager,
         ObjectFactory objectFactory
     ) {
-        return instantiator.newInstance(DefaultProviderFactory.class, valueSourceProviderFactory, processOutputProviderFactory, listenerManager, objectFactory);
+        return instantiator.newInstance(DefaultProviderFactory.class, valueSourceProviderFactory, inputSourceProviderFactory, processOutputProviderFactory, listenerManager, objectFactory);
     }
 
     @Provides

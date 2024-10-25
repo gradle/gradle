@@ -33,6 +33,9 @@ import org.gradle.api.internal.provider.sources.process.DefaultExecOutput;
 import org.gradle.api.internal.provider.sources.process.ProcessOutputProviderFactory;
 import org.gradle.api.internal.provider.sources.process.ProcessOutputValueSource;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.InputSource;
+import org.gradle.api.provider.InputSourceParameters;
+import org.gradle.api.provider.InputSourceSpec;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.provider.ValueSource;
@@ -52,21 +55,25 @@ public class DefaultProviderFactory implements ProviderFactory {
     @Nullable
     private final ValueSourceProviderFactory valueSourceProviderFactory;
     @Nullable
+    private final InputSourceProviderFactory inputSourceProviderFactory;
+    @Nullable
     private final ProcessOutputProviderFactory processOutputProviderFactory;
 
     private final CredentialsProviderFactory credentialsProviderFactory;
 
     public DefaultProviderFactory() {
-        this(null, null, null, null);
+        this(null, null, null, null, null);
     }
 
     public DefaultProviderFactory(
         @Nullable ValueSourceProviderFactory valueSourceProviderFactory,
+        @Nullable InputSourceProviderFactory inputSourceProviderFactory,
         @Nullable ProcessOutputProviderFactory processOutputProviderFactory,
         @Nullable ListenerManager listenerManager,
         @Nullable ObjectFactory objectFactory
     ) {
         this.valueSourceProviderFactory = valueSourceProviderFactory;
+        this.inputSourceProviderFactory = inputSourceProviderFactory;
         this.processOutputProviderFactory = processOutputProviderFactory;
         this.credentialsProviderFactory = new CredentialsProviderFactory(this, objectFactory);
         if (listenerManager != null) {
@@ -212,6 +219,14 @@ public class DefaultProviderFactory implements ProviderFactory {
             throw new UnsupportedOperationException();
         }
         return valueSourceProviderFactory.createProviderOf(valueSourceType, configuration);
+    }
+
+    @Override
+    public <T, P extends InputSourceParameters> Provider<T> inputOf(Class<? extends InputSource<T, P>> inputSourceType, Action<? super InputSourceSpec<P>> configuration) {
+        if (inputSourceProviderFactory == null) {
+            throw new UnsupportedOperationException();
+        }
+        return inputSourceProviderFactory.createProviderOf(inputSourceType, configuration);
     }
 
     @Override

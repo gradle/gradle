@@ -61,6 +61,17 @@ public class TransformBackedProvider<OUT, IN> extends AbstractMinimalProvider<OU
     }
 
     @Override
+    public boolean isInputSource() {
+        return provider.isInputSource();
+    }
+
+    @Nullable
+    @Override
+    public Object getInputSource() {
+        return provider.getInputSource();
+    }
+
+    @Override
     public ExecutionTimeValue<? extends OUT> calculateExecutionTimeValue() {
         try (EvaluationContext.ScopeContext context = openScope()) {
             ExecutionTimeValue<? extends IN> value = provider.calculateExecutionTimeValue();

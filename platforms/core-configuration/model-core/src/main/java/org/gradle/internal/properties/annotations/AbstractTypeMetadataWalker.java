@@ -20,12 +20,14 @@ import com.google.common.reflect.TypeToken;
 import org.gradle.api.Named;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.reflect.JavaReflectionUtil;
+import org.gradle.internal.reflect.annotations.AnnotationCategory;
 
 import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -83,6 +85,64 @@ abstract class AbstractTypeMetadataWalker<T, V extends TypeMetadataWalker.TypeMe
         typeMetadata.getPropertiesMetadata().forEach(propertyMetadata -> {
             if (propertyMetadata.getPropertyType() == nestedAnnotation) {
                 walkNestedChild(node, getQualifiedName(parentQualifiedName, propertyMetadata.getPropertyName()), propertyMetadata, visitor, child -> walkNested(child, getQualifiedName(parentQualifiedName, propertyMetadata.getPropertyName()), propertyMetadata, visitor, nestedNodesOnPath, false));
+            } else if (propertyMetadata.isNestedInput(node)) {
+                Object inputSource = propertyMetadata.getInputSource(node);
+                String qualifiedName = getQualifiedName(parentQualifiedName, propertyMetadata.getPropertyName());
+                PropertyMetadata inputSourcePropertyMetadata = new PropertyMetadata() {
+
+                    @Override
+                    public String getPropertyName() {
+                        return propertyMetadata.getPropertyName();
+                    }
+
+                    @Override
+                    public boolean isAnnotationPresent(Class<? extends Annotation> annotationType) {
+                        return propertyMetadata.isAnnotationPresent(annotationType);
+                    }
+
+                    @Override
+                    public <S extends Annotation> Optional<S> getAnnotation(Class<S> annotationType) {
+                        return propertyMetadata.getAnnotation(annotationType);
+                    }
+
+                    @Override
+                    public Optional<Annotation> getAnnotationForCategory(AnnotationCategory category) {
+                        return propertyMetadata.getAnnotationForCategory(category);
+                    }
+
+                    @Override
+                    public boolean hasAnnotationForCategory(AnnotationCategory category) {
+                        return propertyMetadata.hasAnnotationForCategory(category);
+                    }
+
+                    @Override
+                    public Class<? extends Annotation> getPropertyType() {
+                        return propertyMetadata.getPropertyType();
+                    }
+
+                    @Override
+                    public TypeToken<?> getDeclaredType() {
+                        return propertyMetadata.getDeclaredType();
+                    }
+
+                    @Override
+                    @Nullable
+                    public Object getPropertyValue(Object object) {
+                        return inputSource;
+                    }
+
+                    @Override
+                    public boolean isNestedInput(Object object) {
+                        return propertyMetadata.isNestedInput(object);
+                    }
+
+                    @Nullable
+                    @Override
+                    public Object getInputSource(Object node) {
+                        return inputSource;
+                    }
+                };
+                walkNestedChild(node, qualifiedName, inputSourcePropertyMetadata, visitor, child -> walkNested(child, qualifiedName, propertyMetadata, visitor, nestedNodesOnPath, false));
             } else {
                 walkLeaf(node, parentQualifiedName, visitor, propertyMetadata);
             }

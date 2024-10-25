@@ -157,6 +157,17 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
     }
 
     @Override
+    public boolean isInputSource() {
+        return state.isExplicit() && value instanceof ProviderInternal<?> && ((ProviderInternal<?>) value).isInputSource();
+    }
+
+    @Nullable
+    @Override
+    public Object getInputSource() {
+        return ((ProviderInternal<?>) value).getInputSource();
+    }
+
+    @Override
     protected Value<? extends T> calculateOwnValue(ValueConsumer consumer) {
         try (EvaluationContext.ScopeContext context = openScope()) {
             beforeRead(context, consumer);

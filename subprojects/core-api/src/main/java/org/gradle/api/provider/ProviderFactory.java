@@ -254,6 +254,11 @@ public interface ProviderFactory {
         Action<? super ValueSourceSpec<P>> configuration
     );
 
+    <T, P extends InputSourceParameters> Provider<T> inputOf(
+        Class<? extends InputSource<T, P>> inputSourceType,
+        Action<? super InputSourceSpec<P>> configuration
+    );
+
     /**
      * Creates a {@link Provider} for the given {@link Credentials} type.
      *

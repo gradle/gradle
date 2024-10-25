@@ -31,6 +31,7 @@ import org.gradle.api.internal.catalog.problems.VersionCatalogProblemTestFor
 import org.gradle.api.internal.classpath.DefaultModuleRegistry
 import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.api.internal.properties.GradleProperties
+import org.gradle.api.internal.provider.DefaultInputSourceProviderFactory
 import org.gradle.api.internal.provider.DefaultProviderFactory
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory
 import org.gradle.api.model.ObjectFactory
@@ -71,6 +72,13 @@ class LibrariesSourceGeneratorTest extends AbstractVersionCatalogTest implements
     final ProviderFactory providerFactory = new DefaultProviderFactory(
         new DefaultValueSourceProviderFactory(
             new DefaultListenerManager(Scope.Build),
+            TestUtil.instantiatorFactory(),
+            new TestIsolatableFactory(),
+            Stub(GradleProperties),
+            TestUtil.calculatedValueContainerFactory(),
+            Stub(ExecOperations),
+            TestUtil.services()
+        ), new DefaultInputSourceProviderFactory(
             TestUtil.instantiatorFactory(),
             new TestIsolatableFactory(),
             Stub(GradleProperties),

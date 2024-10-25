@@ -136,4 +136,14 @@ class TestNamedProvider<T> implements ProviderInternal<T>, Named {
     <S> Provider<S> flatMap(Transformer<? extends Provider<? extends S>, ? super T> transformer) {
         throw new UnsupportedOperationException()
     }
+
+    @Override
+    boolean isInputSource() {
+        return false
+    }
+
+    @Override
+    Object getInputSource() {
+        return null
+    }
 }

@@ -21,7 +21,9 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.reflect.TypeToken;
 import org.gradle.api.internal.GeneratedSubclasses;
+import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
+import org.gradle.api.provider.Provider;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.internal.reflect.annotations.AnnotationCategory;
@@ -382,6 +384,27 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
         @Override
         public Object getPropertyValue(Object object) {
             return annotationMetadata.getPropertyValue(object);
+        }
+
+        @Override
+        public boolean isNestedInput(Object object) {
+            if (!isProvider()) {
+                return false;
+            }
+            Object propertyValue = getPropertyValue(object);
+            ProviderInternal<?> provider = (ProviderInternal<?>) propertyValue;
+            return provider.isInputSource();
+        }
+
+        @Override
+        public Object getInputSource(Object node) {
+            Object propertyValue = getPropertyValue(node);
+            ProviderInternal<?> provider = (ProviderInternal<?>) propertyValue;
+            return provider.getInputSource();
+        }
+
+        private boolean isProvider() {
+            return Provider.class.isAssignableFrom(getDeclaredType().getRawType());
         }
 
         @Override
