@@ -347,9 +347,9 @@ defaults {
         fails args
 
         then:
-        failure.assertHasCause(TextUtil.toPlatformLineSeparators("""Build init spec with type: 'unknown-project-type' was not found!
+        failure.assertHasCause("""Build init spec with type: 'unknown-project-type' was not found!
 Known types:
- - java-application"""))
+ - java-application""")
     }
 
     private void initSucceedsWithPluginSupplyingSpec(String pluginsProp = null, String type = null) {
