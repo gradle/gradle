@@ -16,27 +16,33 @@
 
 package org.gradle.internal.operations;
 
+import org.gradle.internal.time.Timestamp;
+
 import javax.annotation.Nullable;
 
 public final class OperationFinishEvent {
-    private final long startTime;
-    private final long endTime;
+    private final Timestamp startTime;
+    private final Timestamp endTime;
     private final Throwable failure;
     private final Object result;
 
     public OperationFinishEvent(long startTime, long endTime, @Nullable Throwable failure, @Nullable Object result) {
-        this.startTime = startTime;
-        this.endTime = endTime;
+        this(Timestamp.ofMillis(startTime), Timestamp.ofMillis(endTime), failure, result);
+    }
+
+    public OperationFinishEvent(Timestamp start, Timestamp end, @Nullable Throwable failure, @Nullable Object result) {
+        this.startTime = start;
+        this.endTime = end;
         this.failure = failure;
         this.result = result;
     }
 
     public long getStartTime() {
-        return startTime;
+        return startTime.getTimeMs();
     }
 
     public long getEndTime() {
-        return endTime;
+        return endTime.getTimeMs();
     }
 
     @Nullable

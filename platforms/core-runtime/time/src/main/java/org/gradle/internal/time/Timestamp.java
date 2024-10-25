@@ -33,4 +33,9 @@ public final class Timestamp {
     public static Timestamp ofMillis(long epochMs) {
         return new Timestamp(epochMs);
     }
+
+    @Override
+    public String toString() {
+        return timeMs + "ms";
+    }
 }
