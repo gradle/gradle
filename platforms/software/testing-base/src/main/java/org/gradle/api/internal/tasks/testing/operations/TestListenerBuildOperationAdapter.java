@@ -34,6 +34,7 @@ import org.gradle.internal.operations.OperationStartEvent;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.time.Clock;
+import org.gradle.internal.time.Timestamp;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -59,7 +60,7 @@ public class TestListenerBuildOperationAdapter implements TestListenerInternal {
 
     @Override
     public void started(final TestDescriptorInternal testDescriptor, TestStartEvent startEvent) {
-        long currentTime = clock.getCurrentTime();
+        Timestamp currentTime = clock.getTimestamp();
         BuildOperationDescriptor testBuildOperationDescriptor = createTestBuildOperationDescriptor(testDescriptor, startEvent);
         runningTests.put(testDescriptor, new InProgressExecuteTestBuildOperation(testBuildOperationDescriptor, currentTime));
         listener.started(testBuildOperationDescriptor, new OperationStartEvent(currentTime));
@@ -67,14 +68,14 @@ public class TestListenerBuildOperationAdapter implements TestListenerInternal {
 
     @Override
     public void completed(TestDescriptorInternal testDescriptor, TestResult testResult, TestCompleteEvent completeEvent) {
-        long currentTime = clock.getCurrentTime();
+        Timestamp currentTime = clock.getTimestamp();
         InProgressExecuteTestBuildOperation runningOp = runningTests.remove(testDescriptor);
         listener.finished(runningOp.descriptor, new OperationFinishEvent(runningOp.startTime, currentTime, testResult.getException(), new Result(testResult)));
     }
 
     @Override
     public void output(final TestDescriptorInternal testDescriptor, final TestOutputEvent event) {
-        long currentTime = clock.getCurrentTime();
+        Timestamp currentTime = clock.getTimestamp();
         InProgressExecuteTestBuildOperation runningOp = runningTests.get(testDescriptor);
         listener.progress(runningOp.descriptor.getId(), new OperationProgressEvent(currentTime, new OutputProgress(event)));
     }
@@ -143,9 +144,9 @@ public class TestListenerBuildOperationAdapter implements TestListenerInternal {
     private static class InProgressExecuteTestBuildOperation {
         final BuildOperationDescriptor descriptor;
 
-        final long startTime;
+        final Timestamp startTime;
 
-        InProgressExecuteTestBuildOperation(BuildOperationDescriptor testBuildOperationDescriptor, long startTime) {
+        InProgressExecuteTestBuildOperation(BuildOperationDescriptor testBuildOperationDescriptor, Timestamp startTime) {
             this.descriptor = testBuildOperationDescriptor;
             this.startTime = startTime;
         }
