@@ -17,16 +17,19 @@ package org.gradle.api.internal.tasks.testing.processors
 
 import org.gradle.api.internal.tasks.testing.TestClassProcessor
 import org.gradle.api.internal.tasks.testing.TestResultProcessor
-import org.gradle.internal.time.Clock
+import org.gradle.internal.time.MockClock
 import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.internal.work.WorkerLeaseService
 import spock.lang.Specification
 
 class TestMainActionTest extends Specification {
+    private static final long CLOCK_START = 100L
+    private static final long CLOCK_INCREMENT = MockClock.DEFAULT_AUTOINCREMENT_MS
+
     private final TestClassProcessor processor = Mock()
     private final TestResultProcessor resultProcessor = Mock()
     private final Runnable detector = Mock()
-    private final Clock timeProvider = Mock()
+    private final def timeProvider = MockClock.createAutoIncrementingAt(CLOCK_START)
     private final WorkerLeaseRegistry.WorkerLease lease = Mock()
     private final WorkerLeaseService workerLeaseService = Mock()
     private final TestMainAction action = new TestMainAction(detector, processor, resultProcessor, workerLeaseService, timeProvider, "rootTestSuiteId456", "Test Run")
@@ -36,8 +39,7 @@ class TestMainActionTest extends Specification {
         action.run()
 
         then:
-        1 * timeProvider.getCurrentTime() >> 100L
-        1 * resultProcessor.started({ it.id == 'rootTestSuiteId456' }, { it.startTime == 100L })
+        1 * resultProcessor.started({ it.id == 'rootTestSuiteId456' }, { it.startTime == CLOCK_START })
         then:
         1 * processor.startProcessing(!null)
         then:
@@ -46,9 +48,8 @@ class TestMainActionTest extends Specification {
         1 * workerLeaseService.blocking(_) >> { Runnable runnable -> runnable.run() }
         1 * processor.stop()
         then:
-        1 * timeProvider.getCurrentTime() >> 200L
         1 * resultProcessor.completed({ it == "rootTestSuiteId456" }, { event ->
-            event.endTime == 200L && event.resultType == null
+            event.endTime == CLOCK_START + CLOCK_INCREMENT && event.resultType == null
         })
         0 * _._
     }
