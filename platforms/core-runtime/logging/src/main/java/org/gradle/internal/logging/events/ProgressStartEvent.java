@@ -20,6 +20,7 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.logging.LogEventLevel;
+import org.gradle.internal.time.Timestamp;
 
 import javax.annotation.Nullable;
 
@@ -42,6 +43,22 @@ public class ProgressStartEvent extends CategorisedOutputEvent implements org.gr
         OperationIdentifier progressOperationId,
         @Nullable OperationIdentifier parentProgressOperationId,
         long timestamp,
+        String category,
+        String description,
+        @Nullable String loggingHeader,
+        String status,
+        int totalProgress,
+        boolean buildOperationStart,
+        @Nullable OperationIdentifier buildOperationId,
+        @Nullable BuildOperationCategory buildOperationCategory
+    ) {
+        this(progressOperationId, parentProgressOperationId, Timestamp.ofMillis(timestamp), category, description, loggingHeader, status, totalProgress, buildOperationStart, buildOperationId, buildOperationCategory);
+    }
+
+    public ProgressStartEvent(
+        OperationIdentifier progressOperationId,
+        @Nullable OperationIdentifier parentProgressOperationId,
+        Timestamp timestamp,
         String category,
         String description,
         @Nullable String loggingHeader,
@@ -117,7 +134,7 @@ public class ProgressStartEvent extends CategorisedOutputEvent implements org.gr
     }
 
     public ProgressStartEvent withParentProgressOperation(OperationIdentifier parentProgressOperationId) {
-        return new ProgressStartEvent(progressOperationId, parentProgressOperationId, getTimestamp(), getCategory(), description, loggingHeader, status, totalProgress, buildOperationStart, buildOperationId, buildOperationCategory);
+        return new ProgressStartEvent(progressOperationId, parentProgressOperationId, getTime(), getCategory(), description, loggingHeader, status, totalProgress, buildOperationStart, buildOperationId, buildOperationCategory);
     }
 
     @Override

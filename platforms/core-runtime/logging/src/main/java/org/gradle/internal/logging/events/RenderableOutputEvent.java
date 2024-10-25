@@ -19,13 +19,20 @@ package org.gradle.internal.logging.events;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.operations.OperationIdentifier;
+import org.gradle.internal.time.Timestamp;
 
 import javax.annotation.Nullable;
 
 public abstract class RenderableOutputEvent extends CategorisedOutputEvent {
-    private OperationIdentifier buildOperationId;
+    @Nullable
+    private final OperationIdentifier buildOperationId;
 
     protected RenderableOutputEvent(long timestamp, String category, LogLevel logLevel, @Nullable OperationIdentifier buildOperationId) {
+        this(Timestamp.ofMillis(timestamp), category, logLevel, buildOperationId);
+
+    }
+
+    public RenderableOutputEvent(Timestamp timestamp, String category, LogLevel logLevel, @Nullable OperationIdentifier buildOperationId) {
         super(timestamp, category, logLevel);
         this.buildOperationId = buildOperationId;
     }

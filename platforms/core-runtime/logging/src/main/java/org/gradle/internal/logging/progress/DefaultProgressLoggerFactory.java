@@ -215,7 +215,7 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
             listener.started(new ProgressStartEvent(
                 progressOperationId,
                 parentProgressId,
-                clock.getCurrentTime(),
+                clock.getTimestamp(),
                 category,
                 description,
                 loggingHeader,

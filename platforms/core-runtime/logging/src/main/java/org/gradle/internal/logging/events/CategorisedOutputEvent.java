@@ -17,19 +17,24 @@
 package org.gradle.internal.logging.events;
 
 import org.gradle.api.logging.LogLevel;
+import org.gradle.internal.time.Timestamp;
 
 public class CategorisedOutputEvent extends OutputEvent {
     private final String category;
     private final LogLevel logLevel;
-    private final long timestamp;
+    private final Timestamp timestamp;
 
-    public CategorisedOutputEvent(long timestamp, String category, LogLevel logLevel) {
+    public CategorisedOutputEvent(Timestamp timestamp, String category, LogLevel logLevel) {
         this.timestamp = timestamp;
         this.category = category;
         this.logLevel = logLevel;
     }
 
     public long getTimestamp() {
+        return timestamp.getTimeMs();
+    }
+
+    public Timestamp getTime() {
         return timestamp;
     }
 
