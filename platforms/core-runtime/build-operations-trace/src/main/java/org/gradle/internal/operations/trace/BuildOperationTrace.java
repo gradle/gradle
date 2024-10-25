@@ -32,7 +32,6 @@ import com.fasterxml.jackson.databind.ser.BeanSerializerModifier;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.StartParameter;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.internal.Cast;
@@ -456,7 +455,7 @@ public class BuildOperationTrace implements Stoppable {
         return file(basePath, "-log.txt");
     }
 
-    private static File file(String base, String suffix) {
+    private static File file(@Nullable String base, String suffix) {
         return new File((base == null || base.trim().isEmpty() ? "operations" : base) + suffix).getAbsoluteFile();
     }
 
@@ -472,7 +471,7 @@ public class BuildOperationTrace implements Stoppable {
 
     }
 
-    public static Object toSerializableModel(Object object) {
+    public static @Nullable Object toSerializableModel(@Nullable Object object) {
         if (object instanceof CustomOperationTraceSerialization) {
             return ((CustomOperationTraceSerialization) object).getCustomOperationTraceSerializableModel();
         } else {
@@ -480,7 +479,6 @@ public class BuildOperationTrace implements Stoppable {
         }
     }
 
-    @NonNullApi
     @SuppressWarnings("rawtypes")
     public static class JsonClassSerializer extends JsonSerializer<Class> {
         @Override
@@ -500,7 +498,6 @@ public class BuildOperationTrace implements Stoppable {
             .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
     }
 
-    @NonNullApi
     public static class JsonThrowableSerializer extends JsonSerializer<Throwable> {
         @Override
         public void serialize(Throwable throwable, JsonGenerator gen, SerializerProvider serializers) throws IOException {
@@ -521,7 +518,6 @@ public class BuildOperationTrace implements Stoppable {
      * Attempting to serialize any of these causes a stack overflow, so
      * just convert them to an easily serializable {@link Map} first.
      */
-    @NonNullApi
     public static class JsonAttributeContainerSerializer extends JsonSerializer<AttributeContainer> {
         @Override
         public void serialize(AttributeContainer attributeContainer, JsonGenerator gen, SerializerProvider serializers) throws IOException {
