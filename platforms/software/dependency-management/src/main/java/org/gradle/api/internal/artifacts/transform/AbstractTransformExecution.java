@@ -146,8 +146,8 @@ abstract class AbstractTransformExecution implements UnitOfWork {
             @Override
             public TransformExecutionResult call(BuildOperationContext context) {
                 try {
-                    if (LOGGER.isInfoEnabled()) {
-                        LOGGER.info("Transforming {} with {}", subject.getDisplayName(), transform.getDisplayName());
+                    if (LOGGER.isDebugEnabled()) {
+                        LOGGER.debug("Transforming {} with {}", subject.getDisplayName(), transform.getDisplayName());
                     }
                     File workspace = executionRequest.getWorkspace();
                     InputChangesInternal inputChanges = executionRequest.getInputChanges().orElse(null);
