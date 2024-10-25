@@ -115,7 +115,7 @@ public class DaemonMessageSerializer {
         registry.register(ReadStdInEvent.class, new ReadStdInEventSerializer());
         registry.register(StyledTextOutputEvent.class, new StyledTextOutputEventSerializer(timestampSerializer, logLevelSerializer, new ListSerializer<>(new SpanSerializer(factory.getSerializerFor(StyledTextOutput.Style.class)))));
         registry.register(ProgressStartEvent.class, new ProgressStartEventSerializer(timestampSerializer));
-        registry.register(ProgressCompleteEvent.class, new ProgressCompleteEventSerializer());
+        registry.register(ProgressCompleteEvent.class, new ProgressCompleteEventSerializer(timestampSerializer));
         registry.register(ProgressEvent.class, new ProgressEventSerializer());
         registry.register(LogLevelChangeEvent.class, new LogLevelChangeEventSerializer(logLevelSerializer));
         registry.register(OutputMessage.class, new OutputMessageSerializer(registry.build(OutputEvent.class)));

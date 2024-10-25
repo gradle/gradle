@@ -18,14 +18,19 @@ package org.gradle.internal.logging.events;
 
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.operations.OperationIdentifier;
+import org.gradle.internal.time.Timestamp;
 
 public class ProgressCompleteEvent extends OutputEvent {
-    private final long timestamp;
+    private final Timestamp timestamp;
     private final String status;
     private final OperationIdentifier progressOperationId;
     private final boolean failed;
 
     public ProgressCompleteEvent(OperationIdentifier progressOperationId, long timestamp, String status, boolean failed) {
+        this(progressOperationId, Timestamp.ofMillis(timestamp), status, failed);
+    }
+
+    public ProgressCompleteEvent(OperationIdentifier progressOperationId, Timestamp timestamp, String status, boolean failed) {
         this.progressOperationId = progressOperationId;
         this.timestamp = timestamp;
         this.status = status;
@@ -55,6 +60,10 @@ public class ProgressCompleteEvent extends OutputEvent {
     }
 
     public long getTimestamp() {
+        return timestamp.getTimeMs();
+    }
+
+    public Timestamp getTime() {
         return timestamp;
     }
 }

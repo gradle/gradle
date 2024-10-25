@@ -16,17 +16,24 @@
 
 package org.gradle.internal.logging.serializer;
 
-import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.logging.events.ProgressCompleteEvent;
+import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
+import org.gradle.internal.time.Timestamp;
 
 public class ProgressCompleteEventSerializer implements Serializer<ProgressCompleteEvent> {
+    private final Serializer<Timestamp> timestampSerializer;
+
+    public ProgressCompleteEventSerializer(Serializer<Timestamp> timestampSerializer) {
+        this.timestampSerializer = timestampSerializer;
+    }
+
     @Override
     public void write(Encoder encoder, ProgressCompleteEvent event) throws Exception {
         encoder.writeSmallLong(event.getProgressOperationId().getId());
-        encoder.writeLong(event.getTimestamp());
+        timestampSerializer.write(encoder, event.getTime());
         encoder.writeString(event.getStatus());
         encoder.writeBoolean(event.isFailed());
     }
@@ -34,7 +41,7 @@ public class ProgressCompleteEventSerializer implements Serializer<ProgressCompl
     @Override
     public ProgressCompleteEvent read(Decoder decoder) throws Exception {
         OperationIdentifier id = new OperationIdentifier(decoder.readSmallLong());
-        long timestamp = decoder.readLong();
+        Timestamp timestamp = timestampSerializer.read(decoder);
         String status = decoder.readString();
         boolean failed = decoder.readBoolean();
         return new ProgressCompleteEvent(id, timestamp, status, failed);

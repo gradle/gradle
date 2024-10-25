@@ -31,6 +31,7 @@ import org.gradle.internal.logging.events.UpdateNowEvent;
 import org.gradle.internal.logging.format.LogHeaderFormatter;
 import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.operations.OperationIdentifier;
+import org.gradle.internal.time.Timestamp;
 import org.gradle.util.internal.GUtil;
 
 import javax.annotation.Nullable;
@@ -58,7 +59,8 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
 
     private Object lastRenderedBuildOpId;
     private boolean needHeaderSeparator;
-    private long currentTimePeriod;
+    @Nullable
+    private Timestamp currentTimePeriod;
 
     public GroupingProgressLogEventGenerator(OutputEventListener listener, LogHeaderFormatter headerFormatter, boolean verbose) {
         this.listener = listener;
@@ -88,7 +90,7 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
         OperationIdentifier progressId = startEvent.getProgressOperationId();
         if (startEvent.isBuildOperationStart() && isGrouped) {
             // Create a new group for tasks or configure project
-            operationsInProgress.put(progressId, new OperationGroup(startEvent.getCategory(), startEvent.getDescription(), startEvent.getTimestamp(), startEvent.getParentProgressOperationId(), progressId, startEvent.getBuildOperationCategory()));
+            operationsInProgress.put(progressId, new OperationGroup(startEvent.getCategory(), startEvent.getDescription(), startEvent.getTime(), startEvent.getParentProgressOperationId(), progressId, startEvent.getBuildOperationCategory()));
         } else {
             operationsInProgress.put(progressId, new OperationState(startEvent.getParentProgressOperationId(), progressId));
         }
@@ -130,15 +132,15 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
     }
 
     private void onUpdateNow(UpdateNowEvent event) {
-        currentTimePeriod = event.getTimestamp();
+        currentTimePeriod = event.getTime();
         for (OperationState state: operationsInProgress.values()) {
-            state.maybeFlushOutput(event.getTimestamp());
+            state.maybeFlushOutput(event.getTime());
         }
     }
 
     private void onUngroupedOutput(RenderableOutputEvent event) {
         if (lastRenderedBuildOpId != null) {
-            listener.onOutput(spacerLine(event.getTimestamp(), event.getCategory()));
+            listener.onOutput(spacerLine(event.getTime(), event.getCategory()));
             lastRenderedBuildOpId = null;
             needHeaderSeparator = true;
         }
@@ -163,7 +165,7 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
         return null;
     }
 
-    private static LogEvent spacerLine(long timestamp, String category) {
+    private static LogEvent spacerLine(Timestamp timestamp, String category) {
         return new LogEvent(timestamp, category, LogLevel.LIFECYCLE, "", null);
     }
 
@@ -180,13 +182,13 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
         void flushOutput() {
         }
 
-        void maybeFlushOutput(long timestamp) {
+        void maybeFlushOutput(Timestamp timestamp) {
         }
     }
 
     private class OperationGroup extends OperationState {
         private final String category;
-        private long lastUpdateTime;
+        private Timestamp lastUpdateTime;
         private final String description;
         private final BuildOperationCategory buildOperationCategory;
 
@@ -198,7 +200,7 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
 
         private List<RenderableOutputEvent> bufferedLogs = new ArrayList<RenderableOutputEvent>();
 
-        OperationGroup(String category, String description, long startTime, @Nullable OperationIdentifier parentBuildOp, OperationIdentifier buildOpIdentifier, BuildOperationCategory buildOperationCategory) {
+        OperationGroup(String category, String description, Timestamp startTime, @Nullable OperationIdentifier parentBuildOp, OperationIdentifier buildOpIdentifier, BuildOperationCategory buildOperationCategory) {
             super(parentBuildOp, buildOpIdentifier);
             this.category = category;
             this.lastUpdateTime = startTime;
@@ -247,14 +249,14 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
         }
 
         @Override
-        void maybeFlushOutput(long eventTimestamp) {
+        void maybeFlushOutput(Timestamp eventTimestamp) {
             if (timeoutExpired(eventTimestamp, HIGH_WATERMARK_FLUSH_TIMEOUT) || (timeoutExpired(eventTimestamp, LOW_WATERMARK_FLUSH_TIMEOUT) && canClaimForeground())) {
                 flushOutput();
             }
         }
 
-        private boolean timeoutExpired(long eventTimestamp, long timeout) {
-            return (eventTimestamp - lastUpdateTime) > timeout;
+        private boolean timeoutExpired(Timestamp eventTimestamp, long timeout) {
+            return (eventTimestamp.getTimeMs() - lastUpdateTime.getTimeMs()) > timeout;
         }
 
         private boolean canClaimForeground() {

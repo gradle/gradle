@@ -25,7 +25,7 @@ class ProgressCompleteEventSerializerTest extends LogSerializerSpec {
     private static final String CATEGORY = "category"
     private static final OperationIdentifier OPERATION_ID = new OperationIdentifier(1234L)
 
-    ProgressCompleteEventSerializer serializer = new ProgressCompleteEventSerializer()
+    ProgressCompleteEventSerializer serializer = new ProgressCompleteEventSerializer(new TimestampSerializer())
 
     def "can serialize ProgressCompleteEvent messages"() {
         given:
