@@ -46,7 +46,14 @@ configurations {
 }
 ----
 
-**Attributes** help Gradle match the right **variant** by comparing the requested attributes with what's available.
+**Attributes** help Gradle match the right **variant** by comparing the requested attributes with what's available:
+
+[source,kotlin]
+----
+attribute(TargetConfiguration.TARGET_ATTRIBUTE, objects.named("debug"))
+----
+
+This sets the `TargetConfiguration.TARGET_ATTRIBUTE` to `"debug"`, meaning Gradle will attempt to resolve dependencies that have a "debug" variant, instead of other available variants (like "release").
 
 To understand how Gradle's dependency management engine works to select the best matching variant, see our <<variant_model.adoc#sec:variant-aware-matching,Understanding Variant Selection>> chapter.
 
@@ -198,39 +205,17 @@ A Gradle plugin variant can specify compatibility with a Gradle API version thro
 
 For this example, let’s assume you are creating a library with different variants for different JVM versions.
 
-[source,kotlin]
-.build.gradle.kts
-----
-// build.gradle.kts in the library project
-
-import org.gradle.api.attributes.Attribute
-
-val jvmVersionAttribute = Attribute.of("org.gradle.jvm.version", String::class.java)
-
-configurations {
-    create("apiElements") {
-        attributes {
-            attribute(jvmVersionAttribute, "17")
-        }
-    }
-}
-----
+====
+include::sample[dir="snippets/dependencyManagement/customizingResolution-attributeSimple/kotlin",files="lib/build.gradle.kts[tags=attributes]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-attributeSimple/groovy",files="lib/build.gradle[tags=attributes]"]
+====
 
 In the consumer project (that uses the library), you can specify the JVM version attribute when declaring dependencies.
 
-[source,kotlin]
-.build.gradle.kts
-----
-// build.gradle.kts in the consumer project
-
-dependencies {
-    implementation("com.example:your-library:1.0") {
-        attributes {
-            attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 17) // Shorthand notation for Gradle defined attributes
-        }
-    }
-}
-----
+====
+include::sample[dir="snippets/dependencyManagement/customizingResolution-attributeSimple/kotlin",files="consumer/build.gradle.kts[tags=attributes]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-attributeSimple/groovy",files="consumer/build.gradle[tags=attributes]"]
+====
 
 By defining and using the JVM version attribute, you ensure that your library and its consumers are compatible with the specified JVM version.
 Essentially, this ensures that Gradle resolves to the variant that matches the desired JVM version.
@@ -239,7 +224,7 @@ Essentially, this ensures that Gradle resolves to the variant that matches the d
 
 The `dependencyInsight` task is useful for inspecting specific dependencies and their attributes, including how they are resolved:
 
-[source,text]
+[source,bash]
 ----
 $ ./gradlew dependencyInsight --configuration compileClasspath --dependency com.example:your-library
 
@@ -280,29 +265,10 @@ Published attributes must remain supported or have a <<#sec:abm_compatibility_ru
 
 Here’s an example of declaring and using custom attributes in a Gradle plugin:
 
-[source,kotlin]
-----
-// Define a custom attribute
-val myAttribute = Attribute.of("com.example.my-attribute", String::class.java)
-
-configurations {
-    create("myConfig") {
-        // Set custom attribute
-        attributes {
-            attribute(myAttribute, "special-value")
-        }
-    }
-}
-
-dependencies {
-    // Apply the custom attribute to a dependency
-    myConfig("com.example:my-library:1.0") {
-        attributes {
-            attribute(myAttribute, "special-value")
-        }
-    }
-}
-----
+====
+include::sample[dir="snippets/dependencyManagement/customizingResolution-attributeSimple/kotlin",files="lib/build.gradle.kts[tags=custom-attributes]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-attributeSimple/groovy",files="lib/build.gradle[tags=custom-attributes]"]
+====
 
 In this example:
 - A custom attribute `my-attribute` is defined.
@@ -361,48 +327,13 @@ In Gradle, **attribute matching** and **attribute disambiguation** are key mecha
 Attributes let the engine select _compatible variants_.
 There are cases where a producer may not have _exactly_ what the consumer requests but has a variant that can be used.
 
-Suppose you have a library published with a variant that has the following attributes:
+====
+include::sample[dir="snippets/dependencyManagement/customizingResolution-attributeSimple/kotlin",files="lib/build.gradle.kts[tags=attribute-strategy]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-attributeSimple/groovy",files="lib/build.gradle[tags=attribute-strategy]"]
+====
 
-- `Usage`: `java-runtime`
-- `JavaLanguageVersion`: `1.8`
 
-A consumer might request a variant with:
 
-- `Usage`: `java-api`
-- `JavaLanguageVersion`: `11`
-
-In this case, the consumer's request does not match the exact attributes of the library's available variant.
-However, because of compatibility rules, Gradle can determine that the `java-runtime` variant can be used as a fallback.
-
-To set up attribute compatibility rules, you need to register these rules via the attribute matching strategy.
-
-Here's a simple example of how to define a compatibility rule in a Gradle build script:
-
-[source,kotlin]
-----
-import org.gradle.api.attributes.AttributeMatchingStrategy
-import org.gradle.api.attributes.Attribute
-
-// Define the attribute and its values
-val javaLanguageVersion = Attribute.of("org.gradle.jvm.version", String::class.java)
-
-// Register the compatibility rule
-configurations.all {
-    attributes {
-        // Define a compatibility rule for JavaLanguageVersion
-        attributeMatchingStrategy(javaLanguageVersion) { strategy ->
-            strategy.compatibleWith("1.8") {
-                // Define compatibility rule logic here
-                true // This means all versions are compatible
-            }
-            strategy.compatibleWith("11") {
-                // Logic for Java 11 compatibility
-                false // No compatibility with Java 11
-            }
-        }
-    }
-}
-----
 
 1. **Attribute Definition**: Define the attribute you want to apply compatibility rules to. In this case, `JavaLanguageVersion`.
 2. **Register Compatibility Rule**: Use the `attributeMatchingStrategy` to specify how to handle compatibility for the defined attribute. For instance, you can define which versions of the attribute are compatible.

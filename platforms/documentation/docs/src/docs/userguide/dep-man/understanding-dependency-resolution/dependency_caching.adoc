@@ -21,7 +21,7 @@ Gradle contains a highly sophisticated dependency caching mechanism, which seeks
 The cache is located in the `.gradle` directory under the user's home folder (e.g., `~/.gradle/caches/modules-2`).
 When a dependency is requested, Gradle first checks this local cache before attempting to fetch it from remote repositories.
 
-2. **Cache Expiry**: Gradle caches dependency metadata (such as the version metadata or POM files) for a configurable period, after which it is refreshed.
+2. **Cache Control**: Gradle caches dependency metadata (such as the version metadata or POM files) for a configurable period, after which it is refreshed.
 The default metadata cache timeout is 24 hours, but this can be configured using the `resolutionStrategy.cacheChangingModulesFor` or `resolutionStrategy.cacheDynamicVersionsFor` methods.
 
 3. **Changing and Snapshot Dependencies**: By default, Gradle treats dependencies marked as "changing" (e.g., SNAPSHOT dependencies) differently and refreshes them more frequently.
@@ -33,7 +33,7 @@ You can enable offline mode with the `--offline` flag, ensuring that your build 
 5. **Refreshing Dependencies**: To force Gradle to update its dependencies, use the `--refresh-dependencies` flag.
 This option instructs Gradle to ignore cached versions and recheck for the latest artifacts in remote repositories, ensuring that your project is using the most up-to-date dependencies.
 
-== The Dependency Cache
+== 1. The dependency cache
 
 The Gradle dependency cache consists of two storage types located under `$<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>/caches`:
 
@@ -104,7 +104,7 @@ Gradle tracks which artifacts in the dependency cache are accessed. Based on thi
 These obsolete artifacts are then deleted to prevent the cache from growing indefinitely.
 
 [[sec:controlling-dynamic-version-caching]]
-== Controlling the Cache
+== 2. Controlling the cache
 
 By default, Gradle caches dependencies (including dynamic versions and changing modules) for 24 hours, meaning it does not contact remote repositories for new versions during this time.
 
@@ -132,7 +132,7 @@ include::sample[dir="snippets/dependencyManagement/troubleshooting-cache-changin
 include::sample[dir="snippets/dependencyManagement/troubleshooting-cache-changing/groovy",files="build.gradle[tags=changing-module-cache-control]"]
 ====
 
-== Caching changing dependencies
+== 3. Caching changing dependencies
 
 Gradle treats dependencies marked as "changing" (such as SNAPSHOT dependencies) differently from regular dependencies, refreshing them more frequently to ensure that you are always using the latest version.
 
@@ -149,14 +149,14 @@ dependencies {
 ----
 
 [[sec:offline-mode]]
-== Using offline mode
+== 4. Using offline mode
 
 The `--offline` command-line switch instructs Gradle to use dependency modules from the cache, regardless of whether they are due to be checked again.
 When running with `offline`, Gradle will not attempt to access the network for dependency resolution.
 If the required modules are not in the dependency cache, the build will fail.
 
 [[sec:refreshing-dependencies]]
-== Force-refreshing dependencies
+== 5. Force-refreshing dependencies
 
 You can control the behavior of dependency caching for a distinct build invocation from the command line.
 Command line options help make a selective, ad-hoc choice for a single build execution.

@@ -83,7 +83,7 @@ include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencie
 include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-declaringCapabilities/groovy",files="build.gradle[tags=fix_asm]"]
 ====
 
-With this rule in place, the build will fail if both `asm:asm` (<= `3.3.1`) and `org.ow2.asm:asm` (`4.0+`) are present in the dependency graph.
+With this rule in place, the build will fail if both `asm:asm` ( < = `3.3.1`) and `org.ow2.asm:asm` (`4.0+`) are present in the dependency graph.
 
 NOTE: Gradle won’t resolve the conflict automatically, but this helps you realize that the problem exists. It’s recommended to package such rules into plugins for use in builds, allowing users to decide which version to use or to fix the classpath conflict.
 
