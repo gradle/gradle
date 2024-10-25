@@ -16,17 +16,19 @@
 
 package org.gradle.internal.operations;
 
+import org.gradle.internal.time.Timestamp;
+
 import java.io.ObjectStreamException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class BuildOperationState implements BuildOperationRef {
     private final BuildOperationDescriptor description;
     private final AtomicBoolean running = new AtomicBoolean();
-    private final long startTime;
+    private final Timestamp startTime;
 
-    public BuildOperationState(BuildOperationDescriptor descriptor, long startTime) {
-        this.startTime = startTime;
+    public BuildOperationState(BuildOperationDescriptor descriptor, Timestamp startTime) {
         this.description = descriptor;
+        this.startTime = startTime;
     }
 
     public BuildOperationDescriptor getDescription() {
@@ -41,7 +43,7 @@ public class BuildOperationState implements BuildOperationRef {
         this.running.set(running);
     }
 
-    public long getStartTime() {
+    public Timestamp getStartTime() {
         return startTime;
     }
 

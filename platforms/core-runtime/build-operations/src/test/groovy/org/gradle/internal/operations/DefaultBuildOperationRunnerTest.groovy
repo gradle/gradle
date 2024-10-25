@@ -27,7 +27,6 @@ import static org.gradle.internal.operations.DefaultBuildOperationRunner.BuildOp
 import static org.gradle.internal.operations.DefaultBuildOperationRunner.ReadableBuildOperationContext
 
 class DefaultBuildOperationRunnerTest extends ConcurrentSpec {
-
     def clock = FixedClock.createAt(123L)
     def listener = Mock(BuildOperationExecutionListener)
     def currentBuildOperationRef = CurrentBuildOperationRef.instance()
@@ -61,7 +60,7 @@ class DefaultBuildOperationRunnerTest extends ConcurrentSpec {
             assert descriptor.name == "<op>"
             assert descriptor.displayName == "<some-operation>"
             assert descriptor.details == details
-            assert operationState.startTime == 123L
+            assert operationState.startTime.timeMs == 123L
         }
 
         then:
@@ -109,7 +108,7 @@ class DefaultBuildOperationRunnerTest extends ConcurrentSpec {
             assert descriptor.name == "<op>"
             assert descriptor.displayName == "<some-operation>"
             assert descriptor.details == details
-            assert operationState.startTime == 123L
+            assert operationState.startTime.timeMs == 123L
         }
 
         when:
@@ -725,7 +724,7 @@ class DefaultBuildOperationRunnerTest extends ConcurrentSpec {
     }
 
     private static BuildOperationState operation(String description) {
-        def operation = new BuildOperationState(displayName(description).build(), 100L)
+        def operation = new BuildOperationState(displayName(description).build(), FixedClock.createAt(100L).timestamp)
         operation.running = true
         return operation
     }
