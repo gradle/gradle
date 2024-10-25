@@ -21,7 +21,9 @@ import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.initialization.transform.utils.DefaultInstrumentationAnalysisSerializer
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.cache.FileAccessTimeJournalFixture
+import org.gradle.operations.execution.ExecuteWorkBuildOperationType
 import org.gradle.test.fixtures.HttpRepository
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
@@ -47,6 +49,7 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
 
     @Rule
     public final RepositoryHttpServer server = new RepositoryHttpServer(temporaryFolder)
+    def buildOperations = new BuildOperationsFixture(executer, testDirectoryProvider)
 
     def serializer = new DefaultInstrumentationAnalysisSerializer(new StringInterner())
 
@@ -89,7 +92,7 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         """
 
         when:
-        run("tasks", "--info")
+        run("tasks")
 
         then:
         allTransformsFor("buildSrc.jar") == ["ProjectDependencyInstrumentingArtifactTransform"]
@@ -108,11 +111,10 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         """
 
         when:
-        run("tasks", "--info")
+        run("tasks")
 
         then:
-        // InstrumentationAnalysisTransform is duplicated since InstrumentationAnalysisTransform result is also an input to MergeInstrumentationAnalysisTransform
-        allTransformsFor("commons-lang3-3.8.1.jar") ==~ ["InstrumentationAnalysisTransform", "InstrumentationAnalysisTransform", "MergeInstrumentationAnalysisTransform", "ExternalDependencyInstrumentingArtifactTransform"]
+        allTransformsFor("commons-lang3-3.8.1.jar") ==~ ["InstrumentationAnalysisTransform", "MergeInstrumentationAnalysisTransform", "ExternalDependencyInstrumentingArtifactTransform"]
         gradleUserHomeOutputs("original/commons-lang3-3.8.1.jar").isEmpty()
         gradleUserHomeOutput("instrumented/instrumented-commons-lang3-3.8.1.jar").exists()
     }
@@ -121,6 +123,10 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         given:
         withIncludedBuild("first")
         withIncludedBuild("second")
+        // We need to create different classes,
+        // since jar with the same content will be instrumented only once
+        file("first/src/main/java/First.java").text = "class First { }"
+        file("second/src/main/java/Second.java").text = "class Second { }"
         buildFile << """
             buildscript {
                 dependencies {
@@ -133,18 +139,15 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         when:
         executer.inDirectory(file("first")).withTasks("classes").run()
         executer.inDirectory(file("second")).withTasks("classes").run()
-        run("tasks", "--info")
+        run("tasks")
 
         then:
-        allTransformsFor("main") ==~ [
-            // Only the folder name is reported, so we cannot distinguish first and second
-            // InstrumentationAnalysisTransform is duplicated since InstrumentationAnalysisTransform
-            // result is also an input to MergeInstrumentationAnalysisTransform
-            "InstrumentationAnalysisTransform",
+        allTransformsFor("first/build/classes/java/main") ==~ [
             "InstrumentationAnalysisTransform",
             "MergeInstrumentationAnalysisTransform",
-            "ExternalDependencyInstrumentingArtifactTransform",
-            "InstrumentationAnalysisTransform",
+            "ExternalDependencyInstrumentingArtifactTransform"
+        ]
+        allTransformsFor("second/build/classes/java/main") ==~ [
             "InstrumentationAnalysisTransform",
             "MergeInstrumentationAnalysisTransform",
             "ExternalDependencyInstrumentingArtifactTransform"
@@ -280,11 +283,10 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         """
 
         when:
-        run("tasks", "--info")
+        run("tasks")
 
         then:
-        // InstrumentationAnalysisTransform is duplicated since InstrumentationAnalysisTransform result is also an input to MergeInstrumentationAnalysisTransform
-        allTransformsFor("animals-1.0.jar") ==~ ["InstrumentationAnalysisTransform", "InstrumentationAnalysisTransform", "MergeInstrumentationAnalysisTransform", "ExternalDependencyInstrumentingArtifactTransform"]
+        allTransformsFor("animals-1.0.jar") ==~ ["InstrumentationAnalysisTransform", "MergeInstrumentationAnalysisTransform", "ExternalDependencyInstrumentingArtifactTransform"]
         def typeHierarchyAnalysis = typeHierarchyAnalysisOutput("animals-1.0.jar")
         typeHierarchyAnalysis.exists()
         serializer.readTypeHierarchyAnalysis(typeHierarchyAnalysis) == [
@@ -669,11 +671,18 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
 
     List<String> allTransformsFor(String fileName) {
         List<String> transforms = []
-        def pattern = Pattern.compile("Transforming " + fileName + ".* with (.*)")
-        for (def line : output.readLines()) {
-            def matcher = pattern.matcher(line)
-            if (matcher.matches()) {
-                transforms.add(matcher.group(1))
+        def transformExecutions = buildOperations.all(ExecuteWorkBuildOperationType).findAll {
+            it.details.workType == "TRANSFORM"
+        }
+        def pattern = Pattern.compile("Executing ([\$_a-zA-Z0-9]*):.*" + fileName)
+        for (execution in transformExecutions) {
+            buildOperations.search(execution) {
+                def matcher = pattern.matcher(normaliseFileSeparators(it.displayName))
+                if (matcher.matches()) {
+                    transforms.add(matcher.group(1))
+                    return true
+                }
+                return false
             }
         }
         return transforms
