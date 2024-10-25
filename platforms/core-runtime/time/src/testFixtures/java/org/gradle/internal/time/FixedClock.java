@@ -19,7 +19,7 @@ package org.gradle.internal.time;
 /**
  * A clock that always returns the same time.
  */
-public class FixedClock implements Clock {
+public class FixedClock extends AbstractClock {
     private final long current;
 
     private FixedClock(long startTime) {

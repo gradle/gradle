@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,26 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.internal.time;
 
-import org.gradle.internal.service.scopes.Scope;
-import org.gradle.internal.service.scopes.ServiceScope;
+public abstract class AbstractClock implements Clock {
 
-/**
- * A device for obtaining the current time.
- *
- * @see Time#clock()
- */
-@ServiceScope(Scope.Global.class)
-public interface Clock {
-
-    /**
-     * The current time in millis.
-     */
-    long getCurrentTime();
-
-    /**
-     * The current timestamp.
-     */
-    Timestamp getTimestamp();
+    @Override
+    public Timestamp getTimestamp() {
+        return Timestamp.ofMillis(getCurrentTime());
+    }
 }

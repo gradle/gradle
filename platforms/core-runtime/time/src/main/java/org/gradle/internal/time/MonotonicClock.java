@@ -46,7 +46,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * timestamps before and after the sync point will under represent the actual elapsed time,
  * gradually bringing the clocks back into sync.
  */
-class MonotonicClock implements Clock {
+class MonotonicClock extends AbstractClock {
 
     private static final long SYNC_INTERVAL_MILLIS = TimeUnit.SECONDS.toMillis(3);
 

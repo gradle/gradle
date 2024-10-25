@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import com.google.common.base.Preconditions;
 /**
  * Test implementation of the clock that can be adjusted manually. Can self-increment itself upon reads.
  */
-public class MockClock implements Clock {
+public class MockClock extends AbstractClock {
     public static final long DEFAULT_AUTOINCREMENT_MS = 10L;
 
     private long current;
