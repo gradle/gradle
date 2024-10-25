@@ -38,7 +38,7 @@ class DefaultProjectDependencyTest extends AbstractProjectBuilderSpec {
         project.group = "org.gradle"
     }
 
-    def "exposes identity"() {
+    def "exposes local project path"() {
         expect:
         projectDependency.path == project.path
     }
