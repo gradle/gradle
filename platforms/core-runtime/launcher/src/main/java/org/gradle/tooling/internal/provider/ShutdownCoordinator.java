@@ -32,6 +32,16 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * Keeps track of all started daemons and stops them when the service is stopped.
+ *
+ * Additionally, daemons for a particular daemon registry can be stopped explicitly.
+ *
+ * This is only used by Tooling API clients.
+ *
+ * @see ProviderConnection
+ * @see org.gradle.tooling.internal.consumer.ConnectorServices
+ */
 @ServiceScope(Scope.Global.class)
 public class ShutdownCoordinator implements DaemonStartListener, Stoppable {
     private final Map<File, Set<DaemonConnectDetails>> daemons = new HashMap<>();

@@ -26,7 +26,7 @@ import java.io.File;
 import java.util.function.Consumer;
 
 /**
- * Stops the associated DaemonStopClient services
+ * Manages the lifecycle for creating {@link DaemonStopClient}s and using them.
  */
 @NonNullApi
 @ServiceScope(Scope.Global.class)

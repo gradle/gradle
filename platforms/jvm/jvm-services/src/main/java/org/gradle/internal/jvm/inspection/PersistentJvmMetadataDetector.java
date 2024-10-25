@@ -32,6 +32,11 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 
+/**
+ * A {@link JvmMetadataDetector} that caches the results of the JVM installation metadata in a persistent cache.
+ *
+ * @implNote This currently only persistently caches the results for JVMs that are auto-provisioned.
+ */
 @NonNullApi
 public class PersistentJvmMetadataDetector implements JvmMetadataDetector, Closeable {
     private final JvmMetadataDetector delegate;

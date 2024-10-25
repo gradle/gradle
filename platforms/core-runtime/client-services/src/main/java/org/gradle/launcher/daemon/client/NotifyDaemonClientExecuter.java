@@ -25,6 +25,9 @@ import org.gradle.internal.service.scopes.ServiceScope;
 import java.io.File;
 import java.util.function.Consumer;
 
+/**
+ * Manages the lifecycle for creating {@link NotifyDaemonAboutChangedPathsClient}s and using them.
+ */
 @NonNullApi
 @ServiceScope(Scope.Global.class)
 public class NotifyDaemonClientExecuter {

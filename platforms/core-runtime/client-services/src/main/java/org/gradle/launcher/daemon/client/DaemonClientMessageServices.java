@@ -42,6 +42,14 @@ import org.gradle.launcher.daemon.registry.DaemonRegistry;
 
 import java.util.UUID;
 
+/**
+ * Services needed by clients that only communicate with running Daemons.
+ *
+ * Clients created with these services cannot start new daemons.
+ *
+ * @see DaemonStopClient
+ * @see NotifyDaemonAboutChangedPathsClient
+ */
 @NonNullApi
 public class DaemonClientMessageServices implements ServiceRegistrationProvider {
 
