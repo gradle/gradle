@@ -142,6 +142,18 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
                 return;
             }
         }
+
+        // Otherwise, reject all remaining candidates.
+        Collection<? extends Capability> capabilityVersions = ((ResolutionDetails) details).getCapabilityVersions();
+        for (Capability capabilityVersion : capabilityVersions) {
+            Collection<? extends CandidateDetails> candidates = ((ResolutionDetails) details).getCandidates(capabilityVersion);
+            if (!candidates.isEmpty()) {
+                // Arbitrarily select and mark all as rejected
+                for (CandidateDetails candidate : candidates) {
+                    candidate.reject();
+                }
+            }
+        }
     }
 
     @Override
