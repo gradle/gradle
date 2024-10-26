@@ -26,7 +26,10 @@ import org.gradle.internal.operations.OperationIdentifier
 import org.gradle.internal.operations.OperationProgressEvent
 import org.gradle.internal.operations.OperationStartEvent
 import org.gradle.internal.service.scopes.Scope
+import org.gradle.internal.time.TestTime
 import spock.lang.Specification
+
+import javax.annotation.Nullable
 
 class BuildOperationNotificationBridgeTest extends Specification {
 
@@ -98,8 +101,8 @@ class BuildOperationNotificationBridgeTest extends Specification {
         bridge.valve.start()
 
         when:
-        broadcast.started(d1, new OperationStartEvent(0))
-        broadcast.finished(d1, new OperationFinishEvent(0, 1, null, ""))
+        broadcast.started(d1, startEvent(0))
+        broadcast.finished(d1, finishEvent(0, 1, null, ""))
 
         and:
         bridge.register(listener)
@@ -120,7 +123,7 @@ class BuildOperationNotificationBridgeTest extends Specification {
 
         // operation with details and non null result
         when:
-        broadcast.started(d1, new OperationStartEvent(0))
+        broadcast.started(d1, startEvent(0))
 
         then:
         1 * listener.started(_) >> { BuildOperationStartedNotification n ->
@@ -130,7 +133,7 @@ class BuildOperationNotificationBridgeTest extends Specification {
         }
 
         when:
-        broadcast.finished(d1, new OperationFinishEvent(0, 10, null, 10))
+        broadcast.finished(d1, finishEvent(0, 10, null, 10))
 
         then:
         1 * listener.finished(_) >> { BuildOperationFinishedNotification n ->
@@ -143,20 +146,20 @@ class BuildOperationNotificationBridgeTest extends Specification {
 
         // operation with no details
         when:
-        broadcast.started(d2, new OperationStartEvent(20))
+        broadcast.started(d2, startEvent(20))
 
         then:
         0 * listener.started(_)
 
         when:
-        broadcast.finished(d2, new OperationFinishEvent(20, 30, null, 10))
+        broadcast.finished(d2, finishEvent(20, 30, null, 10))
 
         then:
         0 * listener.finished(_)
 
         // operation with details and null result
         when:
-        broadcast.started(d3, new OperationStartEvent(40))
+        broadcast.started(d3, startEvent(40))
 
         then:
         1 * listener.started(_) >> { BuildOperationStartedNotification n ->
@@ -166,7 +169,7 @@ class BuildOperationNotificationBridgeTest extends Specification {
         }
 
         when:
-        broadcast.finished(d3, new OperationFinishEvent(40, 50, null, null))
+        broadcast.finished(d3, finishEvent(40, 50, null, null))
 
         then:
         1 * listener.finished(_) >> { BuildOperationFinishedNotification n ->
@@ -179,7 +182,7 @@ class BuildOperationNotificationBridgeTest extends Specification {
 
         // operation with details and failure
         when:
-        broadcast.started(d3, new OperationStartEvent(60))
+        broadcast.started(d3, startEvent(60))
 
         then:
         1 * listener.started(_) >> { BuildOperationStartedNotification n ->
@@ -188,7 +191,7 @@ class BuildOperationNotificationBridgeTest extends Specification {
         }
 
         when:
-        broadcast.finished(d3, new OperationFinishEvent(60, 70, e1, null))
+        broadcast.finished(d3, finishEvent(60, 70, e1, null))
 
         then:
         1 * listener.finished(_) >> { BuildOperationFinishedNotification n ->
@@ -219,24 +222,24 @@ class BuildOperationNotificationBridgeTest extends Specification {
         def d7 = d(7, 6, 7)
 
         when:
-        broadcast.started(d1, new OperationStartEvent(0))
+        broadcast.started(d1, startEvent(0))
         broadcast.started(d2, null)
 
-        broadcast.started(d3, new OperationStartEvent(0))
-        broadcast.finished(d3, new OperationFinishEvent(-1, -1, null, null))
+        broadcast.started(d3, startEvent(0))
+        broadcast.finished(d3, finishEvent(-1, -1, null, null))
 
-        broadcast.started(d4, new OperationStartEvent(0))
-        broadcast.started(d5, new OperationStartEvent(0))
-        broadcast.started(d6, new OperationStartEvent(0))
-        broadcast.started(d7, new OperationStartEvent(0))
+        broadcast.started(d4, startEvent(0))
+        broadcast.started(d5, startEvent(0))
+        broadcast.started(d6, startEvent(0))
+        broadcast.started(d7, startEvent(0))
 
-        broadcast.finished(d7, new OperationFinishEvent(-1, -1, null, null))
-        broadcast.finished(d6, new OperationFinishEvent(-1, -1, null, null))
-        broadcast.finished(d5, new OperationFinishEvent(-1, -1, null, null))
-        broadcast.finished(d4, new OperationFinishEvent(-1, -1, null, null))
+        broadcast.finished(d7, finishEvent(-1, -1, null, null))
+        broadcast.finished(d6, finishEvent(-1, -1, null, null))
+        broadcast.finished(d5, finishEvent(-1, -1, null, null))
+        broadcast.finished(d4, finishEvent(-1, -1, null, null))
 
-        broadcast.finished(d2, new OperationFinishEvent(-1, -1, null, null))
-        broadcast.finished(d1, new OperationFinishEvent(-1, -1, null, null))
+        broadcast.finished(d2, finishEvent(-1, -1, null, null))
+        broadcast.finished(d1, finishEvent(-1, -1, null, null))
 
         then:
         1 * listener.started(_) >> { BuildOperationStartedNotification n ->
@@ -302,20 +305,20 @@ class BuildOperationNotificationBridgeTest extends Specification {
         def d3 = d(3, 2, 3)
 
         when:
-        broadcast.started(d1, new OperationStartEvent(0))
-        broadcast.progress(d1.id, new OperationProgressEvent(0, 1))
-        broadcast.progress(d1.id, new OperationProgressEvent(0, null))
+        broadcast.started(d1, startEvent(0))
+        broadcast.progress(d1.id, progressEvent(0, 1))
+        broadcast.progress(d1.id, progressEvent(0, null))
 
         broadcast.started(d2, null)
-        broadcast.progress(d2.id, new OperationProgressEvent(0, 2))
+        broadcast.progress(d2.id, progressEvent(0, 2))
 
-        broadcast.started(d3, new OperationStartEvent(0))
-        broadcast.progress(d3.id, new OperationProgressEvent(0, 1))
-        broadcast.finished(d3, new OperationFinishEvent(-1, -1, null, null))
+        broadcast.started(d3, startEvent(0))
+        broadcast.progress(d3.id, progressEvent(0, 1))
+        broadcast.finished(d3, finishEvent(-1, -1, null, null))
 
 
-        broadcast.finished(d2, new OperationFinishEvent(-1, -1, null, null))
-        broadcast.finished(d1, new OperationFinishEvent(-1, -1, null, null))
+        broadcast.finished(d2, finishEvent(-1, -1, null, null))
+        broadcast.finished(d1, finishEvent(-1, -1, null, null))
 
         then:
         1 * listener.started(_) >> { BuildOperationStartedNotification n ->
@@ -367,5 +370,17 @@ class BuildOperationNotificationBridgeTest extends Specification {
         } else {
             bridgeInstance
         }
+    }
+
+    private OperationStartEvent startEvent(long startTime) {
+        return new OperationStartEvent(TestTime.timestampOf(startTime))
+    }
+
+    private OperationFinishEvent finishEvent(long startTime, long endTime, @Nullable Throwable failure, @Nullable Object result) {
+        return new OperationFinishEvent(TestTime.timestampOf(startTime), TestTime.timestampOf(endTime), failure, result)
+    }
+
+    private OperationProgressEvent progressEvent(long time, Object details) {
+        return new OperationProgressEvent(TestTime.timestampOf(time), details)
     }
 }

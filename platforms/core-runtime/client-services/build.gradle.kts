@@ -66,6 +66,9 @@ dependencies {
         because("Unit tests verify serialization works with TAPI types")
     }
     testImplementation(testFixtures(projects.daemonProtocol))
+    testImplementation(testFixtures(projects.time)) {
+        because("Timestamp")
+    }
 }
 tasks.isolatedProjectsIntegTest {
     enabled = false

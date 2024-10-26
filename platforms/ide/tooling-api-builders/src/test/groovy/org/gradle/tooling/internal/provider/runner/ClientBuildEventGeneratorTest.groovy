@@ -29,6 +29,8 @@ import org.gradle.tooling.internal.protocol.events.InternalOperationStartedProgr
 import org.gradle.tooling.internal.protocol.events.InternalProgressEvent
 import spock.lang.Specification
 
+import static org.gradle.internal.time.TestTime.timestampOf
+
 class ClientBuildEventGeneratorTest extends Specification {
     def fallback = Mock(BuildOperationListener)
     def consumer = Mock(ProgressEventConsumer)
@@ -37,9 +39,9 @@ class ClientBuildEventGeneratorTest extends Specification {
     def operationId = Stub(OperationIdentifier)
     def parentId = Stub(OperationIdentifier)
     def operation = BuildOperationDescriptor.displayName("name").details(details).build(operationId, parentId)
-    def startEvent = new OperationStartEvent(0)
-    def progressEvent = new OperationProgressEvent(0, "progress")
-    def finishEvent = new OperationFinishEvent(0, 1, null, "result")
+    def startEvent = new OperationStartEvent(timestampOf(0))
+    def progressEvent = new OperationProgressEvent(timestampOf(0), "progress")
+    def finishEvent = new OperationFinishEvent(timestampOf(0), timestampOf(1), null, "result")
     def clientDescriptor = Stub(InternalOperationDescriptor)
     def clientStartEvent = Stub(InternalOperationStartedProgressEvent)
     def clientFinishEvent = Stub(InternalOperationFinishedProgressEvent)

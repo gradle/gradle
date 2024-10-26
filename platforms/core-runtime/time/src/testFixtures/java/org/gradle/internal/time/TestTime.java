@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,25 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.operations;
+package org.gradle.internal.time;
 
-import org.gradle.internal.time.Timestamp;
+/**
+ * Test utilities for timing routines.
+ */
+public final class TestTime {
+    private TestTime() {}
 
-public final class OperationStartEvent {
-    private final Timestamp startTime;
-
-    public OperationStartEvent(Timestamp startTime) {
-        this.startTime = startTime;
-    }
-
-    public long getStartTime() {
-        return startTime.getTimeMs();
-    }
-
-    @Override
-    public String toString() {
-        return "OperationStartEvent{" +
-            "startTime=" + startTime +
-            '}';
+    /**
+     * Returns a timestamp of {@code epochMs} milliseconds since Unix epoch.
+     * @param epochMs epoch offset in milliseconds
+     * @return the timestamp
+     */
+    public static Timestamp timestampOf(long epochMs) {
+        return Timestamp.ofMillis(epochMs);
     }
 }

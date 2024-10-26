@@ -33,6 +33,7 @@ import org.gradle.tooling.internal.protocol.test.InternalJvmTestRequest
 import org.gradle.tooling.internal.provider.action.TestExecutionRequestAction
 import spock.lang.Specification
 
+import static org.gradle.internal.time.TestTime.timestampOf
 import static org.gradle.util.internal.TextUtil.normaliseLineSeparators
 
 class TestExecutionResultEvaluatorTest extends Specification {
@@ -76,7 +77,7 @@ class TestExecutionResultEvaluatorTest extends Specification {
             .build()
 
         when:
-        evaluator.finished(descriptor, new OperationFinishEvent(0, 1, null, result))
+        evaluator.finished(descriptor, new OperationFinishEvent(timestampOf(0), timestampOf(1), null, result))
         evaluator.evaluate()
 
         then:
@@ -133,8 +134,8 @@ class TestExecutionResultEvaluatorTest extends Specification {
             .build()
 
         when:
-        evaluator.started(taskBuildOperation, new OperationStartEvent(0))
-        evaluator.finished(testBuildOperation, new OperationFinishEvent(0, 0, null, result))
+        evaluator.started(taskBuildOperation, new OperationStartEvent(timestampOf(0)))
+        evaluator.finished(testBuildOperation, new OperationFinishEvent(timestampOf(0), timestampOf(0), null, result))
         evaluator.evaluate()
 
         then:

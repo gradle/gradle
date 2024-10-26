@@ -42,6 +42,8 @@ import org.gradle.tooling.events.task.TaskFinishEvent
 import org.gradle.tooling.events.task.TaskSkippedResult
 import org.gradle.tooling.events.task.TaskSuccessResult
 
+import static org.gradle.internal.time.TestTime.timestampOf
+
 class DefaultBuildEventsListenerRegistryTest extends ConcurrentSpec {
     def factory = new MockBuildEventListenerFactory()
     def listenerManager = new DefaultListenerManager(Scope.Build)
@@ -197,15 +199,15 @@ class DefaultBuildEventsListenerRegistryTest extends ConcurrentSpec {
     }
 
     private OperationStartEvent startOperationEvent() {
-        new OperationStartEvent(123)
+        new OperationStartEvent(timestampOf(123))
     }
 
     private OperationProgressEvent operationProgressEvent() {
-        new OperationProgressEvent(123, null)
+        new OperationProgressEvent(timestampOf(123), null)
     }
 
     private OperationFinishEvent operationFinishEvent() {
-        new OperationFinishEvent(123, 345, null, null)
+        new OperationFinishEvent(timestampOf(123), timestampOf(345), null, null)
     }
 
     private BuildOperationDescriptor descriptor() {

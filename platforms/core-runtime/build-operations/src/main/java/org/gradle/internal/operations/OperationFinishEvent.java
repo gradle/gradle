@@ -26,10 +26,6 @@ public final class OperationFinishEvent {
     private final Throwable failure;
     private final Object result;
 
-    public OperationFinishEvent(long startTime, long endTime, @Nullable Throwable failure, @Nullable Object result) {
-        this(Timestamp.ofMillis(startTime), Timestamp.ofMillis(endTime), failure, result);
-    }
-
     public OperationFinishEvent(Timestamp start, Timestamp end, @Nullable Throwable failure, @Nullable Object result) {
         this.startTime = start;
         this.endTime = end;

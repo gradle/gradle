@@ -25,10 +25,6 @@ public final class OperationProgressEvent {
     private final Timestamp time;
     private final Object details;
 
-    public OperationProgressEvent(long time, @Nullable Object details) {
-        this(Timestamp.ofMillis(time), details);
-    }
-
     public OperationProgressEvent(Timestamp time, @Nullable Object details) {
         this.time = time;
         this.details = details;

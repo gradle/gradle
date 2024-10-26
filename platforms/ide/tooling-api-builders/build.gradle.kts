@@ -43,6 +43,7 @@ dependencies {
     testImplementation(projects.fileCollections)
     testImplementation(projects.platformJvm)
     testImplementation(testFixtures(projects.core))
+    testImplementation(testFixtures(projects.time))
 }
 
 strictCompile {

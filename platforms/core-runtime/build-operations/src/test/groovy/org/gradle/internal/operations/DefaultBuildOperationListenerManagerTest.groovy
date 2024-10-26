@@ -18,6 +18,8 @@ package org.gradle.internal.operations
 
 import spock.lang.Specification
 
+import static org.gradle.internal.time.TestTime.timestampOf
+
 class DefaultBuildOperationListenerManagerTest extends Specification {
 
     def manager = new DefaultBuildOperationListenerManager()
@@ -29,9 +31,9 @@ class DefaultBuildOperationListenerManagerTest extends Specification {
     def id2 = new OperationIdentifier(2)
     def op2 = BuildOperationDescriptor.displayName("2").build(id2, null)
 
-    def startEvent = new OperationStartEvent(0)
-    def progressEvent = new OperationProgressEvent(0, null)
-    def finishEvent = new OperationFinishEvent(0, 0, null, null)
+    def startEvent = new OperationStartEvent(timestampOf(0))
+    def progressEvent = new OperationProgressEvent(timestampOf(0), null)
+    def finishEvent = new OperationFinishEvent(timestampOf(0), timestampOf(0), null, null)
 
     def "notifies start and progress in registration order, finish in reverse registration order"() {
         given:

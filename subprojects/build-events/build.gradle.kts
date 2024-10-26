@@ -21,6 +21,7 @@ dependencies {
 
     testImplementation(projects.internalTesting)
     testImplementation(projects.modelCore)
+    testImplementation(testFixtures(projects.time))
 
     integTestImplementation(projects.logging) {
         because("This isn't declared as part of integtesting's API, but should be as logging's classes are in fact visible on the API")
