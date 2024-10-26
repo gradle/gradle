@@ -18,6 +18,7 @@ package org.gradle.internal.operations
 
 
 import org.gradle.internal.time.FixedClock
+import org.gradle.internal.time.TestTime
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
 import javax.annotation.Nullable
@@ -60,7 +61,7 @@ class DefaultBuildOperationRunnerTest extends ConcurrentSpec {
             assert descriptor.name == "<op>"
             assert descriptor.displayName == "<some-operation>"
             assert descriptor.details == details
-            assert operationState.startTime.timeMs == 123L
+            assert operationState.startTime == clock.timestamp
         }
 
         then:
@@ -108,7 +109,7 @@ class DefaultBuildOperationRunnerTest extends ConcurrentSpec {
             assert descriptor.name == "<op>"
             assert descriptor.displayName == "<some-operation>"
             assert descriptor.details == details
-            assert operationState.startTime.timeMs == 123L
+            assert operationState.startTime == clock.timestamp
         }
 
         when:
@@ -724,7 +725,7 @@ class DefaultBuildOperationRunnerTest extends ConcurrentSpec {
     }
 
     private static BuildOperationState operation(String description) {
-        def operation = new BuildOperationState(displayName(description).build(), FixedClock.createAt(100L).timestamp)
+        def operation = new BuildOperationState(displayName(description).build(), TestTime.timestampOf(100L))
         operation.running = true
         return operation
     }
