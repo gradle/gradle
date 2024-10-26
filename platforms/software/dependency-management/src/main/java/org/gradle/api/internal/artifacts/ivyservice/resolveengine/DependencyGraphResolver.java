@@ -35,7 +35,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.DependencyGraphBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.CapabilitiesConflictHandler;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.LastCandidateCapabilityResolver;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.RejectRemainingCandidates;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.UserConfiguredCapabilityResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorFactory;
 import org.gradle.api.specs.Spec;
@@ -162,10 +161,7 @@ public class DependencyGraphResolver {
             new UserConfiguredCapabilityResolver(capabilitiesResolutionRules),
 
             // If there is one candidate left after the user resolvers are executed, select that candidate.
-            new LastCandidateCapabilityResolver(),
-
-            // Otherwise, reject all remaining candidates.
-            new RejectRemainingCandidates()
+            new LastCandidateCapabilityResolver()
         );
     }
 }
