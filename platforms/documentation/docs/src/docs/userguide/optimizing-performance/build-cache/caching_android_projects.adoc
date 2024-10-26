@@ -51,6 +51,8 @@ When you next build, all of the outputs previously built while working on Branch
 
 == The Android Gradle Plugin and the Gradle Build Tool
 
+For Android Studio users: Ensure you are using the latest version of the Android Gradle Plugin to avoid compatibility issues and gain access to performance improvements with each new release.
+
 The first thing you should always do when working to optimize your build is ensure you’re on the latest stable, supported versions of the Android Gradle Plugin and the Gradle Build Tool.
 At the time of writing, they are 3.3.0 and 5.0, respectively.
 Each new version of these tools includes many performance improvements, not least of which is to the build cache.
