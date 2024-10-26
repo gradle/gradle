@@ -29,10 +29,6 @@ public class BooleanQuestionPromptEvent extends PromptOutputEvent {
     private final String question;
     private final boolean defaultValue;
 
-    public BooleanQuestionPromptEvent(long timestamp, String question, boolean defaultValue) {
-        this(Timestamp.ofMillis(timestamp), question, defaultValue);
-    }
-
     public BooleanQuestionPromptEvent(Timestamp timestamp, String question, boolean defaultValue) {
         super(timestamp);
         this.question = question;

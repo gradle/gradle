@@ -19,9 +19,11 @@ package org.gradle.internal.logging.events
 import org.gradle.util.internal.TextUtil
 import spock.lang.Specification
 
+import static org.gradle.internal.time.TestTime.timestampOf
+
 class SelectOptionPromptEventTest extends Specification {
     def "formats prompt"() {
-        def event = new SelectOptionPromptEvent(123, "question", ["11", "12", "13"], 1)
+        def event = new SelectOptionPromptEvent(timestampOf(123), "question", ["11", "12", "13"], 1)
 
         assert event.prompt == TextUtil.toPlatformLineSeparators("""question:
   1: 11
@@ -31,7 +33,7 @@ Enter selection (default: 12) [1..3] """)
     }
 
     def "accepts valid input"() {
-        def event = new SelectOptionPromptEvent(123, "question", ["1", "2", "3", "4"], 1)
+        def event = new SelectOptionPromptEvent(timestampOf(123), "question", ["1", "2", "3", "4"], 1)
 
         expect:
         def result = event.convert(input)
@@ -46,7 +48,7 @@ Enter selection (default: 12) [1..3] """)
     }
 
     def "uses default value on empty input"() {
-        def event = new SelectOptionPromptEvent(123, "question", ["1", "2", "3", "4"], 1)
+        def event = new SelectOptionPromptEvent(timestampOf(123), "question", ["1", "2", "3", "4"], 1)
 
         expect:
         def result = event.convert("")
@@ -55,7 +57,7 @@ Enter selection (default: 12) [1..3] """)
     }
 
     def "rejects invalid input"() {
-        def event = new SelectOptionPromptEvent(123, "question", ["1", "2", "3", "4"], 1)
+        def event = new SelectOptionPromptEvent(timestampOf(123), "question", ["1", "2", "3", "4"], 1)
 
         expect:
         def result = event.convert(input)

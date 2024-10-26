@@ -25,6 +25,8 @@ import org.gradle.internal.logging.events.UserInputResumeEvent
 import spock.lang.Specification
 import spock.lang.Subject
 
+import static org.gradle.internal.time.TestTime.timestampOf
+
 class UserInputConsoleRendererTest extends Specification {
 
     def listener = Mock(OutputEventListener)
@@ -38,7 +40,7 @@ class UserInputConsoleRendererTest extends Specification {
         given:
         def prompt = Mock(PromptOutputEvent)
         def userInputRequestEvent = new UserInputRequestEvent()
-        def userInputResumeEvent = new UserInputResumeEvent(123)
+        def userInputResumeEvent = new UserInputResumeEvent(timestampOf(123))
 
         when:
         renderer.onOutput(userInputRequestEvent)
@@ -94,7 +96,7 @@ class UserInputConsoleRendererTest extends Specification {
 
     def "throws exception if user input resume event has been received but event handling hasn't been paused"() {
         given:
-        def event = new UserInputResumeEvent(123)
+        def event = new UserInputResumeEvent(timestampOf(123))
 
         when:
         renderer.onOutput(event)
@@ -110,7 +112,7 @@ class UserInputConsoleRendererTest extends Specification {
     def "can replay queued events if event handling is paused"() {
         given:
         def userInputRequestEvent = new UserInputRequestEvent()
-        def userInputResumeEvent = new UserInputResumeEvent(123)
+        def userInputResumeEvent = new UserInputResumeEvent(timestampOf(123))
 
         when:
         renderer.onOutput(userInputRequestEvent)

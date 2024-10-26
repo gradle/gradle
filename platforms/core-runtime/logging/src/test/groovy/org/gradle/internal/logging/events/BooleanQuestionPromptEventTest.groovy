@@ -18,16 +18,18 @@ package org.gradle.internal.logging.events
 
 import spock.lang.Specification
 
+import static org.gradle.internal.time.TestTime.timestampOf
+
 class BooleanQuestionPromptEventTest extends Specification {
     def "formats prompt"() {
-        def event = new BooleanQuestionPromptEvent(123, "question?", true)
+        def event = new BooleanQuestionPromptEvent(timestampOf(123), "question?", true)
 
         expect:
         event.prompt == "question? (default: yes) [yes, no] " // trailing space
     }
 
     def "accepts valid input"() {
-        def event = new BooleanQuestionPromptEvent(123, "question?", true)
+        def event = new BooleanQuestionPromptEvent(timestampOf(123), "question?", true)
 
         expect:
         def result = event.convert(input)
@@ -50,7 +52,7 @@ class BooleanQuestionPromptEventTest extends Specification {
     }
 
     def "uses default value on empty input"() {
-        def event = new BooleanQuestionPromptEvent(123, "question?", true)
+        def event = new BooleanQuestionPromptEvent(timestampOf(123), "question?", true)
 
         expect:
         def result = event.convert("")
@@ -59,7 +61,7 @@ class BooleanQuestionPromptEventTest extends Specification {
     }
 
     def "rejects invalid input"() {
-        def event = new BooleanQuestionPromptEvent(123, "question?", true)
+        def event = new BooleanQuestionPromptEvent(timestampOf(123), "question?", true)
 
         expect:
         def result = event.convert(input)

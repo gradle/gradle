@@ -20,13 +20,15 @@ import org.gradle.api.logging.LogLevel
 import org.gradle.internal.logging.events.UserInputResumeEvent
 import spock.lang.Subject
 
+import static org.gradle.internal.time.TestTime.timestampOf
+
 class UserInputResumeEventSerializerTest extends LogSerializerSpec {
 
     @Subject def serializer = new UserInputResumeEventSerializer(new TimestampSerializer())
 
     def "can serialize user input resume event"() {
         given:
-        def event = new UserInputResumeEvent(123)
+        def event = new UserInputResumeEvent(timestampOf(123))
 
         when:
         def result = serialize(event, serializer)

@@ -18,16 +18,18 @@ package org.gradle.internal.logging.events
 
 import spock.lang.Specification
 
+import static org.gradle.internal.time.TestTime.timestampOf
+
 class YesNoQuestionPromptEventTest extends Specification {
     def "formats prompt"() {
-        def event = new YesNoQuestionPromptEvent(123, "question?")
+        def event = new YesNoQuestionPromptEvent(timestampOf(123), "question?")
 
         expect:
         event.prompt == "question? [yes, no] " // trailing space
     }
 
     def "accepts valid input"() {
-        def event = new YesNoQuestionPromptEvent(123, "question?")
+        def event = new YesNoQuestionPromptEvent(timestampOf(123), "question?")
 
         expect:
         def result = event.convert(input)
@@ -43,7 +45,7 @@ class YesNoQuestionPromptEventTest extends Specification {
     }
 
     def "rejects invalid input"() {
-        def event = new YesNoQuestionPromptEvent(123, "question?")
+        def event = new YesNoQuestionPromptEvent(timestampOf(123), "question?")
 
         expect:
         def result = event.convert(input)

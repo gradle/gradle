@@ -27,10 +27,6 @@ public class YesNoQuestionPromptEvent extends PromptOutputEvent {
     public static final List<String> YES_NO_CHOICES = Lists.newArrayList("yes", "no");
     private final String question;
 
-    public YesNoQuestionPromptEvent(long timestamp, String question) {
-        this(Timestamp.ofMillis(timestamp), question);
-    }
-
     public YesNoQuestionPromptEvent(Timestamp timestamp, String question) {
         super(timestamp);
         this.question = question;

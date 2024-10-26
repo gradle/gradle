@@ -46,6 +46,7 @@ dependencies {
     implementation(projects.time)
 
     testImplementation(testFixtures(projects.serialization))
+    testImplementation(testFixtures(projects.time))
     testImplementation(testFixtures(projects.core))
 }
 tasks.isolatedProjectsIntegTest {

@@ -18,14 +18,16 @@ package org.gradle.internal.logging.events
 
 import spock.lang.Specification
 
+import static org.gradle.internal.time.TestTime.timestampOf
+
 class IntQuestionPromptEventTest extends Specification {
     def "formats prompt"() {
-        def event = new IntQuestionPromptEvent(123, "question?", 2, 4)
+        def event = new IntQuestionPromptEvent(timestampOf(123), "question?", 2, 4)
         assert event.prompt == "enter value (min: 2, default: 4): "
     }
 
     def "accepts valid input"() {
-        def event = new IntQuestionPromptEvent(123, "question?", 2, 4)
+        def event = new IntQuestionPromptEvent(timestampOf(123), "question?", 2, 4)
 
         expect:
         def result = event.convert(input)
@@ -42,7 +44,7 @@ class IntQuestionPromptEventTest extends Specification {
     }
 
     def "uses default value on empty input"() {
-        def event = new IntQuestionPromptEvent(123, "question?", 2, 4)
+        def event = new IntQuestionPromptEvent(timestampOf(123), "question?", 2, 4)
 
         expect:
         def result = event.convert("")
@@ -51,7 +53,7 @@ class IntQuestionPromptEventTest extends Specification {
     }
 
     def "can have negative minimum value"() {
-        def event = new IntQuestionPromptEvent(123, "question?", -5, -2)
+        def event = new IntQuestionPromptEvent(timestampOf(123), "question?", -5, -2)
 
         expect:
         def result = event.convert(input)
@@ -66,7 +68,7 @@ class IntQuestionPromptEventTest extends Specification {
     }
 
     def "rejects input that is not an integer"() {
-        def event = new IntQuestionPromptEvent(123, "question?", 2, 4)
+        def event = new IntQuestionPromptEvent(timestampOf(123), "question?", 2, 4)
 
         expect:
         def result = event.convert(input)
@@ -82,7 +84,7 @@ class IntQuestionPromptEventTest extends Specification {
     }
 
     def "rejects input that is below minimum"() {
-        def event = new IntQuestionPromptEvent(123, "question?", 2, 4)
+        def event = new IntQuestionPromptEvent(timestampOf(123), "question?", 2, 4)
 
         expect:
         def result = event.convert(input)

@@ -23,10 +23,6 @@ public class IntQuestionPromptEvent extends PromptOutputEvent {
     private final int minValue;
     private final int defaultValue;
 
-    public IntQuestionPromptEvent(long timestamp, String question, int minValue, int defaultValue) {
-        this(Timestamp.ofMillis(timestamp), question, minValue, defaultValue);
-    }
-
     public IntQuestionPromptEvent(Timestamp timestamp, String question, int minValue, int defaultValue) {
         super(timestamp);
         this.question = question;

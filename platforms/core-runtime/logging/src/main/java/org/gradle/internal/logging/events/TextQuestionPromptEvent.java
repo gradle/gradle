@@ -22,10 +22,6 @@ public class TextQuestionPromptEvent extends PromptOutputEvent {
     private final String question;
     private final String defaultValue;
 
-    public TextQuestionPromptEvent(long timestamp, String question, String defaultValue) {
-        this(Timestamp.ofMillis(timestamp), question, defaultValue);
-    }
-
     public TextQuestionPromptEvent(Timestamp timestamp, String question, String defaultValue) {
         super(timestamp);
         this.question = question;
