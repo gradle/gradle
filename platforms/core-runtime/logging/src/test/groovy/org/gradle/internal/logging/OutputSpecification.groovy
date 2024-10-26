@@ -24,8 +24,11 @@ import org.gradle.internal.logging.events.ProgressStartEvent
 import org.gradle.internal.logging.events.UpdateNowEvent
 import org.gradle.internal.operations.BuildOperationCategory
 import org.gradle.internal.operations.OperationIdentifier
+import org.gradle.internal.time.Timestamp
 import org.gradle.util.internal.TextUtil
 import spock.lang.Specification
+
+import static org.gradle.internal.time.TestTime.timestampOf
 
 abstract class OutputSpecification extends Specification {
 
@@ -39,8 +42,8 @@ abstract class OutputSpecification extends Specification {
     /**
      * Returns timestamp representing 10AM today in local time.
      */
-    long getTenAm() {
-        return getTenAmAsDate().getTimeInMillis()
+    Timestamp getTenAm() {
+        return timestampOf(getTenAmAsDate().getTimeInMillis())
     }
 
     String getTenAmFormatted() {
@@ -67,15 +70,15 @@ abstract class OutputSpecification extends Specification {
         return new LogEvent(tenAm, 'category', logLevel, text, null, buildOperationId)
     }
 
-    LogEvent event(long timestamp, String text, LogLevel logLevel) {
+    LogEvent event(Timestamp timestamp, String text, LogLevel logLevel) {
         return new LogEvent(timestamp, 'category', logLevel, text, null)
     }
 
-    LogEvent event(long timestamp, String text, LogLevel logLevel, OperationIdentifier buildOperationId) {
+    LogEvent event(Timestamp timestamp, String text, LogLevel logLevel, OperationIdentifier buildOperationId) {
         return new LogEvent(timestamp, 'category', logLevel, text, null, buildOperationId)
     }
 
-    LogEvent event(long timestamp, String text) {
+    LogEvent event(Timestamp timestamp, String text) {
         return new LogEvent(timestamp, 'category', LogLevel.INFO, text, null)
     }
 

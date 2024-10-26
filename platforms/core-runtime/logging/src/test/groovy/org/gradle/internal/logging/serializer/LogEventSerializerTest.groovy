@@ -41,7 +41,7 @@ class LogEventSerializerTest extends LogSerializerSpec {
 
         then:
         result instanceof LogEvent
-        result.timestamp == TIMESTAMP
+        result.time == TIMESTAMP
         result.category == CATEGORY
         result.logLevel == LogLevel.LIFECYCLE
         result.message == MESSAGE
@@ -58,7 +58,7 @@ class LogEventSerializerTest extends LogSerializerSpec {
 
         then:
         result instanceof LogEvent
-        result.timestamp == TIMESTAMP
+        result.time == TIMESTAMP
         result.category == CATEGORY
         result.logLevel == LogLevel.LIFECYCLE
         result.message == MESSAGE
@@ -73,7 +73,7 @@ class LogEventSerializerTest extends LogSerializerSpec {
 
         then:
         result instanceof LogEvent
-        result.timestamp == TIMESTAMP
+        result.time == TIMESTAMP
         result.category == CATEGORY
         result.logLevel == LogLevel.LIFECYCLE
         result.message == null

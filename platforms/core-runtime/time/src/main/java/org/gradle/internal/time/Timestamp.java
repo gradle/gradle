@@ -35,6 +35,24 @@ public final class Timestamp {
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof Timestamp)) {
+            return false;
+        }
+        Timestamp timestamp = (Timestamp) o;
+        return timeMs == timestamp.timeMs;
+    }
+
+    @Override
+    public int hashCode() {
+        // Long.hashCode but Java 6-compatible
+        return (int) (timeMs ^ (timeMs >>> 32));
+    }
+
+    @Override
     public String toString() {
         return timeMs + "ms";
     }

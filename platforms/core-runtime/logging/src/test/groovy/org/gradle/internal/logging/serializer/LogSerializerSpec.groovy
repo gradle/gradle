@@ -19,10 +19,13 @@ package org.gradle.internal.logging.serializer
 import org.gradle.internal.serialize.Serializer
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder
+import org.gradle.internal.time.Timestamp
 import spock.lang.Specification
 
+import static org.gradle.internal.time.TestTime.timestampOf
+
 class LogSerializerSpec extends Specification {
-    public static final int TIMESTAMP = 1234
+    public static final Timestamp TIMESTAMP = timestampOf(1234)
     public static final String CATEGORY = "category"
     public static final String MESSAGE = "message"
 

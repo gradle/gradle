@@ -17,9 +17,9 @@
 package org.gradle.internal.logging.serializer
 
 import org.gradle.api.logging.LogLevel
-import org.gradle.internal.operations.OperationIdentifier
 import org.gradle.internal.logging.events.StyledTextOutputEvent
 import org.gradle.internal.logging.text.StyledTextOutput
+import org.gradle.internal.operations.OperationIdentifier
 import org.gradle.internal.serialize.BaseSerializerFactory
 import org.gradle.internal.serialize.ListSerializer
 import org.gradle.internal.serialize.Serializer
@@ -49,7 +49,7 @@ class StyledTextOutputEventSerializerTest extends LogSerializerSpec {
 
         then:
         result instanceof StyledTextOutputEvent
-        result.timestamp == TIMESTAMP
+        result.time == TIMESTAMP
         result.category == CATEGORY
         result.logLevel == LogLevel.LIFECYCLE
         result.spans.size() == 2
@@ -69,7 +69,7 @@ class StyledTextOutputEventSerializerTest extends LogSerializerSpec {
 
         then:
         result instanceof StyledTextOutputEvent
-        result.timestamp == TIMESTAMP
+        result.time == TIMESTAMP
         result.category == CATEGORY
         result.logLevel == LogLevel.LIFECYCLE
         result.spans.size() == 1

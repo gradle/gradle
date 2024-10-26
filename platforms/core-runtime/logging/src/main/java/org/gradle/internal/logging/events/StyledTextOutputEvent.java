@@ -34,16 +34,8 @@ public class StyledTextOutputEvent extends RenderableOutputEvent implements org.
 
     private final List<Span> spans;
 
-    public StyledTextOutputEvent(long timestamp, String category, LogLevel logLevel, @Nullable OperationIdentifier buildOperationIdentifier, String text) {
-        this(Timestamp.ofMillis(timestamp), category, logLevel, buildOperationIdentifier, text);
-    }
-
     public StyledTextOutputEvent(Timestamp timestamp, String category, LogLevel logLevel, @Nullable OperationIdentifier buildOperationIdentifier, String text) {
         this(timestamp, category, logLevel, buildOperationIdentifier, Collections.singletonList(new Span(StyledTextOutput.Style.Normal, text)));
-    }
-
-    public StyledTextOutputEvent(long timestamp, String category, LogLevel logLevel, @Nullable OperationIdentifier buildOperationIdentifier, List<Span> spans) {
-        this(Timestamp.ofMillis(timestamp), category, logLevel, buildOperationIdentifier, spans);
     }
 
     public StyledTextOutputEvent(Timestamp timestamp, String category, LogLevel logLevel, @Nullable OperationIdentifier buildOperationIdentifier, List<Span> spans) {
