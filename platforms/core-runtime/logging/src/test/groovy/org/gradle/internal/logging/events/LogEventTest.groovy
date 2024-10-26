@@ -17,10 +17,12 @@ package org.gradle.internal.logging.events
 
 import org.gradle.api.logging.LogLevel
 import org.gradle.internal.logging.text.StyledTextOutput
+import org.gradle.internal.time.TestTime
+import org.gradle.internal.time.Timestamp
 import spock.lang.Specification
 
 class LogEventTest extends Specification {
-    public static final long TIMESTAMP = 0L
+    public static final Timestamp TIMESTAMP = TestTime.timestampOf(0L)
     public static final String CATEGORY = 'category'
     public static final String MESSAGE = 'message'
     private final StyledTextOutput output = Mock()
@@ -35,7 +37,7 @@ class LogEventTest extends Specification {
         then:
         1 * output.text(MESSAGE)
         1 * output.println()
-        TIMESTAMP * output._
+        0 * output._
     }
 
     def renderWritesMessageAndExceptionToTextOutput() {

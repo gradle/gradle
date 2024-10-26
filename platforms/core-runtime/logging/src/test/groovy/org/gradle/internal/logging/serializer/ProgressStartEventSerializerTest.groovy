@@ -18,11 +18,13 @@ package org.gradle.internal.logging.serializer
 import org.gradle.internal.logging.events.ProgressStartEvent
 import org.gradle.internal.operations.BuildOperationCategory
 import org.gradle.internal.operations.OperationIdentifier
+import org.gradle.internal.time.TestTime
+import org.gradle.internal.time.Timestamp
 import spock.lang.Subject
 
 @Subject(ProgressStartEventSerializer)
 class ProgressStartEventSerializerTest extends LogSerializerSpec {
-    private static final long TIMESTAMP = 42L
+    private static final Timestamp TIMESTAMP = TestTime.timestampOf(42L)
     private static final String CATEGORY = "category"
     private static final String DESCRIPTION = "description"
     private static final OperationIdentifier OPERATION_ID = new OperationIdentifier(1234L)
@@ -44,7 +46,7 @@ class ProgressStartEventSerializerTest extends LogSerializerSpec {
         result instanceof ProgressStartEvent
         result.progressOperationId == OPERATION_ID
         result.parentProgressOperationId == new OperationIdentifier(5678L)
-        result.timestamp == TIMESTAMP
+        result.time == TIMESTAMP
         result.category == CATEGORY
         result.description == DESCRIPTION
         result.loggingHeader == "header"
@@ -69,7 +71,7 @@ class ProgressStartEventSerializerTest extends LogSerializerSpec {
         result instanceof ProgressStartEvent
         result.progressOperationId == OPERATION_ID
         result.parentProgressOperationId == null
-        result.timestamp == TIMESTAMP
+        result.time == TIMESTAMP
         result.category == CATEGORY
         result.description == DESCRIPTION
         result.loggingHeader == loggingHeader

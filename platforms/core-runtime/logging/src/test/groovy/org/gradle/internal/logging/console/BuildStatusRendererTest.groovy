@@ -24,6 +24,8 @@ import org.gradle.internal.nativeintegration.console.ConsoleMetaData
 import org.gradle.internal.operations.BuildOperationCategory
 import org.gradle.internal.operations.OperationIdentifier
 
+import static org.gradle.internal.time.TestTime.timestampOf
+
 class BuildStatusRendererTest extends OutputSpecification {
     def listener = Mock(OutputEventListener)
     def console = new ConsoleStub()
@@ -33,7 +35,7 @@ class BuildStatusRendererTest extends OutputSpecification {
 
     @Override
     UpdateNowEvent updateNow() {
-        return new UpdateNowEvent(currentTimeMs)
+        return new UpdateNowEvent(timestampOf(currentTimeMs))
     }
 
     def "forwards event list to listener"() {
@@ -310,7 +312,19 @@ class BuildStatusRendererTest extends OutputSpecification {
     }
 
     def startRootBuildOperation(Long id) {
-        new ProgressStartEvent(new OperationIdentifier(id), null, currentTimeMs, "category", "description", null, null, 0, true, new OperationIdentifier(id), BuildOperationCategory.UNCATEGORIZED)
+        new ProgressStartEvent(
+            new OperationIdentifier(id),
+            null,
+            timestampOf(currentTimeMs),
+            "category",
+            "description",
+            null,
+            null,
+            0,
+            true,
+            new OperationIdentifier(id),
+            BuildOperationCategory.UNCATEGORIZED
+        )
     }
 
     def startConfigureRootBuild(Long id, Long parentId, int totalProgress) {
@@ -342,7 +356,19 @@ class BuildStatusRendererTest extends OutputSpecification {
     }
 
     def start(Long id, Long parentId, BuildOperationCategory category, int totalProgress = 0) {
-        new ProgressStartEvent(new OperationIdentifier(id), new OperationIdentifier(parentId), currentTimeMs, "category", "description", null, null, totalProgress, true, new OperationIdentifier(id), category)
+        new ProgressStartEvent(
+            new OperationIdentifier(id),
+            new OperationIdentifier(parentId),
+            timestampOf(currentTimeMs),
+            "category",
+            "description",
+            null,
+            null,
+            totalProgress,
+            true,
+            new OperationIdentifier(id),
+            category
+        )
     }
 
     private ConsoleStub.TestableRedrawableLabel getStatusBar() {

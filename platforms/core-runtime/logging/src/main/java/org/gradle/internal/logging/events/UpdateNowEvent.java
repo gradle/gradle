@@ -23,12 +23,7 @@ import org.gradle.internal.time.Timestamp;
  * Indicates an event that can trigger an immediate update to the console.
  */
 public class UpdateNowEvent extends OutputEvent implements InteractiveEvent {
-
     private final Timestamp timestamp;
-
-    public UpdateNowEvent(long timestamp) {
-        this.timestamp = Timestamp.ofMillis(timestamp);
-    }
 
     public UpdateNowEvent(Timestamp timestamp) {
         this.timestamp = timestamp;

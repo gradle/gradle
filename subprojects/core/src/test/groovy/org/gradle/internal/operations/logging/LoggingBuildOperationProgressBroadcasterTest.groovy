@@ -68,7 +68,7 @@ class LoggingBuildOperationProgressBroadcasterTest extends Specification {
 
         where:
         eventType             | eventWithBuildOperationId                                                           | eventWithFallbackBuildOperationId
-        LogEvent              | new LogEvent(0, 'c', LogLevel.INFO, 'm', null, testOperationId)                     | new LogEvent(0, 'c', LogLevel.INFO, 'm', null, null)
+        LogEvent              | new LogEvent(timestampOf(0), 'c', LogLevel.INFO, 'm', null, testOperationId)        | new LogEvent(timestampOf(0), 'c', LogLevel.INFO, 'm', null, null)
         StyledTextOutputEvent | new StyledTextOutputEvent(timestampOf(0), 'c', LogLevel.INFO, testOperationId, 'm') | new StyledTextOutputEvent(timestampOf(0), 'c', LogLevel.INFO, null, 'm')
         ProgressStartEvent    | progressStartEvent(testOperationId)                                                 | progressStartEvent(null)
     }
@@ -97,6 +97,6 @@ class LoggingBuildOperationProgressBroadcasterTest extends Specification {
     }
 
     private ProgressStartEvent progressStartEvent(OperationIdentifier operationId, String header = 'header') {
-        new ProgressStartEvent(null, null, 0, 'c', 'd', header, 's', 0, false, operationId, BuildOperationCategory.UNCATEGORIZED)
+        new ProgressStartEvent(null, null, timestampOf(0), 'c', 'd', header, 's', 0, false, operationId, BuildOperationCategory.UNCATEGORIZED)
     }
 }

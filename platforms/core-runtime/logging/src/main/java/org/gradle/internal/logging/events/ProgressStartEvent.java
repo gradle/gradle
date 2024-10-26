@@ -42,22 +42,6 @@ public class ProgressStartEvent extends CategorisedOutputEvent implements org.gr
     public ProgressStartEvent(
         OperationIdentifier progressOperationId,
         @Nullable OperationIdentifier parentProgressOperationId,
-        long timestamp,
-        String category,
-        String description,
-        @Nullable String loggingHeader,
-        String status,
-        int totalProgress,
-        boolean buildOperationStart,
-        @Nullable OperationIdentifier buildOperationId,
-        @Nullable BuildOperationCategory buildOperationCategory
-    ) {
-        this(progressOperationId, parentProgressOperationId, Timestamp.ofMillis(timestamp), category, description, loggingHeader, status, totalProgress, buildOperationStart, buildOperationId, buildOperationCategory);
-    }
-
-    public ProgressStartEvent(
-        OperationIdentifier progressOperationId,
-        @Nullable OperationIdentifier parentProgressOperationId,
         Timestamp timestamp,
         String category,
         String description,

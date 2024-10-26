@@ -30,6 +30,14 @@ public final class Timestamp {
         return timeMs;
     }
 
+    /**
+     * Returns a timestamp of {@code epochMs} milliseconds since Unix epoch.
+     * <p>
+     * Prefer using {@link Clock#getTimestamp()} to obtain the current timestamp to avoid potentially losing precision.
+     *
+     * @param epochMs epoch offset in milliseconds
+     * @return the timestamp
+     */
     public static Timestamp ofMillis(long epochMs) {
         return new Timestamp(epochMs);
     }

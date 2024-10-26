@@ -30,16 +30,8 @@ public class LogEvent extends RenderableOutputEvent implements org.gradle.intern
     @Nullable
     private final Throwable throwable;
 
-    public LogEvent(long timestamp, String category, LogLevel logLevel, String message, @Nullable Throwable throwable) {
-        this(Timestamp.ofMillis(timestamp), category, logLevel, message, throwable);
-    }
-
     public LogEvent(Timestamp timestamp, String category, LogLevel logLevel, String message, @Nullable Throwable throwable) {
         this(timestamp, category, logLevel, message, throwable, null);
-    }
-
-    public LogEvent(long timestamp, String category, LogLevel logLevel, String message, @Nullable Throwable throwable, @Nullable OperationIdentifier buildOperationIdentifier) {
-        this(Timestamp.ofMillis(timestamp), category, logLevel, message, throwable, buildOperationIdentifier);
     }
 
     public LogEvent(Timestamp timestamp, String category, LogLevel logLevel, String message, @Nullable Throwable throwable, @Nullable OperationIdentifier buildOperationIdentifier) {

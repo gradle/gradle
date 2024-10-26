@@ -26,10 +26,6 @@ public class ProgressCompleteEvent extends OutputEvent {
     private final OperationIdentifier progressOperationId;
     private final boolean failed;
 
-    public ProgressCompleteEvent(OperationIdentifier progressOperationId, long timestamp, String status, boolean failed) {
-        this(progressOperationId, Timestamp.ofMillis(timestamp), status, failed);
-    }
-
     public ProgressCompleteEvent(OperationIdentifier progressOperationId, Timestamp timestamp, String status, boolean failed) {
         this.progressOperationId = progressOperationId;
         this.timestamp = timestamp;

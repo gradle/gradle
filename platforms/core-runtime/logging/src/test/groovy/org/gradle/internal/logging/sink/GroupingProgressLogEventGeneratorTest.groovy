@@ -355,7 +355,7 @@ class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
         def olderTimestamp = timestampOf(0)
         def taskAStartEvent = new ProgressStartEvent(new OperationIdentifier(-3L), new OperationIdentifier(-4L), olderTimestamp, CATEGORY, "Execute :a", null, null, 0, true, new OperationIdentifier(-3L), BuildOperationCategory.TASK)
         def taskAOutput = event(olderTimestamp, 'message for task a', LogLevel.WARN, taskAStartEvent.buildOperationId)
-        def updateNowEvent = new UpdateNowEvent(olderTimestamp.timeMs + 100)
+        def updateNowEvent = new UpdateNowEvent(olderTimestamp.plusMillis(100))
 
         when:
         listener.onOutput(taskAStartEvent)
@@ -376,7 +376,7 @@ class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
         def olderTimestamp = timestampOf(0)
         def taskAStartEvent = new ProgressStartEvent(new OperationIdentifier(-3L), new OperationIdentifier(-4L), olderTimestamp, CATEGORY, "Execute :a", null, null, 0, true, new OperationIdentifier(-3L), BuildOperationCategory.TASK)
         def taskAOutput = event(olderTimestamp, 'message for task a', LogLevel.WARN, taskAStartEvent.buildOperationId)
-        def updateNowEvent = new UpdateNowEvent(olderTimestamp.timeMs + GroupingProgressLogEventGenerator.HIGH_WATERMARK_FLUSH_TIMEOUT + 10)
+        def updateNowEvent = new UpdateNowEvent(olderTimestamp.plusMillis(GroupingProgressLogEventGenerator.HIGH_WATERMARK_FLUSH_TIMEOUT + 10))
 
         when:
         listener.onOutput(taskAStartEvent)
@@ -404,7 +404,7 @@ class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
         def taskAOutput = event(olderTimestamp, 'message for task a', LogLevel.WARN, taskAStartEvent.buildOperationId)
         def taskBStartEvent = new ProgressStartEvent(new OperationIdentifier(-13L), new OperationIdentifier(-14L), olderTimestamp, CATEGORY, "Execute :b", null, null, 0, true, new OperationIdentifier(-13L), BuildOperationCategory.TASK)
         def taskBOutput = event(olderTimestamp, 'message for task b', LogLevel.WARN, taskBStartEvent.buildOperationId)
-        def updateNowEvent = new UpdateNowEvent(olderTimestamp.timeMs + GroupingProgressLogEventGenerator.HIGH_WATERMARK_FLUSH_TIMEOUT + 10)
+        def updateNowEvent = new UpdateNowEvent(olderTimestamp.plusMillis(GroupingProgressLogEventGenerator.HIGH_WATERMARK_FLUSH_TIMEOUT + 10))
 
         when:
         listener.onOutput(taskAStartEvent)
@@ -437,8 +437,8 @@ class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
         def olderTimestamp = timestampOf(0)
         def taskStartEvent = new ProgressStartEvent(new OperationIdentifier(-3L), new OperationIdentifier(-4L), olderTimestamp, CATEGORY, "Execute :a", null, null, 0, true, new OperationIdentifier(-3L), BuildOperationCategory.TASK)
         def event1 = event(olderTimestamp, 'message for task a', LogLevel.WARN, taskStartEvent.buildOperationId)
-        def updateNowEvent = new UpdateNowEvent(olderTimestamp.timeMs + GroupingProgressLogEventGenerator.HIGH_WATERMARK_FLUSH_TIMEOUT + 10)
-        def taskCompleteEvent = new ProgressCompleteEvent(taskStartEvent.progressOperationId, olderTimestamp.timeMs + GroupingProgressLogEventGenerator.HIGH_WATERMARK_FLUSH_TIMEOUT + 10, "STATUS", false)
+        def updateNowEvent = new UpdateNowEvent(olderTimestamp.plusMillis(GroupingProgressLogEventGenerator.HIGH_WATERMARK_FLUSH_TIMEOUT + 10))
+        def taskCompleteEvent = new ProgressCompleteEvent(taskStartEvent.progressOperationId, olderTimestamp.plusMillis(GroupingProgressLogEventGenerator.HIGH_WATERMARK_FLUSH_TIMEOUT + 10), "STATUS", false)
         def listener = new GroupingProgressLogEventGenerator(downstreamListener, logHeaderFormatter, verbose)
 
         when:

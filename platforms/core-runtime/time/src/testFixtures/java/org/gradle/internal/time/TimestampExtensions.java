@@ -16,19 +16,21 @@
 
 package org.gradle.internal.time;
 
-/**
- * Test utilities for timing routines.
- */
-public final class TestTime {
-    private TestTime() {}
+public final class TimestampExtensions {
+    private TimestampExtensions() {}
+
 
     /**
-     * Returns a timestamp of {@code epochMs} milliseconds since Unix epoch.
+     * Adds {@code advanceMs} to the time represented by {@code base} and returns the result.
      *
-     * @param epochMs epoch offset in milliseconds
-     * @return the timestamp
+     * <p>
+     * This method is available in Groovy as an extension method on the {@link Timestamp} class.
+     *
+     * @param base the base timestamp
+     * @param advanceMs the advancement
+     * @return a new timestamp
      */
-    public static Timestamp timestampOf(long epochMs) {
-        return Timestamp.ofMillis(epochMs);
+    public static Timestamp plusMillis(Timestamp base, long advanceMs) {
+        return TestTime.timestampOf(base.getTimeMs() + advanceMs);
     }
 }
