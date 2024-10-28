@@ -123,7 +123,8 @@ private fun fragmentsForSoftwareType(accessor: Accessor.ForSoftwareType): Fragme
 
 private fun fragmentsForContainerElementFactory(accessor: Accessor.ForContainerElementFactory): Fragments = accessor.run {
     val elementFactoryName = accessor.spec.name.original
-    val className = "${accessor.spec.name.original.uppercaseFirstChar()}ContainerElementFactoriesKt"
+    val elementFactoryHash = hashString(accessor.toString()).toCompactString() // with multiple factories having the same name, resolve ambiguity with the hash
+    val className = "${accessor.spec.name.original.uppercaseFirstChar()}${elementFactoryHash}ContainerElementFactoriesKt"
     val (kotlinElementType, _) = accessibleTypesFor(accessor.spec.elementType)
     val (kotlinReceiverType, jvmReceiverType) = accessibleTypesFor(accessor.spec.receiverType)
     val elementTypeKotlinString = accessor.spec.elementType.type.kotlinString
