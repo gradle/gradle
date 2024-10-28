@@ -115,7 +115,11 @@ public class OpFiringLocalBuildCacheServiceHandle extends BaseLocalBuildCacheSer
 
         @Override
         public long getArchiveSize() {
-            return archiveSize.get();
+            Long l = archiveSize.get();
+            if (l != null) {
+                return l;
+            }
+            return -1;
         }
     }
 

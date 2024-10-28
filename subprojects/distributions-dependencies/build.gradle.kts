@@ -106,6 +106,8 @@ dependencies {
         api(libs.jacksonAnnotations)    { version { strictly(jacksonVersion) }}
         api(libs.jacksonCore)           { version { strictly(jacksonVersion) }}
         api(libs.jacksonDatabind)       { version { strictly(jacksonVersion) }}
+        api(libs.jacksonDatatypeJdk8)   { version { strictly(jacksonVersion) }}
+        api(libs.jacksonDatatypeJsr310) { version { strictly(jacksonVersion) }}
         api(libs.jacksonKotlin)         { version { strictly(jacksonVersion) }}
         api(libs.jakartaActivation)     { version { strictly("2.0.1") }}
         api(libs.jakartaXmlBind)        { version { strictly("3.0.0") }}
