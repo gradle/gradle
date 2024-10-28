@@ -202,16 +202,8 @@ The `FileSystemOperations` service is injected into the `MyFileSystemOperationsT
 [[archiveoperations]]
 == 7. `ArchiveOperations`
 
-link:{javadocPath}/org/gradle/api/file/ArchiveOperations.html[`ArchiveOperations`] is a service that provides methods for creating archives, such as ZIP and TAR files.
-It is part of the `org.gradle.api.tasks.bundling` package and is typically used in custom tasks or plugins to create archive files.
-
-You can obtain an instance of `ArchiveOperations` using the `project.zipTree` property.
-Here's a simple example:
-
-====
-include::sample[dir="snippets/providers/services/kotlin",files="build.gradle.kts[tags=archive-op]"]
-include::sample[dir="snippets/providers/services/groovy",files="build.gradle[tags=archive-op]"]
-====
+link:{javadocPath}/org/gradle/api/file/ArchiveOperations.html[`ArchiveOperations`] is a service that provides methods for accessing the contents of archives, such as ZIP and TAR files.
+It is part of the `org.gradle.api.file` package and is typically used in custom tasks or plugins to unpack archive files.
 
 Here is an example using `javax.inject.Inject`:
 
