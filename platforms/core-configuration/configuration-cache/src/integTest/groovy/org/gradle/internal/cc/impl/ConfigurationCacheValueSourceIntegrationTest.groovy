@@ -16,6 +16,9 @@
 
 package org.gradle.internal.cc.impl
 
+import org.gradle.api.services.BuildService
+import org.gradle.api.services.BuildServiceParameters
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.process.ShellScript
 import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
@@ -700,5 +703,140 @@ class ConfigurationCacheValueSourceIntegrationTest extends AbstractConfiguration
 
         then:
         outputContains '2001'
+    }
+
+    @ToBeFixedForIsolatedProjects(because = 'ValueSource instances cannot be shared across projects')
+    def "value source can be shared across projects"() {
+        given:
+        createDirs 'foo', 'bar'
+        settingsFile """
+            import org.gradle.api.provider.*
+
+            include 'foo', 'bar'
+
+            abstract class RandomValueSource implements ValueSource<Integer, ValueSourceParameters.None> {
+                @Override Integer obtain() {
+                    new Random().nextInt()
+                }
+            }
+
+            abstract class ValueCheckerService implements ${BuildService.name}<${BuildServiceParameters.name}.None>{
+
+                private Object value = null
+
+                synchronized def check(Object o) {
+                    if (value === null) {
+                        value = o
+                    } else {
+                        // value should be boxed once and cached
+                        assert value === o
+                        println 'The values are the same'
+                    }
+                }
+            }
+
+            abstract class ValueTask extends DefaultTask {
+                @Input abstract Property<Object> getValue()
+                @ServiceReference('valueChecker') abstract Property<ValueCheckerService> getService()
+                @TaskAction def check() {
+                    service.get().check(value.get())
+                }
+            }
+
+            def service = gradle.sharedServices.registerIfAbsent('valueChecker', ValueCheckerService) {}
+
+            def sharedValue = providers.of(RandomValueSource) {}
+            gradle.allprojects {
+                tasks.register('check', ValueTask) {
+                    value = sharedValue
+                }
+            }
+        """
+
+        when:
+        configurationCacheRun 'check'
+
+        then:
+        output.count('The values are the same') == 2
+    }
+
+    def "value source can be shared across build services"() {
+        given:
+        createDirs 'foo', 'bar'
+        settingsFile """
+            import org.gradle.api.provider.*
+
+            rootProject.name = 'root'
+            include 'foo', 'bar'
+
+            abstract class RandomValueSource implements ValueSource<Integer, ValueSourceParameters.None> {
+                @Override Integer obtain() {
+                    new Random().nextInt()
+                }
+            }
+
+            abstract class ValueProviderService implements ${BuildService.name}<Parameters>{
+
+                interface Parameters extends ${BuildServiceParameters.name} {
+                    Property<Integer> getValue()
+                }
+
+                Integer getValue() {
+                    parameters.value.get()
+                }
+            }
+
+            abstract class ValueCheckerService implements ${BuildService.name}<${BuildServiceParameters.name}.None>{
+
+                private Object value = null
+
+                synchronized def check(Object o) {
+                    if (value === null) {
+                        value = o
+                    } else {
+                        // value should be boxed once and cached
+                        assert value === o
+                        println 'The values are the same'
+                    }
+                }
+            }
+
+            abstract class ValueTask extends DefaultTask {
+                @ServiceReference('valueProvider') abstract Property<ValueProviderService> getValueProvider()
+                @ServiceReference('valueChecker') abstract Property<ValueCheckerService> getValueChecker()
+                @TaskAction def check() {
+                    valueChecker.get().check(valueProvider.get().value)
+                }
+            }
+
+            def valueChecker = gradle.sharedServices.registerIfAbsent('valueChecker', ValueCheckerService) {}
+
+            def sharedValue = providers.of(RandomValueSource) {}
+            gradle.allprojects {
+                def provider = gradle.sharedServices.registerIfAbsent(name + 'ValueProvider', ValueProviderService) {
+                    parameters {
+                        value = sharedValue
+                    }
+                }
+                tasks.register('check', ValueTask) {
+                    valueProvider = provider
+                }
+            }
+        """
+
+        and:
+        def configurationCache = newConfigurationCacheFixture()
+
+        when:
+        configurationCacheRun 'check'
+
+        and:
+        configurationCacheRun 'check'
+
+        then:
+        output.count('The values are the same') == 2
+
+        and:
+        configurationCache.assertStateLoaded()
     }
 }
