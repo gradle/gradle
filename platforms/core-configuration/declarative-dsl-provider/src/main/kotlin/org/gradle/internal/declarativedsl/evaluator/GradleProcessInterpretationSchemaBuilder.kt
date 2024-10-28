@@ -19,11 +19,11 @@ package org.gradle.internal.declarativedsl.evaluator
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.internal.declarativedsl.evaluator.schema.DeclarativeScriptContext
 import org.gradle.internal.declarativedsl.evaluator.schema.InterpretationSchemaBuilder
 import org.gradle.internal.declarativedsl.evaluator.schema.InterpretationSchemaBuildingResult
 import org.gradle.internal.declarativedsl.evaluator.schema.InterpretationSchemaBuildingResult.InterpretationSequenceAvailable
 import org.gradle.internal.declarativedsl.evaluator.schema.InterpretationSchemaBuildingResult.SchemaNotBuilt
-import org.gradle.internal.declarativedsl.evaluator.schema.DeclarativeScriptContext
 import org.gradle.internal.declarativedsl.project.projectInterpretationSequence
 import org.gradle.internal.declarativedsl.settings.settingsInterpretationSequence
 import org.gradle.plugin.software.internal.SoftwareFeatureApplicator
@@ -37,17 +37,20 @@ class GradleProcessInterpretationSchemaBuilder(
         when (scriptContext) {
             is DeclarativeScriptContext.UnknownScript -> SchemaNotBuilt
 
-            is DeclarativeScriptContext.SettingsScript -> {
-                require(scriptContext is LoadedSettingsScriptContext) { "A ${LoadedSettingsScriptContext::class.simpleName} is needed to build the settings schema" }
+            is LoadedSettingsScriptContext -> {
                 InterpretationSequenceAvailable(
                     settingsInterpretationSequence(scriptContext.settings, scriptContext.targetScope, scriptContext.scriptSource, softwareTypeRegistry)
                 )
             }
 
-            is DeclarativeScriptContext.ProjectScript -> {
-                require(scriptContext is LoadedProjectScriptContext) { "A ${LoadedProjectScriptContext::class.simpleName} is needed to build the project schema" }
+            is LoadedProjectScriptContext -> {
                 InterpretationSequenceAvailable(projectInterpretationSequence(softwareTypeRegistry, scriptContext.softwareFeatureApplicator))
             }
+
+            /** Can't build the schema if it is some unknown settings or project script context: it's not [LoadedSettingsScriptContext],
+             * so we can't access its services and the settings script data. */
+            is DeclarativeScriptContext.SettingsScript,
+            is DeclarativeScriptContext.ProjectScript -> SchemaNotBuilt
         }
 }
 
