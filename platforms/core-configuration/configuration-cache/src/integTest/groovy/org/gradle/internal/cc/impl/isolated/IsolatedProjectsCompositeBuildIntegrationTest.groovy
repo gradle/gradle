@@ -55,14 +55,14 @@ class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProj
     def "cycles for plugin builds are prohibited"() {
         given:
         includePluginBuild(settingsFile, "plugins-a")
-        includedBuild("plugins-a") { layout ->
-            includePluginBuild(layout.settingsScript, "../plugins-b")
+        includedBuild("plugins-a") {
+            includePluginBuild(settingsScript, "../plugins-b")
         }
-        includedBuild("plugins-b") { layout ->
-            includePluginBuild(layout.settingsScript, "../plugins-c")
+        includedBuild("plugins-b") {
+            includePluginBuild(settingsScript, "../plugins-c")
         }
-        includedBuild("plugins-c") { layout ->
-            includePluginBuild(layout.settingsScript, "../plugins-a")
+        includedBuild("plugins-c") {
+            includePluginBuild(settingsScript, "../plugins-a")
         }
 
         when:
@@ -75,14 +75,14 @@ class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProj
     def "transitive cycles for plugin builds are prohibited"() {
         given:
         includePluginBuild(settingsFile, "plugins-a")
-        includedBuild("plugins-a") { layout ->
-            includeLibraryBuild(layout.settingsScript, "../library-b")
+        includedBuild("plugins-a") {
+            includeLibraryBuild(settingsScript, "../library-b")
         }
-        includedBuild("library-b") { layout ->
-            includeLibraryBuild(layout.settingsScript, "../library-c")
+        includedBuild("library-b") {
+            includeLibraryBuild(settingsScript, "../library-c")
         }
-        includedBuild("library-c") { layout ->
-            includePluginBuild(layout.settingsScript, "../plugins-a")
+        includedBuild("library-c") {
+            includePluginBuild(settingsScript, "../plugins-a")
         }
 
         when:
@@ -94,21 +94,21 @@ class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProj
 
     def "introduced-by-settings-plugin cycles for plugins builds are prohibited"() {
         given:
-        includedBuild("settings-plugins") { layout ->
-            layout.buildScript << """
+        includedBuild("settings-plugins") {
+            buildScript << """
                 plugins {
                     id("groovy-gradle-plugin")
                 }
             """
-            layout.srcMainGroovy.file("my-plugin.settings.gradle") << """
+            srcMainGroovy.file("my-plugin.settings.gradle") << """
                 pluginManagement {
                     includeBuild("../build-logic")
                 }
             """
         }
-        includedBuild("build-logic") { layout ->
-            includePluginBuild(layout.settingsScript, "../settings-plugins")
-            layout.settingsScript << """
+        includedBuild("build-logic") {
+            includePluginBuild(settingsScript, "../settings-plugins")
+            settingsScript << """
                 plugins {
                     id("my-plugin")
                 }
@@ -126,22 +126,23 @@ class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProj
     def "cycles for library builds are allowed"() {
         given:
         includeLibraryBuild(settingsFile, "library-a")
-        includedBuild("library-a") { layout ->
-            includeLibraryBuild(layout.settingsScript, "../library-b")
+        includedBuild("library-a") {
+            includeLibraryBuild(settingsScript, "../library-b")
         }
-        includedBuild("library-b") { layout ->
-            includeLibraryBuild(layout.settingsScript, "../library-c")
+        includedBuild("library-b") {
+            includeLibraryBuild(settingsScript, "../library-c")
         }
-        includedBuild("library-c") { layout ->
-            includeLibraryBuild(layout.settingsScript, "../library-a")
+        includedBuild("library-c") {
+            includeLibraryBuild(settingsScript, "../library-a")
         }
 
         expect:
         isolatedProjectsRun("help")
     }
 
-    private def includedBuild(String root, Consumer<BuildLayout> configure) {
-        configure(new BuildLayout(file("$root/settings.gradle"), file("$root/build.gradle"), file("$root/src/main/groovy")))
+    private def includedBuild(String root, @DelegatesTo(BuildLayout) Closure configure) {
+        configure.setDelegate(new BuildLayout(file("$root/settings.gradle"), file("$root/build.gradle"), file("$root/src/main/groovy")))
+        configure()
     }
 
     private static def includeLibraryBuild(TestFile settingsFile, String build) {
