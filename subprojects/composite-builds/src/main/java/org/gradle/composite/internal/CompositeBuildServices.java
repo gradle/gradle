@@ -78,7 +78,7 @@ public class CompositeBuildServices extends AbstractGradleModuleServices {
         ) {
             if (buildModelParameters.isIsolatedProjects()) {
                 // IP mode prohibits cycles in included plugin builds graph
-                return new CycleDetectingIncludedBuildRegistry(includedBuildFactory, listenerManager, buildStateFactory);
+                return new AcyclicIncludedBuildRegistry(includedBuildFactory, listenerManager, buildStateFactory);
             } else {
                 return new DefaultIncludedBuildRegistry(includedBuildFactory, listenerManager, buildStateFactory);
             }

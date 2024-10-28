@@ -77,10 +77,10 @@ class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProj
         isolatedProjectsFails("help")
 
         then:
-        failureDescriptionContains("A cycle has been detected in the definition of plugin builds: :plugins-c -> :plugins-a -> :plugins-b -> :plugins-c. This is not supported with Isolated Projects. Please update your build definition to remove one of the edges.")
+        failureDescriptionContains("A cycle has been detected in the definition of plugin builds: :plugins-c -> :plugins-a -> :plugins-b -> :plugins-c.")
     }
 
-    def "transitive cycles for plugin builds are prohibited"() {
+    def "transitive cycles(start is a plugin) for plugin builds are prohibited"() {
         given:
         includePluginBuild(settingsFile, "plugins-a")
         applyPlugins(buildFile, ["plugin-a"])
@@ -103,7 +103,33 @@ class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProj
         isolatedProjectsFails("help")
 
         then:
-        failureDescriptionContains("A cycle has been detected in the definition of plugin builds: :library-c -> :plugins-a -> :library-b -> :library-c. This is not supported with Isolated Projects. Please update your build definition to remove one of the edges.")
+        failureDescriptionContains("A cycle has been detected in the definition of plugin builds: :library-c -> :plugins-a -> :library-b -> :library-c.")
+    }
+
+    def "transitive cycles(start is a library) for plugin builds are prohibited"() {
+        given:
+        includeLibraryBuild(settingsFile, "library-a")
+
+        includedBuild("library-a") {
+            includeLibraryBuild(settingsScript, "../library-b")
+        }
+
+        includedBuild("library-b") {
+            includePluginBuild(settingsScript, "../plugins-a")
+            applyPlugins(buildScript, ["plugin-a"])
+        }
+
+        includedBuild("plugins-a") {
+            includeLibraryBuild(settingsScript, "../library-a")
+            applyPlugins(buildScript, ["groovy-gradle-plugin"])
+            srcMainGroovy.file("plugin-a.gradle") << ""
+        }
+
+        when:
+        isolatedProjectsFails("help")
+
+        then:
+        failureDescriptionContains("A cycle has been detected in the definition of plugin builds: :plugins-a -> :library-a -> :library-b -> :plugins-a.")
     }
 
     def "introduced-by-settings-plugin cycles for plugins builds are prohibited"() {
@@ -131,7 +157,7 @@ class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProj
         isolatedProjectsFails("help")
 
         then:
-        failureDescriptionContains("A cycle has been detected in the definition of plugin builds: :build-logic -> :build-logic. This is not supported with Isolated Projects. Please update your build definition to remove one of the edges.")
+        failureDescriptionContains("A cycle has been detected in the definition of plugin builds: :build-logic -> :build-logic.")
     }
 
     def "cycles for library builds are allowed"() {
