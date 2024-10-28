@@ -52,7 +52,7 @@ object GradleUserHomeServices : ServiceRegistrationProvider {
     @PrivateService
     internal fun createKotlinDslDclSchemaCollector(cacheFactory: CrossBuildInMemoryCacheFactory): KotlinDslDclSchemaCollector =
         CachedKotlinDslDclSchemaCollector(
-            CrossBuildInMemoryKotlinDslDclSchemaCache(cacheFactory.newClassCache(), cacheFactory.newCache()),
+            CrossBuildInMemoryKotlinDslDclSchemaCache(cacheFactory),
             DefaultKotlinDslDclSchemaCollector()
         )
 }

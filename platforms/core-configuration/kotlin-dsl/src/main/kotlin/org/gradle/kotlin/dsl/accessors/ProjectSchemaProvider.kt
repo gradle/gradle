@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl.accessors
 
+import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.reflect.TypeOf
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
@@ -26,7 +27,7 @@ import java.io.Serializable
 @ServiceScope(Scope.UserHome::class)
 interface ProjectSchemaProvider {
 
-    fun schemaFor(scriptTarget: Any): TypedProjectSchema?
+    fun schemaFor(scriptTarget: Any, classLoaderScope: ClassLoaderScope): TypedProjectSchema?
 }
 
 

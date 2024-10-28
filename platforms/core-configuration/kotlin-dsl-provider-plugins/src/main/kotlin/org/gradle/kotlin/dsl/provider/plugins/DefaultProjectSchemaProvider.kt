@@ -25,6 +25,7 @@ import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.SharedModelDefaults
+import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.reflect.HasPublicType
 import org.gradle.api.reflect.TypeOf
@@ -53,12 +54,13 @@ internal class DefaultProjectSchemaProvider(
     private val dclSchemaCollector: KotlinDslDclSchemaCollector,
 ) : ProjectSchemaProvider {
 
-    override fun schemaFor(scriptTarget: Any): TypedProjectSchema? =
+    override fun schemaFor(scriptTarget: Any, classLoaderScope: ClassLoaderScope): TypedProjectSchema? =
         targetTypeOf(scriptTarget)
             ?.let { scriptTargetType ->
                 targetSchemaFor(
                     scriptTarget,
-                    scriptTargetType
+                    scriptTargetType,
+                    classLoaderScope
                 )
             }?.let { targetSchema ->
                 ProjectSchema(
@@ -83,15 +85,12 @@ internal class DefaultProjectSchemaProvider(
         else -> null
     }
 
-    internal fun targetSchemaFor(target: Any, targetType: TypeOf<*>): TargetTypedSchema {
+    internal fun targetSchemaFor(target: Any, targetType: TypeOf<*>, classLoaderScope: ClassLoaderScope): TargetTypedSchema {
         val extensions = mutableListOf<ProjectSchemaEntry<TypeOf<*>>>()
         val conventions = mutableListOf<ProjectSchemaEntry<TypeOf<*>>>()
         val tasks = mutableListOf<ProjectSchemaEntry<TypeOf<*>>>()
         val containerElements = mutableListOf<ProjectSchemaEntry<TypeOf<*>>>()
         val buildModelDefaults = mutableListOf<ProjectSchemaEntry<TypeOf<*>>>()
-        val containerElementFactories = mutableListOf<ContainerElementFactoryEntry<TypeOf<*>>>()
-
-        val isDclEnabled = isDclEnabledForScriptTarget(target)
 
         fun collectSchemaOf(target: Any, targetType: TypeOf<*>) {
             if (target is ExtensionAware) {
@@ -129,18 +128,13 @@ internal class DefaultProjectSchemaProvider(
                     containerElements.add(ProjectSchemaEntry(targetType, schema.name, schema.publicType))
                 }
             }
-
-            if (isDclEnabled) {
-                dclSchemaCollector.collectNestedContainerFactories(targetType.concreteClass)
-                    .forEach(containerElementFactories::add)
-            }
         }
 
         collectSchemaOf(target, targetType)
 
-        val softwareTypes = if (isDclEnabled)
-            softwareTypeRegistryOf(target)?.let(dclSchemaCollector::collectSoftwareTypes).orEmpty()
-        else emptyList()
+        val dclSchema = if (isDclEnabledForScriptTarget(target)) {
+            dclSchemaCollector.collectDclSchemaForKotlinDslTarget(target, classLoaderScope)
+        } else null
 
         return TargetTypedSchema(
             extensions,
@@ -148,8 +142,8 @@ internal class DefaultProjectSchemaProvider(
             tasks,
             containerElements,
             buildModelDefaults,
-            softwareTypes,
-            containerElementFactories
+            dclSchema?.softwareTypes.orEmpty(),
+            dclSchema?.containerElementFactories.orEmpty()
         )
     }
 }
@@ -165,12 +159,6 @@ data class TargetTypedSchema(
     val containerElementFactories: List<ContainerElementFactoryEntry<TypeOf<*>>>
 )
 
-private fun softwareTypeRegistryOf(target: Any): SoftwareTypeRegistry? =
-    when (target) {
-        is Project -> target.serviceOf<SoftwareTypeRegistry>()
-        is Settings -> target.serviceOf<SoftwareTypeRegistry>()
-        else -> null
-    }
 
 private
 fun accessibleConventionsSchema(plugins: Map<String, Any>) =

@@ -121,7 +121,7 @@ class ProjectAccessorsClassPathGenerator @Inject internal constructor(
         require(classLoaderScope.isLocked) {
             "project.classLoaderScope must be locked before querying the project schema"
         }
-        return projectSchemaProvider.schemaFor(scriptTarget)?.takeIf { it.isNotEmpty() }
+        return projectSchemaProvider.schemaFor(scriptTarget, classLoaderScope)?.takeIf { it.isNotEmpty() }
     }
 }
 
