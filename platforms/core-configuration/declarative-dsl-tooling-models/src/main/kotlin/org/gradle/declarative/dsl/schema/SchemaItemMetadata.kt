@@ -18,14 +18,21 @@ package org.gradle.declarative.dsl.schema
 
 import org.gradle.tooling.ToolingModelContract
 
+@ToolingModelContract(
+    subTypes = [
+        SchemaMemberOrigin::class,
+        ContainerElementFactory::class
+    ]
+)
+sealed interface SchemaItemMetadata
 
-@ToolingModelContract(subTypes = [
-    DataMemberFunction::class,
-    DataBuilderFunction::class
-])
-sealed interface SchemaMemberFunction : SchemaFunction {
-    override val simpleName: String
-    val receiver: DataTypeRef
-    val isDirectAccessOnly: Boolean
-    val metadata: List<SchemaItemMetadata>
+@ToolingModelContract(
+    subTypes = [
+        ContainerElementFactory::class
+    ]
+)
+sealed interface SchemaMemberOrigin : SchemaItemMetadata
+
+interface ContainerElementFactory : SchemaMemberOrigin {
+    val elementType: DataTypeRef
 }

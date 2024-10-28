@@ -36,6 +36,7 @@ import org.gradle.internal.declarativedsl.analysis.FunctionSemanticsInternal
 import org.gradle.internal.declarativedsl.analysis.FunctionSemanticsInternal.DefaultAccessAndConfigure.DefaultReturnType.DefaultUnit
 import org.gradle.internal.declarativedsl.analysis.FunctionSemanticsInternal.DefaultConfigureBlockRequirement.DefaultRequired
 import org.gradle.internal.declarativedsl.analysis.ParameterSemanticsInternal
+import org.gradle.internal.declarativedsl.analysis.SchemaItemMetadataInternal.SchemaMemberOriginInternal.DefaultContainerElementFactory
 import org.gradle.internal.declarativedsl.analysis.ref
 import org.gradle.internal.declarativedsl.evaluationSchema.AnalysisSchemaComponent
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchemaBuilder
@@ -248,7 +249,8 @@ private fun elementFactoryFunction(
             ConfigureAccessorInternal.DefaultConfiguringLambdaArgument(elementTypeRef),
             FunctionSemanticsInternal.DefaultAccessAndConfigure.DefaultReturnType.DefaultConfiguredObject,
             DefaultRequired
-        )
+        ),
+        metadata = listOf(DefaultContainerElementFactory(elementTypeRef))
     )
 }
 
