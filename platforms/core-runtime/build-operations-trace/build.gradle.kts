@@ -33,5 +33,7 @@ dependencies {
     implementation(projects.buildOption)
 
     implementation(libs.jacksonDatabind)
+    implementation(libs.jacksonDatatypeJdk8)
+    implementation(libs.jacksonDatatypeJsr310)
     implementation(libs.jsr305)
 }

@@ -29,6 +29,8 @@ import com.fasterxml.jackson.databind.introspect.AnnotatedMember;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.ser.BeanPropertyWriter;
 import com.fasterxml.jackson.databind.ser.BeanSerializerModifier;
+import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.StartParameter;
@@ -495,6 +497,8 @@ public class BuildOperationTrace implements Stoppable {
                 .addSerializer(AttributeContainer.class, new JsonAttributeContainerSerializer())
                 .setSerializerModifier(new SkipDeprecatedBeanSerializerModifier())
             )
+            .registerModule(new JavaTimeModule())
+            .registerModule(new Jdk8Module())
             .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
     }
 
