@@ -20,18 +20,22 @@ import org.gradle.api.PathValidation;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.typeconversion.NotationParser;
+import org.gradle.internal.typeconversion.OptionalParserAdapter;
 import org.gradle.internal.typeconversion.UnsupportedNotationException;
 import org.gradle.util.internal.DeferredUtil;
 
 import javax.annotation.Nullable;
 import java.io.File;
 import java.net.URI;
+import java.util.Optional;
 
 public abstract class AbstractFileResolver implements FileResolver {
-    private final NotationParser<Object, Object> fileNotationParser;
+    private final NotationParser<Object, File> fileNotationParser;
+    private final NotationParser<Object, Optional<URI>> uriNotationParser;
 
     protected AbstractFileResolver() {
-        this.fileNotationParser = FileOrUriNotationConverter.parser();
+        this.fileNotationParser = FileNotationConverter.parser();
+        this.uriNotationParser = new OptionalParserAdapter<>(new UriNotationConverter());
     }
 
     public FileResolver withBaseDir(Object path) {
@@ -89,11 +93,13 @@ public abstract class AbstractFileResolver implements FileResolver {
 
     protected URI convertObjectToURI(Object path) {
         Object object = DeferredUtil.unpack(path);
-        Object converted = fileNotationParser.parseNotation(object);
-        if (converted instanceof File) {
-            return resolve(converted).toURI();
+        if (object == null) {
+            throw new UnsupportedNotationException("Cannot convert a null value to URI.");
         }
-        return (URI) converted;
+        return uriNotationParser
+            .parseNotation(object)
+            .filter(uri -> !"file".equals(uri.getScheme()))
+            .orElseGet(() -> resolve(object).toURI()); //TODO: the error message should be more informative
     }
 
     @Nullable
@@ -102,11 +108,7 @@ public abstract class AbstractFileResolver implements FileResolver {
         if (object == null) {
             return null;
         }
-        Object converted = fileNotationParser.parseNotation(object);
-        if (converted instanceof File) {
-            return (File) converted;
-        }
-        throw new InvalidUserDataException(String.format("Cannot convert URL '%s' to a file.", converted));
+        return fileNotationParser.parseNotation(object);
     }
 
     protected void validate(File file, PathValidation validation) {

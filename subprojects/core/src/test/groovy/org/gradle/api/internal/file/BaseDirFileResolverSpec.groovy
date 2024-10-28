@@ -158,7 +158,7 @@ class BaseDirFileResolverSpec extends Specification {
 
         then:
         UnsupportedNotationException e = thrown()
-        e.message == toPlatformLineSeparators("""Cannot convert the provided notation to a File or URI: 12.
+        e.message == toPlatformLineSeparators("""Cannot convert the provided notation to a File: 12.
 The following types/formats are supported:
   - A String or CharSequence path, for example 'src/main/java' or '/usr/include'.
   - A String or CharSequence URI, for example 'file:/usr/include'.
@@ -166,7 +166,7 @@ The following types/formats are supported:
   - A Path instance.
   - A Directory instance.
   - A RegularFile instance.
-  - A URI or URL instance.
+  - A URI or URL instance of file.
   - A TextResource instance.""")
     }
 
@@ -209,7 +209,7 @@ The following types/formats are supported:
         resolver(tmpDir.testDirectory).resolveUri(null)
         then:
         def ex = thrown UnsupportedNotationException
-        ex.message.contains "Cannot convert a null value to a File or URI."
+        ex.message.contains "Cannot convert a null value to URI."
     }
 
     def createLink(File link, File target) {
