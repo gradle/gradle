@@ -59,6 +59,8 @@ data class DefaultAnalysisSchema(
 @SerialName("data")
 data class DefaultDataClass(
     override val name: FqName,
+    override val javaTypeName: String,
+    override val javaTypeArgumentTypeNames: List<String>,
     override val supertypes: Set<FqName>,
     override val properties: List<DataProperty>,
     override val memberFunctions: List<SchemaMemberFunction>,

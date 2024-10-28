@@ -186,6 +186,8 @@ internal class ContainersSchemaComponent : AnalysisSchemaComponent, ObjectConver
 
         fun generateSyntheticContainerType(): DataClass = DefaultDataClass(
             syntheticTypeName(),
+            NamedDomainObjectContainer::class.java.name,
+            listOfNotNull((elementType.classifier as? KClass<*>)?.java?.name),
             emptySet(),
             emptyList(),
             listOf(newElementFactoryFunction(syntheticContainerTypeRef(), elementType, inContext = originDeclaration.callable)),
