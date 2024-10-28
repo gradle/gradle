@@ -26,6 +26,7 @@ class DiagnosticsComponentReportIntegrationTest extends AbstractNativeComponentR
     def "informs the user when project has no components defined"() {
         when:
         executer.withArgument("--no-problems-report")
+        expectTaskGetProjectDeprecations()
         succeeds "components"
 
         then:
@@ -55,6 +56,7 @@ model {
 """
         when:
         executer.withArgument("--no-problems-report")
+        expectTaskGetProjectDeprecations()
         succeeds "components"
 
         then:

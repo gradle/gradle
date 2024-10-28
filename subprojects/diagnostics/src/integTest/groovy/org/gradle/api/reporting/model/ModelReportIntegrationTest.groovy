@@ -17,10 +17,17 @@
 package org.gradle.api.reporting.model
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.CommonDeprecations
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 
 @UnsupportedWithConfigurationCache(because = "software model")
-class ModelReportIntegrationTest extends AbstractIntegrationSpec {
+class ModelReportIntegrationTest extends AbstractIntegrationSpec implements CommonDeprecations {
+
+    @Override
+    protected void setupExecuter() {
+        super.setupExecuter()
+        expectTaskGetProjectDeprecations()
+    }
 
     def "displays basic structure of an empty project"() {
         given:
