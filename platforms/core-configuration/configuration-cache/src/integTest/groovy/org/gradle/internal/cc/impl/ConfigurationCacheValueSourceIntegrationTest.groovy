@@ -714,9 +714,10 @@ class ConfigurationCacheValueSourceIntegrationTest extends AbstractConfiguration
 
             include 'foo', 'bar'
 
-            abstract class RandomValueSource implements ValueSource<Integer, ValueSourceParameters.None> {
-                @Override Integer obtain() {
-                    new Random().nextInt()
+            abstract class StringValueSource implements ValueSource<String, ValueSourceParameters.None> {
+                @Override String obtain() {
+                    println "StringValueSource obtained"
+                    new String('42')
                 }
             }
 
@@ -728,7 +729,6 @@ class ConfigurationCacheValueSourceIntegrationTest extends AbstractConfiguration
                     if (value === null) {
                         value = o
                     } else {
-                        // value should be boxed once and cached
                         assert value === o
                         println 'The values are the same'
                     }
@@ -745,7 +745,7 @@ class ConfigurationCacheValueSourceIntegrationTest extends AbstractConfiguration
 
             def service = gradle.sharedServices.registerIfAbsent('valueChecker', ValueCheckerService) {}
 
-            def sharedValue = providers.of(RandomValueSource) {}
+            def sharedValue = providers.of(StringValueSource) {}
             gradle.allprojects {
                 tasks.register('check', ValueTask) {
                     value = sharedValue
@@ -753,11 +753,25 @@ class ConfigurationCacheValueSourceIntegrationTest extends AbstractConfiguration
             }
         """
 
+        and:
+        def configurationCache = newConfigurationCacheFixture()
+
         when:
         configurationCacheRun 'check'
 
         then:
+        output.count('StringValueSource obtained') == 1
         output.count('The values are the same') == 2
+
+        and:
+        configurationCacheRun 'check'
+
+        then:
+        output.count('StringValueSource obtained') == 1
+        output.count('The values are the same') == 2
+
+        and:
+        configurationCache.assertStateLoaded()
     }
 
     def "value source can be shared across build services"() {
@@ -769,19 +783,20 @@ class ConfigurationCacheValueSourceIntegrationTest extends AbstractConfiguration
             rootProject.name = 'root'
             include 'foo', 'bar'
 
-            abstract class RandomValueSource implements ValueSource<Integer, ValueSourceParameters.None> {
-                @Override Integer obtain() {
-                    new Random().nextInt()
+            abstract class StringValueSource implements ValueSource<String, ValueSourceParameters.None> {
+                @Override String obtain() {
+                    println "StringValueSource obtained"
+                    new String('42')
                 }
             }
 
             abstract class ValueProviderService implements ${BuildService.name}<Parameters>{
 
                 interface Parameters extends ${BuildServiceParameters.name} {
-                    Property<Integer> getValue()
+                    Property<Object> getValue()
                 }
 
-                Integer getValue() {
+                Object getValue() {
                     parameters.value.get()
                 }
             }
@@ -794,7 +809,6 @@ class ConfigurationCacheValueSourceIntegrationTest extends AbstractConfiguration
                     if (value === null) {
                         value = o
                     } else {
-                        // value should be boxed once and cached
                         assert value === o
                         println 'The values are the same'
                     }
@@ -811,7 +825,7 @@ class ConfigurationCacheValueSourceIntegrationTest extends AbstractConfiguration
 
             def valueChecker = gradle.sharedServices.registerIfAbsent('valueChecker', ValueCheckerService) {}
 
-            def sharedValue = providers.of(RandomValueSource) {}
+            def sharedValue = providers.of(StringValueSource) {}
             gradle.allprojects {
                 def provider = gradle.sharedServices.registerIfAbsent(name + 'ValueProvider', ValueProviderService) {
                     parameters {
@@ -830,10 +844,15 @@ class ConfigurationCacheValueSourceIntegrationTest extends AbstractConfiguration
         when:
         configurationCacheRun 'check'
 
+        then:
+        output.count('StringValueSource obtained') == 1
+        output.count('The values are the same') == 2
+
         and:
         configurationCacheRun 'check'
 
         then:
+        output.count('StringValueSource obtained') == 1
         output.count('The values are the same') == 2
 
         and:
