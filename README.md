@@ -5,7 +5,7 @@
   </picture>
 </div>
 
-<div align="center" >
+<div align="center" style="margin-top: 20px;">
 
 [![Revved up by Develocity](https://img.shields.io/badge/Revved%20up%20by-Develocity-06A0CE?logo=Gradle&labelColor=02303A)](https://ge.gradle.org/scans) [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/4898/badge)](https://bestpractices.coreinfrastructure.org/projects/4898) [![Join the Gradle Community Slack](https://img.shields.io/badge/Slack-Join%20the%20Community-brightgreen?style=flat&logo=slack)](https://gradle.org/slack-invite) [![Gradle Documentation](https://img.shields.io/badge/Docs-Gradle%20User%20Guide-blueviolet?style=flat&logo=read-the-docs)](https://docs.gradle.org/current/userguide/userguide.html) 
 
