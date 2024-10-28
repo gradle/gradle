@@ -18,8 +18,6 @@ package org.gradle.internal.cc.impl.isolated
 
 import org.gradle.test.fixtures.file.TestFile
 
-import java.util.function.Consumer
-
 class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProjectsIntegrationTest {
     def "can build libraries composed from multiple builds"() {
         settingsFile << """
@@ -55,14 +53,24 @@ class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProj
     def "cycles for plugin builds are prohibited"() {
         given:
         includePluginBuild(settingsFile, "plugins-a")
+        applyPlugins(buildFile, ["plugin-a"])
+
         includedBuild("plugins-a") {
             includePluginBuild(settingsScript, "../plugins-b")
+            applyPlugins(buildScript, ["groovy-gradle-plugin", "plugin-b"])
+            srcMainGroovy.file("plugin-a.gradle") << ""
         }
+
         includedBuild("plugins-b") {
             includePluginBuild(settingsScript, "../plugins-c")
+            applyPlugins(buildScript, ["groovy-gradle-plugin", "plugin-c"])
+            srcMainGroovy.file("plugin-b.gradle") << ""
         }
+
         includedBuild("plugins-c") {
             includePluginBuild(settingsScript, "../plugins-a")
+            applyPlugins(buildScript, ["groovy-gradle-plugin", "plugin-a"])
+            srcMainGroovy.file("plugin-c.gradle") << ""
         }
 
         when:
@@ -75,14 +83,20 @@ class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProj
     def "transitive cycles for plugin builds are prohibited"() {
         given:
         includePluginBuild(settingsFile, "plugins-a")
+        applyPlugins(buildFile, ["plugin-a"])
+
         includedBuild("plugins-a") {
             includeLibraryBuild(settingsScript, "../library-b")
+            srcMainGroovy.file("plugin-a.gradle") << ""
         }
+
         includedBuild("library-b") {
             includeLibraryBuild(settingsScript, "../library-c")
         }
+
         includedBuild("library-c") {
             includePluginBuild(settingsScript, "../plugins-a")
+            applyPlugins(buildScript, ["plugin-a"])
         }
 
         when:
@@ -94,27 +108,24 @@ class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProj
 
     def "introduced-by-settings-plugin cycles for plugins builds are prohibited"() {
         given:
+        includePluginBuild(settingsFile, "build-logic")
+        applyPlugins(buildFile, ["plugin-a"])
+
         includedBuild("settings-plugins") {
-            buildScript << """
-                plugins {
-                    id("groovy-gradle-plugin")
-                }
-            """
+            applyPlugins(buildScript, ["groovy-gradle-plugin"])
             srcMainGroovy.file("my-plugin.settings.gradle") << """
                 pluginManagement {
                     includeBuild("../build-logic")
                 }
             """
         }
+
         includedBuild("build-logic") {
             includePluginBuild(settingsScript, "../settings-plugins")
-            settingsScript << """
-                plugins {
-                    id("my-plugin")
-                }
-            """
+            applyPlugins(settingsScript, ["my-plugin"])
+            applyPlugins(buildScript, ["groovy-gradle-plugin"])
+            srcMainGroovy.file("plugin-a.gradle") << ""
         }
-        includePluginBuild(settingsFile, "build-logic")
 
         when:
         isolatedProjectsFails("help")
@@ -149,6 +160,14 @@ class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProj
         settingsFile << """
             includeBuild("$build")
        """
+    }
+
+    private static def applyPlugins(TestFile buildFile, List<String> pluginIds) {
+        buildFile << """
+            plugins {
+                ${pluginIds.collect { """id "$it" """ }.join("\n")}
+        }
+        """
     }
 
     private static def includePluginBuild(TestFile settingsFile, String build) {
