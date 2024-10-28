@@ -96,7 +96,7 @@ class JsonProblemWriter(private val problem: Problem, private val failureDecorat
     override fun writeToJson(jsonWriter: JsonWriter) {
         with(jsonWriter) {
             jsonObject {
-                val fileLocations = problem.locations
+                val fileLocations = problem.originLocations
                 if (fileLocations.isNotEmpty()) {
                     property("locations") {
                         jsonObjectList(fileLocations) { location ->

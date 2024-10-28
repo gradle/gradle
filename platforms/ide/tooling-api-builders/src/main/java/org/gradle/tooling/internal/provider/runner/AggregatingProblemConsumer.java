@@ -28,6 +28,7 @@ import org.gradle.internal.build.event.types.DefaultProblemEvent;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.tooling.internal.protocol.InternalBasicProblemDetailsVersion3;
+import org.gradle.tooling.internal.protocol.InternalBasicProblemDetailsVersion4;
 import org.gradle.tooling.internal.protocol.InternalProblemAggregationVersion3;
 import org.gradle.tooling.internal.protocol.InternalProblemContextDetails;
 import org.gradle.tooling.internal.protocol.InternalProblemDefinition;
@@ -94,12 +95,24 @@ public class AggregatingProblemConsumer {
         InternalBasicProblemDetailsVersion3 detailsV3 = (InternalBasicProblemDetailsVersion3) details;
         List<InternalProblemContextDetails> aggregatedContextDetails = aggregatedEvents.stream().map(event -> {
             InternalProblemDetailsVersion2 detailsV2 = event.getDetails();
-            if (detailsV2 instanceof InternalBasicProblemDetailsVersion3) {
+            if (detailsV2 instanceof InternalBasicProblemDetailsVersion4) {
+                InternalBasicProblemDetailsVersion4 basicDetails = (InternalBasicProblemDetailsVersion4) detailsV2;
+                return new DefaultInternalProblemContextDetails(
+                    basicDetails.getAdditionalData(),
+                    basicDetails.getDetails(),
+                    basicDetails.getOriginLocations(),
+                    basicDetails.getContextualLocations(),
+                    basicDetails.getSolutions(),
+                    basicDetails.getFailure(),
+                    basicDetails.getContextualLabel()
+                );
+            } else if (detailsV2 instanceof InternalBasicProblemDetailsVersion3) {
                 InternalBasicProblemDetailsVersion3 basicDetails = (InternalBasicProblemDetailsVersion3) detailsV2;
                 return new DefaultInternalProblemContextDetails(
                     basicDetails.getAdditionalData(),
                     basicDetails.getDetails(),
                     basicDetails.getLocations(),
+                    ImmutableList.of(),
                     basicDetails.getSolutions(),
                     basicDetails.getFailure(),
                     basicDetails.getContextualLabel()

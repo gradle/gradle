@@ -38,7 +38,7 @@ class DefaultProblemTest extends Specification {
         newProblem.additionalData == problem.additionalData
         newProblem.details == problem.details
         newProblem.exception == problem.exception
-        newProblem.locations == problem.locations
+        newProblem.originLocations == problem.originLocations
 
         newProblem == problem
 
@@ -90,7 +90,7 @@ class DefaultProblemTest extends Specification {
         newProblem.additionalData == problem.additionalData
         newProblem.details == problem.details
         newProblem.exception == problem.exception
-        newProblem.locations == problem.locations
+        newProblem.originLocations == problem.originLocations
         newProblem.definition.severity == problem.definition.severity
         newProblem.solutions == ["solution"]
         newProblem.class == DefaultProblem
@@ -104,6 +104,7 @@ class DefaultProblemTest extends Specification {
                 Documentation.userManual('id'),
             ),
             null,
+            [],
             [],
             [],
             'description',
@@ -122,6 +123,7 @@ class DefaultProblemTest extends Specification {
             ),
             'contextual label',
             ['contextual solution'],
+            [],
             [],
             'description',
             new RuntimeException('cause'),

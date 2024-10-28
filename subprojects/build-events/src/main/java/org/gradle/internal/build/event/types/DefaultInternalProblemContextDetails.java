@@ -16,9 +16,10 @@
 
 package org.gradle.internal.build.event.types;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.NonNullApi;
 import org.gradle.tooling.internal.protocol.InternalFailure;
-import org.gradle.tooling.internal.protocol.InternalProblemContextDetails;
+import org.gradle.tooling.internal.protocol.InternalProblemContextDetailsV2;
 import org.gradle.tooling.internal.protocol.problem.InternalAdditionalData;
 import org.gradle.tooling.internal.protocol.problem.InternalContextualLabel;
 import org.gradle.tooling.internal.protocol.problem.InternalDetails;
@@ -30,26 +31,30 @@ import java.io.Serializable;
 import java.util.List;
 
 @NonNullApi
-public class DefaultInternalProblemContextDetails implements InternalProblemContextDetails, Serializable {
+public class DefaultInternalProblemContextDetails implements InternalProblemContextDetailsV2, Serializable {
     private final InternalAdditionalData additionalData;
     @Nullable
     private final InternalDetails details;
-    private final List<InternalLocation> locations;
+    private final List<InternalLocation> originLocations;
+    private final List<InternalLocation> contextualLocations;
     private final List<InternalSolution> solutions;
     private final InternalFailure failure;
 
     private final InternalContextualLabel contextualLabel;
 
-    public DefaultInternalProblemContextDetails(InternalAdditionalData additionalData,
-                                                @Nullable InternalDetails details,
-                                                List<InternalLocation> locations,
-                                                List<InternalSolution> solutions,
-                                                @Nullable InternalFailure failure,
-                                                @Nullable InternalContextualLabel contextualLabel
+    public DefaultInternalProblemContextDetails(
+        InternalAdditionalData additionalData,
+        @Nullable InternalDetails details,
+        List<InternalLocation> originLocations,
+        List<InternalLocation> contextualLocations,
+        List<InternalSolution> solutions,
+        @Nullable InternalFailure failure,
+        @Nullable InternalContextualLabel contextualLabel
     ) {
         this.additionalData = additionalData;
         this.details = details;
-        this.locations = locations;
+        this.originLocations = originLocations;
+        this.contextualLocations = contextualLocations;
         this.solutions = solutions;
         this.failure = failure;
         this.contextualLabel = contextualLabel;
@@ -68,7 +73,21 @@ public class DefaultInternalProblemContextDetails implements InternalProblemCont
 
     @Override
     public List<InternalLocation> getLocations() {
-        return locations;
+        return ImmutableList
+            .<InternalLocation>builder()
+            .addAll(originLocations)
+            .addAll(contextualLocations)
+            .build();
+    }
+
+    @Override
+    public List<InternalLocation> getOriginLocations() {
+        return originLocations;
+    }
+
+    @Override
+    public List<InternalLocation> getContextualLocations() {
+        return contextualLocations;
     }
 
     @Override

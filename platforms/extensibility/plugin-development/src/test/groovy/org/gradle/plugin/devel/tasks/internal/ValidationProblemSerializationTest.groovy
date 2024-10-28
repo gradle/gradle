@@ -57,7 +57,7 @@ class ValidationProblemSerializationTest extends Specification {
         deserialized[0].definition.id.group.displayName == "Validation"
         deserialized[0].definition.id.group.parent == null
 
-        deserialized[0].locations.isEmpty()
+        deserialized[0].originLocations.isEmpty()
         deserialized[0].definition.documentationLink == null
     }
 
@@ -76,10 +76,10 @@ class ValidationProblemSerializationTest extends Specification {
         deserialized.size() == 1
         deserialized[0].definition.id.name == "type"
         deserialized[0].definition.id.displayName == "label"
-        deserialized[0].locations[0].path == "location"
-        deserialized[0].locations[0].line == 1
-        deserialized[0].locations[0].column == 2
-        deserialized[0].locations[0].length == 3
+        deserialized[0].originLocations[0].path == "location"
+        deserialized[0].originLocations[0].line == 1
+        deserialized[0].originLocations[0].column == 2
+        deserialized[0].originLocations[0].length == 3
         deserialized[0].definition.documentationLink == null
     }
 
@@ -99,9 +99,9 @@ class ValidationProblemSerializationTest extends Specification {
         deserialized.size() == 1
         deserialized[0].definition.id.name == "id"
         deserialized[0].definition.id.displayName == "label"
-        deserialized[0].locations[0].path == "location"
-        deserialized[0].locations[0].line == 1
-        deserialized[0].locations[0].column == 1
+        deserialized[0].originLocations[0].path == "location"
+        deserialized[0].originLocations[0].line == 1
+        deserialized[0].originLocations[0].column == 1
         deserialized[0].definition.documentationLink.getUrl() == "url"
         deserialized[0].definition.documentationLink.getConsultDocumentationMessage() == "consult"
     }
@@ -138,7 +138,7 @@ class ValidationProblemSerializationTest extends Specification {
         deserialized.size() == 1
         deserialized[0].definition.id.name == "id"
         deserialized[0].definition.id.displayName == "label"
-        deserialized[0].locations == [] as List
+        deserialized[0].originLocations == [] as List
         deserialized[0].definition.documentationLink == null
         deserialized[0].exception.message == "cause"
     }
@@ -158,7 +158,7 @@ class ValidationProblemSerializationTest extends Specification {
         deserialized.size() == 1
         deserialized[0].definition.id.name == "id"
         deserialized[0].definition.id.displayName == "label"
-        deserialized[0].locations == [] as List
+        deserialized[0].originLocations == [] as List
         deserialized[0].definition.documentationLink == null
         deserialized[0].definition.severity == severity
 
@@ -182,7 +182,7 @@ class ValidationProblemSerializationTest extends Specification {
         deserialized.size() == 1
         deserialized[0].definition.id.name == "id"
         deserialized[0].definition.id.displayName == "label"
-        deserialized[0].locations == [] as List
+        deserialized[0].originLocations == [] as List
         deserialized[0].definition.documentationLink == null
         deserialized[0].solutions[0] == "solution 0"
         deserialized[0].solutions[1] == "solution 1"
@@ -208,7 +208,7 @@ class ValidationProblemSerializationTest extends Specification {
         deserialized.size() == 1
         deserialized[0].definition.id.name == "id"
         deserialized[0].definition.id.displayName == "label"
-        deserialized[0].locations == [] as List
+        deserialized[0].originLocations == [] as List
         deserialized[0].definition.documentationLink == null
         (deserialized[0].additionalData as TypeValidationData).propertyName == 'property'
         (deserialized[0].additionalData as TypeValidationData).typeName == 'type'

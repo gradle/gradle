@@ -113,7 +113,8 @@ public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperatio
                 toInternalDefinition(problem.getDefinition()),
                 toInternalDetails(problem.getDetails()),
                 toInternalContextualLabel(problem.getContextualLabel()),
-                toInternalLocations(problem.getLocations()),
+                toInternalLocations(problem.getOriginLocations()),
+                toInternalLocations(problem.getContextualLocations()),
                 toInternalSolutions(problem.getSolutions()),
                 toInternalAdditionalData(problem.getAdditionalData()),
                 toInternalFailure(problem.getException())

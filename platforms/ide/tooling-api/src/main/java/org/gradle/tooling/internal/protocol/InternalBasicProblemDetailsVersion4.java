@@ -17,14 +17,8 @@
 package org.gradle.tooling.internal.protocol;
 
 import org.gradle.api.NonNullApi;
-import org.gradle.tooling.internal.protocol.problem.InternalAdditionalData;
-import org.gradle.tooling.internal.protocol.problem.InternalContextualLabel;
-import org.gradle.tooling.internal.protocol.problem.InternalDetails;
 import org.gradle.tooling.internal.protocol.problem.InternalLocation;
-import org.gradle.tooling.internal.protocol.problem.InternalProblemDetailsVersion2;
-import org.gradle.tooling.internal.protocol.problem.InternalSolution;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 /**
@@ -33,22 +27,10 @@ import java.util.List;
  * @since 8.12
  */
 @NonNullApi
-public interface InternalBasicProblemDetailsVersion3 extends InternalProblemDetailsVersion2 {
+public interface InternalBasicProblemDetailsVersion4 extends InternalBasicProblemDetailsVersion3 {
 
-    InternalProblemDefinition getDefinition();
+    List<InternalLocation> getOriginLocations();
 
-    List<InternalSolution> getSolutions();
+    List<InternalLocation> getContextualLocations();
 
-    @Nullable
-    InternalDetails getDetails();
-
-    @Nullable
-    InternalContextualLabel getContextualLabel();
-
-    List<InternalLocation> getLocations();
-
-    @Nullable
-    InternalFailure getFailure();
-
-    InternalAdditionalData getAdditionalData();
 }

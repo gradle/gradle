@@ -48,7 +48,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         verifyAll(receivedProblem) {
             definition.id.fqid == 'problems-api:missing-id'
             definition.id.displayName == 'Problem id must be specified'
-            locations.size() == 1
+            originLocations.size() == 1
             with(oneLocation(LineInFileLocation)) {
                 length == -1
                 column == -1
@@ -138,7 +138,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         run('reportProblem')
 
         then:
-        verifyAll(receivedProblem.locations) {
+        verifyAll(receivedProblem.originLocations) {
             size() == 2
             with(get(0) as OffsetInFileLocation) {
                 path == 'test-location'
@@ -167,7 +167,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         run('reportProblem')
 
         then:
-        verifyAll(receivedProblem.locations) {
+        verifyAll(receivedProblem.originLocations) {
             size() == 2
             with(get(0) as LineInFileLocation) {
                 length == -1

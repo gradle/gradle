@@ -52,9 +52,18 @@ public interface Problem {
     String getDetails();
 
     /**
-     * Return the location data associated available for this problem.
+     * Returns the locations where the problem originated.
+     * <p>
+     * Might be empty if the origin is not known.
      */
-    List<ProblemLocation> getLocations();
+    List<ProblemLocation> getOriginLocations();
+
+    /**
+     * Returns additional locations, which can help to understand the problem further.
+     * <p>
+     * Might be empty if there is no meaningful contextual information.
+     */
+    List<ProblemLocation> getContextualLocations();
 
     /**
      * The exception that caused the problem.

@@ -30,8 +30,10 @@ public class DefaultInternalProblemAggregation implements InternalProblemAggrega
     private final InternalProblemDefinition definition;
     private final List<InternalProblemContextDetails> problemEvents;
 
-    public DefaultInternalProblemAggregation(InternalProblemDefinition definition,
-                                             List<InternalProblemContextDetails> problemEvents) {
+    public DefaultInternalProblemAggregation(
+        InternalProblemDefinition definition,
+        List<InternalProblemContextDetails> problemEvents
+    ) {
         this.definition = definition;
         this.problemEvents = problemEvents;
     }

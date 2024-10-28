@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.events.problems.internal;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.NonNullApi;
 import org.gradle.tooling.Failure;
 import org.gradle.tooling.events.OperationDescriptor;
@@ -36,7 +37,8 @@ public class DefaultSingleProblemEvent extends BaseProgressEvent implements Sing
     private final ProblemDefinition problemDefinition;
     private final ContextualLabel contextualLabel;
     private final Details details;
-    private final List<Location> locations;
+    private final List<Location> originLocations;
+    private final List<Location> contextualLocations;
     private final List<Solution> solutions;
     private final AdditionalData additionalData;
     private final Failure failure;
@@ -47,7 +49,8 @@ public class DefaultSingleProblemEvent extends BaseProgressEvent implements Sing
         ProblemDefinition problemDefinition,
         @Nullable ContextualLabel contextualLabel,
         @Nullable Details details,
-        List<Location> locations,
+        List<Location> originLocations,
+        List<Location> contextualLocations,
         List<Solution> solutions,
         @Nullable AdditionalData additionalData,
         @Nullable Failure failure) {
@@ -55,7 +58,8 @@ public class DefaultSingleProblemEvent extends BaseProgressEvent implements Sing
         this.problemDefinition = problemDefinition;
         this.contextualLabel = contextualLabel;
         this.details = details;
-        this.locations = locations;
+        this.originLocations = originLocations;
+        this.contextualLocations = contextualLocations;
         this.solutions = solutions;
         this.additionalData = additionalData;
         this.failure = failure;
@@ -77,8 +81,13 @@ public class DefaultSingleProblemEvent extends BaseProgressEvent implements Sing
     }
 
     @Override
-    public List<Location> getLocations() {
-        return locations;
+    public List<Location> getOriginLocations() {
+        return ImmutableList.copyOf(originLocations);
+    }
+
+    @Override
+    public List<Location> getContextualLocations() {
+        return ImmutableList.copyOf(contextualLocations);
     }
 
     @Override
