@@ -16,52 +16,26 @@
 
 package org.gradle.integtests.resolve.typesafe
 
-import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
-
 class TypeSafeRootProjectAccessorsIntegrationTest extends AbstractTypeSafeProjectAccessorsIntegrationTest {
-    def "generates type-safe accessors for a root project with name = #name)"() {
+    def "generates type-safe accessors for a root project with name = #root)"() {
         given:
         settingsFile << """
-            rootProject.name = '$name'
+            rootProject.name = '$root'
         """
         buildFile << """
-            plugins {
-                id("java-library")
-            }
-            sourceSets {
-                foo
-            }
-            java {
-                registerFeature("foo") {
-                    usingSourceSet(sourceSets.foo)
-                }
-            }
-
-            dependencies {
-                implementation(projects.${accessor}) {
-                    capabilities {
-                        it.requireFeature("foo")
-                    }
-                }
-            }
+            def projectDependency = projects.${accessor}
+            assert projectDependency instanceof ProjectDependency
+            println('Dependency path: "' + projectDependency.path + '"')
         """
-        def resolve = new ResolveTestFixture(buildFile)
-        resolve.prepare("runtimeClasspath")
 
         when:
-        succeeds(":checkDeps")
+        succeeds 'help'
 
         then:
-        resolve.expectGraph {
-            root(":", ":${name}:unspecified") {
-                project(":", ":${name}:unspecified") {
-                    artifact(name: "${name}-foo", fileName: "${name}-foo.jar")
-                }
-            }
-        }
+        outputContains 'Dependency path: ":"'
 
         where:
-        name         | accessor
+        root         | accessor
         'test'       | 'test'
         'root'       | 'root'
         'snake_case' | 'snakeCase'

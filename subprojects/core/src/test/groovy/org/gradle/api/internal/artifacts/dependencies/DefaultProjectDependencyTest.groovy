@@ -38,6 +38,11 @@ class DefaultProjectDependencyTest extends AbstractProjectBuilderSpec {
         project.group = "org.gradle"
     }
 
+    def "exposes local project path"() {
+        expect:
+        projectDependency.path == project.path
+    }
+
     void "provides dependency information"() {
         expect:
         projectDependency.transitive
