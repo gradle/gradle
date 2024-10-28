@@ -31,6 +31,7 @@ dependencies {
     implementation(projects.instrumentationReporting)
     implementation(projects.buildOperations)
     implementation(projects.buildOption)
+    implementation(projects.declarativeDslEvaluator)
     implementation(projects.declarativeDslInternalUtils)
     implementation(projects.declarativeDslProvider)
     implementation(projects.enterpriseLogging)
