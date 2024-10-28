@@ -26,10 +26,10 @@ import spock.lang.Issue
 class ConfigurationCacheValueSourceIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
     def "value source without parameters can be used as task input"() {
-         given:
-         def configurationCache = newConfigurationCacheFixture()
+        given:
+        def configurationCache = newConfigurationCacheFixture()
 
-         buildFile("""
+        buildFile("""
             import org.gradle.api.provider.*
 
             abstract class GreetValueSource implements ValueSource<String, ValueSourceParameters.None> {
