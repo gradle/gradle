@@ -482,7 +482,7 @@ public class BuildOperationTrace implements Stoppable {
     }
 
     @SuppressWarnings("rawtypes")
-    public static class JsonClassSerializer extends JsonSerializer<Class> {
+    private static class JsonClassSerializer extends JsonSerializer<Class> {
         @Override
         public void serialize(Class aClass, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
             jsonGenerator.writeString(aClass.getName());
@@ -502,7 +502,7 @@ public class BuildOperationTrace implements Stoppable {
             .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
     }
 
-    public static class JsonThrowableSerializer extends JsonSerializer<Throwable> {
+    private static class JsonThrowableSerializer extends JsonSerializer<Throwable> {
         @Override
         public void serialize(Throwable throwable, JsonGenerator gen, SerializerProvider serializers) throws IOException {
             gen.writeStartObject();
@@ -522,7 +522,7 @@ public class BuildOperationTrace implements Stoppable {
      * Attempting to serialize any of these causes a stack overflow, so
      * just convert them to an easily serializable {@link Map} first.
      */
-    public static class JsonAttributeContainerSerializer extends JsonSerializer<AttributeContainer> {
+    private static class JsonAttributeContainerSerializer extends JsonSerializer<AttributeContainer> {
         @Override
         public void serialize(AttributeContainer attributeContainer, JsonGenerator gen, SerializerProvider serializers) throws IOException {
             /*
@@ -541,7 +541,7 @@ public class BuildOperationTrace implements Stoppable {
      * Avoid serializing any deprecated properties, since they either trigger deprecation warnings
      * unnecessarily, or they might trigger some workaround behavior we otherwise want to avoid.
      */
-    public static class SkipDeprecatedBeanSerializerModifier extends BeanSerializerModifier {
+    private static class SkipDeprecatedBeanSerializerModifier extends BeanSerializerModifier {
         @Override
         public List<BeanPropertyWriter> changeProperties(
             SerializationConfig config,

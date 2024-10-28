@@ -222,7 +222,7 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
             skipMessage == 'UP-TO-DATE'
             originExecutionTime > 0
             originBuildInvocationId != null
-            HashCode.fromBytes(originBuildCacheKeyBytes as byte[]).toString() == projectTransformBuildCacheKey
+            readHashCode(originBuildCacheKeyBytes) == projectTransformBuildCacheKey
             executionReasons.empty
             cachingDisabledReasonMessage == 'Cacheability was not determined'
             cachingDisabledReasonCategory == 'UNKNOWN'
@@ -357,14 +357,14 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
         skippedTransformExecutions.size() == 2
         skippedTransformExecutions.findAll { it.identity == projectTransformIdentification.identity }.each {
             with(it) {
-                HashCode.fromBytes(originBuildCacheKeyBytes as byte[]).toString() == projectTransformBuildCacheKey
+                readHashCode(originBuildCacheKeyBytes) == projectTransformBuildCacheKey
                 originBuildInvocationId == firstBuildInvocationId.asString()
                 originExecutionTime > 0
             }
         }
         skippedTransformExecutions.findAll { it.identity == externalTransformIdentification.identity }.each {
             with(it) {
-                HashCode.fromBytes(originBuildCacheKeyBytes as byte[]).toString() == externalTransformBuildCacheKey
+                readHashCode(originBuildCacheKeyBytes) == externalTransformBuildCacheKey
                 originBuildInvocationId == firstBuildInvocationId.asString()
                 originExecutionTime > 0
             }
@@ -424,14 +424,14 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
         skippedTransformExecutions.size() == 2
         skippedTransformExecutions.findAll { it.identity == projectTransformIdentification.identity }.each {
             with(it) {
-                HashCode.fromBytes(originBuildCacheKeyBytes as byte[]).toString() == projectTransformBuildCacheKey
+                readHashCode(originBuildCacheKeyBytes) == projectTransformBuildCacheKey
                 originBuildInvocationId == firstBuildInvocationId.asString()
                 originExecutionTime > 0
             }
         }
         skippedTransformExecutions.findAll { it.identity == externalTransformIdentification.identity }.each {
             with(it) {
-                HashCode.fromBytes(originBuildCacheKeyBytes as byte[]).toString() == externalTransformBuildCacheKey
+                readHashCode(originBuildCacheKeyBytes) == externalTransformBuildCacheKey
                 originBuildInvocationId == firstBuildInvocationId.asString()
                 originExecutionTime > 0
             }
@@ -497,7 +497,7 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
         skippedTransformExecutions.size() == 4
         skippedTransformExecutions.findAll { it.identity == externalTransformIdentification.identity }.each {
             with(it) {
-                HashCode.fromBytes(originBuildCacheKeyBytes as byte[]).toString() == externalTransformBuildCacheKey
+                readHashCode(originBuildCacheKeyBytes) == externalTransformBuildCacheKey
                 originBuildInvocationId == buildInvocationId.asString()
                 originExecutionTime > 0
             }
@@ -561,7 +561,7 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
         skippedTransformExecutions.size() == 2
         skippedTransformExecutions.each {
             with(it) {
-                HashCode.fromBytes(originBuildCacheKeyBytes as byte[]).toString() == projectTransformBuildCacheKey
+                readHashCode(originBuildCacheKeyBytes) == projectTransformBuildCacheKey
                 originBuildInvocationId == buildInvocationId.asString()
                 originExecutionTime > 0
             }
@@ -629,7 +629,7 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
         skippedTransformExecutions.size() == 2
         skippedTransformExecutions.findAll { it.identity == projectTransformIdentification.identity }.each {
             with(it) {
-                HashCode.fromBytes(originBuildCacheKeyBytes as byte[]).toString() == projectTransformBuildCacheKey
+                readHashCode(originBuildCacheKeyBytes) == projectTransformBuildCacheKey
                 originBuildInvocationId == firstBuildInvocationId.asString()
                 originExecutionTime > 0
             }
@@ -964,5 +964,9 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
                 }
             }
         """
+    }
+
+    private String readHashCode(base64HashCode) {
+        HashCode.fromBytes(Base64.getDecoder().decode(base64HashCode as String)).toString()
     }
 }

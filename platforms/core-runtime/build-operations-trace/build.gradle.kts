@@ -28,12 +28,13 @@ dependencies {
     api(projects.stdlibJavaExtensions)
 
     api(libs.guava)
+    api(libs.jsr305)
 
     implementation(projects.baseServices)
     implementation(projects.buildOption)
 
+    implementation(libs.jacksonCore)
     implementation(libs.jacksonDatabind)
     implementation(libs.jacksonDatatypeJdk8)
     implementation(libs.jacksonDatatypeJsr310)
-    implementation(libs.jsr305)
 }
