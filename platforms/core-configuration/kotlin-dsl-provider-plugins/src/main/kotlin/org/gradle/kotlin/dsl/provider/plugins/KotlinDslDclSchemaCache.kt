@@ -19,15 +19,20 @@ package org.gradle.kotlin.dsl.provider.plugins
 import org.gradle.api.reflect.TypeOf
 import org.gradle.cache.internal.CrossBuildInMemoryCache
 import org.gradle.kotlin.dsl.accessors.ContainerElementFactoryEntry
+import org.gradle.kotlin.dsl.accessors.SoftwareTypeEntry
+import org.gradle.plugin.software.internal.SoftwareTypeRegistry
 
 typealias ContainerElementFactories = List<ContainerElementFactoryEntry<TypeOf<*>>>
+typealias SoftwareTypeEntries = List<SoftwareTypeEntry<TypeOf<*>>>
 
 interface KotlinDslDclSchemaCache {
     fun getOrPutContainerElementFactories(forClass: Class<*>, produceIfAbsent: () -> ContainerElementFactories): ContainerElementFactories
+    fun getOrPutContainerElementSoftwareTypes(forRegistry: SoftwareTypeRegistry, produceIfAbsent: () -> SoftwareTypeEntries): SoftwareTypeEntries
 }
 
 class CrossBuildInMemoryKotlinDslDclSchemaCache(
-    private val containerElementFactoriesCache: CrossBuildInMemoryCache<Class<*>, ContainerElementFactories>
+    private val containerElementFactoriesCache: CrossBuildInMemoryCache<Class<*>, ContainerElementFactories>,
+    private val softwareTypeEntriesCache: CrossBuildInMemoryCache<SoftwareTypeRegistry, SoftwareTypeEntries>
 ) : KotlinDslDclSchemaCache {
     override fun getOrPutContainerElementFactories(forClass: Class<*>, produceIfAbsent: () -> ContainerElementFactories): ContainerElementFactories =
         containerElementFactoriesCache.getIfPresent(forClass)
@@ -36,5 +41,14 @@ class CrossBuildInMemoryKotlinDslDclSchemaCache(
                     forClass,
                     result.takeIf(Collection<*>::isNotEmpty) ?: emptyList() // avoid referencing lots of empty lists, store a reference to the singleton instead
                 )
+            }
+
+    override fun getOrPutContainerElementSoftwareTypes(
+        forRegistry: SoftwareTypeRegistry,
+        produceIfAbsent: () -> SoftwareTypeEntries
+    ): SoftwareTypeEntries =
+        softwareTypeEntriesCache.getIfPresent(forRegistry)
+            ?: produceIfAbsent().also { result ->
+                softwareTypeEntriesCache.put(forRegistry, result)
             }
 }

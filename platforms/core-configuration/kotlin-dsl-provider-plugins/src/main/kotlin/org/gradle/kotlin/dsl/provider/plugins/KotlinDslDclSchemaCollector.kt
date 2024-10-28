@@ -20,9 +20,12 @@ import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.reflect.TypeOf
 import org.gradle.internal.declarativedsl.utils.DclContainerMemberExtractionUtils
 import org.gradle.kotlin.dsl.accessors.ContainerElementFactoryEntry
+import org.gradle.kotlin.dsl.accessors.SoftwareTypeEntry
+import org.gradle.plugin.software.internal.SoftwareTypeRegistry
 
 internal interface KotlinDslDclSchemaCollector {
     fun collectNestedContainerFactories(containerClass: Class<*>): List<ContainerElementFactoryEntry<TypeOf<*>>>
+    fun collectSoftwareTypes(softwareTypeRegistry: SoftwareTypeRegistry): List<SoftwareTypeEntry<TypeOf<*>>>
 }
 
 internal class CachedKotlinDslDclSchemaCollector(
@@ -31,6 +34,9 @@ internal class CachedKotlinDslDclSchemaCollector(
 ) : KotlinDslDclSchemaCollector {
     override fun collectNestedContainerFactories(containerClass: Class<*>): List<ContainerElementFactoryEntry<TypeOf<*>>> =
         cache.getOrPutContainerElementFactories(containerClass) { delegate.collectNestedContainerFactories(containerClass) }
+
+    override fun collectSoftwareTypes(softwareTypeRegistry: SoftwareTypeRegistry): List<SoftwareTypeEntry<TypeOf<*>>> =
+        cache.getOrPutContainerElementSoftwareTypes(softwareTypeRegistry) { delegate.collectSoftwareTypes(softwareTypeRegistry) }
 }
 
 internal class DefaultKotlinDslDclSchemaCollector : KotlinDslDclSchemaCollector {
@@ -48,4 +54,9 @@ internal class DefaultKotlinDslDclSchemaCollector : KotlinDslDclSchemaCollector 
             ContainerElementFactoryEntry(factoryName, scopeReceiverType, elementType)
         }
     }
+
+    override fun collectSoftwareTypes(softwareTypeRegistry: SoftwareTypeRegistry): List<SoftwareTypeEntry<TypeOf<*>>> =
+        softwareTypeRegistry.softwareTypeImplementations.entries.map { (name, implementation) ->
+            SoftwareTypeEntry(name, TypeOf.typeOf(implementation.modelPublicType))
+        }
 }

@@ -40,6 +40,7 @@ import org.gradle.kotlin.dsl.accessors.ProjectSchema
 import org.gradle.kotlin.dsl.accessors.ProjectSchemaEntry
 import org.gradle.kotlin.dsl.accessors.ProjectSchemaProvider
 import org.gradle.kotlin.dsl.accessors.SchemaType
+import org.gradle.kotlin.dsl.accessors.SoftwareTypeEntry
 import org.gradle.kotlin.dsl.accessors.TypedProjectSchema
 import org.gradle.kotlin.dsl.accessors.isDclEnabledForScriptTarget
 import org.gradle.kotlin.dsl.support.serviceOf
@@ -70,6 +71,7 @@ internal class DefaultProjectSchemaProvider(
                         ?: emptyList(),
                     targetSchema.modelDefaults,
                     targetSchema.containerElementFactories,
+                    targetSchema.softwareTypeEntries,
                     scriptTarget
                 ).map(::SchemaType)
             }
@@ -136,12 +138,17 @@ internal class DefaultProjectSchemaProvider(
 
         collectSchemaOf(target, targetType)
 
+        val softwareTypes = if (isDclEnabled)
+            softwareTypeRegistryOf(target)?.let(dclSchemaCollector::collectSoftwareTypes).orEmpty()
+        else emptyList()
+
         return TargetTypedSchema(
             extensions,
             conventions,
             tasks,
             containerElements,
             buildModelDefaults,
+            softwareTypes,
             containerElementFactories
         )
     }
@@ -154,8 +161,16 @@ data class TargetTypedSchema(
     val tasks: List<ProjectSchemaEntry<TypeOf<*>>>,
     val containerElements: List<ProjectSchemaEntry<TypeOf<*>>>,
     val modelDefaults: List<ProjectSchemaEntry<TypeOf<*>>>,
+    val softwareTypeEntries: List<SoftwareTypeEntry<TypeOf<*>>>,
     val containerElementFactories: List<ContainerElementFactoryEntry<TypeOf<*>>>
 )
+
+private fun softwareTypeRegistryOf(target: Any): SoftwareTypeRegistry? =
+    when (target) {
+        is Project -> target.serviceOf<SoftwareTypeRegistry>()
+        is Settings -> target.serviceOf<SoftwareTypeRegistry>()
+        else -> null
+    }
 
 private
 fun accessibleConventionsSchema(plugins: Map<String, Any>) =

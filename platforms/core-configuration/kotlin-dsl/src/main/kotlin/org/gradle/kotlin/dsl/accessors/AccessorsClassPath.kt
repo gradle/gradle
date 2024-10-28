@@ -600,6 +600,7 @@ fun hashCodeFor(schema: TypedProjectSchema): HashCode = Hashing.newHasher().run 
     putAll(schema.tasks)
     putAll(schema.containerElements)
     putContainerElementFactoryEntries(schema.containerElementFactories)
+    putSoftwareTypeEntries(schema.softwareTypeEntries)
     putAllSorted(schema.configurations.map { it.target })
     hash()
 }
@@ -628,6 +629,14 @@ private fun Hasher.putContainerElementFactoryEntries(entries: List<ContainerElem
         putString(entry.factoryName)
         putString(entry.containerReceiverType.kotlinString)
         putString(entry.publicType.kotlinString)
+    }
+}
+
+private fun Hasher.putSoftwareTypeEntries(entries: List<SoftwareTypeEntry<SchemaType>>) {
+    putInt(entries.size)
+    entries.forEach { entry ->
+        putString(entry.softwareTypeName)
+        putString(entry.modelType.kotlinString)
     }
 }
 

@@ -32,6 +32,7 @@ tasks.withType<KotlinCompile>().configureEach {
 
 dependencies {
     implementation(projects.declarativeDslApi)
+    implementation(projects.core)
     implementation(projects.coreApi)
 
     api(libs.futureKotlin("stdlib"))
