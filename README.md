@@ -94,3 +94,26 @@ To make the most out of Gradle, take advantage of these additional resources:
 - **[Community Resources](https://gradle.org/resources/)** - Find more community-contributed materials to expand your knowledge.
 
 > 🌟 **Stay connected with the Gradle Community and access the latest news, training, and updates via [Slack](https://gradle.org/slack-invite), [Forum](https://discuss.gradle.org/), and our [Newsletter](https://newsletter.gradle.org)**.
+<br><br>
+
+
+<div align="center" style="margin-top: 20px;">
+    <a href="https://www.linkedin.com/company/gradle/">
+        <img src="https://img.shields.io/badge/-0077B5?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn" style="margin: 0 0px;">
+    </a>
+    <a href="https://x.com/gradle">
+        <img src="https://img.shields.io/badge/-000000?style=for-the-badge&logo=x&logoColor=white" alt="X (Twitter)" style="margin: 0 20px;">
+    </a>
+    <a href="https://www.youtube.com/@GradleInc">
+        <img src="https://img.shields.io/badge/-FF0000?style=for-the-badge&logo=youtube&logoColor=white" alt="YouTube" style="margin: 0 20px;">
+    </a>
+    <a href="https://mastodon.social/@Gradle">
+        <img src="https://img.shields.io/badge/-6364FF?style=for-the-badge&logo=mastodon&logoColor=white" alt="Mastodon" style="margin: 0 20px;">
+    </a>
+    <a href="https://www.facebook.com/gradleinc">
+        <img src="https://img.shields.io/badge/-1877F2?style=for-the-badge&logo=facebook&logoColor=white" alt="Facebook" style="margin: 0 20px;">
+    </a>
+    <a href="https://gradle.org/slack-invite">
+        <img src="https://img.shields.io/badge/-4A154B?style=for-the-badge&logo=slack&logoColor=white" alt="Slack" style="margin: 0 20px;">
+    </a>
+</div>
