@@ -489,8 +489,6 @@ class ConfigurationCacheState(
 
             build.createProjects()
 
-            setSingletonProperty<ProjectProvider>(build::getProject)
-
             applyProjectStates(projects, gradle)
             readRequiredBuildServicesOf(gradle)
 
