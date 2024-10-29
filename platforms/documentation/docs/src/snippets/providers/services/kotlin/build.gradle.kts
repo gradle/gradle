@@ -168,16 +168,6 @@ abstract class MyArchiveOperationsTask
 tasks.register("myInjectedArchiveOperationsTask", MyArchiveOperationsTask::class) {}
 // end::archive-op-inject[]
 
-// tag::exec-op[]
-tasks.register("runCommand") {
-    doLast {
-        exec { // short for project.exec
-            commandLine("ls", "-la")
-        }
-    }
-}
-// end::exec-op[]
-
 // tag::exec-op-inject[]
 abstract class MyExecOperationsTask
 @Inject constructor(private var execOperations: ExecOperations) : DefaultTask() {
@@ -190,7 +180,7 @@ abstract class MyExecOperationsTask
     }
 }
 
-tasks.register("myInjectedExecOperationsTask", MyExecOperationsTask::class) {}
+tasks.register("myInjectedExecOperationsTask", MyExecOperationsTask::class)
 // end::exec-op-inject[]
 
 // tag::tooling-model[]
