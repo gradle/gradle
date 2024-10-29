@@ -41,7 +41,6 @@ import org.gradle.jvm.toolchain.internal.JvmInstallationMetadataMatcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -86,7 +85,15 @@ public class DefaultJdkCacheDirectory implements JdkCacheDirectory {
     // This is a prerequisite for atomic moves in most cases, which are used in the provisionFromArchive method
     private final GradleUserHomeTemporaryFileProvider temporaryFileProvider;
 
-    @Inject
+    /**
+     * Creates a new JDK cache directory manager.
+     *
+     * @param homeDirProvider provider for the Gradle user home directory information
+     * @param operations file operations
+     * @param lockManager lock manager
+     * @param detector JVM metadata detector, an instance of {@link org.gradle.internal.jvm.inspection.DefaultJvmMetadataDetector} should be passed to avoid logging of any kind
+     * @param temporaryFileProvider temporary file provider
+     */
     public DefaultJdkCacheDirectory(
         GradleUserHomeDirProvider homeDirProvider,
         FileOperations operations,
