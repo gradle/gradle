@@ -20,7 +20,9 @@ import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.DocumentationUtils
 import org.gradle.integtests.fixtures.executer.ExecutionResult
+import org.gradle.internal.os.OperatingSystem
 import org.junit.Assume
+import spock.lang.Issue
 
 import static JavaToolchainDownloadUtil.applyToolchainResolverPlugin
 import static JavaToolchainDownloadUtil.noUrlResolverCode
@@ -109,6 +111,49 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
                .assertHasCause("No matching toolchain could be found in the locally installed toolchains or the configured toolchain download repositories. " +
                    "Some toolchain resolvers had provisioning failures: custom (Unable to download toolchain matching the requirements ({languageVersion=10, vendor=any vendor, implementation=vendor-specific}) " +
                    "from '$uri', due to: Toolchain provisioned from '$uri' doesn't satisfy the specification: {languageVersion=10, vendor=any vendor, implementation=vendor-specific} and must have the executable 'javac' and the executable 'javadoc'.)")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/30409")
+    def "no temporary JDK path is logged when provisioning a JDK"() {
+        given:
+        def jdkRepository = new JdkRepository(JavaVersion.VERSION_17)
+        def uri = jdkRepository.start()
+        jdkRepository.reset()
+
+        settingsFile << """
+            ${applyToolchainResolverPlugin("CustomToolchainResolver", singleUrlResolverCode(uri))}
+        """
+
+        buildFile << """
+            apply plugin: "java"
+
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(17)
+                }
+            }
+        """
+
+        file("src/main/java/Foo.java") << "public class Foo {}"
+
+        when:
+        result = executer
+            .withTasks("compileJava")
+            .requireOwnGradleUserHomeDir("needs to not have cached toolchains")
+            .withToolchainDownloadEnabled()
+            .run()
+
+        and:
+        jdkRepository.stop()
+
+
+        then:
+        // There is no reason we should log the temporary JDK path, unless we're reporting a warning to the user that we shouldn't be
+        def testPath = ".tmp/jdks/"
+        if (OperatingSystem.current().isWindows()) {
+            testPath = testPath.replace('/', '\\')
+        }
+        result.assertNotOutput(testPath)
     }
 
     def "custom toolchain registries are consulted in order"() {
@@ -448,7 +493,7 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
     def "logs informative warning message if some repositories fail to resolve the toolchain spec #logLevel"(String logLevel, Closure<ExecutionResult> test) {
         given:
         Assume.assumeFalse(JavaVersion.current() == JavaVersion.VERSION_11)
-        
+
         def jdkRepository = new JdkRepository(JavaVersion.VERSION_11)
         def uri = jdkRepository.start()
         jdkRepository.reset()
