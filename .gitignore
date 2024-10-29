@@ -111,3 +111,7 @@ atlassian-ide-plugin.xml
 
 # Ignore local configuration files for asdf, allowing the JDK to be configured for project (https://asdf-vm.com)
 .tool-versions
+
+# gradle-profiler
+gradle-user-home
+profile-out*
