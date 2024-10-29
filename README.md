@@ -7,9 +7,13 @@
 
 <div align="center" style="margin-top: 20px;">
 
-[![Revved up by Develocity](https://img.shields.io/badge/Revved%20up%20by-Develocity-06A0CE?logo=Gradle&labelColor=02303A)](https://ge.gradle.org/scans) [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/4898/badge)](https://bestpractices.coreinfrastructure.org/projects/4898) [![Join the Gradle Community Slack](https://img.shields.io/badge/Slack-Join%20the%20Community-brightgreen?style=flat&logo=slack)](https://gradle.org/slack-invite) [![Gradle Documentation](https://img.shields.io/badge/Docs-Gradle%20User%20Guide-blueviolet?style=flat&logo=read-the-docs)](https://docs.gradle.org/current/userguide/userguide.html) 
+[![Revved up by Develocity](https://img.shields.io/badge/Revved%20up%20by-Develocity-06A0CE?logo=Gradle&labelColor=02303A)](https://ge.gradle.org/scans) <br>
+[![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/4898/badge)](https://bestpractices.coreinfrastructure.org/projects/4898) <br>
+[![Join the Gradle Community Slack](https://img.shields.io/badge/Slack-Join%20the%20Community-brightgreen?style=flat&logo=slack)](https://gradle.org/slack-invite) <br>
+[![Gradle Documentation](https://img.shields.io/badge/Docs-Gradle%20User%20Guide-blueviolet?style=flat&logo=read-the-docs)](https://docs.gradle.org/current/userguide/userguide.html) 
 
 </div>
+
 
 
 ## 🐘 **Welcome to Gradle** 
@@ -52,8 +56,8 @@ Gradle is designed to work seamlessly with a variety of Integrated Development E
 Kickstart your Gradle knowledge with courses, guides, and community support tailored to various experience levels:
 
 - **[DPE University Free Courses](https://dpeuniversity.gradle.com/app/catalog)**: A collection of hands-on courses for learning Gradle, complete with project-based tasks to improve real-world skills.
-- **Gradle in Hacktoberfest**: Make impactful contributions to Gradle during Hacktoberfest! Contribute issues or pull requests, and mark them with `#hacktoberfest` to participate. [Fill this form](https://forms.gle/go2VESj7kDG1QUqV7) if you've made substantial contributions to get recognition!
-- **[Declarative Gradle](https://declarative.gradle.org)**: Dive into the declarative Gradle approach for improved automation workflows. [Getting Started Guide](https://declarative.gradle.org/docs/getting-started) offers initial steps.
+- **[Gradle Community Resources](https://community.gradle.org/resources/)**: Discover a range of resources, tutorials, and guides to support your Gradle journey, from foundational concepts to advanced practices.
+- **[Gradle Cookbook](https://cookbook.gradle.org/preface/)**: Access a practical collection of Gradle recipes and best practices to help you work efficiently with Gradle in various scenarios.
 
 > 💬 Join our **#docs** channel on the [Gradle Community Slack](https://gradle.org/slack-invite) to share insights or ask questions as you learn.
 
@@ -72,24 +76,11 @@ The Gradle community offers a range of forums, documentation, and direct help to
 
 ---
 
-### 📂 **Gradle Project Repositories**
-
-Gradle’s ecosystem is built on a robust collection of repositories, each dedicated to different aspects of the project. Here are some key repositories to explore:
-
-| Repository                                              | Description                                        |
-|---------------------------------------------------------|----------------------------------------------------|
-| [gradle/gradle](https://github.com/gradle/gradle)       | Core Gradle build tool                             |
-| [gradle/cookbook](https://github.com/gradle/cookbook)   | Gradle recipes and example build scripts           |
-| [gradle/community](https://github.com/gradle/community) | Community-driven resources and discussions         |
-| [gradleup/gradleup.github.io](https://github.com/GradleUp/gradleup.github.io) | Documentation and community resources |
-
----
-
 ### 🌱 **Contributing to Gradle**
 
-Gradle welcomes contributors of all experience levels! Whether you're fixing bugs, writing documentation, or implementing new features, there's a place for you in the Gradle community.
+Gradle welcomes contributors of all experience levels! Whether you're fixing bugs, writing documentation, or implementing new features, there's a place for you in the [Gradle community](https://community.gradle.org/contributing/).
 
-- **Contribution Guide**: Follow the [Contribution Guide](https://github.com/gradle/gradle/blob/master/CONTRIBUTING.md) to learn about our processes and best practices.
+- **Contribution Guide**: Follow the [Contribution Guide](https://github.com/gradle/gradle/blob/master/CONTRIBUTING.md).
 - **Code of Conduct**: Gradle enforces a [Code of Conduct](https://gradle.org/conduct/) to ensure a welcoming and supportive community for all contributors.
 
 ---
@@ -99,7 +90,7 @@ Gradle welcomes contributors of all experience levels! Whether you're fixing bug
 To make the most out of Gradle, take advantage of these additional resources:
 
 - **[Gradle Documentation](https://docs.gradle.org/)** - Your go-to guide for all Gradle-related documentation.
-- **[Training and Tutorials](https://gradle.org/training/)** - Explore tutorials designed to get you started quickly.
+- **[DPE University](https://dpeuniversity.gradle.com/app/catalog)** - Explore tutorials designed to get you started quickly.
 - **[Community Resources](https://gradle.org/resources/)** - Find more community-contributed materials to expand your knowledge.
 
 > 🌟 **Stay connected with the Gradle Community and access the latest news, training, and updates via [Slack](https://gradle.org/slack-invite), [Forum](https://discuss.gradle.org/), and our [Newsletter](https://newsletter.gradle.org)**.
