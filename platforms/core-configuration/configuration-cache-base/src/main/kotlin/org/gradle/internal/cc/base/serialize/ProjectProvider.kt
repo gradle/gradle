@@ -23,8 +23,5 @@ import org.gradle.internal.serialize.graph.ownerService
 import org.gradle.util.Path
 
 
-typealias ProjectProvider = (String) -> ProjectInternal
-
-
 fun ReadContext.getProject(path: String): ProjectInternal =
     ownerService<BuildState>().projects.getProject(Path.path(path)).mutableModel
