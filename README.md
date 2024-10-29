@@ -1,7 +1,7 @@
 <div align="center" style="margin-bottom: 30px;" >
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="images/gradle-sea-green-white-primary.png" width="500px">
-    <img alt="Gradle Logo" src="images/gradle-black-primary.png" width="400px">
+    <source media="(prefers-color-scheme: dark)" srcset="images/gradle-dark-green-primary.png" width="500px">
+    <img alt="Gradle Logo" src="images/gradle-white-primary.png" width="400px">
   </picture>
 </div>
 
