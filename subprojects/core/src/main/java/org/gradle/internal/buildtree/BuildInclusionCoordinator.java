@@ -31,7 +31,6 @@ import java.util.Deque;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -106,10 +105,8 @@ public class BuildInclusionCoordinator {
 //            }
 //        }
         registering.computeIfAbsent(build, b -> workerLeaseService.newResource()).withLock(() -> {
-            System.out.println("Locked plugins before action for " + build.getName());
             build.ensureProjectsConfigured();
             makeSubstitutionsAvailableFor(build);
-            System.out.println("Locked plugins after action for " + build.getName());
         });
     }
 
@@ -129,9 +126,7 @@ public class BuildInclusionCoordinator {
 
                 if (seen.add(child) && child instanceof IncludedBuildState) {
                     registering.computeIfAbsent(child, c -> workerLeaseService.newResource()).withLock(() -> {
-                            System.out.println("Locked substitutions before action for " + ((IncludedBuildState) child).getName());
                             substitutionRegistry.registerSubstitutionsFor((IncludedBuildState) child);
-                            System.out.println("Locked substitutions after action for " + ((IncludedBuildState) child).getName());
                         }
                     );
                     stack.push(child);
