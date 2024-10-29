@@ -23,7 +23,7 @@ import org.gradle.util.internal.TextUtil
 import static org.gradle.util.internal.TextUtil.getPluralEnding
 import static org.hamcrest.Matchers.containsString
 
-trait ValitdatePluginsTrait implements CommonPluginValidationTrait {
+trait ValidatePluginsTrait implements CommonPluginValidationTrait {
 
     def setup() {
         enableProblemsApiCheck()
