@@ -144,28 +144,23 @@ abstract class MyFileSystemOperationsTask
 tasks.register("myInjectedFileSystemOperationsTask", MyFileSystemOperationsTask::class) {}
 // end::file-system-inject[]
 
-// tag::archive-op[]
-tasks.register("ArchiveOperations") {
-    doLast {
-        zipTree() { "${project.projectDir}/sources.jar" } // short for project.zipTree
-    }
-}
-// end::archive-op[]
-
 // tag::archive-op-inject[]
 abstract class MyArchiveOperationsTask
 @Inject constructor(
     private val archiveOperations: ArchiveOperations,
-    private val project: Project
+    private val layout: ProjectLayout,
+    private val fs: FileSystemOperations
 ) : DefaultTask() {
-
     @TaskAction
     fun doTaskAction() {
-        archiveOperations.zipTree("${project.projectDir}/sources.jar")
+        fs.sync {
+            from(archiveOperations.zipTree(layout.projectDirectory.file("sources.jar")))
+            into(layout.buildDirectory.dir("unpacked-sources"))
+        }
     }
 }
 
-tasks.register("myInjectedArchiveOperationsTask", MyArchiveOperationsTask::class) {}
+tasks.register("myInjectedArchiveOperationsTask", MyArchiveOperationsTask::class)
 // end::archive-op-inject[]
 
 // tag::exec-op[]
