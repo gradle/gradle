@@ -134,17 +134,6 @@ abstract class MyWorkerTask extends DefaultTask {
 tasks.register("myWorkTask", MyWorkerTask) {}
 // end::worker-executor[]
 
-// tag::file-system[]
-tasks.register('FileSystemOperations') {
-    doLast {
-        copy { // short for project.copy
-            from 'src'
-            into 'dest'
-        }
-    }
-}
-// end::file-system[]
-
 // tag::file-system-inject[]
 abstract class MyFileSystemOperationsTask extends DefaultTask {
     private FileSystemOperations fileSystemOperations
@@ -156,14 +145,14 @@ abstract class MyFileSystemOperationsTask extends DefaultTask {
 
     @TaskAction
     void doTaskAction() {
-        fileSystemOperations.copy {
+        fileSystemOperations.sync {
             from 'src'
             into 'dest'
         }
     }
 }
 
-tasks.register("myInjectedFileSystemOperationsTask", MyFileSystemOperationsTask) {}
+tasks.register("myInjectedFileSystemOperationsTask", MyFileSystemOperationsTask)
 // end::file-system-inject[]
 
 // tag::archive-op-inject[]

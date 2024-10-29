@@ -179,16 +179,8 @@ See <<worker_api.adoc#worker_api,the worker API>> for more details.
 [[filesystemoperations]]
 == 6. `FileSystemOperations`
 
-link:{javadocPath}/org/gradle/api/file/FileSystemOperations.html[`FileSystemOperations`] is a service that provides methods for performing file system operations such as copying, deleting, and creating directories.
+link:{javadocPath}/org/gradle/api/file/FileSystemOperations.html[`FileSystemOperations`] is a service that provides methods for performing file system operations such as copying, deleting, and syncing.
 It is part of the `org.gradle.api.file` package and is typically used in custom tasks or plugins to interact with the file system.
-
-You can obtain an instance of `FileSystemOperations` using the `project.copy` property.
-Here's a simple example:
-
-====
-include::sample[dir="snippets/providers/services/kotlin",files="build.gradle.kts[tags=file-system]"]
-include::sample[dir="snippets/providers/services/groovy",files="build.gradle[tags=file-system]"]
-====
 
 Here is an example using `javax.inject.Inject`:
 
