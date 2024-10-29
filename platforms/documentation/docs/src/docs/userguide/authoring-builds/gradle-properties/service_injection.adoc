@@ -210,15 +210,7 @@ The `ArchiveOperations` service is injected into the `MyArchiveOperationsTask` t
 == 8. `ExecOperations`
 
 link:{javadocPath}/org/gradle/process/ExecOperations.html[`ExecOperations`] is a service that provides methods for executing external processes (commands) from within a build script.
-It is part of the `org.gradle.process.internal` package and is typically used in custom tasks or plugins to run command-line tools or scripts as part of the build process.
-
-You can obtain an instance of `ExecOperations` using the `project.exec` property.
-Here's a simple example demonstrating how to use `ExecOperations` to execute a command:
-
-====
-include::sample[dir="snippets/providers/services/kotlin",files="build.gradle.kts[tags=exec-op]"]
-include::sample[dir="snippets/providers/services/groovy",files="build.gradle[tags=exec-op]"]
-====
+It is part of the `org.gradle.process` package and is typically used in custom tasks or plugins to run command-line tools or scripts as part of the build process.
 
 Here is an example using `javax.inject.Inject`:
 
