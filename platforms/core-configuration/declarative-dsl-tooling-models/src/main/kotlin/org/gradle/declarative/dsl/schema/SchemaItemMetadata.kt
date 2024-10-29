@@ -17,6 +17,7 @@
 package org.gradle.declarative.dsl.schema
 
 import org.gradle.tooling.ToolingModelContract
+import java.io.Serializable
 
 @ToolingModelContract(
     subTypes = [
@@ -24,7 +25,7 @@ import org.gradle.tooling.ToolingModelContract
         ContainerElementFactory::class
     ]
 )
-sealed interface SchemaItemMetadata
+sealed interface SchemaItemMetadata : Serializable
 
 @ToolingModelContract(
     subTypes = [
