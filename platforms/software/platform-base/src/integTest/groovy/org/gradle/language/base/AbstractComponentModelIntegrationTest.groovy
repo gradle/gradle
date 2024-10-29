@@ -17,8 +17,9 @@
 package org.gradle.language.base
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.CommonDeprecations
 
-abstract class AbstractComponentModelIntegrationTest extends AbstractIntegrationSpec {
+abstract class AbstractComponentModelIntegrationTest extends AbstractIntegrationSpec implements CommonDeprecations {
     /**
      * Registers CustomComponent type
      */

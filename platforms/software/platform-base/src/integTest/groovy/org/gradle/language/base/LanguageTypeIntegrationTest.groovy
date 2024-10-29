@@ -17,10 +17,11 @@
 package org.gradle.language.base
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.CommonDeprecations
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 
 @UnsupportedWithConfigurationCache(because = "software model")
-class LanguageTypeIntegrationTest extends AbstractIntegrationSpec {
+class LanguageTypeIntegrationTest extends AbstractIntegrationSpec implements CommonDeprecations {
 
     def setup() {
         buildFile << """
@@ -66,6 +67,7 @@ class LanguageTypeIntegrationTest extends AbstractIntegrationSpec {
         }
 """
         then:
+        expectTaskGetProjectDeprecations()
         succeeds "components"
         and:
         output.contains """
