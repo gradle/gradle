@@ -19,6 +19,7 @@ package org.gradle.workers.internal;
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.process.JavaForkOptions;
+import org.gradle.process.internal.EffectiveJavaForkOptions;
 import org.gradle.process.internal.JavaForkOptionsFactory;
 import org.gradle.process.internal.JavaForkOptionsInternal;
 import org.slf4j.Logger;
@@ -49,13 +50,13 @@ public class DaemonForkOptionsBuilder {
     private static final Logger LOGGER = LoggerFactory.getLogger(DaemonForkOptionsBuilder.class);
 
     private final JavaForkOptionsInternal javaForkOptions;
-    private final JavaForkOptionsFactory forkOptionsFactory;
+    private final JavaForkOptionsFactory javaForkOptionsFactory;
     private KeepAliveMode keepAliveMode = KeepAliveMode.DAEMON;
     private ClassLoaderStructure classLoaderStructure = null;
 
     public DaemonForkOptionsBuilder(JavaForkOptionsFactory forkOptionsFactory) {
-        this.forkOptionsFactory = forkOptionsFactory;
         this.javaForkOptions = forkOptionsFactory.newJavaForkOptions();
+        this.javaForkOptionsFactory = forkOptionsFactory;
     }
 
     public DaemonForkOptionsBuilder keepAliveMode(KeepAliveMode keepAliveMode) {
@@ -74,9 +75,9 @@ public class DaemonForkOptionsBuilder {
     }
 
     public DaemonForkOptions build() {
-        JavaForkOptionsInternal forkOptions = buildJavaForkOptions();
+        EffectiveJavaForkOptions forkOptions = javaForkOptionsFactory.toEffectiveJavaForkOptions(javaForkOptions);
         if (OperatingSystem.current().isWindows() && keepAliveMode == KeepAliveMode.DAEMON) {
-            List<String> jvmArgs = forkOptions.getAllJvmArgs();
+            List<String> jvmArgs = forkOptions.getJvmOptions().getAllJvmArgs();
             Optional<String> unreliableArgument = findUnreliableArgument(jvmArgs);
             if (unreliableArgument.isPresent()) {
                 LOGGER.info("Worker requested to be persistent, but the JVM argument '{}' may make the worker unreliable when reused across multiple builds. Worker will expire at the end of the build session.", unreliableArgument.get());
@@ -108,9 +109,5 @@ public class DaemonForkOptionsBuilder {
             }
         }
         return Optional.empty();
-    }
-
-    private JavaForkOptionsInternal buildJavaForkOptions() {
-        return forkOptionsFactory.immutableCopy(javaForkOptions);
     }
 }

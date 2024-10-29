@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import org.gradle.external.javadoc.StandardJavadocDocletOptions
 import java.time.Year
 
 plugins {
@@ -58,10 +57,6 @@ signing {
 fun configureJavadocVariant() {
     java {
         withJavadocJar()
-    }
-    tasks.named<Javadoc>("javadoc") {
-        // See GradleJavadocsPlugin.generateJavadocs() and the javadocsAll task
-        (options as StandardJavadocDocletOptions).tags("apiNote:a:API Note:", "implSpec:a:Implementation Requirements:", "implNote:a:Implementation Note:")
     }
 }
 

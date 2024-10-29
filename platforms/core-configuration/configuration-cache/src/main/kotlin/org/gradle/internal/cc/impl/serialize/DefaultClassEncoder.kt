@@ -16,9 +16,13 @@
 
 package org.gradle.internal.cc.impl.serialize
 
+import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.initialization.ClassLoaderScopeOrigin
 import org.gradle.internal.classpath.ClassPath
+import org.gradle.internal.configuration.problems.PropertyProblem
+import org.gradle.internal.configuration.problems.StructuredMessage
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.serialize.Encoder
 import org.gradle.internal.serialize.graph.ClassEncoder
 import org.gradle.internal.serialize.graph.ClassLoaderRole
 import org.gradle.internal.serialize.graph.WriteContext
@@ -28,11 +32,12 @@ import org.gradle.internal.serialize.graph.WriteIdentities
 internal
 interface ScopeLookup {
     fun scopeFor(classLoader: ClassLoader?): Pair<ClassLoaderScopeSpec, ClassLoaderRole>?
+    val knownClassLoaders: Set<ClassLoader>
 }
 
 
 internal
-class ClassLoaderScopeSpec(
+data class ClassLoaderScopeSpec(
     val parent: ClassLoaderScopeSpec?,
     val name: String,
     val origin: ClassLoaderScopeOrigin?
@@ -69,12 +74,25 @@ class DefaultClassEncoder(
         } else {
             val newId = classes.putInstance(type)
             writeSmallInt(newId)
-            writeString(type.name)
-            encodeClassLoader(type.classLoader)
+            // TODO:configuration-cache - should collect the details of the decoration (eg enabled annotations, etc), and also carry this information with the serialized class reference
+            val originalType = GeneratedSubclasses.unpack(type)
+            writeBoolean(originalType !== type)
+            val className = originalType.name
+            writeString(className)
+            val classLoader = originalType.classLoader
+            if (!writeClassLoaderScopeOf(classLoader) && classLoader != null) {
+                // Ensure class can be found in the Gradle runtime classloader since its original classloader could not be encoded.
+                ensureClassCanBeFoundInGradleRuntimeClassLoader(className, classLoader)
+            }
         }
     }
 
-    override fun WriteContext.encodeClassLoader(classLoader: ClassLoader?): Boolean {
+    override fun WriteContext.encodeClassLoader(classLoader: ClassLoader?) {
+        writeClassLoaderScopeOf(classLoader)
+    }
+
+    private
+    fun Encoder.writeClassLoaderScopeOf(classLoader: ClassLoader?): Boolean {
         val scope = classLoader?.let { scopeLookup.scopeFor(it) }
         if (scope == null) {
             writeBoolean(false)
@@ -88,7 +106,7 @@ class DefaultClassEncoder(
     }
 
     private
-    fun WriteContext.writeScope(scope: ClassLoaderScopeSpec) {
+    fun Encoder.writeScope(scope: ClassLoaderScopeSpec) {
         val id = scopes.getId(scope)
         if (id != null) {
             writeSmallInt(id)
@@ -117,7 +135,30 @@ class DefaultClassEncoder(
     }
 
     private
-    fun WriteContext.writeHashCode(hashCode: HashCode?) {
+    fun WriteContext.ensureClassCanBeFoundInGradleRuntimeClassLoader(className: String, originalClassLoader: ClassLoader) {
+        try {
+            classForName(className, gradleRuntimeClassLoader)
+        } catch (e: ClassNotFoundException) {
+            onProblem(
+                PropertyProblem(
+                    trace,
+                    StructuredMessage.build {
+                        text("Class ")
+                        reference(className)
+                        text(" cannot be encoded because ")
+                        text(describeClassLoader(originalClassLoader))
+                        text(" could not be encoded and the class is not available through the default class loader.\n")
+                        text(scopeLookup.describeKnownClassLoaders())
+                        text("\nPlease report this error, run './gradlew --stop' and try again.")
+                    },
+                    exception = e
+                )
+            )
+        }
+    }
+
+    private
+    fun Encoder.writeHashCode(hashCode: HashCode?) {
         if (hashCode == null) {
             writeBoolean(false)
         } else {
@@ -125,4 +166,11 @@ class DefaultClassEncoder(
             writeBinary(hashCode.toByteArray())
         }
     }
+}
+
+
+internal
+fun ScopeLookup.describeKnownClassLoaders(): String = knownClassLoaders.let { classLoaders ->
+    if (classLoaders.isEmpty()) "No class loaders are currently known."
+    else "These are the known class loaders:\n${classLoaders.joinToString("\n") { "\t- $it" }}"
 }

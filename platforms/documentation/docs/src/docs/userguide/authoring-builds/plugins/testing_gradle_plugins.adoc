@@ -156,7 +156,7 @@ You are free to choose any project layout that works best for you.
 
 You can configure the source directories for compilation and test execution.
 
-The link:{userManualPath}/jvm_test_suite_plugin.html[Test Suite plugin] provides a DSL and API to model multiple groups of automated tests into test suites in JVM-based projects.
+The <<jvm_test_suite_plugin.adoc#jvm_test_suite_plugin,Test Suite plugin>> provides a DSL and API to model multiple groups of automated tests into test suites in JVM-based projects.
 You can also rely on third-party plugins for convenience, such as the link:https://github.com/nebula-plugins/nebula-project-plugin#nebula-facet-plugin[Nebula Facet plugin] or the link:https://github.com/unbroken-dome/gradle-testsets-plugin[TestSets plugin].
 
 === Modeling test types

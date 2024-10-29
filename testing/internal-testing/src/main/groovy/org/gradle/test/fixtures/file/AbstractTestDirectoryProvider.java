@@ -32,8 +32,8 @@ import java.util.regex.Pattern;
  * A JUnit rule which provides a unique temporary folder for the test.
  *
  * Note: to avoid 260 char path length limitation on Windows, we should keep the test dir path as short as possible,
- * ideally < 90 chars (from repo root to test dir root, e.g. "core/build/tmp/teŝt files/{TestClass}/{testMethod}/qqlj8"),
- * or < 40 chars for "{TestClass}/{testMethod}/qqlj8"
+ * ideally less than 90 chars (from repo root to test dir root, e.g. "core/build/tmp/teŝt files/{TestClass}/{testMethod}/qqlj8"),
+ * or less than 40 chars for "{TestClass}/{testMethod}/qqlj8"
  */
 public abstract class AbstractTestDirectoryProvider implements TestRule, TestDirectoryProvider {
     protected final TestFile root;
@@ -86,7 +86,7 @@ public abstract class AbstractTestDirectoryProvider implements TestRule, TestDir
         return new TestDirectoryCleaningStatement(base, description);
     }
 
-    private class TestDirectoryCleaningStatement extends Statement {
+    public class TestDirectoryCleaningStatement extends Statement {
         private final Statement base;
         private final Description description;
 
@@ -95,13 +95,9 @@ public abstract class AbstractTestDirectoryProvider implements TestRule, TestDir
             this.description = description;
         }
 
-        @Override
-        public void evaluate() throws Throwable {
-            // implicitly don't clean up if this throws
-            base.evaluate();
-
+        public void cleanup() {
             try {
-                cleanup();
+                AbstractTestDirectoryProvider.this.cleanup();
             } catch (Exception e) {
                 if (suppressCleanupErrors()) {
                     System.err.println(cleanupErrorMessage());
@@ -110,6 +106,15 @@ public abstract class AbstractTestDirectoryProvider implements TestRule, TestDir
                     throw new GradleException(cleanupErrorMessage(), e);
                 }
             }
+        }
+
+        @Override
+        public void evaluate() throws Throwable {
+            // implicitly don't clean up if this throws exceptions
+            // so that we can inspect the test directory
+            base.evaluate();
+
+            cleanup();
         }
 
         private boolean suppressCleanupErrors() {
@@ -166,7 +171,9 @@ public abstract class AbstractTestDirectoryProvider implements TestRule, TestDir
         while (true) {
             // Use a random prefix to avoid reusing test directories
             String randomPrefix = Integer.toString(RANDOM.nextInt(MAX_RANDOM_PART_VALUE), ALL_DIGITS_AND_LETTERS_RADIX);
-            if (WINDOWS_RESERVED_NAMES.matcher(randomPrefix).matches()) {
+            if (WINDOWS_RESERVED_NAMES.matcher(randomPrefix).matches() || Character.isDigit(randomPrefix.charAt(0))) {
+                // project name starting with digit may cause troubles:
+                // Cannot generate project dependency accessors because project '1mg78' doesn't follow the naming convention: [a-zA-Z]([A-Za-z0-9\-_])*
                 continue;
             }
             TestFile dir = root.file(getPrefix(), randomPrefix);

@@ -74,6 +74,14 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
          */
         private
         val modelProjectDependencies = InternalFlag("org.gradle.internal.model-project-dependencies", true)
+
+        private
+        val isolatedProjectsToolingModelsConfigureOnDemand =
+            InternalFlag("org.gradle.internal.isolated-projects.configure-on-demand.tooling", false)
+
+        private
+        val isolatedProjectsTasksConfigureOnDemand =
+            InternalFlag("org.gradle.internal.isolated-projects.configure-on-demand.tasks", false)
     }
 
     override fun servicesForBuildTree(requirements: BuildActionModelRequirements): BuildTreeModelControllerServices.Supplier {
@@ -120,6 +128,7 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
     ): BuildModelParameters {
 
         val options = DefaultInternalOptions(startParameter.systemPropertiesArgs)
+        val requiresTasks = requirements.isRunsTasks
         val isolatedProjects = startParameter.isolatedProjects.get()
         val parallelProjectExecution = isolatedProjects || requirements.startParameter.isParallelProjectExecutionEnabled
         val parallelToolingActions = parallelProjectExecution && options.getOption(parallelBuilding).get()
@@ -127,13 +136,14 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
         val modelAsProjectDependency = isolatedProjects && options.getOption(modelProjectDependencies).get()
 
         return if (requirements.isCreatesModel) {
-            // When creating a model, disable certain features - only enable configure on demand and configuration cache when isolated projects is enabled
+            val configureOnDemand = isolatedProjects && !requiresTasks &&
+                options.getOption(isolatedProjectsToolingModelsConfigureOnDemand).get()
             DefaultBuildModelParameters(
+                requiresToolingModels = true,
                 parallelProjectExecution = parallelProjectExecution,
-                configureOnDemand = false,
+                configureOnDemand = configureOnDemand,
                 configurationCache = isolatedProjects,
                 isolatedProjects = isolatedProjects,
-                requiresBuildModel = true,
                 intermediateModelCache = isolatedProjects,
                 parallelToolingApiActions = parallelToolingActions,
                 invalidateCoupledProjects = invalidateCoupledProjects,
@@ -141,16 +151,18 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
             )
         } else {
             val configurationCache = isolatedProjects || startParameter.configurationCache.get()
-            val configureOnDemand = !isolatedProjects && startParameter.isConfigureOnDemand
+            val configureOnDemand =
+                if (isolatedProjects) options.getOption(isolatedProjectsTasksConfigureOnDemand).get()
+                else startParameter.isConfigureOnDemand
 
             fun disabledConfigurationCacheBuildModelParameters(buildOptionReason: String): BuildModelParameters {
                 logger.log(configurationCacheLogLevel, "{} as configuration cache cannot be reused due to --{}", requirements.actionDisplayName.capitalizedDisplayName, buildOptionReason)
                 return DefaultBuildModelParameters(
+                    requiresToolingModels = false,
                     parallelProjectExecution = parallelProjectExecution,
                     configureOnDemand = configureOnDemand,
                     configurationCache = false,
                     isolatedProjects = false,
-                    requiresBuildModel = false,
                     intermediateModelCache = false,
                     parallelToolingApiActions = parallelToolingActions,
                     invalidateCoupledProjects = invalidateCoupledProjects,
@@ -164,11 +176,11 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
                 // Disable configuration cache when generating a property upgrade report, since report is generated during configuration phase, and we currently don't reference it in cc cache
                 configurationCache && startParameter.isPropertyUpgradeReportEnabled -> disabledConfigurationCacheBuildModelParameters(StartParameterBuildOptions.PropertyUpgradeReportOption.LONG_OPTION)
                 else -> DefaultBuildModelParameters(
+                    requiresToolingModels = false,
                     parallelProjectExecution = parallelProjectExecution,
                     configureOnDemand = configureOnDemand,
                     configurationCache = configurationCache,
                     isolatedProjects = isolatedProjects,
-                    requiresBuildModel = false,
                     intermediateModelCache = false,
                     parallelToolingApiActions = parallelToolingActions,
                     invalidateCoupledProjects = invalidateCoupledProjects,
@@ -185,11 +197,11 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
             // Configuration cache is not supported for nested build trees
             val buildModelParameters =
                 DefaultBuildModelParameters(
+                    requiresToolingModels = true,
                     parallelProjectExecution = startParameter.isParallelProjectExecutionEnabled,
                     configureOnDemand = startParameter.isConfigureOnDemand,
                     configurationCache = false,
                     isolatedProjects = false,
-                    requiresBuildModel = true,
                     intermediateModelCache = false,
                     parallelToolingApiActions = false,
                     invalidateCoupledProjects = false,

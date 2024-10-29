@@ -16,8 +16,6 @@
 
 package org.gradle.internal.serialize.graph.codecs
 
-import org.gradle.api.internal.GeneratedSubclass
-import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
@@ -30,7 +28,8 @@ object BeanCodec : Codec<Any> {
 
     override suspend fun WriteContext.encode(value: Any) {
         encodePreservingIdentityOf(value) {
-            val beanType = GeneratedSubclasses.unpackType(value)
+            val beanType = value.javaClass
+            writeClass(beanType)
             withBeanTrace(beanType) {
                 writeBeanOf(beanType, value)
             }
@@ -40,35 +39,26 @@ object BeanCodec : Codec<Any> {
     override suspend fun ReadContext.decode(): Any =
         decodePreservingIdentity { id ->
             val beanType = readClass()
-            val generated = readBoolean()
             withBeanTrace(beanType) {
-                readBeanOf(beanType, generated, id)
+                readBeanOf(beanType, id)
             }
         }
 
     private
     suspend fun WriteContext.writeBeanOf(beanType: Class<*>, value: Any) {
-        writeClass(beanType)
-        // TODO - should collect the details of the decoration (eg enabled annotations, etc), and also carry this information with the serialized class reference
-        //  instead of separately for each bean
-        val generated = value is GeneratedSubclass
-        writeBoolean(generated)
-        beanStateWriterFor(value.javaClass).run {
+        beanStateWriterFor(beanType).run {
             writeStateOf(value)
         }
     }
 
     private
-    suspend fun ReadContext.readBeanOf(beanType: Class<*>, generated: Boolean, id: Int): Any {
-        val beanReader = beanStateReaderFor(beanType)
-        val bean = beanReader.run { newBeanWithId(generated, id) }
-        val effectiveBeanType = bean.javaClass
-        val effectiveBeanReader =
-            if (beanType === effectiveBeanType) beanReader
-            else beanStateReaderFor(effectiveBeanType)
-        effectiveBeanReader.run {
-            readStateOf(bean)
+    suspend fun ReadContext.readBeanOf(beanType: Class<*>, id: Int): Any =
+        beanStateReaderFor(beanType).run {
+            newBeanWithId(id).also { bean ->
+                check(beanType === bean.javaClass) {
+                    "Expected bean type to be '$beanType' but it was '${bean.javaClass}'"
+                }
+                readStateOf(bean)
+            }
         }
-        return bean
-    }
 }

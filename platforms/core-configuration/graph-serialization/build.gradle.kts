@@ -38,3 +38,6 @@ dependencies {
 
     implementation(libs.fastutil)
 }
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

@@ -498,7 +498,7 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
         if (filterJavaVersionDeprecation) {
             maybeExpectedDeprecations.add(normalizeDeprecationWarning(
                 "Executing Gradle on JVM versions 16 and lower has been deprecated. " +
-                    "This will fail with an error in Gradle X. " +
+                    "This will fail with an error in Gradle 9.0. " +
                     "Use JVM 17 or greater to execute Gradle. " +
                     "Projects can continue to use older JVM versions via toolchains. " +
                     "Consult the upgrading guide for further information: " +
@@ -534,11 +534,8 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
     }
 
     private String normalizeDeprecationWarning(String message) {
-        def nextMajorVersion = Integer.parseInt(targetDist.version.version.split("\\.")[0]) + 1
-
         def normalizedLink = DocumentationUtils.normalizeDocumentationLink(message, targetDist.version)
-        def normalizedVersion = normalizedLink.replaceAll("Gradle X", "Gradle ${nextMajorVersion}.0")
 
-        return normalizedVersion
+        return normalizedLink
     }
 }

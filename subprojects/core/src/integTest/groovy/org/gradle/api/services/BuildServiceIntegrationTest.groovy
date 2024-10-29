@@ -95,7 +95,7 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
             "Build service 'counter' is being used by task ':broken' without the corresponding declaration via 'Task#usesService'. " +
                 "This behavior has been deprecated. " +
                 "This will fail with an error in Gradle 9.0. " +
-                "Declare the association between the task and the build service using 'Task#usesService'. " +
+                "Declare the association between the task by declaring the consuming property as a '@ServiceReference'. " +
                 "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#undeclared_build_service_usage"
         )
 
@@ -144,7 +144,7 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
             "Build service 'counter' is being used by task ':broken' without the corresponding declaration via 'Task#usesService'. " +
                 "This behavior has been deprecated. " +
                 "This will fail with an error in Gradle 9.0. " +
-                "Declare the association between the task and the build service using 'Task#usesService'. " +
+                "Declare the association between the task by declaring the consuming property as a '@ServiceReference'. " +
                 "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#undeclared_build_service_usage"
         )
 
@@ -221,7 +221,7 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
             "Build service 'counter' is being used by task ':compileJava' without the corresponding declaration via 'Task#usesService'. " +
                 "This behavior has been deprecated. " +
                 "This will fail with an error in Gradle 9.0. " +
-                "Declare the association between the task and the build service using 'Task#usesService'. " +
+                "Declare the association between the task by declaring the consuming property as a '@ServiceReference'. " +
                 "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#undeclared_build_service_usage"
         )
 
@@ -867,6 +867,8 @@ service: closed with value 12
 
     @ToBeImplemented
     @Issue("https://github.com/gradle/gradle/issues/17559")
+    // Test assumes sequential configuration :subproject1 :subproject2
+    @Requires(IntegTestPreconditions.NotIsolatedProjects)
     def "service provided by a plugin cannot be shared by subprojects with different classloaders"() {
         createDirs("plugin1", "plugin2", "subproject1", "subproject2")
         settingsFile """

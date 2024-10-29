@@ -16,7 +16,6 @@
 
 package org.gradle.plugins.ide.eclipse.model.internal;
 
-import com.google.common.collect.Lists;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
@@ -170,7 +169,7 @@ public class WtpComponentFactory {
          * that, so defer that until later.
          */
         public List<WbDependentModule> getEntries() {
-            List<WbDependentModule> entries = Lists.newArrayListWithCapacity(projectEntries.size() + moduleEntries.size() + fileEntries.size());
+            List<WbDependentModule> entries = new ArrayList<>(projectEntries.size() + moduleEntries.size() + fileEntries.size());
             entries.addAll(projectEntries);
             entries.addAll(moduleEntries);
             entries.addAll(fileEntries);

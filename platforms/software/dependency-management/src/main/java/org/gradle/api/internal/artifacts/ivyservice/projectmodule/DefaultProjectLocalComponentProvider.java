@@ -23,10 +23,15 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationsProvider;
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
+import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
+import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchemaFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
+import org.gradle.internal.component.local.model.LocalComponentGraphResolveMetadata;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory;
+
+import javax.inject.Inject;
 
 /**
  * Provides the metadata for a component consumed from the same build that produces it.
@@ -34,13 +39,17 @@ import org.gradle.internal.component.local.model.LocalComponentGraphResolveState
 public class DefaultProjectLocalComponentProvider implements LocalComponentProvider {
     private final LocalComponentGraphResolveStateFactory resolveStateFactory;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
+    private final ImmutableAttributesSchemaFactory attributesSchemaFactory;
 
+    @Inject
     public DefaultProjectLocalComponentProvider(
         LocalComponentGraphResolveStateFactory resolveStateFactory,
-        ImmutableModuleIdentifierFactory moduleIdentifierFactory
+        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+        ImmutableAttributesSchemaFactory attributesSchemaFactory
     ) {
         this.resolveStateFactory = resolveStateFactory;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
+        this.attributesSchemaFactory = attributesSchemaFactory;
     }
 
     @Override
@@ -53,9 +62,17 @@ public class DefaultProjectLocalComponentProvider implements LocalComponentProvi
         Module module = project.getServices().get(DependencyMetaDataProvider.class).getModule();
         ModuleVersionIdentifier moduleVersionIdentifier = moduleIdentifierFactory.moduleWithVersion(module.getGroup(), module.getName(), module.getVersion());
         ProjectComponentIdentifier componentIdentifier = projectState.getComponentIdentifier();
-        AttributesSchemaInternal schema = (AttributesSchemaInternal) project.getDependencies().getAttributesSchema();
-        ConfigurationsProvider configurations = (DefaultConfigurationContainer) project.getConfigurations();
+        AttributesSchemaInternal mutableSchema = (AttributesSchemaInternal) project.getDependencies().getAttributesSchema();
+        ImmutableAttributesSchema schema = attributesSchemaFactory.create(mutableSchema);
 
-        return resolveStateFactory.stateFor(projectState, componentIdentifier, moduleVersionIdentifier, configurations, module.getStatus(), schema);
+        LocalComponentGraphResolveMetadata metadata = new LocalComponentGraphResolveMetadata(
+            moduleVersionIdentifier,
+            componentIdentifier,
+            module.getStatus(),
+            schema
+        );
+
+        ConfigurationsProvider configurations = (DefaultConfigurationContainer) project.getConfigurations();
+        return resolveStateFactory.stateFor(projectState, metadata, configurations);
     }
 }

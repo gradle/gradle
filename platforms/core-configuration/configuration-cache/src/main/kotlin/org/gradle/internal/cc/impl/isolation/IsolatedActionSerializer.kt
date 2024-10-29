@@ -18,13 +18,14 @@ package org.gradle.internal.cc.impl.isolation
 
 import org.gradle.api.IsolatedAction
 import org.gradle.internal.cc.base.logger
-import org.gradle.internal.cc.impl.ConfigurationCacheError
+import org.gradle.internal.cc.base.exceptions.ConfigurationCacheError
 import org.gradle.internal.cc.impl.problems.AbstractProblemsListener
 import org.gradle.internal.cc.impl.services.IsolatedActionCodecsFactory
 import org.gradle.internal.configuration.problems.PropertyProblem
 import org.gradle.internal.extensions.stdlib.invert
 import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.extensions.stdlib.useToRun
+import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.graph.BeanStateReaderLookup
 import org.gradle.internal.serialize.graph.BeanStateWriterLookup
 import org.gradle.internal.serialize.graph.ClassDecoder
@@ -33,7 +34,6 @@ import org.gradle.internal.serialize.graph.CloseableWriteContext
 import org.gradle.internal.serialize.graph.DefaultReadContext
 import org.gradle.internal.serialize.graph.DefaultWriteContext
 import org.gradle.internal.serialize.graph.IsolateOwner
-import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.internal.serialize.graph.readNonNull
 import org.gradle.internal.serialize.graph.runReadOperation
@@ -164,7 +164,7 @@ private
 class EnvironmentDecoder(
     val environment: Map<Int, Any>
 ) : ClassDecoder {
-    override fun ReadContext.decodeClass(): Class<*> =
+    override fun Decoder.decodeClass(): Class<*> =
         environment[readSmallInt()]?.uncheckedCast()!!
 }
 

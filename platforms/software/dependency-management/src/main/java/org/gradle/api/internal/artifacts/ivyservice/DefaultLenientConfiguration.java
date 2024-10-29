@@ -34,12 +34,11 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSetResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactResults;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedFileDependencyResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResultsLoader;
-import org.gradle.api.internal.artifacts.transform.ArtifactVariantSelector;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
@@ -65,11 +64,10 @@ public class DefaultLenientConfiguration implements LenientConfigurationInternal
 
     private final ResolutionHost resolutionHost;
     private final VisitedGraphResults graphResults;
-    private final VisitedArtifactResults artifactResults;
+    private final VisitedArtifactSet artifactResults;
     private final VisitedFileDependencyResults fileDependencyResults;
     private final TransientConfigurationResultsLoader transientConfigurationResultsFactory;
     private final ResolvedArtifactSetResolver artifactSetResolver;
-    private final ArtifactVariantSelector artifactVariantSelector;
     private final ArtifactSelectionSpec implicitSelectionSpec;
 
     // Selected for the configuration
@@ -78,11 +76,10 @@ public class DefaultLenientConfiguration implements LenientConfigurationInternal
     public DefaultLenientConfiguration(
         ResolutionHost resolutionHost,
         VisitedGraphResults graphResults,
-        VisitedArtifactResults artifactResults,
+        VisitedArtifactSet artifactResults,
         VisitedFileDependencyResults fileDependencyResults,
         TransientConfigurationResultsLoader transientConfigurationResultsLoader,
         ResolvedArtifactSetResolver artifactSetResolver,
-        ArtifactVariantSelector artifactVariantSelector,
         ArtifactSelectionSpec implicitSelectionSpec
     ) {
         this.resolutionHost = resolutionHost;
@@ -91,20 +88,19 @@ public class DefaultLenientConfiguration implements LenientConfigurationInternal
         this.fileDependencyResults = fileDependencyResults;
         this.transientConfigurationResultsFactory = transientConfigurationResultsLoader;
         this.artifactSetResolver = artifactSetResolver;
-        this.artifactVariantSelector = artifactVariantSelector;
         this.implicitSelectionSpec = implicitSelectionSpec;
     }
 
     private SelectedArtifactResults getSelectedArtifacts() {
         if (artifactsForThisConfiguration == null) {
-            artifactsForThisConfiguration = artifactResults.select(artifactVariantSelector, implicitSelectionSpec, true);
+            artifactsForThisConfiguration = artifactResults.selectLegacy(implicitSelectionSpec, true);
         }
         return artifactsForThisConfiguration;
     }
 
     @Override
     public SelectedArtifactSet select(final Spec<? super Dependency> dependencySpec) {
-        SelectedArtifactResults artifactResults = this.artifactResults.select(artifactVariantSelector, implicitSelectionSpec, false);
+        SelectedArtifactResults artifactResults = this.artifactResults.selectLegacy(implicitSelectionSpec, false);
 
         return new SelectedArtifactSet() {
             @Override
@@ -189,10 +185,17 @@ public class DefaultLenientConfiguration implements LenientConfigurationInternal
     }
 
     @Override
+    @Deprecated
     public Set<File> getFiles() {
+        DeprecationLogger.deprecateMethod(LenientConfiguration.class, "getFiles()")
+            .withAdvice("Use a lenient ArtifactView instead.")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "deprecate_legacy_configuration_get_files")
+            .nagUser();
+
         LenientFilesAndArtifactResolveVisitor visitor = new LenientFilesAndArtifactResolveVisitor();
         artifactSetResolver.visitArtifacts(getSelectedArtifacts().getArtifacts(), visitor, resolutionHost);
-        resolutionHost.rethrowFailure("files", visitor.getFailures());
+        resolutionHost.rethrowFailuresAndReportProblems("files", visitor.getFailures());
         return visitor.files;
     }
 
@@ -208,7 +211,7 @@ public class DefaultLenientConfiguration implements LenientConfigurationInternal
         LenientFilesAndArtifactResolveVisitor visitor = new LenientFilesAndArtifactResolveVisitor();
         ResolvedArtifactSet filteredArtifacts = resolveFilteredArtifacts(dependencySpec, getSelectedArtifacts());
         artifactSetResolver.visitArtifacts(filteredArtifacts, visitor, resolutionHost);
-        resolutionHost.rethrowFailure("files", visitor.getFailures());
+        resolutionHost.rethrowFailuresAndReportProblems("files", visitor.getFailures());
         return visitor.files;
     }
 
@@ -216,7 +219,7 @@ public class DefaultLenientConfiguration implements LenientConfigurationInternal
     public Set<ResolvedArtifact> getArtifacts() {
         LenientArtifactCollectingVisitor visitor = new LenientArtifactCollectingVisitor();
         artifactSetResolver.visitArtifacts(getSelectedArtifacts().getArtifacts(), visitor, resolutionHost);
-        resolutionHost.rethrowFailure("artifacts", visitor.getFailures());
+        resolutionHost.rethrowFailuresAndReportProblems("artifacts", visitor.getFailures());
         return visitor.artifacts;
     }
 
@@ -232,7 +235,7 @@ public class DefaultLenientConfiguration implements LenientConfigurationInternal
         LenientArtifactCollectingVisitor visitor = new LenientArtifactCollectingVisitor();
         ResolvedArtifactSet filteredArtifacts = resolveFilteredArtifacts(dependencySpec, getSelectedArtifacts());
         artifactSetResolver.visitArtifacts(filteredArtifacts, visitor, resolutionHost);
-        resolutionHost.rethrowFailure("artifacts", visitor.getFailures());
+        resolutionHost.rethrowFailuresAndReportProblems("artifacts", visitor.getFailures());
         return visitor.artifacts;
     }
 

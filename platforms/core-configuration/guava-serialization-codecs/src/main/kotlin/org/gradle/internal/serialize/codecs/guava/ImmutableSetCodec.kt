@@ -31,6 +31,9 @@ object ImmutableSetCodec : Codec<ImmutableSet<Any>> {
 
     override suspend fun ReadContext.decode(): ImmutableSet<Any>? {
         val size = readSmallInt()
+        if (size == 0) {
+            return ImmutableSet.of()
+        }
         val builder = ImmutableSet.builderWithExpectedSize<Any>(size)
         repeat(size) {
             val value = read()!!

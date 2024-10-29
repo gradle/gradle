@@ -21,7 +21,6 @@ dependencies {
     api(projects.files)
     api(projects.platformBase)
     api(projects.platformJvm)
-    api(projects.processServices)
     api(projects.workers)
 
     api(libs.groovy)
@@ -52,4 +51,7 @@ dependencies {
         because("AbstractOptionsTest instantiates DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
     integTestDistributionRuntimeOnly(projects.distributionsJvm)
+}
+tasks.isolatedProjectsIntegTest {
+    enabled = false
 }

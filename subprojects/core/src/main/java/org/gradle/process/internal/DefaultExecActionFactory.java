@@ -17,10 +17,7 @@
 package org.gradle.process.internal;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import org.gradle.api.Action;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ExternalProcessStartedListener;
 import org.gradle.api.internal.file.DefaultFileCollectionFactory;
 import org.gradle.api.internal.file.DefaultFileLookup;
@@ -48,18 +45,12 @@ import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.nativeintegration.services.FileSystems;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.ExecResult;
 import org.gradle.process.ExecSpec;
-import org.gradle.process.JavaDebugOptions;
 import org.gradle.process.JavaExecSpec;
-import org.gradle.process.JavaForkOptions;
-import org.gradle.process.ProcessForkOptions;
 
 import javax.annotation.Nullable;
 import java.io.File;
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.Executor;
 
 import static java.util.Objects.requireNonNull;
@@ -150,7 +141,7 @@ public abstract class DefaultExecActionFactory implements ExecFactory {
 
     @Override
     public JavaForkOptionsInternal newJavaForkOptions() {
-        final DefaultJavaForkOptions forkOptions = new DefaultJavaForkOptions(fileResolver, fileCollectionFactory, new DefaultJavaDebugOptions());
+        final DefaultJavaForkOptions forkOptions = objectFactory.newInstance(DefaultJavaForkOptions.class, objectFactory, fileResolver, fileCollectionFactory);
         if (forkOptions.getExecutable() == null) {
             forkOptions.setExecutable(Jvm.current().getJavaExecutable());
         }
@@ -158,15 +149,14 @@ public abstract class DefaultExecActionFactory implements ExecFactory {
     }
 
     @Override
-    public JavaForkOptionsInternal immutableCopy(JavaForkOptionsInternal options) {
+    public EffectiveJavaForkOptions toEffectiveJavaForkOptions(JavaForkOptionsInternal options) {
         @SuppressWarnings("deprecation")
         Factory<PatternSet> nonCachingPatternSetFactory = PatternSets.getNonCachingPatternSetFactory();
-        // NOTE: We do not want/need a decorated version of JavaForkOptions or JavaDebugOptions because
+        // NOTE: We do not want/need a decorated version of JvmOptions or JavaDebugOptions because
         // these immutable instances are held across builds and will retain classloaders/services in the decorated object
         DefaultFileCollectionFactory fileCollectionFactory = new DefaultFileCollectionFactory(fileResolver, DefaultTaskDependencyFactory.withNoAssociatedProject(), new DefaultDirectoryFileTreeFactory(), nonCachingPatternSetFactory, PropertyHost.NO_OP, FileSystems.getDefault());
-        JavaForkOptionsInternal copy = new DefaultJavaForkOptions(fileResolver, fileCollectionFactory, new DefaultJavaDebugOptions());
-        options.copyTo(copy);
-        return new ImmutableJavaForkOptions(copy);
+        ObjectFactory objectFactory = new InstantiatorBackedObjectFactory(DirectInstantiator.INSTANCE);
+        return options.toEffectiveJavaForkOptions(objectFactory, fileCollectionFactory);
     }
 
     public JavaExecAction newDecoratedJavaExecAction() {
@@ -368,8 +358,7 @@ public abstract class DefaultExecActionFactory implements ExecFactory {
 
         @Override
         public JavaForkOptionsInternal newDecoratedJavaForkOptions() {
-            JavaDebugOptions javaDebugOptions = objectFactory.newInstance(DefaultJavaDebugOptions.class, objectFactory);
-            final DefaultJavaForkOptions forkOptions = instantiator.newInstance(DefaultJavaForkOptions.class, fileResolver, fileCollectionFactory, javaDebugOptions);
+            final DefaultJavaForkOptions forkOptions = instantiator.newInstance(DefaultJavaForkOptions.class, objectFactory, fileResolver, fileCollectionFactory);
             forkOptions.setExecutable(Jvm.current().getJavaExecutable());
             return forkOptions;
         }
@@ -403,239 +392,6 @@ public abstract class DefaultExecActionFactory implements ExecFactory {
                 public void executionFinished(ExecHandle execHandle, ExecResult execResult) {
                 }
             };
-        }
-    }
-
-    private static class ImmutableJavaForkOptions implements JavaForkOptionsInternal {
-        private final JavaForkOptionsInternal delegate;
-
-        public ImmutableJavaForkOptions(JavaForkOptionsInternal delegate) {
-            this.delegate = delegate;
-        }
-
-        @Override
-        public String getExecutable() {
-            return delegate.getExecutable();
-        }
-
-        @Override
-        public void setExecutable(String executable) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public Map<String, Object> getSystemProperties() {
-            return ImmutableMap.copyOf(delegate.getSystemProperties());
-        }
-
-        @Override
-        public void setExecutable(Object executable) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public void setSystemProperties(Map<String, ?> properties) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public ProcessForkOptions executable(Object executable) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public JavaForkOptions systemProperties(Map<String, ?> properties) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public File getWorkingDir() {
-            return delegate.getWorkingDir();
-        }
-
-        @Override
-        public void setWorkingDir(File dir) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public JavaForkOptions systemProperty(String name, Object value) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public void setWorkingDir(Object dir) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public String getDefaultCharacterEncoding() {
-            return delegate.getDefaultCharacterEncoding();
-        }
-
-        @Override
-        public ProcessForkOptions workingDir(Object dir) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public Map<String, Object> getEnvironment() {
-            return ImmutableMap.copyOf(delegate.getEnvironment());
-        }
-
-        @Override
-        public void setEnvironment(Map<String, ?> environmentVariables) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public void setDefaultCharacterEncoding(String defaultCharacterEncoding) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public ProcessForkOptions environment(Map<String, ?> environmentVariables) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public String getMinHeapSize() {
-            return delegate.getMinHeapSize();
-        }
-
-        @Override
-        public void setMinHeapSize(String heapSize) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public ProcessForkOptions environment(String name, Object value) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public ProcessForkOptions copyTo(ProcessForkOptions options) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public String getMaxHeapSize() {
-            return delegate.getMaxHeapSize();
-        }
-
-        @Override
-        public void setMaxHeapSize(String heapSize) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public List<String> getJvmArgs() {
-            return ImmutableList.copyOf(delegate.getJvmArgs());
-        }
-
-        @Override
-        public void setJvmArgs(List<String> arguments) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public void setJvmArgs(Iterable<?> arguments) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public JavaForkOptions jvmArgs(Iterable<?> arguments) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public JavaForkOptions jvmArgs(Object... arguments) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public List<CommandLineArgumentProvider> getJvmArgumentProviders() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public FileCollection getBootstrapClasspath() {
-            return delegate.getBootstrapClasspath();
-        }
-
-        @Override
-        public void setBootstrapClasspath(FileCollection classpath) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public JavaForkOptions bootstrapClasspath(Object... classpath) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public boolean getEnableAssertions() {
-            return delegate.getEnableAssertions();
-        }
-
-        @Override
-        public void setEnableAssertions(boolean enabled) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public boolean getDebug() {
-            return delegate.getDebug();
-        }
-
-        @Override
-        public void setDebug(boolean enabled) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public JavaDebugOptions getDebugOptions() {
-            return delegate.getDebugOptions();
-        }
-
-        @Override
-        public void debugOptions(Action<JavaDebugOptions> action) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public List<String> getAllJvmArgs() {
-            return ImmutableList.copyOf(delegate.getAllJvmArgs());
-        }
-
-        @Override
-        public void setAllJvmArgs(List<String> arguments) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public void setAllJvmArgs(Iterable<?> arguments) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public JavaForkOptions copyTo(JavaForkOptions options) {
-            return delegate.copyTo(options);
-        }
-
-        @Override
-        public boolean isCompatibleWith(JavaForkOptions options) {
-            return delegate.isCompatibleWith(options);
-        }
-
-        @Override
-        public void setExtraJvmArgs(Iterable<?> jvmArgs) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public void checkDebugConfiguration(Iterable<?> arguments) {
-            throw new UnsupportedOperationException();
         }
     }
 }

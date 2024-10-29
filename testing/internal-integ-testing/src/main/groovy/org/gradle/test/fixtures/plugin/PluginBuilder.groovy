@@ -73,7 +73,7 @@ class PluginBuilder {
             apply plugin: "java-gradle-plugin"
             apply plugin: "groovy"
             dependencies {
-              implementation localGroovy()
+                implementation localGroovy()
             }
             group = "${packageName}"
             version = "1.0"
@@ -182,7 +182,7 @@ class PluginBuilder {
         addPluginSource(id, className, """
             ${packageName ? "package $packageName" : ""}
 
-            class $className implements $Plugin.name<$Project.name> {
+            abstract class $className implements $Plugin.name<$Project.name> {
                 void apply($Project.name project) {
                     $impl
                 }
@@ -195,10 +195,13 @@ class PluginBuilder {
         addPluginSource(id, className, """
             ${packageName ? "package $packageName" : ""}
 
-            class $className implements $Plugin.name<$Settings.name> {
+            abstract class $className implements $Plugin.name<$Settings.name> {
                 void apply($Settings.name settings) {
                     $impl
                 }
+
+                @javax.inject.Inject
+                protected abstract org.gradle.buildinit.specs.internal.BuildInitSpecRegistry getBuildInitSpecRegistry();
             }
         """)
         this
@@ -232,6 +235,16 @@ class PluginBuilder {
 
     PluginBuilder addPluginWithPrintlnTask(String taskName, String message, String id = "test-plugin", String className = "TestPlugin") {
         addPlugin("project.task(\"$taskName\") { doLast { println \"$message\" } }", id, className)
+        this
+    }
+
+    PluginBuilder addPluginWithCustomCode(String code, String id = "test-plugin", String className = "TestPlugin") {
+        addPlugin(code, id, className)
+        this
+    }
+
+    PluginBuilder addSettingsPluginWithCustomCode(String code, String id = "test-plugin", String className = "TestSettingsPlugin") {
+        addSettingsPlugin(code, id, className)
         this
     }
 

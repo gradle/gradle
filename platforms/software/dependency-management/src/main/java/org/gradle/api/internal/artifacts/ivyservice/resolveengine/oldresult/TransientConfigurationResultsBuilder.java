@@ -23,6 +23,7 @@ import org.gradle.api.internal.artifacts.DefaultResolvedDependency;
 import org.gradle.api.internal.artifacts.DependencyGraphNodeResult;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ModuleVersionIdentifierSerializer;
+import org.gradle.api.internal.artifacts.configurations.ResolutionHost;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactResults;
 import org.gradle.api.logging.Logger;
@@ -58,15 +59,23 @@ public class TransientConfigurationResultsBuilder {
 
     private final BinaryStore binaryStore;
     private final Store<TransientConfigurationResults> cache;
-    private final BuildOperationExecutor buildOperationProcessor;
+    private final BuildOperationExecutor buildOperationExecutor;
+    private final ResolutionHost resolutionHost;
     private final ModuleVersionIdentifierSerializer moduleVersionIdSerializer;
     private BinaryStore.BinaryData binaryData;
 
-    public TransientConfigurationResultsBuilder(BinaryStore binaryStore, Store<TransientConfigurationResults> cache, ImmutableModuleIdentifierFactory moduleIdentifierFactory, BuildOperationExecutor buildOperationProcessor) {
+    public TransientConfigurationResultsBuilder(
+        BinaryStore binaryStore,
+        Store<TransientConfigurationResults> cache,
+        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+        BuildOperationExecutor buildOperationExecutor,
+        ResolutionHost resolutionHost
+    ) {
         this.moduleVersionIdSerializer = new ModuleVersionIdentifierSerializer(moduleIdentifierFactory);
         this.binaryStore = binaryStore;
         this.cache = cache;
-        this.buildOperationProcessor = buildOperationProcessor;
+        this.buildOperationExecutor = buildOperationExecutor;
+        this.resolutionHost = resolutionHost;
     }
 
     public void resolvedDependency(final Long id, ModuleVersionIdentifier moduleVersionId, String variantName) {
@@ -115,7 +124,7 @@ public class TransientConfigurationResultsBuilder {
         synchronized (lock) {
             return cache.load(() -> {
                 try {
-                    return binaryData.read(decoder -> deserialize(decoder, graphResults, artifactResults, buildOperationProcessor));
+                    return binaryData.read(decoder -> deserialize(decoder, graphResults, artifactResults, buildOperationExecutor, resolutionHost));
                 } finally {
                     try {
                         binaryData.close();
@@ -127,7 +136,13 @@ public class TransientConfigurationResultsBuilder {
         }
     }
 
-    private TransientConfigurationResults deserialize(Decoder decoder, ResolvedGraphResults graphResults, SelectedArtifactResults artifactResults, BuildOperationExecutor buildOperationProcessor) {
+    private TransientConfigurationResults deserialize(
+        Decoder decoder,
+        ResolvedGraphResults graphResults,
+        SelectedArtifactResults artifactResults,
+        BuildOperationExecutor buildOperationProcessor,
+        ResolutionHost resolutionHost
+    ) {
         Timer clock = Time.startTimer();
         Map<Long, DefaultResolvedDependency> allDependencies = new HashMap<>();
         Map<Dependency, DependencyGraphNodeResult> firstLevelDependencies = new LinkedHashMap<>();
@@ -145,7 +160,7 @@ public class TransientConfigurationResultsBuilder {
                         id = decoder.readSmallLong();
                         ModuleVersionIdentifier moduleVersionId = moduleVersionIdSerializer.read(decoder);
                         String variantName = decoder.readString();
-                        allDependencies.put(id, new DefaultResolvedDependency(variantName, moduleVersionId, buildOperationProcessor));
+                        allDependencies.put(id, new DefaultResolvedDependency(variantName, moduleVersionId, buildOperationProcessor, resolutionHost));
                         break;
                     case ROOT:
                         id = decoder.readSmallLong();

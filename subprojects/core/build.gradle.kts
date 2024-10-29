@@ -35,7 +35,6 @@ val testInterceptorsImplementation: Configuration by configurations.getting {
 
 errorprone {
     disabledChecks.addAll(
-        "BadInstanceof", // 6 occurrences (this is from generated code)
         "DefaultCharset", // 4 occurrences
         "EmptyBlockTag", // 4 occurrences
         "Finally", // 1 occurrences
@@ -54,14 +53,12 @@ errorprone {
         "NonApiType", // 1 occurrences
         "NonCanonicalType", // 16 occurrences
         "NotJavadoc", // 1 occurrences
-        "OperatorPrecedence", // 5 occurrences
         "OptionalMapUnusedValue", // 1 occurrences
         "ProtectedMembersInFinalClass", // 1 occurrences
         "ReferenceEquality", // 2 occurrences
         "ReturnValueIgnored", // 1 occurrences
         "SameNameButDifferent", // 11 occurrences
         "StreamResourceLeak", // 6 occurrences
-        "StringCaseLocaleUsage", // 11 occurrences
         "TypeParameterShadowing", // 1 occurrences
         "TypeParameterUnusedInFormals", // 2 occurrences
         "UndefinedEquals", // 1 occurrences
@@ -87,6 +84,7 @@ dependencies {
     api(projects.buildCacheLocal)
     api(projects.buildCachePackaging)
     api(projects.buildCacheSpi)
+    api(projects.buildInitSpecs)
     api(projects.buildOperations)
     api(projects.buildOption)
     api(projects.cli)
@@ -96,6 +94,7 @@ dependencies {
     api(projects.enterpriseOperations)
     api(projects.execution)
     api(projects.fileCollections)
+    api(projects.fileOperations)
     api(projects.fileTemp)
     api(projects.fileWatching)
     api(projects.files)
@@ -122,20 +121,20 @@ dependencies {
     api(libs.ant)
     api(libs.asm)
     api(libs.asmTree)
-    api(libs.commonsCompress)
     api(libs.groovy)
     api(libs.guava)
     api(libs.inject)
     api(libs.jsr305)
-    api(libs.nativePlatform)
 
+    implementation(projects.buildOperationsTrace)
     implementation(projects.io)
     implementation(projects.inputTracking)
     implementation(projects.modelGroovy)
     implementation(projects.serviceRegistryBuilder)
-    implementation(projects.problemsRendering)
 
+    implementation(libs.nativePlatform)
     implementation(libs.asmCommons)
+    implementation(libs.commonsCompress)
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)
     implementation(libs.commonsLang3)
@@ -143,7 +142,6 @@ dependencies {
     implementation(libs.fastutil)
     implementation(libs.groovyAnt)
     implementation(libs.groovyJson)
-    implementation(libs.groovyTemplates)
     implementation(libs.groovyXml)
     implementation(libs.slf4jApi)
     implementation(libs.tomlj) {
@@ -170,6 +168,7 @@ dependencies {
     // TODO investigate why we depend on SSHD as a platform for internal-integ-testing
     runtimeOnly(libs.antJunit)
 
+    testImplementation(projects.buildInit)
     testImplementation(projects.platformJvm)
     testImplementation(projects.platformNative)
     testImplementation(projects.testingBase)
@@ -320,10 +319,6 @@ tasks.compileTestGroovy {
         memoryInitialSize = "128M"
         memoryMaximumSize = "1G"
     }
-}
-
-tasks.isolatedProjectsIntegTest {
-    enabled = true
 }
 
 integTest.usesJavadocCodeSnippets = true

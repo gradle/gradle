@@ -20,7 +20,7 @@ import com.google.common.collect.HashMultiset;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Multiset;
 import net.rubygrapefruit.platform.NativeException;
-import net.rubygrapefruit.platform.file.FileWatcher;
+import org.gradle.fileevents.FileWatcher;
 import org.gradle.internal.file.FileHierarchySet;
 import org.gradle.internal.snapshot.DirectorySnapshot;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;

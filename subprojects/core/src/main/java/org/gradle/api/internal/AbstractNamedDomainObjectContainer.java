@@ -125,7 +125,7 @@ public abstract class AbstractNamedDomainObjectContainer<T> extends DefaultNamed
         NamedDomainObjectProvider<T> provider = Cast.uncheckedCast(
             getInstantiator().newInstance(NamedDomainObjectCreatingProvider.class, AbstractNamedDomainObjectContainer.this, name, getType(), configurationAction)
         );
-        addLater(provider);
+        doAddLater(provider);
         return provider;
     }
 

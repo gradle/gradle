@@ -17,9 +17,9 @@
 package org.gradle.nativeplatform.internal
 
 import org.gradle.api.Task
-import org.gradle.api.file.FileCollection
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.internal.CollectionCallbackActionDecorator
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.language.nativeplatform.HeaderExportingSourceSet
 import org.gradle.nativeplatform.BuildType
 import org.gradle.nativeplatform.NativeLibrarySpec
@@ -108,9 +108,8 @@ class DefaultStaticLibraryBinarySpecTest extends Specification {
         binary.staticLibraryFile = outputFile
         def linkFile1 = Mock(File)
         def linkFile2 = Mock(File)
-        def additionalLinkFiles = Stub(FileCollection) {
-            getFiles() >> [linkFile1, linkFile2]
-        }
+        def additionalLinkFiles = TestFiles.fileCollectionFactory().fixed(linkFile1, linkFile2)
+
         binary.additionalLinkFiles(additionalLinkFiles)
 
         and:

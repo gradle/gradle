@@ -16,6 +16,10 @@
 
 package org.gradle.internal.cc.impl.isolated
 
+import spock.lang.Issue
+
+import static org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheProblemsFixture.resolveConfigurationCacheReportDirectory
+
 class IsolatedProjectsProblemReportingIntegrationTest extends AbstractIsolatedProjectsIntegrationTest {
 
     def "stops reporting problems at certain limits collecting all stacktraces"() {
@@ -57,5 +61,48 @@ class IsolatedProjectsProblemReportingIntegrationTest extends AbstractIsolatedPr
         failure.assertHasFailure("Configuration cache problems found in this build.") { failure ->
             failure.assertHasCauses(5)
         }
+    }
+
+    /**
+     * In 8.10, a configuration time problem would result into the (CC) report
+     * being generated under the default build location, even if the build logic
+     * configured a custom build dir.
+     *
+     * That seems to have been fixed in 8.11, but it is not clear what change fixed it.
+     */
+    @Issue("https://github.com/gradle/gradle/issues/30361")
+    def "report is written to root project's custom buildDir"() {
+        def customBuildDir = "customBuildDir"
+        groovyFile "build.gradle", """
+            buildDir = '${customBuildDir}'
+        """
+        groovyFile "settings.gradle", """
+            include("module")
+        """
+        groovyFile "buildSrc/build.gradle", """
+            plugins {
+                id 'groovy-gradle-plugin'
+            }
+        """
+        groovyFile "buildSrc/src/main/groovy/some-plugin.gradle", """
+            tasks.named('help') {
+                foobar
+            }
+        """
+        groovyFile "module/build.gradle",  """
+            plugins {
+                id 'some-plugin'
+            }
+        """
+
+        when:
+        isolatedProjectsFails ':module:help'
+
+        then:
+        failure.assertHasFailures(2)
+        problems.assertFailureHasProblems(failure) {
+            withProblem("Plugin 'some-plugin': Project ':module' cannot dynamically look up a property in the parent project ':'")
+        }
+        resolveConfigurationCacheReportDirectory(testDirectory.file(customBuildDir), failure.error)?.isDirectory()
     }
 }

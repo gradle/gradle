@@ -71,7 +71,7 @@ Gradle can resolve dependencies from one or many repositories based on Maven, Iv
 
 If a library is available from more than one of the listed repositories, Gradle will simply pick the first one.
 
-[[sec:declaring_public_repository]]
+[[sec:declaring_public_repository_basics]]
 == Declaring a public repository
 
 Organizations building software may want to leverage public binary repositories to download and consume open source dependencies.
@@ -109,7 +109,7 @@ repositories {
 Under the covers Gradle resolves dependencies from the respective URL of the public repository defined by the shorthand notation.
 All shorthand notations are available via the link:{groovyDslPath}/org.gradle.api.artifacts.dsl.RepositoryHandler.html[RepositoryHandler] API.
 
-[[sec:declaring_custom_repository]]
+[[sec:declaring_custom_repository_basics]]
 == Declaring a private or custom repository
 
 Most enterprise projects establish a binary repository accessible only within their intranet.
@@ -163,7 +163,6 @@ include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gr
 include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=maven-local]"]
 ====
 
-[[sec:repository-types]]
 == Understanding supported repository types
 
 Gradle supports a wide range of sources for dependencies, both in terms of format and in terms of connectivity.

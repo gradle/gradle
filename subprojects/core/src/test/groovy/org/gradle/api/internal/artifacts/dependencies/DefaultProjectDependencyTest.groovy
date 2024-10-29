@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.dependencies
 
 import org.gradle.api.artifacts.ExternalDependency
 import org.gradle.api.artifacts.ProjectDependency
+import org.gradle.api.artifacts.dsl.DependencyFactory
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
@@ -29,10 +30,10 @@ import static org.gradle.util.Matchers.strictlyEqual
 import static org.hamcrest.MatcherAssert.assertThat
 
 class DefaultProjectDependencyTest extends AbstractProjectBuilderSpec {
-    private projectDependency
+    private ProjectDependency projectDependency
 
     def setup() {
-        projectDependency = new DefaultProjectDependency(project, null, false, TestFiles.taskDependencyFactory())
+        projectDependency = project.services.get(DependencyFactory).create(project)
         project.version = "1.2"
         project.group = "org.gradle"
     }
@@ -174,6 +175,23 @@ class DefaultProjectDependencyTest extends AbstractProjectBuilderSpec {
         expect:
         assertDeepCopy(d1, copy)
         d1.dependencyProject == copy.dependencyProject
+    }
+
+    def "requested capabilities exposes all capability selector types"() {
+        when:
+        projectDependency.capabilities {
+            it.requireCapability('org:original:1')
+            it.requireFeature('foo')
+        }
+
+        then:
+        projectDependency.requestedCapabilities.size() == 2
+        projectDependency.requestedCapabilities[0].group == 'org'
+        projectDependency.requestedCapabilities[0].name == 'original'
+        projectDependency.requestedCapabilities[0].version == '1'
+        projectDependency.requestedCapabilities[1].group == 'org.gradle'
+        projectDependency.requestedCapabilities[1].name == 'test-project-foo'
+        projectDependency.requestedCapabilities[1].version == '1.2'
     }
 
     private createProjectDependency() {

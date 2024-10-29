@@ -17,12 +17,12 @@
 package org.gradle.tooling.events.problems.internal;
 
 import org.gradle.api.NonNullApi;
+import org.gradle.tooling.Failure;
 import org.gradle.tooling.events.OperationDescriptor;
 import org.gradle.tooling.events.internal.BaseProgressEvent;
 import org.gradle.tooling.events.problems.AdditionalData;
 import org.gradle.tooling.events.problems.ContextualLabel;
 import org.gradle.tooling.events.problems.Details;
-import org.gradle.tooling.events.problems.FailureContainer;
 import org.gradle.tooling.events.problems.Location;
 import org.gradle.tooling.events.problems.ProblemDefinition;
 import org.gradle.tooling.events.problems.SingleProblemEvent;
@@ -39,18 +39,18 @@ public class DefaultSingleProblemEvent extends BaseProgressEvent implements Sing
     private final List<Location> locations;
     private final List<Solution> solutions;
     private final AdditionalData additionalData;
-    private final FailureContainer failure;
+    private final Failure failure;
 
     public DefaultSingleProblemEvent(
         long eventTime,
         @Nullable OperationDescriptor problemDescriptor,
         ProblemDefinition problemDefinition,
-        ContextualLabel contextualLabel,
-        Details details,
+        @Nullable ContextualLabel contextualLabel,
+        @Nullable Details details,
         List<Location> locations,
         List<Solution> solutions,
-        AdditionalData additionalData,
-        @Nullable FailureContainer failure) {
+        @Nullable AdditionalData additionalData,
+        @Nullable Failure failure) {
         super(eventTime, problemDescriptor == null ? "<null>" : problemDescriptor.getDisplayName(), problemDescriptor);
         this.problemDefinition = problemDefinition;
         this.contextualLabel = contextualLabel;
@@ -88,7 +88,7 @@ public class DefaultSingleProblemEvent extends BaseProgressEvent implements Sing
 
     @Nullable
     @Override
-    public FailureContainer getFailure() {
+    public Failure getFailure() {
         return failure;
     }
 

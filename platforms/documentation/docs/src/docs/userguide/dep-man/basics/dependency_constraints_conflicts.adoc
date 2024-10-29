@@ -48,8 +48,8 @@ You can resolve conflicts manually by specifying which capability to use in the 
 
 [source,kotlin]
 ----
-configurations.all {
-    resolutionStrategy.capabilitiesResolution.withCapability("com.example.logging") {
+configurations.configureEach {
+    resolutionStrategy.capabilitiesResolution.withCapability("com.example:logging") {
         selectHighestVersion()
     }
 }
@@ -69,3 +69,6 @@ dependencies {
     }
 }
 ----
+
+[.text-right]
+**Next Step:** <<dependency_resolution_adv.adoc#understanding_dependency_resolution,Learn about Dependency Resolution>> >>

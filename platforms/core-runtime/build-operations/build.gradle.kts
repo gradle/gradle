@@ -15,3 +15,6 @@ dependencies {
 
     testFixturesImplementation(libs.guava)
 }
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

@@ -25,7 +25,7 @@ dependencies {
     constraints {
         api("org.gradle.guides:gradle-guides-plugin:0.23")
         api("org.apache.ant:ant:1.10.14") // Bump the version brought in transitively by gradle-guides-plugin
-        api("com.gradle:develocity-gradle-plugin:3.17.6") // Run `build-logic-settings/update-develocity-plugin-version.sh <new-version>` to update
+        api("com.gradle:develocity-gradle-plugin:3.18.1") // Run `java build-logic-settings/UpdateDevelocityPluginVersion.java <new-version>` to update
         api("com.gradle.publish:plugin-publish-plugin:1.2.1")
         api("gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:1.0.1")
         api("me.champeau.gradle:japicmp-gradle-plugin:0.4.1")
@@ -34,8 +34,7 @@ dependencies {
         api("org.jetbrains.kotlin:kotlin-gradle-plugin") { version { strictly(kotlinVersion) } }
         api(kotlin("compiler-embeddable")) { version { strictly(kotlinVersion) } }
         api("org.jlleitschuh.gradle:ktlint-gradle:10.3.0")
-        api("org.gradle.kotlin:gradle-kotlin-dsl-conventions:0.9.0")
-        api("com.autonomousapps:dependency-analysis-gradle-plugin:1.31.0")
+        api("com.autonomousapps:dependency-analysis-gradle-plugin:1.33.0")
         api("com.squareup.okio:okio:3.4.0") {
             because("Bump version brought in by dependency-analysis-gradle-plugin, to resolve CVE-2022-3635")
         }
@@ -56,9 +55,8 @@ dependencies {
             because("Flexmark 0.34.60 brings in a vulnerable version of pdfbox")
         }
         api("com.google.code.findbugs:jsr305:3.0.2")
-        api("commons-io:commons-io:2.8.0")
+        api("commons-io:commons-io:2.14.0")
         api("commons-lang:commons-lang:2.6")
-        api("io.mockk:mockk:1.12.4")
         api("javax.activation:activation:1.1.1")
         api("javax.xml.bind:jaxb-api:2.3.1")
         api("com.sun.xml.bind:jaxb-core:2.2.11")
@@ -75,12 +73,12 @@ dependencies {
             because("CVE-2022-40152 on lower versions")
         }
         api("com.beust:jcommander:1.78")
-        api("org.codehaus.groovy:$groovyVersion")
+        api("org.codehaus.groovy:groovy:$groovyVersion")
         api("org.codehaus.groovy.modules.http-builder:http-builder:0.7.2") // TODO maybe change group name when upgrading to Groovy 4
         api("org.codenarc:CodeNarc:$codenarcVersion")
         api("org.eclipse.jgit:org.eclipse.jgit:5.13.3.202401111512-r")
         api("org.javassist:javassist:3.27.0-GA")
-        api("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.7.0")
+        api("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.9.0")
         api("org.jsoup:jsoup:1.15.3")
         api("org.junit.jupiter:junit-jupiter:5.8.2")
         api("org.junit.vintage:junit-vintage-engine:5.8.2")

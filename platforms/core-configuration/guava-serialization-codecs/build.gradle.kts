@@ -25,3 +25,6 @@ dependencies {
     api(libs.kotlinStdlib)
     api(libs.guava)
 }
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

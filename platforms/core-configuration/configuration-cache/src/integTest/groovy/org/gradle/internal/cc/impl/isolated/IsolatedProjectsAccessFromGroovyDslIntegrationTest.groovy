@@ -18,7 +18,6 @@ package org.gradle.internal.cc.impl.isolated
 
 import org.gradle.api.provider.Property
 import org.gradle.util.internal.ToBeImplemented
-import spock.lang.Ignore
 import spock.lang.Issue
 
 class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolatedProjectsIntegrationTest {
@@ -878,20 +877,19 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         }
     }
 
-    @Ignore("configuration is parallel with IP, so unconfigurance is unpredictable")
     def "fails on invoke method of unconfigured project"() {
         given:
         settingsFile << """
             include(':a')
-            include(':b')
+            include(':a:sub')
         """
 
         file("a/build.gradle") << """
-            def unconfiguredProject = project(':b')
+            def unconfiguredProject = project(':a:sub')
             println 'Unconfigured project value = ' + unconfiguredProject.foo()
         """
 
-        file("b/build.gradle") << """
+        file("a/sub/build.gradle") << """
             String foo(){ 'configured' }
         """
 
@@ -899,9 +897,9 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         isolatedProjectsFails 'help', WARN_PROBLEMS_CLI_OPT
 
         then:
-        failure.assertHasErrorOutput("Could not find method foo() for arguments [] on project ':b' of type org.gradle.api.Project")
+        failure.assertHasErrorOutput("Could not find method foo() for arguments [] on project ':a:sub' of type org.gradle.api.Project")
         problems.assertResultHasProblems(failure) {
-            withProblem("Build file '${relativePath('a/build.gradle')}': line 3: Project ':a' cannot access 'foo' extension on another project ':b'")
+            withProblem("Build file '${relativePath('a/build.gradle')}': line 3: Project ':a' cannot access 'foo' extension on another project ':a:sub'")
         }
 
     }
@@ -910,15 +908,15 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         given:
         settingsFile << """
             include(':a')
-            include(':b')
+            include(':a:sub')
         """
 
         file("a/build.gradle") << """
-            def unconfiguredProject = project(':b')
+            def unconfiguredProject = project(':a:sub')
             println 'Unconfigured project value = ' + unconfiguredProject.myExtension.get()
         """
 
-        file("b/build.gradle") << """
+        file("a/sub/build.gradle") << """
             import ${Property.name}
 
             interface MyExtension {
@@ -933,9 +931,9 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         isolatedProjectsFails 'help', WARN_PROBLEMS_CLI_OPT
 
         then:
-        failure.assertHasErrorOutput("Could not get unknown property 'myExtension' for project ':b' of type org.gradle.api.Project")
+        failure.assertHasErrorOutput("Could not get unknown property 'myExtension' for project ':a:sub' of type org.gradle.api.Project")
         problems.assertResultHasProblems(failure) {
-            withProblem("Build file '${relativePath('a/build.gradle')}': line 3: Project ':a' cannot access 'myExtension' extension on another project ':b'")
+            withProblem("Build file '${relativePath('a/build.gradle')}': line 3: Project ':a' cannot access 'myExtension' extension on another project ':a:sub'")
         }
     }
 

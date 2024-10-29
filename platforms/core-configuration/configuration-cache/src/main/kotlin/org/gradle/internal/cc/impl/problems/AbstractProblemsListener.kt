@@ -16,8 +16,8 @@
 
 package org.gradle.internal.cc.impl.problems
 
-import org.gradle.internal.cc.impl.ConfigurationCacheError
-import org.gradle.internal.cc.impl.ConfigurationCacheThrowable
+import org.gradle.internal.cc.base.exceptions.ConfigurationCacheError
+import org.gradle.internal.cc.base.exceptions.ConfigurationCacheThrowable
 import org.gradle.internal.extensions.stdlib.maybeUnwrapInvocationTargetException
 import org.gradle.internal.configuration.problems.ProblemsListener
 import org.gradle.internal.configuration.problems.PropertyTrace

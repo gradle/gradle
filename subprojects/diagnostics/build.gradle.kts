@@ -12,7 +12,6 @@ errorprone {
         "MixedMutabilityReturnType", // 1 occurrences
         "NonApiType", // 5 occurrences
         "ProtectedMembersInFinalClass", // 1 occurrences
-        "StringCaseLocaleUsage", // 3 occurrences
     )
 }
 
@@ -29,6 +28,7 @@ dependencies {
     api(projects.logging)
     api(projects.modelCore)
     api(projects.platformBase)
+    api(projects.reportRendering)
     api(projects.reporting)
 
     api(libs.groovy)
@@ -72,4 +72,7 @@ packageCycles {
     excludePatterns.add("org/gradle/api/reporting/model/internal/*")
     excludePatterns.add("org/gradle/api/reporting/dependencies/internal/*")
     excludePatterns.add("org/gradle/api/plugins/internal/*")
+}
+tasks.isolatedProjectsIntegTest {
+    enabled = false
 }

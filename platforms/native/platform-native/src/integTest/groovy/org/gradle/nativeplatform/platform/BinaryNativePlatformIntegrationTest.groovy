@@ -28,6 +28,7 @@ import org.gradle.nativeplatform.fixtures.binaryinfo.DumpbinBinaryInfo
 import org.gradle.nativeplatform.fixtures.binaryinfo.FileArchOnlyBinaryInfo
 import org.gradle.nativeplatform.fixtures.binaryinfo.OtoolBinaryInfo
 import org.gradle.nativeplatform.fixtures.binaryinfo.ReadelfBinaryInfo
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Issue
 
@@ -53,11 +54,13 @@ model {
         testApp.writeSources(file("src/main"))
     }
 
-    // Tests will only work on x86 and x86-64 architectures
     def currentArch() {
         // On windows we currently target i386 by default, even on amd64
         if (OperatingSystem.current().windows || Native.get(SystemInfo).architecture == SystemInfo.Architecture.i386) {
             return [name: "x86", altName: "i386"]
+        }
+        if (DefaultNativePlatform.getCurrentArchitecture().arm64) {
+            return [name: "aarch64", altName: "arm64"]
         }
         return [name: "x86-64", altName: "amd64"]
     }

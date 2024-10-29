@@ -16,29 +16,32 @@
 
 package org.gradle.internal.cc.impl
 
+import com.google.common.collect.ImmutableSet
 import org.gradle.api.internal.initialization.ClassLoaderScopeIdentifier
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderId
-import org.gradle.internal.cc.impl.serialize.ClassLoaderScopeSpec
-import org.gradle.internal.serialize.graph.ClassLoaderRole
-import org.gradle.internal.cc.impl.serialize.ScopeLookup
 import org.gradle.initialization.ClassLoaderScopeId
 import org.gradle.initialization.ClassLoaderScopeOrigin
 import org.gradle.initialization.ClassLoaderScopeRegistryListener
 import org.gradle.initialization.ClassLoaderScopeRegistryListenerManager
 import org.gradle.internal.buildtree.BuildTreeLifecycleListener
+import org.gradle.internal.cc.impl.serialize.ClassLoaderScopeSpec
+import org.gradle.internal.cc.impl.serialize.ScopeLookup
+import org.gradle.internal.cc.impl.serialize.describeClassLoader
+import org.gradle.internal.cc.impl.serialize.describeKnownClassLoaders
+import org.gradle.internal.classloader.DelegatingClassLoader
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.serialize.graph.ClassLoaderRole
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import java.io.Closeable
+import java.util.IdentityHashMap
 
 
 @ServiceScope(Scope.BuildTree::class)
 internal
 class ConfigurationCacheClassLoaderScopeRegistryListener(
-    private
-    val listenerManager: ClassLoaderScopeRegistryListenerManager
-
+    private val listenerManager: ClassLoaderScopeRegistryListenerManager
 ) : ClassLoaderScopeRegistryListener, ScopeLookup, BuildTreeLifecycleListener, Closeable {
 
     private
@@ -48,10 +51,16 @@ class ConfigurationCacheClassLoaderScopeRegistryListener(
     val scopeSpecs = mutableMapOf<ClassLoaderScopeId, ClassLoaderScopeSpec>()
 
     private
-    val loaders = mutableMapOf<ClassLoader, Pair<ClassLoaderScopeSpec, ClassLoaderRole>>()
+    val loaders = IdentityHashMap<ClassLoader, Pair<ClassLoaderScopeSpec, ClassLoaderRole>>()
+
+    private
+    var disposed = false
 
     override fun afterStart() {
-        listenerManager.add(this)
+        synchronized(lock) {
+            assertNotDisposed("afterStart")
+            listenerManager.add(this)
+        }
     }
 
     /**
@@ -59,6 +68,9 @@ class ConfigurationCacheClassLoaderScopeRegistryListener(
      */
     fun dispose() {
         synchronized(lock) {
+            if (disposed) {
+                return
+            }
             // TODO:configuration-cache find a way to make `dispose` unnecessary;
             //  maybe by extracting an `ConfigurationCacheBuildDefinition` service
             //  from DefaultConfigurationCacheHost so a decision based on the configured
@@ -67,6 +79,7 @@ class ConfigurationCacheClassLoaderScopeRegistryListener(
             scopeSpecs.clear()
             loaders.clear()
             listenerManager.remove(this)
+            disposed = true
         }
     }
 
@@ -76,12 +89,19 @@ class ConfigurationCacheClassLoaderScopeRegistryListener(
 
     override fun scopeFor(classLoader: ClassLoader?): Pair<ClassLoaderScopeSpec, ClassLoaderRole>? {
         synchronized(lock) {
+            assertNotDisposed("scopeFor")
             return loaders[classLoader]
         }
     }
 
+    override val knownClassLoaders: Set<ClassLoader>
+        get() = synchronized(lock) {
+            ImmutableSet.copyOf(loaders.keys)
+        }
+
     override fun childScopeCreated(parentId: ClassLoaderScopeId, childId: ClassLoaderScopeId, origin: ClassLoaderScopeOrigin?) {
         synchronized(lock) {
+            assertNotDisposed("childScopeCreated")
             if (scopeSpecs.containsKey(childId)) {
                 // scope is being reused
                 return
@@ -104,9 +124,18 @@ class ConfigurationCacheClassLoaderScopeRegistryListener(
     }
 
     override fun classloaderCreated(scopeId: ClassLoaderScopeId, classLoaderId: ClassLoaderId, classLoader: ClassLoader, classPath: ClassPath, implementationHash: HashCode?) {
+        require(classLoader !is DelegatingClassLoader) {
+            "Unexpected delegating ${describeClassLoader(classLoader)} with id '$classLoaderId' " +
+                "for scope '$scopeId' with classpath '$classPath'.\n" +
+                describeKnownClassLoaders() +
+                "Please report this error, run './gradlew --stop' and try again."
+        }
         synchronized(lock) {
+            assertNotDisposed("classloaderCreated")
             val spec = scopeSpecs[scopeId]
-            require(spec != null)
+            check(spec != null) {
+                "Spec for ClassLoaderScope '$scopeId' not found!"
+            }
             // TODO - a scope can currently potentially have multiple export and local ClassLoaders but we're assuming one here
             //  Rather than fix the assumption here, it would be better to rework the scope implementation so that it produces no more than one export and one local ClassLoader
             val local = scopeId is ClassLoaderScopeIdentifier && scopeId.localId() == classLoaderId
@@ -117,6 +146,13 @@ class ConfigurationCacheClassLoaderScopeRegistryListener(
                 spec.exportClassPath = classPath
             }
             loaders[classLoader] = Pair(spec, ClassLoaderRole(local))
+        }
+    }
+
+    private
+    fun assertNotDisposed(method: String) {
+        check(!disposed) {
+            "${javaClass.simpleName}.$method cannot be used after being disposed of."
         }
     }
 }

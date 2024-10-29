@@ -24,6 +24,7 @@ import org.gradle.api.tasks.IgnoreEmptyDirectories;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.SkipWhenEmpty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.reflect.annotations.AnnotationCategory;
 import org.gradle.work.Incremental;
 import org.gradle.work.NormalizeLineEndings;
@@ -51,6 +52,9 @@ public enum ModifierAnnotationCategory implements AnnotationCategory {
     ),
     NORMALIZE_LINE_ENDINGS("ignore line endings",
         NormalizeLineEndings.class
+    ),
+    REPLACES_EAGER_PROPERTY("replaces eager property",
+        ReplacesEagerProperty.class
     );
 
     private final String displayName;

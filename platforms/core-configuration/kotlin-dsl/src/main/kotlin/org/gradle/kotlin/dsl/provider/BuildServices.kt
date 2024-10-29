@@ -46,7 +46,7 @@ import org.gradle.kotlin.dsl.cache.KotlinDslWorkspaceProvider
 import org.gradle.kotlin.dsl.normalization.KotlinCompileClasspathFingerprinter
 import org.gradle.kotlin.dsl.support.EmbeddedKotlinProvider
 import org.gradle.kotlin.dsl.support.ImplicitImports
-import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginHandler
+import org.gradle.plugin.management.internal.PluginHandler
 import org.gradle.plugin.use.internal.PluginRequestApplicator
 
 
@@ -76,10 +76,10 @@ object BuildServices : ServiceRegistrationProvider {
     @Provides
     fun createPluginRequestsHandler(
         pluginRequestApplicator: PluginRequestApplicator,
-        autoAppliedPluginHandler: AutoAppliedPluginHandler
+        pluginHandler: PluginHandler
     ) =
 
-        PluginRequestsHandler(pluginRequestApplicator, autoAppliedPluginHandler)
+        PluginRequestsHandler(pluginRequestApplicator, pluginHandler)
 
     @Provides
     fun createClassPathModeExceptionCollector() =

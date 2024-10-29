@@ -28,6 +28,7 @@ import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilterUtils.
 import org.gradle.internal.declarativedsl.analysis.and
 import org.gradle.internal.declarativedsl.analysis.implies
 import org.gradle.internal.declarativedsl.analysis.not
+import org.gradle.internal.declarativedsl.common.UnsupportedSyntaxFeatureCheck
 import org.gradle.internal.declarativedsl.defaults.isDefaultsConfiguringCall
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchemaBuilder
 import org.gradle.internal.declarativedsl.evaluationSchema.SimpleInterpretationSequenceStepWithConversion
@@ -53,7 +54,7 @@ fun settingsInterpretationSequence(
                 features = setOf(SettingsBlocksCheck.feature, UnsupportedSyntaxFeatureCheck.feature)) { pluginManagementEvaluationSchema() },
             PluginsInterpretationSequenceStep("settingsPlugins", targetScope, scriptSource) { settings.services },
             defineModelDefaultsInterpretationSequenceStep(softwareTypeRegistry),
-            SimpleInterpretationSequenceStepWithConversion("settings") { settingsEvaluationSchema(settings) }
+            SimpleInterpretationSequenceStepWithConversion("settings", features =  setOf(UnsupportedSyntaxFeatureCheck.feature)) { settingsEvaluationSchema(settings) }
         )
     )
 

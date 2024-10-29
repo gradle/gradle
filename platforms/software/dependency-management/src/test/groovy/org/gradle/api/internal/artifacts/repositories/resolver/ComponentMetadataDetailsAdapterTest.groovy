@@ -23,11 +23,9 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradlePomModuleDescriptorBuilder
-import org.gradle.api.internal.attributes.DefaultAttributesSchema
+import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema
 import org.gradle.api.internal.notations.ComponentIdentifierParserFactory
 import org.gradle.api.internal.notations.DependencyMetadataNotationParser
-import org.gradle.api.problems.internal.InternalProblems
-import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler
 import org.gradle.internal.component.external.descriptor.Configuration
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata
@@ -35,7 +33,6 @@ import org.gradle.internal.component.external.model.maven.MutableMavenModuleReso
 import org.gradle.internal.component.model.GraphVariantSelector
 import org.gradle.internal.component.model.LocalComponentDependencyMetadata
 import org.gradle.util.AttributeTestUtil
-import org.gradle.util.SnapshotTestUtil
 import org.gradle.util.TestUtil
 import org.gradle.util.internal.SimpleMapInterner
 import spock.lang.Specification
@@ -52,7 +49,6 @@ class ComponentMetadataDetailsAdapterTest extends Specification {
     def componentIdentifier = DefaultModuleComponentIdentifier.newId(versionIdentifier)
     def testAttribute = Attribute.of("someAttribute", String)
     def attributes = AttributeTestUtil.attributesFactory().of(testAttribute, "someValue")
-    def schema = new DefaultAttributesSchema(TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory())
     def ivyMetadataFactory = DependencyManagementTestUtil.ivyMetadataFactory()
     def mavenMetadataFactory = DependencyManagementTestUtil.mavenMetadataFactory()
 
@@ -76,10 +72,6 @@ class ComponentMetadataDetailsAdapterTest extends Specification {
 
     private MutableMavenModuleResolveMetadata mavenComponentMetadata() {
         mavenMetadataFactory.create(componentIdentifier, [])
-    }
-
-    def setup() {
-        schema.attribute(testAttribute)
     }
 
     def "sees variants defined in Gradle metadata"() {
@@ -161,10 +153,9 @@ class ComponentMetadataDetailsAdapterTest extends Specification {
         def componentSelector = newSelector(DefaultModuleIdentifier.newId(consumerIdentifier.group, consumerIdentifier.name), new DefaultMutableVersionConstraint(consumerIdentifier.version))
         def consumer = new LocalComponentDependencyMetadata(componentSelector, null, [] as List, [], false, false, true, false, false, null)
         def state = DependencyManagementTestUtil.modelGraphResolveFactory().stateFor(immutable)
-        def failureDescriberRegistry = DependencyManagementTestUtil.standardResolutionFailureDescriberRegistry()
-        def variantSelector = new GraphVariantSelector(new ResolutionFailureHandler(failureDescriberRegistry, Stub(InternalProblems)))
+        def variantSelector = new GraphVariantSelector(AttributeTestUtil.services(), DependencyManagementTestUtil.newFailureHandler())
 
-        def variant = consumer.selectVariants(variantSelector, attributes, state, schema, [] as Set).variants[0]
-        variant.metadata.dependencies
+        def variant = consumer.selectVariants(variantSelector, attributes, state, ImmutableAttributesSchema.EMPTY, [] as Set).variants[0]
+        variant.dependencies
     }
 }

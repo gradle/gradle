@@ -13,3 +13,6 @@ dependencies {
     implementation(libs.guava)
     api(libs.jsr305)
 }
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

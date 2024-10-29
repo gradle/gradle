@@ -19,6 +19,7 @@ dependencies {
     api(projects.coreApi)
     api(projects.core)
     api(projects.files)
+    api(projects.fileOperations)
     api(projects.fileTemp)
     api(projects.jvmServices)
     api(projects.languageJava)
@@ -81,4 +82,7 @@ tasks.withType<Test>().configureEach {
 packageCycles {
     excludePatterns.add("org/gradle/api/internal/tasks/compile/**")
     excludePatterns.add("org/gradle/api/tasks/javadoc/**")
+}
+tasks.isolatedProjectsIntegTest {
+    enabled = false
 }

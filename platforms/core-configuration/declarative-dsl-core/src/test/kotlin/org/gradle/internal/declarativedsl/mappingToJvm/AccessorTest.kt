@@ -49,9 +49,11 @@ class AccessorTest {
             """
             configureCustomInstance {
                 x = 123
+                enum = B
             }""".trimIndent()
         )
         assertEquals(123, runtimeInstanceFromResult(schema, resolution, configureLambdas, runtimeCustomAccessors, ::MyReceiver).myHiddenInstance.value.x)
+        assertEquals(Enum.B, runtimeInstanceFromResult(schema, resolution, configureLambdas, runtimeCustomAccessors, ::MyReceiver).myHiddenInstance.value.enum)
     }
 
     @Test
@@ -147,5 +149,12 @@ class AccessorTest {
 
         @get:Restricted
         var y: String = ""
+
+        @get:Restricted
+        var enum: Enum = Enum.A
+    }
+
+    enum class Enum {
+        A, B, C
     }
 }

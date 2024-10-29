@@ -1072,7 +1072,7 @@ This plugin packages your project classes and dependencies into a single JAR fil
 
 === Using `Project.zipTree()` and the `Jar` task
 
-To copy the contents of other JAR files into the application JAR, use the {groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:zipTree(java.lang.Object)[Project.zipTree(java.lang.Object)] method and the link:{groovyDslPath}/org.gradle.api.tasks.bundling.Jar.html[Jar] task.
+To copy the contents of other JAR files into the application JAR, use the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:zipTree(java.lang.Object)[Project.zipTree(java.lang.Object)] method and the link:{groovyDslPath}/org.gradle.api.tasks.bundling.Jar.html[Jar] task.
 This is demonstrated by the `uberJar` task in the following example:
 
 ====

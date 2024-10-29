@@ -19,7 +19,7 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.DirectDependencyMetadata;
 import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyArtifact;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.model.GradleDependencyMetadata;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
 
 public class DirectDependencyMetadataAdapter extends AbstractDependencyMetadataAdapter<DirectDependencyMetadata> implements DirectDependencyMetadata {
 
-    public DirectDependencyMetadataAdapter(ImmutableAttributesFactory attributesFactory, ModuleDependencyMetadata metadata) {
+    public DirectDependencyMetadataAdapter(AttributesFactory attributesFactory, ModuleDependencyMetadata metadata) {
         super(attributesFactory, metadata);
     }
 

@@ -122,7 +122,7 @@ abstract class AbstractTaskTest extends AbstractProjectBuilderSpec {
 
         when:
         getTask().getActions().add(Actions.doNothing())
-        getTask().getActions().set(0, { task -> throw new RuntimeException()} as Action)
+        getTask().getActions().set(0, { task -> throw new RuntimeException() } as Action)
 
         then:
         getTask().getActions().size() == 1

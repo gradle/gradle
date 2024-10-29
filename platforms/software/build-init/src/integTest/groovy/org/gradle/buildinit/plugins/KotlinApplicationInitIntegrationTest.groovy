@@ -107,7 +107,11 @@ class KotlinApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegra
         run('init', '--type', 'kotlin-application', '--dsl', scriptDsl.id, '--incubating', '--java-version', JavaVersion.current().majorVersion)
 
         then:
-        gradlePropertiesGenerated()
+        gradlePropertiesGenerated {
+            assertCachingEnabled()
+            assertParallelEnabled()
+            assertConfigurationCacheEnabled()
+        }
 
         when:
         run("build")
@@ -154,7 +158,7 @@ class KotlinApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegra
     }
 
     @Requires(value = UnitTestPreconditions.KotlinOnlySupportsJdk21Earlier.class)
-    def "setupProjectLayout is skipped when kotlin sources detected with #scriptDsl build scripts"() {
+    def "init task action is skipped when kotlin sources detected with #scriptDsl build scripts"() {
         setup:
         subprojectDir.file("src/main/kotlin/org/acme/SampleMain.kt") << """
         package org.acme

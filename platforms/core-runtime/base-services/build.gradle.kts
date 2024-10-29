@@ -13,6 +13,12 @@ gradlebuildJava.usedInWorkers()
 tasks.named<JavaCompile>("compileTestJava") {
     options.release = 8
 }
+afterEvaluate {
+    tasks.named<GroovyCompile>("compileTestGroovy") {
+        sourceCompatibility = "1.8"
+        targetCompatibility = "1.8"
+    }
+}
 
 /**
  * Use Java 8 compatibility for JMH benchmarks
@@ -62,3 +68,6 @@ packageCycles {
 }
 
 jmh.includes = listOf("HashingAlgorithmsBenchmark")
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

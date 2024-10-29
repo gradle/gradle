@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.util.internal.ToBeImplemented
 
 /**
  * Tests interactions a Configuration's root component during resolution.
@@ -216,6 +217,7 @@ class RootComponentResolutionIntegrationTest extends AbstractIntegrationSpec {
         succeeds("resolve")
     }
 
+    @ToBeImplemented("See #30320, the final solution might be different and require this test to be updated")
     // This is not necessarily desired behavior, or important behavior at all.
     // The detached configuration is _not_ the project. It should not claim to be the project.
     // Ideally, this configuration would have an unspecified identity, similar to init, settings, and standalone scripts.
@@ -245,6 +247,6 @@ class RootComponentResolutionIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        succeeds("resolve")
+        fails("resolve")
     }
 }

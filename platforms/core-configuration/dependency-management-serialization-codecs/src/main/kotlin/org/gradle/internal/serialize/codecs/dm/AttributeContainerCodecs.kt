@@ -20,11 +20,13 @@ import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.AttributeContainer
 import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.api.internal.attributes.ImmutableAttributes
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory
+import org.gradle.api.internal.attributes.AttributesFactory
 import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
+import org.gradle.internal.serialize.graph.decodePreservingSharedIdentity
+import org.gradle.internal.serialize.graph.encodePreservingSharedIdentityOf
 import org.gradle.internal.serialize.graph.readCollection
 import org.gradle.internal.serialize.graph.readNonNull
 import org.gradle.internal.serialize.graph.writeCollection
@@ -33,7 +35,7 @@ import org.gradle.internal.state.ManagedFactoryRegistry
 
 
 class AttributeContainerCodec(
-    private val attributesFactory: ImmutableAttributesFactory,
+    private val attributesFactory: AttributesFactory,
     private val managedFactories: ManagedFactoryRegistry
 ) : Codec<AttributeContainer> {
 
@@ -47,16 +49,20 @@ class AttributeContainerCodec(
 
 
 class ImmutableAttributesCodec(
-    private val attributesFactory: ImmutableAttributesFactory,
+    private val attributesFactory: AttributesFactory,
     private val managedFactories: ManagedFactoryRegistry
 ) : Codec<ImmutableAttributes> {
 
     override suspend fun WriteContext.encode(value: ImmutableAttributes) {
-        writeAttributes(value)
+        encodePreservingSharedIdentityOf(value) {
+            writeAttributes(it)
+        }
     }
 
     override suspend fun ReadContext.decode(): ImmutableAttributes =
-        readAttributesUsing(attributesFactory, managedFactories).asImmutable()
+        decodePreservingSharedIdentity {
+            readAttributesUsing(attributesFactory, managedFactories).asImmutable()
+        }
 }
 
 
@@ -72,7 +78,7 @@ suspend fun WriteContext.writeAttributes(container: AttributeContainer) {
 
 private
 suspend fun ReadContext.readAttributesUsing(
-    attributesFactory: ImmutableAttributesFactory,
+    attributesFactory: AttributesFactory,
     managedFactories: ManagedFactoryRegistry
 ): AttributeContainerInternal =
     attributesFactory.mutable().apply {

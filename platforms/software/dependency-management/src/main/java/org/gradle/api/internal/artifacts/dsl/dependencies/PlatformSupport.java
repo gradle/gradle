@@ -23,10 +23,11 @@ import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.HasConfigurableAttributes;
 import org.gradle.api.attributes.MultipleCandidatesDetails;
 import org.gradle.api.internal.ReusableAction;
-import org.gradle.api.internal.artifacts.repositories.metadata.MavenImmutableAttributesFactory;
+import org.gradle.api.internal.artifacts.repositories.metadata.MavenAttributesFactory;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.internal.component.external.model.ComponentVariant;
+import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler;
 import org.gradle.internal.component.resolution.failure.type.NoCompatibleVariantsFailure;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -57,7 +58,12 @@ public class PlatformSupport {
 
     public void configureSchema(AttributesSchemaInternal attributesSchema) {
         configureCategoryDisambiguationRule(attributesSchema);
-        attributesSchema.addFailureDescriber(NoCompatibleVariantsFailure.class, TargetJVMVersionOnLibraryTooNewFailureDescriber.class);
+    }
+    public static void configureFailureHandler(ResolutionFailureHandler handler) {
+        // TODO: This should not be here.
+        // This failure handler has nothing to do with platforms.
+        // This should live in JavaEcosystemSupport.
+        handler.addFailureDescriber(NoCompatibleVariantsFailure.class, TargetJVMVersionOnLibraryTooNewFailureDescriber.class);
     }
 
     private void configureCategoryDisambiguationRule(AttributesSchema attributesSchema) {
@@ -81,7 +87,7 @@ public class PlatformSupport {
      * @return {@code true} if this represents an {@code enforced-platform}, {@code false} otherwise
      */
     public static boolean hasForcedDependencies(ComponentVariant variant) {
-        return Objects.equal(variant.getAttributes().getAttribute(MavenImmutableAttributesFactory.CATEGORY_ATTRIBUTE), Category.ENFORCED_PLATFORM);
+        return Objects.equal(variant.getAttributes().getAttribute(MavenAttributesFactory.CATEGORY_ATTRIBUTE), Category.ENFORCED_PLATFORM);
     }
 
     public static class ComponentCategoryDisambiguationRule implements AttributeDisambiguationRule<Category>, ReusableAction {

@@ -15,8 +15,6 @@
 [[swift_library_plugin]]
 = Swift Library
 
-WARNING: The Swift Library Plugin is not compatible with the <<configuration_cache.adoc#config_cache:plugins:core,configuration cache>>.
-
 The Swift Library Plugin provides the tasks, conventions and conventions for building a Swift library.
 In particular, a Swift library provides functionality that can be used by consumers (i.e., other projects using this plugin or the <<swift_application_plugin.adoc#swift_application_plugin,Swift Application Plugin>>).
 

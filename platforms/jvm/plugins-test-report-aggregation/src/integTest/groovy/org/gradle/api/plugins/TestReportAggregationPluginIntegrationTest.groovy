@@ -18,6 +18,7 @@ package org.gradle.api.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.HtmlTestExecutionResult
+import spock.lang.Issue
 
 import static org.hamcrest.CoreMatchers.startsWith
 
@@ -588,5 +589,20 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
         expect:
         fails(':application:testAggregateTestReport')
         result.assertHasErrorOutput("Could not configure suite: 'secondaryIntegrationTest'. Another test suite: 'integrationTest' uses the type: 'integration-test' and has already been configured in project: 'transitive'.")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/29820")
+    def "can aggregate when a jar file dependency is used"() {
+        buildFile("application/build.gradle", """
+            apply plugin: 'org.gradle.test-report-aggregation'
+
+            dependencies {
+                // BUG: Local file dependencies are breaking the test report aggregation plugin!
+                implementation(files("bug.jar"))
+            }
+        """)
+
+        expect:
+        succeeds ":application:testAggregateTestReport"
     }
 }

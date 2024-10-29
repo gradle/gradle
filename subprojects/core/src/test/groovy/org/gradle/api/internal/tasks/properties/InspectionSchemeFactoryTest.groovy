@@ -17,7 +17,7 @@
 package org.gradle.api.internal.tasks.properties
 
 import org.gradle.api.file.ConfigurableFileCollection
-import org.gradle.api.internal.DocumentationRegistry
+import org.gradle.api.problems.internal.InternalProblems
 import org.gradle.api.provider.Property
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.instantiation.InstantiationScheme
@@ -33,28 +33,28 @@ import java.lang.annotation.RetentionPolicy
 import static org.gradle.internal.reflect.annotations.AnnotationCategory.TYPE
 
 class InspectionSchemeFactoryTest extends Specification {
-    private final DocumentationRegistry documentationRegistry = new DocumentationRegistry()
-
     def handler1 = handler(Thing1)
     def handler2 = handler(Thing2)
     def cacheFactory = new TestCrossBuildInMemoryCacheFactory()
     def typeAnnotationMetadataStore = new DefaultTypeAnnotationMetadataStore(
         [],
         [(Thing1): TYPE, (Thing2): TYPE],
+        [:],
         ["java", "groovy"],
         [],
         [Object, GroovyObject],
         [ConfigurableFileCollection, Property],
         [IgnoredThing],
+        [],
         { false },
         cacheFactory
     )
-    def factory = new InspectionSchemeFactory([], [handler1, handler2], typeAnnotationMetadataStore, cacheFactory)
+    def factory = new InspectionSchemeFactory([], [handler1, handler2], [], typeAnnotationMetadataStore, cacheFactory)
 
     def "creates inspection scheme that understands given property annotations and injection annotations"() {
         def instantiationScheme = Stub(InstantiationScheme)
         instantiationScheme.injectionAnnotations >> [Inject]
-        def scheme = factory.inspectionScheme([Thing1, Thing2], [], instantiationScheme)
+        def scheme = factory.inspectionScheme([Thing1, Thing2], [], [], instantiationScheme)
 
         when:
         def metadata = scheme.metadataStore.getTypeMetadata(AnnotatedBean)
@@ -63,7 +63,7 @@ class InspectionSchemeFactoryTest extends Specification {
         metadata.propertiesMetadata.size() == 2
 
         when:
-        def validationContext = DefaultTypeValidationContext.withoutRootType(false)
+        def validationContext = DefaultTypeValidationContext.withoutRootType(false, Stub(InternalProblems.class))
         metadata.visitValidationFailures(null, validationContext)
 
         then:
@@ -80,7 +80,7 @@ class InspectionSchemeFactoryTest extends Specification {
     def "annotation can be used for property annotation and injection annotations"() {
         def instantiationScheme = Stub(InstantiationScheme)
         instantiationScheme.injectionAnnotations >> [Thing2, Inject]
-        def scheme = factory.inspectionScheme([Thing1, Thing2], [], instantiationScheme)
+        def scheme = factory.inspectionScheme([Thing1, Thing2], [], [], instantiationScheme)
 
         when:
         def metadata = scheme.metadataStore.getTypeMetadata(AnnotatedBean)
@@ -89,7 +89,7 @@ class InspectionSchemeFactoryTest extends Specification {
         metadata.propertiesMetadata.size() == 2
 
         when:
-        def validationContext = DefaultTypeValidationContext.withoutRootType(false)
+        def validationContext = DefaultTypeValidationContext.withoutRootType(false, Stub(InternalProblems.class))
         metadata.visitValidationFailures(null, validationContext)
 
         then:

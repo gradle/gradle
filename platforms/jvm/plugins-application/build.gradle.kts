@@ -28,9 +28,8 @@ dependencies {
     api(libs.inject)
     api(libs.jsr305)
 
-    implementation(projects.stdlibJavaExtensions)
-    implementation(projects.pluginsJavaBase)
     implementation(projects.baseServices)
+    implementation(projects.fileOperations)
     implementation(projects.languageJava)
     implementation(projects.languageJvm)
     implementation(projects.logging)
@@ -38,7 +37,9 @@ dependencies {
     implementation(projects.platformJvm)
     implementation(projects.pluginsDistribution)
     implementation(projects.pluginsJava)
+    implementation(projects.pluginsJavaBase)
     implementation(projects.processServices)
+    implementation(projects.stdlibJavaExtensions)
     implementation(projects.toolchainsJvm)
     implementation(projects.toolchainsJvmShared)
 
@@ -69,3 +70,6 @@ packageCycles {
 
 integTest.usesJavadocCodeSnippets = true
 testFilesCleanup.reportOnly = true
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

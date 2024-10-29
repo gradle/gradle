@@ -29,7 +29,7 @@ dependencies {
 
     implementation(projects.serviceRegistryBuilder)
 
-    implementation(libs.nativePlatformFileEvents)
+    implementation(libs.gradleFileEvents)
     implementation(libs.slf4jApi)
     implementation(libs.guava)
     implementation(libs.commonsIo)
@@ -48,4 +48,7 @@ jmh {
     threads = 2
     warmupIterations = 10
     synchronizeIterations = false
+}
+tasks.isolatedProjectsIntegTest {
+    enabled = false
 }

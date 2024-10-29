@@ -2,3 +2,6 @@ a = "a\nb\nc"
 b = """a
 b
 c"""
+q = """$1"""                  // dollar followed by something that's NOT a simple identifier
+d = """${something}"""        // string expression not supported
+q = """$id"""

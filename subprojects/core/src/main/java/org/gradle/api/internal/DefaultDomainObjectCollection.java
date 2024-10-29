@@ -287,6 +287,10 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     @Override
     public void addLater(Provider<? extends T> provider) {
         assertCanMutate("addLater(Provider)");
+        doAddLater(provider);
+    }
+
+    protected void doAddLater(Provider<? extends T> provider) {
         ProviderInternal<? extends T> providerInternal = Providers.internal(provider);
         store.addPending(providerInternal);
     }

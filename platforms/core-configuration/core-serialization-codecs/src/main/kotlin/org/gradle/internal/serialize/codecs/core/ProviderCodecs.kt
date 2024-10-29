@@ -55,8 +55,10 @@ import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.internal.serialize.graph.codecs.BeanCodec
 import org.gradle.internal.serialize.graph.codecs.Bindings
+import org.gradle.internal.serialize.graph.decodeBean
 import org.gradle.internal.serialize.graph.decodePreservingIdentity
 import org.gradle.internal.serialize.graph.decodePreservingSharedIdentity
+import org.gradle.internal.serialize.graph.encodeBean
 import org.gradle.internal.serialize.graph.encodePreservingIdentityOf
 import org.gradle.internal.serialize.graph.encodePreservingSharedIdentityOf
 import org.gradle.internal.serialize.graph.logPropertyProblem
@@ -74,6 +76,7 @@ fun defaultCodecForProviderWithChangingValue(
 ) = Bindings.of {
     bind(valueSourceProviderCodec)
     bind(buildServiceProviderCodec)
+    bind(BuildServiceParameterCodec)
     bind(flowProvidersCodec)
     bind(BeanCodec)
 }.build()
@@ -227,7 +230,7 @@ class BuildServiceProviderCodec(
     private val buildStateRegistry: BuildStateRegistry
 ) : Codec<BuildServiceProvider<*, *>> {
 
-    override suspend fun WriteContext.encode(value: BuildServiceProvider<*, *>) {
+    override suspend fun WriteContext.encode(value: BuildServiceProvider<*, *>) =
         encodePreservingSharedIdentityOf(value) {
             val serviceDetails: BuildServiceDetails<*, *> = value.serviceDetails
             write(serviceDetails.buildIdentifier)
@@ -239,10 +242,9 @@ class BuildServiceProviderCodec(
                 writeInt(serviceDetails.maxUsages)
             }
         }
-    }
 
-    override suspend fun ReadContext.decode(): BuildServiceProvider<*, *>? =
-        decodePreservingSharedIdentity {
+    override suspend fun ReadContext.decode(): BuildServiceProvider<*, *> =
+        decodePreservingSharedIdentity<BuildServiceProvider<*, *>> {
             val buildIdentifier = readNonNull<BuildIdentifier>()
             val name = readString()
             val implementationType = readClassOf<BuildService<*>>()
@@ -259,6 +261,19 @@ class BuildServiceProviderCodec(
     private
     fun buildServiceRegistryOf(buildIdentifier: BuildIdentifier) =
         buildStateRegistry.getBuild(buildIdentifier).mutableModel.serviceOf<BuildServiceRegistryInternal>()
+}
+
+
+object BuildServiceParameterCodec : Codec<BuildServiceParameters> {
+    override suspend fun WriteContext.encode(value: BuildServiceParameters) =
+        writeSharedObject(value) {
+            encodeBean(value)
+        }
+
+    override suspend fun ReadContext.decode(): BuildServiceParameters =
+        readSharedObject {
+            decodeBean()
+        }.uncheckedCast()
 }
 
 

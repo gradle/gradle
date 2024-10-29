@@ -14,7 +14,7 @@ public class ${productionClassName} ${extendsAndImplementsClause} {
     public boolean check(${it.type} o) {
         // dummy code to add arbitrary compile time
         String p = o.getProperty();
-        p = p.toUpperCase();
+        p = p.toUpperCase(Locale.ROOT);
         List<String> strings = Arrays.asList(p, this.getProperty());
         int len = 0;
         for (String s: strings) {

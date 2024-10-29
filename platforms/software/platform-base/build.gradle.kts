@@ -6,8 +6,6 @@ errorprone {
     disabledChecks.addAll(
         "MixedMutabilityReturnType", // 1 occurrences
         "ModifiedButNotUsed", // 1 occurrences
-        "StringCaseLocaleUsage", // 1 occurrences
-        "UnusedMethod", // 5 occurrences
     )
 }
 dependencies {
@@ -55,3 +53,6 @@ packageCycles {
 integTest.usesJavadocCodeSnippets = true
 
 description = """Provides general purpose base types and interfaces for modeling projects, and provides runtime and language support."""
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

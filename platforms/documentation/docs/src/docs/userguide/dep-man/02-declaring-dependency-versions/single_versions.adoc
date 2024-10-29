@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[[single-version-declarations]]
+[[single-version-declaration]]
 = Declaring Versions and Ranges
 
 You can declare dependencies with specific versions or version ranges to define the acceptable versions of a dependency that your project can use:
@@ -49,6 +49,8 @@ When the upper or lower bound is missing, the range has no upper or lower bound.
 
 The symbol `]` can be used instead of `(` for an exclusive lower bound and `[` instead of `)` for an exclusive upper bound. e.g. `]1.0, 2.0[`.
 
+Note: The range `[1.0,[` is not appropriate, as it lacks an upper bound and should be rewritten as `[1.0,)`.
+
 An upper bound exclude acts as a prefix exclude.
 
 |A _prefix_ version range
@@ -74,14 +76,14 @@ Version ordering is used to:
 
 * Determine if a particular version is included in a range.
 * Determine which version is 'newest' when performing conflict resolution (watch out though, conflict resolution uses
-<<dependency_resolution#sec:base-version-comparison,"base versions">>).
+<<dependency_resolution_adv#sec:base-version-comparison,"base versions">>).
 
 Versions are ordered based on the following rules:
 
 * Each version is split into it's constituent "parts":
 ** The characters `[. - _ +]` are used to separate the different "parts" of a version.
 ** Any part that contains both digits and letters is split into separate parts for each: `1a1 == 1.a.1`
-** Only the parts of a version are compared. The actual separator characters are not significant: `1.a.1 == 1-a+1 == 1.a-1 == 1a1` (watch out though, in the context of conflict resolution there are <<dependency_resolution#sec:base-version-comparison,exceptions to this rule>>).
+** Only the parts of a version are compared. The actual separator characters are not significant: `1.a.1 == 1-a+1 == 1.a-1 == 1a1` (watch out though, in the context of conflict resolution there are <<dependency_resolution_adv#sec:base-version-comparison,exceptions to this rule>>).
 * The equivalent parts of 2 versions are compared using the following rules:
 ** If both parts are numeric, the highest numeric value is **higher**: `1.1` < `1.2`
 ** If one part is numeric, it is considered **higher** than the non-numeric part: `1.a` < `1.1`

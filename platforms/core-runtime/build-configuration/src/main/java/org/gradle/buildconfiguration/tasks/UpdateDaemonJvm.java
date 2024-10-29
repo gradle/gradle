@@ -18,7 +18,6 @@ package org.gradle.buildconfiguration.tasks;
 
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
-import org.gradle.api.JavaVersion;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
@@ -30,6 +29,7 @@ import org.gradle.api.tasks.options.OptionValues;
 import org.gradle.internal.buildconfiguration.DaemonJvmPropertiesDefaults;
 import org.gradle.internal.buildconfiguration.tasks.UpdateDaemonJvmModifier;
 import org.gradle.internal.jvm.inspection.JvmVendor;
+import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.util.internal.IncubationLogger;
 import org.gradle.work.DisableCachingByDefault;
 
@@ -96,7 +96,7 @@ public abstract class UpdateDaemonJvm extends DefaultTask {
     @Optional
     @Option(option = "jvm-version", description = "The version of the JVM required to run the Gradle Daemon.")
     @Incubating
-    public abstract Property<JavaVersion> getJvmVersion();
+    public abstract Property<JavaLanguageVersion> getJvmVersion();
 
     /**
      * The vendor of Java required to run the Gradle Daemon.

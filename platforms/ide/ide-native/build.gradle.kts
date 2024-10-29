@@ -37,6 +37,7 @@ dependencies {
     implementation(projects.testingNative)
     implementation(projects.loggingApi)
     implementation(projects.serviceLookup)
+    implementation(projects.functional)
     implementation(libs.commonsLang)
 
     runtimeOnly(projects.dependencyManagement)
@@ -64,3 +65,6 @@ dependencies {
 }
 
 integTest.usesJavadocCodeSnippets = true
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

@@ -28,3 +28,6 @@ dependencies {
     implementation(projects.stdlibJavaExtensions)
     implementation(projects.internalInstrumentationApi)
 }
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

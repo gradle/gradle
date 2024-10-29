@@ -29,3 +29,6 @@ dependencies {
 
     implementation(libs.slf4jApi)
 }
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

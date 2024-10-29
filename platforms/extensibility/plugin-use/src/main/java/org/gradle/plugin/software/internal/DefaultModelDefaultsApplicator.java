@@ -17,7 +17,6 @@
 package org.gradle.plugin.software.internal;
 
 import org.gradle.api.Plugin;
-import org.gradle.internal.Cast;
 
 import java.util.List;
 
@@ -25,18 +24,14 @@ import java.util.List;
  * Applies the model defaults for a given software type to a target project if the provided plugin class is a software type plugin.
  */
 public class DefaultModelDefaultsApplicator implements ModelDefaultsApplicator {
-    private final SoftwareTypeRegistry softwareTypeRegistry;
     private final List<ModelDefaultsHandler> defaultsHandlers;
 
-    public DefaultModelDefaultsApplicator(SoftwareTypeRegistry softwareTypeRegistry, List<ModelDefaultsHandler> defaultsHandlers) {
-        this.softwareTypeRegistry = softwareTypeRegistry;
+    public DefaultModelDefaultsApplicator(List<ModelDefaultsHandler> defaultsHandlers) {
         this.defaultsHandlers = defaultsHandlers;
     }
 
     @Override
-    public <T> void applyDefaultsTo(T target, Plugin<? super T> plugin) {
-        softwareTypeRegistry.implementationFor(Cast.uncheckedCast(plugin.getClass())).ifPresent(softwareTypeImplementation ->
-            defaultsHandlers.forEach(handler -> handler.apply(target, softwareTypeImplementation.getSoftwareType(), plugin))
-        );
+    public <T> void applyDefaultsTo(T target, Plugin<?> plugin, SoftwareTypeImplementation<?> softwareTypeImplementation) {
+        defaultsHandlers.forEach(handler -> handler.apply(target, softwareTypeImplementation.getSoftwareType(), plugin));
     }
 }

@@ -92,6 +92,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -635,7 +636,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
                     confStarted(attributes);
                 } else if ("mapped".equals(qName)) {
                     dd.addDependencyConfiguration(conf, substitute(attributes.getValue("name")));
-                } else if (("conflict".equals(qName) && state == State.DEPS) || "manager".equals(qName) && state == State.CONFLICT) {
+                } else if (("conflict".equals(qName) && state == State.DEPS) || ("manager".equals(qName) && state == State.CONFLICT)) {
                     LOGGER.debug("Ivy.xml conflict managers are not supported by Gradle. Ignoring conflict manager declared in {}", getResource().getDisplayName());
                 } else if ("override".equals(qName) && state == State.DEPS) {
                     LOGGER.debug("Ivy.xml dependency overrides are not supported by Gradle. Ignoring override declared in {}", getResource().getDisplayName());
@@ -661,7 +662,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
             String parentRevision = attributes.getValue("revision");
             String location = elvis(attributes.getValue("location"), "../ivy.xml");
 
-            String extendType = elvis(attributes.getValue("extendType"), "all").toLowerCase();
+            String extendType = elvis(attributes.getValue("extendType"), "all").toLowerCase(Locale.ROOT);
             List<String> extendTypes = Arrays.asList(extendType.split(","));
 
             ModuleDescriptor parent;

@@ -36,7 +36,7 @@ class StageTriggers(model: CIBuildModel, stage: Stage, prevStage: Stage?, stageP
 
         stageWithOsTriggers.getOrDefault(stage.stageName, emptyList()).forEach { targetOs ->
             val dependencies = allDependencies.filter { it.os == targetOs }
-            triggers.add(StageTrigger(model, stage, prevStage, targetOs, dependencies))
+            triggers.add(StageTrigger(model, stage, prevStage, targetOs, dependencies, generateTriggers = false))
         }
     }
 }
@@ -46,7 +46,8 @@ class StageTrigger(
     stage: Stage,
     prevStage: Stage?,
     os: Os?,
-    dependencies: List<BaseGradleBuildType>
+    dependencies: List<BaseGradleBuildType>,
+    generateTriggers: Boolean = true,
 ) : BaseGradleBuildType(init = {
     id(stageTriggerId(model, stage, os))
     uuid = stageTriggerUuid(model, stage, os)
@@ -59,33 +60,35 @@ class StageTrigger(
         publishBuildStatusToGithub(model)
     }
 
-    val enableTriggers = model.branch.enableVcsTriggers
-    if (stage.trigger == Trigger.eachCommit) {
-        triggers.vcs {
-            quietPeriodMode = VcsTrigger.QuietPeriodMode.USE_CUSTOM
-            quietPeriod = 90
-            triggerRules = triggerExcludes
-            branchFilter = model.branch.branchFilter()
-            enabled = enableTriggers
-        }
-    } else if (stage.trigger != Trigger.never) {
-        triggers.schedule {
-            if (stage.trigger == Trigger.weekly) {
-                schedulingPolicy = weekly {
-                    dayOfWeek = ScheduleTrigger.DAY.Saturday
-                    hour = 1
-                }
-            } else {
-                schedulingPolicy = daily {
-                    hour = 0
-                    minute = 30
-                }
+    if (generateTriggers) {
+        val enableTriggers = model.branch.enableVcsTriggers
+        if (stage.trigger == Trigger.eachCommit) {
+            triggers.vcs {
+                quietPeriodMode = VcsTrigger.QuietPeriodMode.USE_CUSTOM
+                quietPeriod = 90
+                triggerRules = triggerExcludes
+                branchFilter = model.branch.branchFilter()
+                enabled = enableTriggers
             }
-            triggerBuild = always()
-            withPendingChangesOnly = true
-            param("revisionRule", "lastFinished")
-            branchFilter = model.branch.branchFilter()
-            enabled = enableTriggers
+        } else if (stage.trigger != Trigger.never) {
+            triggers.schedule {
+                if (stage.trigger == Trigger.weekly) {
+                    schedulingPolicy = weekly {
+                        dayOfWeek = ScheduleTrigger.DAY.Saturday
+                        hour = 1
+                    }
+                } else {
+                    schedulingPolicy = daily {
+                        hour = 0
+                        minute = 30
+                    }
+                }
+                triggerBuild = always()
+                withPendingChangesOnly = true
+                param("revisionRule", "lastFinished")
+                branchFilter = model.branch.branchFilter()
+                enabled = enableTriggers
+            }
         }
     }
 

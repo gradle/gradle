@@ -241,7 +241,18 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
 
     @Override
     public void implicitFinalizeValue() {
-        state.disallowChangesAndFinalizeOnNextGet();
+        if (state.isUpgradedPropertyValue()) {
+            // Upgraded properties should not be finalized to simplify migration.
+            // This behaviour should be removed with Gradle 10.
+            state.warnOnUpgradedPropertyValueChanges();
+        } else {
+            state.disallowChangesAndFinalizeOnNextGet();
+        }
+    }
+
+    @Override
+    public void markAsUpgradedProperty() {
+        state.markAsUpgradedPropertyValue();
     }
 
     @Override

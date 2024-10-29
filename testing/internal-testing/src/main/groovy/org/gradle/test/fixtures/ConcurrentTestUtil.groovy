@@ -83,17 +83,18 @@ class ConcurrentTestUtil extends ExternalResource {
         def start = monotonicClockMillis()
         Thread.sleep(toMillis(initialDelayInSeconds))
         def expiry = start + toMillis(timeoutInSeconds) // convert to ms
-        long sleepTime = toMillis(pollIntervalInSeconds)
-        while(true) {
+        long sleepTime = Math.max(100, toMillis(pollIntervalInSeconds))
+        while (true) {
             try {
                 assertion()
                 return
             } catch (Throwable t) {
-                if (monotonicClockMillis() > expiry) {
+                def remaining = expiry - monotonicClockMillis()
+                if (remaining <= 0) {
                     throw t
                 }
-                sleepTime = Math.min(250, (long) (sleepTime * 1.2))
-                Thread.sleep(sleepTime)
+                Thread.sleep(Math.min(remaining, sleepTime))
+                sleepTime *= 1.2
             }
         }
     }

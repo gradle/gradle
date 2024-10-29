@@ -970,7 +970,6 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
     }
 
     def "does not report problems on configuration listener registration on #registrationPoint"() {
-
         given:
         buildFile << """
 
@@ -988,6 +987,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         """
 
         expect:
+        executer.noDeprecationChecks()
         configurationCacheRun 'help'
         postBuildOutputContains("Configuration cache entry stored.")
 
@@ -1007,6 +1007,33 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         "Gradle.useLogger(ProjectEvaluationListener)"      | "gradle.useLogger(new ProjectEvaluationAdapter())"
         "Gradle.useLogger(TaskExecutionGraphListener)"     | "gradle.useLogger({g -> } as TaskExecutionGraphListener)"
         "Gradle.useLogger(DependencyResolutionListener)"   | "gradle.useLogger(new DependencyResolutionAdapter())"
+    }
+
+    def "using #loggerClass for useLogger is deprecated with CC enabled"() {
+        given:
+        buildFile """
+            class DeprecatedListener extends BuildAdapter {}
+
+            class NonDeprecatedListener implements ProjectEvaluationListener {
+                @Override void beforeEvaluate(Project project) {}
+                @Override void afterEvaluate(Project project, ProjectState state) {}
+            }
+
+            gradle.useLogger(new $loggerClass())
+
+            tasks.register("run") {}
+        """
+
+        executer.expectDocumentedDeprecationWarning("The Gradle.useLogger(Object) method has been deprecated. " +
+            "This is scheduled to be removed in Gradle 9.0. " +
+            "Consult the upgrading guide for further information: " +
+            "https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_use_logger")
+
+        expect:
+        configurationCacheRunLenient("run")
+
+        where:
+        loggerClass << ["DeprecatedListener", "NonDeprecatedListener"]
     }
 
     def "summarizes unsupported properties"() {

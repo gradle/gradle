@@ -28,6 +28,7 @@ dependencies {
 
     implementation(projects.dependencyManagement)
     implementation(projects.execution)
+    implementation(projects.fileOperations)
     implementation(projects.functional)
     implementation(projects.jvmServices)
     implementation(projects.publish)
@@ -60,3 +61,6 @@ strictCompile {
 }
 
 integTest.usesJavadocCodeSnippets = true
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}

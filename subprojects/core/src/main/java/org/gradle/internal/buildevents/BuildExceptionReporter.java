@@ -24,11 +24,9 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
-import org.gradle.api.problems.internal.ProblemAwareFailure;
 import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
-import org.gradle.internal.exceptions.CompilationFailedIndicator;
 import org.gradle.internal.exceptions.ContextAwareException;
 import org.gradle.internal.exceptions.ExceptionContextVisitor;
 import org.gradle.internal.exceptions.FailureResolutionAware;
@@ -41,11 +39,9 @@ import org.gradle.internal.logging.text.BufferingStyledTextOutput;
 import org.gradle.internal.logging.text.LinePrefixingStyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
-import org.gradle.problems.internal.rendering.ProblemRenderer;
 import org.gradle.util.internal.GUtil;
 
 import javax.annotation.Nonnull;
-import java.io.StringWriter;
 import java.util.ArrayDeque;
 import java.util.HashSet;
 import java.util.List;
@@ -194,8 +190,6 @@ public class BuildExceptionReporter implements Action<Throwable> {
 
     private static class ExceptionFormattingVisitor extends ExceptionContextVisitor {
         private final FailureDetails failureDetails;
-        private final StringWriter problemWriter = new StringWriter();
-        private final ProblemRenderer renderer = new ProblemRenderer(problemWriter);
 
         private final Set<Throwable> printedNodes = new HashSet<>();
         private int depth;
@@ -218,11 +212,6 @@ public class BuildExceptionReporter implements Action<Throwable> {
 
         @Override
         public void node(Throwable node) {
-            if (node instanceof ProblemAwareFailure) {
-                ProblemAwareFailure problemAwareFailure = (ProblemAwareFailure) node;
-                problemAwareFailure.getProblems().forEach(renderer::render);
-            }
-
             if (shouldBePrinted(node)) {
                 printedNodes.add(node);
                 if (null == node.getCause() || isUsefulMessage(getMessage(node))) {
@@ -298,10 +287,6 @@ public class BuildExceptionReporter implements Action<Throwable> {
 
         @Override
         protected void endVisiting() {
-            if (renderer.getProblemCount() > 0) {
-                failureDetails.details.format("%n%n");
-                failureDetails.details.text(problemWriter.toString());
-            }
             if (suppressedDuplicateBranchCount > 0) {
                 LinePrefixingStyledTextOutput output = getLinePrefixingStyledTextOutput(failureDetails);
                 boolean plural = suppressedDuplicateBranchCount > 1;
@@ -332,15 +317,9 @@ public class BuildExceptionReporter implements Action<Throwable> {
             );
         }
 
-        boolean hasCompileError = hasNonGradleSpecificCauseInAncestry &&
-            hasCauseAncestry(details.failure, CompilationFailedIndicator.class);
         LogLevel logLevel = loggingConfiguration.getLogLevel();
         boolean isLessThanInfo = logLevel.ordinal() > INFO.ordinal();
-        if (hasCompileError && isLessThanInfo) {
-            context.appendResolution(output ->
-                runWithOption(output, INFO_LONG_OPTION, " option to get more log output.")
-            );
-        } else if (logLevel != DEBUG && !hasNonGradleSpecificCauseInAncestry) {
+        if (logLevel != DEBUG && !hasNonGradleSpecificCauseInAncestry) {
             context.appendResolution(output -> {
                 output.text("Run with ");
                 if (isLessThanInfo) {

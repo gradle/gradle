@@ -33,6 +33,8 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingState
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSelectionSpec;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.DefaultVisitedGraphResults;
@@ -40,6 +42,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolutionResultGraphBuilder;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.artifacts.result.MinimalResolutionResult;
+import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
@@ -53,9 +56,14 @@ import java.util.Set;
 
 public class ShortCircuitEmptyConfigurationResolver implements ConfigurationResolver {
     private final ConfigurationResolver delegate;
+    private final AttributeDesugaring attributeDesugaring;
 
-    public ShortCircuitEmptyConfigurationResolver(ConfigurationResolver delegate) {
+    public ShortCircuitEmptyConfigurationResolver(
+        ConfigurationResolver delegate,
+        AttributeDesugaring attributeDesugaring
+    ) {
         this.delegate = delegate;
+        this.attributeDesugaring = attributeDesugaring;
     }
 
     @Override
@@ -104,21 +112,28 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
         );
     }
 
-    private static VisitedGraphResults emptyGraphResults(ResolveContext resolveContext) {
+    private VisitedGraphResults emptyGraphResults(ResolveContext resolveContext) {
         RootComponentMetadataBuilder.RootComponentState root = resolveContext.toRootComponent();
         MinimalResolutionResult emptyResult = ResolutionResultGraphBuilder.empty(
             root.getModuleVersionIdentifier(),
             root.getComponentIdentifier(),
-            resolveContext.getAttributes().asImmutable()
+            resolveContext.getAttributes().asImmutable(),
+            resolveContext.getName(),
+            attributeDesugaring
         );
         return new DefaultVisitedGraphResults(emptyResult, Collections.emptySet(), null);
     }
 
-    private static class EmptyResults implements VisitedArtifactSet, SelectedArtifactSet, ResolverResults.LegacyResolverResults.LegacyVisitedArtifactSet {
+    private static class EmptyResults implements VisitedArtifactSet, SelectedArtifactSet, ResolverResults.LegacyResolverResults.LegacyVisitedArtifactSet, SelectedArtifactResults {
         private static final EmptyResults INSTANCE = new EmptyResults();
 
         @Override
         public SelectedArtifactSet select(ArtifactSelectionSpec spec) {
+            return this;
+        }
+
+        @Override
+        public SelectedArtifactResults selectLegacy(ArtifactSelectionSpec spec, boolean lenient) {
             return this;
         }
 
@@ -133,6 +148,16 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
 
         @Override
         public void visitArtifacts(ArtifactVisitor visitor, boolean continueOnSelectionFailure) {
+        }
+
+        @Override
+        public ResolvedArtifactSet getArtifacts() {
+            return ResolvedArtifactSet.EMPTY;
+        }
+
+        @Override
+        public ResolvedArtifactSet getArtifactsWithId(int id) {
+            return ResolvedArtifactSet.EMPTY;
         }
     }
 
@@ -179,7 +204,14 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
         }
 
         @Override
+        @Deprecated
         public Set<File> getFiles() {
+            DeprecationLogger.deprecateMethod(LenientConfiguration.class, "getFiles()")
+                .withAdvice("Use a lenient ArtifactView instead.")
+                .willBeRemovedInGradle9()
+                .withUpgradeGuideSection(8, "deprecate_legacy_configuration_get_files")
+                .nagUser();
+
             return Collections.emptySet();
         }
 

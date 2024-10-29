@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform.internal;
 
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.nativeplatform.StaticLibraryBinary;
@@ -58,7 +59,10 @@ public class DefaultStaticLibraryBinarySpec extends AbstractNativeLibraryBinaryS
 
     @Override
     public FileCollection getLinkFiles() {
-        return getFileCollectionFactory().create(new StaticLibraryLinkOutputs());
+        ConfigurableFileCollection result = getFileCollectionFactory().configurableFiles("Link files for " + getDisplayName());
+        result.from(getFileCollectionFactory().create(new StaticLibraryLinkOutputs()));
+        additionalLinkFiles.forEach(result::from);
+        return result;
     }
 
     @Override
@@ -90,12 +94,12 @@ public class DefaultStaticLibraryBinarySpec extends AbstractNativeLibraryBinaryS
     private class StaticLibraryLinkOutputs extends LibraryOutputs {
         @Override
         public String getDisplayName() {
-            return "Link files for " + DefaultStaticLibraryBinarySpec.this.getDisplayName();
+            return "Static library file for " + DefaultStaticLibraryBinarySpec.this.getDisplayName();
         }
 
         @Override
         protected boolean hasOutputs() {
-            return hasSources() || !additionalLinkFiles.isEmpty();
+            return hasSources();
         }
 
         @Override
@@ -103,9 +107,6 @@ public class DefaultStaticLibraryBinarySpec extends AbstractNativeLibraryBinaryS
             Set<File> allFiles = new LinkedHashSet<File>();
             if (hasSources()) {
                 allFiles.add(getStaticLibraryFile());
-            }
-            for (FileCollection resourceSet : additionalLinkFiles) {
-                allFiles.addAll(resourceSet.getFiles());
             }
             return allFiles;
         }

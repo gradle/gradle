@@ -16,7 +16,6 @@
 
 package org.gradle.smoketests
 
-import org.gradle.util.GradleVersion
 import spock.lang.Issue
 
 class SpringDependencyManagementPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
@@ -45,7 +44,6 @@ class SpringDependencyManagementPluginSmokeTest extends AbstractPluginValidating
 
         when:
         def result = runner("dependencies", "--configuration", "compileClasspath")
-            .expectDeprecationWarning("The LenientConfiguration.getArtifacts(Spec) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use a lenient ArtifactView with a componentFilter instead. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#deprecate_filtered_configuration_file_and_filecollection_methods", "https://github.com/spring-gradle-plugins/dependency-management-plugin/issues/381")
             .build()
 
         then:

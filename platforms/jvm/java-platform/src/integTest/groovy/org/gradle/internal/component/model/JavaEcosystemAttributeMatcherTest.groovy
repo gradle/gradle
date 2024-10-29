@@ -22,9 +22,10 @@ import org.gradle.api.attributes.Usage
 import org.gradle.api.attributes.java.TargetJvmVersion
 import org.gradle.api.internal.artifacts.JavaEcosystemSupport
 import org.gradle.api.internal.attributes.AttributeContainerInternal
-import org.gradle.api.internal.attributes.DefaultAttributesSchema
+import org.gradle.api.internal.attributes.AttributeDescriberRegistry
 import org.gradle.api.internal.attributes.ImmutableAttributes
-import org.gradle.internal.isolation.TestIsolatableFactory
+import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema
+import org.gradle.api.internal.attributes.matching.AttributeMatcher
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.TestUtil
 import spock.lang.Specification
@@ -40,11 +41,15 @@ import spock.lang.Specification
  */
 class JavaEcosystemAttributeMatcherTest extends Specification {
 
-    def schema = new DefaultAttributesSchema(TestUtil.instantiatorFactory(), new TestIsolatableFactory())
+    def describers = Mock(AttributeDescriberRegistry)
     def explanationBuilder = Stub(AttributeMatchingExplanationBuilder)
+    def matcher = newMatcher()
 
-    def setup() {
-        JavaEcosystemSupport.configureSchema(schema, TestUtil.objectFactory())
+    AttributeMatcher newMatcher() {
+        def schema = AttributeTestUtil.immutableSchema {
+            JavaEcosystemSupport.configureServices(it, describers, TestUtil.objectFactory())
+        }
+        return AttributeTestUtil.services().getMatcher(schema, ImmutableAttributesSchema.EMPTY)
     }
 
     def "resolve compileClasspath with java plugin"() {
@@ -322,7 +327,7 @@ class JavaEcosystemAttributeMatcherTest extends Specification {
     def matchConfigurations(List<List<AttributeContainerInternal>> candidates, ImmutableAttributes requested) {
         // The first element in each configuration array is the implicit variant.
         def implicitVariants = candidates.collect { it.first() }
-        def configurationMatches = schema.matcher().matchMultipleCandidates(implicitVariants, requested, explanationBuilder)
+        def configurationMatches = matcher.matchMultipleCandidates(implicitVariants, requested, explanationBuilder)
 
         // This test is checking only for successful (single) matches. If we matched multiple configurations
         // in the first round, something is wrong here. Fail before attempting the second round of variant matching.
@@ -330,7 +335,7 @@ class JavaEcosystemAttributeMatcherTest extends Specification {
 
         // Get all the variants for the configuration which was selected and apply variant matching on them.
         def configurationVariants = candidates.get(implicitVariants.indexOf(configurationMatches.get(0)))
-        def variantMatches = schema.matcher().matchMultipleCandidates(configurationVariants, requested, explanationBuilder)
+        def variantMatches = matcher.matchMultipleCandidates(configurationVariants, requested, explanationBuilder)
 
         // Once again, the purpose of this test is for successful results. Something is wrong if we have
         // multiple matched variants.

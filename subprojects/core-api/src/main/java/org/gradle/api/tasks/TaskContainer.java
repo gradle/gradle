@@ -64,6 +64,7 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * to control how the task is created. The following options are available:</p>
      *
      * <table>
+     * <caption>Permitted map keys</caption>
      *
      * <tr><th>Option</th><th>Description</th><th>Default Value</th></tr>
      *

@@ -25,6 +25,10 @@ import org.gradle.internal.component.model.VariantResolveMetadata;
 
 import javax.annotation.Nullable;
 
+/**
+ * A set of artifacts that may be selected from a variant. This would be better named
+ * {@code VariantArtifactSet}.
+ */
 public interface ResolvedVariant extends HasAttributes {
     DisplayName asDescribable();
 

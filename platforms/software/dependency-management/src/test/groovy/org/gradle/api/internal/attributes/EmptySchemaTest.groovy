@@ -16,30 +16,18 @@
 
 package org.gradle.api.internal.attributes
 
-import org.gradle.api.attributes.Attribute
+import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema
 import spock.lang.Specification
 
 class EmptySchemaTest extends Specification {
     def "has no attributes"() {
         expect:
-        EmptySchema.INSTANCE.attributes.empty
-        !EmptySchema.INSTANCE.hasAttribute(Attribute.of(String))
+        ImmutableAttributesSchema.EMPTY.attributes.empty
+        ImmutableAttributesSchema.EMPTY.getAttributeByName("foo") == null
     }
 
     def "has no precedence"() {
         expect:
-        EmptySchema.INSTANCE.attributeDisambiguationPrecedence.empty
-    }
-
-    def "cannot set precedence"() {
-        when:
-        EmptySchema.INSTANCE.attributeDisambiguationPrecedence(Attribute.of("attribute", String))
-        then:
-        thrown(UnsupportedOperationException)
-
-        when:
-        EmptySchema.INSTANCE.setAttributeDisambiguationPrecedence([Attribute.of("attribute", String)])
-        then:
-        thrown(UnsupportedOperationException)
+        ImmutableAttributesSchema.EMPTY.attributeDisambiguationPrecedence.empty
     }
 }

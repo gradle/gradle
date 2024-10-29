@@ -17,14 +17,16 @@
 package org.gradle.internal.cc.impl
 
 import org.gradle.api.credentials.PasswordCredentials
-import org.gradle.internal.credentials.DefaultPasswordCredentials
 import org.gradle.test.fixtures.ivy.IvyRepository
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.IvyHttpRepository
+import org.gradle.util.TestCredentialUtil
 import org.gradle.util.internal.GUtil
 import org.junit.Rule
 
-import static org.gradle.test.fixtures.server.http.HttpServer.SupportedHash.*
+import static org.gradle.test.fixtures.server.http.HttpServer.SupportedHash.SHA1
+import static org.gradle.test.fixtures.server.http.HttpServer.SupportedHash.SHA256
+import static org.gradle.test.fixtures.server.http.HttpServer.SupportedHash.SHA512
 import static org.gradle.util.internal.GFileUtils.deleteDirectory
 import static org.gradle.util.internal.GFileUtils.listFiles
 
@@ -72,7 +74,7 @@ class ConfigurationCacheIvyPublishIntegrationTest extends AbstractConfigurationC
                 configurations { implementation }
             }
 
-            def testAttributes = project.services.get(ImmutableAttributesFactory)
+            def testAttributes = project.services.get(AttributesFactory)
                  .mutable()
                  .attribute(Attribute.of('foo', String), 'value')
         """
@@ -123,7 +125,7 @@ class ConfigurationCacheIvyPublishIntegrationTest extends AbstractConfigurationC
         !GUtil.isSecureUrl(server.uri)
 
         when:
-        prepareIvyHttpRepository(projectConfig.remoteRepo, new DefaultPasswordCredentials(username, password))
+        prepareIvyHttpRepository(projectConfig.remoteRepo, TestCredentialUtil.defaultPasswordCredentials(username, password))
         configurationCacheRun(*(projectConfig.tasks))
         server.resetExpectations()
 
@@ -137,7 +139,7 @@ class ConfigurationCacheIvyPublishIntegrationTest extends AbstractConfigurationC
         metadataFile.delete()
         deleteDirectory(ivyRepo.rootDir)
 
-        prepareIvyHttpRepository(projectConfig.remoteRepo, new DefaultPasswordCredentials(username, password))
+        prepareIvyHttpRepository(projectConfig.remoteRepo, TestCredentialUtil.defaultPasswordCredentials(username, password))
         configurationCacheRun(*(projectConfig.tasks))
         server.resetExpectations()
 
@@ -160,7 +162,7 @@ class ConfigurationCacheIvyPublishIntegrationTest extends AbstractConfigurationC
         !GUtil.isSecureUrl(server.uri)
 
         when:
-        prepareIvyHttpRepository(projectConfig.remoteRepo, new DefaultPasswordCredentials(username, password))
+        prepareIvyHttpRepository(projectConfig.remoteRepo, TestCredentialUtil.defaultPasswordCredentials(username, password))
         configurationCacheRun("publishAllPublicationsToIvyRepoRepository")
         server.resetExpectations()
 
@@ -171,7 +173,7 @@ class ConfigurationCacheIvyPublishIntegrationTest extends AbstractConfigurationC
         def storeTimeRepo = ivyRepoFiles()
         deleteDirectory(ivyRepo.rootDir)
 
-        prepareIvyHttpRepository(projectConfig.remoteRepo, new DefaultPasswordCredentials(username, password))
+        prepareIvyHttpRepository(projectConfig.remoteRepo, TestCredentialUtil.defaultPasswordCredentials(username, password))
         configurationCacheRun("publishAllPublicationsToIvyRepoRepository")
         server.resetExpectations()
 

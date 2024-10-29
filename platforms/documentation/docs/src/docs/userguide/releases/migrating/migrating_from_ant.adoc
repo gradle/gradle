@@ -224,7 +224,7 @@ That's because you can incorporate filesystem dependencies into a Gradle build i
 
 It's easier to migrate to managed dependencies served from Maven, or Ivy-compatible repositories, if you take the first approach, but doing so requires all your files to conform to the naming convention "<moduleName>-<version>.<extension>".
 
-NOTE: If you store your dependencies in the standard Maven repository layout — `<repoDir>/<group>/<module>/<version>` — then you can define a <<declaring_repositories.adoc#sec:declaring_custom_repository,custom Maven repository>> with a `file://` URL.
+NOTE: If you store your dependencies in the standard Maven repository layout — `<repoDir>/<group>/<module>/<version>` — then you can define a <<declaring_repositories_basics.adoc#sec:declaring_custom_repository,custom Maven repository>> with a `file://` URL.
 
 To demonstrate the two techniques, consider a project that has the following library JARs in its `libs` directory:
 

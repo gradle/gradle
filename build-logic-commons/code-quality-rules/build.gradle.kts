@@ -19,13 +19,6 @@ plugins {
 }
 description = "Provides a custom CodeNarc rule used by the Gradle build"
 
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(11)
-        vendor = JvmVendorSpec.ADOPTIUM
-    }
-}
-
 group = "gradlebuild"
 
 dependencies {

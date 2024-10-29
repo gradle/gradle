@@ -12,6 +12,7 @@ dependencies {
     api(projects.logging)
     api(projects.serviceProvider)
     api(projects.stdlibJavaExtensions)
+    api(projects.persistentCache)
 
     api(libs.inject)
     api(libs.kotlinStdlib)
@@ -20,6 +21,7 @@ dependencies {
     implementation(projects.functional)
     implementation(projects.fileCollections)
     implementation(projects.hashing)
+    implementation(projects.jvmServices)
     implementation(projects.loggingApi)
     implementation(projects.pluginDevelopment)
     implementation(projects.pluginsJavaBase)
@@ -30,6 +32,7 @@ dependencies {
     implementation(projects.toolingApi)
     implementation(projects.toolchainsJvm)
     implementation(projects.toolchainsJvmShared)
+    implementation(projects.declarativeDslInternalUtils)
 
     implementation(libs.futureKotlin("scripting-compiler-impl-embeddable")) {
         isTransitive = false
@@ -45,4 +48,7 @@ dependencies {
 
 packageCycles {
     excludePatterns.add("org/gradle/kotlin/dsl/provider/plugins/precompiled/tasks/**")
+}
+tasks.isolatedProjectsIntegTest {
+    enabled = false
 }

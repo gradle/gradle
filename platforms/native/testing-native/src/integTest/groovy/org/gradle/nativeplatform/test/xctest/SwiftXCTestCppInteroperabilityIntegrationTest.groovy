@@ -16,25 +16,35 @@
 
 package org.gradle.nativeplatform.test.xctest
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.language.swift.AbstractSwiftMixedLanguageIntegrationTest
 import org.gradle.language.swift.SwiftTaskNames
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
+import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
+import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.CppGreeterFunction
 import org.gradle.nativeplatform.fixtures.app.SwiftLibTest
 import org.gradle.nativeplatform.fixtures.app.SwiftLibWithCppDep
 import org.gradle.nativeplatform.fixtures.app.SwiftLibWithCppDepXCTest
 import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
+import org.gradle.test.precondition.Requires
+
+import static org.gradle.test.preconditions.UnitTestPreconditions.HasXCTest
 
 @DoesNotSupportNonAsciiPaths(reason = "Swift sometimes fails when executed from non-ASCII directory")
+@Requires(HasXCTest)
+@RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_5_OR_OLDER)
 class SwiftXCTestCppInteroperabilityIntegrationTest extends AbstractSwiftMixedLanguageIntegrationTest implements XCTestExecutionResult, SwiftTaskNames {
+    @Override
+    def getSwiftToolChain() {
+        return AvailableToolChains.getToolChain(ToolChainRequirement.SWIFTC_5_OR_OLDER)
+    }
+
     def setup() {
         buildFile << """
             apply plugin: 'xctest'
         """
     }
 
-    @ToBeFixedForConfigurationCache
     def "can depend on a #linkage.toLowerCase() c++ library"() {
         given:
         def cppGreeter = new CppGreeterFunction()
@@ -79,7 +89,6 @@ class SwiftXCTestCppInteroperabilityIntegrationTest extends AbstractSwiftMixedLa
         linkage << [SHARED, STATIC]
     }
 
-    @ToBeFixedForConfigurationCache
     def "can specify a test dependency on a library with a dependency on a c++ library"() {
         def cppGreeter = new CppGreeterFunction()
         def lib = new SwiftLibWithCppDep(cppGreeter)

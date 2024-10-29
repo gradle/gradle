@@ -39,9 +39,8 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver
 import org.gradle.api.internal.attributes.AttributeDesugaring
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
-import org.gradle.api.internal.attributes.EmptySchema
 import org.gradle.api.internal.attributes.ImmutableAttributes
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory
+import org.gradle.api.internal.attributes.AttributesFactory
 import org.gradle.api.internal.component.DefaultSoftwareComponentVariant
 import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.model.ObjectFactory
@@ -266,7 +265,7 @@ class DefaultMavenPublicationTest extends Specification {
         moduleDependency.excludeRules >> [excludeRule]
         moduleDependency.transitive >> true
         moduleDependency.attributes >> ImmutableAttributes.EMPTY
-        moduleDependency.requestedCapabilities >> []
+        moduleDependency.capabilitySelectors >> ([] as Set)
 
         and:
         publication.from(componentWithDependency(moduleDependency))
@@ -298,7 +297,7 @@ class DefaultMavenPublicationTest extends Specification {
         moduleDependency.excludeRules >> [excludeRule]
         moduleDependency.transitive >> true
         moduleDependency.attributes >> ImmutableAttributes.EMPTY
-        moduleDependency.requestedCapabilities >> []
+        moduleDependency.capabilitySelectors >> ([] as Set)
 
         and:
         publication.from(componentWithDependency(moduleDependency))
@@ -327,7 +326,7 @@ class DefaultMavenPublicationTest extends Specification {
         moduleDependency.excludeRules >> [excludeRule]
         moduleDependency.transitive >> true
         moduleDependency.attributes >> ImmutableAttributes.EMPTY
-        moduleDependency.requestedCapabilities >> []
+        moduleDependency.capabilitySelectors >> ([] as Set)
 
         and:
         publication.from(componentWithDependency(moduleDependency))
@@ -364,7 +363,7 @@ class DefaultMavenPublicationTest extends Specification {
         moduleDependency.excludeRules >> [excludeRule]
         moduleDependency.transitive >> false
         moduleDependency.attributes >> ImmutableAttributes.EMPTY
-        moduleDependency.requestedCapabilities >> []
+        moduleDependency.capabilitySelectors >> ([] as Set)
 
         and:
         publication.from(componentWithDependency(moduleDependency))
@@ -398,7 +397,7 @@ class DefaultMavenPublicationTest extends Specification {
         moduleDependency.excludeRules >> []
         moduleDependency.transitive >> true
         moduleDependency.attributes >> platformAttribute()
-        moduleDependency.requestedCapabilities >> []
+        moduleDependency.capabilitySelectors >> ([] as Set)
 
         and:
         publication.from(createComponent([], [moduleDependency], scope))
@@ -430,7 +429,7 @@ class DefaultMavenPublicationTest extends Specification {
         and:
         projectDependency.excludeRules >> []
         projectDependency.getAttributes() >> ImmutableAttributes.EMPTY
-        projectDependency.requestedCapabilities >> []
+        projectDependency.capabilitySelectors >> ([] as Set)
         projectDependency.getArtifacts() >> []
         projectDependency.getGroup() >> "pub-group"
         projectDependency.getName() >> "pub-name"
@@ -461,10 +460,8 @@ class DefaultMavenPublicationTest extends Specification {
         and:
         projectDependency.excludeRules >> []
         projectDependency.getAttributes() >> ImmutableAttributes.EMPTY
-        projectDependency.requestedCapabilities >> []
+        projectDependency.capabilitySelectors >> ([] as Set)
         projectDependency.getArtifacts() >> []
-        projectDependency.getGroup() >> "group"
-        projectDependency.getName() >> "name"
         projectDependencyResolver.resolveComponent(ModuleVersionIdentifier, projectDependency.identityPath) >> DefaultModuleVersionIdentifier.newId("group", "name", "version")
 
         when:
@@ -605,8 +602,8 @@ class DefaultMavenPublicationTest extends Specification {
             it.add(VersionRangeMapper, versionRangeMapper)
             it.add(ProjectDependencyPublicationResolver, projectDependencyResolver)
             it.add(ImmutableModuleIdentifierFactory, new DefaultImmutableModuleIdentifierFactory())
-            it.add(AttributesSchemaInternal, EmptySchema.INSTANCE)
-            it.add(ImmutableAttributesFactory, AttributeTestUtil.attributesFactory())
+            it.add(AttributesSchemaInternal, AttributeTestUtil.mutableSchema())
+            it.add(AttributesFactory, AttributeTestUtil.attributesFactory())
             it.add(AttributeDesugaring, new AttributeDesugaring(AttributeTestUtil.attributesFactory()))
             it.add(DefaultDependencyCoordinateResolverFactory)
             it.add(Project, TestUtil.createRootProject(testDirectoryProvider.testDirectory))

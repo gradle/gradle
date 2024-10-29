@@ -48,10 +48,6 @@ dependencies {
     crossVersionTestDistributionRuntimeOnly(projects.distributionsFull)
 }
 
-tasks.isolatedProjectsIntegTest {
-    enabled = true
-}
-
 packageCycles {
     excludePatterns.add("org/gradle/api/plugins/**")
 }

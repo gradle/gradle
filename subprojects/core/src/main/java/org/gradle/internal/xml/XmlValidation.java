@@ -117,7 +117,7 @@ public class XmlValidation {
     /**
      * Verifies if a codepoint is an allowed XML char.
      *
-     * @link https://www.w3.org/TR/REC-xml/#charsets
+     * @see <a href="https://www.w3.org/TR/REC-xml/#charsets">XML Charsets</a>
      * @param c codepoint
      * @return true when the codepoint is a valid XML char
      */

@@ -418,6 +418,7 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
     }
 
     AbstractIntegrationSpec withBuildCache() {
+        executer.withArgument("--no-problems-report")
         executer.withBuildCacheEnabled()
         this
     }
@@ -835,6 +836,11 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
                 }
                 if (p1.details != p2.details) {
                     return p1.details <=> p2.details
+                }
+                if (p1.additionalData.getAsMap() != p2.additionalData.getAsMap()) {
+                    String sortableP1 = p1.additionalData.getAsMap().collect { k, v -> "$k=$v" }.sort().join(", ")
+                    String sortableP2 = p2.additionalData.getAsMap().collect { k, v -> "$k=$v" }.sort().join(", ")
+                    return sortableP1 <=> sortableP2
                 }
                 return 0
             }

@@ -41,7 +41,20 @@ interface BeanStateReaderLookup {
 }
 
 
+data class SpecialEncoders(
+    val stringEncoder: StringEncoder = InlineStringEncoder,
+    val sharedObjectEncoder: SharedObjectEncoder = InlineSharedObjectEncoder
+)
+
+
+data class SpecialDecoders(
+    val stringDecoder: StringDecoder = InlineStringDecoder,
+    val sharedObjectDecoder: SharedObjectDecoder = InlineSharedObjectDecoder
+)
+
+
 class DefaultWriteContext(
+    name: String? = null,
 
     codec: Codec<Any?>,
 
@@ -58,9 +71,15 @@ class DefaultWriteContext(
     problemsListener: ProblemsListener,
 
     private
-    val classEncoder: ClassEncoder
+    val classEncoder: ClassEncoder,
 
-) : AbstractIsolateContext<WriteIsolate>(codec, problemsListener), CloseableWriteContext, Encoder by encoder {
+    specialEncoders: SpecialEncoders = SpecialEncoders()
+
+) : AbstractIsolateContext<WriteIsolate>(codec, problemsListener, name), CloseableWriteContext, Encoder by encoder {
+
+    val stringEncoder = specialEncoders.stringEncoder
+
+    val sharedObjectEncoder = specialEncoders.sharedObjectEncoder
 
     override val sharedIdentities = WriteIdentities()
 
@@ -79,9 +98,21 @@ class DefaultWriteContext(
     override val isolate: WriteIsolate
         get() = getIsolate()
 
+    override fun writeString(value: CharSequence) =
+        stringEncoder.writeString(encoder, value)
+
+    override fun writeNullableString(value: CharSequence?) =
+        stringEncoder.writeNullableString(encoder, value)
+
     override suspend fun write(value: Any?) {
         getCodec().run {
             encode(value)
+        }
+    }
+
+    override suspend fun <T : Any> writeSharedObject(value: T, encode: suspend WriteContext.(T) -> Unit) {
+        sharedObjectEncoder.run {
+            write(this@DefaultWriteContext, value, encode)
         }
     }
 
@@ -91,7 +122,7 @@ class DefaultWriteContext(
         }
     }
 
-    override fun writeClassLoader(classLoader: ClassLoader?): Boolean = classEncoder.run {
+    override fun writeClassLoader(classLoader: ClassLoader?) = classEncoder.run {
         encodeClassLoader(classLoader)
     }
 
@@ -109,26 +140,88 @@ interface ClassEncoder {
 
     /**
      * Tries to encode the given [classLoader].
-     *
-     * @return `true` when the given [ClassLoader] is not `null` and could be encoded, `false` otherwise.
      */
-    fun WriteContext.encodeClassLoader(classLoader: ClassLoader?): Boolean = false
+    fun WriteContext.encodeClassLoader(classLoader: ClassLoader?) = Unit
 }
 
 
 interface ClassDecoder {
-    fun ReadContext.decodeClass(): Class<*>
+    fun Decoder.decodeClass(): Class<*>
 
     /**
      * Decodes a [ClassLoader] previously encoded via [ClassEncoder.encodeClassLoader].
      *
      * @return the previously encoded [ClassLoader] or `null` when [ClassEncoder.encodeClassLoader] returns `false`
      */
-    fun ReadContext.decodeClassLoader(): ClassLoader? = null
+    fun Decoder.decodeClassLoader(): ClassLoader? = null
+}
+
+
+interface StringEncoder : AutoCloseable {
+    fun writeNullableString(encoder: Encoder, string: CharSequence?)
+    fun writeString(encoder: Encoder, string: CharSequence)
+}
+
+
+object InlineStringEncoder : StringEncoder {
+    override fun writeNullableString(encoder: Encoder, string: CharSequence?) {
+        encoder.writeNullableString(string)
+    }
+
+    override fun writeString(encoder: Encoder, string: CharSequence) {
+        encoder.writeString(string)
+    }
+
+    override fun close() = Unit
+}
+
+
+interface StringDecoder : AutoCloseable {
+    fun readNullableString(decoder: Decoder): String?
+    fun readString(decoder: Decoder): String
+}
+
+
+object InlineStringDecoder : StringDecoder {
+    override fun readNullableString(decoder: Decoder): String? =
+        decoder.readNullableString()
+
+    override fun readString(decoder: Decoder): String =
+        decoder.readString()
+
+    override fun close() = Unit
+}
+
+//TODO-RC consider making the implementations auto-closeable
+interface SharedObjectEncoder : AutoCloseable {
+    suspend fun <T: Any> write(writeContext: WriteContext, value: T, encode: suspend WriteContext.(T) -> Unit)
+}
+
+
+interface SharedObjectDecoder : AutoCloseable {
+    suspend fun <T: Any> read(readContext: ReadContext, decode: suspend ReadContext.() -> T): T
+}
+
+
+object InlineSharedObjectDecoder : SharedObjectDecoder {
+    override suspend fun <T: Any> read(readContext: ReadContext, decode: suspend ReadContext.() -> T): T =
+        readContext.decode()
+
+    override fun close() = Unit
+}
+
+
+object InlineSharedObjectEncoder : SharedObjectEncoder {
+    override suspend fun <T : Any> write(writeContext: WriteContext, value: T, encode: suspend WriteContext.(T) -> Unit) {
+        writeContext.encode(value)
+    }
+
+    override fun close() = Unit
 }
 
 
 class DefaultReadContext(
+    name: String? = null,
     codec: Codec<Any?>,
 
     private
@@ -142,11 +235,16 @@ class DefaultReadContext(
     problemsListener: ProblemsListener,
 
     private
-    val classDecoder: ClassDecoder
+    val classDecoder: ClassDecoder,
 
-) : AbstractIsolateContext<ReadIsolate>(codec, problemsListener), CloseableReadContext, Decoder by decoder {
+    specialDecoders: SpecialDecoders = SpecialDecoders()
+) : AbstractIsolateContext<ReadIsolate>(codec, problemsListener, name), CloseableReadContext, Decoder by decoder {
 
     override val sharedIdentities = ReadIdentities()
+
+    val stringDecoder = specialDecoders.stringDecoder
+
+    val sharedObjectDecoder = specialDecoders.sharedObjectDecoder
 
     private
     var singletonProperty: Any? = null
@@ -171,9 +269,20 @@ class DefaultReadContext(
         (decoder as? AutoCloseable)?.close()
     }
 
+    override fun readNullableString(): String? =
+        stringDecoder.readNullableString(decoder)
+
+    override fun readString(): String =
+        stringDecoder.readString(decoder)
+
     override suspend fun read(): Any? = getCodec().run {
         decode()
     }
+
+    override suspend fun <T : Any> readSharedObject(decode: suspend ReadContext.() -> T): T =
+        sharedObjectDecoder.run {
+            read(this@DefaultReadContext, decode)
+        }
 
     override fun readClass(): Class<*> = classDecoder.run {
         decodeClass()
@@ -208,7 +317,8 @@ class DefaultReadContext(
 
 abstract class AbstractIsolateContext<T>(
     codec: Codec<Any?>,
-    problemsListener: ProblemsListener
+    problemsListener: ProblemsListener,
+    private val explicitName: String? = null
 ) : MutableIsolateContext {
 
     private
@@ -219,6 +329,9 @@ abstract class AbstractIsolateContext<T>(
 
     private
     var currentCodec = codec
+
+    override val name: String
+        get() = explicitName ?: ""
 
     override var trace: PropertyTrace = PropertyTrace.Gradle
 
@@ -275,6 +388,10 @@ abstract class AbstractIsolateContext<T>(
         } finally {
             currentProblemsListener = previousListener
         }
+    }
+
+    override fun toString(): String {
+        return "$name ${this::class.simpleName}"
     }
 }
 

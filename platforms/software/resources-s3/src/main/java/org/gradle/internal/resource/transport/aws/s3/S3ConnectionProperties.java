@@ -26,6 +26,7 @@ import org.gradle.internal.resource.transport.http.JavaSystemPropertiesSecureHtt
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Locale;
 import java.util.Set;
 
 import static java.lang.System.getProperty;
@@ -64,7 +65,7 @@ public class S3ConnectionProperties {
         if (StringUtils.isNotBlank(property)) {
             try {
                 uri = new URI(property);
-                if (StringUtils.isBlank(uri.getScheme()) || !SUPPORTED_SCHEMES.contains(uri.getScheme().toUpperCase())) {
+                if (StringUtils.isBlank(uri.getScheme()) || !SUPPORTED_SCHEMES.contains(uri.getScheme().toUpperCase(Locale.ROOT))) {
                     throw new IllegalArgumentException("System property [" + S3_ENDPOINT_PROPERTY + "=" + property + "] must have a scheme of 'http' or 'https'");
                 }
             } catch (URISyntaxException e) {

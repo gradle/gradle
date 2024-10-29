@@ -37,7 +37,7 @@ class TaskNameResolvingBuildTaskSchedulerSpec extends Specification {
         executionPlan = Mock(ExecutionPlan)
         parser = Mock(CommandLineTaskParser)
         selector = Mock(EntryTaskSelector)
-        action = new TaskNameResolvingBuildTaskScheduler(parser, Stub(BuildTaskSelector.BuildSpecificSelector))
+        action = new TaskNameResolvingBuildTaskScheduler(parser, Stub(BuildTaskSelector.BuildSpecificSelector), [])
     }
 
     def "empty task parameters are no-op action"() {
@@ -51,6 +51,7 @@ class TaskNameResolvingBuildTaskSchedulerSpec extends Specification {
         action.scheduleRequestedTasks(gradle, null, executionPlan)
 
         then:
+        1 * executionPlan.getContents()
         0 * executionPlan._
     }
 
@@ -96,6 +97,7 @@ class TaskNameResolvingBuildTaskSchedulerSpec extends Specification {
 
         then:
         1 * selector.applyTasksTo(_, executionPlan)
+        1 * executionPlan.getContents()
         0 * executionPlan._
     }
 

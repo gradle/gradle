@@ -25,6 +25,7 @@ import org.gradle.internal.declarativedsl.common.gradleDslGeneralSchema
 import org.gradle.internal.declarativedsl.evaluationSchema.buildEvaluationAndConversionSchema
 import org.gradle.internal.declarativedsl.evaluationSchema.buildEvaluationSchema
 import org.gradle.plugin.software.internal.ModelDefault
+import org.gradle.plugin.software.internal.SoftwareFeatureApplicator
 import org.gradle.plugin.software.internal.SoftwareTypeImplementation
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry
 import org.junit.Assert.assertFalse
@@ -48,6 +49,8 @@ class SoftwareTypesTest {
             )
         }
 
+        val applicatorMock = mock<SoftwareFeatureApplicator>()
+
         val schemaForSettings = buildEvaluationSchema(TopLevel::class, analyzeEverything) {
             gradleDslGeneralSchema()
             softwareTypesConventions(TopLevel::class, registryMock)
@@ -55,14 +58,14 @@ class SoftwareTypesTest {
 
         val schemaForProject = buildEvaluationAndConversionSchema(TopLevel::class, analyzeEverything) {
             gradleDslGeneralSchema()
-            softwareTypesWithPluginApplication(TopLevel::class, registryMock)
+            softwareTypesWithPluginApplication(TopLevel::class, registryMock, applicatorMock)
         }
 
         listOf(schemaForSettings, schemaForProject).forEach { schema ->
-            assertTrue(schema.analysisSchema.dataClassesByFqName.any { it.key.qualifiedName == Supertype::class.qualifiedName })
+            assertTrue(schema.analysisSchema.dataClassTypesByFqName.any { it.key.qualifiedName == Supertype::class.qualifiedName })
 
-            assertFalse(schema.analysisSchema.dataClassesByFqName.any { it.key.qualifiedName == Any::class.qualifiedName })
-            assertFalse(schema.analysisSchema.dataClassesByFqName.any { it.key.qualifiedName == "java.lang.Object" })
+            assertFalse(schema.analysisSchema.dataClassTypesByFqName.any { it.key.qualifiedName == Any::class.qualifiedName })
+            assertFalse(schema.analysisSchema.dataClassTypesByFqName.any { it.key.qualifiedName == "java.lang.Object" })
         }
     }
 

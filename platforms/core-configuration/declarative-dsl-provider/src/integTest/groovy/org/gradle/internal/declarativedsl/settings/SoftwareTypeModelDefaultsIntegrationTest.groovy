@@ -331,6 +331,22 @@ class SoftwareTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec i
         "kotlin" | ".kts"
     }
 
+    def "can configure defaults for named domain object container elements"() {
+        given:
+        withSoftwareTypePluginWithNdoc().prepareToExecute()
+
+        file("settings.gradle.dcl") << getDeclarativeSettingsScriptThatSetsDefaultsForNdoc()
+
+        file("build.gradle.dcl") << getDeclarativeScriptThatConfiguresOnlyTestSoftwareType(fooNdocYValues())
+
+        when:
+        run(":printTestSoftwareTypeExtensionConfiguration")
+
+        then:
+        outputContains("Foo(name = one, x = 1, y = 11)")
+        outputContains("Foo(name = two, x = 2, y = 22)")
+    }
+
     @NotYetImplemented
     def "can configure build-level defaults in a settings plugin"() {
         given:
@@ -407,6 +423,19 @@ class SoftwareTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec i
         return implementation(dependencies) + "\n" + api(dependencies) + "\n" + compileOnly(dependencies) + "\n" + runtimeOnly(dependencies)
     }
 
+    static String fooNdocYValues() {
+        return """
+        foos {
+            foo("one") {
+                y = 11
+            }
+            foo("two") {
+                y = 22
+            }
+        }
+        """
+    }
+
     static String dependencies(String dependencies) {
         return """
             dependencies {
@@ -416,11 +445,11 @@ class SoftwareTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec i
     }
 
     static String externalDependency(String group, String name, String version) {
-        return "DefaultExternalModuleDependency{group='${group}', name='${name}', version='${version}', configuration='default'}"
+        return "${group}:${name}:${version}"
     }
 
     static String projectDependency(String projectPath) {
-        return "DefaultProjectDependency{identityPath='${projectPath}', configuration='default'}"
+        return "project '${projectPath}'"
     }
 
     static String getDeclarativeScriptThatConfiguresOnlyTestSoftwareType(String configuration="") {
@@ -448,4 +477,20 @@ class SoftwareTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec i
             }
         """
     }
+
+    static String getDeclarativeSettingsScriptThatSetsDefaultsForNdoc(String configuration="") {
+        return getDeclarativeSettingsScriptThatSetsDefaults("" +
+            """
+            foos {
+                foo("one") {
+                    x = 1
+                }
+                foo("two") {
+                    x = 2
+                }
+            }
+            """
+        )
+    }
+
 }

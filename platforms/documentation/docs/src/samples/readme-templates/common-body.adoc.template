@@ -3,8 +3,6 @@ NOTE: You can open this sample in an <<gradle_ides.adoc#gradle_ides,IDE that sup
 This guide demonstrates how to create a ${language.raw} ${componentType.raw} with Gradle using `gradle init`.
 You can follow the guide step-by-step to create a new project from scratch or download the complete sample project using the links above.
 
-${configurationCacheCompatibility.raw}
-
 == What you’ll build
 
 You'll generate a ${language.raw} ${componentType.raw} that follows Gradle's conventions.
@@ -32,8 +30,8 @@ The first step is to create a folder for the new project and change directory in
 == Run the init task
 
 From inside the new project directory, run the `init` task using the following command in a terminal: `gradle init`.
-When prompted, select the `${componentTypeIndex.raw}: ${componentType.raw}` project type and `${languageIndex.raw}: ${language.raw}` as implementation language.
-Next you can choose the DSL for writing buildscripts -  `1  : Groovy` or `2: Kotlin`.
+When prompted, select the `${componentTypeIndex.raw}: ${componentType.raw}` project type and `${languageIndex.raw}: ${language.raw}` as the implementation language.
+Next you can choose the DSL for writing buildscripts -  `1  : Kotlin` or `2: Groovy`.
 For the other questions, press enter to use the default values.
 
 The output will look like this:
@@ -42,32 +40,33 @@ The output will look like this:
 ----
 \$ gradle init
 
-Select type of project to generate:
-  1: basic
-  2: application
-  3: library
-  4: Gradle plugin
-Enter selection (default: basic) [1..4] ${componentTypeIndex.raw}
+Select type of build to generate:
+  1: Application
+  2: Library
+  3: Gradle plugin
+  4: Basic (build structure only)
+Enter selection (default: Application) [1..4] ${componentTypeIndex.raw}
 
 Select implementation language:
-  1: C++
-  2: Groovy
-  3: Java
-  4: Kotlin
-  5: Scala
+  1: Java
+  2: Kotlin
+  3: Groovy
+  4: Scala
+  5: C++
   6: Swift
 Enter selection (default: Java) [1..6] ${languageIndex.raw}
-
-Select build script DSL:
-  1: Groovy
-  2: Kotlin
-Enter selection (default: Groovy) [1..2] 1
-${testFrameworkChoice.raw}
-Project name (default: demo):
 ${packageNameChoice.raw}
+Project name (default: demo):
+${applicationStructureChoice.raw}
+Select build script DSL:
+  1: Kotlin
+  2: Groovy
+Enter selection (default: Kotlin) [1..2]
+${testFrameworkChoice.raw}
+Generate build using new APIs and behavior (some features may change in the next minor release)? (default: no) [yes, no]
 
 BUILD SUCCESSFUL
-2 actionable tasks: 2 executed
+1 actionable task: 1 executed
 ----
 
 The `init` task generates the new project with the following structure:

@@ -19,7 +19,7 @@ package org.gradle.internal.service;
 /**
  * Marker interface for reflection-based service declaration and registration.
  *
- * <h3>Declaring statically</h3>
+ * <h2>Declaring statically</h2>
  * You can declare services and factories by adding methods to the implementation of this interface.
  * <p>
  * The service-declaring methods are
@@ -66,7 +66,6 @@ package org.gradle.internal.service;
  * <p>
  * On top of the basic case of injecting dependencies, more advanced use-cases are also supported:
  * decoration, aggregation, owner registry injection.
- * <p>
  * <pre><code class="language-java">
  * &#64;Provides
  * protected MyService createMyService(
@@ -102,7 +101,6 @@ package org.gradle.internal.service;
  * <b>Owner dependency.</b>
  * When the parameter is of type {@link ServiceRegistry}, it will receive an instance of registry that owns the service.
  * See {@code ServiceRegistry ownerServiceRegistry} in the example.
- * <p>
  *
  * <h3>Service lookup order</h3>
  *

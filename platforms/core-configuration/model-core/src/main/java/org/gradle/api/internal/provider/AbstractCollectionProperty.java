@@ -29,13 +29,13 @@ import org.gradle.api.internal.provider.Collectors.SingleElement;
 import org.gradle.api.provider.HasMultipleValues;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
-import org.gradle.util.internal.TextUtil;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Locale;
 import java.util.function.Supplier;
 
 /**
@@ -46,7 +46,7 @@ import java.util.function.Supplier;
  * <p>
  *     Elements stored in collection property values are implemented via various implementations of {@link Collector}.
  * </p>
- * <h3>Collection suppliers</h3>
+ * <h2>Collection suppliers</h2>
  * The value of a collection property is represented at any time as an instance of an implementation of {@link CollectionSupplier}, namely:
  * <ul>
  *     <li>{@link EmptySupplier}, the initial value of a collection (or after {@link #empty()} is invoked)</li>
@@ -57,7 +57,7 @@ import java.util.function.Supplier;
  *     the collecting supplier will wrap a {@link Collector} that lazily represents the yet-to-be realized contents of the collection - see below for details</li>
  * </ul>
  *
- * <h3>Collectors</h3>
+ * <h2>Collectors</h2>
  * <p>
  *     While a collection property's contents are being built up, its value is represented by a {@link CollectingSupplier}.
  *     The collecting supplier will wrap a {@link Collector} instance that represents the various forms that elements can be added to a collection property (before the collection is finalized), namely:
@@ -231,7 +231,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         if (value.isMissing()) {
             setSupplier(noValueSupplier());
         } else if (value.hasFixedValue()) {
-            setSupplier(new FixedSupplier<>(value.getFixedValue(), Cast.uncheckedCast(value.getSideEffect())));
+            setSupplier(new FixedSupplier(value.getFixedValue(), Cast.uncheckedCast(value.getSideEffect())));
         } else {
             CollectingProvider<T, C> asCollectingProvider = Cast.uncheckedNonnullCast(value.getChangingValue());
             setSupplier(new CollectingSupplier(new ElementsFromCollectionProvider<>(asCollectingProvider)));
@@ -310,7 +310,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     protected CollectionSupplier<T, C> finalValue(EvaluationContext.ScopeContext context, CollectionSupplier<T, C> value, ValueConsumer consumer) {
         Value<? extends C> result = value.calculateValue(consumer);
         if (!result.isMissing()) {
-            return new FixedSupplier<>(result.getWithoutSideEffect(), Cast.uncheckedCast(result.getSideEffect()));
+            return new FixedSupplier(result.getWithoutSideEffect(), Cast.uncheckedCast(result.getSideEffect()));
         } else if (result.getPathToOrigin().isEmpty()) {
             return noValueSupplier();
         } else {
@@ -341,7 +341,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
     @Override
     protected String describeContents() {
-        String typeDisplayName = TextUtil.toLowerCaseLocaleSafe(collectionType.getSimpleName());
+        String typeDisplayName = collectionType.getSimpleName().toLowerCase(Locale.ROOT);
         return String.format("%s(%s, %s)", typeDisplayName, elementType, describeValue());
     }
 
@@ -429,7 +429,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         }
     }
 
-    private static class FixedSupplier<T, C extends Collection<? extends T>> implements CollectionSupplier<T, C> {
+    private class FixedSupplier implements CollectionSupplier<T, C> {
         private final C value;
         private final SideEffect<? super C> sideEffect;
 
@@ -455,7 +455,9 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
         @Override
         public CollectionSupplier<T, C> plus(Collector<T> collector) {
-            throw new UnsupportedOperationException();
+            Collector<T> left = new FixedValueCollector<>(value, sideEffect);
+            PlusCollector<T> newCollector = new PlusCollector<>(left, collector);
+            return new CollectingSupplier(newCollector);
         }
 
         @Override
@@ -620,6 +622,59 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
             Value<? extends C> resultValue = Value.of(Cast.uncheckedNonnullCast(builder.build()));
             return resultValue.withSideEffect(sideEffectBuilder.build());
+        }
+    }
+
+    /**
+     * A fixed value collector, similar to {@link ElementsFromCollection} but with a side effect.
+     */
+    private static class FixedValueCollector<T, C extends Collection<T>> implements Collector<T> {
+        @Nullable
+        private final SideEffect<? super C> sideEffect;
+        private final C collection;
+
+        private FixedValueCollector(C collection, @Nullable SideEffect<? super C> sideEffect) {
+            this.collection = collection;
+            this.sideEffect = sideEffect;
+        }
+
+        @Override
+        public Value<Void> collectEntries(ValueConsumer consumer, ValueCollector<T> collector, ImmutableCollection.Builder<T> dest) {
+            collector.addAll(collection, dest);
+            return sideEffect != null
+                ? Value.present().withSideEffect(SideEffect.fixed(collection, sideEffect))
+                : Value.present();
+        }
+
+        @Override
+        public int size() {
+            return collection.size();
+        }
+
+        @Override
+        public void calculateExecutionTimeValue(Action<? super ExecutionTimeValue<? extends Iterable<? extends T>>> visitor) {
+            visitor.execute(ExecutionTimeValue.fixedValue(collection).withSideEffect(sideEffect));
+        }
+
+        @Override
+        public Collector<T> absentIgnoring() {
+            // always present
+            return this;
+        }
+
+        @Override
+        public ValueProducer getProducer() {
+            return ValueProducer.unknown();
+        }
+
+        @Override
+        public boolean calculatePresence(ValueConsumer consumer) {
+            return true;
+        }
+
+        @Override
+        public String toString() {
+            return collection.toString();
         }
     }
 
