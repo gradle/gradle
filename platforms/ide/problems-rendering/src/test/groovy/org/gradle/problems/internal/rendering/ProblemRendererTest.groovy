@@ -20,7 +20,6 @@ import org.gradle.api.problems.ProblemGroup
 import org.gradle.api.problems.internal.AdditionalDataBuilderFactory
 import org.gradle.api.problems.internal.DefaultProblemBuilder
 import org.gradle.api.problems.internal.DefaultProblemGroup
-import org.gradle.api.problems.internal.GeneralDataSpec
 import spock.lang.Specification
 
 class ProblemRendererTest extends Specification {
@@ -60,37 +59,6 @@ class ProblemRendererTest extends Specification {
 
         then:
         renderedTextLines[0] == "  contextual-label"
-    }
-
-    void "individual problem with formatted additional data replace regular rendered content"() {
-        given:
-        def problem = new DefaultProblemBuilder(new AdditionalDataBuilderFactory())
-            .id("id", "display-name", level1Group)
-            .additionalData(GeneralDataSpec) {
-                it.put('formatted', 'formatted-problem-details')
-            }.build()
-
-        when:
-        renderer.render(problem)
-
-        then:
-        renderedTextLines[0] == "formatted-problem-details"
-    }
-
-    def "individual problem with multiline formatted additional data will be indented correctly"() {
-        given:
-        def problem = new DefaultProblemBuilder(new AdditionalDataBuilderFactory())
-            .id("id", "display-name", level1Group)
-            .additionalData(GeneralDataSpec) {
-                it.put('formatted', 'formatted-problem-details\nwith multiple lines')
-            }.build()
-
-        when:
-        renderer.render(problem)
-
-        then:
-        renderedTextLines[0] == "formatted-problem-details"
-        renderedTextLines[1] == "with multiple lines"
     }
 
     def "individual problem with details are displayed"() {

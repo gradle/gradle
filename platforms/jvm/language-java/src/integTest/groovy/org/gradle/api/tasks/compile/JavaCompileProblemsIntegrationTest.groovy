@@ -299,7 +299,7 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
             fqid == 'compilation:java:compiler-err-warnings-and-werror'
             contextualLabel == 'warnings found and -Werror specified'
             !solutions.empty
-            additionalData.asMap == ["formatted": "error: warnings found and -Werror specified"]
+            details == "error: warnings found and -Werror specified"
         }
 
         // Based on the Java version, the types in the lint message will differ...
@@ -320,7 +320,7 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
             verifyAll(getSingleLocation(ReceivedProblem.ReceivedFileLocation)) {
                 it.path == fooFileLocation.absolutePath
             }
-            additionalData.asMap["formatted"] == """\
+            details == """\
 $fooFileLocation:5: warning: [cast] redundant cast to $expectedType
         String s = (String)"Hello World";
                    ^"""
@@ -331,7 +331,7 @@ $fooFileLocation:5: warning: [cast] redundant cast to $expectedType
             fqid == 'compilation:java:compiler-warn-redundant-cast'
             contextualLabel == 'redundant cast to java.lang.String'
             solutions.empty
-            additionalData.asMap["formatted"] == """\
+            details == """\
 ${fooFileLocation}:9: warning: [cast] redundant cast to $expectedType
         String s = (String)"Hello World";
                    ^"""
@@ -437,7 +437,7 @@ ${fooFileLocation}:9: warning: [cast] redundant cast to $expectedType
             fqid == 'compilation:java:compiler-warn-redundant-cast'
             contextualLabel == 'redundant cast to java.lang.String'
             // In JDK8, the compiler will not simplify the type to just "String"
-            additionalData.asMap["formatted"].contains("redundant cast to java.lang.String")
+            details.contains("redundant cast to java.lang.String")
         }
     }
 
@@ -465,7 +465,7 @@ ${fooFileLocation}:9: warning: [cast] redundant cast to $expectedType
             fqid == 'compilation:java:compiler-warn-redundant-cast'
             contextualLabel == 'redundant cast to java.lang.String'
             // In JDK11, the compiler will not simplify the type to just "String"
-            additionalData.asMap["formatted"].contains("redundant cast to String")
+            details.contains("redundant cast to String")
         }
 
         where:
