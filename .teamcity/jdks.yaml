@@ -133,7 +133,8 @@ jdks:
     vendor: "temurin"
     version: "jdk-17.0.13+11"
     sha256: "840535070200a944a6b582d258ee84608bd25c9f2b5d1cdddb58dfadb019675a"
-  - param: "macos.java21.openjdk.64bit"
+  - params:
+      - "macos.java21.openjdk.64bit"
     os: "macos"
     arch: "amd64"
     vendor: "temurin"
