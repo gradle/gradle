@@ -1,6 +1,14 @@
 {
     "acceptedApiChanges": [
         {
+            "type": "org.gradle.api.artifacts.ProjectDependency",
+            "member": "Method org.gradle.api.artifacts.ProjectDependency.getPath()",
+            "acceptation": "No need to incubate",
+            "changes": [
+                "Method added to interface"
+            ]
+        },
+        {
             "type": "org.gradle.api.artifacts.dsl.DependencyConstraintHandler",
             "member": "Method org.gradle.api.artifacts.dsl.DependencyConstraintHandler.addProvider(java.lang.String,org.gradle.api.provider.Provider)",
             "acceptation": "Not incubating as API is cloned from DependencyHandler",
