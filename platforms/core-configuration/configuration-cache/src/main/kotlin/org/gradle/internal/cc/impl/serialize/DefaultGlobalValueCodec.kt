@@ -19,10 +19,10 @@ package org.gradle.internal.cc.impl.serialize
 import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.serialize.graph.CloseableReadContext
 import org.gradle.internal.serialize.graph.CloseableWriteContext
-import org.gradle.internal.serialize.graph.SharedObjectDecoder
-import org.gradle.internal.serialize.graph.SharedObjectEncoder
 import org.gradle.internal.serialize.graph.IsolateContext
 import org.gradle.internal.serialize.graph.ReadContext
+import org.gradle.internal.serialize.graph.SharedObjectDecoder
+import org.gradle.internal.serialize.graph.SharedObjectEncoder
 import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.internal.serialize.graph.runReadOperation
 import org.gradle.internal.serialize.graph.runWriteOperation
@@ -83,6 +83,7 @@ class DefaultSharedObjectEncoder(
 class DefaultSharedObjectDecoder(
     private val globalContext: CloseableReadContext
 ) : SharedObjectDecoder, AutoCloseable {
+
     enum class ReaderState {
         READY, STARTED, RUNNING, STOPPING, STOPPED
     }
@@ -109,7 +110,7 @@ class DefaultSharedObjectDecoder(
             if (value == null && state < ReaderState.STOPPED && !latch.await(1, TimeUnit.MINUTES)) {
                 throw TimeoutException("Timeout while waiting for value, state was $state")
             }
-            require(value != null) { "State is: $state"}
+            require(value != null) { "State is: $state" }
             return value!!
         }
     }
@@ -155,9 +156,9 @@ class DefaultSharedObjectDecoder(
             "id: $id - $this"
         }
         return when (val existing = values.computeIfAbsent(id) { FutureValue() }) {
-                is FutureValue -> existing.get()
-                else -> existing
-            }
+            is FutureValue -> existing.get()
+            else -> existing
+        }
     }
 
     private fun startReadingIfNeeded() {
@@ -167,11 +168,9 @@ class DefaultSharedObjectDecoder(
     }
 
     override fun close() {
-        try {
+        globalContext.use {
             stopReading()
             reader.join(TimeUnit.MINUTES.toMillis(1))
-        } finally {
-            globalContext.close()
         }
     }
 
@@ -185,6 +184,6 @@ class DefaultSharedObjectDecoder(
     }
 }
 
-fun <T: Any, C: IsolateContext> C.synchronized(action: C.() -> T?) = synchronized(this) {
+fun <T : Any, C : IsolateContext> C.synchronized(action: C.() -> T?) = synchronized(this) {
     action()
 }
