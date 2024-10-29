@@ -4,7 +4,7 @@ import ratpack.gradle.RatpackExtension
 
 // tag::root[]
 plugins {
-    id("com.gradleup.shadow") version "8.3.3" apply false
+    id("com.gradleup.shadow") version "8.3.4" apply false
     id("io.ratpack.ratpack-java") version "1.8.2" apply false
 }
 // end::root[]

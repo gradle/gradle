@@ -11,7 +11,7 @@ buildscript {
     }
     dependencies {
         classpath("org.yaml:snakeyaml:1.19") // The library's classpath dependency
-        classpath("com.gradleup.shadow:shadow-gradle-plugin:8.3.3") // Plugin dependency for legacy plugin application
+        classpath("com.gradleup.shadow:shadow-gradle-plugin:8.3.4") // Plugin dependency for legacy plugin application
     }
 }
 
