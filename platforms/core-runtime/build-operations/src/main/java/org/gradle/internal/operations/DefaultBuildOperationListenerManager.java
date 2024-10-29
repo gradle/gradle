@@ -59,8 +59,8 @@ public class DefaultBuildOperationListenerManager implements BuildOperationListe
 
         @Override
         public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
-            active.put(buildOperation.getId(), Boolean.TRUE);
             delegate.started(buildOperation, startEvent);
+            active.put(buildOperation.getId(), Boolean.TRUE);
         }
 
         @Override

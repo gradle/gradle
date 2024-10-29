@@ -92,14 +92,10 @@ class DefaultBuildOperationListenerManagerTest extends Specification {
         events == [
             start("1", id1),
             start("2", id1),
-            progress("1", id1),
-            progress("2", id1),
             start("3", id1),
 
             start("1", id2),
             start("2", id2),
-            progress("1", id2),
-            progress("2", id2),
             start("3", id2),
 
             progress("1", id1),
@@ -112,12 +108,10 @@ class DefaultBuildOperationListenerManagerTest extends Specification {
 
             finished("3", id1),
             finished("2", id1),
-            progress("1", id1),
             finished("1", id1),
 
             finished("3", id2),
             finished("2", id2),
-            progress("1", id2),
             finished("1", id2)
         ]
     }
