@@ -181,6 +181,58 @@ class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProj
         isolatedProjectsRun("help")
     }
 
+    def "plugins from included build are resolving in parallel"() {
+        given:
+        includedBuild("plugins") {
+            applyPlugins(buildScript, ["groovy-gradle-plugin"])
+            srcMainGroovy.file("foo.gradle") << """println("Foo plugin applied to \$project")"""
+            srcMainGroovy.file("bar.gradle") << """println("Bar plugin applied to \$project")"""
+        }
+
+        includePluginBuild(settingsFile, "plugins")
+        settingsFile """
+            include(":a")
+            include(":b")
+        """
+        applyPlugins(file("a/build.gradle"), ["foo"])
+        applyPlugins(file("b/build.gradle"), ["bar"])
+
+        when:
+        isolatedProjectsRun("help")
+
+        then:
+        outputContains("Foo plugin applied to project ':a'")
+        outputContains("Bar plugin applied to project ':b'")
+    }
+
+    def "deadlock"() {
+        given:
+        settingsFile("build-library/settings.gradle.kts", """
+            pluginManagement {
+                includeBuild("../build-plugins")
+            }
+            include(":a")
+        """)
+        buildFile("build-library/a/build.gradle.kts", """
+            plugins {
+                id("shared")
+            }
+        """)
+        buildFile("build-plugins/build.gradle.kts", """
+            plugins {
+                `groovy-gradle-plugin`
+            }
+        """)
+        file("build-plugins/src/main/groovy/shared.gradle") << ""
+
+        settingsFile """
+            includeBuild("build-library")
+        """
+
+        expect:
+        isolatedProjectsRun "help"
+    }
+
     private def includedBuild(String root, @DelegatesTo(BuildLayout) Closure configure) {
         configure.setDelegate(new BuildLayout(file("$root/settings.gradle"), file("$root/build.gradle"), file("$root/src/main/groovy")))
         configure()

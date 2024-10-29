@@ -23,10 +23,17 @@ import org.gradle.internal.build.RootBuildState;
 import org.gradle.internal.composite.IncludedBuildInternal;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.gradle.internal.work.Synchronizer;
+import org.gradle.internal.work.WorkerLeaseService;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
 
@@ -38,11 +45,14 @@ public class BuildInclusionCoordinator {
     private final Set<IncludedBuildState> loadedBuilds = new CopyOnWriteArraySet<>();
     private final List<IncludedBuildState> libraryBuilds = new CopyOnWriteArrayList<>();
     private final GlobalDependencySubstitutionRegistry substitutionRegistry;
+    private final WorkerLeaseService workerLeaseService;
     private boolean registerRootSubstitutions;
-    private final Set<BuildState> registering = new HashSet<>();
+    //    private final Set<BuildState> registering = ConcurrentHashMap.newKeySet();
+    private final Map<BuildState, Synchronizer> registering = new ConcurrentHashMap<>();
 
-    public BuildInclusionCoordinator(GlobalDependencySubstitutionRegistry substitutionRegistry) {
+    public BuildInclusionCoordinator(GlobalDependencySubstitutionRegistry substitutionRegistry, WorkerLeaseService workerLeaseService) {
         this.substitutionRegistry = substitutionRegistry;
+        this.workerLeaseService = workerLeaseService;
     }
 
     public void prepareForInclusion(IncludedBuildState build, boolean asPlugin) {
@@ -70,7 +80,9 @@ public class BuildInclusionCoordinator {
         if (build instanceof RootBuildState) {
             registerGlobalLibrarySubstitutions();
         } else {
-            makeSubstitutionsAvailableFor(build, new HashSet<>());
+            registering.computeIfAbsent(build, b -> workerLeaseService.newResource()).withLock(() -> {
+                makeSubstitutionsAvailableFor(build);
+            });
         }
     }
 
@@ -82,50 +94,84 @@ public class BuildInclusionCoordinator {
     }
 
     public void prepareForPluginResolution(IncludedBuildState build) {
-        synchronized (registering) {
-            if (!registering.add(build)) {
-                return;
-            }
-            try {
-                build.ensureProjectsConfigured();
-                makeSubstitutionsAvailableFor(build, new HashSet<>());
-            } finally {
-                registering.remove(build);
+//        synchronized (registering) {
+//            if (!registering.add(build)) {
+//                return;
+//            }
+//            try {
+//                build.ensureProjectsConfigured();
+//                makeSubstitutionsAvailableFor(build, new HashSet<>());
+//            } finally {
+//                registering.remove(build);
+//            }
+//        }
+        registering.computeIfAbsent(build, b -> workerLeaseService.newResource()).withLock(() -> {
+            System.out.println("Locked plugins before action for " + build.getName());
+            build.ensureProjectsConfigured();
+            makeSubstitutionsAvailableFor(build);
+            System.out.println("Locked plugins after action for " + build.getName());
+        });
+    }
+
+
+    private void makeSubstitutionsAvailableFor(BuildState build) {
+        Deque<BuildState> stack = new ArrayDeque<>();
+        Set<BuildState> seen = new HashSet<>();
+
+        stack.push(build);
+        seen.add(build);
+
+        while (!stack.isEmpty()) {
+            BuildState current = stack.pop();
+
+            for (IncludedBuildInternal reference : current.getMutableModel().includedBuilds()) {
+                BuildState child = reference.getTarget();
+
+                if (seen.add(child) && child instanceof IncludedBuildState) {
+                    registering.computeIfAbsent(child, c -> workerLeaseService.newResource()).withLock(() -> {
+                            System.out.println("Locked substitutions before action for " + ((IncludedBuildState) child).getName());
+                            substitutionRegistry.registerSubstitutionsFor((IncludedBuildState) child);
+                            System.out.println("Locked substitutions after action for " + ((IncludedBuildState) child).getName());
+                        }
+                    );
+                    stack.push(child);
+                }
             }
         }
     }
+
 
     private void makeSubstitutionsAvailableFor(BuildState build, Set<BuildState> seen) {
         // A build can see all the builds that it includes
         if (!seen.add(build)) {
             return;
         }
-        synchronized (registering) {
-            boolean added = registering.add(build);
-            try {
-                for (IncludedBuildInternal reference : build.getMutableModel().includedBuilds()) {
-                    BuildState target = reference.getTarget();
-                    if (!registering.contains(target) && target instanceof IncludedBuildState) {
-                        doRegisterSubstitutions((IncludedBuildState) target);
-                        makeSubstitutionsAvailableFor(target, seen);
-                    }
-                }
-            } finally {
-                if (added) {
-                    registering.remove(build);
-                }
-            }
-        }
+//        synchronized (registering) {
+//        boolean added = registering.add(build);
+//        try {
+//            for (IncludedBuildInternal reference : build.getMutableModel().includedBuilds()) {
+//                BuildState target = reference.getTarget();
+//                if (!registering.contains(target) && target instanceof IncludedBuildState) {
+//                    doRegisterSubstitutions((IncludedBuildState) target);
+//                    makeSubstitutionsAvailableFor(target, seen);
+//                }
+//            }
+//        } finally {
+//            if (added) {
+//                registering.remove(build);
+//            }
+//            }
+//        }
     }
 
     private void doRegisterSubstitutions(CompositeBuildParticipantBuildState build) {
-        synchronized (registering) {
-            registering.add(build);
-            try {
-                substitutionRegistry.registerSubstitutionsFor(build);
-            } finally {
-                registering.remove(build);
-            }
+//        synchronized (registering) {
+//        registering.add(build);
+        try {
+            substitutionRegistry.registerSubstitutionsFor(build);
+        } finally {
+//            registering.remove(build);
         }
+//        }
     }
 }
