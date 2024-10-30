@@ -24,7 +24,6 @@ import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildtree.BuildTreeWorkGraph
 import org.gradle.internal.cc.base.logger
 import org.gradle.internal.cc.base.serialize.IsolateOwners
-import org.gradle.internal.cc.base.serialize.ProjectProvider
 import org.gradle.internal.cc.base.serialize.service
 import org.gradle.internal.cc.base.serialize.withGradleIsolate
 import org.gradle.internal.cc.impl.cacheentry.EntryDetails
@@ -52,8 +51,6 @@ import org.gradle.internal.serialize.graph.CloseableReadContext
 import org.gradle.internal.serialize.graph.CloseableWriteContext
 import org.gradle.internal.serialize.graph.DefaultReadContext
 import org.gradle.internal.serialize.graph.DefaultWriteContext
-import org.gradle.internal.serialize.graph.SharedObjectDecoder
-import org.gradle.internal.serialize.graph.SharedObjectEncoder
 import org.gradle.internal.serialize.graph.InlineSharedObjectDecoder
 import org.gradle.internal.serialize.graph.InlineSharedObjectEncoder
 import org.gradle.internal.serialize.graph.InlineStringDecoder
@@ -61,11 +58,12 @@ import org.gradle.internal.serialize.graph.InlineStringEncoder
 import org.gradle.internal.serialize.graph.LoggingTracer
 import org.gradle.internal.serialize.graph.MutableReadContext
 import org.gradle.internal.serialize.graph.ReadContext
+import org.gradle.internal.serialize.graph.SharedObjectDecoder
+import org.gradle.internal.serialize.graph.SharedObjectEncoder
 import org.gradle.internal.serialize.graph.StringDecoder
 import org.gradle.internal.serialize.graph.StringEncoder
 import org.gradle.internal.serialize.graph.Tracer
 import org.gradle.internal.serialize.graph.WriteContext
-import org.gradle.internal.serialize.graph.getSingletonProperty
 import org.gradle.internal.serialize.graph.readCollection
 import org.gradle.internal.serialize.graph.readFile
 import org.gradle.internal.serialize.graph.readList
@@ -494,7 +492,7 @@ class DefaultConfigurationCacheIO internal constructor(
         sharedObjectEncoder: SharedObjectEncoder,
         writeOperation: suspend WriteContext.(Codecs) -> R
     ): R =
-        writeContextFor(name,stateType, outputStream, profile, stringEncoder, sharedObjectEncoder)
+        writeContextFor(name, stateType, outputStream, profile, stringEncoder, sharedObjectEncoder)
             .let { (context, codecs) ->
                 context.writeWith(codecs, writeOperation)
             }
@@ -582,7 +580,6 @@ class DefaultConfigurationCacheIO internal constructor(
             baseFile.relatedStateFile(path).let {
                 readContextFor(it, baseContext.currentStringDecoder, baseContext.currentSharedObjectDecoder).also { (subContext, subCodecs) ->
                     subContext.push(baseContext.isolate.owner, subCodecs.internalTypesCodec())
-                    subContext.setSingletonProperty(baseContext.getSingletonProperty<ProjectProvider>())
                 }.first
             }
 
