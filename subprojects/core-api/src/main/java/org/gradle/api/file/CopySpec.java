@@ -17,6 +17,8 @@ package org.gradle.api.file;
 
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
+import groovy.transform.stc.ClosureParams;
+import groovy.transform.stc.SimpleType;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.specs.Spec;
@@ -212,7 +214,10 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
      * {@inheritDoc}
      */
     @Override
-    CopySpec from(Object sourcePath, @DelegatesTo(CopySpec.class) Closure c);
+    CopySpec from(Object sourcePath,
+                  @DelegatesTo(CopySpec.class)
+                  @ClosureParams(value = SimpleType.class, options = "org.gradle.api.file.CopySpec")
+                  Closure c);
 
     /**
      * {@inheritDoc}

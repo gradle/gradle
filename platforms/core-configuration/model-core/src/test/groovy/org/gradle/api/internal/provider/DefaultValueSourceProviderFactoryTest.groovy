@@ -26,6 +26,7 @@ import org.gradle.api.reflect.ObjectInstantiationException
 import org.gradle.internal.state.Managed
 import org.gradle.process.ExecOperations
 import org.gradle.process.ExecResult
+import org.gradle.util.internal.TextUtil
 
 import javax.inject.Inject
 
@@ -257,6 +258,19 @@ class DefaultValueSourceProviderFactoryTest extends ValueSourceBasedSpec {
         0 * listener.valueObtained(_, _)
     }
 
+    def "describable value source provides source information of missing value"() {
+        given:
+        def provider = createProviderOf(NullValueSourceWithDisplayName) {}
+
+        when:
+        provider.get()
+
+        then:
+        def e = thrown(MissingValueException)
+        e.message == TextUtil.toPlatformLineSeparators("""Cannot query the value of this provider because it has no value available.
+The value of this provider is derived from: nullValueSource""")
+    }
+
     static abstract class EchoValueSource implements ValueSource<String, Parameters> {
 
         interface Parameters extends ValueSourceParameters {
@@ -335,6 +349,18 @@ class DefaultValueSourceProviderFactoryTest extends ValueSourceBasedSpec {
         @Override
         Boolean obtain() {
             return false
+        }
+    }
+
+    static abstract class NullValueSourceWithDisplayName implements ValueSource<Boolean, ValueSourceParameters.None>, Describable {
+        @Override
+        Boolean obtain() {
+            return null
+        }
+
+        @Override
+        String getDisplayName() {
+            "nullValueSource"
         }
     }
 }

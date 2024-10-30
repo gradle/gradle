@@ -274,6 +274,27 @@ class ProviderIntegrationTest extends AbstractIntegrationSpec {
                 - task ':run' property 'p2'""".stripIndent())
     }
 
+    def "reasonable error message if the provider has no value"() {
+        buildFile """
+            def provider = providers.environmentVariable('ABC')
+
+            tasks.register('run') {
+                doLast {
+                    provider.get()
+                }
+            }
+        """
+
+        when:
+        fails 'run'
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':run'.")
+        failure.assertHasCause("""Cannot query the value of this provider because it has no value available.
+The value of this provider is derived from:
+  - environment variable 'ABC'""")
+    }
+
     def "zipped provider is live"() {
         buildFile """
             tasks.register("run") {
