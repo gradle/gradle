@@ -2,6 +2,7 @@ package configurations
 
 import common.Os
 import common.applyDefaultSettings
+import jetbrains.buildServer.configs.kotlin.BuildStep
 import jetbrains.buildServer.configs.kotlin.buildSteps.script
 import model.CIBuildModel
 import model.Stage
@@ -21,6 +22,7 @@ class CheckTeamCityKotlinDSL(model: CIBuildModel, stage: Stage) : OsAwareBaseGra
             }
             script {
                 name = "CLEAN_M2"
+                executionMode = BuildStep.ExecutionMode.ALWAYS
                 scriptContent = checkCleanDirUnixLike("%teamcity.agent.jvm.user.home%/.m2/.develocity", exitOnFailure = false)
             }
         }
