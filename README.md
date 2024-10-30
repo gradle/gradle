@@ -1,19 +1,24 @@
 <div align="center" style="margin-bottom: 30px;" >
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="images/gradle-dark-green-primary.png" width="700px">
-    <img alt="Gradle Logo" src="images/gradle-white-primary.png" width="600px">
+    <source media="(prefers-color-scheme: dark)" srcset="images/gradle-white-primary.png" width="700px">
+    <img alt="Gradle Logo" src="images/gradle-dark-green-primary.png" width="600px">
   </picture>
 </div>
 
 <div align="center" style="margin-top: 20px;">
-
-[![Revved up by Develocity](https://img.shields.io/badge/Revved%20up%20by-Develocity-06A0CE?logo=Gradle&labelColor=02303A)](https://ge.gradle.org/scans) <br>
-[![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/4898/badge)](https://bestpractices.coreinfrastructure.org/projects/4898) <br>
-[![Join the Gradle Community Slack](https://img.shields.io/badge/Slack-Join%20the%20Community-brightgreen?style=flat&logo=slack)](https://gradle.org/slack-invite) <br>
-[![Gradle Documentation](https://img.shields.io/badge/Docs-Gradle%20User%20Guide-blueviolet?style=flat&logo=read-the-docs)](https://docs.gradle.org/current/userguide/userguide.html) 
-
+  <a href="https://ge.gradle.org/scans">
+    <img src="https://img.shields.io/badge/Revved%20up%20by-Develocity-06A0CE?logo=Gradle&labelColor=02303A" alt="Revved up by Develocity">
+  </a>
+  <a href="https://bestpractices.coreinfrastructure.org/projects/4898">
+    <img src="https://bestpractices.coreinfrastructure.org/projects/4898/badge" alt="CII Best Practices">
+  </a>
+  <a href="https://gradle.org/slack-invite">
+    <img src="https://img.shields.io/badge/Slack-Join%20the%20Community-brightgreen?style=flat&logo=slack" alt="Join the Gradle Community Slack">
+  </a>
+  <a href="https://docs.gradle.org/current/userguide/userguide.html">
+    <img src="https://img.shields.io/badge/Docs-Gradle%20User%20Guide-blueviolet?style=flat&logo=read-the-docs" alt="Gradle Documentation">
+  </a>
 </div>
-
 
 
 ## 🐘 **Welcome to Gradle** 
@@ -44,10 +49,10 @@ Starting with Gradle is easy with these essential resources. Follow these to ins
 
 ### 🛠 **Seamless IDE & CI Integration**
 
-Gradle is designed to work seamlessly with a variety of Integrated Development Environments (IDEs) and Continuous Integration (CI) systems, providing first-class support to keep your workflow smooth:
+Gradle is built to work smoothly with a variety of Integrated Development Environments (IDEs) and Continuous Integration (CI) systems, providing extensive support for a streamlined workflow:
 
-- **Supported IDEs**: [Android Studio](https://developer.android.com/studio/build/index.html), [Eclipse](https://www.vogella.com/tutorials/EclipseGradle/article.html), [IntelliJ IDEA](https://www.jetbrains.com/help/idea/gradle.html), [NetBeans](https://netbeans.apache.org), and [Visual Studio Code](https://code.visualstudio.com/docs/languages/java).
-- **Continuous Integration**: Effortlessly integrate Gradle with popular CI tools like **Jenkins**, **GitHub Actions**, **GitLab CI**, **CircleCI**, and others to streamline your build and deployment pipelines.
+-   **Supported IDEs**: Quickly integrate Gradle with [Android Studio](https://docs.gradle.org/current/userguide/gradle_ides.html), [IntelliJ IDEA](https://docs.gradle.org/current/userguide/gradle_ides.html), [Eclipse](https://docs.gradle.org/current/userguide/gradle_ides.html), [NetBeans](https://docs.gradle.org/current/userguide/gradle_ides.html), and [Visual Studio Code](https://docs.gradle.org/current/userguide/gradle_ides.html).
+-   **Continuous Integration**: Gradle easily connects with popular CI tools, including Jenkins, [GitHub Actions](https://docs.github.com/actions), [GitLab CI](https://docs.gitlab.com/ee/ci/), [CircleCI](https://circleci.com/), and more, to streamline build and deployment pipelines.
 
 ---
 
@@ -58,8 +63,6 @@ Kickstart your Gradle knowledge with courses, guides, and community support tail
 - **[DPE University Free Courses](https://dpeuniversity.gradle.com/app/catalog)**: A collection of hands-on courses for learning Gradle, complete with project-based tasks to improve real-world skills.
 - **[Gradle Community Resources](https://community.gradle.org/resources/)**: Discover a range of resources, tutorials, and guides to support your Gradle journey, from foundational concepts to advanced practices.
 - **[Gradle Cookbook](https://cookbook.gradle.org/preface/)**: Access a practical collection of Gradle recipes and best practices to help you work efficiently with Gradle in various scenarios.
-
-> 💬 Join our **#docs** channel on the [Gradle Community Slack](https://gradle.org/slack-invite) to share insights or ask questions as you learn.
 
 ---
 
@@ -72,7 +75,7 @@ The Gradle community offers a range of forums, documentation, and direct help to
 - **Community Slack**: [Join our Slack Channel](https://gradle.org/slack-invite) for real-time discussions, with specialized channels like `#github-integrations` for integration topics.
 - **Newsletter**: Subscribe to the [Gradle Newsletter](https://newsletter.gradle.org) for news, tutorials, and community highlights.
 
-> **Quick Tip**: New contributors to Gradle projects are encouraged to ask questions and share tips in the Slack `#docs` and `#github-integrations` channels.
+> **Quick Tip**: New contributors to Gradle projects are encouraged to ask questions in the Slack `#community-support` channel.
 
 ---
 
