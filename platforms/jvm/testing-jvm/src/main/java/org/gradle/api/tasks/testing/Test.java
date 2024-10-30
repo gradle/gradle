@@ -111,7 +111,7 @@ import static org.gradle.util.internal.ConfigureUtil.configureUsing;
  *
  * <pre class='autoTested'>
  * plugins {
- *     id 'java' // adds 'test' task
+ *     id("java-library") // adds 'test' task
  * }
  *
  * test {
@@ -730,7 +730,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         try {
             super.executeTests();
         } finally {
-            CompositeStoppable.stoppable(getTestFramework());
+            CompositeStoppable.stoppable(getTestFramework()).stop();
         }
     }
 
