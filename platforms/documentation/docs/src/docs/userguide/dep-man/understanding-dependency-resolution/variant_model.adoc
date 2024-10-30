@@ -254,13 +254,14 @@ Not all attributes of a variant need to match the consumer's specified attribute
 
 IMPORTANT: The variant name is primarily used for debugging and error messages. It does not play a role in variant matching; only the variant's attributes are used in the matching process.
 
+[[sec:abm_algorithm]]
 There are no restrictions on how many variants a component can define.
 A typical component will include at least an implementation variant but may also provide additional variants, such as test fixtures, documentation, or source code.
 Furthermore, a component can offer _different variants_ for the same usage, depending on the consumer.
 For instance, during compilation, a component may provide different headers for Linux, Windows, and macOS.
 
 Gradle performs _variant-aware selection_ by matching the attributes specified by the consumer with those defined by the producer.
-The details of this process are covered in the <<variant_attributes.adoc#sec:abm_algorithm, selection algorithm>> section.
+The details of this process are covered in the <<variant_model.adoc#sec:abm_algorithm, selection algorithm>> section.
 
 [NOTE]
 ====

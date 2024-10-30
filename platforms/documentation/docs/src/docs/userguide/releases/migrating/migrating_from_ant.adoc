@@ -311,7 +311,7 @@ Gradle searches the repositories for those dependencies, with the search order d
 +
 It's worth noting that Gradle supports the same dynamic version syntax as Ivy, so you can still use conventions like `1.0.+`.
 You can also use the special `latest.integration` and `latest.release` labels.
-If you decide to use such <<dynamic_versions.adoc#sub:declaring_dependency_with_dynamic_version,dynamic>> and <<dynamic_versions.adoc#sub:declaring_dependency_with_changing_version,changing>> dependencies, you can configure the caching behavior for them via link:{groovyDslPath}/org.gradle.api.artifacts.ResolutionStrategy.html[resolutionStrategy].
+If you decide to use such <<dependency_versions.adoc#sub:declaring_dependency_with_dynamic_version,dynamic>> and <<dependency_versions.adoc#sub:declaring_dependency_with_changing_version,changing>> dependencies, you can configure the caching behavior for them via link:{groovyDslPath}/org.gradle.api.artifacts.ResolutionStrategy.html[resolutionStrategy].
 +
 You might also want to consider <<dependency_locking#dependency-locking,dependency locking>> if you're using dynamic and/or changing dependencies.
 It's a way to make the build more reliable and ensures https://reproducible-builds.org/[reproducibility].

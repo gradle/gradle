@@ -173,7 +173,7 @@ The "Selection reasons" section of the dependency insight report lists the reaso
 | The dependency appears in the graph, and the inclusion came with a <<declaring_dependencies_adv.adoc#sec:documenting-dependencies, `because` text>>.
 
 | Was requested : didn't match versions <versions>
-| The dependency appears with a <<dynamic_versions#sub:declaring_dependency_with_dynamic_version, dynamic version>> which did not include the listed versions.
+| The dependency appears with a <<dependency_versions#sub:declaring_dependency_with_dynamic_version, dynamic version>> which did not include the listed versions.
 May be followed by a `because` text.
 
 | Was requested : reject version <versions>

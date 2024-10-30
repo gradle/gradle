@@ -148,7 +148,7 @@ dependencies {
 }
 ----
 
-[[sec:offline-mode]]
+[[sec:controlling_dependency_caching_command_line]]
 == 4. Using offline mode
 
 The `--offline` command-line switch instructs Gradle to use dependency modules from the cache, regardless of whether they are due to be checked again.

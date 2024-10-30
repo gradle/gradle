@@ -165,6 +165,6 @@ You may consider to look into the following features:
 - <<dependency_capability_conflict.adoc#sec:handling-mutually-exclusive-deps,Resolving mutually exclusive dependency conflicts>>:
   Another situation that you often see solved by excludes is that two dependencies cannot be used together because they represent two implementations of the same thing (the same <<dependency_capability_conflict.adoc#sub:capabilities,capability>>).
   Some popular examples are clashing logging API implementations (like `log4j` and `log4j-over-slf4j`) or modules that have different coordinates in different versions (like `com.google.collections` and `guava`).
-  In these cases, if this information is not known to Gradle, it is recommended to add the missing capability information via component metadata rules as described in the <<dependency_capability_conflict.adoc#sub:declaring-component-capabilities,declaring component capabilities>> section.
+  In these cases, if this information is not known to Gradle, it is recommended to add the missing capability information via component metadata rules as described in the <<component_capabilities.adoc#declaring-component-capabilities,declaring component capabilities>> section.
   Even if you are developing a library, and your consumers will have to deal with resolving the conflict again, it is often the right solution to leave the decision to the final consumers of libraries.
   I.e. you as a library author should not have to decide which logging implementation your consumers use in the end.

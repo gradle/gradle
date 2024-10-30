@@ -49,6 +49,7 @@ In this example, two bindings (`logback-classic` and `slf4j-simple`) provide the
 Gradle will fail if both are on the classpath.
 The resolution strategy tells Gradle to **select** the `logback-classic` binding, resolving the conflict.
 
+[[sec:declaring-capabilities-external-modules]]
 == Understanding capability coordinates
 
 A **capability** is identified by a `(group, module, version)` triplet.
@@ -66,7 +67,7 @@ dependencies {
 
 It's important to note that capabilities are **versioned**.
 
-[[sub:declaring-component-capabilities]]
+[[declaring-component-capabilities]]
 == Declaring component capabilities
 
 To detect conflicts early, it's useful to declare *component capabilities* through rules, allowing conflicts to be caught during the build instead of at runtime.
