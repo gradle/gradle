@@ -1951,6 +1951,9 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         if (argument instanceof Class) {
             return (Class<?>) argument;
         }
+        if (!(argument instanceof ParameterizedType)) {
+            throw new IllegalArgumentException("Argument is not an instance of ParameterizedType: " + argument);
+        }
         return (Class<?>) ((ParameterizedType) argument).getRawType();
     }
 

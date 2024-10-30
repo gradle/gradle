@@ -31,8 +31,6 @@ import org.gradle.api.internal.tasks.testing.TestExecutionSpec
 import org.gradle.api.internal.tasks.testing.TestFramework
 import org.gradle.api.internal.tasks.testing.TestResultProcessor
 import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework
-import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider
-import org.gradle.api.internal.tasks.testing.report.TestReporter
 import org.gradle.api.tasks.AbstractConventionTaskTest
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.integtests.fixtures.AvailableJavaHomes
@@ -106,14 +104,12 @@ class TestTest extends AbstractConventionTaskTest {
     def "generates report"() {
         given:
         configureTask()
-        final testReporter = Mock(TestReporter)
-        test.setTestReporter(testReporter)
 
         when:
         test.executeTests()
 
         then:
-        1 * testReporter.generateReport(_ as TestResultsProvider, reportDir)
+        reportDir.listFiles().collect { it.name }.contains("index.html")
         1 * testExecuterMock.execute(_ as TestExecutionSpec, _ as TestResultProcessor)
     }
 

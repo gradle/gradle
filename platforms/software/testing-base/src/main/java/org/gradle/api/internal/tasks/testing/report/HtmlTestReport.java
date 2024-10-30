@@ -42,17 +42,19 @@ import java.util.List;
 
 import static org.gradle.api.tasks.testing.TestResult.ResultType.SKIPPED;
 
-public class DefaultTestReport implements TestReporter {
+/**
+ * Generates an HTML report based on test class results from a {@link TestResultsProvider}.
+ */
+public class HtmlTestReport {
     private final BuildOperationRunner buildOperationRunner;
     private final BuildOperationExecutor buildOperationExecutor;
-    private final static Logger LOG = Logging.getLogger(DefaultTestReport.class);
+    private final static Logger LOG = Logging.getLogger(HtmlTestReport.class);
 
-    public DefaultTestReport(BuildOperationRunner buildOperationRunner, BuildOperationExecutor buildOperationExecutor) {
+    public HtmlTestReport(BuildOperationRunner buildOperationRunner, BuildOperationExecutor buildOperationExecutor) {
         this.buildOperationRunner = buildOperationRunner;
         this.buildOperationExecutor = buildOperationExecutor;
     }
 
-    @Override
     public void generateReport(TestResultsProvider resultsProvider, File reportDir) {
         LOG.info("Generating HTML test report...");
 

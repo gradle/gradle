@@ -30,6 +30,16 @@ import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Tracks all currently executing tests and updates the console progress logger with the test name.
+ * <p>
+ * Output text appears in the console like so:
+ * <pre>
+ * > :project-name:testTaskName > Executing test org...FooTestClassName
+ * > :project-name:testTaskName > Executing test org.example...BarTestClassName
+ * > :project-name:testTaskName > Executing test org...BazTestName
+ * </pre>
+ */
 public class TestWorkerProgressListener implements TestListenerInternal {
 
     private static final int MAX_TEST_NAME_LENGTH = 60;
