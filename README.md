@@ -1,11 +1,11 @@
-<div align="center" style="margin-bottom: 30px;" >
+<div align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="images/gradle-white-primary.png" width="700px">
     <img alt="Gradle Logo" src="images/gradle-dark-green-primary.png" width="600px">
   </picture>
 </div>
 
-<div align="center" style="margin-top: 20px;">
+<div align="center">
   <a href="https://ge.gradle.org/scans">
     <img src="https://img.shields.io/badge/Revved%20up%20by-Develocity-06A0CE?logo=Gradle&labelColor=02303A" alt="Revved up by Develocity">
   </a>
