@@ -53,8 +53,6 @@ import org.gradle.internal.serialize.graph.CloseableReadContext
 import org.gradle.internal.serialize.graph.CloseableWriteContext
 import org.gradle.internal.serialize.graph.DefaultReadContext
 import org.gradle.internal.serialize.graph.DefaultWriteContext
-import org.gradle.internal.serialize.graph.SharedObjectDecoder
-import org.gradle.internal.serialize.graph.SharedObjectEncoder
 import org.gradle.internal.serialize.graph.InlineSharedObjectDecoder
 import org.gradle.internal.serialize.graph.InlineSharedObjectEncoder
 import org.gradle.internal.serialize.graph.InlineStringDecoder
@@ -62,6 +60,8 @@ import org.gradle.internal.serialize.graph.InlineStringEncoder
 import org.gradle.internal.serialize.graph.LoggingTracer
 import org.gradle.internal.serialize.graph.MutableReadContext
 import org.gradle.internal.serialize.graph.ReadContext
+import org.gradle.internal.serialize.graph.SharedObjectDecoder
+import org.gradle.internal.serialize.graph.SharedObjectEncoder
 import org.gradle.internal.serialize.graph.SpecialDecoders
 import org.gradle.internal.serialize.graph.SpecialEncoders
 import org.gradle.internal.serialize.graph.StringDecoder
@@ -73,11 +73,13 @@ import org.gradle.internal.serialize.graph.readCollection
 import org.gradle.internal.serialize.graph.readFile
 import org.gradle.internal.serialize.graph.readList
 import org.gradle.internal.serialize.graph.readNonNull
+import org.gradle.internal.serialize.graph.readStrings
 import org.gradle.internal.serialize.graph.readWith
 import org.gradle.internal.serialize.graph.runReadOperation
 import org.gradle.internal.serialize.graph.runWriteOperation
 import org.gradle.internal.serialize.graph.writeCollection
 import org.gradle.internal.serialize.graph.writeFile
+import org.gradle.internal.serialize.graph.writeStrings
 import org.gradle.internal.serialize.graph.writeWith
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder
@@ -142,6 +144,21 @@ class DefaultConfigurationCacheIO internal constructor(
         writeNullableString(key.identityPath?.path)
         writeString(key.modelName)
         writeNullableString(key.parameterHash?.toString())
+    }
+
+    override fun writeCandidateEntries(stateFile: ConfigurationCacheStateFile, entries: List<CandidateEntry>) {
+        writeConfigurationCacheState(stateFile) {
+            writeStrings(entries.map { it.id })
+        }
+    }
+
+    override fun readCandidateEntries(stateFile: ConfigurationCacheStateFile): List<CandidateEntry> {
+        if (!stateFile.exists) {
+            return emptyList()
+        }
+        return readConfigurationCacheState(stateFile) {
+            readStrings().map { CandidateEntry(it) }
+        }
     }
 
     override fun readCacheEntryDetailsFrom(stateFile: ConfigurationCacheStateFile): EntryDetails? {
@@ -491,7 +508,7 @@ class DefaultConfigurationCacheIO internal constructor(
         specialEncoders: SpecialEncoders,
         writeOperation: suspend WriteContext.(Codecs) -> R
     ): R =
-        writeContextFor(name,stateType, outputStream, profile, specialEncoders)
+        writeContextFor(name, stateType, outputStream, profile, specialEncoders)
             .let { (context, codecs) ->
                 context.writeWith(codecs, writeOperation)
             }

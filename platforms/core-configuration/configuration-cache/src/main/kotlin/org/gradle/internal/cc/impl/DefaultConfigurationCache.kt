@@ -67,6 +67,7 @@ import org.gradle.util.Path
 import java.io.File
 import java.io.OutputStream
 import java.util.Locale
+import java.util.UUID
 
 
 @Suppress("LongParameterList")
@@ -117,6 +118,15 @@ class DefaultConfigurationCache internal constructor(
     val store by storeDelegate
 
     private
+    lateinit var entryId: String
+
+    private
+    val entryStoreDelegate = lazy { cacheRepository.forKey(entryId) }
+
+    private
+    val entryStore by entryStoreDelegate
+
+    private
     val cacheIO by lazy { host.service<ConfigurationCacheBuildTreeIO>() }
 
     private
@@ -145,11 +155,15 @@ class DefaultConfigurationCache internal constructor(
         get() = host.service()
 
     override val isLoaded: Boolean
-        get() = cacheAction == ConfigurationCacheAction.LOAD
+        get() = cacheAction is ConfigurationCacheAction.LOAD
 
     override fun initializeCacheEntry() {
         val (cacheAction, cacheActionDescription) = determineCacheAction()
         this.cacheAction = cacheAction
+        this.entryId = when (cacheAction) {
+            is ConfigurationCacheAction.LOAD -> cacheAction.entryId
+            else -> UUID.randomUUID().toString()
+        }
         problems.action(cacheAction, cacheActionDescription)
         // TODO:isolated find a way to avoid this late binding
         modelSideEffectExecutor.sideEffectStore = buildTreeModelSideEffects
@@ -228,7 +242,7 @@ class DefaultConfigurationCache internal constructor(
 
     override fun finalizeCacheEntry() {
         if (problems.shouldDiscardEntry) {
-            store.useForStore { layout ->
+            entryStore.useForStore { layout ->
                 layout.fileFor(StateType.Entry).delete()
             }
             cacheEntryRequiresCommit = false
@@ -238,7 +252,7 @@ class DefaultConfigurationCache internal constructor(
             problems.projectStateStats(projectUsage.reused.size, projectUsage.updated.size)
             cacheEntryRequiresCommit = false
             // Can reuse the cache entry for the rest of this build invocation
-            cacheAction = ConfigurationCacheAction.LOAD
+            cacheAction = ConfigurationCacheAction.LOAD(entryId)
         }
         try {
             cacheFingerprintController.stop()
@@ -261,12 +275,17 @@ class DefaultConfigurationCache internal constructor(
 
     private
     fun commitCacheEntry(reusedProjects: Set<Path>) {
-        store.useForStore { layout ->
+        entryStore.useForStore { layout ->
             writeConfigurationCacheFingerprint(layout, reusedProjects)
             val usedModels = intermediateModels.collectAccessedValues()
             val usedMetadata = projectMetadata.collectAccessedValues()
             val sideEffects = buildTreeModelSideEffects.collectSideEffects()
             cacheIO.writeCacheEntryDetailsTo(buildStateRegistry, usedModels, usedMetadata, sideEffects, layout.fileFor(StateType.Entry))
+        }
+        store.useForStore { layout ->
+            val existingEntries = cacheIO.readCandidateEntries(layout.fileForRead(StateType.Candidates))
+            val newEntries = listOf(CandidateEntry(entryId)) + existingEntries
+            cacheIO.writeCandidateEntries(layout.fileFor(StateType.Candidates), newEntries)
         }
     }
 
@@ -340,10 +359,14 @@ class DefaultConfigurationCache internal constructor(
                     ConfigurationCacheAction.UPDATE to description
                 }
 
-                is CheckedFingerprint.Valid -> {
+                is CheckedFingerprint.Found -> {
                     val description = StructuredMessage.forText("Reusing configuration cache.")
                     logBootstrapSummary(description)
-                    ConfigurationCacheAction.LOAD to description
+                    ConfigurationCacheAction.LOAD(checkedFingerprint.entryName) to description
+                }
+
+                is CheckedFingerprint.Valid -> {
+                    TODO("should be replaced by Found")
                 }
             }
         }
@@ -359,6 +382,7 @@ class DefaultConfigurationCache internal constructor(
         stoppable.addIfInitialized(lazyIntermediateModels)
         stoppable.addIfInitialized(lazyProjectMetadata)
         stoppable.addIfInitialized(storeDelegate)
+        stoppable.addIfInitialized(entryStoreDelegate)
         stoppable.stop()
     }
 
@@ -371,18 +395,38 @@ class DefaultConfigurationCache internal constructor(
 
     private
     fun checkFingerprint(): CheckedFingerprint {
-        return store.useForStateLoad { layout ->
-            val entryFile = layout.fileFor(StateType.Entry)
-            val entryDetails = cacheIO.readCacheEntryDetailsFrom(entryFile)
-            buildOperationRunner.withFingerprintCheckOperations {
-                if (entryDetails == null) {
-                    // No entry file -> treat the entry as empty/missing/invalid
-                    CheckedFingerprint.NotFound
-                } else {
-                    checkFingerprint(entryDetails, layout)
-                }
-            }
+        val candidates = store.useForStateLoad { layout ->
+            cacheIO.readCandidateEntries(layout.fileFor(StateType.Candidates))
         }.value
+        return candidates.firstNotNullOfOrNull {
+            checkCandidate(it)
+        } ?: CheckedFingerprint.NotFound
+    }
+
+    private fun checkCandidate(candidateEntry: CandidateEntry): CheckedFingerprint? {
+        val entryName = candidateEntry.id
+        val entryStore = cacheRepository.forKey(entryName)
+        return entryStore.useForStateLoad { layout ->
+            checkedFingerprint(layout)
+        }.value.let {
+            if (it is CheckedFingerprint.Valid)
+                CheckedFingerprint.Found(entryName)
+            else
+                null
+        }
+    }
+
+    private fun checkedFingerprint(layout: ConfigurationCacheRepository.Layout): CheckedFingerprint {
+        val entryFile = layout.fileFor(StateType.Entry)
+        val entryDetails = cacheIO.readCacheEntryDetailsFrom(entryFile)
+        return buildOperationRunner.withFingerprintCheckOperations {
+            if (entryDetails == null) {
+                // No entry file -> treat the entry as empty/missing/invalid
+                CheckedFingerprint.NotFound
+            } else {
+                checkFingerprint(entryDetails, layout)
+            }
+        }
     }
 
     private
@@ -432,7 +476,7 @@ class DefaultConfigurationCache internal constructor(
         }
 
         buildOperationRunner.withStoreOperation(cacheKey.string) {
-            val stateStoreResult = store.useForStore { layout ->
+            val stateStoreResult = entryStore.useForStore { layout ->
                 try {
                     val stateFile = layout.fileFor(stateType)
                     action(stateFile)
@@ -479,7 +523,7 @@ class DefaultConfigurationCache internal constructor(
         scopeRegistryListener.dispose()
 
         val result = buildOperationRunner.withLoadOperation {
-            val storeLoadResult = store.useForStateLoad(stateType, action)
+            val storeLoadResult = entryStore.useForStateLoad(stateType, action)
             val (intermediateLoadResult, actionResult) = storeLoadResult.value
             LoadResult(storeLoadResult.accessedFiles, intermediateLoadResult.originInvocationId) to actionResult
         }

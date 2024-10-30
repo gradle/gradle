@@ -121,6 +121,7 @@ class FingerprintCheckResult(
     override fun getStatus(): CheckStatus = when (checkResult) {
         is CheckedFingerprint.NotFound -> CheckStatus.NOT_FOUND
         is CheckedFingerprint.Valid -> CheckStatus.VALID
+        is CheckedFingerprint.Found -> CheckStatus.VALID
         is CheckedFingerprint.EntryInvalid -> CheckStatus.INVALID
         is CheckedFingerprint.ProjectsInvalid -> CheckStatus.PARTIAL
     }

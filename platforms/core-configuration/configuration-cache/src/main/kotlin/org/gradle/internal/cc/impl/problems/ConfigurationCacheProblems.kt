@@ -27,7 +27,6 @@ import org.gradle.api.problems.internal.InternalProblems
 import org.gradle.api.problems.internal.PropertyTraceDataSpec
 import org.gradle.initialization.RootBuildLifecycleListener
 import org.gradle.internal.cc.impl.ConfigurationCacheAction
-import org.gradle.internal.cc.impl.ConfigurationCacheAction.LOAD
 import org.gradle.internal.cc.impl.ConfigurationCacheAction.STORE
 import org.gradle.internal.cc.impl.ConfigurationCacheAction.UPDATE
 import org.gradle.internal.cc.impl.ConfigurationCacheKey
@@ -113,7 +112,7 @@ class ConfigurationCacheProblems(
 
     val shouldDiscardEntry: Boolean
         get() {
-            if (cacheAction == LOAD) {
+            if (cacheAction is ConfigurationCacheAction.LOAD) {
                 return false
             }
             if (isFailingBuildDueToSerializationError) {
@@ -303,7 +302,7 @@ class ConfigurationCacheProblems(
     private
     fun ConfigurationCacheAction.summaryText() =
         when (this) {
-            LOAD -> "reusing"
+            is ConfigurationCacheAction.LOAD -> "reusing"
             STORE -> "storing"
             UPDATE -> "updating"
         }
@@ -340,8 +339,8 @@ class ConfigurationCacheProblems(
                 cacheAction == STORE -> log("Configuration cache entry stored with {}.", problemCountString)
                 cacheAction == UPDATE && !hasProblems -> log("Configuration cache entry updated for {}, {} up-to-date.", updatedProjectsString, reusedProjectsString)
                 cacheAction == UPDATE -> log("Configuration cache entry updated for {} with {}, {} up-to-date.", updatedProjectsString, problemCountString, reusedProjectsString)
-                cacheAction == LOAD && !hasProblems -> log("Configuration cache entry reused.")
-                cacheAction == LOAD -> log("Configuration cache entry reused with {}.", problemCountString)
+                cacheAction is ConfigurationCacheAction.LOAD && !hasProblems -> log("Configuration cache entry reused.")
+                cacheAction is ConfigurationCacheAction.LOAD -> log("Configuration cache entry reused with {}.", problemCountString)
                 hasTooManyProblems -> log("Too many configuration cache problems found ({}).", problemCountString)
                 hasProblems -> log("Configuration cache problems found ({}).", problemCountString)
                 // else not storing or loading and no problems to report

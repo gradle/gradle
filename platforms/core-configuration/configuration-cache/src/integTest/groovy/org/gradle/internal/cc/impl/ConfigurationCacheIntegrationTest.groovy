@@ -24,6 +24,50 @@ import spock.lang.Issue
 
 class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
+    def "humble beginnings"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+
+        and:
+        settingsFile ''
+
+        when:
+        configurationCacheRun 'help'
+
+        then:
+        configurationCache.assertStateStored()
+
+        when:
+        settingsFile '// a change'
+
+        and:
+        configurationCacheRun 'help'
+
+        then:
+        configurationCache.assertStateStored()
+
+        when: 'switching back to original settings file'
+        settingsFile.text = ''
+
+        and:
+        configurationCacheRun 'help'
+
+        then:
+        configurationCache.assertStateLoaded()
+
+        when: 'switching back to 2nd settings file'
+        settingsFile.text = '// a change'
+
+        and:
+        configurationCacheRun 'help'
+
+        then:
+        configurationCache.assertStateLoaded()
+        file('.gradle/configuration-cache').traverse {
+            println testDirectory.relativePath(it)
+        }
+    }
+
     def "configuration cache is out of incubation"() {
         given:
         settingsFile << ""
