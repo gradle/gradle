@@ -56,15 +56,18 @@ import org.gradle.jvm.toolchain.internal.WindowsInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.install.DefaultJavaToolchainProvisioningService;
 import org.gradle.jvm.toolchain.internal.install.DefaultJdkCacheDirectory;
 import org.gradle.jvm.toolchain.internal.install.SecureFileDownloader;
+import org.gradle.platform.Architecture;
 import org.gradle.platform.internal.DefaultBuildPlatform;
 
 import java.util.List;
 
 public class ToolchainsJvmServices extends AbstractGradleModuleServices {
     protected static class BuildServices implements ServiceRegistrationProvider {
+
         @Provides
-        protected DefaultBuildPlatform createBuildPlatform(ObjectFactory objectFactory) {
-            return objectFactory.newInstance(DefaultBuildPlatform.class);
+        protected DefaultBuildPlatform createBuildPlatform(ObjectFactory objectFactory, OperatingSystem operatingSystem) {
+            Architecture architecture = Architecture.current();
+            return objectFactory.newInstance(DefaultBuildPlatform.class, architecture, operatingSystem);
         }
 
         @Provides

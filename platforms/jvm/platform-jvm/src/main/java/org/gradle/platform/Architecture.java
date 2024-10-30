@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,10 @@
 
 package org.gradle.platform;
 
-import com.google.common.base.Ascii;
 import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
+
+import javax.annotation.Nonnull;
 
 /**
  * Constants for various processor architectures Gradle runs on.
@@ -44,36 +45,44 @@ public enum Architecture {
 
     /**
      * 64-bit IBM PowerPC (big-endian)
-     * @since 8.11
+     * @since 8.6
      */
     PPC64,
 
     /**
      * 64-bit IBM PowerPC (little-endian)
-     * @since 8.11
+     * @since 8.6
      */
     PPC64LE,
 
     /**
      * 64-bit IBM Z architectures (historically called "s390x" on Linux)
-     * @since 8.11
+     * @since 8.6
      */
     S390X,
 
     /**
      * 64-bit Sun/Oracle SPARC V9
-     * @since 8.11
+     * @since 8.6
      */
     SPARC_V9;
 
     /**
-     * Get the architecture of the current system.
-     *
-     * @since 8.11
+     * Get the architecture of the current machine
+     * @since 8.6
      */
+    @Nonnull
     public static Architecture current() {
-        String arch = System.getProperty("os.arch", "none");
-        String archName = Ascii.toLowerCase(arch);
+        return forName(System.getProperty("os.arch", "none"));
+    }
+
+    /**
+     * Determine the architecture from the value of the "os.arch" system property
+     * @since 8.6
+     */
+    @Nonnull
+    public static Architecture forName(String arch) {
+        String archName = arch.toLowerCase();
         if (archName.equals("x86")) {
             return X86;
         } else if (archName.equals("amd64") || archName.equals("x86_64")) {
