@@ -84,16 +84,11 @@ dependencies {
 }
 
 asciidoctorj {
-    //    version = '2.5.13'
-    //    modules.pdf.version '2.3.10'
     setVersion("2.5.13")
     modules {
+        pdf.use()
         pdf.setVersion("2.3.10")
     }
-    getModules().getPdf().version("2.3.10")
-    getModules().getPdf().use()
-    modules.pdf.version("2.3.10")
-    //modules.pdf.setVersion("2.3.10")
     // TODO: gif are not supported in pdfs, see also https://github.com/gradle/gradle/issues/24193
     // TODO: tables are not handled properly in pdfs
     fatalWarnings.add(
@@ -239,9 +234,9 @@ samples {
         publishedSamples.create(id) {
             description = "Snippet from $snippetDir"
             category = "Other"
-            readmeFile.set(file("src/snippets/default-readme.adoc"))
-            sampleDirectory.set(snippetDir)
-            promoted.set(false)
+            readmeFile = file("src/snippets/default-readme.adoc")
+            sampleDirectory = snippetDir
+            promoted = false
         }
     }
 
@@ -616,13 +611,13 @@ tasks.named("quickTest") {
 }
 
 // TODO add some kind of test precondition support in sample test conf
-tasks.withType<Test>().named("docsTest") {
+tasks.named<Test>("docsTest") {
     maxParallelForks = 2
     // The org.gradle.samples plugin uses Exemplar to execute integration tests on the samples.
     // Exemplar doesn't know about that it's running in the context of the gradle/gradle build
     // so it uses the Gradle distribution from the running build. This is not correct, because
     // we want to verify that the samples work with the Gradle distribution being built.
-    val installationEnvProvider = GradleInstallationForTestEnvironmentProvider(project,this)
+    val installationEnvProvider = objects.newInstance<GradleInstallationForTestEnvironmentProvider>(project, this)
     installationEnvProvider.gradleHomeDir.from(configurations.integTestDistributionRuntimeClasspath)
     installationEnvProvider.samplesdir = project.layout.buildDirectory.dir("working/samples/testing")
     jvmArgumentProviders.add(installationEnvProvider)
