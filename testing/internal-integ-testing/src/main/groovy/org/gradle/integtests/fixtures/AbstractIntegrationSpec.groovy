@@ -72,7 +72,7 @@ import static org.gradle.util.Matchers.matchesRegexp
 @CleanupTestDirectory
 @SuppressWarnings("IntegrationTestFixtures")
 @IntegrationTestTimeout(DEFAULT_TIMEOUT_SECONDS)
-abstract class AbstractIntegrationSpec extends Specification implements LanguageSpecificTestFileFixture {
+abstract class AbstractIntegrationSpec extends Specification implements LanguageSpecificTestFileFixture, HasGradleExecutor {
 
     @Rule
     public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
@@ -87,7 +87,7 @@ abstract class AbstractIntegrationSpec extends Specification implements Language
     private boolean enableProblemsApiCheck = false
     private BuildOperationsFixture buildOperationsFixture = null
 
-    GradleExecuter getExecuter() {
+    public GradleExecuter getExecuter() {
         if (executor == null) {
             executor = createExecuter()
         }
