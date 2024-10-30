@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl.provider
 
+import org.gradle.api.Project
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.logging.Logging
@@ -45,7 +46,7 @@ class KotlinScriptPluginFactory @Inject internal constructor(
         topLevelScript: Boolean
     ): ScriptPlugin =
         KotlinScriptPlugin(scriptSource) { target ->
-            if (isDclEnabledForScriptTarget(target)) {
+            if (shouldTryDclInterpreterWithScriptTarget(target) && isDclEnabledForScriptTarget(target)) {
                 val result = declarativeKotlinScriptEvaluator.evaluate(target, scriptSource, targetScope)
                 if (result is EvaluationResult.Evaluated) {
                     targetScope.lock()
@@ -71,6 +72,18 @@ class KotlinScriptPluginFactory @Inject internal constructor(
         else defaultEvalOptions
 
     private val logger = Logging.getLogger(KotlinScriptPluginFactory::class.java)
+
+    /**
+     * Given the multi-stage nature of DCL settings files, we must handle the cases
+     * when earlier stages like `pluginManagement` succeed but stages following them fail.
+     * One example strategy is to make Kotlin DSL avoid re-running the successful DCL stages
+     * and move right to the failed ones.
+     *
+     * That needs more changes in Kotlin DSL, and until we make them, we disable DCL interpretation
+     * for any target other than [Project] (which is single-stage in DCL and is thus safe).
+     */
+    private fun shouldTryDclInterpreterWithScriptTarget(target: Any) =
+        target is Project
 }
 
 
