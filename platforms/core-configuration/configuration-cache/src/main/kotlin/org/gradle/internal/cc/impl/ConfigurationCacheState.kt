@@ -131,7 +131,8 @@ enum class StateType(val encryptable: Boolean = false) {
     /**
      * The index file that points to all of these things
      */
-    Entry(false)
+    Entry(false),
+    Candidates(false)
 }
 
 

@@ -59,10 +59,10 @@ import org.gradle.internal.serialize.graph.InlineStringEncoder
 import org.gradle.internal.serialize.graph.LoggingTracer
 import org.gradle.internal.serialize.graph.MutableReadContext
 import org.gradle.internal.serialize.graph.ReadContext
-import org.gradle.internal.serialize.graph.SpecialDecoders
-import org.gradle.internal.serialize.graph.SpecialEncoders
 import org.gradle.internal.serialize.graph.SharedObjectDecoder
 import org.gradle.internal.serialize.graph.SharedObjectEncoder
+import org.gradle.internal.serialize.graph.SpecialDecoders
+import org.gradle.internal.serialize.graph.SpecialEncoders
 import org.gradle.internal.serialize.graph.StringDecoder
 import org.gradle.internal.serialize.graph.StringEncoder
 import org.gradle.internal.serialize.graph.Tracer
@@ -71,11 +71,13 @@ import org.gradle.internal.serialize.graph.readCollection
 import org.gradle.internal.serialize.graph.readFile
 import org.gradle.internal.serialize.graph.readList
 import org.gradle.internal.serialize.graph.readNonNull
+import org.gradle.internal.serialize.graph.readStrings
 import org.gradle.internal.serialize.graph.readWith
 import org.gradle.internal.serialize.graph.runReadOperation
 import org.gradle.internal.serialize.graph.runWriteOperation
 import org.gradle.internal.serialize.graph.writeCollection
 import org.gradle.internal.serialize.graph.writeFile
+import org.gradle.internal.serialize.graph.writeStrings
 import org.gradle.internal.serialize.graph.writeWith
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder
@@ -140,6 +142,21 @@ class DefaultConfigurationCacheIO internal constructor(
         writeNullableString(key.identityPath?.path)
         writeString(key.modelName)
         writeNullableString(key.parameterHash?.toString())
+    }
+
+    override fun writeCandidateEntries(stateFile: ConfigurationCacheStateFile, entries: List<CandidateEntry>) {
+        writeConfigurationCacheState(stateFile) {
+            writeStrings(entries.map { it.id })
+        }
+    }
+
+    override fun readCandidateEntries(stateFile: ConfigurationCacheStateFile): List<CandidateEntry> {
+        if (!stateFile.exists) {
+            return emptyList()
+        }
+        return readConfigurationCacheState(stateFile) {
+            readStrings().map { CandidateEntry(it) }
+        }
     }
 
     override fun readCacheEntryDetailsFrom(stateFile: ConfigurationCacheStateFile): EntryDetails? {

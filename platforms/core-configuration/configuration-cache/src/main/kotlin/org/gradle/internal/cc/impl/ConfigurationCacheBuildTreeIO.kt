@@ -109,4 +109,11 @@ interface ConfigurationCacheBuildTreeIO : ConfigurationCacheOperationIO {
         specialEncoders: SpecialEncoders,
         writeOperation: suspend WriteContext.(Codecs) -> R
     ): R
+
+    fun readCandidateEntries(stateFile: ConfigurationCacheStateFile): List<CandidateEntry>
+    fun writeCandidateEntries(stateFile: ConfigurationCacheStateFile, entries: List<CandidateEntry>)
 }
+
+data class CandidateEntry(
+    val id: String
+)
