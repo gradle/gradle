@@ -31,8 +31,8 @@ class MemoizedInterpretationSchemaBuilder(private val delegate: InterpretationSc
 
     override fun getEvaluationSchemaForScript(scriptContext: DeclarativeScriptContext): InterpretationSchemaBuildingResult {
         val schemaStoringProperty = when (scriptContext) {
-            is DeclarativeScriptContext.ProjectScript -> ::projectSchema
-            is DeclarativeScriptContext.SettingsScript -> ::settingsSchema
+            DeclarativeScriptContext.ProjectScript -> ::projectSchema
+            DeclarativeScriptContext.SettingsScript -> ::settingsSchema
             DeclarativeScriptContext.UnknownScript -> null
         }
 

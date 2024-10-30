@@ -55,8 +55,8 @@ internal fun KotlinDslDclSchemaCollector.collectDclSchemaForKotlinDslTarget(targ
 
     fun dclInterpretationSequenceFor(target: Any): InterpretationSequence? {
         val schemaBuildingResult = when (target) {
-            is Project -> target.serviceOf<InterpretationSchemaBuilder>().getEvaluationSchemaForScript(object : DeclarativeScriptContext.ProjectScript {})
-            is SettingsInternal -> target.serviceOf<InterpretationSchemaBuilder>().getEvaluationSchemaForScript(object : DeclarativeScriptContext.SettingsScript {})
+            is Project -> target.serviceOf<InterpretationSchemaBuilder>().getEvaluationSchemaForScript(DeclarativeScriptContext.ProjectScript)
+            is SettingsInternal -> target.serviceOf<InterpretationSchemaBuilder>().getEvaluationSchemaForScript(DeclarativeScriptContext.SettingsScript)
             else -> null
         }
         return (schemaBuildingResult as? InterpretationSchemaBuildingResult.InterpretationSequenceAvailable)?.sequence
