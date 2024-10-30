@@ -17,12 +17,11 @@
 package org.gradle.internal.cc.base.serialize
 
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.internal.build.BuildState
 import org.gradle.internal.serialize.graph.ReadContext
-import org.gradle.internal.serialize.graph.getSingletonProperty
-
-
-typealias ProjectProvider = (String) -> ProjectInternal
+import org.gradle.internal.serialize.graph.ownerService
+import org.gradle.util.Path
 
 
 fun ReadContext.getProject(path: String): ProjectInternal =
-    getSingletonProperty<ProjectProvider>().invoke(path)
+    ownerService<BuildState>().projects.getProject(Path.path(path)).mutableModel

@@ -23,7 +23,7 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val groovyVersion = if (isBundleGroovy4) "4.0.22" else "3.0.22"
     val groovyGroup = if (isBundleGroovy4) "org.apache.groovy" else "org.codehaus.groovy"
 
-    val configurationCacheReportVersion = "1.21"
+    val configurationCacheReportVersion = "1.22"
     val gradleIdeStarterVersion = "0.3"
     val kotlinVersion = "2.0.21"
 
@@ -93,6 +93,8 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val jacksonAnnotations = "com.fasterxml.jackson.core:jackson-annotations"
     val jacksonCore = "com.fasterxml.jackson.core:jackson-core"
     val jacksonDatabind = "com.fasterxml.jackson.core:jackson-databind"
+    val jacksonDatatypeJdk8 = "com.fasterxml.jackson.datatype:jackson-datatype-jdk8"
+    val jacksonDatatypeJsr310 = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
     val jakartaActivation = "com.sun.activation:jakarta.activation"
     val jakartaXmlBind = "jakarta.xml.bind:jakarta.xml.bind-api"
     val jansi = "org.fusesource.jansi:jansi"
@@ -266,6 +268,8 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
         jacksonAnnotations to License.Apache2,
         jacksonCore to License.Apache2,
         jacksonDatabind to License.Apache2,
+        jacksonDatatypeJdk8 to License.Apache2,
+        jacksonDatatypeJsr310 to License.Apache2,
         jakartaActivation to License.EDL,
         jakartaXmlBind to License.EDL,
         jansi to License.Apache2,

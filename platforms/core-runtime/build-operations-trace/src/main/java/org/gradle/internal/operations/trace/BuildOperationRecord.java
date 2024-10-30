@@ -19,6 +19,7 @@ package org.gradle.internal.operations.trace;
 import com.google.common.base.Function;
 import com.google.common.collect.Ordering;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -48,15 +49,15 @@ public final class BuildOperationRecord {
 
     BuildOperationRecord(
         Long id,
-        Long parentId,
+        @Nullable Long parentId,
         String displayName,
         long startTime,
         long endTime,
-        Map<String, ?> details,
-        String detailsClassName,
-        Map<String, ?> result,
-        String resultClassName,
-        String failure,
+        @Nullable Map<String, ?> details,
+        @Nullable String detailsClassName,
+        @Nullable Map<String, ?> result,
+        @Nullable String resultClassName,
+        @Nullable String failure,
         List<Progress> progress,
         List<BuildOperationRecord> children
     ) {
@@ -118,11 +119,11 @@ public final class BuildOperationRecord {
         return detailsType != null && clazz.isAssignableFrom(detailsType);
     }
 
-    public Class<?> getDetailsType() throws ClassNotFoundException {
+    public @Nullable Class<?> getDetailsType() throws ClassNotFoundException {
         return detailsClassName == null ? null : getClass().getClassLoader().loadClass(detailsClassName);
     }
 
-    public Class<?> getResultType() throws ClassNotFoundException {
+    public @Nullable Class<?> getResultType() throws ClassNotFoundException {
         return resultClassName == null ? null : getClass().getClassLoader().loadClass(resultClassName);
     }
 
@@ -151,8 +152,8 @@ public final class BuildOperationRecord {
 
         public Progress(
             long time,
-            Map<String, ?> details,
-            String detailsClassName
+            @Nullable Map<String, ?> details,
+            @Nullable String detailsClassName
         ) {
             this.time = time;
             this.details = details == null ? null : new StrictMap<String, Object>(details);
@@ -171,7 +172,7 @@ public final class BuildOperationRecord {
             return map;
         }
 
-        public Class<?> getDetailsType() throws ClassNotFoundException {
+        public @Nullable Class<?> getDetailsType() throws ClassNotFoundException {
             return detailsClassName == null ? null : getClass().getClassLoader().loadClass(detailsClassName);
         }
 

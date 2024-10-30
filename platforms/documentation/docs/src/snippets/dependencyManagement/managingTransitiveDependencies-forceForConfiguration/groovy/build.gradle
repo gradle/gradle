@@ -7,11 +7,13 @@ repositories {
 }
 
 // tag::force-per-configuration[]
+// tag::force[]
 configurations {
     compileClasspath {
         resolutionStrategy.force 'commons-codec:commons-codec:1.9'
     }
 }
+// end::force[]
 
 dependencies {
     implementation 'org.apache.httpcomponents:httpclient:4.5.4'

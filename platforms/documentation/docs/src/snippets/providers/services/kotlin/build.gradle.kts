@@ -117,66 +117,40 @@ abstract class MyWorkerTask
 tasks.register("myWorkTask", MyWorkerTask::class) {}
 // end::worker-executor[]
 
-// tag::file-system[]
-tasks.register("FileSystemOperations") {
-    doLast {
-        copy { // short for project.copy
-            from("src")
-            into("dest")
-        }
-    }
-}
-// end::file-system[]
-
 // tag::file-system-inject[]
 abstract class MyFileSystemOperationsTask
 @Inject constructor(private var fileSystemOperations: FileSystemOperations) : DefaultTask() {
 
     @TaskAction
     fun doTaskAction() {
-        fileSystemOperations.copy {
+        fileSystemOperations.sync {
             from("src")
             into("dest")
         }
     }
 }
 
-tasks.register("myInjectedFileSystemOperationsTask", MyFileSystemOperationsTask::class) {}
+tasks.register("myInjectedFileSystemOperationsTask", MyFileSystemOperationsTask::class)
 // end::file-system-inject[]
-
-// tag::archive-op[]
-tasks.register("ArchiveOperations") {
-    doLast {
-        zipTree() { "${project.projectDir}/sources.jar" } // short for project.zipTree
-    }
-}
-// end::archive-op[]
 
 // tag::archive-op-inject[]
 abstract class MyArchiveOperationsTask
 @Inject constructor(
     private val archiveOperations: ArchiveOperations,
-    private val project: Project
+    private val layout: ProjectLayout,
+    private val fs: FileSystemOperations
 ) : DefaultTask() {
-
     @TaskAction
     fun doTaskAction() {
-        archiveOperations.zipTree("${project.projectDir}/sources.jar")
-    }
-}
-
-tasks.register("myInjectedArchiveOperationsTask", MyArchiveOperationsTask::class) {}
-// end::archive-op-inject[]
-
-// tag::exec-op[]
-tasks.register("runCommand") {
-    doLast {
-        exec { // short for project.exec
-            commandLine("ls", "-la")
+        fs.sync {
+            from(archiveOperations.zipTree(layout.projectDirectory.file("sources.jar")))
+            into(layout.buildDirectory.dir("unpacked-sources"))
         }
     }
 }
-// end::exec-op[]
+
+tasks.register("myInjectedArchiveOperationsTask", MyArchiveOperationsTask::class)
+// end::archive-op-inject[]
 
 // tag::exec-op-inject[]
 abstract class MyExecOperationsTask
@@ -190,7 +164,7 @@ abstract class MyExecOperationsTask
     }
 }
 
-tasks.register("myInjectedExecOperationsTask", MyExecOperationsTask::class) {}
+tasks.register("myInjectedExecOperationsTask", MyExecOperationsTask::class)
 // end::exec-op-inject[]
 
 // tag::tooling-model[]

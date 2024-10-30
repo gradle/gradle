@@ -282,29 +282,34 @@ class ValueSourceProviderCodec(
 ) : Codec<ValueSourceProvider<*, *>> {
 
     override suspend fun WriteContext.encode(value: ValueSourceProvider<*, *>) {
-        if (!value.hasBeenObtained()) {
-            // source has **NOT** been used as build logic input:
-            // serialize the source
-            writeBoolean(true)
-            encodeValueSource(value)
-        } else {
-            // source has been used as build logic input:
-            // serialize the value directly as it will be part of the
-            // cached state fingerprint.
-            // Currently not necessary due to the unpacking that happens
-            // to the TypeSanitizingProvider put around the ValueSourceProvider.
-            error("build logic input")
+        writeSharedObject(value) {
+            if (!value.hasBeenObtained()) {
+                // source has **NOT** been used as build logic input:
+                // serialize the source
+                writeBoolean(true)
+                encodeValueSource(value)
+            } else {
+                // source has been used as build logic input:
+                // serialize the value directly as it will be part of the
+                // cached state fingerprint.
+                // Currently not necessary due to the unpacking that happens
+                // to the TypeSanitizingProvider put around the ValueSourceProvider.
+                error("build logic input")
+            }
         }
     }
 
     override suspend fun ReadContext.decode(): ValueSourceProvider<*, *> =
-        when (readBoolean()) {
-            true -> decodeValueSource()
-            false -> error("Unexpected boolean value (false) while decoding")
+        readSharedObject {
+            when (readBoolean()) {
+                true -> decodeValueSource()
+                false -> error("Unexpected boolean value (false) while decoding")
+            }
         }
 
     private
     suspend fun WriteContext.encodeValueSource(value: ValueSourceProvider<*, *>) {
+        // TODO:configuration-cache `encodePreservingSharedIdentityOf` should be unnecessary for shared objects
         encodePreservingSharedIdentityOf(value) {
             value.run {
                 val hasParameters = parametersType != null
@@ -320,6 +325,7 @@ class ValueSourceProviderCodec(
 
     private
     suspend fun ReadContext.decodeValueSource(): ValueSourceProvider<*, *> =
+        // TODO:configuration-cache `decodePreservingSharedIdentity` should be unnecessary for shared objects
         decodePreservingSharedIdentity {
             val valueSourceType = readClass()
             val hasParameters = readBoolean()

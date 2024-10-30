@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableMap;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.OperationProgressEvent;
 
+import javax.annotation.Nullable;
 import java.util.Map;
 
 import static org.gradle.internal.operations.trace.BuildOperationTrace.toSerializableModel;
@@ -28,8 +29,8 @@ class SerializedOperationProgress implements SerializedOperation {
 
     final long id;
     final long time;
-    final Object details;
-    final String detailsClassName;
+    final @Nullable Object details;
+    final @Nullable String detailsClassName;
 
     SerializedOperationProgress(OperationIdentifier id, OperationProgressEvent progressEvent) {
         this.id = id.getId();

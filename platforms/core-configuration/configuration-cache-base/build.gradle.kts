@@ -30,6 +30,7 @@ dependencies {
 
     api(libs.kotlinStdlib)
 
+    implementation(projects.baseServices)
     implementation(projects.serviceLookup)
 }
 tasks.isolatedProjectsIntegTest {
