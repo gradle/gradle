@@ -16,12 +16,11 @@
 
 package org.gradle.internal.declarativedsl.provider
 
+import org.gradle.BuildAdapter
 import org.gradle.BuildListener
-import org.gradle.BuildResult
 import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
-import org.gradle.api.invocation.Gradle
 import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.service.scopes.Scope
@@ -32,7 +31,7 @@ import org.gradle.internal.service.scopes.ServiceScope
  * Used as a workaround to inability to use [GradleInternal.getSettings] while evaluating a settings script.
  */
 @ServiceScope(Scope.Build::class)
-internal class SettingsUnderInitialization(private val listenerManager: ListenerManager) : BuildListener, Stoppable {
+internal class SettingsUnderInitialization(private val listenerManager: ListenerManager) : BuildAdapter(), Stoppable {
     val instance: SettingsInternal
         get() = if (::settings.isInitialized)
             settings
@@ -47,12 +46,6 @@ internal class SettingsUnderInitialization(private val listenerManager: Listener
     }
 
     private lateinit var settings: SettingsInternal
-    override fun settingsEvaluated(settings: Settings) = Unit
-    override fun projectsLoaded(gradle: Gradle) = Unit
-    override fun projectsEvaluated(gradle: Gradle) = Unit
-
-    @Suppress("OVERRIDE_DEPRECATION")
-    override fun buildFinished(result: BuildResult) = Unit
 
     override fun beforeSettings(settings: Settings) {
         this.settings = settings as SettingsInternal
