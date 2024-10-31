@@ -22,11 +22,11 @@ Second, the _artifact resolution_ phase fetches the actual files (artifacts) for
 
 1. **Graph resolution phase**:
 - Driven by declared dependencies and their metadata
-- Uses attributes defined in the configuration
+- Uses the request attributes defined by the configuration being resolved
 
 2. **Artifact resolution phase**:
 - Based on nodes in the resolved dependency graph
-- Matches the variant of each node
+- Matches each node to a variant and an artifact
 
 The outcome of these processes can be accessed via different APIs, each designed for specific use cases.
 
