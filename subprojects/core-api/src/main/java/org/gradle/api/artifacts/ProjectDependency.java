@@ -28,6 +28,16 @@ import java.util.Set;
 @HasInternalProtocol
 @SuppressWarnings("deprecation") // Because of SelfResolvingDependency
 public interface ProjectDependency extends ModuleDependency, SelfResolvingDependency {
+
+    /**
+     * Get the path to the project that this dependency refers to relative to its owning build.
+     *
+     * @see Project#getPath()
+     *
+     * @since 8.11
+     */
+    String getPath();
+
     /**
      * Returns the project associated with this project dependency.
      *
