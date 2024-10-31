@@ -1,10 +1,6 @@
 plugins {
     `java-library`
-    id("com.github.johnrengelman.shadow")
-}
-
-shadow {
-    applicationDistribution.from("src/dist")
+    id("com.gradleup.shadow")
 }
 
 tasks.shadowJar {
