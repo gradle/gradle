@@ -44,24 +44,26 @@
 
 root ::= statements
 
-statement ::= (assignment | expression)
+statement ::= (assignment | expressionWithSuffix)
 statements ::= (statement semis?)*
 
 assignment ::= directlyAssignableExpression EQ primaryExpression {pin=2}
-expression ::= simpleIdentifier postfixUnarySuffixes
+
+expressionWithSuffix ::= primaryExpression postfixUnarySuffix+
+expression ::= primaryExpression postfixUnarySuffix*
 
 semis ::= SEMI+
 
 directlyAssignableExpression ::= simpleIdentifier navigationSuffix?
 
-postfixUnarySuffixes ::= (valueArguments? annotatedLambda) | (navigationSuffix* valueArguments)
-
 annotatedLambda ::= LB statements RB {pin=1}
 
+valueArgument ::= (simpleIdentifier EQ)? expression
 valueArguments ::= LP (valueArgument (COMA valueArgument)* COMA?)? RP {pin=2}
-valueArgument ::= (simpleIdentifier EQ)? primaryExpression postfixUnarySuffixes?
 
+callSuffix ::= (valueArguments? annotatedLambda) | valueArguments
 navigationSuffix ::= DOT simpleIdentifier {pin=1}
+postfixUnarySuffix ::= callSuffix | navigationSuffix
 
 primaryExpression ::= literalConstant | simpleIdentifier | stringLiteral
 literalConstant ::= "null" | booleanLiteral | binaryLiteral | hexLiteral | integerLiteral | longLiteral
