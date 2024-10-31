@@ -28,10 +28,8 @@ import org.gradle.api.logging.Logging;
 import org.gradle.api.problems.ProblemSpec;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.Severity;
-import org.gradle.api.problems.internal.GeneralDataSpec;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblemReporter;
-import org.gradle.api.problems.internal.InternalProblemSpec;
 import org.gradle.api.problems.internal.Problem;
 
 import javax.tools.Diagnostic;
@@ -187,7 +185,7 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
     private void addFormattedMessage(ProblemSpec spec, Diagnostic<? extends JavaFileObject> diagnostic) {
         String formatted = messageFormatter.apply(diagnostic);
         System.err.println(formatted);
-        ((InternalProblemSpec) spec).additionalData(GeneralDataSpec.class, data -> data.put("formatted", formatted)); // TODO (donat) Introduce custom additional data type for compilation problems
+        spec.details(formatted);
     }
 
     private static void addDetails(ProblemSpec spec, Diagnostic<? extends JavaFileObject> diagnostic) {
@@ -196,10 +194,6 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
 
         // Contextual label is always the first line of the message
         spec.contextualLabel(messageLines[0]);
-        // If we have some multi-line messages (see compiler.java), we can add the complete message as details
-        if (messageLines.length > 1) {
-            spec.details(message);
-        }
     }
 
     private static void addLocations(ProblemSpec spec, Diagnostic<? extends JavaFileObject> diagnostic) {
