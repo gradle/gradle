@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet;
 
 /**
  * Companion type to {@link TransformStepNode} that knows how to compute extra dependent nodes
@@ -34,4 +35,15 @@ public interface TransformUpstreamDependenciesResolver {
      * sourced from a component with the given identifier.
      */
     TransformUpstreamDependencies dependenciesFor(ComponentIdentifier componentId, TransformStep transformStep);
+
+    interface Factory {
+
+        /**
+         * Create a new instance of the resolver.
+         *
+         * @param visitedArtifacts The artifact set is used to resolve the dependencies of the transform steps.
+         */
+        TransformUpstreamDependenciesResolver create(VisitedArtifactSet visitedArtifacts);
+
+    }
 }

@@ -100,6 +100,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.cache.internal.BinaryStore;
 import org.gradle.cache.internal.Store;
+import org.gradle.internal.Describables;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.GraphVariantSelector;
@@ -107,6 +108,7 @@ import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler
 import org.gradle.internal.locking.DependencyLockingGraphVisitor;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.operations.dependencies.configurations.ConfigurationIdentity;
 
 import javax.inject.Inject;
 import java.util.ArrayList;
@@ -244,6 +246,7 @@ public class ResolutionExecutor {
         ImmutableAttributes requestAttributes = rootComponent.getRootVariant().getAttributes();
         ResolutionStrategy.SortOrder defaultSortOrder = resolveContext.getResolutionStrategy().getSortOrder();
         ImmutableAttributesSchema consumerSchema = rootComponent.getRootComponent().getMetadata().getAttributesSchema();
+        ConfigurationIdentity configurationIdentity = resolveContext.getConfigurationIdentity();
 
         ResolutionFailureCollector failureCollector = new ResolutionFailureCollector(componentSelectorConverter);
         ResolutionStrategyInternal resolutionStrategy = resolveContext.getResolutionStrategy();
@@ -260,16 +263,29 @@ public class ResolutionExecutor {
 
         Set<UnresolvedDependency> unresolvedDependencies = failureCollector.complete(Collections.emptySet());
         VisitedGraphResults graphResults = new DefaultVisitedGraphResults(resolutionResultBuilder.getResolutionResult(), unresolvedDependencies, null);
+        VisitedArtifactResults artifactsResults = artifactsBuilder.complete();
+
+        TransformUpstreamDependenciesResolver.Factory dependenciesResolverFactory = visitedArtifacts -> new DefaultTransformUpstreamDependenciesResolver(
+            resolutionHost,
+            configurationIdentity,
+            requestAttributes,
+            defaultSortOrder,
+            graphResults,
+            visitedArtifacts,
+            calculatedValueContainerFactory.create(Describables.of("Full results for", resolutionHost.getDisplayName()), context -> resolveContext.getStrictResolverResults().getValue()),
+            domainObjectContext,
+            calculatedValueContainerFactory,
+            attributesFactory,
+            taskDependencyFactory
+        );
 
         VisitedArtifactSet visitedArtifacts = getVisitedArtifactSet(
-            resolveContext,
             graphResults,
             resolutionHost,
             consumerSchema,
-            artifactsBuilder.complete(),
+            artifactsResults,
             resolvers,
-            requestAttributes,
-            defaultSortOrder
+            dependenciesResolverFactory
         );
 
         ResolverResults.LegacyResolverResults legacyResolverResults = DefaultResolverResults.DefaultLegacyResolverResults.buildDependenciesResolved(
@@ -298,6 +314,7 @@ public class ResolutionExecutor {
         ImmutableAttributes requestAttributes = rootComponent.getRootVariant().getAttributes();
         ResolutionStrategy.SortOrder defaultSortOrder = resolveContext.getResolutionStrategy().getSortOrder();
         ImmutableAttributesSchema consumerSchema = rootComponent.getRootComponent().getMetadata().getAttributesSchema();
+        ConfigurationIdentity configurationIdentity = resolveContext.getConfigurationIdentity();
 
         StoreSet stores = storeFactory.createStoreSet();
 
@@ -377,15 +394,26 @@ public class ResolutionExecutor {
             lockingVisitor.writeLocks();
         }
 
+        TransformUpstreamDependenciesResolver.Factory dependenciesResolverFactory = visitedArtifacts -> new DefaultTransformUpstreamDependenciesResolver(
+            resolutionHost,
+            configurationIdentity,
+            requestAttributes,
+            defaultSortOrder,
+            graphResults,
+            visitedArtifacts,
+            domainObjectContext,
+            calculatedValueContainerFactory,
+            attributesFactory,
+            taskDependencyFactory
+        );
+
         VisitedArtifactSet visitedArtifacts = getVisitedArtifactSet(
-            resolveContext,
             graphResults,
             resolutionHost,
             consumerSchema,
             artifactsResults,
             resolvers,
-            requestAttributes,
-            defaultSortOrder
+            dependenciesResolverFactory
         );
 
         // Legacy results
@@ -421,34 +449,20 @@ public class ResolutionExecutor {
     }
 
     private VisitedArtifactSet getVisitedArtifactSet(
-        ResolveContext resolveContext,
         VisitedGraphResults graphResults,
         ResolutionHost resolutionHost,
         ImmutableAttributesSchema consumerSchema,
         VisitedArtifactResults artifactsResults,
         ComponentResolvers resolvers,
-        ImmutableAttributes requestAttributes,
-        ResolutionStrategy.SortOrder defaultSortOrder
+        TransformUpstreamDependenciesResolver.Factory dependenciesResolverFactory
     ) {
-        TransformUpstreamDependenciesResolver dependenciesResolver = new DefaultTransformUpstreamDependenciesResolver(
-            resolveContext.getResolutionHost(),
-            resolveContext.getConfigurationIdentity(),
-            requestAttributes,
-            defaultSortOrder,
-            resolveContext.getStrictResolverResults(),
-            domainObjectContext,
-            calculatedValueContainerFactory,
-            attributesFactory,
-            taskDependencyFactory
-        );
-
         return new DefaultVisitedArtifactSet(
             graphResults,
             resolutionHost,
             artifactsResults,
             artifactSetResolver,
             transformedVariantFactory,
-            dependenciesResolver,
+            dependenciesResolverFactory,
             consumerSchema,
             consumerProvidedVariantFinder,
             attributesFactory,

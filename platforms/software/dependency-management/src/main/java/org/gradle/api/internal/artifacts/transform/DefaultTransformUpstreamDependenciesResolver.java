@@ -50,6 +50,7 @@ import org.gradle.execution.plan.TaskNode;
 import org.gradle.execution.plan.TaskNodeFactory;
 import org.gradle.internal.Describables;
 import org.gradle.internal.Try;
+import org.gradle.internal.model.CalculatedValue;
 import org.gradle.internal.model.CalculatedValueContainer;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.model.ValueCalculator;
@@ -104,7 +105,8 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
     private final ImmutableAttributes requestAttributes;
     private final ResolutionStrategy.SortOrder artifactDependencySortOrder;
 
-    private final ResolutionResultProvider<ResolverResults> strictResolverResults;
+    private final ResolutionResultProvider<VisitedGraphResults> graphResults;
+    private final ResolutionResultProvider<VisitedArtifactSet> artifactResults;
 
     // Services
     private final DomainObjectContext owner;
@@ -118,9 +120,9 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
         ImmutableAttributes requestAttributes,
         ResolutionStrategy.SortOrder artifactDependencySortOrder,
 
-        // TODO: These should be provided at the time of resolution, as these represent
-        // the outputs of resolution and this resolver is constructed before resolution finishes.
-        ResolutionResultProvider<ResolverResults> strictResolverResults,
+        VisitedGraphResults partialVisitedGraph,
+        VisitedArtifactSet partialVisitedArtifacts,
+        CalculatedValue<ResolverResults> fullGraphResults,
 
         // Services
         DomainObjectContext owner,
@@ -133,7 +135,81 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
         this.requestAttributes = requestAttributes;
         this.artifactDependencySortOrder = artifactDependencySortOrder;
 
-        this.strictResolverResults = strictResolverResults;
+        this.graphResults = new ResolutionResultProvider<VisitedGraphResults>() {
+            @Override
+            public VisitedGraphResults getTaskDependencyValue() {
+                return partialVisitedGraph;
+            }
+
+            @Override
+            public VisitedGraphResults getValue() {
+                fullGraphResults.finalizeIfNotAlready();
+                return fullGraphResults.get().getVisitedGraph();
+            }
+        };
+
+        this.artifactResults = new ResolutionResultProvider<VisitedArtifactSet>() {
+            @Override
+            public VisitedArtifactSet getTaskDependencyValue() {
+                return partialVisitedArtifacts;
+            }
+
+            @Override
+            public VisitedArtifactSet getValue() {
+                fullGraphResults.finalizeIfNotAlready();
+                return fullGraphResults.get().getVisitedArtifacts();
+            }
+        };
+
+        this.owner = owner;
+        this.attributesFactory = attributesFactory;
+        this.calculatedValueContainerFactory = calculatedValueContainerFactory;
+        this.taskDependencyFactory = taskDependencyFactory;
+    }
+
+    public DefaultTransformUpstreamDependenciesResolver(
+        ResolutionHost resolutionHost,
+        @Nullable ConfigurationIdentity configurationIdentity,
+        ImmutableAttributes requestAttributes,
+        ResolutionStrategy.SortOrder artifactDependencySortOrder,
+
+        VisitedGraphResults visitedGraph,
+        VisitedArtifactSet visitedArtifacts,
+
+        // Services
+        DomainObjectContext owner,
+        CalculatedValueContainerFactory calculatedValueContainerFactory,
+        AttributesFactory attributesFactory,
+        TaskDependencyFactory taskDependencyFactory
+    ) {
+        this.resolutionHost = resolutionHost;
+        this.configurationIdentity = configurationIdentity;
+        this.requestAttributes = requestAttributes;
+        this.artifactDependencySortOrder = artifactDependencySortOrder;
+
+        this.graphResults = new ResolutionResultProvider<VisitedGraphResults>() {
+            @Override
+            public VisitedGraphResults getTaskDependencyValue() {
+                return visitedGraph;
+            }
+
+            @Override
+            public VisitedGraphResults getValue() {
+                return visitedGraph;
+            }
+        };
+
+        this.artifactResults = new ResolutionResultProvider<VisitedArtifactSet>() {
+            @Override
+            public VisitedArtifactSet getTaskDependencyValue() {
+                return visitedArtifacts;
+            }
+
+            @Override
+            public VisitedArtifactSet getValue() {
+                return visitedArtifacts;
+            }
+        };
 
         this.owner = owner;
         this.attributesFactory = attributesFactory;
@@ -150,17 +226,15 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
     }
 
     private TaskDependencyContainer approximateTaskDependenciesFor(ComponentIdentifier componentId, ImmutableAttributes fromAttributes) {
-        ResolverResults taskDependencyValue = strictResolverResults.getTaskDependencyValue();
-        VisitedGraphResults visitedGraph = taskDependencyValue.getVisitedGraph();
-        VisitedArtifactSet visitedArtifacts = taskDependencyValue.getVisitedArtifacts();
+        VisitedGraphResults visitedGraph = this.graphResults.getTaskDependencyValue();
+        VisitedArtifactSet visitedArtifacts = this.artifactResults.getTaskDependencyValue();
 
         return selectDependencyArtifacts(componentId, fromAttributes, visitedGraph, visitedArtifacts);
     }
 
     private FileCollectionInternal selectedArtifactsFor(ComponentIdentifier componentId, ImmutableAttributes fromAttributes) {
-        ResolverResults value = strictResolverResults.getValue();
-        VisitedGraphResults visitedGraph = value.getVisitedGraph();
-        VisitedArtifactSet visitedArtifacts = value.getVisitedArtifacts();
+        VisitedGraphResults visitedGraph = this.graphResults.getValue();
+        VisitedArtifactSet visitedArtifacts = this.artifactResults.getValue();
 
         SelectedArtifactSet selectedArtifacts = selectDependencyArtifacts(componentId, fromAttributes, visitedGraph, visitedArtifacts);
         return new ResolutionBackedFileCollection(
