@@ -53,7 +53,7 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.GradlePluginVariantsSu
 import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.dsl.dependencies.UnknownProjectFinder;
-import org.gradle.api.internal.artifacts.ivyservice.DefaultConfigurationResolver;
+import org.gradle.api.internal.artifacts.ivyservice.ResolutionExecutor;
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager;
 import org.gradle.api.internal.artifacts.ivyservice.ShortCircuitEmptyConfigurationResolver;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules;
@@ -649,7 +649,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             AttributeSchemaServices attributeSchemaServices,
             ResolutionFailureHandler resolutionFailureHandler
         ) {
-            DefaultConfigurationResolver defaultResolver = new DefaultConfigurationResolver(
+            ResolutionExecutor defaultResolver = new ResolutionExecutor(
                 dependencyGraphResolver,
                 repositoriesSupplier,
                 metadataHandler,

@@ -119,7 +119,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class DefaultConfigurationResolver implements ConfigurationResolver {
+public class ResolutionExecutor implements ConfigurationResolver {
     private static final Spec<DependencyMetadata> IS_LOCAL_EDGE = element -> element.getSelector() instanceof ProjectComponentSelector;
     private final DependencyGraphResolver dependencyGraphResolver;
     private final RepositoriesSupplier repositoriesSupplier;
@@ -153,7 +153,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
     private final AttributeSchemaServices attributeSchemaServices;
     private final ResolutionFailureHandler resolutionFailureHandler;
 
-    public DefaultConfigurationResolver(
+    public ResolutionExecutor(
         DependencyGraphResolver dependencyGraphResolver,
         RepositoriesSupplier repositoriesSupplier,
         GlobalDependencyResolutionRules metadataHandler,
