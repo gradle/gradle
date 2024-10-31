@@ -18,6 +18,9 @@ package org.gradle.api.problems.internal;
 
 import org.gradle.api.problems.ProblemId;
 import org.gradle.internal.Pair;
+import org.gradle.internal.buildoption.IntegerInternalOption;
+import org.gradle.internal.buildoption.InternalOption;
+import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.OperationIdentifier;
@@ -34,17 +37,21 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class DefaultProblemSummarizer implements ProblemReporter, ProblemSummarizer {
 
-    public static final int THRESHOLD = 15; //TODO configurable?
     private final BuildOperationProgressEventEmitter eventEmitter;
     private final CurrentBuildOperationRef currentBuildOperationRef;
     private final Collection<ProblemEmitter> problemEmitters;
+    private final Integer threshold;
 
     private final Map<ProblemId, AtomicInteger> seenProblemsWithCounts = new HashMap<ProblemId, AtomicInteger>();
 
-    public DefaultProblemSummarizer(BuildOperationProgressEventEmitter eventEmitter, CurrentBuildOperationRef currentBuildOperationRef, Collection<ProblemEmitter> problemEmitters) {
+    public static final InternalOption<Integer> THRESHOLD_OPTION = new IntegerInternalOption("org.gradle.internal.problem.summary.threshold", 15);
+    public static final int THRESHOLD_DEFAULT_VALUE = THRESHOLD_OPTION.getDefaultValue();
+
+    public DefaultProblemSummarizer(BuildOperationProgressEventEmitter eventEmitter, CurrentBuildOperationRef currentBuildOperationRef, Collection<ProblemEmitter> problemEmitters, InternalOptions internalOptions) {
         this.eventEmitter = eventEmitter;
         this.currentBuildOperationRef = currentBuildOperationRef;
         this.problemEmitters = problemEmitters;
+        this.threshold = internalOptions.getOption(THRESHOLD_OPTION).get();
     }
 
     private boolean isAboveThresholdCount(Problem problem) {
@@ -56,7 +63,7 @@ public class DefaultProblemSummarizer implements ProblemReporter, ProblemSummari
             seenProblemsWithCounts.put(problemId, count);
         }
         int countValue = count.incrementAndGet();
-        return countValue > THRESHOLD;
+        return countValue > threshold;
     }
 
     @Override
@@ -73,8 +80,8 @@ public class DefaultProblemSummarizer implements ProblemReporter, ProblemSummari
     private List<Pair<ProblemId, Integer>> getCutOffProblems() {
         List<Pair<ProblemId, Integer>> cutOffProblems = new ArrayList<Pair<ProblemId, Integer>>();
         for (Map.Entry<ProblemId, AtomicInteger> entry : seenProblemsWithCounts.entrySet()) {
-            if (entry.getValue().get() > THRESHOLD) {
-                cutOffProblems.add(Pair.of(entry.getKey(), entry.getValue().get() - THRESHOLD));
+            if (entry.getValue().get() > threshold) {
+                cutOffProblems.add(Pair.of(entry.getKey(), entry.getValue().get() - threshold));
             }
         }
         return cutOffProblems;
