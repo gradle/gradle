@@ -155,7 +155,6 @@ include::centralizing_catalog_platform.adoc[leveloffset=+2]
 
 include::single_versions.adoc[leveloffset=+2]
 include::rich_versions.adoc[leveloffset=+2]
-include::dynamic_versions.adoc[leveloffset=+2]
 include::dependency_locking.adoc[leveloffset=+2]
 
 include::dependency_constraints.adoc[leveloffset=+2]

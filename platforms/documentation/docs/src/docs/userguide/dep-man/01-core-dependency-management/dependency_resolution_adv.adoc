@@ -30,7 +30,7 @@ To resolve a dependency graph, Gradle repeats the following two steps until the 
 The following section will describe what Gradle identifies as conflicts and how it can resolve them automatically.
 After that, the retrieval of metadata will be covered, explaining how Gradle can <<#sec:how-gradle-downloads-deps,follow dependency links>>.
 
-[[sec:conflict-resolution]]
+[[sec:handle-conflict-resolution]]
 == How Gradle handles conflicts?
 
 When doing dependency resolution, Gradle handles two types of conflicts:

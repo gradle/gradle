@@ -17,7 +17,7 @@
 
 When the same library is declared multiple times or when two different libraries provide the same functionality, a conflict can occur during dependency resolution.
 
-[[sec:conflict-resolution]]
+[[sec:conflict-types]]
 == Understanding types of conflicts
 
 During dependency resolution, Gradle handles two types of conflicts:

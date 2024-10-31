@@ -14,7 +14,7 @@
 
 :metadata-file-spec: https://github.com/gradle/gradle/blob/master/platforms/documentation/docs/src/docs/design/gradle-module-metadata-latest-specification.md
 
-[[understanding_dependency_resolution]]
+[[understanding_dependency_resolution_model]]
 = Understanding the Dependency Resolution Model
 
 This chapter explains how dependency resolution works within Gradle.
