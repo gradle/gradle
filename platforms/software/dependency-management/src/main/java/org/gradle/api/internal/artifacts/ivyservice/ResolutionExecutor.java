@@ -25,15 +25,11 @@ import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
-import org.gradle.api.attributes.Attribute;
-import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
-import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.artifacts.DefaultResolverResults;
 import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
-import org.gradle.api.internal.artifacts.RepositoriesSupplier;
 import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.capability.CapabilitySelectorSerializer;
@@ -83,7 +79,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.FileDep
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.StreamingResolutionResultBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.ResolutionResultsStoreFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.StoreSet;
-import org.gradle.api.internal.artifacts.repositories.ContentFilteringRepository;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.artifacts.result.MinimalResolutionResult;
 import org.gradle.api.internal.artifacts.result.ResolvedComponentResultInternal;
@@ -110,19 +105,30 @@ import org.gradle.internal.locking.DependencyLockingGraphVisitor;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
 
-import javax.annotation.Nullable;
+import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
-public class ResolutionExecutor implements ConfigurationResolver {
+/**
+ * Performs a graph resolution. This interface acts as the entry-point to the dependency resolution process.
+ *
+ * <p>Resolution can either be executed partially or completely:</p>
+ * <ul>
+ *     <li>
+ *         During partial resolution, only project dependencies are resolved and all external dependencies are ignored.
+ *         These results are faster to calculate and are sufficient for task dependency resolution.
+ *     </li>
+ *     <li>
+ *         During full resolution, the entire graph is traversed and no dependencies are ignored.
+ *     </li>
+ * </ul>
+ */
+public class ResolutionExecutor {
     private static final Spec<DependencyMetadata> IS_LOCAL_EDGE = element -> element.getSelector() instanceof ProjectComponentSelector;
     private final DependencyGraphResolver dependencyGraphResolver;
-    private final RepositoriesSupplier repositoriesSupplier;
     private final GlobalDependencyResolutionRules metadataHandler;
     private final ResolutionResultsStoreFactory storeFactory;
     private final boolean buildProjectDependencies;
@@ -153,9 +159,9 @@ public class ResolutionExecutor implements ConfigurationResolver {
     private final AttributeSchemaServices attributeSchemaServices;
     private final ResolutionFailureHandler resolutionFailureHandler;
 
+    @Inject
     public ResolutionExecutor(
         DependencyGraphResolver dependencyGraphResolver,
-        RepositoriesSupplier repositoriesSupplier,
         GlobalDependencyResolutionRules metadataHandler,
         ResolutionResultsStoreFactory storeFactory,
         StartParameter startParameter,
@@ -187,7 +193,6 @@ public class ResolutionExecutor implements ConfigurationResolver {
         ResolutionFailureHandler resolutionFailureHandler
     ) {
         this.dependencyGraphResolver = dependencyGraphResolver;
-        this.repositoriesSupplier = repositoriesSupplier;
         this.metadataHandler = metadataHandler;
         this.storeFactory = storeFactory;
         this.buildProjectDependencies = startParameter.isBuildProjectDependencies();
@@ -219,7 +224,13 @@ public class ResolutionExecutor implements ConfigurationResolver {
         this.resolutionFailureHandler = resolutionFailureHandler;
     }
 
-    @Override
+    /**
+     * Traverses enough of the graph to calculate the build dependencies of the graph.
+     *
+     * @param resolveContext Describes what and how to resolve
+     *
+     * @return An immutable result set, containing a subset of the graph that is sufficient to calculate the build dependencies.
+     */
     public ResolverResults resolveBuildDependencies(ResolveContext resolveContext) {
         ResolutionFailureCollector failureCollector = new ResolutionFailureCollector(componentSelectorConverter);
         ResolutionStrategyInternal resolutionStrategy = resolveContext.getResolutionStrategy();
@@ -254,8 +265,15 @@ public class ResolutionExecutor implements ConfigurationResolver {
         return DefaultResolverResults.buildDependenciesResolved(graphResults, visitedArtifacts, legacyResolverResults);
     }
 
-    @Override
-    public ResolverResults resolveGraph(ResolveContext resolveContext) {
+    /**
+     * Traverses the full dependency graph.
+     *
+     * @param resolveContext Describes what and how to resolve
+     * @param repositories The repositories used to resolve external dependencies
+     *
+     * @return An immutable result set, containing the full graph of resolved components.
+     */
+    public ResolverResults resolveGraph(ResolveContext resolveContext, List<ResolutionAwareRepository> repositories) {
         ResolutionHost resolutionHost = resolveContext.getResolutionHost();
 
         StoreSet stores = storeFactory.createStoreSet();
@@ -299,7 +317,7 @@ public class ResolutionExecutor implements ConfigurationResolver {
         RootComponentMetadataBuilder.RootComponentState rootComponent = resolveContext.toRootComponent();
         ImmutableAttributesSchema consumerSchema = rootComponent.getRootComponent().getMetadata().getAttributesSchema();
 
-        ComponentResolvers resolvers = getResolvers(resolveContext, getFilteredRepositories(resolveContext), consumerSchema);
+        ComponentResolvers resolvers = getResolvers(resolveContext, repositories, consumerSchema);
         CompositeDependencyArtifactsVisitor artifactVisitors = new CompositeDependencyArtifactsVisitor(ImmutableList.of(
             oldModelVisitor, fileDependencyVisitor, artifactsBuilder
         ));
@@ -412,11 +430,6 @@ public class ResolutionExecutor implements ConfigurationResolver {
         );
     }
 
-    @Override
-    public List<ResolutionAwareRepository> getAllRepositories() {
-        return repositoriesSupplier.get();
-    }
-
     /**
      * Perform dependency resolution and visit the results.
      */
@@ -462,12 +475,6 @@ public class ResolutionExecutor implements ConfigurationResolver {
         );
     }
 
-    private List<ResolutionAwareRepository> getFilteredRepositories(ResolveContext resolveContext) {
-        return repositoriesSupplier.get().stream()
-            .filter(repository -> !shouldSkipRepository(repository, resolveContext.getName(), resolveContext.getAttributes()))
-            .collect(Collectors.toList());
-    }
-
     /**
      * Get component resolvers that resolve local and external components.
      */
@@ -497,57 +504,5 @@ public class ResolutionExecutor implements ConfigurationResolver {
         ));
 
         return new ComponentResolversChain(resolvers);
-    }
-
-    /**
-     * Determines if the repository should not be used to resolve this configuration.
-     */
-    private static boolean shouldSkipRepository(
-        ResolutionAwareRepository repository,
-        String resolveContextName,
-        AttributeContainer consumerAttributes
-    ) {
-        if (!(repository instanceof ContentFilteringRepository)) {
-            return false;
-        }
-
-        ContentFilteringRepository cfr = (ContentFilteringRepository) repository;
-
-        Set<String> includedConfigurations = cfr.getIncludedConfigurations();
-        Set<String> excludedConfigurations = cfr.getExcludedConfigurations();
-
-        if ((includedConfigurations != null && !includedConfigurations.contains(resolveContextName)) ||
-            (excludedConfigurations != null && excludedConfigurations.contains(resolveContextName))
-        ) {
-            return true;
-        }
-
-        Map<Attribute<Object>, Set<Object>> requiredAttributes = cfr.getRequiredAttributes();
-        return hasNonRequiredAttribute(requiredAttributes, consumerAttributes);
-    }
-
-    /**
-     * Accepts a map of attribute types to the set of values that are allowed for that attribute type.
-     * If the request attributes of the resolve context being resolved do not match the allowed values,
-     * then the repository is skipped.
-     */
-    private static boolean hasNonRequiredAttribute(
-        @Nullable Map<Attribute<Object>, Set<Object>> requiredAttributes,
-        AttributeContainer consumerAttributes
-    ) {
-        if (requiredAttributes == null) {
-            return false;
-        }
-
-        for (Map.Entry<Attribute<Object>, Set<Object>> entry : requiredAttributes.entrySet()) {
-            Attribute<Object> key = entry.getKey();
-            Set<Object> allowedValues = entry.getValue();
-            Object value = consumerAttributes.getAttribute(key);
-            if (!allowedValues.contains(value)) {
-                return true;
-            }
-        }
-
-        return false;
     }
 }
