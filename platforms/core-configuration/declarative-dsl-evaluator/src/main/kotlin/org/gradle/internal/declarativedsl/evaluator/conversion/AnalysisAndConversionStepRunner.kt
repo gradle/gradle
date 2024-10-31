@@ -71,13 +71,14 @@ class AnalysisAndConversionStepRunner(
 
         is EvaluationResult.Evaluated ->
             if (step is InterpretationSequenceStepWithConversion<*>) {
+                val evaluationSchema = step.evaluationSchemaForStep
                 val context = ReflectionContext(
-                    SchemaTypeRefContext(step.evaluationSchemaForStep.analysisSchema),
+                    SchemaTypeRefContext(evaluationSchema.analysisSchema),
                     analysisResult.stepResult.resolutionResult,
                     analysisResult.stepResult.assignmentTrace
                 )
                 val topLevelObjectReflection = reflect(analysisResult.stepResult.resolutionResult.topLevelReceiver, context)
-                applyReflectionToJvmObjectConversion(step.evaluationSchemaForStep, step, stepContext.targetObject, topLevelObjectReflection)
+                applyReflectionToJvmObjectConversion(evaluationSchema, step, stepContext.targetObject, topLevelObjectReflection)
                 EvaluationResult.Evaluated(ConversionStepResult.ConversionSucceeded(analysisResult.stepResult))
             } else EvaluationResult.Evaluated(ConversionStepResult.ConversionNotApplicable(analysisResult.stepResult))
     }
@@ -89,9 +90,10 @@ class AnalysisAndConversionStepRunner(
         target: Any,
         topLevelObjectReflection: ObjectReflection
     ) {
-        val propertyResolver = CompositePropertyResolver(evaluationSchema.runtimePropertyResolvers)
-        val functionResolver = CompositeFunctionResolver(evaluationSchema.runtimeFunctionResolvers)
-        val customAccessors = CompositeCustomAccessors(evaluationSchema.runtimeCustomAccessors)
+        val conversionSchema = evaluationSchema.conversionSchemaForScriptTarget(target)
+        val propertyResolver = CompositePropertyResolver(conversionSchema.runtimePropertyResolvers)
+        val functionResolver = CompositeFunctionResolver(conversionSchema.runtimeFunctionResolvers)
+        val customAccessors = CompositeCustomAccessors(conversionSchema.runtimeCustomAccessors)
 
         val topLevelReceiver = step.getTopLevelReceiverFromTarget(target)
         val converter = DeclarativeReflectionToObjectConverter(
@@ -99,6 +101,6 @@ class AnalysisAndConversionStepRunner(
         )
         converter.apply(topLevelObjectReflection)
 
-        step.whenEvaluated(topLevelReceiver)
+        step.whenEvaluated(target, topLevelReceiver)
     }
 }

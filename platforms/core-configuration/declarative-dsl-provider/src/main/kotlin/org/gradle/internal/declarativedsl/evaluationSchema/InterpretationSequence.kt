@@ -64,5 +64,5 @@ class SimpleInterpretationSequenceStepWithConversion private constructor(
 
     override val evaluationSchemaForStep: EvaluationAndConversionSchema by lazy(buildEvaluationAndConversionSchema)
     override fun getTopLevelReceiverFromTarget(target: Any): Any = target
-    override fun whenEvaluated(resultReceiver: Any) = Unit
+    override fun whenEvaluated(target: Any, resultReceiver: Any) = Unit
 }
