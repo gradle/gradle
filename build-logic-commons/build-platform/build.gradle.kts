@@ -24,7 +24,7 @@ val kotlinVersion = providers.gradleProperty("buildKotlinVersion")
 dependencies {
     constraints {
         api("org.gradle.guides:gradle-guides-plugin:0.23")
-        api("org.apache.ant:ant:1.10.14") // Bump the version brought in transitively by gradle-guides-plugin
+        api("org.apache.ant:ant:1.10.15") // Bump the version brought in transitively by gradle-guides-plugin
         api("com.gradle:develocity-gradle-plugin:3.18.1") // Run `java build-logic-settings/UpdateDevelocityPluginVersion.java <new-version>` to update
         api("com.gradle.publish:plugin-publish-plugin:1.2.1")
         api("gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:1.0.1")
