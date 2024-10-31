@@ -19,14 +19,13 @@ dependencies {
     api(projects.serviceProvider)
     api(projects.files)
 
-    api(libs.inject)
     api(libs.jsr305)
     api(libs.nativePlatform)
 
     api(projects.baseServices)
     api(projects.fileTemp)
-    api(projects.stdlibJavaExtensions)
 
+    implementation(projects.stdlibJavaExtensions)
     implementation(projects.serviceRegistryBuilder)
 
     implementation(libs.gradleFileEvents)
@@ -34,6 +33,7 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.commonsIo)
     implementation(libs.jansi)
+    implementation(libs.inject)
 
     testImplementation(testFixtures(projects.files))
     testImplementation(testFixtures(projects.core))

@@ -1,11 +1,10 @@
 // tag::cross[]
-import com.github.jengelman.gradle.plugins.shadow.ShadowExtension
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import ratpack.gradle.RatpackExtension
 
 // tag::root[]
 plugins {
-    id("com.github.johnrengelman.shadow") version "7.1.2" apply false
+    id("com.gradleup.shadow") version "8.3.4" apply false
     id("io.ratpack.ratpack-java") version "1.8.2" apply false
 }
 // end::root[]
@@ -21,10 +20,7 @@ project(":domain") {
 
 project(":infra") {
     apply(plugin = "java-library")
-    apply(plugin = "com.github.johnrengelman.shadow")
-    configure<ShadowExtension> {
-        applicationDistribution.from("src/dist")
-    }
+    apply(plugin = "com.gradleup.shadow")
     tasks.named<ShadowJar>("shadowJar") {
         minimize()
     }

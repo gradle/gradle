@@ -72,11 +72,8 @@ abstract class AbstractSmokeTest extends Specification {
         // https://plugins.gradle.org/plugin/com.netflix.nebula.resolution-rules
         static nebulaResolutionRules = "11.3.0"
 
-        // https://plugins.gradle.org/plugin/com.github.johnrengelman.shadow
-        static shadow = "8.1.1"
-
-        // https://plugins.gradle.org/plugin/io.github.goooler.shadow
-        static shadowFork = "8.1.8"
+        // https://plugins.gradle.org/plugin/com.gradleup.shadow
+        static shadow = "8.3.4"
 
         // https://github.com/asciidoctor/asciidoctor-gradle-plugin/tags
         static asciidoctor = Versions.of("3.3.2", "4.0.3")
@@ -132,7 +129,7 @@ abstract class AbstractSmokeTest extends Specification {
         static testRetryPlugin = "1.5.10"
 
         // https://plugins.gradle.org/plugin/io.freefair.aspectj
-        static aspectj = "8.6"
+        static aspectj = "8.10.2"
 
         // https://plugins.gradle.org/plugin/de.undercouch.download
         static undercouchDownload = Versions.of("5.6.0")
