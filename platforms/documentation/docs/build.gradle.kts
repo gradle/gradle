@@ -93,16 +93,18 @@ asciidoctorj {
     )
 }
 
-tasks.named<AsciidoctorTask>("userguideSinglePagePdf") {
-    extensions.getByType<org.asciidoctor.gradle.jvm.AsciidoctorJExtension>().apply {
+tasks.named<AsciidoctorTask>("userguideSinglePagePdf").configure {
+    val task = this
+    task.extensions.getByType<org.asciidoctor.gradle.jvm.AsciidoctorJExtension>().apply {
         docExtensions(
             project.dependencies.create(project(":docs-asciidoctor-extensions-base"))
         )
     }
 }
 
-tasks.named<AsciidoctorTask>("userguideSinglePageHtml") {
-    extensions.getByType<org.asciidoctor.gradle.jvm.AsciidoctorJExtension>().apply {
+tasks.named<AsciidoctorTask>("userguideSinglePageHtml").configure  {
+    val task = this
+    task.extensions.getByType<org.asciidoctor.gradle.jvm.AsciidoctorJExtension>().apply {
         docExtensions(
             project.dependencies.create(project(":docs-asciidoctor-extensions")),
             project.dependencies.create(files("src/main/resources"))
@@ -110,8 +112,9 @@ tasks.named<AsciidoctorTask>("userguideSinglePageHtml") {
     }
 }
 
-tasks.named<AsciidoctorTask>("userguideMultiPage") {
-    extensions.getByType<org.asciidoctor.gradle.jvm.AsciidoctorJExtension>().apply {
+tasks.named<AsciidoctorTask>("userguideMultiPage").configure  {
+    val task = this
+    task.extensions.getByType<org.asciidoctor.gradle.jvm.AsciidoctorJExtension>().apply {
         docExtensions(
             project.dependencies.create(project(":docs-asciidoctor-extensions")),
             project.dependencies.create(files("src/main/resources"))
