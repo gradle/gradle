@@ -39,6 +39,7 @@ import org.gradle.jvm.toolchain.internal.DefaultToolchainJavaLauncher
 import org.gradle.jvm.toolchain.internal.JavaToolchain
 import org.gradle.jvm.toolchain.internal.JavaToolchainInput
 import org.gradle.process.CommandLineArgumentProvider
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.util.TestUtil
@@ -51,10 +52,10 @@ class TestTest extends AbstractConventionTaskTest {
     static final String TEST_PATTERN_2 = "pattern2"
     static final String TEST_PATTERN_3 = "pattern3"
 
-    private File classesDir
-    private File resultsDir
-    private File binResultsDir
-    private File reportDir
+    private TestFile classesDir
+    private TestFile resultsDir
+    private TestFile binResultsDir
+    private TestFile reportDir
 
     def testExecuterMock = Mock(TestExecuter)
     def testFrameworkMock = Mock(TestFramework)
@@ -109,7 +110,7 @@ class TestTest extends AbstractConventionTaskTest {
         test.executeTests()
 
         then:
-        reportDir.listFiles().collect { it.name }.contains("index.html")
+        reportDir.assertContainsDescendants("index.html")
         1 * testExecuterMock.execute(_ as TestExecutionSpec, _ as TestResultProcessor)
     }
 
