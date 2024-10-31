@@ -41,7 +41,7 @@ The graph itself focuses on component variants, not the artifacts (files) associ
 - link:{javadocPath}/org/gradle/api/artifacts/result/ResolvedComponentResult.html[ResolvedComponentResult] - Represents a resolved component in the raw dependency graph.
 - link:{javadocPath}/org/gradle/api/artifacts/result/ResolvedVariantResult.html[ResolvedVariantResult] - Represents a resolved variant of a component in the raw dependency graph.
 
-See <<dependency_graph_resolution.adoc#graph_resolution_resolution,Dependency Graph Resolution>> to learn more.
+See <<dependency_graph_resolution.adoc#dependency_resolution_resolution,Dependency Graph Resolution>> to learn more.
 
 == 2. Artifact Resolution
 
