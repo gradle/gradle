@@ -127,18 +127,7 @@ internal class DefaultKotlinDslDclSchemaCollector : KotlinDslDclSchemaCollector 
         }
 
         return if (typeArgs.isNotEmpty()) {
-            /**
-             * Workaround: The [TypeOf] infrastructure handles parameterized types specially.
-             * Passing the raw [Class] obtained from the class loader to [TypeOf.parameterizedTypeOf] would not work.
-             * We need to provide a [ParameterizedType] instance.
-             */
-            TypeOf.typeOf<Any>(object : ParameterizedType {
-                override fun getActualTypeArguments(): Array<Type> = typeArgs.toTypedArray<Type>()
-                override fun getRawType(): Type = loadedClass
-
-                /** [Class.getNestHost] is @since 11, cannot use it; but we are fine with no owner type here. */
-                override fun getOwnerType() = null
-            })
+            parameterizedTypeOfRawGenericClass(typeArgs, loadedClass)
         } else{
             TypeOf.typeOf(loadedClass)
         }
@@ -148,4 +137,19 @@ internal class DefaultKotlinDslDclSchemaCollector : KotlinDslDclSchemaCollector 
         softwareTypeRegistry.softwareTypeImplementations.entries.map { (name, implementation) ->
             SoftwareTypeEntry(name, TypeOf.typeOf(implementation.modelPublicType))
         }
+
+    /**
+     * Workaround: The [TypeOf] infrastructure handles parameterized types specially.
+     * Passing the raw [Class] obtained from the class loader to [TypeOf.parameterizedTypeOf] would not work.
+     * We need to provide a [ParameterizedType] instance.
+     */
+    private fun parameterizedTypeOfRawGenericClass(typeArgs: List<Class<*>>, loadedClass: Class<*>): TypeOf<Any> =
+        TypeOf.typeOf(object : ParameterizedType {
+            override fun getActualTypeArguments(): Array<Type> = typeArgs.toTypedArray<Type>()
+            override fun getRawType(): Type = loadedClass
+
+            /** [Class.getNestHost] is @since 11, cannot use it; but we are fine with no owner type here. */
+            /** [Class.getNestHost] is @since 11, cannot use it; but we are fine with no owner type here. */
+            override fun getOwnerType() = null
+        })
 }
