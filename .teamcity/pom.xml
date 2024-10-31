@@ -6,7 +6,7 @@
         <mockk.version>1.13.13</mockk.version>
         <bytebuddy.version>1.15.7</bytebuddy.version>
         <junit.version>5.11.3</junit.version>
-        <fastjson.version>2.0.53</fastjson.version>
+        <fastjson.version>1.2.83</fastjson.version>
         <dslContextParameter.branch>master</dslContextParameter.branch>
     </properties>
     <groupId>Gradle_Check</groupId>
