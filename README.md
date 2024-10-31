@@ -81,9 +81,7 @@ The Gradle community offers a range of forums, documentation, and direct help to
 
 ### 🌱 **Contributing to Gradle**
 
-Gradle welcomes contributors of all experience levels! Whether you're fixing bugs, writing documentation, or implementing new features, there's a place for you in the [Gradle community](https://community.gradle.org/contributing/).
-
-- **Contribution Guide**: Follow the [Contribution Guide](https://github.com/gradle/gradle/blob/master/CONTRIBUTING.md).
+- **Contribution Guide**: If you're looking to contribute to Gradle or provide a patch/pull request, you can find more info [here](https://github.com/gradle/gradle/blob/master/CONTRIBUTING.md).
 - **Code of Conduct**: Gradle enforces a [Code of Conduct](https://gradle.org/conduct/) to ensure a welcoming and supportive community for all contributors.
 
 ---
