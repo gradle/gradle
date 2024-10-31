@@ -47,10 +47,14 @@ class KotlinScriptPluginFactory @Inject internal constructor(
     ): ScriptPlugin =
         KotlinScriptPlugin(scriptSource) { target ->
             if (shouldTryDclInterpreterWithScriptTarget(target) && isDclEnabledForScriptTarget(target)) {
-                val result = declarativeKotlinScriptEvaluator.evaluate(target, scriptSource, targetScope)
-                if (result is EvaluationResult.Evaluated) {
-                    targetScope.lock()
-                    return@KotlinScriptPlugin
+                logger.info("Trying to interpret Kotlin DSL script ${scriptSource.fileName} with DCL")
+                when (val result = declarativeKotlinScriptEvaluator.evaluate(target, scriptSource, targetScope)) {
+                    is EvaluationResult.Evaluated -> {
+                        logger.info("Successfully interpreted Kotlin DSL script ${scriptSource.fileName} with DCL")
+                        targetScope.lock()
+                        return@KotlinScriptPlugin
+                    }
+                    is EvaluationResult.NotEvaluated<*> -> logger.info("Failed to interpret Kotlin DSL script ${scriptSource.fileName} with DCL. Stage failures: ${result.stageFailures}$")
                 }
             }
 
