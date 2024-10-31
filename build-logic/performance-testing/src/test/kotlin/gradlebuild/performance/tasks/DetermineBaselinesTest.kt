@@ -61,9 +61,9 @@ class DetermineBaselinesTest {
     @Test
     fun `determines fork point commit on feature branch and default configuration`() {
         // given
-        mockGitOperation(listOf("git", "fetch", "origin", "master", "release"), "")
+        mockGitOperation(listOf("git", "fetch", "origin", "master", "provider-api-migration/public-api-changes"), "")
         mockGitOperation(listOf("git", "merge-base", "origin/master", "HEAD"), "master-fork-point")
-        mockGitOperation(listOf("git", "merge-base", "origin/release", "HEAD"), "release-fork-point")
+        mockGitOperation(listOf("git", "merge-base", "origin/provider-api-migration/public-api-changes", "HEAD"), "release-fork-point")
         mockGitOperation(listOf("git", "show", "master-fork-point:version.txt"), "5.1")
         mockGitOperation(listOf("git", "rev-parse", "--short", "master-fork-point"), "master-fork-point")
 
@@ -85,9 +85,9 @@ class DetermineBaselinesTest {
         // Windows git complains "long path" so we don't build commit distribution on Windows
         Assume.assumeFalse(OperatingSystem.current().isWindows)
         // given
-        mockGitOperation(listOf("git", "fetch", "origin", "master", "release"), "")
+        mockGitOperation(listOf("git", "fetch", "origin", "master", "provider-api-migration/public-api-changes"), "")
         mockGitOperation(listOf("git", "merge-base", "origin/master", "HEAD"), "master-fork-point")
-        mockGitOperation(listOf("git", "merge-base", "origin/release", "HEAD"), "release-fork-point")
+        mockGitOperation(listOf("git", "merge-base", "origin/provider-api-migration/public-api-changes", "HEAD"), "release-fork-point")
         mockGitOperation(listOf("git", "show", "master-fork-point:version.txt"), "5.1")
         mockGitOperation(listOf("git", "rev-parse", "--short", "master-fork-point"), "master-fork-point")
 
