@@ -53,23 +53,23 @@ class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProj
     def "cycles for plugin builds are prohibited"() {
         given:
         includePluginBuild(settingsFile, "plugins-a")
-        applyPlugins(buildFile, ["plugin-a"])
+        applyPlugins(buildFile, "plugin-a")
 
         includedBuild("plugins-a") {
             includePluginBuild(settingsScript, "../plugins-b")
-            applyPlugins(buildScript, ["groovy-gradle-plugin", "plugin-b"])
+            applyPlugins(buildScript, "groovy-gradle-plugin", "plugin-b")
             srcMainGroovy.file("plugin-a.gradle") << ""
         }
 
         includedBuild("plugins-b") {
             includePluginBuild(settingsScript, "../plugins-c")
-            applyPlugins(buildScript, ["groovy-gradle-plugin", "plugin-c"])
+            applyPlugins(buildScript, "groovy-gradle-plugin", "plugin-c")
             srcMainGroovy.file("plugin-b.gradle") << ""
         }
 
         includedBuild("plugins-c") {
             includePluginBuild(settingsScript, "../plugins-a")
-            applyPlugins(buildScript, ["groovy-gradle-plugin", "plugin-a"])
+            applyPlugins(buildScript, "groovy-gradle-plugin", "plugin-a")
             srcMainGroovy.file("plugin-c.gradle") << ""
         }
 
@@ -83,7 +83,7 @@ class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProj
     def "transitive cycles(start is a plugin) for plugin builds are prohibited"() {
         given:
         includePluginBuild(settingsFile, "plugins-a")
-        applyPlugins(buildFile, ["plugin-a"])
+        applyPlugins(buildFile, "plugin-a")
 
         includedBuild("plugins-a") {
             includeLibraryBuild(settingsScript, "../library-b")
@@ -96,7 +96,7 @@ class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProj
 
         includedBuild("library-c") {
             includePluginBuild(settingsScript, "../plugins-a")
-            applyPlugins(buildScript, ["plugin-a"])
+            applyPlugins(buildScript, "plugin-a")
         }
 
         when:
@@ -116,12 +116,12 @@ class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProj
 
         includedBuild("library-b") {
             includePluginBuild(settingsScript, "../plugins-a")
-            applyPlugins(buildScript, ["plugin-a"])
+            applyPlugins(buildScript, "plugin-a")
         }
 
         includedBuild("plugins-a") {
             includeLibraryBuild(settingsScript, "../library-c")
-            applyPlugins(buildScript, ["groovy-gradle-plugin"])
+            applyPlugins(buildScript, "groovy-gradle-plugin")
             srcMainGroovy.file("plugin-a.gradle") << ""
         }
 
@@ -139,10 +139,10 @@ class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProj
     def "introduced-by-settings-plugin cycles for plugins builds are prohibited"() {
         given:
         includePluginBuild(settingsFile, "build-logic")
-        applyPlugins(buildFile, ["plugin-a"])
+        applyPlugins(buildFile, "plugin-a")
 
         includedBuild("settings-plugins") {
-            applyPlugins(buildScript, ["groovy-gradle-plugin"])
+            applyPlugins(buildScript, "groovy-gradle-plugin")
             srcMainGroovy.file("my-plugin.settings.gradle") << """
                 pluginManagement {
                     includeBuild("../build-logic")
@@ -152,8 +152,8 @@ class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProj
 
         includedBuild("build-logic") {
             includePluginBuild(settingsScript, "../settings-plugins")
-            applyPlugins(settingsScript, ["my-plugin"])
-            applyPlugins(buildScript, ["groovy-gradle-plugin"])
+            applyPlugins(settingsScript, "my-plugin")
+            applyPlugins(buildScript, "groovy-gradle-plugin")
             srcMainGroovy.file("plugin-a.gradle") << ""
         }
 
@@ -181,10 +181,10 @@ class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProj
         isolatedProjectsRun("help")
     }
 
-    def "plugins from included build are resolving in parallel"() {
+    def "plugins from included build are safe to be resolved concurrently"() {
         given:
         includedBuild("plugins") {
-            applyPlugins(buildScript, ["groovy-gradle-plugin"])
+            applyPlugins(buildScript, "groovy-gradle-plugin")
             srcMainGroovy.file("foo.gradle") << """println("Foo plugin applied to \$project")"""
             srcMainGroovy.file("bar.gradle") << """println("Bar plugin applied to \$project")"""
         }
@@ -194,8 +194,8 @@ class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProj
             include(":a")
             include(":b")
         """
-        applyPlugins(file("a/build.gradle"), ["foo"])
-        applyPlugins(file("b/build.gradle"), ["bar"])
+        applyPlugins(file("a/build.gradle"), "foo")
+        applyPlugins(file("b/build.gradle"), "bar")
 
         when:
         isolatedProjectsRun("help")
@@ -205,32 +205,93 @@ class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProj
         outputContains("Bar plugin applied to project ':b'")
     }
 
-    def "deadlock"() {
+    def "substitutions from library builds are safe to be registered concurrently"() {
         given:
-        settingsFile("build-library/settings.gradle.kts", """
-            pluginManagement {
-                includeBuild("../build-plugins")
-            }
-            include(":a")
-        """)
-        buildFile("build-library/a/build.gradle.kts", """
-            plugins {
-                id("shared")
-            }
-        """)
-        buildFile("build-plugins/build.gradle.kts", """
-            plugins {
-                `groovy-gradle-plugin`
-            }
-        """)
-        file("build-plugins/src/main/groovy/shared.gradle") << ""
+        includedBuild("plugins-a") {
+            includeLibraryBuild(settingsScript, "../shared-library")
+            applyPlugins(buildScript, "groovy-gradle-plugin")
+            srcMainGroovy.file("plugin-a.gradle") << ""
+            buildScript << """
+                dependencies {
+                    implementation("com.example:shared-library")
+                }
+            """
+        }
 
-        settingsFile """
-            includeBuild("build-library")
+        includedBuild("plugins-b") {
+            includeLibraryBuild(settingsScript, "../shared-library")
+            applyPlugins(buildScript, "groovy-gradle-plugin")
+            srcMainGroovy.file("plugin-b.gradle") << ""
+            buildScript << """
+                dependencies {
+                    implementation("com.example:shared-library")
+                }
+            """
+        }
+
+        includedBuild("shared-library") {
+            applyPlugins(buildScript, "java-library")
+            buildScript << """
+                group = "com.example"
+                version = "1.0"
+            """
+        }
+
+        includePluginBuild(settingsFile, "plugins-a", "plugins-b")
+        settingsFile << """
+            include(":a")
+            include(":b")
+        """
+
+        applyPlugins(file("a/build.gradle"), "plugin-a")
+        applyPlugins(file("b/build.gradle"), "plugin-b")
+
+        expect:
+        isolatedProjectsRun("help")
+    }
+
+    def "substitutions from library builds are safe to be registered in cycled definition"() {
+        given:
+        includedBuild("library-a") {
+            includeLibraryBuild(settingsScript, "../library-b")
+            applyPlugins(buildScript, "java-library")
+            buildScript << """
+                group = "com.example"
+                version = "1.0"
+
+                dependencies {
+                    implementation("com.example:library-b")
+                }
+            """
+        }
+
+        includedBuild("library-b") {
+            includeLibraryBuild(settingsScript, "../library-a")
+            applyPlugins(buildScript, "java-library")
+            buildScript << """
+                group = "com.example"
+                version = "1.0"
+
+                dependencies {
+                    implementation("com.example:library-a")
+                }
+            """
+        }
+
+        includeLibraryBuild(settingsFile, "library-a")
+        includeLibraryBuild(settingsFile, "library-b")
+        buildFile """
+            plugins {
+                id "java"
+            }
+            dependencies {
+                implementation("com.example:library-a")
+                implementation("com.example:library-b")
+            }
         """
 
         expect:
-        isolatedProjectsRun "help"
+        isolatedProjectsRun("help")
     }
 
     private def includedBuild(String root, @DelegatesTo(BuildLayout) Closure configure) {
@@ -244,7 +305,7 @@ class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProj
        """
     }
 
-    private static def applyPlugins(TestFile buildFile, List<String> pluginIds) {
+    private static def applyPlugins(TestFile buildFile, String... pluginIds) {
         buildFile << """
             plugins {
                 ${pluginIds.collect { """id "$it" """ }.join("\n")}
@@ -252,10 +313,10 @@ class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProj
         """
     }
 
-    private static def includePluginBuild(TestFile settingsFile, String build) {
+    private static def includePluginBuild(TestFile settingsFile, String... builds) {
         settingsFile << """
             pluginManagement {
-                includeBuild("$build")
+                ${builds.collect { """includeBuild("$it")""" }.join("\n")}
             }
         """
     }
