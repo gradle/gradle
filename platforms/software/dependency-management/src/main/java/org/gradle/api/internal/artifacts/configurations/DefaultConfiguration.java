@@ -932,11 +932,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     }
 
     @Override
-    public ResolutionResultProvider<ResolverResults> getResolverResults() {
-        return new ResolverResultsResolutionResultProvider(false);
-    }
-
-    @Override
     public ResolutionResultProvider<ResolverResults> getStrictResolverResults() {
         return new ResolverResultsResolutionResultProvider(true);
     }

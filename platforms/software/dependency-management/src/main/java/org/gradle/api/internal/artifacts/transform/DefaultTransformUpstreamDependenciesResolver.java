@@ -29,8 +29,10 @@ import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.configurations.ResolutionBackedFileCollection;
 import org.gradle.api.internal.artifacts.configurations.ResolutionHost;
 import org.gradle.api.internal.artifacts.configurations.ResolutionResultProvider;
-import org.gradle.api.internal.artifacts.configurations.ResolutionResultProviderBackedSelectedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSelectionSpec;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -38,6 +40,7 @@ import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.lambdas.SerializableLambdas;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
+import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.WorkNodeAction;
@@ -101,7 +104,6 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
     private final ImmutableAttributes requestAttributes;
     private final ResolutionStrategy.SortOrder artifactDependencySortOrder;
 
-    private final ResolutionResultProvider<ResolverResults> resolverResults;
     private final ResolutionResultProvider<ResolverResults> strictResolverResults;
 
     // Services
@@ -119,7 +121,6 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
         // TODO: These should be provided at the time of resolution, as these represent
         // the outputs of resolution and this resolver is constructed before resolution finishes.
         ResolutionResultProvider<ResolverResults> strictResolverResults,
-        ResolutionResultProvider<ResolverResults> resolverResults,
 
         // Services
         DomainObjectContext owner,
@@ -132,7 +133,6 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
         this.requestAttributes = requestAttributes;
         this.artifactDependencySortOrder = artifactDependencySortOrder;
 
-        this.resolverResults = resolverResults;
         this.strictResolverResults = strictResolverResults;
 
         this.owner = owner;
@@ -149,37 +149,45 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
         return new TransformUpstreamDependenciesImpl(componentId, configurationIdentity, transformStep, calculatedValueContainerFactory);
     }
 
+    private TaskDependencyContainer approximateTaskDependenciesFor(ComponentIdentifier componentId, ImmutableAttributes fromAttributes) {
+        ResolverResults taskDependencyValue = strictResolverResults.getTaskDependencyValue();
+        VisitedGraphResults visitedGraph = taskDependencyValue.getVisitedGraph();
+        VisitedArtifactSet visitedArtifacts = taskDependencyValue.getVisitedArtifacts();
+
+        return selectDependencyArtifacts(componentId, fromAttributes, visitedGraph, visitedArtifacts);
+    }
+
     private FileCollectionInternal selectedArtifactsFor(ComponentIdentifier componentId, ImmutableAttributes fromAttributes) {
-        Set<ComponentIdentifier> dependencies = computeDependencies(componentId, strictResolverResults.getValue());
-        return getDependencyResults(fromAttributes, dependencies);
-    }
+        ResolverResults value = strictResolverResults.getValue();
+        VisitedGraphResults visitedGraph = value.getVisitedGraph();
+        VisitedArtifactSet visitedArtifacts = value.getVisitedArtifacts();
 
-    private void computeDependenciesFor(ComponentIdentifier componentId, ImmutableAttributes fromAttributes, TaskDependencyResolveContext context) {
-        Set<ComponentIdentifier> buildDependencies = computeDependencies(componentId, strictResolverResults.getTaskDependencyValue());
-        FileCollectionInternal files = getDependencyResults(fromAttributes, buildDependencies);
-        context.add(files);
-    }
-
-    private FileCollectionInternal getDependencyResults(ImmutableAttributes fromAttributes, Set<ComponentIdentifier> filteredComponents) {
-        Spec<ComponentIdentifier> filter = SerializableLambdas.spec(filteredComponents::contains);
-
-        ImmutableAttributes fullAttributes = attributesFactory.concat(requestAttributes, fromAttributes);
+        SelectedArtifactSet selectedArtifacts = selectDependencyArtifacts(componentId, fromAttributes, visitedGraph, visitedArtifacts);
         return new ResolutionBackedFileCollection(
-            new ResolutionResultProviderBackedSelectedArtifactSet(
-                resolverResults.map(results ->
-                    results.getVisitedArtifacts().select(new ArtifactSelectionSpec(
-                        fullAttributes, filter, false, false, artifactDependencySortOrder
-                    ))
-                )
-            ),
+            selectedArtifacts,
             false,
             resolutionHost,
             taskDependencyFactory
         );
     }
 
-    private static Set<ComponentIdentifier> computeDependencies(ComponentIdentifier componentId, ResolverResults results) {
-        ResolvedComponentResult root = results.getVisitedGraph().getResolutionResult().getRootSource().get();
+    private SelectedArtifactSet selectDependencyArtifacts(
+        ComponentIdentifier componentId,
+        ImmutableAttributes fromAttributes,
+        VisitedGraphResults visitedGraph,
+        VisitedArtifactSet visitedArtifacts
+    ) {
+        Set<ComponentIdentifier> dependencyComponents = computeDependencies(componentId, visitedGraph);
+        Spec<ComponentIdentifier> filter = SerializableLambdas.spec(dependencyComponents::contains);
+
+        ImmutableAttributes fullAttributes = attributesFactory.concat(requestAttributes, fromAttributes);
+        return visitedArtifacts.select(new ArtifactSelectionSpec(
+            fullAttributes, filter, false, false, artifactDependencySortOrder
+        ));
+    }
+
+    private static Set<ComponentIdentifier> computeDependencies(ComponentIdentifier componentId, VisitedGraphResults visitedGraph) {
+        ResolvedComponentResult root = visitedGraph.getResolutionResult().getRootSource().get();
         ResolvedComponentResult targetComponent = findComponent(root, componentId);
 
         if (targetComponent == null) {
@@ -293,7 +301,8 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
 
         @Override
         public void visitDependencies(TaskDependencyResolveContext context) {
-            computeDependenciesFor(componentId, fromAttributes, context);
+            TaskDependencyContainer dependencies = approximateTaskDependenciesFor(componentId, fromAttributes);
+            context.add(dependencies);
         }
 
         public class CalculateFinalDependencies implements PostExecutionNodeAwareActionNode {

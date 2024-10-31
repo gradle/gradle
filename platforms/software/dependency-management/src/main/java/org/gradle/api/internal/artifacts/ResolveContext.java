@@ -63,7 +63,8 @@ public interface ResolveContext {
     RootComponentMetadataBuilder.RootComponentState toRootComponent();
 
     /**
-     * Returns the cached results of resolution.
+     * Returns the cached results of resolution. Will throw
+     * an exception in some cases when called and the results are not available.
      * <p>
      * <strong>Avoid this method at all costs</strong>.
      * <p>
@@ -74,14 +75,6 @@ public interface ResolveContext {
      * This method represents a cycle in the resolution logic. In order to perform
      * a resolution, we must also have a lazy reference to the results of the resolution.
      * This is not how resolution should work at all, and we should aim to remove this.
-     */
-    ResolutionResultProvider<ResolverResults> getResolverResults();
-
-    /**
-     * Same as {@link #getResolverResults()} but is stricter in that it will throw
-     * an exception in some cases when called and the results are not available.
-     * <p>
-     * <strong>Avoid this method at all costs</strong>.
      */
     ResolutionResultProvider<ResolverResults> getStrictResolverResults();
 

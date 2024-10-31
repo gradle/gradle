@@ -436,7 +436,6 @@ public class ResolutionExecutor {
             requestAttributes,
             defaultSortOrder,
             resolveContext.getStrictResolverResults(),
-            resolveContext.getResolverResults(),
             domainObjectContext,
             calculatedValueContainerFactory,
             attributesFactory,
