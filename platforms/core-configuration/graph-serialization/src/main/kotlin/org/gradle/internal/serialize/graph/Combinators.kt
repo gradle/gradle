@@ -194,6 +194,11 @@ suspend fun WriteContext.writeMap(value: Map<*, *>) {
     writeMapEntries(value)
 }
 
+suspend fun WriteContext.writeMapWithType(value: Map<*, *>, writeTypeBlock: suspend WriteContext.(Map<*, *>) -> Unit) {
+    writeSmallInt(value.size)
+    writeTypeBlock(value)
+    writeMapEntries(value)
+}
 
 suspend fun WriteContext.writeMapEntries(value: Map<*, *>) {
     for (entry in value.entries) {
@@ -218,6 +223,13 @@ suspend fun <K, V, T : MutableMap<K, V>> ReadContext.readMapEntriesInto(items: T
         val value = read() as V
         items[key] = value
     }
+}
+
+suspend fun <T : MutableMap<Any?, Any?>> ReadContext.readMapIntoWithType(factory: suspend (ReadContext, Int) -> T): T {
+    val size = readSmallInt()
+    val items = factory(this, size)
+    readMapEntriesInto(items, size)
+    return items
 }
 
 

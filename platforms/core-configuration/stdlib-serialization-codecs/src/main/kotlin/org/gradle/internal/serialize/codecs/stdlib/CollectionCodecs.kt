@@ -17,12 +17,18 @@
 package org.gradle.internal.serialize.codecs.stdlib
 
 import org.gradle.internal.serialize.graph.Codec
+import org.gradle.internal.serialize.graph.ReadContext
+import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.internal.serialize.graph.codec
+import org.gradle.internal.serialize.graph.codecs.BeanCodec
 import org.gradle.internal.serialize.graph.readCollectionInto
 import org.gradle.internal.serialize.graph.readList
 import org.gradle.internal.serialize.graph.readMapInto
+import org.gradle.internal.serialize.graph.readMapIntoWithType
+import org.gradle.internal.serialize.graph.reentrant
 import org.gradle.internal.serialize.graph.writeCollection
 import org.gradle.internal.serialize.graph.writeMap
+import org.gradle.internal.serialize.graph.writeMapWithType
 import java.util.ArrayDeque
 import java.util.Hashtable
 import java.util.LinkedList
@@ -85,14 +91,37 @@ fun <T : MutableCollection<Any?>> collectionCodec(factory: (Int) -> T) = codec(
 /**
  * Decodes HashMap instances as LinkedHashMap to preserve original iteration order.
  */
-val hashMapCodec: Codec<HashMap<Any?, Any?>> = mapCodec { LinkedHashMap(it) }
+val hashMapCodec: Codec<HashMap<Any?, Any?>> = mapWithTypeCodec { readContext, size ->
+    readContext.readMapWithBeanCodec<LinkedHashMap<Any?, Any?>>()
+    LinkedHashMap(size)
+}
 
 
-val linkedHashMapCodec: Codec<LinkedHashMap<Any?, Any?>> = mapCodec { LinkedHashMap(it) }
+// Reset threshold field in HashMap, threshold is not a transient field and will cause hash index missing after decode from configuration cache.
+internal fun HashMap<*, *>.resetThresholdField() {
+    val thresholdField = HashMap::class.java.getDeclaredField("threshold")
+    thresholdField.isAccessible = true
+    thresholdField.set(this, 0)
+}
+val linkedHashMapCodec: Codec<LinkedHashMap<Any?, Any?>> = mapWithTypeCodec { readContext, _ ->
+    val result = readContext.readMapWithBeanCodec() as LinkedHashMap<Any?, Any?>
+    result.resetThresholdField()
+    result
+}
 
 
-val concurrentHashMapCodec: Codec<ConcurrentHashMap<Any?, Any?>> = mapCodec { ConcurrentHashMap<Any?, Any?>(it) }
+val concurrentHashMapCodec: Codec<ConcurrentHashMap<Any?, Any?>> =  mapWithTypeCodec { readContext, _ ->
+    readContext.readMapWithBeanCodec()
+}
 
+val beanCodec by lazy { reentrant(BeanCodec) }
+@Suppress("UNCHECKED_CAST")
+suspend fun <T : MutableMap<Any?, Any?>> ReadContext.readMapWithBeanCodec(): T {
+    return beanCodec.run { decode() } as T
+}
+suspend fun WriteContext.writeMapWithBeanCodec(value: Map<*, *>) {
+    beanCodec.run { encode(value) }
+}
 
 /*
  * Cannot rely on Java serialization as
@@ -123,4 +152,10 @@ val treeMapCodec: Codec<TreeMap<Any?, Any?>> = codec(
 fun <T : MutableMap<Any?, Any?>> mapCodec(factory: (Int) -> T): Codec<T> = codec(
     { writeMap(it) },
     { readMapInto(factory) }
+)
+
+internal
+fun <T : MutableMap<Any?, Any?>> mapWithTypeCodec(factory: suspend (ReadContext, Int) -> T) = codec(
+    { writeMapWithType(it) { writeMapWithBeanCodec(it) } },
+    { readMapIntoWithType(factory) }
 )
