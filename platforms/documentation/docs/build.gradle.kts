@@ -122,6 +122,16 @@ tasks.named<AsciidoctorTask>("userguideMultiPage").configure  {
     }
 }
 
+tasks.named<AsciidoctorTask>("samplesMultiPage").configure  {
+    val task = this
+    task.extensions.getByType<org.asciidoctor.gradle.jvm.AsciidoctorJExtension>().apply {
+        docExtensions(
+            project.dependencies.create(project(":docs-asciidoctor-extensions")),
+            project.dependencies.create(files("src/main/resources"))
+        )
+    }
+}
+
 gradleDocumentation {
     javadocs {
         javaApi = project.uri("https://docs.oracle.com/javase/8/docs/api")
