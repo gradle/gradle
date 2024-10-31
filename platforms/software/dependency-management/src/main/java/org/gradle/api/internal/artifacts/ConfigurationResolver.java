@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
+import org.gradle.internal.model.CalculatedValue;
 
 import java.util.List;
 
@@ -32,7 +33,7 @@ public interface ConfigurationResolver {
     /**
      * Traverses enough of the graph to calculate the build dependencies of the given configuration. All failures are packaged in the result.
      */
-    ResolverResults resolveBuildDependencies(ConfigurationInternal configuration);
+    ResolverResults resolveBuildDependencies(ConfigurationInternal configuration, CalculatedValue<ResolverResults> futureCompleteResults);
 
     /**
      * Traverses the full dependency graph of the given configuration. All failures are packaged in the result.

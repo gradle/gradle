@@ -100,12 +100,12 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.cache.internal.BinaryStore;
 import org.gradle.cache.internal.Store;
-import org.gradle.internal.Describables;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.GraphVariantSelector;
 import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler;
 import org.gradle.internal.locking.DependencyLockingGraphVisitor;
+import org.gradle.internal.model.CalculatedValue;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.operations.dependencies.configurations.ConfigurationIdentity;
@@ -239,7 +239,7 @@ public class ResolutionExecutor {
      *
      * @return An immutable result set, containing a subset of the graph that is sufficient to calculate the build dependencies.
      */
-    public ResolverResults resolveBuildDependencies(ResolveContext resolveContext) {
+    public ResolverResults resolveBuildDependencies(ResolveContext resolveContext, CalculatedValue<ResolverResults> futureCompleteResults) {
 
         ResolutionHost resolutionHost = resolveContext.getResolutionHost();
         RootComponentMetadataBuilder.RootComponentState rootComponent = resolveContext.toRootComponent();
@@ -272,7 +272,7 @@ public class ResolutionExecutor {
             defaultSortOrder,
             graphResults,
             visitedArtifacts,
-            calculatedValueContainerFactory.create(Describables.of("Full results for", resolutionHost.getDisplayName()), context -> resolveContext.getStrictResolverResults().getValue()),
+            futureCompleteResults,
             domainObjectContext,
             calculatedValueContainerFactory,
             attributesFactory,

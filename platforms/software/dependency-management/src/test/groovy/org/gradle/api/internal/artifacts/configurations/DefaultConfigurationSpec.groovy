@@ -540,7 +540,7 @@ class DefaultConfigurationSpec extends Specification {
         _ * artifactTaskDependencies.getDependencies(_) >> requiredTasks
 
         and:
-        _ * resolver.resolveBuildDependencies(_) >> DefaultResolverResults.buildDependenciesResolved(Stub(VisitedGraphResults), visitedArtifactSet, Mock(ResolverResults.LegacyResolverResults))
+        _ * resolver.resolveBuildDependencies(_, _) >> DefaultResolverResults.buildDependenciesResolved(Stub(VisitedGraphResults), visitedArtifactSet, Mock(ResolverResults.LegacyResolverResults))
 
         expect:
         configuration.buildDependencies.getDependencies(targetTask) == requiredTasks
@@ -1123,7 +1123,7 @@ class DefaultConfigurationSpec extends Specification {
 
         then:
         config.state == UNRESOLVED
-        1 * resolver.resolveBuildDependencies(config) >> buildDependenciesResolved()
+        1 * resolver.resolveBuildDependencies(config, _) >> buildDependenciesResolved()
         0 * resolver._
     }
 
@@ -1162,7 +1162,7 @@ class DefaultConfigurationSpec extends Specification {
 
         then:
         config.state == UNRESOLVED
-        1 * resolver.resolveBuildDependencies(config) >> buildDependenciesResolved()
+        1 * resolver.resolveBuildDependencies(config, _) >> buildDependenciesResolved()
         0 * resolver._
 
         when:

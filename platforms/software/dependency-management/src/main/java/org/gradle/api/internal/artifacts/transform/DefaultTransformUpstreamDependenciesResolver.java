@@ -143,6 +143,7 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
 
             @Override
             public VisitedGraphResults getValue() {
+                // TODO: We should acquire the project lock here, since this will resolve a configuration, which requires a project lock.
                 fullGraphResults.finalizeIfNotAlready();
                 return fullGraphResults.get().getVisitedGraph();
             }
