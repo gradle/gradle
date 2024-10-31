@@ -854,7 +854,7 @@ tasks.named("check") {
 }
 
 // TODO there is some duplication with DistributionTest.kt here - https://github.com/gradle/gradle-private/issues/3126
-class GradleInstallationForTestEnvironmentProvider
+abstract class GradleInstallationForTestEnvironmentProvider
 @Inject constructor(project: Project, testTask: Test) : CommandLineArgumentProvider {
     @Internal
     val gradleHomeDir: ConfigurableFileCollection = project.objects.fileCollection()
