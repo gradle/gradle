@@ -65,7 +65,7 @@ abstract class DetermineBaselines @Inject constructor(@get:Internal val distribu
             determinedBaselines = determineFlakinessDetectionBaseline()
         } else if (configuredBaselines.getOrElse("").isNotEmpty()) {
             determinedBaselines = configuredBaselines
-        } else if (currentBranchIsMasterOrRelease() || isSecurityAdvisoryFork()) {
+        } else if (currentBranchIsMasterOrProviderEapBranch() || isSecurityAdvisoryFork()) {
             determinedBaselines = defaultBaselines
         } else {
             determinedBaselines = forkPointCommitBaseline()
@@ -84,7 +84,7 @@ abstract class DetermineBaselines @Inject constructor(@get:Internal val distribu
     fun determineFlakinessDetectionBaseline() = if (distributed) FLAKINESS_DETECTION_COMMIT_BASELINE else currentCommitBaseline()
 
     private
-    fun currentBranchIsMasterOrRelease() = logicalBranch.get() in listOf("master", "release")
+    fun currentBranchIsMasterOrProviderEapBranch() = logicalBranch.get() in listOf("master", "provider-api-migration/public-api-changes")
 
     private
     fun currentCommitBaseline() = commitBaseline(commandExecutor.execAndGetStdout("git", "rev-parse", "HEAD"))
@@ -97,9 +97,9 @@ abstract class DetermineBaselines @Inject constructor(@get:Internal val distribu
     private
     fun forkPointCommitBaseline(): String {
         val source = tryGetUpstream() ?: "origin"
-        commandExecutor.execAndGetStdout("git", "fetch", source, "master", "release")
+        commandExecutor.execAndGetStdout("git", "fetch", source, "master", "provider-api-migration/public-api-changes")
         val masterForkPointCommit = commandExecutor.execAndGetStdout("git", "merge-base", "origin/master", "HEAD")
-        val releaseForkPointCommit = commandExecutor.execAndGetStdout("git", "merge-base", "origin/release", "HEAD")
+        val releaseForkPointCommit = commandExecutor.execAndGetStdout("git", "merge-base", "origin/provider-api-migration/public-api-changes", "HEAD")
         val forkPointCommit =
             if (execOperations.exec { isIgnoreExitValue = true; commandLine("git", "merge-base", "--is-ancestor", masterForkPointCommit, releaseForkPointCommit) }.exitValue == 0)
                 releaseForkPointCommit
