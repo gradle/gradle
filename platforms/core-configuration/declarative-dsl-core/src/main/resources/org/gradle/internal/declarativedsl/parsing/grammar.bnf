@@ -50,7 +50,7 @@ statements ::= (statement semis?)*
 assignment ::= directlyAssignableExpression EQ primaryExpression {pin=2}
 
 block ::= primaryExpression annotatedLambda
-expression ::= primaryExpression postfixUnarySuffix+
+expression ::= primaryExpression postfixUnarySuffixes
 
 semis ::= SEMI+
 
@@ -62,7 +62,7 @@ valueArgument ::= (simpleIdentifier EQ)? (expression | primaryExpression)
 valueArguments ::= LP (valueArgument (COMA valueArgument)* COMA?)? RP {pin=2}
 
 navigationSuffix ::= DOT simpleIdentifier {pin=1}
-postfixUnarySuffix ::= valueArguments | navigationSuffix
+postfixUnarySuffixes ::= (navigationSuffix+ valueArguments) | (valueArguments (navigationSuffix valueArguments)*)
 
 primaryExpression ::= literalConstant | simpleIdentifier | stringLiteral
 
