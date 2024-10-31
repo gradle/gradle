@@ -29,6 +29,7 @@ import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.configurations.ResolutionBackedFileCollection;
 import org.gradle.api.internal.artifacts.configurations.ResolutionHost;
 import org.gradle.api.internal.artifacts.configurations.ResolutionResultProvider;
+import org.gradle.api.internal.artifacts.configurations.ResolutionResultProviderBackedSelectedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSelectionSpec;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -164,10 +165,12 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
 
         ImmutableAttributes fullAttributes = attributesFactory.concat(requestAttributes, fromAttributes);
         return new ResolutionBackedFileCollection(
-            resolverResults.map(results ->
-                results.getVisitedArtifacts().select(new ArtifactSelectionSpec(
-                    fullAttributes, filter, false, false, artifactDependencySortOrder
-                ))
+            new ResolutionResultProviderBackedSelectedArtifactSet(
+                resolverResults.map(results ->
+                    results.getVisitedArtifacts().select(new ArtifactSelectionSpec(
+                        fullAttributes, filter, false, false, artifactDependencySortOrder
+                    ))
+                )
             ),
             false,
             resolutionHost,
