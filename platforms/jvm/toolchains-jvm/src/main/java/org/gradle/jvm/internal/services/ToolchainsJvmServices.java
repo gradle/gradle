@@ -16,6 +16,7 @@
 
 package org.gradle.jvm.internal.services;
 
+import net.rubygrapefruit.platform.SystemInfo;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.temp.GradleUserHomeTemporaryFileProvider;
@@ -65,9 +66,10 @@ import java.util.List;
 
 public class ToolchainsJvmServices extends AbstractGradleModuleServices {
     protected static class BuildServices implements ServiceRegistrationProvider {
+
         @Provides
-        protected DefaultBuildPlatform createBuildPlatform(ObjectFactory objectFactory) {
-            return objectFactory.newInstance(DefaultBuildPlatform.class);
+        protected DefaultBuildPlatform createBuildPlatform(ObjectFactory objectFactory, SystemInfo systemInfo, OperatingSystem operatingSystem) {
+            return objectFactory.newInstance(DefaultBuildPlatform.class, systemInfo, operatingSystem);
         }
 
         @Provides
