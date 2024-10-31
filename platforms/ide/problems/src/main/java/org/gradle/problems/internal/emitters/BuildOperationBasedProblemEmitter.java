@@ -20,7 +20,6 @@ import org.gradle.api.Incubating;
 import org.gradle.api.problems.internal.DefaultProblemProgressDetails;
 import org.gradle.api.problems.internal.Problem;
 import org.gradle.api.problems.internal.ProblemEmitter;
-import org.gradle.api.problems.internal.ProblemSummarizer;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.OperationIdentifier;
 
@@ -35,18 +34,13 @@ import javax.annotation.Nullable;
 public class BuildOperationBasedProblemEmitter implements ProblemEmitter {
 
     private final BuildOperationProgressEventEmitter eventEmitter;
-    private final ProblemSummarizer problemSummarizer;
 
-    public BuildOperationBasedProblemEmitter(BuildOperationProgressEventEmitter eventEmitter, ProblemSummarizer problemSummarizer) {
+    public BuildOperationBasedProblemEmitter(BuildOperationProgressEventEmitter eventEmitter) {
         this.eventEmitter = eventEmitter;
-        this.problemSummarizer = problemSummarizer;
     }
 
     @Override
     public void emit(Problem problem, @Nullable OperationIdentifier id) {
-        if (problemSummarizer.register(problem)) {
-            return;
-        }
         eventEmitter.emitNow(id, new DefaultProblemProgressDetails(problem));
     }
 }

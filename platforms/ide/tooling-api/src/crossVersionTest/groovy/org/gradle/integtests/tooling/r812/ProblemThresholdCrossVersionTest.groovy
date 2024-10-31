@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.tooling.r812
 
-import org.gradle.api.problems.internal.ProblemSummarizer
+import org.gradle.api.problems.internal.DefaultProblemSummarizer
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
@@ -25,7 +25,7 @@ import org.gradle.tooling.events.problems.ProblemsSummariesEvent
 import org.gradle.tooling.events.problems.SingleProblemEvent
 
 import static org.gradle.api.problems.ReportingScript.getProblemReportingScript
-import static org.gradle.api.problems.internal.ProblemSummarizer.THRESHOLD
+import static org.gradle.api.problems.internal.DefaultProblemSummarizer.THRESHOLD
 import static org.gradle.integtests.tooling.r86.ProblemsServiceModelBuilderCrossVersionTest.getBuildScriptSampleContent
 import static org.gradle.integtests.tooling.r89.ProblemProgressEventCrossVersionTest.ProblemProgressListener
 import static org.gradle.integtests.tooling.r89.ProblemProgressEventCrossVersionTest.failureMessage
@@ -61,7 +61,7 @@ class ProblemThresholdCrossVersionTest extends ToolingApiSpecification {
     }
 
     def "No summaries if no events exceeded the threshold"() {
-        def totalSentEventsCount = ProblemSummarizer.THRESHOLD + exceedingCount
+        def totalSentEventsCount = DefaultProblemSummarizer.THRESHOLD + exceedingCount
         given:
         buildFile getProblemReportingScript("${getProblemReportingBody(totalSentEventsCount)}")
         def listener = new ProblemProgressListener()

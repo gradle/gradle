@@ -20,6 +20,10 @@ import org.gradle.internal.operations.OperationIdentifier;
 
 import javax.annotation.Nullable;
 
-public interface ProblemSummarizer {
-    void emit(Problem problem, @Nullable OperationIdentifier id);
+public class NoOpProblemSummarizer implements ProblemSummarizer {
+
+    @Override
+    public void emit(Problem problem, @Nullable OperationIdentifier id) {
+        // no op
+    }
 }

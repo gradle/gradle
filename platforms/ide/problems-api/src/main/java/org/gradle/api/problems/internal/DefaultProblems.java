@@ -23,26 +23,25 @@ import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.problems.buildtree.ProblemStream;
 
 import javax.annotation.Nonnull;
-import java.util.Collection;
 
 @ServiceScope(Scope.BuildTree.class)
 public class DefaultProblems implements InternalProblems {
 
     private final ProblemStream problemStream;
     private final CurrentBuildOperationRef currentBuildOperationRef;
-    private final Collection<ProblemEmitter> emitter;
+    private final ProblemSummarizer emitter;
     private final InternalProblemReporter internalReporter;
     private final AdditionalDataBuilderFactory additionalDataBuilderFactory = new AdditionalDataBuilderFactory();
 
-    public DefaultProblems(Collection<ProblemEmitter> emitter, CurrentBuildOperationRef currentBuildOperationRef) {
+    public DefaultProblems(ProblemSummarizer emitter, CurrentBuildOperationRef currentBuildOperationRef) {
         this(emitter, null, currentBuildOperationRef);
     }
 
-    public DefaultProblems(Collection<ProblemEmitter> emitter) {
+    public DefaultProblems(ProblemSummarizer emitter) {
         this(emitter, null, CurrentBuildOperationRef.instance());
     }
 
-    public DefaultProblems(Collection<ProblemEmitter> emitter, ProblemStream problemStream, CurrentBuildOperationRef currentBuildOperationRef) {
+    public DefaultProblems(ProblemSummarizer emitter, ProblemStream problemStream, CurrentBuildOperationRef currentBuildOperationRef) {
         this.emitter = emitter;
         this.problemStream = problemStream;
         this.currentBuildOperationRef = currentBuildOperationRef;

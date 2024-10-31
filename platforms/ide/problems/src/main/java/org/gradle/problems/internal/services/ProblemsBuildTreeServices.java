@@ -39,22 +39,19 @@ import org.gradle.problems.internal.ProblemReportCreator;
 import org.gradle.problems.internal.emitters.BuildOperationBasedProblemEmitter;
 import org.gradle.problems.internal.impl.DefaultProblemsReportCreator;
 
-import java.util.Collection;
-
 @ServiceScope(Scope.BuildTree.class)
 public class ProblemsBuildTreeServices implements ServiceRegistrationProvider {
     @Provides
     InternalProblems createProblemsService(
         ProblemStream problemStream,
-        Collection<ProblemEmitter> problemEmitters,
         ProblemSummarizer problemSummarizer
     ) {
-        return new DefaultProblems(problemEmitters, problemStream, CurrentBuildOperationRef.instance());
+        return new DefaultProblems(problemSummarizer, problemStream, CurrentBuildOperationRef.instance());
     }
 
     @Provides
-    ProblemEmitter createProblemEmitter(BuildOperationProgressEventEmitter buildOperationProgressEventEmitter, ProblemSummarizer problemSummarizer) {
-        return new BuildOperationBasedProblemEmitter(buildOperationProgressEventEmitter, problemSummarizer);
+    ProblemEmitter createProblemEmitter(BuildOperationProgressEventEmitter buildOperationProgressEventEmitter) {
+        return new BuildOperationBasedProblemEmitter(buildOperationProgressEventEmitter);
     }
 
     @Provides

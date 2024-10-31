@@ -20,7 +20,7 @@ import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.api.problems.internal.DefaultProblems
 import org.gradle.api.problems.internal.GradleCoreProblemGroup
-import org.gradle.api.problems.internal.ProblemEmitter
+import org.gradle.api.problems.internal.ProblemSummarizer
 import org.gradle.internal.Describables
 import org.gradle.internal.featurelifecycle.DeprecatedUsageProgressDetails
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler
@@ -68,7 +68,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
     }
 
     def DefaultProblems createDefaultProblemsWithStub() {
-        new DefaultProblems([Stub(ProblemEmitter)])
+        new DefaultProblems(Mock(ProblemSummarizer))
     }
 
     def 'logs each deprecation warning only once'() {

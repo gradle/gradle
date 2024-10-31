@@ -16,11 +16,14 @@
 
 package org.gradle.process.internal.worker.request;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.tasks.properties.annotations.OutputPropertyRoleAnnotationHandler;
 import org.gradle.api.problems.internal.DefaultProblems;
 import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.Problem;
+import org.gradle.api.problems.internal.ProblemEmitter;
+import org.gradle.api.problems.internal.ProblemSummarizer;
 import org.gradle.cache.internal.DefaultCrossBuildInMemoryCacheFactory;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
@@ -30,6 +33,7 @@ import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.instantiation.generator.DefaultInstantiatorFactory;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
+import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.remote.ObjectConnection;
 import org.gradle.internal.remote.internal.hub.StreamFailureHandler;
 import org.gradle.internal.service.ServiceRegistry;
@@ -40,6 +44,7 @@ import org.gradle.process.internal.worker.WorkerProcessContext;
 import org.gradle.process.internal.worker.child.WorkerLogEventListener;
 import org.gradle.process.internal.worker.problem.WorkerProblemEmitter;
 
+import javax.annotation.Nullable;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.concurrent.Callable;
@@ -83,7 +88,7 @@ public class WorkerAction implements Action<WorkerProcessContext>, Serializable,
                     // Make the argument serializers available so work implementations can register their own serializers
                     registration.add(RequestArgumentSerializers.class, argumentSerializers);
                     registration.add(InstantiatorFactory.class, instantiatorFactory);
-                    registration.add(InternalProblems.class, new DefaultProblems(ImmutableList.of(new WorkerProblemEmitter(responder)), CurrentBuildOperationRef.instance()));
+                    registration.add(InternalProblems.class, new DefaultProblems(new SummarizerToEmitterAdapter(new WorkerProblemEmitter(responder)), CurrentBuildOperationRef.instance()));
                 })
                 .build();
             Class<?> workerImplementation = Class.forName(workerImplementationName);
@@ -171,5 +176,19 @@ public class WorkerAction implements Action<WorkerProcessContext>, Serializable,
     @Override
     public void handleStreamFailure(Throwable t) {
         responder.failed(t);
+    }
+
+    @NonNullApi
+    private static class SummarizerToEmitterAdapter implements ProblemSummarizer {
+        private final ProblemEmitter emitter;
+
+        SummarizerToEmitterAdapter(ProblemEmitter emitter) {
+            this.emitter = emitter;
+        }
+
+        @Override
+        public void emit(Problem problem, @Nullable OperationIdentifier id) {
+            emitter.emit(problem, id);
+        }
     }
 }

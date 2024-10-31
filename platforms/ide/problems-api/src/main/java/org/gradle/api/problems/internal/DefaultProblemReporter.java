@@ -23,22 +23,21 @@ import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.problems.buildtree.ProblemStream;
 
 import javax.annotation.Nonnull;
-import java.util.Collection;
 
 public class DefaultProblemReporter implements InternalProblemReporter {
 
-    private final Collection<ProblemEmitter> emitters;
+    private final ProblemSummarizer emitter;
     private final ProblemStream problemStream;
     private final CurrentBuildOperationRef currentBuildOperationRef;
     private final AdditionalDataBuilderFactory additionalDataBuilderFactory;
 
     public DefaultProblemReporter(
-        Collection<ProblemEmitter> emitters,
+        ProblemSummarizer emitter,
         ProblemStream problemStream,
         CurrentBuildOperationRef currentBuildOperationRef,
         AdditionalDataBuilderFactory additionalDataBuilderFactory
     ) {
-        this.emitters = emitters;
+        this.emitter = emitter;
         this.problemStream = problemStream;
         this.currentBuildOperationRef = currentBuildOperationRef;
         this.additionalDataBuilderFactory = additionalDataBuilderFactory;
@@ -114,9 +113,6 @@ public class DefaultProblemReporter implements InternalProblemReporter {
      */
     @Override
     public void report(Problem problem, OperationIdentifier id) {
-        // TODO (reinhold) Reconsider using the Emitter interface here. Maybe it should be a replaced with a future problem listener feature.
-        for (ProblemEmitter emitter : emitters) {
-            emitter.emit(problem, id);
-        }
+        emitter.emit(problem, id);
     }
 }

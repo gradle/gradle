@@ -19,7 +19,7 @@ package org.gradle.api.internal.catalog
 import com.google.common.collect.Interners
 import org.gradle.api.problems.internal.DefaultProblems
 import org.gradle.api.problems.internal.InternalProblems
-import org.gradle.api.problems.internal.NoOpProblemEmitter
+import org.gradle.api.problems.internal.ProblemSummarizer
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 import spock.lang.Subject
@@ -32,7 +32,7 @@ class AbstractVersionCatalogTest extends Specification {
 
     def createVersionCatalogBuilder() {
         def supplier = Stub(Supplier)
-        def problems = new DefaultProblems([new NoOpProblemEmitter()])
+        def problems = new DefaultProblems(Mock(ProblemSummarizer))
         new DefaultVersionCatalogBuilder(
             "libs",
             Interners.newStrongInterner(),

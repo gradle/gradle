@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.internal.featurelifecycle.DeprecatedUsageProgressDetails
 
-import static org.gradle.api.problems.internal.ProblemSummarizer.THRESHOLD
+import static org.gradle.api.problems.internal.DefaultProblemSummarizer.THRESHOLD
 
 class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractIntegrationSpec {
 
