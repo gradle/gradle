@@ -19,11 +19,12 @@ f(a = b, c = d)
 id("plugin").version("7")
 f(1).g(2).h(3)
 
-a.b {d = 1}   // TODO: error?
-a.b.c {d = 1} // TODO: error?
-
 // errors
 // 5
 // a = (1)
 // a.b.c = 1
 // d = a.b.c
+// a.b {d = 1}
+// a.b.c {d = 1}
+// block("param") { a = 1 }
+// f(block{})
