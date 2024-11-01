@@ -27,6 +27,7 @@ f(1).g(2).h(3)
 // a.b {d = 1}
 // a.b.c {d = 1}
 // block("param") { a = 1 }
+// 1 { foo = "bar" }
 // f(block{})
 // f(1).x
 // x.f(1).y
