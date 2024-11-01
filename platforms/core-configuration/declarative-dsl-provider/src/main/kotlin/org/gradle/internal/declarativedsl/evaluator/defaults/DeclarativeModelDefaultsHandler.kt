@@ -48,7 +48,7 @@ import javax.inject.Inject
  */
 abstract class DeclarativeModelDefaultsHandler @Inject constructor(softwareTypeRegistry: SoftwareTypeRegistry) : ModelDefaultsHandler {
     private
-    val step = lazy { projectInterpretationSequenceStep(softwareTypeRegistry, getSoftwareFeatureApplicator()) }
+    val step = lazy { projectInterpretationSequenceStep(softwareTypeRegistry) }
     private
     val modelDefaultsRepository = softwareTypeRegistryBasedModelDefaultsRepository(softwareTypeRegistry)
 

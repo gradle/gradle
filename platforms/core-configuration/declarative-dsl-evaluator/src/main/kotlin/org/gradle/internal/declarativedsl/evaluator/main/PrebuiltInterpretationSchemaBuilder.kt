@@ -28,8 +28,8 @@ class PrebuiltInterpretationSchemaBuilder(
     private val projectSequence: InterpretationSequence
 ) : InterpretationSchemaBuilder {
     override fun getEvaluationSchemaForScript(scriptContext: DeclarativeScriptContext): InterpretationSchemaBuildingResult = when (scriptContext) {
-        is DeclarativeScriptContext.ProjectScript -> InterpretationSchemaBuildingResult.InterpretationSequenceAvailable(projectSequence)
-        is DeclarativeScriptContext.SettingsScript -> InterpretationSchemaBuildingResult.InterpretationSequenceAvailable(settingsSequence)
+        DeclarativeScriptContext.ProjectScript -> InterpretationSchemaBuildingResult.InterpretationSequenceAvailable(projectSequence)
+        DeclarativeScriptContext.SettingsScript -> InterpretationSchemaBuildingResult.InterpretationSequenceAvailable(settingsSequence)
         DeclarativeScriptContext.UnknownScript -> InterpretationSchemaBuildingResult.SchemaNotBuilt
     }
 }

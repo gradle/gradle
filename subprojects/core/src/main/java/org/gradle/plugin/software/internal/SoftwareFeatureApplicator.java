@@ -38,12 +38,4 @@ public interface SoftwareFeatureApplicator {
      * @since 8.12
      */
     <T> T applyFeatureTo(ExtensionAware target, SoftwareTypeImplementation<T> softwareFeature);
-
-    SoftwareFeatureApplicator ANALYSIS_ONLY = new SoftwareFeatureApplicator() {
-        @Override
-        public <T> T applyFeatureTo(ExtensionAware target, SoftwareTypeImplementation<T> softwareFeature) {
-            // This should never be called if the sequence is analysis only as this is only needed during resolution
-            throw new UnsupportedOperationException();
-        }
-    };
 }

@@ -157,7 +157,7 @@ class DataSchemaBuilder(
                 val properties = preIndex.getAllProperties(kClass)
                 val functions = functionExtractor.memberFunctions(kClass, preIndex).toList()
                 val constructors = functionExtractor.constructors(kClass, preIndex).toList()
-                DefaultDataClass(kClass.fqName, supertypesOf(kClass), properties, functions, constructors)
+                DefaultDataClass(kClass.fqName, kClass.java.name, listOf(), supertypesOf(kClass), properties, functions, constructors)
             }
         }
     }
