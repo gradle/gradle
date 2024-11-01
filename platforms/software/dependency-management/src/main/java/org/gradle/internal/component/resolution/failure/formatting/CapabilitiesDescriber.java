@@ -15,11 +15,9 @@
  */
 package org.gradle.internal.component.resolution.failure.formatting;
 
-import org.gradle.api.artifacts.capability.CapabilitySelector;
 import org.gradle.api.capabilities.Capability;
 
 import java.util.Collection;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -54,11 +52,4 @@ public final class CapabilitiesDescriber {
         return '\'' + c.getGroup() + ":" + c.getName() + '\'';
     }
 
-    public static String describeCapabilitySelectorsWithTitle(Set<CapabilitySelector> capabilities) {
-        if (capabilities.size() == 1) {
-            return capabilities.iterator().next().getDisplayName();
-        }
-
-        return "[" + capabilities.stream().map(CapabilitySelector::getDisplayName).collect(Collectors.joining(", ")) + "]";
-    }
 }

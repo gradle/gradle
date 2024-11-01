@@ -157,7 +157,7 @@ class CapabilitiesLocalComponentIntegrationTest extends AbstractIntegrationSpec 
         fails("resolve")
 
         then:
-        failure.assertHasCause("Unable to find a variant with capabilities matching [coordinates 'org:capability', feature 'foo']")
+        failure.assertHasCause("Unable to find a variant with the requested capabilities: [coordinates 'org:capability', feature 'foo']")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/26377")
