@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts;
 import org.gradle.StartParameter;
 import org.gradle.api.Describable;
 import org.gradle.api.InvalidUserCodeException;
+import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.ArtifactHandler;
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
 import org.gradle.api.artifacts.dsl.ComponentModuleMetadataHandler;
@@ -519,12 +520,12 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         }
 
         @Provides
-        DependencyLockingHandler createDependencyLockingHandler(Instantiator instantiator, ConfigurationContainerInternal configurationContainer, DependencyLockingProvider dependencyLockingProvider) {
+        DependencyLockingHandler createDependencyLockingHandler(Instantiator instantiator, DependencyLockingProvider dependencyLockingProvider, ServiceRegistry serviceRegistry) {
             if (domainObjectContext.isPluginContext()) {
                 throw new IllegalStateException("Cannot use locking handler in plugins context");
             }
             // The lambda factory is to avoid eager creation of the configuration container
-            return instantiator.newInstance(DefaultDependencyLockingHandler.class, (Supplier<ConfigurationContainerInternal>) () -> configurationContainer, dependencyLockingProvider);
+            return instantiator.newInstance(DefaultDependencyLockingHandler.class, (Supplier<ConfigurationContainer>) () -> serviceRegistry.get(ConfigurationContainer.class), dependencyLockingProvider);
         }
 
         @Provides
