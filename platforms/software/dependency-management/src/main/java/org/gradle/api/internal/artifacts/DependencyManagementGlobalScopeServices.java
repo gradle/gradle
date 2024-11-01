@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.transform.InputArtifactDependencies;
 import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyContextManager;
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager;
+import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.ModuleSelectorNotationConverter;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.ModuleSelectorStringNotationConverter;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultDependencyMetadataFactory;
@@ -55,6 +56,7 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.cache.internal.ProducerGuard;
+import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.instantiation.InjectAnnotationHandler;
 import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.internal.instantiation.InstantiatorFactory;
@@ -69,6 +71,7 @@ import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.typeconversion.CrossBuildCachingNotationConverter;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
+import org.gradle.internal.typeconversion.TypeConversionException;
 import org.gradle.work.Incremental;
 import org.gradle.work.NormalizeLineEndings;
 
@@ -83,11 +86,23 @@ class DependencyManagementGlobalScopeServices implements ServiceRegistrationProv
     }
 
     @Provides
-    NotationParser<Object, ComponentSelector> createComponentSelectorFactory(ImmutableModuleIdentifierFactory moduleIdentifierFactory, CrossBuildInMemoryCacheFactory cacheFactory) {
-        return NotationParserBuilder
+    ModuleSelectorNotationConverter createComponentSelectorFactory(ImmutableModuleIdentifierFactory moduleIdentifierFactory, CrossBuildInMemoryCacheFactory cacheFactory) {
+        NotationParser<Object, ComponentSelector> delegate = NotationParserBuilder
             .toType(ComponentSelector.class)
             .converter(new CrossBuildCachingNotationConverter<>(new ModuleSelectorStringNotationConverter(moduleIdentifierFactory), cacheFactory.newCache()))
             .toComposite();
+
+        return new ModuleSelectorNotationConverter() {
+            @Override
+            public ComponentSelector parseNotation(Object notation) throws TypeConversionException {
+                return delegate.parseNotation(notation);
+            }
+
+            @Override
+            public void describe(DiagnosticsVisitor visitor) {
+                delegate.describe(visitor);
+            }
+        };
     }
 
     @Provides
