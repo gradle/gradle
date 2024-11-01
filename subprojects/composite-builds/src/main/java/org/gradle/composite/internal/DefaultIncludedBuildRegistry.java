@@ -238,7 +238,7 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
             addBuild(includedBuild);
         } else {
             if (includedBuild.isImplicitBuild() != isImplicit) {
-                throw new IllegalStateException("Unexpected state for build.");
+                throw new IllegalStateException(String.format("Unexpected state for %s. Expected implicit build: %s.", includedBuild, isImplicit));
             }
             // TODO: verify that the build definition is the same
         }

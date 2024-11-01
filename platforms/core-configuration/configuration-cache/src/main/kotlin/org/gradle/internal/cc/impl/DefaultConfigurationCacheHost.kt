@@ -165,8 +165,13 @@ class DefaultConfigurationCacheHost internal constructor(
             return project
         }
 
-        override fun addIncludedBuild(buildDefinition: BuildDefinition, settingsFile: File?, buildPath: Path): ConfigurationCacheBuild {
-            return DefaultConfigurationCacheBuild(buildStateRegistry.addIncludedBuild(buildDefinition, buildPath), fileResolver, buildStateRegistry, settingsFile)
+        override fun addIncludedBuild(buildDefinition: BuildDefinition, settingsFile: File?, buildPath: Path, implicit: Boolean): ConfigurationCacheBuild {
+            val includedBuild = if (implicit) {
+                buildStateRegistry.addImplicitIncludedBuild(buildDefinition)
+            } else {
+                buildStateRegistry.addIncludedBuild(buildDefinition, buildPath)
+            }
+            return DefaultConfigurationCacheBuild(includedBuild, fileResolver, buildStateRegistry, settingsFile)
         }
 
         override fun getBuildSrcOf(ownerId: BuildIdentifier): ConfigurationCacheBuild {

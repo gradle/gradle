@@ -37,7 +37,7 @@ interface ConfigurationCacheBuild {
     /** Creates all registered projects for this build. */
     fun createProjects()
 
-    fun addIncludedBuild(buildDefinition: BuildDefinition, settingsFile: File?, buildPath: Path): ConfigurationCacheBuild
+    fun addIncludedBuild(buildDefinition: BuildDefinition, settingsFile: File?, buildPath: Path, implicit: Boolean): ConfigurationCacheBuild
 
     fun getBuildSrcOf(ownerId: BuildIdentifier): ConfigurationCacheBuild
 }
