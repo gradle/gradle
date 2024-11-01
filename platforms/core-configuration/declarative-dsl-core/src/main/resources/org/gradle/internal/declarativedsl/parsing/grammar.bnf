@@ -48,7 +48,7 @@ statement ::= (assignment | block | expression)
 statements ::= (statement semis?)*
 
 assignment ::= directlyAssignableExpression EQ primaryExpression valueArguments? {pin=2}
-block ::= simpleIdentifier annotatedLambda
+block ::= simpleIdentifier valueArguments? annotatedLambda
 expression ::= primaryExpression postfixUnarySuffixes
 
 semis ::= SEMI+

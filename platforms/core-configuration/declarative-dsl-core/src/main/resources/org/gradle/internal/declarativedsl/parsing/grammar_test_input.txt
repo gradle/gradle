@@ -10,6 +10,9 @@ block {
     a = 1
     b = 2
 }
+block("param") {
+    a = 1
+}
 
 f(x=y)
 f.g.h.i.j.k(test)
@@ -26,7 +29,6 @@ f(1).g(2).h(3)
 // d = a.b.c
 // a.b {d = 1}
 // a.b.c {d = 1}
-// block("param") { a = 1 }
 // 1 { foo = "bar" }
 // f(block{})
 // f(1).x
