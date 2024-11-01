@@ -100,7 +100,7 @@ To make the most out of Gradle, take advantage of these additional resources:
 > 🌟 **Stay connected with the Gradle Community and access the latest news, training, and updates via [Slack](https://gradle.org/slack-invite), [Forum](https://discuss.gradle.org/), and our [Newsletter](https://newsletter.gradle.org)**.
 <br><br>
 
-
+<br><br>
 <div align="center" style="margin-top: 20px;">
     <a href="https://www.linkedin.com/company/gradle/">
         <img src="https://img.shields.io/badge/-0077B5?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn" style="margin: 0 0px;">
