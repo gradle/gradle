@@ -47,7 +47,7 @@ root ::= statements
 statement ::= (assignment | block | expression)
 statements ::= (statement semis?)*
 
-assignment ::= directlyAssignableExpression EQ primaryExpression {pin=2}
+assignment ::= directlyAssignableExpression EQ primaryExpression valueArguments? {pin=2}
 
 block ::= primaryExpression annotatedLambda
 expression ::= primaryExpression postfixUnarySuffixes
