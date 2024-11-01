@@ -167,7 +167,7 @@ class VariantsDependencySubstitutionRulesIntegrationTest extends AbstractIntegra
         fails ':checkDeps'
 
         then:
-        failure.assertHasCause "Unable to find a variant providing the requested capability 'org:lib-test-fixtures':"
+        failure.assertHasCause "Unable to find a variant with the requested capability: coordinates 'org:lib-test-fixtures':"
     }
 
     def "can substitute a project dependency without capabilities with a dependency with capabilities"() {
@@ -205,7 +205,7 @@ class VariantsDependencySubstitutionRulesIntegrationTest extends AbstractIntegra
         fails ':checkDeps'
 
         then:
-        failure.assertHasCause "Unable to find a variant providing the requested capability 'org:lib-test-fixtures':"
+        failure.assertHasCause "Unable to find a variant with the requested capability: coordinates 'org:lib-test-fixtures':"
     }
 
     def "can substitute a dependency with capabilities with a dependency without capabilities"() {

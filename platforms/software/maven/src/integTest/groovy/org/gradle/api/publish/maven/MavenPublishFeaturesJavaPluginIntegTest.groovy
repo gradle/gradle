@@ -81,7 +81,7 @@ class MavenPublishFeaturesJavaPluginIntegTest extends AbstractMavenPublishFeatur
             withoutModuleMetadata {
                 shouldFail {
                     // documents the current behavior
-                    assertHasCause("Unable to find a variant providing the requested capability 'org.gradle.test:publishTest-feature'")
+                    assertHasCause("Unable to find a variant with the requested capability: coordinates 'org.gradle.test:publishTest-feature'")
                 }
             }
         }
@@ -156,7 +156,7 @@ class MavenPublishFeaturesJavaPluginIntegTest extends AbstractMavenPublishFeatur
             withoutModuleMetadata {
                 shouldFail {
                     // documents the current behavior
-                    assertHasCause("Unable to find a variant providing the requested capability '$group:${name}-feature'")
+                    assertHasCause("Unable to find a variant with the requested capability: coordinates '$group:${name}-feature'")
                 }
             }
         }

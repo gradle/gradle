@@ -122,6 +122,44 @@ class CapabilitiesLocalComponentIntegrationTest extends AbstractIntegrationSpec 
         succeeds("resolve")
     }
 
+    def "error when multiple capability selectors do not match includes both selectors"() {
+        settingsFile << """
+            include("other")
+        """
+        file("other/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+        """
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+
+            dependencies {
+                implementation(project(":other")) {
+                    capabilities {
+                        requireCapability("org:capability:1.0")
+                        requireFeature("foo")
+                    }
+                }
+            }
+
+            task resolve {
+                def files = configurations.runtimeClasspath.incoming.files
+                doLast {
+                    println(files*.name)
+                }
+            }
+        """
+
+        when:
+        fails("resolve")
+
+        then:
+        failure.assertHasCause("Unable to find a variant with the requested capabilities: [coordinates 'org:capability', feature 'foo']")
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/26377")
     def "ResolvedVariantResults reported by ResolutionResult and ArtifactCollection have same capabilities when they are added to configuration in hierarchy"() {
         settingsFile << "include 'producer'"
@@ -177,6 +215,48 @@ class CapabilitiesLocalComponentIntegrationTest extends AbstractIntegrationSpec 
 
                     def expected = ["com.foo:producer:2.0", "org.bar:dependency-scope-capability:1.0", "org.bar:consumable-capability:1.0"] as Set
                     assert graphVariant.capabilities.collect { "\${it.group}:\${it.name}:\${it.version}" } as Set == expected
+                }
+            }
+        """
+
+        expect:
+        succeeds("resolve")
+    }
+
+    def "can request capability without version"() {
+        settingsFile << """
+            include("other")
+        """
+        file("other/build.gradle") << """
+            configurations {
+                consumable("apiElements") {
+                    outgoing {
+                        artifact(file("foo.txt"))
+                        capability("org:capability:1.0")
+                    }
+                    attributes {
+                        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.LIBRARY))
+                    }
+                }
+            }
+        """
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+
+            dependencies {
+                implementation(project(":other")) {
+                    capabilities {
+                        requireCapability("org:capability")
+                    }
+                }
+            }
+
+            task resolve {
+                def files = configurations.runtimeClasspath.incoming.files
+                doLast {
+                    assert files*.name == ["foo.txt"]
                 }
             }
         """
