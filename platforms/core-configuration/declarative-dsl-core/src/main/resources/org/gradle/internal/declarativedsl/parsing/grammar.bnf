@@ -48,7 +48,6 @@ statement ::= (assignment | block | expression)
 statements ::= (statement semis?)*
 
 assignment ::= directlyAssignableExpression EQ primaryExpression valueArguments? {pin=2}
-
 block ::= simpleIdentifier annotatedLambda
 expression ::= primaryExpression postfixUnarySuffixes
 
@@ -56,16 +55,16 @@ semis ::= SEMI+
 
 directlyAssignableExpression ::= simpleIdentifier navigationSuffix?
 
-annotatedLambda ::= LB statements RB {pin=1}
-
-valueArgument ::= (simpleIdentifier EQ)? (expression | primaryExpression)
-valueArguments ::= LP (valueArgument (COMA valueArgument)* COMA?)? RP {pin=2}
-
-navigationSuffix ::= DOT simpleIdentifier {pin=1}
 postfixUnarySuffixes ::= (navigationSuffix+ valueArguments) | (valueArguments (navigationSuffix valueArguments)*)
 
-primaryExpression ::= literalConstant | simpleIdentifier | stringLiteral
+annotatedLambda ::= LB statements RB {pin=1}
 
+valueArguments ::= LP (valueArgument (COMA valueArgument)* COMA?)? RP {pin=2}
+valueArgument ::= (simpleIdentifier EQ)? (expression | primaryExpression)
+
+navigationSuffix ::= DOT simpleIdentifier {pin=1}
+
+primaryExpression ::= literalConstant | simpleIdentifier | stringLiteral
 literalConstant ::= "null" | booleanLiteral | binaryLiteral | hexLiteral | integerLiteral | longLiteral
 booleanLiteral ::= "true" | "false" {pin=1}
 
