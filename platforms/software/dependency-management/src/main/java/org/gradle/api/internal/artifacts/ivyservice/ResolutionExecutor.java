@@ -40,6 +40,7 @@ import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyIntern
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ExternalModuleComponentResolverFactory;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolverProviderFactories;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolverProviderFactory;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
@@ -180,7 +181,7 @@ public class ResolutionExecutor {
         GraphVariantSelector graphVariantSelector,
         ProjectStateRegistry projectStateRegistry,
         LocalComponentRegistry localComponentRegistry,
-        List<ResolverProviderFactory> resolverFactories,
+        ResolverProviderFactories resolverFactories,
         ExternalModuleComponentResolverFactory externalResolverFactory,
         ProjectDependencyResolver projectDependencyResolver,
         DependencyLockingProvider dependencyLockingProvider,
@@ -211,7 +212,7 @@ public class ResolutionExecutor {
         this.graphVariantSelector = graphVariantSelector;
         this.projectStateRegistry = projectStateRegistry;
         this.localComponentRegistry = localComponentRegistry;
-        this.resolverFactories = resolverFactories;
+        this.resolverFactories = resolverFactories.getFactories();
         this.externalResolverFactory = externalResolverFactory;
         this.projectDependencyResolver = projectDependencyResolver;
         this.dependencyLockingProvider = dependencyLockingProvider;
