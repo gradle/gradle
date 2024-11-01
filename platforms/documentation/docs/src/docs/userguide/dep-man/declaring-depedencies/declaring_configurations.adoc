@@ -191,3 +191,30 @@ When extending a configuration, the new configuration inherits:
 * capabilities
 
 The extension does *not* include attributes. It also does *not* extend consumable/resolvable/declarable status.
+
+== Dependency resolution
+
+The entrypoint to all dependency resolution APIs is a _resolvable_ link:{javadocPath}/org/gradle/api/artifacts/Configuration.html[Configuration].
+The Java plugins primarily use the `compileClasspath`, and `runtimeClasspath` configurations to resolve jars for compilation and runtime respectively.
+
+A resolvable configuration is intended for initiating dependency resolution.
+The dependencies to be resolved are declared on _dependency scope_ configurations.
+The Java plugins use the `api`, `implementation`, and `runtimeOnly` dependency scope configurations, among others, as a source of dependencies to be resolved by the resolvable configurations.
+
+Consider the following example that demonstrates how to declare a set of configurations intended for resolution:
+
+NOTE: This example uses incubating APIs.
+
+====
+include::sample[dir="snippets/dependencyManagement/performingResolution-resolutionResult/kotlin",files="build.gradle.kts[tags=declare-configurations]"]
+include::sample[dir="snippets/dependencyManagement/performingResolution-resolutionResult/groovy",files="build.gradle[tags=declare-configurations]"]
+====
+
+Dependencies can be declared on the `implementation` configuration using the dependencies block. See the <<declaring_dependencies.adoc#declaring-basic-dependencies,Declaring Dependencies>> chapter for more information on the types of dependencies that can be declared, and the various options for customizing dependency declarations.
+
+====
+include::sample[dir="snippets/dependencyManagement/performingResolution-resolutionResult/kotlin",files="build.gradle.kts[tags=declaring-dependencies]"]
+include::sample[dir="snippets/dependencyManagement/performingResolution-resolutionResult/groovy",files="build.gradle[tags=declaring-dependencies]"]
+====
+
+Now that we've created a _dependency scope_ configuration for declaring dependencies, and a _resolvable_ configuration for resolving those dependencies, we can use Gradle's <<dependency_resolution_basics.adoc#dependency_resolution_basics,dependency resolution APIs>> to access the results of resolution.

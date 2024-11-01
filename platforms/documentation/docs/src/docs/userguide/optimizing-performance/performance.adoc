@@ -405,7 +405,7 @@ When you use static compilation, an IDE can:
 * quickly show errors related to unrecognised types, properties, and methods
 * auto-complete method names
 
-[[dependency_resolution]]
+[[optimize_dependency_resolution]]
 == Optimize Dependency resolution
 
 Dependency resolution simplifies integrating third-party libraries and other dependencies into your projects.
