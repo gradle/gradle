@@ -21,7 +21,7 @@
 </div>
 
 
-## 🐘 **Welcome to Gradle** 
+## 🐘 **Gradle Build Tool** 
 
 **[Gradle](https://gradle.org/)** is a highly scalable build automation tool designed to handle everything from large, multi-project enterprise builds to quick development tasks across various languages. Gradle’s modular, performance-oriented architecture seamlessly integrates with development environments, making it a go-to solution for building, testing, and deploying applications on **Java**, **Kotlin**, **Scala**, **Android**, **Groovy**, **C++**, and **Swift**.
 
@@ -29,19 +29,22 @@
 
 ---
 
-### 🚀 **Getting Started with Gradle**
+### 🚀 **Getting Started**
 
 Starting with Gradle is easy with these essential resources. Follow these to install Gradle, set up initial projects, and explore supported platforms:
 
 - **[Installing Gradle](https://docs.gradle.org/current/userguide/installation.html)**
 - **Build Projects for Popular Languages and Frameworks**:
   - [Java Applications](https://docs.gradle.org/current/samples/sample_building_java_applications.html)
+  - [Java Modules](https://docs.gradle.org/current/samples/sample_java_modules_multi_project.html)
   - [Android Apps](https://developer.android.com/studio/build/index.html)
   - [Groovy Applications](https://docs.gradle.org/current/samples/sample_building_groovy_applications.html)
   - [Kotlin Libraries](https://docs.gradle.org/current/samples/sample_building_kotlin_libraries.html)
   - [Scala Applications](https://docs.gradle.org/current/samples/sample_building_scala_applications.html)
+  - [Spring Boot Web Apps](https://docs.gradle.org/current/samples/sample_building_spring_boot_web_applications.html)
   - [C++ Libraries](https://docs.gradle.org/current/samples/sample_building_cpp_libraries.html)
   - [Swift Apps](https://docs.gradle.org/current/samples/sample_building_swift_applications.html)
+  - [Swift Libraries](https://docs.gradle.org/current/samples/sample_building_swift_libraries.html)
 
 > 📘 Explore Gradle’s full array of resources through the [Gradle Documentation](https://docs.gradle.org/).
 
@@ -70,7 +73,7 @@ Kickstart your Gradle knowledge with courses, guides, and community support tail
 
 The Gradle community offers a range of forums, documentation, and direct help to guide you through every step of your Gradle journey:
 
-- **Documentation**: The [Gradle User Manual](https://docs.gradle.org/current/userguide/userguide.html) covers everything from basics to advanced configurations.
+- **Documentation**: The [Gradle User Manual](https://docs.gradle.org/current/userguide/userguide.html) covers everything from basic to advanced configurations.
 - **Community Forum**: Engage with others on the [Gradle Forum](https://discuss.gradle.org/) for discussions, tips, and best practices.
 - **Community Slack**: [Join our Slack Channel](https://gradle.org/slack-invite) for real-time discussions, with specialized channels like `#github-integrations` for integration topics.
 - **Newsletter**: Subscribe to the [Gradle Newsletter](https://newsletter.gradle.org) for news, tutorials, and community highlights.
@@ -81,7 +84,7 @@ The Gradle community offers a range of forums, documentation, and direct help to
 
 ### 🌱 **Contributing to Gradle**
 
-- **Contribution Guide**: If you're looking to contribute to Gradle or provide a patch/pull request, you can find more info [here](https://github.com/gradle/gradle/blob/master/CONTRIBUTING.md).
+- **Contribution Guide**: [Contribute](https://github.com/gradle/gradle/blob/master/CONTRIBUTING.md) to Gradle by submitting patches or pull requests for code or documentation improvements.
 - **Code of Conduct**: Gradle enforces a [Code of Conduct](https://gradle.org/conduct/) to ensure a welcoming and supportive community for all contributors.
 
 ---
