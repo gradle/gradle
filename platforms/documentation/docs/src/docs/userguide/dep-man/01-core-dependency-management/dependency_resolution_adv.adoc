@@ -161,7 +161,7 @@ Gradle uses variants and capabilities to identify what a component _provides_.
 This is a unique feature that deserves its <<variant_model.adoc#understanding-variant-selection,own chapter>> to understand what it means and enables.
 A conflict occurs the moment two nodes (variants of a component) declare the same capability.
 
-Learn more about handling these type of conflicts in <<dependency_capability_conflict.adoc#sub:selecting-between-candidates,Selecting between candidates>>.
+Learn more about handling these type of conflicts in <<component_capabilities.adoc#sub:selecting-between-candidates,Selecting between candidates>>.
 
 [[sec:how-gradle-downloads-deps]]
 == How Gradle retrieves dependency metadata?

@@ -37,7 +37,7 @@ This allows for a number of different scenarios (list is non-exhaustive):
 Declaring a dependency on a component is usually done by providing a set of coordinates (group, artifact, version also known as GAV coordinates).
 This allows the engine to determine the _component_ we're looking for, but such a component may provide different _variants_.
 A _variant_ is typically chosen based on the usage. For example, we might choose a different variant for compiling against a component (in which case we need the API of the component) or when executing code (in which case we need the runtime of the component).
-All variants of a component provide a number of <<dependency_capability_conflict.adoc#sub:capabilities, capabilities>>, which are denoted similarly using GAV coordinates.
+All variants of a component provide a number of <<component_capabilities.adoc#sub:capabilities, capabilities>>, which are denoted similarly using GAV coordinates.
 
 --
 A capability is denoted by GAV coordinates, but you must think of it as feature description:

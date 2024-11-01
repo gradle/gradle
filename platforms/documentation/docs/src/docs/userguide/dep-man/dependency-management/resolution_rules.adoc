@@ -82,7 +82,7 @@ include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencie
 [[sec:module_replacement]]
 == 2. Module Replacement
 
-While it's generally better to manage module conflicts using <<dependency_capability_conflict.adoc#sub:capabilities, capabilities>>, there are scenarios—especially when working with older versions of Gradle-that require a different approach.
+While it's generally better to manage module conflicts using <<component_capabilities.adoc#sub:capabilities, capabilities>>, there are scenarios—especially when working with older versions of Gradle-that require a different approach.
 In these cases, *module replacement rules* offer a solution by allowing you to specify that a legacy library has been replaced by a newer one.
 
 *Module replacement rules* allow you to declare that a legacy library has been replaced by a newer one.

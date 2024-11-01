@@ -133,7 +133,7 @@ If all versions have qualifiers, Gradle will consider the qualifier's order, pre
 
 Gradle uses **variants** and **capabilities** to define what a module *provides*.
 
-<<dependency_capability_conflict.adoc#sub:selecting-between-candidates,Conflicts>> arise in the following scenarios:
+<<component_capabilities.adoc#sub:selecting-between-candidates,Conflicts>> arise in the following scenarios:
 
 - **Incompatible variants**: When two modules attempt to select different, incompatible variants of a dependency.
 - **Same capability**: When multiple modules declare the same capability, creating an overlap in functionality.
@@ -391,7 +391,7 @@ In this scenario, all _compatible_ candidate variants are listed along with thei
 - **Compatible attributes**: Shown next, these highlight how the candidate variants align with the consumer’s requirements.
 - **Incompatible attributes**: Will not be shown, as incompatible variants are excluded.
 
-In the example above, the issue isn't with attribute matching but with <<dependency_capability_conflict.adoc#sub:selecting-between-candidates,**capability matching**>>.
+In the example above, the issue isn't with attribute matching but with <<component_capabilities.adoc#sub:selecting-between-candidates,**capability matching**>>.
 Both `feature1ApiElements` and `feature2ApiElements` offer the same attributes and capabilities, making them indistinguishable to Gradle.
 
 To resolve this, you can modify the producer (`project :lib`) to provide different capabilities or express a capability choice on the consumer side (`project :ui`) to disambiguate between the variants.

@@ -67,7 +67,7 @@ Then, users _have to_ express their preferences, if possible, or fix the problem
 
 At some point, a dependency graph is going to include either _incompatible modules_, or modules which are _mutually exclusive_.
 For example, you may have different logger implementations and you need to choose one binding.
-<<#sub:capabilities,Capabilities>> help _realizing_ that you have a conflict, but Gradle also provides tools to express how to solve the conflicts.
+<<component_capabilities.adoc#sub:capabilities,Capabilities>> help _realizing_ that you have a conflict, but Gradle also provides tools to express how to solve the conflicts.
 
 [[old:selecting-preferred-capability-provider]]
 === Selecting between different capability candidates
