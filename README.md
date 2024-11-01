@@ -98,7 +98,6 @@ To make the most out of Gradle, take advantage of these additional resources:
 - **[Community Resources](https://gradle.org/resources/)** - Find more community-contributed materials to expand your knowledge.
 
 > 🌟 **Stay connected with the Gradle Community and access the latest news, training, and updates via [Slack](https://gradle.org/slack-invite), [Forum](https://discuss.gradle.org/), and our [Newsletter](https://newsletter.gradle.org)**.
-<br><br>
 
 <br><br>
 <div align="center" style="margin-top: 20px;">
