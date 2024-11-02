@@ -91,6 +91,7 @@ import java.io.File;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.function.Function;
@@ -138,14 +139,20 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
     }
 
     @Override
-    @SuppressWarnings({"EqualsDoesntCheckParameterClass", "EqualsWhichDoesntCheckParameterClass"})
-    public final boolean equals(Object other) {
-        return delegate.equals(other);
+    public final boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        MutableStateAccessAwareProject that = (MutableStateAccessAwareProject) o;
+        return Objects.equals(delegate, that.delegate);
     }
 
     @Override
     public final int hashCode() {
-        return delegate.hashCode();
+        return Objects.hashCode(delegate);
     }
 
     @Nullable

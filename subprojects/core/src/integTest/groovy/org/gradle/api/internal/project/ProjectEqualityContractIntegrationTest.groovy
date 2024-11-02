@@ -241,6 +241,7 @@ class ProjectEqualityContractIntegrationTest extends AbstractIntegrationSpec {
             println("Root equals root: " +(project.rootProject== project.rootProject))
             println("Project not equals root: "+ (project!= project.rootProject))
             println("Root not equals project: "+ (project.rootProject != project))
+            println("project equals project: "+ (project == project))
         """)
 
 
