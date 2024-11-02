@@ -94,34 +94,27 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
             immutableSchema
         );
 
+        LocalComponentGraphResolveState rootComponent = getComponentState(owner, metadata);
+
+        // TODO: We should not ask the component for a resolvable configuration. Components should only
+        // expose variants -- which are by definition consumable only. Instead, we should create our own
+        // root variant and add it to a new one-off root component that holds only that root variant.
+        // The root variant should not live in a standard local component alongside other (consumable) variants.
+        @SuppressWarnings("deprecation")
+        LocalVariantGraphResolveState rootVariant = rootComponent.getConfigurationLegacy(configurationName);
+        if (rootVariant == null) {
+            throw new IllegalArgumentException(String.format("Expected root variant '%s' to be present in %s", configurationName, componentIdentifier));
+        }
+
         return new RootComponentState() {
             @Override
             public LocalComponentGraphResolveState getRootComponent() {
-                return getComponentState(owner, metadata);
+                return rootComponent;
             }
 
             @Override
-            public VariantGraphResolveState getRootVariant() {
-                // TODO: We should not ask the component for a resolvable configuration. Components should only
-                // expose variants -- which are by definition consumable only. Instead, we should create our own
-                // root variant and add it to a new one-off root component that holds only that root variant.
-                // The root variant should not live in a standard local component alongside other (consumable) variants.
-                @SuppressWarnings("deprecation")
-                LocalVariantGraphResolveState rootVariant = getRootComponent().getConfigurationLegacy(configurationName);
-                if (rootVariant == null) {
-                    throw new IllegalArgumentException(String.format("Expected root variant '%s' to be present in %s", configurationName, componentIdentifier));
-                }
+            public LocalVariantGraphResolveState getRootVariant() {
                 return rootVariant;
-            }
-
-            @Override
-            public ComponentIdentifier getComponentIdentifier() {
-                return metadata.getId();
-            }
-
-            @Override
-            public ModuleVersionIdentifier getModuleVersionIdentifier() {
-                return metadata.getModuleVersionId();
             }
         };
     }

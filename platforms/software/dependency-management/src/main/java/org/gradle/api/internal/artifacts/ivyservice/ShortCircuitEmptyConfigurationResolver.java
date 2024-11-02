@@ -47,6 +47,12 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
+import org.gradle.internal.component.external.model.DefaultImmutableCapability;
+import org.gradle.internal.component.external.model.ImmutableCapabilities;
+import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
+import org.gradle.internal.component.local.model.LocalVariantGraphResolveState;
+import org.gradle.internal.component.model.DependencyMetadata;
+import org.gradle.internal.component.model.VariantGraphResolveState;
 import org.gradle.internal.deprecation.DeprecationLogger;
 
 import java.io.File;
@@ -73,12 +79,14 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
 
     @Override
     public ResolverResults resolveBuildDependencies(ResolveContext resolveContext) {
-        if (resolveContext.hasDependencies()) {
+        RootComponentMetadataBuilder.RootComponentState rootComponent = resolveContext.toRootComponent();
+        LocalVariantGraphResolveState rootVariant = rootComponent.getRootVariant();
+
+        if (hasDependencies(rootVariant)) {
             return delegate.resolveBuildDependencies(resolveContext);
         }
 
-        resolveContext.markAsObserved();
-        VisitedGraphResults graphResults = emptyGraphResults(resolveContext);
+        VisitedGraphResults graphResults = emptyGraphResults(rootComponent.getRootComponent(), rootVariant);
         return DefaultResolverResults.buildDependenciesResolved(graphResults, EmptyResults.INSTANCE,
             DefaultResolverResults.DefaultLegacyResolverResults.buildDependenciesResolved(EmptyResults.INSTANCE)
         );
@@ -86,7 +94,10 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
 
     @Override
     public ResolverResults resolveGraph(ResolveContext resolveContext) throws ResolveException {
-        if (resolveContext.hasDependencies()) {
+        RootComponentMetadataBuilder.RootComponentState rootComponent = resolveContext.toRootComponent();
+        LocalVariantGraphResolveState rootVariant = rootComponent.getRootVariant();
+
+        if (hasDependencies(rootVariant)) {
             return delegate.resolveGraph(resolveContext);
         }
 
@@ -100,8 +111,7 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
             dependencyLockingProvider.persistResolvedDependencies(resolveContext.getDependencyLockingId(), resolveContext.getResolutionHost().displayName(), Collections.emptySet(), Collections.emptySet());
         }
 
-        resolveContext.markAsObserved();
-        VisitedGraphResults graphResults = emptyGraphResults(resolveContext);
+        VisitedGraphResults graphResults = emptyGraphResults(rootComponent.getRootComponent(), rootVariant);
         ResolvedConfiguration resolvedConfiguration = new DefaultResolvedConfiguration(
             graphResults, resolveContext.getResolutionHost(), EmptyResults.INSTANCE, new EmptyLenientConfiguration()
         );
@@ -112,16 +122,46 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
         );
     }
 
-    private VisitedGraphResults emptyGraphResults(ResolveContext resolveContext) {
-        RootComponentMetadataBuilder.RootComponentState root = resolveContext.toRootComponent();
+    private static boolean hasDependencies(LocalVariantGraphResolveState rootVariant) {
+        if (!rootVariant.getFiles().isEmpty()) {
+            return true;
+        }
+
+        for (DependencyMetadata dependency : rootVariant.getDependencies()) {
+            if (!dependency.isConstraint()) {
+                return true;
+            }
+        }
+
+        // All dependencies are constraints
+        return false;
+    }
+
+    private VisitedGraphResults emptyGraphResults(
+        LocalComponentGraphResolveState rootComponent,
+        VariantGraphResolveState rootVariant
+    ) {
         MinimalResolutionResult emptyResult = ResolutionResultGraphBuilder.empty(
-            root.getModuleVersionIdentifier(),
-            root.getComponentIdentifier(),
-            resolveContext.getAttributes().asImmutable(),
-            resolveContext.getName(),
+            rootComponent.getModuleVersionId(),
+            rootComponent.getId(),
+            rootVariant.getAttributes(),
+            getCapabilities(rootComponent, rootVariant),
+            rootVariant.getName(),
             attributeDesugaring
         );
         return new DefaultVisitedGraphResults(emptyResult, Collections.emptySet(), null);
+    }
+
+    private static ImmutableCapabilities getCapabilities(
+        LocalComponentGraphResolveState rootComponent,
+        VariantGraphResolveState rootVariant
+    ) {
+        ImmutableCapabilities capabilities = rootVariant.getMetadata().getCapabilities();
+        if (capabilities.asSet().isEmpty()) {
+            return ImmutableCapabilities.of(DefaultImmutableCapability.defaultCapabilityForComponent(rootComponent.getModuleVersionId()));
+        } else {
+            return capabilities;
+        }
     }
 
     private static class EmptyResults implements VisitedArtifactSet, SelectedArtifactSet, ResolverResults.LegacyResolverResults.LegacyVisitedArtifactSet, SelectedArtifactResults {

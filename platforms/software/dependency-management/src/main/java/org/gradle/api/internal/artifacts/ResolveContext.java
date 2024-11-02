@@ -20,7 +20,6 @@ import org.gradle.api.internal.artifacts.configurations.ResolutionResultProvider
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.Conflict;
-import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.operations.dependencies.configurations.ConfigurationIdentity;
 
@@ -57,15 +56,11 @@ public interface ResolveContext {
 
     ResolutionStrategyInternal getResolutionStrategy();
 
-    boolean hasDependencies();
-
     /**
      * @implSpec Usage: This method should only be called on resolvable configurations and should throw an exception if
      * called on a configuration that does not permit this usage.
      */
     RootComponentMetadataBuilder.RootComponentState toRootComponent();
-
-    AttributeContainerInternal getAttributes();
 
     /**
      * Returns the cached results of resolution.
@@ -100,12 +95,6 @@ public interface ResolveContext {
      * called on a configuration that does not permit this usage.
      */
     List<? extends DependencyMetadata> getSyntheticDependencies();
-
-    /**
-     * Marks this resolve context as observed, meaning its state has been seen by some external operation
-     * and further changes to this context that would change its public state are forbidden.
-     */
-    void markAsObserved();
 
     FailureResolutions getFailureResolutions();
 
