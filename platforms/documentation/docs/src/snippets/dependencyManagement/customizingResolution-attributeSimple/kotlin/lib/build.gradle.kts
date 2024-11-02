@@ -1,3 +1,5 @@
+import org.gradle.api.attributes.java.TargetJvmVersion
+
 // tag::attributes[]
 plugins {
     id("java-library")
@@ -19,7 +21,6 @@ configurations {
 }
 // end::attributes[]
 
-
 // tag::custom-attributes[]
 // Define a custom attribute
 val myAttribute = Attribute.of("com.example.my-attribute", String::class.java)
@@ -35,7 +36,7 @@ configurations {
 
 dependencies {
     // Apply the custom attribute to a dependency
-    add("myConfig","com.example:my-library:1.0") {
+    add("myConfig","com.google.guava:guava:31.1-jre") {
         attributes {
             attribute(myAttribute, "special-value")
         }

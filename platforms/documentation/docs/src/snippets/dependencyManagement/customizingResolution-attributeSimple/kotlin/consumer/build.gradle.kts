@@ -1,3 +1,5 @@
+import org.gradle.api.attributes.java.TargetJvmVersion
+
 // tag::attributes[]
 plugins {
     id("application")
@@ -20,10 +22,16 @@ dependencies {
 // end::attributes[]
 
 // tag::attribute-strategy[]
-configurations.all {
-    // Define compatibility rules for attribute matching
-    attributes {
-        attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 11) // Allows fallback
+configurations {
+    named("apiElements") {
+        attributes {
+            attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 11) // Allows fallback
+        }
+    }
+    named("runtimeElements") {
+        attributes {
+            attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 11) // Allows fallback
+        }
     }
 }
 // end::attribute-strategy[]

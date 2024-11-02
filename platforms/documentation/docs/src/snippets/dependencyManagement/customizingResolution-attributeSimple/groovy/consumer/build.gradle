@@ -1,3 +1,5 @@
+import org.gradle.api.attributes.java.TargetJvmVersion
+
 // tag::attributes[]
 plugins {
     id 'application'
@@ -11,10 +13,25 @@ repositories {
 
 // tag::attributes[]
 dependencies {
-    implementation(project(":lib")) {
+    implementation(project(':lib')) {
         attributes {
             attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 17)
         }
     }
 }
 // end::attributes[]
+
+// tag::attribute-strategy[]
+configurations {
+    apiElements {
+        attributes {
+            attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 11) // Allows fallback
+        }
+    }
+    runtimeElements {
+        attributes {
+            attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 11) // Allows fallback
+        }
+    }
+}
+// end::attribute-strategy[]
