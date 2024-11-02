@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[[sec:handling-mutually-exclusive-deps]]
+[[old:handling-mutually-exclusive-deps]]
 = Handling mutually exclusive dependencies
 
-[[sub:capabilities]]
+[[old:capabilities]]
 == Introduction to component capabilities
 
 Often a dependency graph would accidentally contain multiple implementations of the same API.
@@ -62,14 +62,14 @@ It is recommended to write such rules in _plugins_ which are then applied to you
 Then, users _have to_ express their preferences, if possible, or fix the problem of having incompatible things on the classpath, as explained in the following section.
 ====
 
-[[sub:selecting-between-candidates]]
+[[old:selecting-between-candidates]]
 == Selecting between candidates
 
 At some point, a dependency graph is going to include either _incompatible modules_, or modules which are _mutually exclusive_.
 For example, you may have different logger implementations and you need to choose one binding.
-<<#sub:capabilities,Capabilities>> help _realizing_ that you have a conflict, but Gradle also provides tools to express how to solve the conflicts.
+<<component_capabilities.adoc#sub:capabilities,Capabilities>> help _realizing_ that you have a conflict, but Gradle also provides tools to express how to solve the conflicts.
 
-[[sub:selecting-preferred-capability-provider]]
+[[old:selecting-preferred-capability-provider]]
 === Selecting between different capability candidates
 
 In the relocation example above, Gradle was able to tell you that you have two versions of the same API on classpath: an "old" module and a "relocated" one.
