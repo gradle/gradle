@@ -33,9 +33,9 @@ import org.gradle.internal.operations.OperationStartEvent
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 
-@Requires(IntegTestPreconditions.NotIsolatedProjects) // IP mode introduces different equality model because of projects wrapping
 class ProjectEqualityContractIntegrationTest extends AbstractIntegrationSpec {
 
+    @Requires(IntegTestPreconditions.NotIsolatedProjects) // IP mode introduces different equality model because of projects wrapping
     def 'Symmetrical equality between raw and wrapped projects'() {
         given:
         buildFile("buildSrc/build.gradle", """
@@ -146,6 +146,7 @@ class ProjectEqualityContractIntegrationTest extends AbstractIntegrationSpec {
         outputContains("raw :a equals to :a wrapped by :b#project: true")
     }
 
+    @Requires(IntegTestPreconditions.NotIsolatedProjects) // IP mode introduces different equality model because of projects wrapping
     def 'Raw and wrapped projects are interchangeable when using as keys in hashCode-based data structures'() {
         given:
         buildFile("buildSrc/build.gradle", """
@@ -228,5 +229,26 @@ class ProjectEqualityContractIntegrationTest extends AbstractIntegrationSpec {
         outputContains("Last collected value for project ':a' is :a wrapped by :root#allprojects")
         outputContains("Last collected value for project ':a' is :a wrapped by :root#project")
         outputContains("Collected projects: [project ':a':raw :a]")
+    }
+
+    def 'simple equals'() {
+        given:
+        settingsFile """
+            include(":a")
+        """
+
+        buildFile("a/build.gradle.kts", """
+            println("Root equals root: " +(project.rootProject== project.rootProject))
+            println("Project not equals root: "+ (project!= project.rootProject))
+            println("Root not equals project: "+ (project.rootProject != project))
+        """)
+
+
+        when:
+        run "help"
+
+        then:
+        outputContains("true")
+        outputDoesNotContain("false")
     }
 }
