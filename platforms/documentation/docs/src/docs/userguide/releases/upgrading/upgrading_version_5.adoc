@@ -486,7 +486,7 @@ They are also free to add a method annotated with `@TaskAction` using an `InputC
 * The `isLegacyLayout()` method is removed from `SourceSetOutput`.
 * The map returned by `TaskInputs.getProperties()` is now unmodifiable.
   Trying to modify it will result in an `UnsupportedOperationException` being thrown.
-* There are slight changes in the incubating <<dependency_capability_conflict.adoc#sub:selecting-between-candidates,capabilities resolution>> API, which has been introduced in 5.6, to also allow variant selection based on variant name
+* There are slight changes in the incubating <<component_capabilities.adoc#sub:selecting-between-candidates,capabilities resolution>> API, which has been introduced in 5.6, to also allow variant selection based on variant name
 
 [[changes_5.6]]
 == Upgrading from 5.5 and earlier
@@ -595,7 +595,7 @@ configurations.all {
 }
 ```
 
-See <<dependency_capability_conflict.adoc#sub:capabilities, the capabilities section of the documentation>> for more options.
+See <<component_capabilities.adoc#sub:capabilities, the capabilities section of the documentation>> for more options.
 
 ==== File removal operations don't follow symlinked directories
 

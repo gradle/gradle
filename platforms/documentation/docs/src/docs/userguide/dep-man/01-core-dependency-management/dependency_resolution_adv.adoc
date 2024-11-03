@@ -30,7 +30,7 @@ To resolve a dependency graph, Gradle repeats the following two steps until the 
 The following section will describe what Gradle identifies as conflicts and how it can resolve them automatically.
 After that, the retrieval of metadata will be covered, explaining how Gradle can <<#sec:how-gradle-downloads-deps,follow dependency links>>.
 
-[[sec:conflict-resolution]]
+[[sec:handle-conflict-resolution]]
 == How Gradle handles conflicts?
 
 When doing dependency resolution, Gradle handles two types of conflicts:
@@ -161,7 +161,7 @@ Gradle uses variants and capabilities to identify what a component _provides_.
 This is a unique feature that deserves its <<variant_model.adoc#understanding-variant-selection,own chapter>> to understand what it means and enables.
 A conflict occurs the moment two nodes (variants of a component) declare the same capability.
 
-Learn more about handling these type of conflicts in <<dependency_capability_conflict.adoc#sub:selecting-between-candidates,Selecting between candidates>>.
+Learn more about handling these type of conflicts in <<component_capabilities.adoc#sub:selecting-between-candidates,Selecting between candidates>>.
 
 [[sec:how-gradle-downloads-deps]]
 == How Gradle retrieves dependency metadata?
@@ -184,7 +184,7 @@ When multiple are defined, they are inspected _in the order they were added_.
 This process results in a list of candidate versions that are then matched to the dynamic version expressed.
 At this point, <<#sub:resolution-strategy,version conflict resolution>> is resumed.
 
-Note that Gradle caches the version information, more information can be found in the section <<dynamic_versions.adoc#sec:controlling-dynamic-version-caching,Controlling dynamic version caching>>.
+Note that Gradle caches the version information, more information can be found in the section <<dependency_caching.adoc#sec:controlling-dynamic-version-caching,Controlling dynamic version caching>>.
 
 === Obtaining module metadata
 
