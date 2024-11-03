@@ -652,10 +652,10 @@ The following options affect how builds are executed by changing what is built o
 Run the build as a <<composite_builds.adoc#composite_builds,composite>>, including the specified build.
 
 `--offline`::
-Specifies that the build should operate <<dynamic_versions.adoc#sec:controlling_dependency_caching_command_line,without accessing network resources>>.
+Specifies that the build should operate <<dependency_caching.adoc#sec:controlling_dependency_caching_command_line,without accessing network resources>>.
 
 `-U`, `--refresh-dependencies`::
-Refresh the <<dynamic_versions.adoc#sec:controlling_dependency_caching_command_line,state of dependencies>>.
+Refresh the <<dependency_caching.adoc#sec:controlling_dependency_caching_command_line,state of dependencies>>.
 
 `--continue`::
 <<command_line_interface.adoc#sec:continue_build_on_failure,Continue task execution>> after a task failure.

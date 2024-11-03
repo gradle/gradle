@@ -15,7 +15,7 @@
 [[dependency-locking]]
 = Locking Versions
 
-Using <<dynamic_versions.adoc#sub:declaring_dependency_with_dynamic_version, dynamic dependency versions>> (e.g., `1.+` or `[1.0,2.0)`) can cause builds to break unexpectedly because the exact version of a dependency that gets resolved can change over time:
+Using <<dependency_versions.adoc#sub:declaring_dependency_with_dynamic_version, dynamic dependency versions>> (e.g., `1.+` or `[1.0,2.0)`) can cause builds to break unexpectedly because the exact version of a dependency that gets resolved can change over time:
 
 ====
 include::sample[dir="snippets/dependencyManagement/troubleshooting-cache-dynamic/kotlin",files="build.gradle.kts[tags=dynamic]"]
@@ -45,7 +45,7 @@ This ensures that if the selected dependencies differ from the locked ones (due 
 
 [WARNING]
 ====
-Dependency locking is effective with <<dynamic_versions.adoc#sub:declaring_dependency_with_dynamic_version,dynamic versions>>, but it **should not be used** with <<dynamic_versions.adoc#sub:declaring_dependency_with_changing_version,changing versions>> (e.g., `-SNAPSHOT`), where the coordinates remain the same, but the content may change.
+Dependency locking is effective with <<dependency_versions.adoc#sub:declaring_dependency_with_dynamic_version,dynamic versions>>, but it **should not be used** with <<dependency_versions.adoc#sub:declaring_dependency_with_changing_version,changing versions>> (e.g., `-SNAPSHOT`), where the coordinates remain the same, but the content may change.
 
 Using dependency locking with changing versions indicates a misunderstanding of these features and can lead to unpredictable results.
 

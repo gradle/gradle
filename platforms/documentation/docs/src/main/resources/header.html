@@ -299,45 +299,27 @@
                         <li><a href="../userguide/centralizing_catalog_platform.html">Using Catalogs with Platforms</a></li>
                     </ul>
                 </li>
-                <li><a class="nav-dropdown" data-toggle="collapse" href="#dependency-resolution" aria-expanded="false" aria-controls="dependency-resolution">Dependency Resolution</a>
+                <li><a class="nav-dropdown" data-toggle="collapse" href="#dependency-management" aria-expanded="false" aria-controls="dependency-management">Managing Dependencies</a>
+                    <ul id="dependency-management">
+                        <li><a href="../userguide/dependency_locking.html">Locking Versions</a></li>
+                        <li><a href="../userguide/resolution_rules.html">Using Resolution Rules</a></li>
+                        <li><a href="../userguide/component_metadata_rules.html">Modifying Dependency Metadata</a></li>
+                        <li><a href="../userguide/dependency_caching.html">Caching Dependencies</a></li>
+                    </ul>
+                </li>
+                <li><a class="nav-dropdown" data-toggle="collapse" href="#understanding_dep_res" aria-expanded="false" aria-controls="understanding_dep_res">Understanding Dependency Resolution</a>
+                    <ul id="understanding_dep_res">
+                        <li><a href="../userguide/variant_model.html">Understanding The Model</a></li>
+                        <li><a href="../userguide/component_capabilities.html">Capabilities</a></li>
+                        <li><a href="../userguide/variant_attributes.html">Variants and Attributes</a></li>
+                    </ul>
+                </li>
+                <li><a class="nav-dropdown" data-toggle="collapse" href="#dependency-resolution" aria-expanded="false" aria-controls="dependency-resolution">Controlling Dependency Resolution</a>
                     <ul id="dependency-resolution">
                         <li><a href="../userguide/dependency_resolution_basics.html">Dependency Resolution Basics</a></li>
-                        <li><a href="../userguide/dependency_graph_resolution.html">Dependency Graph Resolution</a></li>
+                        <li><a href="../userguide/dependency_graph_resolution.html">Graph Resolution</a></li>
                         <li><a href="../userguide/artifact_resolution.html">Artifact Resolution</a></li>
                         <li><a href="../userguide/artifact_transforms.html">Artifact Transforms</a></li>
-                    </ul>
-                </li>
-                <li><a href="../userguide/declaring_dependencies_adv.html">Advanced Dependency Declaration</a></li>
-                <li><a href="../userguide/declaring_repositories_adv.html">Advanced Repository Declaration</a></li>
-                <li><a class="nav-dropdown" data-toggle="collapse" href="#declaring-dependency-versions" aria-expanded="false" aria-controls="declaring-dependency-versions">Declaring Versions</a>
-                    <ul id="declaring-dependency-versions">
-                        <li><a href="../userguide/single_versions.html">Declaring Versions and Ranges</a></li>
-                        <li><a href="../userguide/rich_versions.html">Declaring Rich Versions</a></li>
-                        <li><a href="../userguide/dynamic_versions.html">Handling Changing Versions</a></li>
-                        <li><a href="../userguide/dependency_locking.html">Locking Versions</a></li>
-                    </ul>
-                </li>
-                <li><a class="nav-dropdown" data-toggle="collapse" href="#controlling-transitive-dependencies" aria-expanded="false" aria-controls="controlling-transitive-dependencies">Controlling Transitives</a>
-                    <ul id="controlling-transitive-dependencies">
-                        <li><a href="../userguide/dependency_constraints.html">Upgrading Versions</a></li>
-                        <li><a href="../userguide/dependency_downgrade_and_exclude.html">Downgrading and Excluding</a></li>
-                        <li><a href="../userguide/platforms.html">Sharing Versions</a></li>
-                        <li><a href="../userguide/dependency_version_alignment.html">Aligning Dependencies</a></li>
-                        <li><a href="../userguide/dependency_capability_conflict.html">Handling Mutually Exclusive Dependencies</a></li>
-                        <li><a href="../userguide/component_metadata_rules.html">Fixing Metadata</a></li>
-                        <li><a href="../userguide/resolution_rules.html">Customizing Resolution</a></li>
-                        <li><a href="../userguide/resolution_strategy_tuning.html">Preventing accidental upgrades</a></li>
-                    </ul>
-                </li>
-                <li><a class="nav-dropdown" data-toggle="collapse" href="#modeling-features" aria-expanded="false" aria-controls="modeling-features">Producing and Consuming Variants of Libraries</a>
-                    <ul id="modeling-features">
-                        <li><a href="../userguide/programmatic_dependency_resolution.html">Performing Dependency Resolution</a></li>
-                        <li><a href="../userguide/component_capabilities.html">Declaring Capabilities of a Library</a></li>
-                        <li><a href="../userguide/feature_variants.html">Modeling Feature Variants and Optional Dependencies</a></li>
-                        <li><a href="../userguide/variant_model.html">Understanding Variant Selection</a></li>
-                        <li><a href="../userguide/variant_attributes.html">Declaring Variant Attributes</a></li>
-                        <li><a href="../userguide/cross_project_publications.html">Sharing Outputs of Projects</a></li>
-                        <li><a href="../userguide/artifact_transforms.html">Transforming Artifacts</a></li>
                     </ul>
                 </li>
                 <li><a class="nav-dropdown" data-toggle="collapse" href="#publishing" aria-expanded="false" aria-controls="publishing">Publishing Libraries</a>
@@ -348,6 +330,22 @@
                         <li><a href="../userguide/publishing_customization.html">Customizing Publishing</a></li>
                         <li><a href="../userguide/publishing_maven.html">Maven Publish Plugin</a></li>
                         <li><a href="../userguide/publishing_ivy.html">Ivy Publish Plugin</a></li>
+                    </ul>
+                </li>
+                <li><a class="nav-dropdown" data-toggle="collapse" href="#other" aria-expanded="false" aria-controls="other">Other</a>
+                    <ul id="other">
+                        <li><a href="../userguide/declaring_dependencies_adv.html">Advanced Dependency Declaration</a></li>
+                        <li><a href="../userguide/declaring_repositories_adv.html">Advanced Repository Declaration</a></li>
+                        <li><a href="../userguide/single_versions.html">Declaring Versions and Ranges</a></li>
+                        <li><a href="../userguide/rich_versions.html">Declaring Rich Versions</a></li>
+                        <li><a href="../userguide/dynamic_versions.html">Handling Changing Versions</a></li>
+                        <li><a href="../userguide/dependency_downgrade_and_exclude.html">Downgrading and Excluding</a></li>
+                        <li><a href="../userguide/dependency_version_alignment.html">Aligning Dependencies</a></li>
+                        <li><a href="../userguide/dependency_capability_conflict.html">Handling Mutually Exclusive Dependencies</a></li>
+                        <li><a href="../userguide/resolution_strategy_tuning.html">Preventing accidental upgrades</a></li>
+                        <li><a href="../userguide/programmatic_dependency_resolution.html">Performing Dependency Resolution</a></li>
+                        <li><a href="../userguide/feature_variants.html">Modeling Feature Variants and Optional Dependencies</a></li>
+                        <li><a href="../userguide/cross_project_publications.html">Sharing Outputs of Projects</a></li>
                     </ul>
                 </li>
             </ul>

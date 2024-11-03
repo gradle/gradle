@@ -227,7 +227,7 @@ When relocation information is published retroactively, it is not necessary to w
 
 When only the coordinates of the artifact have changed, but package names of the classes inside the artifact have remained the same, dependency conflicts can occur. A project might (transitively) depend on the old artifact but at the same time also have a dependency on the new artifact which both contain the same classes, potentially with incompatible changes.
 
-To detect such conflicting duplicate dependencies, <<dependency_capability_conflict.adoc#sub:declaring-component-capabilities,capabilities>> can be published as part of the <<publishing_gradle_module_metadata.adoc#sec:understanding-gradle-module-md,Gradle Module Metadata>>.  For an example using a <<java_library_plugin.adoc#java_library_plugin,Java Library>> project, see <<component_capabilities.adoc#sec:declaring-additional-capabilities-for-a-local-component,declaring additional capabilities for a local component>>.
+To detect such conflicting duplicate dependencies, <<component_capabilities.adoc#declaring-component-capabilities,capabilities>> can be published as part of the <<publishing_gradle_module_metadata.adoc#sec:understanding-gradle-module-md,Gradle Module Metadata>>.  For an example using a <<java_library_plugin.adoc#java_library_plugin,Java Library>> project, see <<component_capabilities.adoc#declaring-component-capabilities,declaring additional capabilities for a local component>>.
 
 [[publishing_maven:relocation_dry_run]]
 === Performing a dry run
