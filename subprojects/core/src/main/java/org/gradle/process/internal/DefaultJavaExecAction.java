@@ -21,10 +21,9 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.initialization.BuildCancellationToken;
+import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.process.ExecResult;
-
-import java.util.concurrent.Executor;
 
 /**
  * Use {@link ExecActionFactory} (for core code) or {@link org.gradle.process.ExecOperations} (for plugin code) instead.
@@ -34,7 +33,7 @@ public class DefaultJavaExecAction extends JavaExecHandleBuilder implements Java
         FileResolver fileResolver,
         FileCollectionFactory fileCollectionFactory,
         ObjectFactory objectFactory,
-        Executor executor,
+        ManagedExecutor executor,
         BuildCancellationToken buildCancellationToken,
         TemporaryFileProvider temporaryFileProvider,
         JavaModuleDetector javaModuleDetector,

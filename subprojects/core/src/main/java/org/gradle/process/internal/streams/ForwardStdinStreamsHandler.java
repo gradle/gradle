@@ -18,6 +18,7 @@ package org.gradle.process.internal.streams;
 
 import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.process.internal.StreamsHandler;
 import org.gradle.util.internal.DisconnectableInputStream;
 
@@ -40,7 +41,7 @@ public class ForwardStdinStreamsHandler implements StreamsHandler {
     }
 
     @Override
-    public void connectStreams(Process process, String processName, Executor executor) {
+    public void connectStreams(Process process, String processName, ManagedExecutor executor) {
         this.executor = executor;
 
         /*
@@ -48,7 +49,7 @@ public class ForwardStdinStreamsHandler implements StreamsHandler {
             This won't automatically stop when the process is over. Therefore, if input is not closed then this thread
             will run forever. It would be better to ensure that this thread stops when the process does.
          */
-        InputStream instr = new DisconnectableInputStream(input);
+        InputStream instr = new DisconnectableInputStream(input, executor);
         standardInputWriter = new ExecOutputHandleRunner("write standard input to " + processName, instr, process.getOutputStream(), completed);
     }
 

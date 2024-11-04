@@ -39,6 +39,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.internal.jvm.Jvm;
@@ -51,13 +52,12 @@ import org.gradle.process.JavaExecSpec;
 
 import javax.annotation.Nullable;
 import java.io.File;
-import java.util.concurrent.Executor;
 
 import static java.util.Objects.requireNonNull;
 
 public abstract class DefaultExecActionFactory implements ExecFactory {
     protected final FileResolver fileResolver;
-    protected final Executor executor;
+    protected final ManagedExecutor executor;
     protected final FileCollectionFactory fileCollectionFactory;
     protected final ObjectFactory objectFactory;
     protected final TemporaryFileProvider temporaryFileProvider;
@@ -69,7 +69,7 @@ public abstract class DefaultExecActionFactory implements ExecFactory {
         FileResolver fileResolver,
         FileCollectionFactory fileCollectionFactory,
         ObjectFactory objectFactory,
-        Executor executor,
+        ManagedExecutor executor,
         TemporaryFileProvider temporaryFileProvider,
         @Nullable JavaModuleDetector javaModuleDetector,
         BuildCancellationToken buildCancellationToken
@@ -194,7 +194,7 @@ public abstract class DefaultExecActionFactory implements ExecFactory {
 
     private static class BuilderImpl implements Builder {
         // The executor is always inherited from the parent
-        private final Executor executor;
+        private final ManagedExecutor executor;
         // The temporaryFileProvider is always inherited from the parent
         private final TemporaryFileProvider temporaryFileProvider;
 
@@ -210,7 +210,7 @@ public abstract class DefaultExecActionFactory implements ExecFactory {
         private ExternalProcessStartedListener externalProcessStartedListener;
 
         BuilderImpl(
-            Executor executor,
+            ManagedExecutor executor,
             TemporaryFileProvider temporaryFileProvider
         ) {
             this.executor = executor;
@@ -312,7 +312,7 @@ public abstract class DefaultExecActionFactory implements ExecFactory {
             FileResolver fileResolver,
             FileCollectionFactory fileCollectionFactory,
             Instantiator instantiator,
-            Executor executor,
+            ManagedExecutor executor,
             TemporaryFileProvider temporaryFileProvider,
             BuildCancellationToken buildCancellationToken,
             ObjectFactory objectFactory,

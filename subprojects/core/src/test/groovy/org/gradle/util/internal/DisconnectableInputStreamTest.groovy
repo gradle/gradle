@@ -16,31 +16,18 @@
 
 package org.gradle.util.internal
 
-import org.gradle.api.Action
-import org.gradle.internal.concurrent.ExecutorFactory
 import org.junit.Test
 
 import java.util.concurrent.CopyOnWriteArrayList
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
 
 import static org.hamcrest.CoreMatchers.equalTo
 import static org.hamcrest.MatcherAssert.assertThat
 import static org.junit.Assert.assertTrue
 
 class DisconnectableInputStreamTest extends MultithreadedTestRule {
-
-    Action<Runnable> toActionExecuter(ExecutorFactory factory) {
-        new Action<Runnable>() {
-            void execute(Runnable runnable) {
-                factory.create("test executer").execute(runnable)
-            }
-        }
-    }
-
     @Test
     void inputStreamReadsFromSourceInputStream() {
-        def instr = new DisconnectableInputStream(stream("some text"), toActionExecuter(executorFactory))
+        def instr = new DisconnectableInputStream(stream("some text"), executorFactory.create("test executer"))
 
         assertReads(instr, "some text")
 
@@ -52,7 +39,7 @@ class DisconnectableInputStreamTest extends MultithreadedTestRule {
 
     @Test
     void buffersDataReadFromSourceInputStream() {
-        def instr = new DisconnectableInputStream(stream("test1test2end"), toActionExecuter(executorFactory))
+        def instr = new DisconnectableInputStream(stream("test1test2end"), executorFactory.create("test executer"))
 
         assertReads(instr, "test1")
         assertReads(instr, "test2")
@@ -66,7 +53,7 @@ class DisconnectableInputStreamTest extends MultithreadedTestRule {
 
     @Test
     void canReadSingleChars() {
-        def instr = new DisconnectableInputStream(stream("abc"), toActionExecuter(executorFactory))
+        def instr = new DisconnectableInputStream(stream("abc"), executorFactory.create("test executer"))
 
         assertThat((char) instr.read(), equalTo('a'.charAt(0)))
         assertThat((char) instr.read(), equalTo('b'.charAt(0)))
@@ -78,7 +65,7 @@ class DisconnectableInputStreamTest extends MultithreadedTestRule {
 
     @Test
     void canReadUsingZeroLengthBuffer() {
-        def instr = new DisconnectableInputStream(stream("abc"), toActionExecuter(executorFactory))
+        def instr = new DisconnectableInputStream(stream("abc"), executorFactory.create("test executer"))
 
         assertThat(instr.read(new byte[0], 0, 0), equalTo(0))
         assertReads(instr, "abc")
@@ -107,7 +94,7 @@ class DisconnectableInputStreamTest extends MultithreadedTestRule {
             return 2
         }
 
-        def instr = new DisconnectableInputStream(source, toActionExecuter(executorFactory), 10)
+        def instr = new DisconnectableInputStream(source, executorFactory.create("test executer"), 10)
 
         run {
             syncAt(1)
@@ -133,7 +120,7 @@ class DisconnectableInputStreamTest extends MultithreadedTestRule {
             return expected.length
         }
 
-        def instr = new DisconnectableInputStream(source, toActionExecuter(executorFactory))
+        def instr = new DisconnectableInputStream(source, executorFactory.create("test executer"))
         run {
             expectBlocksUntil(1) {
                 assertReads(instr, "some text")
@@ -155,7 +142,7 @@ class DisconnectableInputStreamTest extends MultithreadedTestRule {
             return count
         }
 
-        def instr = new DisconnectableInputStream(source, toActionExecuter(executorFactory))
+        def instr = new DisconnectableInputStream(source, executorFactory.create("test executer"))
 
         start {
             expectBlocksUntil(1) {
@@ -180,7 +167,7 @@ class DisconnectableInputStreamTest extends MultithreadedTestRule {
             return -1
         }
 
-        def instr = new DisconnectableInputStream(source, toActionExecuter(executorFactory))
+        def instr = new DisconnectableInputStream(source, executorFactory.create("test executer"))
 
         run {
             expectBlocksUntil(1) {
@@ -201,7 +188,7 @@ class DisconnectableInputStreamTest extends MultithreadedTestRule {
             throw failure
         }
 
-        def instr = new DisconnectableInputStream(source, toActionExecuter(executorFactory))
+        def instr = new DisconnectableInputStream(source, executorFactory.create("test executer"))
 
         run {
             def nread = instr.read(new byte[20])
@@ -222,7 +209,7 @@ class DisconnectableInputStreamTest extends MultithreadedTestRule {
             return -1
         }
 
-        def instr = new DisconnectableInputStream(source, toActionExecuter(executorFactory), 10)
+        def instr = new DisconnectableInputStream(source, executorFactory.create("test executer"), 10)
 
         run {
             syncAt(1)
@@ -241,7 +228,7 @@ class DisconnectableInputStreamTest extends MultithreadedTestRule {
             return count
         }
 
-        def instr = new DisconnectableInputStream(source, toActionExecuter(executorFactory))
+        def instr = new DisconnectableInputStream(source, executorFactory.create("test executer"))
         instr.read()
         instr.close()
 
@@ -250,28 +237,13 @@ class DisconnectableInputStreamTest extends MultithreadedTestRule {
 
     @Test
     void cannotReadFromInputStreamAfterItIsClosed() {
-        def instr = new DisconnectableInputStream(stream("some text"), toActionExecuter(executorFactory))
+        def instr = new DisconnectableInputStream(stream("some text"), executorFactory.create("test executer"))
         instr.close()
 
         assertThat(instr.read(), equalTo(-1))
         assertThat(instr.read(new byte[10]), equalTo(-1))
         assertThat(instr.read(new byte[10], 2, 5), equalTo(-1))
     }
-
-    @Test
-    void threadExecuterExecutesTheAction() {
-        def e = new DisconnectableInputStream.ThreadExecuter()
-        def latch = new CountDownLatch(1)
-
-        e.execute {
-            def t = Thread.currentThread()
-            assert t.daemon
-            latch.countDown()
-        }
-
-        assert latch.await(10, TimeUnit.SECONDS)
-    }
-
 
     def assertReads(InputStream instr, String expected) {
         def expectedBytes = expected.bytes

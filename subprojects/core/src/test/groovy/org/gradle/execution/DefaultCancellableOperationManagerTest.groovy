@@ -21,16 +21,14 @@ import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.util.internal.DisconnectableInputStream
 import spock.lang.AutoCleanup
 
-import java.util.concurrent.Executors
-
 class DefaultCancellableOperationManagerTest extends ConcurrentSpec {
 
     @AutoCleanup
     def writeEnd = new PipedOutputStream()
     @AutoCleanup("shutdownNow")
-    def executorService = Executors.newCachedThreadPool()
+    def executorService = executorFactory.create("test")
     def cancellationToken = new DefaultBuildCancellationToken()
-    def monitor = new DefaultCancellableOperationManager(executorService, new DisconnectableInputStream(new PipedInputStream(writeEnd)), cancellationToken)
+    def monitor = new DefaultCancellableOperationManager(executorService, new DisconnectableInputStream(new PipedInputStream(writeEnd), executorService), cancellationToken)
 
     def "can exit without cancel"() {
         when:

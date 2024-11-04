@@ -20,6 +20,8 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCachesProvider;
 import org.gradle.api.internal.file.TestFiles;
 import org.gradle.internal.Factory;
+import org.gradle.internal.concurrent.ExecutorPolicy;
+import org.gradle.internal.concurrent.ManagedExecutorImpl;
 import org.gradle.internal.jvm.JpmsConfiguration;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.process.internal.AbstractExecHandleBuilder;
@@ -195,7 +197,7 @@ public class NoDaemonGradleExecuter extends AbstractGradleExecuter {
                 }
 
                 NativeServicesTestFixture.initialize();
-                DefaultExecHandleBuilder builder = new DefaultExecHandleBuilder(TestFiles.pathToFileResolver(), Executors.newCachedThreadPool()) {
+                DefaultExecHandleBuilder builder = new DefaultExecHandleBuilder(TestFiles.pathToFileResolver(), new ManagedExecutorImpl(Executors.newCachedThreadPool(), new ExecutorPolicy.CatchAndRecordFailures())) {
                     @Override
                     public File getWorkingDir() {
                         // Override this, so that the working directory is not canonicalised. Some int tests require that

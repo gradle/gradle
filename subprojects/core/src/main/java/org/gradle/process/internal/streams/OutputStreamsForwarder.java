@@ -17,6 +17,7 @@
 package org.gradle.process.internal.streams;
 
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.process.internal.StreamsHandler;
 
@@ -44,7 +45,7 @@ public class OutputStreamsForwarder implements StreamsHandler {
     }
 
     @Override
-    public void connectStreams(Process process, String processName, Executor executor) {
+    public void connectStreams(Process process, String processName, ManagedExecutor executor) {
         this.executor = executor;
         standardOutputReader = new ExecOutputHandleRunner("read standard output of " + processName, process.getInputStream(), standardOutput, completed);
         if (readErrorStream) {

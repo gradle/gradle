@@ -16,15 +16,14 @@
 
 package org.gradle.process.internal;
 
+import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.concurrent.Stoppable;
-
-import java.util.concurrent.Executor;
 
 public interface StreamsHandler extends Stoppable {
     /**
      * Collects whatever state is required the given process. Should not start work.
      */
-    void connectStreams(Process process, String processName, Executor executor);
+    void connectStreams(Process process, String processName, ManagedExecutor executor);
 
     /**
      * Starts reading/writing/whatever the process' streams. May block until the streams reach some particular state, e.g. indicate that the process has started successfully.

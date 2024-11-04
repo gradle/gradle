@@ -17,6 +17,7 @@ package org.gradle.process.internal;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.initialization.BuildCancellationToken;
+import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.process.BaseExecSpec;
 import org.gradle.process.internal.streams.EmptyStdInStreamsHandler;
@@ -28,7 +29,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Executor;
 
 public abstract class AbstractExecHandleBuilder extends DefaultProcessForkOptions implements BaseExecSpec {
     private static final EmptyStdInStreamsHandler DEFAULT_STDIN = new EmptyStdInStreamsHandler();
@@ -42,9 +42,9 @@ public abstract class AbstractExecHandleBuilder extends DefaultProcessForkOption
     private StreamsHandler streamsHandler;
     private int timeoutMillis = Integer.MAX_VALUE;
     protected boolean daemon;
-    private final Executor executor;
+    private final ManagedExecutor executor;
 
-    AbstractExecHandleBuilder(PathToFileResolver fileResolver, Executor executor, BuildCancellationToken buildCancellationToken) {
+    AbstractExecHandleBuilder(PathToFileResolver fileResolver, ManagedExecutor executor, BuildCancellationToken buildCancellationToken) {
         super(fileResolver);
         this.buildCancellationToken = buildCancellationToken;
         this.executor = executor;

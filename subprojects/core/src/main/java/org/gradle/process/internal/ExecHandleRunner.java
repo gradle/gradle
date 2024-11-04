@@ -19,10 +19,10 @@ package org.gradle.process.internal;
 import net.rubygrapefruit.platform.NativeException;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 
-import java.util.concurrent.Executor;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -32,7 +32,7 @@ public class ExecHandleRunner implements Runnable {
     private final ProcessBuilderFactory processBuilderFactory;
     private final DefaultExecHandle execHandle;
     private final Lock lock = new ReentrantLock();
-    private final Executor executor;
+    private final ManagedExecutor executor;
 
     private Process process;
     private boolean aborted;
@@ -42,7 +42,7 @@ public class ExecHandleRunner implements Runnable {
     public ExecHandleRunner(
         DefaultExecHandle execHandle,
         StreamsHandler streamsHandler,
-        Executor executor,
+        ManagedExecutor executor,
         BuildOperationRef associatedBuildOperation
     ) {
         if (execHandle == null) {

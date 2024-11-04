@@ -18,13 +18,13 @@ package org.gradle.process.internal;
 
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.DefaultBuildCancellationToken;
+import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.process.CommandLineArgumentProvider;
 
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
-import java.util.concurrent.Executor;
 
 /**
  * Use {@link ExecHandleFactory} instead.
@@ -33,11 +33,11 @@ public class DefaultExecHandleBuilder extends AbstractExecHandleBuilder implemen
 
     private final ProcessArgumentsSpec argumentsSpec = new ProcessArgumentsSpec(this);
 
-    public DefaultExecHandleBuilder(PathToFileResolver fileResolver, Executor executor) {
+    public DefaultExecHandleBuilder(PathToFileResolver fileResolver, ManagedExecutor executor) {
         this(fileResolver, executor, new DefaultBuildCancellationToken());
     }
 
-    public DefaultExecHandleBuilder(PathToFileResolver fileResolver, Executor executor, BuildCancellationToken buildCancellationToken) {
+    public DefaultExecHandleBuilder(PathToFileResolver fileResolver, ManagedExecutor executor, BuildCancellationToken buildCancellationToken) {
         super(fileResolver, executor, buildCancellationToken);
     }
 

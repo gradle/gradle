@@ -119,7 +119,7 @@ public class ContinuousBuildActionExecutor implements BuildSessionActionExecutor
         final CancellableOperationManager cancellableOperationManager;
         if (requestContext.isInteractive()) {
             if (!(System.in instanceof DisconnectableInputStream)) {
-                System.setIn(new DisconnectableInputStream(System.in));
+                System.setIn(new DisconnectableInputStream(System.in, executorFactory.create("continuous stdin")));
             }
             DisconnectableInputStream inputStream = (DisconnectableInputStream) System.in;
             cancellableOperationManager = new DefaultCancellableOperationManager(executorFactory.create("Cancel signal monitor"), inputStream, cancellationToken);

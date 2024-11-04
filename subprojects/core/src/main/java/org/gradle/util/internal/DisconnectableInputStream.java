@@ -15,8 +15,8 @@
  */
 package org.gradle.util.internal;
 
-import org.gradle.api.Action;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.concurrent.ManagedExecutor;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -37,34 +37,11 @@ public class DisconnectableInputStream extends BulkReadInputStream {
     private boolean closed;
     private boolean inputFinished;
 
-    /*
-        The song and dance with Action<Runnable> is to ease testing.
-        See DisconnectableInputStreamTest
-     */
-
-    static class ThreadExecuter implements Action<Runnable> {
-        @Override
-        public void execute(Runnable runnable) {
-            Thread thread = new Thread(runnable);
-            thread.setName("DisconnectableInputStream source reader");
-            thread.setDaemon(true);
-            thread.start();
-        }
-    }
-
-    public DisconnectableInputStream(InputStream source) {
-        this(source, 1024);
-    }
-
-    public DisconnectableInputStream(final InputStream source, int bufferLength) {
-        this(source, new ThreadExecuter(), bufferLength);
-    }
-
-    DisconnectableInputStream(InputStream source, Action<Runnable> executer) {
+    public DisconnectableInputStream(InputStream source, ManagedExecutor executer) {
         this(source, executer, 1024);
     }
 
-    DisconnectableInputStream(final InputStream source, Action<Runnable> executer, int bufferLength) {
+    DisconnectableInputStream(final InputStream source, ManagedExecutor executer, int bufferLength) {
         buffer = new byte[bufferLength];
         Runnable consume = new Runnable() {
             @Override

@@ -18,13 +18,13 @@ package org.gradle.launcher.daemon.bootstrap;
 
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.process.internal.StreamsHandler;
 
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Scanner;
-import java.util.concurrent.Executor;
 
 public class DaemonOutputConsumer implements StreamsHandler {
 
@@ -35,7 +35,7 @@ public class DaemonOutputConsumer implements StreamsHandler {
     private InputStream processStdOutput;
 
     @Override
-    public void connectStreams(Process process, String processName, Executor executor) {
+    public void connectStreams(Process process, String processName, ManagedExecutor executor) {
         processStdOutput = process.getInputStream();
     }
 

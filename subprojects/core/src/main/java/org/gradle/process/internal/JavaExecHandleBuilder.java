@@ -28,6 +28,7 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.initialization.BuildCancellationToken;
+import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.process.CommandLineArgumentProvider;
@@ -45,7 +46,6 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Executor;
 import java.util.jar.Attributes;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
@@ -74,7 +74,7 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
         FileResolver fileResolver,
         FileCollectionFactory fileCollectionFactory,
         ObjectFactory objectFactory,
-        Executor executor,
+        ManagedExecutor executor,
         BuildCancellationToken buildCancellationToken,
         TemporaryFileProvider temporaryFileProvider,
         @Nullable JavaModuleDetector javaModuleDetector,
