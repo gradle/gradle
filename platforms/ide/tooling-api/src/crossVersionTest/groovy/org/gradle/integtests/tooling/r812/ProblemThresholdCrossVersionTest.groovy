@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.tooling.r812
 
-
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
@@ -52,7 +51,7 @@ class ProblemThresholdCrossVersionTest extends ToolingApiSpecification {
         then:
         def problems = listener.problems
         problems.size() == THRESHOLD_DEFAULT_VALUE
-        validateProblems(THRESHOLD_DEFAULT_VALUE, problems)
+        validateFirstNProblems(THRESHOLD_DEFAULT_VALUE, problems)
         def problemSummariesEvent = listener.summariesEvent as ProblemsSummariesEvent
         problemSummariesEvent != null
 
@@ -78,22 +77,14 @@ class ProblemThresholdCrossVersionTest extends ToolingApiSpecification {
         then:
         def problems = listener.problems
         problems.size() == totalSentEventsCount
-        validateProblems(totalSentEventsCount, problems)
+        validateFirstNProblems(totalSentEventsCount, problems)
         def problemSummariesEvent = listener.summariesEvent as ProblemsSummariesEvent
         problemSummariesEvent != null
-
         def summaries = problemSummariesEvent.problemsSummaries.problemsSummaries
         summaries.size() == 0
 
         where:
         exceedingCount << [-5, -1, 0]
-    }
-
-    boolean validateProblems(int totalSentEventsCount, List<SingleProblemEvent> problems) {
-        (0..totalSentEventsCount-1).every {
-            problems[it].definition.id.displayName == 'label' &&
-            problems[it].definition.id.group.displayName == 'Generic'
-        }
     }
 
     @TargetGradleVersion(">=8.10.2 <8.11")
@@ -113,7 +104,7 @@ class ProblemThresholdCrossVersionTest extends ToolingApiSpecification {
         then:
         def problems = listener.problems
         problems.size() == 1 // 1 because older version does aggregation and only sends the first one.
-        validateProblems(1, problems)
+        validateFirstNProblems(1, problems)
         failureMessage(problems[0].failure) == 'test'
         listener.summariesEvent == null
     }
@@ -140,10 +131,8 @@ class ProblemThresholdCrossVersionTest extends ToolingApiSpecification {
         then:
         def problems = listener.problems
         problems.size() == THRESHOLD_DEFAULT_VALUE + differentProblemCount
-        validateProblems(THRESHOLD_DEFAULT_VALUE, problems)
-
+        validateFirstNProblems(THRESHOLD_DEFAULT_VALUE, problems)
         def problemSummariesEvent = listener.summariesEvent as ProblemsSummariesEvent
-
         def summaries = problemSummariesEvent.problemsSummaries.problemsSummaries
         summaries.size() == 1
     }
@@ -170,12 +159,17 @@ class ProblemThresholdCrossVersionTest extends ToolingApiSpecification {
         then:
         def problems = listener.problems
         problems.size() == thresholdInOption
-        validateProblems(thresholdInOption, problems)
-
+        validateFirstNProblems(thresholdInOption, problems)
         def problemSummariesEvent = listener.summariesEvent as ProblemsSummariesEvent
-
         def summaries = problemSummariesEvent.problemsSummaries.problemsSummaries
         summaries.size() == 1
+    }
+
+    boolean validateFirstNProblems(int totalSentEventsCount, Collection<SingleProblemEvent> problems) {
+        (0..totalSentEventsCount - 1).every { int index ->
+            problems[index].definition.id.displayName == 'label' &&
+                problems[index].definition.id.group.displayName == 'Generic'
+        }
     }
 
     String getProblemReportingBody(int threshold, String category = "testcategory", String label = "label") {
