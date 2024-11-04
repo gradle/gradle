@@ -113,11 +113,13 @@ class TestExecutionBuildConfigurationAction implements EntryTaskSelector {
         Map<String, List<InternalJvmTestRequest>> taskAndTests = testExecutionRequest.getTaskAndTests();
         for (final Map.Entry<String, List<InternalJvmTestRequest>> entry : taskAndTests.entrySet()) {
             String testTaskPath = entry.getKey();
-            for (AbstractTestTask testTask : queryTestTasks(context, testTaskPath)) {
-                configureTestTask(testTask);
-                for (InternalJvmTestRequest jvmTestRequest : entry.getValue()) {
-                    final TestFilter filter = testTask.getFilter();
-                    filter.includeTest(jvmTestRequest.getClassName(), jvmTestRequest.getMethodName());
+            for (Task testTask : queryTasks(context, testTaskPath)) {
+                if (testTask instanceof AbstractTestTask) {
+                    configureTestTask((AbstractTestTask) testTask);
+                    for (InternalJvmTestRequest jvmTestRequest : entry.getValue()) {
+                        final TestFilter filter = ((AbstractTestTask) testTask).getFilter();
+                        filter.includeTest(jvmTestRequest.getClassName(), jvmTestRequest.getMethodName());
+                    }
                 }
             }
         }
@@ -125,22 +127,24 @@ class TestExecutionBuildConfigurationAction implements EntryTaskSelector {
         for (InternalTaskSpec taskSpec : testExecutionRequest.getTaskSpecs()) {
             if (taskSpec instanceof InternalTestSpec) {
                 InternalTestSpec testSpec = (InternalTestSpec) taskSpec;
-                Set<AbstractTestTask> tasks = queryTestTasks(context, taskSpec.getTaskPath());
-                for (AbstractTestTask task : tasks) {
-                    DefaultTestFilter filter = (DefaultTestFilter) task.getFilter();
-                    for (String cls : testSpec.getClasses()) {
-                        filter.includeCommandLineTest(cls, null);
-                    }
-                    for (Map.Entry<String, List<String>> entry : testSpec.getMethods().entrySet()) {
-                        String cls = entry.getKey();
-                        for (String method : entry.getValue()) {
-                            filter.includeCommandLineTest(cls, method);
+                Set<Task> tasks = queryTasks(context, taskSpec.getTaskPath());
+                for (Task task : tasks) {
+                    if (task instanceof AbstractTestTask) {
+                        DefaultTestFilter filter = (DefaultTestFilter) ((AbstractTestTask) task).getFilter();
+                        for (String cls : testSpec.getClasses()) {
+                            filter.includeCommandLineTest(cls, null);
                         }
-                    }
-                    Set<String> commandLineIncludePatterns = filter.getCommandLineIncludePatterns();
-                    commandLineIncludePatterns.addAll(testSpec.getPatterns());
-                    for (String pkg : testSpec.getPackages()) {
-                        commandLineIncludePatterns.add(pkg + ".*");
+                        for (Map.Entry<String, List<String>> entry : testSpec.getMethods().entrySet()) {
+                            String cls = entry.getKey();
+                            for (String method : entry.getValue()) {
+                                filter.includeCommandLineTest(cls, method);
+                            }
+                        }
+                        Set<String> commandLineIncludePatterns = filter.getCommandLineIncludePatterns();
+                        commandLineIncludePatterns.addAll(testSpec.getPatterns());
+                        for (String pkg : testSpec.getPackages()) {
+                            commandLineIncludePatterns.add(pkg + ".*");
+                        }
                     }
                 }
             }
@@ -169,11 +173,13 @@ class TestExecutionBuildConfigurationAction implements EntryTaskSelector {
         final Collection<InternalTestDescriptor> testDescriptors = testExecutionRequest.getTestExecutionDescriptors();
         for (final InternalTestDescriptor descriptor : testDescriptors) {
             final String testTaskPath = taskPathOf(descriptor);
-            for (AbstractTestTask testTask : queryTestTasks(context, testTaskPath)) {
-                configureTestTask(testTask);
-                for (InternalTestDescriptor testDescriptor : testDescriptors) {
-                    if (taskPathOf(testDescriptor).equals(testTaskPath)) {
-                        includeTestMatching((InternalJvmTestDescriptor) testDescriptor, testTask);
+            for (Task testTask : queryTasks(context, testTaskPath)) {
+                if (testTask instanceof AbstractTestTask) {
+                    configureTestTask((AbstractTestTask) testTask);
+                    for (InternalTestDescriptor testDescriptor : testDescriptors) {
+                        if (taskPathOf(testDescriptor).equals(testTaskPath)) {
+                            includeTestMatching((InternalJvmTestDescriptor) testDescriptor, (AbstractTestTask) testTask);
+                        }
                     }
                 }
             }
@@ -184,12 +190,12 @@ class TestExecutionBuildConfigurationAction implements EntryTaskSelector {
         Map<String, List<InternalJvmTestRequest>> taskAndTests = testExecutionRequest.getTaskAndTests();
         for (final Map.Entry<String, List<InternalJvmTestRequest>> entry : taskAndTests.entrySet()) {
             String testTaskPath = entry.getKey();
-            tasksToRun.addAll(queryTestTasks(context, testTaskPath));
+            tasksToRun.addAll(queryTasks(context, testTaskPath));
         }
 
         for (InternalTaskSpec taskSpec : testExecutionRequest.getTaskSpecs()) {
             if (taskSpec instanceof InternalTestSpec) {
-                tasksToRun.addAll(queryTestTasks(context, taskSpec.getTaskPath()));
+                tasksToRun.addAll(queryTasks(context, taskSpec.getTaskPath()));
             } else {
                 tasksToRun.addAll(queryTasks(context, taskSpec.getTaskPath()));
             }
@@ -209,7 +215,7 @@ class TestExecutionBuildConfigurationAction implements EntryTaskSelector {
     private void collectTestTasks(Context context, Collection<Task> testTasksToRun) {
         for (final InternalTestDescriptor descriptor : testExecutionRequest.getTestExecutionDescriptors()) {
             final String testTaskPath = taskPathOf(descriptor);
-            testTasksToRun.addAll(queryTestTasks(context, testTaskPath));
+            testTasksToRun.addAll(queryTasks(context, testTaskPath));
         }
     }
 
@@ -227,17 +233,6 @@ class TestExecutionBuildConfigurationAction implements EntryTaskSelector {
         }
 
         return tasks;
-    }
-
-    private static Set<AbstractTestTask> queryTestTasks(Context context, String testTaskPath) {
-        Set<AbstractTestTask> result = new LinkedHashSet<>();
-        for (Task task : queryTasks(context, testTaskPath)) {
-            if (!(task instanceof AbstractTestTask)) {
-                throw new TestExecutionException(String.format("Task '%s' of type '%s' not supported for executing tests via TestLauncher API.", testTaskPath, task.getClass().getName()));
-            }
-            result.add((AbstractTestTask) task);
-        }
-        return result;
     }
 
     private void collectTasksForInternalJvmTestRequest(GradleInternal gradle, Collection<Task> tasksToExecute) {

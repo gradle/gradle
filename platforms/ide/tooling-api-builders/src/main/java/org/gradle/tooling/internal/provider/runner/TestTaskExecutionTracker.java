@@ -15,9 +15,8 @@
  */
 package org.gradle.tooling.internal.provider.runner;
 
-import org.gradle.api.Task;
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationDetails;
-import org.gradle.api.tasks.testing.AbstractTestTask;
 import org.gradle.internal.operations.BuildOperationAncestryTracker;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.OperationFinishEvent;
@@ -49,11 +48,8 @@ class TestTaskExecutionTracker implements BuildOperationTracker {
     public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
         Object details = buildOperation.getDetails();
         if (details instanceof ExecuteTaskBuildOperationDetails) {
-            Task task = ((ExecuteTaskBuildOperationDetails) details).getTask();
-            if (!(task instanceof AbstractTestTask)) {
-                return;
-            }
-            String previous = runningTasks.put(buildOperation.getId(), ((AbstractTestTask) task).getIdentityPath().getPath());
+            TaskInternal task = ((ExecuteTaskBuildOperationDetails) details).getTask();
+            String previous = runningTasks.put(buildOperation.getId(), task.getIdentityPath().getPath());
             if (previous != null) {
                 throw new IllegalStateException("Build operation " + buildOperation.getId() + " already started.");
             }

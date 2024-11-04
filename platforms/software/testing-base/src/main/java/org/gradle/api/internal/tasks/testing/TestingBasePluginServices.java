@@ -21,10 +21,10 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 
 public class TestingBasePluginServices extends AbstractGradleModuleServices {
-
     @Override
     public void registerBuildSessionServices(ServiceRegistration registration) {
         registration.addProvider(new TestExecutionBuildOperationBuildSessionScopeServices());
+        registration.addProvider(new TestServiceBuildSessionScopeServices());
     }
 
 }

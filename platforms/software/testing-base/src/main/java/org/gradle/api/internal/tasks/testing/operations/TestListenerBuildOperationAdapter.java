@@ -67,15 +67,23 @@ public class TestListenerBuildOperationAdapter implements TestListenerInternal {
 
     @Override
     public void completed(TestDescriptorInternal testDescriptor, TestResult testResult, TestCompleteEvent completeEvent) {
-        long currentTime = clock.getCurrentTime();
         InProgressExecuteTestBuildOperation runningOp = runningTests.remove(testDescriptor);
-        listener.finished(runningOp.descriptor, new OperationFinishEvent(runningOp.startTime, currentTime, testResult.getException(), new Result(testResult)));
+        // Adjusted to not use current time, as that may be wrong in the context of remote test execution. The time given by the test result is more reliable.
+        long endTime = completeEvent.getEndTime();
+        if (runningOp.startTime > endTime) {
+            endTime = runningOp.startTime;
+        }
+        listener.finished(runningOp.descriptor, new OperationFinishEvent(runningOp.startTime, endTime, testResult.getException(), new Result(testResult)));
     }
 
     @Override
     public void output(final TestDescriptorInternal testDescriptor, final TestOutputEvent event) {
+        // TODO We may need to not use current time here. We may need a time on the output event.
         long currentTime = clock.getCurrentTime();
         InProgressExecuteTestBuildOperation runningOp = runningTests.get(testDescriptor);
+        if (runningOp == null) {
+            throw new IllegalStateException("Received output for test that is not running: " + testDescriptor);
+        }
         listener.progress(runningOp.descriptor.getId(), new OperationProgressEvent(currentTime, new OutputProgress(event)));
     }
 
