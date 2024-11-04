@@ -249,15 +249,24 @@ Potential migrations include using `Object.equals(Object)` directly, or comparin
 [[deprecated_project_exec]]
 ==== Deprecated `Project#exec` and `Project#javaexec`
 
-The methods link:{javadocPath}/org/gradle/api/Project.html#exec(groovy.lang.Closure)[Project#exec(Closure)],
+The link:{javadocPath}/org/gradle/api/Project.html#exec(groovy.lang.Closure)[Project#exec(Closure)],
 link:{javadocPath}/org/gradle/api/Project.html#exec(org.gradle.api.Action)[Project#exec(Action)],
 link:{javadocPath}/org/gradle/api/Project.html#javaexec(groovy.lang.Closure)[Project#javaexec(Closure)],
-link:{javadocPath}/org/gradle/api/Project.html#javaexec(org.gradle.api.Action)[Project#javaexec(Action)] has been deprecated and will be removed in Gradle 9.0.
+link:{javadocPath}/org/gradle/api/Project.html#javaexec(org.gradle.api.Action)[Project#javaexec(Action)] methods have been deprecated and will be removed in Gradle 9.0.
 
-These methods cannot be used with the configuration cache and should be replaced with compatible alternatives.
-At execution time, tasks should use an <<service_injection.adoc#execoperations, injected `ExecOperation`>> service or standard Java/Groovy/Kotlin APIs, like `java.lang.ProcessBuilder` to run processes.
-Running external processes at configuration time isn't recommended, but methods of <<configuration_cache.adoc#config_cache:requirements:external_processes, `ProviderFactory`>> or a custom
-link:{javadocPath}/org/gradle/api/provider/ValueSource.html[`ValueSource`] can be used if necessary, at the cost of making the process output an input to the build configuration.
+These methods are scheduled for removal as part of the ongoing effort to make writing configuration-cache-compatible code easier.
+There is no way to use these methods without breaking configuration cache requirements so it is recommended to migrate to a compatible alternative.
+The appropriate replacement for your use case depends on the context in which the method was previously called.
+
+At execution time, for example in `@TaskAction` or `doFirst`/`doLast` callbacks, the use of `Project` instance is not allowed when the configuration cache is enabled.
+To run external processes, tasks should use an <<service_injection.adoc#execoperations, injected `ExecOperation`>> service, which has the same API and can act as a drop-in replacement.
+The standard Java/Groovy/Kotlin process APIs, like `java.lang.ProcessBuilder` can be used as well.
+
+At configuration time, only special Provider-based APIs must be used to run external processes when the configuration cache is enabled.
+You can use link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#exec(org.gradle.api.Action)[`ProviderFactory.exec`] and
+link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#javaexec(org.gradle.api.Action)[`ProviderFactory.javaexec`] to obtain the output of the process.
+A custom link:{javadocPath}/org/gradle/api/provider/ValueSource.html[`ValueSource`] implementation can be used for more sophisticated scenarios.
+The <<configuration_cache.adoc#config_cache:requirements:external_processes, configuration cache guide>> has a more elaborate example of using these APIs.
 
 [[detached_configurations_cannot_extend]]
 ==== Detached Configurations should not use `extendsFrom`

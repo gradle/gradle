@@ -117,17 +117,6 @@ abstract class MyWorkerTask
 tasks.register("myWorkTask", MyWorkerTask::class) {}
 // end::worker-executor[]
 
-// tag::file-system[]
-tasks.register("FileSystemOperations") {
-    doLast {
-        copy { // short for project.copy
-            from("src")
-            into("dest")
-        }
-    }
-}
-// end::file-system[]
-
 // tag::file-system-inject[]
 abstract class MyFileSystemOperationsTask
 @Inject constructor(private var fileSystemOperations: FileSystemOperations) : DefaultTask() {
@@ -144,13 +133,21 @@ abstract class MyFileSystemOperationsTask
 tasks.register("myInjectedFileSystemOperationsTask", MyFileSystemOperationsTask::class) {}
 // end::file-system-inject[]
 
-// tag::archive-op[]
-tasks.register("ArchiveOperations") {
+// tag::file-system-adhoc[]
+interface InjectedFsOps {
+    @get:Inject val fs: FileSystemOperations
+}
+
+tasks.register("myAdHocFileSystemOperationsTask") {
+    val injected = project.objects.newInstance<InjectedFsOps>()
     doLast {
-        zipTree() { "${project.projectDir}/sources.jar" } // short for project.zipTree
+        injected.fs.copy {
+            from("src")
+            into("dest")
+        }
     }
 }
-// end::archive-op[]
+// end::file-system-adhoc[]
 
 // tag::archive-op-inject[]
 abstract class MyArchiveOperationsTask
@@ -168,15 +165,19 @@ abstract class MyArchiveOperationsTask
 tasks.register("myInjectedArchiveOperationsTask", MyArchiveOperationsTask::class) {}
 // end::archive-op-inject[]
 
-// tag::exec-op[]
-tasks.register("runCommand") {
+// tag::archive-op-adhoc[]
+interface InjectedArcOps {
+    @get:Inject val arcOps: ArchiveOperations
+}
+
+tasks.register("myAdHocArchiveOperationsTask") {
+    val injected = project.objects.newInstance<InjectedArcOps>()
+    val archiveFile = "${project.projectDir}/sources.jar"
     doLast {
-        exec { // short for project.exec
-            commandLine("ls", "-la")
-        }
+        injected.arcOps.zipTree(archiveFile)
     }
 }
-// end::exec-op[]
+// end::archive-op-adhoc[]
 
 // tag::exec-op-inject[]
 abstract class MyExecOperationsTask
@@ -192,6 +193,22 @@ abstract class MyExecOperationsTask
 
 tasks.register("myInjectedExecOperationsTask", MyExecOperationsTask::class) {}
 // end::exec-op-inject[]
+
+// tag::exec-op-adhoc[]
+interface InjectedExecOps {
+    @get:Inject val execOps: ExecOperations
+}
+
+tasks.register("myAdHocExecOperationsTask") {
+    val injected = project.objects.newInstance<InjectedExecOps>()
+
+    doLast {
+        injected.execOps.exec {
+            commandLine("ls", "-la")
+        }
+    }
+}
+// end::exec-op-adhoc[]
 
 // tag::tooling-model[]
 // Implements the ToolingModelBuilder interface.
