@@ -82,8 +82,5 @@ class IsolatedProjectsParallelConfigurationIntegrationTest extends AbstractIsola
         outputDoesNotContain("Configure :b")
     }
 
-
-
     // TODO Test -x behavior
-    // TODO Test included builds behavior
 }

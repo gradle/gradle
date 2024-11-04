@@ -16,9 +16,7 @@
 
 package org.gradle.internal.cc.impl.isolated
 
-import org.gradle.test.fixtures.file.TestFile
-
-class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProjectsIntegrationTest {
+class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProjectsCompositeBuildIntegrationTest {
     def "can build libraries composed from multiple builds"() {
         settingsFile << """
             includeBuild("libs")
@@ -119,6 +117,10 @@ class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProj
             applyPlugins(buildScript, "plugin-a")
         }
 
+        includedBuild("library-c") {
+            includeLibraryBuild(settingsScript, "../library-b")
+        }
+
         includedBuild("plugins-a") {
             includeLibraryBuild(settingsScript, "../library-c")
             applyPlugins(buildScript, "groovy-gradle-plugin")
@@ -181,7 +183,7 @@ class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProj
         isolatedProjectsRun("help")
     }
 
-    def "plugins from included build are safe to be resolved concurrently"() {
+    def "plugins from included build are safe to be requested concurrently"() {
         given:
         includedBuild("plugins") {
             applyPlugins(buildScript, "groovy-gradle-plugin")
@@ -206,7 +208,6 @@ class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProj
     }
 
     def "substitutions from library builds are safe to be registered concurrently"() {
-        given:
         includedBuild("plugins-a") {
             includeLibraryBuild(settingsScript, "../shared-library")
             applyPlugins(buildScript, "groovy-gradle-plugin")
@@ -239,8 +240,8 @@ class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProj
 
         includePluginBuild(settingsFile, "plugins-a", "plugins-b")
         settingsFile << """
-            include(":a")
-            include(":b")
+                include(":a")
+                include(":b")
         """
 
         applyPlugins(file("a/build.gradle"), "plugin-a")
@@ -250,7 +251,7 @@ class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProj
         isolatedProjectsRun("help")
     }
 
-    def "substitutions from library builds are safe to be registered in cycled definition"() {
+    def "substitutions from library builds are safe to be registered from cycled definition"() {
         given:
         includedBuild("library-a") {
             includeLibraryBuild(settingsScript, "../library-b")
@@ -292,44 +293,5 @@ class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProj
 
         expect:
         isolatedProjectsRun("help")
-    }
-
-    private def includedBuild(String root, @DelegatesTo(BuildLayout) Closure configure) {
-        configure.setDelegate(new BuildLayout(file("$root/settings.gradle"), file("$root/build.gradle"), file("$root/src/main/groovy")))
-        configure()
-    }
-
-    private static def includeLibraryBuild(TestFile settingsFile, String build) {
-        settingsFile << """
-            includeBuild("$build")
-       """
-    }
-
-    private static def applyPlugins(TestFile buildFile, String... pluginIds) {
-        buildFile << """
-            plugins {
-                ${pluginIds.collect { """id "$it" """ }.join("\n")}
-        }
-        """
-    }
-
-    private static def includePluginBuild(TestFile settingsFile, String... builds) {
-        settingsFile << """
-            pluginManagement {
-                ${builds.collect { """includeBuild("$it")""" }.join("\n")}
-            }
-        """
-    }
-
-    private class BuildLayout {
-        TestFile settingsScript
-        TestFile buildScript
-        TestFile srcMainGroovy
-
-        BuildLayout(TestFile settingsScript, TestFile buildScript, TestFile srcMainGroovy) {
-            this.settingsScript = settingsScript
-            this.buildScript = buildScript
-            this.srcMainGroovy = srcMainGroovy
-        }
     }
 }
