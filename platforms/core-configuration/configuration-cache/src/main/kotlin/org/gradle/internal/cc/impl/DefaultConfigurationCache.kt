@@ -395,15 +395,22 @@ class DefaultConfigurationCache internal constructor(
 
     private
     fun checkFingerprint(): CheckedFingerprint {
-        val candidates = store.useForStateLoad { layout ->
-            cacheIO.readCandidateEntries(layout.fileFor(StateType.Candidates))
-        }.value
-        return candidates.firstNotNullOfOrNull {
-            checkCandidate(it)
-        } ?: CheckedFingerprint.NotFound
+        return buildOperationRunner.withFingerprintCheckOperations {
+            // searching for a valid cc entry
+            val candidates = store.useForStateLoad { layout ->
+                cacheIO.readCandidateEntries(layout.fileFor(StateType.Candidates))
+            }.value
+            // how to best report changes?
+            // 1. could report all differences against each different entry
+            candidates.firstNotNullOfOrNull {
+                checkCandidate(it)
+            } ?: CheckedFingerprint.NotFound
+        }
     }
 
-    private fun checkCandidate(candidateEntry: CandidateEntry): CheckedFingerprint? {
+    private
+    fun checkCandidate(candidateEntry: CandidateEntry): CheckedFingerprint? {
+        // checking a single fingerprint
         val entryName = candidateEntry.id
         val entryStore = cacheRepository.forKey(entryName)
         return entryStore.useForStateLoad { layout ->
@@ -419,13 +426,11 @@ class DefaultConfigurationCache internal constructor(
     private fun checkedFingerprint(layout: ConfigurationCacheRepository.Layout): CheckedFingerprint {
         val entryFile = layout.fileFor(StateType.Entry)
         val entryDetails = cacheIO.readCacheEntryDetailsFrom(entryFile)
-        return buildOperationRunner.withFingerprintCheckOperations {
-            if (entryDetails == null) {
-                // No entry file -> treat the entry as empty/missing/invalid
-                CheckedFingerprint.NotFound
-            } else {
-                checkFingerprint(entryDetails, layout)
-            }
+        return if (entryDetails == null) {
+            // No entry file -> treat the entry as empty/missing/invalid
+            CheckedFingerprint.NotFound
+        } else {
+            checkFingerprint(entryDetails, layout)
         }
     }
 
