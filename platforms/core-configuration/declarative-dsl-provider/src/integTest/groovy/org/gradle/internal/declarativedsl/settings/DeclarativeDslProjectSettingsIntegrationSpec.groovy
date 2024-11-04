@@ -355,6 +355,14 @@ class DeclarativeDslProjectSettingsIntegrationSpec extends AbstractIntegrationSp
             plugins {
                 id("com.example.restricted.ecosystem").version("1.0")
             }
+
+            dependencyResolutionManagement {
+                repositories {
+                    maven {
+                        url = uri("build/repo")
+                    }
+                }
+            }
             """
 
         file("build.gradle.dcl") <<
