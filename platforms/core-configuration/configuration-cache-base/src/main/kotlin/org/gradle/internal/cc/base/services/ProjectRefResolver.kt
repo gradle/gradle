@@ -56,11 +56,13 @@ class ProjectRefResolver @Inject constructor(
     fun withWaitingForProjectsAllowed(block: () -> Unit) {
         val thread = Thread.currentThread()
 
-        waitingForProjectsAllowed.add(thread)
+        val wasFirstToAdd = waitingForProjectsAllowed.add(thread)
         try {
             block()
         } finally {
-            waitingForProjectsAllowed.remove(thread)
+            if (wasFirstToAdd) {
+                waitingForProjectsAllowed.remove(thread)
+            }
         }
     }
 
