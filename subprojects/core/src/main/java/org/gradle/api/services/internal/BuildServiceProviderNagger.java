@@ -34,7 +34,7 @@ public class BuildServiceProviderNagger implements BuildServiceProvider.Listener
     @Override
     public void beforeGet(BuildServiceProvider<?, ?> provider) {
         currentTask().ifPresent(task -> {
-            if (!isServiceRequiredBy(task, provider)) {
+            if (provider.mustDeclareUsage() && !isServiceRequiredBy(task, provider)) {
                 nagAboutUndeclaredUsageOf(provider, task);
             }
         });

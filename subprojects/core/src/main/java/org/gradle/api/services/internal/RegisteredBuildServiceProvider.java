@@ -78,6 +78,11 @@ public class RegisteredBuildServiceProvider<T extends BuildService<P>, P extends
     }
 
     @Override
+    public boolean mustDeclareUsage() {
+        return serviceDetails.mustDeclareUsage();
+    }
+
+    @Override
     public BuildServiceDetails<T, P> getServiceDetails() {
         return serviceDetails;
     }

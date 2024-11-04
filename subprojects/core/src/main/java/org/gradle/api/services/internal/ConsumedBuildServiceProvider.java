@@ -113,6 +113,12 @@ public class ConsumedBuildServiceProvider<T extends BuildService<BuildServicePar
     }
 
     @Override
+    public boolean mustDeclareUsage() {
+        BuildServiceProvider<T, BuildServiceParameters> resolvedProvider = resolve(true);
+        return resolvedProvider == null || resolvedProvider.mustDeclareUsage();
+    }
+
+    @Override
     public ProviderInternal<T> withFinalValue(ValueConsumer consumer) {
         RegisteredBuildServiceProvider<T, BuildServiceParameters> resolved = resolve(true);
         return resolved != null ? resolved.withFinalValue(consumer) : super.withFinalValue(consumer);

@@ -62,45 +62,48 @@ import static org.hamcrest.CoreMatchers.containsString
 
 class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
 
-    def "does not nag when service is used by task without a corresponding usesService call and feature preview is NOT enabled"() {
+    def "nagging for undeclared service usage"() {
         given:
         serviceImplementation()
-        adhocTaskUsingUndeclaredService(1)
+        buildFile """
+            def serviceProvider = gradle.sharedServices.registerIfAbsent("counter", CountingService) {
+                parameters.initial = 42
+                maxParallelUsages = $maxParallelUsages
+            }
 
-        when:
-        succeeds 'broken'
-
-        then:
-        outputDoesNotContain "'Task#usesService'"
-    }
-
-    def "does not nag when an unconstrained service is used by task without a corresponding usesService call and feature preview is enabled"() {
-        given:
-        serviceImplementation()
-        adhocTaskUsingUndeclaredService(null)
-
-        when:
-        succeeds 'broken'
-
-        then:
-        outputDoesNotContain "'Task#usesService'"
-    }
-
-    def "does nag when service is used by task without a corresponding usesService call and feature preview is enabled"() {
-        given:
-        serviceImplementation()
-        adhocTaskUsingUndeclaredService(1)
-        enableStableConfigurationCache()
-        executer.expectDocumentedDeprecationWarning(
-            "Build service 'counter' is being used by task ':broken' without the corresponding declaration via 'Task#usesService'. " +
-                "This behavior has been deprecated. " +
-                "This will fail with an error in Gradle 9.0. " +
-                "Declare the association between the task by declaring the consuming property as a '@ServiceReference'. " +
-                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#undeclared_build_service_usage"
-        )
+            tasks.register("clientTask") {
+                ${declareUsage ? "usesService(serviceProvider)" : "// not declared"}
+                doFirst {
+                    serviceProvider.get().increment()
+                }
+            }
+        """
+        if (featurePreview) {
+            enableStableConfigurationCache()
+        }
+        if (shouldNag) {
+            executer.expectDocumentedDeprecationWarning(
+                "Build service 'counter' is being used by task ':clientTask' without the corresponding declaration via 'Task#usesService'. " +
+                    "This behavior has been deprecated. " +
+                    "This will fail with an error in Gradle 9.0. " +
+                    "Declare the association between the task by declaring the consuming property as a '@ServiceReference'. " +
+                    "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#undeclared_build_service_usage"
+            )
+        }
 
         expect:
-        succeeds 'broken'
+        succeeds "clientTask"
+
+        where:
+        maxParallelUsages   | featurePreview    | declareUsage  | shouldNag
+        null                | true              | true          | false
+        null                | false             | true          | false
+        1                   | true              | true          | false
+        1                   | false             | true          | false
+        null                | true              | false         | false
+        null                | false             | false         | false
+        1                   | true              | false         | true
+        1                   | false             | false         | false
     }
 
     @Issue("https://github.com/gradle/configuration-cache/issues/97")
@@ -237,31 +240,6 @@ service: value is 11
         outputContains """
 service: closed with value 11
         """
-    }
-
-    def "does not nag when service is used by task with an explicit usesService call and feature preview is enabled"() {
-        given:
-        serviceImplementation()
-        customTaskUsingServiceViaProperty()
-        buildFile """
-            def serviceProvider = gradle.sharedServices.registerIfAbsent("counter", CountingService) {
-                parameters.initial = 42
-            }
-
-            tasks.register("explicit") {
-                it.usesService(serviceProvider)
-                doFirst {
-                    serviceProvider.get().increment()
-                }
-            }
-        """
-        enableStableConfigurationCache()
-
-        when:
-        succeeds 'explicit'
-
-        then:
-        outputDoesNotContain "'Task#usesService'"
     }
 
     def "can inject shared build service by name into nested bean property when reference is annotated with @ServiceReference('...')"() {
@@ -1704,21 +1682,6 @@ Hello, subproject1
         settingsFile '''
             enableFeaturePreview 'STABLE_CONFIGURATION_CACHE'
         '''
-    }
-
-    private void adhocTaskUsingUndeclaredService(Integer maxParallelUsages) {
-        buildFile """
-            def serviceProvider = gradle.sharedServices.registerIfAbsent("counter", CountingService) {
-                parameters.initial = 42
-                maxParallelUsages = $maxParallelUsages
-            }
-
-            tasks.register("broken") {
-                doFirst {
-                    serviceProvider.get().increment()
-                }
-            }
-        """
     }
 
     private void customTaskUsingServiceViaProperty(String annotationSnippet = "@Internal", TestFile targetBuildFile = buildFile) {

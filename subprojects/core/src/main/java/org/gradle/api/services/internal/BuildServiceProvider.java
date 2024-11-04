@@ -71,6 +71,8 @@ public abstract class BuildServiceProvider<T extends BuildService<P>, P extends 
         return ExecutionTimeValue.changingValue(this);
     }
 
+    public abstract boolean mustDeclareUsage();
+
     public void maybeStop() {
         // subclasses to override
     }
