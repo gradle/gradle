@@ -29,7 +29,7 @@ public class DefaultProblems implements InternalProblems {
 
     private final ProblemStream problemStream;
     private final CurrentBuildOperationRef currentBuildOperationRef;
-    private final ProblemSummarizer emitter;
+    private final ProblemSummarizer problemSummarizer;
     private final InternalProblemReporter internalReporter;
     private final AdditionalDataBuilderFactory additionalDataBuilderFactory = new AdditionalDataBuilderFactory();
 
@@ -41,8 +41,8 @@ public class DefaultProblems implements InternalProblems {
         this(emitter, null, CurrentBuildOperationRef.instance());
     }
 
-    public DefaultProblems(ProblemSummarizer emitter, ProblemStream problemStream, CurrentBuildOperationRef currentBuildOperationRef) {
-        this.emitter = emitter;
+    public DefaultProblems(ProblemSummarizer problemSummarizer, ProblemStream problemStream, CurrentBuildOperationRef currentBuildOperationRef) {
+        this.problemSummarizer = problemSummarizer;
         this.problemStream = problemStream;
         this.currentBuildOperationRef = currentBuildOperationRef;
         this.internalReporter = createReporter();
@@ -55,7 +55,7 @@ public class DefaultProblems implements InternalProblems {
 
     @Nonnull
     private DefaultProblemReporter createReporter() {
-        return new DefaultProblemReporter(emitter, problemStream, currentBuildOperationRef, additionalDataBuilderFactory);
+        return new DefaultProblemReporter(problemSummarizer, problemStream, currentBuildOperationRef, additionalDataBuilderFactory);
     }
 
     @Override
