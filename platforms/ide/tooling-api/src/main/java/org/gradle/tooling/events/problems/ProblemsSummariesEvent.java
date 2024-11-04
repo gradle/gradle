@@ -21,12 +21,14 @@ import org.gradle.api.Incubating;
 /**
  * The Event capturing all problems summaries
  *
+ * @see ProblemSummary
+ *
  * @since 8.12
  */
 @Incubating
 public interface ProblemsSummariesEvent extends ProblemEvent {
     /**
-     * Get problems summaries
+     * Get problems summaries.
      *
      * @since 8.12
      */

@@ -19,22 +19,23 @@ package org.gradle.tooling.events.problems;
 import org.gradle.api.Incubating;
 
 /**
- * A problem summary
+ * A problem summary.
  *
+ * @see ProblemSummary
  * @since 8.12
  */
 @Incubating
 public interface ProblemSummary {
 
     /**
-     * The problem id
+     * The problem id.
      *
      * @since 8.12
      */
     ProblemId getProblemId();
 
     /**
-     * The number of follow-up occurrences
+     * The number of follow-up occurrences.
      *
      * @since 8.12
      */
