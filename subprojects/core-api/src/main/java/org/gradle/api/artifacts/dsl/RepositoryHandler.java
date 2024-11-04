@@ -324,6 +324,7 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      * @param action The action to use to configure the repository.
      * @return The added repository.
      */
+    @Adding
     MavenArtifactRepository maven(Action<? super MavenArtifactRepository> action);
 
     /**
