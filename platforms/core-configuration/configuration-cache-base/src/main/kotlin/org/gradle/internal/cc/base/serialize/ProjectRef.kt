@@ -23,12 +23,19 @@ import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.internal.serialize.graph.ownerService
 
-
+/**
+ * Writes a reference to a project.
+ */
 fun WriteContext.writeProjectRef(project: Project) {
     writeString(project.path)
 }
 
 
+/**
+ * Reads a reference to a project. May block or throw if the projects haven't been loaded yet.
+ *
+ * @see ProjectRefResolver
+ */
 fun ReadContext.readProjectRef(): ProjectInternal {
     return ownerService<ProjectRefResolver>().getProject(readString())
 }
