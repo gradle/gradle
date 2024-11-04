@@ -44,7 +44,7 @@ class TaskOptionValuesIntegrationTest extends AbstractIntegrationSpec {
 
     def "can accept invalid option value"() {
         given:
-        file('buildSrc/src/main/java/SampleTask.java') << taskWithSingleOptionAndPredefinedValues(optionValuesType)
+        file('buildSrc/src/main/java/SampleTask.java') << taskWithSingleOptionAndPredefinedValues((TestOptionValuesType) optionValuesType)
         buildFile << sampleTask()
 
         when:
@@ -59,7 +59,7 @@ class TaskOptionValuesIntegrationTest extends AbstractIntegrationSpec {
 
     def "can render option values with help task"() {
         given:
-        file('buildSrc/src/main/java/SampleTask.java') << taskWithSingleOptionAndPredefinedValues()
+        file('buildSrc/src/main/java/SampleTask.java') << taskWithSingleOptionAndPredefinedValues((TestOptionValuesType) optionValuesType)
         buildFile << sampleTask()
 
         when:
