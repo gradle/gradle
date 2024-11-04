@@ -22,17 +22,19 @@ import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.api.internal.TaskInputsInternal
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.provider.Providers
 import org.gradle.api.internal.tasks.TaskDestroyablesInternal
 import org.gradle.api.internal.tasks.TaskInputFilePropertyBuilderInternal
 import org.gradle.api.internal.tasks.TaskLocalStateInternal
 import org.gradle.api.specs.Spec
-import org.gradle.internal.cc.base.serialize.IsolateOwners
 import org.gradle.execution.plan.LocalTaskNode
 import org.gradle.execution.plan.TaskNodeFactory
+import org.gradle.internal.cc.base.serialize.IsolateOwners
+import org.gradle.internal.cc.base.serialize.readProjectRef
+import org.gradle.internal.cc.base.serialize.writeProjectRef
 import org.gradle.internal.configuration.problems.PropertyKind
 import org.gradle.internal.configuration.problems.PropertyTrace
-import org.gradle.internal.cc.base.serialize.getProject
 import org.gradle.internal.execution.model.InputNormalizer
 import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.fingerprint.DirectorySensitivity
@@ -84,10 +86,9 @@ class TaskNodeCodec(
     suspend fun WriteContext.writeTask(task: TaskInternal) {
         withDebugFrame({ task.path }) {
             val taskType = GeneratedSubclasses.unpackType(task)
-            val projectPath = task.project.path
             val taskName = task.name
             writeClass(taskType)
-            writeString(projectPath)
+            writeProjectRef(task.project)
             writeString(taskName)
             writeLong(task.taskIdentity.uniqueId)
             writeNullableString(task.reasonTaskIsIncompatibleWithConfigurationCache.orElse(null))
@@ -117,12 +118,12 @@ class TaskNodeCodec(
     private
     suspend fun ReadContext.readTask(): Task {
         val taskType = readClassOf<Task>()
-        val projectPath = readString()
+        val project = readProjectRef()
         val taskName = readString()
         val uniqueId = readLong()
         val incompatibleReason = readNullableString()
 
-        val task = createTask(projectPath, taskName, taskType, uniqueId, incompatibleReason)
+        val task = createTask(project, taskName, taskType, uniqueId, incompatibleReason)
 
         withTaskOf(taskType, task, userTypesCodec) {
             readUpToDateSpec(task)
@@ -474,8 +475,8 @@ suspend fun ReadContext.readOutputPropertiesOf(task: Task) =
 
 
 private
-fun ReadContext.createTask(projectPath: String, taskName: String, taskClass: Class<out Task>, uniqueId: Long, incompatibleReason: String?): TaskInternal {
-    val task = getProject(projectPath).tasks.createWithoutConstructor(taskName, taskClass, uniqueId) as TaskInternal
+fun createTask(project: ProjectInternal, taskName: String, taskClass: Class<out Task>, uniqueId: Long, incompatibleReason: String?): TaskInternal {
+    val task = project.tasks.createWithoutConstructor(taskName, taskClass, uniqueId) as TaskInternal
     if (incompatibleReason != null) {
         task.notCompatibleWithConfigurationCache(incompatibleReason)
     }
