@@ -92,7 +92,6 @@ import org.gradle.tooling.events.problems.internal.DefaultProblemGroup;
 import org.gradle.tooling.events.problems.internal.DefaultProblemId;
 import org.gradle.tooling.events.problems.internal.DefaultProblemSummary;
 import org.gradle.tooling.events.problems.internal.DefaultProblemsOperationContext;
-import org.gradle.tooling.events.problems.internal.DefaultProblemsSummaries;
 import org.gradle.tooling.events.problems.internal.DefaultProblemsSummariesEvent;
 import org.gradle.tooling.events.problems.internal.DefaultSeverity;
 import org.gradle.tooling.events.problems.internal.DefaultSingleProblemEvent;
@@ -650,7 +649,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         } else if (details instanceof InternalProblemSummariesDetails) {
             InternalProblemSummariesDetails problemSummariesDetails = (InternalProblemSummariesDetails) details;
             return new DefaultProblemsSummariesEvent(problemEvent.getEventTime(), parentDescriptor,
-                new DefaultProblemsSummaries(toProblemIdSummaries(problemSummariesDetails.getProblemIdCounts())));
+                toProblemIdSummaries(problemSummariesDetails.getProblemIdCounts()));
         }
         return null;
     }

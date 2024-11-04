@@ -18,19 +18,21 @@ package org.gradle.tooling.events.problems.internal;
 
 import org.gradle.tooling.events.OperationDescriptor;
 import org.gradle.tooling.events.internal.BaseProgressEvent;
-import org.gradle.tooling.events.problems.ProblemsSummaries;
+import org.gradle.tooling.events.problems.ProblemSummary;
 import org.gradle.tooling.events.problems.ProblemsSummariesEvent;
 
-public class DefaultProblemsSummariesEvent extends BaseProgressEvent implements ProblemsSummariesEvent {
-    private final ProblemsSummaries problemsSummaries;
+import java.util.List;
 
-    public DefaultProblemsSummariesEvent(long eventTime, OperationDescriptor descriptor, ProblemsSummaries defaultProblemsSummaries) {
+public class DefaultProblemsSummariesEvent extends BaseProgressEvent implements ProblemsSummariesEvent {
+    private final List<ProblemSummary> problemsSummaries;
+
+    public DefaultProblemsSummariesEvent(long eventTime, OperationDescriptor descriptor, List<ProblemSummary> defaultProblemsSummaries) {
         super(eventTime, descriptor == null ? "<null>" : descriptor.getDisplayName(), descriptor);
         this.problemsSummaries = defaultProblemsSummaries;
     }
 
     @Override
-    public ProblemsSummaries getProblemsSummaries() {
+    public List<ProblemSummary> getProblemsSummaries() {
         return problemsSummaries;
     }
 }

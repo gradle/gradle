@@ -55,7 +55,7 @@ class ProblemThresholdCrossVersionTest extends ToolingApiSpecification {
         def problemSummariesEvent = listener.summariesEvent as ProblemsSummariesEvent
         problemSummariesEvent != null
 
-        def summaries = problemSummariesEvent.problemsSummaries.problemsSummaries
+        def summaries = problemSummariesEvent.problemsSummaries
         summaries.size() == 1
         summaries.get(0).count == exceedingCount
     }
@@ -80,7 +80,7 @@ class ProblemThresholdCrossVersionTest extends ToolingApiSpecification {
         validateFirstNProblems(totalSentEventsCount, problems)
         def problemSummariesEvent = listener.summariesEvent as ProblemsSummariesEvent
         problemSummariesEvent != null
-        def summaries = problemSummariesEvent.problemsSummaries.problemsSummaries
+        def summaries = problemSummariesEvent.problemsSummaries
         summaries.size() == 0
 
         where:
@@ -133,7 +133,7 @@ class ProblemThresholdCrossVersionTest extends ToolingApiSpecification {
         problems.size() == THRESHOLD_DEFAULT_VALUE + differentProblemCount
         validateFirstNProblems(THRESHOLD_DEFAULT_VALUE, problems)
         def problemSummariesEvent = listener.summariesEvent as ProblemsSummariesEvent
-        def summaries = problemSummariesEvent.problemsSummaries.problemsSummaries
+        def summaries = problemSummariesEvent.problemsSummaries
         summaries.size() == 1
     }
 
@@ -161,7 +161,7 @@ class ProblemThresholdCrossVersionTest extends ToolingApiSpecification {
         problems.size() == thresholdInOption
         validateFirstNProblems(thresholdInOption, problems)
         def problemSummariesEvent = listener.summariesEvent as ProblemsSummariesEvent
-        def summaries = problemSummariesEvent.problemsSummaries.problemsSummaries
+        def summaries = problemSummariesEvent.problemsSummaries
         summaries.size() == 1
     }
 
