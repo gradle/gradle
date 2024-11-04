@@ -100,6 +100,7 @@ class DefaultSharedObjectDecoder(
         val latch = CountDownLatch(1)
 
         private
+        @Volatile
         var value: Any? = null
 
         fun complete(v: Any) {
@@ -109,11 +110,18 @@ class DefaultSharedObjectDecoder(
 
         fun get(): Any {
             val state = state.get()
-            if (value == null && state < ReaderState.STOPPED && !latch.await(1, TimeUnit.MINUTES)) {
+            // Only await if the reading thread is still running.
+            // This saves us a minute in case the reading code is broken and doesn't countDown() the latch properly.
+            // See the null check below.
+            if (state < ReaderState.STOPPED && !latch.await(1, TimeUnit.MINUTES)) {
                 throw TimeoutException("Timeout while waiting for value, state was $state")
             }
-            require(value != null) { "State is: $state" }
-            return value!!
+            val result = value
+            require(result != null) {
+                // Reading thread hasn't written the value before completing/calling countDown(). This can only happen if the decoder has a bug.
+                "State is: $state"
+            }
+            return result
         }
     }
 
