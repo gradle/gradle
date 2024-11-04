@@ -18,17 +18,18 @@ package org.gradle.api.internal.tasks.options;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
+import com.google.common.reflect.TypeToken;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.api.tasks.options.OptionValues;
 import org.gradle.internal.reflect.JavaMethod;
+import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.util.internal.CollectionUtils;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -215,7 +216,8 @@ public class OptionReader {
         if (method.getParameterTypes().length == 0 && !Modifier.isStatic(method.getModifiers())) {
             if (Collection.class.isAssignableFrom(method.getReturnType())) {
                 return JavaMethod.of(Collection.class, method);
-            } else if (Provider.class.equals(method.getReturnType()) && hasCollectionParameter(method.getGenericReturnType())) {
+            } else if (Provider.class.equals(method.getReturnType())
+                && Collection.class.isAssignableFrom(getProviderNestedRawType(method.getGenericReturnType()))) {
                 return JavaMethod.of(Provider.class, method);
             }
         }
@@ -228,15 +230,11 @@ public class OptionReader {
     }
 
     /**
-     * Checks if generic return type has a single collection parameter.
+     * Returns Provider's nested raw type.
      */
-    private static boolean hasCollectionParameter(Type genericReturnType) {
-        if (!(genericReturnType instanceof ParameterizedType) || ((ParameterizedType) genericReturnType).getActualTypeArguments().length != 1) {
-            return false;
-        }
-        ParameterizedType parameterizedType = (ParameterizedType) genericReturnType;
-        return parameterizedType.getActualTypeArguments()[0] instanceof ParameterizedType
-            && ((ParameterizedType) parameterizedType.getActualTypeArguments()[0]).getRawType() instanceof Class
-            && Collection.class.isAssignableFrom((Class<?>) ((ParameterizedType) parameterizedType.getActualTypeArguments()[0]).getRawType());
+    @SuppressWarnings("unchecked")
+    private static Class<?> getProviderNestedRawType(Type providerType) {
+        TypeToken<Provider<?>> typeToken = (TypeToken<Provider<?>>) TypeToken.of(providerType);
+        return JavaReflectionUtil.extractNestedType(typeToken, Provider.class, 0).getRawType();
     }
 }
