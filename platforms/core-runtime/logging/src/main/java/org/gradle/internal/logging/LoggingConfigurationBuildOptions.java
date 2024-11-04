@@ -16,7 +16,6 @@
 
 package org.gradle.internal.logging;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
@@ -32,22 +31,21 @@ import org.gradle.internal.buildoption.Origin;
 import org.gradle.internal.buildoption.StringBuildOption;
 import org.gradle.util.internal.TextUtil;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
 public class LoggingConfigurationBuildOptions extends BuildOptionSet<LoggingConfiguration> {
-
-    private static List<BuildOption<LoggingConfiguration>> options = ImmutableList.<BuildOption<LoggingConfiguration>>of(
+    // This can be removed once we've moved to compiling for Java 8+
+    @SuppressWarnings("unchecked")
+    private final List<? extends BuildOption<? super LoggingConfiguration>> options = Arrays.asList(
         new LogLevelOption(),
         new StacktraceOption(),
         new ConsoleOption(),
-        new WarningsOption());
-
-    public static List<BuildOption<LoggingConfiguration>> get() {
-        return options;
-    }
+        new WarningsOption()
+    );
 
     @Override
     public List<? extends BuildOption<? super LoggingConfiguration>> getAllOptions() {
@@ -55,7 +53,7 @@ public class LoggingConfigurationBuildOptions extends BuildOptionSet<LoggingConf
     }
 
     public Collection<String> getLongLogLevelOptions() {
-        return ImmutableList.of(
+        return Arrays.asList(
             LogLevelOption.DEBUG_LONG_OPTION,
             LogLevelOption.WARN_LONG_OPTION,
             LogLevelOption.INFO_LONG_OPTION,
