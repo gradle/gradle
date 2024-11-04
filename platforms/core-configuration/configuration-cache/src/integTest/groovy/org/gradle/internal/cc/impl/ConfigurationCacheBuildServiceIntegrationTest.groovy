@@ -46,6 +46,7 @@ import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.tooling.events.FinishEvent
 import org.gradle.tooling.events.OperationCompletionListener
 import org.gradle.tooling.events.task.TaskFinishEvent
+import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
 import javax.inject.Inject
@@ -232,7 +233,7 @@ class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfiguratio
         outputDoesNotContain onFinishMessage
     }
 
-    def "build service is restored"(String serviceName, boolean finalize, boolean finalizeOnRead) {
+    def "build service is restored"(String serviceName, boolean finalize, boolean finalizeOnRead, boolean declareUsage, int requiredServiceCount) {
         given:
         def legacy = serviceName == null
         def propertyAnnotations = legacy ?
@@ -258,13 +259,13 @@ class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfiguratio
             tasks.register('count', CountingTask) {
                 ${ legacy ? """
                 countingService.convention(altServiceProvider)
-                usesService(altServiceProvider)
+                ${declareUsage ? "usesService(altServiceProvider)" : ""}
                 """ : "" }
                 ${ finalizeOnRead ? "countingService.finalizeValueOnRead()" : "" }
                 ${ finalize ? "countingService.finalizeValue()" : "" }
                 doLast {
                     assert countingService.get().increment() == 2
-                    assert requiredServices.elements.size() == 1
+                    assert requiredServices.elements.size() == ${requiredServiceCount ? 1 : 0}
                     assert altServiceProvider.get().increment() == 3
                 }
             }
@@ -286,16 +287,19 @@ class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfiguratio
         outputContains 'Count: 1'
 
         where:
-        serviceName | finalize | finalizeOnRead
-        null        | false    | false
-        null        | true     | false
-        null        | false    | true
-        "counter"   | false    | false
-        "counter"   | true     | false
-        "counter"   | false    | true
-        ""          | false    | false
-        ""          | true     | false
-        ""          | false    | true
+        serviceName | finalize | finalizeOnRead | declareUsage  | requiredServiceCount
+        null        | false    | false          | false         | 0
+        null        | true     | false          | false         | 0
+        null        | false    | true           | false         | 0
+        null        | false    | false          | true          | 1
+        null        | true     | false          | true          | 1
+        null        | false    | true           | true          | 1
+        "counter"   | false    | false          | false         | 1
+        "counter"   | true     | false          | false         | 1
+        "counter"   | false    | true           | false         | 1
+        ""          | false    | false          | false         | 1
+        ""          | true     | false          | false         | 1
+        ""          | false    | true           | false         | 1
     }
 
     def "missing build service when using @ServiceReference"() {
@@ -647,10 +651,10 @@ class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfiguratio
         configurationCache.assertStateLoaded()
 
         where:
-        injectionAnnotation                    | propertyType           | taskConfiguration                                       | valueGetter
-        "${ServiceReference.name}('constant')" | "ConstantBuildService" | ""                                                      | "value.get().value"
-        Internal.name                          | "ConstantBuildService" | "value = serviceProvider; usesService(serviceProvider)" | "value.get().value"
-        Input.name                             | "String"               | "value = serviceProvider.map { it.value }"              | "value.get()"
+        injectionAnnotation                    | propertyType           | taskConfiguration                             | valueGetter
+        "${ServiceReference.name}('constant')" | "ConstantBuildService" | ""                                            | "value.get().value"
+        Internal.name                          | "ConstantBuildService" | "value = serviceProvider"                     | "value.get().value"
+        Input.name                             | "String"               | "value = serviceProvider.map { it.value }"    | "value.get()"
     }
 
     @Issue("https://github.com/gradle/gradle/issues/22337")
@@ -679,10 +683,67 @@ class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfiguratio
         configurationCache.assertStateLoaded()
 
         where:
-        injectionAnnotation                    | propertyType           | taskConfiguration                                       | valueGetter
-        "${ServiceReference.name}('constant')" | "ConstantBuildService" | ""                                                      | "value.get().value"
-        Internal.name                          | "ConstantBuildService" | "value = serviceProvider; usesService(serviceProvider)" | "value.get().value"
-        Input.name                             | "String"               | "value = serviceProvider.map { it.value }"              | "value.get()"
+        injectionAnnotation                    | propertyType           | taskConfiguration                             | valueGetter
+        "${ServiceReference.name}('constant')" | "ConstantBuildService" | ""                                            | "value.get().value"
+        Internal.name                          | "ConstantBuildService" | "value = serviceProvider"                     | "value.get().value"
+        Input.name                             | "String"               | "value = serviceProvider.map { it.value }"    | "value.get()"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/31128")
+    @ToBeImplemented
+    def "should restore service reference when only used indirectly via another service"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+
+        buildFile """
+            ${constantServiceImpl("GreeterService", "hello")}
+
+            abstract class ShouterService implements ${BuildService.name}<${BuildServiceParameters.name}.None>{
+                @${ServiceReference.name}('greeter')
+                abstract Property<GreeterService> getGreeter()
+                String shout() {
+                    println(greeter.get().value.toUpperCase() + "!")
+                }
+            }
+
+            abstract class Consumer extends DefaultTask {
+                @${ServiceReference.name}('shouter')
+                abstract Property<ShouterService> getShouter()
+                @TaskAction
+                def go() {
+                    shouter.get().shout()
+                }
+            }
+
+            def greeterProvider = gradle.sharedServices.registerIfAbsent("greeter", GreeterService)
+
+            def shouterProvider = gradle.sharedServices.registerIfAbsent("shouter", ShouterService)
+            shouterProvider.get().greeter.set(greeterProvider)
+
+            task consume(type: Consumer) {
+                // reference will be set by name
+            }
+        """
+
+        when:
+        // TODO-RC should pass instead
+        configurationCacheFails(":consume")
+
+        then:
+        configurationCache.assertStateStored()
+        // Instead of failing, should instead produce the expected output
+        //outputContains("HELLO!")
+        failureDescriptionContains("Execution failed for task ':consume'.")
+        failureCauseContains("Cannot query the value of property 'greeter' because it has no value available.")
+
+        when:
+        // TODO-RC should pass instead
+        configurationCacheFails(":consume")
+
+        then:
+        configurationCache.assertStateLoaded()
+        failureDescriptionContains("Execution failed for task ':consume'.")
+        failureCauseContains("Cannot query the value of property 'greeter' because it has no value available.")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/22337")

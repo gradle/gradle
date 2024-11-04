@@ -107,7 +107,7 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/configuration-cache/issues/97")
-    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
+    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/31128")
     def "does nag when service is used indirectly via another service even if task declares service reference and feature preview is enabled"() {
         given:
         serviceImplementation()
