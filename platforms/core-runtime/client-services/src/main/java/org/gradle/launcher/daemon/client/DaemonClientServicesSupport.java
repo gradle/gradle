@@ -19,12 +19,8 @@ import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.UnscopedCacheBuilderFactory;
 import org.gradle.cache.internal.CacheFactory;
-import org.gradle.cache.internal.CleaningInMemoryCacheDecoratorFactory;
-import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.cache.internal.DefaultCacheFactory;
-import org.gradle.cache.internal.DefaultCrossBuildInMemoryCacheFactory;
 import org.gradle.cache.internal.DefaultUnscopedCacheBuilderFactory;
-import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.scopes.DefaultGlobalScopedCacheBuilderFactory;
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.initialization.layout.GlobalCacheDir;
@@ -99,23 +95,13 @@ public abstract class DaemonClientServicesSupport implements ServiceRegistration
     }
 
     @Provides
-    InMemoryCacheDecoratorFactory createInMemoryTaskArtifactCache(CrossBuildInMemoryCacheFactory cacheFactory) {
-        return new CleaningInMemoryCacheDecoratorFactory(false, cacheFactory);
-    }
-
-    @Provides
-    CrossBuildInMemoryCacheFactory createCrossBuildInMemoryCacheFactory(ListenerManager listenerManager) {
-        return new DefaultCrossBuildInMemoryCacheFactory(listenerManager);
-    }
-
-    @Provides
     JvmVersionValidator createJvmVersionValidator() {
         return new JvmVersionValidator();
     }
 
     @Provides
-    JvmMetadataDetector createJvmMetadataDetector(ExecHandleFactory execHandleFactory, TemporaryFileProvider temporaryFileProvider, GlobalScopedCacheBuilderFactory globalScopedCacheBuilderFactory, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
-        return new PersistentJvmMetadataDetector(new DefaultJvmMetadataDetector(execHandleFactory, temporaryFileProvider), globalScopedCacheBuilderFactory.createCacheBuilder("jvms"), inMemoryCacheDecoratorFactory);
+    JvmMetadataDetector createJvmMetadataDetector(ExecHandleFactory execHandleFactory, TemporaryFileProvider temporaryFileProvider, GlobalScopedCacheBuilderFactory globalScopedCacheBuilderFactory) {
+        return new PersistentJvmMetadataDetector(new DefaultJvmMetadataDetector(execHandleFactory, temporaryFileProvider), globalScopedCacheBuilderFactory.createCacheBuilder("jvms"));
     }
 
     @Provides

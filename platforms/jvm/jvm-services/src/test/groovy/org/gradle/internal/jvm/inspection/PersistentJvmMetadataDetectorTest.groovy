@@ -16,13 +16,8 @@
 
 package org.gradle.internal.jvm.inspection
 
-import org.gradle.cache.AsyncCacheAccess
-import org.gradle.cache.CacheDecorator
-import org.gradle.cache.CrossProcessCacheAccess
-import org.gradle.cache.MultiProcessSafeIndexedCache
-import org.gradle.cache.internal.DefaultInMemoryCacheDecoratorFactory
+
 import org.gradle.cache.internal.DefaultUnscopedCacheBuilderFactory
-import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.cache.internal.scopes.DefaultGlobalScopedCacheBuilderFactory
 import org.gradle.jvm.toolchain.internal.InstallationLocation
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -38,19 +33,7 @@ class PersistentJvmMetadataDetectorTest extends Specification {
     def cachesDir = tmpDir.file("caches")
     def cacheRepository = new DefaultUnscopedCacheBuilderFactory(new TestInMemoryCacheFactory())
     def globalScopedCache = new DefaultGlobalScopedCacheBuilderFactory(cachesDir, cacheRepository)
-    def inMemoryDecorator = new DefaultInMemoryCacheDecoratorFactory(false, new TestCrossBuildInMemoryCacheFactory()) {
-        @Override
-        CacheDecorator decorator(int maxEntriesToKeepInMemory, boolean cacheInMemoryForShortLivedProcesses) {
-            return new CacheDecorator() {
-                @Override
-                public <K, V> MultiProcessSafeIndexedCache<K, V> decorate(String cacheId, String cacheName, MultiProcessSafeIndexedCache<K, V> indexedCache, CrossProcessCacheAccess crossProcessCacheAccess, AsyncCacheAccess asyncCacheAccess) {
-                    return indexedCache
-                }
-            }
-        }
-    }
-
-    def detector = new PersistentJvmMetadataDetector(delegate, globalScopedCache.createCacheBuilder("jvms"), inMemoryDecorator)
+    def detector = new PersistentJvmMetadataDetector(delegate, globalScopedCache.createCacheBuilder("jvms"))
 
     def "caches the metadata result of an installation"() {
         def location = location("test-location")

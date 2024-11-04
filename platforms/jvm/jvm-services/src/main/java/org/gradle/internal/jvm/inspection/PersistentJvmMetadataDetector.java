@@ -22,7 +22,6 @@ import org.gradle.cache.FileLockManager;
 import org.gradle.cache.IndexedCache;
 import org.gradle.cache.IndexedCacheParameters;
 import org.gradle.cache.PersistentCache;
-import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
@@ -43,7 +42,7 @@ public class PersistentJvmMetadataDetector implements JvmMetadataDetector, Close
     private final PersistentCache cache;
     private final IndexedCache<File, JvmInstallationMetadata> indexedCache;
 
-    public PersistentJvmMetadataDetector(JvmMetadataDetector delegate, CacheBuilder cacheBuilder, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
+    public PersistentJvmMetadataDetector(JvmMetadataDetector delegate, CacheBuilder cacheBuilder) {
         this.delegate = delegate;
         this.cache = cacheBuilder.withInitialLockMode(FileLockManager.LockMode.None).open();
         // TODO: This cache should be cleaned up
@@ -51,7 +50,7 @@ public class PersistentJvmMetadataDetector implements JvmMetadataDetector, Close
             "metadata",
             new FileSerializer(),
             new JvmInstallationMetadataSerializer()
-        ).withCacheDecorator(inMemoryCacheDecoratorFactory.decorator(100, true));
+        );
         this.indexedCache = cache.createIndexedCache(parameters);
     }
 
