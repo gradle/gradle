@@ -61,7 +61,7 @@ fun settingsInterpretationSequence(
 internal
 fun pluginManagementEvaluationSchema(): EvaluationAndConversionSchema =
     buildEvaluationAndConversionSchema(
-        Settings::class,
+        SettingsInternal::class,
         isTopLevelPluginManagementBlock,
         schemaComponents = EvaluationSchemaBuilder::gradleDslGeneralSchema
     )
