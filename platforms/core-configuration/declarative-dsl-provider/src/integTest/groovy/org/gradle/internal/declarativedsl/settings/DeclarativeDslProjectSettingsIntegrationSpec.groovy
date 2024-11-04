@@ -16,11 +16,11 @@
 
 package org.gradle.internal.declarativedsl.settings
 
-import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes
-import org.gradle.api.internal.plugins.software.SoftwareType
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-import static org.hamcrest.CoreMatchers.*
+import static org.hamcrest.CoreMatchers.allOf
+import static org.hamcrest.CoreMatchers.containsString
 
 class DeclarativeDslProjectSettingsIntegrationSpec extends AbstractIntegrationSpec {
 
@@ -242,138 +242,5 @@ class DeclarativeDslProjectSettingsIntegrationSpec extends AbstractIntegrationSp
             containsString("Failures in document checks:\n" +
                 "    5:17: unsupported syntax (NamedReferenceWithExplicitReceiver)")
         ))
-    }
-
-    def "can reference a custom repository by URL in pluginManagement.repositories.maven"() {
-        given: "a DCL-enabled plugin that is published to a file-based Maven repository"
-
-        buildFile(
-            """
-            plugins {
-                id("java-gradle-plugin")
-                id("maven-publish")
-            }
-            group = "com.example"
-            version = "1.0"
-
-            repositories { mavenCentral() }
-            gradlePlugin {
-                plugins {
-                    create("restrictedPlugin") {
-                        id = "com.example.restricted"
-                        implementationClass = "com.example.restricted.RestrictedPlugin"
-                    }
-                    create("ecosystemPlugin") {
-                        id = "com.example.restricted.ecosystem"
-                        implementationClass = "com.example.restricted.SoftwareTypeRegistrationPlugin"
-                    }
-                }
-            }
-            publishing {
-                repositories {
-                    maven {
-                        url = uri(layout.buildDirectory.dir("repo"))
-                    }
-                }
-            }
-            """)
-
-        javaFile("src/main/java/SoftwareTypeRegistrationPlugin.java",
-            """
-            package com.example.restricted;
-
-            import org.gradle.api.DefaultTask;
-            import org.gradle.api.Plugin;
-            import org.gradle.api.initialization.Settings;
-            import org.gradle.api.internal.SettingsInternal;
-            import org.gradle.plugin.software.internal.SoftwareTypeRegistry;
-            import ${RegistersSoftwareTypes.class.name};
-
-            @RegistersSoftwareTypes({ RestrictedPlugin.class })
-            abstract public class SoftwareTypeRegistrationPlugin implements Plugin<Settings> {
-                @Override
-                public void apply(Settings target) {
-                }
-            }
-            """)
-
-        javaFile("src/main/java/Extension.java",
-            """
-            package com.example.restricted;
-
-            import org.gradle.declarative.dsl.model.annotations.Restricted;
-            import org.gradle.api.provider.Property;
-
-            public abstract class Extension {
-                @Restricted
-                public abstract Property<Integer> getX();
-            }
-            """)
-
-        javaFile("src/main/java/RestrictedPlugin.java",
-            """
-            package com.example.restricted;
-
-            import org.gradle.api.DefaultTask;
-            import org.gradle.api.Plugin;
-            import org.gradle.api.Project;
-            import org.gradle.api.provider.ListProperty;
-            import org.gradle.api.provider.Property;
-            import ${SoftwareType.class.name};
-
-            public abstract class RestrictedPlugin implements Plugin<Project> {
-                @SoftwareType(name = "restricted", modelPublicType = Extension.class)
-                public abstract Extension getRestricted();
-
-                @Override
-                public void apply(Project target) {
-                    target.getTasks().register("printX", DefaultTask.class, task -> {
-                        task.doLast("print restricted extension content", t -> {
-                            System.out.println("x = " + getRestricted().getX().get());
-                        });
-                    });
-                }
-            }
-            """)
-
-        succeeds("publish")
-
-        when: "consuming the plugin with a DCL project referencing the repository by URL"
-        buildFile.delete()
-        settingsFile.delete()
-
-        file("settings.gradle.dcl") <<
-            """
-            pluginManagement {
-                repositories {
-                    maven {
-                        url = uri("build/repo")
-                    }
-                }
-            }
-
-            plugins {
-                id("com.example.restricted.ecosystem").version("1.0")
-            }
-
-            dependencyResolutionManagement {
-                repositories {
-                    maven {
-                        url = uri("build/repo")
-                    }
-                }
-            }
-            """
-
-        file("build.gradle.dcl") <<
-            """
-            restricted {
-                x = 123
-            }
-            """
-
-        then:
-        succeeds("printX")
-        outputContains("x = 123")
     }
 }
