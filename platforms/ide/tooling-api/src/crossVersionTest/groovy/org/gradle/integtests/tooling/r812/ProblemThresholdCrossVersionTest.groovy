@@ -88,7 +88,7 @@ class ProblemThresholdCrossVersionTest extends ToolingApiSpecification {
     }
 
     @TargetGradleVersion(">=8.10.2 <8.11")
-    def "No summaries old gradle version before 8.12"() {
+    def "No summaries received from Gradle versions before 8.12"() {
         given:
         def exceedingCount = 2
         buildFile getBuildScriptSampleContent(false, false, targetVersion, THRESHOLD_DEFAULT_VALUE + exceedingCount)
@@ -137,7 +137,7 @@ class ProblemThresholdCrossVersionTest extends ToolingApiSpecification {
         summaries.size() == 1
     }
 
-    def "problem summarization threshold can be set by an internal option"() {
+    def "Problem summarization threshold can be set by an internal option"() {
         given:
         def exceedingCount = 2
         def thresholdInOption = 20
