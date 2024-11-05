@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.internal;
+package org.gradle.tooling.internal.protocol;
 
-import org.gradle.api.problems.Problems;
+import org.gradle.api.NonNullApi;
 
-public interface InternalProblems extends Problems {
+import java.io.Serializable;
 
-    /**
-     * Returns a reporter then provides additional problem service functionality specific for Gradle internals.
-     *
-     * @return The reporter.
-     */
-    InternalProblemReporter getInternalReporter();
+@NonNullApi
+public interface InternalProblemSummary extends Serializable {
+    InternalProblemId getProblemId();
 
-    AdditionalDataBuilderFactory getAdditionalDataBuilderFactory();
+    Integer getCount();
 }

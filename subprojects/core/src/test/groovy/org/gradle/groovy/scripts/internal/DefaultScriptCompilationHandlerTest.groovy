@@ -34,7 +34,7 @@ import org.gradle.api.internal.initialization.RootClassLoaderScope
 import org.gradle.api.internal.initialization.loadercache.DummyClassLoaderCache
 import org.gradle.api.problems.Problems
 import org.gradle.api.problems.internal.DefaultProblems
-import org.gradle.api.problems.internal.ProblemEmitter
+import org.gradle.api.problems.internal.ProblemSummarizer
 import org.gradle.configuration.ImportsReader
 import org.gradle.groovy.scripts.ScriptCompilationException
 import org.gradle.groovy.scripts.ScriptSource
@@ -96,8 +96,7 @@ class DefaultScriptCompilationHandlerTest extends Specification {
     public SetSystemProperties systemProperties = new SetSystemProperties()
 
     def setup() {
-        def problemEmitter = Stub(ProblemEmitter)
-        def problems = new DefaultProblems([problemEmitter])
+        def problems = new DefaultProblems(Mock(ProblemSummarizer))
 
         File testProjectDir = tmpDir.createDir("projectDir")
         importsReader = Stub(ImportsReader.class)

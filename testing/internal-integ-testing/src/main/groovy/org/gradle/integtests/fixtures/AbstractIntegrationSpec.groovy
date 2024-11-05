@@ -20,7 +20,9 @@ import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib.Config
 import org.gradle.api.Action
 import org.gradle.api.internal.DocumentationRegistry
+import org.gradle.api.problems.ProblemId
 import org.gradle.api.problems.internal.DefaultProblemProgressDetails
+import org.gradle.api.problems.internal.DefaultProblemsSummaryProgressDetails
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.build.BuildTestFixture
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheBuildOperationsFixture
@@ -37,6 +39,7 @@ import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistributio
 import org.gradle.integtests.fixtures.problems.KnownProblemIds
 import org.gradle.integtests.fixtures.problems.ReceivedProblem
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
+import org.gradle.internal.Pair
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestFile
@@ -787,6 +790,16 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
                 // So, just ignore them all the time, even if the test has requested to not ignore these warnings.
                 it.fqid != 'deprecation:executing-gradle-on-jvm-versions-and-lower'
             }
+        }
+    }
+
+    List<Pair<ProblemId, Integer>> getProblemSummaries() {
+        if (!enableProblemsApiCheck) {
+            throw new IllegalStateException('Problems API check is not enabled')
+        }
+
+        return buildOperationsFixture.all().collectMany { operation ->
+            return operation.progress(DefaultProblemsSummaryProgressDetails.class).collect { it.details.get("problemIdCounts") }
         }
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +18,8 @@ package org.gradle.api.problems.internal;
 
 import org.gradle.internal.operations.OperationIdentifier;
 
-public class NoOpProblemEmitter implements ProblemEmitter {
-    @Override
-    public void emit(Problem problem, OperationIdentifier id) {
-        // Do nothing
-    }
+import javax.annotation.Nullable;
+
+public interface ProblemSummarizer {
+    void emit(Problem problem, @Nullable OperationIdentifier id);
 }

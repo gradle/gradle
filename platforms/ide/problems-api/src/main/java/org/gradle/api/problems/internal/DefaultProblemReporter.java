@@ -16,48 +16,50 @@
 
 package org.gradle.api.problems.internal;
 
-import com.google.common.collect.Multimap;
 import org.gradle.api.Action;
 import org.gradle.api.problems.ProblemSpec;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.problems.buildtree.ProblemStream;
 
-import java.util.Collection;
+import javax.annotation.Nonnull;
 
 public class DefaultProblemReporter implements InternalProblemReporter {
 
-    private final Collection<ProblemEmitter> emitters;
+    private final ProblemSummarizer problemSummarizer;
     private final ProblemStream problemStream;
     private final CurrentBuildOperationRef currentBuildOperationRef;
-    private final Multimap<Throwable, Problem> problems;
     private final AdditionalDataBuilderFactory additionalDataBuilderFactory;
 
     public DefaultProblemReporter(
-        Collection<ProblemEmitter> emitters,
+        ProblemSummarizer problemSummarizer,
         ProblemStream problemStream,
         CurrentBuildOperationRef currentBuildOperationRef,
-        Multimap<Throwable, Problem> problems,
         AdditionalDataBuilderFactory additionalDataBuilderFactory
     ) {
-        this.emitters = emitters;
+        this.problemSummarizer = problemSummarizer;
         this.problemStream = problemStream;
         this.currentBuildOperationRef = currentBuildOperationRef;
-        this.problems = problems;
         this.additionalDataBuilderFactory = additionalDataBuilderFactory;
     }
 
     @Override
     public void reporting(Action<ProblemSpec> spec) {
-        DefaultProblemBuilder problemBuilder = new DefaultProblemBuilder(problemStream, additionalDataBuilderFactory);
+        DefaultProblemBuilder problemBuilder = createProblemBuilder();
         spec.execute(problemBuilder);
         report(problemBuilder.build());
     }
 
+    @Nonnull
+    private DefaultProblemBuilder createProblemBuilder() {
+        return new DefaultProblemBuilder(problemStream, additionalDataBuilderFactory);
+    }
+
     @Override
-    public RuntimeException throwing(Action<ProblemSpec> spec)  {
-        DefaultProblemBuilder problemBuilder = new DefaultProblemBuilder(problemStream, additionalDataBuilderFactory);
+    public RuntimeException throwing(Action<ProblemSpec> spec) {
+        DefaultProblemBuilder problemBuilder = createProblemBuilder();
         spec.execute(problemBuilder);
+
         Problem problem = problemBuilder.build();
         Throwable exception = problem.getException();
         if (exception == null) {
@@ -69,7 +71,6 @@ public class DefaultProblemReporter implements InternalProblemReporter {
 
     private RuntimeException throwError(Throwable exception, Problem problem) {
         report(problem);
-        problems.put(exception, problem);
         if (exception instanceof RuntimeException) {
             return (RuntimeException) exception;
         } else {
@@ -79,7 +80,7 @@ public class DefaultProblemReporter implements InternalProblemReporter {
 
     @Override
     public Problem create(Action<InternalProblemSpec> action) {
-        DefaultProblemBuilder defaultProblemBuilder = new DefaultProblemBuilder(problemStream, additionalDataBuilderFactory);
+        DefaultProblemBuilder defaultProblemBuilder = createProblemBuilder();
         action.execute(defaultProblemBuilder);
         return defaultProblemBuilder.build();
     }
@@ -94,10 +95,6 @@ public class DefaultProblemReporter implements InternalProblemReporter {
      */
     @Override
     public void report(Problem problem) {
-        Throwable exception = problem.getException();
-        if(exception != null) {
-            problems.put(exception, problem);
-        }
         OperationIdentifier id = currentBuildOperationRef.getId();
         if (id != null) {
             report(problem, id);
@@ -115,9 +112,6 @@ public class DefaultProblemReporter implements InternalProblemReporter {
      */
     @Override
     public void report(Problem problem, OperationIdentifier id) {
-        // TODO (reinhold) Reconsider using the Emitter interface here. Maybe it should be a replaced with a future problem listener feature.
-        for (ProblemEmitter emitter : emitters) {
-            emitter.emit(problem, id);
-        }
+        problemSummarizer.emit(problem, id);
     }
 }
