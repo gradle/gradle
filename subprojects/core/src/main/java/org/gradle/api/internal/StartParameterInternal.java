@@ -29,7 +29,6 @@ import java.time.Duration;
 
 public class StartParameterInternal extends StartParameter {
     private WatchMode watchFileSystemMode = WatchMode.DEFAULT;
-    private boolean watchFileSystemDebugLogging;
     private boolean vfsVerboseLogging;
 
     private Option.Value<Boolean> configurationCache = Option.Value.defaultValue(false);
@@ -69,7 +68,6 @@ public class StartParameterInternal extends StartParameter {
     protected StartParameterInternal prepareNewBuild(StartParameter startParameter) {
         StartParameterInternal p = (StartParameterInternal) super.prepareNewBuild(startParameter);
         p.watchFileSystemMode = watchFileSystemMode;
-        p.watchFileSystemDebugLogging = watchFileSystemDebugLogging;
         p.vfsVerboseLogging = vfsVerboseLogging;
         p.configurationCache = configurationCache;
         p.isolatedProjects = isolatedProjects;
@@ -116,14 +114,6 @@ public class StartParameterInternal extends StartParameter {
 
     public void setWatchFileSystemMode(WatchMode watchFileSystemMode) {
         this.watchFileSystemMode = watchFileSystemMode;
-    }
-
-    public boolean isWatchFileSystemDebugLogging() {
-        return watchFileSystemDebugLogging;
-    }
-
-    public void setWatchFileSystemDebugLogging(boolean watchFileSystemDebugLogging) {
-        this.watchFileSystemDebugLogging = watchFileSystemDebugLogging;
     }
 
     public boolean isVfsVerboseLogging() {

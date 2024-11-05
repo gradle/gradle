@@ -54,7 +54,6 @@ public abstract class AbstractFileWatcherRegistryFactory<T extends AbstractNativ
             WatchableHierarchies watchableHierarchies = new WatchableHierarchies(probeRegistry, immutableLocationsFilter);
             FileWatcherUpdater fileWatcherUpdater = createFileWatcherUpdater(watcher, probeRegistry, watchableHierarchies);
             return new DefaultFileWatcherRegistry(
-                fileEventFunctions,
                 watcher,
                 handler,
                 fileWatcherUpdater,

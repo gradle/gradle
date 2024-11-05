@@ -60,7 +60,6 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         new BuildCacheOption(),
         new BuildCacheDebugLoggingOption(),
         new WatchFileSystemOption(),
-        new WatchFileSystemDebugLoggingOption(),
         new VfsVerboseLoggingOption(),
         new BuildScanOption(),
         new DependencyLockingWriteOption(),
@@ -316,19 +315,6 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
                 ? WatchMode.ENABLED
                 : WatchMode.DISABLED
             );
-        }
-    }
-
-    public static class WatchFileSystemDebugLoggingOption extends BooleanBuildOption<StartParameterInternal> {
-        public static final String GRADLE_PROPERTY = "org.gradle.vfs.watch.debug";
-
-        public WatchFileSystemDebugLoggingOption() {
-            super(GRADLE_PROPERTY);
-        }
-
-        @Override
-        public void applyTo(boolean value, StartParameterInternal startParameter, Origin origin) {
-            startParameter.setWatchFileSystemDebugLogging(value);
         }
     }
 

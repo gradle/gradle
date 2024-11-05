@@ -39,7 +39,6 @@ import org.gradle.internal.watch.vfs.BuildStartedFileSystemWatchingBuildOperatio
 import org.gradle.internal.watch.vfs.FileChangeListeners;
 import org.gradle.internal.watch.vfs.FileSystemWatchingStatistics;
 import org.gradle.internal.watch.vfs.VfsLogging;
-import org.gradle.internal.watch.vfs.WatchLogging;
 import org.gradle.internal.watch.vfs.WatchableFileSystemDetector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -110,7 +109,6 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
     public boolean afterBuildStarted(
         WatchMode watchMode,
         VfsLogging vfsLogging,
-        WatchLogging watchLogging,
         BuildOperationRunner buildOperationRunner
     ) {
         warningLogger = watchMode.loggerForWarnings(LOGGER);
@@ -164,9 +162,6 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
                             }
                         }
                     }
-                    if (watchRegistry != null) {
-                        watchRegistry.setDebugLoggingEnabled(watchLogging == WatchLogging.DEBUG);
-                    }
                     context.setResult(new BuildStartedFileSystemWatchingBuildOperationType.Result() {
                                           @Override
                                           public boolean isWatchingEnabled() {
@@ -218,7 +213,6 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
     public void beforeBuildFinished(
         WatchMode watchMode,
         VfsLogging vfsLogging,
-        WatchLogging watchLogging,
         BuildOperationRunner buildOperationRunner,
         int maximumNumberOfWatchedHierarchies
     ) {
