@@ -107,7 +107,7 @@ public class VariantResolvingArtifactSet implements ArtifactSet {
     }
 
     /**
-     * Get all artifact variants corresponding to the graph node that this artifact set is derived from.
+     * Get all artifact sets corresponding to the graph node that this artifact set is derived from.
      */
     public ImmutableList<ResolvedVariant> getOwnArtifacts(ArtifactSelectionServices artifactSelectionServices) {
         VariantArtifactResolver variantArtifactResolver = artifactSelectionServices.getVariantArtifactResolver();
