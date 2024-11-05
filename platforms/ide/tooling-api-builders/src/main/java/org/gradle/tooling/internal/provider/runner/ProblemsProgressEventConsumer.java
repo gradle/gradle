@@ -108,7 +108,7 @@ public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperatio
         }
         if (details instanceof DefaultProblemsSummaryProgressDetails) {
             List<Pair<ProblemId, Integer>> problemIdCounts = ((DefaultProblemsSummaryProgressDetails) details).getProblemIdCounts();
-            return Optional.of(createProblemEvent(buildOperationId, problemIdCounts));
+            return Optional.of(createProblemSummaryEvent(buildOperationId, problemIdCounts));
         }
         return empty();
     }
@@ -128,7 +128,7 @@ public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperatio
         );
     }
 
-    private InternalProblemEventVersion2 createProblemEvent(OperationIdentifier buildOperationId, List<Pair<ProblemId, Integer>> problemIdCounts) {
+    private InternalProblemEventVersion2 createProblemSummaryEvent(OperationIdentifier buildOperationId, List<Pair<ProblemId, Integer>> problemIdCounts) {
         List<InternalProblemSummary> internalIdCounts = problemIdCounts.stream()
             .map(it -> new DefaultProblemsSummariesDetails.DefaultProblemSummary(toInternalId(it.left), it.right))
             .collect(toImmutableList());

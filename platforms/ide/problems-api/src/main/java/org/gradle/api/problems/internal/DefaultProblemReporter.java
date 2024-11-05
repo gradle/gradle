@@ -96,10 +96,9 @@ public class DefaultProblemReporter implements InternalProblemReporter {
     @Override
     public void report(Problem problem) {
         OperationIdentifier id = currentBuildOperationRef.getId();
-        if (id == null) {
-            return;
+        if (id != null) {
+            report(problem, id);
         }
-        report(problem, id);
     }
 
     /**

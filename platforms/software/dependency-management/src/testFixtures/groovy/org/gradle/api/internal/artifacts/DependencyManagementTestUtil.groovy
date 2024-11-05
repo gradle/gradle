@@ -23,18 +23,14 @@ import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModul
 import org.gradle.api.internal.attributes.AttributeDescriberRegistry
 import org.gradle.api.internal.attributes.AttributeDesugaring
 import org.gradle.api.problems.internal.DefaultProblems
-import org.gradle.api.problems.internal.Problem
-import org.gradle.api.problems.internal.ProblemSummarizer
+import org.gradle.api.problems.internal.NoOpProblemSummarizer
 import org.gradle.internal.component.external.model.ModuleComponentGraphResolveStateFactory
 import org.gradle.internal.component.external.model.PreferJavaRuntimeVariant
 import org.gradle.internal.component.model.ComponentIdGenerator
 import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler
 import org.gradle.internal.component.resolution.failure.transform.TransformedVariantConverter
-import org.gradle.internal.operations.OperationIdentifier
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.TestUtil
-
-import javax.annotation.Nullable
 
 class DependencyManagementTestUtil {
     private static final ComponentIdGenerator ID_GENERATOR = new ComponentIdGenerator()
@@ -71,12 +67,7 @@ class DependencyManagementTestUtil {
 
         return new ResolutionFailureHandler(
             TestUtil.instantiatorFactory().inject(services),
-            new DefaultProblems(new ProblemSummarizer() {
-                @Override
-                void emit(Problem problem, @Nullable OperationIdentifier id) {
-                    // no op
-                }
-            }),
+            new DefaultProblems(new NoOpProblemSummarizer()),
             new TransformedVariantConverter()
         )
     }

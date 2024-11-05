@@ -54,18 +54,6 @@ public class DefaultProblemSummarizer implements ProblemReporter, ProblemSummari
         this.threshold = internalOptions.getOption(THRESHOLD_OPTION).get();
     }
 
-    private boolean isAboveThresholdCount(Problem problem) {
-        ProblemId problemId = problem.getDefinition().getId();
-        //TODO (Reinhold) Is summarization by problem id enough?
-        AtomicInteger count = seenProblemsWithCounts.get(problemId);
-        if (count == null) {
-            count = new AtomicInteger(0);
-            seenProblemsWithCounts.put(problemId, count);
-        }
-        int countValue = count.incrementAndGet();
-        return countValue > threshold;
-    }
-
     @Override
     public String getId() {
         return "problem summarizer";
@@ -96,5 +84,17 @@ public class DefaultProblemSummarizer implements ProblemReporter, ProblemSummari
         for (ProblemEmitter problemEmitter : problemEmitters) {
             problemEmitter.emit(problem, id);
         }
+    }
+
+    private boolean isAboveThresholdCount(Problem problem) {
+        ProblemId problemId = problem.getDefinition().getId();
+        //TODO (Reinhold) Is summarization by problem id enough?
+        AtomicInteger count = seenProblemsWithCounts.get(problemId);
+        if (count == null) {
+            count = new AtomicInteger(0);
+            seenProblemsWithCounts.put(problemId, count);
+        }
+        int countValue = count.incrementAndGet();
+        return countValue > threshold;
     }
 }

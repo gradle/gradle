@@ -798,10 +798,9 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
             throw new IllegalStateException('Problems API check is not enabled')
         }
 
-        def s = buildOperationsFixture.all().collectMany { operation ->
+        return buildOperationsFixture.all().collectMany { operation ->
             return operation.progress(DefaultProblemsSummaryProgressDetails.class).collect { it.details.get("problemIdCounts") }
         }
-        return s
     }
 
     static void printCollectedProblems(ReceivedProblem problem, int index) {
