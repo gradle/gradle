@@ -351,7 +351,6 @@ abstract class TestLauncherSpec extends ToolingApiSpecification implements WithO
 
         @Override
         void task(String path, @DelegatesTo(value = TestEventSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> rootSpec) {
-            println(events.tests)
             def task = testEvents.find {
                 it.jvmTestKind == JvmTestKind.SUITE &&
                     (it.parent instanceof TaskOperationDescriptor) &&
