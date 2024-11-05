@@ -27,7 +27,7 @@ import org.gradle.tooling.Failure
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.problems.LineInFileLocation
-import org.gradle.tooling.events.problems.ProblemsSummariesEvent
+import org.gradle.tooling.events.problems.ProblemSummariesEvent
 import org.gradle.tooling.events.problems.Severity
 import org.gradle.tooling.events.problems.SingleProblemEvent
 import org.gradle.tooling.events.problems.internal.GeneralData
@@ -297,7 +297,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
 
     static class ProblemProgressListener implements ProgressListener {
         List<SingleProblemEvent> problems = []
-        ProblemsSummariesEvent summariesEvent = null
+        ProblemSummariesEvent summariesEvent = null
 
 
         @Override
@@ -312,7 +312,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
                 }
 
                 this.problems.add(event)
-            } else if (event instanceof ProblemsSummariesEvent) {
+            } else if (event instanceof ProblemSummariesEvent) {
                 assert summariesEvent == null, "already received a ProblemsSummariesEvent, there should only be one"
                 summariesEvent = event
             }

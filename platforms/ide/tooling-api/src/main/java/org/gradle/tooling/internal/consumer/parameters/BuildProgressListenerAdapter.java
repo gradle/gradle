@@ -90,9 +90,9 @@ import org.gradle.tooling.events.problems.internal.DefaultProblemAggregationEven
 import org.gradle.tooling.events.problems.internal.DefaultProblemDefinition;
 import org.gradle.tooling.events.problems.internal.DefaultProblemGroup;
 import org.gradle.tooling.events.problems.internal.DefaultProblemId;
+import org.gradle.tooling.events.problems.internal.DefaultProblemSummariesEvent;
 import org.gradle.tooling.events.problems.internal.DefaultProblemSummary;
 import org.gradle.tooling.events.problems.internal.DefaultProblemsOperationContext;
-import org.gradle.tooling.events.problems.internal.DefaultProblemsSummariesEvent;
 import org.gradle.tooling.events.problems.internal.DefaultSeverity;
 import org.gradle.tooling.events.problems.internal.DefaultSingleProblemEvent;
 import org.gradle.tooling.events.problems.internal.DefaultSolution;
@@ -648,7 +648,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
 
         } else if (details instanceof InternalProblemSummariesDetails) {
             InternalProblemSummariesDetails problemSummariesDetails = (InternalProblemSummariesDetails) details;
-            return new DefaultProblemsSummariesEvent(problemEvent.getEventTime(), parentDescriptor,
+            return new DefaultProblemSummariesEvent(problemEvent.getEventTime(), parentDescriptor,
                 toProblemIdSummaries(problemSummariesDetails.getProblemIdCounts()));
         }
         return null;

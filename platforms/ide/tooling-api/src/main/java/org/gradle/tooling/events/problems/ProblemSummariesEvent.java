@@ -35,11 +35,11 @@ import java.util.List;
  * @since 8.12
  */
 @Incubating
-public interface ProblemsSummariesEvent extends ProblemEvent {
+public interface ProblemSummariesEvent extends ProblemEvent {
     /**
      * Get problems summaries.
      *
      * @since 8.12
      */
-    List<ProblemSummary> getProblemsSummaries();
+    List<ProblemSummary> getProblemSummaries();
 }

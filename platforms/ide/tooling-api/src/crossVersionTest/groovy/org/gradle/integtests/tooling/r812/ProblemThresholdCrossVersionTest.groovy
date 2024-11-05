@@ -20,7 +20,8 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.r85.CustomModel
-import org.gradle.tooling.events.problems.ProblemsSummariesEvent
+import org.gradle.tooling.events.OperationType
+import org.gradle.tooling.events.problems.ProblemSummariesEvent
 import org.gradle.tooling.events.problems.SingleProblemEvent
 
 import static org.gradle.api.problems.ReportingScript.getProblemReportingScript
@@ -52,10 +53,10 @@ class ProblemThresholdCrossVersionTest extends ToolingApiSpecification {
         def problems = listener.problems
         problems.size() == THRESHOLD_DEFAULT_VALUE
         validateFirstNProblems(THRESHOLD_DEFAULT_VALUE, problems)
-        def problemSummariesEvent = listener.summariesEvent as ProblemsSummariesEvent
+        def problemSummariesEvent = listener.summariesEvent as ProblemSummariesEvent
         problemSummariesEvent != null
 
-        def summaries = problemSummariesEvent.problemsSummaries
+        def summaries = problemSummariesEvent.problemSummaries
         summaries.size() == 1
         summaries.get(0).count == exceedingCount
     }
@@ -78,9 +79,9 @@ class ProblemThresholdCrossVersionTest extends ToolingApiSpecification {
         def problems = listener.problems
         problems.size() == totalSentEventsCount
         validateFirstNProblems(totalSentEventsCount, problems)
-        def problemSummariesEvent = listener.summariesEvent as ProblemsSummariesEvent
+        def problemSummariesEvent = listener.summariesEvent as ProblemSummariesEvent
         problemSummariesEvent != null
-        def summaries = problemSummariesEvent.problemsSummaries
+        def summaries = problemSummariesEvent.problemSummaries
         summaries.size() == 0
 
         where:
@@ -132,8 +133,8 @@ class ProblemThresholdCrossVersionTest extends ToolingApiSpecification {
         def problems = listener.problems
         problems.size() == THRESHOLD_DEFAULT_VALUE + differentProblemCount
         validateFirstNProblems(THRESHOLD_DEFAULT_VALUE, problems)
-        def problemSummariesEvent = listener.summariesEvent as ProblemsSummariesEvent
-        def summaries = problemSummariesEvent.problemsSummaries
+        def problemSummariesEvent = listener.summariesEvent as ProblemSummariesEvent
+        def summaries = problemSummariesEvent.problemSummaries
         summaries.size() == 1
     }
 
@@ -151,7 +152,7 @@ class ProblemThresholdCrossVersionTest extends ToolingApiSpecification {
         withConnection {
             it.newBuild()
                 .withSystemProperties([(THRESHOLD_OPTION.systemPropertyName): thresholdInOption.toString()])
-                .addProgressListener(listener)
+                .addProgressListener(listener, OperationType.PROBLEMS)
                 .forTasks("reportProblem")
                 .run()
         }
@@ -160,8 +161,8 @@ class ProblemThresholdCrossVersionTest extends ToolingApiSpecification {
         def problems = listener.problems
         problems.size() == thresholdInOption
         validateFirstNProblems(thresholdInOption, problems)
-        def problemSummariesEvent = listener.summariesEvent as ProblemsSummariesEvent
-        def summaries = problemSummariesEvent.problemsSummaries
+        def problemSummariesEvent = listener.summariesEvent as ProblemSummariesEvent
+        def summaries = problemSummariesEvent.problemSummaries
         summaries.size() == 1
     }
 
