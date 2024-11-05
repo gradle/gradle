@@ -77,7 +77,7 @@ public class DefaultProblemSummarizer implements ProblemReporter, ProblemSummari
 
     @Override
     public void emit(Problem problem, @Nullable OperationIdentifier id) {
-        if (isAboveThresholdCount(problem)) {
+        if (exceededThreshold(problem)) {
             return;
         }
 
@@ -86,7 +86,7 @@ public class DefaultProblemSummarizer implements ProblemReporter, ProblemSummari
         }
     }
 
-    private boolean isAboveThresholdCount(Problem problem) {
+    private boolean exceededThreshold(Problem problem) {
         ProblemId problemId = problem.getDefinition().getId();
         //TODO (Reinhold) Is summarization by problem id enough?
         AtomicInteger count = seenProblemsWithCounts.get(problemId);
