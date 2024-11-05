@@ -21,7 +21,7 @@ import org.gradle.api.Incubating;
 /**
  * A problem summary.
  *
- * @see ProblemSummary
+ * @see ProblemSummariesEvent
  * @since 8.12
  */
 @Incubating
