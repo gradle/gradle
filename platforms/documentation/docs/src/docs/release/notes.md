@@ -154,7 +154,7 @@ This report serves as a central location for users to review problems that occur
 
 Plugin authors can use the [Problems API](userguide/implementing_gradle_plugins_binary.html#reporting_problems) to log events specific to their plugins, adding to the Gradle-generated ones.
 
-The report is always generated, even if no issues have been reported. If you do not want to generate this report, you can disable it with the `--no-problems-report` flag.
+The report is not generated, if no issues have been reported. If you do not want to generate this report, you can disable it with the `--no-problems-report` flag.
 
 The console output provides a link to this report, as shown below:
 
