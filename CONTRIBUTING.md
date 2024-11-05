@@ -45,8 +45,8 @@ to ask any questions.
 
 In order to make changes to Gradle, you'll need:
 
-* A [Java Development Kit](http://jdk.java.net/) (JDK) **version 11**. Fixed version is required to use [remote cache](#remote-build-cache). 
-* A text editor or IDE. We use and recommend [IntelliJ IDEA CE](http://www.jetbrains.com/idea/).  IntelliJ Ultimate will also work. You'll need IntelliJ 2021.2.2 or newer.
+* [Adoptium JDK](https://adoptium.net/temurin/archive/?version=17) (Java Development Kit) **version 17**. Fixed version is required to use [remote cache](#remote-build-cache).
+* A text editor or IDE. We use and recommend [IntelliJ IDEA CE](http://www.jetbrains.com/idea/). IntelliJ Ultimate will also work. You'll need IntelliJ 2021.2.2 or newer.
 * [git](https://git-scm.com/) and a [GitHub account](https://github.com/join).
 
 Gradle uses pull requests for contributions. Fork [gradle/gradle](https://github.com/gradle/gradle) and clone your fork. Configure your Git username and email with:
@@ -57,19 +57,15 @@ Gradle uses pull requests for contributions. Fork [gradle/gradle](https://github
 #### Import Gradle into IntelliJ
 
 To import Gradle into IntelliJ:
-- Open the `build.gradle.kts` file with IntelliJ and choose "Open as Project"
-- Make sure "Create separate module per source set" is selected
-- Make sure  "Use default gradle wrapper" is selected
-- Select a Java 11 VM as "Gradle JVM"
-- In the "File already exists" dialogue, choose "Yes" to overwrite
-- In the "Open Project" dialogue, choose "Delete Existing Project and Import"
+- Open the `build.gradle.kts` file in root of the project with IntelliJ and choose "Open as Project"
+- Select a Adoptium Java 17 VM as "Gradle JVM"
 - Revert the Git changes to files in the `.idea` folder
 
 NOTE: Due to the project size, the very first import can take a while and IntelliJ might become unresponsive for several seconds during this period.
 
 IntelliJ automatically hides stacktrace elements from the `org.gradle` package, which makes running/debugging tests more difficult. You can disable this behavior by changing IntelliJ Preferences under Editor -> General -> Console. In the "Fold lines that contain" section, remove the `org.gradle` entry.
 
-If you did not have a Java 11 SDK installed before importing the project into IntelliJ and after adding a Java 11 SDK your IntelliJ still uses the wrong SDK version, you might need to invalidate IntelliJ's caches before reloading the project.
+If you did not have a Adoptium Java 17 SDK installed before importing the project into IntelliJ and after adding Adoptium Java 17 SDK your IntelliJ still uses the wrong SDK version, you might need to invalidate IntelliJ's caches before reloading the project.
 
 ## Making your change
 
