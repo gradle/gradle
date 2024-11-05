@@ -331,13 +331,17 @@ Some thing.''')
         formatter.toString() == toPlatformLineSeparators("thing Map<TreeFormatterTest.Thing.Nested, ? extends java.util.function.Consumer<? super T>>")
     }
 
-    def "can append method name"() {
+    def "can append methods"() {
         when:
         formatter.node("thing ")
         formatter.appendMethod(String.getMethod("length"))
+        formatter.append(" ")
+        formatter.appendMethod(String.getMethod("charAt", int.class))
+        formatter.append(" ")
+        formatter.appendMethod(String.getMethod("getBytes", String.class))
 
         then:
-        formatter.toString() == toPlatformLineSeparators("thing String.length()")
+        formatter.toString() == toPlatformLineSeparators("thing String.length() String.charAt(int) String.getBytes(String)")
     }
 
     def "can append annoation name"() {

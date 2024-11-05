@@ -39,6 +39,7 @@ import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.services.ServiceReference;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
+import org.gradle.internal.Cast;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
@@ -1951,7 +1952,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         if (argument instanceof Class) {
             return (Class<?>) argument;
         }
-        return (Class<?>) ((ParameterizedType) argument).getRawType();
+        return (Class<?>) Cast.cast(ParameterizedType.class, argument).getRawType();
     }
 
     private static class ObjectCreationDetails {

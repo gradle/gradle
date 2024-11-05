@@ -23,7 +23,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.tasks.testing.junit.result.AggregateTestResultsProvider;
 import org.gradle.api.internal.tasks.testing.junit.result.BinaryResultBackedTestResultsProvider;
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider;
-import org.gradle.api.internal.tasks.testing.report.DefaultTestReport;
+import org.gradle.api.internal.tasks.testing.report.HtmlTestReport;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.tasks.IgnoreEmptyDirectories;
@@ -189,7 +189,7 @@ public abstract class TestReport extends DefaultTask {
         TestResultsProvider resultsProvider = createAggregateProvider();
         try {
             if (resultsProvider.isHasResults()) {
-                DefaultTestReport testReport = new DefaultTestReport(getBuildOperationRunner(), getBuildOperationExecutor());
+                HtmlTestReport testReport = new HtmlTestReport(getBuildOperationRunner(), getBuildOperationExecutor());
                 testReport.generateReport(resultsProvider, getDestinationDirectory().get().getAsFile());
             } else {
                 getLogger().info("{} - no binary test results found in dirs: {}.", getPath(), getTestResults().getFiles());
