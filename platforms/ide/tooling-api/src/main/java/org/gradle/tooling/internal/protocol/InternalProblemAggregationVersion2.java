@@ -26,7 +26,6 @@ import java.util.List;
 /**
  * <p>DO NOT CHANGE THIS INTERFACE - it is part of the cross-version protocol.
  */
-
 @NonNullApi
 public interface InternalProblemAggregationVersion2 extends InternalProblemAggregation {
 
