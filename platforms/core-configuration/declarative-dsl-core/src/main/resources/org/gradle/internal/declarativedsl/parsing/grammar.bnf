@@ -45,14 +45,12 @@
 root ::= statements
 
 statement ::= (assignment | block | expression)
-statements ::= (statement semis*)*
+statements ::= (statement SEMI*)*
 
 assignmentValue ::= (simpleIdentifier (navigationSuffix* valueArguments)?) | primaryExpression
 assignment ::= directlyAssignableExpression EQ assignmentValue {pin=2}
 block ::= simpleIdentifier valueArguments? annotatedLambda
 expression ::= primaryExpression postfixUnarySuffixes
-
-semis ::= SEMI
 
 directlyAssignableExpression ::= simpleIdentifier navigationSuffix?
 
