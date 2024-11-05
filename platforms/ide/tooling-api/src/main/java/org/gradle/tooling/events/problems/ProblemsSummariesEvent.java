@@ -21,7 +21,14 @@ import org.gradle.api.Incubating;
 import java.util.List;
 
 /**
- * The Event capturing all problems summaries
+ * The event capturing all problems summaries.
+ *
+ * A summary will be sent for every problem id that exceeds the threshold amount.
+ * This also means only events up to the threshold will be sent.
+ * The objects contain the problem id that exceeded the threshold and the amount by how much it exceeded it.
+ * Before the build finishes this event will be received event if the list is empty.
+ *
+ *
  *
  * @see ProblemSummary
  *

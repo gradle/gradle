@@ -28,14 +28,16 @@ import org.gradle.api.Incubating;
 public interface ProblemSummary {
 
     /**
-     * The problem id.
+     * The problem id that exceeded the threshold for the number of allowed events before we start
+     * the summarization.
      *
      * @since 8.12
      */
     ProblemId getProblemId();
 
     /**
-     * The number of follow-up occurrences.
+     * The number of follow-up occurrences of the particular problem id.
+     * The total amount of occurences is <code>threshold + count</code>
      *
      * @since 8.12
      */
