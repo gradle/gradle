@@ -32,7 +32,7 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 @ServiceScope(Scope.BuildSession.class)
-public class DefaultAttributesFactory extends AbstractAttributesFactory {
+public class DefaultAttributesFactory implements AttributesFactory {
     private final ImmutableAttributes root;
     private final Map<ImmutableAttributes, ImmutableList<DefaultImmutableAttributesContainer>> children;
     private final IsolatableFactory isolatableFactory;
@@ -195,5 +195,20 @@ public class DefaultAttributesFactory extends AbstractAttributesFactory {
             }
         }
         return current;
+    }
+
+    @Override
+    public ImmutableAttributes fromMap(Map<Attribute<?>, ?> attributes) {
+        ImmutableAttributes result = ImmutableAttributes.EMPTY;
+        for (Map.Entry<Attribute<?>, ?> entry : attributes.entrySet()) {
+            /*
+                The order of the concatenation arguments here is important, as we have tests like
+                ConfigurationCacheDependencyResolutionIntegrationTest and ConfigurationCacheDependencyResolutionIntegrationTest
+                that rely on a particular order of failures when there are multiple invalid attribute type
+                conversions.  So even if it looks unnatural to list result second, this should remain.
+             */
+            result = concat(of(entry.getKey(), Cast.uncheckedNonnullCast(entry.getValue())), result);
+        }
+        return result;
     }
 }

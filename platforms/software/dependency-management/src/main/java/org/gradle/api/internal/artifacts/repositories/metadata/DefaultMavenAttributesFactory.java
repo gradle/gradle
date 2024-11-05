@@ -22,7 +22,6 @@ import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.DocsType;
 import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.attributes.Usage;
-import org.gradle.api.internal.attributes.AbstractAttributesFactory;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributeMergingException;
 import org.gradle.api.internal.attributes.AttributesFactory;
@@ -35,7 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class DefaultMavenAttributesFactory extends AbstractAttributesFactory implements MavenAttributesFactory {
+public class DefaultMavenAttributesFactory implements MavenAttributesFactory {
     private final AttributesFactory delegate;
     private final NamedObjectInstantiator objectInstantiator;
     private final Map<List<Object>, ImmutableAttributes> concatCache = new ConcurrentHashMap<>();
@@ -83,6 +82,11 @@ public class DefaultMavenAttributesFactory extends AbstractAttributesFactory imp
     @Override
     public ImmutableAttributes safeConcat(ImmutableAttributes attributes1, ImmutableAttributes attributes2) throws AttributeMergingException {
         return delegate.safeConcat(attributes1, attributes2);
+    }
+
+    @Override
+    public ImmutableAttributes fromMap(Map<Attribute<?>, ?> attributes) {
+        return delegate.fromMap(attributes);
     }
 
     @Override

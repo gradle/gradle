@@ -23,10 +23,14 @@ import org.gradle.api.internal.artifacts.transform.AttributeMatchingArtifactVari
 import org.gradle.api.internal.artifacts.transform.ConsumerProvidedVariantFinder;
 import org.gradle.api.internal.artifacts.transform.TransformUpstreamDependenciesResolver;
 import org.gradle.api.internal.artifacts.transform.TransformedVariantFactory;
+import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.AttributeSchemaServices;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
+import org.gradle.internal.component.model.GraphVariantSelector;
 import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler;
+import org.gradle.internal.resolve.resolver.ArtifactResolver;
+import org.gradle.internal.resolve.resolver.DefaultVariantArtifactResolver;
 
 /**
  * Selects artifacts from all visited artifacts in a graph.
@@ -50,7 +54,11 @@ public class DefaultVisitedArtifactSet implements VisitedArtifactSet {
         ConsumerProvidedVariantFinder consumerProvidedVariantFinder,
         AttributesFactory attributesFactory,
         AttributeSchemaServices attributeSchemaServices,
-        ResolutionFailureHandler resolutionFailureHandler
+        ResolutionFailureHandler resolutionFailureHandler,
+        ArtifactResolver artifactResolver,
+        ArtifactTypeRegistry artifactTypeRegistry,
+        ResolvedVariantCache resolvedVariantCache,
+        GraphVariantSelector graphVariantSelector
     ) {
         this.graphResults = graphResults;
         this.resolutionHost = resolutionHost;
@@ -68,7 +76,10 @@ public class DefaultVisitedArtifactSet implements VisitedArtifactSet {
         this.consumerServices = new ArtifactSelectionServices(
             artifactVariantSelector,
             transformedVariantFactory,
-            dependenciesResolver
+            dependenciesResolver,
+            new DefaultVariantArtifactResolver(artifactResolver, artifactTypeRegistry, resolvedVariantCache),
+            graphVariantSelector,
+            consumerSchema
         );
     }
 
