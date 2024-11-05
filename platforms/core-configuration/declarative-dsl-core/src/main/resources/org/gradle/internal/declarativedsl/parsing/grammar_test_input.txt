@@ -15,6 +15,7 @@ block("param") {
     a = 1
 }
 
+f()
 f(x=y)
 f.g.h.i.j.k(test)
 f(1, x, "s", g())
