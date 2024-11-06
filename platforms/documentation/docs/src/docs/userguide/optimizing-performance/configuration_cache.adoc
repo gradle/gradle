@@ -989,8 +989,10 @@ Use <<dataflow_actions.adoc#dataflow_action,dataflow actions>> to handle the bui
 
 Plugin and build scripts should avoid running external processes at configuration time.
 In general, it is preferred to run external processes in tasks with properly declared inputs and outputs to avoid unnecessary work when the task is up-to-date.
-If necessary, only configuration-cache-compatible APIs should be used instead of Java and Groovy standard APIs or existing `ExecOperations`,
-`Project.exec`, `Project.javaexec`, and their likes in settings and init scripts.
+However, if needed, you should only use the configuration-cache-compatible APIs described below, instead of Java and Groovy standard APIs, or
+Gradle-provided methods `Project.exec`, `Project.javaexec`, `ExecOperations.exec`, and `ExecOperations.javaexec`.
+The flexibility of these methods prevents Gradle from determining how the calls impact the build configuration, making it difficult to ensure that the configuration cache entry can be safely reused.
+
 For simpler cases, when grabbing the output of the process is enough,
 link:{groovyDslPath}/org.gradle.api.provider.ProviderFactory.html#org.gradle.api.provider.ProviderFactory:exec(org.gradle.api.Action)[providers.exec()] and
 link:{groovyDslPath}/org.gradle.api.provider.ProviderFactory.html#org.gradle.api.provider.ProviderFactory:javaexec(org.gradle.api.Action)[providers.javaexec()] can be used:
@@ -1007,6 +1009,7 @@ This `ExecOperations` instance can be used at configuration time without restric
 include::sample[dir="snippets/valueProviders/externalProcessValueSource/kotlin",files="build.gradle.kts[tags=value-source]"]
 include::sample[dir="snippets/valueProviders/externalProcessValueSource/groovy",files="build.gradle[tags=value-source]"]
 ====
+You can also use standard Java/Kotlin/Groovy process APIs like `java.lang.ProcessBuilder` in the `ValueSource`.
 
 The `ValueSource` implementation can then be used to create a provider with link:{groovyDslPath}/org.gradle.api.provider.ProviderFactory.html#org.gradle.api.provider.ProviderFactory:of(java.lang.Class,%20org.gradle.api.Action)[providers.of]:
 
