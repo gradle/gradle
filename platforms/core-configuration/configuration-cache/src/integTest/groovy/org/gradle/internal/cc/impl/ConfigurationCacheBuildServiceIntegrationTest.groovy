@@ -233,7 +233,7 @@ class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfiguratio
         outputDoesNotContain onFinishMessage
     }
 
-    def "build service is restored"(String serviceName, boolean finalize, boolean finalizeOnRead, boolean declareUsage, int requiredServiceCount) {
+    def "build service is restored"() {
         given:
         def legacy = serviceName == null
         def propertyAnnotations = legacy ?

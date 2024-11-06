@@ -25,7 +25,7 @@ import javax.annotation.Nullable;
  * Details about a service registration.
  */
 public class BuildServiceDetails<T extends BuildService<P>, P extends BuildServiceParameters> {
-    public static final int DEFAULT_MAX_USAGES = -1;
+    private static final int NO_MAX_USAGES_CONSTRAINT = -1;
     private final BuildIdentifier buildIdentifier;
     private final String name;
     private final Class<T> implementationType;
@@ -38,7 +38,7 @@ public class BuildServiceDetails<T extends BuildService<P>, P extends BuildServi
         this.name = name;
         this.implementationType = implementationType;
         this.parameters = parameters;
-        this.maxUsages = maxUsages == null ? -1 : maxUsages;
+        this.maxUsages = maxUsages == null ? NO_MAX_USAGES_CONSTRAINT : maxUsages;
         this.resolved = true;
     }
 
@@ -47,7 +47,7 @@ public class BuildServiceDetails<T extends BuildService<P>, P extends BuildServi
         this.name = name;
         this.implementationType = implementationType;
         this.parameters = null;
-        this.maxUsages = DEFAULT_MAX_USAGES;
+        this.maxUsages = NO_MAX_USAGES_CONSTRAINT;
         this.resolved = false;
     }
 
@@ -72,7 +72,7 @@ public class BuildServiceDetails<T extends BuildService<P>, P extends BuildServi
     }
 
     public boolean mustDeclareUsage() {
-        return maxUsages != DEFAULT_MAX_USAGES;
+        return maxUsages != NO_MAX_USAGES_CONSTRAINT;
     }
 
     public boolean isResolved() {
