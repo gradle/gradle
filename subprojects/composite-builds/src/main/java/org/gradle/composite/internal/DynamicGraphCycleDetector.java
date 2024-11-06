@@ -16,9 +16,9 @@
 
 package org.gradle.composite.internal;
 
+import com.google.common.collect.Iterables;
 import org.gradle.internal.collect.PersistentList;
 
-import javax.annotation.Nonnull;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -27,19 +27,20 @@ import java.util.Set;
 import java.util.function.Function;
 
 /**
- * A directed graph implementation that dynamically detects and prevents cycles as edges are added.
+ * A directed graph implementation that detects cycles dynamically as edges are added.
  *
- * <p>This class allows the construction of a directed graph where nodes are added along with their dependencies
- * (represented as directed edges). As each edge is added, the graph checks if introducing the edge would result
- * in a cycle. If a cycle is detected, the edge is not added, and an {@link Optional} containing the cycle
- * (represented as a {@link Cycle}) is returned.</p>
+ * <p>This class facilitates building a directed graph by adding nodes and directed edges between them. Each
+ * node can be designated as "acyclic" by adding it to the graph using {@link #addAcyclicNode(Object)}.
+ * As edges are introduced, the graph checks for cycles that would invalidate the acyclic structure.</p>
  *
- * <p>This class is useful in scenarios where dynamically managing dependencies between entities is required,
- * and introducing cycles in the dependency graph must be avoided.</p>
+ * <p>When an edge is added using {@link #addEdge(Object, Object)}, the graph does not immediately check for
+ * cycles. However, a call to {@link #findFirstInvalidCycle()} initiates a search to detect any invalid cycles
+ * among the acyclic nodes, using a depth-first search (DFS) approach. If a cycle is detected, it returns an
+ * {@link Optional} containing the {@link Cycle}, which details the sequence of nodes forming the cycle.
+ * Otherwise, it returns an empty {@code Optional}.</p>
  *
  * <p>The graph is represented internally as a {@link Map}, where each node is mapped to a set of its referrers
- * (i.e., nodes that point to it). Cycle detection uses a depth-first search (DFS) approach to trace paths
- * between nodes when new edges are added.</p>
+ * (i.e., nodes that point to it).
  *
  * @param <T> the type of nodes in the graph
  */
@@ -70,25 +71,30 @@ class DynamicGraphCycleDetector<T> {
     }
 
     private final Map<T, Set<T>> graph = new HashMap<>();
+    private final Set<T> acyclicNodes = new LinkedHashSet<>();
 
-    public synchronized Optional<Cycle<T>> addEdge(T from, T to) {
-        if (from.equals(to)) {
-            return Optional.of(new Cycle<>(PersistentList.of(from, to)));
-        }
-        Optional<Cycle<T>> cycle = findCycle(from, to);
-        if (cycle.isPresent()) {
-            return cycle;
-        }
+    public void addAcyclicNode(T node) {
+        acyclicNodes.add(node);
+    }
+
+    public void addEdge(T from, T to) {
         referrersOf(to).add(from);
+    }
+
+    public Optional<Cycle<T>> findFirstInvalidCycle() {
+        for (T node : acyclicNodes) {
+            Optional<Cycle<T>> cycle = findCycle(node, node);
+            if (cycle.isPresent()) {
+                return cycle;
+            }
+        }
         return Optional.empty();
     }
 
-    @Nonnull
     private Optional<Cycle<T>> findCycle(T from, T to) {
-        return findCycle(from, to, PersistentList.of(from)).map(it -> it.plus(from));
+        return findCycle(from, to, PersistentList.of(from));
     }
 
-    @Nonnull
     private Optional<Cycle<T>> findCycle(T from, T to, PersistentList<T> path) {
         Set<T> referrers = graph.get(from);
         if (referrers == null) {
@@ -98,6 +104,9 @@ class DynamicGraphCycleDetector<T> {
             return Optional.of(new Cycle<>(path.plus(to)));
         }
         for (T referrer : referrers) {
+            if (Iterables.contains(path, referrer)) {
+                continue;
+            }
             Optional<Cycle<T>> cycle = findCycle(referrer, to, path.plus(referrer));
             if (cycle.isPresent()) {
                 return cycle;

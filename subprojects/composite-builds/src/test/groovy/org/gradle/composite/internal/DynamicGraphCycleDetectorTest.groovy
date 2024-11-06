@@ -25,7 +25,9 @@ class DynamicGraphCycleDetectorTest extends Specification {
         def graph = new DynamicGraphCycleDetector<String>()
 
         when:
-        def result = graph.addEdge("A", "A")
+        graph.addAcyclicNode("A")
+        graph.addEdge("A", "A")
+        def result = graph.findFirstInvalidCycle()
 
         then:
         result.present
@@ -39,13 +41,16 @@ class DynamicGraphCycleDetectorTest extends Specification {
         def graph = new DynamicGraphCycleDetector<String>()
 
         when:
-        def result1 = graph.addEdge("A", "B")
+        graph.addAcyclicNode("B")
+        graph.addEdge("A", "B")
+        def result1 = graph.findFirstInvalidCycle()
 
         then:
         !result1.present
 
         then:
-        def result2 = graph.addEdge("B", "A")
+        graph.addEdge("B", "A")
+        def result2 = graph.findFirstInvalidCycle()
 
         then:
         result2.present
@@ -59,11 +64,13 @@ class DynamicGraphCycleDetectorTest extends Specification {
         def graph = new DynamicGraphCycleDetector<String>()
 
         when:
+        graph.addAcyclicNode("C")
         graph.addEdge("A", "B")
         graph.addEdge("B", "C")
+        graph.addEdge("C", "A")
 
         then:
-        def result = graph.addEdge("C", "A")
+        def result = graph.findFirstInvalidCycle()
         result.present
 
         and:
@@ -75,15 +82,49 @@ class DynamicGraphCycleDetectorTest extends Specification {
         def graph = new DynamicGraphCycleDetector<String>()
 
         when:
+        graph.addAcyclicNode("D")
         graph.addEdge("A", "B")
         graph.addEdge("B", "C")
         graph.addEdge("C", "D")
+        graph.addEdge("D", "A")
 
         then:
-        def result = graph.addEdge("D", "A")
+        def result = graph.findFirstInvalidCycle()
         result.present
 
         and:
         result.get().format({ ":$it".toString() }) == ":D -> :A -> :B -> :C -> :D"
+    }
+
+    def 'do not report valid cycles'() {
+        given:
+        def graph = new DynamicGraphCycleDetector<String>()
+
+        when:
+        graph.addAcyclicNode("C")
+        graph.addEdge("A", "B")
+        graph.addEdge("B", "A")
+        graph.addEdge("B", "C")
+
+        then:
+        def result = graph.findFirstInvalidCycle()
+        !result.present
+    }
+
+    def 'do report invalid cycles'() {
+        given:
+        def graph = new DynamicGraphCycleDetector<String>()
+
+        when:
+        graph.addAcyclicNode("C")
+        graph.addEdge("A", "B")
+        graph.addEdge("B", "A")
+        graph.addEdge("B", "C")
+        graph.addEdge("C", "A")
+
+        then:
+        def result = graph.findFirstInvalidCycle()
+        result.present
+        result.get().format({ ":$it".toString() }) == ":C -> :A -> :B -> :C"
     }
 }

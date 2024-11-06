@@ -23,7 +23,6 @@ import org.gradle.internal.build.IncludedBuildFactory;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.event.ListenerManager;
 
-import java.util.Optional;
 
 public class AcyclicIncludedBuildRegistry extends DefaultIncludedBuildRegistry {
 
@@ -40,18 +39,15 @@ public class AcyclicIncludedBuildRegistry extends DefaultIncludedBuildRegistry {
     @Override
     public IncludedBuildState addIncludedBuild(BuildDefinition buildDefinition, BuildState referrer) {
         IncludedBuildState includedBuild = super.addIncludedBuild(buildDefinition, referrer);
-        Optional<DynamicGraphCycleDetector.Cycle<BuildState>> cycle = cycleDetector.addEdge(referrer, includedBuild);
         // If the included build was initially registered as a plugin build, any subsequent library registration
         // resulting of that build will still be considered a plugin build, and vice versa.
         // This is why we rely on the upcoming build definition, which reflects the actual user intention.
-        if (buildDefinition.isPluginBuild() || isReferredFromPluginBuild(referrer)) {
-            cycle.ifPresent(AcyclicIncludedBuildRegistry::reportCycle);
+        if (buildDefinition.isPluginBuild()) {
+            cycleDetector.addAcyclicNode(includedBuild);
         }
+        cycleDetector.addEdge(referrer, includedBuild);
+        cycleDetector.findFirstInvalidCycle().ifPresent(AcyclicIncludedBuildRegistry::reportCycle);
         return includedBuild;
-    }
-
-    private boolean isReferredFromPluginBuild(BuildState referrer) {
-        return referrer instanceof IncludedBuildState && ((IncludedBuildState) referrer).isPluginBuild();
     }
 
     private static void reportCycle(DynamicGraphCycleDetector.Cycle<BuildState> cycle) {

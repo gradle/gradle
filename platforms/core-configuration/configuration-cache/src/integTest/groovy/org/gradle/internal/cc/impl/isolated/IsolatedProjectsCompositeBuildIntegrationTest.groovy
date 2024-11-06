@@ -77,7 +77,7 @@ class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProj
         isolatedProjectsFails("help")
 
         then:
-        failureDescriptionContains("A cycle has been detected in the definition of plugin builds: :plugins-c -> :plugins-a -> :plugins-b -> :plugins-c.")
+        failureDescriptionContains("A cycle has been detected in the definition of plugin builds: :plugins-a -> :plugins-b -> :plugins-c -> :plugins-a.")
     }
 
     def "transitive cycles(start is a plugin) for plugin builds are prohibited"() {
@@ -103,7 +103,7 @@ class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProj
         isolatedProjectsFails("help")
 
         then:
-        failureDescriptionContains("A cycle has been detected in the definition of plugin builds: :library-c -> :plugins-a -> :library-b -> :library-c.")
+        failureDescriptionContains("A cycle has been detected in the definition of plugin builds: :plugins-a -> :library-b -> :library-c -> :plugins-a.")
     }
 
     def "transitive cycles(start is a library) for plugin builds are prohibited"() {
@@ -120,16 +120,20 @@ class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProj
         }
 
         includedBuild("plugins-a") {
-            includeLibraryBuild(settingsScript, "../library-a")
+            includeLibraryBuild(settingsScript, "../library-c")
             applyPlugins(buildScript, ["groovy-gradle-plugin"])
             srcMainGroovy.file("plugin-a.gradle") << ""
+        }
+
+        includedBuild("library-c") {
+            includeLibraryBuild(settingsScript, "../library-b")
         }
 
         when:
         isolatedProjectsFails("help")
 
         then:
-        failureDescriptionContains("A cycle has been detected in the definition of plugin builds: :plugins-a -> :library-a -> :library-b -> :plugins-a.")
+        failureDescriptionContains("A cycle has been detected in the definition of plugin builds: :plugins-a -> :library-c -> :library-b -> :plugins-a.")
     }
 
     def "introduced-by-settings-plugin cycles for plugins builds are prohibited"() {
