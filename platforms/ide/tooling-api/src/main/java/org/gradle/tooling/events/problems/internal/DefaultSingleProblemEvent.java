@@ -50,7 +50,8 @@ public class DefaultSingleProblemEvent extends BaseProgressEvent implements Sing
         List<Location> locations,
         List<Solution> solutions,
         @Nullable AdditionalData additionalData,
-        @Nullable Failure failure) {
+        @Nullable Failure failure
+    ) {
         super(eventTime, problemDescriptor == null ? "<null>" : problemDescriptor.getDisplayName(), problemDescriptor);
         this.problemDefinition = problemDefinition;
         this.contextualLabel = contextualLabel;

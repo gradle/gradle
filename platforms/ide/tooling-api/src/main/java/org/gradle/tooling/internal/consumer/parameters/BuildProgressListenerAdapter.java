@@ -75,6 +75,7 @@ import org.gradle.tooling.events.problems.ProblemDefinition;
 import org.gradle.tooling.events.problems.ProblemEvent;
 import org.gradle.tooling.events.problems.ProblemGroup;
 import org.gradle.tooling.events.problems.ProblemId;
+import org.gradle.tooling.events.problems.ProblemSummary;
 import org.gradle.tooling.events.problems.Severity;
 import org.gradle.tooling.events.problems.Solution;
 import org.gradle.tooling.events.problems.internal.DefaultContextualLabel;
@@ -89,6 +90,8 @@ import org.gradle.tooling.events.problems.internal.DefaultProblemAggregationEven
 import org.gradle.tooling.events.problems.internal.DefaultProblemDefinition;
 import org.gradle.tooling.events.problems.internal.DefaultProblemGroup;
 import org.gradle.tooling.events.problems.internal.DefaultProblemId;
+import org.gradle.tooling.events.problems.internal.DefaultProblemSummariesEvent;
+import org.gradle.tooling.events.problems.internal.DefaultProblemSummary;
 import org.gradle.tooling.events.problems.internal.DefaultProblemsOperationContext;
 import org.gradle.tooling.events.problems.internal.DefaultSeverity;
 import org.gradle.tooling.events.problems.internal.DefaultSingleProblemEvent;
@@ -165,6 +168,8 @@ import org.gradle.tooling.internal.protocol.InternalProblemEvent;
 import org.gradle.tooling.internal.protocol.InternalProblemEventVersion2;
 import org.gradle.tooling.internal.protocol.InternalProblemGroup;
 import org.gradle.tooling.internal.protocol.InternalProblemId;
+import org.gradle.tooling.internal.protocol.InternalProblemSummariesDetails;
+import org.gradle.tooling.internal.protocol.InternalProblemSummary;
 import org.gradle.tooling.internal.protocol.InternalTestAssertionFailure;
 import org.gradle.tooling.internal.protocol.InternalTestFrameworkFailure;
 import org.gradle.tooling.internal.protocol.events.InternalBinaryPluginIdentifier;
@@ -607,6 +612,14 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         return null;
     }
 
+    private static List<ProblemSummary> toProblemIdSummaries(List<InternalProblemSummary> problemIdCounts) {
+        List<ProblemSummary> problemSummaries = new ArrayList<>();
+        for (InternalProblemSummary internalSummary : problemIdCounts) {
+            problemSummaries.add(new DefaultProblemSummary(toProblemId(internalSummary.getProblemId()), internalSummary.getCount()));
+        }
+        return problemSummaries;
+    }
+
     private @Nullable ProblemEvent createProblemEvent(InternalProblemEventVersion2 problemEvent, InternalProblemDescriptor descriptor) {
         InternalProblemDetailsVersion2 details = problemEvent.getDetails();
         OperationDescriptor parentDescriptor = getParentDescriptor(descriptor.getParentId());
@@ -633,6 +646,10 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
                     toProblemDefinition(problemAggregationDetails.getDefinition()),
                     toProblemContextDetails(problemAggregationDetails.getProblems())));
 
+        } else if (details instanceof InternalProblemSummariesDetails) {
+            InternalProblemSummariesDetails problemSummariesDetails = (InternalProblemSummariesDetails) details;
+            return new DefaultProblemSummariesEvent(problemEvent.getEventTime(), parentDescriptor,
+                toProblemIdSummaries(problemSummariesDetails.getProblemIdCounts()));
         }
         return null;
     }
@@ -868,7 +885,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
     }
 
     private static ContextualLabel toContextualLabel(@Nullable InternalContextualLabel contextualLabel) {
-        return contextualLabel == null ? null :  new DefaultContextualLabel(contextualLabel.getContextualLabel());
+        return contextualLabel == null ? null : new DefaultContextualLabel(contextualLabel.getContextualLabel());
     }
 
     private static ContextualLabel toContextualLabel(@Nullable String contextualLabel) {

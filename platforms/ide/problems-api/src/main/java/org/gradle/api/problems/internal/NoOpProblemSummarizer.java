@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.tasks.testing.report;
 
-import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider;
+package org.gradle.api.problems.internal;
 
-import java.io.File;
+import org.gradle.internal.operations.OperationIdentifier;
 
-public interface TestReporter {
-    void generateReport(TestResultsProvider testResultsProvider, File reportDir);
+import javax.annotation.Nullable;
+
+public class NoOpProblemSummarizer implements ProblemSummarizer {
+
+    @Override
+    public void emit(Problem problem, @Nullable OperationIdentifier id) {
+        // no op
+    }
 }

@@ -30,12 +30,12 @@ import org.gradle.util.internal.ConfigureUtil
 import org.junit.Rule
 import spock.lang.Specification
 
-class DefaultTestReportTest extends Specification {
+class HtmlTestReportTest extends Specification {
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     BuildOperationRunner buildOperationRunner = new TestBuildOperationRunner()
     BuildOperationExecutor buildOperationExecutor
-    DefaultTestReport report
+    HtmlTestReport report
     final TestFile reportDir = tmpDir.file('report')
     final TestFile indexFile = reportDir.file('index.html')
     final TestResultsProvider testResultProvider = Mock()
@@ -46,7 +46,7 @@ class DefaultTestReportTest extends Specification {
             .withRunner(buildOperationRunner)
             .withWorkerLeaseService(workerLeaseService)
             .build()
-        return new DefaultTestReport(buildOperationRunner, buildOperationExecutor)
+        return new HtmlTestReport(buildOperationRunner, buildOperationExecutor)
     }
 
     def generatesReportWhenThereAreNoTestResults() {

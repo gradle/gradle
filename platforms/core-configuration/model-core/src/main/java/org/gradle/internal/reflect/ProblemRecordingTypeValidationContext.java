@@ -17,6 +17,7 @@
 package org.gradle.internal.reflect;
 
 import org.gradle.api.Action;
+import org.gradle.api.problems.internal.AdditionalDataBuilderFactory;
 import org.gradle.api.problems.internal.DefaultProblemBuilder;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.problems.internal.Problem;
@@ -67,7 +68,8 @@ abstract public class ProblemRecordingTypeValidationContext implements TypeValid
     }
 
     private @Nonnull DefaultTypeAwareProblemBuilder getDefaultTypeAwareProblemBuilder(Action<? super TypeAwareProblemBuilder> problemSpec) {
-        DefaultTypeAwareProblemBuilder problemBuilder = new DefaultTypeAwareProblemBuilder(new DefaultProblemBuilder((ProblemStream) null, problems.getAdditionalDataBuilderFactory()), problems.getAdditionalDataBuilderFactory());
+        AdditionalDataBuilderFactory additionalDataBuilderFactory = problems.getAdditionalDataBuilderFactory();
+        DefaultTypeAwareProblemBuilder problemBuilder = new DefaultTypeAwareProblemBuilder(new DefaultProblemBuilder((ProblemStream) null, additionalDataBuilderFactory), additionalDataBuilderFactory);
         problemSpec.execute(problemBuilder);
         return problemBuilder;
     }

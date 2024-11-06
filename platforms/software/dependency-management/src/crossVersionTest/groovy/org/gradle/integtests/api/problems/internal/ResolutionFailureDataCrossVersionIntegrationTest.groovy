@@ -24,6 +24,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.problems.ProblemEvent
+import org.gradle.tooling.events.problems.SingleProblemEvent
 import org.gradle.tooling.events.problems.internal.GeneralData
 
 /**
@@ -45,9 +46,9 @@ class ResolutionFailureDataCrossVersionIntegrationTest extends ToolingApiSpecifi
         """
 
         when:
-        List<GeneralData> failureData = runAndGetProblems().collect { ProblemEvent problem ->
-            problem.additionalData as GeneralData
-        }
+        List<GeneralData> failureData = runAndGetProblems()
+            .findAll { it instanceof SingleProblemEvent }
+            .collect { ProblemEvent problem -> problem.additionalData as GeneralData }
 
         then:
         failureData.size() >= 1 // Depending on Java version, we might get a Java version test execution failure first, so just check the last one

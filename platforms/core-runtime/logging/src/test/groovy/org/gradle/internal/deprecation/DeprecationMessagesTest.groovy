@@ -16,7 +16,6 @@
 
 package org.gradle.internal.deprecation
 
-
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.api.problems.Severity
@@ -27,7 +26,7 @@ import org.gradle.api.problems.internal.DefaultProblemId
 import org.gradle.api.problems.internal.DefaultProblems
 import org.gradle.api.problems.internal.DeprecationData
 import org.gradle.api.problems.internal.GradleCoreProblemGroup
-import org.gradle.api.problems.internal.ProblemEmitter
+import org.gradle.api.problems.internal.ProblemSummarizer
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.internal.logging.CollectingTestOutputEventListener
 import org.gradle.internal.logging.ConfigureLogging
@@ -52,19 +51,19 @@ class DeprecationMessagesTest extends Specification {
     @Rule
     private final ConfigureLogging logging = new ConfigureLogging(outputEventListener)
 
-    private ProblemEmitter problemEmitter
+    private ProblemSummarizer problemEmitter
     private identifier = new OperationIdentifier(2)
 
     def setup() {
         def diagnosticsFactory = new NoOpProblemDiagnosticsFactory()
 
-        problemEmitter = Mock(ProblemEmitter)
+        problemEmitter = Mock(ProblemSummarizer)
         def currentBuildRef = Mock(CurrentBuildOperationRef)
 
         currentBuildRef.getId() >> identifier
 
         def buildOperationProgressEventEmitter = Mock(BuildOperationProgressEventEmitter)
-        DeprecationLogger.init(WarningMode.All, buildOperationProgressEventEmitter, new DefaultProblems([problemEmitter], currentBuildRef), diagnosticsFactory.newUnlimitedStream())
+        DeprecationLogger.init(WarningMode.All, buildOperationProgressEventEmitter, new DefaultProblems(problemEmitter, currentBuildRef), diagnosticsFactory.newUnlimitedStream())
     }
 
     def cleanup() {

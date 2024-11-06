@@ -17,7 +17,6 @@
 package org.gradle.tooling.events;
 
 import org.gradle.api.Incubating;
-import org.gradle.tooling.events.problems.ProblemEvent;
 
 /**
  * Enumerates the different types of operations for which progress events can be received.
@@ -160,7 +159,9 @@ public enum OperationType {
      * <p>
      * The following events are currently issued for this operation type.
      * <ul>
-     *     <li>{@link ProblemEvent}</li>
+     *     <li>{@link org.gradle.tooling.events.problems.ProblemEvent}</li>
+     *     <li>{@link org.gradle.tooling.events.problems.SingleProblemEvent}</li>
+     *     <li>{@link org.gradle.tooling.events.problems.ProblemSummariesEvent}</li>
      * </ul>
      *
      * @since 8.4

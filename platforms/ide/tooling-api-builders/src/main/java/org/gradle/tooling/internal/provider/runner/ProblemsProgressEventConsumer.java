@@ -23,6 +23,7 @@ import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.AdditionalData;
 import org.gradle.api.problems.internal.DefaultProblemProgressDetails;
+import org.gradle.api.problems.internal.DefaultProblemsSummaryProgressDetails;
 import org.gradle.api.problems.internal.DeprecationData;
 import org.gradle.api.problems.internal.DocLink;
 import org.gradle.api.problems.internal.FileLocation;
@@ -35,6 +36,7 @@ import org.gradle.api.problems.internal.ProblemDefinition;
 import org.gradle.api.problems.internal.ProblemLocation;
 import org.gradle.api.problems.internal.TaskPathLocation;
 import org.gradle.api.problems.internal.TypeValidationData;
+import org.gradle.internal.Pair;
 import org.gradle.internal.build.event.types.DefaultAdditionalData;
 import org.gradle.internal.build.event.types.DefaultContextualLabel;
 import org.gradle.internal.build.event.types.DefaultDetails;
@@ -46,6 +48,7 @@ import org.gradle.internal.build.event.types.DefaultProblemDetails;
 import org.gradle.internal.build.event.types.DefaultProblemEvent;
 import org.gradle.internal.build.event.types.DefaultProblemGroup;
 import org.gradle.internal.build.event.types.DefaultProblemId;
+import org.gradle.internal.build.event.types.DefaultProblemsSummariesDetails;
 import org.gradle.internal.build.event.types.DefaultSeverity;
 import org.gradle.internal.build.event.types.DefaultSolution;
 import org.gradle.internal.operations.OperationIdentifier;
@@ -55,6 +58,7 @@ import org.gradle.tooling.internal.protocol.InternalProblemDefinition;
 import org.gradle.tooling.internal.protocol.InternalProblemEventVersion2;
 import org.gradle.tooling.internal.protocol.InternalProblemGroup;
 import org.gradle.tooling.internal.protocol.InternalProblemId;
+import org.gradle.tooling.internal.protocol.InternalProblemSummary;
 import org.gradle.tooling.internal.protocol.events.InternalProblemDescriptor;
 import org.gradle.tooling.internal.protocol.problem.InternalAdditionalData;
 import org.gradle.tooling.internal.protocol.problem.InternalContextualLabel;
@@ -83,25 +87,28 @@ public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperatio
     private static final InternalSeverity ERROR = new DefaultSeverity(2);
 
     private final Supplier<OperationIdentifier> operationIdentifierSupplier;
-    private final AggregatingProblemConsumer aggregator;
 
-    ProblemsProgressEventConsumer(ProgressEventConsumer progressEventConsumer, Supplier<OperationIdentifier> operationIdentifierSupplier, AggregatingProblemConsumer aggregator) {
+    ProblemsProgressEventConsumer(ProgressEventConsumer progressEventConsumer, Supplier<OperationIdentifier> operationIdentifierSupplier) {
         super(progressEventConsumer);
         this.operationIdentifierSupplier = operationIdentifierSupplier;
-        this.aggregator = aggregator;
     }
 
     @Override
     public void progress(OperationIdentifier buildOperationId, OperationProgressEvent progressEvent) {
         Object details = progressEvent.getDetails();
+
         createProblemEvent(buildOperationId, details)
-            .ifPresent(aggregator::emit);
+            .ifPresent(eventConsumer::progress);
     }
 
     private Optional<InternalProblemEventVersion2> createProblemEvent(OperationIdentifier buildOperationId, @Nullable Object details) {
         if (details instanceof DefaultProblemProgressDetails) {
             Problem problem = ((DefaultProblemProgressDetails) details).getProblem();
             return Optional.of(createProblemEvent(buildOperationId, problem));
+        }
+        if (details instanceof DefaultProblemsSummaryProgressDetails) {
+            List<Pair<ProblemId, Integer>> problemIdCounts = ((DefaultProblemsSummaryProgressDetails) details).getProblemIdCounts();
+            return Optional.of(createProblemSummaryEvent(buildOperationId, problemIdCounts));
         }
         return empty();
     }
@@ -118,6 +125,16 @@ public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperatio
                 toInternalAdditionalData(problem.getAdditionalData()),
                 toInternalFailure(problem.getException())
             )
+        );
+    }
+
+    private InternalProblemEventVersion2 createProblemSummaryEvent(OperationIdentifier buildOperationId, List<Pair<ProblemId, Integer>> problemIdCounts) {
+        List<InternalProblemSummary> internalIdCounts = problemIdCounts.stream()
+            .map(it -> new DefaultProblemsSummariesDetails.DefaultProblemSummary(toInternalId(it.left), it.right))
+            .collect(toImmutableList());
+        return new DefaultProblemEvent(
+            createDefaultProblemDescriptor(buildOperationId),
+            new DefaultProblemsSummariesDetails(internalIdCounts)
         );
     }
 
