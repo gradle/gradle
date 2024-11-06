@@ -82,7 +82,7 @@ abstract class AbstractTaskProjectAccessChecker(
         // Check if we're evaluating something, and it can be reduced to value by CC store.
         // TODO(mlopatkin) This oversimplifies things a lot. We're getting false negatives for e.g. value sources and providers created at execution time.
         //  However, tracking such providers properly has a significant cost, so we prefer it to performance penalty or false positives.
-        return EvaluationContext.current().owner != null
+        return EvaluationContext.current().isEvaluating()
     }
 
     protected

@@ -16,8 +16,10 @@
 
 package org.gradle.internal.serialization;
 
+import org.gradle.api.internal.provider.EvaluationContext;
 import org.gradle.internal.Try;
 
+import javax.annotation.Nonnull;
 import java.util.concurrent.Callable;
 
 /**
@@ -34,7 +36,7 @@ public abstract class Cached<T> {
 
     public abstract T get();
 
-    private static class Deferred<T> extends Cached<T> implements java.io.Serializable {
+    private static class Deferred<T> extends Cached<T> implements java.io.Serializable, EvaluationContext.EvaluationOwner {
 
         private Callable<T> computation;
         private Try<T> result;
@@ -50,10 +52,16 @@ public abstract class Cached<T> {
 
         private Try<T> result() {
             if (result == null) {
-                result = Try.ofFailable(computation);
+                result = tryComputation();
                 computation = null;
             }
             return result;
+        }
+
+        @Nonnull
+        private Try<T> tryComputation() {
+            // wrap computation as an "evaluation" so it can be treated specially as other evaluations
+            return EvaluationContext.current().evaluate(this, () -> Try.ofFailable(computation));
         }
 
         private Object writeReplace() {

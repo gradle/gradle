@@ -126,6 +126,13 @@ public final class EvaluationContext {
     }
 
     /**
+     * Returns whether an evaluation is in progress in the current thread.
+     */
+    public boolean isEvaluating() {
+        return getOwner() != null;
+    }
+
+    /**
      * Runs the {@code evaluation} with the {@code owner} being marked as "evaluating".
      * If the owner is already being evaluated, throws {@link CircularEvaluationException}.
      *
