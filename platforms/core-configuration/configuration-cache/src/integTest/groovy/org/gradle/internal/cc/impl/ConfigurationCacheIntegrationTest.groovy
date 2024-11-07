@@ -27,6 +27,7 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
     def "humble beginnings"() {
         given:
         def configurationCache = newConfigurationCacheFixture()
+        file("gradle.properties") << "org.gradle.configuration-cache.entries-per-key=2"
 
         and:
         settingsFile ''
