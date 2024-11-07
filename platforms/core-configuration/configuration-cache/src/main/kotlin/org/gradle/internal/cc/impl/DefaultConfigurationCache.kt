@@ -68,6 +68,7 @@ import java.io.File
 import java.io.OutputStream
 import java.util.Locale
 import java.util.UUID
+import kotlin.math.min
 
 
 @Suppress("LongParameterList")
@@ -285,8 +286,16 @@ class DefaultConfigurationCache internal constructor(
         store.useForStore { layout ->
             val existingEntries = cacheIO.readCandidateEntries(layout.fileForRead(StateType.Candidates))
             val newEntries = listOf(CandidateEntry(entryId)) + existingEntries
+//            val newEntries = calculateCandidateEntries(layout, startParameter.entriesPerKey)
             cacheIO.writeCandidateEntries(layout.fileFor(StateType.Candidates), newEntries)
         }
+    }
+
+    private
+    fun calculateCandidateEntries(layout: ConfigurationCacheRepository.Layout, entriesPerKey: Int): List<CandidateEntry> {
+        val existingEntries = cacheIO.readCandidateEntries(layout.fileForRead(StateType.Candidates))
+        val tail = existingEntries.take(min(existingEntries.size, entriesPerKey - 1))
+        return listOf(CandidateEntry(entryId)) + tail
     }
 
     private

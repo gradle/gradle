@@ -42,6 +42,7 @@ public class StartParameterInternal extends StartParameter {
     private boolean configurationCacheParallel;
     private boolean configurationCacheRecreateCache;
     private boolean configurationCacheQuiet;
+    private int configurationCacheEntriesPerKey = 1;
     private boolean searchUpwards = true;
     private boolean useEmptySettings = false;
     private Duration continuousBuildQuietPeriod = Duration.ofMillis(250);
@@ -80,6 +81,7 @@ public class StartParameterInternal extends StartParameter {
         p.configurationCacheParallel = configurationCacheParallel;
         p.configurationCacheRecreateCache = configurationCacheRecreateCache;
         p.configurationCacheQuiet = configurationCacheQuiet;
+        p.configurationCacheEntriesPerKey = configurationCacheEntriesPerKey;
         p.searchUpwards = searchUpwards;
         p.useEmptySettings = useEmptySettings;
         p.enableProblemReportGeneration = enableProblemReportGeneration;
@@ -199,6 +201,14 @@ public class StartParameterInternal extends StartParameter {
 
     public void setConfigurationCacheParallel(boolean parallel) {
         this.configurationCacheParallel = parallel;
+    }
+
+    public int getConfigurationCacheEntriesPerKey() {
+        return configurationCacheEntriesPerKey;
+    }
+
+    public void setConfigurationCacheEntriesPerKey(int configurationCacheEntriesPerKey) {
+        this.configurationCacheEntriesPerKey = configurationCacheEntriesPerKey;
     }
 
     public int getConfigurationCacheMaxProblems() {
