@@ -47,7 +47,7 @@ A version conflict occurs when two components:
 ** Our project directly depends on `com.google.guava:guava:20.0`
 ** Our project also depends on `com.google.inject:guice:4.2.2`, which in turn depends on `com.google.guava:guava:25.1-android`
 
-[[sub:resolution-strategy]]
+[[sec:resolution-strategy]]
 Gradle must resolve this conflict by selecting one version to include in the dependency graph.
 
 Gradle considers all requested versions across the dependency graph and, by default, selects the _highest_ version.
@@ -181,6 +181,7 @@ When Gradle tries to resolve a required dependency with a specific version, it f
 The point above highlights a potential issue with integrating <<declaring_repositories_adv.adoc#sec:case-for-maven-local,Maven Local>>. Since Maven Local acts as a Maven cache, it may occasionally miss artifacts for a module. When Gradle sources a module from Maven Local and artifacts are missing, it assumes those artifacts are entirely unavailable.
 ====
 
+[[sec:repository-disabling]]
 == Repository disabling
 
 When Gradle fails to retrieve information from a repository, it disables the repository for the remainder of the build and fails all dependency resolution.
@@ -197,7 +198,7 @@ If the connection fails, Gradle retries on specific errors that might be tempora
 
 A repository is blacklisted when it cannot be reached, either due to a permanent error or after the maximum number of retries has been exhausted.
 
-[[understanding-variant-selection]]
+[[sec:understanding-variant-selection]]
 == Understanding variant selection
 
 Gradle's dependency management engine is _variant aware_.
@@ -238,7 +239,7 @@ All components provide variants, and these variants may be backed by a consumabl
 However, not all configurations are variants, as some are used solely for declaring or resolving dependencies rather than representing consumable component variants.
 --
 
-[[sec:abm_configuration_attributes]]
+[[sec:abm-configuration-attributes]]
 === Variant attributes
 
 <<variant_attributes.adoc#variant_attributes,Attributes>> are type-safe key-value pairs used by both the consumer and the producer during variant selection.
@@ -254,7 +255,7 @@ Not all attributes of a variant need to match the consumer's specified attribute
 
 IMPORTANT: The variant name is primarily used for debugging and error messages. It does not play a role in variant matching; only the variant's attributes are used in the matching process.
 
-[[sec:abm_algorithm]]
+[[sec:abm-algorithm]]
 There are no restrictions on how many variants a component can define.
 A typical component will include at least an implementation variant but may also provide additional variants, such as test fixtures, documentation, or source code.
 Furthermore, a component can offer _different variants_ for the same usage, depending on the consumer.
@@ -396,7 +397,7 @@ Both `feature1ApiElements` and `feature2ApiElements` offer the same attributes a
 
 To resolve this, you can modify the producer (`project :lib`) to provide different capabilities or express a capability choice on the consumer side (`project :ui`) to disambiguate between the variants.
 
-[[sub:variant-no-match]]
+[[sec:variant-no-match]]
 === Dealing with no matching variant errors
 
 A no matching variant error might look like this:
@@ -442,7 +443,7 @@ In these cases, _potentially compatible_ candidate variants are displayed, showi
 The goal here is to understand which variant could be selected, if any.
 In some cases, there may simply be no compatible variants from the producer (for example, if the consumer requires a `dll` but the producer only offers a `jar` or if a library is built for Java 11, but the consumer requires Java 8).
 
-[[sub:variant-incompatible]]
+[[sec:variant-incompatible]]
 === Dealing with incompatible variant errors
 
 An incompatible variant error looks like the following example, where a consumer wants to select a variant with `color=green`, but the only variant available has `color=blue`:
@@ -483,7 +484,7 @@ Unfortunately one variant has `color=blue` and the other has `color=green`:
            - Variant org.example:pi2e5:1.0 variant greenElementsCapability2 has attributes {color=green}
 ----
 
-[[sub:transform-ambiguity]]
+[[sec:transform-ambiguity]]
 === Dealing with ambiguous transformation errors
 
 ArtifactTransforms can be used to transform artifacts from one type to another, changing their attributes.
@@ -808,7 +809,7 @@ It is similar to the `pom.xml` or `ivy.xml` metadata file, but this format conta
 See the {metadata-file-spec}[Gradle Module Metadata specification] for more information.
 --
 
-[[sub:maven-mapping-to-variants]]
+[[sec:maven-mapping-to-variants]]
 === Mapping of Maven POM metadata to variants
 
 Modules published on a Maven repository are automatically converted into variant-aware modules.
@@ -841,7 +842,7 @@ You can understand more about the use of platform and enforced platforms variant
 By default, whenever you declare a dependency on a Maven module, Gradle is going to look for the `library` variants.
 However, using the `platform` or `enforcedPlatform` keyword, Gradle is now looking for one of the "platform" variants, which allows you to import the constraints from the POM files, instead of the dependencies.
 
-[[sub:ivy-mapping-to-variants]]
+[[sec:ivy-mapping-to-variants]]
 === Mapping of Ivy files to variants
 
 Gradle has no built-in derivation strategy implemented for Ivy files.

@@ -1,0 +1,3 @@
+++++
+<meta http-equiv="refresh" content="0;URL=dependency_dependencies_basics.html#declaring-dependencies-basics">
+++++
