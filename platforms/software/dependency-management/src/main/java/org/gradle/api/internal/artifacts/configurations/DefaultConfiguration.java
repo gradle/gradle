@@ -20,6 +20,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import groovy.lang.Closure;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.WordUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Describable;
@@ -1124,7 +1125,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     @Deprecated // TODO:Finalize Upload Removal - Issue #21439
     @Override
     public String getUploadTaskName() {
-        return Configurations.uploadTaskName(getName());
+        return "upload" + StringUtils.capitalize(getName());
     }
 
     @Override

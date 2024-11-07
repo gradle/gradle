@@ -17,6 +17,8 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencie
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.Named;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ExcludeRule;
@@ -53,8 +55,11 @@ import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.model.ModelContainer;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Encapsulates all logic required to build a {@link LocalVariantGraphResolveMetadata} from a
@@ -119,9 +124,9 @@ public class DefaultLocalVariantGraphResolveStateBuilder implements LocalVariant
         // After running the dependency actions and preventing from mutation above, we know the
         // hierarchy will not change anymore and all configurations in the hierarchy
         // will no longer be mutated.
-        ImmutableSet<String> hierarchy = Configurations.getNames(configuration.getHierarchy());
+        Set<Configuration> hierarchy = configuration.getHierarchy();
         CalculatedValue<DefaultLocalVariantGraphResolveState.VariantDependencyMetadata> dependencies =
-            getConfigurationDependencyState(description, hierarchy, attributes, configurationsProvider, dependencyCache, model, calculatedValueContainerFactory);
+            getConfigurationDependencyState(description, hierarchy, attributes, dependencyCache, model, calculatedValueContainerFactory);
 
         LocalVariantGraphResolveMetadata metadata = new DefaultLocalVariantGraphResolveMetadata(
             configurationName,
@@ -169,9 +174,8 @@ public class DefaultLocalVariantGraphResolveStateBuilder implements LocalVariant
      */
     private CalculatedValue<DefaultLocalVariantGraphResolveState.VariantDependencyMetadata> getConfigurationDependencyState(
         DisplayName description,
-        ImmutableSet<String> hierarchy,
+        Set<Configuration> hierarchy,
         ImmutableAttributes attributes,
-        ConfigurationsProvider configurationsProvider,
         DependencyCache dependencyCache,
         ModelContainer<?> model,
         CalculatedValueContainerFactory calculatedValueContainerFactory
@@ -181,13 +185,15 @@ public class DefaultLocalVariantGraphResolveStateBuilder implements LocalVariant
             ImmutableSet.Builder<LocalFileDependencyMetadata> files = ImmutableSet.builder();
             ImmutableList.Builder<ExcludeMetadata> excludes = ImmutableList.builder();
 
-            configurationsProvider.visitAll(config -> {
-                if (hierarchy.contains(config.getName())) {
-                    DependencyState defined = getDefinedState(config, dependencyCache);
-                    dependencies.addAll(defined.dependencies);
-                    files.addAll(defined.files);
-                    excludes.addAll(defined.excludes);
-                }
+            // For historical reasons, and to maintain behavior, dependencies
+            // are ordered based on the name of the extended configurations.
+            ArrayList<Configuration> sortedHierarchy = new ArrayList<>(hierarchy);
+            sortedHierarchy.sort(Comparator.comparing(Named::getName));
+            sortedHierarchy.forEach(config -> {
+                DependencyState defined = getDefinedState((ConfigurationInternal) config, dependencyCache);
+                dependencies.addAll(defined.dependencies);
+                files.addAll(defined.files);
+                excludes.addAll(defined.excludes);
             });
 
             DependencyState state = new DependencyState(dependencies.build(), files.build(), excludes.build());

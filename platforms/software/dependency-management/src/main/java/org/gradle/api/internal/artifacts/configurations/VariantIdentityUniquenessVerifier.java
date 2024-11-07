@@ -46,7 +46,7 @@ public class VariantIdentityUniquenessVerifier {
         ListMultimap<VariantIdentity, ConfigurationInternal> byIdentity =
             MultimapBuilder.linkedHashKeys().arrayListValues().build();
 
-        configurations.visitAll(configuration -> {
+        configurations.visitConsumable(configuration -> {
             if (!mustHaveUniqueAttributes(configuration)) {
                 return;
             }
@@ -61,8 +61,7 @@ public class VariantIdentityUniquenessVerifier {
      * Consumable, non-resolvable, non-default configurations with attributes must have unique attributes.
      */
     private static boolean mustHaveUniqueAttributes(Configuration configuration) {
-        return configuration.isCanBeConsumed() &&
-            !configuration.isCanBeResolved() &&
+        return !configuration.isCanBeResolved() &&
             !Dependency.DEFAULT_CONFIGURATION.equals(configuration.getName()) &&
             !configuration.getAttributes().isEmpty();
     }
