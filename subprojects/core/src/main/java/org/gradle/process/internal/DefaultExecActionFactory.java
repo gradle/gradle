@@ -155,8 +155,7 @@ public abstract class DefaultExecActionFactory implements ExecFactory {
         // NOTE: We do not want/need a decorated version of JvmOptions or JavaDebugOptions because
         // these immutable instances are held across builds and will retain classloaders/services in the decorated object
         DefaultFileCollectionFactory fileCollectionFactory = new DefaultFileCollectionFactory(fileResolver, DefaultTaskDependencyFactory.withNoAssociatedProject(), new DefaultDirectoryFileTreeFactory(), nonCachingPatternSetFactory, PropertyHost.NO_OP, FileSystems.getDefault());
-        ObjectFactory objectFactory = new InstantiatorBackedObjectFactory(DirectInstantiator.INSTANCE);
-        return options.toEffectiveJavaForkOptions(objectFactory, fileCollectionFactory);
+        return options.toEffectiveJavaForkOptions(fileCollectionFactory);
     }
 
     public JavaExecAction newDecoratedJavaExecAction() {

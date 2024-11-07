@@ -390,7 +390,7 @@ class DefaultJavaForkOptionsTest extends Specification {
         1 * target.setMaxHeapSize('1g')
         1 * target.bootstrapClasspath(_)
         1 * target.setEnableAssertions(false)
-        1 * target.getDebugOptions() >> new DefaultJavaDebugOptions()
+        1 * target.getDebugOptions() >> TestUtil.newInstance(DefaultJavaDebugOptions)
 
         then:
         1 * target.jvmArgs(['argFromProvider'])

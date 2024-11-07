@@ -16,12 +16,11 @@
 
 package org.gradle.process.internal;
 
-import org.gradle.api.internal.model.InstantiatorBackedObjectFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Optional;
-import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.process.JavaDebugOptions;
+import org.gradle.process.internal.JvmDebugOptions.DefaultJvmDebugOptions;
 
 import javax.inject.Inject;
 import java.util.Objects;
@@ -35,17 +34,12 @@ public class DefaultJavaDebugOptions implements JavaDebugOptions {
 
     @Inject
     public DefaultJavaDebugOptions(ObjectFactory objectFactory) {
-        this.enabled = objectFactory.property(Boolean.class).convention(false);
-        this.host = objectFactory.property(String.class);
-        this.port = objectFactory.property(Integer.class).convention(5005);
-        this.server = objectFactory.property(Boolean.class).convention(true);
-        this.suspend = objectFactory.property(Boolean.class).convention(true);
-    }
-
-    public DefaultJavaDebugOptions() {
-        // Ugly, but there are a few places where we need to instantiate a JavaDebugOptions and a regular ObjectFactory service
-        // is not available.
-        this(new InstantiatorBackedObjectFactory(DirectInstantiator.INSTANCE));
+        DefaultJvmDebugOptions defaultValues = new DefaultJvmDebugOptions();
+        this.enabled = objectFactory.property(Boolean.class).convention(defaultValues.isEnabled());
+        this.host = objectFactory.property(String.class).convention(defaultValues.getHost());
+        this.port = objectFactory.property(Integer.class).convention(defaultValues.getPort());
+        this.server = objectFactory.property(Boolean.class).convention(defaultValues.isServer());
+        this.suspend = objectFactory.property(Boolean.class).convention(defaultValues.isSuspend());
     }
 
     @Override

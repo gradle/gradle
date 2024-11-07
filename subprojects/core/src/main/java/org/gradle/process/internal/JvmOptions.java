@@ -22,10 +22,10 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.cache.internal.HeapProportionalCacheSizer;
-import org.gradle.process.JavaDebugOptions;
 import org.gradle.process.JavaForkOptions;
+import org.gradle.process.internal.JvmDebugOptions.DefaultJvmDebugOptions;
+import org.gradle.process.internal.JvmDebugOptions.PropertyBackedJvmDebugOptions;
 import org.gradle.util.internal.ArgumentsSplitter;
 import org.gradle.util.internal.GUtil;
 import org.slf4j.Logger;
@@ -83,19 +83,15 @@ public class JvmOptions {
     private String maxHeapSize;
     private boolean assertionsEnabled;
 
-    private final JavaDebugOptions debugOptions;
+    private final JvmDebugOptions debugOptions;
 
     protected final Map<String, Object> immutableSystemProperties = new TreeMap<>();
 
-    public JvmOptions(ObjectFactory objectFactory, FileCollectionFactory fileCollectionFactory) {
-        this(fileCollectionFactory, objectFactory.newInstance(DefaultJavaDebugOptions.class, objectFactory));
-    }
-
     public JvmOptions(FileCollectionFactory fileCollectionFactory) {
-        this(fileCollectionFactory, new DefaultJavaDebugOptions());
+        this(fileCollectionFactory, new DefaultJvmDebugOptions());
     }
 
-    private JvmOptions(FileCollectionFactory fileCollectionFactory, DefaultJavaDebugOptions debugOptions) {
+    public JvmOptions(FileCollectionFactory fileCollectionFactory, JvmDebugOptions debugOptions) {
         this.debugOptions = debugOptions;
         this.fileCollectionFactory = fileCollectionFactory;
         immutableSystemProperties.put(FILE_ENCODING_KEY, Charset.defaultCharset().name());
@@ -165,7 +161,7 @@ public class JvmOptions {
             args.add("-ea");
         }
 
-        if (debugOptions.getEnabled().get()) {
+        if (debugOptions.isEnabled()) {
             args.add(getDebugArgument());
         }
         return args;
@@ -175,11 +171,11 @@ public class JvmOptions {
         return getDebugArgument(debugOptions);
     }
 
-    public static String getDebugArgument(JavaDebugOptions options) {
-        boolean server = options.getServer().get();
-        boolean suspend = options.getSuspend().get();
-        int port = options.getPort().get();
-        String host = options.getHost().map(h -> h + ":").getOrElse("");
+    public static String getDebugArgument(JvmDebugOptions options) {
+        boolean server = options.isServer();
+        boolean suspend = options.isSuspend();
+        int port = options.getPort();
+        String host = options.getHost() == null ? "" : options.getHost() + ":";
         String address = host + port;
         return getDebugArgument(server, suspend, address);
     }
@@ -197,7 +193,7 @@ public class JvmOptions {
         maxHeapSize = null;
         extraJvmArgs.clear();
         assertionsEnabled = false;
-        debugOptions.getEnabled().set(false);
+        debugOptions.setEnabled(false);
         jvmArgs(arguments);
     }
 
@@ -225,9 +221,9 @@ public class JvmOptions {
 
     public void checkDebugConfiguration(Iterable<?> arguments) {
         List<String> debugArgs = collectDebugArgs(arguments);
-        if (!debugArgs.isEmpty() && debugOptions.getEnabled().get()) {
+        if (!debugArgs.isEmpty() && debugOptions.isEnabled()) {
             LOGGER.warn("Debug configuration ignored in favor of the supplied JVM arguments: " + debugArgs);
-            debugOptions.getEnabled().set(false);
+            debugOptions.setEnabled(false);
         }
     }
 
@@ -369,14 +365,14 @@ public class JvmOptions {
     }
 
     public boolean getDebug() {
-        return debugOptions.getEnabled().get();
+        return debugOptions.isEnabled();
     }
 
     public void setDebug(boolean enabled) {
-        debugOptions.getEnabled().set(enabled);
+        debugOptions.setEnabled(enabled);
     }
 
-    public JavaDebugOptions getDebugOptions() {
+    public JvmDebugOptions getDebugOptions() {
         return debugOptions;
     }
 
@@ -387,12 +383,12 @@ public class JvmOptions {
         target.setMaxHeapSize(maxHeapSize);
         target.bootstrapClasspath(getBootstrapClasspath().getFiles());
         target.setEnableAssertions(assertionsEnabled);
-        copyDebugOptionsTo(target.getDebugOptions());
+        copyDebugOptionsTo(new PropertyBackedJvmDebugOptions(target.getDebugOptions()));
         target.systemProperties(immutableSystemProperties);
     }
 
-    public JvmOptions createCopy(ObjectFactory objectFactory, FileCollectionFactory fileCollectionFactory) {
-        JvmOptions target = new JvmOptions(objectFactory, fileCollectionFactory);
+    public JvmOptions createCopy(FileCollectionFactory fileCollectionFactory) {
+        JvmOptions target = new JvmOptions(fileCollectionFactory);
         target.setJvmArgs(extraJvmArgs);
         target.setSystemProperties(mutableSystemProperties);
         target.setMinHeapSize(minHeapSize);
@@ -406,17 +402,17 @@ public class JvmOptions {
         return target;
     }
 
-    private void copyDebugOptionsTo(JavaDebugOptions otherOptions) {
+    private void copyDebugOptionsTo(JvmDebugOptions otherOptions) {
         copyDebugOptions(debugOptions, otherOptions);
     }
 
-    static void copyDebugOptions(JavaDebugOptions from, JavaDebugOptions to) {
+    private static void copyDebugOptions(JvmDebugOptions from, JvmDebugOptions to) {
         // This severs the connection between from this debugOptions to the other debugOptions
-        to.getEnabled().set(from.getEnabled().get());
-        to.getHost().set(from.getHost().getOrNull());
-        to.getPort().set(from.getPort().get());
-        to.getServer().set(from.getServer().get());
-        to.getSuspend().set(from.getSuspend().get());
+        to.setEnabled(from.isEnabled());
+        to.setHost(from.getHost());
+        to.setPort(from.getPort());
+        to.setServer(from.isServer());
+        to.setSuspend(from.isSuspend());
     }
 
     public static List<String> fromString(String input) {
