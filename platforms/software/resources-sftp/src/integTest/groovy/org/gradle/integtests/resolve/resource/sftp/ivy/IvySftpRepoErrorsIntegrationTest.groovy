@@ -34,8 +34,8 @@ class IvySftpRepoErrorsIntegrationTest extends AbstractSftpDependencyResolutionT
                 ivy {
                     url = "${ivySftpRepo.uri}"
                     credentials {
-                        username 'sftp'
-                        password 'sftp'
+                        username = 'sftp'
+                        password = 'sftp'
                     }
                 }
             }
@@ -76,8 +76,8 @@ Required by:
                 ivy {
                     url = "${ivySftpRepo.uri}"
                     credentials {
-                        username 'sftp'
-                        password 'sftp'
+                        username = 'sftp'
+                        password = 'sftp'
                     }
                 }
             }
@@ -110,8 +110,8 @@ Required by:
                 ivy {
                     url = "${ivySftpRepo.uri}"
                     credentials {
-                        username 'bad'
-                        password 'credentials'
+                        username = 'bad'
+                        password = 'credentials'
                     }
                 }
             }
@@ -143,8 +143,8 @@ Required by:
                 ivy {
                     url = "${ivySftpRepo.uri}"
                     credentials {
-                        username 'sftp'
-                        password 'sftp'
+                        username = 'sftp'
+                        password = 'sftp'
                     }
                 }
             }
@@ -174,8 +174,8 @@ Required by:
                 ivy {
                     url = "${ivySftpRepo.uri}"
                     credentials {
-                        username 'sftp'
-                        password 'sftp'
+                        username = 'sftp'
+                        password = 'sftp'
                     }
                 }
             }
@@ -207,8 +207,8 @@ Required by:
                 ivy {
                     url = "${ivySftpRepo.uri}"
                     credentials {
-                        username 'sftp'
-                        password 'sftp'
+                        username = 'sftp'
+                        password = 'sftp'
                     }
                 }
             }

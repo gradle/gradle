@@ -39,7 +39,7 @@ class DependencyResolveRulesPreferProjectModulesIntegrationTest extends Abstract
 
         buildFile << """
             project(":ModuleC") {
-                group "myorg"
+                group = "myorg"
                 version = "1.0"
 
                 configurations { conf }
@@ -122,7 +122,7 @@ class DependencyResolveRulesPreferProjectModulesIntegrationTest extends Abstract
 
         buildFile << """
             project(":ModuleC") {
-                group "myorg"
+                group = "myorg"
                 version = "1.0"
 
                 configurations {

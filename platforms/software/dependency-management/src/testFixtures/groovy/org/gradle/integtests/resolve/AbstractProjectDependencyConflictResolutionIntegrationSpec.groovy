@@ -93,7 +93,7 @@ abstract class AbstractProjectDependencyConflictResolutionIntegrationSpec extend
             ${checkHelper(buildId, projectPath)}
 """
         moduleDefinition('ModuleC', """
-            group "myorg"
+            group = "myorg"
             version = $projectDep
 
             configurations { conf }

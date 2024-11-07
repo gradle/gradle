@@ -762,7 +762,7 @@ compileClasspath - Compile classpath for source set 'main'.
                     compile
                 }
 
-                group "org.somethingelse"
+                group = "org.somethingelse"
             }
 
             project(":api2") {
@@ -807,7 +807,7 @@ compile
                     compile
                 }
 
-                group "org.utils"
+                group = "org.utils"
             }
 
             project(":impl") {
@@ -851,7 +851,7 @@ compile
                     compile
                 }
 
-                group "org.utils"
+                group = "org.utils"
             }
 
             project(":impl") {

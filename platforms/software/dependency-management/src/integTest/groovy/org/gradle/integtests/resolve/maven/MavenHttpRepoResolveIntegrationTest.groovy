@@ -375,8 +375,8 @@ task retrieve(type: Sync) {
                 maven {
                     url = "${mavenHttpRepo.uri}"
                     credentials(AwsCredentials) {
-                        accessKey "someKey"
-                        secretKey "someSecret"
+                        accessKey = "someKey"
+                        secretKey = "someSecret"
                     }
                 }
             }

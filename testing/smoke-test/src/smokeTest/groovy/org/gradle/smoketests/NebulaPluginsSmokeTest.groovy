@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.util.GradleVersion
 import spock.lang.Issue
 
 import static org.gradle.api.internal.DocumentationRegistry.BASE_URL
@@ -75,6 +76,12 @@ class NebulaPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implement
 
         then:
         runner('groovydoc', '-s')
+            .expectLegacyDeprecationWarning(
+                "Space-assignment syntax in Groovy DSL has been deprecated. " +
+                    "This is scheduled to be removed in Gradle 10.0. " +
+                    "Use assignment ('url = <value>') or explicit setter instead. " +
+                    "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#groovy_space_assignment_syntax"
+            )
             .build()
     }
 

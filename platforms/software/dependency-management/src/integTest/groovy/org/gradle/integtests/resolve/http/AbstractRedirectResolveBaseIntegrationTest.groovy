@@ -48,7 +48,7 @@ abstract class AbstractRedirectResolveBaseIntegrationTest extends AbstractHttpDe
     }
 
     def configurationWithIvyDependencyAndExpectedArtifact(String dependency, String expectedArtifact, boolean allowInsecureProtocol = defaultAllowInsecureProtocol()) {
-        String allowInsecureProtocolCall =  allowInsecureProtocol ? "allowInsecureProtocol true" : ""
+        String allowInsecureProtocolCall = allowInsecureProtocol ? "allowInsecureProtocol = true" : ""
         """
             repositories {
                 ivy {

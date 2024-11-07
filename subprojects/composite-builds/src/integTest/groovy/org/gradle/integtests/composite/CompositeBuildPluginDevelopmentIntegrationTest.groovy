@@ -35,7 +35,7 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
         pluginDependencyA = singleProjectBuild("pluginDependencyA") {
             buildFile << """
                 apply plugin: 'java-library'
-                version "2.0"
+                version = "2.0"
             """
         }
 
@@ -169,7 +169,7 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
         def buildB = singleProjectBuild("buildB") {
             buildFile << """
                 apply plugin: 'java'
-                version "2.0"
+                version = "2.0"
             """
         }
         buildA.settingsFile.text = """
@@ -204,7 +204,7 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
         def buildB = singleProjectBuild("buildB") {
             buildFile << """
                 apply plugin: 'java'
-                version "2.0"
+                version = "2.0"
             """
         }
         applyPlugin(buildA, false)
@@ -447,7 +447,7 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
         def pluginDependencyB = singleProjectBuild("pluginDependencyB") {
             buildFile << """
                 apply plugin: 'java'
-                version "2.0"
+                version = "2.0"
             """
         }
 

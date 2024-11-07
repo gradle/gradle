@@ -32,8 +32,8 @@ class MavenSftpRepoResolveIntegrationTest extends AbstractSftpDependencyResoluti
                 maven {
                     url = "${mavenSftpRepo.uri}"
                     credentials {
-                        username 'sftp'
-                        password 'sftp'
+                        username = 'sftp'
+                        password = 'sftp'
                     }
                 }
             }

@@ -146,7 +146,7 @@ class CppLibraryWithStaticLinkagePublishingIntegrationTest extends AbstractInsta
                 linkage = [Linkage.STATIC]
                 binaries.configureEach {
                     if (optimized) {
-                        compileTask.get().macros(WITH_FEATURE: "true")
+                        compileTask.get().setMacros(WITH_FEATURE: "true")
                     }
                 }
             }
@@ -164,7 +164,7 @@ class CppLibraryWithStaticLinkagePublishingIntegrationTest extends AbstractInsta
             dependencies { implementation 'some.group:greeting:1.2' }
             application {
                 binaries.get { it.optimized }.configure {
-                    compileTask.get().macros(WITH_FEATURE: "true")
+                    compileTask.get().setMacros(WITH_FEATURE: "true")
                 }
             }
         """

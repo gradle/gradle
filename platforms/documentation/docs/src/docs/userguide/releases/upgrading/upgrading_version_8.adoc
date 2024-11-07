@@ -881,10 +881,10 @@ This can be fixed by adding the appropriate type to the cast, and the redundant 
 
 ```groovy
 // Before
-tasks.create("foo", { Task it -> it.description "Foo task" } as Action)
+tasks.create("foo", { Task it -> it.description = "Foo task" } as Action)
 
 // Fixed
-tasks.create("foo", { it.description "Foo task" } as Action<Task>)
+tasks.create("foo", { it.description = "Foo task" } as Action<Task>)
 ```
 
 ==== Upgrade to ASM 9.7

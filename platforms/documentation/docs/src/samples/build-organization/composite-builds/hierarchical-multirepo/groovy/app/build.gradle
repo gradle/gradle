@@ -2,8 +2,8 @@ plugins {
     id 'application'
 }
 
-group "org.sample"
-version "1.0"
+group = "org.sample"
+version = "1.0"
 
 application {
     mainClass = "org.sample.myapp.Main"

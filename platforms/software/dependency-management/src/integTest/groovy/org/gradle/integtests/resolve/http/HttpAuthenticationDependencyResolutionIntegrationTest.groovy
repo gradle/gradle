@@ -31,7 +31,7 @@ import static org.gradle.test.fixtures.server.http.AuthScheme.HIDE_UNAUTHORIZED
 import static org.gradle.test.fixtures.server.http.AuthScheme.NTLM
 
 class HttpAuthenticationDependencyResolutionIntegrationTest extends AbstractHttpDependencyResolutionTest {
-    static String badCredentials = "credentials{username 'testuser'; password 'bad'}"
+    static String badCredentials = "credentials{username = 'testuser'; password = 'bad'}"
     ResolveFailureTestFixture failedResolve = new ResolveFailureTestFixture(buildFile)
 
     def setup() {
@@ -53,8 +53,8 @@ repositories {
         url = "${ivyHttpRepo.uri}"
 
         credentials {
-            password 'password'
-            username 'username'
+            password = 'password'
+            username = 'username'
         }
 
         ${configuredAuthentication}
@@ -115,8 +115,8 @@ repositories {
         url = "${mavenHttpRepo.uri}"
 
         credentials {
-            password 'password'
-            username 'username'
+            password = 'password'
+            username = 'username'
         }
 
         ${configuredAuthentication}

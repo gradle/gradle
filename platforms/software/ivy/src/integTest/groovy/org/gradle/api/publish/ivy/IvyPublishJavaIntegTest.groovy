@@ -182,9 +182,9 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
                     ivy(IvyPublication) {
                         from components.java
                         artifact(sourceJar) {
-                            classifier "source"
-                            type "sources"
-                            conf "runtime"
+                            classifier = "source"
+                            type = "sources"
+                            conf = "runtime"
                         }
                     }
                 }

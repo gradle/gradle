@@ -76,8 +76,8 @@ repositories {
     maven {
         url = "${mavenGcsRepo.uri}"
         credentials {
-            username "someUserName"
-            password "someSecret"
+            username = "someUserName"
+            password = "someSecret"
         }
     }
 }

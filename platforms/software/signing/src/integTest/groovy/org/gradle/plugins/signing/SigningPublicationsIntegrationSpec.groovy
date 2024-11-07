@@ -267,7 +267,7 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
                 publications {
                     mavenJava(MavenPublication) {
                         from components.java
-                        artifactId '$artifactId'
+                        artifactId = '$artifactId'
                         artifact sourceJar {
                             archiveClassifier = "sources"
                         }
@@ -275,7 +275,7 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
                 }
                 repositories {
                     maven {
-                        name "m2"
+                        name = "m2"
                         url = layout.buildDirectory.dir("m2Repo")
                     }
                 }
@@ -319,10 +319,10 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
                 publications {
                     ivyJava(IvyPublication) {
                         from components.java
-                        module '$artifactId'
+                        module = '$artifactId'
                         artifact(sourceJar) {
-                            type "source"
-                            conf "compile"
+                            type = "source"
+                            conf = "compile"
                         }
                     }
                 }
@@ -449,12 +449,12 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
                 publications {
                     mavenJava(MavenPublication) {
                         from components.java
-                        artifactId '$artifactId'
+                        artifactId = '$artifactId'
                     }
                 }
                 repositories {
                     maven {
-                        name "m2"
+                        name = "m2"
                         url = layout.buildDirectory.dir("m2Repo")
                     }
                 }
@@ -564,11 +564,11 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
                 publications {
                     ivy(IvyPublication) {
                         from components.java
-                        module '$artifactId'
+                        module = '$artifactId'
                     }
                     maven(MavenPublication) {
                         from components.java
-                        artifactId '$artifactId'
+                        artifactId = '$artifactId'
                     }
                 }
                 repositories {
@@ -628,11 +628,11 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
                 publications {
                     ivy(IvyPublication) {
                         from components.java
-                        module '$artifactId'
+                        module = '$artifactId'
                     }
                     maven(MavenPublication) {
                         from components.java
-                        artifactId '$artifactId'
+                        artifactId = '$artifactId'
                     }
                 }
                 repositories {
@@ -766,25 +766,25 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
 
                         // Base filename
                         artifact("res/a/same.txt") {
-                            classifier 'a'
-                            extension 'txt'
+                            classifier = 'a'
+                            extension = 'txt'
                         }
                         // Base filename + Different classifier
                         // Original problem with #20166
                         artifact("res/b/same.txt") {
-                            classifier 'b'
-                            extension 'txt'
+                            classifier = 'b'
+                            extension = 'txt'
                         }
                         // Different filename
                         artifact("res/c/different.txt") {
-                            classifier 'c'
-                            extension 'txt'
+                            classifier = 'c'
+                            extension = 'txt'
                         }
                     }
                 }
                 repositories {
                     maven {
-                        name "m2"
+                        name = "m2"
                         url = layout.buildDirectory.dir("m2Repo")
                     }
                 }

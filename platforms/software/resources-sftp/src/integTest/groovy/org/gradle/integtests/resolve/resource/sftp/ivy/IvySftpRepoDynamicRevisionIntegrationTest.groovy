@@ -27,8 +27,8 @@ class IvySftpRepoDynamicRevisionIntegrationTest extends AbstractSftpDependencyRe
                 ivy {
                     url = "${ivySftpRepo.uri}"
                     credentials {
-                        username 'sftp'
-                        password 'sftp'
+                        username = 'sftp'
+                        password = 'sftp'
                     }
                 }
             }

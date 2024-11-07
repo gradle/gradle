@@ -77,8 +77,8 @@ repositories {
     maven {
         url = "${mavenS3Repo.uri}"
         credentials {
-            username "someUserName"
-            password "someSecret"
+            username = "someUserName"
+            password = "someSecret"
         }
     }
 }

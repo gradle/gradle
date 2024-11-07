@@ -88,7 +88,7 @@ class MavenPublishPomPackagingJavaIntegTest extends AbstractMavenPublishIntegTes
                 publications {
                     maven(MavenPublication) {
                         from components.java
-                        pom.packaging '$packaging'
+                        pom.packaging = '$packaging'
                     }
                 }
             }

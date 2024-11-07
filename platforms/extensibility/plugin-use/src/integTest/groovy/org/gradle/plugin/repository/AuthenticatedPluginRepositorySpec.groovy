@@ -63,8 +63,8 @@ class AuthenticatedPluginRepositorySpec extends AbstractHttpDependencyResolution
               ${repoType} {
                   url = "${repoUrl}"
                   credentials {
-                      password '${PASSWORD}'
-                      username '${USERNAME}'
+                      password = '${PASSWORD}'
+                      username = '${USERNAME}'
                   }
                   ${configuredAuthentication}
               }

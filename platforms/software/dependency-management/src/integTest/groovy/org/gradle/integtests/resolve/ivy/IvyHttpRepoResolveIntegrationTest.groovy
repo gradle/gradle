@@ -53,8 +53,8 @@ class IvyHttpRepoResolveIntegrationTest extends AbstractIvyRemoteRepoResolveInte
                 ivy {
                     url = "${remoteIvyRepo.uri}"
                     credentials(AwsCredentials) {
-                        accessKey "someKey"
-                        secretKey "someSecret"
+                        accessKey = "someKey"
+                        secretKey = "someSecret"
                     }
                 }
             }

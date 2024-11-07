@@ -173,7 +173,7 @@ class CppLibraryWithBothLinkagePublishingIntegrationTest extends AbstractInstall
                 linkage = [Linkage.STATIC, Linkage.SHARED]
                 binaries.configureEach {
                     if (optimized) {
-                        compileTask.get().macros(WITH_FEATURE: "true")
+                        compileTask.get().setMacros(WITH_FEATURE: "true")
                     }
                 }
             }
@@ -191,7 +191,7 @@ class CppLibraryWithBothLinkagePublishingIntegrationTest extends AbstractInstall
             dependencies { implementation 'some.group:greeting:1.2' }
             application {
                 binaries.get { it.optimized }.configure {
-                    compileTask.get().macros(WITH_FEATURE: "true")
+                    compileTask.get().setMacros(WITH_FEATURE: "true")
                 }
             }
         """

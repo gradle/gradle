@@ -30,7 +30,7 @@ class CachedChangingModulesIntegrationTest extends AbstractHttpDependencyResolut
         buildFile << """
         repositories {
             maven {
-                name 'repo'
+                name = 'repo'
                 url = '${repo.uri}'
             }
         }
@@ -101,7 +101,7 @@ class CachedChangingModulesIntegrationTest extends AbstractHttpDependencyResolut
         buildFile << """
         repositories {
             maven {
-                name 'repo'
+                name = 'repo'
                 url = '${repo.uri}'
             }
         }
@@ -171,7 +171,7 @@ class CachedChangingModulesIntegrationTest extends AbstractHttpDependencyResolut
         buildFile << """
           repositories {
               ivy {
-                  name 'repo'
+                  name = 'repo'
                   url = '${repo.uri}'
               }
           }

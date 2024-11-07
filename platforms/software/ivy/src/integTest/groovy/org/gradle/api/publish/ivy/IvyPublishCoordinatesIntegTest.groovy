@@ -39,9 +39,9 @@ class IvyPublishCoordinatesIntegTest extends AbstractIvyPublishIntegTest {
                 publications {
                     ivy(IvyPublication) {
                         from components.java
-                        organisation "org.custom"
-                        module "custom"
-                        revision "2.2"
+                        organisation = "org.custom"
+                        module = "custom"
+                        revision = "2.2"
                     }
                 }
             }
@@ -87,24 +87,24 @@ class IvyPublishCoordinatesIntegTest extends AbstractIvyPublishIntegTest {
                 }
                 publications {
                     ivy(IvyPublication) {
-                        organisation "org.custom"
-                        module "custom"
-                        revision "2.2"
+                        organisation = "org.custom"
+                        module = "custom"
+                        revision = "2.2"
                         from components.java
                     }
                     ivyApi(IvyPublication) {
-                        organisation "org.custom"
-                        module "custom-api"
-                        revision "2"
+                        organisation = "org.custom"
+                        module = "custom-api"
+                        revision = "2"
                         configurations {
                             compile {}
                             runtime {}
                             "default" {
-                                extend "compile"
+                                extend("compile")
                             }
                         }
                         artifact(apiJar) {
-                            conf "compile,runtime"
+                            conf = "compile,runtime"
                         }
                     }
                 }
@@ -211,7 +211,7 @@ include 'projectB'
                 publications {
                     main(IvyPublication) {
                         from components.java
-                        module "duplicate"
+                        module = "duplicate"
                     }
                 }
             }
@@ -238,11 +238,11 @@ include 'projectB'
             publishing {
                 repositories {
                     ivy {
-                        name "ivy1"
+                        name = "ivy1"
                         url = "${ivyRepo.uri}"
                     }
                     ivy {
-                        name "ivy2"
+                        name = "ivy2"
                         url = "${ivyRepo.uri}"
                     }
                 }

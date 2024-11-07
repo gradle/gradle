@@ -647,7 +647,7 @@ dependencies { implementation 'some.group:greeter:1.2' }
             }
 
             library.binaries.get { it.optimized }.configure {
-                compileTask.get().macros(WITH_FEATURE: "true")
+                compileTask.get().setMacros(WITH_FEATURE: "true")
             }
 
         """
@@ -663,7 +663,7 @@ dependencies { implementation 'some.group:greeter:1.2' }
             repositories { maven { url = '${repoDir.toURI()}' } }
             dependencies { implementation 'some.group:greeting:1.2' }
             application.binaries.get { it.optimized }.configure {
-                compileTask.get().macros(WITH_FEATURE: "true")
+                compileTask.get().setMacros(WITH_FEATURE: "true")
             }
         """
         app.main.writeToProject(consumer)

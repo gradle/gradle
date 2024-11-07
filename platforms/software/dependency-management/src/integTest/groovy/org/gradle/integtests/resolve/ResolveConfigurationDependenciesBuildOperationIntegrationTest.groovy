@@ -301,8 +301,8 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
                 }
                 allprojects {
                     apply plugin: 'java'
-                    group "org.sample"
-                    version "1.0"
+                    group = "org.sample"
+                    version = "1.0"
                 }
 
         """
@@ -471,11 +471,11 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
             apply plugin: "java"
             repositories {
                 maven {
-                    name 'maven1'
+                    name = 'maven1'
                     url = "${mavenHttpRepo.uri}"
                 }
                 maven {
-                    name 'maven2'
+                    name = 'maven2'
                     url = "${secondMavenHttpRepo.uri}"
                 }
             }
@@ -546,7 +546,7 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
             apply plugin: "java"
             repositories {
                 maven {
-                    name 'maven1'
+                    name = 'maven1'
                     url = "${mavenHttpRepo.uri}"
                 }
             }
@@ -593,11 +593,11 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
             apply plugin: "java"
             repositories {
                 maven {
-                    name 'withoutCreds'
+                    name = 'withoutCreds'
                     url = "${mavenHttpRepo.uri}"
                 }
                 maven {
-                    name 'withCreds'
+                    name = 'withCreds'
                     url = "${mavenHttpRepo.uri}"
                     credentials {
                         username = 'foo'
@@ -658,7 +658,7 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
             apply plugin: "java"
             repositories {
                 maven {
-                    name 'one'
+                    name = 'one'
                     url = "${mavenRepo.uri}"
                 }
             }
@@ -668,7 +668,7 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
                         project.repositories.clear()
                         project.repositories {
                             maven {
-                                name 'two'
+                                name = 'two'
                                 url = "${mavenRepo.uri}"
                             }
                             mavenCentral()

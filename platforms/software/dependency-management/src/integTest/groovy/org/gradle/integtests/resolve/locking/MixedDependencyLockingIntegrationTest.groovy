@@ -33,7 +33,7 @@ class MixedDependencyLockingIntegrationTest extends AbstractDependencyResolution
         buildFile << """
 repositories {
     maven {
-        name 'repo'
+        name = 'repo'
         url = "${mavenRepo.uri}"
     }
 }
@@ -76,7 +76,7 @@ dependencies {
         buildFile << """
 repositories {
     maven {
-        name 'repo'
+        name = 'repo'
         url = "${mavenRepo.uri}"
     }
 }
@@ -110,7 +110,7 @@ dependencies {
         buildFile << """
 repositories {
     maven {
-        name 'repo'
+        name = 'repo'
         url = "${mavenRepo.uri}"
     }
 }
@@ -145,7 +145,7 @@ dependencies {
         buildFile << """
 repositories {
     maven {
-        name 'repo'
+        name = 'repo'
         url = "${mavenRepo.uri}"
     }
 }

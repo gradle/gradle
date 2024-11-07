@@ -45,8 +45,8 @@ public interface JvmToolchainManagement {
      *             repository('registry1') {
      *                 resolverClass = com.example.CustomToolchainRegistry1
      *                 credentials {
-     *                     username "user"
-     *                     password "password"
+     *                     username = "user"
+     *                     password = "password"
      *                 }
      *                 authentication {
      *                     digest(BasicAuthentication)

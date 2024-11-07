@@ -159,11 +159,11 @@ task showMissing {
         buildFile << """
             repositories {
                 maven {
-                    name 'repo1'
+                    name = 'repo1'
                     url = "${repo1.uri}"
                 }
                 maven {
-                    name 'repo2'
+                    name = 'repo2'
                     url = "${repo2.uri}"
                     metadataSources {
                         mavenPom()
@@ -249,11 +249,11 @@ Required by:
         buildFile << """
             repositories {
                 maven {
-                    name 'repo1'
+                    name = 'repo1'
                     url = "${repo1.uri}"
                 }
                 maven {
-                    name 'repo2'
+                    name = 'repo2'
                     url = "${repo2.uri}"
                 }
             }
@@ -306,11 +306,11 @@ Required by:
         buildFile << """
             repositories {
                 maven {
-                    name 'repo1'
+                    name = 'repo1'
                     url = "${repo1.uri}"
                 }
                 maven {
-                    name 'repo2'
+                    name = 'repo2'
                     url = "${repo2.uri}"
                 }
             }
@@ -383,11 +383,11 @@ Required by:
         buildFile << """
     repositories {
         maven {
-            name 'repo1'
+            name = 'repo1'
             url = "${repo1.uri}"
         }
         maven {
-            name 'repo2'
+            name = 'repo2'
             url = "${repo2.uri}"
         }
     }
@@ -459,11 +459,11 @@ Required by:
         buildFile << """
     repositories {
         maven {
-            name 'repo1'
+            name = 'repo1'
             url = "${repo1.uri}"
         }
         maven {
-            name 'repo2'
+            name = 'repo2'
             url = "${repo2.uri}"
         }
     }
@@ -558,11 +558,11 @@ Required by:
             allprojects{
                 repositories {
                     maven {
-                        name 'repo1'
+                        name = 'repo1'
                         url = "${repo1.uri}"
                     }
                     maven {
-                        name 'repo2'
+                        name = 'repo2'
                         url = "${repo2.uri}"
                     }
                 }
@@ -624,11 +624,11 @@ Required by:
         buildFile << """
         repositories {
            maven {
-               name 'repo1'
+               name = 'repo1'
                url = "${repo1.uri}"
            }
            maven {
-               name 'repo2'
+               name = 'repo2'
                url = "${repo2.uri}"
            }
        }

@@ -15,16 +15,16 @@ repositories {
     maven {
         url = "sftp://repo.mycompany.com:22/maven2"
         credentials {
-            username "user"
-            password "password"
+            username = "user"
+            password = "password"
         }
     }
 
     ivy {
         url = "sftp://repo.mycompany.com:22/repo"
         credentials {
-            username "user"
-            password "password"
+            username = "user"
+            password = "password"
         }
     }
 }
@@ -35,20 +35,20 @@ repositories {
     maven {
         url = "s3://myCompanyBucket/maven2"
         credentials(AwsCredentials) {
-            accessKey "someKey"
-            secretKey "someSecret"
+            accessKey = "someKey"
+            secretKey = "someSecret"
             // optional
-            sessionToken "someSTSToken"
+            sessionToken = "someSTSToken"
         }
     }
 
     ivy {
         url = "s3://myCompanyBucket/ivyrepo"
         credentials(AwsCredentials) {
-            accessKey "someKey"
-            secretKey "someSecret"
+            accessKey = "someKey"
+            secretKey = "someSecret"
             // optional
-            sessionToken "someSTSToken"
+            sessionToken = "someSTSToken"
         }
     }
 }
@@ -127,8 +127,8 @@ repositories {
     maven {
         url = "http://repo.mycompany.com/maven2"
         credentials {
-            username "user"
-            password "password"
+            username = "user"
+            password = "password"
         }
     }
 }
@@ -256,8 +256,8 @@ repositories {
     ivy {
         url = "http://repo.mycompany.com"
         credentials {
-            username "user"
-            password "password"
+            username = "user"
+            password = "password"
         }
     }
 }
@@ -276,8 +276,8 @@ repositories {
     maven {
         url = 'https://repo.mycompany.com/maven2'
         credentials {
-            username "user"
-            password "password"
+            username = "user"
+            password = "password"
         }
         authentication {
             digest(DigestAuthentication)
@@ -291,8 +291,8 @@ repositories {
     maven {
         url = 'https://repo.mycompany.com/maven2'
         credentials {
-            username "user"
-            password "password"
+            username = "user"
+            password = "password"
         }
         authentication {
             basic(BasicAuthentication)

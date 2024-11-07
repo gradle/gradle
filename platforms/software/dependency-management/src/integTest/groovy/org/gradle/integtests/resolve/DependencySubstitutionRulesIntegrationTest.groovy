@@ -848,12 +848,12 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
             $common
 
             project(":dep1") {
-                group "org.utils"
+                group = "org.utils"
                 version = '1.6'
             }
 
             project(":dep2") {
-                group "org.utils"
+                group = "org.utils"
                 version = '3.0'
 
                 jar.archiveVersion = '3.0'

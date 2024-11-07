@@ -12,7 +12,7 @@ configurations {
 }
 def rpmFile = layout.buildDirectory.file("rpms/my-package.rpm")
 def rpmArtifact = artifacts.add("conf", rpmFile.get().asFile) {
-    type "rpm"
+    type = "rpm"
     builtBy "rpm"
 }
 // end::custom-artifact[]

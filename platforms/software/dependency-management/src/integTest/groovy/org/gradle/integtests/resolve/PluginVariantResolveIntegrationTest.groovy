@@ -120,7 +120,7 @@ class PluginVariantResolveIntegrationTest extends AbstractIntegrationSpec {
                 publishing {
                     repositories {
                        maven {
-                           name 'build'
+                           name = 'build'
                            url = layout.buildDirectory.dir('repo')
                        }
                     }

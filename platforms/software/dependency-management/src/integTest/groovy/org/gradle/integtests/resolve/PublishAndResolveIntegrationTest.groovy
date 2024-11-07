@@ -132,9 +132,9 @@ class PublishAndResolveIntegrationTest extends AbstractDependencyResolutionTest 
                 publications {
                     jar(IvyPublication) {
                         from components.java
-                        organisation group
-                        module '${lib}'
-                        revision '${version}'
+                        organisation = group
+                        module = '${lib}'
+                        revision = '${version}'
                     }
                 }
             }

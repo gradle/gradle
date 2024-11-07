@@ -21,13 +21,13 @@ plugins {
 }
 
 android {
-    compileSdkVersion(24)
+    compileSdk = 24
     buildToolsVersion("$androidBuildToolsVersion")
     namespace = "org.gradle.smoketest.kotlin.android"
     defaultConfig {
         applicationId = "org.gradle.smoketest.kotlin.android"
-        minSdkVersion(16)
-        targetSdkVersion(24)
+        minSdk = 16
+        targetSdk = 24
         versionCode = 1
         versionName = "1.0"
         testInstrumentationRunner = "android.support.test.runner.AndroidJUnitRunner"

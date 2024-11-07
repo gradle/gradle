@@ -235,8 +235,8 @@ subprojects {
                 repositories{ maven { url = file('${normaliseFileSeparators(repo.getAbsolutePath())}') }}
                 publications {
                     maven(MavenPublication) {
-                        groupId 'org.gradle.sample'
-                        version '1.1'
+                        groupId = 'org.gradle.sample'
+                        version = '1.1'
                         from components.java
                     }
                 }

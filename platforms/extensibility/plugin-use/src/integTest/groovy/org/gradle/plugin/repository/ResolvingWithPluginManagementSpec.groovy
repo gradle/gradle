@@ -429,9 +429,9 @@ class ResolvingWithPluginManagementSpec extends AbstractDependencyResolutionTest
                     ivy {
                         url = "${repo.uri}"
                         patternLayout {
-                            ivy '[organisation]/[module]/[revision]/[module]-[revision].ivy'
-                            artifact '[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]'
-                            m2compatible true
+                            ivy('[organisation]/[module]/[revision]/[module]-[revision].ivy')
+                            artifact('[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]')
+                            m2compatible = true
                         }
                     }
                 }

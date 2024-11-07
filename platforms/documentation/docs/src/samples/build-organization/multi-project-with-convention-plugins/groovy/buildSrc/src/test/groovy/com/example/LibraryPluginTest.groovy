@@ -38,7 +38,7 @@ class LibraryPluginTest extends PluginTest {
             publishing {
                 repositories {
                     maven {
-                        name 'testRepo'
+                        name = 'testRepo'
                         url = layout.buildDirectory().dir('test-repo')
                     }
                 }

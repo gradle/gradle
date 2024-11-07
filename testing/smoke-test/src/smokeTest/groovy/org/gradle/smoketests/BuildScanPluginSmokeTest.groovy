@@ -412,6 +412,11 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
                     "This is scheduled to be removed in Gradle 9.0. " +
                     "Use getBuildPath() to get a unique identifier for the build. " +
                     "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#build_identifier_name_and_current_deprecation"
+            ).expectLegacyDeprecationWarning(
+            "Space-assignment syntax in Groovy DSL has been deprecated. " +
+                "This is scheduled to be removed in Gradle 10.0. " +
+                "Use assignment ('url = <value>') or explicit setter instead. " +
+                "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#groovy_space_assignment_syntax"
             )
             .build().output.contains("Build scan written to")
 

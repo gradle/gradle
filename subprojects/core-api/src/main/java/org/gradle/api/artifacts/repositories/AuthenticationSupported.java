@@ -78,8 +78,8 @@ public interface AuthenticationSupported {
      *     maven {
      *         url = "https://example.com/aws/proxy"
      *         credentials(AwsCredentials) {
-     *             accessKey "myAccessKey"
-     *             secretKey "mySecret"
+     *             accessKey = "myAccessKey"
+     *             secretKey = "mySecret"
      *         }
      *     }
      * }

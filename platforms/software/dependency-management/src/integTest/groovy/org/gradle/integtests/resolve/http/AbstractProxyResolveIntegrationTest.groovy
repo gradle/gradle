@@ -220,8 +220,8 @@ repositories {
     maven {
         url = "${repoServerUrl}"
         credentials {
-            username '$repoUserName'
-            password '$repoPassword'
+            username = '$repoUserName'
+            password = '$repoPassword'
         }
     }
 }

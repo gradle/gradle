@@ -231,8 +231,8 @@ class ConfigurationCacheIvyPublishIntegrationTest extends AbstractConfigurationC
         if (inlinedCredentials) {
             credentialsBlock = """
                 credentials {
-                    username '${username}'
-                    password '${password}'
+                    username = '${username}'
+                    password = '${password}'
                 }
             """
         } else {
@@ -244,7 +244,7 @@ class ConfigurationCacheIvyPublishIntegrationTest extends AbstractConfigurationC
                 ivy {
                     name = "${repositoryName}"
                     url = "${remoteRepo.uri}"
-                    allowInsecureProtocol true
+                    allowInsecureProtocol = true
                     ${credentialsBlock}
                 }
             }

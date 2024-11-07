@@ -135,10 +135,10 @@ abstract class AbstractIvyRemoteRepoResolveIntegrationTest extends AbstractInteg
                 ivy {
                     $server.validCredentials
                     url = "${emptyRepo.uri}"
-                    artifactPattern "${thirdPartyIvyRepo.artifactPattern}"
-                    artifactPattern "${companyIvyRepo.artifactPattern}"
-                    ivyPattern "${thirdPartyIvyRepo.ivyPattern}"
-                    ivyPattern "${companyIvyRepo.ivyPattern}"
+                    artifactPattern("${thirdPartyIvyRepo.artifactPattern}")
+                    artifactPattern("${companyIvyRepo.artifactPattern}")
+                    ivyPattern("${thirdPartyIvyRepo.ivyPattern}")
+                    ivyPattern("${companyIvyRepo.ivyPattern}")
                 }
             }
             configurations { compile }

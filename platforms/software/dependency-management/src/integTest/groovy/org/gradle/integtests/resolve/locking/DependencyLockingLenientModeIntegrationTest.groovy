@@ -37,7 +37,7 @@ dependencyLocking {
 
 repositories {
     maven {
-        name 'repo'
+        name = 'repo'
         url = "${mavenRepo.uri}"
     }
 }
@@ -88,7 +88,7 @@ dependencyLocking {
 
 repositories {
     maven {
-        name 'repo'
+        name = 'repo'
         url = "${mavenRepo.uri}"
     }
 }
@@ -138,7 +138,7 @@ dependencyLocking {
 
 repositories {
     maven {
-        name 'repo'
+        name = 'repo'
         url = "${mavenRepo.uri}"
     }
 }
@@ -184,7 +184,7 @@ dependencyLocking {
 
 repositories {
     maven {
-        name 'repo'
+        name = 'repo'
         url = "${mavenRepo.uri}"
     }
 }
@@ -231,7 +231,7 @@ dependencyLocking {
 
 repositories {
     maven {
-        name 'repo'
+        name = 'repo'
         url = "${mavenRepo.uri}"
     }
 }
@@ -268,7 +268,7 @@ dependencyLocking {
 
 repositories {
     maven {
-        name 'repo'
+        name = 'repo'
         url = "${mavenRepo.uri}"
     }
 }
@@ -309,7 +309,7 @@ dependencyLocking {
 
 repositories {
     maven {
-        name 'repo'
+        name = 'repo'
         url = "${mavenRepo.uri}"
     }
 }

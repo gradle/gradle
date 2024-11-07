@@ -48,9 +48,9 @@ dependencies {
 
 test {
     if (!JavaVersion.current().java8Compatible) {
-        jvmArgs '-XX:MaxPermSize=512m'
+        jvmArgs('-XX:MaxPermSize=512m')
     }
-    jvmArgs '-XX:+HeapDumpOnOutOfMemoryError'
+    jvmArgs('-XX:+HeapDumpOnOutOfMemoryError')
     <% if (binding.hasVariable("fullTestLogging")) { %>
         testLogging {
             events "started", "skipped", "failed", "passed", "standard_out", "standard_error"

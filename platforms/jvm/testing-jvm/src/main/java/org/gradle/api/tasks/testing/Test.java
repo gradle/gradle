@@ -139,7 +139,7 @@ import static org.gradle.util.internal.ConfigureUtil.configureUsing;
  *   maxHeapSize = "512m"
  *
  *   // set JVM arguments for the test JVM(s)
- *   jvmArgs '-XX:MaxPermSize=256m'
+ *   jvmArgs('-XX:MaxPermSize=256m')
  *
  *   // listen to events in the test execution lifecycle
  *   beforeTest { descriptor -&gt;

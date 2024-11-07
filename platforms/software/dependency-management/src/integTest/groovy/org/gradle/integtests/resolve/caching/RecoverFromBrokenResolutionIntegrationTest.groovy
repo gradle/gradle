@@ -201,7 +201,7 @@ class RecoverFromBrokenResolutionIntegrationTest extends AbstractHttpDependencyR
         buildFile.text = """
                   repositories {
                        ivy {
-                           name 'repo'
+                           name = 'repo'
                            url = "${ivyRepo.uri}"
                        }
                   }
@@ -331,7 +331,7 @@ class RecoverFromBrokenResolutionIntegrationTest extends AbstractHttpDependencyR
         buildFile << """
         repositories {
             maven {
-                name 'repo'
+                name = 'repo'
                 url = '${repo.uri}'
             }
         } """
@@ -344,8 +344,8 @@ class RecoverFromBrokenResolutionIntegrationTest extends AbstractHttpDependencyR
             maven {
                 url = '${repo.uri}'
                 credentials {
-                    password 'password'
-                    username 'username'
+                    password = 'password'
+                    username = 'username'
                 }
             }
         }

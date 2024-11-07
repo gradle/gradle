@@ -412,7 +412,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      * apply plugin: 'java'
      *
      * test.testLogging {
-     *     exceptionFormat "full"
+     *     exceptionFormat = "full"
      * }
      * </pre>
      *

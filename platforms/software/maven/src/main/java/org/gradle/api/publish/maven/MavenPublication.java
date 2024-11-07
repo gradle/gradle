@@ -217,12 +217,12 @@ public interface MavenPublication extends Publication {
      *     maven(MavenPublication) {
      *       artifact(sourceJar) {
      *         // These values will be used instead of the values from the task. The task values will not be updated.
-     *         classifier "src"
-     *         extension "zip"
+     *         classifier = "src"
+     *         extension = "zip"
      *       }
      *       artifact("my-docs-file.htm") {
-     *         classifier "documentation"
-     *         extension "html"
+     *         classifier = "documentation"
+     *         extension = "html"
      *       }
      *     }
      *   }

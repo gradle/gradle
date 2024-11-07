@@ -276,7 +276,7 @@ class PluginManagementDslSpec extends AbstractIntegrationSpec {
                         patternLayout {
                             ivy '[organisation]/[module]/[revision]/[module]-[revision].ivy'
                             artifact '[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]'
-                            m2compatible true
+                            m2compatible = true
                         }
                     }
                     ivy {
@@ -293,8 +293,8 @@ class PluginManagementDslSpec extends AbstractIntegrationSpec {
                     }
                     ivy {
                         url = "http://repo.internal.net/ivy"
-                        artifactPattern '[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]'
-                        ivyPattern '[organisation]/[module]/[revision]/[module]-[revision].ivy'
+                        artifactPattern('[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]')
+                        ivyPattern('[organisation]/[module]/[revision]/[module]-[revision].ivy')
                     }
                 }
             }

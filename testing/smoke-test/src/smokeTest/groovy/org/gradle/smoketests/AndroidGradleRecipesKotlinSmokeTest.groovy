@@ -77,7 +77,7 @@ class AndroidGradleRecipesKotlinSmokeTest extends AbstractSmokeTest implements R
 
             android {
                 namespace = "org.gradle.smoketests.androidrecipes"
-                compileSdkVersion(29)
+                compileSdk = 29
                 buildToolsVersion("${TestedVersions.androidTools}")
                 buildFeatures { buildConfig = true }
                 kotlinOptions { jvmTarget = "1.8" }

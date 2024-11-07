@@ -335,8 +335,8 @@ task retrieve(type: Sync) {
 
         def resolve = new ResolveTestFixture(buildFile, "compile")
         buildFile << """
-    group 'org.test'
-    version '1.0'
+    group = 'org.test'
+    version = '1.0'
     configurations {
         compile
     }

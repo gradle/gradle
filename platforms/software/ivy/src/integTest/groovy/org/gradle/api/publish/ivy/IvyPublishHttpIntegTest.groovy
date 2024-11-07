@@ -278,8 +278,8 @@ class IvyPublishHttpIntegTest extends AbstractIvyPublishIntegTest {
             publishing {
                 repositories {
                     ivy {
-                        artifactPattern "${ivyHttpRepo.artifactPattern}"
-                        artifactPattern "http://localhost:${server.port}/alternative/[module]/[artifact]-[revision].[ext]"
+                        artifactPattern("${ivyHttpRepo.artifactPattern}")
+                        artifactPattern("http://localhost:${server.port}/alternative/[module]/[artifact]-[revision].[ext]")
                         ivyPattern "${ivyHttpRepo.ivyPattern}"
                         ivyPattern "http://localhost:${server.port}/secondary-ivy/[module]/ivy-[revision].xml"
                     }
@@ -339,7 +339,7 @@ class IvyPublishHttpIntegTest extends AbstractIvyPublishIntegTest {
                         configurations {
                             runtime {
                                 artifact('${largeJar.toURI()}') {
-                                    name 'publish'
+                                    name = 'publish'
                                 }
                             }
                         }
@@ -603,7 +603,7 @@ class IvyPublishHttpIntegTest extends AbstractIvyPublishIntegTest {
             publishing {
                 repositories {
                     ivy {
-                        name "$repoName"
+                        name = "$repoName"
                         url = "$uri"
                         $credentialsBlock
                     }

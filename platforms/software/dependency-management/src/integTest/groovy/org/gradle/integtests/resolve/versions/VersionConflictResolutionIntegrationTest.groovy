@@ -770,8 +770,8 @@ parentFirst
         buildFile << """
 apply plugin: 'java'
 
-group "org"
-version "1.3"
+group = "org"
+version = "1.3"
 
 repositories {
     maven { url = "${mavenRepo.uri}" }
@@ -806,8 +806,8 @@ dependencies {
         buildFile << """
 apply plugin: 'java'
 
-group "org"
-version "1.3"
+group = "org"
+version = "1.3"
 
 repositories {
     maven { url = "${mavenRepo.uri}" }
@@ -2100,7 +2100,7 @@ apply plugin: 'java'
 
 repositories {
     maven {
-        name 'repo'
+        name = 'repo'
         url = "${mavenRepo.uri}"
     }
 }
@@ -2157,7 +2157,7 @@ apply plugin: 'java'
 
 repositories {
     maven {
-        name 'repo'
+        name = 'repo'
         url = "${mavenRepo.uri}"
     }
 }
@@ -2338,7 +2338,7 @@ project(':sub') {
         buildFile << """
 repositories {
     maven {
-        name 'repo'
+        name = 'repo'
         url = "${mavenRepo.uri}"
     }
 }
@@ -2364,7 +2364,7 @@ dependencies {
         buildFile << """
             repositories {
                 maven {
-                    name 'repo'
+                    name = 'repo'
                     url = "${mavenRepo.uri}"
                 }
             }
@@ -2411,7 +2411,7 @@ dependencies {
         buildFile << """
             repositories {
                 maven {
-                    name 'repo'
+                    name = 'repo'
                     url = "${mavenRepo.uri}"
                 }
             }
