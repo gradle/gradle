@@ -22,7 +22,7 @@ import org.gradle.api.Transformer
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.internal.Describables
-import org.gradle.internal.evaluation.EvaluationContext
+import org.gradle.internal.evaluation.CircularEvaluationException
 import org.gradle.util.internal.TextUtil
 import org.spockframework.lang.Wildcard
 
@@ -1179,7 +1179,7 @@ The value of this property is derived from: <source>""")
             consumer.accept(property)
 
             then:
-            thrown(EvaluationContext.CircularEvaluationException)
+            thrown(CircularEvaluationException)
 
             where:
             consumer << throwingConsumers()
@@ -1197,7 +1197,7 @@ The value of this property is derived from: <source>""")
             consumer.accept(property)
 
             then:
-            thrown(EvaluationContext.CircularEvaluationException)
+            thrown(CircularEvaluationException)
 
             where:
             consumer << throwingConsumers() - [GET_PRODUCER]
@@ -1233,7 +1233,7 @@ The value of this property is derived from: <source>""")
             consumer.accept(property)
 
             then:
-            thrown(EvaluationContext.CircularEvaluationException)
+            thrown(CircularEvaluationException)
 
             where:
             consumer << throwingConsumers()
@@ -1251,7 +1251,7 @@ The value of this property is derived from: <source>""")
             consumer.accept(property)
 
             then:
-            thrown(EvaluationContext.CircularEvaluationException)
+            thrown(CircularEvaluationException)
 
             where:
             consumer << throwingConsumers() - [GET_PRODUCER]

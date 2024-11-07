@@ -19,12 +19,10 @@ package org.gradle.internal.evaluation;
 import com.google.common.collect.ImmutableList;
 import it.unimi.dsi.fastutil.objects.ReferenceArrayList;
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
-import org.gradle.api.GradleException;
 
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * This class keeps track of all objects being evaluated at the moment.
@@ -35,62 +33,6 @@ import java.util.stream.Collectors;
  * This class is thread-safe, but the returned contexts must be closed by the same thread that opens them.
  */
 public final class EvaluationContext {
-    /**
-     * An evaluation that runs with the owner being added to the evaluation context.
-     *
-     * @param <R> the return type
-     * @param <E> (optional) exception type being thrown by the evaluation
-     */
-    @FunctionalInterface
-    public interface ScopedEvaluation<R, E extends Exception> {
-        R evaluate() throws E;
-    }
-
-    /**
-     * A marker interface for types that can be evaluating.
-     */
-    public interface EvaluationOwner {}
-
-    /**
-     * A scope context. One can obtain an instance by calling {@link #open(EvaluationOwner)}.
-     * Closing this context removes the owner from the evaluation context.
-     * The primary use case is to serve as an argument for the try-with-resources block.
-     * It can also serve as a token parameter of a method that must be executed within such a block.
-     * <p>
-     * It is not safe to call {@link #close()} multiple times.
-     * The instances of the class may not be unique for different owners being added.
-     * <p>
-     * Contexts must be closed in the order they are obtained.
-     * This context must be closed by the same thread that obtained it.
-     */
-    public interface ScopeContext extends AutoCloseable {
-        /**
-         * Returns the owner of the current scope, which is the last object that started its evaluation.
-         * Can be null if the current scope has no owner (e.g. a just opened nested context).
-         *
-         * @return the owner
-         */
-        @Nullable
-        EvaluationOwner getOwner();
-
-        /**
-         * Opens a nested context. A nested context allows to re-enter evaluation of the objects that are being evaluated in this context.
-         * The newly returned nested context has no owner.
-         * <p>
-         * This method may be marginally more effective than using {@link EvaluationContext#evaluateNested(ScopedEvaluation)}.
-         *
-         * @return the nested context, to close it when done
-         */
-        ScopeContext nested();
-
-        /**
-         * Removes the owner added to evaluation context when obtaining this class from the context.
-         * Must be called exactly once for every {@link #open(EvaluationOwner)} or {@link #nested()} call.
-         * Prefer to use try-with-resource instead of calling this method.
-         */
-        @Override
-        void close();
-    }
 
     private static final int EXPECTED_MAX_CONTEXT_SIZE = 64;
 
@@ -200,7 +142,7 @@ public final class EvaluationContext {
         return newContext;
     }
 
-    private ScopeContext nested() {
+    ScopeContext nested() {
         return getContext().nested();
     }
 
@@ -272,54 +214,4 @@ public final class EvaluationContext {
         }
     }
 
-    /**
-     * An exception caused by the circular evaluation.
-     */
-    public static class CircularEvaluationException extends GradleException {
-        private final ImmutableList<EvaluationOwner> evaluationCycle;
-
-        CircularEvaluationException(List<EvaluationOwner> evaluationCycle) {
-            this.evaluationCycle = ImmutableList.copyOf(evaluationCycle);
-        }
-
-        @Override
-        public String getMessage() {
-            return "Circular evaluation detected: " + formatEvaluationChain(evaluationCycle);
-        }
-
-        /**
-         * Returns the evaluation cycle.
-         * The list represents a "stack" of owners currently being evaluated, and is at least two elements long.
-         * The first and last elements of the list are the same owner.
-         *
-         * @return the evaluation cycle as a list
-         */
-        public List<EvaluationOwner> getEvaluationCycle() {
-            return evaluationCycle;
-        }
-
-        private static String formatEvaluationChain(List<EvaluationOwner> evaluationCycle) {
-            try (ScopeContext ignored = current().nested()) {
-                return evaluationCycle.stream()
-                    .map(CircularEvaluationException::safeToString)
-                    .collect(Collectors.joining("\n -> "));
-            }
-        }
-
-        /**
-         * Computes {@code Object.toString()}, but swallows all thrown exceptions.
-         */
-        private static String safeToString(Object owner) {
-            try {
-                return owner.toString();
-            } catch (Throwable e) {
-                // Calling e.getMessage() here can cause infinite recursion.
-                // It happens if e is CircularEvaluationException itself, because getMessage calls formatEvaluationChain.
-                // It can also happen for some other custom exceptions that wrap CircularEvaluationException and call its getMessage inside their.
-                // This is why we resort to losing the information and only providing exception class.
-                // A well-behaved toString should not throw anyway.
-                return owner.getClass().getName() + " (toString failed with " + e.getClass() + ")";
-            }
-        }
-    }
 }

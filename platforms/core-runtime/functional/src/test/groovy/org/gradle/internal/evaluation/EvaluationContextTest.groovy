@@ -118,7 +118,7 @@ class EvaluationContextTest extends Specification {
         }
 
         then:
-        EvaluationContext.CircularEvaluationException ex = thrown()
+        CircularEvaluationException ex = thrown()
         ex.evaluationCycle == [owner, owner]
 
         where:
@@ -132,7 +132,7 @@ class EvaluationContextTest extends Specification {
         }
 
         then:
-        EvaluationContext.CircularEvaluationException ex = thrown()
+        CircularEvaluationException ex = thrown()
         ex.evaluationCycle == [owner, owner]
 
         where:
@@ -152,7 +152,7 @@ class EvaluationContextTest extends Specification {
         }
 
         then:
-        EvaluationContext.CircularEvaluationException ex = thrown()
+        CircularEvaluationException ex = thrown()
         ex.evaluationCycle == [owner, otherOwner, owner]
 
         where:
@@ -170,7 +170,7 @@ class EvaluationContextTest extends Specification {
         }
 
         then:
-        EvaluationContext.CircularEvaluationException ex = thrown()
+        CircularEvaluationException ex = thrown()
         ex.evaluationCycle == [owner, owner]
 
         where:
@@ -205,7 +205,7 @@ class EvaluationContextTest extends Specification {
         }
 
         then:
-        EvaluationContext.CircularEvaluationException ex = thrown()
+        CircularEvaluationException ex = thrown()
         ex.evaluationCycle == [owner, owner]
 
         where:
@@ -222,7 +222,7 @@ class EvaluationContextTest extends Specification {
         }
 
         then:
-        EvaluationContext.CircularEvaluationException ex = thrown()
+        CircularEvaluationException ex = thrown()
         ex.evaluationCycle.size() == 2
         // Have to use reference check because owner's equals is broken
         ex.evaluationCycle[0] === owner
@@ -245,10 +245,10 @@ class EvaluationContextTest extends Specification {
         result == "fallback"
     }
 
-    BiFunction<EvaluationContext.EvaluationOwner, TestEvaluation, String> evaluateInLambda() {
-        return new BiFunction<EvaluationContext.EvaluationOwner, TestEvaluation, String>() {
+    BiFunction<EvaluationOwner, TestEvaluation, String> evaluateInLambda() {
+        return new BiFunction<EvaluationOwner, TestEvaluation, String>() {
             @Override
-            String apply(EvaluationContext.EvaluationOwner owner, TestEvaluation evaluation) {
+            String apply(EvaluationOwner owner, TestEvaluation evaluation) {
                 context().evaluate(owner, evaluation)
             }
 
@@ -259,11 +259,11 @@ class EvaluationContextTest extends Specification {
         }
     }
 
-    BiFunction<EvaluationContext.EvaluationOwner, TestEvaluation, String> evaluateInBlock() {
-        return new BiFunction<EvaluationContext.EvaluationOwner, TestEvaluation, String>() {
+    BiFunction<EvaluationOwner, TestEvaluation, String> evaluateInBlock() {
+        return new BiFunction<EvaluationOwner, TestEvaluation, String>() {
             @Override
             @SuppressWarnings('GroovyUnusedAssignment')
-            String apply(EvaluationContext.EvaluationOwner owner, TestEvaluation evaluation) {
+            String apply(EvaluationOwner owner, TestEvaluation evaluation) {
                 try (def scope = context().open(owner)) {
                     return evaluation.evaluate()
                 }
@@ -280,8 +280,8 @@ class EvaluationContextTest extends Specification {
         return EvaluationContext.current()
     }
 
-    EvaluationContext.EvaluationOwner createOwner() {
-        return Mock(EvaluationContext.EvaluationOwner)
+    EvaluationOwner createOwner() {
+        return Mock(EvaluationOwner)
     }
 
     static interface TestEvaluation extends ScopedEvaluation<String, RuntimeException> {}
