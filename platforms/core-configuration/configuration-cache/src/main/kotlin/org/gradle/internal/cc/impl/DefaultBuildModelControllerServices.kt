@@ -44,6 +44,7 @@ import org.gradle.internal.build.BuildModelControllerServices
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.buildtree.IntermediateBuildActionRunner
+import org.gradle.internal.cc.base.services.ProjectRefResolver
 import org.gradle.internal.cc.impl.fingerprint.ConfigurationCacheFingerprintController
 import org.gradle.internal.cc.impl.services.ConfigurationCacheEnvironment
 import org.gradle.internal.cc.impl.services.DefaultEnvironment
@@ -78,6 +79,7 @@ class DefaultBuildModelControllerServices(
             if (buildModelParameters.isConfigurationCache) {
                 registration.addProvider(ConfigurationCacheBuildControllerProvider())
                 registration.add(ConfigurationCacheEnvironment::class.java)
+                registration.add(ProjectRefResolver::class.java)
             } else {
                 registration.addProvider(VintageBuildControllerProvider())
                 registration.add(DefaultEnvironment::class.java)
