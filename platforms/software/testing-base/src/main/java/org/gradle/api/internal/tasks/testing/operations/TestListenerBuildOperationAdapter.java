@@ -59,10 +59,9 @@ public class TestListenerBuildOperationAdapter implements TestListenerInternal {
 
     @Override
     public void started(final TestDescriptorInternal testDescriptor, TestStartEvent startEvent) {
-        long currentTime = clock.getCurrentTime();
         BuildOperationDescriptor testBuildOperationDescriptor = createTestBuildOperationDescriptor(testDescriptor, startEvent);
-        runningTests.put(testDescriptor, new InProgressExecuteTestBuildOperation(testBuildOperationDescriptor, currentTime));
-        listener.started(testBuildOperationDescriptor, new OperationStartEvent(currentTime));
+        runningTests.put(testDescriptor, new InProgressExecuteTestBuildOperation(testBuildOperationDescriptor, startEvent.getStartTime()));
+        listener.started(testBuildOperationDescriptor, new OperationStartEvent(startEvent.getStartTime()));
     }
 
     @Override

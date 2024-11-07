@@ -96,9 +96,9 @@ public final class DefaultCompositeTestEventGenerator implements CompositeTestEv
     }
 
     @Override
-    public void failure(TestFailure failure) {
+    public void failure(Throwable failure) {
         requireOpen();
-        processor.failure(testDescriptor.getId(), failure);
+        processor.failure(testDescriptor.getId(), TestFailure.fromTestFrameworkFailure(failure));
     }
 
     @Override

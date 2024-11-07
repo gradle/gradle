@@ -36,7 +36,7 @@ public interface TestEventGenerator extends AutoCloseable {
     void started(Instant startTime);
 
     /**
-     * Emit a output event for the test. May be emitted multiple times.
+     * Emit a output event for the test. May be called multiple times. May not be called before {@link #started(Instant)}.
      *
      * @param destination the destination of the output
      * @param output some output from the test
@@ -45,15 +45,20 @@ public interface TestEventGenerator extends AutoCloseable {
     void output(TestOutputEvent.Destination destination, String output);
 
     /**
-     * Emit a failure event for the test. Does not imply the test has completed.
+     * Emit a failure event for the test. {@link #completed(Instant, TestResult.ResultType)} must still be explicitly called. May not be called before {@link #started(Instant)}.
+     *
+     * <p>
+     * This may be called multiple times if there are multiple failures.
+     * </p>
      *
      * @param failure the failure
      * @since 8.12
      */
-    void failure(TestFailure failure);
+    // TODO non-Throwables, more details, etc
+    void failure(Throwable failure);
 
     /**
-     * Emit a completion event for the test.
+     * Emit a completion event for the test. May not be called before {@link #started(Instant)}.
      *
      * @param endTime the time the test completed
      * @param resultType the result of the test

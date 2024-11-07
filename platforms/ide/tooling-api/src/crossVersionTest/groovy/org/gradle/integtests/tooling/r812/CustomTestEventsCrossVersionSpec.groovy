@@ -19,13 +19,11 @@ package org.gradle.integtests.tooling.r812
 import groovy.transform.CompileStatic
 import org.gradle.integtests.tooling.TestLauncherSpec
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.TestLauncher
 import org.gradle.tooling.events.OperationDescriptor
 import org.gradle.tooling.events.task.TaskOperationDescriptor
 import org.gradle.tooling.events.test.TestOperationDescriptor
 
-@ToolingApiVersion('>=8.8')
 @TargetGradleVersion(">=8.12")
 class CustomTestEventsCrossVersionSpec extends TestLauncherSpec {
     @Override
