@@ -17,7 +17,6 @@
 package org.gradle.initialization;
 
 import com.google.common.base.Splitter;
-import com.google.common.collect.ImmutableList;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.verification.DependencyVerificationMode;
 import org.gradle.api.internal.StartParameterInternal;
@@ -37,12 +36,13 @@ import org.gradle.internal.watch.registry.WatchMode;
 
 import java.io.File;
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInternal> {
 
-    private static List<BuildOption<StartParameterInternal>> options = ImmutableList.of(
+    private static List<BuildOption<StartParameterInternal>> options = Arrays.asList(
         new ProjectCacheDirOption(),
         new RerunTasksOption(),
         new ProfileOption(),

@@ -16,8 +16,6 @@
 
 package org.gradle.process.internal;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
@@ -35,11 +33,13 @@ import java.io.File;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 public class JvmOptions {
     private static final String XMS_PREFIX = "-Xms";
@@ -63,7 +63,7 @@ public class JvmOptions {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JvmOptions.class);
 
-    public static final Set<String> IMMUTABLE_SYSTEM_PROPERTIES = ImmutableSet.of(
+    public static final Collection<String> IMMUTABLE_SYSTEM_PROPERTIES = Arrays.asList(
         FILE_ENCODING_KEY, USER_LANGUAGE_KEY, USER_COUNTRY_KEY, USER_VARIANT_KEY, JMX_REMOTE_KEY, JAVA_IO_TMPDIR_KEY, JDK_ENABLE_ADS_KEY,
         SSL_KEYSTORE_KEY, SSL_KEYSTOREPASSWORD_KEY, SSL_KEYSTORETYPE_KEY, SSL_TRUSTPASSWORD_KEY, SSL_TRUSTSTORE_KEY, SSL_TRUSTSTORETYPE_KEY,
         // Gradle specific
@@ -113,11 +113,9 @@ public class JvmOptions {
 
         // We have to add these after the system properties so they can override any system properties
         // (identical properties later in the command line override earlier ones)
+        args.addAll(getAllImmutableJvmArgs());
 
-        return ImmutableList.<String>builder()
-            .addAll(args)
-            .addAll(getAllImmutableJvmArgs())
-            .build();
+        return Collections.unmodifiableList(args);
     }
 
     protected void formatSystemProperties(Map<String, ?> properties, List<String> args) {
@@ -136,9 +134,9 @@ public class JvmOptions {
      * The result is a subset of options returned by {@link #getAllJvmArgs()}
      */
     public List<String> getAllImmutableJvmArgs() {
-        return ImmutableList.<String>builder()
-            .addAll(getJvmArgs())
-            .addAll(getManagedJvmArgs()).build();
+        ArrayList<String> args = new ArrayList<>(getJvmArgs());
+        args.addAll(getManagedJvmArgs());
+        return args;
     }
 
     /**
@@ -202,11 +200,7 @@ public class JvmOptions {
     }
 
     public List<String> getJvmArgs() {
-        ImmutableList.Builder<String> args = ImmutableList.builder();
-        for (Object extraJvmArg : extraJvmArgs) {
-            args.add(extraJvmArg.toString());
-        }
-        return args.build();
+        return extraJvmArgs.stream().map(Object::toString).collect(Collectors.toList());
     }
 
     public void setJvmArgs(Iterable<?> arguments) {

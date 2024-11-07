@@ -16,7 +16,6 @@
 
 package org.gradle.launcher.daemon.configuration;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.api.NonNullApi;
 import org.gradle.internal.buildoption.BooleanBuildOption;
 import org.gradle.internal.buildoption.BooleanCommandLineOptionConfiguration;
@@ -32,6 +31,7 @@ import org.gradle.launcher.daemon.toolchain.DaemonJvmCriteria;
 import org.gradle.process.internal.JvmOptions;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
@@ -39,7 +39,7 @@ import static org.gradle.internal.nativeintegration.services.NativeServices.NATI
 
 public class DaemonBuildOptions extends BuildOptionSet<DaemonParameters> {
 
-    private static List<BuildOption<DaemonParameters>> options = ImmutableList.of(
+    private static List<BuildOption<DaemonParameters>> options = Arrays.asList(
         new IdleTimeoutOption(),
         new HealthCheckOption(),
         new BaseDirOption(),

@@ -15,10 +15,10 @@
  */
 package org.gradle.internal.logging.format;
 
-import com.google.common.collect.Lists;
 import org.gradle.internal.logging.events.StyledTextOutputEvent;
 import org.gradle.internal.logging.text.StyledTextOutput;
 
+import java.util.Arrays;
 import java.util.List;
 
 import static org.gradle.internal.logging.events.StyledTextOutputEvent.EOL;
@@ -27,9 +27,9 @@ public class PrettyPrefixedLogHeaderFormatter implements LogHeaderFormatter {
     @Override
     public List<StyledTextOutputEvent.Span> format(String description, String status, boolean failed) {
         if (status.isEmpty()) {
-            return Lists.newArrayList(header(description, failed), EOL);
+            return Arrays.asList(header(description, failed), EOL);
         } else {
-            return Lists.newArrayList(header(description, failed), status(status, failed), EOL);
+            return Arrays.asList(header(description, failed), status(status, failed), EOL);
         }
     }
 
