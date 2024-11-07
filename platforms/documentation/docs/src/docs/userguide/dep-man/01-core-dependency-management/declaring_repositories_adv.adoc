@@ -22,7 +22,7 @@ Check out the <<#sec:repository-types,full reference on all types of repositorie
 == Declaring a publicly-available repository
 
 Organizations building software may want to leverage public binary repositories to download and consume open source dependencies.
-Popular public repositories include <<#sub:maven_central,Maven Central>> and the <<#sub:maven_google,Google Android>> repository.
+Popular public repositories include <<#sec:maven-central,Maven Central>> and the <<#sec:maven-google,Google Android>> repository.
 Gradle provides built-in shorthand notations for these widely-used repositories.
 
 .Declaring a repository with the help of shorthand notations
@@ -30,7 +30,7 @@ image::dependency-management-shortcut-repositories.png[]
 
 Under the covers Gradle resolves dependencies from the respective URL of the public repository defined by the shorthand notation.
 All shorthand notations are available via the link:{groovyDslPath}/org.gradle.api.artifacts.dsl.RepositoryHandler.html[RepositoryHandler] API.
-Alternatively, you can <<#sec:declaring_custom_repository,spell out the URL of the repository>> for more fine-grained control.
+Alternatively, you can <<#sec:declaring-custom-repository,spell out the URL of the repository>> for more fine-grained control.
 
 [[sub:maven_central]]
 === Maven Central repository
@@ -343,7 +343,7 @@ By default, repositories include everything and exclude nothing:
 * If you declare both includes and excludes, then it includes only what is explicitly included and not excluded.
 
 It is possible to filter either by explicit _group_, _module_ or _version_, either strictly or using regular expressions.
-When using a strict version, it is possible to use a version range, using <<dependency_versions.adoc#single-version-declarations,the format supported>> by Gradle.
+When using a strict version, it is possible to use a version range, using <<dependency_versions.adoc#sec:single-version-declarations,the format supported>> by Gradle.
 In addition, there are filtering options by resolution context: configuration name or even configuration attributes.
 See link:{javadocPath}/org/gradle/api/artifacts/repositories/RepositoryContentDescriptor.html[RepositoryContentDescriptor] for details.
 

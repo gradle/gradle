@@ -36,6 +36,7 @@ In general, dependencies are categorized as either *direct* or *transitive*:
 
 A component may require both direct and transitive dependencies to compile or run.
 
+[[sec:declaring-constraints-dependencies]]
 == Declaring constraints alongside direct dependencies
 
 **Dependency constraints** allow you to define the version or version range for a specific dependency, _whenever that dependency is encountered during resolution_.
@@ -48,7 +49,7 @@ If no such version exists, Gradle will fail with an error, detailing the conflic
 
 In such cases, you can adjust your dependency declarations, dependency constraints, or make necessary changes to transitive dependencies.
 
-Like dependency declarations, dependency constraints are <<dependency_configurations.adoc#sec:what-are-dependency-configurations,scoped by configurations>>, allowing you to selectively apply them to specific parts of a build.
+Like dependency declarations, dependency constraints are <<dependency_configurations.adoc#sub:what-are-dependency-configurations,scoped by configurations>>, allowing you to selectively apply them to specific parts of a build.
 
 The `constraints{}` block is used within the `dependencies{}` block to declare these constraints:
 

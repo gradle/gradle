@@ -92,13 +92,13 @@ NOTE: This behavior is enforced for published components only if you use Gradle 
 Whenever the publisher doesn't use Gradle, like in our Jackson example, we can explain to Gradle that all Jackson modules "belong to" the same platform and benefit from the same behavior as with native alignment.
 There are two options to express that a set of modules belong to a platform:
 
-1. A platform is **published** as a <<platforms.adoc#sub:bom_import,BOM>> and can be used:
+1. A platform is **published** as a <<platforms.adoc#sec:bom-import,BOM>> and can be used:
    For example, `com.fasterxml.jackson:jackson-bom` can be used as platform.
    The information missing to Gradle in that case is that the platform should be added to the dependencies if one of its members is used.
 2. No existing platform can be used. Instead, a **virtual platform** should be created by Gradle:
    In this case, Gradle builds up the platform itself based on all the members that are used.
 
-To provide the missing information to Gradle, you can define <<component_metadata_rules.adoc#sec:component_metadata_rules,component metadata rules>> as explained in the following.
+To provide the missing information to Gradle, you can define <<component_metadata_rules.adoc#component-metadata-rules,component metadata rules>> as explained in the following.
 
 [[sec:align_bom_platform]]
 === Align versions of modules using a published BOM
@@ -126,7 +126,7 @@ In that BOM, the following versions are defined and will be used:
 `jackson-annotation:2.9.0`.
 The lower versions of `jackson-annotation` here might be the desired result as it is what the BOM recommends.
 
-NOTE: This behavior is working reliable since Gradle 6.1. Effectively, it is similar to a <<component_metadata_rules.adoc#sec:component_metadata_rules,component metadata rule>> that adds a platform dependency to all members of the platform using `withDependencies`.
+NOTE: This behavior is working reliable since Gradle 6.1. Effectively, it is similar to a <<component_metadata_rules.adoc#component-metadata-rules,component metadata rule>> that adds a platform dependency to all members of the platform using `withDependencies`.
 
 [[sec:virtual_platform]]
 === Align versions of modules without a published platform

@@ -59,7 +59,7 @@ This is possible in the following cases:
 - dynamic dependency versions are used (version ranges, `latest.release`, `1.+`, ...)
 - or _changing_ versions are used (SNAPSHOTs, fixed version with changing contents, ...)
 
-The recommended way to deal with dynamic versions is to use <<dependency_locking.adoc#dependency-locking,dependency locking>>.
+The recommended way to deal with dynamic versions is to use <<dependency_locking.adoc#locking-versions,dependency locking>>.
 However, it is possible to prevent the use of dynamic versions altogether, which is an alternate strategy:
 
 .Failing on dynamic versions

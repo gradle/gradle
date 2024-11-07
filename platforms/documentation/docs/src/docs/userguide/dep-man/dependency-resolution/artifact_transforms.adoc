@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[[artifact_transforms]]
+[[artifact-transforms]]
 = Artifact Transforms
 
 What if you want to makes changes to the files contained in one of your dependencies before you use it?
@@ -23,6 +23,7 @@ Gradle has a built-in feature for this called **Artifact Transforms**.
 With Artifact Transforms, you can modify, add to, remove from the set files (or artifacts) - like JAR files - contained in a dependency.
 This is done as the last step when resolving artifacts, before tasks or tools like the IDE can consume the artifacts.
 
+[[sec:artifact-transforms-overview]]
 == Artifact Transforms Overview
 
 Each component exposes a set of <<declaring_dependencies_adv.adoc#sec:resolvable-consumable-configs,**variants**>>, where each variant is identified by a set of <<variant_model.adoc#sec:abm_configuration_attributes,**attributes**>> (i.e., key-value pairs such as `debug=true`).
@@ -116,7 +117,7 @@ Running this transform action modifies the artifacts of an existing source varia
 
 Gradle produces a "virtual artifact set" of the component as part of this process.
 
-[[sec:abm_artifact_transforms]]
+[[sec:abm-artifact-transforms]]
 == Understanding Artifact Transforms
 
 Dependencies can have different <<declaring_dependencies_adv.adoc#sec:resolvable-consumable-configs,**variants**>>, essentially different versions or forms of the same dependency.
@@ -176,6 +177,7 @@ IMPORTANT: Gradle will not attempt to select or run Artifact Transforms when a v
 
 For example, if the requested variant is `java-api,classes`, but the dependency only has `java-api,jar`, Gradle can potentially transform the `JAR` file into a `classes` directory by unzipping it using an Artifact Transform that is registered with these attributes.
 
+[[sec:artifact-transform-chains]]
 == Understanding Artifact Transforms Chains
 
 When Gradle resolves a configuration and a dependency does not have a variant with the requested attributes, it attempts to find a chain of one or more Artifact Transforms that can be run sequentially to create the desired variant.
@@ -384,6 +386,7 @@ include::sample[dir="snippets/dependencyManagement/artifactTransforms-incrementa
 
 This transform will only run on source files that have changed since the last run, as otherwise the line count would not need to be recalculated.
 
+[[sec:registering-artifact-transforms]]
 == Registering Artifact Transforms
 
 You need to register the artifact transform actions, providing parameters if necessary so that they can be selected when resolving dependencies.
@@ -414,6 +417,7 @@ include::sample[dir="snippets/dependencyManagement/artifactTransforms-minify/kot
 include::sample[dir="snippets/dependencyManagement/artifactTransforms-minify/groovy",files="build.gradle[tags=artifact-transform-registration]"]
 ====
 
+[[sec:executing-artifact-transforms]]
 == Executing Artifact Transforms
 
 On the command line, Gradle runs tasks; not Artifact Transforms: `./gradlew build.`

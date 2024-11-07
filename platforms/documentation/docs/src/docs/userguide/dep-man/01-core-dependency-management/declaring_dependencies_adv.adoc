@@ -17,7 +17,7 @@
 
 Before looking at dependency declarations themselves, the concept of _dependency configuration_ needs to be defined.
 
-[[sec:what-are-dependency-configurations]]
+[[old:what-are-dependency-configurations]]
 == What are dependency configurations
 
 Every dependency declared for a Gradle project applies to a specific scope.
@@ -32,7 +32,7 @@ See <<java_plugin.adoc#sec:java_plugin_and_dependency_management,the Java plugin
 .Configurations use declared dependencies for specific purposes
 image::dependency-management-configurations.png[]
 
-For more examples on the usage of configurations to navigate, inspect and post-process metadata and artifacts of assigned dependencies, have a look at the <<dependency_resolution_basics.adoc#dependency_resolution_basics,resolution result APIs>>.
+For more examples on the usage of configurations to navigate, inspect and post-process metadata and artifacts of assigned dependencies, have a look at the <<dependency_resolution_basics.adoc#dependency-resolution-basics,resolution result APIs>>.
 
 [[sub:config-inheritance-composition]]
 === Configuration inheritance and composition
@@ -180,7 +180,7 @@ To learn more about this API have a look at link:{groovyDslPath}/org.gradle.api.
 [[sec:dependency-types]]
 == Different kinds of dependencies
 
-[[sub:module_dependencies]]
+[[old:module_dependencies]]
 === Module dependencies
 
 Module dependencies are the most common dependencies. They refer to a module in a repository.
@@ -210,7 +210,7 @@ In Gradle and Ivy, a module can have multiple artifacts.
 Each artifact can have a different set of dependencies.
 ====
 
-[[sub:file_dependencies]]
+[[old:file_dependencies]]
 === File dependencies
 
 Projects sometimes do not rely on a binary repository product e.g. JFrog Artifactory or Sonatype Nexus for hosting and resolving external dependencies.
@@ -396,7 +396,7 @@ include::sample[dir="snippets/groovy/groovyDependency/groovy",files="build.gradl
 == Documenting dependencies
 
 When you declare a dependency or a <<dependency_constraints.adoc#sec:adding-constraints-transitive-deps,dependency constraint>>, you can provide a custom reason for the declaration.
-This makes the dependency declarations in your build script and the <<viewing_debugging_dependencies.adoc#sec:identifying_reason_dependency_selection,dependency insight report>> easier to interpret.
+This makes the dependency declarations in your build script and the <<viewing_debugging_dependencies.adoc#sec:identifying-reason-dependency-selection,dependency insight report>> easier to interpret.
 
 .Giving a reason for choosing a certain module version in a dependency declaration
 ====
@@ -461,10 +461,10 @@ You can find its https://github.com/gradle/gradle/blob/master/platforms/document
 === POM files
 
 Gradle natively supports https://maven.apache.org/pom.html[Maven POM files].
-It's worth noting that by default Gradle will first look for a POM file, but if this file contains a special marker, Gradle will use <<#sub:supported-md-gradle, Gradle Module Metadata>> instead.
+It's worth noting that by default Gradle will first look for a POM file, but if this file contains a special marker, Gradle will use <<#sec:supported-md-gradle, Gradle Module Metadata>> instead.
 
 [[sub:supported-md-ivy]]
 === Ivy files
 
 Similarly, Gradle supports http://ant.apache.org/ivy/[Apache Ivy metadata files].
-Again, Gradle will first look for an `ivy.xml` file, but if this file contains a special marker, Gradle will use <<#sub:supported-md-gradle, Gradle Module Metadata>> instead.
+Again, Gradle will first look for an `ivy.xml` file, but if this file contains a special marker, Gradle will use <<#sec:supported-md-gradle, Gradle Module Metadata>> instead.

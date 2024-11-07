@@ -114,7 +114,7 @@ They are *not publishable*, and will produce an error if added to a component wh
 
 | `org.gradle.status`
 | Component level attribute, derived
-| Based on <<component_metadata_rules.adoc#sec:custom_status_scheme,a status scheme>>, with a default one existing based on the source repository.
+| Based on <<component_metadata_rules.adoc#sec:custom-status-scheme,a status scheme>>, with a default one existing based on the source repository.
 | Based on the scheme in use
 |===
 

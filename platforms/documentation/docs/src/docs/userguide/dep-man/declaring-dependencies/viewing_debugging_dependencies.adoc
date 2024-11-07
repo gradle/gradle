@@ -26,11 +26,11 @@ To visualize dependencies, you can use:
 - The `dependencyInsight` task
 - A link:https://scans.gradle.com/[Build Scan]
 
-[[sec:listing_dependencies]]
+[[sec:listing-dependencies]]
 == List project dependencies using the `dependencies` task
 
 Gradle provides the built-in `dependencies` task to render a dependency tree from the command line.
-By default, the task shows dependencies for all <<dependency_configurations.adoc#sec:what-are-dependency-configurations,configurations>> within a <<command_line_interface#executing_tasks_in_multi_project_builds,single project>>.
+By default, the task shows dependencies for all <<dependency_configurations.adoc#sub:what-are-dependency-configurations,configurations>> within a <<command_line_interface#executing_tasks_in_multi_project_builds,single project>>.
 The dependency tree shows the selected version of each dependency and provides information on conflict resolution.
 
 The `dependencies` task is particularly useful for analyzing transitive dependencies.
@@ -103,7 +103,7 @@ For more details, refer to the plugin’s documentation, such as the Java Plugin
 === Looking at an example
 
 Consider a project that uses the link:https://www.eclipse.org/jgit/[JGit library] to execute Source Control Management (SCM) operations for a release process.
-You can declare dependencies for external tooling with the help of a <<dependency_configurations.adoc#sec:what-are-dependency-configurations,custom dependency configuration>>.
+You can declare dependencies for external tooling with the help of a <<dependency_configurations.adoc#sub:what-are-dependency-configurations,custom dependency configuration>>.
 This avoids polluting other contexts, such as the compilation classpath for your production source code.
 
 The following example declares a custom dependency configuration named `scm` that contains the JGit dependency:
@@ -120,7 +120,7 @@ $ gradle -q dependencies --configuration scm
 include::{snippetsPath}/dependencyManagement/inspectingDependencies-dependenciesReport/tests/dependencyReport.out[]
 ----
 
-[[sec:identifying_reason_dependency_selection]]
+[[sec:identifying-reason-dependency-selection]]
 == Identify the selected version using the `dependencyInsight` task
 
 A project may request two different versions of the same dependency either directly or transitively that may result in a <<dependency_resolution_adv.adoc#sec:version-conflict,version conflict>>.
@@ -134,7 +134,7 @@ include::sample[dir="snippets/dependencyManagement/inspectingDependencies-depend
 
 Gradle provides the built-in `dependencyInsight` task to render a  _dependency insight report_ from the command line.
 
-Dependency insights provide information about a single dependency within a single <<dependency_configurations.adoc#sec:what-are-dependency-configurations,configuration>>.
+Dependency insights provide information about a single dependency within a single <<dependency_configurations.adoc#sub:what-are-dependency-configurations,configuration>>.
 Given a dependency, you can identify the reason and origin for its version selection.
 
 `dependencyInsight` accepts the following parameters:
@@ -173,7 +173,7 @@ The "Selection reasons" section of the dependency insight report lists the reaso
 | The dependency appears in the graph, and the inclusion came with a <<declaring_dependencies_adv.adoc#sec:documenting-dependencies, `because` text>>.
 
 | Was requested : didn't match versions <versions>
-| The dependency appears with a <<dependency_versions#sub:declaring_dependency_with_dynamic_version, dynamic version>> which did not include the listed versions.
+| The dependency appears with a <<dependency_versions.adoc#sec:declaring-dependency-with-dynamic-version, dynamic version>> which did not include the listed versions.
 May be followed by a `because` text.
 
 | Was requested : reject version <versions>
@@ -192,7 +192,7 @@ May be followed by a `because` text.
 | There is a <<rich_versions#rich-version-constraints, rich version>> with a `strictly` which enforces the version of this dependency.
 
 | Selected by rule
-| A <<resolution_rules#resolution_rules, dependency resolution rule>> overruled the default selection process.
+| A <<resolution_rules.adoc#using-resolution-rules, dependency resolution rule>> overruled the default selection process.
 May be followed by a `because` text.
 
 | Rejection : <version> by rule because <text>
@@ -207,6 +207,7 @@ May be followed by a `because` text.
 
 If multiple selection reasons exist, the insight report lists all of them.
 
+[[sec:dependencies-build-scans]]
 == Get a holistic view using Build Scans
 
 The dependency tree in a link:https://scans.gradle.com/[Build Scan] shows information about conflicts.

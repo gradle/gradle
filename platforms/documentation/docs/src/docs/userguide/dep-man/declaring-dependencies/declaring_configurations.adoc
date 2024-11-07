@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[[dependency-configurations]]
+[[declaring-dependency-configurations]]
 = Declaring Dependency Configurations
 
 [[sec:what-are-dependency-configurations]]
@@ -88,6 +88,7 @@ A library typically provides consumable configurations like `apiElements` (for c
 These configurations expose the necessary artifacts for other projects to consume, without being resolvable within the current project.
 The `canBeDeclared`, `isCanBeConsumed` and `isCanBeResolved` flags help distinguish the roles of these configurations.
 
+[[sec:configuration-flags-roles]]
 == Configuration flags and roles
 
 Configurations have three key flags:
@@ -170,7 +171,7 @@ These methods help build authors document the purpose of a configuration and avo
 - **`consumable()`**: Creates a configuration meant to be consumed by other projects but not used to resolve dependencies itself.
 - **`dependencyScope()`**: Creates a configuration that establishes a dependency scope, setting up the necessary properties to act both as a consumer and provider, depending on the use case.
 
-[[sub:config-inheritance-composition]]
+[[sec:config-inheritance-composition]]
 == Configuration inheritance
 
 Configurations can inherit from other configurations, creating an inheritance hierarchy.
@@ -192,6 +193,7 @@ When extending a configuration, the new configuration inherits:
 
 The extension does *not* include attributes. It also does *not* extend consumable/resolvable/declarable status.
 
+[[sec:dependency-resolution]]
 == Dependency resolution
 
 The entrypoint to all dependency resolution APIs is a _resolvable_ link:{javadocPath}/org/gradle/api/artifacts/Configuration.html[Configuration].
@@ -210,11 +212,11 @@ include::sample[dir="snippets/dependencyManagement/performingResolution-resoluti
 include::sample[dir="snippets/dependencyManagement/performingResolution-resolutionResult/groovy",files="build.gradle[tags=declare-configurations]"]
 ====
 
-Dependencies can be declared on the `implementation` configuration using the dependencies block. See the <<declaring_dependencies.adoc#declaring-basic-dependencies,Declaring Dependencies>> chapter for more information on the types of dependencies that can be declared, and the various options for customizing dependency declarations.
+Dependencies can be declared on the `implementation` configuration using the dependencies block. See the <<declaring_dependencies.adoc#one-declaring-dependencies,Declaring Dependencies>> chapter for more information on the types of dependencies that can be declared, and the various options for customizing dependency declarations.
 
 ====
 include::sample[dir="snippets/dependencyManagement/performingResolution-resolutionResult/kotlin",files="build.gradle.kts[tags=declaring-dependencies]"]
 include::sample[dir="snippets/dependencyManagement/performingResolution-resolutionResult/groovy",files="build.gradle[tags=declaring-dependencies]"]
 ====
 
-Now that we've created a _dependency scope_ configuration for declaring dependencies, and a _resolvable_ configuration for resolving those dependencies, we can use Gradle's <<dependency_resolution_basics.adoc#dependency_resolution_basics,dependency resolution APIs>> to access the results of resolution.
+Now that we've created a _dependency scope_ configuration for declaring dependencies, and a _resolvable_ configuration for resolving those dependencies, we can use Gradle's <<dependency_resolution_basics.adoc#dependency-resolution-basics,dependency resolution APIs>> to access the results of resolution.

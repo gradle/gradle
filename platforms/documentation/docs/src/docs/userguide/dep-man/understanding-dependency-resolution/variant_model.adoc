@@ -18,7 +18,7 @@
 = Understanding the Dependency Resolution Model
 
 This chapter explains how dependency resolution works within Gradle.
-After learning how to declare <<declaring_repositories.adoc#declaring-basic-repositories,repositories>> and <<declaring_dependencies.adoc#declaring-basic-dependencies,dependencies>>, the next step is understanding how these declarations are combined during the dependency resolution process.
+After learning how to declare <<declaring_repositories.adoc#three-declaring-repositories,repositories>> and <<declaring_dependencies.adoc#one-declaring-dependencies,dependencies>>, the next step is understanding how these declarations are combined during the dependency resolution process.
 
 Dependency resolution happens in two key phases, repeated until the entire dependency graph is constructed:
 
@@ -522,7 +522,7 @@ If a project registers multiple artifact transforms, needs to use an artifact tr
 
 The report task `outgoingVariants` shows the list of variants available for selection by consumers of the project. It displays the capabilities, attributes and artifacts for each variant.
 
-This task is similar to the `dependencyInsight` <<viewing_debugging_dependencies.adoc#sec:identifying_reason_dependency_selection,reporting task>>.
+This task is similar to the `dependencyInsight` <<viewing_debugging_dependencies.adoc#sec:identifying-reason-dependency-selection,reporting task>>.
 
 By default, `outgoingVariants` prints information about all variants.
 It offers the optional parameter `--variant <variantName>` to select a single variant to display.
@@ -837,7 +837,7 @@ All dependencies of those scopes are considered _runtime dependencies_.
 ** the `enforced-platform-compile` is similar to `platform-compile` but all the constraints are _forced_
 ** the `enforced-platform-runtime` is similar to `platform-runtime` but all the constraints are _forced_
 
-You can understand more about the use of platform and enforced platforms variants by looking at the <<platforms.adoc#sub:bom_import, importing BOMs>> section of the manual.
+You can understand more about the use of platform and enforced platforms variants by looking at the <<platforms.adoc#sec:bom-import, importing BOMs>> section of the manual.
 By default, whenever you declare a dependency on a Maven module, Gradle is going to look for the `library` variants.
 However, using the `platform` or `enforcedPlatform` keyword, Gradle is now looking for one of the "platform" variants, which allows you to import the constraints from the POM files, instead of the dependencies.
 
@@ -847,8 +847,8 @@ However, using the `platform` or `enforcedPlatform` keyword, Gradle is now looki
 Gradle has no built-in derivation strategy implemented for Ivy files.
 Ivy is a flexible format that allows you to publish arbitrary files and can be heavily customized.
 
-If you want to implement a derivation strategy for _compile_ and _runtime_ variants for Ivy, you can do so with <<component_metadata_rules.adoc#sec:component_metadata_rules,component metadata rule>>.
-The component metadata rules API allows you to <<component_metadata_rules.adoc#sec:component_metadata_rules_details,access Ivy configurations>> and create variants based on them.
+If you want to implement a derivation strategy for _compile_ and _runtime_ variants for Ivy, you can do so with <<component_metadata_rules.adoc#component-metadata-rules,component metadata rule>>.
+The component metadata rules API allows you to <<component_metadata_rules.adoc#sec:component-metadata-rules-details,access Ivy configurations>> and create variants based on them.
 If you know that all the Ivy modules your are consuming have been published with Gradle without further customizations of the `ivy.xml` file, you can add the following rule to your build:
 
 .Deriving compile and runtime variants for Ivy metadata

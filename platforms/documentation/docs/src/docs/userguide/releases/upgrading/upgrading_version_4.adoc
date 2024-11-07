@@ -240,7 +240,7 @@ For example, you would replace `tasks.withType(JavaCompile).name` with `tasks.wi
  * <<#rel4.8:switch_to_publishing_plugins,Switch to the Maven Publish and Ivy Publish plugins>>
  * <<#rel4.8:deferred_configuration,Use deferred configuration with the publishing plugins>>
  * <<#rel4.8:configure_internal_tasks,Configure existing `wrapper` and `init` tasks>> rather than defining your own
- * Consider migrating to the built-in <<dependency_locking#dependency-locking,dependency locking mechanism>> if you are currently using a plugin or custom solution for this
+ * Consider migrating to the built-in <<dependency_locking.adoc#sec:dependency-locking,dependency locking mechanism>> if you are currently using a plugin or custom solution for this
 
 
 === Potential breaking changes

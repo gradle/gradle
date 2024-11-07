@@ -191,7 +191,7 @@ This will run the tests and produce the required artifacts automatically.
 [[migmvn:migrating_deps]]
 == Migrating dependencies
 
-Gradle's dependency management system is more flexible than Maven's, but it still supports the same concepts of repositories, declared dependencies, scopes (<<dependency_configurations.adoc#sec:what-are-dependency-configurations,dependency configurations>> in Gradle), and transitive dependencies.
+Gradle's dependency management system is more flexible than Maven's, but it still supports the same concepts of repositories, declared dependencies, scopes (<<dependency_configurations.adoc#sub:what-are-dependency-configurations,dependency configurations>> in Gradle), and transitive dependencies.
 In fact, Gradle works with Maven-compatible repositories which makes it easy to migrate your dependencies.
 
 NOTE: One notable difference between the two tools is in how they manage version conflicts. Maven uses a "closest" match algorithm, whereas Gradle picks the newest.
@@ -204,7 +204,7 @@ Over the following sections, we will show you how to migrate the most common ele
 
 Gradle uses the same dependency identifier components as Maven: group ID, artifact ID and version.
 It also supports classifiers.
-All you need to do is substitute the identifier information for a dependency into Gradle's syntax, which is described in the <<declaring_dependencies.adoc#declaring-basic-dependencies,Declaring Dependencies>> chapter.
+All you need to do is substitute the identifier information for a dependency into Gradle's syntax, which is described in the <<declaring_dependencies.adoc#one-declaring-dependencies,Declaring Dependencies>> chapter.
 
 For example, consider this Maven-style dependency on Log4J:
 
@@ -368,7 +368,7 @@ include::sample[dir="snippets/mavenMigration/importBom/groovy",files="build.grad
 <1> Applies the Spring Boot Dependencies BOM
 <2> Adds a dependency whose version is defined by that BOM
 
-You can learn more about this feature and the difference between `platform()` and `enforcedPlatform()` in the section on <<platforms.adoc#sub:bom_import,importing version recommendations from a Maven BOM>>.
+You can learn more about this feature and the difference between `platform()` and `enforcedPlatform()` in the section on <<platforms.adoc#sec:bom-import,importing version recommendations from a Maven BOM>>.
 
 NOTE: You can use this feature to apply the `<dependencyManagement>` information from any dependency's POM to the Gradle build, even those that don't have a packaging type of `pom`. Both `platform()` and `enforcedPlatform()` will ignore any dependencies declared in the `<dependencies>` block.
 
