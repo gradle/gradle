@@ -29,11 +29,11 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Test listener that forwards all receiving events to the client via the provided {@code ProgressEventConsumer} instance.
  */
-class TestTaskExecutionTracker implements BuildOperationTracker {
+class TaskForTestEventTracker implements BuildOperationTracker {
     private final BuildOperationAncestryTracker ancestryTracker;
     private final Map<Object, String> runningTasks = new ConcurrentHashMap<>();
 
-    TestTaskExecutionTracker(BuildOperationAncestryTracker ancestryTracker) {
+    TaskForTestEventTracker(BuildOperationAncestryTracker ancestryTracker) {
         this.ancestryTracker = ancestryTracker;
     }
 
