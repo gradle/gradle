@@ -18,6 +18,7 @@ package org.gradle.internal.time;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * A clock that is guaranteed to not go backwards.
@@ -46,7 +47,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * timestamps before and after the sync point will under represent the actual elapsed time,
  * gradually bringing the clocks back into sync.
  */
-class MonotonicClock extends AbstractClock {
+class MonotonicClock implements Clock {
 
     private static final long SYNC_INTERVAL_MILLIS = TimeUnit.SECONDS.toMillis(3);
 
@@ -55,7 +56,7 @@ class MonotonicClock extends AbstractClock {
 
     private final AtomicLong syncMillisRef;
     private final AtomicLong syncNanosRef;
-    private final AtomicLong currentTime = new AtomicLong();
+    private final AtomicReference<Timestamp> currentTime = new AtomicReference<Timestamp>();
 
     MonotonicClock() {
         this(TimeSource.SYSTEM, SYNC_INTERVAL_MILLIS);
@@ -69,21 +70,28 @@ class MonotonicClock extends AbstractClock {
         this.syncIntervalMillis = syncIntervalMillis;
         this.syncNanosRef = new AtomicLong(nanoTime);
         this.syncMillisRef = new AtomicLong(currentTimeMillis);
-        this.currentTime.set(currentTimeMillis);
+        this.currentTime.set(Timestamp.ofMillis(currentTimeMillis, getNanosOfMillis(nanoTime)));
     }
+
 
     @Override
     public long getCurrentTime() {
+        return getTimestamp().getTimeMs();
+    }
+
+    @Override
+    public Timestamp getTimestamp() {
         long nowNanos = timeSource.nanoTime();
         long syncNanos = syncNanosRef.get();
         long syncMillis = syncMillisRef.get();
         long sinceSyncNanos = nowNanos - syncNanos;
         long sinceSyncMillis = TimeUnit.NANOSECONDS.toMillis(sinceSyncNanos);
+        long nanoAdjustment = getNanosOfMillis(sinceSyncNanos);
 
         if (syncIsDue(nowNanos, syncNanos, sinceSyncMillis)) {
-            return sync(syncMillis);
+            return sync(syncMillis, nanoAdjustment);
         } else {
-            return advance(syncMillis + sinceSyncMillis);
+            return advance(syncMillis + sinceSyncMillis, nanoAdjustment);
         }
     }
 
@@ -95,10 +103,10 @@ class MonotonicClock extends AbstractClock {
      * Syncs our internal clock with the system clock and returns the new time.
      * Marks the current time as the last synchronization point, unless another thread already did a synchronization in the meantime.
      */
-    private long sync(long syncMillis) {
-        long newSyncMillis = advance(timeSource.currentTimeMillis());
-        syncMillisRef.compareAndSet(syncMillis, newSyncMillis);
-        return newSyncMillis;
+    private Timestamp sync(long syncMillis, long nanoAdjustment) {
+        Timestamp newSync = advance(timeSource.currentTimeMillis(), nanoAdjustment);
+        syncMillisRef.compareAndSet(syncMillis, newSync.getTimeMs());
+        return newSync;
     }
 
     /**
@@ -106,14 +114,20 @@ class MonotonicClock extends AbstractClock {
      * The returned time may not be the one passed in, in case another thread already advanced the clock further.
      * This ensures that all threads share a consistent time.
      */
-    private long advance(long newTime) {
+    private Timestamp advance(long newTime, long nanoAdjustment) {
+        Timestamp newTimestamp = Timestamp.ofMillis(newTime, nanoAdjustment);
+
         while (true) {
-            long current = currentTime.get();
-            if (newTime <= current) {
+            Timestamp current = currentTime.get();
+            if (newTimestamp.compareTo(current) <= 0) {
                 return current;
-            } else if (currentTime.compareAndSet(current, newTime)) {
-                return newTime;
+            } else if (currentTime.compareAndSet(current, newTimestamp)) {
+                return newTimestamp;
             }
         }
+    }
+
+    private long getNanosOfMillis(long nanoTime) {
+        return nanoTime % TimeUnit.MILLISECONDS.toNanos(1);
     }
 }

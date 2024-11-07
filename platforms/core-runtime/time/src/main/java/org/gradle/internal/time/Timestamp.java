@@ -21,7 +21,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * An immutable timestamp. Can be accessed in different bases.
  */
-public final class Timestamp {
+public final class Timestamp implements Comparable<Timestamp> {
     private static final long MS_IN_NANOS = TimeUnit.MILLISECONDS.toNanos(1);
 
     private final long timeMs;
@@ -97,5 +97,23 @@ public final class Timestamp {
     @Override
     public String toString() {
         return timeMs + "ms";
+    }
+
+    @Override
+    public int compareTo(Timestamp o) {
+        int compareMillis = compareMillis(o);
+        return compareMillis != 0 ? compareMillis : compareNanos(o);
+    }
+
+    private int compareMillis(Timestamp o) {
+        return timeMs == o.timeMs
+            ? 0
+            : timeMs < o.timeMs ? -1 : 1;
+    }
+
+    private int compareNanos(Timestamp o) {
+        return nanoAdjustment == o.nanoAdjustment
+            ? 0
+            : nanoAdjustment < o.nanoAdjustment ? -1 : 1;
     }
 }
