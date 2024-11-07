@@ -44,6 +44,7 @@ public interface TestEventGenerator extends AutoCloseable {
      */
     void output(TestOutputEvent.Destination destination, String output);
 
+    // TODO non-Throwables, more details, etc
     /**
      * Emit a failure event for the test. {@link #completed(Instant, TestResult.ResultType)} must still be explicitly called. May not be called before {@link #started(Instant)}.
      *
@@ -54,7 +55,6 @@ public interface TestEventGenerator extends AutoCloseable {
      * @param failure the failure
      * @since 8.12
      */
-    // TODO non-Throwables, more details, etc
     void failure(Throwable failure);
 
     /**
