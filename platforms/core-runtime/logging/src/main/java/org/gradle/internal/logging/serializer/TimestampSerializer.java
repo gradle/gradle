@@ -24,11 +24,14 @@ import org.gradle.internal.time.Timestamp;
 public class TimestampSerializer implements Serializer<Timestamp> {
     @Override
     public Timestamp read(Decoder decoder) throws Exception {
-        return Timestamp.ofMillis(decoder.readLong());
+        long epochMs = decoder.readLong();
+        long nanos = decoder.readLong();
+        return Timestamp.ofMillis(epochMs, nanos);
     }
 
     @Override
     public void write(Encoder encoder, Timestamp value) throws Exception {
         encoder.writeLong(value.getTimeMs());
+        encoder.writeLong(value.getNanosOfMillis());
     }
 }

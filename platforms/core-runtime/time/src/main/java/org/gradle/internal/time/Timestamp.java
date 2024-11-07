@@ -16,18 +16,38 @@
 
 package org.gradle.internal.time;
 
+import java.util.concurrent.TimeUnit;
+
 /**
  * An immutable timestamp. Can be accessed in different bases.
  */
 public final class Timestamp {
-    private final long timeMs;
+    private static final long MS_IN_NANOS = TimeUnit.MILLISECONDS.toNanos(1);
 
-    private Timestamp(long timeMs) {
+    private final long timeMs;
+    private final int nanoAdjustment;
+
+    private Timestamp(long timeMs, int nanoAdjustment) {
         this.timeMs = timeMs;
+        this.nanoAdjustment = nanoAdjustment;
     }
 
+    /**
+     * Returns the epoch offset in milliseconds.
+     *
+     * @return the offset in milliseconds
+     */
     public long getTimeMs() {
         return timeMs;
+    }
+
+    /**
+     * Gets the number of nanoseconds, from the start of the millisecond returned by {@link #getTimeMs()}.
+     *
+     * @return the nanoseconds within the milliseconds, between {@code 0} and {@code 999,999}, inclusive.
+     */
+    public int getNanosOfMillis() {
+        return nanoAdjustment;
     }
 
     /**
@@ -39,7 +59,21 @@ public final class Timestamp {
      * @return the timestamp
      */
     public static Timestamp ofMillis(long epochMs) {
-        return new Timestamp(epochMs);
+        return ofMillis(epochMs, 0);
+    }
+
+    /**
+     * Returns a timestamp of {@code epochMs} milliseconds plus {@code nanoAdjustment} nanoseconds since Unix epoch.
+     *
+     * @param epochMs epoch offset in milliseconds
+     * @param nanoAdjustment extra non-negative nanoseconds adjustment, less than one millisecond
+     * @return the timestamp
+     */
+    public static Timestamp ofMillis(long epochMs, long nanoAdjustment) {
+        if (nanoAdjustment < 0 || nanoAdjustment >= MS_IN_NANOS) {
+            throw new IllegalArgumentException("nanoAdjustment is invalid: " + nanoAdjustment);
+        }
+        return new Timestamp(epochMs, (int) nanoAdjustment);
     }
 
     @Override
@@ -51,13 +85,13 @@ public final class Timestamp {
             return false;
         }
         Timestamp timestamp = (Timestamp) o;
-        return timeMs == timestamp.timeMs;
+        return timeMs == timestamp.timeMs && nanoAdjustment == timestamp.nanoAdjustment;
     }
 
     @Override
     public int hashCode() {
         // Long.hashCode but Java 6-compatible
-        return (int) (timeMs ^ (timeMs >>> 32));
+        return 31 * nanoAdjustment + (int) (timeMs ^ (timeMs >>> 32));
     }
 
     @Override
