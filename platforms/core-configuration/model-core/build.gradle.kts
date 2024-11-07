@@ -38,7 +38,6 @@ dependencies {
     implementation(libs.kotlinStdlib)
     implementation(libs.slf4jApi)
     implementation(libs.commonsLang)
-    implementation(libs.fastutil)
 
     compileOnly(libs.errorProneAnnotations)
 
