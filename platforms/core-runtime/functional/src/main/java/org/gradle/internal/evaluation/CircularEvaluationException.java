@@ -49,7 +49,7 @@ public class CircularEvaluationException extends GradleException {
     }
 
     private static String formatEvaluationChain(List<EvaluationOwner> evaluationCycle) {
-        try (ScopeContext ignored = EvaluationContext.current().nested()) {
+        try (EvaluationScopeContext ignored = EvaluationContext.current().nested()) {
             return evaluationCycle.stream()
                 .map(CircularEvaluationException::safeToString)
                 .collect(Collectors.joining("\n -> "));

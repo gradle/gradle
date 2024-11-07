@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.provider;
 
-import org.gradle.internal.evaluation.ScopeContext;
+import org.gradle.internal.evaluation.EvaluationScopeContext;
 
 import javax.annotation.Nullable;
 
@@ -42,14 +42,14 @@ class OrElseProvider<T> extends AbstractMinimalProvider<T> {
 
     @Override
     public ValueProducer getProducer() {
-        try (ScopeContext context = openScope()) {
+        try (EvaluationScopeContext context = openScope()) {
             return new OrElseValueProducer(context, left, right);
         }
     }
 
     @Override
     public boolean calculatePresence(ValueConsumer consumer) {
-        try (ScopeContext ignored = openScope()) {
+        try (EvaluationScopeContext ignored = openScope()) {
             return left.calculatePresence(consumer) || right.calculatePresence(consumer);
         }
     }
@@ -57,7 +57,7 @@ class OrElseProvider<T> extends AbstractMinimalProvider<T> {
     @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
     public ExecutionTimeValue<? extends T> calculateExecutionTimeValue() {
-        try (ScopeContext ignored = openScope()) {
+        try (EvaluationScopeContext ignored = openScope()) {
             ExecutionTimeValue<? extends T> leftValue = left.calculateExecutionTimeValue();
             if (leftValue.hasFixedValue()) {
                 return leftValue;
@@ -81,7 +81,7 @@ class OrElseProvider<T> extends AbstractMinimalProvider<T> {
 
     @Override
     protected Value<? extends T> calculateOwnValue(ValueConsumer consumer) {
-        try (ScopeContext ignored = openScope()) {
+        try (EvaluationScopeContext ignored = openScope()) {
             Value<? extends T> leftValue = left.calculateValue(consumer);
             if (!leftValue.isMissing()) {
                 return leftValue;

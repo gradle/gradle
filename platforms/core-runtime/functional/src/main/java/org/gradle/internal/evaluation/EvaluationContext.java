@@ -55,7 +55,7 @@ public final class EvaluationContext {
      * Adds the owner to the set of "evaluating" objects and returns the context instance to remove it from there upon closing.
      * This method is intended to be used in the try-with-resources block's initializer.
      */
-    public ScopeContext open(EvaluationOwner owner) {
+    public EvaluationScopeContext open(EvaluationOwner owner) {
         return getContext().open(owner);
     }
 
@@ -87,7 +87,7 @@ public final class EvaluationContext {
      * @throws CircularEvaluationException if the owner is currently being evaluated in the outer scope
      */
     public <R, E extends Exception> R evaluate(EvaluationOwner owner, ScopedEvaluation<? extends R, E> evaluation) throws E {
-        try (ScopeContext ignored = open(owner)) {
+        try (EvaluationScopeContext ignored = open(owner)) {
             return evaluation.evaluate();
         }
     }
@@ -127,7 +127,7 @@ public final class EvaluationContext {
      * @throws E exception from the {@code evaluation} is propagated
      */
     public <R, E extends Exception> R evaluateNested(ScopedEvaluation<? extends R, E> evaluation) throws E {
-        try (ScopeContext ignored = nested()) {
+        try (EvaluationScopeContext ignored = nested()) {
             return evaluation.evaluate();
         }
     }
@@ -142,11 +142,11 @@ public final class EvaluationContext {
         return newContext;
     }
 
-    ScopeContext nested() {
+    EvaluationScopeContext nested() {
         return getContext().nested();
     }
 
-    private final class PerThreadContext implements ScopeContext {
+    private final class PerThreadContext implements EvaluationScopeContext {
         private final Set<EvaluationOwner> objectsInScope = new ReferenceOpenHashSet<>(EXPECTED_MAX_CONTEXT_SIZE);
         private final List<EvaluationOwner> evaluationStack = new ReferenceArrayList<>(EXPECTED_MAX_CONTEXT_SIZE);
         @Nullable
@@ -175,7 +175,7 @@ public final class EvaluationContext {
         }
 
         @Override
-        public ScopeContext nested() {
+        public EvaluationScopeContext nested() {
             return setContext(new PerThreadContext(this));
         }
 

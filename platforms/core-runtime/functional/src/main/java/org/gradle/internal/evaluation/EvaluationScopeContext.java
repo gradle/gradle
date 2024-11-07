@@ -30,7 +30,7 @@ import javax.annotation.Nullable;
  * Contexts must be closed in the order they are obtained.
  * This context must be closed by the same thread that obtained it.
  */
-public interface ScopeContext extends AutoCloseable {
+public interface EvaluationScopeContext extends AutoCloseable {
     /**
      * Returns the owner of the current scope, which is the last object that started its evaluation.
      * Can be null if the current scope has no owner (e.g. a just opened nested context).
@@ -48,7 +48,7 @@ public interface ScopeContext extends AutoCloseable {
      *
      * @return the nested context, to close it when done
      */
-    ScopeContext nested();
+    EvaluationScopeContext nested();
 
     /**
      * Removes the owner added to evaluation context when obtaining this class from the context.

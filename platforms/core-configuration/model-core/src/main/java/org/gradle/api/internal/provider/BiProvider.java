@@ -16,7 +16,7 @@
 package org.gradle.api.internal.provider;
 
 import org.gradle.api.provider.Provider;
-import org.gradle.internal.evaluation.ScopeContext;
+import org.gradle.internal.evaluation.EvaluationScopeContext;
 
 import javax.annotation.Nullable;
 import java.util.function.BiFunction;
@@ -42,7 +42,7 @@ public class BiProvider<R, A, B> extends AbstractMinimalProvider<R> {
 
     @Override
     public boolean calculatePresence(ValueConsumer consumer) {
-        try (ScopeContext ignored = openScope()) {
+        try (EvaluationScopeContext ignored = openScope()) {
             if (!left.calculatePresence(consumer) || !right.calculatePresence(consumer)) {
                 return false;
             }
@@ -53,7 +53,7 @@ public class BiProvider<R, A, B> extends AbstractMinimalProvider<R> {
 
     @Override
     public ExecutionTimeValue<? extends R> calculateExecutionTimeValue() {
-        try (ScopeContext ignored = openScope()) {
+        try (EvaluationScopeContext ignored = openScope()) {
             if (isChangingValue(left) || isChangingValue(right)) {
                 return ExecutionTimeValue.changingValue(this);
             }
@@ -67,7 +67,7 @@ public class BiProvider<R, A, B> extends AbstractMinimalProvider<R> {
 
     @Override
     protected Value<? extends R> calculateOwnValue(ValueConsumer consumer) {
-        try (ScopeContext ignored = openScope()) {
+        try (EvaluationScopeContext ignored = openScope()) {
             Value<? extends A> leftValue = left.calculateValue(consumer);
             if (leftValue.isMissing()) {
                 return leftValue.asType();
@@ -93,7 +93,7 @@ public class BiProvider<R, A, B> extends AbstractMinimalProvider<R> {
 
     @Override
     public ValueProducer getProducer() {
-        try (ScopeContext ignored = openScope()) {
+        try (EvaluationScopeContext ignored = openScope()) {
             return new PlusProducer(left.getProducer(), right.getProducer());
         }
     }

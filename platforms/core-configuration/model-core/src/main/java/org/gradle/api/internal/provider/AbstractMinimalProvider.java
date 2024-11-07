@@ -25,7 +25,7 @@ import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.evaluation.EvaluationContext;
-import org.gradle.internal.evaluation.ScopeContext;
+import org.gradle.internal.evaluation.EvaluationScopeContext;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.state.Managed;
 
@@ -215,7 +215,7 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
      *
      * @return the scope
      */
-    protected ScopeContext openScope() {
+    protected EvaluationScopeContext openScope() {
         return EvaluationContext.current().open(this);
     }
 

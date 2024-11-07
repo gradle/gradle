@@ -18,7 +18,7 @@ package org.gradle.api.internal.provider;
 
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.specs.Spec;
-import org.gradle.internal.evaluation.ScopeContext;
+import org.gradle.internal.evaluation.EvaluationScopeContext;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -47,14 +47,14 @@ public class FilteringProvider<T> extends AbstractMinimalProvider<T> {
 
     @Override
     public ValueProducer getProducer() {
-        try (ScopeContext ignored = openScope()) {
+        try (EvaluationScopeContext ignored = openScope()) {
             return provider.getProducer();
         }
     }
 
     @Override
     public ExecutionTimeValue<? extends T> calculateExecutionTimeValue() {
-        try (ScopeContext context = openScope()) {
+        try (EvaluationScopeContext context = openScope()) {
             ExecutionTimeValue<? extends T> value = provider.calculateExecutionTimeValue();
             if (value.isMissing()) {
                 return value;
@@ -71,7 +71,7 @@ public class FilteringProvider<T> extends AbstractMinimalProvider<T> {
 
     @Override
     protected Value<? extends T> calculateOwnValue(ValueConsumer consumer) {
-        try (ScopeContext context = openScope()) {
+        try (EvaluationScopeContext context = openScope()) {
             beforeRead(context);
             Value<? extends T> value = provider.calculateValue(consumer);
             return filterValue(context, value);
@@ -79,7 +79,7 @@ public class FilteringProvider<T> extends AbstractMinimalProvider<T> {
     }
 
     @Nonnull
-    protected Value<? extends T> filterValue(@SuppressWarnings("unused") ScopeContext context, Value<? extends T> value) {
+    protected Value<? extends T> filterValue(@SuppressWarnings("unused") EvaluationScopeContext context, Value<? extends T> value) {
         if (value.isMissing()) {
             return value.asType();
         }
@@ -91,7 +91,7 @@ public class FilteringProvider<T> extends AbstractMinimalProvider<T> {
         }
     }
 
-    protected void beforeRead(@SuppressWarnings("unused") ScopeContext context) {
+    protected void beforeRead(@SuppressWarnings("unused") EvaluationScopeContext context) {
         provider.getProducer().visitContentProducerTasks(producer -> {
             if (!producer.getState().getExecuted()) {
                 throw new InvalidUserCodeException(
