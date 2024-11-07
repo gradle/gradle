@@ -24,6 +24,7 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.evaluation.EvaluationContext;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.state.Managed;
 

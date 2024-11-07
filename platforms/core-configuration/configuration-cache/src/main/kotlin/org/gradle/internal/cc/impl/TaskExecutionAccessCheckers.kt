@@ -18,7 +18,7 @@ package org.gradle.internal.cc.impl
 
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier
-import org.gradle.api.internal.provider.EvaluationContext
+import org.gradle.internal.evaluation.EvaluationContext
 import org.gradle.api.internal.tasks.TaskExecutionAccessChecker
 import org.gradle.api.internal.tasks.execution.TaskExecutionAccessListener
 import org.gradle.internal.execution.WorkExecutionTracker

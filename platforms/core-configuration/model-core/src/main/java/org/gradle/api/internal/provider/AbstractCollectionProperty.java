@@ -29,6 +29,7 @@ import org.gradle.api.internal.provider.Collectors.SingleElement;
 import org.gradle.api.provider.HasMultipleValues;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
+import org.gradle.internal.evaluation.EvaluationContext;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

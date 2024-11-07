@@ -18,6 +18,7 @@ package org.gradle.api.internal.provider;
 
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.evaluation.EvaluationContext;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.ParameterizedType;

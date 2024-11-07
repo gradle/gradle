@@ -18,6 +18,7 @@ package org.gradle.api.internal.provider;
 
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.specs.Spec;
+import org.gradle.internal.evaluation.EvaluationContext;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

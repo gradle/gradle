@@ -18,6 +18,7 @@ package org.gradle.api.internal.provider;
 
 import org.gradle.api.Action;
 import org.gradle.api.Task;
+import org.gradle.internal.evaluation.EvaluationContext;
 
 import javax.annotation.Nullable;
 import java.util.Objects;

@@ -17,6 +17,7 @@
 package org.gradle.api.internal.provider;
 
 import org.gradle.api.Transformer;
+import org.gradle.internal.evaluation.EvaluationContext;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

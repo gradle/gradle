@@ -16,6 +16,7 @@
 package org.gradle.api.internal.provider;
 
 import org.gradle.api.provider.Provider;
+import org.gradle.internal.evaluation.EvaluationContext;
 
 import javax.annotation.Nullable;
 import java.util.function.BiFunction;

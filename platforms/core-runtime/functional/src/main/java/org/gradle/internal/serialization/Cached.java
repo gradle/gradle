@@ -16,7 +16,7 @@
 
 package org.gradle.internal.serialization;
 
-import org.gradle.api.internal.provider.EvaluationContext;
+import org.gradle.internal.evaluation.EvaluationContext;
 import org.gradle.internal.Try;
 
 import javax.annotation.Nonnull;

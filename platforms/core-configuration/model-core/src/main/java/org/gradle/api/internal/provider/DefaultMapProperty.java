@@ -30,6 +30,7 @@ import org.gradle.api.internal.provider.MapCollectors.SingleEntry;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
+import org.gradle.internal.evaluation.EvaluationContext;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;

@@ -22,6 +22,7 @@ import org.gradle.api.Transformer
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.internal.Describables
+import org.gradle.internal.evaluation.EvaluationContext
 import org.gradle.util.internal.TextUtil
 import org.spockframework.lang.Wildcard
 

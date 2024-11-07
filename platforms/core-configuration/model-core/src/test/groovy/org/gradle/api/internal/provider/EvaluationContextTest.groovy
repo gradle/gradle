@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.provider
 
+import org.gradle.internal.evaluation.EvaluationContext
 import spock.lang.Specification
 
 import java.util.function.BiFunction

@@ -17,6 +17,7 @@
 package org.gradle.api.internal.provider;
 
 import org.gradle.internal.Cast;
+import org.gradle.internal.evaluation.EvaluationContext;
 
 import javax.annotation.Nullable;
 
