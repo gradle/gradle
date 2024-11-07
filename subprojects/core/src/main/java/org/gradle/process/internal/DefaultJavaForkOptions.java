@@ -19,7 +19,7 @@ package org.gradle.process.internal;
 import org.gradle.api.Action;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.internal.model.ExecObjectFactory;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.process.CommandLineArgumentProvider;
@@ -41,13 +41,13 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
 
     @Inject
     public DefaultJavaForkOptions(
-        ObjectFactory objectFactory,
+        ExecObjectFactory execObjectFactory,
         PathToFileResolver resolver,
         FileCollectionFactory fileCollectionFactory
     ) {
         super(resolver);
         this.fileCollectionFactory = fileCollectionFactory;
-        this.debugOptions = objectFactory.newInstance(DefaultJavaDebugOptions.class, objectFactory);
+        this.debugOptions = execObjectFactory.newInstance(DefaultJavaDebugOptions.class, execObjectFactory);
         this.options = new JvmOptions(fileCollectionFactory, new PropertyBackedJvmDebugOptions(debugOptions));
     }
 

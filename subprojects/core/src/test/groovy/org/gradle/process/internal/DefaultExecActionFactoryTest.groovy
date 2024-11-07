@@ -27,15 +27,18 @@ import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.TestUtil
 import org.junit.Rule
 
+import static org.gradle.api.internal.model.ExecObjectFactory.ObjectFactoryBackedExecObjectFactory
+
 class DefaultExecActionFactoryTest extends ConcurrentSpec {
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     def resolver = TestFiles.resolver(tmpDir.testDirectory)
     def fileCollectionFactory = TestFiles.fileCollectionFactory(tmpDir.testDirectory)
     def instantiator = TestUtil.instantiatorFactory()
-    def factory =
-        DefaultExecActionFactory
-            .of(resolver, fileCollectionFactory, executorFactory, TestFiles.tmpDirTemporaryFileProvider(tmpDir.createDir("tmp")))
+    def objectFactory = TestUtil.objectFactory()
+    def execObjectFactory = new ObjectFactoryBackedExecObjectFactory(objectFactory)
+    def factory = DefaultExecActionFactory
+            .of(resolver, fileCollectionFactory, executorFactory, TestFiles.tmpDirTemporaryFileProvider(tmpDir.createDir("tmp")), execObjectFactory)
             .forContext()
             .withInstantiator(instantiator.decorateLenient())
             .withObjectFactory(TestUtil.objectFactory())

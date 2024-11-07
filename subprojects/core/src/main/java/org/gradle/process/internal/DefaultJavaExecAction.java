@@ -19,7 +19,7 @@ package org.gradle.process.internal;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
-import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.internal.model.ExecObjectFactory;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.process.ExecResult;
@@ -33,7 +33,7 @@ public class DefaultJavaExecAction extends JavaExecHandleBuilder implements Java
     public DefaultJavaExecAction(
         FileResolver fileResolver,
         FileCollectionFactory fileCollectionFactory,
-        ObjectFactory objectFactory,
+        ExecObjectFactory objectFactory,
         Executor executor,
         BuildCancellationToken buildCancellationToken,
         TemporaryFileProvider temporaryFileProvider,

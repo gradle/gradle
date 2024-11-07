@@ -19,6 +19,7 @@ package org.gradle.process.internal;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.model.ExecObjectFactory.ObjectFactoryBackedExecObjectFactory;
 import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
@@ -57,7 +58,7 @@ public class DefaultJavaExecSpec extends DefaultJavaForkOptions implements JavaE
         PathToFileResolver resolver,
         FileCollectionFactory fileCollectionFactory
     ) {
-        super(objectFactory, resolver, fileCollectionFactory);
+        super(new ObjectFactoryBackedExecObjectFactory(objectFactory), resolver, fileCollectionFactory);
         this.jvmArguments = objectFactory.listProperty(String.class);
         this.mainClass = objectFactory.property(String.class);
         this.mainModule = objectFactory.property(String.class);

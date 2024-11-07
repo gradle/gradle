@@ -16,7 +16,7 @@
 
 package org.gradle.process.internal;
 
-import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.internal.model.ExecObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Optional;
 import org.gradle.process.JavaDebugOptions;
@@ -33,13 +33,13 @@ public class DefaultJavaDebugOptions implements JavaDebugOptions {
     private final Property<Boolean> suspend;
 
     @Inject
-    public DefaultJavaDebugOptions(ObjectFactory objectFactory) {
+    public DefaultJavaDebugOptions(ExecObjectFactory execObjectFactory) {
         DefaultJvmDebugOptions defaultValues = new DefaultJvmDebugOptions();
-        this.enabled = objectFactory.property(Boolean.class).convention(defaultValues.isEnabled());
-        this.host = objectFactory.property(String.class).convention(defaultValues.getHost());
-        this.port = objectFactory.property(Integer.class).convention(defaultValues.getPort());
-        this.server = objectFactory.property(Boolean.class).convention(defaultValues.isServer());
-        this.suspend = objectFactory.property(Boolean.class).convention(defaultValues.isSuspend());
+        this.enabled = execObjectFactory.property(Boolean.class).convention(defaultValues.isEnabled());
+        this.host = execObjectFactory.property(String.class).convention(defaultValues.getHost());
+        this.port = execObjectFactory.property(Integer.class).convention(defaultValues.getPort());
+        this.server = execObjectFactory.property(Boolean.class).convention(defaultValues.isServer());
+        this.suspend = execObjectFactory.property(Boolean.class).convention(defaultValues.isSuspend());
     }
 
     @Override

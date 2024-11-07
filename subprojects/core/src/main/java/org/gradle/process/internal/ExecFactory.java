@@ -34,7 +34,8 @@ import org.gradle.internal.service.scopes.ServiceScope;
 public interface ExecFactory extends ExecActionFactory, ExecHandleFactory, JavaExecHandleFactory, JavaForkOptionsFactory, ProcessOperations {
 
     /**
-     * Creates a new factory for the given context. Returns a {@link Builder} for further configuration of the created instance. You must provide an Instantiator when creating the child factory from
+     * Creates a new factory for the given context. Returns a {@link Builder} for further configuration of the created instance.
+     * You must provide an Instantiator and ObjectFactory when creating the child factory from
      * the root one.
      */
     Builder forContext();

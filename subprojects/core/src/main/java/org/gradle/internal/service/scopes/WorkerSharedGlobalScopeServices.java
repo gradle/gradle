@@ -19,15 +19,11 @@ package org.gradle.internal.service.scopes;
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.api.internal.classpath.GlobalCacheRootsProvider;
 import org.gradle.api.internal.classpath.ModuleRegistry;
-import org.gradle.api.internal.file.DefaultFilePropertyFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileFactory;
 import org.gradle.api.internal.file.FilePropertyFactory;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
-import org.gradle.api.internal.provider.DefaultPropertyFactory;
 import org.gradle.api.internal.provider.PropertyFactory;
-import org.gradle.api.internal.provider.PropertyHost;
 import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.cache.FileLockManager;
@@ -130,11 +126,6 @@ public class WorkerSharedGlobalScopeServices extends BasicGlobalScopeServices {
     }
 
     @Provides
-    DefaultFilePropertyFactory createFilePropertyFactory(PropertyHost propertyHost, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory) {
-        return new DefaultFilePropertyFactory(propertyHost, fileResolver, fileCollectionFactory);
-    }
-
-    @Provides
     StreamHasher createStreamHasher() {
         return new DefaultStreamHasher();
     }
@@ -142,11 +133,6 @@ public class WorkerSharedGlobalScopeServices extends BasicGlobalScopeServices {
     @Provides
     Deleter createDeleter(Clock clock, FileSystem fileSystem, OperatingSystem os) {
         return new DefaultDeleter(clock::getCurrentTime, fileSystem::isSymlink, os.isWindows());
-    }
-
-    @Provides
-    PropertyFactory createPropertyFactory(PropertyHost propertyHost) {
-        return new DefaultPropertyFactory(propertyHost);
     }
 
     @Provides

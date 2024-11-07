@@ -19,12 +19,18 @@ package org.gradle.internal.service.scopes;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.file.DefaultFileCollectionFactory;
 import org.gradle.api.internal.file.DefaultFileLookup;
+import org.gradle.api.internal.file.DefaultFilePropertyFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileLookup;
+import org.gradle.api.internal.file.FilePropertyFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
+import org.gradle.api.internal.model.ExecObjectFactory;
+import org.gradle.api.internal.model.ExecObjectFactory.DefaultExecObjectFactory;
+import org.gradle.api.internal.provider.DefaultPropertyFactory;
+import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.internal.provider.PropertyHost;
 import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
 import org.gradle.api.tasks.util.PatternSet;
@@ -45,6 +51,7 @@ import org.gradle.internal.event.ScopedListenerManager;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
+import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.remote.internal.inet.InetAddressFactory;
 import org.gradle.internal.remote.services.MessagingServices;
 import org.gradle.internal.service.Provides;
@@ -103,8 +110,30 @@ public class BasicGlobalScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    ExecFactory createExecFactory(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, ExecutorFactory executorFactory, TemporaryFileProvider temporaryFileProvider) {
-        return DefaultExecActionFactory.of(fileResolver, fileCollectionFactory, executorFactory, temporaryFileProvider);
+    PropertyFactory createPropertyFactory(PropertyHost propertyHost) {
+        return new DefaultPropertyFactory(propertyHost);
+    }
+
+    @Provides
+    DefaultFilePropertyFactory createFilePropertyFactory(PropertyHost propertyHost, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory) {
+        return new DefaultFilePropertyFactory(propertyHost, fileResolver, fileCollectionFactory);
+    }
+
+    @Provides
+    ExecObjectFactory createExecObjectFactory(FileCollectionFactory fileCollectionFactory, PropertyFactory propertyFactory, FilePropertyFactory filePropertyFactory) {
+        // In BasicGlobalScopeServices, we can't access all the services we use direct instantiator for now
+        return new DefaultExecObjectFactory(DirectInstantiator.INSTANCE, fileCollectionFactory, propertyFactory, filePropertyFactory);
+    }
+
+    @Provides
+    ExecFactory createExecFactory(
+        FileResolver fileResolver,
+        FileCollectionFactory fileCollectionFactory,
+        ExecutorFactory executorFactory,
+        TemporaryFileProvider temporaryFileProvider,
+        ExecObjectFactory execObjectFactory
+    ) {
+        return DefaultExecActionFactory.of(fileResolver, fileCollectionFactory, executorFactory, temporaryFileProvider, execObjectFactory);
     }
 
     @Provides

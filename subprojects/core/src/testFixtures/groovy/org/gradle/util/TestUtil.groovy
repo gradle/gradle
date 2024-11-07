@@ -31,6 +31,7 @@ import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.model.DefaultObjectFactory
+import org.gradle.api.internal.model.ExecObjectFactory
 import org.gradle.api.internal.model.NamedObjectInstantiator
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.taskfactory.TaskInstantiator
@@ -66,6 +67,8 @@ import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.testfixtures.internal.ProjectBuilderImpl
 
 import java.util.function.Supplier
+
+import static org.gradle.api.internal.model.ExecObjectFactory.ObjectFactoryBackedExecObjectFactory
 
 class TestUtil {
     public static final Closure TEST_CLOSURE = {}
@@ -169,6 +172,11 @@ class TestUtil {
                 ObjectFactory createObjectFactory(InstantiatorFactory instantiatorFactory, NamedObjectInstantiator namedObjectInstantiator, DomainObjectCollectionFactory domainObjectCollectionFactory, TaskDependencyFactory taskDependencyFactory, PropertyFactory propertyFactory) {
                     def filePropertyFactory = new DefaultFilePropertyFactory(PropertyHost.NO_OP, fileResolver, fileCollectionFactory)
                     return new DefaultObjectFactory(instantiatorFactory.decorate(services), namedObjectInstantiator, TestFiles.directoryFileTreeFactory(), TestFiles.patternSetFactory, propertyFactory, filePropertyFactory, taskDependencyFactory, fileCollectionFactory, domainObjectCollectionFactory)
+                }
+
+                @Provides
+                ExecObjectFactory createExecObjectFactory(ObjectFactory objectFactory) {
+                    new ObjectFactoryBackedExecObjectFactory(objectFactory)
                 }
 
                 @Provides

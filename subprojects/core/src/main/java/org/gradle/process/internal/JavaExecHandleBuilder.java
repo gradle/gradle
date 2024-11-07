@@ -21,10 +21,10 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
+import org.gradle.api.internal.model.ExecObjectFactory;
 import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.initialization.BuildCancellationToken;
@@ -73,7 +73,7 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
     public JavaExecHandleBuilder(
         FileResolver fileResolver,
         FileCollectionFactory fileCollectionFactory,
-        ObjectFactory objectFactory,
+        ExecObjectFactory objectFactory,
         Executor executor,
         BuildCancellationToken buildCancellationToken,
         TemporaryFileProvider temporaryFileProvider,

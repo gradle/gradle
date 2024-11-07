@@ -20,7 +20,7 @@ package org.gradle.api.internal.tasks.util
 import com.google.common.collect.ImmutableSet
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.model.ObjectFactory
+import org.gradle.api.internal.model.ExecObjectFactory
 import org.gradle.process.CommandLineArgumentProvider
 import org.gradle.process.JavaForkOptions
 import org.gradle.process.internal.DefaultJavaDebugOptions
@@ -33,6 +33,7 @@ import spock.lang.Specification
 
 import java.nio.charset.Charset
 
+import static org.gradle.api.internal.model.ExecObjectFactory.ObjectFactoryBackedExecObjectFactory
 import static org.hamcrest.CoreMatchers.equalTo
 import static org.hamcrest.CoreMatchers.nullValue
 import static org.hamcrest.MatcherAssert.assertThat
@@ -43,11 +44,11 @@ class DefaultJavaForkOptionsTest extends Specification {
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     private final resolver = TestFiles.pathToFileResolver(tmpDir.testDirectory)
     private final fileCollectionFactory = TestFiles.fileCollectionFactory(tmpDir.testDirectory)
-    private final ObjectFactory objectFactory = TestUtil.objectFactory(tmpDir.testDirectory)
+    private final ExecObjectFactory execObjectFactory = new ObjectFactoryBackedExecObjectFactory(TestUtil.objectFactory(tmpDir.testDirectory))
     private DefaultJavaForkOptions options
 
     def setup() {
-        options = new DefaultJavaForkOptions(objectFactory, resolver, fileCollectionFactory)
+        options = new DefaultJavaForkOptions(execObjectFactory, resolver, fileCollectionFactory)
     }
 
     def "provides correct default values"() {
@@ -333,7 +334,7 @@ class DefaultJavaForkOptionsTest extends Specification {
         def files = ['file1.jar', 'file2.jar'].collect { new File(it).canonicalFile }
 
         when:
-        options = new DefaultJavaForkOptions(objectFactory, resolver, fileCollectionFactory)
+        options = new DefaultJavaForkOptions(execObjectFactory, resolver, fileCollectionFactory)
         options.bootstrapClasspath(files[0])
         options.bootstrapClasspath(files[1])
 
@@ -344,7 +345,7 @@ class DefaultJavaForkOptionsTest extends Specification {
     def "allJvmArgs includes bootstrapClasspath"() {
         when:
         def files = ['file1.jar', 'file2.jar'].collect { new File(it).canonicalFile }
-        options = new DefaultJavaForkOptions(objectFactory, resolver, fileCollectionFactory)
+        options = new DefaultJavaForkOptions(execObjectFactory, resolver, fileCollectionFactory)
         options.bootstrapClasspath(files)
 
         then:
@@ -355,7 +356,7 @@ class DefaultJavaForkOptionsTest extends Specification {
         def files = ['file1.jar', 'file2.jar'].collect { new File(it).canonicalFile }
 
         when:
-        options = new DefaultJavaForkOptions(objectFactory, resolver, fileCollectionFactory)
+        options = new DefaultJavaForkOptions(execObjectFactory, resolver, fileCollectionFactory)
         options.bootstrapClasspath(files[0])
         options.allJvmArgs = ['-Xbootclasspath:' + files[1]]
 

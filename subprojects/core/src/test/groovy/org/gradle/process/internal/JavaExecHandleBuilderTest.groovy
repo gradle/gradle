@@ -32,6 +32,7 @@ import java.nio.charset.Charset
 import java.util.concurrent.Executor
 
 import static java.util.Arrays.asList
+import static org.gradle.api.internal.model.ExecObjectFactory.ObjectFactoryBackedExecObjectFactory
 
 class JavaExecHandleBuilderTest extends Specification {
     @Rule
@@ -40,7 +41,7 @@ class JavaExecHandleBuilderTest extends Specification {
     JavaExecHandleBuilder builder = new JavaExecHandleBuilder(
         TestFiles.resolver(),
         TestFiles.fileCollectionFactory(),
-        TestUtil.objectFactory(),
+        new ObjectFactoryBackedExecObjectFactory(TestUtil.objectFactory()),
         Mock(Executor),
         new DefaultBuildCancellationToken(),
         temporaryFileProvider,
@@ -185,7 +186,7 @@ class JavaExecHandleBuilderTest extends Specification {
         builder = new JavaExecHandleBuilder(
             TestFiles.resolver(),
             TestFiles.fileCollectionFactory(),
-            TestUtil.objectFactory(),
+            new ObjectFactoryBackedExecObjectFactory(TestUtil.objectFactory()),
             Mock(Executor),
             new DefaultBuildCancellationToken(),
             temporaryFileProvider,

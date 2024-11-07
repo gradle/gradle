@@ -21,6 +21,8 @@ import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.file.temp.DefaultTemporaryFileProvider;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
+import org.gradle.api.internal.model.ExecObjectFactory;
+import org.gradle.api.internal.provider.DefaultPropertyFactory;
 import org.gradle.api.internal.provider.PropertyHost;
 import org.gradle.api.internal.resources.ApiTextResourceAdapter;
 import org.gradle.api.internal.resources.DefaultResourceHandler;
@@ -39,6 +41,7 @@ import org.gradle.internal.fingerprint.impl.DefaultFileCollectionSnapshotter;
 import org.gradle.internal.hash.DefaultFileHasher;
 import org.gradle.internal.hash.DefaultStreamHasher;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
+import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.resource.local.FileResourceConnector;
 import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.service.scopes.Scope;
@@ -69,8 +72,13 @@ import static org.gradle.util.TestUtil.providerFactory;
 public class TestFiles {
     private static final FileSystem FILE_SYSTEM = NativeServicesTestFixture.getInstance().get(FileSystem.class);
     private static final DefaultFileLookup FILE_LOOKUP = new DefaultFileLookup();
-    private static final DefaultExecActionFactory EXEC_FACTORY =
-        DefaultExecActionFactory.of(resolver(), fileCollectionFactory(), new DefaultExecutorFactory(), NativeServicesTestFixture.getInstance().get(TemporaryFileProvider.class));
+    private static final DefaultExecActionFactory EXEC_FACTORY = DefaultExecActionFactory.of(
+        resolver(),
+        fileCollectionFactory(),
+        new DefaultExecutorFactory(),
+        NativeServicesTestFixture.getInstance().get(TemporaryFileProvider.class),
+        new ExecObjectFactory.DefaultExecObjectFactory(DirectInstantiator.INSTANCE, fileCollectionFactory(), new DefaultPropertyFactory(PropertyHost.NO_OP), filePropertyFactory())
+    );
 
     public static FileCollectionInternal empty() {
         return FileCollectionFactory.empty();
