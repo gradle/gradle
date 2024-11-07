@@ -43,15 +43,15 @@ class TestEventServicesIntegrationTest extends AbstractIntegrationSpec {
                 void runTests() {
                    try (def generator = getTestEventService().generateTestEvents("Custom test root")) {
                        generator.started(Instant.now())
-                       try (def mySuite = generator.createCompositeNested("My Suite")) {
+                       try (def mySuite = generator.createCompositeNode("My Suite")) {
                             mySuite.started(Instant.now())
-                            try (def myTest = mySuite.createSolitaryNested("MyTestInternal", "My test!")) {
+                            try (def myTest = mySuite.createAtomicNode("MyTestInternal", "My test!")) {
                                  myTest.started(Instant.now())
                                  myTest.output(TestOutputEvent.Destination.StdOut, "This is a test output on stdout")
                                  myTest.output(TestOutputEvent.Destination.StdErr, "This is a test output on stderr")
                                  myTest.completed(Instant.now(), TestResult.ResultType.SUCCESS)
                             }
-                            try (def myTest = mySuite.createSolitaryNested("MyTestInternal2", "My failing test :(")) {
+                            try (def myTest = mySuite.createAtomicNode("MyTestInternal2", "My failing test :(")) {
                                  myTest.started(Instant.now())
                                  myTest.output(TestOutputEvent.Destination.StdErr, "Some text on stderr")
                                  myTest.failure(TestFailure.fromTestFrameworkFailure(new RuntimeException("Test framework failure")))

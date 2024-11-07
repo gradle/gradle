@@ -26,10 +26,10 @@ import org.gradle.api.Incubating;
 @Incubating
 public interface CompositeTestEventGenerator extends TestEventGenerator {
     /**
-     * Create a nested solitary test event generator. This can be used, for example, to add a node for each method in a tested class.
+     * Create an atomic node test event generator. This can be used, for example, to add a node for each method in a tested class.
      *
      * <p>
-     * Since this is a solitary node, it will not have any children. To add children, use {@link #createCompositeNested(String)}.
+     * Since this is a atomic node, it will not have any children. To add children, use {@link #createCompositeNode(String)}.
      * </p>
      *
      * @param name the name of the node
@@ -37,18 +37,18 @@ public interface CompositeTestEventGenerator extends TestEventGenerator {
      * @return the nested test event generator
      * @since 8.12
      */
-    TestEventGenerator createSolitaryNested(String name, String displayName);
+    TestEventGenerator createAtomicNode(String name, String displayName);
 
     /**
      * Create a nested composite test event generator. This can be used, for example, to add a node for a tested class.
      *
      * <p>
-     * Since this is a composite node, it can have children. To add a solitary node, use {@link #createSolitaryNested(String, String)}.
+     * Since this is a composite node, it can have children. To add a solitary node, use {@link #createAtomicNode(String, String)}.
      * </p>
      *
      * @param name the name of the node
      * @return the nested test event generator
      * @since 8.12
      */
-    CompositeTestEventGenerator createCompositeNested(String name);
+    CompositeTestEventGenerator createCompositeNode(String name);
 }

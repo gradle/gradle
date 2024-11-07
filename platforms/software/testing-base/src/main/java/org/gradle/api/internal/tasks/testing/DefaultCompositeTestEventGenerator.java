@@ -26,6 +26,11 @@ import org.gradle.internal.id.IdGenerator;
 
 import javax.annotation.Nullable;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import java.util.WeakHashMap;
 
 @NonNullApi
 public final class DefaultCompositeTestEventGenerator implements CompositeTestEventGenerator {
@@ -33,6 +38,8 @@ public final class DefaultCompositeTestEventGenerator implements CompositeTestEv
     private final IdGenerator<?> idGenerator;
     private final @Nullable TestDescriptorInternal parent;
     private final TestDescriptorInternal testDescriptor;
+    private Set<DefaultCompositeTestEventGenerator> children;
+    private boolean closed;
 
     public DefaultCompositeTestEventGenerator(
         TestResultProcessor processor, IdGenerator<?> idGenerator, @Nullable TestDescriptorInternal parent, TestDescriptorInternal testDescriptor
@@ -43,41 +50,88 @@ public final class DefaultCompositeTestEventGenerator implements CompositeTestEv
         this.testDescriptor = testDescriptor;
     }
 
-    @Override
-    public TestEventGenerator createSolitaryNested(String name, String displayName) {
-        return new DefaultCompositeTestEventGenerator(
-            processor, idGenerator, testDescriptor, new DefaultTestDescriptor(idGenerator.generateId(), null, name, null, displayName)
-        );
+    private void requireOpen() {
+        if (closed) {
+            throw new IllegalStateException("Test event generator is closed");
+        }
+    }
+
+    private void addChild(DefaultCompositeTestEventGenerator child) {
+        if (children == null) {
+            children = Collections.newSetFromMap(new WeakHashMap<>());
+        }
+        children.add(child);
     }
 
     @Override
-    public CompositeTestEventGenerator createCompositeNested(String name) {
-        return new DefaultCompositeTestEventGenerator(
+    public TestEventGenerator createAtomicNode(String name, String displayName) {
+        requireOpen();
+        DefaultCompositeTestEventGenerator child = new DefaultCompositeTestEventGenerator(
+            processor, idGenerator, testDescriptor, new DefaultTestDescriptor(idGenerator.generateId(), null, name, null, displayName)
+        );
+        addChild(child);
+        return child;
+    }
+
+    @Override
+    public CompositeTestEventGenerator createCompositeNode(String name) {
+        requireOpen();
+        DefaultCompositeTestEventGenerator child = new DefaultCompositeTestEventGenerator(
             processor, idGenerator, testDescriptor, new DefaultTestSuiteDescriptor(idGenerator.generateId(), name)
         );
+        addChild(child);
+        return child;
     }
 
     @Override
     public void started(Instant startTime) {
+        requireOpen();
         processor.started(testDescriptor, new TestStartEvent(startTime.toEpochMilli(), parent == null ? null : parent.getId()));
     }
 
     @Override
     public void output(TestOutputEvent.Destination destination, String output) {
+        requireOpen();
         processor.output(testDescriptor.getId(), new DefaultTestOutputEvent(destination, output));
     }
 
     @Override
     public void failure(TestFailure failure) {
+        requireOpen();
         processor.failure(testDescriptor.getId(), failure);
     }
 
     @Override
     public void completed(Instant endTime, TestResult.ResultType resultType) {
+        requireOpen();
         processor.completed(testDescriptor.getId(), new TestCompleteEvent(endTime.toEpochMilli(), resultType));
     }
 
     @Override
     public void close() {
+        if (closed) {
+            return;
+        }
+        closed = true;
+        if (children != null) {
+            List<Throwable> errors = null;
+            for (DefaultCompositeTestEventGenerator child : children) {
+                try {
+                    child.close();
+                } catch (Error e) {
+                    // Let errors propagate
+                    if (errors != null) {
+                        errors.forEach(e::addSuppressed);
+                    }
+                    throw e;
+                } catch (Throwable t) {
+                    if (errors == null) {
+                        errors = new ArrayList<>();
+                    }
+                    errors.add(t);
+                }
+            }
+            children = null;
+        }
     }
 }
