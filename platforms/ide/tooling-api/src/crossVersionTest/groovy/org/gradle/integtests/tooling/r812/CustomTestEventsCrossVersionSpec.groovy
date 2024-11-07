@@ -19,8 +19,9 @@ package org.gradle.integtests.tooling.r812
 import groovy.transform.CompileStatic
 import org.gradle.integtests.tooling.TestLauncherSpec
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.tooling.TestLauncher
+import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.OperationDescriptor
+import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.task.TaskOperationDescriptor
 import org.gradle.tooling.events.test.TestOperationDescriptor
 
@@ -70,8 +71,12 @@ class CustomTestEventsCrossVersionSpec extends TestLauncherSpec {
         """)
 
         when:
-        launchTests { TestLauncher launcher ->
-            launcher.withTaskAndTestClasses(':customTest', ['no idea what to do with this yet'])
+        withConnection {
+            ProjectConnection connection ->
+                connection.newBuild()
+                    .addProgressListener(events, OperationType.TASK, OperationType.TEST)
+                    .forTasks('customTest')
+                    .run()
         }
 
         then:
