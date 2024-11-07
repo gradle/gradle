@@ -50,7 +50,7 @@ class IsolatedProjectsToolingApiParallelModelQueryIntegrationTest extends Abstra
         models[0].message == "It works from project :"
 
         and:
-        fixture.assertStateStored {
+        fixture.assertModelStored {
             projectsConfigured(":buildSrc", ":")
             modelsCreated(SomeToolingModel, ":") // the model is built only once and reused
         }
