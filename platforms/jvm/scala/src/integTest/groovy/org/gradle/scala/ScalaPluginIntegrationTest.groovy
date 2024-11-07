@@ -180,11 +180,16 @@ class ScalaPluginIntegrationTest extends MultiVersionIntegrationSpec {
             }
             project(":war") {
                 apply plugin: 'war'
+                configurations {
+                    consumable("war") {
+                        outgoing.artifact(tasks.war)
+                    }
+                }
             }
             project(":ear") {
                 apply plugin: 'ear'
                 dependencies {
-                    deploy project(path: ':war', configuration: 'archives')
+                    deploy project(path: ':war', configuration: 'war')
                 }
             }
         """
@@ -196,6 +201,10 @@ class ScalaPluginIntegrationTest extends MultiVersionIntegrationSpec {
         succeeds(":ear:assemble")
         // The Scala incremental compilation mapping should not be exposed to anything else
         file("ear/build/tmp/ear/application.xml").assertContents(not(containsString("implementationScala.mapping")))
+
+        def unzipped = file("unzip-ear")
+        file("ear/build/libs/ear.ear").unzipTo(unzipped)
+        unzipped.assertContainsDescendants("war.war")
     }
 
     def "forcing an incompatible version of Scala fails with a clear error message"() {
