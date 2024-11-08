@@ -614,7 +614,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
             JUnitXmlReport junitXml = reports.getJunitXml();
             if (junitXml.getRequired().get()) {
                 JUnitXmlResultOptions xmlResultOptions = new JUnitXmlResultOptions(
-                    junitXml.isOutputPerTestCase(),
+                    junitXml.getOutputPerTestCase().get(),
                     junitXml.getMergeReruns().get(),
                     junitXml.getIncludeSystemOutLog().get(),
                     junitXml.getIncludeSystemErrLog().get()
