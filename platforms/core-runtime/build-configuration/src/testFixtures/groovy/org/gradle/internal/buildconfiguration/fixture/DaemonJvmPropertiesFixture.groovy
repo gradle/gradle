@@ -51,6 +51,11 @@ trait DaemonJvmPropertiesFixture {
         assert properties.get(DaemonJvmPropertiesDefaults.TOOLCHAIN_IMPLEMENTATION_PROPERTY) == implementation
     }
 
+    void assertJvmCriteriaHasDownload(String key, String url) {
+        Map<String, String> properties = daemonJvmPropertiesFile.properties
+        assert url == properties.get(String.format(DaemonJvmPropertiesDefaults.TOOLCHAIN_URL_PROPERTY_FORMAT, key))
+    }
+
     void writeJvmCriteria(Jvm jvm) {
         def otherMetadata = AvailableJavaHomes.getJvmInstallationMetadata(jvm)
         writeJvmCriteria(jvm.javaVersion, otherMetadata.vendor.rawVendor)

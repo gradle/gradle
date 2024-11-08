@@ -178,6 +178,22 @@ class UpdateDaemonJvmIntegrationTest extends AbstractIntegrationSpec implements 
         assertJvmCriteria(otherJvm.javaVersion)
     }
 
+    def "writes download locations when provided"() {
+        given:
+        buildFile << """
+            updateDaemonJvm {
+                toolchainDownloadLocations.put("Arch/OS", uri("https://example.com/Arch/OS"))
+            }
+        """
+
+        when:
+        run "updateDaemonJvm", "--jvm-version=11"
+
+        then:
+        assertJvmCriteria(JavaVersion.VERSION_11)
+        assertJvmCriteriaHasDownload("Arch/OS", "https://example.com/Arch/OS")
+    }
+
     @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "Given defined valid criteria matching with local toolchain When execute updateDaemonJvm with different criteria Then criteria get modified using the expected local toolchain"() {
         def otherJvm = AvailableJavaHomes.differentVersion

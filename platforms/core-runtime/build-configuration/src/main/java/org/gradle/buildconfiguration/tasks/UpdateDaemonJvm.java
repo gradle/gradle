@@ -19,6 +19,7 @@ package org.gradle.buildconfiguration.tasks;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
@@ -34,6 +35,7 @@ import org.gradle.util.internal.IncubationLogger;
 import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
+import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -72,7 +74,8 @@ public abstract class UpdateDaemonJvm extends DefaultTask {
             getPropertiesFile().get().getAsFile(),
             getJvmVersion().get(),
             jvmVendor,
-            null
+            null,
+            getToolchainDownloadLocations().get()
         );
     }
 
@@ -113,11 +116,21 @@ public abstract class UpdateDaemonJvm extends DefaultTask {
     public abstract Property<String> getJvmVendor();
 
     /**
+     * TODO
+     * @return map of build platforms to download locations
+     * @since 8.12
+     */
+    @Input
+    @Incubating
+    public abstract MapProperty<String, URI> getToolchainDownloadLocations();
+
+    /**
      * Returns the supported JVM vendors.
      *
      * @return supported JVM vendors
      * @since 8.10
      */
+    @SuppressWarnings("unused")
     @OptionValues("jvm-vendor")
     public List<String> getAvailableVendors() {
         return Arrays.stream(JvmVendor.KnownJvmVendor.values()).filter(e -> e!=JvmVendor.KnownJvmVendor.UNKNOWN).map(Enum::name).collect(Collectors.toList());

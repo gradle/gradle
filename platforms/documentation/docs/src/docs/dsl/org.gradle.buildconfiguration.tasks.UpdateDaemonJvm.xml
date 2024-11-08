@@ -25,12 +25,20 @@
                 </tr>
             </thead>
             <tr>
+                <td>propertiesFile</td>
+                <td><literal>gradle/gradle-daemon-jvm.properties</literal></td>
+            </tr>
+            <tr>
                 <td>jvmVersion</td>
-                <td><literal>defaults to current JVM version</literal></td>
+                <td>defaults to current JVM version</td>
             </tr>
             <tr>
                 <td>jvmVendor</td>
-                <td><literal>defaults to allowing any JVM vendor</literal></td>
+                <td>defaults to allowing any JVM vendor</td>
+            </tr>
+            <tr>
+                <td>toolchainDownloadLocations</td>
+                <td>defaults to list of URLs for compatible toolchains</td>
             </tr>
         </table>
     </section>

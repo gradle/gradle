@@ -22,6 +22,8 @@ import org.gradle.configuration.project.ProjectConfigureAction;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 
+import java.util.Collections;
+
 public class DaemonJvmPropertiesConfigurator implements ProjectConfigureAction {
 
     public static final String TASK_NAME = "updateDaemonJvm";
@@ -35,6 +37,7 @@ public class DaemonJvmPropertiesConfigurator implements ProjectConfigureAction {
                 task.setDescription("Generates or updates the Gradle Daemon JVM criteria.");
                 task.getPropertiesFile().convention(project.getLayout().getProjectDirectory().file(DaemonJvmPropertiesDefaults.DAEMON_JVM_PROPERTIES_FILE));
                 task.getJvmVersion().convention(JavaLanguageVersion.of(Jvm.current().getJavaVersionMajor()));
+                task.getToolchainDownloadLocations().convention(Collections.emptyMap());
             });
         }
     }
