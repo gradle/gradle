@@ -138,7 +138,7 @@ include::variant_aware_resolution.adoc[leveloffset=+2]
 
 == DECLARING DEPENDENCIES
 
-include::declaring_repositories_basics.adoc[leveloffset=+2]
+include::declaring_dependencies_basics.adoc[leveloffset=+2]
 include::viewing_debugging_dependencies.adoc[leveloffset=+2]
 include::dependency_versions.adoc[leveloffset=+2]
 include::dependency_constraints.adoc[leveloffset=+2]

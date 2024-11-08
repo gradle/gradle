@@ -63,7 +63,7 @@ include::sample[dir="snippets/dependencyManagement/dependencyLocking-lockingSing
 Only configurations that can be resolved will have lock state attached to them.
 Applying locking on non resolvable-configurations is a no-op.
 
-[[sec:activate-locking]]
+[[sec:activate-locking-for-all]]
 == Activate locking for all configurations
 
 The following locks all configurations:
@@ -87,7 +87,7 @@ include::sample[dir="snippets/dependencyManagement/dependencyLocking-unlockingSi
 include::sample[dir="snippets/dependencyManagement/dependencyLocking-unlockingSingleConfiguration/groovy",files="build.gradle[tags=locking-one]"]
 ====
 
-[[sec:activate-locking]]
+[[sec:activate-locking-build-script]]
 == Activate locking for a buildscript classpath configuration
 
 If you apply plugins to your build, you may want to leverage dependency locking there as well.
