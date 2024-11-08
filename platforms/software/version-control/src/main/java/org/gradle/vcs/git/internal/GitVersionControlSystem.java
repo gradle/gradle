@@ -114,24 +114,26 @@ public class GitVersionControlSystem implements VersionControlSystem {
     }
 
     private Collection<Ref> getRemoteRefs(GitVersionControlSpec gitSpec, boolean tags, boolean heads) {
+        URI repoUrl = gitSpec.getUrl().get();
         try {
-            return configureTransport(Git.lsRemoteRepository()).setRemote(normalizeUri(gitSpec.getUrl())).setTags(tags).setHeads(heads).call();
+            return configureTransport(Git.lsRemoteRepository()).setRemote(normalizeUri(repoUrl)).setTags(tags).setHeads(heads).call();
         } catch (URISyntaxException | GitAPIException e) {
-            throw wrapGitCommandException("ls-remote", gitSpec.getUrl(), null, e);
+            throw wrapGitCommandException("ls-remote", repoUrl, null, e);
         }
     }
 
     private static void cloneRepo(File workingDir, GitVersionControlSpec gitSpec, VersionRef ref) {
         Git git = null;
+        URI repoUrl = gitSpec.getUrl().get();
         try {
             CloneCommand clone = configureTransport(Git.cloneRepository()).
-                    setURI(normalizeUri(gitSpec.getUrl())).
+                    setURI(normalizeUri(repoUrl)).
                     setDirectory(workingDir).
                     setCloneSubmodules(true);
             git = clone.call();
             git.reset().setMode(ResetCommand.ResetType.HARD).setRef(ref.getCanonicalId()).call();
         } catch (GitAPIException | URISyntaxException | JGitInternalException e) {
-            throw wrapGitCommandException("clone", gitSpec.getUrl(), workingDir, e);
+            throw wrapGitCommandException("clone", repoUrl, workingDir, e);
         } finally {
             closeGit(git);
         }
@@ -144,7 +146,8 @@ public class GitVersionControlSystem implements VersionControlSystem {
             git.reset().setMode(ResetCommand.ResetType.HARD).setRef(ref.getCanonicalId()).call();
             updateSubModules(git);
         } catch (IOException | JGitInternalException | GitAPIException e) {
-            throw wrapGitCommandException("reset", gitSpec.getUrl(), workingDir, e);
+            URI repoUrl = gitSpec.getUrl().get();
+            throw wrapGitCommandException("reset", repoUrl, workingDir, e);
         } finally {
             closeGit(git);
         }
