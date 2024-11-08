@@ -55,8 +55,8 @@ Method <org.gradle.api.tasks.bundling.AbstractArchiveTask.getArchiveVersion()> i
 Method <org.gradle.api.tasks.bundling.AbstractArchiveTask.getDestinationDirectory()> is not abstract
 Method <org.gradle.api.tasks.bundling.AbstractArchiveTask.getIsPreserveFileTimestamps()> is not abstract
 Method <org.gradle.api.tasks.bundling.AbstractArchiveTask.getIsReproducibleFileOrder()> is not abstract
-Method <org.gradle.api.tasks.bundling.War.getClasspath()> is not abstract
 Method <org.gradle.api.tasks.bundling.War.getWebAppDirectory()> is not abstract
+Method <org.gradle.api.tasks.bundling.Zip.getIsZip64()> is not abstract
 Method <org.gradle.api.tasks.compile.AbstractCompile.getClasspath()> is not abstract
 Method <org.gradle.api.tasks.compile.AbstractCompile.getDestinationDirectory()> is not abstract
 Method <org.gradle.api.tasks.compile.GroovyCompile.getAstTransformationClasspath()> is not abstract
@@ -75,7 +75,6 @@ Method <org.gradle.api.tasks.diagnostics.DependencyInsightReportTask.getEffectiv
 Method <org.gradle.api.tasks.diagnostics.DependencyInsightReportTask.getIsShowSinglePathToDependency()> is not abstract
 Method <org.gradle.api.tasks.diagnostics.TaskReportTask.getIsShowDetail()> is not abstract
 Method <org.gradle.api.tasks.javadoc.Groovydoc.getAccess()> is not abstract
-Method <org.gradle.api.tasks.javadoc.Groovydoc.getClasspath()> is not abstract
 Method <org.gradle.api.tasks.javadoc.Groovydoc.getIncludeAuthor()> is not abstract
 Method <org.gradle.api.tasks.javadoc.Groovydoc.getIncludeMainForScripts()> is not abstract
 Method <org.gradle.api.tasks.javadoc.Groovydoc.getIsNoTimestamp()> is not abstract
@@ -88,7 +87,6 @@ Method <org.gradle.api.tasks.javadoc.Javadoc.getJavadocTool()> is not abstract
 Method <org.gradle.api.tasks.javadoc.Javadoc.getOptionsFile()> is not abstract
 Method <org.gradle.api.tasks.javadoc.Javadoc.getOutputDirectory()> is not abstract
 Method <org.gradle.api.tasks.javadoc.Javadoc.getSource()> is not abstract
-Method <org.gradle.api.tasks.scala.ScalaDoc.getClasspath()> is not abstract
 Method <org.gradle.api.tasks.scala.ScalaDoc.getCompilationOutputs()> is not abstract
 Method <org.gradle.api.tasks.scala.ScalaDoc.getFilteredCompilationOutputs()> is not abstract
 Method <org.gradle.api.tasks.scala.ScalaDoc.getJavaLauncher()> is not abstract
