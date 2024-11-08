@@ -22,7 +22,6 @@ import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.classpath.ClassPath;
-import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.installation.GradleInstallation;
 import org.gradle.internal.instrumentation.agent.AgentUtils;
@@ -47,7 +46,7 @@ import org.gradle.launcher.daemon.diagnostics.DaemonStartupInfo;
 import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.launcher.daemon.toolchain.DaemonJavaToolchainQueryService;
 import org.gradle.launcher.daemon.toolchain.DaemonJvmCriteria;
-import org.gradle.process.internal.DefaultExecActionFactory;
+import org.gradle.process.internal.ExecFactory;
 import org.gradle.process.internal.ExecHandle;
 import org.gradle.process.internal.JvmOptions;
 import org.gradle.util.GradleVersion;
@@ -75,8 +74,9 @@ public class DefaultDaemonStarter implements DaemonStarter {
     private final JvmVersionValidator versionValidator;
     private final JvmVersionDetector jvmVersionDetector;
     private final DaemonJavaToolchainQueryService daemonJavaToolchainQueryService;
+    private final ExecFactory execFactory;
 
-    public DefaultDaemonStarter(DaemonDir daemonDir, DaemonParameters daemonParameters, DaemonRequestContext daemonRequestContext, DaemonGreeter daemonGreeter, JvmVersionValidator versionValidator, JvmVersionDetector jvmVersionDetector, DaemonJavaToolchainQueryService daemonJavaToolchainQueryService) {
+    public DefaultDaemonStarter(DaemonDir daemonDir, DaemonParameters daemonParameters, DaemonRequestContext daemonRequestContext, DaemonGreeter daemonGreeter, JvmVersionValidator versionValidator, JvmVersionDetector jvmVersionDetector, DaemonJavaToolchainQueryService daemonJavaToolchainQueryService, ExecFactory execFactory) {
         this.daemonDir = daemonDir;
         this.daemonParameters = daemonParameters;
         this.daemonRequestContext = daemonRequestContext;
@@ -84,6 +84,7 @@ public class DefaultDaemonStarter implements DaemonStarter {
         this.versionValidator = versionValidator;
         this.jvmVersionDetector = jvmVersionDetector;
         this.daemonJavaToolchainQueryService = daemonJavaToolchainQueryService;
+        this.execFactory = execFactory;
     }
 
     @Override
@@ -194,7 +195,6 @@ public class DefaultDaemonStarter implements DaemonStarter {
         return startProcess(
             daemonArgs,
             daemonDir.getVersionedDir(),
-            daemonParameters.getGradleUserHomeDir().getAbsoluteFile(),
             stdInput
         );
     }
@@ -213,27 +213,18 @@ public class DefaultDaemonStarter implements DaemonStarter {
         }
     }
 
-    private DaemonStartupInfo startProcess(List<String> args, File workingDir, File gradleUserHome, InputStream stdInput) {
+    private DaemonStartupInfo startProcess(List<String> args, File workingDir, InputStream stdInput) {
         LOGGER.debug("Starting daemon process: workingDir = {}, daemonArgs: {}", workingDir, args);
         Timer clock = Time.startTimer();
         try {
             GFileUtils.mkdirs(workingDir);
 
             DaemonOutputConsumer outputConsumer = new DaemonOutputConsumer();
-
-            // This factory should be injected but leaves non-daemon threads running when used from the tooling API client
-            @SuppressWarnings("deprecation")
-            DefaultExecActionFactory execActionFactory = DefaultExecActionFactory.root(gradleUserHome);
-            try {
-                ExecHandle handle = new DaemonExecHandleBuilder().build(args, workingDir, outputConsumer, stdInput, execActionFactory.newExec());
-
-                handle.start();
-                LOGGER.debug("Gradle daemon process is starting. Waiting for the daemon to detach...");
-                handle.waitForFinish();
-                LOGGER.debug("Gradle daemon process is now detached.");
-            } finally {
-                CompositeStoppable.stoppable(execActionFactory).stop();
-            }
+            ExecHandle handle = new DaemonExecHandleBuilder().build(args, workingDir, outputConsumer, stdInput, execFactory.newExec());
+            handle.start();
+            LOGGER.debug("Gradle daemon process is starting. Waiting for the daemon to detach...");
+            handle.waitForFinish();
+            LOGGER.debug("Gradle daemon process is now detached.");
 
             return daemonGreeter.parseDaemonOutput(outputConsumer.getProcessOutput(), args);
         } catch (GradleException e) {
