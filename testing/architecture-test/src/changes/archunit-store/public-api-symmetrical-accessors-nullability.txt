@@ -8,7 +8,6 @@ Accessors for org.gradle.api.tasks.AbstractExecTask.executable don't use symmetr
 Accessors for org.gradle.api.tasks.Exec.args don't use symmetrical @Nullable
 Accessors for org.gradle.api.tasks.JavaExec.executable don't use symmetrical @Nullable
 Accessors for org.gradle.api.tasks.SourceSetOutput.resourcesDir don't use symmetrical @Nullable
-Accessors for org.gradle.api.tasks.bundling.War.classpath don't use symmetrical @Nullable
 Accessors for org.gradle.api.tasks.bundling.Zip.metadataCharset don't use symmetrical @Nullable
 Accessors for org.gradle.api.tasks.compile.CompileOptions.annotationProcessorGeneratedSourcesDirectory don't use symmetrical @Nullable
 Accessors for org.gradle.api.tasks.diagnostics.DependencyInsightReportTask.configuration don't use symmetrical @Nullable
