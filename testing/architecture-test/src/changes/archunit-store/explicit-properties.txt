@@ -32,6 +32,7 @@ Method <org.gradle.api.tasks.JavaExec.getDebug()> is not abstract
 Method <org.gradle.api.tasks.JavaExec.getDefaultCharacterEncoding()> is not abstract
 Method <org.gradle.api.tasks.JavaExec.getEnableAssertions()> is not abstract
 Method <org.gradle.api.tasks.JavaExec.getExecutionResult()> is not abstract
+Method <org.gradle.api.tasks.JavaExec.getJavaVersion()> is not abstract
 Method <org.gradle.api.tasks.JavaExec.getJvmArgs()> is not abstract
 Method <org.gradle.api.tasks.JavaExec.getJvmArgumentProviders()> is not abstract
 Method <org.gradle.api.tasks.JavaExec.getJvmArguments()> is not abstract
