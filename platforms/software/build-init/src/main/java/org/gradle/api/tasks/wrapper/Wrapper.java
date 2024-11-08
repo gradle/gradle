@@ -32,13 +32,11 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.options.Option;
-import org.gradle.api.tasks.options.OptionValues;
 import org.gradle.api.tasks.wrapper.internal.GradleVersionResolver;
 import org.gradle.api.tasks.wrapper.internal.WrapperDefaults;
 import org.gradle.api.tasks.wrapper.internal.WrapperGenerator;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.internal.GUtil;
 import org.gradle.util.internal.WrapperDistributionUrlConverter;
@@ -54,8 +52,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Properties;
 
 /**
@@ -276,15 +272,6 @@ public abstract class Wrapper extends DefaultTask {
     @ReplacesEagerProperty
     @Option(option = "distribution-type", description = "The type of the Gradle distribution to be used by the wrapper.")
     public abstract Property<DistributionType> getDistributionType();
-
-    /**
-     * The list of available gradle distribution types.
-     */
-    @OptionValues("distribution-type")
-    @ToBeReplacedByLazyProperty(comment = "Not supported yet", issue = "https://github.com/gradle/gradle/issues/29341")
-    public List<DistributionType> getAvailableDistributionTypes() {
-        return Arrays.asList(DistributionType.values());
-    }
 
     /**
      * The URL to download the gradle distribution from.
