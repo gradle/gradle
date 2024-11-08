@@ -60,13 +60,15 @@ class DefaultVersionControlRepositoryFactory implements VersionControlRepository
     public VersionControlRepositoryConnection create(VersionControlSpec spec) {
         // TODO: Register these mappings somewhere
         VersionControlSystem vcs;
-        if (spec instanceof GitVersionControlSpec) {
-            vcs = new GitVersionControlSystem();
-        } else {
+        if (!(spec instanceof GitVersionControlSpec)) {
             throw new IllegalArgumentException(String.format("Don't know how to create a VCS from spec %s.", spec));
         }
-        // TODO(mlopatkin) changes to the spec should be disallowed from this point.
-        return new LockingVersionControlRepository(spec, vcs, vcsWorkingDirCache);
+        vcs = new GitVersionControlSystem();
+
+        GitVersionControlSpec gitSpec = (GitVersionControlSpec) spec;
+        gitSpec.getUrl().finalizeValue();
+
+        return new LockingVersionControlRepository(gitSpec, vcs, vcsWorkingDirCache);
     }
 
     @Override
