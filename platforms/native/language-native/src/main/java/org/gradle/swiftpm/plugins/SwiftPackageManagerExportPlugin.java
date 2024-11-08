@@ -60,6 +60,7 @@ import org.gradle.vcs.internal.VcsResolver;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashSet;
@@ -215,7 +216,8 @@ public abstract class SwiftPackageManagerExportPlugin implements Plugin<Project>
                         throw new InvalidUserDataException(String.format("Cannot determine the Git URL for dependency on %s:%s.", dependency.getGroup(), dependency.getName()));
                     }
                     GitVersionControlSpec gitSpec = (GitVersionControlSpec) vcsSpec;
-                    dependencies.add(toSwiftPmDependency(externalDependency, gitSpec));
+                    gitSpec.getUrl().finalizeValue();
+                    dependencies.add(toSwiftPmDependency(externalDependency, gitSpec.getUrl().get()));
                     target.getRequiredProducts().add(externalDependency.getName());
                 } else {
                     throw new InvalidUserDataException(String.format("Cannot map a dependency of type %s (%s)", dependency.getClass().getSimpleName(), dependency));
@@ -223,12 +225,12 @@ public abstract class SwiftPackageManagerExportPlugin implements Plugin<Project>
             }
         }
 
-        private Dependency toSwiftPmDependency(ExternalModuleDependency externalDependency, GitVersionControlSpec gitSpec) {
+        private Dependency toSwiftPmDependency(ExternalModuleDependency externalDependency, URI gitUrl) {
             if (externalDependency.getVersionConstraint().getBranch() != null) {
                 if (externalDependency.getVersion() != null) {
                     throw new InvalidUserDataException(String.format("Cannot map a dependency on %s:%s that defines both a branch (%s) and a version constraint (%s).", externalDependency.getGroup(), externalDependency.getName(), externalDependency.getVersionConstraint().getBranch(), externalDependency.getVersion()));
                 }
-                return new BranchDependency(gitSpec.getUrl(), externalDependency.getVersionConstraint().getBranch());
+                return new BranchDependency(gitUrl, externalDependency.getVersionConstraint().getBranch());
             }
 
             String versionSelectorString = externalDependency.getVersion();
@@ -236,14 +238,14 @@ public abstract class SwiftPackageManagerExportPlugin implements Plugin<Project>
             if (versionSelector instanceof LatestVersionSelector) {
                 LatestVersionSelector latestVersionSelector = (LatestVersionSelector) versionSelector;
                 if (latestVersionSelector.getSelectorStatus().equals("integration")) {
-                    return new BranchDependency(gitSpec.getUrl(), "master");
+                    return new BranchDependency(gitUrl, "master");
                 }
             } else if (versionSelector instanceof ExactVersionSelector) {
-                return new VersionDependency(gitSpec.getUrl(), versionSelector.getSelector());
+                return new VersionDependency(gitUrl, versionSelector.getSelector());
             } else if (versionSelector instanceof VersionRangeSelector) {
                 VersionRangeSelector versionRangeSelector = (VersionRangeSelector) versionSelector;
                 if (versionRangeSelector.isLowerInclusive()) {
-                    return new VersionDependency(gitSpec.getUrl(), versionRangeSelector.getLowerBound(), versionRangeSelector.getUpperBound(), versionRangeSelector.isUpperInclusive());
+                    return new VersionDependency(gitUrl, versionRangeSelector.getLowerBound(), versionRangeSelector.getUpperBound(), versionRangeSelector.isUpperInclusive());
                 }
             } else if (versionSelector instanceof SubVersionSelector) {
                 SubVersionSelector subVersionSelector = (SubVersionSelector) versionSelector;
@@ -254,12 +256,12 @@ public abstract class SwiftPackageManagerExportPlugin implements Plugin<Project>
                     Version version = versionParser.transform(versionString);
                     if (version.getNumericParts().length == 1) {
                         Long part1 = version.getNumericParts()[0];
-                        return new VersionDependency(gitSpec.getUrl(), part1 + ".0.0");
+                        return new VersionDependency(gitUrl, part1 + ".0.0");
                     }
                     if (version.getNumericParts().length == 2) {
                         Long part1 = version.getNumericParts()[0];
                         Long part2 = version.getNumericParts()[1];
-                        return new VersionDependency(gitSpec.getUrl(), part1 + "." + part2 + ".0", part1 + "." + (part2 + 1) + ".0", false);
+                        return new VersionDependency(gitUrl, part1 + "." + part2 + ".0", part1 + "." + (part2 + 1) + ".0", false);
                     }
                 }
             }
