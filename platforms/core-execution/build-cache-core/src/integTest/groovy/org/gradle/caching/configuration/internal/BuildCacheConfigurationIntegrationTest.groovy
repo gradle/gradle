@@ -154,8 +154,8 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << """
             ${declareNoopBuildCacheService()}
 
-            class CustomBuildCache extends AbstractBuildCache {}
-            class AnotherBuildCache extends AbstractBuildCache {}
+            abstract class CustomBuildCache extends AbstractBuildCache {}
+            abstract class AnotherBuildCache extends AbstractBuildCache {}
 
             class CustomBuildCacheFactory implements BuildCacheServiceFactory<CustomBuildCache> {
                 @Override BuildCacheService createBuildCacheService(CustomBuildCache configuration, Describer describer) {
@@ -199,7 +199,7 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << """
             ${declareNoopBuildCacheService()}
 
-            class CustomBuildCache extends AbstractBuildCache {}
+            abstract class CustomBuildCache extends AbstractBuildCache {}
 
             class CustomBuildCacheFactory implements BuildCacheServiceFactory<CustomBuildCache> {
                 @Override BuildCacheService createBuildCacheService(CustomBuildCache configuration, Describer describer) {
@@ -220,7 +220,7 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
 
     def "unregistered build cache type is reported even when disabled"() {
         settingsFile << """
-            class CustomBuildCache extends AbstractBuildCache {}
+            abstract class CustomBuildCache extends AbstractBuildCache {}
 
             buildCache {
                 remote(CustomBuildCache) {
