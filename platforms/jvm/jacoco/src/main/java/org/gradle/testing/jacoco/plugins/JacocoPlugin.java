@@ -181,7 +181,7 @@ public abstract class JacocoPlugin implements Plugin<Project> {
      */
     private void configureTaskClasspathDefaults(final JacocoPluginExtension extension) {
         final Configuration config = this.project.getConfigurations().getAt(ANT_CONFIGURATION_NAME);
-        project.getTasks().withType(JacocoBase.class).configureEach(task -> task.setJacocoClasspath(config));
+        project.getTasks().withType(JacocoBase.class).configureEach(task -> task.getJacocoClasspath().setFrom(config));
         config.defaultDependencies(dependencies -> dependencies.addLater(
             extension.getToolVersion().map(version -> project.getDependencies().create("org.jacoco:org.jacoco.ant:" + version))
         ));
