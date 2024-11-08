@@ -38,8 +38,8 @@ public interface VersionControlSpec extends Describable {
     /**
      * Returns the name of the repository.
      */
-    @ToBeReplacedByLazyProperty
-    String getRepoName();
+    @ReplacesEagerProperty
+    Provider<String> getRepoName();
 
     /**
      * Returns the relative path to the root of the build within the repository.

@@ -127,7 +127,7 @@ class DefaultVersionControlRepositoryFactory implements VersionControlRepository
         public File populate(final VersionRef ref) {
             return cacheAccess.useCache(() -> {
                 try {
-                    String repoName = spec.getRepoName();
+                    String repoName = spec.getRepoName().get();
                     String prefix = repoName.length() <= 9 ? repoName : repoName.substring(0, 10);
                     String versionId = prefix + "_" + hashString(getUniqueId() + "-" + ref.getCanonicalId()).toCompactString();
                     File baseDir = new File(cacheAccess.getBaseDir(), versionId);

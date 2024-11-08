@@ -60,8 +60,12 @@ public abstract class DefaultGitVersionControlSpec extends AbstractVersionContro
     }
 
     @Override
-    public String getRepoName() {
-        String[] pathParts = getUrl().getPath().split("/");
+    public Provider<String> getRepoName() {
+        return getUrlImpl().map(DefaultGitVersionControlSpec::extractRepoName);
+    }
+
+    private static String extractRepoName(URI url) {
+        String[] pathParts = url.getPath().split("/");
         String repoPart = pathParts[pathParts.length-1];
         if (repoPart.endsWith(".git")) {
             repoPart = repoPart.substring(0, repoPart.indexOf(".git"));
