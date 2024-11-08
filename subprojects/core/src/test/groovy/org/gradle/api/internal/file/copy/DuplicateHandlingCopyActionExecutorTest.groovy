@@ -26,6 +26,7 @@ import org.gradle.api.file.FileVisitor
 import org.gradle.api.file.RelativePath
 import org.gradle.api.internal.file.CopyActionProcessingStreamAction
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.internal.provider.Providers
 import org.gradle.api.tasks.WorkResult
 import org.gradle.api.tasks.WorkResults
 import org.gradle.internal.logging.ConfigureLogging
@@ -59,7 +60,9 @@ class DuplicateHandlingCopyActionExecutorTest extends Specification {
     def copySpec = Mock(MyCopySpec) {
         getChildren() >> []
     }
-    def copySpecResolver = Mock(CopySpecResolver)
+    def copySpecResolver = Mock(CopySpecResolver) {
+        getIncludeEmptyDirs() >> Providers.of(false)
+    }
 
     def duplicatesIncludedByDefault() {
         given:

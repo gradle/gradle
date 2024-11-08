@@ -48,13 +48,8 @@ public abstract class DelegatingCopySpecInternal implements CopySpecInternal {
     }
 
     @Override
-    public boolean getIncludeEmptyDirs() {
+    public Property<Boolean> getIncludeEmptyDirs() {
         return getDelegateCopySpec().getIncludeEmptyDirs();
-    }
-
-    @Override
-    public void setIncludeEmptyDirs(boolean includeEmptyDirs) {
-        getDelegateCopySpec().setIncludeEmptyDirs(includeEmptyDirs);
     }
 
     @Override

@@ -51,7 +51,7 @@ public interface CopySpecResolver {
     Provider<FilePermissions> getImmutableFilePermissions();
     Provider<ConfigurableFilePermissions> getDirPermissions();
     Provider<FilePermissions> getImmutableDirPermissions();
-    boolean getIncludeEmptyDirs();
+    Provider<Boolean> getIncludeEmptyDirs();
     String getFilteringCharset();
 
     RelativePath getDestPath();

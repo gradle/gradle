@@ -202,13 +202,13 @@ class DefaultCopySpecResolutionTest extends Specification {
         childResolver.includeEmptyDirs
 
         when:
-        parentSpec.includeEmptyDirs = false
+        parentSpec.includeEmptyDirs.set(false)
 
         then:
-        !childResolver.includeEmptyDirs
+        !childResolver.includeEmptyDirs.get()
 
         when:
-        child.includeEmptyDirs = true
+        child.includeEmptyDirs.set(true)
 
         then:
         childResolver.includeEmptyDirs

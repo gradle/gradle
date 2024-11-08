@@ -55,7 +55,7 @@ class DefaultCopySpecCodec(
             write(value.sourceRootsForThisSpec)
             write(value.patterns)
             writeEnum(value.duplicatesStrategyForThisSpec)
-            writeBoolean(value.includeEmptyDirs)
+            writeBoolean(value.includeEmptyDirs.get())
             writeBoolean(value.caseSensitive.get())
             writeString(value.filteringCharset)
             writeNullableSmallInt(value.dirPermissions.map(ConfigurableFilePermissions::toUnixNumeric).orNull)
@@ -80,7 +80,7 @@ class DefaultCopySpecCodec(
             val children = readList().uncheckedCast<List<CopySpecInternal>>()
             val copySpec = DefaultCopySpec(fileCollectionFactory, objectFactory, instantiator, patternSetFactory, destPath, sourceFiles, patterns, actions, children)
             copySpec.duplicatesStrategy = duplicatesStrategy
-            copySpec.includeEmptyDirs = includeEmptyDirs
+            copySpec.includeEmptyDirs.set(includeEmptyDirs)
             copySpec.caseSensitive.set(isCaseSensitive)
             copySpec.filteringCharset = filteringCharset
             if (dirMode != null) {

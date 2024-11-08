@@ -85,10 +85,10 @@ public class DefaultCopySpec implements CopySpecInternal {
     private final Property<ConfigurableFilePermissions> dirPermissions;
     private final Property<ConfigurableFilePermissions> filePermissions;
     private final Property<Boolean> caseSensitive;
+    private final Property<Boolean> includeEmptyDirs;
     private final PatternFilterable preserve = new PatternSet();
     private Object destDir;
     private boolean hasCustomActions;
-    private Boolean includeEmptyDirs;
     private DuplicatesStrategy duplicatesStrategy = DuplicatesStrategy.INHERIT;
     private String filteringCharset;
     private final List<CopySpecListener> listeners = new LinkedList<>();
@@ -108,6 +108,7 @@ public class DefaultCopySpec implements CopySpecInternal {
         this.filePermissions = objectFactory.property(ConfigurableFilePermissions.class);
         this.dirPermissions = objectFactory.property(ConfigurableFilePermissions.class);
         this.caseSensitive = objectFactory.property(Boolean.class);
+        this.includeEmptyDirs = objectFactory.property(Boolean.class);
     }
 
     public DefaultCopySpec(FileCollectionFactory fileCollectionFactory, ObjectFactory objectFactory, Instantiator instantiator, Factory<PatternSet> patternSetFactory, @Nullable String destPath, FileCollection source, PatternSet patternSet, Collection<? extends Action<? super FileCopyDetails>> copyActions, Collection<CopySpecInternal> children) {
@@ -290,13 +291,11 @@ public class DefaultCopySpec implements CopySpecInternal {
     }
 
     @Override
-    public boolean getIncludeEmptyDirs() {
-        return buildRootResolver().getIncludeEmptyDirs();
-    }
-
-    @Override
-    public void setIncludeEmptyDirs(boolean includeEmptyDirs) {
-        this.includeEmptyDirs = includeEmptyDirs;
+    public Property<Boolean> getIncludeEmptyDirs() {
+        if (!includeEmptyDirs.isPresent()) {
+            includeEmptyDirs.set(buildRootResolver().getIncludeEmptyDirs());
+        }
+        return includeEmptyDirs;
     }
 
     public DuplicatesStrategy getDuplicatesStrategyForThisSpec() {
@@ -852,14 +851,14 @@ public class DefaultCopySpec implements CopySpecInternal {
         }
 
         @Override
-        public boolean getIncludeEmptyDirs() {
-            if (includeEmptyDirs != null) {
+        public Provider<Boolean> getIncludeEmptyDirs() {
+            if (includeEmptyDirs.isPresent()) {
                 return includeEmptyDirs;
             }
             if (parentResolver != null) {
                 return parentResolver.getIncludeEmptyDirs();
             }
-            return true;
+            return Providers.of(true);
         }
 
         @Override

@@ -63,13 +63,8 @@ public class CopySpecWrapper implements SyncSpec {
     }
 
     @Override
-    public boolean getIncludeEmptyDirs() {
+    public Property<Boolean> getIncludeEmptyDirs() {
         return delegate.getIncludeEmptyDirs();
-    }
-
-    @Override
-    public void setIncludeEmptyDirs(boolean includeEmptyDirs) {
-        delegate.setIncludeEmptyDirs(includeEmptyDirs);
     }
 
     @Override

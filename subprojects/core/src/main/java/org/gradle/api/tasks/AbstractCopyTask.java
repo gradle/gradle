@@ -92,7 +92,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
 
             getInputs().property(specPropertyName + ".destPath", (Callable<String>) () -> resolver.getDestPath().getPathString());
             getInputs().property(specPropertyName + ".caseSensitive", spec.getCaseSensitive());
-            getInputs().property(specPropertyName + ".includeEmptyDirs", (Callable<Boolean>) spec::getIncludeEmptyDirs);
+            getInputs().property(specPropertyName + ".includeEmptyDirs", spec.getIncludeEmptyDirs());
             getInputs().property(specPropertyName + ".duplicatesStrategy", (Callable<DuplicatesStrategy>) spec::getDuplicatesStrategy);
             getInputs().property(specPropertyName + ".dirPermissions", spec.getDirPermissions().map(FilePermissions::toUnixNumeric))
                 .optional(true);
@@ -204,17 +204,8 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
      */
     @Internal
     @Override
-    @ToBeReplacedByLazyProperty
-    public boolean getIncludeEmptyDirs() {
+    public Property<Boolean> getIncludeEmptyDirs() {
         return getMainSpec().getIncludeEmptyDirs();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void setIncludeEmptyDirs(boolean includeEmptyDirs) {
-        getMainSpec().setIncludeEmptyDirs(includeEmptyDirs);
     }
 
     /**

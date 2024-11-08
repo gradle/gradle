@@ -25,6 +25,7 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.internal.HasInternalProtocol;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
@@ -105,15 +106,14 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
      *
      * @return <code>true</code> if empty target directories will be included in the copy, <code>false</code> otherwise
      */
-    @ToBeReplacedByLazyProperty
-    boolean getIncludeEmptyDirs();
-
-    /**
-     * Controls if empty target directories should be included in the copy.
-     *
-     * @param includeEmptyDirs <code>true</code> if empty target directories should be included in the copy, <code>false</code> otherwise
-     */
-    void setIncludeEmptyDirs(boolean includeEmptyDirs);
+    @ReplacesEagerProperty(
+        originalType = boolean.class,
+        replacedAccessors = {
+            @ReplacedAccessor(value = ReplacedAccessor.AccessorType.GETTER, name = "getIncludeEmptyDirs", originalType = boolean.class),
+            @ReplacedAccessor(value = ReplacedAccessor.AccessorType.SETTER, name = "setIncludeEmptyDirs", originalType = boolean.class)
+        }
+    )
+    Property<Boolean> getIncludeEmptyDirs();
 
     /**
      * Returns the strategy to use when trying to copy more than one file to the same destination.

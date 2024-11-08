@@ -68,7 +68,7 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
 
     @Override
     public boolean isIncludeEmptyDirs() {
-        return specResolver.getIncludeEmptyDirs();
+        return specResolver.getIncludeEmptyDirs().get();
     }
 
     @Override
