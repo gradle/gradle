@@ -31,7 +31,6 @@ import org.gradle.internal.component.local.model.LocalComponentGraphResolveMetad
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory;
 import org.gradle.internal.component.local.model.LocalVariantGraphResolveState;
-import org.gradle.internal.component.model.VariantGraphResolveState;
 import org.gradle.internal.model.ModelContainer;
 
 import javax.annotation.Nullable;
@@ -96,16 +95,6 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
 
         LocalComponentGraphResolveState rootComponent = getComponentState(owner, metadata);
 
-        // TODO: We should not ask the component for a resolvable configuration. Components should only
-        // expose variants -- which are by definition consumable only. Instead, we should create our own
-        // root variant and add it to a new one-off root component that holds only that root variant.
-        // The root variant should not live in a standard local component alongside other (consumable) variants.
-        @SuppressWarnings("deprecation")
-        LocalVariantGraphResolveState rootVariant = rootComponent.getConfigurationLegacy(configurationName);
-        if (rootVariant == null) {
-            throw new IllegalArgumentException(String.format("Expected root variant '%s' to be present in %s", configurationName, componentIdentifier));
-        }
-
         return new RootComponentState() {
             @Override
             public LocalComponentGraphResolveState getRootComponent() {
@@ -114,6 +103,15 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
 
             @Override
             public LocalVariantGraphResolveState getRootVariant() {
+                // TODO: We should not ask the component for a resolvable configuration. Components should only
+                // expose variants -- which are by definition consumable only. Instead, we should create our own
+                // root variant and add it to a new one-off root component that holds only that root variant.
+                // The root variant should not live in a standard local component alongside other (consumable) variants.
+                @SuppressWarnings("deprecation")
+                LocalVariantGraphResolveState rootVariant = rootComponent.getConfigurationLegacy(configurationName);
+                if (rootVariant == null) {
+                    throw new IllegalStateException(String.format("Expected root variant '%s' to be present in %s", configurationName, componentIdentifier));
+                }
                 return rootVariant;
             }
         };
