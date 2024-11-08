@@ -22,8 +22,9 @@ import org.gradle.api.internal.file.archive.compression.Bzip2Archiver;
 import org.gradle.api.internal.file.archive.compression.GzipArchiver;
 import org.gradle.api.internal.file.archive.compression.SimpleCompressor;
 import org.gradle.api.internal.file.copy.CopyAction;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.work.DisableCachingByDefault;
 
 /**
@@ -31,19 +32,23 @@ import org.gradle.work.DisableCachingByDefault;
  */
 @DisableCachingByDefault(because = "Not worth caching")
 public abstract class Tar extends AbstractArchiveTask {
-    private Compression compression = Compression.NONE;
 
     public Tar() {
-        getArchiveExtension().set(getProject().provider(() -> getCompression().getDefaultExtension()));
+        getCompression().convention(Compression.NONE);
+        getArchiveExtension().set(getCompression().map(Compression::getDefaultExtension));
     }
 
     @Override
     protected CopyAction createCopyAction() {
-        return new TarCopyAction(getArchiveFile().get().getAsFile(), getCompressor(), getPreserveFileTimestamps().get());
+        return new TarCopyAction(
+            getArchiveFile().get().getAsFile(),
+            getCompressor(),
+            getPreserveFileTimestamps().get()
+        );
     }
 
     private ArchiveOutputStreamFactory getCompressor() {
-        switch(compression) {
+        switch(getCompression().get()) {
             case BZIP2: return Bzip2Archiver.getCompressor();
             case GZIP:  return GzipArchiver.getCompressor();
             default:    return new SimpleCompressor();
@@ -56,18 +61,6 @@ public abstract class Tar extends AbstractArchiveTask {
      * @return The compression. Never returns null.
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public Compression getCompression() {
-        return compression;
-    }
-
-    /**
-     * Configures the compressor based on passed in compression.
-     *
-     * @param compression The compression. Should not be null.
-     */
-    public void setCompression(Compression compression) {
-        this.compression = compression;
-    }
-
+    @ReplacesEagerProperty
+    public abstract Property<Compression> getCompression();
 }
