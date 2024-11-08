@@ -29,13 +29,14 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskCollection;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.jacoco.JacocoAgentJar;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.JavaForkOptions;
@@ -68,8 +69,6 @@ public abstract class JacocoPluginExtension {
     private final FileSystemOperations fs;
     private final JacocoAgentJar agent;
 
-    private String toolVersion;
-
     /**
      * Creates a Jacoco plugin extension.
      *
@@ -89,19 +88,8 @@ public abstract class JacocoPluginExtension {
      * Version of Jacoco JARs to use.
      * @since 1.6
      */
-    @ToBeReplacedByLazyProperty
-    public String getToolVersion() {
-        return toolVersion;
-    }
-
-    /**
-     * Sets the tool version.
-     *
-     * @since 1.6
-     */
-    public void setToolVersion(String toolVersion) {
-        this.toolVersion = toolVersion;
-    }
+    @ReplacesEagerProperty
+    public abstract Property<String> getToolVersion();
 
     /**
      * The directory where reports will be generated.
