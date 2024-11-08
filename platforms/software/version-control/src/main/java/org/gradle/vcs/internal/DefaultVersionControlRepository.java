@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.initialization.definition.InjectedPluginDependencies;
+import org.gradle.api.provider.Property;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.vcs.VcsMapping;
 import org.gradle.vcs.VersionControlRepository;
@@ -49,14 +50,8 @@ public class DefaultVersionControlRepository implements VersionControlRepository
     }
 
     @Override
-    public String getRootDir() {
-        // TODO(mlopatkin): clean this up when migrating VersionControlRepository.getRootDir()
-        return spec.getRootDir().get();
-    }
-
-    @Override
-    public void setRootDir(String rootDir) {
-        spec.getRootDir().set(rootDir);
+    public Property<String> getRootDir() {
+        return spec.getRootDir();
     }
 
     @Override
