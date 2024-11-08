@@ -111,7 +111,7 @@ public abstract class Groovydoc extends SourceTask {
             parameters.getOverview().convention(getPathToOverview());
             parameters.getAccess().convention(getAccess());
             parameters.getLinks().convention(
-                getLinks().stream()
+                getLinks().get().stream()
                     .map(link -> new GroovydocParameters.Link(link.getPackages(), link.getUrl()))
                     .collect(Collectors.toList())
             );
