@@ -16,12 +16,14 @@
 package org.gradle.nativeplatform.test.tasks;
 
 import org.gradle.api.GradleException;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.AbstractExecTask;
 import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.VerificationTask;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.logging.ConsoleRenderer;
 import org.gradle.work.DisableCachingByDefault;
 
@@ -36,13 +38,10 @@ public abstract class RunTestExecutable extends AbstractExecTask<RunTestExecutab
      * The directory where the results should be generated.
      */
     private File outputDir;
-    /**
-     * Should the build continue if a test fails, or should the build break?
-     */
-    private boolean ignoreFailures;
 
     public RunTestExecutable() {
         super(RunTestExecutable.class);
+        getIgnoreFailures().convention(false);
     }
 
     @TaskAction
@@ -66,7 +65,7 @@ public abstract class RunTestExecutable extends AbstractExecTask<RunTestExecutab
         String resultsUrl = new ConsoleRenderer().asClickableFileUrl(getOutputDir());
         message = message.concat(". See the results at: " + resultsUrl);
 
-        if (isIgnoreFailures()) {
+        if (getIgnoreFailures().get()) {
             getLogger().warn(message);
         } else {
             throw new GradleException(message, e);
@@ -87,21 +86,12 @@ public abstract class RunTestExecutable extends AbstractExecTask<RunTestExecutab
      */
     @Input
     @Override
-    public boolean getIgnoreFailures() {
-        return ignoreFailures;
-    }
-
-    @Internal
-    public boolean isIgnoreFailures() {
-        return ignoreFailures;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void setIgnoreFailures(boolean ignoreFailures) {
-        this.ignoreFailures = ignoreFailures;
-    }
+    @ReplacesEagerProperty(
+        originalType = boolean.class,
+        replacedAccessors = {
+            @ReplacedAccessor(value = ReplacedAccessor.AccessorType.GETTER, name = "isIgnoreFailures", originalType = boolean.class)
+        }
+    )
+    public abstract Property<Boolean> getIgnoreFailures();
 
 }

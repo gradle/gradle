@@ -15,25 +15,29 @@
  */
 package org.gradle.api.tasks;
 
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.api.provider.Property;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 
 /**
  * A {@code VerificationTask} is a task which performs some verification of the artifacts produced by a build.
  */
 public interface VerificationTask {
-    /**
-     * Specifies whether the build should break when the verifications performed by this task fail.
-     *
-     * @param ignoreFailures false to break the build on failure, true to ignore the failures. The default is false.
-     */
-    void setIgnoreFailures(boolean ignoreFailures);
 
     /**
      * Specifies whether the build should break when the verifications performed by this task fail.
-     *
-     * @return false, when the build should break on failure, true when the failures should be ignored.
+     * <p>
+     * Set this to true to ignore the failures.
+     * <p>
+     * The default is false.
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    boolean getIgnoreFailures();
+    @ReplacesEagerProperty(
+        originalType = boolean.class,
+        replacedAccessors = {
+            @ReplacedAccessor(value = ReplacedAccessor.AccessorType.GETTER, name = "getIgnoreFailures", originalType = boolean.class),
+            @ReplacedAccessor(value = ReplacedAccessor.AccessorType.SETTER, name = "setIgnoreFailures", originalType = boolean.class),
+        }
+    )
+    Property<Boolean> getIgnoreFailures();
 }

@@ -103,7 +103,7 @@ public abstract class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkst
         task.getMaxWarnings().convention(extension.getMaxWarnings());
         task.getConfigDirectory().convention(extension.getConfigDirectory());
         task.getEnableExternalDtdLoad().convention(extension.getEnableExternalDtdLoad());
-        task.getIgnoreFailuresProperty().convention(extension.getIgnoreFailures());
+        task.getIgnoreFailures().convention(extension.getIgnoreFailures());
     }
 
     private void configureReportsConventionMapping(Checkstyle task, final String baseName) {

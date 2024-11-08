@@ -95,7 +95,7 @@ class CheckstylePluginTest extends AbstractProjectBuilderSpec {
             assert configProperties.get() == [:]
             assert reports.xml.outputLocation.asFile.get() == project.file("build/reports/checkstyle/${sourceSet.name}.xml")
             assert reports.html.outputLocation.asFile.get() == project.file("build/reports/checkstyle/${sourceSet.name}.html")
-            assert !ignoreFailures
+            assert !ignoreFailures.get()
             assert showViolations
             assert maxErrors.get() == 0
             assert maxWarnings.get() == Integer.MAX_VALUE
@@ -117,7 +117,7 @@ class CheckstylePluginTest extends AbstractProjectBuilderSpec {
         task.reports.xml.outputLocation.asFile.get() == project.file("build/reports/checkstyle/custom.xml")
         task.reports.html.outputLocation.asFile.get() == project.file("build/reports/checkstyle/custom.html")
         task.reports.sarif.outputLocation.asFile.get() == project.file("build/reports/checkstyle/custom.sarif")
-        !task.ignoreFailures
+        !task.ignoreFailures.get()
     }
 
     def "adds checkstyle tasks to check lifecycle task"() {
@@ -173,7 +173,7 @@ class CheckstylePluginTest extends AbstractProjectBuilderSpec {
             assert configProperties.get() == [foo: "foo"]
             assert reports.xml.outputLocation.asFile.get() == project.file("checkstyle-reports/${sourceSet.name}.xml")
             assert reports.html.outputLocation.asFile.get() == project.file("checkstyle-reports/${sourceSet.name}.html")
-            assert ignoreFailures
+            assert ignoreFailures.get()
             assert showViolations.get()
             assert maxErrors.get() == 1
             assert maxWarnings.get() == 1000
@@ -202,7 +202,7 @@ class CheckstylePluginTest extends AbstractProjectBuilderSpec {
         task.reports.xml.outputLocation.asFile.get() == project.file("checkstyle-reports/custom.xml")
         task.reports.html.outputLocation.asFile.get() == project.file("checkstyle-reports/custom.html")
         task.reports.sarif.outputLocation.asFile.get() == project.file("checkstyle-reports/custom.sarif")
-        task.ignoreFailures
+        task.ignoreFailures.get()
     }
 
     def "can use legacy configFile extension property"() {

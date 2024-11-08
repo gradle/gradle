@@ -315,13 +315,13 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
     @ReplacesEagerProperty(adapter = IsIgnoreFailuresAdapter.class)
     public Property<Boolean> getIsIgnoreFailures() {
         ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsIgnoreFailures()", "getIgnoreFailures()");
-        return getIgnoreFailuresProperty();
+        return getIgnoreFailures();
     }
 
     static class IsIgnoreFailuresAdapter {
         @BytecodeUpgrade
         static boolean isIgnoreFailures(Checkstyle task) {
-            return task.getIgnoreFailures();
+            return task.getIgnoreFailures().get();
         }
     }
 }

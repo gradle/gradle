@@ -142,7 +142,7 @@ class PmdPluginTest extends AbstractProjectBuilderSpec {
             assert ruleSetFiles.empty
             assert reports.xml.outputLocation.asFile.get() == project.file("build/reports/pmd/${sourceSet.name}.xml")
             assert reports.html.outputLocation.asFile.get() == project.file("build/reports/pmd/${sourceSet.name}.html")
-            assert ignoreFailures == false
+            assert ignoreFailures.get() == false
             assert maxFailures.get() == 0
             assert rulesMinimumPriority.get() == 5
             assert incrementalAnalysis.get() == true
@@ -162,7 +162,7 @@ class PmdPluginTest extends AbstractProjectBuilderSpec {
         task.ruleSetFiles.empty
         task.reports.xml.outputLocation.asFile.get() == project.file("build/reports/pmd/custom.xml")
         task.reports.html.outputLocation.asFile.get() == project.file("build/reports/pmd/custom.html")
-        task.ignoreFailures == false
+        task.ignoreFailures.get() == false
         task.maxFailures.get() == 0
         task.rulesMinimumPriority.get() == 5
         task.incrementalAnalysis.get() == true
@@ -221,7 +221,7 @@ class PmdPluginTest extends AbstractProjectBuilderSpec {
             assert ruleSetFiles.singleFile == project.file("my-ruleset.xml")
             assert reports.xml.outputLocation.asFile.get() == project.file("pmd-reports/${sourceSet.name}.xml")
             assert reports.html.outputLocation.asFile.get() == project.file("pmd-reports/${sourceSet.name}.html")
-            assert ignoreFailures == true
+            assert ignoreFailures.get() == true
             assert maxFailures.get() == 17
             assert rulesMinimumPriority.get() == 3
             task.threads.get() == 2
@@ -251,7 +251,7 @@ class PmdPluginTest extends AbstractProjectBuilderSpec {
         task.reports.xml.outputLocation.asFile.get() == project.file("pmd-reports/custom.xml")
         task.reports.html.outputLocation.asFile.get() == project.file("pmd-reports/custom.html")
         task.outputs.files.files == task.reports.enabled*.outputLocation.collect { it.get().asFile } as Set
-        task.ignoreFailures == true
+        task.ignoreFailures.get() == true
         task.maxFailures.get() == 5
         task.rulesMinimumPriority.get() == 3
         task.threads.get() == 2

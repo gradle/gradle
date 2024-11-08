@@ -51,6 +51,7 @@ import org.gradle.api.internal.tasks.testing.results.StateTrackingTestResultProc
 import org.gradle.api.internal.tasks.testing.results.TestListenerAdapter;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.api.provider.Property;
 import org.gradle.api.reporting.DirectoryReport;
 import org.gradle.api.reporting.Reporting;
 import org.gradle.api.tasks.Internal;
@@ -69,7 +70,6 @@ import org.gradle.internal.dispatch.Dispatch;
 import org.gradle.internal.dispatch.MethodInvocation;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.logging.ConsoleRenderer;
 import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
@@ -172,10 +172,10 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     private final BroadcastSubscriptions<TestOutputListener> testOutputListenerSubscriptions;
     private final TestLoggingContainer testLogging;
     private final DirectoryProperty binaryResultsDirectory;
-    private boolean ignoreFailures;
     private boolean failFast;
 
     public AbstractTestTask() {
+        getIgnoreFailures().convention(false);
         Instantiator instantiator = getInstantiator();
         testLogging = getProject().getObjects().newInstance(DefaultTestLoggingContainer.class);
         testListenerSubscriptions = new BroadcastSubscriptions<TestListener>(TestListener.class);
@@ -318,18 +318,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      */
     @Internal
     @Override
-    @ToBeReplacedByLazyProperty
-    public boolean getIgnoreFailures() {
-        return ignoreFailures;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void setIgnoreFailures(boolean ignoreFailures) {
-        this.ignoreFailures = ignoreFailures;
-    }
+    public abstract Property<Boolean> getIgnoreFailures();
 
     private TestExceptionFormatter getExceptionFormatter(TestLogging testLogging) {
         switch (testLogging.getExceptionFormat().get()) {
@@ -706,7 +695,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
             }
         }
 
-        if (getIgnoreFailures()) {
+        if (getIgnoreFailures().get()) {
             getLogger().warn(message);
         } else {
             throw new MarkedVerificationException(message);

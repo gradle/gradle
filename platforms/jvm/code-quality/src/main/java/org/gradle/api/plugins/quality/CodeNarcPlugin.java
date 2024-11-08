@@ -117,7 +117,7 @@ public abstract class CodeNarcPlugin extends AbstractCodeQualityPlugin<CodeNarc>
         task.getMaxPriority1Violations().convention(extension.getMaxPriority1Violations());
         task.getMaxPriority2Violations().convention(extension.getMaxPriority2Violations());
         task.getMaxPriority3Violations().convention(extension.getMaxPriority3Violations());
-        task.getIgnoreFailuresProperty().convention(extension.getIgnoreFailures());
+        task.getIgnoreFailures().convention(extension.getIgnoreFailures());
     }
 
     private void configureReportsConventionMapping(CodeNarc task, final String baseName) {

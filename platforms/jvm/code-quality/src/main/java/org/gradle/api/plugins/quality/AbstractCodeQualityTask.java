@@ -21,12 +21,10 @@ import org.gradle.api.JavaVersion;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.VerificationTask;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.jvm.toolchain.internal.CurrentJvmToolchainSpec;
@@ -48,29 +46,9 @@ abstract public class AbstractCodeQualityTask extends SourceTask implements Veri
 
     @Inject
     public AbstractCodeQualityTask() {
-        getIgnoreFailuresProperty().convention(false);
+        getIgnoreFailures().convention(false);
         getJavaLauncher().convention(getToolchainService().launcherFor(getObjectFactory().newInstance(CurrentJvmToolchainSpec.class)));
     }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    @ToBeReplacedByLazyProperty
-    public boolean getIgnoreFailures() {
-        return getIgnoreFailuresProperty().get();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void setIgnoreFailures(boolean ignoreFailures) {
-        this.getIgnoreFailuresProperty().set(ignoreFailures);
-    }
-
-    @Internal
-    abstract protected Property<Boolean> getIgnoreFailuresProperty();
 
     @Inject
     abstract protected ObjectFactory getObjectFactory();

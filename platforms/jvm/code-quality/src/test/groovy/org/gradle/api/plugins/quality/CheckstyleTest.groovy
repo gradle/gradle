@@ -41,7 +41,7 @@ class CheckstyleTest extends Specification {
             !reports.sarif.required.get()
             !reports.sarif.outputLocation.isPresent()
             reports.sarif.outputType == Report.OutputType.FILE
-            !ignoreFailures
+            !ignoreFailures.get()
             showViolations
             maxErrors.get() == 0
             maxWarnings.get() == Integer.MAX_VALUE

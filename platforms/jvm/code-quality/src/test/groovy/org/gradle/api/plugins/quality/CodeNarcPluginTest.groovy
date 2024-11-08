@@ -81,7 +81,7 @@ class CodeNarcPluginTest extends AbstractProjectBuilderSpec {
         task.maxPriority3Violations.get() == 0
         task.reports.enabled*.name == ["html"]
         task.reports.html.outputLocation.asFile.get() == project.file("build/reports/codenarc/custom.html")
-        task.ignoreFailures == false
+        task.ignoreFailures.get() == false
     }
 
     def "can customize additional tasks via extension"() {
@@ -116,7 +116,7 @@ class CodeNarcPluginTest extends AbstractProjectBuilderSpec {
         task.maxPriority3Violations.get() == 200
         task.reports.enabled*.name == ["xml"]
         task.reports.xml.outputLocation.asFile.get() == project.file("codenarc-reports/custom.xml")
-        task.ignoreFailures == true
+        task.ignoreFailures.get() == true
     }
 
     def "can customize task directly"() {

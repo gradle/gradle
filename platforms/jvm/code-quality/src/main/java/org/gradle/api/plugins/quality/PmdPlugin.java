@@ -161,7 +161,7 @@ public abstract class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
         task.getMaxFailures().convention(extension.getMaxFailures());
         task.getIncrementalAnalysis().convention(extension.getIncrementalAnalysis());
         task.getThreads().convention(extension.getThreads());
-        task.getIgnoreFailuresProperty().convention(extension.getIgnoreFailures());
+        task.getIgnoreFailures().convention(extension.getIgnoreFailures());
     }
 
     private void configureReportsConventionMapping(Pmd task, final String baseName) {
