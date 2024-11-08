@@ -16,34 +16,38 @@
 
 package org.gradle.vcs.git.internal;
 
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.UncheckedException;
 import org.gradle.vcs.git.GitVersionControlSpec;
 import org.gradle.vcs.internal.spec.AbstractVersionControlSpec;
 
+import javax.inject.Inject;
 import java.net.URI;
 import java.net.URISyntaxException;
 
 public abstract class DefaultGitVersionControlSpec extends AbstractVersionControlSpec implements GitVersionControlSpec {
-    // TODO(mlopatkin) expose it as public getUrl() after migrating GitVersionControlSpec
-    protected abstract Property<URI> getUrlImpl();
+    private final Property<URI> url;
 
-    @Override
-    public URI getUrl() {
-        return getUrlImpl().get();
+    @Inject
+    public DefaultGitVersionControlSpec(ObjectFactory objectFactory) {
+        url = objectFactory.property(URI.class);
     }
 
     @Override
-    public void setUrl(URI url) {
-        getUrlImpl().set(url);
+    public Property<URI> getUrl() {
+        // TODO(lazy-migration Gradle 9.0): having setUrl(String) overload prevents us from simply declaring this method abstract.
+        return url;
     }
 
     @Override
     public void setUrl(String url) {
+        // TODO(lazy-migration Gradle 9.0): this should be handled as other Property<URI> instances.
+
         // TODO - should use a resolver so that this method is consistent with Project.uri(string)
         try {
-            setUrl(new URI(url));
+            getUrl().set(new URI(url));
         } catch (URISyntaxException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
@@ -51,17 +55,17 @@ public abstract class DefaultGitVersionControlSpec extends AbstractVersionContro
 
     @Override
     public String getDisplayName() {
-        return "Git repository at " + getUrl();
+        return "Git repository at " + getUrl().get();
     }
 
     @Override
     public Provider<String> getUniqueId() {
-        return getUrlImpl().map(uri -> "git-repo:" + uri.toASCIIString());
+        return getUrl().map(uri -> "git-repo:" + uri.toASCIIString());
     }
 
     @Override
     public Provider<String> getRepoName() {
-        return getUrlImpl().map(DefaultGitVersionControlSpec::extractRepoName);
+        return getUrl().map(DefaultGitVersionControlSpec::extractRepoName);
     }
 
     private static String extractRepoName(URI url) {
@@ -85,21 +89,21 @@ public abstract class DefaultGitVersionControlSpec extends AbstractVersionContro
 
         DefaultGitVersionControlSpec that = (DefaultGitVersionControlSpec) o;
 
-        URI url = getUrl();
-        URI thatUrl = that.getUrl();
+        URI url = getUrl().getOrNull();
+        URI thatUrl = that.getUrl().getOrNull();
         return url != null ? url.equals(thatUrl) : thatUrl == null;
     }
 
     @Override
     public int hashCode() {
-        URI url = getUrl();
+        URI url = getUrl().getOrNull();
         return url != null ? url.hashCode() : 0;
     }
 
     @Override
     public String toString() {
         return "GitVersionControlSpec{"
-            + "url=" + getUrlImpl()
+            + "url=" + getUrl()
             + '}';
     }
 }
