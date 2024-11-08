@@ -185,4 +185,70 @@ class SigningConfigurationsIntegrationSpec extends SigningIntegrationSpec {
         executer.expectDocumentedDeprecationWarning("The signatures configuration has been deprecated for resolution. This will fail with an error in Gradle 9.0. Please resolve another configuration instead. For more information, please refer to https://docs.gradle.org/current/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.")
         succeeds("help")
     }
+
+    def "can sign archives"() {
+        buildFile.text = """
+            plugins {
+                id 'signing'
+            }
+
+            ${keyInfo.addAsPropertiesScript()}
+
+            signing {
+                ${signingConfiguration()}
+                sign configurations.archives
+            }
+        """
+
+        expect:
+        succeeds("signArchives")
+    }
+
+    def "can sign archives with java"() {
+        buildFile.text = """
+            plugins {
+                id 'signing'
+                id 'java'
+            }
+
+            ${keyInfo.addAsPropertiesScript()}
+
+            signing {
+                ${signingConfiguration()}
+                sign configurations.archives
+            }
+        """
+
+        expect:
+        succeeds("signArchives")
+    }
+
+    def "can sign archives with parent conf"() {
+
+        buildFile.text = """
+            plugins {
+                id 'signing'
+            }
+
+            tasks.register("jar", Jar) {
+            }
+
+            configurations {
+                parent {
+                    outgoing.artifact(tasks.jar)
+                }
+                archives.extendsFrom(parent)
+            }
+
+            ${keyInfo.addAsPropertiesScript()}
+
+            signing {
+                ${signingConfiguration()}
+                sign configurations.archives
+            }
+        """
+
+        expect:
+        succeeds("signArchives")
+    }
 }

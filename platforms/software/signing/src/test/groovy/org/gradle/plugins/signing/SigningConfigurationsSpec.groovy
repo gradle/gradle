@@ -49,7 +49,7 @@ class SigningConfigurationsSpec extends SigningProjectSpec {
         //        but we can't because of https://issues.gradle.org/browse/GRADLE-1608
 
         and:
-        configurations.signatures.artifacts.size() == 3
+        configurations.signatures.artifacts.size() == 5
         signingTasks.every { it.signatures.every { it in configurations.signatures.artifacts } }
     }
 

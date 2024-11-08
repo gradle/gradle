@@ -25,9 +25,12 @@ class SigningDistributionsIntegrationSpec extends SigningIntegrationSpec {
     def "can sign a distribution zip when distribution plugin is applied after signing is configured"() {
         given:
         buildFile << """
+            configurations {
+                foo
+            }
             signing {
                 ${signingConfiguration()}
-                sign configurations.archives
+                sign configurations.foo
             }
 
             apply plugin: "distribution"
@@ -39,15 +42,21 @@ class SigningDistributionsIntegrationSpec extends SigningIntegrationSpec {
                 }
             }
 
+            artifacts {
+                foo tasks.jar
+                foo tasks.distZip
+                foo tasks.distTar
+            }
+
             ${keyInfo.addAsPropertiesScript()}
-            ${getJavadocAndSourceJarsScript("archives")}
+            ${getJavadocAndSourceJarsScript("foo")}
         """
 
         when:
         run "buildSignatures"
 
         then:
-        executedAndNotSkipped ":signArchives"
+        executedAndNotSkipped ":signFoo"
 
         and:
         file("build", "libs", "sign-1.0.jar.asc").text
