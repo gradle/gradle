@@ -28,7 +28,7 @@ class CachedImplementationIntegrationTest extends AbstractIntegrationSpec {
         pluginBuilder.packageName = null
 
         pluginBuilder.java("InMemoryBuildCache.java") << """
-            public class InMemoryBuildCache extends $AbstractBuildCache.name {}
+            public abstract class InMemoryBuildCache extends $AbstractBuildCache.name {}
         """
 
         pluginBuilder.java("InMemoryBuildCacheService.java") << """
@@ -104,11 +104,11 @@ class CachedImplementationIntegrationTest extends AbstractIntegrationSpec {
                     settings.buildCache(new Action<BuildCacheConfiguration>() {
                         @Override
                         public void execute(BuildCacheConfiguration config) {
-                            config.getLocal().setEnabled(false);
+                            config.getLocal().getEnabled().set(false);
                             config.remote(InMemoryBuildCache.class, new Action<InMemoryBuildCache>() {
                                 @Override
                                 public void execute(InMemoryBuildCache config) {
-                                    config.setPush(true);
+                                    config.getPush().set(true);
                                 }
                             });
                         }
