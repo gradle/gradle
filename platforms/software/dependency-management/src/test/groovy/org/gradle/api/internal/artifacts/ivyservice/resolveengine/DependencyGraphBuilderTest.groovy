@@ -155,8 +155,6 @@ class DependencyGraphBuilderTest extends Specification {
     def rootComponent = Stub(RootComponentMetadataBuilder.RootComponentState) {
         getRootComponent() >> root
         getRootVariant() >> root.getConfigurationLegacy('root')
-        getComponentIdentifier() >> root.id
-        getModuleVersionIdentifier() >> root.moduleVersionId
         getAttributesSchema() >> attributesSchema
     }
 

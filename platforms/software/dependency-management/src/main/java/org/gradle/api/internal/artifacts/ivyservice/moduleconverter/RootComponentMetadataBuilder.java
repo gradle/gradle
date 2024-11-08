@@ -15,13 +15,11 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter;
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationsProvider;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.configurations.MutationValidator;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
-import org.gradle.internal.component.model.VariantGraphResolveState;
+import org.gradle.internal.component.local.model.LocalVariantGraphResolveState;
 
 /**
  * Builds the root component to use as the root of a dependency graph.
@@ -51,10 +49,6 @@ public interface RootComponentMetadataBuilder {
     interface RootComponentState {
         LocalComponentGraphResolveState getRootComponent();
 
-        VariantGraphResolveState getRootVariant();
-
-        ComponentIdentifier getComponentIdentifier();
-
-        ModuleVersionIdentifier getModuleVersionIdentifier();
+        LocalVariantGraphResolveState getRootVariant();
     }
 }

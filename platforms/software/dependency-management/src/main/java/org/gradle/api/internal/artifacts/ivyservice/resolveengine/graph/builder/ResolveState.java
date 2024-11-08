@@ -141,8 +141,8 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
 
         LocalComponentGraphResolveState rootComponentState = root.getRootComponent();
         VariantGraphResolveState rootVariant = root.getRootVariant();
-        ModuleVersionIdentifier rootModuleVersionId = root.getModuleVersionIdentifier();
-        ComponentIdentifier rootComponentId = root.getComponentIdentifier();
+        ModuleVersionIdentifier rootModuleVersionId = rootComponentState.getModuleVersionId();
+        ComponentIdentifier rootComponentId = rootComponentState.getId();
         this.consumerSchema = rootComponentState.getMetadata().getAttributesSchema();
 
         int graphSize = estimateGraphSize(rootVariant);

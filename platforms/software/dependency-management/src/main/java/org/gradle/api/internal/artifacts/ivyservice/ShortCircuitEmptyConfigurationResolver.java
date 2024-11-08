@@ -28,6 +28,7 @@ import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.artifacts.DefaultResolverResults;
 import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.ResolverResults;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingState;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
@@ -47,8 +48,14 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
+import org.gradle.internal.component.external.model.ImmutableCapabilities;
+import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
+import org.gradle.internal.component.local.model.LocalVariantGraphResolveState;
+import org.gradle.internal.component.model.DependencyMetadata;
+import org.gradle.internal.component.model.VariantGraphResolveState;
 import org.gradle.internal.deprecation.DeprecationLogger;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collections;
 import java.util.List;
@@ -73,12 +80,22 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
 
     @Override
     public ResolverResults resolveBuildDependencies(ResolveContext resolveContext) {
-        if (resolveContext.hasDependencies()) {
+        RootComponentMetadataBuilder.RootComponentState rootComponent = resolveContext.toRootComponent();
+
+        VisitedGraphResults missingConfigurationResults =
+            maybeGetEmptyGraphForInvalidMissingConfigurationWithNoDependencies(resolveContext, rootComponent.getRootComponent());
+        if (missingConfigurationResults != null) {
+            return DefaultResolverResults.buildDependenciesResolved(missingConfigurationResults, EmptyResults.INSTANCE,
+                DefaultResolverResults.DefaultLegacyResolverResults.buildDependenciesResolved(EmptyResults.INSTANCE)
+            );
+        }
+
+        LocalVariantGraphResolveState rootVariant = rootComponent.getRootVariant();
+        if (hasDependencies(rootVariant)) {
             return delegate.resolveBuildDependencies(resolveContext);
         }
 
-        resolveContext.markAsObserved();
-        VisitedGraphResults graphResults = emptyGraphResults(resolveContext);
+        VisitedGraphResults graphResults = emptyGraphResults(rootComponent.getRootComponent(), rootVariant);
         return DefaultResolverResults.buildDependenciesResolved(graphResults, EmptyResults.INSTANCE,
             DefaultResolverResults.DefaultLegacyResolverResults.buildDependenciesResolved(EmptyResults.INSTANCE)
         );
@@ -86,7 +103,23 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
 
     @Override
     public ResolverResults resolveGraph(ResolveContext resolveContext) throws ResolveException {
-        if (resolveContext.hasDependencies()) {
+        RootComponentMetadataBuilder.RootComponentState rootComponent = resolveContext.toRootComponent();
+
+        VisitedGraphResults missingConfigurationResults =
+            maybeGetEmptyGraphForInvalidMissingConfigurationWithNoDependencies(resolveContext, rootComponent.getRootComponent());
+        if (missingConfigurationResults != null) {
+            ResolvedConfiguration resolvedConfiguration = new DefaultResolvedConfiguration(
+                missingConfigurationResults, resolveContext.getResolutionHost(), EmptyResults.INSTANCE, new EmptyLenientConfiguration()
+            );
+            return DefaultResolverResults.graphResolved(missingConfigurationResults, EmptyResults.INSTANCE,
+                DefaultResolverResults.DefaultLegacyResolverResults.graphResolved(
+                    EmptyResults.INSTANCE, resolvedConfiguration
+                )
+            );
+        }
+
+        LocalVariantGraphResolveState rootVariant = rootComponent.getRootVariant();
+        if (hasDependencies(rootVariant)) {
             return delegate.resolveGraph(resolveContext);
         }
 
@@ -100,8 +133,7 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
             dependencyLockingProvider.persistResolvedDependencies(resolveContext.getDependencyLockingId(), resolveContext.getResolutionHost().displayName(), Collections.emptySet(), Collections.emptySet());
         }
 
-        resolveContext.markAsObserved();
-        VisitedGraphResults graphResults = emptyGraphResults(resolveContext);
+        VisitedGraphResults graphResults = emptyGraphResults(rootComponent.getRootComponent(), rootVariant);
         ResolvedConfiguration resolvedConfiguration = new DefaultResolvedConfiguration(
             graphResults, resolveContext.getResolutionHost(), EmptyResults.INSTANCE, new EmptyLenientConfiguration()
         );
@@ -112,16 +144,87 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
         );
     }
 
-    private VisitedGraphResults emptyGraphResults(ResolveContext resolveContext) {
-        RootComponentMetadataBuilder.RootComponentState root = resolveContext.toRootComponent();
+    private static boolean hasDependencies(LocalVariantGraphResolveState rootVariant) {
+        if (!rootVariant.getFiles().isEmpty()) {
+            return true;
+        }
+
+        for (DependencyMetadata dependency : rootVariant.getDependencies()) {
+            if (!dependency.isConstraint()) {
+                return true;
+            }
+        }
+
+        // All dependencies are constraints
+        return false;
+    }
+
+    /**
+     * Verifies if the configuration has been removed from the container before it was resolved.
+     * This fails and has failed in the past, but only when the configuration has dependencies.
+     * The short-circuiting done in this class made us not fail when we should have. So, detect
+     * that case and deprecate it. This should be removed in 9.0, and we will fail without any
+     * extra logic when calling {@link RootComponentMetadataBuilder.RootComponentState#getRootVariant()}
+     */
+    @Nullable
+    private VisitedGraphResults maybeGetEmptyGraphForInvalidMissingConfigurationWithNoDependencies(
+        ResolveContext resolveContext,
+        LocalComponentGraphResolveState rootComponent
+    ) {
+        // This variant can be null if the configuration was removed from the container before resolution.
+        @SuppressWarnings("deprecation") LocalVariantGraphResolveState rootVariant =
+            rootComponent.getConfigurationLegacy(resolveContext.getName());
+        if (rootVariant == null && resolveContext instanceof ConfigurationInternal) {
+            ConfigurationInternal configuration = (ConfigurationInternal) resolveContext;
+            configuration.runDependencyActions();
+            if (configuration.getAllDependencies().isEmpty()) {
+                DeprecationLogger.deprecateBehaviour("Removing a configuration from the container before resolution")
+                    .withAdvice("Do not remove configurations from the container and resolve them after.")
+                    .willBecomeAnErrorInGradle9()
+                    .undocumented()
+                    .nagUser();
+
+                MinimalResolutionResult emptyResult = ResolutionResultGraphBuilder.empty(
+                    rootComponent.getModuleVersionId(),
+                    rootComponent.getId(),
+                    configuration.getAttributes().asImmutable(),
+                    ImmutableCapabilities.of(rootComponent.getDefaultCapability()),
+                    resolveContext.getName(),
+                    attributeDesugaring
+                );
+
+                return new DefaultVisitedGraphResults(emptyResult, Collections.emptySet(), null);
+            }
+        }
+
+        return null;
+    }
+
+    private VisitedGraphResults emptyGraphResults(
+        LocalComponentGraphResolveState rootComponent,
+        VariantGraphResolveState rootVariant
+    ) {
         MinimalResolutionResult emptyResult = ResolutionResultGraphBuilder.empty(
-            root.getModuleVersionIdentifier(),
-            root.getComponentIdentifier(),
-            resolveContext.getAttributes().asImmutable(),
-            resolveContext.getName(),
+            rootComponent.getModuleVersionId(),
+            rootComponent.getId(),
+            rootVariant.getAttributes(),
+            getCapabilities(rootComponent, rootVariant),
+            rootVariant.getName(),
             attributeDesugaring
         );
         return new DefaultVisitedGraphResults(emptyResult, Collections.emptySet(), null);
+    }
+
+    private static ImmutableCapabilities getCapabilities(
+        LocalComponentGraphResolveState rootComponent,
+        VariantGraphResolveState rootVariant
+    ) {
+        ImmutableCapabilities capabilities = rootVariant.getMetadata().getCapabilities();
+        if (capabilities.asSet().isEmpty()) {
+            return ImmutableCapabilities.of(rootComponent.getDefaultCapability());
+        } else {
+            return capabilities;
+        }
     }
 
     private static class EmptyResults implements VisitedArtifactSet, SelectedArtifactSet, ResolverResults.LegacyResolverResults.LegacyVisitedArtifactSet, SelectedArtifactResults {

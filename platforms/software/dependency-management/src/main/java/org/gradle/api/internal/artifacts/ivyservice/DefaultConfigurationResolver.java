@@ -24,6 +24,7 @@ import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.repositories.ContentFilteringRepository;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
+import org.gradle.api.internal.attributes.AttributeContainerInternal;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -54,8 +55,10 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
 
     @Override
     public ResolverResults resolveGraph(ResolveContext resolveContext) {
+        AttributeContainerInternal attributes = resolveContext.toRootComponent().getRootVariant().getAttributes();
+
         List<ResolutionAwareRepository> filteredRepositories = repositoriesSupplier.get().stream()
-            .filter(repository -> !shouldSkipRepository(repository, resolveContext.getName(), resolveContext.getAttributes()))
+            .filter(repository -> !shouldSkipRepository(repository, resolveContext.getName(), attributes))
             .collect(Collectors.toList());
 
         return resolutionExecutor.resolveGraph(resolveContext, filteredRepositories);

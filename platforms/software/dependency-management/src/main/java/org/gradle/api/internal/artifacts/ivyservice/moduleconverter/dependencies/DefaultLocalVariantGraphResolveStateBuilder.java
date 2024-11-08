@@ -93,8 +93,8 @@ public class DefaultLocalVariantGraphResolveStateBuilder implements LocalVariant
         configuration.markAsObserved();
 
         String configurationName = configuration.getName();
-        String description = configuration.getDescription();
-        ComponentConfigurationIdentifier configurationIdentifier = new ComponentConfigurationIdentifier(componentId, configuration.getName());
+        DisplayName description = configuration.asDescribable();
+        ComponentConfigurationIdentifier configurationIdentifier = new ComponentConfigurationIdentifier(componentId, configurationName);
 
         ImmutableAttributes attributes = configuration.getAttributes().asImmutable();
         ImmutableCapabilities capabilities = ImmutableCapabilities.of(Configurations.collectCapabilities(configuration, new HashSet<>(), new HashSet<>()));
@@ -168,7 +168,7 @@ public class DefaultLocalVariantGraphResolveStateBuilder implements LocalVariant
      * Lazily collect all dependencies and excludes of all configurations in the provided {@code hierarchy}.
      */
     private CalculatedValue<DefaultLocalVariantGraphResolveState.VariantDependencyMetadata> getConfigurationDependencyState(
-        String description,
+        DisplayName description,
         ImmutableSet<String> hierarchy,
         ImmutableAttributes attributes,
         ConfigurationsProvider configurationsProvider,

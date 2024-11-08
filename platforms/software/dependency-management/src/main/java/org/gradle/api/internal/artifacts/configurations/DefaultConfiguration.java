@@ -187,6 +187,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     private final Set<MutationValidator> childMutationValidators = new HashSet<>();
     private final MutationValidator parentMutationValidator = DefaultConfiguration.this::validateParentMutation;
     private final RootComponentMetadataBuilder rootComponentMetadataBuilder;
+    private RootComponentMetadataBuilder.RootComponentState rootComponentState;
     private final ConfigurationsProvider configurationsProvider;
 
     private final Path identityPath;
@@ -795,6 +796,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
                 ResolverResults results;
                 try {
                     results = resolver.resolveGraph(DefaultConfiguration.this);
+                    DefaultConfiguration.this.rootComponentState = null;
                 } catch (Exception e) {
                     throw exceptionMapper.mapFailure(e, "dependencies", displayName.getDisplayName());
                 }
@@ -949,6 +951,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
             // Reset this configuration to an unresolved state
             currentResolveState.set(Optional.empty());
+            rootComponentState = null;
 
             return value;
         } finally {
@@ -1000,12 +1003,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
             initAllDependencies();
         }
         return allDependencies;
-    }
-
-    @Override
-    public boolean hasDependencies() {
-        runDependencyActions();
-        return !getAllDependencies().isEmpty();
     }
 
     private synchronized void initAllDependencies() {
@@ -1133,6 +1130,11 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     @Override
     public String getDisplayName() {
         return displayName.getDisplayName();
+    }
+
+    @Override
+    public DisplayName asDescribable() {
+        return displayName;
     }
 
     @Override
@@ -1327,7 +1329,10 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     @Override
     public RootComponentMetadataBuilder.RootComponentState toRootComponent() {
         warnOnInvalidInternalAPIUsage("toRootComponent()", ProperMethodUsage.RESOLVABLE);
-        return rootComponentMetadataBuilder.toRootComponent(getName());
+        if (rootComponentState == null) {
+            rootComponentState = rootComponentMetadataBuilder.toRootComponent(getName());
+        }
+        return rootComponentState;
     }
 
     @Override
