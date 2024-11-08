@@ -16,7 +16,8 @@
 
 package org.gradle.vcs.git;
 
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.api.provider.Property;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.vcs.VersionControlSpec;
 
 import java.net.URI;
@@ -24,7 +25,7 @@ import java.net.URI;
 /**
  * A specification of a Git repository.
  *
- * @since 4.3
+ * @since 4.4
  */
 public interface GitVersionControlSpec extends VersionControlSpec {
     /**
@@ -37,14 +38,8 @@ public interface GitVersionControlSpec extends VersionControlSpec {
      * allocate additional memory.</p>
      * @since 4.3
      */
-    @ToBeReplacedByLazyProperty
-    URI getUrl();
-
-    /**
-     * Sets the URL of the repository.
-     * @since 4.3
-     */
-    void setUrl(URI url);
+    @ReplacesEagerProperty
+    Property<URI> getUrl();
 
     /**
      * Sets the URL of the repository.
