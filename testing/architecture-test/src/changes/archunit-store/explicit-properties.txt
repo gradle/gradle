@@ -58,7 +58,6 @@ Method <org.gradle.api.tasks.diagnostics.DependencyInsightReportTask.getRootComp
 Method <org.gradle.api.tasks.diagnostics.DependencyInsightReportTask.getShowingAllVariants()> is not abstract
 Method <org.gradle.api.tasks.diagnostics.PropertyReportTask.getProperty()> is not abstract
 Method <org.gradle.api.tasks.diagnostics.TaskReportTask.getShowTypes()> is not abstract
-Method <org.gradle.api.tasks.javadoc.Groovydoc.getClasspath()> is not abstract
 Method <org.gradle.api.tasks.javadoc.Groovydoc.getIsNoTimestamp()> is not abstract
 Method <org.gradle.api.tasks.javadoc.Groovydoc.getIsNoVersionStamp()> is not abstract
 Method <org.gradle.api.tasks.javadoc.Groovydoc.getIsUse()> is not abstract
