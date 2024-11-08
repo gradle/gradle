@@ -31,7 +31,7 @@ class TarTest extends AbstractArchiveTaskTest {
 
     def "default values"() {
         expect:
-        tar.compression == Compression.NONE
+        tar.compression.get() == Compression.NONE
         tar.archiveExtension.get() == 'tar'
     }
 
