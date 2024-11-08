@@ -17,19 +17,21 @@
 package org.gradle.vcs.git.internal
 
 
+import org.gradle.util.TestUtil
 import org.gradle.vcs.git.GitVersionControlSpec
 import spock.lang.Specification
 
 class DefaultGitVersionControlSpecSpec extends Specification {
-    GitVersionControlSpec spec = new DefaultGitVersionControlSpec()
+
+    GitVersionControlSpec spec = TestUtil.objectFactory().newInstance(DefaultGitVersionControlSpec)
 
     def 'handles file urls'() {
         given:
         spec.url = new URI("file:/tmp/repos/foo")
 
         expect:
-        spec.repoName == 'foo'
-        spec.uniqueId == 'git-repo:file:/tmp/repos/foo'
+        spec.repoName.get() == 'foo'
+        spec.uniqueId.get() == 'git-repo:file:/tmp/repos/foo'
         spec.displayName == 'Git repository at file:/tmp/repos/foo'
     }
 
@@ -38,8 +40,8 @@ class DefaultGitVersionControlSpecSpec extends Specification {
         spec.url = 'https://github.com/gradle/gradle-checksum'
 
         expect:
-        spec.repoName == 'gradle-checksum'
-        spec.uniqueId == 'git-repo:https://github.com/gradle/gradle-checksum'
+        spec.repoName.get() == 'gradle-checksum'
+        spec.uniqueId.get() == 'git-repo:https://github.com/gradle/gradle-checksum'
         spec.displayName == 'Git repository at https://github.com/gradle/gradle-checksum'
     }
 
@@ -48,8 +50,8 @@ class DefaultGitVersionControlSpecSpec extends Specification {
         spec.url = 'https://github.com/gradle/gradle-checksum.git'
 
         expect:
-        spec.repoName == 'gradle-checksum'
-        spec.uniqueId == 'git-repo:https://github.com/gradle/gradle-checksum.git'
+        spec.repoName.get() == 'gradle-checksum'
+        spec.uniqueId.get() == 'git-repo:https://github.com/gradle/gradle-checksum.git'
         spec.displayName == 'Git repository at https://github.com/gradle/gradle-checksum.git'
     }
 }
