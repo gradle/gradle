@@ -60,7 +60,7 @@ public abstract class War extends Jar {
 
     public War() {
         getArchiveExtension().set(WAR_EXTENSION);
-        setMetadataCharset("UTF-8");
+        getMetadataCharset().convention("UTF-8");
         // Add these as separate specs, so they are not affected by the changes to the main spec
 
         webInf = (DefaultCopySpec) getRootSpec().addChildBeforeSpec(getMainSpec()).into("WEB-INF");
