@@ -156,7 +156,7 @@ class DefaultCopySpecResolutionTest extends Specification {
         DefaultCopySpec.DefaultCopySpecResolver childResolver = child.buildResolverRelativeToParent(parentSpec.buildRootResolver())
 
         then:
-        childResolver.caseSensitive
+        childResolver.caseSensitive.get()
         childResolver.patternSet.caseSensitive
     }
 
@@ -166,21 +166,21 @@ class DefaultCopySpecResolutionTest extends Specification {
         DefaultCopySpec.DefaultCopySpecResolver childResolver = child.buildResolverRelativeToParent(parentSpec.buildRootResolver())
 
         then:
-        childResolver.caseSensitive
+        childResolver.caseSensitive.get()
         childResolver.patternSet.caseSensitive
 
         when:
-        parentSpec.caseSensitive = false
+        parentSpec.caseSensitive.set(false)
 
         then:
-        !childResolver.caseSensitive
+        !childResolver.caseSensitive.get()
         !childResolver.patternSet.caseSensitive
 
         when:
-        child.caseSensitive = true
+        child.caseSensitive.set(true)
 
         then:
-        childResolver.caseSensitive
+        childResolver.caseSensitive.get()
         childResolver.patternSet.caseSensitive
     }
 

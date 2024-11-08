@@ -21,9 +21,11 @@ import groovy.transform.stc.ClosureParams;
 import groovy.transform.stc.SimpleType;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
+import org.gradle.api.provider.Property;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.internal.HasInternalProtocol;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 import java.io.FilterReader;
@@ -95,15 +97,8 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
      *
      * @return true for case-sensitive matching.
      */
-    @ToBeReplacedByLazyProperty
-    boolean isCaseSensitive();
-
-    /**
-     * Specifies whether case-sensitive pattern matching should be used for this CopySpec.
-     *
-     * @param caseSensitive true for case-sensitive matching.
-     */
-    void setCaseSensitive(boolean caseSensitive);
+    @ReplacesEagerProperty(originalType = boolean.class)
+    Property<Boolean> getCaseSensitive();
 
     /**
      * Tells if empty target directories will be included in the copy.

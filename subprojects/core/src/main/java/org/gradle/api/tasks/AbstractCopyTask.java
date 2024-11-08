@@ -91,7 +91,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
                 .skipWhenEmpty();
 
             getInputs().property(specPropertyName + ".destPath", (Callable<String>) () -> resolver.getDestPath().getPathString());
-            getInputs().property(specPropertyName + ".caseSensitive", (Callable<Boolean>) spec::isCaseSensitive);
+            getInputs().property(specPropertyName + ".caseSensitive", spec.getCaseSensitive());
             getInputs().property(specPropertyName + ".includeEmptyDirs", (Callable<Boolean>) spec::getIncludeEmptyDirs);
             getInputs().property(specPropertyName + ".duplicatesStrategy", (Callable<DuplicatesStrategy>) spec::getDuplicatesStrategy);
             getInputs().property(specPropertyName + ".dirPermissions", spec.getDirPermissions().map(FilePermissions::toUnixNumeric))
@@ -195,17 +195,8 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
      */
     @Internal
     @Override
-    @ToBeReplacedByLazyProperty
-    public boolean isCaseSensitive() {
-        return getMainSpec().isCaseSensitive();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void setCaseSensitive(boolean caseSensitive) {
-        getMainSpec().setCaseSensitive(caseSensitive);
+    public Property<Boolean> getCaseSensitive() {
+        return getMainSpec().getCaseSensitive();
     }
 
     /**

@@ -382,7 +382,7 @@ class DefaultCopySpecTest extends Specification {
 
     def 'properties accessed directly have defaults'() {
         expect:
-        spec.caseSensitive
+        spec.caseSensitive.get()
         spec.includeEmptyDirs
         spec.duplicatesStrategy == DuplicatesStrategy.INCLUDE
         spec.fileMode == null
@@ -394,14 +394,14 @@ class DefaultCopySpecTest extends Specification {
 
     def 'file permissions can be set via #method'(String method, Closure setter) {
         when:
-        spec.caseSensitive = false
+        spec.caseSensitive.set(false)
         spec.includeEmptyDirs = false
         spec.duplicatesStrategy = DuplicatesStrategy.EXCLUDE
         setter.call(spec, objectFactory)
         spec.filteringCharset = 'UTF8'
 
         then:
-        !spec.caseSensitive
+        !spec.caseSensitive.get()
         !spec.includeEmptyDirs
         spec.duplicatesStrategy == DuplicatesStrategy.EXCLUDE
         spec.fileMode == 0444
@@ -432,7 +432,7 @@ class DefaultCopySpecTest extends Specification {
 
     def 'properties accessed directly on specs created using #method inherit from parents'() {
         when: //set non defaults on root
-        spec.caseSensitive = false
+        spec.caseSensitive.set(false)
         spec.includeEmptyDirs = false
         spec.duplicatesStrategy = DuplicatesStrategy.EXCLUDE
         spec.fileMode = 1
@@ -442,7 +442,7 @@ class DefaultCopySpecTest extends Specification {
         DefaultCopySpec child = unpackWrapper(spec."${method}"("child") {})
 
         then: //children still have these non defaults
-        !child.caseSensitive
+        !child.caseSensitive.get()
         !child.includeEmptyDirs
         child.duplicatesStrategy == DuplicatesStrategy.EXCLUDE
         child.fileMode == 1
