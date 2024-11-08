@@ -57,7 +57,7 @@ class CodeNarcPluginIntegrationTest extends WellBehavedPluginTest implements Cod
                     assert maxPriority3Violations.get() == 0
                     assert reports.enabled*.name == ["html"]
                     assert reports.html.outputLocation.asFile.get() == project.file("build/reports/codenarc/${sourceSet.name}.html")
-                    assert ignoreFailures == false
+                    assert ignoreFailures.get() == false
                 }
             }
             assertTaskConfiguration('codenarcMain', project.sourceSets.main)
@@ -121,7 +121,7 @@ class CodeNarcPluginIntegrationTest extends WellBehavedPluginTest implements Cod
                     assert maxPriority3Violations.get() == 200
                     assert reports.enabled*.name == ["xml"]
                     assert reports.xml.outputLocation.asFile.get() == project.file("codenarc-reports/${sourceSet.name}.xml")
-                    assert ignoreFailures == true
+                    assert ignoreFailures.get() == true
                 }
             }
             hasCustomizedSettings('codenarcMain', project.sourceSets.main)
