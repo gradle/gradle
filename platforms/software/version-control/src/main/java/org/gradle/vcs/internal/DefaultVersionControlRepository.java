@@ -50,12 +50,13 @@ public class DefaultVersionControlRepository implements VersionControlRepository
 
     @Override
     public String getRootDir() {
-        return spec.getRootDir();
+        // TODO(mlopatkin): clean this up when migrating VersionControlRepository.getRootDir()
+        return spec.getRootDir().get();
     }
 
     @Override
     public void setRootDir(String rootDir) {
-        spec.setRootDir(rootDir);
+        spec.getRootDir().set(rootDir);
     }
 
     @Override
