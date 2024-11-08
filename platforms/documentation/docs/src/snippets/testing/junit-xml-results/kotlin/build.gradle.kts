@@ -28,7 +28,7 @@ tasks.test {
         junitXml.apply {
             includeSystemOutLog = false // defaults to true
             includeSystemErrLog = false // defaults to true
-            isOutputPerTestCase = true // defaults to false
+            outputPerTestCase = true // defaults to false
             mergeReruns = true // defaults to false
         }
     }
