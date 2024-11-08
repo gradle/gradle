@@ -41,17 +41,25 @@ public class DefaultProblemSummarizer implements ProblemReporter, ProblemSummari
     private final CurrentBuildOperationRef currentBuildOperationRef;
     private final Collection<ProblemEmitter> problemEmitters;
     private final Integer threshold;
+    private final ProblemReportCreator problemReportCreator;
 
     private final Map<ProblemId, AtomicInteger> seenProblemsWithCounts = new HashMap<ProblemId, AtomicInteger>();
 
     public static final InternalOption<Integer> THRESHOLD_OPTION = new IntegerInternalOption("org.gradle.internal.problem.summary.threshold", 15);
     public static final int THRESHOLD_DEFAULT_VALUE = THRESHOLD_OPTION.getDefaultValue();
 
-    public DefaultProblemSummarizer(BuildOperationProgressEventEmitter eventEmitter, CurrentBuildOperationRef currentBuildOperationRef, Collection<ProblemEmitter> problemEmitters, InternalOptions internalOptions) {
+    public DefaultProblemSummarizer(
+        BuildOperationProgressEventEmitter eventEmitter,
+        CurrentBuildOperationRef currentBuildOperationRef,
+        Collection<ProblemEmitter> problemEmitters,
+        InternalOptions internalOptions,
+        ProblemReportCreator problemReportCreator
+    ) {
         this.eventEmitter = eventEmitter;
         this.currentBuildOperationRef = currentBuildOperationRef;
         this.problemEmitters = problemEmitters;
         this.threshold = internalOptions.getOption(THRESHOLD_OPTION).get();
+        this.problemReportCreator = problemReportCreator;
     }
 
     @Override
@@ -62,6 +70,7 @@ public class DefaultProblemSummarizer implements ProblemReporter, ProblemSummari
     @Override
     public void report(File reportDir, ProblemConsumer validationFailures) {
         List<Pair<ProblemId, Integer>> cutOffProblems = getCutOffProblems();
+        problemReportCreator.report(reportDir, cutOffProblems);
         eventEmitter.emitNow(currentBuildOperationRef.getId(), new DefaultProblemsSummaryProgressDetails(cutOffProblems));
     }
 

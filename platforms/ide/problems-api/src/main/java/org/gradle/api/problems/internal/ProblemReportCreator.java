@@ -14,10 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.problems.internal;
+package org.gradle.api.problems.internal;
 
-import org.gradle.api.problems.internal.ProblemEmitter;
-import org.gradle.problems.buildtree.ProblemReporter;
+import org.gradle.api.problems.ProblemId;
+import org.gradle.internal.Pair;
 
-public interface ProblemReportCreator extends ProblemReporter, ProblemEmitter {
+import java.io.File;
+import java.util.List;
+
+public interface ProblemReportCreator {
+
+    void report(File reportDir, List<Pair<ProblemId, Integer>> cutOffProblems);
+
+    void emit(Problem problem);
 }
