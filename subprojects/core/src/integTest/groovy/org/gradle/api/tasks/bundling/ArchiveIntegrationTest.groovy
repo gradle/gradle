@@ -306,13 +306,13 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
             task myTar(type: Tar) {
                 destinationDirectory = buildDir
 
-                assert compression == Compression.NONE
+                assert compression.get() == Compression.NONE
 
                 compression = Compression.GZIP
-                assert compression == Compression.GZIP
+                assert compression.get() == Compression.GZIP
 
                 compression = Compression.BZIP2
-                assert compression == Compression.BZIP2
+                assert compression.get() == Compression.BZIP2
             }
 '''
 
