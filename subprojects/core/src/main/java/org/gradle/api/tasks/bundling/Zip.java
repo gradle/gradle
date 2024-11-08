@@ -22,12 +22,13 @@ import org.gradle.api.internal.file.archive.ZipCopyAction;
 import org.gradle.api.internal.file.copy.CopyAction;
 import org.gradle.api.internal.file.copy.DefaultZipCompressor;
 import org.gradle.api.internal.file.copy.ZipCompressor;
+import org.gradle.api.internal.provider.ProviderApiDeprecationLogger;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.work.DisableCachingByDefault;
-import org.jspecify.annotations.Nullable;
 
 import java.nio.charset.Charset;
 
@@ -39,31 +40,37 @@ import java.nio.charset.Charset;
 @DisableCachingByDefault(because = "Not worth caching")
 public abstract class Zip extends AbstractArchiveTask {
     public static final String ZIP_EXTENSION = "zip";
-    private ZipEntryCompression entryCompression = ZipEntryCompression.DEFLATED;
-    private boolean allowZip64;
-    private String metadataCharset;
 
     public Zip() {
         getArchiveExtension().set(ZIP_EXTENSION);
-        allowZip64 = false;
+        getEntryCompression().convention(ZipEntryCompression.DEFLATED);
+        getZip64().convention(false);
     }
 
     @Internal
     protected ZipCompressor getCompressor() {
-        switch (entryCompression) {
+        switch (getEntryCompression().get()) {
             case DEFLATED:
-                return new DefaultZipCompressor(allowZip64, ZipArchiveOutputStream.DEFLATED);
+                return new DefaultZipCompressor(getZip64().get(), ZipArchiveOutputStream.DEFLATED);
             case STORED:
-                return new DefaultZipCompressor(allowZip64, ZipArchiveOutputStream.STORED);
+                return new DefaultZipCompressor(getZip64().get(), ZipArchiveOutputStream.STORED);
             default:
-                throw new IllegalArgumentException(String.format("Unknown Compression type %s", entryCompression));
+                throw new IllegalArgumentException(String.format("Unknown Compression type %s", getEntryCompression().get()));
         }
     }
 
     @Override
     protected CopyAction createCopyAction() {
+        validate();
         DocumentationRegistry documentationRegistry = getServices().get(DocumentationRegistry.class);
-        return new ZipCopyAction(getArchiveFile().get().getAsFile(), getCompressor(), documentationRegistry, metadataCharset, getPreserveFileTimestamps().get());
+        return new ZipCopyAction(getArchiveFile().get().getAsFile(), getCompressor(), documentationRegistry, getMetadataCharset().getOrNull(), getPreserveFileTimestamps().get());
+    }
+
+    private void validate() {
+        String metadataCharset = getMetadataCharset().getOrNull();
+        if (metadataCharset != null && !Charset.isSupported(metadataCharset)) {
+            throw new InvalidUserDataException(String.format("Charset for metadataCharset '%s' is not supported by your JVM", metadataCharset));
+        }
     }
 
     /**
@@ -73,29 +80,8 @@ public abstract class Zip extends AbstractArchiveTask {
      * @return the compression level of the archive contents.
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public ZipEntryCompression getEntryCompression() {
-        return entryCompression;
-    }
-
-    /**
-     * Sets the compression level of the entries of the archive. If set to {@link ZipEntryCompression#DEFLATED} (the default), each entry is
-     * compressed using the DEFLATE algorithm. If set to {@link ZipEntryCompression#STORED} the entries of the archive are left uncompressed.
-     *
-     * @param entryCompression {@code STORED} or {@code DEFLATED}
-     */
-    public void setEntryCompression(ZipEntryCompression entryCompression) {
-        this.entryCompression = entryCompression;
-    }
-
-    /**
-     * Enables building zips with more than 65535 files or bigger than 4GB.
-     *
-     * @see #isZip64()
-     */
-    public void setZip64(boolean allowZip64) {
-        this.allowZip64 = allowZip64;
-    }
+    @ReplacesEagerProperty
+    public abstract Property<ZipEntryCompression> getEntryCompression();
 
     /**
      * Whether the zip can contain more than 65535 files and/or support files greater than 4GB in size.
@@ -109,39 +95,27 @@ public abstract class Zip extends AbstractArchiveTask {
      * This means you should not enable this property if you are building JARs to be used with Java 6 and earlier runtimes.
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public boolean isZip64() {
-        return allowZip64;
+    @ReplacesEagerProperty(originalType = boolean.class)
+    public abstract Property<Boolean> getZip64();
+
+    /**
+     * Added for Kotlin source compatibility. Use {@link #getZip64()} instead.
+     */
+    @Internal
+    @Deprecated
+    public Property<Boolean> getIsZip64() {
+        ProviderApiDeprecationLogger.logDeprecation(Zip.class, "getIsZip64()", "getZip64()");
+        return getZip64();
     }
 
     /**
      * The character set used to encode ZIP metadata like file names.
      * Defaults to the platform's default character set.
      *
-     * @return null if using the platform's default character set for ZIP metadata
      * @since 2.14
      */
-    @ToBeReplacedByLazyProperty
-    @Nullable @Optional @Input
-    public String getMetadataCharset() {
-        return this.metadataCharset;
-    }
-
-    /**
-     * The character set used to encode ZIP metadata like file names.
-     * Defaults to the platform's default character set.
-     *
-     * @param metadataCharset the character set used to encode ZIP metadata like file names
-     * @since 2.14
-     */
-    public void setMetadataCharset(String metadataCharset) {
-        if (metadataCharset == null) {
-            throw new InvalidUserDataException("metadataCharset must not be null");
-        }
-        if (!Charset.isSupported(metadataCharset)) {
-            throw new InvalidUserDataException(String.format("Charset for metadataCharset '%s' is not supported by your JVM", metadataCharset));
-        }
-        this.metadataCharset = metadataCharset;
-    }
-
+    @Optional
+    @Input
+    @ReplacesEagerProperty
+    public abstract Property<String> getMetadataCharset();
 }
