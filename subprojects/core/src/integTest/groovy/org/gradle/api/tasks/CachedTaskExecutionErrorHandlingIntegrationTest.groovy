@@ -26,7 +26,7 @@ class CachedTaskExecutionErrorHandlingIntegrationTest extends AbstractIntegratio
 
     def setup() {
         settingsFile << """
-            class FailingBuildCache extends AbstractBuildCache {
+            abstract class FailingBuildCache extends AbstractBuildCache {
                 String shouldFail
             }
 
