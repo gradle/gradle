@@ -20,12 +20,15 @@ import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.file.temp.TemporaryFileProvider
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
+import org.gradle.api.problems.ProblemId
 import org.gradle.api.problems.internal.DefaultProblemGroup
 import org.gradle.api.problems.internal.FileLocation
 import org.gradle.api.problems.internal.LineInFileLocation
 import org.gradle.api.problems.internal.PluginIdLocation
 import org.gradle.api.problems.internal.Problem
+import org.gradle.api.problems.internal.ProblemReportCreator
 import org.gradle.api.problems.internal.TaskPathLocation
+import org.gradle.internal.Pair
 import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.cc.impl.problems.BuildNameProvider
 import org.gradle.internal.cc.impl.problems.JsonSource
@@ -37,10 +40,7 @@ import org.gradle.internal.configuration.problems.StructuredMessage
 import org.gradle.internal.configuration.problems.writeError
 import org.gradle.internal.configuration.problems.writeStructuredMessage
 import org.gradle.internal.logging.ConsoleRenderer
-import org.gradle.internal.operations.OperationIdentifier
 import org.gradle.internal.problems.failure.FailureFactory
-import org.gradle.problems.buildtree.ProblemReporter
-import org.gradle.problems.internal.ProblemReportCreator
 import java.io.File
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -61,11 +61,7 @@ class DefaultProblemsReportCreator(
 
     private val failureDecorator = FailureDecorator()
 
-    override fun getId(): String {
-        return "DefaultProblemsReportCreator"
-    }
-
-    override fun report(reportDir: File, validationFailures: ProblemReporter.ProblemConsumer) {
+    override fun report(reportDir: File, cutOffProblems: MutableList<Pair<ProblemId, Int>>) {
         report.writeReportFileTo(reportDir.resolve("reports/problems"), object : JsonSource {
             override fun writeToJson(jsonWriter: JsonWriter) {
                 with(jsonWriter) {
@@ -86,7 +82,7 @@ class DefaultProblemsReportCreator(
         }
     }
 
-    override fun emit(problem: Problem, id: OperationIdentifier?) {
+    override fun emit(problem: Problem) {
         problemCount.incrementAndGet()
         report.onProblem(JsonProblemWriter(problem, failureDecorator, failureFactory))
     }

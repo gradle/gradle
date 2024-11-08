@@ -16,25 +16,22 @@
 
 package org.gradle.problems.internal;
 
+import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.internal.Problem;
-import org.gradle.internal.operations.OperationIdentifier;
+import org.gradle.api.problems.internal.ProblemReportCreator;
+import org.gradle.internal.Pair;
 
-import javax.annotation.Nullable;
 import java.io.File;
+import java.util.List;
 
 public class NoOpProblemReportCreator implements ProblemReportCreator {
     @Override
-    public void emit(Problem problem, @Nullable OperationIdentifier id) {
+    public void report(File reportDir, List<Pair<ProblemId, Integer>> cutOffProblems) {
         // no op
     }
 
     @Override
-    public String getId() {
-        return "NoOpProblemReportCreator";
-    }
-
-    @Override
-    public void report(File reportDir, ProblemConsumer validationFailures) {
+    public void emit(Problem problem) {
         // no op
     }
 }
