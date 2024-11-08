@@ -149,7 +149,7 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
                 @Override void store(BuildCacheKey key, BuildCacheEntryWriter writer) throws BuildCacheException {}
                 @Override void close() throws IOException {}
             }
-            class CustomBuildCache extends AbstractBuildCache {}
+            abstract class CustomBuildCache extends AbstractBuildCache {}
             class CustomBuildCacheFactory implements BuildCacheServiceFactory<CustomBuildCache> {
                 @Override BuildCacheService createBuildCacheService(CustomBuildCache configuration, Describer describer) {
                     describer.type('$type').config('directory', '$directory')
@@ -196,7 +196,7 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
                 void close() {}
             }
 
-            class CustomBuildCache extends AbstractBuildCache {
+            abstract class CustomBuildCache extends AbstractBuildCache {
                 private URI url
                 URI getUrl() {}
                 void setUrl(String url) { this.url = URI.create(url) }
