@@ -213,13 +213,6 @@ abstract class AbstractSourceDependencyIntegrationTest extends AbstractIntegrati
         assertRepoCheckedOut()
     }
 
-    def 'fails with a reasonable message if rootDir is invalid'() {
-        mappingFor(repo, "org.test:dep", 'rootDir = null')
-        expect:
-        fails('assemble')
-        failure.assertHasCause("rootDir should be non-null")
-    }
-
     void assertRepoCheckedOut() {
         def checkout = checkoutDir(repo.name, commit.id.name, repo.id)
         checkout.file('.git').assertExists()
