@@ -7,7 +7,6 @@ Method <org.gradle.api.tasks.SourceTask.getSource()> does not have raw return ty
 Method <org.gradle.api.tasks.bundling.War.getClasspath()> does not have raw return type (org.gradle.api.file.FileCollection) assignable to any of [ConfigurableFileCollection] in (War.java:0)
 Method <org.gradle.api.tasks.compile.AbstractCompile.getClasspath()> does not have raw return type (org.gradle.api.file.FileCollection) assignable to any of [ConfigurableFileCollection] in (AbstractCompile.java:0)
 Method <org.gradle.api.tasks.compile.GroovyCompile.getClasspath()> does not have raw return type (org.gradle.api.file.FileCollection) assignable to any of [ConfigurableFileCollection] in (GroovyCompile.java:0)
-Method <org.gradle.api.tasks.compile.GroovyCompile.getGroovyClasspath()> does not have raw return type (org.gradle.api.file.FileCollection) assignable to any of [ConfigurableFileCollection] in (GroovyCompile.java:0)
 Method <org.gradle.api.tasks.compile.GroovyCompile.getSource()> does not have raw return type (org.gradle.api.file.FileTree) assignable to any of [ConfigurableFileCollection] in (GroovyCompile.java:0)
 Method <org.gradle.api.tasks.compile.JavaCompile.getClasspath()> does not have raw return type (org.gradle.api.file.FileCollection) assignable to any of [ConfigurableFileCollection] in (JavaCompile.java:0)
 Method <org.gradle.api.tasks.compile.JavaCompile.getSource()> does not have raw return type (org.gradle.api.file.FileTree) assignable to any of [ConfigurableFileCollection] in (JavaCompile.java:0)
