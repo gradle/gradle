@@ -60,7 +60,6 @@ Method <org.gradle.api.tasks.JavaExec.getDebugOptions()> does not have raw retur
 Method <org.gradle.api.tasks.JavaExec.getEnvironment()> does not have raw return type (java.util.Map) assignable to any of [Property, MapProperty, ListProperty, SetProperty] in (JavaExec.java:0)
 Method <org.gradle.api.tasks.JavaExec.getErrorOutput()> does not have raw return type (java.io.OutputStream) assignable to any of [Property, MapProperty, ListProperty, SetProperty] in (JavaExec.java:0)
 Method <org.gradle.api.tasks.JavaExec.getExecutable()> does not have raw return type (java.lang.String) assignable to any of [Property, MapProperty, ListProperty, SetProperty] in (JavaExec.java:0)
-Method <org.gradle.api.tasks.JavaExec.getJavaVersion()> does not have raw return type (org.gradle.api.JavaVersion) assignable to any of [Provider] in (JavaExec.java:0)
 Method <org.gradle.api.tasks.JavaExec.getModularity()> does not have raw return type (org.gradle.api.jvm.ModularitySpec) assignable to any of [Provider] in (JavaExec.java:0)
 Method <org.gradle.api.tasks.JavaExec.getStandardInput()> does not have raw return type (java.io.InputStream) assignable to any of [Property, MapProperty, ListProperty, SetProperty] in (JavaExec.java:0)
 Method <org.gradle.api.tasks.JavaExec.getStandardOutput()> does not have raw return type (java.io.OutputStream) assignable to any of [Property, MapProperty, ListProperty, SetProperty] in (JavaExec.java:0)
