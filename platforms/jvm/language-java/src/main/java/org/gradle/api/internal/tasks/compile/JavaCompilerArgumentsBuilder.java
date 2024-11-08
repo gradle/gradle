@@ -195,8 +195,8 @@ public class JavaCompilerArgumentsBuilder {
         }
 
         if (compileOptions.isDebug()) {
-            if (compileOptions.getDebugOptions().getDebugLevel() != null) {
-                args.add("-g:" + compileOptions.getDebugOptions().getDebugLevel().trim());
+            if (compileOptions.getDebugLevel() != null) {
+                args.add("-g:" + compileOptions.getDebugLevel().trim());
             } else {
                 args.add("-g");
             }
