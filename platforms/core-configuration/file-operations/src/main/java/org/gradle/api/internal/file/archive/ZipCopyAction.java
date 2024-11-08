@@ -31,6 +31,7 @@ import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.WorkResults;
 import org.gradle.internal.IoActions;
 
+import javax.annotation.Nullable;
 import java.io.File;
 
 public class ZipCopyAction implements CopyAction {
@@ -50,7 +51,7 @@ public class ZipCopyAction implements CopyAction {
     private final String encoding;
     private final boolean preserveFileTimestamps;
 
-    public ZipCopyAction(File zipFile, ZipCompressor compressor, DocumentationRegistry documentationRegistry, String encoding, boolean preserveFileTimestamps) {
+    public ZipCopyAction(File zipFile, ZipCompressor compressor, DocumentationRegistry documentationRegistry, @Nullable String encoding, boolean preserveFileTimestamps) {
         this.zipFile = zipFile;
         this.compressor = compressor;
         this.documentationRegistry = documentationRegistry;
@@ -89,7 +90,7 @@ public class ZipCopyAction implements CopyAction {
     private class StreamAction implements CopyActionProcessingStreamAction {
         private final ZipArchiveOutputStream zipOutStr;
 
-        public StreamAction(ZipArchiveOutputStream zipOutStr, String encoding) {
+        public StreamAction(ZipArchiveOutputStream zipOutStr, @Nullable String encoding) {
             this.zipOutStr = zipOutStr;
             if (encoding != null) {
                 this.zipOutStr.setEncoding(encoding);
