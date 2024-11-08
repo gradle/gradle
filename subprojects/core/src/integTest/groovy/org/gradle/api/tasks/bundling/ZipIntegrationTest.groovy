@@ -115,13 +115,12 @@ class ZipIntegrationTest extends AbstractIntegrationSpec {
         fails 'zip'
 
         then:
-        failure.assertHasDescription("A problem occurred evaluating root project 'root'.")
+        failure.assertHasDescription("Execution failed for task ':zip'.")
         failure.assertHasCause(cause)
 
         where:
         metadataCharset | cause
         "'UNSUPPORTED'" | "Charset for metadataCharset 'UNSUPPORTED' is not supported by your JVM"
-        null            | "metadataCharset must not be null"
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-1346")
