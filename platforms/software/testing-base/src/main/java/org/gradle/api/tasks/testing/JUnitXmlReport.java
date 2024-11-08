@@ -17,10 +17,12 @@
 package org.gradle.api.tasks.testing;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.internal.provider.ProviderApiDeprecationLogger;
 import org.gradle.api.provider.Property;
 import org.gradle.api.reporting.DirectoryReport;
 import org.gradle.api.tasks.Input;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.api.tasks.Internal;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 
 /**
  * The JUnit XML files, commonly used to communicate results to CI servers.
@@ -33,13 +35,18 @@ public interface JUnitXmlReport extends DirectoryReport {
      * Should the output be associated with individual test cases instead of at the suite level.
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    boolean isOutputPerTestCase();
+    @ReplacesEagerProperty(originalType = boolean.class)
+    Property<Boolean> getOutputPerTestCase();
 
     /**
-     * Should the output be associated with individual test cases instead of at the suite level.
+     * Used for Kotlin backward source compatibility after migration to Provider API.
      */
-    void setOutputPerTestCase(boolean outputPerTestCase);
+    @Internal
+    @Deprecated
+    default Property<Boolean> getIsOutputPerTestCase() {
+        ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsOutputPerTestCase()", "getOutputPerTestCase()");
+        return getOutputPerTestCase();
+    }
 
     /**
      * Whether reruns or retries of a test should be merged into a combined testcase.
