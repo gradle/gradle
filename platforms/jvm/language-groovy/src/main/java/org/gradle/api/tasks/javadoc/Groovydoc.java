@@ -19,7 +19,6 @@ package org.gradle.api.tasks.javadoc;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.provider.ProviderApiDeprecationLogger;
@@ -64,8 +63,6 @@ import java.util.List;
  */
 @CacheableTask
 public abstract class Groovydoc extends SourceTask {
-
-    private FileCollection classpath;
 
     private TextResource overview;
 
@@ -168,22 +165,11 @@ public abstract class Groovydoc extends SourceTask {
     public abstract ConfigurableFileCollection getGroovyClasspath();
 
     /**
-     * Returns the classpath used to locate classes referenced by the documented sources.
-     *
-     * @return The classpath used to locate classes referenced by the documented sources
+     * The classpath used to locate classes referenced by the documented sources.
      */
     @Classpath
-    @ToBeReplacedByLazyProperty(issue = "https://github.com/gradle/gradle/issues/30273")
-    public FileCollection getClasspath() {
-        return classpath;
-    }
-
-    /**
-     * Sets the classpath used to locate classes referenced by the documented sources.
-     */
-    public void setClasspath(FileCollection classpath) {
-        this.classpath = classpath;
-    }
+    @ReplacesEagerProperty
+    public abstract ConfigurableFileCollection getClasspath();
 
     /**
      * Returns whether to create class and package usage pages.
