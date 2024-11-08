@@ -41,7 +41,7 @@ public class DefaultVersionControlRepository implements VersionControlRepository
     public DefaultVersionControlRepository(URI url, NotationParser<String, ModuleIdentifier> notationParser, GitVersionControlSpec spec) {
         this.notationParser = notationParser;
         this.spec = spec;
-        spec.setUrl(url);
+        spec.getUrl().value(url).finalizeValue();
     }
 
     @Override
