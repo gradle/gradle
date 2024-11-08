@@ -46,8 +46,8 @@ import org.gradle.launcher.daemon.diagnostics.DaemonStartupInfo;
 import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.launcher.daemon.toolchain.DaemonJavaToolchainQueryService;
 import org.gradle.launcher.daemon.toolchain.DaemonJvmCriteria;
-import org.gradle.process.internal.ExecFactory;
 import org.gradle.process.internal.ExecHandle;
+import org.gradle.process.internal.ExecHandleFactory;
 import org.gradle.process.internal.JvmOptions;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.internal.CollectionUtils;
@@ -74,9 +74,9 @@ public class DefaultDaemonStarter implements DaemonStarter {
     private final JvmVersionValidator versionValidator;
     private final JvmVersionDetector jvmVersionDetector;
     private final DaemonJavaToolchainQueryService daemonJavaToolchainQueryService;
-    private final ExecFactory execFactory;
+    private final ExecHandleFactory execFactory;
 
-    public DefaultDaemonStarter(DaemonDir daemonDir, DaemonParameters daemonParameters, DaemonRequestContext daemonRequestContext, DaemonGreeter daemonGreeter, JvmVersionValidator versionValidator, JvmVersionDetector jvmVersionDetector, DaemonJavaToolchainQueryService daemonJavaToolchainQueryService, ExecFactory execFactory) {
+    public DefaultDaemonStarter(DaemonDir daemonDir, DaemonParameters daemonParameters, DaemonRequestContext daemonRequestContext, DaemonGreeter daemonGreeter, JvmVersionValidator versionValidator, JvmVersionDetector jvmVersionDetector, DaemonJavaToolchainQueryService daemonJavaToolchainQueryService, ExecHandleFactory execFactory) {
         this.daemonDir = daemonDir;
         this.daemonParameters = daemonParameters;
         this.daemonRequestContext = daemonRequestContext;
