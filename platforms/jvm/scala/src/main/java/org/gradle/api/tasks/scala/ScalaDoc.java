@@ -19,7 +19,6 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.model.ReplacedBy;
@@ -58,8 +57,6 @@ import java.util.List;
  */
 @CacheableTask
 public abstract class ScalaDoc extends SourceTask {
-
-    private FileCollection classpath;
 
     @SuppressWarnings("this-escape")
     public ScalaDoc() {
@@ -136,14 +133,8 @@ public abstract class ScalaDoc extends SourceTask {
      * @return The classpath.
      */
     @Classpath
-    @ToBeReplacedByLazyProperty(issue = "https://github.com/gradle/gradle/issues/30273")
-    public FileCollection getClasspath() {
-        return classpath;
-    }
-
-    public void setClasspath(FileCollection classpath) {
-        this.classpath = classpath;
-    }
+    @ReplacesEagerProperty
+    public abstract ConfigurableFileCollection getClasspath();
 
     /**
      * Returns the classpath to use to load the ScalaDoc tool.
