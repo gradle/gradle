@@ -20,7 +20,6 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
@@ -69,7 +68,6 @@ import java.util.List;
 public abstract class Groovydoc extends SourceTask {
 
     private AntGroovydoc antGroovydoc;
-    private FileCollection classpath;
 
     private TextResource overview;
 
@@ -150,22 +148,11 @@ public abstract class Groovydoc extends SourceTask {
     public abstract ConfigurableFileCollection getGroovyClasspath();
 
     /**
-     * Returns the classpath used to locate classes referenced by the documented sources.
-     *
-     * @return The classpath used to locate classes referenced by the documented sources
+     * The classpath used to locate classes referenced by the documented sources.
      */
     @Classpath
-    @ToBeReplacedByLazyProperty(issue = "https://github.com/gradle/gradle/issues/30273")
-    public FileCollection getClasspath() {
-        return classpath;
-    }
-
-    /**
-     * Sets the classpath used to locate classes referenced by the documented sources.
-     */
-    public void setClasspath(FileCollection classpath) {
-        this.classpath = classpath;
-    }
+    @ReplacesEagerProperty
+    public abstract ConfigurableFileCollection getClasspath();
 
     @Internal
     @NotToBeReplacedByLazyProperty(because = "Has no lazy replacement")
