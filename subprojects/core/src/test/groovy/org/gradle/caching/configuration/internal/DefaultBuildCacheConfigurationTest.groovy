@@ -101,9 +101,9 @@ class DefaultBuildCacheConfigurationTest extends Specification {
         ex.message == "A type for the remote build cache must be configured first."
     }
 
-    static class CustomBuildCache extends AbstractBuildCache {}
+    static abstract class CustomBuildCache extends AbstractBuildCache {}
 
-    static class OtherCustomBuildCache extends AbstractBuildCache {}
+    static abstract class OtherCustomBuildCache extends AbstractBuildCache {}
 
     private def createConfig() {
         return new DefaultBuildCacheConfiguration(instantiator, [
