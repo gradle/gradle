@@ -103,6 +103,10 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
 
             @Override
             public LocalVariantGraphResolveState getRootVariant() {
+                // TODO: It would be nice if we could calculate the rootVariant once, but it is possible
+                // that the root component changes between build dependency resolution and complete
+                // graph resolution. In 9.0, these changes will be forbidden.
+
                 // TODO: We should not ask the component for a resolvable configuration. Components should only
                 // expose variants -- which are by definition consumable only. Instead, we should create our own
                 // root variant and add it to a new one-off root component that holds only that root variant.
