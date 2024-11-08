@@ -278,7 +278,9 @@ Gradle will mutate the usage of configuration archives to match the expected usa
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning("Adding artifacts to the archives configuration. This behavior has been deprecated. This will fail with an error in Gradle 9.0. The 'archives' configuration will be removed in Gradle 9.0. To ensure an artifact is built by the 'assemble' task, use tasks.assemble.dependsOn(artifact). Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_automatically_assembled_artifacts")
+        executer.expectDocumentedDeprecationWarning("""Calling configuration method 'getArtifacts()' is deprecated for configuration 'archives', which has permitted usage(s):
+\tConsumable - this configuration can be selected by another project as a dependency (but this behavior is marked deprecated)
+This method is only meant to be called on configurations which allow the (non-deprecated) usage(s): 'Consumable'. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_configuration_usage""")
         succeeds("assemble")
 
         then:
@@ -344,7 +346,9 @@ Gradle will mutate the usage of configuration archives to match the expected usa
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning("Adding artifacts to the archives configuration. This behavior has been deprecated. This will fail with an error in Gradle 9.0. The 'archives' configuration will be removed in Gradle 9.0. To ensure an artifact is built by the 'assemble' task, use tasks.assemble.dependsOn(artifact). Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_automatically_assembled_artifacts")
+        executer.expectDocumentedDeprecationWarning("""Calling configuration method 'getArtifacts()' is deprecated for configuration 'archives', which has permitted usage(s):
+\tConsumable - this configuration can be selected by another project as a dependency (but this behavior is marked deprecated)
+This method is only meant to be called on configurations which allow the (non-deprecated) usage(s): 'Consumable'. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_configuration_usage""")
         // Once when resolving build dependencies, once when resolving graph
         2.times { executer.expectDocumentedDeprecationWarning("The archives configuration has been deprecated for consumption. This will fail with an error in Gradle 9.0. For more information, please refer to https://docs.gradle.org/current/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.") }
         succeeds(":consumer:resolve")
