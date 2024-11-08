@@ -17,10 +17,8 @@
 package org.gradle.cache.internal
 
 import org.gradle.cache.internal.locklistener.NoOpFileLockContentionHandler
+import org.gradle.internal.concurrent.ManagedExecutor
 import org.gradle.internal.nativeintegration.ProcessEnvironment
-import org.gradle.internal.operations.BuildOperationContext
-import org.gradle.internal.operations.BuildOperationRunner
-import org.gradle.internal.operations.RunnableBuildOperation
 import org.gradle.internal.serialize.NullSafeStringSerializer
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -34,20 +32,15 @@ import static org.gradle.cache.internal.filelock.DefaultLockOptions.mode
 class DefaultPersistentDirectoryStoreConcurrencyTest extends ConcurrentSpec {
 
     @Rule
-    def TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     def cacheDir = tmpDir.file("dir")
     def metaDataProvider = new DefaultProcessMetaDataProvider(NativeServicesTestFixture.getInstance().get(ProcessEnvironment));
     def lockManager = new DefaultFileLockManager(metaDataProvider, new NoOpFileLockContentionHandler())
-    def buildOperationRunner = Stub(BuildOperationRunner) {
-        run(_ as RunnableBuildOperation) >> { RunnableBuildOperation operation ->
-            def context = Stub(BuildOperationContext)
-            operation.run(context)
-        }
-    }
+    final ManagedExecutor managedExecutor = executorFactory.create("test")
 
     @Issue("GRADLE-3206")
     def "can create new caches and access them in parallel"() {
-        def store = new DefaultPersistentDirectoryStore(cacheDir, "<display>", mode(OnDemand), null, lockManager, executorFactory)
+        def store = new DefaultPersistentDirectoryStore(cacheDir, "<display>", mode(OnDemand), null, lockManager, managedExecutor)
         store.open()
 
         when:

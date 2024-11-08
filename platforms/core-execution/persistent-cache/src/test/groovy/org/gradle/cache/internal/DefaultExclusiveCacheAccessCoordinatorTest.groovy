@@ -25,6 +25,7 @@ import org.gradle.cache.IndexedCacheParameters
 import org.gradle.cache.LockOptions
 import org.gradle.cache.MultiProcessSafeIndexedCache
 import org.gradle.cache.internal.btree.BTreePersistentIndexedCache
+import org.gradle.internal.concurrent.ManagedExecutor
 import org.gradle.internal.serialize.BaseSerializerFactory
 import org.gradle.internal.serialize.Serializer
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
@@ -51,9 +52,10 @@ class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
     final File cacheDir = tmpDir.file('caches')
     final FileLock lock = Mock()
     final BTreePersistentIndexedCache<String, Integer> backingCache = Mock()
+    final ManagedExecutor managedExecutor = executorFactory.create("test")
 
     private DefaultCacheCoordinator newAccess(FileLockManager.LockMode lockMode) {
-        new DefaultCacheCoordinator("<display-name>", lockFile, mode(lockMode), cacheDir, lockManager, initializationAction, cleanupExecutor, executorFactory) {
+        new DefaultCacheCoordinator("<display-name>", lockFile, mode(lockMode), cacheDir, lockManager, initializationAction, cleanupExecutor, managedExecutor) {
             @Override
             <K, V> BTreePersistentIndexedCache<K, V> doCreateCache(File cacheFile, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
                 return backingCache

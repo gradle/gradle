@@ -20,6 +20,7 @@ import org.gradle.cache.FileLockManager
 import org.gradle.cache.PersistentCache
 import org.gradle.cache.internal.locklistener.NoOpFileLockContentionHandler
 import org.gradle.internal.concurrent.ExecutorFactory
+import org.gradle.internal.concurrent.ManagedExecutor
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.internal.GUtil
@@ -49,7 +50,7 @@ class DefaultPersistentDirectoryCacheTest extends AbstractProjectBuilderSpec {
         emptyDir.assertDoesNotExist()
 
         when:
-        def cache = new DefaultPersistentDirectoryCache(emptyDir, "<display-name>", properties, mode(FileLockManager.LockMode.Shared), initializationAction, cacheCleanup, lockManager, Mock(ExecutorFactory))
+        def cache = new DefaultPersistentDirectoryCache(emptyDir, "<display-name>", properties, mode(FileLockManager.LockMode.Shared), initializationAction, cacheCleanup, lockManager, Mock(ManagedExecutor))
         try {
             cache.open()
         } finally {

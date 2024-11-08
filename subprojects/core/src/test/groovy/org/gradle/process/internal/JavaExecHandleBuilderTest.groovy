@@ -20,6 +20,7 @@ import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.temp.TemporaryFileProvider
 import org.gradle.initialization.DefaultBuildCancellationToken
+import org.gradle.internal.concurrent.ManagedExecutor
 import org.gradle.internal.jvm.JavaModuleDetector
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -29,7 +30,6 @@ import spock.lang.Issue
 import spock.lang.Specification
 
 import java.nio.charset.Charset
-import java.util.concurrent.Executor
 
 import static java.util.Arrays.asList
 
@@ -41,7 +41,7 @@ class JavaExecHandleBuilderTest extends Specification {
         TestFiles.resolver(),
         TestFiles.fileCollectionFactory(),
         TestUtil.objectFactory(),
-        Mock(Executor),
+        Mock(ManagedExecutor),
         new DefaultBuildCancellationToken(),
         temporaryFileProvider,
         null,
@@ -186,7 +186,7 @@ class JavaExecHandleBuilderTest extends Specification {
             TestFiles.resolver(),
             TestFiles.fileCollectionFactory(),
             TestUtil.objectFactory(),
-            Mock(Executor),
+            Mock(ManagedExecutor),
             new DefaultBuildCancellationToken(),
             temporaryFileProvider,
             moduleDetector,

@@ -22,6 +22,7 @@ import org.gradle.cache.CleanupFrequency
 import org.gradle.cache.FileLock
 import org.gradle.cache.FileLockManager
 import org.gradle.internal.concurrent.ExecutorFactory
+import org.gradle.internal.concurrent.ManagedExecutor
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -58,7 +59,7 @@ class DefaultPersistentDirectoryStoreTest extends Specification {
     def lock = Mock(FileLock)
 
     @Subject @AutoCleanup
-    def store = new DefaultPersistentDirectoryStore(cacheDir, "<display>", mode(OnDemand), cacheCleanup, lockManager, Mock(ExecutorFactory))
+    def store = new DefaultPersistentDirectoryStore(cacheDir, "<display>", mode(OnDemand), cacheCleanup, lockManager, Mock(ManagedExecutor))
 
     def "has useful toString() implementation"() {
         expect:

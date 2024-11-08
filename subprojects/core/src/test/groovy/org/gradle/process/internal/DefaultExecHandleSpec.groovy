@@ -19,18 +19,18 @@ package org.gradle.process.internal
 
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.initialization.BuildCancellationToken
+import org.gradle.internal.concurrent.ManagedExecutor
 import org.gradle.internal.jvm.Jvm
 import org.gradle.process.ExecResult
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.internal.GUtil
 import org.gradle.util.UsesNativeServices
+import org.gradle.util.internal.GUtil
 import org.junit.Rule
 import spock.lang.Ignore
 import spock.lang.Timeout
 
 import java.util.concurrent.Callable
-import java.util.concurrent.Executor
 
 @UsesNativeServices
 @Timeout(60)
@@ -403,7 +403,7 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
 
         then:
         result.rethrowFailure()
-        1 * streamsHandler.connectStreams(_ as Process, "foo proc", _ as Executor)
+        1 * streamsHandler.connectStreams(_ as Process, "foo proc", _ as ManagedExecutor)
         1 * streamsHandler.start()
         1 * streamsHandler.stop()
         0 * streamsHandler._
@@ -448,11 +448,12 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
     }
 
     private DefaultExecHandleBuilder handle() {
-        new DefaultExecHandleBuilder(TestFiles.pathToFileResolver(), executor, buildCancellationToken)
+        new DefaultExecHandleBuilder(TestFiles.pathToFileResolver(), executorFactory.create("test"), buildCancellationToken)
             .executable(Jvm.current().getJavaExecutable().getAbsolutePath())
             .setTimeout(20000) //sanity timeout
-            .workingDir(tmpDir.getTestDirectory())
             .environment('CLASSPATH', mergeClasspath())
+            .workingDir(tmpDir.getTestDirectory())
+
     }
 
     private String mergeClasspath() {
