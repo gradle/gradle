@@ -37,7 +37,7 @@ class BuildCacheServiceExtensibilityIntegrationTest extends AbstractIntegrationS
 
     private static String configureCustomBuildCacheService(String additionalLogic = "") {
         """
-            class CustomBuildCache extends AbstractBuildCache {
+            abstract class CustomBuildCache extends AbstractBuildCache {
                 String shouldFail
             }
 
