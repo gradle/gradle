@@ -28,19 +28,19 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
 /**
- * A factory for creating {@link LoadingCache} instances of various types.
+ * A factory for creating in-memory caches of various types.
  * <p>
  * Caches created by this factory are intended for general use wherever concurrent
  * in-memory caching is required.
  */
 @ServiceScope(Scope.BuildSession.class)
-public class LoadingCacheFactory {
+public class InMemoryCacheFactory {
 
     private final WorkerLimits workerLimits;
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
 
     @Inject
-    public LoadingCacheFactory(
+    public InMemoryCacheFactory(
         WorkerLimits workerLimits,
         CalculatedValueContainerFactory calculatedValueContainerFactory
     ) {
@@ -55,7 +55,7 @@ public class LoadingCacheFactory {
      *
      * @param loader the function to compute values that are not present in the cache
      */
-    public <K, V> LoadingCache<K, V> create(Function<K, V> loader) {
+    public <K, V> InMemoryLoadingCache<K, V> create(Function<K, V> loader) {
         return new DefaultLoadingCache<>(workerLimits.getMaxWorkerCount(), loader);
     }
 
@@ -67,8 +67,8 @@ public class LoadingCacheFactory {
      * This is likely a more performant alternative to {@code Collections.synchronizedMap(new IdentityHashMap<>())}
      * in concurrent scenarios.
      */
-    public <K, V> LoadingCache<K, V> createIdentityCache(Function<K, V> loader) {
-        return new IdentityLoadingCache<>(loader, workerLimits.getMaxWorkerCount());
+    public <K, V> InMemoryLoadingCache<K, V> createIdentityCache(Function<K, V> loader) {
+        return new IdentityLoadingCache<>(workerLimits.getMaxWorkerCount(), loader);
     }
 
     /**
@@ -76,35 +76,25 @@ public class LoadingCacheFactory {
      * value loading in a {@link CalculatedValue}, so that the value loader may safely acquire
      * project locks.
      */
-    public <K, V> LoadingCache<K, V> createCalculatedValueCache(DisplayName type, Function<K, V> loader) {
+    public <K, V> InMemoryLoadingCache<K, V> createCalculatedValueCache(DisplayName type, Function<K, V> loader) {
         return new CalculatedValueCache<>(
             type,
-            loader,
             calculatedValueContainerFactory,
-            workerLimits.getMaxWorkerCount()
+            workerLimits.getMaxWorkerCount(),
+            loader
         );
     }
 
     // TODO: Back this cache using a Caffeine cache so we can record statistics
     // and monitor cache performance across all caches in the build.
-    private static class DefaultLoadingCache<K, V> implements LoadingCache<K, V> {
+    private static class DefaultLoadingCache<K, V> implements InMemoryLoadingCache<K, V> {
         private final Map<K, V> delegate;
         private final Function<K, V> loader;
 
         public DefaultLoadingCache(int maxConcurrency, Function<K, V> loader) {
             // Use at least as many bins as estimated threads
             this.delegate = new ConcurrentHashMap<>(maxConcurrency);
-            this.loader = preventNullValues(loader);
-        }
-
-        private static <K, V> Function<K, V> preventNullValues(Function<K, V> factory) {
-            return key -> {
-                V value = factory.apply(key);
-                if (value == null) {
-                    throw new IllegalArgumentException("cached value cannot be null");
-                }
-                return value;
-            };
+            this.loader = loader;
         }
 
         @Override
@@ -126,10 +116,10 @@ public class LoadingCacheFactory {
         }
     }
 
-    private static class IdentityLoadingCache<K, V> implements LoadingCache<K, V> {
-        private final LoadingCache<IdentityKey<K>, V> delegate;
+    private static class IdentityLoadingCache<K, V> implements InMemoryLoadingCache<K, V> {
+        private final InMemoryLoadingCache<IdentityKey<K>, V> delegate;
 
-        public IdentityLoadingCache(Function<K, V> loader, int maxConcurrency) {
+        public IdentityLoadingCache(int maxConcurrency, Function<K, V> loader) {
             this.delegate = new DefaultLoadingCache<>(maxConcurrency, key ->
                 loader.apply(key.value)
             );
@@ -165,14 +155,14 @@ public class LoadingCacheFactory {
         }
     }
 
-    private static class CalculatedValueCache<K, V> implements LoadingCache<K, V> {
-        private final LoadingCache<K, CalculatedValue<V>> delegate;
+    private static class CalculatedValueCache<K, V> implements InMemoryLoadingCache<K, V> {
+        private final InMemoryLoadingCache<K, CalculatedValue<V>> delegate;
 
         public CalculatedValueCache(
             DisplayName type,
-            Function<K, V> loader,
             CalculatedValueContainerFactory calculatedValueContainerFactory,
-            int maxConcurrency
+            int maxConcurrency,
+            Function<K, V> loader
         ) {
             this.delegate = new DefaultLoadingCache<>(maxConcurrency, key ->
                 calculatedValueContainerFactory.create(

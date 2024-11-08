@@ -134,7 +134,7 @@ class DependencyGraphBuilderTest extends Specification {
             new DefaultExcludeRuleConverter(new DefaultImmutableModuleIdentifierFactory())
         ),
         TestUtil.calculatedValueContainerFactory(),
-        TestUtil.loadingCacheFactory()
+        TestUtil.inMemoryCacheFactory()
     )
 
     def variantSelector = new GraphVariantSelector(AttributeTestUtil.services(), DependencyManagementTestUtil.newFailureHandler())

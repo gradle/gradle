@@ -22,8 +22,8 @@ import org.gradle.api.internal.attributes.matching.AttributeMatcher;
 import org.gradle.api.internal.attributes.matching.CachingAttributeSelectionSchema;
 import org.gradle.api.internal.attributes.matching.DefaultAttributeMatcher;
 import org.gradle.api.internal.attributes.matching.DefaultAttributeSelectionSchema;
-import org.gradle.internal.model.LoadingCache;
-import org.gradle.internal.model.LoadingCacheFactory;
+import org.gradle.internal.model.InMemoryLoadingCache;
+import org.gradle.internal.model.InMemoryCacheFactory;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -36,14 +36,14 @@ import javax.inject.Inject;
 public class AttributeSchemaServices {
 
     private final ImmutableAttributesSchemaFactory attributesSchemaFactory;
-    private final LoadingCacheFactory cacheFactory;
+    private final InMemoryCacheFactory cacheFactory;
 
-    private final LoadingCache<ImmutableAttributesSchema, AttributeMatcher> matchers;
+    private final InMemoryLoadingCache<ImmutableAttributesSchema, AttributeMatcher> matchers;
 
     @Inject
     public AttributeSchemaServices(
         ImmutableAttributesSchemaFactory attributesSchemaFactory,
-        LoadingCacheFactory cacheFactory
+        InMemoryCacheFactory cacheFactory
     ) {
         this.attributesSchemaFactory = attributesSchemaFactory;
         this.cacheFactory = cacheFactory;

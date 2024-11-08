@@ -27,7 +27,7 @@ import org.gradle.internal.Describables;
 import org.gradle.internal.component.model.ComponentIdGenerator;
 import org.gradle.internal.model.CalculatedValue;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
-import org.gradle.internal.model.LoadingCacheFactory;
+import org.gradle.internal.model.InMemoryCacheFactory;
 import org.gradle.internal.model.ModelContainer;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -43,14 +43,14 @@ public class LocalComponentGraphResolveStateFactory {
     private final ComponentIdGenerator idGenerator;
     private final LocalVariantGraphResolveStateBuilder metadataBuilder;
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
-    private final LoadingCacheFactory cacheFactory;
+    private final InMemoryCacheFactory cacheFactory;
 
     public LocalComponentGraphResolveStateFactory(
         AttributeDesugaring attributeDesugaring,
         ComponentIdGenerator idGenerator,
         LocalVariantGraphResolveStateBuilder metadataBuilder,
         CalculatedValueContainerFactory calculatedValueContainerFactory,
-        LoadingCacheFactory cacheFactory
+        InMemoryCacheFactory cacheFactory
     ) {
         this.attributeDesugaring = attributeDesugaring;
         this.idGenerator = idGenerator;

@@ -19,7 +19,7 @@ package org.gradle.internal.model;
 /**
  * A cache that loads values on demand as they are requested.
  */
-public interface LoadingCache<K, V> {
+public interface InMemoryLoadingCache<K, V> {
 
     /**
      * Get the value corresponding to the given key, loading the value
@@ -32,7 +32,7 @@ public interface LoadingCache<K, V> {
     V get(K key);
 
     /**
-     * Invalidates the cache, releasing all resources associated with it.
+     * Invalidates the cache, clearing all cached entries.
      */
     void invalidate();
 

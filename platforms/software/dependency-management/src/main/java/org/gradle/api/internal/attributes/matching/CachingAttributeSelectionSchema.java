@@ -18,8 +18,8 @@ package org.gradle.api.internal.attributes.matching;
 
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.internal.model.LoadingCache;
-import org.gradle.internal.model.LoadingCacheFactory;
+import org.gradle.internal.model.InMemoryLoadingCache;
+import org.gradle.internal.model.InMemoryCacheFactory;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
@@ -34,12 +34,12 @@ public class CachingAttributeSelectionSchema implements AttributeSelectionSchema
 
     private final AttributeSelectionSchema delegate;
 
-    private final LoadingCache<ExtraAttributesKey, Attribute<?>[]> extraAttributesCache;
-    private final LoadingCache<MatchValueKey<?>, Boolean> matchValueCache;
+    private final InMemoryLoadingCache<ExtraAttributesKey, Attribute<?>[]> extraAttributesCache;
+    private final InMemoryLoadingCache<MatchValueKey<?>, Boolean> matchValueCache;
 
     public CachingAttributeSelectionSchema(
         AttributeSelectionSchema delegate,
-        LoadingCacheFactory cacheFactory
+        InMemoryCacheFactory cacheFactory
     ) {
         this.delegate = delegate;
 

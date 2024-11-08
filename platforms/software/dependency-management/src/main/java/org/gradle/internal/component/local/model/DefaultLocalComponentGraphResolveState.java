@@ -37,8 +37,8 @@ import org.gradle.internal.component.model.ModuleSources;
 import org.gradle.internal.component.model.VariantGraphResolveState;
 import org.gradle.internal.model.CalculatedValue;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
-import org.gradle.internal.model.LoadingCache;
-import org.gradle.internal.model.LoadingCacheFactory;
+import org.gradle.internal.model.InMemoryLoadingCache;
+import org.gradle.internal.model.InMemoryCacheFactory;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -62,10 +62,10 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
     private final LocalVariantGraphResolveStateFactory variantFactory;
     private final Transformer<LocalComponentArtifactMetadata, LocalComponentArtifactMetadata> artifactTransformer;
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
-    private final LoadingCacheFactory cacheFactory;
+    private final InMemoryCacheFactory cacheFactory;
 
     // The graph resolve state for variants selected by name
-    private final LoadingCache<String, LocalVariantGraphResolveState> variants;
+    private final InMemoryLoadingCache<String, LocalVariantGraphResolveState> variants;
 
     // The variants to use for variant selection during graph resolution
     private final AtomicReference<CalculatedValue<LocalComponentGraphSelectionCandidates>> graphSelectionCandidates = new AtomicReference<>();
@@ -81,7 +81,7 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
         boolean adHoc,
         LocalVariantGraphResolveStateFactory variantFactory,
         CalculatedValueContainerFactory calculatedValueContainerFactory,
-        LoadingCacheFactory cacheFactory,
+        InMemoryCacheFactory cacheFactory,
         @Nullable Transformer<LocalComponentArtifactMetadata, LocalComponentArtifactMetadata> artifactTransformer
     ) {
         super(instanceId, metadata, attributeDesugaring);

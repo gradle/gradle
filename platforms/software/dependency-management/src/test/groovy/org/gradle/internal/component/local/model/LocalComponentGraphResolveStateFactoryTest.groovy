@@ -64,7 +64,7 @@ class LocalComponentGraphResolveStateFactoryTest extends AbstractProjectBuilderS
         new ComponentIdGenerator(),
         metadataBuilder,
         TestUtil.calculatedValueContainerFactory(),
-        TestUtil.loadingCacheFactory()
+        TestUtil.inMemoryCacheFactory()
     )
 
     LocalComponentGraphResolveState state

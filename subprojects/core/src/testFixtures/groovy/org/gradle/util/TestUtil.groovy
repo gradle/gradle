@@ -51,7 +51,7 @@ import org.gradle.internal.instantiation.InjectAnnotationHandler
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.instantiation.generator.DefaultInstantiatorFactory
 import org.gradle.internal.model.CalculatedValueContainerFactory
-import org.gradle.internal.model.LoadingCacheFactory
+import org.gradle.internal.model.InMemoryCacheFactory
 import org.gradle.internal.model.StateTransitionControllerFactory
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.Provides
@@ -142,8 +142,8 @@ class TestUtil {
         return new CalculatedValueContainerFactory(new TestWorkerLeaseService(), services())
     }
 
-    static LoadingCacheFactory loadingCacheFactory() {
-        return new LoadingCacheFactory(new DefaultWorkerLimits(Runtime.getRuntime().availableProcessors()), calculatedValueContainerFactory())
+    static InMemoryCacheFactory inMemoryCacheFactory() {
+        return new InMemoryCacheFactory(new DefaultWorkerLimits(Runtime.getRuntime().availableProcessors()), calculatedValueContainerFactory())
     }
 
     static StateTransitionControllerFactory stateTransitionControllerFactory() {

@@ -29,8 +29,8 @@ import org.gradle.internal.Describables;
 import org.gradle.internal.build.CompositeBuildParticipantBuildState;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
-import org.gradle.internal.model.LoadingCache;
-import org.gradle.internal.model.LoadingCacheFactory;
+import org.gradle.internal.model.InMemoryLoadingCache;
+import org.gradle.internal.model.InMemoryCacheFactory;
 import org.gradle.util.Path;
 
 import javax.inject.Inject;
@@ -51,18 +51,18 @@ public class DefaultBuildTreeLocalComponentProvider implements BuildTreeLocalCom
     /**
      * Caches the "true" metadata instances for local components.
      */
-    private final LoadingCache<ProjectComponentIdentifier, LocalComponentGraphResolveState> originalComponents;
+    private final InMemoryLoadingCache<ProjectComponentIdentifier, LocalComponentGraphResolveState> originalComponents;
 
     /**
      * Contains copies of metadata instances in {@link #originalComponents}, except
      * with the component identifier replaced with the foreign counterpart.
      */
-    private final LoadingCache<ProjectComponentIdentifier, LocalComponentGraphResolveState> foreignIdentifiedComponents;
+    private final InMemoryLoadingCache<ProjectComponentIdentifier, LocalComponentGraphResolveState> foreignIdentifiedComponents;
 
     @Inject
     public DefaultBuildTreeLocalComponentProvider(
         ProjectStateRegistry projectStateRegistry,
-        LoadingCacheFactory cacheFactory,
+        InMemoryCacheFactory cacheFactory,
         LocalComponentCache localComponentCache,
         LocalComponentProvider localComponentProvider
     ) {

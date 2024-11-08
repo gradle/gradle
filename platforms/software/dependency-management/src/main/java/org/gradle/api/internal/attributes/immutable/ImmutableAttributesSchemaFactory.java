@@ -28,8 +28,8 @@ import org.gradle.api.attributes.CompatibilityCheckDetails;
 import org.gradle.api.attributes.MultipleCandidatesDetails;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.DefaultAttributeMatchingStrategy;
-import org.gradle.internal.model.LoadingCache;
-import org.gradle.internal.model.LoadingCacheFactory;
+import org.gradle.internal.model.InMemoryLoadingCache;
+import org.gradle.internal.model.InMemoryCacheFactory;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -42,10 +42,10 @@ import java.util.Map;
 public class ImmutableAttributesSchemaFactory {
 
     private final Interner<ImmutableAttributesSchema> schemas = Interners.newStrongInterner();
-    private final LoadingCache<SchemaPair, ImmutableAttributesSchema> mergedSchemas;
+    private final InMemoryLoadingCache<SchemaPair, ImmutableAttributesSchema> mergedSchemas;
 
     @SuppressWarnings("CheckReturnValue")
-    public ImmutableAttributesSchemaFactory(LoadingCacheFactory cacheFactory) {
+    public ImmutableAttributesSchemaFactory(InMemoryCacheFactory cacheFactory) {
         schemas.intern(ImmutableAttributesSchema.EMPTY);
         this.mergedSchemas = cacheFactory.create(this::doConcatSchemas);
     }
