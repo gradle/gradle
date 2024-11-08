@@ -16,6 +16,8 @@
 
 package org.gradle.vcs.git.internal;
 
+import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.internal.UncheckedException;
 import org.gradle.vcs.git.GitVersionControlSpec;
 import org.gradle.vcs.internal.spec.AbstractVersionControlSpec;
@@ -23,17 +25,18 @@ import org.gradle.vcs.internal.spec.AbstractVersionControlSpec;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-public class DefaultGitVersionControlSpec extends AbstractVersionControlSpec implements GitVersionControlSpec {
-    private URI url;
+public abstract class DefaultGitVersionControlSpec extends AbstractVersionControlSpec implements GitVersionControlSpec {
+    // TODO(mlopatkin) expose it as public getUrl() after migrating GitVersionControlSpec
+    protected abstract Property<URI> getUrlImpl();
 
     @Override
     public URI getUrl() {
-        return url;
+        return getUrlImpl().get();
     }
 
     @Override
     public void setUrl(URI url) {
-        this.url = url;
+        getUrlImpl().set(url);
     }
 
     @Override
@@ -52,12 +55,16 @@ public class DefaultGitVersionControlSpec extends AbstractVersionControlSpec imp
     }
 
     @Override
-    public String getUniqueId() {
-        return "git-repo:" + getUrl().toASCIIString();
+    public Provider<String> getUniqueId() {
+        return getUrlImpl().map(uri -> "git-repo:" + uri.toASCIIString());
     }
 
     @Override
-    public String getRepoName() {
+    public Provider<String> getRepoName() {
+        return getUrlImpl().map(DefaultGitVersionControlSpec::extractRepoName);
+    }
+
+    private static String extractRepoName(URI url) {
         String[] pathParts = url.getPath().split("/");
         String repoPart = pathParts[pathParts.length-1];
         if (repoPart.endsWith(".git")) {
@@ -68,6 +75,7 @@ public class DefaultGitVersionControlSpec extends AbstractVersionControlSpec imp
 
     @Override
     public boolean equals(Object o) {
+        // TODO(mlopatkin) we run equality checks in DefaultVcsMappingsStore.applyTo. Is it fine to resolve there?
         if (this == o) {
             return true;
         }
@@ -77,18 +85,21 @@ public class DefaultGitVersionControlSpec extends AbstractVersionControlSpec imp
 
         DefaultGitVersionControlSpec that = (DefaultGitVersionControlSpec) o;
 
-        return url != null ? url.equals(that.url) : that.url == null;
+        URI url = getUrl();
+        URI thatUrl = that.getUrl();
+        return url != null ? url.equals(thatUrl) : thatUrl == null;
     }
 
     @Override
     public int hashCode() {
+        URI url = getUrl();
         return url != null ? url.hashCode() : 0;
     }
 
     @Override
     public String toString() {
         return "GitVersionControlSpec{"
-            + "url=" + url
+            + "url=" + getUrlImpl()
             + '}';
     }
 }

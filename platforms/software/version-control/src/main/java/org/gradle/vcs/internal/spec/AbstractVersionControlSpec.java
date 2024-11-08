@@ -16,9 +16,9 @@
 
 package org.gradle.vcs.internal.spec;
 
-import com.google.common.base.Preconditions;
 import org.gradle.api.Action;
 import org.gradle.api.initialization.definition.InjectedPluginDependencies;
+import org.gradle.api.provider.Property;
 import org.gradle.initialization.definition.DefaultInjectedPluginDependencies;
 import org.gradle.initialization.definition.DefaultInjectedPluginDependency;
 import org.gradle.vcs.VersionControlSpec;
@@ -26,19 +26,14 @@ import org.gradle.vcs.VersionControlSpec;
 import java.util.List;
 
 public abstract class AbstractVersionControlSpec implements VersionControlSpec {
-    private String rootDir = "";
     private final DefaultInjectedPluginDependencies pluginDependencies = new DefaultInjectedPluginDependencies();
 
-    @Override
-    public String getRootDir() {
-        return rootDir;
+    public AbstractVersionControlSpec() {
+        getRootDir().convention("");
     }
 
     @Override
-    public void setRootDir(String rootDir) {
-        Preconditions.checkNotNull(rootDir, "rootDir should be non-null for '%s'.", getDisplayName());
-        this.rootDir = rootDir;
-    }
+    public abstract Property<String> getRootDir();
 
     @Override
     public void plugins(Action<? super InjectedPluginDependencies> configuration) {
