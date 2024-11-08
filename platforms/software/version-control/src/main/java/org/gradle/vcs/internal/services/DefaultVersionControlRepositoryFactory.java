@@ -37,7 +37,6 @@ import org.gradle.vcs.internal.VersionRef;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Set;
-import java.util.function.Supplier;
 
 import static org.gradle.api.internal.cache.CacheConfigurationsInternal.DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES;
 import static org.gradle.internal.hash.Hashing.hashString;
@@ -126,23 +125,20 @@ class DefaultVersionControlRepositoryFactory implements VersionControlRepository
 
         @Override
         public File populate(final VersionRef ref) {
-            return cacheAccess.useCache(new Supplier<File>() {
-                @Override
-                public File get() {
-                    try {
-                        String repoName = spec.getRepoName();
-                        String prefix = repoName.length() <= 9 ? repoName : repoName.substring(0, 10);
-                        String versionId = prefix + "_" + hashString(getUniqueId() + "-" + ref.getCanonicalId()).toCompactString();
-                        File baseDir = new File(cacheAccess.getBaseDir(), versionId);
-                        File workingDir = new File(baseDir, repoName);
-                        GFileUtils.mkdirs(workingDir);
-                        // Update timestamp so that working directory is not garbage collected
-                        GFileUtils.touch(baseDir);
-                        delegate.populate(workingDir, ref, spec);
-                        return workingDir;
-                    } catch (Exception e) {
-                        throw new GradleException(String.format("Could not populate working directory from %s.", spec.getDisplayName()), e);
-                    }
+            return cacheAccess.useCache(() -> {
+                try {
+                    String repoName = spec.getRepoName();
+                    String prefix = repoName.length() <= 9 ? repoName : repoName.substring(0, 10);
+                    String versionId = prefix + "_" + hashString(getUniqueId() + "-" + ref.getCanonicalId()).toCompactString();
+                    File baseDir = new File(cacheAccess.getBaseDir(), versionId);
+                    File workingDir = new File(baseDir, repoName);
+                    GFileUtils.mkdirs(workingDir);
+                    // Update timestamp so that working directory is not garbage collected
+                    GFileUtils.touch(baseDir);
+                    delegate.populate(workingDir, ref, spec);
+                    return workingDir;
+                } catch (Exception e) {
+                    throw new GradleException(String.format("Could not populate working directory from %s.", spec.getDisplayName()), e);
                 }
             });
         }
