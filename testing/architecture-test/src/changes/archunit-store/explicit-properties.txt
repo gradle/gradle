@@ -217,7 +217,6 @@ Method <org.gradle.plugins.signing.Sign.getFilesToSign()> is not abstract
 Method <org.gradle.plugins.signing.Sign.getSignatureFiles()> is not abstract
 Method <org.gradle.swiftpm.tasks.GenerateSwiftPackageManagerManifest.getManifestFile()> is not abstract
 Method <org.gradle.swiftpm.tasks.GenerateSwiftPackageManagerManifest.getPackage()> is not abstract
-Method <org.gradle.testing.jacoco.tasks.JacocoBase.getJacocoClasspath()> is not abstract
 Method <org.gradle.testing.jacoco.tasks.JacocoReport.getReportProjectName()> is not abstract
 Method <org.gradle.testing.jacoco.tasks.JacocoReportBase.getAdditionalClassDirs()> is not abstract
 Method <org.gradle.testing.jacoco.tasks.JacocoReportBase.getAdditionalSourceDirs()> is not abstract
