@@ -27,9 +27,9 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.java.archives.Manifest;
+import org.gradle.api.java.archives.internal.CustomManifestInternalWrapper;
 import org.gradle.api.java.archives.internal.DefaultManifest;
 import org.gradle.api.java.archives.internal.ManifestInternal;
-import org.gradle.api.java.archives.internal.CustomManifestInternalWrapper;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
@@ -39,6 +39,7 @@ import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyPro
 import org.gradle.internal.serialization.Cached;
 import org.gradle.util.internal.ConfigureUtil;
 import org.gradle.work.DisableCachingByDefault;
+import org.jspecify.annotations.NonNull;
 
 import javax.inject.Inject;
 import java.nio.charset.Charset;
@@ -59,7 +60,7 @@ public abstract class Jar extends Zip {
     @Inject
     public Jar() {
         getArchiveExtension().set(DEFAULT_EXTENSION);
-        setMetadataCharset("UTF-8");
+        getMetadataCharset().convention("UTF-8");
 
         this.manifestContentCharset = getObjectFactory().property(String.class).convention(ManifestInternal.DEFAULT_CONTENT_CHARSET);
         manifest = new DefaultManifest(getFileResolver(), manifestContentCharset);
@@ -113,23 +114,8 @@ public abstract class Jar extends Zip {
      * @since 2.14
      */
     @Override
-    @ToBeReplacedByLazyProperty
-    public String getMetadataCharset() {
-        return super.getMetadataCharset();
-    }
-
-    /**
-     * The character set used to encode JAR metadata like file names.
-     * Defaults to UTF-8.
-     * You can change this property but it is not recommended as JVMs expect JAR metadata to be encoded using UTF-8
-     *
-     * @param metadataCharset the character set used to encode JAR metadata like file names
-     * @since 2.14
-     */
-    @Override
-    public void setMetadataCharset(String metadataCharset) {
-        super.setMetadataCharset(metadataCharset);
-    }
+    @NonNull
+    public abstract Property<String> getMetadataCharset();
 
     /**
      * The character set used to encode the manifest content.
