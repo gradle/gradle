@@ -151,20 +151,41 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
         fixture.assertProjectsConfigured(":", ":util", ":impl", ":api")
     }
 
-    @ToBeFixedForIsolatedProjects(because = "allprojects, configure projects from root")
+    @ToBeFixedForIsolatedProjects(because = "configure-on-demand is not supported in IP mode")
     def "can have cycles in project dependencies"() {
-        createDirs("api", "impl", "util")
         settingsFile << "include 'api', 'impl', 'util'"
+        file("util/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+        """
+        file("impl/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+            dependencies {
+                implementation project(path: ':api', configuration: 'other')
+            }
+        """
+        file("api/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+            dependencies {
+                runtimeOnly project(':impl')
+            }
+            configurations {
+                create("other")
+            }
+            task run {
+                dependsOn(configurations.runtimeClasspath)
+            }
+        """
         buildFile << """
-allprojects { apply plugin: 'java-library' }
-project(':impl') {
-    dependencies { implementation project(path: ':api', configuration: 'archives') }
-}
-project(':api') {
-    dependencies { runtimeOnly project(':impl') }
-    task run(dependsOn: configurations.runtimeClasspath)
-}
-"""
+            plugins {
+                id("java-library")
+            }
+        """
 
         when:
         run(":api:run")

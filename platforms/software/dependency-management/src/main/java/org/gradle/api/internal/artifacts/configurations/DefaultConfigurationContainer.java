@@ -106,7 +106,8 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     @Override
     protected NamedDomainObjectProvider<Configuration> createDomainObjectProvider(String name, @Nullable Action<? super Configuration> configurationAction) {
         // Called by `register` for registering legacy configurations.
-        // We override to set the public type to `DefaultUnlockedConfiguration`, allowing us to filter for unlocked configurations with `withType`
+        // We override to set the public type to `DefaultUnlockedConfiguration`,
+        // allowing us to filter for unlocked configurations using `withType`
 
         assertElementNotPresent(name);
         NamedDomainObjectProvider<Configuration> provider = Cast.uncheckedCast(

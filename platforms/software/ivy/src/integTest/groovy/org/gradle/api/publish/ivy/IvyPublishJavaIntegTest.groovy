@@ -160,6 +160,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
 """)
 
         when:
+        executer.expectDocumentedDeprecationWarning("Adding artifacts to the archives configuration. This behavior has been deprecated. This will fail with an error in Gradle 9.0. The 'archives' configuration will be removed in Gradle 9.0. To ensure an artifact is built by the 'assemble' task, use tasks.assemble.dependsOn(artifact). Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_automatically_assembled_artifacts")
         run "publish"
 
         then:

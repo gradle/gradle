@@ -137,16 +137,20 @@ class SigningConfigurationsIntegrationSpec extends SigningIntegrationSpec {
     def "duplicated inputs are handled"() {
         given:
         buildFile << """
+            configurations {
+                foo
+            }
+
             signing {
                 ${signingConfiguration()}
-                sign configurations.archives
+                sign configurations.foo
             }
 
             ${keyInfo.addAsPropertiesScript()}
 
             artifacts {
-                // depend directly on 'jar' task in addition to dependency through 'archives'
-                archives jar
+                // depend directly on 'jar' task in addition to dependency through 'foo'
+                foo jar
             }
         """
 
@@ -154,7 +158,7 @@ class SigningConfigurationsIntegrationSpec extends SigningIntegrationSpec {
         run "buildSignatures"
 
         then:
-        executedAndNotSkipped ":signArchives"
+        executedAndNotSkipped ":signFoo"
 
         and:
         file("build", "libs", "sign-1.0.jar.asc").text

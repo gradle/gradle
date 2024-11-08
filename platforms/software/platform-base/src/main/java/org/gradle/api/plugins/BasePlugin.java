@@ -16,10 +16,14 @@
 
 package org.gradle.api.plugins;
 
+import com.google.common.collect.ImmutableSet;
+import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.DomainObjectCollectionInternal;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
@@ -27,12 +31,17 @@ import org.gradle.api.internal.plugins.BuildConfigurationRule;
 import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.internal.plugins.NaggingBasePluginConvention;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.provider.AbstractMinimalProvider;
+import org.gradle.api.internal.provider.ChangingValue;
+import org.gradle.api.internal.provider.ChangingValueHandler;
+import org.gradle.api.internal.provider.CollectionProviderInternal;
 import org.gradle.api.plugins.internal.DefaultBasePluginExtension;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 
-import java.util.stream.Collectors;
+import javax.annotation.Nullable;
+import java.util.Set;
 
 /**
  * <p>A {@link org.gradle.api.Plugin} which defines a basic project lifecycle and some common convention properties.</p>
@@ -96,8 +105,8 @@ public abstract class BasePlugin implements Plugin<Project> {
 
         ((DomainObjectCollectionInternal<?>) archivesConfiguration.getArtifacts()).beforeCollectionChanges(methodName ->
             DeprecationLogger.deprecateBehaviour("Adding artifacts to the archives configuration.")
-            .withContext("The 'archives' configuration will be removed in Gradle 9.0")
-            .withAdvice("To ensure an artifact is built by the 'assemble' task, use tasks.assemble.dependsOn(artifact)")
+            .withContext("The 'archives' configuration will be removed in Gradle 9.0.")
+            .withAdvice("To ensure an artifact is built by the 'assemble' task, use tasks.assemble.dependsOn(artifact).")
             .willBecomeAnErrorInGradle9()
             .withUpgradeGuideSection(8, "deprecate_automatically_assembled_artifacts")
             .nagUser()
@@ -118,16 +127,92 @@ public abstract class BasePlugin implements Plugin<Project> {
         // the change in behavior in the upgrade guide.
         // TODO: When removing this code be sure to add an entry to the upgrade guide as a potential breaking change.
         DeprecationLogger.whileDisabled(() ->
-            archivesConfiguration.getArtifacts().addAllLater(project.provider(() ->
-                configurations.stream()
-                    .filter(conf -> !conf.equals(archivesConfiguration) && conf.isVisible())
-                    .flatMap(conf -> conf.getArtifacts().stream())
-                    .collect(Collectors.toList())
-            ))
+            archivesConfiguration.getArtifacts().addAllLater(new DefaultArtifactProvider(configurations))
         );
 
         project.getTasks().named(ASSEMBLE_TASK_NAME, task -> {
             task.dependsOn(archivesConfiguration.getAllArtifacts());
         });
+    }
+
+    /**
+     * A live provider of all artifacts not in the archives configuration.
+     * <p>
+     * This is needed to exercise behavior in the container infrastructure that invalidates caches
+     * after the artifact set changes. This allows the set of provided artifacts to change even
+     * after the value has been calculated. When the set of artifacts changes, any containers
+     * that include this provider will invalidate its cached values for it.
+     * <p>
+     * This is particularly important since {@link Configuration#getAllArtifacts()} eagerly resolves
+     * artifact sets, meaning it is possible for build logic to call {@code getAllArtifacts} before all
+     * configurations have their artifacts initialized.
+     */
+    private static class DefaultArtifactProvider extends AbstractMinimalProvider<Set<PublishArtifact>> implements CollectionProviderInternal<PublishArtifact, Set<PublishArtifact>>, ChangingValue<Set<PublishArtifact>> {
+
+        private final ConfigurationContainer configurations;
+        private final ChangingValueHandler<Set<PublishArtifact>> changingValue = new ChangingValueHandler<>();
+
+        boolean subscribed = false;
+        private ImmutableSet<PublishArtifact> lastArtifacts;
+        private ImmutableSet<PublishArtifact> artifacts = ImmutableSet.of();
+
+        public DefaultArtifactProvider(ConfigurationContainer configurations) {
+            this.configurations = configurations;
+        }
+
+        @Override
+        public Class<? extends PublishArtifact> getElementType() {
+            return PublishArtifact.class;
+        }
+
+        @Override
+        public int size() {
+            return artifacts.size();
+        }
+
+        @Nullable
+        @Override
+        public Class<Set<PublishArtifact>> getType() {
+            return null;
+        }
+
+        @Override
+        protected Value<Set<PublishArtifact>> calculateOwnValue(ValueConsumer consumer) {
+            maybeSubscribe();
+            this.lastArtifacts = artifacts;
+            return Value.of(artifacts);
+        }
+
+        private void maybeSubscribe() {
+            if (!subscribed) {
+                configurations.all(conf -> {
+                    if (conf.isVisible() && !conf.getName().equals(Dependency.ARCHIVES_CONFIGURATION)) {
+                        conf.getArtifacts().all(this::addArtifact);
+                    }
+                });
+                subscribed = true;
+            }
+        }
+
+        void addArtifact(PublishArtifact artifact) {
+            if (!artifacts.contains(artifact)) {
+                artifacts = ImmutableSet.<PublishArtifact>builder()
+                    .addAll(artifacts)
+                    .add(artifact)
+                    .build();
+
+                // If we changed the artifacts in the set, invalidate any consumers that have cached the prior value.
+                if (lastArtifacts != null) {
+                    ImmutableSet<PublishArtifact> previousArtifacts = lastArtifacts;
+                    lastArtifacts = null;
+                    changingValue.handle(previousArtifacts);
+                }
+            }
+        }
+
+        @Override
+        public void onValueChange(Action<Set<PublishArtifact>> action) {
+            changingValue.onValueChange(action);
+        }
     }
 }

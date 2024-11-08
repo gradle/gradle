@@ -35,8 +35,8 @@ public abstract class DefaultArtifactPublicationSet {
     public void addCandidate(PublishArtifact artifact) {
 
         DeprecationLogger.deprecateMethod(DefaultArtifactPublicationSet.class, "addCandidate(PublishArtifact)")
-            .withContext("DefaultArtifactPublicationSet is deprecated and will be removed in Gradle 9.0")
-            .withAdvice("To ensure the 'assemble' task builds the artifact, use tasks.assemble.dependsOn(artifact)")
+            .withContext("DefaultArtifactPublicationSet is deprecated and will be removed in Gradle 9.0.")
+            .withAdvice("To ensure the 'assemble' task builds the artifact, use tasks.assemble.dependsOn(artifact).")
             .willBeRemovedInGradle9()
             .withUpgradeGuideSection(8, "deprecate_automatically_assembled_artifacts")
             .nagUser();

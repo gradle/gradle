@@ -39,7 +39,7 @@ class SigningConfigurationsSpec extends SigningProjectSpec {
         }
 
         then:
-        def signingTasks = [project.signArchives, project.signMeta]
+        def signingTasks = [project.tasks.signArchives, project.tasks.signMeta]
 
         // TODO - find way to test that the appropriate dependencies have been setup
         //        it would be easy if we could do…

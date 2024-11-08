@@ -148,13 +148,11 @@ class PluginVariantResolveIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            configurations.all {
-                if (it.canBeConsumed && it.name != 'sourcesElements' ) {
-                    // let's pretend it was built with a newer Java version
-                    attributes {
-                        // This test is not Artic Code Vault safe
-                        attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 2099)
-                    }
+            [configurations.apiElements, configurations.runtimeElements].each {
+                // let's pretend it was built with a newer Java version
+                it.attributes {
+                    // This test is not Artic Code Vault safe
+                    attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 2099)
                 }
             }
 

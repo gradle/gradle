@@ -65,7 +65,7 @@ public final class ConfigurationRolesForMigration {
     public static final ConfigurationRole CONSUMABLE_DEPENDENCY_SCOPE_TO_CONSUMABLE = difference(ConfigurationRoles.CONSUMABLE_DEPENDENCY_SCOPE, ConfigurationRoles.CONSUMABLE);
 
     /**
-     * A consumable configuration that will become removed in the next major version.
+     * A consumable configuration that will become be in the next major version.
      */
     public static final ConfigurationRole CONSUMABLE_TO_REMOVED = difference(ConfigurationRoles.CONSUMABLE, ConfigurationRoles.REMOVED);
 

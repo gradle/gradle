@@ -222,7 +222,7 @@ Gradle will mutate the usage of configuration archives to match the expected usa
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning("The DefaultArtifactPublicationSet.addCandidate(PublishArtifact) method has been deprecated. This is scheduled to be removed in Gradle 9.0. DefaultArtifactPublicationSet is deprecated and will be removed in Gradle 9.0 To ensure the 'assemble' task builds the artifact, use tasks.assemble.dependsOn(artifact) Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_automatically_assembled_artifacts")
+        executer.expectDocumentedDeprecationWarning("The DefaultArtifactPublicationSet.addCandidate(PublishArtifact) method has been deprecated. This is scheduled to be removed in Gradle 9.0. DefaultArtifactPublicationSet is deprecated and will be removed in Gradle 9.0. To ensure the 'assemble' task builds the artifact, use tasks.assemble.dependsOn(artifact). Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_automatically_assembled_artifacts")
         succeeds("assemble")
 
         then:
@@ -278,7 +278,7 @@ Gradle will mutate the usage of configuration archives to match the expected usa
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning("Adding artifacts to the archives configuration. This behavior has been deprecated. This will fail with an error in Gradle 9.0. The 'archives' configuration will be removed in Gradle 9.0 To ensure an artifact is built by the 'assemble' task, use tasks.assemble.dependsOn(artifact) Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_automatically_assembled_artifacts")
+        executer.expectDocumentedDeprecationWarning("Adding artifacts to the archives configuration. This behavior has been deprecated. This will fail with an error in Gradle 9.0. The 'archives' configuration will be removed in Gradle 9.0. To ensure an artifact is built by the 'assemble' task, use tasks.assemble.dependsOn(artifact). Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_automatically_assembled_artifacts")
         succeeds("assemble")
 
         then:
@@ -344,7 +344,7 @@ Gradle will mutate the usage of configuration archives to match the expected usa
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning("Adding artifacts to the archives configuration. This behavior has been deprecated. This will fail with an error in Gradle 9.0. The 'archives' configuration will be removed in Gradle 9.0 To ensure an artifact is built by the 'assemble' task, use tasks.assemble.dependsOn(artifact) Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_automatically_assembled_artifacts")
+        executer.expectDocumentedDeprecationWarning("Adding artifacts to the archives configuration. This behavior has been deprecated. This will fail with an error in Gradle 9.0. The 'archives' configuration will be removed in Gradle 9.0. To ensure an artifact is built by the 'assemble' task, use tasks.assemble.dependsOn(artifact). Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_automatically_assembled_artifacts")
         // Once when resolving build dependencies, once when resolving graph
         2.times { executer.expectDocumentedDeprecationWarning("The archives configuration has been deprecated for consumption. This will fail with an error in Gradle 9.0. For more information, please refer to https://docs.gradle.org/current/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.") }
         succeeds(":consumer:resolve")

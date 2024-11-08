@@ -134,7 +134,7 @@ public abstract class EarPlugin implements Plugin<Project> {
         LazyPublishArtifact earArtifact = new LazyPublishArtifact(ear, ((ProjectInternal) project).getFileResolver(), taskDependencyFactory);
         DeprecationLogger.whileDisabled(() -> {
             // In 9.0, we should directly add a dependency from the 'assemble' task to 'earArtifact'
-            project.getTasks().named(BasePlugin.ASSEMBLE_TASK_NAME, task -> task.dependsOn(earArtifact));
+            project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION).getArtifacts().add(earArtifact);
         });
     }
 

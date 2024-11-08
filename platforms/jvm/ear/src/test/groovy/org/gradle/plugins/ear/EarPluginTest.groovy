@@ -96,7 +96,7 @@ class EarPluginTest extends AbstractProjectBuilderSpec {
 
     def "adds tasks to java project"() {
         when:
-        project.pluginManager.apply(JavaPlugin.class)
+        project.pluginManager.apply(JavaPlugin)
         project.pluginManager.apply(EarPlugin)
 
         and:
@@ -111,7 +111,7 @@ class EarPluginTest extends AbstractProjectBuilderSpec {
         task = project.tasks[BasePlugin.ASSEMBLE_TASK_NAME]
 
         then:
-        task dependsOn(EarPlugin.EAR_TASK_NAME)
+        task dependsOn(EarPlugin.EAR_TASK_NAME, JavaPlugin.JAR_TASK_NAME)
     }
 
     def "depends on earlib config"() {
@@ -170,35 +170,9 @@ class EarPluginTest extends AbstractProjectBuilderSpec {
         task dependsOn(hasItems(JvmConstants.CLASSES_TASK_NAME, JvmConstants.COMPILE_JAVA_TASK_NAME))
     }
 
-    def "adds ear as publication"() {
+    def "adds ear artifact to archives configuration"() {
         when:
         project.pluginManager.apply(EarPlugin)
-
-        and:
-        def archiveConfiguration = project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION)
-
-        then:
-        archiveConfiguration.getAllArtifacts().size() == 1
-        archiveConfiguration.getAllArtifacts().iterator().next().getType() == "ear"
-    }
-
-    def "replaces war as publication"() {
-        when:
-        project.pluginManager.apply(EarPlugin)
-        project.pluginManager.apply(WarPlugin)
-
-        and:
-        def archiveConfiguration = project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION)
-
-        then:
-        archiveConfiguration.getAllArtifacts().size() == 1
-        archiveConfiguration.getAllArtifacts().iterator().next().getType() == "ear"
-    }
-
-    def "replaces jar as publication"() {
-        when:
-        project.pluginManager.apply(EarPlugin)
-        project.pluginManager.apply(JavaPlugin)
 
         and:
         def archiveConfiguration = project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION)
