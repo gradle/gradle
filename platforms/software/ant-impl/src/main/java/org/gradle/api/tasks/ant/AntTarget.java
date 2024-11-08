@@ -16,10 +16,13 @@
 package org.gradle.api.tasks.ant;
 
 import org.apache.tools.ant.Target;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.work.DisableCachingByDefault;
 import org.jspecify.annotations.Nullable;
 
@@ -33,18 +36,17 @@ import static org.gradle.api.internal.ConfigurationCacheDegradation.requireDegra
 @DisableCachingByDefault(because = "Gradle would require more information to cache this task")
 public abstract class AntTarget extends ConventionTask {
 
-    private Target target;
-    private File baseDir;
-
     public AntTarget() {
         requireDegradation(this, "Task is not compatible with the Configuration Cache");
     }
 
+
     @TaskAction
     protected void executeAntTarget() {
+        Target target = getTarget().get();
         File oldBaseDir = target.getProject().getBaseDir();
-        target.getProject().setBaseDir(baseDir);
         try {
+            target.getProject().setBaseDir(getBaseDir().getAsFile().get());
             target.performTasks();
         } finally {
             target.getProject().setBaseDir(oldBaseDir);
@@ -55,43 +57,24 @@ public abstract class AntTarget extends ConventionTask {
      * Returns the Ant target to execute.
      */
     @Internal
-    @ToBeReplacedByLazyProperty
-    public Target getTarget() {
-        return target;
-    }
-
-    /**
-     * Sets the Ant target to execute.
-     */
-    public void setTarget(Target target) {
-        this.target = target;
-    }
+    @ReplacesEagerProperty
+    public abstract Property<Target> getTarget();
 
     /**
      * Returns the Ant project base directory to use when executing the target.
      */
     @Internal
-    @ToBeReplacedByLazyProperty
-    public File getBaseDir() {
-        return baseDir;
-    }
-
-    /**
-     * Sets the Ant project base directory to use when executing the target.
-     */
-    public void setBaseDir(File baseDir) {
-        this.baseDir = baseDir;
-    }
+    @ReplacesEagerProperty
+    public abstract DirectoryProperty getBaseDir();
 
     /**
      * {@inheritDoc}
      */
     @Internal
     @Override
-    @Nullable
-    @ToBeReplacedByLazyProperty
+    @NotToBeReplacedByLazyProperty(because = "Overrides Task.getDescription()")
     public String getDescription() {
-        return target == null ? null : target.getDescription();
+        return getTarget().map(Target::getDescription).getOrNull();
     }
 
     /**
@@ -99,6 +82,7 @@ public abstract class AntTarget extends ConventionTask {
      */
     @Override
     public void setDescription(@Nullable String description) {
+        Target target = getTarget().getOrNull();
         if (target != null) {
             target.setDescription(description);
         }
