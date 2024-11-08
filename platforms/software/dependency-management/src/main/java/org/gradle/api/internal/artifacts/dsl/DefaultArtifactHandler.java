@@ -71,7 +71,7 @@ public class DefaultArtifactHandler implements ArtifactHandler, MethodMixIn {
         if (isFullyDeprecated(configuration)) {
             DeprecationLogger.deprecateConfiguration(configuration.getName()).forArtifactDeclaration()
                 .willBecomeAnErrorInGradle9()
-                .withUserManual("declaring_dependencies", "sec:deprecated-configurations")
+                .withUserManual("declaring_configurations", "sec:deprecated-configurations")
                 .nagUser();
         }
 
@@ -80,7 +80,7 @@ public class DefaultArtifactHandler implements ArtifactHandler, MethodMixIn {
 //        if (configuration.getConsumptionDeprecation() != null) {
 //            DeprecationLogger.deprecateConfiguration(configuration.getName()).forArtifactDeclaration()
 //                .willBecomeAnErrorInGradle9()
-//                .withUserManual("declaring_dependencies", "sec:deprecated-configurations")
+//                .withUserManual("declaring_configurations", "sec:deprecated-configurations")
 //                .nagUser();
 //        }
     }

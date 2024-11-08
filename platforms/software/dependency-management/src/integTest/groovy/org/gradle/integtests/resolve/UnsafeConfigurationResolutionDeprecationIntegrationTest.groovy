@@ -54,7 +54,7 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
         executer.withArgument("--parallel")
 
         expect:
-        executer.expectDocumentedDeprecationWarning("Resolution of the configuration :bar:bar was attempted from a context different than the project context. Have a look at the documentation to understand why this is a problem and how it can be resolved. This behavior has been deprecated. This will fail with an error in Gradle 9.0. For more information, please refer to https://docs.gradle.org/current/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors in the Gradle documentation.")
+        executer.expectDocumentedDeprecationWarning("Resolution of the configuration :bar:bar was attempted from a context different than the project context. Have a look at the documentation to understand why this is a problem and how it can be resolved. This behavior has been deprecated. This will fail with an error in Gradle 9.0. For more information, please refer to https://docs.gradle.org/current/userguide/declaring_configurations.html#sub:resolving-unsafe-configuration-resolution-errors in the Gradle documentation.")
         succeeds(":resolve")
     }
 
@@ -280,7 +280,7 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
         executer.withArgument("--parallel")
 
         expect:
-        executer.expectDocumentedDeprecationWarning("Resolution of the configuration :baz:baz was attempted from a context different than the project context. Have a look at the documentation to understand why this is a problem and how it can be resolved. This behavior has been deprecated. This will fail with an error in Gradle 9.0. For more information, please refer to https://docs.gradle.org/current/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors in the Gradle documentation.")
+        executer.expectDocumentedDeprecationWarning("Resolution of the configuration :baz:baz was attempted from a context different than the project context. Have a look at the documentation to understand why this is a problem and how it can be resolved. This behavior has been deprecated. This will fail with an error in Gradle 9.0. For more information, please refer to https://docs.gradle.org/current/userguide/declaring_configurations.html#sub:resolving-unsafe-configuration-resolution-errors in the Gradle documentation.")
         succeeds(":bar:help")
     }
 

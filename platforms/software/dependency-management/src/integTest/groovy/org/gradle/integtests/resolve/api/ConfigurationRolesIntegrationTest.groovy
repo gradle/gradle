@@ -245,7 +245,7 @@ This method is only meant to be called on configurations which allow the (non-de
         """
 
         expect:
-        executer.expectDocumentedDeprecationWarning("The con configuration has been deprecated for consumption. This will fail with an error in Gradle 9.0. For more information, please refer to https://docs.gradle.org/current/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.")
+        executer.expectDocumentedDeprecationWarning("The con configuration has been deprecated for consumption. This will fail with an error in Gradle 9.0. For more information, please refer to https://docs.gradle.org/current/userguide/declaring_configurations.html#sec:deprecated-configurations in the Gradle documentation.")
         succeeds("resolve")
     }
 
