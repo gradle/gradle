@@ -18,7 +18,6 @@ package org.gradle.api.tasks.scala;
 import org.gradle.api.Action;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.model.ObjectFactory;
@@ -62,7 +61,6 @@ public abstract class ScalaDoc extends SourceTask {
     private final Property<String> maxMemory;
     private final Property<JavaLauncher> javaLauncher;
     private final ConfigurableFileCollection compilationOutputs;
-    private FileCollection classpath;
 
     public ScalaDoc() {
         ObjectFactory objectFactory = getObjectFactory();
@@ -128,14 +126,8 @@ public abstract class ScalaDoc extends SourceTask {
      * @return The classpath.
      */
     @Classpath
-    @ToBeReplacedByLazyProperty(issue = "https://github.com/gradle/gradle/issues/30273")
-    public FileCollection getClasspath() {
-        return classpath;
-    }
-
-    public void setClasspath(FileCollection classpath) {
-        this.classpath = classpath;
-    }
+    @ReplacesEagerProperty
+    public abstract ConfigurableFileCollection getClasspath();
 
     /**
      * Returns the classpath to use to load the ScalaDoc tool.
