@@ -29,7 +29,7 @@ class CheckstyleTest extends Specification {
         with(checkstyle) {
             checkstyleClasspath.empty
             classpath.empty
-            configFile == null
+            configFile.getOrNull() == null
             config == null
             configProperties.get() == [:]
             !reports.xml.required.get()
@@ -54,7 +54,7 @@ class CheckstyleTest extends Specification {
         checkstyle.configFile = project.file("config/file.txt")
 
         expect:
-        checkstyle.configFile == project.file("config/file.txt")
+        checkstyle.configFile.getOrNull().getAsFile() == project.file("config/file.txt")
         checkstyle.config.inputFiles.singleFile == project.file("config/file.txt")
     }
 }

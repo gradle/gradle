@@ -18,11 +18,9 @@ package org.gradle.api.plugins.quality;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.ProjectLayout;
-import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
-import org.gradle.api.resources.TextResource;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaToolchainService;
@@ -31,7 +29,6 @@ import org.gradle.jvm.toolchain.internal.CurrentJvmToolchainSpec;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.util.concurrent.Callable;
 
 import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
 
@@ -94,8 +91,6 @@ public abstract class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkst
     }
 
     private void configureTaskConventionMapping(Configuration configuration, Checkstyle task) {
-        ConventionMapping taskMapping = task.getConventionMapping();
-        taskMapping.map("config", (Callable<TextResource>) () -> extension.getConfig());
         task.getCheckstyleClasspath().convention(configuration);
         task.getConfigProperties().convention(extension.getConfigProperties());
         task.getShowViolations().convention(extension.getShowViolations());
@@ -104,6 +99,7 @@ public abstract class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkst
         task.getConfigDirectory().convention(extension.getConfigDirectory());
         task.getEnableExternalDtdLoad().convention(extension.getEnableExternalDtdLoad());
         task.getIgnoreFailuresProperty().convention(extension.getIgnoreFailures());
+        task.getConfigFile().convention(extension.getConfigFile());
     }
 
     private void configureReportsConventionMapping(Checkstyle task, final String baseName) {

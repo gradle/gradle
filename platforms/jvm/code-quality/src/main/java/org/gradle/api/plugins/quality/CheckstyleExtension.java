@@ -18,14 +18,16 @@ package org.gradle.api.plugins.quality;
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.provider.ProviderApiDeprecationLogger;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.resources.TextResource;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
+import org.gradle.internal.instrumentation.api.annotations.BytecodeUpgrade;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 import java.io.File;
 
@@ -38,7 +40,7 @@ public abstract class CheckstyleExtension extends CodeQualityExtension {
 
     private final Project project;
 
-    private TextResource config;
+    private final TextResource config;
     private final DirectoryProperty configDirectory;
     private final Property<Boolean> enableExternalDtdLoad;
 
@@ -46,6 +48,7 @@ public abstract class CheckstyleExtension extends CodeQualityExtension {
         this.project = project;
         this.configDirectory = project.getObjects().directoryProperty();
         this.enableExternalDtdLoad = project.getObjects().property(Boolean.class).convention(false);
+        this.config = project.getResources().getText().fromFile(getConfigFile());
         getMaxErrors().convention(0);
         getMaxWarnings().convention(Integer.MAX_VALUE);
         getShowViolations().convention(true);
@@ -54,16 +57,19 @@ public abstract class CheckstyleExtension extends CodeQualityExtension {
     /**
      * The Checkstyle configuration file to use.
      */
-    @ToBeReplacedByLazyProperty
-    public File getConfigFile() {
-        return getConfig().asFile();
-    }
+    @ReplacesEagerProperty(adapter = ConfigFileAdapter.class)
+    public abstract RegularFileProperty getConfigFile();
 
-    /**
-     * The Checkstyle configuration file to use.
-     */
-    public void setConfigFile(File configFile) {
-        setConfig(project.getResources().getText().fromFile(configFile));
+    static class ConfigFileAdapter {
+        @BytecodeUpgrade
+        static void setConfigFile(CheckstyleExtension extension, File configFile) {
+            extension.getConfigFile().set(configFile);
+        }
+
+        @BytecodeUpgrade
+        static File getConfigFile(CheckstyleExtension extension) {
+            return extension.getConfigFile().getAsFile().getOrNull();
+        }
     }
 
     /**
@@ -71,9 +77,9 @@ public abstract class CheckstyleExtension extends CodeQualityExtension {
      *
      * @since 2.2
      */
-    @ToBeReplacedByLazyProperty
+    @NotToBeReplacedByLazyProperty(because = "TextResource is lazy")
     public TextResource getConfig() {
-        return config;
+        return getConfigFile().isPresent() ? config : null;
     }
 
     /**
@@ -82,7 +88,11 @@ public abstract class CheckstyleExtension extends CodeQualityExtension {
      * @since 2.2
      */
     public void setConfig(TextResource config) {
-        this.config = config;
+        if (config == null) {
+            getConfigFile().set((File) null);
+        } else {
+            getConfigFile().fileProvider(project.provider(config::asFile));
+        }
     }
 
     /**
@@ -148,7 +158,6 @@ public abstract class CheckstyleExtension extends CodeQualityExtension {
      * See <a href="https://checkstyle.org/config_system_properties.html#Enable_External_DTD_load">Checkstyle documentation</a> for more details.
      *
      * @return The property controlling whether to enable the ability to use custom DTD files
-     *
      * @since 7.6
      */
     @Incubating
