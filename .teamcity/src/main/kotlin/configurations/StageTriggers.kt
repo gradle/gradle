@@ -44,10 +44,10 @@ class StageTriggers(model: CIBuildModel, stage: Stage, prevStage: Stage?, stageP
 
 // https://github.com/gradle/gradle-private/issues/4527
 // https://github.com/gradle/gradle-private/issues/4528
-// Trigger ReadyForNightly and ReadyForRelease for provider-api-migration/public-api-changes-test branch
+// Trigger ReadyForNightly and ReadyForRelease for provider-api-migration/public-api-changes branch
 // TODO: remove this after the branch is merged
 fun VersionedSettingsBranch.determineBranchFilter(): String {
-    return branchFilter() + "\n+:provider-api-migration/public-api-changes-test"
+    return branchFilter() + "\n+:provider-api-migration/public-api-changes"
 }
 
 class StageTrigger(
