@@ -23,7 +23,7 @@ import org.gradle.cache.IndexedCacheParameters;
 import org.gradle.cache.LockOptions;
 import org.gradle.cache.PersistentCache;
 import org.gradle.internal.concurrent.CompositeStoppable;
-import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.serialize.Serializer;
 
 import javax.annotation.Nullable;
@@ -42,12 +42,12 @@ import java.util.function.Supplier;
 public class DefaultCacheFactory implements CacheFactory, Closeable {
     private final Map<File, DirCacheReference> dirCaches = new HashMap<>();
     private final FileLockManager lockManager;
-    private final ExecutorFactory executorFactory;
+    private final ManagedExecutor executor;
     private final Lock lock = new ReentrantLock();
 
-    public DefaultCacheFactory(FileLockManager fileLockManager, ExecutorFactory executorFactory) {
+    public DefaultCacheFactory(FileLockManager fileLockManager, ManagedExecutor executor) {
         this.lockManager = fileLockManager;
-        this.executorFactory = executorFactory;
+        this.executor = executor;
     }
 
     void onOpen(Object cache) {
@@ -75,7 +75,7 @@ public class DefaultCacheFactory implements CacheFactory, Closeable {
     public void close() {
         lock.lock();
         try {
-            CompositeStoppable.stoppable(dirCaches.values()).stop();
+            CompositeStoppable.stoppable(dirCaches.values(), executor).stop();
         } finally {
             dirCaches.clear();
             lock.unlock();
@@ -95,9 +95,9 @@ public class DefaultCacheFactory implements CacheFactory, Closeable {
             ReferencablePersistentCache cache;
             if (!properties.isEmpty() || initializer != null) {
                 Consumer<? super PersistentCache> initAction = initializer != null ? initializer : __ -> {};
-                cache = new DefaultPersistentDirectoryCache(cacheDir, displayName, properties, lockOptions, initAction, cacheCleanupStrategy, lockManager, executorFactory);
+                cache = new DefaultPersistentDirectoryCache(cacheDir, displayName, properties, lockOptions, initAction, cacheCleanupStrategy, lockManager, executor);
             } else {
-                cache = new DefaultPersistentDirectoryStore(cacheDir, displayName, lockOptions, cacheCleanupStrategy, lockManager, executorFactory);
+                cache = new DefaultPersistentDirectoryStore(cacheDir, displayName, lockOptions, cacheCleanupStrategy, lockManager, executor);
             }
             cache.open();
             dirCacheReference = new DirCacheReference(cache, properties, lockOptions);

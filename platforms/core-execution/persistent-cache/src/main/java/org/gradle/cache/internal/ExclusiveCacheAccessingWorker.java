@@ -122,7 +122,10 @@ public class ExclusiveCacheAccessingWorker implements Runnable, Stoppable, Async
     @Override
     public void run() {
         try {
-            while (!Thread.currentThread().isInterrupted() && !stopSeen) {
+            Thread currentThread = Thread.currentThread();
+            currentThread.setName("Cache worker for " + displayName);
+
+            while (!currentThread.isInterrupted() && !stopSeen) {
                 try {
                     Runnable runnable = takeFromQueue();
                     Class<? extends Runnable> runnableClass = runnable.getClass();

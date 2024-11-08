@@ -34,7 +34,6 @@ import org.gradle.cache.internal.btree.BTreePersistentIndexedCache;
 import org.gradle.cache.internal.cacheops.CacheAccessOperationsStack;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.serialize.Serializer;
 import org.slf4j.Logger;
@@ -63,13 +62,12 @@ public class DefaultCacheCoordinator implements CacheCreationCoordinator, Exclus
     private final String cacheDisplayName;
     private final File baseDir;
     private final CacheCleanupExecutor cleanupAction;
-    private final ExecutorFactory executorFactory;
+    private final ManagedExecutor executor;
     private final FileAccess fileAccess;
     private final Map<String, IndexedCacheEntry<?, ?>> caches = new HashMap<>();
     private final AbstractCrossProcessCacheAccess crossProcessCacheAccess;
     private final CacheAccessOperationsStack operations;
 
-    private ManagedExecutor cacheUpdateExecutor;
     private ExclusiveCacheAccessingWorker cacheAccessWorker;
     private final Lock stateLock = new ReentrantLock(); // protects the following state
     private final Condition condition = stateLock.newCondition();
@@ -82,11 +80,11 @@ public class DefaultCacheCoordinator implements CacheCreationCoordinator, Exclus
     private int cacheClosedCount;
     private boolean alreadyCleaned;
 
-    public DefaultCacheCoordinator(String cacheDisplayName, File lockTarget, LockOptions lockOptions, File baseDir, FileLockManager lockManager, CacheInitializationAction initializationAction, CacheCleanupExecutor cleanupAction, ExecutorFactory executorFactory) {
+    public DefaultCacheCoordinator(String cacheDisplayName, File lockTarget, LockOptions lockOptions, File baseDir, FileLockManager lockManager, CacheInitializationAction initializationAction, CacheCleanupExecutor cleanupAction, ManagedExecutor executor) {
         this.cacheDisplayName = cacheDisplayName;
         this.baseDir = baseDir;
         this.cleanupAction = cleanupAction;
-        this.executorFactory = executorFactory;
+        this.executor = executor;
         this.operations = new CacheAccessOperationsStack();
 
         Consumer<FileLock> onFileLockAcquireAction = this::afterLockAcquire;
@@ -117,8 +115,7 @@ public class DefaultCacheCoordinator implements CacheCreationCoordinator, Exclus
     private synchronized AsyncCacheAccess getCacheAccessWorker() {
         if (cacheAccessWorker == null) {
             cacheAccessWorker = new ExclusiveCacheAccessingWorker(cacheDisplayName, this);
-            cacheUpdateExecutor = executorFactory.create("Cache worker for " + cacheDisplayName);
-            cacheUpdateExecutor.execute(cacheAccessWorker);
+            executor.execute(cacheAccessWorker);
         }
         return cacheAccessWorker;
     }
@@ -164,10 +161,6 @@ public class DefaultCacheCoordinator implements CacheCreationCoordinator, Exclus
         if (cacheAccessWorker != null) {
             cacheAccessWorker.stop();
             cacheAccessWorker = null;
-        }
-        if (cacheUpdateExecutor != null) {
-            cacheUpdateExecutor.stop();
-            cacheUpdateExecutor = null;
         }
 
         withOwnershipNow(() -> {

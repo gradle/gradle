@@ -22,7 +22,7 @@ import org.gradle.cache.FileLockManager;
 import org.gradle.cache.IndexedCache;
 import org.gradle.cache.IndexedCacheParameters;
 import org.gradle.cache.LockOptions;
-import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.serialize.Serializer;
 
 import javax.annotation.Nullable;
@@ -40,7 +40,7 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
     private final File dir;
     private final LockOptions lockOptions;
     private final FileLockManager lockManager;
-    private final ExecutorFactory executorFactory;
+    private final ManagedExecutor executor;
     private final String displayName;
 
     protected final File propertiesFile;
@@ -55,12 +55,12 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
         LockOptions lockOptions,
         CacheCleanupStrategy cacheCleanupStrategy,
         FileLockManager fileLockManager,
-        ExecutorFactory executorFactory
+        ManagedExecutor executor
     ) {
         this.dir = dir;
         this.lockOptions = lockOptions;
         this.lockManager = fileLockManager;
-        this.executorFactory = executorFactory;
+        this.executor = executor;
         this.propertiesFile = new File(dir, "cache.properties");
         this.gcFile = new File(dir, "gc.properties");
         this.displayName = displayName != null ? (displayName + " (" + dir + ")") : ("cache directory " + dir.getName() + " (" + dir + ")");
@@ -81,7 +81,7 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
     }
 
     private DefaultCacheCoordinator createCacheAccess() {
-        return new DefaultCacheCoordinator(displayName, getLockTarget(), lockOptions, dir, lockManager, getInitAction(), cleanupExecutor, executorFactory);
+        return new DefaultCacheCoordinator(displayName, getLockTarget(), lockOptions, dir, lockManager, getInitAction(), cleanupExecutor, executor);
     }
 
     private File getLockTarget() {

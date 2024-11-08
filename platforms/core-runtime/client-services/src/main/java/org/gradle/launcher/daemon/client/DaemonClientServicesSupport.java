@@ -81,7 +81,7 @@ public abstract class DaemonClientServicesSupport implements ServiceRegistration
 
     @Provides
     CacheFactory createCacheFactory(FileLockManager fileLockManager, ExecutorFactory executorFactory) {
-        return new DefaultCacheFactory(fileLockManager, executorFactory);
+        return new DefaultCacheFactory(fileLockManager, executorFactory.create("Cache workers"));
     }
 
     @Provides
