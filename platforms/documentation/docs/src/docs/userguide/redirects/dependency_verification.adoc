@@ -1,3 +1,0 @@
-++++
-<meta http-equiv="refresh" content="0;URL=viewing_debugging_dependencies.html#viewing-debugging-dependencies">
-++++

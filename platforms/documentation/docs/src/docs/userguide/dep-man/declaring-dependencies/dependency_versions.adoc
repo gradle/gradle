@@ -79,14 +79,14 @@ Version ordering is used to:
 
 * Determine if a particular *version is included in a range*.
 * Determine which *version is newest* when performing conflict resolution (using
-<<dependency_resolution_adv#sec:base-version-comparison,"base versions">>).
+<<variant_model.adoc#sec:base-version-comparison,"base versions">>).
 
 Versions are ordered based on the following rules:
 
 * **Splitting Versions into Parts:**
 ** Versions are divided into parts using the characters `[. - _ +]`.
 ** Parts containing both digits and letters are split further, e.g., `1a1` becomes `1.a.1`.
-** Only the parts are compared, not the separators, so `1.a.1`, `1-a+1`, `1.a-1`, and `1a1` are equivalent. (Note: There are <<dependency_resolution_adv#sec:base-version-comparison,exceptions>> during conflict resolution).
+** Only the parts are compared, not the separators, so `1.a.1`, `1-a+1`, `1.a-1`, and `1a1` are equivalent. (Note: There are <<variant_model.adoc#sec:base-version-comparison,exceptions>> during conflict resolution).
 * **Comparing Equivalent Parts:**
 ** **Numeric vs. Numeric:** Higher numeric value is considered higher: `1.1 < 1.2`.
 ** **Numeric vs. Non-numeric:** Numeric parts are higher than non-numeric parts: `1.a < 1.1`.
@@ -267,7 +267,7 @@ NOTE: When using dependency locking, publishing  <<publishing_maven.adoc#publish
 
 Using `strictly` in a library requires careful consideration, as it affects downstream consumers.
 However, when used correctly, it helps consumers understand which combinations of libraries may be incompatible in their context.
-For more details, refer to the section on <<dependency_versions.adoc#sec:enforcing_dependency_version,overriding dependency versions>>.
+For more details, refer to the section on <<dependency_versions.adoc#sec:enforcing-dependency-version,overriding dependency versions>>.
 
 [NOTE]
 ====
@@ -279,7 +279,7 @@ The highest level of version declaration—`strictly` or `require` over `prefer`
 [[sec:endorsing-strict-versions]]
 == Endorsing strict versions
 
-[[sec:enforcing_dependency_version]]
+[[sec:enforcing-dependency-version]]
 Gradle resolves any dependency version conflicts by selecting the greatest version found in the dependency graph.
 Some projects might need to divert from the default behavior and enforce an earlier version of a dependency e.g. if the source code of the project depends on an older API of a dependency than some of the external libraries.
 

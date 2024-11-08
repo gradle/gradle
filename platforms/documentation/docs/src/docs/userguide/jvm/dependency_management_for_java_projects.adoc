@@ -16,7 +16,7 @@
 = Managing Dependencies of JVM Projects
 
 This chapter explains how to apply basic dependency management concepts to JVM-based projects.
-For a detailed introduction to dependency management, see <<core_dependency_management.adoc#dependency_management_in_gradle,dependency management in Gradle>>.
+For a detailed introduction to dependency management, see <<getting_started_dep_man.adoc#dependency-management-in-gradle,dependency management in Gradle>>.
 
 [[sec:setting_up_a_standard_build_script_java_tutorial]]
 == Dissecting a typical build script

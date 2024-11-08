@@ -146,7 +146,7 @@ include::sample[dir="snippets/swift/testReport/kotlin",files="buildSrc/src/main/
 include::sample[dir="snippets/swift/testReport/groovy",files="buildSrc/src/main/groovy/myproject.xctest-conventions.gradle[tags=test-report];build.gradle[tags=test-report]"]
 ====
 
-In this example, we use a convention plugin `myproject.xctest-conventions` to expose the test results from a project to Gradle's <<variant_model.adoc#understanding-variant-selection,variant aware dependency management engine>>.
+In this example, we use a convention plugin `myproject.xctest-conventions` to expose the test results from a project to Gradle's <<variant_model.adoc#sec:understanding-variant-selection,variant aware dependency management engine>>.
 
 The plugin declares a consumable `binaryTestResultsElements` configuration that represents the binary test results of the `test` task.
 In the aggregation project's build file, we declare the `testReportData` configuration and depend on all of the projects that we want to aggregate the results from. Gradle will automatically select the binary test result variant from each of the subprojects instead of the project's jar file.

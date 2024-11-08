@@ -12,11 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[[supported_transport_protocols]]
+[[supported-transport-protocols]]
 = Supported Protocols
 
 Gradle supports a variety of transport protocols for Maven and Ivy repositories.
 
+[[sec:supported-protocols]]
 == Supported transport protocols
 
 These protocols determine how Gradle communicates with the repositories to resolve dependencies.
@@ -31,15 +32,15 @@ These protocols determine how Gradle communicates with the repositories to resol
 
 | `http`
 | username/password
-| <<#sec:authentication_schemes, Documentation>>
+| <<#sec:authentication-schemes, Documentation>>
 
 | `https`
 | username/password
-| <<#sec:authentication_schemes, Documentation>>
+| <<#sec:authentication-schemes, Documentation>>
 
 | `sftp`
 | username/password
-| <<#sec:authentication_schemes, Documentation>>
+| <<#sec:authentication-schemes, Documentation>>
 
 | `s3`
 | access key/secret key/session token or Environment variables
@@ -89,7 +90,7 @@ include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gr
 [[sec:configure-auth-schemes]]
 == Configuring authentication schemes
 
-[[sec:authentication_schemes]]
+[[sec:authentication-schemes]]
 === HTTP(S) authentication schemes configuration
 
 When configuring a repository that uses HTTP or HTTPS transport protocols, several authentication schemes are available.

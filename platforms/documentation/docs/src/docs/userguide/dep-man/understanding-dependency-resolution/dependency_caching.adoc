@@ -61,7 +61,7 @@ As described above, for each repository there is a separate metadata cache.
 A repository is identified by its URL, type and layout.
 
 If a module or artifact has not been previously resolved from _this repository_, Gradle will attempt to resolve the module against the repository.
-This will always involve a remote lookup on the repository, however in many cases <<#sub:cache_artifact_reuse,no download will be required>>.
+This will always involve a remote lookup on the repository, however in many cases <<#sec:cache-artifact-reuse,no download will be required>>.
 
 Dependency resolution will fail if required artifacts aren’t available in the repository from which they were originally resolved.
 Once resolved from a specific repository, artifacts become "sticky," meaning Gradle will avoid resolving them from other repositories to prevent unexpected or potentially unsafe changes in artifact sources.
@@ -194,8 +194,8 @@ A container is typically spawned to only execute a single build before it is des
 This can become a practical problem when a build depends on a lot of dependencies which each container has to re-download.
 To help with this scenario, Gradle provides a couple of options:
 
-- <<sub:cache_copy,copying the dependency cache>> into each container
-- <<sub:shared-readonly-cache,sharing a read-only dependency cache>> between multiple containers
+- <<sec:cache-copy,copying the dependency cache>> into each container
+- <<sec:shared-readonly-cache,sharing a read-only dependency cache>> between multiple containers
 
 [[sec:cache-copy]]
 === Copying and reusing the cache
@@ -232,7 +232,7 @@ If multiple incompatible Gradle versions are in play, all should be used when se
 [[sec:shared-readonly-cache]]
 === Sharing the dependency cache with other Gradle instances
 
-Instead of <<sub:cache_copy,copying the dependency cache into each container>>, it's possible to mount a shared, read-only directory that will act as a dependency cache for all containers.
+Instead of <<sec:cache-copy,copying the dependency cache into each container>>, it's possible to mount a shared, read-only directory that will act as a dependency cache for all containers.
 This cache, unlike the classical dependency cache, is accessed without locking, making it possible for multiple builds to read from the cache concurrently. It's important that the read-only cache
 is not written to when other builds may be reading from it.
 
@@ -247,7 +247,7 @@ The cache can be incomplete; however, an empty shared cache will only add overhe
 NOTE: The shared read-only dependency cache is an incubating feature.
 
 The first step in using a shared dependency cache is to create one by copying of an existing _local_ cache.
-For this you need to follow the <<sub:cache_copy,instructions above>>.
+For this you need to follow the <<sec:cache-copy,instructions above>>.
 
 Then set the `GRADLE_RO_DEP_CACHE` environment variable to point to the directory containing the cache:
 

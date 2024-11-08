@@ -22,7 +22,7 @@ Because of their direct impact, they can be considered brute-force solutions tha
 
 TIP: It's generally advisable to resort to *resolution rules* only when other approaches are insufficient.
 
-If you're developing a <<library_vs_application.adoc#sec:understanding-diff-libraries-and-apps,library>>, it's best to use <<dependency_constraints.adoc#dependency-constraints,dependency constraints>>, as they are shared with your consumers.
+If you're developing a <<declaring_dependencies.adoc#sub:producers-vs-consumers-basics,library>>, it's best to use <<dependency_constraints.adoc#dependency-constraints,dependency constraints>>, as they are shared with your consumers.
 
 Here are the key resolution strategies in Gradle:
 
@@ -82,7 +82,7 @@ include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencie
 [[sec:module-replacement]]
 == 2. Module Replacement
 
-While it's generally better to manage module conflicts using <<component_capabilities.adoc#sub:capabilities, capabilities>>, there are scenarios—especially when working with older versions of Gradle-that require a different approach.
+While it's generally better to manage module conflicts using <<component_capabilities.adoc#capabilities, capabilities>>, there are scenarios—especially when working with older versions of Gradle-that require a different approach.
 In these cases, *module replacement rules* offer a solution by allowing you to specify that a legacy library has been replaced by a newer one.
 
 *Module replacement rules* allow you to declare that a legacy library has been replaced by a newer one.
@@ -182,7 +182,7 @@ include::sample[dir="snippets/dependencyManagement/customizingResolution-conditi
 [[sec:variant-aware-substitutions]]
 === Substituting a dependency with another variant
 
-You can substitute a dependency with another <<variant_model.adoc#understanding-variant-selection,variant>>, such as switching between a platform dependency and a regular library dependency.
+You can substitute a dependency with another <<variant_model.adoc#sec:understanding-variant-selection,variant>>, such as switching between a platform dependency and a regular library dependency.
 
 This is useful when your build process needs to change the type of dependency based on specific conditions:
 
@@ -501,7 +501,7 @@ include::sample[dir="snippets/dependencyManagement/customizingResolution-resolut
 
 If version `1.3` is also present in the dependency graph, then even with this rule, Gradle’s default conflict resolution strategy would select `1.3` as the latest version.
 
-**Difference from Rich Version Constraints:** Using <<rich_versions.adoc#rich-version-constraints,rich version>> constraints, you can reject certain versions outright, causing the build to fail or select a non-rejected version if a dynamic dependency is used. In contrast, a dependency resolve rule like the one shown here manipulates the version being requested, replacing it with a known good version when a rejected one is found. This approach is a *solution* for handling rejected versions, while rich version constraints are about expressing the intent to avoid certain versions.
+**Difference from Rich Version Constraints:** Using <<dependency_versions.adoc#sec:rich-version-constraints,rich version>> constraints, you can reject certain versions outright, causing the build to fail or select a non-rejected version if a dynamic dependency is used. In contrast, a dependency resolve rule like the one shown here manipulates the version being requested, replacing it with a known good version when a rejected one is found. This approach is a *solution* for handling rejected versions, while rich version constraints are about expressing the intent to avoid certain versions.
 
 === Lazily influencing resolved dependencies
 

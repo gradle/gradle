@@ -73,7 +73,7 @@ Your options are either to declare all repositories in settings or to use non-ex
 
 === Maven repository filtering
 
-For <<supported_repository_types.adoc#sec:maven_repo,Maven repositories>>, it's often the case that a repository would either contain releases or snapshots.
+For <<supported_repository_types.adoc#sec:maven-repo,Maven repositories>>, it's often the case that a repository would either contain releases or snapshots.
 Gradle lets you declare what kind of artifacts are found in a repository using this DSL:
 
 ====

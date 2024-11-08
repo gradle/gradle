@@ -41,7 +41,7 @@ Version catalogs offer several advantages:
 - *Centralized Version Management*: Each catalog is visible to all projects in a build.
 - *Dependency Bundles*: Catalogs can group commonly used dependencies into <<#sec:dependency-bundles,bundles>>.
 - *Version Separation*: Catalogs can separate dependency coordinates from version information, allowing shared version declarations.
-- *Conflict Resolution*: Like regular dependency notation, version catalogs declare requested <<#sec:common-version-numbers,versions>> but do not enforce them during <<dependency_resolution_adv#understanding_dependency_resolution,conflict resolution>>.
+- *Conflict Resolution*: Like regular dependency notation, version catalogs declare requested <<#sec:common-version-numbers,versions>> but do not enforce them during <<dependency_constraints.adoc#dependency-constraints,conflict resolution>>.
 
 While version catalogs define versions, they don't influence the dependency resolution process.
 Gradle may still select different versions due to dependency graph conflicts or constraints applied through platforms or dependency management APIs.
@@ -117,7 +117,7 @@ The TOML file format is very lenient and lets you write "dotted" properties as s
 [[sec:common-version-numbers]]
 ==== Versions
 
-Versions can be declared either as a single string, in which case they are interpreted as a _required_ version, or as a <<rich_versions.adoc#rich-version-constraints,rich version>>:
+Versions can be declared either as a single string, in which case they are interpreted as a _required_ version, or as a <<dependency_versions.adoc#sec:rich-version-constraints,rich version>>:
 
 [source,toml]
 ----
@@ -128,11 +128,11 @@ my-lib = { strictly = "[1.0, 2.0[", prefer = "1.2" } # Rich version
 
 Supported members of a version declaration are:
 
-- `require`: the <<rich_versions.adoc#sec:required-version,required version>>
-- `strictly`: the <<rich_versions.adoc#sec:strict-version,strict version>>
-- `prefer`: the <<rich_versions.adoc#sec:preferred-version,preferred version>>
-- `reject`: the list of <<rich_versions.adoc#sec:rejected-version,rejected versions>>
-- `rejectAll`: a boolean to reject all <<rich_versions.adoc#sec:rejected-version,versions>>
+- `require`: the <<dependency_versions.adoc#sec:required-version,required version>>
+- `strictly`: the <<dependency_versions.adoc#sec:strict-version,strict version>>
+- `prefer`: the <<dependency_versions.adoc#sec:preferred-version,preferred version>>
+- `reject`: the list of <<dependency_versions.adoc#sec:rejected-version,rejected versions>>
+- `rejectAll`: a boolean to reject all <<dependency_versions.adoc#sec:rejected-version,versions>>
 
 ==== Libraries
 

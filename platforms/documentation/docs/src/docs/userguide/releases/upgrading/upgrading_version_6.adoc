@@ -610,7 +610,7 @@ configurations.implementation.extendsFrom(configurations.myConfiguration)
 ==== Dependency substitutions and variant aware dependency resolution
 
 While adding support for expressing <<resolution_rules#sec:variant-aware-substitutions, variant support>> in dependency substitutions, a bug fix introduced a behaviour change that some builds may rely upon.
-Previously a substituted dependency would still use the <<variant_attributes#variant_attributes, attributes>> of the original selector instead of the ones from the replacement selector.
+Previously a substituted dependency would still use the <<variant_attributes.adoc#variant-attributes, attributes>> of the original selector instead of the ones from the replacement selector.
 
 With that change, existing substitutions around dependencies with richer selectors, such as for platform dependencies, will no longer work as they did.
 It becomes mandatory to define the variant aware part in the target selector.
@@ -752,7 +752,7 @@ Gradle will continue building projects on 32-bit systems but will no longer show
 ==== Using default and archives configurations
 
 Almost every Gradle project has the _default_ and _archives_ configurations which are added by the _base_ plugin.
-These configurations are no longer used in modern Gradle builds that use <<variant_model.adoc#understanding-variant-selection,variant aware dependency management>> and the <<publishing_setup.adoc#publishing_components,new publishing plugins>>.
+These configurations are no longer used in modern Gradle builds that use <<variant_model.adoc#sec:understanding-variant-selection,variant aware dependency management>> and the <<publishing_setup.adoc#publishing_components,new publishing plugins>>.
 
 While the configurations will stay in Gradle for backwards compatibility for now, using them to declare dependencies or to resolve dependencies is now deprecated.
 

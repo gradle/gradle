@@ -1166,7 +1166,7 @@ Instead, the build logic can avoid iteration and mutation by declaring a `prefer
 This allows the dependency management engine to use the version declared on the constraint if no other version is declared.
 
 [[using_preferred_versions]]
-Consider the following example that replaces the above iteration with an indiscriminate <<rich_versions.adoc#sec:preferred-version,preferred>> version constraint:
+Consider the following example that replaces the above iteration with an indiscriminate <<dependency_versions.adoc#sec:preferred-version,preferred>> version constraint:
 
 =====
 [.multi-language-sample]

@@ -219,7 +219,7 @@ Let's look at each case, in detail, in the following sections.
 When you are attempting to migrate a build that stores its dependencies on the filesystem, either locally or on the network, you should consider whether you want to eventually move to managed dependencies using remote repositories.
 That's because you can incorporate filesystem dependencies into a Gradle build in one of two ways:
 
- * Define a <<declaring_repositories_adv.adoc#sub:flat_dir_resolver,flat-directory repository>> and use standard dependency declarations
+ * Define a <<supported_repository_types.adoc#sec:flat-dir-resolver,flat-directory repository>> and use standard dependency declarations
  * Attach the files directly to the appropriate dependency configurations (<<declaring_dependencies_basics.adoc#sec:file-dependencies,file dependencies>>)
 
 It's easier to migrate to managed dependencies served from Maven, or Ivy-compatible repositories, if you take the first approach, but doing so requires all your files to conform to the naming convention "<moduleName>-<version>.<extension>".
@@ -271,7 +271,7 @@ In fact, they both allow you to:
 
 The most notable difference is that Gradle has standard configurations for specific types of projects.
 For example, the <<java_plugin#tab:configurations,Java Plugin>> defines configurations like `implementation`, `testImplementation` and `runtimeOnly`.
-You are able to <<declaring_dependencies_adv.adoc#sec:defining-custom-configurations,define your own dependency configurations>> if needed.
+You are able to <<declaring_configurations.adoc#sec:defining-custom-configurations,define your own dependency configurations>> if needed.
 
 As such, it's typically straightforward to migrate from Ivy to Gradle:
 
@@ -307,7 +307,7 @@ See the chapter on <<dependency_constraints.adoc#dependency-constraints,controll
 
 Resolution::
 At the beginning of the build, Gradle will automatically resolve any dependencies that you have declared and download them to its cache.
-Gradle searches the repositories for those dependencies, with the search order defined by <<declaring_repositories_adv.adoc#sec:declaring_multiple_repositories,the order in which the repositories are declared>>.
+Gradle searches the repositories for those dependencies, with the search order defined by <<declaring_repositories_basics.adoc#sec:declaring-multiple-repositories,the order in which the repositories are declared>>.
 +
 It's worth noting that Gradle supports the same dynamic version syntax as Ivy, so you can still use conventions like `1.0.+`.
 You can also use the special `latest.integration` and `latest.release` labels.

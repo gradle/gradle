@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[[dependency_management_in_gradle]]
+[[dependency-management-in-gradle]]
 = Dependency Management
 
 Software projects typically depend on other libraries to function.
@@ -61,7 +61,7 @@ They are added using the `dependencies{}` block in your build file.
 
 == 3. Declaring Repositories
 
-You can <<declaring_repositories.adoc#declaring-repositories-basics,declare _repositories_>> to tell Gradle where to fetch external _dependencies_.
+You can <<declaring_repositories_basics.adoc#declaring-repositories-basics,declare _repositories_>> to tell Gradle where to fetch external _dependencies_.
 During a build, Gradle locates and downloads the dependencies, a process called _dependency resolution_.
 
 == 4. Centralizing Dependencies

@@ -80,11 +80,11 @@ include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gr
 include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=maven-like-repo]"]
 ====
 
-Gradle supports additional <<supported_repository_protocols.adoc#supported_transport_protocols,protocols>> beyond `http` and `https`, such as `file`, `sftp`, and `s3` for custom URLs.
+Gradle supports additional <<supported_repository_protocols.adoc#supported-transport-protocols,protocols>> beyond `http` and `https`, such as `file`, `sftp`, and `s3` for custom URLs.
 
 For full coverage, see the section on <<supported_repository_types.adoc#repository-types,supported repository types>>.
 
-You can also <<supported_repository_types.adoc#sub:defining_custom_pattern_layout_for_an_ivy_repository,define your own repository layout>> by using `ivy { }` repositories, as they are very flexible in terms of how modules are organised in a repository:
+You can also <<supported_repository_types.adoc#sec:defining-custom-pattern-layout-for-an-ivy-repository,define your own repository layout>> by using `ivy { }` repositories, as they are very flexible in terms of how modules are organised in a repository:
 
 ====
 include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=ivy-repo]"]
@@ -107,7 +107,7 @@ include::sample[dir="snippets/dependencyManagement/declaringRepositories-multipl
 The order of repository declaration determines the order that Gradle will search for dependencies during resolution.
 If Gradle finds a dependency's metadata in a particular repository, it will attempt to download all the artifacts for that module from _the same repository_.
 
-You can learn more about the inner workings of <<dependency_resolution_adv.adoc#sec:how-gradle-downloads-deps, dependency downloads>>.
+You can learn more about the inner workings of <<variant_model.adoc#sec:how-gradle-downloads-deps, dependency downloads>>.
 
 [[sec:plugin-repos]]
 == Plugin repositories

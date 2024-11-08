@@ -21,12 +21,12 @@ Gradle's publication model is based on the notion of _components_, which are def
 For example, the Java Library plugin defines a `java` component which corresponds to a library, but the Java Platform plugin defines another kind of component, named `javaPlatform`, which is effectively a different kind of software component (a _platform_).
 
 Sometimes we want to add _more variants_ to or modify _existing variants_ of an existing component.
-For example, if you <<cross_project_publications.adoc#targeting-different-platforms, added a variant of a Java library for a different platform>>, you may just want to declare this additional variant on the `java` component itself.
+For example, if you <<variant_model.adoc#sec:variant-aware-matching, added a variant of a Java library for a different platform>>, you may just want to declare this additional variant on the `java` component itself.
 In general, declaring additional variants is often the best solution to publish _additional artifacts_.
 
 To perform such additions or modifications, the `AdhocComponentWithVariants` interface declares two methods called `addVariantsFromConfiguration` and `withVariantsFromConfiguration` which accept two parameters:
 
-- the <<declaring_dependencies_adv.adoc#sec:resolvable-consumable-configs,outgoing configuration>> that is used as a variant source
+- the <<declaring_configurations.adoc#sec:resolvable-consumable-configs,outgoing configuration>> that is used as a variant source
 - a customization action which allows you to _filter_ which variants are going to be published
 
 To utilise these methods, you must make sure that the `SoftwareComponent` you work with is itself an `AdhocComponentWithVariants`, which is the case for the components created by the Java plugins (Java, Java Library, Java Platform).
@@ -64,7 +64,7 @@ include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProject
 ====
 
 Declaring _what_ a custom component publishes is still done via the link:{javadocPath}/org/gradle/api/component/AdhocComponentWithVariants.html[AdhocComponentWithVariants] API.
-For a custom component, the first step is to create custom outgoing variants, following the instructions in <<cross_project_publications.adoc#sec:variant-aware-sharing, this chapter>>.
+For a custom component, the first step is to create custom outgoing variants, following the instructions in <<variant_aware_resolution.adoc#seven-variant-aware-resolution, this chapter>>.
 At this stage, what you should have is variants which can be used in cross-project dependencies, but that we are now going to publish to external repositories.
 
 .Creating a custom, adhoc component
@@ -78,7 +78,7 @@ Then we add a variant through the `addVariantsFromConfiguration` method, which i
 
 In simple cases, there's a one-to-one mapping between a `Configuration` and a variant, in which case you can publish all variants issued from a single `Configuration` because they are effectively the same thing.
 However, there are cases where a `Configuration` is associated with additional link:{javadocPath}/org/gradle/api/artifacts/ConfigurationPublications.html[configuration publications] that we also call _secondary variants_.
-Such configurations make sense in the <<cross_project_publications.adoc#cross_project_publications,cross-project publications>> use case, but not when publishing externally.
+Such configurations make sense in a multi-project build, but not when publishing externally.
 This is for example the case when between projects you share a _directory of files_, but there's no way you can publish a _directory_ directly on a Maven repository (only packaged things like jars or zips).
 Look at the link:{javadocPath}/org/gradle/api/component/ConfigurationVariantDetails.html[ConfigurationVariantDetails] class for details about how to skip publication of a particular variant.
 If `addVariantsFromConfiguration` has already been called for a configuration, further modification of the resulting variants can be performed using `withVariantsFromConfiguration`.
@@ -99,7 +99,7 @@ It is expected that a single module may need multiple artifacts.
 However this rarely stops there, if the additional artifacts represent an <<feature_variants.adoc#feature_variants,optional feature>>, they might also have different dependencies and more.
 
 Gradle, via _Gradle Module Metadata_, supports the publication of _additional variants_ which make those artifacts known to the dependency resolution engine.
-Please refer to the <<cross_project_publications.adoc#sec:variant-aware-sharing, variant-aware sharing>> section of the documentation to see how to declare such variants and <<#sec:publishing-custom-components, check out how to publish custom components>>.
+Please refer to the <<variant_aware_resolution.adoc#seven-variant-aware-resolution, variant-aware sharing>> section of the documentation to see how to declare such variants and <<#sec:publishing-custom-components, check out how to publish custom components>>.
 
 If you attach extra artifacts to a publication directly, they are published "out of context".
 That means, they are not referenced in the metadata at all and can then only be addressed directly through a classifier on a dependency.

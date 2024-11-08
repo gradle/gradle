@@ -122,7 +122,7 @@ As a result, dependency configurations using `FileTree` may produce resolution r
 To ensure more predictable and stable behavior, it is recommended to use the simpler `files` method where possible.
 ====
 
-Alternatively, you can use a <<declaring_repositories_adv.adoc#sub:flat_dir_resolver,flat directory>> repository to specify the source directory for multiple file dependencies.
+Alternatively, you can use a <<supported_repository_types.adoc#sec:flat-dir-resolver,flat directory>> repository to specify the source directory for multiple file dependencies.
 
 Ideally, you should use Maven or Ivy repository with a local URL:
 

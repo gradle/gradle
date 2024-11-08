@@ -56,7 +56,7 @@ Note:
 
 1. Gradle automatically includes _transitive dependencies_, which are dependencies of your dependencies.
 2. Gradle offers several  <<dependency_configurations.adoc#two-dependency-configurations,_configuration_>> options for dependencies, which define the scope in which dependencies are used, such as compile-time, runtime, or test-specific scenarios.
-3. You can specify the <<declaring_repositories_adv.adoc#declaring-repositories,repositories>> where Gradle should look for dependencies in your build file.
+3. You can specify the <<declaring_repositories_basics.adoc#declaring-repositories-basics,repositories>> where Gradle should look for dependencies in your build file.
 
 [[sub:dependency-types]]
 == Understanding types of dependencies

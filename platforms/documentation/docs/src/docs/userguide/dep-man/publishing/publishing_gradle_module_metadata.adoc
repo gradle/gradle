@@ -25,15 +25,15 @@ Gradle Module Metadata is a unique format aimed at improving dependency resoluti
 
 In particular, Gradle Module Metadata supports:
 
-- <<rich_versions.adoc#rich-version-constraints,rich version constraints>>
+- <<dependency_versions.adoc#sec:rich-version-constraints,rich version constraints>>
 - <<dependency_constraints.adoc#sec:adding-constraints-transitive-deps,dependency constraints>>
-- <<component_capabilities.adoc#declaring-component-capabilities,component capabilities>>
-- <<variant_model.adoc#understanding-variant-selection,variant-aware resolution>>
+- <<component_capabilities.adoc#sec:declaring-component-capabilities,component capabilities>>
+- <<variant_model.adoc#sec:understanding-variant-selection,variant-aware resolution>>
 
 Publication of Gradle Module Metadata will enable better dependency management for your consumers:
 
-- early discovery of problems by detecting <<component_capabilities.adoc#declaring-component-capabilities,incompatible modules>>
-- consistent selection of <<cross_project_publications.adoc#targeting-different-platforms,platform-specific dependencies>>
+- early discovery of problems by detecting <<component_capabilities.adoc#sec:declaring-component-capabilities,incompatible modules>>
+- consistent selection of <<variant_attributes.adoc#sec:jvm-default-attributes,platform-specific dependencies>>
 - native <<dependency_version_alignment.adoc#version_alignment, dependency version alignment>>
 - automatically getting dependencies for specific <<feature_variants.adoc#feature_variants,features of your library>>
 
@@ -61,12 +61,12 @@ The table below summarizes how some Gradle specific features are mapped to Maven
 |Not published
 |Gradle dependency constraints are _transitive_, while Maven's dependency management block _isn't_
 
-|<<rich_versions.adoc#rich-version-constraints,rich version constraints>>
+|<<dependency_versions.adoc#sec:rich-version-constraints,rich version constraints>>
 |Publishes the _requires_ version
 |Published the _requires_ version
 |
 
-|<<component_capabilities.adoc#declaring-component-capabilities,component capabilities>>
+|<<component_capabilities.adoc#sec:declaring-component-capabilities,component capabilities>>
 |Not published
 |Not published
 |Component capabilities are unique to Gradle
@@ -127,9 +127,9 @@ Gradle Module Metadata is validated before being published.
 The following rules are enforced:
 
 * Variant names must be unique,
-* Each variant must have at least <<variant_attributes.adoc#variant_attributes,one attribute>>,
-* Two variants cannot have the <<variant_model.adoc#understanding-variant-selection,exact same attributes and capabilities>>,
-* If there are dependencies, at least one, across all variants, must carry <<rich_versions.adoc#rich-version-constraints,version information>>.
+* Each variant must have at least <<variant_attributes.adoc#variant-attributes,one attribute>>,
+* Two variants cannot have the <<variant_model.adoc#sec:understanding-variant-selection,exact same attributes and capabilities>>,
+* If there are dependencies, at least one, across all variants, must carry <<dependency_versions.adoc#sec:rich-version-constraints,version information>>.
 
 These rules ensure the quality of the metadata produced, and help confirm that consumption will not be problematic.
 
