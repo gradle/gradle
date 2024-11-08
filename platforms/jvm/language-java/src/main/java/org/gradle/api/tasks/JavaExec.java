@@ -32,6 +32,7 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.internal.JavaExecExecutableUtils;
 import org.gradle.api.tasks.options.Option;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.jvm.toolchain.JavaLauncher;
@@ -463,9 +464,15 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      * @since 5.2
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public JavaVersion getJavaVersion() {
-        return JavaVersion.toVersion(getJavaLauncher().get().getMetadata().getLanguageVersion().asInt());
+    @ReplacesEagerProperty
+    public Provider<JavaVersion> getJavaVersion() {
+        return getJavaLauncher().map(launcher -> {
+            int javaLanguageVersion = launcher
+                .getMetadata()
+                .getLanguageVersion()
+                .asInt();
+            return JavaVersion.toVersion(javaLanguageVersion);
+        });
     }
 
     /**
