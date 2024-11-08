@@ -66,6 +66,7 @@ class DefaultVersionControlRepositoryFactory implements VersionControlRepository
         } else {
             throw new IllegalArgumentException(String.format("Don't know how to create a VCS from spec %s.", spec));
         }
+        // TODO(mlopatkin) changes to the spec should be disallowed from this point.
         return new LockingVersionControlRepository(spec, vcs, vcsWorkingDirCache);
     }
 
@@ -92,7 +93,7 @@ class DefaultVersionControlRepositoryFactory implements VersionControlRepository
 
         @Override
         public String getUniqueId() {
-            return spec.getUniqueId();
+            return spec.getUniqueId().get();
         }
 
         @Override

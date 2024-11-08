@@ -18,6 +18,8 @@ package org.gradle.vcs;
 import org.gradle.api.Action;
 import org.gradle.api.Describable;
 import org.gradle.api.initialization.definition.InjectedPluginDependencies;
+import org.gradle.api.provider.Provider;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 /**
@@ -30,8 +32,8 @@ public interface VersionControlSpec extends Describable {
      * Returns a {@link String} identifier which will be unique to this version
      * control specification among other version control specifications.
      */
-    @ToBeReplacedByLazyProperty
-    String getUniqueId();
+    @ReplacesEagerProperty
+    Provider<String> getUniqueId();
 
     /**
      * Returns the name of the repository.

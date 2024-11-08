@@ -764,5 +764,4 @@ Method <org.gradle.util.ConfigureUtil$IncompleteInputException.getMissingKeys()>
 Method <org.gradle.vcs.VersionControlRepository.getRootDir()> does not have raw return type (java.lang.String) assignable to any of [Property, MapProperty, ListProperty, SetProperty] in (VersionControlRepository.java:0)
 Method <org.gradle.vcs.VersionControlSpec.getRepoName()> does not have raw return type (java.lang.String) assignable to any of [Provider] in (VersionControlSpec.java:0)
 Method <org.gradle.vcs.VersionControlSpec.getRootDir()> does not have raw return type (java.lang.String) assignable to any of [Property, MapProperty, ListProperty, SetProperty] in (VersionControlSpec.java:0)
-Method <org.gradle.vcs.VersionControlSpec.getUniqueId()> does not have raw return type (java.lang.String) assignable to any of [Provider] in (VersionControlSpec.java:0)
 Method <org.gradle.vcs.git.GitVersionControlSpec.getUrl()> does not have raw return type (java.net.URI) assignable to any of [Property, MapProperty, ListProperty, SetProperty] in (GitVersionControlSpec.java:0)
