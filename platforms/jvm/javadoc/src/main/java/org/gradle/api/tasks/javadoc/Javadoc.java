@@ -130,9 +130,8 @@ public abstract class Javadoc extends SourceTask {
             .orElse(javaToolchainService.javadocToolFor(it -> {}));
         getJavadocTool().convention(javadocToolConvention);
         getJavadocTool().finalizeValueOnRead();
-        // TODO[rebase-throwaway]: revert .fileValue->.value once MinimalJavadocOptions is migrated (commit 6fe70b75f24)
         this.optionsDestinationDir = getObjectFactory().directoryProperty()
-            .fileValue(options.getDestinationDirectory());
+            .fileProvider(getProviderFactory().provider(options::getDestinationDirectory));
         this.optionsFile = getObjectFactory().fileProperty()
             .fileProvider(getProviderFactory().provider(() -> new File(getTemporaryDir(), "javadoc.options")));
         getFailOnError().convention(true);
