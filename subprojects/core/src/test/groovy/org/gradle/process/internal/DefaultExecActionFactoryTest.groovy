@@ -18,6 +18,7 @@ package org.gradle.process.internal
 
 import org.apache.commons.io.FileUtils
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.initialization.DefaultBuildCancellationToken
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.process.ExecResult
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
@@ -35,7 +36,7 @@ class DefaultExecActionFactoryTest extends ConcurrentSpec {
     def instantiator = TestUtil.instantiatorFactory()
     def factory =
         DefaultExecActionFactory
-            .of(resolver, fileCollectionFactory, executorFactory, TestFiles.tmpDirTemporaryFileProvider(tmpDir.createDir("tmp")))
+            .of(resolver, fileCollectionFactory, TestUtil.objectFactory(), executorFactory, new DefaultBuildCancellationToken(), TestFiles.tmpDirTemporaryFileProvider(tmpDir.createDir("tmp")))
             .forContext()
             .withInstantiator(instantiator.decorateLenient())
             .withObjectFactory(TestUtil.objectFactory())

@@ -16,9 +16,13 @@
 
 package org.gradle.initialization;
 
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+
 /**
  * Propagates notification that the build should be cancelled.
  */
+@ServiceScope({Scope.Global.class, Scope.BuildSession.class})
 public interface BuildCancellationToken {
 
     boolean isCancellationRequested();

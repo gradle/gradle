@@ -31,7 +31,6 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.api.tasks.util.internal.PatternSets;
 import org.gradle.initialization.BuildCancellationToken;
-import org.gradle.initialization.DefaultBuildCancellationToken;
 import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
@@ -77,15 +76,6 @@ public abstract class DefaultExecActionFactory implements ExecFactory {
     }
 
     public static DefaultExecActionFactory of(
-        FileResolver fileResolver,
-        FileCollectionFactory fileCollectionFactory,
-        ExecutorFactory executorFactory,
-        TemporaryFileProvider temporaryFileProvider
-    ) {
-        return of(fileResolver, fileCollectionFactory, new InstantiatorBackedObjectFactory(DirectInstantiator.INSTANCE), executorFactory, new DefaultBuildCancellationToken(), temporaryFileProvider);
-    }
-
-    private static DefaultExecActionFactory of(
         FileResolver fileResolver,
         FileCollectionFactory fileCollectionFactory,
         ObjectFactory objectFactory,
