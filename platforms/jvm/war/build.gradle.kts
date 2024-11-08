@@ -28,7 +28,6 @@ dependencies {
 
     api(libs.groovy)
     api(libs.inject)
-    api(libs.jspecify)
 
     implementation(projects.stdlibJavaExtensions)
     implementation(projects.dependencyManagement)

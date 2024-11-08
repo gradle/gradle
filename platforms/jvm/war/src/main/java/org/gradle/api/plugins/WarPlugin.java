@@ -72,7 +72,7 @@ public abstract class WarPlugin implements Plugin<Project> {
             task.getWebAppDirectory().convention(project.getLayout().getProjectDirectory().dir("src/main/webapp"));
             task.from(task.getWebAppDirectory());
             task.dependsOn((Callable<FileCollection>) () -> mainFeature.getSourceSet().getRuntimeClasspath());
-            task.classpath((Callable<FileCollection>) () -> {
+            task.getClasspath().from((Callable<FileCollection>) () -> {
                 Configuration providedRuntime = project.getConfigurations().getByName(PROVIDED_RUNTIME_CONFIGURATION_NAME);
                 return mainFeature.getSourceSet().getRuntimeClasspath().minus(providedRuntime);
             });
