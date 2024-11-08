@@ -1,5 +1,7 @@
 plugins {
     id("gradlebuild.distribution.implementation-java")
+    // TODO: Remove once AntTarget is moved to API
+    id("gradlebuild.instrumented-java-project")
 }
 
 description = "Implementation of Gradle's Ant integration"
