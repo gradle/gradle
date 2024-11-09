@@ -114,6 +114,16 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
     private final AttributesFactory attributesFactory;
     private final TaskDependencyFactory taskDependencyFactory;
 
+    /**
+     * Construct a resolver used to resolve build dependencies of upstream dependencies for an artifact transform.
+     * <p>
+     * The {@code fullGraphResults} are required to calculate the true build dependencies of transforms
+     * with dependencies, as the incomplete graph used to initially determine upstream transforms does
+     * not represent the final dependency graph.
+     * <p>
+     * See {@link org.gradle.integtests.resolve.transform.ArtifactTransformWithDependenciesParallelIntegrationTest}
+     * for the test that exercises the scenario that necessitates this behavior.
+     */
     public DefaultTransformUpstreamDependenciesResolver(
         ResolutionHost resolutionHost,
         @Nullable ConfigurationIdentity configurationIdentity,
@@ -154,6 +164,9 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
         this.taskDependencyFactory = taskDependencyFactory;
     }
 
+    /**
+     * Construct a resolver used to resolve the complete set of upstream dependencies for an artifact transform.
+     */
     public DefaultTransformUpstreamDependenciesResolver(
         ResolutionHost resolutionHost,
         @Nullable ConfigurationIdentity configurationIdentity,

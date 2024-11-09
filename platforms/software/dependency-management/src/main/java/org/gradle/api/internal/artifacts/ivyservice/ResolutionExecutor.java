@@ -236,6 +236,8 @@ public class ResolutionExecutor {
      * Traverses enough of the graph to calculate the build dependencies of the graph.
      *
      * @param resolveContext Describes what and how to resolve
+     * @param futureCompleteResults The future value of the output of {@link #resolveGraph(ResolveContext, List)}. See
+     * {@link DefaultTransformUpstreamDependenciesResolver} for why this is needed.
      *
      * @return An immutable result set, containing a subset of the graph that is sufficient to calculate the build dependencies.
      */
