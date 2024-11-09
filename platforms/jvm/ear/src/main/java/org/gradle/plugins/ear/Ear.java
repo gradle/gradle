@@ -86,7 +86,7 @@ public abstract class Ear extends Jar {
         CopySpecInternal metaInf = (CopySpecInternal) getMainSpec().addChild().into("META-INF");
         CopySpecInternal descriptorChild = metaInf.addChild();
         // the generated descriptor should only be used if one does not already exist
-        descriptorChild.setDuplicatesStrategy(DuplicatesStrategy.EXCLUDE);
+        descriptorChild.getDuplicatesStrategy().set(DuplicatesStrategy.EXCLUDE);
         descriptorChild.from(callable(() -> {
             final DeploymentDescriptor descriptor = getDeploymentDescriptor();
             if (descriptor != null && generateDeploymentDescriptor.get()) {

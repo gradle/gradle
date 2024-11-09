@@ -176,7 +176,7 @@ class WarTaskIntegrationTest extends AbstractIntegrationSpec {
             webXml = file('good.xml')
             destinationDirectory = buildDir
             archiveFileName = 'test.war'
-            duplicatesStrategy = 'exclude'
+            duplicatesStrategy = DuplicatesStrategy.EXCLUDE
         }
         '''
 
@@ -210,7 +210,7 @@ class WarTaskIntegrationTest extends AbstractIntegrationSpec {
             classpath 'good/file.txt'
             destinationDirectory = buildDir
             archiveFileName = 'test.war'
-            duplicatesStrategy = 'exclude'
+            duplicatesStrategy = DuplicatesStrategy.EXCLUDE
         }
         '''
 
@@ -244,7 +244,7 @@ class WarTaskIntegrationTest extends AbstractIntegrationSpec {
             }
             destinationDirectory = buildDir
             archiveFileName = 'test.war'
-            duplicatesStrategy = 'exclude'
+            duplicatesStrategy = DuplicatesStrategy.EXCLUDE
         }
         '''
 
@@ -264,7 +264,7 @@ class WarTaskIntegrationTest extends AbstractIntegrationSpec {
         and:
         buildFile << """
             task war(type: War) {
-                duplicatesStrategy 'exclude'
+                duplicatesStrategy = DuplicatesStrategy.EXCLUDE
                 from('some-dir') {
                     into 'WEB-INF'
                 }

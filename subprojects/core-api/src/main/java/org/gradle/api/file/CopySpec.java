@@ -125,14 +125,8 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
      * @return the strategy to use for files included by this copy spec.
      * @see DuplicatesStrategy
      */
-    @ToBeReplacedByLazyProperty
-    DuplicatesStrategy getDuplicatesStrategy();
-
-    /**
-     * The strategy to use when trying to copy more than one file to the same destination. Set to {@link DuplicatesStrategy#INHERIT}, the default strategy, to use
-     * the strategy inherited from the parent copy spec, if any, or {@link DuplicatesStrategy#INCLUDE} if this copy spec has no parent.
-     */
-    void setDuplicatesStrategy(DuplicatesStrategy strategy);
+    @ReplacesEagerProperty
+    Property<DuplicatesStrategy> getDuplicatesStrategy();
 
     /**
      * Configure the {@link org.gradle.api.file.FileCopyDetails} for each file whose path matches the specified Ant-style pattern.

@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.file.copy;
 
-import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.util.PatternSet;
@@ -34,6 +33,7 @@ public class SingleParentCopySpec extends DefaultCopySpec {
         this.objectFactory = objectFactory;
         getCaseSensitive().set(parentResolver.getCaseSensitive());
         getIncludeEmptyDirs().set(parentResolver.getIncludeEmptyDirs());
+        getDuplicatesStrategy().set(parentResolver.getDuplicatesStrategy());
         getFilePermissions().convention(parentResolver.getFilePermissions());
         getDirPermissions().convention(parentResolver.getDirPermissions());
     }
@@ -50,11 +50,6 @@ public class SingleParentCopySpec extends DefaultCopySpec {
         DefaultCopySpec child = instantiator.newInstance(SingleParentCopySpec.class, fileCollectionFactory, instantiator, patternSetFactory, buildResolverRelativeToParent(parentResolver));
         addChildSpec(position, child);
         return child;
-    }
-
-    @Override
-    public DuplicatesStrategy getDuplicatesStrategy() {
-        return buildResolverRelativeToParent(parentResolver).getDuplicatesStrategy();
     }
 
     @Override

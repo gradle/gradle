@@ -202,7 +202,7 @@ class JarIntegrationTest extends AbstractIntegrationSpec implements ValidationMe
         }
         buildFile << '''
         task jar(type: Jar) {
-            duplicatesStrategy = 'exclude'
+            duplicatesStrategy = DuplicatesStrategy.EXCLUDE
             metaInf {
                 from 'meta-inf'
             }
@@ -239,7 +239,7 @@ class JarIntegrationTest extends AbstractIntegrationSpec implements ValidationMe
 
         buildFile << '''
         task jar(type: Jar) {
-            duplicatesStrategy = 'exclude'
+            duplicatesStrategy = DuplicatesStrategy.EXCLUDE
             // this should be excluded even though it comes first
             into('META-INF') {
                 from 'meta-inf2'
@@ -272,7 +272,7 @@ class JarIntegrationTest extends AbstractIntegrationSpec implements ValidationMe
             from 'dir1'
             from 'dir2'
             eachFile {
-                it.duplicatesStrategy = it.relativePath.toString().startsWith('META-INF/services/') ? 'include' : 'exclude'
+                it.duplicatesStrategy = it.relativePath.toString().startsWith('META-INF/services/') ? DuplicatesStrategy.INCLUDE : DuplicatesStrategy.EXCLUDE
             }
         }
         '''
@@ -294,9 +294,9 @@ class JarIntegrationTest extends AbstractIntegrationSpec implements ValidationMe
             destinationDirectory = projectDir
             from 'dir1'
             from 'dir2'
-            duplicatesStrategy = 'exclude'
+            duplicatesStrategy = DuplicatesStrategy.EXCLUDE
             filesMatching ('META-INF/services/**') {
-                duplicatesStrategy = 'include'
+                duplicatesStrategy = DuplicatesStrategy.INCLUDE
             }
         }
         '''

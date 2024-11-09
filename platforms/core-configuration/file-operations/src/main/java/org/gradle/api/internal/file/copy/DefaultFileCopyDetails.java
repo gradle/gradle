@@ -30,6 +30,7 @@ import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.AbstractFileTreeElement;
 import org.gradle.api.internal.file.DefaultConfigurableFilePermissions;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Actions;
 import org.gradle.internal.deprecation.DeprecationLogger;
@@ -48,12 +49,12 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
     private final CopySpecResolver specResolver;
     private final FilterChain filterChain;
     private final ObjectFactory objectFactory;
+    private final Property<DuplicatesStrategy> duplicatesStrategy;
     private boolean defaultDuplicatesStrategy;
     private RelativePath relativePath;
     private boolean excluded;
 
     private DefaultConfigurableFilePermissions permissions;
-    private DuplicatesStrategy duplicatesStrategy;
 
     @Inject
     public DefaultFileCopyDetails(FileVisitDetails fileDetails, CopySpecResolver specResolver, ObjectFactory objectFactory, Chmod chmod) {
@@ -62,8 +63,8 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
         this.fileDetails = fileDetails;
         this.specResolver = specResolver;
         this.objectFactory = objectFactory;
-        this.duplicatesStrategy = specResolver.getDuplicatesStrategy();
         this.defaultDuplicatesStrategy = specResolver.isDefaultDuplicateStrategy();
+        this.duplicatesStrategy = objectFactory.property(DuplicatesStrategy.class).convention(specResolver.getDuplicatesStrategy());
     }
 
     @Override
@@ -263,13 +264,16 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
 
     @Override
     public void setDuplicatesStrategy(DuplicatesStrategy strategy) {
-        this.duplicatesStrategy = strategy;
+        this.duplicatesStrategy.set(strategy);
         this.defaultDuplicatesStrategy = strategy == DuplicatesStrategy.INHERIT;
     }
 
     @Override
     public DuplicatesStrategy getDuplicatesStrategy() {
-        return this.duplicatesStrategy;
+        if (duplicatesStrategy.get() == DuplicatesStrategy.INHERIT) {
+            duplicatesStrategy.set(DuplicatesStrategy.INCLUDE);
+        }
+        return duplicatesStrategy.get();
     }
 
     @Override

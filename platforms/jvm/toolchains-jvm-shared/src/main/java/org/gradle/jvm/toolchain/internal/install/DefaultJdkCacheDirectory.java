@@ -282,7 +282,7 @@ public class DefaultJdkCacheDirectory implements JdkCacheDirectory {
         operations.copy(spec -> {
             spec.from(fileTree);
             spec.into(unpackFolder);
-            spec.setDuplicatesStrategy(DuplicatesStrategy.WARN);
+            spec.getDuplicatesStrategy().set(DuplicatesStrategy.WARN);
         });
 
         return unpackFolder;

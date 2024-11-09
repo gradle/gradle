@@ -79,7 +79,7 @@ class DefaultCopySpecCodec(
             val actions = readList().uncheckedCast<List<Action<FileCopyDetails>>>()
             val children = readList().uncheckedCast<List<CopySpecInternal>>()
             val copySpec = DefaultCopySpec(fileCollectionFactory, objectFactory, instantiator, patternSetFactory, destPath, sourceFiles, patterns, actions, children)
-            copySpec.duplicatesStrategy = duplicatesStrategy
+            copySpec.duplicatesStrategy.set(duplicatesStrategy)
             copySpec.includeEmptyDirs.set(includeEmptyDirs)
             copySpec.caseSensitive.set(isCaseSensitive)
             copySpec.filteringCharset = filteringCharset

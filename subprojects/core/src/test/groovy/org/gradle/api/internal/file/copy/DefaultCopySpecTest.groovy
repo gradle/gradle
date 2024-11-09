@@ -384,7 +384,7 @@ class DefaultCopySpecTest extends Specification {
         expect:
         spec.caseSensitive.get()
         spec.includeEmptyDirs
-        spec.duplicatesStrategy == DuplicatesStrategy.INCLUDE
+        spec.duplicatesStrategy.get() == DuplicatesStrategy.INHERIT
         spec.fileMode == null
         !spec.filePermissions.isPresent()
         spec.dirMode == null
@@ -396,14 +396,14 @@ class DefaultCopySpecTest extends Specification {
         when:
         spec.caseSensitive.set(false)
         spec.includeEmptyDirs.set(false)
-        spec.duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+        spec.duplicatesStrategy.set(DuplicatesStrategy.EXCLUDE)
         setter.call(spec, objectFactory)
         spec.filteringCharset = 'UTF8'
 
         then:
         !spec.caseSensitive.get()
         !spec.includeEmptyDirs.get()
-        spec.duplicatesStrategy == DuplicatesStrategy.EXCLUDE
+        spec.duplicatesStrategy.get() == DuplicatesStrategy.EXCLUDE
         spec.fileMode == 0444
         toPermissionString(spec.filePermissions.get()) == "r--r--r--"
         spec.dirMode == 0655
@@ -434,7 +434,7 @@ class DefaultCopySpecTest extends Specification {
         when: //set non defaults on root
         spec.caseSensitive.set(false)
         spec.includeEmptyDirs.set(false)
-        spec.duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+        spec.duplicatesStrategy.set(DuplicatesStrategy.EXCLUDE)
         spec.fileMode = 1
         spec.dirMode = 2
         spec.filteringCharset = "ISO_8859_1"
@@ -444,7 +444,7 @@ class DefaultCopySpecTest extends Specification {
         then: //children still have these non defaults
         !child.caseSensitive.get()
         !child.includeEmptyDirs.get()
-        child.duplicatesStrategy == DuplicatesStrategy.EXCLUDE
+        child.duplicatesStrategy.get() == DuplicatesStrategy.EXCLUDE
         child.fileMode == 1
         child.dirMode == 2
         child.filteringCharset == "ISO_8859_1"

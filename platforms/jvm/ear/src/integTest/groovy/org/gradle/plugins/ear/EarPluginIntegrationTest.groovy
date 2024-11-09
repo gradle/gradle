@@ -231,7 +231,7 @@ apply plugin: 'ear'
         buildFile << '''
 apply plugin: 'ear'
 ear {
-   duplicatesStrategy = 'exclude'
+   duplicatesStrategy = DuplicatesStrategy.EXCLUDE
    into('lib') {
        from 'bad-lib'
    }

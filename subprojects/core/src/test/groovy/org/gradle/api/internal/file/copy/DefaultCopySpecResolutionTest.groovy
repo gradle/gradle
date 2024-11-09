@@ -31,7 +31,6 @@ class DefaultCopySpecResolutionTest extends Specification {
 
     @Rule
     public TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider(getClass())
-    def fileResolver = TestFiles.resolver(testDir.testDirectory)
     def fileCollectionFactory = TestFiles.fileCollectionFactory(testDir.testDirectory)
     def objectFactory = TestUtil.objectFactory()
     def instantiator = TestUtil.instantiatorFactory().decorateLenient()
@@ -122,11 +121,11 @@ class DefaultCopySpecResolutionTest extends Specification {
         patterns.excludeSpecs == [specExclude, childExclude] as Set
     }
 
-    def duplicatesStrategyDefaultsToInclude() {
+    def duplicatesStrategyDefaultsToInherit() {
         expect:
         DefaultCopySpec child = copySpec()
         DefaultCopySpec.DefaultCopySpecResolver childResolver = child.buildResolverRelativeToParent(parentSpec.buildRootResolver())
-        assert childResolver.duplicatesStrategy == DuplicatesStrategy.INCLUDE
+        assert childResolver.duplicatesStrategy.get() == DuplicatesStrategy.INHERIT
     }
 
     def childInheritsDuplicatesStrategyFromParent() {
@@ -135,19 +134,19 @@ class DefaultCopySpecResolutionTest extends Specification {
         DefaultCopySpec.DefaultCopySpecResolver childResolver = child.buildResolverRelativeToParent(parentSpec.buildRootResolver())
 
         then:
-        childResolver.duplicatesStrategy == DuplicatesStrategy.INCLUDE
+        childResolver.duplicatesStrategy.get() == DuplicatesStrategy.INHERIT
 
         when:
-        parentSpec.duplicatesStrategy = 'EXCLUDE'
+        parentSpec.duplicatesStrategy.set(DuplicatesStrategy.EXCLUDE)
 
         then:
-        childResolver.duplicatesStrategy == DuplicatesStrategy.EXCLUDE
+        childResolver.duplicatesStrategy.get() == DuplicatesStrategy.EXCLUDE
 
         when:
-        child.duplicatesStrategy = 'INCLUDE'
+        child.duplicatesStrategy.set(DuplicatesStrategy.INCLUDE)
 
         then:
-        childResolver.duplicatesStrategy == DuplicatesStrategy.INCLUDE
+        childResolver.duplicatesStrategy.get() == DuplicatesStrategy.INCLUDE
     }
 
     def caseSensitiveFlagDefaultsToTrue() {

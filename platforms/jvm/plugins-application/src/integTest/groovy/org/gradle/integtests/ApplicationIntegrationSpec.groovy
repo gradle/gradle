@@ -261,7 +261,7 @@ class Main {
         // ensure we no duplicate files in default setup (GRADLE-3289)
         buildFile << """
         [installDist, distZip, distTar]*.configure {
-            it.duplicatesStrategy = "fail"
+            it.duplicatesStrategy = DuplicatesStrategy.FAIL
         }
 """
         when:

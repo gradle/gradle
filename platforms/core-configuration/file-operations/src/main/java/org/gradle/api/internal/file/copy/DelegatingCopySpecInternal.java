@@ -53,13 +53,8 @@ public abstract class DelegatingCopySpecInternal implements CopySpecInternal {
     }
 
     @Override
-    public DuplicatesStrategy getDuplicatesStrategy() {
+    public Property<DuplicatesStrategy> getDuplicatesStrategy() {
         return getDelegateCopySpec().getDuplicatesStrategy();
-    }
-
-    @Override
-    public void setDuplicatesStrategy(DuplicatesStrategy strategy) {
-        getDelegateCopySpec().setDuplicatesStrategy(strategy);
     }
 
     @Override

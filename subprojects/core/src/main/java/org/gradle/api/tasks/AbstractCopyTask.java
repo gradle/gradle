@@ -93,7 +93,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
             getInputs().property(specPropertyName + ".destPath", (Callable<String>) () -> resolver.getDestPath().getPathString());
             getInputs().property(specPropertyName + ".caseSensitive", spec.getCaseSensitive());
             getInputs().property(specPropertyName + ".includeEmptyDirs", spec.getIncludeEmptyDirs());
-            getInputs().property(specPropertyName + ".duplicatesStrategy", (Callable<DuplicatesStrategy>) spec::getDuplicatesStrategy);
+            getInputs().property(specPropertyName + ".duplicatesStrategy",  spec.getDuplicatesStrategy());
             getInputs().property(specPropertyName + ".dirPermissions", spec.getDirPermissions().map(FilePermissions::toUnixNumeric))
                 .optional(true);
             getInputs().property(specPropertyName + ".filePermissions", spec.getFilePermissions().map(FilePermissions::toUnixNumeric))
@@ -211,18 +211,9 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
     /**
      * {@inheritDoc}
      */
-    @Override
-    public void setDuplicatesStrategy(DuplicatesStrategy strategy) {
-        getRootSpec().setDuplicatesStrategy(strategy);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
     @Internal
     @Override
-    @ToBeReplacedByLazyProperty
-    public DuplicatesStrategy getDuplicatesStrategy() {
+    public Property<DuplicatesStrategy> getDuplicatesStrategy() {
         return getRootSpec().getDuplicatesStrategy();
     }
 

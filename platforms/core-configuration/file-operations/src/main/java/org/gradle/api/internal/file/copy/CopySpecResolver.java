@@ -76,7 +76,7 @@ public interface CopySpecResolver {
 
     List<Spec<FileTreeElement>> getAllExcludeSpecs();
 
-    DuplicatesStrategy getDuplicatesStrategy();
+    Provider<DuplicatesStrategy> getDuplicatesStrategy();
 
     boolean isDefaultDuplicateStrategy();
 

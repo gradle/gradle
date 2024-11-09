@@ -87,9 +87,9 @@ public class DefaultCopySpec implements CopySpecInternal {
     private final Property<Boolean> caseSensitive;
     private final Property<Boolean> includeEmptyDirs;
     private final PatternFilterable preserve = new PatternSet();
+    private final Property<DuplicatesStrategy> duplicatesStrategy;
     private Object destDir;
     private boolean hasCustomActions;
-    private DuplicatesStrategy duplicatesStrategy = DuplicatesStrategy.INHERIT;
     private String filteringCharset;
     private final List<CopySpecListener> listeners = new LinkedList<>();
 
@@ -109,6 +109,7 @@ public class DefaultCopySpec implements CopySpecInternal {
         this.dirPermissions = objectFactory.property(ConfigurableFilePermissions.class);
         this.caseSensitive = objectFactory.property(Boolean.class);
         this.includeEmptyDirs = objectFactory.property(Boolean.class);
+        this.duplicatesStrategy = objectFactory.property(DuplicatesStrategy.class);
     }
 
     public DefaultCopySpec(FileCollectionFactory fileCollectionFactory, ObjectFactory objectFactory, Instantiator instantiator, Factory<PatternSet> patternSetFactory, @Nullable String destPath, FileCollection source, PatternSet patternSet, Collection<? extends Action<? super FileCopyDetails>> copyActions, Collection<CopySpecInternal> children) {
@@ -299,17 +300,18 @@ public class DefaultCopySpec implements CopySpecInternal {
     }
 
     public DuplicatesStrategy getDuplicatesStrategyForThisSpec() {
+        if (!duplicatesStrategy.isPresent()) {
+            duplicatesStrategy.set(buildRootResolver().getDuplicatesStrategy());
+        }
+        return duplicatesStrategy.get();
+    }
+
+    @Override
+    public Property<DuplicatesStrategy> getDuplicatesStrategy() {
+        if (!duplicatesStrategy.isPresent()) {
+            duplicatesStrategy.set(buildRootResolver().getDuplicatesStrategy());
+        }
         return duplicatesStrategy;
-    }
-
-    @Override
-    public DuplicatesStrategy getDuplicatesStrategy() {
-        return buildRootResolver().getDuplicatesStrategy();
-    }
-
-    @Override
-    public void setDuplicatesStrategy(DuplicatesStrategy strategy) {
-        this.duplicatesStrategy = strategy;
     }
 
     @Override
@@ -763,19 +765,19 @@ public class DefaultCopySpec implements CopySpecInternal {
         }
 
         @Override
-        public DuplicatesStrategy getDuplicatesStrategy() {
-            if (duplicatesStrategy != DuplicatesStrategy.INHERIT) {
+        public Provider<DuplicatesStrategy> getDuplicatesStrategy() {
+            if (duplicatesStrategy.isPresent() && duplicatesStrategy.get() != DuplicatesStrategy.INHERIT) {
                 return duplicatesStrategy;
             }
             if (parentResolver != null) {
                 return parentResolver.getDuplicatesStrategy();
             }
-            return DuplicatesStrategy.INCLUDE;
+            return Providers.of(DuplicatesStrategy.INHERIT);
         }
 
         @Override
         public boolean isDefaultDuplicateStrategy() {
-            if (duplicatesStrategy != DuplicatesStrategy.INHERIT) {
+            if (duplicatesStrategy.isPresent() && duplicatesStrategy.get() != DuplicatesStrategy.INHERIT) {
                 return false;
             }
             if (parentResolver != null) {

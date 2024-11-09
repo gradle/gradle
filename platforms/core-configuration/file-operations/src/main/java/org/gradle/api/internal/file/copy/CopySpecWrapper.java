@@ -68,13 +68,8 @@ public class CopySpecWrapper implements SyncSpec {
     }
 
     @Override
-    public DuplicatesStrategy getDuplicatesStrategy() {
+    public Property<DuplicatesStrategy> getDuplicatesStrategy() {
         return delegate.getDuplicatesStrategy();
-    }
-
-    @Override
-    public void setDuplicatesStrategy(DuplicatesStrategy strategy) {
-        delegate.setDuplicatesStrategy(strategy);
     }
 
     @Override
