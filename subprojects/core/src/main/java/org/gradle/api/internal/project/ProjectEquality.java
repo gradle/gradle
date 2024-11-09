@@ -19,12 +19,11 @@ import org.gradle.api.Project;
 
 
 /**
- *
  * The requirements for equals/hashcode seems to be as follows:
  * <ol>
  *     <li> a {@link DefaultProject} is equal to a {@link MutableStateAccessAwareProject}
- *     even though these are different classes</li>
- *          Testcase: Symmetrical equality between raw and wrapped project
+ *     even though these are different classes
+ *          Testcase: Symmetrical equality between raw and wrapped project</li>
  *     <li>equals needs be tied to object identity.
  *          So {@link Project#getPath()} is not appropriate
  *          TestCase: project identity doesnt survive build finish
@@ -41,7 +40,7 @@ import org.gradle.api.Project;
 class ProjectEquality {
 
     static Object getEqualityObject(MutableStateAccessAwareProject delegate) {
-       return new IdentityObject(delegate.delegate);
+        return new IdentityObject(delegate.delegate);
     }
 
     static Object getEqualityObject(ProjectInternal delegate) {
@@ -54,12 +53,13 @@ class ProjectEquality {
 
     /**
      * Defines that 2 Projects are considered equals if the {@link DefaultProject} are the same object
-     *
      */
     private static class IdentityObject {
         private final Object delegate;
 
-        public IdentityObject(Object delegate) {this.delegate = delegate;}
+        public IdentityObject(Object delegate) {
+            this.delegate = delegate;
+        }
 
         @Override
         public boolean equals(Object o) {
