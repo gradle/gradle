@@ -91,7 +91,6 @@ import java.io.File;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.function.Function;
@@ -111,6 +110,8 @@ import java.util.function.Function;
  */
 public abstract class MutableStateAccessAwareProject implements ProjectInternal, DynamicObjectAware {
 
+    private final Object equalityObject;
+
     public static <T extends MutableStateAccessAwareProject> ProjectInternal wrap(
         ProjectInternal target,
         ProjectInternal referrer,
@@ -129,6 +130,7 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
         this.delegate = delegate;
         this.referrer = referrer;
         this.dynamicObject = new HasPropertyMissingDynamicObject(this, Project.class, this::hasPropertyMissing);
+        equalityObject = ProjectEquality.getEqualityObject(this);
     }
 
     protected abstract void onMutableStateAccess(String what);
@@ -139,20 +141,19 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
     }
 
     @Override
-    public final boolean equals(Object o) {
+    public boolean equals(Object o) {
         if (this == o) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (!(o instanceof ProjectInternal)) {
             return false;
         }
-        MutableStateAccessAwareProject that = (MutableStateAccessAwareProject) o;
-        return Objects.equals(delegate, that.delegate);
+        return equalityObject.equals(ProjectEquality.getEqualityObject((ProjectInternal) o));
     }
 
     @Override
-    public final int hashCode() {
-        return Objects.hashCode(delegate);
+    public int hashCode() {
+        return equalityObject.hashCode();
     }
 
     @Nullable

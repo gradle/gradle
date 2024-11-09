@@ -179,6 +179,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     private final ProjectInternal parent;
 
     private final String name;
+    private final Object equalityObject;
 
     private Object group;
 
@@ -238,6 +239,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         this.state = new ProjectStateInternal();
         this.buildScriptSource = buildScriptSource;
         this.gradle = gradle;
+        equalityObject = ProjectEquality.getEqualityObject(this);
 
         if (parent == null) {
             depth = 0;
@@ -374,6 +376,22 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
             .descriptor(descriptor)
             .build()
         );
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof ProjectInternal)) {
+            return false;
+        }
+        return equalityObject.equals(ProjectEquality.getEqualityObject((ProjectInternal) o));
+    }
+
+    @Override
+    public int hashCode() {
+        return equalityObject.hashCode();
     }
 
     private String instanceDescriptorFor(String path) {

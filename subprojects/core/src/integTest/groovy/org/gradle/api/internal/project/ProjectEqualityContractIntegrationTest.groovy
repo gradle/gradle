@@ -35,7 +35,6 @@ import org.gradle.test.preconditions.IntegTestPreconditions
 
 class ProjectEqualityContractIntegrationTest extends AbstractIntegrationSpec {
 
-    @Requires(IntegTestPreconditions.NotIsolatedProjects) // IP mode introduces different equality model because of projects wrapping
     def 'Symmetrical equality between raw and wrapped projects'() {
         given:
         buildFile("buildSrc/build.gradle", """
@@ -146,7 +145,6 @@ class ProjectEqualityContractIntegrationTest extends AbstractIntegrationSpec {
         outputContains("raw :a equals to :a wrapped by :b#project: true")
     }
 
-    @Requires(IntegTestPreconditions.NotIsolatedProjects) // IP mode introduces different equality model because of projects wrapping
     def 'Raw and wrapped projects are interchangeable when using as keys in hashCode-based data structures'() {
         given:
         buildFile("buildSrc/build.gradle", """
