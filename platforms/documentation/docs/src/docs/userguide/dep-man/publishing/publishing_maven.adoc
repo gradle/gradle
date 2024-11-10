@@ -16,7 +16,7 @@
 = The Maven Publish Plugin
 
 The Maven Publish Plugin provides the ability to publish build artifacts to an https://maven.apache.org/[Apache Maven] repository.
-A module published to a Maven repository can be consumed by Maven, Gradle (see <<declaring_dependencies.adoc#declaring-basic-dependencies,Declaring Dependencies>>) and other tools that understand the Maven repository format.
+A module published to a Maven repository can be consumed by Maven, Gradle (see <<declaring_dependencies.adoc#one-declaring-dependencies,Declaring Dependencies>>) and other tools that understand the Maven repository format.
 You can learn about the fundamentals of publishing in <<publishing_setup.adoc#publishing_overview,Publishing Overview>>.
 
 
@@ -112,7 +112,7 @@ Two strategies are supported for publishing dependencies:
 
 Declared versions (default)::
 This strategy publishes the versions that are defined by the build script author with the dependency declarations in the `dependencies` block.
-Any other kind of processing, for example through <<resolution_rules.adoc#resolution_rules,a rule changing the resolved version>>, will not be taken into account for the publication.
+Any other kind of processing, for example through <<resolution_rules.adoc#using-resolution-rules,a rule changing the resolved version>>, will not be taken into account for the publication.
 
 Resolved versions::
 This strategy publishes the versions that were resolved during the build, possibly by applying resolution rules and automatic conflict resolution.
@@ -121,7 +121,7 @@ This has the advantage that the published versions correspond to the ones the pu
 Example use cases for resolved versions:
 
 * A project uses dynamic versions for dependencies but prefers exposing the resolved version for a given release to its consumers.
-* In combination with <<dependency_locking.adoc#dependency-locking,dependency locking>>, you want to publish the locked versions.
+* In combination with <<dependency_locking.adoc#locking-versions,dependency locking>>, you want to publish the locked versions.
 * A project leverages the rich versions constraints of Gradle, which have a lossy conversion to Maven.
 Instead of relying on the conversion, it publishes the resolved versions.
 
@@ -227,7 +227,7 @@ When relocation information is published retroactively, it is not necessary to w
 
 When only the coordinates of the artifact have changed, but package names of the classes inside the artifact have remained the same, dependency conflicts can occur. A project might (transitively) depend on the old artifact but at the same time also have a dependency on the new artifact which both contain the same classes, potentially with incompatible changes.
 
-To detect such conflicting duplicate dependencies, <<component_capabilities.adoc#declaring-component-capabilities,capabilities>> can be published as part of the <<publishing_gradle_module_metadata.adoc#sec:understanding-gradle-module-md,Gradle Module Metadata>>.  For an example using a <<java_library_plugin.adoc#java_library_plugin,Java Library>> project, see <<component_capabilities.adoc#declaring-component-capabilities,declaring additional capabilities for a local component>>.
+To detect such conflicting duplicate dependencies, <<component_capabilities.adoc#sec:declaring-component-capabilities,capabilities>> can be published as part of the <<publishing_gradle_module_metadata.adoc#sec:understanding-gradle-module-md,Gradle Module Metadata>>.  For an example using a <<java_library_plugin.adoc#java_library_plugin,Java Library>> project, see <<component_capabilities.adoc#sec:declaring-component-capabilities,declaring additional capabilities for a local component>>.
 
 [[publishing_maven:relocation_dry_run]]
 === Performing a dry run
@@ -255,7 +255,7 @@ The result is that the following artifacts will be published:
 The <<signing_plugin.adoc#signing_plugin, Signing Plugin>> is used to generate a signature file for each artifact. In addition, checksum files will be generated for all artifacts and signature files.
 
 TIP: publishToMavenLocal` does not create checksum files in `$USER_HOME/.m2/repository`.
-If you want to verify that the checksum files are created correctly, or use them for later publishing, consider configuring a <<declaring_repositories_adv.adoc#sec:maven_repo,custom Maven repository>> with a `file://` URL and using that as the publishing target instead.
+If you want to verify that the checksum files are created correctly, or use them for later publishing, consider configuring a <<supported_repository_types.adoc#sec:maven-repo,custom Maven repository>> with a `file://` URL and using that as the publishing target instead.
 
 [[publishing_maven:deferred_configuration]]
 == Removal of deferred configuration behavior

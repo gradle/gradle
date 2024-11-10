@@ -142,7 +142,7 @@ Never re-release a non-changing binary dependency with the same version number b
 
 Using ``SNAPSHOT``s or other changing dependencies in your build by design violates the <<build_cache_concepts.adoc#stable_task_inputs,stable task inputs>> principle.
 To use the build cache effectively, you should depend on fixed dependencies.
-You may want to look into <<dependency_locking.adoc#dependency-locking,dependency locking>> or switch to using <<composite_builds.adoc#composite_builds,composite builds>> instead.
+You may want to look into <<dependency_locking.adoc#locking-versions,dependency locking>> or switch to using <<composite_builds.adoc#composite_builds,composite builds>> instead.
 
 The same is true for depending on volatile external resources, for example a list of released versions.
 One way of locking the changes would be to check the volatile resource into source control whenever it changes so that the builds only depend on the state in source control and not on the volatile resource itself.

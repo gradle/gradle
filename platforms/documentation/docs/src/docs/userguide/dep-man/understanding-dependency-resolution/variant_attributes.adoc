@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[[variant_attributes]]
+[[variant-attributes]]
 = Variants and Attributes
 
 **Variants** represent different versions or aspects of a component, like `api` vs `implementation` or `debug` vs `release`.
@@ -57,13 +57,13 @@ This sets the `TargetConfiguration.TARGET_ATTRIBUTE` to `"debug"`, meaning Gradl
 
 To understand how Gradle's dependency management engine works to select the best matching variant, see our <<variant_model.adoc#sec:variant-aware-matching,Understanding Variant Selection>> chapter.
 
-[[sec:standard_attributes]]
+[[sec:standard-attributes]]
 == Standard attributes defined by Gradle
 
 As a user of Gradle, attributes are often hidden as implementation details.
 But it might be useful to understand the _standard attributes_ defined by Gradle and its core plugins.
 
-As a plugin author, these attributes, and the way they are defined, can serve as a basis for <<#sec:declaring_attributes,building your own set of attributes>> in your ecosystem plugin.
+As a plugin author, these attributes, and the way they are defined, can serve as a basis for <<#sec:declaring-attributes,building your own set of attributes>> in your ecosystem plugin.
 
 === Ecosystem-independent standard attributes
 
@@ -102,7 +102,7 @@ As a plugin author, these attributes, and the way they are defined, can serve as
 | No default, no compatibility
 |===
 
-[[sec:verification_category]]
+[[sec:verification-category]]
 When the `Category` attribute is present with the incubating value `org.gradle.category=verification` on a variant, that variant is considered to be a verification-time only variant.
 
 These variants are meant to contain only the results of running verification tasks, such as test results or code coverage reports.
@@ -114,11 +114,11 @@ They are *not publishable*, and will produce an error if added to a component wh
 
 | `org.gradle.status`
 | Component level attribute, derived
-| Based on <<component_metadata_rules.adoc#sec:custom_status_scheme,a status scheme>>, with a default one existing based on the source repository.
+| Based on <<component_metadata_rules.adoc#sec:custom-status-scheme,a status scheme>>, with a default one existing based on the source repository.
 | Based on the scheme in use
 |===
 
-[[sub:jvm_default_attributes]]
+[[sec:jvm-default-attributes]]
 === JVM ecosystem specific attributes
 
 In addition to the ecosystem independent attributes defined above, the JVM ecosystem adds the following attribute:
@@ -185,7 +185,7 @@ In addition to the ecosystem independent attributes defined above, the native ec
 | None
 |===
 
-[[sub:gradle_plugins_default_attributes]]
+[[sec:gradle-plugins-default-attributes]]
 === Gradle plugin ecosystem specific attributes
 
 For Gradle plugin development, the following attribute is supported since Gradle 7.0.
@@ -201,6 +201,7 @@ A Gradle plugin variant can specify compatibility with a Gradle API version thro
 | Defaults to the currently running Gradle, lower is compatible with higher, prefers highest compatible.
 |===
 
+[[sec:using-standard-attribute]]
 == Using a standard attribute
 
 For this example, let’s assume you are creating a library with different variants for different JVM versions.
@@ -220,6 +221,7 @@ include::sample[dir="snippets/dependencyManagement/customizingResolution-attribu
 By defining and using the JVM version attribute, you ensure that your library and its consumers are compatible with the specified JVM version.
 Essentially, this ensures that Gradle resolves to the variant that matches the desired JVM version.
 
+[[sec:view-debug-attributes]]
 == Viewing and debugging attributes
 
 The `dependencyInsight` task is useful for inspecting specific dependencies and their attributes, including how they are resolved:
@@ -253,7 +255,7 @@ com.example:your-library:1.0 (compileClasspath)
       - No matching variants found for the requested attributes in the 'compileClasspath' configuration
 ----
 
-[[sec:declaring_attributes]]
+[[sec:declaring-attributes]]
 == Declaring custom attributes
 
 When extending Gradle with *custom attributes*, it’s important to consider their long-term impact, especially if you plan to publish libraries.
@@ -261,7 +263,7 @@ Custom attributes allow you to integrate *variant-aware dependency management* i
 This is typically done by applying the corresponding plugin, which defines compatibility and disambiguation rules.
 
 If your plugin is publicly available and libraries are published to public repositories, introducing new attributes becomes a significant responsibility.
-Published attributes must remain supported or have a <<#sec:abm_compatibility_rules,compatibility layer>> in future versions of the plugin to ensure backward compatibility.
+Published attributes must remain supported or have a <<#sec:abm-compatibility-rules,compatibility layer>> in future versions of the plugin to ensure backward compatibility.
 
 Here’s an example of declaring and using custom attributes in a Gradle plugin:
 
@@ -277,6 +279,7 @@ In this example:
 
 If publishing a library with this attribute, ensure that consumers apply the plugin that understands and handles `my-attribute`.
 
+[[sec:creating-attributes]]
 == Creating attributes in a build script or plugin
 
 Attributes are _typed_.
@@ -297,7 +300,7 @@ include::sample[dir="snippets/dependencyManagement/attributeMatching/kotlin",fil
 include::sample[dir="snippets/dependencyManagement/attributeMatching/groovy",files="build.gradle[tags=register-attributes]"]
 ====
 
-Registering an attribute with the schema is required in order to use Compatibility and Disambiguation rules that can resolve ambiguity between multiple selectable variants during <<#sec:attribute_matching,Attribute Matching>>.
+Registering an attribute with the schema is required in order to use Compatibility and Disambiguation rules that can resolve ambiguity between multiple selectable variants during <<#sec:attribute-matching,Attribute Matching>>.
 
 Each configuration has a container of attributes.  Attributes can be configured to set values:
 
@@ -313,7 +316,7 @@ include::sample[dir="snippets/dependencyManagement/attributeMatching/kotlin",fil
 include::sample[dir="snippets/dependencyManagement/attributeMatching/groovy",files="build.gradle[tags=named-attributes]"]
 ====
 
-[[sec:attribute_matching]]
+[[sec:attribute-matching]]
 == Dealing with attribute matching
 
 In Gradle, **attribute matching** and **attribute disambiguation** are key mechanisms for resolving dependencies with varying attributes.
@@ -321,7 +324,7 @@ In Gradle, **attribute matching** and **attribute disambiguation** are key mecha
 **Attribute matching** allows Gradle to select compatible dependency variants based on predefined rules, even if an exact match isn't available.
 **Attribute disambiguation**, on the other hand, helps Gradle choose the most suitable variant when multiple compatible options exist.
 
-[[sec:abm_compatibility_rules]]
+[[sec:abm-compatibility-rules]]
 === Attribute compatibility rules
 
 Attributes let the engine select _compatible variants_.
@@ -331,10 +334,6 @@ There are cases where a producer may not have _exactly_ what the consumer reques
 include::sample[dir="snippets/dependencyManagement/customizingResolution-attributeSimple/kotlin",files="lib/build.gradle.kts[tags=attribute-strategy]"]
 include::sample[dir="snippets/dependencyManagement/customizingResolution-attributeSimple/groovy",files="lib/build.gradle[tags=attribute-strategy]"]
 ====
-
-
-
-
 1. **Attribute Definition**: Define the attribute you want to apply compatibility rules to. In this case, `JavaLanguageVersion`.
 2. **Register Compatibility Rule**: Use the `attributeMatchingStrategy` to specify how to handle compatibility for the defined attribute. For instance, you can define which versions of the attribute are compatible.
 3. **Compatibility Logic**: Specify the compatibility logic inside the rule. You can define specific versions or attributes that are considered compatible or incompatible.
@@ -344,7 +343,7 @@ The role of a compatibility rule is to explain which attribute values are _compa
 
 Attribute compatibility rules have to be registered via the link:{javadocPath}/org/gradle/api/attributes/AttributeMatchingStrategy.html[attribute matching strategy] that you can obtain from the link:{javadocPath}/org/gradle/api/attributes/AttributesSchema.html[attributes schema].
 
-[[sec:abm_disambiguation_rules]]
+[[sec:abm-disambiguation-rules]]
 === Attribute disambiguation rules
 
 When multiple variants of a dependency are compatible with the consumer's requested attributes, Gradle needs to decide which variant to select.
@@ -379,7 +378,6 @@ configurations.all {
     }
 }
 ----
-
 1. **Attribute Definition**: Create or reference the attribute you want to apply disambiguation rules to. Here, `javaLanguageVersion` is used.
 2. **Register Disambiguation Rules**: Apply the disambiguation strategy using `disambiguationStrategy` within the `attributes` block. This example sets up a simple rule to prefer newer versions.
 3. **Disambiguation Logic**: The `preferNewer()` method is a placeholder for your custom logic. You can implement more complex rules based on your requirements.

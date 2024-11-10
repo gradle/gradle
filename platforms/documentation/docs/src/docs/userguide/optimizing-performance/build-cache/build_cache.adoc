@@ -35,7 +35,7 @@ Essentially, task output caching leverages the same intelligence as <<incrementa
 But instead of being limited to the previous build in the same workspace, task output caching allows Gradle to reuse task outputs from any earlier build in any location on the local machine.
 When using a shared build cache for task output caching this even works across developer machines and build agents.
 
-Apart from tasks, <<artifact_transforms.adoc#sec:abm_artifact_transforms,artifact transforms>> can also leverage the build cache and re-use their outputs similarly to task output caching.
+Apart from tasks, <<artifact_transforms.adoc#sec:abm-artifact-transforms,artifact transforms>> can also leverage the build cache and re-use their outputs similarly to task output caching.
 
 TIP: For a hands-on approach to learning how to use the build cache, start with reading through the <<build_cache_use_cases.adoc#use_cases_cache,use cases for the build cache>> and the follow up sections.
 It covers the different scenarios that caching can improve and has detailed discussions of the different caveats you need to be aware of when enabling caching for a build.

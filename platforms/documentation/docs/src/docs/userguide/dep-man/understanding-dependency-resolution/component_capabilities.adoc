@@ -12,15 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[[sec:handling-mutually-exclusive-deps]]
+[[capabilities]]
 = Capabilities
 
 In a dependency graph, it's common for multiple implementations of the same API to be accidentally included, especially with libraries like logging frameworks where different bindings are selected by various transitive dependencies.
+[[sec:handling-mutually-exclusive-deps]]
 Since these implementations typically reside at different group, artifact, and version (GAV) coordinates, build tools often can't detect the conflict.
 
 To address this, Gradle introduces the concept of **capability**.
 
-[[sub:capabilities]]
+[[sec:capabilities]]
 == Understanding capabilities
 
 A capability is essentially a way to declare that different components (dependencies) offer the same functionality.
@@ -68,7 +69,7 @@ dependencies {
 
 It's important to note that capabilities are **versioned**.
 
-[[declaring-component-capabilities]]
+[[sec:declaring-component-capabilities]]
 == Declaring component capabilities
 
 To detect conflicts early, it's useful to declare *component capabilities* through rules, allowing conflicts to be caught during the build instead of at runtime.
@@ -89,15 +90,15 @@ With this rule in place, the build will fail if both `asm:asm` ( < = `3.3.1`) an
 
 NOTE: Gradle won’t resolve the conflict automatically, but this helps you realize that the problem exists. It’s recommended to package such rules into plugins for use in builds, allowing users to decide which version to use or to fix the classpath conflict.
 
-[[sub:selecting-between-candidates]]
+[[sec:selecting-between-candidates]]
 == Selecting between candidates
 
 At some point, a dependency graph is going to include either _incompatible modules_, or modules which are _mutually exclusive_.
 
 For example, you may have different logger implementations, and you need to choose one binding.
-<<component_capabilities.adoc#sub:capabilities,Capabilities>> help _understand_ the conflict, then Gradle provides you with tools to solve the conflicts.
+<<component_capabilities.adoc#capabilities,Capabilities>> help _understand_ the conflict, then Gradle provides you with tools to solve the conflicts.
 
-[[sub:selecting-preferred-capability-provider]]
+[[sec:selecting-preferred-capability-provider]]
 === Selecting between different capability candidates
 
 In the relocation example above, Gradle was able to tell you that you have two versions of the same API on classpath: an "old" module and a "relocated" one.

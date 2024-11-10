@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[[dependency-configurations]]
+[[declaring-dependency-configurations]]
 = Declaring Dependency Configurations
 
 [[sec:what-are-dependency-configurations]]
@@ -88,6 +88,7 @@ A library typically provides consumable configurations like `apiElements` (for c
 These configurations expose the necessary artifacts for other projects to consume, without being resolvable within the current project.
 The `canBeDeclared`, `isCanBeConsumed` and `isCanBeResolved` flags help distinguish the roles of these configurations.
 
+[[sec:configuration-flags-roles]]
 == Configuration flags and roles
 
 Configurations have three key flags:
@@ -126,6 +127,15 @@ The following configurations are created:
 - `exposedApi` + `exposedRuntime`: Consumable configurations that expose artifacts (API and runtime) to other projects, but aren’t meant for internal resolution.
 
 This setup mimics the behavior of the `implementation`, `compileClasspath`, `runtimeClasspath`, `apiElements`, and `runtimeElements` configurations in the <<java_plugin.adoc#java_plugin,Java plugin>>.
+
+[[sec:deprecated-configurations]]
+== Deprecated configurations
+
+In the past, some configurations did not define which role they were intended to be used for.
+
+A deprecation warning is emitted when a configuration is used in a way that was not intended.
+To fix the deprecation, you will need to stop using the configuration in the deprecated role.
+The exact changes required depend on how the configuration is used and if there are alternative configurations that should be used instead.
 
 [[sec:defining-custom-configurations]]
 == Creating custom configurations
@@ -170,7 +180,7 @@ These methods help build authors document the purpose of a configuration and avo
 - **`consumable()`**: Creates a configuration meant to be consumed by other projects but not used to resolve dependencies itself.
 - **`dependencyScope()`**: Creates a configuration that establishes a dependency scope, setting up the necessary properties to act both as a consumer and provider, depending on the use case.
 
-[[sub:config-inheritance-composition]]
+[[sec:config-inheritance-composition]]
 == Configuration inheritance
 
 Configurations can inherit from other configurations, creating an inheritance hierarchy.
@@ -192,6 +202,7 @@ When extending a configuration, the new configuration inherits:
 
 The extension does *not* include attributes. It also does *not* extend consumable/resolvable/declarable status.
 
+[[sec:dependency-resolution]]
 == Dependency resolution
 
 The entrypoint to all dependency resolution APIs is a _resolvable_ link:{javadocPath}/org/gradle/api/artifacts/Configuration.html[Configuration].
@@ -210,11 +221,32 @@ include::sample[dir="snippets/dependencyManagement/performingResolution-resoluti
 include::sample[dir="snippets/dependencyManagement/performingResolution-resolutionResult/groovy",files="build.gradle[tags=declare-configurations]"]
 ====
 
-Dependencies can be declared on the `implementation` configuration using the dependencies block. See the <<declaring_dependencies.adoc#declaring-basic-dependencies,Declaring Dependencies>> chapter for more information on the types of dependencies that can be declared, and the various options for customizing dependency declarations.
+Dependencies can be declared on the `implementation` configuration using the dependencies block. See the <<declaring_dependencies.adoc#one-declaring-dependencies,Declaring Dependencies>> chapter for more information on the types of dependencies that can be declared, and the various options for customizing dependency declarations.
 
 ====
 include::sample[dir="snippets/dependencyManagement/performingResolution-resolutionResult/kotlin",files="build.gradle.kts[tags=declaring-dependencies]"]
 include::sample[dir="snippets/dependencyManagement/performingResolution-resolutionResult/groovy",files="build.gradle[tags=declaring-dependencies]"]
 ====
 
-Now that we've created a _dependency scope_ configuration for declaring dependencies, and a _resolvable_ configuration for resolving those dependencies, we can use Gradle's <<dependency_resolution_basics.adoc#dependency_resolution_basics,dependency resolution APIs>> to access the results of resolution.
+Now that we've created a _dependency scope_ configuration for declaring dependencies, and a _resolvable_ configuration for resolving those dependencies, we can use Gradle's <<dependency_resolution_basics.adoc#dependency-resolution-basics,dependency resolution APIs>> to access the results of resolution.
+
+[[sub:resolving-unsafe-configuration-resolution-errors]]
+== Unsafe configuration resolution errors
+
+Resolving a configuration can have side effects on Gradle's project model.
+As a result, Gradle must manage access to each project's configurations.
+
+There are a number of ways a configuration might be resolved unsafely.
+For example:
+
+* A task from one project directly resolves a configuration in another project in the task's action.
+* A task specifies a configuration from another project as an input file collection.
+* A build script for one project resolves a configuration in another project during evaluation.
+* Project configurations are resolved in the settings file.
+
+Gradle produces a deprecation warning for each unsafe access.
+
+Unsafe access can cause indeterminate errors.
+You should <<command_line_interface.adoc#sec:command_line_warnings,fix unsafe access warnings>> in your build.
+
+In most cases, you can resolve unsafe accesses by creating a <<variant_model.adoc#sec:variant-aware-matching,proper cross-project dependency>>.

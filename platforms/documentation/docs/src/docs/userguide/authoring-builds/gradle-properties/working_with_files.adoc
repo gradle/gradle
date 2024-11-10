@@ -1016,7 +1016,6 @@ include::sample[dir="snippets/files/archives/groovy",files="build.gradle[tags=re
 ====
 
 Often you will want to publish an archive, so that it is usable from another project.
-This process is described in <<cross_project_publications.adoc#cross_project_publications,Cross-Project publications>>.
 
 [[sec:unpacking_archives_example]]
 == Unpacking archives
