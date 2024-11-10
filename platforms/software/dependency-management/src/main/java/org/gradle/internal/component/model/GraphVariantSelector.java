@@ -249,7 +249,7 @@ public class GraphVariantSelector {
             DeprecationLogger.deprecateConfiguration(targetVariant.getName())
                 .forConsumption()
                 .willBecomeAnErrorInGradle9()
-                .withUserManual("declaring_configurations", "sec:deprecated-configurations")
+                .withUserManual("declaring_dependencies", "sec:deprecated-configurations")
                 .nagUser();
         }
     }

@@ -374,11 +374,11 @@ class DeprecationMessagesTest extends Specification {
         when:
         DeprecationLogger.deprecateBehaviour("Some behavior.")
             .willBeRemovedInGradle9()
-            .withUserManual("declaring_configurations", "sub:resolving-unsafe-configuration-resolution-errors")
+            .withUserManual("viewing_debugging_dependencies", "sub:resolving-unsafe-configuration-resolution-errors")
             .nagUser()
 
         then:
-        def expectedDocumentationUrl = DOCUMENTATION_REGISTRY.getDocumentationRecommendationFor("information", "declaring_configurations", "sub:resolving-unsafe-configuration-resolution-errors")
+        def expectedDocumentationUrl = DOCUMENTATION_REGISTRY.getDocumentationRecommendationFor("information", "viewing_debugging_dependencies", "sub:resolving-unsafe-configuration-resolution-errors")
         expectMessage "Some behavior. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. ${expectedDocumentationUrl}"
     }
 

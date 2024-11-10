@@ -97,6 +97,6 @@ class DependencyResolutionFromTaskContextIntegrationTest extends AbstractIntegra
     }
 
     def getDocLinkMessage() {
-        documentationRegistry.getDocumentationRecommendationFor("information", "declaring_configurations", "sub:resolving-unsafe-configuration-resolution-errors")
+        documentationRegistry.getDocumentationRecommendationFor("information", "viewing_debugging_dependencies", "sub:resolving-unsafe-configuration-resolution-errors")
     }
 }

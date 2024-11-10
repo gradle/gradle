@@ -1009,10 +1009,10 @@ conf
         def moduleB = mavenRepo.module('group', 'moduleB', '1.0').dependsOn(moduleC).publish()
         def moduleA = mavenRepo.module('group', 'moduleA', '2.0').dependsOn(moduleB).publish()
         mavenRepo.module('group', 'bom', '1.0')
-                .hasType("pom")
-                .dependencyConstraint(moduleA)
-                .dependencyConstraint(moduleC)
-                .publish()
+            .hasType("pom")
+            .dependencyConstraint(moduleA)
+            .dependencyConstraint(moduleC)
+            .publish()
 
         buildFile << """
             apply plugin: 'java' // Java plugin required for BOM import
@@ -1060,7 +1060,7 @@ compileClasspath - Compile classpath for source set 'main'.
             }
         """
 
-        executer.expectDocumentedDeprecationWarning("The compile configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 9.0. Please use another configuration instead. For more information, please refer to https://docs.gradle.org/current/userguide/declaring_configurations.html#sec:deprecated-configurations in the Gradle documentation.")
+        executer.expectDocumentedDeprecationWarning("The compile configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 9.0. Please use another configuration instead. For more information, please refer to https://docs.gradle.org/current/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.")
 
         expect:
         succeeds ':a:dependencies'
@@ -1109,7 +1109,7 @@ compileClasspath - Compile classpath for source set 'main'.
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning("The variant configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 9.0. Please use another configuration instead. For more information, please refer to https://docs.gradle.org/current/userguide/declaring_configurations.html#sec:deprecated-configurations in the Gradle documentation.")
+        executer.expectDocumentedDeprecationWarning("The variant configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 9.0. Please use another configuration instead. For more information, please refer to https://docs.gradle.org/current/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.")
         run ":dependencies"
 
         then:
@@ -1125,7 +1125,7 @@ variant (n)
 """
 
         when:
-        executer.expectDocumentedDeprecationWarning("The variant configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 9.0. Please use another configuration instead. For more information, please refer to https://docs.gradle.org/current/userguide/declaring_configurations.html#sec:deprecated-configurations in the Gradle documentation.")
+        executer.expectDocumentedDeprecationWarning("The variant configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 9.0. Please use another configuration instead. For more information, please refer to https://docs.gradle.org/current/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.")
         run ":dependencies", "--configuration", "variant"
 
         then:
