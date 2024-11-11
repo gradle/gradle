@@ -274,7 +274,7 @@ class JarEncodingIntegrationTest extends AbstractIntegrationSpec {
 
     private static String customJarManifestTask() {
         return '''
-            class CustomJarManifest extends org.gradle.jvm.tasks.Jar {
+            abstract class CustomJarManifest extends org.gradle.jvm.tasks.Jar {
                 CustomJarManifest() {
                     super();
                     setManifest(new CustomManifest(getFileResolver()))
