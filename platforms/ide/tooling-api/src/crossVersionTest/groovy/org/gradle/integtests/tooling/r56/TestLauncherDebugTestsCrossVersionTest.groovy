@@ -90,7 +90,7 @@ class TestLauncherDebugTestsCrossVersionTest extends ToolingApiSpecification imp
         setup:
         buildFile << """
              tasks.withType(Test) {
-                  forkEvery = 1
+                  forkEvery = 1L
                   maxParallelForks = 2
             }
         """
