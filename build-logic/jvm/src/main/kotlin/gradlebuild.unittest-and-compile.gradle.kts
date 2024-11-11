@@ -19,6 +19,7 @@ import com.gradle.develocity.agent.gradle.internal.test.TestDistributionConfigur
 import com.gradle.develocity.agent.gradle.test.DevelocityTestConfiguration
 import gradlebuild.basics.BuildEnvironment
 import gradlebuild.basics.FlakyTestStrategy
+import gradlebuild.basics.ImplementationCompletenessAttribute
 import gradlebuild.basics.accessors.kotlinMainSourceSet
 import gradlebuild.basics.buildRunningOnCi
 import gradlebuild.basics.flakyTestStrategy
@@ -96,6 +97,8 @@ configureCompileDefaults()
 addCompileAllTasks()
 configureSourcesVariant()
 configureTests()
+
+configureAttributes()
 
 tasks.registerCITestDistributionLifecycleTasks()
 
@@ -245,6 +248,27 @@ fun enforceKotlinCompatibility(targetVersion: Provider<Int>, useRelease: Provide
                     listOf()
                 }
             })
+        }
+    }
+}
+//
+//class ImplCompatibilityRule
+
+class ImplCompletenessDisambiguationRule : AttributeDisambiguationRule<ImplementationCompletenessAttribute> {
+    override fun execute(t: MultipleCandidatesDetails<ImplementationCompletenessAttribute>) {
+        val stubs = t.candidateValues.find { it.name == ImplementationCompletenessAttribute.STUBS.name }
+        if (stubs != null) {
+            t.closestMatch(stubs)
+        }
+    }
+}
+
+fun configureAttributes() {
+    dependencies {
+        attributesSchema {
+            attribute(ImplementationCompletenessAttribute.attribute) {
+                disambiguationRules.add(ImplCompletenessDisambiguationRule::class.java)
+            }
         }
     }
 }

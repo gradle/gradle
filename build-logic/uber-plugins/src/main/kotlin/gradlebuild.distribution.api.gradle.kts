@@ -15,7 +15,20 @@
  */
 
 import gradlebuild.basics.GradleModuleApiAttribute
+import gradlebuild.basics.ImplementationCompletenessAttribute
+import gradlebuild.configureAsApiElements
 
 configurations["runtimeElements"].attributes {
     attribute(GradleModuleApiAttribute.attribute, GradleModuleApiAttribute.API)
+}
+
+val apiStubElements = configurations.consumable("apiStubElements") {
+    isVisible = false
+    extendsFrom(configurations.named("implementation").get())
+    extendsFrom(configurations.named("compileOnly").get())
+//    extendsFrom(configurations.compileOnlyApi.get())
+    configureAsApiElements(objects)
+    attributes {
+        attribute(ImplementationCompletenessAttribute.attribute, ImplementationCompletenessAttribute.STUBS)
+    }
 }

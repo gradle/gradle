@@ -16,6 +16,7 @@
 
 package gradlebuild
 
+import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConsumableConfiguration
 import org.gradle.api.artifacts.ResolvableConfiguration
 import org.gradle.api.attributes.Bundling
@@ -26,8 +27,17 @@ import org.gradle.api.attributes.java.TargetJvmEnvironment
 import org.gradle.api.model.ObjectFactory
 import org.gradle.kotlin.dsl.named
 
+fun Configuration.configureAsApiElements(objects: ObjectFactory) {
+    attributes {
+        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_API))
+        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
+        attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements.JAR))
+        attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling.EXTERNAL))
+    }
+}
 
-fun ConsumableConfiguration.configureAsRuntimeElements(objects: ObjectFactory) {
+
+fun Configuration.configureAsRuntimeElements(objects: ObjectFactory) {
     attributes {
         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
         attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
@@ -37,9 +47,21 @@ fun ConsumableConfiguration.configureAsRuntimeElements(objects: ObjectFactory) {
 }
 
 
-fun ResolvableConfiguration.configureAsRuntimeJarClasspath(objects: ObjectFactory) {
+fun Configuration.configureAsRuntimeJarClasspath(objects: ObjectFactory) {
     attributes {
         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
+        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
+        attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements.JAR))
+        attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling.EXTERNAL))
+        attribute(TargetJvmEnvironment.TARGET_JVM_ENVIRONMENT_ATTRIBUTE, objects.named(TargetJvmEnvironment.STANDARD_JVM))
+    }
+}
+
+
+
+fun ResolvableConfiguration.configureAsCompileJarClasspath(objects: ObjectFactory) {
+    attributes {
+        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_API))
         attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
         attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements.JAR))
         attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling.EXTERNAL))
