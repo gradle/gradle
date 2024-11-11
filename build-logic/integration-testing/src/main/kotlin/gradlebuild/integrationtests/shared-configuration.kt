@@ -166,7 +166,14 @@ fun Project.createTestTask(name: String, executer: String, sourceSet: SourceSet,
         systemProperty("org.gradle.integtest.executer", executer)
         addDebugProperties()
         testClassesDirs = sourceSet.output.classesDirs
-        classpath = sourceSet.runtimeClasspath
+        /*
+         * The 'kotlin-daemon-client.jar' repackages 'native-platform' with all its binaries.
+         * Here we make sure it is placed at the end of the test classpath so that we do not accidentally
+         * pick parts of 'native-platform' from the 'kotlin-daemon-client.jar' when instantiating
+         * a Gradle runner.
+         */
+        classpath = sourceSet.runtimeClasspath.filter { !it.name.startsWith("kotlin-daemon-client") }
+            .plus(sourceSet.runtimeClasspath.filter { it.name.startsWith("kotlin-daemon-client") })
         extraConfig.execute(this)
         if (integTest.usesJavadocCodeSnippets.get()) {
             val samplesDir = layout.projectDirectory.dir("src/main")

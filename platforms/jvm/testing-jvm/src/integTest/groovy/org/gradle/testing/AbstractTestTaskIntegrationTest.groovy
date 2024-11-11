@@ -23,9 +23,6 @@ import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 import spock.lang.Issue
 
-import static org.gradle.api.internal.DocumentationRegistry.BASE_URL
-import static org.gradle.api.internal.DocumentationRegistry.RECOMMENDATION
-
 abstract class AbstractTestTaskIntegrationTest extends AbstractTestingMultiVersionIntegrationTest {
     abstract String getStandaloneTestClass()
     abstract String testClass(String className)
@@ -320,40 +317,6 @@ abstract class AbstractTestTaskIntegrationTest extends AbstractTestingMultiVersi
 
         expect:
         succeeds("test", "verifyTestOptions", "--warn")
-    }
-
-    def "setForkEvery null emits deprecation warning"() {
-        given:
-        buildFile << """
-            tasks.withType(Test).configureEach {
-                forkEvery = null
-            }
-        """
-
-        when:
-        executer.expectDocumentedDeprecationWarning("Setting Test.forkEvery to null. This behavior has been deprecated. " +
-            "This will fail with an error in Gradle 9.0. Set Test.forkEvery to 0 instead. " +
-            String.format(RECOMMENDATION, "information", "${BASE_URL}/dsl/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:forkEvery"))
-
-        then:
-        succeeds "test", "--dry-run"
-    }
-
-    def "setForkEvery Long emits deprecation warning"() {
-        given:
-        buildFile << """
-            tasks.withType(Test).configureEach {
-                setForkEvery(Long.valueOf(1))
-            }
-        """
-
-        when:
-        executer.expectDocumentedDeprecationWarning("The Test.setForkEvery(Long) method has been deprecated. " +
-            "This is scheduled to be removed in Gradle 9.0. Please use the Test.setForkEvery(long) method instead. " +
-            String.format(RECOMMENDATION, "information", "${BASE_URL}/dsl/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:forkEvery"))
-
-        then:
-        succeeds "test", "--dry-run"
     }
 
     private String java9Build() {
