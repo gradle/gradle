@@ -117,7 +117,7 @@ public abstract class JacocoPlugin implements Plugin<Project> {
     }
 
     private void createCoverageDataVariant(ProjectInternal project, JvmTestSuite suite, JvmTestSuiteTarget target) {
-        @SuppressWarnings("deprecation") final Configuration variant = project.getConfigurations().migratingUnlocked(COVERAGE_DATA_ELEMENTS_VARIANT_PREFIX + StringUtils.capitalize(target.getName()), ConfigurationRolesForMigration.CONSUMABLE_DEPENDENCY_SCOPE_TO_CONSUMABLE);
+        final Configuration variant = project.getConfigurations().migratingUnlocked(COVERAGE_DATA_ELEMENTS_VARIANT_PREFIX + StringUtils.capitalize(target.getName()), ConfigurationRolesForMigration.CONSUMABLE_DEPENDENCY_SCOPE_TO_CONSUMABLE);
         variant.setDescription("Binary data file containing results of Jacoco test coverage reporting for the " + suite.getName() + " Test Suite's " + target.getName() + " target.");
         variant.setVisible(false);
 
