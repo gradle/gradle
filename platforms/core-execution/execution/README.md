@@ -3,12 +3,13 @@
 The execution engine is the main component of the execution platform.
 Its purpose is to provide a simple, unified way of declaring _units of work_ that the engine can execute, producing their outputs safely and efficiently in a concurrent environment.[^concurrent-environment]
 To achieve this goal, the engine utilizes a host of safeguards and optimizations.
-Notably, the execution engine is not responsible for deciding which units of work require output production, nor is it concerned with scheduling executions.
+Notably, the execution engine is not responsible for deciding which units of work require output production, nor is it concerned with scheduling executions (see the scheduler about that).
 
 [^concurrent-environment]: This means the engine is fully thread-safe and ensures that parallel execution of work does not cause problems, even when multiple processes are executing units of work simultaneously.
 
 Any action with well-defined inputs and outputs, where safe execution or output reuse is required, can be implemented using the execution engine.
 Indeed, it is our aspiration in Gradle for all such work to be executed via the execution engine.
+At the time of writing several work-like entities in Gradle exist that are not executed via the execution engine.
 
 It is also our aspiration for the execution engine to be independent of Gradle concepts.
 In part this is a good way to ensure wider usability in the future.
@@ -102,12 +103,17 @@ Fundamentally, the execution engine supports two kinds of work: _incremental_ an
 
 - **Non-Incremental Work**: Identified by its full set of inputs.
   Changing any input effectively creates a new identity.
+
 - **Incremental Work**: Has some **incremental inputs** that are not part of the work's identity.
   Changing these incremental inputs does not change the work's identity.
   However, changing a non-incremental input _does_ change the identity.[^task-identity]
 
 [^task-identity]: This is currently not true for tasks, whose identity is the task's full path.
 The plan is to change this and have tasks execute in workspaces similar to artifact transforms.
+
+It is the responsibility of work to declare whether or not it is incremental.
+Any type of work can be executed incrementally by the engine, though currently it is only used by some tasks and artifact transforms.
+Other types of work like accessor generation never relies on incremental execution.
 
 Incremental work is executed within the same workspace as long as only incremental inputs are changing.
 This allows the work to reuse outputs from previous executions and update them instead of regenerating everything from scratch.
@@ -132,7 +138,8 @@ This is mostly historical and should be addressed.
 
 A task's identity is its full path (e.g., `:project-name:taskName`).
 Crucially, this identity is independent of non-incremental inputs.
-For non-incremental tasks, when a non-incremental input changes, previous outputs are still presented to the action, making it the action's responsibility to clean them up.
+For non-incremental tasks, when one of their (non-incremental) inputs changes, previous outputs are still presented to the action, making it the action's responsibility to clean them up.
+
 For incremental tasks, the execution engine automatically cleans up outputs when non-incremental inputs change.
 The plan is to extend this behavior to non-incremental tasks as well (or execute them via the same immutable workspaces used for non-incremental transforms).
 However, some tasks do not declare themselves as incremental yet exploit the ability to update their outputs.
