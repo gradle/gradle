@@ -19,7 +19,6 @@ package org.gradle.api.plugins;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.api.plugins.jvm.internal.DefaultJvmTestSuite;
@@ -62,10 +61,10 @@ public abstract class JvmTestSuitePlugin implements Plugin<Project> {
         testing.getSuites().withType(JvmTestSuite.class).all(testSuite -> {
             testSuite.getTargets().all(target -> {
                 target.getTestTask().configure(test -> {
-                    ((ConfigurableFileCollection)test.getTestClassesDirs()).convention((Callable<FileCollection>) () ->
+                    test.getTestClassesDirs().convention((Callable<FileCollection>) () ->
                         testSuite.getSources().getOutput().getClassesDirs()
                     );
-                    ((ConfigurableFileCollection)test.getClasspath()).convention((Callable<FileCollection>) () ->
+                    test.getClasspath().convention((Callable<FileCollection>) () ->
                         testSuite.getSources().getRuntimeClasspath()
                     );
                 });
