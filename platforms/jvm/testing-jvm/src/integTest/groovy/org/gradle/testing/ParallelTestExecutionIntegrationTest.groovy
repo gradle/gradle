@@ -56,7 +56,7 @@ class ParallelTestExecutionIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             test {
                 maxParallelForks = $maxParallelForks
-                forkEvery = $forkEvery
+                forkEvery = ${forkEvery}L
             }
         """.stripIndent()
 

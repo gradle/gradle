@@ -51,7 +51,7 @@ class JvmBlockingTestClassGenerator {
 
             tasks.withType(Test) {
                 maxParallelForks = $maxWorkers
-                forkEvery = $forkEvery
+                forkEvery = ${forkEvery}L
             }
 
             test.$testFrameworkConfiguration

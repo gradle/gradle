@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.testing
 
 import org.apache.commons.io.FileUtils
+import org.gradle.api.GradleException
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.ConventionTask
@@ -26,6 +27,7 @@ import org.gradle.api.internal.file.FileTreeInternal
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree
 import org.gradle.api.internal.provider.AbstractProperty
+import org.gradle.api.internal.tasks.testing.JvmTestExecutionSpec
 import org.gradle.api.internal.tasks.testing.TestExecuter
 import org.gradle.api.internal.tasks.testing.TestExecutionSpec
 import org.gradle.api.internal.tasks.testing.TestFramework
@@ -80,8 +82,8 @@ class TestTest extends AbstractConventionTaskTest {
 
     def "test default settings"() {
         expect:
-        test.getTestFramework() instanceof JUnitTestFramework
-        test.getTestClassesDirs() == null
+        test.getTestFramework().get() instanceof JUnitTestFramework
+        test.getTestClassesDirs().isEmpty()
         test.getClasspath().files.isEmpty()
         test.getReports().getJunitXml().outputLocation.getOrNull() == null
         test.getReports().getHtml().outputLocation.getOrNull() == null
@@ -140,13 +142,19 @@ class TestTest extends AbstractConventionTaskTest {
     def "disables parallel execution when in debug mode"() {
         given:
         configureTask()
+        TestExecutionSpec testExecutionSpec = null
 
         when:
-        test.setDebug(true)
-        test.setMaxParallelForks(4)
+        test.debug = true
+        test.maxParallelForks = 4
+        test.executeTests()
 
         then:
-        test.getMaxParallelForks() == 1
+        1 * testExecuterMock.execute(_ as TestExecutionSpec, _ as TestResultProcessor) >> {
+            arguments -> testExecutionSpec = arguments[0]
+        }
+        testExecutionSpec instanceof JvmTestExecutionSpec
+        (testExecutionSpec as JvmTestExecutionSpec).getMaxParallelForks() == 1
     }
 
     def "test includes"() {
@@ -247,7 +255,7 @@ class TestTest extends AbstractConventionTaskTest {
         test.javaLauncher.set(launcher)
 
         then:
-        test.getJavaVersion().majorVersion == Integer.toString(jdk.javaVersionMajor)
+        test.getJavaVersion().get().majorVersion == Integer.toString(jdk.javaVersionMajor)
     }
 
     private void assertIsDirectoryTree(FileTreeInternal classFiles, Set<String> includes, Set<String> excludes) {
@@ -306,10 +314,10 @@ class TestTest extends AbstractConventionTaskTest {
 
         when:
         testTask.executable = executableDir.absolutePath
-        testTask.javaVersion
+        testTask.javaVersion.get()
 
         then:
-        def e = thrown(AbstractProperty.PropertyQueryException)
+        def e = thrown(InvalidUserDataException)
         def cause = TestUtil.getRootCause(e) as InvalidUserDataException
         cause.message.contains("The configured executable is a directory")
         cause.message.contains(executableDir.name)
@@ -321,10 +329,10 @@ class TestTest extends AbstractConventionTaskTest {
 
         when:
         testTask.executable = invalidJavac.absolutePath
-        testTask.javaVersion
+        testTask.javaVersion.get()
 
         then:
-        def e = thrown(AbstractProperty.PropertyQueryException)
+        def e = thrown(GradleException)
         assertHasMatchingCause(e, m -> m.startsWith("Toolchain installation '${invalidJavac.parentFile.parentFile.absolutePath}' could not be probed:"))
         assertHasMatchingCause(e, m -> m ==~ /Cannot run program .*java.*/)
     }

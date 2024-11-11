@@ -478,7 +478,7 @@ public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
 
         @Override
         public Iterable<String> asArguments() {
-            return test.getJavaVersion().isCompatibleWith(JavaVersion.VERSION_1_9)
+            return test.getJavaVersion().get().isCompatibleWith(JavaVersion.VERSION_1_9)
                 ? Collections.singletonList("--add-opens=java.base/java.lang=ALL-UNNAMED")
                 : Collections.emptyList();
         }

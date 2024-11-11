@@ -70,6 +70,11 @@ tasks {
 }
 
 fun Test.setupPreconditionTesting() {
+    // TODO: Delete after Gradle 9.0, used just to pass Gradleception tests
+    operator fun ConfigurableFileCollection.plusAssign(fileCollection: FileCollection) {
+        from(fileCollection)
+    }
+
     // We only want to execute our special tests
     // so we override what classes are going to run
     testClassesDirs = sourceSets.test.get().output.classesDirs

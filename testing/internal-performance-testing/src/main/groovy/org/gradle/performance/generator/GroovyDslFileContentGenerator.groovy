@@ -45,7 +45,7 @@ class GroovyDslFileContentGenerator extends FileContentGenerator {
         """
         String compilerMemory = getProperty('compilerMemory')
         String testRunnerMemory = getProperty('testRunnerMemory')
-        int testForkEvery = getProperty('testForkEvery') as Integer
+        long testForkEvery = getProperty('testForkEvery') as Long
         List<String> javaCompileJvmArgs = findProperty('javaCompileJvmArgs')?.tokenize(';') ?: []
 
         tasks.withType(AbstractCompile).configureEach {
