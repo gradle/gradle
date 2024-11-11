@@ -46,8 +46,8 @@ public abstract class Cached<T> {
 
     private static class Deferred<T> extends Cached<T> implements java.io.Serializable, EvaluationOwner {
 
-        private Callable<T> computation;
-        private Try<T> result;
+        private volatile Callable<T> computation;
+        private volatile Try<T> result;
 
         public Deferred(Callable<T> computation) {
             this.computation = computation;
@@ -59,6 +59,7 @@ public abstract class Cached<T> {
         }
 
         private Try<T> result() {
+            Callable<T> toCompute = computation;
             if (result == null) {
                 // copy reference into the call stack to avoid exacerbating https://github.com/gradle/gradle/issues/31239
                 result = tryComputation(computation);
