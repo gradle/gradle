@@ -91,7 +91,7 @@ class DefaultWorkerProcessBuilderIntegrationTest extends AbstractIntegrationSpec
                     new File(nonExistingDir, "*")
                 )
 
-                classpath += extraClasspath
+                classpath.from(extraClasspath)
             }
         """
 
