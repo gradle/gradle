@@ -31,6 +31,13 @@ import java.util.concurrent.Callable;
  */
 public abstract class Cached<T> {
 
+    /**
+     * Creates a cacheable computation. The returned object IS NOT safe to be used from multiple threads.
+     * If an unresolved cached computation is used from multiple threads, not only it does not honor
+     * "at-most-once" semantics, but it can fail in unpredictable ways.
+     *
+     * @see <a href="https://github.com/gradle/gradle/issues/31239">bug report</a>
+     */
     public static <T> Cached<T> of(Callable<T> computation) {
         return new Deferred<>(computation);
     }
@@ -53,16 +60,17 @@ public abstract class Cached<T> {
 
         private Try<T> result() {
             if (result == null) {
-                result = tryComputation();
+                // copy reference into the call stack to avoid exacerbating https://github.com/gradle/gradle/issues/31239
+                result = tryComputation(computation);
                 computation = null;
             }
             return result;
         }
 
         @Nonnull
-        private Try<T> tryComputation() {
+        private Try<T> tryComputation(Callable<T> toCompute) {
             // wrap computation as an "evaluation" so it can be treated specially as other evaluations
-            return EvaluationContext.current().evaluate(this, () -> Try.ofFailable(computation));
+            return EvaluationContext.current().evaluate(this, () -> Try.ofFailable(toCompute));
         }
 
         private Object writeReplace() {
