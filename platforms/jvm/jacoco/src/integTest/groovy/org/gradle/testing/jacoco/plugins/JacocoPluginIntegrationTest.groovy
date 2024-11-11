@@ -129,7 +129,7 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec implements Ins
         return new JacocoReportFixture(file(basedir))
     }
 
-    def "reports miss configuration of destination file"() {
+    def "reports misconfiguration of destination file"() {
         given:
         buildFile << """
             test {
@@ -143,7 +143,7 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec implements Ins
         runAndFail("test")
 
         then:
-        errorOutput.contains("JaCoCo destination file must not be null if output type is FILE")
+        errorOutput.contains("JaCoCo destination file property must be set if output type is FILE")
     }
 
     def "jacoco plugin adds outgoing variants for default test suite"() {
