@@ -1,5 +1,5 @@
 tasks.register<Zip>("createZip") {
-    isPreserveFileTimestamps = false
-    isReproducibleFileOrder = true
+    preserveFileTimestamps = false
+    reproducibleFileOrder = true
     // ...
 }
