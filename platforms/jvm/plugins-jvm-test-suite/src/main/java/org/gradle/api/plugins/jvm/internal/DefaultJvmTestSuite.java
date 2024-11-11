@@ -128,7 +128,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
 
     private void initializeTestFramework(Test task) {
         // The Test task's testing framework is derived from the test suite's toolchain
-        task.getTestFrameworkProperty().convention(getTestToolchain().map(toolchain -> toolchain.createTestFramework(task)));
+        task.getTestFramework().convention(getTestToolchain().map(toolchain -> toolchain.createTestFramework(task)));
     }
 
     private void addDefaultTestTarget() {

@@ -58,10 +58,10 @@ class DefaultWorkerProcessBuilderIntegrationTest extends AbstractIntegrationSpec
 
         tasks.test {
             doFirst {
-                classpath += files(System.getProperty("user.home"),
+                classpath.from(files(System.getProperty("user.home"),
                         System.getProperty("user.home") + File.separator + "*",
                         System.getProperty("user.home") + File.separator + "Non exist path",
-                        System.getProperty("user.home") + File.separator + "Non exist path" + File.separator + "*")
+                        System.getProperty("user.home") + File.separator + "Non exist path" + File.separator + "*"))
             }
         }
         """
