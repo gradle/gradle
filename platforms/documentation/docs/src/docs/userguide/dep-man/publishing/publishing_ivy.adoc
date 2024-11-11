@@ -17,7 +17,7 @@
 
 The Ivy Publish Plugin provides the ability to publish build artifacts in the http://ant.apache.org/ivy/[Apache Ivy] format, usually to a repository for consumption by other builds or projects. What is published is one or more artifacts created by the build, and an Ivy _module descriptor_ (normally `ivy.xml`) that describes the artifacts and the dependencies of the artifacts, if any.
 
-A published Ivy module can be consumed by Gradle (see <<declaring_dependencies.adoc#declaring-basic-dependencies,Declaring Dependencies>>) and other tools that understand the Ivy format. You can learn about the fundamentals of publishing in <<publishing_setup.adoc#publishing_overview,Publishing Overview>>.
+A published Ivy module can be consumed by Gradle (see <<declaring_dependencies.adoc#one-declaring-dependencies,Declaring Dependencies>>) and other tools that understand the Ivy format. You can learn about the fundamentals of publishing in <<publishing_setup.adoc#publishing_overview,Publishing Overview>>.
 
 [[publishing_ivy:usage]]
 == Usage
@@ -112,7 +112,7 @@ Two strategies are supported for publishing dependencies:
 
 Declared versions (default)::
 This strategy publishes the versions that are defined by the build script author with the dependency declarations in the `dependencies` block.
-Any other kind of processing, for example through <<resolution_rules.adoc#resolution_rules,a rule changing the resolved version>>, will not be taken into account for the publication.
+Any other kind of processing, for example through <<resolution_rules.adoc#using-resolution-rules,a rule changing the resolved version>>, will not be taken into account for the publication.
 
 Resolved versions::
 This strategy publishes the versions that were resolved during the build, possibly by applying resolution rules and automatic conflict resolution.
@@ -121,7 +121,7 @@ This has the advantage that the published versions correspond to the ones the pu
 Example use cases for resolved versions:
 
 * A project uses dynamic versions for dependencies but prefers exposing the resolved version for a given release to its consumers.
-* In combination with <<dependency_locking.adoc#dependency-locking,dependency locking>>, you want to publish the locked versions.
+* In combination with <<dependency_locking.adoc#locking-versions,dependency locking>>, you want to publish the locked versions.
 * A project leverages the rich versions constraints of Gradle, which have a lossy conversion to Ivy.
 Instead of relying on the conversion, it publishes the resolved versions.
 

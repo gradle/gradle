@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[[dependency_resolution_resolution]]
+[[dependency-graph-resolution]]
 = Dependency Graph Resolution
 
 The output of the _graph resolution_ phase is a fully resolved *dependency graph*, which is used as the input to the _artifact resolution_ phase.

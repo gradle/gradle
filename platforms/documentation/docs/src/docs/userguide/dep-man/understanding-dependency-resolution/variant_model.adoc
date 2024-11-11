@@ -18,7 +18,7 @@
 = Understanding the Dependency Resolution Model
 
 This chapter explains how dependency resolution works within Gradle.
-After learning how to declare <<declaring_repositories.adoc#declaring-basic-repositories,repositories>> and <<declaring_dependencies.adoc#declaring-basic-dependencies,dependencies>>, the next step is understanding how these declarations are combined during the dependency resolution process.
+After learning how to declare <<declaring_repositories.adoc#three-declaring-repositories,repositories>> and <<declaring_dependencies.adoc#one-declaring-dependencies,dependencies>>, the next step is understanding how these declarations are combined during the dependency resolution process.
 
 Dependency resolution happens in two key phases, repeated until the entire dependency graph is constructed:
 
@@ -47,13 +47,13 @@ A version conflict occurs when two components:
 ** Our project directly depends on `com.google.guava:guava:20.0`
 ** Our project also depends on `com.google.inject:guice:4.2.2`, which in turn depends on `com.google.guava:guava:25.1-android`
 
-[[sub:resolution-strategy]]
+[[sec:resolution-strategy]]
 Gradle must resolve this conflict by selecting one version to include in the dependency graph.
 
 Gradle considers all requested versions across the dependency graph and, by default, selects the _highest_ version.
-Detailed version ordering is explained in <<single_versions#version_ordering,version ordering>>.
+Detailed version ordering is explained in <<dependency_versions.adoc#sec:version-ordering,version ordering>>.
 
-Gradle also supports the concept of <<rich_versions.adoc#rich-version-constraints,rich version declarations>>, which means that what constitutes the "highest" version depends on how the versions were declared:
+Gradle also supports the concept of <<dependency_versions.adoc#sec:rich-version-constraints,rich version declarations>>, which means that what constitutes the "highest" version depends on how the versions were declared:
 
 * **Without ranges**: The highest non-rejected version will be selected.
 ** If a `strictly` version is declared that is lower than the highest, resolution will fail.
@@ -133,12 +133,12 @@ If all versions have qualifiers, Gradle will consider the qualifier's order, pre
 
 Gradle uses **variants** and **capabilities** to define what a module *provides*.
 
-<<component_capabilities.adoc#sub:selecting-between-candidates,Conflicts>> arise in the following scenarios:
+<<component_capabilities.adoc#sec:selecting-between-candidates,Conflicts>> arise in the following scenarios:
 
 - **Incompatible variants**: When two modules attempt to select different, incompatible variants of a dependency.
 - **Same capability**: When multiple modules declare the same capability, creating an overlap in functionality.
 
-For more details on how variant selection works and how it enables flexible dependency management, refer to the <<variant_model.adoc#understanding-variant-selection>> below.
+For more details on how variant selection works and how it enables flexible dependency management, refer to the <<variant_model.adoc#sec:understanding-variant-selection>> below.
 
 [[sec:how-gradle-downloads-deps]]
 == Phase 2. Dependency metadata retrieval
@@ -161,7 +161,7 @@ When faced with a dynamic version, Gradle must identify the available concrete v
 
 The result is a list of candidate versions that Gradle evaluates and matches to the dynamic version.
 Gradle <<dependency_caching.adoc#sec:controlling-dynamic-version-caching,caches>> this information to optimize future resolution.
-At this point, <<#sub:resolution-strategy,version conflict resolution>> is resumed.
+At this point, <<#sec:resolution-strategy,version conflict resolution>> is resumed.
 
 === B. Resolving module dependencies for a specific version
 
@@ -178,9 +178,10 @@ When Gradle tries to resolve a required dependency with a specific version, it f
 
 [NOTE]
 ====
-The point above highlights a potential issue with integrating <<declaring_repositories_adv.adoc#sec:case-for-maven-local,Maven Local>>. Since Maven Local acts as a Maven cache, it may occasionally miss artifacts for a module. When Gradle sources a module from Maven Local and artifacts are missing, it assumes those artifacts are entirely unavailable.
+The point above highlights a potential issue with integrating <<supported_repository_types.adoc#sec:case-for-maven-local,Maven Local>>. Since Maven Local acts as a Maven cache, it may occasionally miss artifacts for a module. When Gradle sources a module from Maven Local and artifacts are missing, it assumes those artifacts are entirely unavailable.
 ====
 
+[[sec:repository-disabling]]
 == Repository disabling
 
 When Gradle fails to retrieve information from a repository, it disables the repository for the remainder of the build and fails all dependency resolution.
@@ -197,7 +198,7 @@ If the connection fails, Gradle retries on specific errors that might be tempora
 
 A repository is blacklisted when it cannot be reached, either due to a permanent error or after the maximum number of retries has been exhausted.
 
-[[understanding-variant-selection]]
+[[sec:understanding-variant-selection]]
 == Understanding variant selection
 
 Gradle's dependency management engine is _variant aware_.
@@ -208,7 +209,7 @@ In addition to components, Gradle introduces the concept of _variants_.
 Variants represent different ways a component can be used, such as for Java compilation, native linking, or documentation.
 Each variant may have its own artifacts and dependencies.
 
-When multiple variants are available, Gradle uses <<variant_attributes.adoc#variant_attributes,attributes>> to determine which variant to choose.
+When multiple variants are available, Gradle uses <<variant_attributes.adoc#variant-attributes,attributes>> to determine which variant to choose.
 These attributes provide meaning to the variants and ensure that the dependency resolution process produces a consistent result.
 
 Here are some examples of common variants in Gradle:
@@ -227,7 +228,7 @@ Gradle distinguishes between two types of components:
 - Local components (like projects), which are built from sources such as `:json-library`
 - External components, which are published to repositories such as `org.apache.commons:commons-lang3:3.12.0`
 
-For local components, <<#sec:abm_configuration_attributes, variants are mapped to consumable configurations>>.
+For local components, <<#sec:abm-configuration-attributes, variants are mapped to consumable configurations>>.
 For external components, variants are defined by Gradle Module Metadata or <<#sec:mapping-maven-ivy-to-variants, derived from Ivy/Maven metadata>>.
 
 .Variants vs Configurations
@@ -238,10 +239,10 @@ All components provide variants, and these variants may be backed by a consumabl
 However, not all configurations are variants, as some are used solely for declaring or resolving dependencies rather than representing consumable component variants.
 --
 
-[[sec:abm_configuration_attributes]]
+[[sec:abm-configuration-attributes]]
 === Variant attributes
 
-<<variant_attributes.adoc#variant_attributes,Attributes>> are type-safe key-value pairs used by both the consumer and the producer during variant selection.
+<<variant_attributes.adoc#variant-attributes,Attributes>> are type-safe key-value pairs used by both the consumer and the producer during variant selection.
 
 - **Consumer attributes**: Define the desired characteristics of a variant for a resolvable configuration.
 The consumer can specify multiple attributes to narrow down the available options.
@@ -254,14 +255,14 @@ Not all attributes of a variant need to match the consumer's specified attribute
 
 IMPORTANT: The variant name is primarily used for debugging and error messages. It does not play a role in variant matching; only the variant's attributes are used in the matching process.
 
-[[sec:abm_algorithm]]
+[[sec:abm-algorithm]]
 There are no restrictions on how many variants a component can define.
 A typical component will include at least an implementation variant but may also provide additional variants, such as test fixtures, documentation, or source code.
 Furthermore, a component can offer _different variants_ for the same usage, depending on the consumer.
 For instance, during compilation, a component may provide different headers for Linux, Windows, and macOS.
 
 Gradle performs _variant-aware selection_ by matching the attributes specified by the consumer with those defined by the producer.
-The details of this process are covered in the <<variant_model.adoc#sec:abm_algorithm, selection algorithm>> section.
+The details of this process are covered in the <<variant_model.adoc#sec:abm-algorithm, selection algorithm>> section.
 
 [NOTE]
 ====
@@ -391,12 +392,12 @@ In this scenario, all _compatible_ candidate variants are listed along with thei
 - **Compatible attributes**: Shown next, these highlight how the candidate variants align with the consumer’s requirements.
 - **Incompatible attributes**: Will not be shown, as incompatible variants are excluded.
 
-In the example above, the issue isn't with attribute matching but with <<component_capabilities.adoc#sub:selecting-between-candidates,**capability matching**>>.
+In the example above, the issue isn't with attribute matching but with <<component_capabilities.adoc#sec:selecting-between-candidates,**capability matching**>>.
 Both `feature1ApiElements` and `feature2ApiElements` offer the same attributes and capabilities, making them indistinguishable to Gradle.
 
 To resolve this, you can modify the producer (`project :lib`) to provide different capabilities or express a capability choice on the consumer side (`project :ui`) to disambiguate between the variants.
 
-[[sub:variant-no-match]]
+[[sec:variant-no-match]]
 === Dealing with no matching variant errors
 
 A no matching variant error might look like this:
@@ -442,7 +443,7 @@ In these cases, _potentially compatible_ candidate variants are displayed, showi
 The goal here is to understand which variant could be selected, if any.
 In some cases, there may simply be no compatible variants from the producer (for example, if the consumer requires a `dll` but the producer only offers a `jar` or if a library is built for Java 11, but the consumer requires Java 8).
 
-[[sub:variant-incompatible]]
+[[sec:variant-incompatible]]
 === Dealing with incompatible variant errors
 
 An incompatible variant error looks like the following example, where a consumer wants to select a variant with `color=green`, but the only variant available has `color=blue`:
@@ -483,7 +484,7 @@ Unfortunately one variant has `color=blue` and the other has `color=green`:
            - Variant org.example:pi2e5:1.0 variant greenElementsCapability2 has attributes {color=green}
 ----
 
-[[sub:transform-ambiguity]]
+[[sec:transform-ambiguity]]
 === Dealing with ambiguous transformation errors
 
 ArtifactTransforms can be used to transform artifacts from one type to another, changing their attributes.
@@ -522,7 +523,7 @@ If a project registers multiple artifact transforms, needs to use an artifact tr
 
 The report task `outgoingVariants` shows the list of variants available for selection by consumers of the project. It displays the capabilities, attributes and artifacts for each variant.
 
-This task is similar to the `dependencyInsight` <<viewing_debugging_dependencies.adoc#sec:identifying_reason_dependency_selection,reporting task>>.
+This task is similar to the `dependencyInsight` <<viewing_debugging_dependencies.adoc#sec:identifying-reason-dependency-selection,reporting task>>.
 
 By default, `outgoingVariants` prints information about all variants.
 It offers the optional parameter `--variant <variantName>` to select a single variant to display.
@@ -663,7 +664,7 @@ This allows the report to display information about the issue.
 
 === Resolvable configurations report
 
-Gradle also offers a complimentary report task called `resolvableConfigurations` that displays the _resolvable_ configurations of a project, which are those which can have dependencies added and be resolved.  The report will list their attributes and any configurations that they extend.  It will also list a summary of any attributes which will be affected by <<variant_attributes.adoc#sec:abm_compatibility_rules, Compatibility Rules>> or <<variant_attributes.adoc#sec:abm_disambiguation_rules, Disambiguation Rules>> during resolution.
+Gradle also offers a complimentary report task called `resolvableConfigurations` that displays the _resolvable_ configurations of a project, which are those which can have dependencies added and be resolved.  The report will list their attributes and any configurations that they extend.  It will also list a summary of any attributes which will be affected by <<variant_attributes.adoc#sec:abm-compatibility-rules, Compatibility Rules>> or <<variant_attributes.adoc#sec:abm-disambiguation-rules, Disambiguation Rules>> during resolution.
 
 By default, `resolvableConfigurations` prints information about all purely resolvable configurations.
 These are configurations that are marked resolvable but *not* marked consumable.
@@ -808,7 +809,7 @@ It is similar to the `pom.xml` or `ivy.xml` metadata file, but this format conta
 See the {metadata-file-spec}[Gradle Module Metadata specification] for more information.
 --
 
-[[sub:maven-mapping-to-variants]]
+[[sec:maven-mapping-to-variants]]
 === Mapping of Maven POM metadata to variants
 
 Modules published on a Maven repository are automatically converted into variant-aware modules.
@@ -837,18 +838,18 @@ All dependencies of those scopes are considered _runtime dependencies_.
 ** the `enforced-platform-compile` is similar to `platform-compile` but all the constraints are _forced_
 ** the `enforced-platform-runtime` is similar to `platform-runtime` but all the constraints are _forced_
 
-You can understand more about the use of platform and enforced platforms variants by looking at the <<platforms.adoc#sub:bom_import, importing BOMs>> section of the manual.
+You can understand more about the use of platform and enforced platforms variants by looking at the <<platforms.adoc#sec:bom-import, importing BOMs>> section of the manual.
 By default, whenever you declare a dependency on a Maven module, Gradle is going to look for the `library` variants.
 However, using the `platform` or `enforcedPlatform` keyword, Gradle is now looking for one of the "platform" variants, which allows you to import the constraints from the POM files, instead of the dependencies.
 
-[[sub:ivy-mapping-to-variants]]
+[[sec:ivy-mapping-to-variants]]
 === Mapping of Ivy files to variants
 
 Gradle has no built-in derivation strategy implemented for Ivy files.
 Ivy is a flexible format that allows you to publish arbitrary files and can be heavily customized.
 
-If you want to implement a derivation strategy for _compile_ and _runtime_ variants for Ivy, you can do so with <<component_metadata_rules.adoc#sec:component_metadata_rules,component metadata rule>>.
-The component metadata rules API allows you to <<component_metadata_rules.adoc#sec:component_metadata_rules_details,access Ivy configurations>> and create variants based on them.
+If you want to implement a derivation strategy for _compile_ and _runtime_ variants for Ivy, you can do so with <<component_metadata_rules.adoc#component-metadata-rules,component metadata rule>>.
+The component metadata rules API allows you to <<component_metadata_rules.adoc#sec:component-metadata-rules-details,access Ivy configurations>> and create variants based on them.
 If you know that all the Ivy modules your are consuming have been published with Gradle without further customizations of the `ivy.xml` file, you can add the following rule to your build:
 
 .Deriving compile and runtime variants for Ivy metadata

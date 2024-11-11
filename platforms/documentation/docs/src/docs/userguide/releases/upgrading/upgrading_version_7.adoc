@@ -1415,7 +1415,7 @@ Now Gradle will also check for exclusion on the substitution result.
 ==== Version catalog
 
 Generated accessors no longer give access to the type unsafe API.
-You have to use the <<version_catalogs.adoc#sub:type-unsafe-access-to-catalog,version catalog extension>> instead.
+You have to use the <<version_catalogs.adoc#sec:type-unsafe-access-to-catalog,version catalog extension>> instead.
 
 ==== Toolchain support in Scala
 
@@ -1635,7 +1635,7 @@ You can pass the `profile` system property to Gradle using `gradle -Dprofile=cus
 [[dependency_substitutions_with]]
 ==== Substitution.with replaced with Substitution.using
 
-<<resolution_rules#sec:dependency_substitution_rules, Dependency substitutions>> using `with` method have been deprecated and are replaced with `using` method that also allows chaining.
+<<resolution_rules#sec:dependency-substitution-rules, Dependency substitutions>> using `with` method have been deprecated and are replaced with `using` method that also allows chaining.
 For example, a dependency substitution rule `substitute(project(':a')).with(project(':b'))` should be replaced with
 `substitute(project(':a')).using(project(':b'))`.
 With chaining you can, for example, add a reason for a substitution like this: `substitute(project(':a')).using(project(':b')).because("a reason")`.
@@ -1786,4 +1786,4 @@ When Gradle first introduced artifact transforms, it used the base class `Artifa
 Gradle 5.3 introduced the interface `TransformAction` for implementing artifact transforms, replacing the previous class `ArtifactTransform` and addressing various shortcomings.
 Using the registration method link:{groovyDslPath}/org.gradle.api.artifacts.dsl.DependencyHandler.html#org.gradle.api.artifacts.dsl.DependencyHandler:registerTransform(org.gradle.api.Action)[DependencyHandler.registerTransform(Action)] for `ArtifactTransform` has been deprecated.
 Migrate your artifact transform to use `TransformAction` and use link:{groovyDslPath}/org.gradle.api.artifacts.dsl.DependencyHandler.html#org.gradle.api.artifacts.dsl.DependencyHandler:registerTransform(java.lang.Class,%20org.gradle.api.Action)[DependencyHandler.registerTransform(Class, Action)] instead.
-See the <<artifact_transforms#sec:abm_artifact_transforms,user manual>> for more information on implementing `TransformAction`.
+See the <<artifact_transforms.adoc#sec:abm-artifact-transforms,user manual>> for more information on implementing `TransformAction`.

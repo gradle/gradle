@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[[single-version-declarations]]
+[[declaring-versions-ranges]]
 = Declaring Versions and Ranges
 
 You can specify dependencies with exact versions or version ranges to define which versions your project can use:
@@ -28,6 +28,7 @@ dependencies {
 }
 ----
 
+[[sec:single-version-declarations]]
 == Understanding version declaration
 
 Gradle supports various ways to declare *versions and ranges*:
@@ -63,7 +64,7 @@ Declaring a version as `+`, without any prefix, will include any version.
 |Indicates a snapshot version.
 |===
 
-[[version_ordering]]
+[[sec:version-ordering]]
 == Understanding version ordering
 
 [source,kotlin]
@@ -78,14 +79,14 @@ Version ordering is used to:
 
 * Determine if a particular *version is included in a range*.
 * Determine which *version is newest* when performing conflict resolution (using
-<<dependency_resolution_adv#sec:base-version-comparison,"base versions">>).
+<<variant_model.adoc#sec:base-version-comparison,"base versions">>).
 
 Versions are ordered based on the following rules:
 
 * **Splitting Versions into Parts:**
 ** Versions are divided into parts using the characters `[. - _ +]`.
 ** Parts containing both digits and letters are split further, e.g., `1a1` becomes `1.a.1`.
-** Only the parts are compared, not the separators, so `1.a.1`, `1-a+1`, `1.a-1`, and `1a1` are equivalent. (Note: There are <<dependency_resolution_adv#sec:base-version-comparison,exceptions>> during conflict resolution).
+** Only the parts are compared, not the separators, so `1.a.1`, `1-a+1`, `1.a-1`, and `1a1` are equivalent. (Note: There are <<variant_model.adoc#sec:base-version-comparison,exceptions>> during conflict resolution).
 * **Comparing Equivalent Parts:**
 ** **Numeric vs. Numeric:** Higher numeric value is considered higher: `1.1 < 1.2`.
 ** **Numeric vs. Non-numeric:** Numeric parts are higher than non-numeric parts: `1.a < 1.1`.
@@ -97,7 +98,7 @@ Versions are ordered based on the following rules:
 ** `rc`, `snapshot`, `final`, `ga`, `release`, and `sp` are *higher* than any other string part, in this order: `1.0-zeta < 1.0-rc < 1.0-snapshot < 1.0-final < 1.0-ga < 1.0-release < 1.0-sp`.
 ** These special values are **not case-sensitive** and their ordering does not depend on the separator used: `1.0-RC-1` == `1.0.rc.1`.
 
-[[rich-version-constraints]]
+[[sec:rich-version-constraints]]
 == Declaring rich versions
 
 When you declare a version using the shorthand notation, then the version is considered a <<#sec:required-version,required version>>:
@@ -261,12 +262,12 @@ Overwrites versions from transitive dependencies. +
 🔒
 |===
 
-Lines annotated with a lock (🔒) indicate situations where leveraging <<dependency_locking.adoc#dependency-locking,dependency locking>> is recommended.
+Lines annotated with a lock (🔒) indicate situations where leveraging <<dependency_locking.adoc#locking-versions,dependency locking>> is recommended.
 NOTE: When using dependency locking, publishing  <<publishing_maven.adoc#publishing_maven:resolved_dependencies,resolved versions>> is always recommended.
 
 Using `strictly` in a library requires careful consideration, as it affects downstream consumers.
 However, when used correctly, it helps consumers understand which combinations of libraries may be incompatible in their context.
-For more details, refer to the section on <<dependency_versions.adoc#sec:enforcing_dependency_version,overriding dependency versions>>.
+For more details, refer to the section on <<dependency_versions.adoc#sec:enforcing-dependency-version,overriding dependency versions>>.
 
 [NOTE]
 ====
@@ -275,11 +276,10 @@ However, converting this information to Ivy or Maven metadata formats is lossy.
 The highest level of version declaration—`strictly` or `require` over `prefer`—will be published, and any `reject` will be ignored.
 ====
 
-
-[[endorsing_strict_versions]]
+[[sec:endorsing-strict-versions]]
 == Endorsing strict versions
 
-[[sec:enforcing_dependency_version]]
+[[sec:enforcing-dependency-version]]
 Gradle resolves any dependency version conflicts by selecting the greatest version found in the dependency graph.
 Some projects might need to divert from the default behavior and enforce an earlier version of a dependency e.g. if the source code of the project depends on an older API of a dependency than some of the external libraries.
 
@@ -317,7 +317,7 @@ To avoid this, it is recommended to use version ranges and a preferred version w
 For example, `B` might say, instead of `strictly 1.0`, that it _strictly depends_ on the `[1.0, 2.0[` range, but _prefers_ `1.0`.
 Then if a consumer chooses `1.1` (or any other version in the range), the build will _no longer fail_.
 
-[[sec:declaring_without_version]]
+[[sec:declaring-without-version]]
 == Declaring without version
 
 For larger projects, it's advisable to declare *dependencies without versions* and manage versions using <<platforms.adoc#sec:sharing-dep-versions-between-projects,platforms>>:
@@ -329,14 +329,14 @@ include::sample[dir="snippets/dependencyManagement/declaringDependencies-without
 
 This approach centralizes version management, including transitive dependencies.
 
-[[sec:dynamic_versions_and_changing_modules]]
+[[sec:dynamic-versions-and-changing-modules]]
 == Declaring dynamic versions
 
 There are many situations where you might need to use the latest version of a specific module dependency or the latest within a range of versions.
 This is often necessary during development or when creating a library that needs to be compatible with various dependency versions.
 Projects might adopt a more aggressive approach to consuming dependencies by always integrating the latest version to access cutting-edge features.
 
-[[sub:declaring_dependency_with_dynamic_version]]
+[[sec:declaring-dependency-with-dynamic-version]]
 You can easily manage these ever-changing dependencies by using a *dynamic version*.
 A dynamic version can be either a version range (e.g., `2.+`) or a placeholder for the latest available version (e.g., `latest.integration`):
 
@@ -349,10 +349,10 @@ Using dynamic versions and changing modules can lead to unreproducible builds.
 As new versions of a module are published, its API may become incompatible with your source code.
 Therefore, use this feature with caution.
 
-CAUTION: For reproducible builds, it’s crucial to use <<dependency_locking.adoc#dependency-locking,dependency locking>> when declaring dependencies with dynamic versions. Without this, the module you request may change even for the same version, which is known as a <<#sub:declaring_dependency_with_changing_version,changing version>>.
+CAUTION: For reproducible builds, it’s crucial to use <<dependency_locking.adoc#locking-versions,dependency locking>> when declaring dependencies with dynamic versions. Without this, the module you request may change even for the same version, which is known as a <<#sec:declaring-dependency-with-changing-version,changing version>>.
 For example, a Maven `SNAPSHOT` module always points to the latest artifact published, making it a "changing module."
 
-[[sub:declaring_dependency_with_changing_version]]
+[[sec:declaring-dependency-with-changing-version]]
 == Declaring changing versions
 
 A team may implement a series of features before releasing a new version of the application or library. A common strategy to allow consumers to integrate an unfinished version of their artifacts early is to release a module with a *changing version*.

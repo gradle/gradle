@@ -81,7 +81,7 @@ Test sources are configured on each test suite script block. See <<cpp_testing.a
 
 The vast majority of projects rely on other projects, so managing your project's dependencies is an important part of building any project.
 Dependency management is a big topic, so we will only focus on the basics for {cpp} projects here.
-If you’d like to dive into the details, check out the <<core_dependency_management.adoc#dependency_management_in_gradle,introduction to dependency management>>.
+If you’d like to dive into the details, check out the <<getting_started_dep_man.adoc#dependency-management-in-gradle,introduction to dependency management>>.
 
 Gradle provides support for consuming pre-built binaries from Maven repositories published by Gradle footnote:[Unfortunately, Conan and Nuget repositories aren’t yet supported as core features].
 
@@ -119,15 +119,15 @@ You can learn more about these and how they relate to one another in the <<plugi
 
 Be aware that the <<cpp_library_plugin.adoc#cpp_library_plugin,{cpp} Library Plugin>> creates an additional configuration — `api` — for dependencies that are required for compiling and linking both the module and any modules that depend on it.
 
-We have only scratched the surface here, so we recommend that you read the <<core_dependency_management.adoc#dependency_management_in_gradle,dedicated dependency management chapters>> once you’re comfortable with the basics of building {cpp} projects with Gradle.
+We have only scratched the surface here, so we recommend that you read the <<getting_started_dep_man.adoc#dependency-management-in-gradle,dedicated dependency management chapters>> once you’re comfortable with the basics of building {cpp} projects with Gradle.
 
 Some common scenarios that require further reading include:
 
- * Defining a custom <<declaring_repositories_adv.adoc#sec:maven_repo,Maven-compatible>> repository
- * Declaring dependencies with <<dependency_versions.adoc#sub:declaring_dependency_with_changing_version,changing>> (e.g. SNAPSHOT) and <<dependency_versions.adoc#sub:declaring_dependency_with_dynamic_version,dynamic>> (range) versions
- * Declaring a sibling <<declaring_dependencies_adv.adoc#sub:project_dependencies,project as a dependency>>
+ * Defining a custom <<supported_repository_types.adoc#sec:maven-repo,Maven-compatible>> repository
+ * Declaring dependencies with <<dependency_versions.adoc#sec:declaring-dependency-with-changing-version,changing>> (e.g. SNAPSHOT) and <<dependency_versions.adoc#sec:declaring-dependency-with-dynamic-version,dynamic>> (range) versions
+ * Declaring a sibling <<declaring_dependencies_basics.adoc#sec:project-dependencies,project as a dependency>>
  * <<dependency_constraints.adoc#dependency-constraints,Controlling transitive dependencies and their versions>>
- * Testing your fixes to 3rd-party dependency via <<composite_builds.adoc#composite_builds,composite builds>> (a better alternative to publishing to and consuming from <<declaring_repositories_adv.adoc#sub:maven_local,Maven Local>>)
+ * Testing your fixes to 3rd-party dependency via <<composite_builds.adoc#composite_builds,composite builds>> (a better alternative to publishing to and consuming from <<supported_repository_types.adoc#sec:maven-local,Maven Local>>)
 
 You’ll discover that Gradle has a rich API for working with dependencies — one that takes time to master, but is straightforward to use for common scenarios.
 

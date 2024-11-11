@@ -52,7 +52,7 @@ include::sample[dir="snippets/java-platform/quickstart/groovy",files="build.grad
 A major difference between a Maven BOM and a Java platform is that in Gradle dependencies and <<glossary.adoc#sub:terminology_dependency_constraint,constraints>> are declared and scoped to a configuration and the ones extending it.
 While many users will only care about declaring constraints for _compile time_ dependencies, thus inherited by runtime and tests ones, it allows declaring dependencies or constraints that only apply to runtime or test.
 
-For this purpose, the plugin exposes two <<dependency_configurations.adoc#sec:what-are-dependency-configurations,configurations>> that can be used to declare dependencies: `api` and `runtime`.
+For this purpose, the plugin exposes two <<dependency_configurations.adoc#sub:what-are-dependency-configurations,configurations>> that can be used to declare dependencies: `api` and `runtime`.
 The `api` configuration should be used to declare constraints and dependencies which should be used when compiling against the platform, whereas the `runtime` configuration should be used to declare constraints or dependencies which are visible at runtime.
 
 .Declaring API and runtime constraints
@@ -123,7 +123,7 @@ This will generate a BOM file for the platform, with a `<dependencyManagement>` 
 [[sec:java_platform_consumption]]
 == Consuming platforms
 
-Because a Java Platform is a special kind of component, a dependency on a Java platform has to be declared using the `platform` or `enforcedPlatform` keyword, as explained in the <<platforms.adoc#sub:bom_import,managing transitive dependencies>> section.
+Because a Java Platform is a special kind of component, a dependency on a Java platform has to be declared using the `platform` or `enforcedPlatform` keyword, as explained in the <<platforms.adoc#sec:bom-import,managing transitive dependencies>> section.
 For example, if you want to share dependency versions between subprojects, you can define a platform module which would declare all versions:
 
 .Recommend versions in a platform module

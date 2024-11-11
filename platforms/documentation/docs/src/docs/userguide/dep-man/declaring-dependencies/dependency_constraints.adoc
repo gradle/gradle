@@ -18,7 +18,7 @@
 *Dependency constraints* function similarly to <<declaring_dependencies_basics.adoc#declaring-dependencies-basics,dependencies>>, with the key distinction that they do not introduce a dependency themselves.
 Instead, _constraints define version requirements_ that influence the resolution process when a dependency is brought into the project by other means.
 
-Although constraints are not <<rich_versions.adoc#sec:strict-version,strict versions>> by default, you can specify a strict version constraint if needed.
+Although constraints are not <<dependency_versions.adoc#sec:strict-version,strict versions>> by default, you can specify a strict version constraint if needed.
 Once the dependency is included, the version specified by the constraint participates in conflict resolution just as if it were declared as a direct dependency.
 
 When developing a single-project library, *constraints* can be directly declared alongside direct dependencies.
@@ -36,19 +36,20 @@ In general, dependencies are categorized as either *direct* or *transitive*:
 
 A component may require both direct and transitive dependencies to compile or run.
 
+[[sec:declaring-constraints-dependencies]]
 == Declaring constraints alongside direct dependencies
 
 **Dependency constraints** allow you to define the version or version range for a specific dependency, _whenever that dependency is encountered during resolution_.
 
 This is the preferred method for managing the version of a component across multiple configurations or projects.
 
-When Gradle resolves a module version, it considers all relevant factors, including <<rich_versions.adoc#rich-version-constraints,rich versions>>, transitive dependencies, and dependency constraints for that module.
+When Gradle resolves a module version, it considers all relevant factors, including <<dependency_versions.adoc#sec:rich-version-constraints,rich versions>>, transitive dependencies, and dependency constraints for that module.
 The highest version that meets all the conditions is selected.
 If no such version exists, Gradle will fail with an error, detailing the conflicting declarations.
 
 In such cases, you can adjust your dependency declarations, dependency constraints, or make necessary changes to transitive dependencies.
 
-Like dependency declarations, dependency constraints are <<dependency_configurations.adoc#sec:what-are-dependency-configurations,scoped by configurations>>, allowing you to selectively apply them to specific parts of a build.
+Like dependency declarations, dependency constraints are <<dependency_configurations.adoc#sub:what-are-dependency-configurations,scoped by configurations>>, allowing you to selectively apply them to specific parts of a build.
 
 The `constraints{}` block is used within the `dependencies{}` block to declare these constraints:
 
@@ -83,7 +84,7 @@ include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencie
 include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-versionsWithConstraints/groovy",files="build.gradle[tags=dependency-constraints]"]
 ====
 
-Dependency constraints can also define <<rich_versions.adoc#rich-version-constraints,rich version>> constraints and support <<rich_versions.adoc#sec:strict-version,strict versions>>, allowing you to enforce a specific version even if it conflicts with a transitive dependency's version (e.g., if a downgrade is necessary).
+Dependency constraints can also define <<dependency_versions.adoc#sec:rich-version-constraints,rich version>> constraints and support <<dependency_versions.adoc#sec:strict-version,strict versions>>, allowing you to enforce a specific version even if it conflicts with a transitive dependency's version (e.g., if a downgrade is necessary).
 
 NOTE: Dependency constraints are only published when using <<publishing_gradle_module_metadata.adoc#sec:understanding-gradle-module-md,Gradle Module Metadata>>. This means they are fully supported only when both publishing and consuming modules with Gradle. If modules are consumed with Maven or Ivy, the constraints may not be preserved.
 
