@@ -35,6 +35,7 @@ Method <org.gradle.api.tasks.JavaExec.getDefaultCharacterEncoding()> is not abst
 Method <org.gradle.api.tasks.JavaExec.getEnableAssertions()> is not abstract
 Method <org.gradle.api.tasks.JavaExec.getExecutionResult()> is not abstract
 Method <org.gradle.api.tasks.JavaExec.getJavaLauncher()> is not abstract
+Method <org.gradle.api.tasks.JavaExec.getJavaVersion()> is not abstract
 Method <org.gradle.api.tasks.JavaExec.getJvmArgs()> is not abstract
 Method <org.gradle.api.tasks.JavaExec.getJvmArgumentProviders()> is not abstract
 Method <org.gradle.api.tasks.JavaExec.getJvmArguments()> is not abstract
@@ -58,7 +59,6 @@ Method <org.gradle.api.tasks.compile.AbstractCompile.getClasspath()> is not abst
 Method <org.gradle.api.tasks.compile.AbstractCompile.getDestinationDirectory()> is not abstract
 Method <org.gradle.api.tasks.compile.GroovyCompile.getAstTransformationClasspath()> is not abstract
 Method <org.gradle.api.tasks.compile.GroovyCompile.getClasspath()> is not abstract
-Method <org.gradle.api.tasks.compile.GroovyCompile.getGroovyClasspath()> is not abstract
 Method <org.gradle.api.tasks.compile.GroovyCompile.getJavaLauncher()> is not abstract
 Method <org.gradle.api.tasks.compile.GroovyCompile.getSource()> is not abstract
 Method <org.gradle.api.tasks.compile.GroovyCompile.getStableSources()> is not abstract
