@@ -17,4 +17,3 @@ Accessors for org.gradle.ide.xcode.tasks.GenerateXcodeWorkspaceFileTask.inputFil
 Accessors for org.gradle.plugins.ide.api.GeneratorTask.inputFile don't use symmetrical @Nullable
 Accessors for org.gradle.plugins.ide.eclipse.model.ResourceFilterMatcher.arguments don't use symmetrical @Nullable
 Accessors for org.gradle.plugins.ide.eclipse.model.ResourceFilterMatcher.id don't use symmetrical @Nullable
-Accessors for org.gradle.testing.jacoco.plugins.JacocoTaskExtension.destinationFile don't use symmetrical @Nullable
