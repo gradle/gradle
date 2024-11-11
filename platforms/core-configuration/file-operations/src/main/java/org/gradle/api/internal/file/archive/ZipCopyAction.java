@@ -30,8 +30,8 @@ import org.gradle.api.internal.file.copy.ZipCompressor;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.WorkResults;
 import org.gradle.internal.IoActions;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 
 public class ZipCopyAction implements CopyAction {

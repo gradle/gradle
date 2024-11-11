@@ -40,8 +40,8 @@ import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyPro
 import org.gradle.internal.serialization.Cached;
 import org.gradle.util.internal.ConfigureUtil;
 import org.gradle.work.DisableCachingByDefault;
+import org.jspecify.annotations.NonNull;
 
-import javax.annotation.Nonnull;
 import java.nio.charset.Charset;
 
 import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
@@ -111,7 +111,7 @@ public abstract class Jar extends Zip {
      * @since 2.14
      */
     @Override
-    @Nonnull
+    @NonNull
     public abstract Property<String> getMetadataCharset();
 
     /**
