@@ -23,6 +23,8 @@ Method <org.gradle.api.tasks.JavaExec.getExecutionResult()> is not abstract
 Method <org.gradle.api.tasks.JavaExec.getJvmArguments()> is not abstract
 Method <org.gradle.api.tasks.SourceTask.getSource()> is not abstract
 Method <org.gradle.api.tasks.bundling.AbstractArchiveTask.getArchiveFile()> is not abstract
+Method <org.gradle.api.tasks.bundling.AbstractArchiveTask.getIsPreserveFileTimestamps()> is not abstract
+Method <org.gradle.api.tasks.bundling.AbstractArchiveTask.getIsReproducibleFileOrder()> is not abstract
 Method <org.gradle.api.tasks.bundling.War.getClasspath()> is not abstract
 Method <org.gradle.api.tasks.compile.AbstractCompile.getClasspath()> is not abstract
 Method <org.gradle.api.tasks.compile.AbstractCompile.getDestinationDirectory()> is not abstract
