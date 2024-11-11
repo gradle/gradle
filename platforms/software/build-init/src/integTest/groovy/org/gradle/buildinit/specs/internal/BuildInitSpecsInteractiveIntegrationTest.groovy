@@ -18,13 +18,14 @@ package org.gradle.buildinit.specs.internal
 
 import org.gradle.buildinit.plugins.AbstractInteractiveInitIntegrationSpec
 import org.gradle.buildinit.plugins.TestsBuildInitSpecsViaPlugin
+import org.gradle.buildinit.plugins.fixtures.WrapperTestFixture
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.internal.TextUtil
 
+@LeaksFileHandles
 class BuildInitSpecsInteractiveIntegrationTest extends AbstractInteractiveInitIntegrationSpec implements TestsBuildInitSpecsViaPlugin {
-    @LeaksFileHandles
     def "prompts to choose dynamically loaded project type properly and generates project when selected"() {
         given:
         publishTestPlugin()
@@ -46,6 +47,9 @@ class BuildInitSpecsInteractiveIntegrationTest extends AbstractInteractiveInitIn
         }
         handle.stdinPipe.write(("1" + TextUtil.platformLineSeparator).bytes)
 
+        ConcurrentTestUtil.poll(60) {
+            assert handle.standardOutput.contains("Generate 'First Project Type'")
+        }
         closeInteractiveExecutor(handle)
 
         then:
@@ -53,8 +57,40 @@ class BuildInitSpecsInteractiveIntegrationTest extends AbstractInteractiveInitIn
         assertWrapperGenerated()
     }
 
+    def "can cancel generation"() {
+        given:
+        publishTestPlugin()
+
+        when:
+        def handle = startInteractiveInit()
+
+        // Select 'yes'
+        ConcurrentTestUtil.poll(120) {
+            assert handle.standardOutput.contains("Additional project types were loaded.  Do you want to generate a project using a contributed project specification? (default: yes) [yes, no]")
+        }
+        handle.stdinPipe.write(("yes" + TextUtil.platformLineSeparator).bytes)
+
+        // Select First Project Type
+        ConcurrentTestUtil.poll(60) {
+            assert handle.standardOutput.contains("1: First Project Type")
+            assert handle.standardOutput.contains("2: Second Project Type")
+            assert !handle.standardOutput.contains("pom")
+        }
+        // Interrupt input
+        handle.stdinPipe.close()
+        def result = handle.waitForFailure()
+
+        then:
+        result.assertHasDescription("Execution failed for task ':init'.")
+        result.assertHasCause("Build cancelled.")
+        and:
+        file("new-project/project.output").assertDoesNotExist()
+        new WrapperTestFixture(targetDir).notGenerated()
+    }
+
+
     private GradleHandle startInteractiveInit() {
-        targetDir = file("new-project").with { createDir() }
+        targetDir = file("new-project").createDir()
 
         def args = ["init",
                     "-D${ BuildInitSpecRegistry.BUILD_INIT_SPECS_PLUGIN_SUPPLIER}=org.example.myplugin:1.0",
