@@ -45,12 +45,9 @@ tasks.register<Tar>("tar") {
 }
 // end::tar[]
 
-// TODO why can't we use properties instead of setters here?
-// when using them, we get "Cannot access 'preserveFileTimestamps': it is private in 'AbstractArchiveTask'"
 // tag::reproducible[]
 tasks.withType<AbstractArchiveTask>().configureEach {
-    isPreserveFileTimestamps = false
-    isReproducibleFileOrder = true
+    preserveFileTimestamps = false
+    reproducibleFileOrder = true
 }
 // end::reproducible[]
-
