@@ -19,13 +19,9 @@ package org.gradle.api.internal.tasks.testing;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.tasks.testing.CompositeTestEventGenerator;
 import org.gradle.api.tasks.testing.TestEventGenerator;
-import org.gradle.api.tasks.testing.TestFailure;
-import org.gradle.api.tasks.testing.TestOutputEvent;
-import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.id.IdGenerator;
 
 import javax.annotation.Nullable;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -33,30 +29,18 @@ import java.util.Set;
 import java.util.WeakHashMap;
 
 @NonNullApi
-public final class DefaultCompositeTestEventGenerator implements CompositeTestEventGenerator {
-    private final TestResultProcessor processor;
+public class DefaultCompositeTestEventGenerator extends DefaultTestEventGenerator implements CompositeTestEventGenerator {
     private final IdGenerator<?> idGenerator;
-    private final @Nullable TestDescriptorInternal parent;
-    private final TestDescriptorInternal testDescriptor;
-    private Set<DefaultCompositeTestEventGenerator> children;
-    private boolean closed;
+    private Set<DefaultTestEventGenerator> children;
 
     public DefaultCompositeTestEventGenerator(
         TestResultProcessor processor, IdGenerator<?> idGenerator, @Nullable TestDescriptorInternal parent, TestDescriptorInternal testDescriptor
     ) {
-        this.processor = processor;
+        super(processor, parent, testDescriptor);
         this.idGenerator = idGenerator;
-        this.parent = parent;
-        this.testDescriptor = testDescriptor;
     }
 
-    private void requireOpen() {
-        if (closed) {
-            throw new IllegalStateException("Test event generator is closed");
-        }
-    }
-
-    private void addChild(DefaultCompositeTestEventGenerator child) {
+    private void addChild(DefaultTestEventGenerator child) {
         if (children == null) {
             children = Collections.newSetFromMap(new WeakHashMap<>());
         }
@@ -64,58 +48,10 @@ public final class DefaultCompositeTestEventGenerator implements CompositeTestEv
     }
 
     @Override
-    public TestEventGenerator createAtomicNode(String name, String displayName) {
-        requireOpen();
-        DefaultCompositeTestEventGenerator child = new DefaultCompositeTestEventGenerator(
-            processor, idGenerator, testDescriptor, new DefaultTestDescriptor(idGenerator.generateId(), null, name, null, displayName)
-        );
-        addChild(child);
-        return child;
-    }
-
-    @Override
-    public CompositeTestEventGenerator createCompositeNode(String name) {
-        requireOpen();
-        DefaultCompositeTestEventGenerator child = new DefaultCompositeTestEventGenerator(
-            processor, idGenerator, testDescriptor, new DefaultTestSuiteDescriptor(idGenerator.generateId(), name)
-        );
-        addChild(child);
-        return child;
-    }
-
-    @Override
-    public void started(Instant startTime) {
-        requireOpen();
-        processor.started(testDescriptor, new TestStartEvent(startTime.toEpochMilli(), parent == null ? null : parent.getId()));
-    }
-
-    @Override
-    public void output(TestOutputEvent.Destination destination, String output) {
-        requireOpen();
-        processor.output(testDescriptor.getId(), new DefaultTestOutputEvent(destination, output));
-    }
-
-    @Override
-    public void failure(Throwable failure) {
-        requireOpen();
-        processor.failure(testDescriptor.getId(), TestFailure.fromTestFrameworkFailure(failure));
-    }
-
-    @Override
-    public void completed(Instant endTime, TestResult.ResultType resultType) {
-        requireOpen();
-        processor.completed(testDescriptor.getId(), new TestCompleteEvent(endTime.toEpochMilli(), resultType));
-    }
-
-    @Override
-    public void close() {
-        if (closed) {
-            return;
-        }
-        closed = true;
+    protected void cleanup() {
         if (children != null) {
             List<Throwable> errors = null;
-            for (DefaultCompositeTestEventGenerator child : children) {
+            for (DefaultTestEventGenerator child : children) {
                 try {
                     child.close();
                 } catch (Error e) {
@@ -131,7 +67,33 @@ public final class DefaultCompositeTestEventGenerator implements CompositeTestEv
                     errors.add(t);
                 }
             }
+            if (errors != null) {
+                RuntimeException e = new RuntimeException("Failed to close children");
+                errors.forEach(e::addSuppressed);
+                throw e;
+            }
             children = null;
         }
+        super.cleanup();
+    }
+
+    @Override
+    public TestEventGenerator createAtomicNode(String name, String displayName) {
+        requireRunning();
+        DefaultTestEventGenerator child = new DefaultTestEventGenerator(
+            processor, testDescriptor, new DefaultTestDescriptor(idGenerator.generateId(), null, name, null, displayName)
+        );
+        addChild(child);
+        return child;
+    }
+
+    @Override
+    public CompositeTestEventGenerator createCompositeNode(String name) {
+        requireRunning();
+        DefaultCompositeTestEventGenerator child = new DefaultCompositeTestEventGenerator(
+            processor, idGenerator, testDescriptor, new DefaultTestSuiteDescriptor(idGenerator.generateId(), name)
+        );
+        addChild(child);
+        return child;
     }
 }

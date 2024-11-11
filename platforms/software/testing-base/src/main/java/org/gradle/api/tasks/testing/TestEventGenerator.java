@@ -38,11 +38,12 @@ public interface TestEventGenerator extends AutoCloseable {
     /**
      * Emit a output event for the test. May be called multiple times. May not be called before {@link #started(Instant)}.
      *
+     * @param logTime the time the output was logged, must be between the start and end times of the test
      * @param destination the destination of the output
      * @param output some output from the test
      * @since 8.12
      */
-    void output(TestOutputEvent.Destination destination, String output);
+    void output(Instant logTime, TestOutputEvent.Destination destination, String output);
 
     // TODO non-Throwables, more details, etc
     /**

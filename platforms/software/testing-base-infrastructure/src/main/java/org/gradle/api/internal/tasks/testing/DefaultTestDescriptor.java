@@ -44,7 +44,8 @@ public class DefaultTestDescriptor extends AbstractTestDescriptor {
 
     @Override
     public String toString() {
-        return "Test " + getName() + (className == null ? ("(" + className + ")") : "");
+        String className = getClassName();
+        return "Test " + getName() + (className == null ? "" : ("(" + className + ")"));
     }
 
     @Override

@@ -25,13 +25,12 @@ import org.gradle.internal.operations.BuildOperationListenerManager;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
-import org.gradle.internal.time.Clock;
 
 @NonNullApi
 public class TestingBuildSessionScopeServices implements ServiceRegistrationProvider {
     @Provides
-    TestListenerBuildOperationAdapter createTestListenerBuildOperationAdapter(BuildOperationListenerManager listener, BuildOperationIdFactory buildOperationIdFactory, Clock clock) {
-        return new TestListenerBuildOperationAdapter(listener.getBroadcaster(), buildOperationIdFactory, clock);
+    TestListenerBuildOperationAdapter createTestListenerBuildOperationAdapter(BuildOperationListenerManager listener, BuildOperationIdFactory buildOperationIdFactory) {
+        return new TestListenerBuildOperationAdapter(listener.getBroadcaster(), buildOperationIdFactory);
     }
 
     @Provides

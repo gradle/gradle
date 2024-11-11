@@ -43,7 +43,7 @@ public interface CompositeTestEventGenerator extends TestEventGenerator {
      * Create a nested composite test event generator. This can be used, for example, to add a node for a tested class.
      *
      * <p>
-     * Since this is a composite node, it can have children. To add a solitary node, use {@link #createAtomicNode(String, String)}.
+     * Since this is a composite node, it can have children. To add an atomic node, use {@link #createAtomicNode(String, String)}.
      * </p>
      *
      * @param name the name of the node

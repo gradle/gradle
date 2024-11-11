@@ -47,14 +47,14 @@ class TestEventServicesIntegrationTest extends AbstractIntegrationSpec {
                             mySuite.started(Instant.now())
                             try (def myTest = mySuite.createAtomicNode("MyTestInternal", "My test!")) {
                                  myTest.started(Instant.now())
-                                 myTest.output(TestOutputEvent.Destination.StdOut, "This is a test output on stdout")
-                                 myTest.output(TestOutputEvent.Destination.StdErr, "This is a test output on stderr")
+                                 myTest.output(Instant.now(), TestOutputEvent.Destination.StdOut, "This is a test output on stdout")
+                                 myTest.output(Instant.now(), TestOutputEvent.Destination.StdErr, "This is a test output on stderr")
                                  myTest.completed(Instant.now(), TestResult.ResultType.SUCCESS)
                             }
                             try (def myTest = mySuite.createAtomicNode("MyTestInternal2", "My failing test :(")) {
                                  myTest.started(Instant.now())
-                                 myTest.output(TestOutputEvent.Destination.StdErr, "Some text on stderr")
-                                 myTest.failure(TestFailure.fromTestFrameworkFailure(new RuntimeException("Test framework failure")))
+                                 myTest.output(Instant.now(), TestOutputEvent.Destination.StdErr, "Some text on stderr")
+                                 myTest.failure(new RuntimeException("Test framework failure"))
                                  myTest.completed(Instant.now(), TestResult.ResultType.FAILURE)
                             }
                             mySuite.completed(Instant.now(), TestResult.ResultType.FAILURE)
@@ -68,7 +68,10 @@ class TestEventServicesIntegrationTest extends AbstractIntegrationSpec {
         """)
 
         when:
-        succeeds "customTest"
+        fails "customTest"
+
+        then: "threw VerificationException"
+        failure.assertHasCause("Test(s) failed.")
 
         then: "test build operations are emitted in expected hierarchy"
         def rootTestOp = operations.first(ExecuteTestBuildOperationType)

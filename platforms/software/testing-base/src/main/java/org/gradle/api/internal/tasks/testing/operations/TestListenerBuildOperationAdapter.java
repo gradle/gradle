@@ -33,7 +33,6 @@ import org.gradle.internal.operations.OperationProgressEvent;
 import org.gradle.internal.operations.OperationStartEvent;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-import org.gradle.internal.time.Clock;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -49,12 +48,10 @@ public class TestListenerBuildOperationAdapter implements TestListenerInternal {
     private final Map<TestDescriptor, InProgressExecuteTestBuildOperation> runningTests = new HashMap<TestDescriptor, InProgressExecuteTestBuildOperation>();
     private final BuildOperationListener listener;
     private final BuildOperationIdFactory buildOperationIdFactory;
-    private final Clock clock;
 
-    public TestListenerBuildOperationAdapter(BuildOperationListener listener, BuildOperationIdFactory buildOperationIdFactory, Clock clock) {
+    public TestListenerBuildOperationAdapter(BuildOperationListener listener, BuildOperationIdFactory buildOperationIdFactory) {
         this.listener = listener;
         this.buildOperationIdFactory = buildOperationIdFactory;
-        this.clock = clock;
     }
 
     @Override
@@ -77,13 +74,11 @@ public class TestListenerBuildOperationAdapter implements TestListenerInternal {
 
     @Override
     public void output(final TestDescriptorInternal testDescriptor, final TestOutputEvent event) {
-        // TODO We may need to not use current time here. We may need a time on the output event.
-        long currentTime = clock.getCurrentTime();
         InProgressExecuteTestBuildOperation runningOp = runningTests.get(testDescriptor);
         if (runningOp == null) {
             throw new IllegalStateException("Received output for test that is not running: " + testDescriptor);
         }
-        listener.progress(runningOp.descriptor.getId(), new OperationProgressEvent(currentTime, new OutputProgress(event)));
+        listener.progress(runningOp.descriptor.getId(), new OperationProgressEvent(event.getLogTime(), new OutputProgress(event)));
     }
 
     private BuildOperationDescriptor createTestBuildOperationDescriptor(TestDescriptor testDescriptor, TestStartEvent testStartEvent) {

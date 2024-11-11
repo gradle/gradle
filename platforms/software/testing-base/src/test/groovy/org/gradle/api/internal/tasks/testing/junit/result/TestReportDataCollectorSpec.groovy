@@ -73,17 +73,17 @@ class TestReportDataCollectorSpec extends Specification {
         def suite = new DefaultTestSuiteDescriptor("1", "Suite")
 
         when:
-        collector.onOutput(suite, new DefaultTestOutputEvent(StdOut, "suite-out"))
+        collector.onOutput(suite, new DefaultTestOutputEvent(0, StdOut, "suite-out"))
         collector.beforeTest(test)
         collector.beforeTest(test2)
-        collector.onOutput(test, new DefaultTestOutputEvent(StdErr, "err-1"))
-        collector.onOutput(test2, new DefaultTestOutputEvent(StdOut, "out-2"))
-        collector.onOutput(test, new DefaultTestOutputEvent(StdOut, "out-1"))
+        collector.onOutput(test, new DefaultTestOutputEvent(1, StdErr, "err-1"))
+        collector.onOutput(test2, new DefaultTestOutputEvent(2, StdOut, "out-2"))
+        collector.onOutput(test, new DefaultTestOutputEvent(3, StdOut, "out-1"))
 
         then:
-        1 * writer.onOutput(3, 1, new DefaultTestOutputEvent(StdErr, "err-1"))
-        1 * writer.onOutput(3, 2, new DefaultTestOutputEvent(StdOut, "out-2"))
-        1 * writer.onOutput(3, 1, new DefaultTestOutputEvent(StdOut, "out-1"))
+        1 * writer.onOutput(3, 1, new DefaultTestOutputEvent(1, StdErr, "err-1"))
+        1 * writer.onOutput(3, 2, new DefaultTestOutputEvent(2, StdOut, "out-2"))
+        1 * writer.onOutput(3, 1, new DefaultTestOutputEvent(3, StdOut, "out-1"))
         0 * writer._
     }
 

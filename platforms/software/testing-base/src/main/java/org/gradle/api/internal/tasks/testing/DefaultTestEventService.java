@@ -36,6 +36,6 @@ public final class DefaultTestEventService implements TestEventService {
     public CompositeTestEventGenerator generateTestEvents(String rootName) {
         TestResultProcessor processor = new StateTrackingTestResultProcessor(testListenerBuildOperationAdapter);
         IdGenerator<?> idGenerator = new LongIdGenerator();
-        return new DefaultCompositeTestEventGenerator(processor, idGenerator, null, new DefaultTestSuiteDescriptor(idGenerator.generateId(), rootName));
+        return new DefaultRootTestEventGenerator(processor, idGenerator, null, new DefaultTestSuiteDescriptor(idGenerator.generateId(), rootName));
     }
 }
