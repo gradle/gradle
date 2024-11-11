@@ -30,6 +30,8 @@ import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParamet
 import org.gradle.internal.cc.impl.services.DefaultDeferredRootBuildGradle
 import org.gradle.internal.model.StateTransitionControllerFactory
 import org.gradle.internal.operations.BuildOperationExecutor
+import org.gradle.internal.operations.BuildOperationRunner
+import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier
 
 
 class ConfigurationCacheBuildTreeLifecycleControllerFactory internal constructor(
@@ -42,9 +44,21 @@ class ConfigurationCacheBuildTreeLifecycleControllerFactory internal constructor
     private val configurationCacheStartParameter: ConfigurationCacheStartParameter,
     private val buildStateRegistry: BuildStateRegistry,
     private val deferredRootBuildGradle: DefaultDeferredRootBuildGradle,
+    parameterCarrierFactory: ToolingModelParameterCarrier.Factory,
+    buildOperationRunner: BuildOperationRunner
 ) : BuildTreeLifecycleControllerFactory {
+
     private
-    val vintageFactory = VintageBuildTreeLifecycleControllerFactory(buildModelParameters, taskGraph, buildOperationExecutor, stateTransitionControllerFactory, startParameter)
+    val vintageFactory = VintageBuildTreeLifecycleControllerFactory(
+        buildModelParameters,
+        taskGraph,
+        buildOperationExecutor,
+        stateTransitionControllerFactory,
+        startParameter,
+        parameterCarrierFactory,
+        buildStateRegistry,
+        buildOperationRunner
+    )
 
     override fun createRootBuildController(targetBuild: BuildLifecycleController, workExecutor: BuildTreeWorkExecutor, finishExecutor: BuildTreeFinishExecutor): BuildTreeLifecycleController {
         // Some temporary wiring: the cache implementation is still scoped to the root build rather than the build tree
