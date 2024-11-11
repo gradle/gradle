@@ -136,6 +136,14 @@ include::dependency_constraints_conflicts.adoc[leveloffset=+2]
 include::dependency_resolution.adoc[leveloffset=+2]
 include::variant_aware_resolution.adoc[leveloffset=+2]
 
+== DECLARING DEPENDENCIES
+
+include::declaring_dependencies_basics.adoc[leveloffset=+2]
+include::viewing_debugging_dependencies.adoc[leveloffset=+2]
+include::dependency_versions.adoc[leveloffset=+2]
+include::dependency_constraints.adoc[leveloffset=+2]
+include::declaring_configurations.adoc[leveloffset=+2]
+
 == DECLARING REPOSITORIES
 
 include::declaring_repositories_basics.adoc[leveloffset=+2]
@@ -151,35 +159,25 @@ include::platforms.adoc[leveloffset=+2]
 include::version_catalogs.adoc[leveloffset=+2]
 include::centralizing_catalog_platform.adoc[leveloffset=+2]
 
-== DEPENDENCY RESOLUTION
+== MANAGING DEPENDENCIES
+
+include::dependency_locking.adoc[leveloffset=+2]
+include::resolution_rules.adoc[leveloffset=+2]
+include::component_metadata_rules.adoc[leveloffset=+2]
+include::dependency_caching.adoc[leveloffset=+2]
+
+== UNDERSTANDING DEPENDENCY RESOLUTION
+
+include::variant_model.adoc[leveloffset=+2]
+include::component_capabilities.adoc[leveloffset=+2]
+include::variant_attributes.adoc[leveloffset=+2]
+
+== CONTROLLING DEPENDENCY RESOLUTION
 
 include::dependency_resolution_basics.adoc[leveloffset=+2]
 include::dependency_graph_resolution.adoc[leveloffset=+2]
 include::artifact_resolution.adoc[leveloffset=+2]
 include::artifact_transforms.adoc[leveloffset=+2]
-
-== OTHER TOPICS
-
-include::single_versions.adoc[leveloffset=+2]
-include::rich_versions.adoc[leveloffset=+2]
-include::dependency_locking.adoc[leveloffset=+2]
-
-include::dependency_constraints.adoc[leveloffset=+2]
-include::dependency_downgrade_and_exclude.adoc[leveloffset=+2]
-include::dependency_version_alignment.adoc[leveloffset=+2]
-include::dependency_capability_conflict.adoc[leveloffset=+2]
-include::component_metadata_rules.adoc[leveloffset=+2]
-include::resolution_rules.adoc[leveloffset=+2]
-include::resolution_strategy_tuning.adoc[leveloffset=+2]
-
-include::component_capabilities.adoc[leveloffset=+2]
-include::feature_variants.adoc[leveloffset=+2]
-include::variant_model.adoc[leveloffset=+2]
-include::variant_attributes.adoc[leveloffset=+2]
-include::cross_project_publications.adoc[leveloffset=+2]
-
-include::viewing_debugging_dependencies.adoc[leveloffset=+2]
-include::dependency_verification.adoc[leveloffset=+2]
 
 == PUBLISHING LIBRARIES
 
@@ -189,6 +187,12 @@ include::publishing_signing.adoc[leveloffset=+2]
 include::publishing_customization.adoc[leveloffset=+2]
 include::publishing_maven.adoc[leveloffset=+2]
 include::publishing_ivy.adoc[leveloffset=+2]
+
+== OTHER TOPICS
+
+include::dependency_verification.adoc[leveloffset=+2]
+include::dependency_version_alignment.adoc[leveloffset=+2]
+include::feature_variants.adoc[leveloffset=+2]
 
 [[part:jvm_projects]]
 == **AUTHORING JVM BUILDS**

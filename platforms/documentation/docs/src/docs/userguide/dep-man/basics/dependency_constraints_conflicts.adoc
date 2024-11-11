@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[[dependency-constraints-conflicts]]
+[[five-dependency-constraints-conflicts]]
 = 5. Dependency Constraints and Conflict Resolution
 
 When the same library is declared multiple times or when two different libraries provide the same functionality, a conflict can occur during dependency resolution.
 
-[[sec:conflict-types]]
+[[sub:conflict-types]]
 == Understanding types of conflicts
 
 During dependency resolution, Gradle handles two types of conflicts:
@@ -25,6 +25,7 @@ During dependency resolution, Gradle handles two types of conflicts:
 1. *Version conflicts*: That is when two or more dependencies require a given module but with different versions.
 2. *Capability conflicts*: That is when the dependency graph contains multiple artifacts that provide the same functionality.
 
+[[sub:resolving-version-conflicts]]
 == Resolving version conflicts
 
 A version conflict occurs when a component declares two dependencies that:
@@ -37,6 +38,7 @@ A version conflict occurs when a component declares two dependencies that:
 Gradle will consider _all_ requested versions, wherever they appear in the dependency graph.
 By default, it will select the _highest_ one out of these versions.
 
+[[sub:resolving-capability-conflicts]]
 == Resolving capability conflicts
 
 Gradle uses attributes and capabilities to identify which artifacts a component _provides_.
@@ -55,6 +57,7 @@ configurations.configureEach {
 }
 ----
 
+[[sub:understanding-dependency-constraints]]
 == Understanding dependency constraints
 
 In order to help Gradle resolve issue with dependencies, a number of solutions are provided.
@@ -71,4 +74,4 @@ dependencies {
 ----
 
 [.text-right]
-**Next Step:** <<dependency_resolution_adv.adoc#understanding_dependency_resolution,Learn about Dependency Resolution>> >>
+**Next Step:** <<dependency_resolution.adoc#six-dependency_resolution,Learn about Dependency Resolution>> >>

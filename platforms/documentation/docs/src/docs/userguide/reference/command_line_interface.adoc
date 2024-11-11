@@ -652,10 +652,10 @@ The following options affect how builds are executed by changing what is built o
 Run the build as a <<composite_builds.adoc#composite_builds,composite>>, including the specified build.
 
 `--offline`::
-Specifies that the build should operate <<dependency_caching.adoc#sec:controlling_dependency_caching_command_line,without accessing network resources>>.
+Specifies that the build should operate <<dependency_caching.adoc#sec:controlling-dependency-caching-command-line,without accessing network resources>>.
 
 `-U`, `--refresh-dependencies`::
-Refresh the <<dependency_caching.adoc#sec:controlling_dependency_caching_command_line,state of dependencies>>.
+Refresh the <<dependency_caching.adoc#sec:controlling-dependency-caching-command-line,state of dependencies>>.
 
 `--continue`::
 <<command_line_interface.adoc#sec:continue_build_on_failure,Continue task execution>> after a task failure.
@@ -667,10 +667,10 @@ Run Gradle with all task actions disabled. Use this to show which task would hav
 Enables <<#sec:continuous_build,continuous build>>. Gradle does not exit and will re-execute tasks when task file inputs change.
 
 `--write-locks`::
-Indicates that all resolved configurations that are _lockable_ should have their <<dependency_locking.adoc#dependency-locking,lock state>> persisted.
+Indicates that all resolved configurations that are _lockable_ should have their <<dependency_locking.adoc#locking-versions,lock state>> persisted.
 
 `--update-locks <group:name>[,<group:name>]*`::
-Indicates that versions for the specified modules have to be updated in the <<dependency_locking.adoc#dependency-locking,lock file>>.
+Indicates that versions for the specified modules have to be updated in the <<dependency_locking.adoc#locking-versions,lock file>>.
 +
 This flag also implies `--write-locks`.
 

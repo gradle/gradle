@@ -23,7 +23,7 @@ A capability identifies a feature offered by one or multiple components.
 A capability is identified by coordinates similar to the coordinates used for <<sub:terminology_module_version, module versions>>.
 By default, each module version offers a capability that matches its coordinates, such as `com.google:guava:18.0`.
 Capabilities can be used to express that a component provides multiple <<sub:terminology_feature_variant, feature variants>> or that two different components implement the same feature (and thus cannot be used together).
-For more details, see the section on <<component_capabilities.adoc#declaring-component-capabilities, capabilities>>.
+For more details, see the section on <<component_capabilities.adoc#sec:declaring-component-capabilities, capabilities>>.
 
 [[sub:terminology_component]]
 Component::
@@ -40,13 +40,13 @@ Component metadata rule::
 A component metadata rule is a rule that modifies a component's metadata after it is fetched from a repository, e.g., to add missing information or correct incorrect information.
 In contrast to <<#sub:terminology_resolution_rule, resolution rules>>, component metadata rules are applied *before* resolution starts.
 Component metadata rules are defined as part of the build logic and can be shared through plugins.
-For more information, see the section on <<component_metadata_rules.adoc#sec:component_metadata_rules,fixing metadata with component metadata rules>>.
+For more information, see the section on <<component_metadata_rules.adoc#component-metadata-rules,fixing metadata with component metadata rules>>.
 
 [[sub:terminology_configuration]]
 Configuration ::
 A configuration is a named set of <<#sub:terminology_dependency, dependencies>> grouped together for a specific goal.
 Configurations provide access to the underlying, resolved <<#sub:terminology_module, modules>> and their artifacts.
-For more information, see the sections on <<dependency_configurations.adoc#sec:what-are-dependency-configurations,dependency configurations>> as well as <<declaring_dependencies_adv.adoc#sec:resolvable-consumable-configs,resolvable and consumable configurations>>.
+For more information, see the sections on <<dependency_configurations.adoc#sub:what-are-dependency-configurations,dependency configurations>> as well as <<declaring_configurations.adoc#sec:resolvable-consumable-configs,resolvable and consumable configurations>>.
 +
 NOTE: The word "configuration" is an overloaded term that has a different meaning outside of dependency management.
 
@@ -55,14 +55,14 @@ NOTE: The word "configuration" is an overloaded term that has a different meanin
 [[sub:terminology_dependency]]
 Dependency::
 A dependency is a pointer to another piece of software required to build, test, or run a <<#sub:terminology_module, module>>.
-For more information, see the section on <<declaring_dependencies.adoc#declaring-basic-dependencies,declaring dependencies>>.
+For more information, see the section on <<declaring_dependencies.adoc#one-declaring-dependencies,declaring dependencies>>.
 
 [[sub:terminology_dependency_constraint]]
 Dependency constraint::
 A dependency constraint defines requirements that need to be met by a module to make it a valid resolution result for the dependency.
 For example, a dependency constraint can narrow down the set of supported module versions.
 Dependency constraints can be used to express such requirements for transitive dependencies.
-For more information, see the sections on <<dependency_constraints.adoc#dependency-constraints,upgrading>> and <<dependency_downgrade_and_exclude.adoc#downgrading_versions_and_excluding_dependencies,downgrading>> transitive dependencies.
+For more information, see the sections on <<dependency_constraints.adoc#dependency-constraints,upgrading and downgrading>> transitive dependencies.
 
 == E
 
@@ -125,7 +125,7 @@ A platform is a set of modules aimed to be used together. There are different ca
 +
 In addition, Gradle defines <<dependency_version_alignment.adoc#sec:virtual_platform,virtual platforms>>.
 +
-NOTE: Maven's BOM (bill-of-material) is a popular platform that <<platforms.adoc#sub:bom_import, Gradle supports>>.
+NOTE: Maven's BOM (bill-of-material) is a popular platform that <<platforms.adoc#sec:bom-import, Gradle supports>>.
 
 [[sub:terminology_publication]]
 Publication::
@@ -141,13 +141,13 @@ A publication has a name and consists of one or more artifacts plus information 
 Repository::
 A repository hosts a set of <<#sub:terminology_module, modules>>, each of which may provide one or many releases (components) indicated by a <<#sub:terminology_module_version, module version>>.
 The repository can be based on a binary repository product (e.g., Artifactory or Nexus) or a directory structure in the filesystem.
-For more information, see <<declaring_repositories.adoc#declaring-basic-repositories,Declaring Repositories>>.
+For more information, see <<declaring_repositories.adoc#three-declaring-repositories,Declaring Repositories>>.
 
 [[sub:terminology_resolution_rule]]
 Resolution rule::
 A resolution rule influences the behavior of how a <<#sub:terminology_dependency,dependency>> is resolved directly.
 Resolution rules are defined as part of the build logic.
-For more information, see the section on <<resolution_rules.adoc#resolution_rules, customizing resolution of a dependency directly>>.
+For more information, see the section on <<resolution_rules.adoc#using-resolution-rules, customizing resolution of a dependency directly>>.
 
 == S
 
@@ -175,7 +175,7 @@ It may also fail if the variant selection result is ambiguous, meaning that Grad
 In that case, more information can be provided through <<#sub:terminology_attribute, variant attributes>>.
 Examples of variants each Java components typically offers are _api_ and _runtime_ variants.
 Other examples are JDK8 and JDK11 variants.
-For more information, see the section on <<variant_model.adoc#understanding-variant-selection, variant selection>>.
+For more information, see the section on <<variant_model.adoc#sec:understanding-variant-selection, variant selection>>.
 
 [[sub:terminology_attribute]]
 Variant Attribute::
@@ -184,7 +184,7 @@ A variant has one or more attributes defined, for example `org.gradle.usage=java
 When dependencies are resolved, a set of attributes are requested and Gradle finds the best fitting variant(s) for each component in the dependency graph.
 Compatibility and disambiguation rules can be implemented for an attribute to express compatibility between values (e.g., Java 8 is compatible with Java 11, but Java 11 should be preferred if the requested version is 11 or higher).
 Such rules are typically provided by plugins.
-For more information, see the sections on <<variant_model.adoc#understanding-variant-selection,variant selection>> and <<variant_attributes.adoc#variant_attributes,declaring attributes>>.
+For more information, see the sections on <<variant_model.adoc#sec:understanding-variant-selection,variant selection>> and <<variant_attributes.adoc#variant-attributes,declaring attributes>>.
 
 == W
 

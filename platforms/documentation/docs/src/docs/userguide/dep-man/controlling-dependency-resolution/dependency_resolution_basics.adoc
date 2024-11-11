@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[[dependency_resolution_basics]]
+[[dependency-resolution-basics]]
 = Dependency Resolution Basics
 
 Dependency resolution in Gradle can largely be thought of as a two-step process.
@@ -30,6 +30,7 @@ Second, the _artifact resolution_ phase fetches the actual files (artifacts) for
 
 The outcome of these processes can be accessed via different APIs, each designed for specific use cases.
 
+[[sec:graph-resolution]]
 == 1. Graph Resolution
 
 During the _graph resolution_ phase, Gradle downloads and analyzes component metadata (GMM, POM, or Ivy XML) for declared and transitive dependencies.
@@ -41,8 +42,9 @@ The graph itself focuses on component variants, not the artifacts (files) associ
 - link:{javadocPath}/org/gradle/api/artifacts/result/ResolvedComponentResult.html[ResolvedComponentResult] - Represents a resolved component in the raw dependency graph.
 - link:{javadocPath}/org/gradle/api/artifacts/result/ResolvedVariantResult.html[ResolvedVariantResult] - Represents a resolved variant of a component in the raw dependency graph.
 
-See <<dependency_graph_resolution.adoc#dependency_resolution_resolution,Dependency Graph Resolution>> to learn more.
+See <<dependency_graph_resolution.adoc#dependency-graph-resolution,Dependency Graph Resolution>> to learn more.
 
+[[sec:artifact-resolution]]
 == 2. Artifact Resolution
 
 Once the *dependency graph* is resolved, the _artifact resolution_ phase determines which actual files (artifacts) need to be downloaded or retrieved.
