@@ -22,6 +22,7 @@ import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.file.copy.CopyActionExecuter;
+import org.gradle.api.internal.provider.ProviderApiDeprecationLogger;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.provider.Property;
@@ -31,7 +32,7 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.internal.deprecation.DeprecationLogger;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.internal.GUtil;
@@ -56,8 +57,6 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     private final Property<String> archiveVersion;
     private final Property<String> archiveExtension;
     private final Property<String> archiveClassifier;
-    private final Property<Boolean> archivePreserveFileTimestamps;
-    private final Property<Boolean> archiveReproducibleFileOrder;
 
     public AbstractArchiveTask() {
         ObjectFactory objectFactory = getProject().getObjects();
@@ -85,8 +84,8 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
         archiveFile = objectFactory.fileProperty();
         archiveFile.convention(archiveDestinationDirectory.file(archiveName));
 
-        archivePreserveFileTimestamps = objectFactory.property(Boolean.class).convention(true);
-        archiveReproducibleFileOrder = objectFactory.property(Boolean.class).convention(false);
+        getPreserveFileTimestamps().convention(true);
+        getReproducibleFileOrder().convention(false);
     }
 
     private static String maybe(@Nullable String prefix, @Nullable String value) {
@@ -271,22 +270,17 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      * @since 3.4
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public boolean isPreserveFileTimestamps() {
-        return archivePreserveFileTimestamps.get();
-    }
+    @ReplacesEagerProperty(originalType = boolean.class)
+    public abstract Property<Boolean> getPreserveFileTimestamps();
 
     /**
-     * Specifies whether file timestamps should be preserved in the archive.
-     * <p>
-     * If <code>false</code> this ensures that archive entries have the same time for builds between different machines, Java versions and operating systems.
-     * </p>
-     *
-     * @param preserveFileTimestamps <code>true</code> if file timestamps should be preserved for archive entries
-     * @since 3.4
+     * Used for Kotlin backward source compatibility after migration to Provider API.
      */
-    public void setPreserveFileTimestamps(boolean preserveFileTimestamps) {
-        archivePreserveFileTimestamps.set(preserveFileTimestamps);
+    @Internal
+    @Deprecated
+    public Property<Boolean> getIsPreserveFileTimestamps() {
+        ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsPreserveFileTimestamps()", "getPreserveFileTimestamps()");
+        return getPreserveFileTimestamps();
     }
 
     /**
@@ -301,24 +295,17 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      * @since 3.4
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public boolean isReproducibleFileOrder() {
-        return archiveReproducibleFileOrder.get();
-    }
+    @ReplacesEagerProperty(originalType = boolean.class)
+    public abstract Property<Boolean> getReproducibleFileOrder();
 
     /**
-     * Specifies whether to enforce a reproducible file order when reading files from directories.
-     * <p>
-     * Gradle will then walk the directories on disk which are part of this archive in a reproducible order
-     * independent of file systems and operating systems.
-     * This helps Gradle reliably produce byte-for-byte reproducible archives.
-     * </p>
-     *
-     * @param reproducibleFileOrder <code>true</code> if the files should read from disk in a reproducible order.
-     * @since 3.4
+     * Used for Kotlin backward source compatibility after migration to Provider API.
      */
-    public void setReproducibleFileOrder(boolean reproducibleFileOrder) {
-        archiveReproducibleFileOrder.set(reproducibleFileOrder);
+    @Internal
+    @Deprecated
+    public Property<Boolean> getIsReproducibleFileOrder() {
+        ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsReproducibleFileOrder()", "getReproducibleFileOrder()");
+        return getReproducibleFileOrder();
     }
 
     @Override
@@ -326,6 +313,6 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
         Instantiator instantiator = getInstantiator();
         FileSystem fileSystem = getFileSystem();
 
-        return new CopyActionExecuter(instantiator, getPropertyFactory(), fileSystem, isReproducibleFileOrder(), getDocumentationRegistry());
+        return new CopyActionExecuter(instantiator, getPropertyFactory(), fileSystem, getReproducibleFileOrder().get(), getDocumentationRegistry());
     }
 }
