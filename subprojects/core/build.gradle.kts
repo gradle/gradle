@@ -290,7 +290,7 @@ strictCompile {
 }
 
 tasks.test {
-    setForkEvery(200)
+    forkEvery = 200
 }
 
 integTest.testJvmXmx = "1g"

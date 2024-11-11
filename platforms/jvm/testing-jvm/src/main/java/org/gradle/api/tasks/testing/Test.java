@@ -32,6 +32,7 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.provider.PropertyFactory;
+import org.gradle.api.internal.provider.ProviderApiDeprecationLogger;
 import org.gradle.api.internal.tasks.testing.JvmTestExecutionSpec;
 import org.gradle.api.internal.tasks.testing.TestExecutableUtils;
 import org.gradle.api.internal.tasks.testing.TestExecuter;
@@ -74,7 +75,9 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.instrumentation.api.annotations.BytecodeUpgrade;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.internal.jvm.JavaModuleDetector;
@@ -184,16 +187,8 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     private final JavaForkOptions forkOptions;
     private final ModularitySpec modularity;
 
-    private FileCollection testClassesDirs;
     private final PatternFilterable patternSet;
-    private FileCollection classpath;
     private final ConfigurableFileCollection stableClasspath;
-    private final Property<TestFramework> testFramework;
-    private boolean scanForTestClasses = true;
-    private long forkEvery;
-    private int maxParallelForks = 1;
-
-    @Nullable
     private TestExecuter<JvmTestExecutionSpec> testExecuter;
 
     /**
@@ -205,8 +200,6 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     public Test() {
         ObjectFactory objectFactory = getObjectFactory();
         patternSet = getPatternSetFactory().createPatternSet();
-        testClassesDirs = objectFactory.fileCollection();
-        classpath = objectFactory.fileCollection();
         // Create a stable instance to represent the classpath, that takes care of conventions and mutations applied to the property
         stableClasspath = objectFactory.fileCollection();
         stableClasspath.from((Callable<Object>) this::getClasspath);
@@ -217,7 +210,10 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         getJavaLauncher().convention(createJavaLauncherConvention());
         getJavaLauncher().finalizeValueOnRead();
         getDryRun().convention(false);
-        testFramework = objectFactory.property(TestFramework.class).convention(objectFactory.newInstance(JUnitTestFramework.class, this.getFilter(), this.getTemporaryDirFactory(), this.getDryRun()));
+        getTestFramework().convention(objectFactory.newInstance(JUnitTestFramework.class, this.getFilter(), this.getTemporaryDirFactory(), this.getDryRun()));
+        getScanForTestClasses().convention(true);
+        getForkEvery().convention(0L);
+        getMaxParallelForks().convention(1);
     }
 
     private Provider<JavaLauncher> createJavaLauncherConvention() {
@@ -281,9 +277,9 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * @since 3.3
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public JavaVersion getJavaVersion() {
-        return JavaVersion.toVersion(getJavaLauncher().get().getMetadata().getLanguageVersion().asInt());
+    @ReplacesEagerProperty
+    public Provider<JavaVersion> getJavaVersion() {
+        return getJavaLauncher().map(launcher -> JavaVersion.toVersion(launcher.getMetadata().getLanguageVersion().asInt()));
     }
 
     /**
@@ -581,8 +577,9 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      */
     @Override
     protected JvmTestExecutionSpec createTestExecutionSpec() {
-        if (!getTestFramework().supportsNonClassBasedTesting() && !getTestDefinitionDirs().isEmpty()) {
-            throw new GradleException("The " + getTestFramework().getDisplayName() + " test framework does not support resource-based testing.");
+        validateTestTask();
+        if (!getTestFramework().get().supportsNonClassBasedTesting() && !getTestDefinitionDirs().isEmpty()) {
+            throw new GradleException("The " + getTestFramework().get().getDisplayName() + " test framework does not support resource-based testing.");
         }
 
         validateExecutableMatchesToolchain();
@@ -593,10 +590,19 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         boolean testIsModule = javaModuleDetector.isModule(modularity.getInferModulePath().get(), getTestClassesDirs());
         FileCollection classpath = javaModuleDetector.inferClasspath(testIsModule, stableClasspath);
         FileCollection modulePath = javaModuleDetector.inferModulePath(testIsModule, stableClasspath);
+        int maxParallelForks = getDebug().get() ? 1 : getMaxParallelForks().get();
         Set<File> candidateTestDefinitionDirs = determineCandidateTestDefinitionDirs();
-        return new JvmTestExecutionSpec(getTestFramework(), classpath, modulePath,
-            getCandidateClassFiles(), isScanForTestClasses(), candidateTestDefinitionDirs,
-            getTestClassesDirs(), getPath(), getIdentityPath(), getForkEvery(), javaForkOptions, getMaxParallelForks(), getPreviousFailedTestClasses(), testIsModule);
+        long forkEvery = getDebug().get() ? 0 : getForkEvery().get();
+        return new JvmTestExecutionSpec(getTestFramework().get(), classpath,
+            modulePath, getCandidateClassFiles(), getScanForTestClasses().get(), candidateTestDefinitionDirs,
+            getTestClassesDirs(), getPath(), getIdentityPath(), forkEvery, javaForkOptions, maxParallelForks, getPreviousFailedTestClasses(), testIsModule);
+    }
+
+    private void validateTestTask() {
+        if (getMaxParallelForks().get() < 1) {
+            throw new IllegalArgumentException("Cannot use maxParallelForks with a value less than 1.");
+        }
+        validateExecutableMatchesToolchain();
     }
 
     private Set<File> determineCandidateTestDefinitionDirs() {
@@ -634,6 +640,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
             toolchainExecutable, "toolchain from `javaLauncher` property");
     }
 
+
     private Set<String> getPreviousFailedTestClasses() {
         SerializableTestResultStore store = new SerializableTestResultStore(getBinaryResultsDirectory().getAsFile().get().toPath());
         // We ignore if we can't read the old results file, as this is just an optimization.
@@ -660,7 +667,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     @Override
     @TaskAction
     public void executeTests() {
-        JavaVersion javaVersion = getJavaVersion();
+        JavaVersion javaVersion = getJavaVersion().get();
         if (!javaVersion.isCompatibleWith(JavaVersion.toVersion(SupportedJavaVersions.MINIMUM_WORKER_JAVA_VERSION))) {
             throw new UnsupportedJavaRuntimeException(String.format(
                 "Gradle does not support executing tests using JVM %s or earlier.",
@@ -677,7 +684,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         try {
             super.executeTests();
         } finally {
-            CompositeStoppable.stoppable(getTestFramework()).stop();
+            CompositeStoppable.stoppable(getTestFramework().get()).stop();
         }
     }
 
@@ -710,7 +717,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     @Override
     protected int getReportEntrySkipLevels() {
         // Add 1 for the workers, plus any additional levels required by the test framework
-        return super.getReportEntrySkipLevels() + 1 + getTestFramework().getAdditionalReportEntrySkipLevels();
+        return super.getReportEntrySkipLevels() + 1 + getTestFramework().get().getAdditionalReportEntrySkipLevels();
     }
 
     /**
@@ -803,32 +810,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     }
 
     /**
-     * Returns the directories for the compiled test sources.
-     *
-     * @return All test class directories to be used.
-     * @since 4.0
-     */
-    @Internal
-    @ToBeReplacedByLazyProperty
-    public FileCollection getTestClassesDirs() {
-        return testClassesDirs;
-    }
-
-    /**
-     * Returns directories to scan for non-class-based test definition files.
-     *
-     * @return The directories holding non-class-based test definition files.
-     * @since 9.4.0
-     */
-    @Incubating
-    @InputFiles
-    @SkipWhenEmpty
-    @IgnoreEmptyDirectories
-    @PathSensitive(PathSensitivity.RELATIVE)
-    public abstract ConfigurableFileCollection getTestDefinitionDirs();
-
-    /**
-     * Sets the directories to scan for compiled test sources.
+     * The directories to scan for compiled test sources.
      *
      * Typically, this would be configured to use the output of a source set:
      * <pre class='autoTested'>
@@ -850,12 +832,25 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * }
      * </pre>
      *
-     * @param testClassesDirs All test class directories to be used.
+     * @return All test class directories to be used.
      * @since 4.0
      */
-    public void setTestClassesDirs(FileCollection testClassesDirs) {
-        this.testClassesDirs = testClassesDirs;
-    }
+    @Internal
+    @ReplacesEagerProperty
+    public abstract ConfigurableFileCollection getTestClassesDirs();
+
+    /**
+     * Returns directories to scan for non-class-based test definition files.
+     *
+     * @return The directories holding non-class-based test definition files.
+     * @since 9.4.0
+     */
+    @Incubating
+    @InputFiles
+    @SkipWhenEmpty
+    @IgnoreEmptyDirectories
+    @PathSensitive(PathSensitivity.RELATIVE)
+    public abstract ConfigurableFileCollection getTestDefinitionDirs();
 
     /**
      * Returns the include patterns for test execution.
@@ -911,21 +906,8 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * @since 7.3
      */
     @Nested
-    public Property<TestFramework> getTestFrameworkProperty() {
-        return testFramework;
-    }
-
-    /**
-     * Returns the test framework.
-     *
-     * @since 0.7
-     */
-    @Internal
-    @ToBeReplacedByLazyProperty(comment = "This will be removed")
-    public TestFramework getTestFramework() {
-        // TODO: Deprecate and remove this method
-        return testFramework.get();
-    }
+    @ReplacesEagerProperty(adapter = TestFrameworkAdapter.class)
+    public abstract Property<TestFramework> getTestFramework();
 
     /**
      * Do not call this method.
@@ -939,9 +921,8 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
             .withUpgradeGuideSection(9, "deprecated_test_methods")
             .nagUser();
         options(testFrameworkConfigure);
-        return getTestFramework();
+        return getTestFramework().get();
     }
-
     /**
      * Returns test framework specific options. Make sure to call {@link #useJUnit()}, {@link #useJUnitPlatform()} or {@link #useTestNG()} before using this method.
      *
@@ -950,7 +931,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      */
     @Nested
     public TestFrameworkOptions getOptions() {
-        return getTestFramework().getOptions();
+        return getTestFramework().get().getOptions();
     }
 
     /**
@@ -1092,13 +1073,13 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * @since 0.7
      */
     void useTestFramework(TestFramework testFramework) {
-        Class<?> currentFramework = this.testFramework.get().getClass();
+        Class<?> currentFramework = this.getTestFramework().get().getClass();
         Class<?> newFramework = testFramework.getClass();
         if (currentFramework == newFramework) {
             return;
         }
 
-        this.testFramework.set(testFramework);
+        this.getTestFramework().set(testFramework);
     }
 
     private <T extends TestFrameworkOptions> void applyOptions(Class<T> optionsClass, Action<? super T> configuration) {
@@ -1120,38 +1101,25 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * @since 0.7
      */
     @Internal("captured by stableClasspath")
-    @ToBeReplacedByLazyProperty
-    public FileCollection getClasspath() {
-        return classpath;
-    }
-
-    /**
-     * Sets the classpath.
-     *
-     * @since 0.8
-     */
-    public void setClasspath(FileCollection classpath) {
-        this.classpath = classpath;
-    }
+    @ReplacesEagerProperty
+    public abstract ConfigurableFileCollection getClasspath();
 
     /**
      * Specifies whether test classes should be detected. When {@code true} the classes which match the include and exclude patterns are scanned for test classes, and any found are executed. When
      * {@code false} the classes which match the include and exclude patterns are executed.
-     * @since 0.7
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public boolean isScanForTestClasses() {
-        return scanForTestClasses;
-    }
+    @ReplacesEagerProperty(originalType = boolean.class)
+    public abstract Property<Boolean> getScanForTestClasses();
 
     /**
-     * Sets the scan for test classes.
-     *
-     * @since 0.7
+     * Added for Kotlin source compatibility. Use {@link #getScanForTestClasses()} instead.
      */
-    public void setScanForTestClasses(boolean scanForTestClasses) {
-        this.scanForTestClasses = scanForTestClasses;
+    @Internal
+    @Deprecated
+    public Property<Boolean> getIsScanForTestClasses() {
+        ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsScanForTestClasses()", "getScanForTestClasses()");
+        return getScanForTestClasses();
     }
 
     /**
@@ -1170,26 +1138,8 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * @since 0.9
      */
     @Internal
-    @ToBeReplacedByLazyProperty
-    public long getForkEvery() {
-        return getDebug().get() ? 0 : forkEvery;
-    }
-
-    /**
-     * Sets the maximum number of test classes to execute in a forked test process.
-     * <p>
-     * By default, Gradle automatically uses a separate JVM when executing tests, so changing this property is usually not necessary.
-     * </p>
-     *
-     * @param forkEvery The maximum number of test classes. Use 0 to specify no maximum.
-     * @since 8.1
-     */
-    public void setForkEvery(long forkEvery) {
-        if (forkEvery < 0) {
-            throw new IllegalArgumentException("Cannot set forkEvery to a value less than 0.");
-        }
-        this.forkEvery = forkEvery;
-    }
+    @ReplacesEagerProperty(adapter = ForkEveryAdapter.class)
+    public abstract Property<Long> getForkEvery();
 
     /**
      * Returns the maximum number of test processes to start in parallel.
@@ -1207,26 +1157,8 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * @since 0.9
      */
     @Internal
-    @ToBeReplacedByLazyProperty
-    public int getMaxParallelForks() {
-        return getDebug().get() ? 1 : maxParallelForks;
-    }
-
-    /**
-     * Sets the maximum number of test processes to start in parallel.
-     * <p>
-     * By default, Gradle executes a single test class at a time but allows multiple {@link Test} tasks to run in parallel.
-     * </p>
-     *
-     * @param maxParallelForks The maximum number of forked test processes. Use 1 to disable parallel test execution for this task.
-     * @since 0.9
-     */
-    public void setMaxParallelForks(int maxParallelForks) {
-        if (maxParallelForks < 1) {
-            throw new IllegalArgumentException("Cannot set maxParallelForks to a value less than 1.");
-        }
-        this.maxParallelForks = maxParallelForks;
-    }
+    @ReplacesEagerProperty(adapter = MaxParallelForks.class)
+    public abstract Property<Integer> getMaxParallelForks();
 
     /**
      * Returns the classes files to scan for test classes.
@@ -1238,7 +1170,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     @SkipWhenEmpty
     @IgnoreEmptyDirectories
     @PathSensitive(PathSensitivity.RELATIVE)
-    @ToBeReplacedByLazyProperty(comment = "Should this be kept as it is?")
+    @NotToBeReplacedByLazyProperty(because = "Read-only FileTree property")
     public FileTree getCandidateClassFiles() {
         return getTestClassesDirs().getAsFileTree().matching(patternSet);
     }
@@ -1247,7 +1179,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * Executes the action against the {@link #getFilter()}.
      *
      * @param action configuration of the test filter
-     * @since 1.12
+     * @since 1.10
      */
     public void filter(Action<TestFilter> action) {
         action.execute(getFilter());
@@ -1278,7 +1210,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     }
 
     private boolean noCategoryOrTagOrGroupSpecified() {
-        TestFrameworkOptions frameworkOptions = getTestFramework().getOptions();
+        TestFrameworkOptions frameworkOptions = getTestFramework().get().getOptions();
         if (frameworkOptions == null) {
             return true;
         }
@@ -1326,4 +1258,40 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
 
     @Inject
     protected abstract JavaModuleDetector getJavaModuleDetector();
+
+    static class TestFrameworkAdapter {
+        @BytecodeUpgrade
+        static TestFramework getTestFramework(Test test) {
+            return test.getTestFramework().get();
+        }
+
+        @BytecodeUpgrade
+        static Property<TestFramework> getTestFrameworkProperty(Test test) {
+            return test.getTestFramework();
+        }
+    }
+
+    static class ForkEveryAdapter {
+        @BytecodeUpgrade
+        static long getForkEvery(Test test) {
+            return test.getDebug().get() ? 0 : test.getForkEvery().get();
+        }
+
+        @BytecodeUpgrade
+        static void setForkEvery(Test test, long forkEvery) {
+            test.getForkEvery().set(forkEvery);
+        }
+    }
+
+    static class MaxParallelForks {
+        @BytecodeUpgrade
+        static int getMaxParallelForks(Test test) {
+            return test.getDebug().get() ? 1 : test.getMaxParallelForks().get();
+        }
+
+        @BytecodeUpgrade
+        static void setMaxParallelForks(Test test, int maxParallelForks) {
+            test.getMaxParallelForks().set(maxParallelForks);
+        }
+    }
 }

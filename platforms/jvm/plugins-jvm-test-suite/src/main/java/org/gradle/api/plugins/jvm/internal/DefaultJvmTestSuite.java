@@ -76,8 +76,8 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
     private final TaskDependencyFactory taskDependencyFactory;
     private final ToolchainFactory toolchainFactory;
 
-    @SuppressWarnings("this-escape")
     @Inject
+    @SuppressWarnings("this-escape")
     public DefaultJvmTestSuite(String name, SourceSetContainer sourceSets, ConfigurationContainer configurations, TaskDependencyFactory taskDependencyFactory) {
         this.name = name;
         this.sourceSet = sourceSets.create(getName());
@@ -126,7 +126,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
 
     private void initializeTestFramework(Test task) {
         // The Test task's testing framework is derived from the test suite's toolchain
-        task.getTestFrameworkProperty().convention(getTestToolchain().map(toolchain -> toolchain.createTestFramework(task)));
+        task.getTestFramework().convention(getTestToolchain().map(toolchain -> toolchain.createTestFramework(task)));
     }
 
     private void addDefaultTestTarget() {
