@@ -61,7 +61,7 @@ public class DefaultStaticLibraryBinarySpec extends AbstractNativeLibraryBinaryS
     public FileCollection getLinkFiles() {
         ConfigurableFileCollection result = getFileCollectionFactory().configurableFiles("Link files for " + getDisplayName());
         result.from(getFileCollectionFactory().create(new StaticLibraryLinkOutputs()));
-        additionalLinkFiles.forEach(result::from);
+        result.from(additionalLinkFiles);
         return result;
     }
 
