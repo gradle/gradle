@@ -17,6 +17,9 @@
 package org.gradle.tooling.internal.consumer.parameters
 
 import com.google.common.collect.Sets
+import org.gradle.internal.build.event.types.DefaultProblemGroup
+import org.gradle.internal.build.event.types.DefaultProblemId
+import org.gradle.internal.build.event.types.DefaultProblemSummary
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.task.TaskStartEvent
@@ -99,5 +102,22 @@ class BuildProgressListenerAdapterTest extends Specification {
         }
     }
 
+    def "sum up counts if multiple summaries with the same problem id are received"() {
+        given:
+        def summaries = [createSummary(), createSummary()]
 
+        when:
+        def providerSummaries = BuildProgressListenerAdapter.toProblemIdSummaries(summaries)
+
+
+        then:
+        providerSummaries.size() == 1
+        providerSummaries.get(0).count == 6
+    }
+
+    def createSummary() {
+        new DefaultProblemSummary(
+            new DefaultProblemId("name", "display name",
+                new DefaultProblemGroup("group name", "group display name", null)), 3)
+    }
 }

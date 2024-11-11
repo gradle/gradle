@@ -48,6 +48,7 @@ import org.gradle.internal.build.event.types.DefaultProblemDetails;
 import org.gradle.internal.build.event.types.DefaultProblemEvent;
 import org.gradle.internal.build.event.types.DefaultProblemGroup;
 import org.gradle.internal.build.event.types.DefaultProblemId;
+import org.gradle.internal.build.event.types.DefaultProblemSummary;
 import org.gradle.internal.build.event.types.DefaultProblemsSummariesDetails;
 import org.gradle.internal.build.event.types.DefaultSeverity;
 import org.gradle.internal.build.event.types.DefaultSolution;
@@ -130,7 +131,7 @@ public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperatio
 
     private InternalProblemEventVersion2 createProblemSummaryEvent(OperationIdentifier buildOperationId, List<Pair<ProblemId, Integer>> problemIdCounts) {
         List<InternalProblemSummary> internalIdCounts = problemIdCounts.stream()
-            .map(it -> new DefaultProblemsSummariesDetails.DefaultProblemSummary(toInternalId(it.left), it.right))
+            .map(it -> new DefaultProblemSummary(toInternalId(it.left), it.right))
             .collect(toImmutableList());
         return new DefaultProblemEvent(
             createDefaultProblemDescriptor(buildOperationId),

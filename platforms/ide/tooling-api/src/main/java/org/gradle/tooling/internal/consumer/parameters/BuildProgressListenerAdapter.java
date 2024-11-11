@@ -612,12 +612,43 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         return null;
     }
 
-    private static List<ProblemSummary> toProblemIdSummaries(List<InternalProblemSummary> problemIdCounts) {
+    @Nonnull
+    static List<ProblemSummary> toProblemIdSummaries(List<InternalProblemSummary> problemIdCounts) {
+        Map<ProblemId, List<InternalProblemSummary>> groupedSummaries = getGroupedMap(problemIdCounts);
+
         List<ProblemSummary> problemSummaries = new ArrayList<>();
-        for (InternalProblemSummary internalSummary : problemIdCounts) {
-            problemSummaries.add(new DefaultProblemSummary(toProblemId(internalSummary.getProblemId()), internalSummary.getCount()));
+        for (Map.Entry<ProblemId, List<InternalProblemSummary>> groupEntry : groupedSummaries.entrySet()) {
+            problemSummaries.add(new DefaultProblemSummary(groupEntry.getKey(), getCount(groupEntry)));
         }
         return problemSummaries;
+    }
+
+    @Nonnull
+    static Map<ProblemId, List<InternalProblemSummary>> getGroupedMap(List<InternalProblemSummary> problemIdCounts) {
+        Map<ProblemId, List<InternalProblemSummary>> groupedSummaries = new HashMap<>();
+        for (InternalProblemSummary internalSummary : problemIdCounts) {
+            ProblemId problemId = toProblemId(internalSummary.getProblemId());
+            getOrDefault(groupedSummaries, problemId).add(internalSummary);
+        }
+        return groupedSummaries;
+    }
+
+    @Nonnull
+    private static List<InternalProblemSummary> getOrDefault(Map<ProblemId, List<InternalProblemSummary>> groupedSummaries, ProblemId problemId) {
+        List<InternalProblemSummary> internalProblemSummaries = groupedSummaries.get(problemId);
+        if (internalProblemSummaries == null) {
+            internalProblemSummaries = new ArrayList<>();
+            groupedSummaries.put(problemId, internalProblemSummaries);
+        }
+        return internalProblemSummaries;
+    }
+
+    static int getCount(Map.Entry<ProblemId, List<InternalProblemSummary>> groupEntry) {
+        int count = 0;
+        for (InternalProblemSummary internalProblemSummary : groupEntry.getValue()) {
+            count += internalProblemSummary.getCount();
+        }
+        return count;
     }
 
     private @Nullable ProblemEvent createProblemEvent(InternalProblemEventVersion2 problemEvent, InternalProblemDescriptor descriptor) {
