@@ -419,7 +419,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                                 testTask.configure {
                                     useJUnit()
                                     doFirst {
-                                        assert testFramework instanceof ${JUnitTestFramework.canonicalName}
+                                        assert testFramework.get() instanceof ${JUnitTestFramework.canonicalName}
                                     }
                                 }
                             }
@@ -469,7 +469,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                                 testTask.configure {
                                     useJUnitPlatform()
                                     doFirst {
-                                        assert testFramework instanceof ${JUnitPlatformTestFramework.canonicalName}
+                                        assert testFramework.get() instanceof ${JUnitPlatformTestFramework.canonicalName}
                                     }
                                 }
                             }
