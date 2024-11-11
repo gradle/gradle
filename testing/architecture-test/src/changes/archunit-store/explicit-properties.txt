@@ -39,6 +39,8 @@ Method <org.gradle.api.tasks.bundling.AbstractArchiveTask.getArchiveFile()> is n
 Method <org.gradle.api.tasks.bundling.AbstractArchiveTask.getArchiveFileName()> is not abstract
 Method <org.gradle.api.tasks.bundling.AbstractArchiveTask.getArchiveVersion()> is not abstract
 Method <org.gradle.api.tasks.bundling.AbstractArchiveTask.getDestinationDirectory()> is not abstract
+Method <org.gradle.api.tasks.bundling.AbstractArchiveTask.getIsPreserveFileTimestamps()> is not abstract
+Method <org.gradle.api.tasks.bundling.AbstractArchiveTask.getIsReproducibleFileOrder()> is not abstract
 Method <org.gradle.api.tasks.bundling.War.getClasspath()> is not abstract
 Method <org.gradle.api.tasks.bundling.War.getWebAppDirectory()> is not abstract
 Method <org.gradle.api.tasks.compile.AbstractCompile.getClasspath()> is not abstract
