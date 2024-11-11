@@ -186,7 +186,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
         });
 
         TaskProvider<Sync> userguideFlattenSources = tasks.register("stageUserguideSource", Sync.class, task -> {
-            task.setDuplicatesStrategy(DuplicatesStrategy.FAIL);
+            Gradle9PropertyUpgradeSupport.setProperty(task, "setDuplicatesStrategy", DuplicatesStrategy.FAIL);
 
             // TODO: This doesn't allow adoc files to be generated?
             task.from(extension.getUserManual().getRoot(), sub -> {
