@@ -490,7 +490,7 @@ public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
 
         @Override
         public Iterable<String> asArguments() {
-            int majorVersion = Integer.parseInt(test.getJavaVersion().getMajorVersion());
+            int majorVersion = Integer.parseInt(test.getJavaVersion().get().getMajorVersion());
             return JpmsConfiguration.forDaemonProcesses(majorVersion, true);
         }
     }
