@@ -212,13 +212,17 @@ tasks.named<Test>("docsTest") {
     systemProperties = emptyMap<String, Any>()
 
     filter {
+        // TODO: Delete after Gradle 10.0, used just to pass Gradleception tests
+        fun Provider<JavaVersion>.isCompatibleWith(version: JavaVersion) =
+            get().isCompatibleWith(version)
+
         if (OperatingSystem.current().isWindows && javaVersion.isCompatibleWith(JavaVersion.VERSION_18)) {
             // Disable tests that suffer from charset issues under JDK 18 for now
             excludeTestsMatching("org.gradle.docs.samples.*.snippet-custom-model-internal-views_*_softwareModelExtend-iv-model")
             excludeTestsMatching("org.gradle.docs.samples.*.snippet-model-rules-basic-rule-source-plugin_*_basicRuleSourcePlugin-model-task")
         }
 
-        if (!javaVersion.isJava11Compatible) {
+        if (!javaVersion.isCompatibleWith(JavaVersion.VERSION_11)) {
             // This test sets source and target compatibility to 11
             excludeTestsMatching("org.gradle.docs.samples.*.snippet-kotlin-dsl-accessors_*")
         }
