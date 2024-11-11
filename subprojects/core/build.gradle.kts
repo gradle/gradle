@@ -293,7 +293,7 @@ packageCycles {
 }
 
 tasks.test {
-    setForkEvery(200)
+    forkEvery = 200
 }
 
 tasks.compileTestGroovy {
