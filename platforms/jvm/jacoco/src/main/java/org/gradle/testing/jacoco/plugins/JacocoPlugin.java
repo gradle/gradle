@@ -27,6 +27,7 @@ import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.TestSuiteName;
 import org.gradle.api.attributes.VerificationType;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -52,7 +53,6 @@ import org.gradle.testing.jacoco.tasks.JacocoCoverageVerification;
 import org.gradle.testing.jacoco.tasks.JacocoReport;
 
 import javax.inject.Inject;
-import java.io.File;
 
 import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
 
@@ -114,7 +114,7 @@ public abstract class JacocoPlugin implements Plugin<Project> {
 
                 suite.getTargets().configureEach(target -> {
                     jacocoResultsVariant.configure(variant -> {
-                        Provider<File> resultsDir = target.getTestTask().map(task ->
+                        Provider<RegularFile> resultsDir = target.getTestTask().flatMap(task ->
                             task.getExtensions().getByType(JacocoTaskExtension.class).getDestinationFile()
                         );
 
