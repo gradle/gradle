@@ -39,7 +39,7 @@ public abstract class Tar extends AbstractArchiveTask {
 
     @Override
     protected CopyAction createCopyAction() {
-        return new TarCopyAction(getArchiveFile().get().getAsFile(), getCompressor(), isPreserveFileTimestamps());
+        return new TarCopyAction(getArchiveFile().get().getAsFile(), getCompressor(), getPreserveFileTimestamps().get());
     }
 
     private ArchiveOutputStreamFactory getCompressor() {
