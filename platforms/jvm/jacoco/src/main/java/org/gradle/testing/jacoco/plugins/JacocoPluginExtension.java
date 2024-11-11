@@ -24,7 +24,7 @@ import org.gradle.api.Task;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.file.ProjectLayout;
-import org.gradle.api.file.RegularFile;
+import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -107,15 +107,15 @@ public abstract class JacocoPluginExtension {
     public <T extends Task & JavaForkOptions> void applyTo(final T task) {
         final String taskName = task.getName();
         LOGGER.debug("Applying Jacoco to " + taskName);
-        JacocoTaskExtension extension = objects.newInstance(JacocoTaskExtension.class, objects, providers, agent, task);
-        extension.setDestinationFile(layout.getBuildDirectory().file("jacoco/" + taskName + ".exec").map(RegularFile::getAsFile));
+        JacocoTaskExtension extension = objects.newInstance(JacocoTaskExtension.class, providers, agent, task);
+        extension.getDestinationFile().set(layout.getBuildDirectory().file("jacoco/" + taskName + ".exec"));
         task.getExtensions().add(TASK_EXTENSION_NAME, extension);
 
         task.getJvmArgumentProviders().add(new JacocoAgent(extension));
         task.doFirst(new JacocoOutputCleanupTestTaskAction(
             fs,
             extension.getOutput().zip(extension.getEnabled(), (output, enabled) -> enabled && output == JacocoTaskExtension.Output.FILE),
-            providers.provider(extension::getDestinationFile)
+            extension.getDestinationFile()
         ));
 
         // Do not cache the task if we are not writing execution data to a file
@@ -129,9 +129,9 @@ public abstract class JacocoPluginExtension {
     private static class JacocoOutputCleanupTestTaskAction implements Action<Task> {
         private final FileSystemOperations fs;
         private final Provider<Boolean> hasFileOutput;
-        private final Provider<File> destinationFile;
+        private final RegularFileProperty destinationFile;
 
-        private JacocoOutputCleanupTestTaskAction(FileSystemOperations fs, Provider<Boolean> hasFileOutput, Provider<File> destinationFile) {
+        private JacocoOutputCleanupTestTaskAction(FileSystemOperations fs, Provider<Boolean> hasFileOutput, RegularFileProperty destinationFile) {
             this.fs = fs;
             this.hasFileOutput = hasFileOutput;
             this.destinationFile = destinationFile;
@@ -143,10 +143,10 @@ public abstract class JacocoPluginExtension {
                 // Delete the coverage file before the task executes, so we don't append to a leftover file from the last execution.
                 // This makes the task cacheable even if multiple JVMs write to same destination file, e.g. when executing tests in parallel.
                 // The JaCoCo agent supports writing in parallel to the same file, see https://github.com/jacoco/jacoco/pull/52.
-                File coverageFile = destinationFile.getOrNull();
-                if (coverageFile == null) {
-                    throw new GradleException("JaCoCo destination file must not be null if output type is FILE");
+                if (!destinationFile.isPresent()) {
+                    throw new GradleException("JaCoCo destination file property must be set if output type is FILE");
                 }
+                File coverageFile = destinationFile.get().getAsFile();
                 fs.delete(spec -> spec.delete(coverageFile));
             }
         }
@@ -184,7 +184,7 @@ public abstract class JacocoPluginExtension {
      *
      * @param tasks the tasks to apply Jacoco to
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public <T extends Task & JavaForkOptions> void applyTo(TaskCollection<T> tasks) {
         ((TaskCollection) tasks).withType(JavaForkOptions.class, (Action<T>) this::applyTo);
     }

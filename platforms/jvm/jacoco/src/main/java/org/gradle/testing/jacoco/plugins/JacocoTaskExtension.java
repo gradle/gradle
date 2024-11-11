@@ -18,11 +18,10 @@ package org.gradle.testing.jacoco.plugins;
 
 import com.google.common.base.Joiner;
 import org.apache.commons.lang3.StringUtils;
+import org.gradle.api.Incubating;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFileProperty;
-import org.gradle.api.internal.provider.Providers;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
@@ -33,9 +32,9 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.LocalState;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputFile;
+import org.gradle.internal.instrumentation.api.annotations.BytecodeUpgrade;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.jacoco.JacocoAgentJar;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.util.internal.RelativePathUtil;
@@ -72,8 +71,6 @@ public abstract class JacocoTaskExtension {
     private final JavaForkOptions task;
     private final ProviderFactory providers;
 
-    private final RegularFileProperty destinationFile;
-
     /**
      * Creates a Jacoco task extension.
      *
@@ -81,12 +78,11 @@ public abstract class JacocoTaskExtension {
      * @param task the task we extend
      */
     @Inject
-    public JacocoTaskExtension(ObjectFactory objects, ProviderFactory providers, JacocoAgentJar agent, JavaForkOptions task) {
+    public JacocoTaskExtension(ProviderFactory providers, JacocoAgentJar agent, JavaForkOptions task) {
         this.agent = agent;
         this.task = task;
         this.providers = providers;
         getEnabled().convention(true);
-        this.destinationFile = objects.fileProperty();
         getIncludeNoLocationClasses().convention(false);
         getDumpOnExit().convention(true);
         getOutput().convention(Output.FILE);
@@ -110,32 +106,34 @@ public abstract class JacocoTaskExtension {
     }
 
     /**
-     * The path for the execution data to be written to.
-     */
-    @Nullable
-    @Optional
-    @OutputFile
-    @ToBeReplacedByLazyProperty(issue = "https://github.com/gradle/gradle/issues/29826")
-    public File getDestinationFile() {
-        return destinationFile.getAsFile().getOrNull();
-    }
-
-    /**
-     * Set the provider for calculating the destination file.
+     * The path for execution data to be written to.
      *
-     * @param destinationFile Destination file provider
+     * @return destination file for execution data output
      * @since 4.0
      */
-    public void setDestinationFile(Provider<File> destinationFile) {
-        // TODO: This is a workaround for behavior in AGP.
-        // see https://github.com/gradle/gradle/issues/33389
-        // This can be removed once we've fixed RegularFileProperty.fileProvider(...) to work properly
-        this.destinationFile.fileProvider(destinationFile.flatMap(Providers::of));
+    @Internal
+    @ReplacesEagerProperty(adapter = DestinationFileAdapter.class)
+    public abstract RegularFileProperty getDestinationFile();
+
+    /**
+     * This method exists because {@link #getDestinationFile()} cannot be annotated with {@code @OutputFile} directly,
+     * as it cannot carry a task dependency and produces:
+     *
+     * Property 'destinationFile' is declared as an output property of an object with type JacocoTaskExtension but does not have a task associated with it.
+     *
+     * @return the destination directory as a file
+     * @since 9.1.0
+     */
+    @Nullable
+    @Deprecated
+    @Incubating
+    @Optional
+    @OutputFile
+    @SuppressWarnings("InlineMeSuggester")
+    protected File getDestinationFileOutput() {
+        return getDestinationFile().getAsFile().getOrNull();
     }
 
-    public void setDestinationFile(@Nullable File destinationFile) {
-        this.destinationFile.set(destinationFile);
-    }
     /**
      * List of class names that should be included in analysis. Names can use wildcards (* and ?). If left empty, all classes will be included. Defaults to an empty list.
      */
@@ -276,7 +274,7 @@ public abstract class JacocoTaskExtension {
             builder.append("-javaagent:");
             builder.append(agent.getJar().getAbsolutePath());
             builder.append('=');
-            argument.append("destfile", getDestinationFile());
+            argument.append("destfile", getDestinationFileOutput());
             argument.append("append", true);
             argument.append("includes", getIncludes().get());
             argument.append("excludes", getExcludes().get());
@@ -297,6 +295,24 @@ public abstract class JacocoTaskExtension {
 
             return builder.toString();
         });
+    }
+
+    static abstract class DestinationFileAdapter {
+        @Nullable
+        @BytecodeUpgrade
+        static File getDestinationFile(JacocoTaskExtension extension) {
+            return extension.getDestinationFile().getAsFile().getOrNull();
+        }
+
+        @BytecodeUpgrade
+        static void setDestinationFile(JacocoTaskExtension extension, Provider<File> destinationFile) {
+            extension.getDestinationFile().fileProvider(destinationFile);
+        }
+
+        @BytecodeUpgrade
+        static void setDestinationFile(JacocoTaskExtension extension, File destinationFile) {
+            extension.getDestinationFile().set(destinationFile);
+        }
     }
 
     private static class ArgumentAppender {
