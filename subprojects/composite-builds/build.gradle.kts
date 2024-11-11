@@ -35,6 +35,7 @@ dependencies {
     implementation(projects.enterpriseOperations)
     implementation(projects.daemonServices)
     implementation(projects.logging)
+    implementation(projects.problemsApi)
     implementation(projects.serviceLookup)
 
     implementation(libs.slf4jApi)
