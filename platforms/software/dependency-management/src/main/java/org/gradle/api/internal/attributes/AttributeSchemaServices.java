@@ -22,6 +22,8 @@ import org.gradle.api.internal.attributes.matching.AttributeMatcher;
 import org.gradle.api.internal.attributes.matching.CachingAttributeSelectionSchema;
 import org.gradle.api.internal.attributes.matching.DefaultAttributeMatcher;
 import org.gradle.api.internal.attributes.matching.DefaultAttributeSelectionSchema;
+import org.gradle.internal.model.InMemoryLoadingCache;
+import org.gradle.internal.model.InMemoryCacheFactory;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -34,14 +36,19 @@ import javax.inject.Inject;
 public class AttributeSchemaServices {
 
     private final ImmutableAttributesSchemaFactory attributesSchemaFactory;
+    private final InMemoryCacheFactory cacheFactory;
 
-    private final ConcurrentIdentityCache<ImmutableAttributesSchema, AttributeMatcher> matchers = new ConcurrentIdentityCache<>();
+    private final InMemoryLoadingCache<ImmutableAttributesSchema, AttributeMatcher> matchers;
 
     @Inject
     public AttributeSchemaServices(
-        ImmutableAttributesSchemaFactory attributesSchemaFactory
+        ImmutableAttributesSchemaFactory attributesSchemaFactory,
+        InMemoryCacheFactory cacheFactory
     ) {
         this.attributesSchemaFactory = attributesSchemaFactory;
+        this.cacheFactory = cacheFactory;
+
+        this.matchers = cacheFactory.createIdentityCache(this::createMatcher);
     }
 
     /**
@@ -59,12 +66,16 @@ public class AttributeSchemaServices {
      */
     public AttributeMatcher getMatcher(ImmutableAttributesSchema consumer, ImmutableAttributesSchema producer) {
         ImmutableAttributesSchema merged = attributesSchemaFactory.concat(consumer, producer);
-        return matchers.computeIfAbsent(merged, key ->
-            new DefaultAttributeMatcher(
-                new CachingAttributeSelectionSchema(
-                    new DefaultAttributeSelectionSchema(key)
-                )
-            )
+        return matchers.get(merged);
+    }
+
+    private DefaultAttributeMatcher createMatcher(ImmutableAttributesSchema schema) {
+        return new DefaultAttributeMatcher(
+            new CachingAttributeSelectionSchema(
+                new DefaultAttributeSelectionSchema(schema),
+                cacheFactory
+            ),
+            cacheFactory
         );
     }
 

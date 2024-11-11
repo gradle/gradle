@@ -28,11 +28,12 @@ import org.gradle.api.attributes.CompatibilityCheckDetails;
 import org.gradle.api.attributes.MultipleCandidatesDetails;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.DefaultAttributeMatchingStrategy;
+import org.gradle.internal.model.InMemoryLoadingCache;
+import org.gradle.internal.model.InMemoryCacheFactory;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Factory for creating and interning immutable attribute schemas.
@@ -41,11 +42,12 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ImmutableAttributesSchemaFactory {
 
     private final Interner<ImmutableAttributesSchema> schemas = Interners.newStrongInterner();
-    private final Map<SchemaPair, ImmutableAttributesSchema> mergedSchemas = new ConcurrentHashMap<>();
+    private final InMemoryLoadingCache<SchemaPair, ImmutableAttributesSchema> mergedSchemas;
 
     @SuppressWarnings("CheckReturnValue")
-    public ImmutableAttributesSchemaFactory() {
+    public ImmutableAttributesSchemaFactory(InMemoryCacheFactory cacheFactory) {
         schemas.intern(ImmutableAttributesSchema.EMPTY);
+        this.mergedSchemas = cacheFactory.create(this::doConcatSchemas);
     }
 
     /**
@@ -108,20 +110,13 @@ public class ImmutableAttributesSchemaFactory {
      * @return The merged schema.
      */
     public ImmutableAttributesSchema concat(ImmutableAttributesSchema consumer, ImmutableAttributesSchema producer) {
-        SchemaPair key = new SchemaPair(consumer, producer);
+        return mergedSchemas.get(new SchemaPair(consumer, producer));
+    }
 
-        // First attempt to fetch the value from the map without locking
-        ImmutableAttributesSchema merged = mergedSchemas.get(key);
-        if (merged != null) {
-            return merged;
-        }
-
-        // If it is not found, compute the value atomically
-        return mergedSchemas.computeIfAbsent(key, pair ->
-            create(
-                mergeStrategies(consumer, producer),
-                mergePrecedence(consumer.precedence, producer.precedence)
-            )
+    private ImmutableAttributesSchema doConcatSchemas(SchemaPair pair) {
+        return create(
+            mergeStrategies(pair.consumer, pair.producer),
+            mergePrecedence(pair.consumer.precedence, pair.producer.precedence)
         );
     }
 

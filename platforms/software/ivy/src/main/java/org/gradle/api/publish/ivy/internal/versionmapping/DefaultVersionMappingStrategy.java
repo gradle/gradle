@@ -33,7 +33,6 @@ import org.gradle.api.publish.VariantVersionMappingStrategy;
 import org.gradle.api.publish.internal.versionmapping.DefaultVariantVersionMappingStrategy;
 import org.gradle.api.publish.internal.versionmapping.VariantVersionMappingStrategyInternal;
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
-import org.gradle.internal.component.model.AttributeMatchingExplanationBuilder;
 
 import javax.inject.Inject;
 import java.util.ArrayList;
@@ -102,7 +101,7 @@ public class DefaultVersionMappingStrategy implements VersionMappingStrategyInte
         // Then use attribute specific mapping
         if (!attributeBasedMappings.isEmpty()) {
             Set<ImmutableAttributes> candidates = attributeBasedMappings.keySet();
-            List<ImmutableAttributes> matches = getMatcher().matchMultipleCandidates(candidates, variantAttributes, AttributeMatchingExplanationBuilder.NO_OP);
+            List<ImmutableAttributes> matches = getMatcher().matchMultipleCandidates(candidates, variantAttributes);
             if (matches.size() == 1) {
                 Collection<Action<? super VariantVersionMappingStrategy>> actions = attributeBasedMappings.get(matches.get(0));
                 for (Action<? super VariantVersionMappingStrategy> action : actions) {
@@ -121,7 +120,7 @@ public class DefaultVersionMappingStrategy implements VersionMappingStrategyInte
             // First need to populate the default variant version mapping strategy with the default values
             // provided by plugins
             Set<ImmutableAttributes> candidates = defaultConfigurations.keySet();
-            List<ImmutableAttributes> matches = getMatcher().matchMultipleCandidates(candidates, variantAttributes, AttributeMatchingExplanationBuilder.NO_OP);
+            List<ImmutableAttributes> matches = getMatcher().matchMultipleCandidates(candidates, variantAttributes);
             for (ImmutableAttributes match : matches) {
                 strategy.setDefaultResolutionConfiguration(configurations.getByName(defaultConfigurations.get(match)));
             }

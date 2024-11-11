@@ -96,6 +96,6 @@ class AttributeTestUtil {
      * Creates a service factory, used for creating attribute matchers and variant transformers.
      */
     static AttributeSchemaServices services() {
-        new AttributeSchemaServices(new ImmutableAttributesSchemaFactory())
+        new AttributeSchemaServices(new ImmutableAttributesSchemaFactory(TestUtil.inMemoryCacheFactory()), TestUtil.inMemoryCacheFactory())
     }
 }
