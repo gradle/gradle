@@ -108,7 +108,6 @@ Method <org.gradle.api.file.ConfigurableFileTree.getBuiltBy()> does not have raw
 Method <org.gradle.api.file.ConfigurableFileTree.getDir()> does not have raw return type (java.io.File) assignable to any of [Property, MapProperty, ListProperty, SetProperty] in (ConfigurableFileTree.java:0)
 Method <org.gradle.api.file.CopyProcessingSpec.getDirMode()> does not have raw return type (java.lang.Integer) assignable to any of [Property, MapProperty, ListProperty, SetProperty] in (CopyProcessingSpec.java:0)
 Method <org.gradle.api.file.CopyProcessingSpec.getFileMode()> does not have raw return type (java.lang.Integer) assignable to any of [Property, MapProperty, ListProperty, SetProperty] in (CopyProcessingSpec.java:0)
-Method <org.gradle.api.file.CopySpec.getFilteringCharset()> does not have raw return type (java.lang.String) assignable to any of [Property, MapProperty, ListProperty, SetProperty] in (CopySpec.java:0)
 Method <org.gradle.api.file.FileCopyDetails.getDuplicatesStrategy()> does not have raw return type (org.gradle.api.file.DuplicatesStrategy) assignable to any of [Property, MapProperty, ListProperty, SetProperty] in (FileCopyDetails.java:0)
 Method <org.gradle.api.file.FileCopyDetails.getName()> does not have raw return type (java.lang.String) assignable to any of [Property, MapProperty, ListProperty, SetProperty] in (FileCopyDetails.java:0)
 Method <org.gradle.api.file.FileCopyDetails.getPath()> does not have raw return type (java.lang.String) assignable to any of [Property, MapProperty, ListProperty, SetProperty] in (FileCopyDetails.java:0)

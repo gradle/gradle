@@ -323,13 +323,8 @@ public class CopySpecWrapper implements SyncSpec {
     }
 
     @Override
-    public String getFilteringCharset() {
+    public Property<String> getFilteringCharset() {
         return delegate.getFilteringCharset();
-    }
-
-    @Override
-    public void setFilteringCharset(String charset) {
-        delegate.setFilteringCharset(charset);
     }
 
     @Override

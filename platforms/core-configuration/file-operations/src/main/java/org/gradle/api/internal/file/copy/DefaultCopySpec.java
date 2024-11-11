@@ -88,9 +88,9 @@ public class DefaultCopySpec implements CopySpecInternal {
     private final Property<Boolean> includeEmptyDirs;
     private final PatternFilterable preserve = new PatternSet();
     private final Property<DuplicatesStrategy> duplicatesStrategy;
+    private final Property<String> filteringCharset;
     private Object destDir;
     private boolean hasCustomActions;
-    private String filteringCharset;
     private final List<CopySpecListener> listeners = new LinkedList<>();
 
     @Inject
@@ -110,6 +110,7 @@ public class DefaultCopySpec implements CopySpecInternal {
         this.caseSensitive = objectFactory.property(Boolean.class);
         this.includeEmptyDirs = objectFactory.property(Boolean.class);
         this.duplicatesStrategy = objectFactory.property(DuplicatesStrategy.class);
+        this.filteringCharset = objectFactory.property(String.class);
     }
 
     public DefaultCopySpec(FileCollectionFactory fileCollectionFactory, ObjectFactory objectFactory, Instantiator instantiator, Factory<PatternSet> patternSetFactory, @Nullable String destPath, FileCollection source, PatternSet patternSet, Collection<? extends Action<? super FileCopyDetails>> copyActions, Collection<CopySpecInternal> children) {
@@ -611,17 +612,11 @@ public class DefaultCopySpec implements CopySpecInternal {
     }
 
     @Override
-    public String getFilteringCharset() {
-        return buildRootResolver().getFilteringCharset();
-    }
-
-    @Override
-    public void setFilteringCharset(String charset) {
-        Preconditions.checkNotNull(charset, "filteringCharset must not be null");
-        if (!Charset.isSupported(charset)) {
-            throw new InvalidUserDataException(String.format("filteringCharset %s is not supported by your JVM", charset));
+    public Property<String> getFilteringCharset() {
+        if (!filteringCharset.isPresent()) {
+            filteringCharset.set(buildRootResolver().getFilteringCharset());
         }
-        this.filteringCharset = charset;
+        return filteringCharset;
     }
 
     private static class MapBackedExpandAction implements Action<FileCopyDetails> {
@@ -893,14 +888,14 @@ public class DefaultCopySpec implements CopySpecInternal {
         }
 
         @Override
-        public String getFilteringCharset() {
-            if (filteringCharset != null) {
+        public Provider<String> getFilteringCharset() {
+            if (filteringCharset.isPresent()) {
                 return filteringCharset;
             }
             if (parentResolver != null) {
                 return parentResolver.getFilteringCharset();
             }
-            return Charset.defaultCharset().name();
+            return Providers.of(Charset.defaultCharset().name());
         }
     }
 

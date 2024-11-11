@@ -57,7 +57,7 @@ class DefaultCopySpecCodec(
             writeEnum(value.duplicatesStrategyForThisSpec)
             writeBoolean(value.includeEmptyDirs.get())
             writeBoolean(value.caseSensitive.get())
-            writeString(value.filteringCharset)
+            writeString(value.filteringCharset.get())
             writeNullableSmallInt(value.dirPermissions.map(ConfigurableFilePermissions::toUnixNumeric).orNull)
             writeNullableSmallInt(value.filePermissions.map(ConfigurableFilePermissions::toUnixNumeric).orNull)
             writeCollection(value.copyActions)
@@ -82,7 +82,7 @@ class DefaultCopySpecCodec(
             copySpec.duplicatesStrategy.set(duplicatesStrategy)
             copySpec.includeEmptyDirs.set(includeEmptyDirs)
             copySpec.caseSensitive.set(isCaseSensitive)
-            copySpec.filteringCharset = filteringCharset
+            copySpec.filteringCharset.set(filteringCharset)
             if (dirMode != null) {
                 copySpec.dirPermissions.set(fileSystemOperations.permissions(dirMode))
             }

@@ -59,7 +59,7 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
     @Inject
     public DefaultFileCopyDetails(FileVisitDetails fileDetails, CopySpecResolver specResolver, ObjectFactory objectFactory, Chmod chmod) {
         super(chmod);
-        this.filterChain = new FilterChain(specResolver.getFilteringCharset());
+        this.filterChain = new FilterChain(specResolver.getFilteringCharset().get());
         this.fileDetails = fileDetails;
         this.specResolver = specResolver;
         this.objectFactory = objectFactory;

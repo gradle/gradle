@@ -36,6 +36,7 @@ public class SingleParentCopySpec extends DefaultCopySpec {
         getDuplicatesStrategy().set(parentResolver.getDuplicatesStrategy());
         getFilePermissions().convention(parentResolver.getFilePermissions());
         getDirPermissions().convention(parentResolver.getDirPermissions());
+        getFilteringCharset().convention(parentResolver.getFilteringCharset());
     }
 
     @Override
@@ -50,10 +51,5 @@ public class SingleParentCopySpec extends DefaultCopySpec {
         DefaultCopySpec child = instantiator.newInstance(SingleParentCopySpec.class, fileCollectionFactory, instantiator, patternSetFactory, buildResolverRelativeToParent(parentResolver));
         addChildSpec(position, child);
         return child;
-    }
-
-    @Override
-    public String getFilteringCharset() {
-        return buildResolverRelativeToParent(parentResolver).getFilteringCharset();
     }
 }

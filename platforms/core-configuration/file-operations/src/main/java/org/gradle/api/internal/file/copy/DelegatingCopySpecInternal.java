@@ -312,13 +312,8 @@ public abstract class DelegatingCopySpecInternal implements CopySpecInternal {
     }
 
     @Override
-    public String getFilteringCharset() {
+    public Property<String> getFilteringCharset() {
         return getDelegateCopySpec().getFilteringCharset();
-    }
-
-    @Override
-    public void setFilteringCharset(String charset) {
-        getDelegateCopySpec().setFilteringCharset(charset);
     }
 
     @Override

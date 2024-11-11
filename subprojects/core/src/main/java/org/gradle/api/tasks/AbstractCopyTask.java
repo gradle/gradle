@@ -98,7 +98,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
                 .optional(true);
             getInputs().property(specPropertyName + ".filePermissions", spec.getFilePermissions().map(FilePermissions::toUnixNumeric))
                 .optional(true);
-            getInputs().property(specPropertyName + ".filteringCharset", (Callable<String>) spec::getFilteringCharset);
+            getInputs().property(specPropertyName + ".filteringCharset", spec.getFilteringCharset());
         });
         this.getOutputs().doNotCacheIf(
             "Has custom actions",
@@ -612,16 +612,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
      */
     @Internal
     @Override
-    @ToBeReplacedByLazyProperty
-    public String getFilteringCharset() {
+    public Property<String> getFilteringCharset() {
         return getMainSpec().getFilteringCharset();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void setFilteringCharset(String charset) {
-        getMainSpec().setFilteringCharset(charset);
     }
 }

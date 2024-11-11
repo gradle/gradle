@@ -27,7 +27,6 @@ import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 import java.io.FilterReader;
 import java.util.Map;
@@ -403,14 +402,6 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
      * @return the charset used to read and write files when filtering
      * @since 2.14
      */
-    @ToBeReplacedByLazyProperty
-    String getFilteringCharset();
-
-    /**
-     * Specifies the charset used to read and write files when filtering.
-     *
-     * @param charset the name of the charset to use when filtering files
-     * @since 2.14
-     */
-    void setFilteringCharset(String charset);
+    @ReplacesEagerProperty(originalType = String.class)
+    Property<String> getFilteringCharset();
 }

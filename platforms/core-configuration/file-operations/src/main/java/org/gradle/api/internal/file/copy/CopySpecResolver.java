@@ -52,7 +52,7 @@ public interface CopySpecResolver {
     Provider<ConfigurableFilePermissions> getDirPermissions();
     Provider<FilePermissions> getImmutableDirPermissions();
     Provider<Boolean> getIncludeEmptyDirs();
-    String getFilteringCharset();
+    Provider<String> getFilteringCharset();
 
     RelativePath getDestPath();
 

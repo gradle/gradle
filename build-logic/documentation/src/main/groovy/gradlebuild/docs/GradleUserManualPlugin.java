@@ -200,14 +200,14 @@ public class GradleUserManualPlugin implements Plugin<Project> {
                 sub.into("snippets");
                 sub.exclude("**/.gradle/**");
                 sub.exclude("**/build/**");
-                sub.setIncludeEmptyDirs(false);
+                Gradle9PropertyUpgradeSupport.setProperty(sub, "setIncludeEmptyDirs", false);
             });
             task.from(extension.getUserManual().getSamples(), sub -> {
                 sub.into("samples");
                 sub.exclude("**/*.adoc");
                 sub.exclude("**/.gradle/**");
                 sub.exclude("**/build/**");
-                sub.setIncludeEmptyDirs(false);
+                Gradle9PropertyUpgradeSupport.setProperty(sub, "setIncludeEmptyDirs", false);
             });
             task.from(extension.getCssFiles(), sub -> sub.into("css"));
             task.from(extension.getUserManual().getRoot().dir("img"), sub -> {
