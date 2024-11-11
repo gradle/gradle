@@ -25,7 +25,7 @@ import org.gradle.internal.jvm.Jvm;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.JavaDebugOptions;
 import org.gradle.process.JavaForkOptions;
-import org.gradle.process.internal.JvmDebugOptions.PropertyBackedJvmDebugOptions;
+import org.gradle.process.internal.JvmDebugSpec.JavaDebugOptionsBackedSpec;
 
 import javax.inject.Inject;
 import java.util.ArrayList;
@@ -48,7 +48,7 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
         super(resolver);
         this.fileCollectionFactory = fileCollectionFactory;
         this.debugOptions = objectFactory.newInstance(DefaultJavaDebugOptions.class, objectFactory);
-        this.options = new JvmOptions(fileCollectionFactory, new PropertyBackedJvmDebugOptions(debugOptions));
+        this.options = new JvmOptions(fileCollectionFactory, new JavaDebugOptionsBackedSpec(debugOptions));
     }
 
     @Override

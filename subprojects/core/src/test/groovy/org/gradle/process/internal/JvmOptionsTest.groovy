@@ -150,8 +150,8 @@ class JvmOptionsTest extends Specification {
         JavaDebugOptions debugOptions = TestUtil.newInstance(DefaultJavaDebugOptions);
         JavaForkOptions target = Mock(JavaForkOptions) { it.debugOptions >> debugOptions }
         JvmOptions source = parse("-Dx=y")
-        source.debugOptions.host = "*"
-        source.debugOptions.port = 1234
+        source.debugSpec.host = "*"
+        source.debugSpec.port = 1234
 
         when:
         source.copyTo(target)
@@ -239,9 +239,9 @@ class JvmOptionsTest extends Specification {
 
         when:
         opts.debug = true
-        opts.debugOptions.port = port
-        opts.debugOptions.server = server
-        opts.debugOptions.suspend = suspend
+        opts.debugSpec.port = port
+        opts.debugSpec.server = server
+        opts.debugSpec.suspend = suspend
 
         then:
         opts.allJvmArgs.findAll { it.contains 'jdwp' } == [expected]

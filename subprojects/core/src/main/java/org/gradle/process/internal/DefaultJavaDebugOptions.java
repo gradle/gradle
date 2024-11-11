@@ -20,7 +20,7 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Optional;
 import org.gradle.process.JavaDebugOptions;
-import org.gradle.process.internal.JvmDebugOptions.DefaultJvmDebugOptions;
+import org.gradle.process.internal.JvmDebugSpec.DefaultJvmDebugSpec;
 
 import javax.inject.Inject;
 import java.util.Objects;
@@ -34,7 +34,7 @@ public class DefaultJavaDebugOptions implements JavaDebugOptions {
 
     @Inject
     public DefaultJavaDebugOptions(ObjectFactory objectFactory) {
-        DefaultJvmDebugOptions defaultValues = new DefaultJvmDebugOptions();
+        DefaultJvmDebugSpec defaultValues = new DefaultJvmDebugSpec();
         this.enabled = objectFactory.property(Boolean.class).convention(defaultValues.isEnabled());
         this.host = objectFactory.property(String.class).convention(defaultValues.getHost());
         this.port = objectFactory.property(Integer.class).convention(defaultValues.getPort());

@@ -22,7 +22,7 @@ import org.gradle.process.JavaDebugOptions;
 import javax.annotation.Nullable;
 
 @NonNullApi
-public interface JvmDebugOptions {
+public interface JvmDebugSpec {
 
     boolean isEnabled();
 
@@ -46,14 +46,14 @@ public interface JvmDebugOptions {
     void setSuspend(boolean suspend);
 
     @NonNullApi
-    class DefaultJvmDebugOptions implements JvmDebugOptions {
+    class DefaultJvmDebugSpec implements JvmDebugSpec {
         private boolean enabled;
         private String host;
         private int port;
         private boolean server;
         private boolean suspend;
 
-        public DefaultJvmDebugOptions() {
+        public DefaultJvmDebugSpec() {
             this.enabled = false;
             this.host = null;
             this.port = 5005;
@@ -114,10 +114,10 @@ public interface JvmDebugOptions {
     }
 
     @NonNullApi
-    class PropertyBackedJvmDebugOptions implements JvmDebugOptions {
+    class JavaDebugOptionsBackedSpec implements JvmDebugSpec {
         private final JavaDebugOptions delegate;
 
-        public PropertyBackedJvmDebugOptions(JavaDebugOptions delegate) {
+        public JavaDebugOptionsBackedSpec(JavaDebugOptions delegate) {
             this.delegate = delegate;
         }
 

@@ -196,19 +196,19 @@ public class DaemonParameters {
     }
 
     public void setDebugPort(int debug) {
-        jvmOptions.getDebugOptions().setPort(debug);
+        jvmOptions.getDebugSpec().setPort(debug);
     }
 
     public void setDebugHost(String host) {
-        jvmOptions.getDebugOptions().setHost(host);
+        jvmOptions.getDebugSpec().setHost(host);
     }
 
     public void setDebugSuspend(boolean suspend) {
-        jvmOptions.getDebugOptions().setSuspend(suspend);
+        jvmOptions.getDebugSpec().setSuspend(suspend);
     }
 
     public void setDebugServer(boolean server) {
-        jvmOptions.getDebugOptions().setServer(server);
+        jvmOptions.getDebugSpec().setServer(server);
     }
 
     public DaemonParameters setBaseDir(File baseDir) {
