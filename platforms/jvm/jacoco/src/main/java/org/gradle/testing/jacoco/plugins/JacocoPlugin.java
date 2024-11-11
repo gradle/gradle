@@ -114,8 +114,10 @@ public abstract class JacocoPlugin implements Plugin<Project> {
 
                 suite.getTargets().configureEach(target -> {
                     jacocoResultsVariant.configure(variant -> {
+                        @SuppressWarnings("deprecation")
                         Provider<File> resultsDir = target.getTestTask().map(task ->
-                            task.getExtensions().getByType(JacocoTaskExtension.class).getDestinationFile()
+                            // We need to use getDestinationFileOutput() since it's an @OutputFile and carries task dependency information.
+                            task.getExtensions().getByType(JacocoTaskExtension.class).getDestinationFileOutput()
                         );
 
                         variant.getOutgoing().artifact(
