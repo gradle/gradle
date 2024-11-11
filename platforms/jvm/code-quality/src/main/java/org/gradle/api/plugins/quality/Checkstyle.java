@@ -79,6 +79,7 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
      * The Checkstyle configuration file to use.
      */
     @InputFile
+    @PathSensitive(PathSensitivity.RELATIVE)
     @ReplacesEagerProperty(adapter = ConfigFileAdapter.class)
     public abstract RegularFileProperty getConfigFile();
 
