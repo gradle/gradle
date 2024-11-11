@@ -28,6 +28,8 @@ import org.gradle.internal.reflect.Instantiator
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
+import java.nio.charset.Charset
+
 class CopyFileVisitorImplTest extends Specification {
     CopyActionProcessingStreamAction action = Mock()
     Instantiator instantiator = Mock()
@@ -37,6 +39,7 @@ class CopyFileVisitorImplTest extends Specification {
 
     def specResolver = Mock(CopySpecResolver) {
         getDuplicatesStrategy() >> Providers.of(DuplicatesStrategy.INHERIT)
+        getFilteringCharset() >> Providers.of(Charset.defaultCharset().name())
     }
 
     def setup() {

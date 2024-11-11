@@ -39,6 +39,8 @@ import org.junit.Rule
 import spock.lang.Shared
 import spock.lang.Specification
 
+import java.nio.charset.Charset
+
 import static org.gradle.api.file.DuplicatesStrategy.EXCLUDE
 import static org.gradle.api.file.DuplicatesStrategy.FAIL
 import static org.gradle.api.file.DuplicatesStrategy.INHERIT
@@ -67,6 +69,7 @@ class DuplicateHandlingCopyActionExecutorTest extends Specification {
     }
     def copySpecResolver = Mock(CopySpecResolver) {
         getIncludeEmptyDirs() >> Providers.of(false)
+        getFilteringCharset() >> Providers.of(Charset.defaultCharset().name())
     }
 
     def duplicatesIncludedByDefault() {

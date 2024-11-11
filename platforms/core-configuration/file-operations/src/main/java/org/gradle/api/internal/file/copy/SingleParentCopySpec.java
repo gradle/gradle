@@ -34,6 +34,7 @@ public class SingleParentCopySpec extends DefaultCopySpec {
         getCaseSensitive().set(parentResolver.getCaseSensitive());
         getIncludeEmptyDirs().set(parentResolver.getIncludeEmptyDirs());
         getDuplicatesStrategy().set(parentResolver.getDuplicatesStrategy());
+        getFilteringCharset().set(parentResolver.getFilteringCharset());
         getFilePermissions().convention(parentResolver.getFilePermissions());
         getDirPermissions().convention(parentResolver.getDirPermissions());
         getFilteringCharset().convention(parentResolver.getFilteringCharset());
