@@ -29,7 +29,7 @@ import org.gradle.test.preconditions.UnitTestPreconditions
 @Requires(UnitTestPreconditions.Jdk17OrLater)
 class BuildInitSpecsIntegrationTest extends AbstractInitIntegrationSpec implements TestsBuildInitSpecsViaPlugin, JavaToolchainFixture {
     private static final String DECLARATIVE_JVM_PLUGIN_ID = "org.gradle.experimental.jvm-ecosystem-init"
-    private static final String DECLARATIVE_PLUGIN_VERSION = "0.1.30"
+    private static final String DECLARATIVE_PLUGIN_VERSION = "0.1.32"
     private static final String DECLARATIVE_PLUGIN_SPEC = "$DECLARATIVE_JVM_PLUGIN_ID:$DECLARATIVE_PLUGIN_VERSION"
 
     // Just need an arbitrary Plugin<Settings> here, so use the Declarative Prototype.  Note that we can't use JVM, because
@@ -37,7 +37,7 @@ class BuildInitSpecsIntegrationTest extends AbstractInitIntegrationSpec implemen
     //> Failed to apply plugin 'org.gradle.jvm-toolchain-management'.
     //   > Cannot add extension with name 'jvm', as there is an extension already registered with that name.
     private static final String ARBITRARY_PLUGIN_ID = "org.gradle.experimental.declarative-common"
-    private static final String ARBITRARY_PLUGIN_VERSION = "0.1.30"
+    private static final String ARBITRARY_PLUGIN_VERSION = "0.1.32"
     private static final String ARBITRARY_PLUGIN_SPEC = "$ARBITRARY_PLUGIN_ID:$ARBITRARY_PLUGIN_VERSION"
 
     def "can specify 3rd party plugin using argument to init"() {
@@ -265,13 +265,12 @@ class BuildInitSpecsIntegrationTest extends AbstractInitIntegrationSpec implemen
         // Smoke test 2 DCL files
         assertProjectFileGenerated("settings.gradle.dcl", """pluginManagement {
     repositories {
-        google() // Needed for the Android plugin, applied by the unified plugin
         gradlePluginPortal()
     }
 }
 
 plugins {
-    id("org.gradle.experimental.jvm-ecosystem").version("0.1.23")
+    id("org.gradle.experimental.jvm-ecosystem").version("0.1.30")
 }
 
 rootProject.name = "example-java-app"
