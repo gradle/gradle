@@ -632,6 +632,10 @@ tasks.named<Test>("docsTest") {
     systemProperties = emptyMap<String, Any>()
 
     filter {
+        // TODO: Delete after Gradle 9.0, used just to pass Gradleception tests
+        fun Provider<JavaVersion>.isCompatibleWith(version: JavaVersion) =
+            get().isCompatibleWith(version)
+
         // workaround for https://github.com/gradle/dotcom/issues/5958
         isFailOnNoMatchingTests = false
         // Only execute C++ sample tests on Linux because it is the configured target
@@ -647,7 +651,7 @@ tasks.named<Test>("docsTest") {
             excludeTestsMatching("*java7CrossCompilation.sample")
         }
         // Only execute Groovy sample tests on Java < 9 to avoid warnings in output
-        if (javaVersion.isJava9Compatible) {
+        if (javaVersion.isCompatibleWith(JavaVersion.VERSION_1_9)) {
             excludeTestsMatching("org.gradle.docs.samples.*.building-groovy-*.sample")
         }
         // disable sanityCheck of 'structuring-software-projects' in any case due to deprecation warning in Android project
@@ -659,7 +663,7 @@ tasks.named<Test>("docsTest") {
             excludeTestsMatching("org.gradle.docs.samples.*.snippet-model-rules-basic-rule-source-plugin_*_basicRuleSourcePlugin-model-task.sample")
         }
 
-        if (!javaVersion.isJava11Compatible) {
+        if (!javaVersion.isCompatibleWith(JavaVersion.VERSION_11)) {
             // Android requires Java 11+
             excludeTestsMatching("org.gradle.docs.samples.*.building-android-*.sample")
             excludeTestsMatching("org.gradle.docs.samples.*.snippet-kotlin-dsl-android-build_*.sample")
