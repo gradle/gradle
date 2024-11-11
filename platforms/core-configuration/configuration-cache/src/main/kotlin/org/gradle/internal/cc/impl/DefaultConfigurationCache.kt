@@ -287,9 +287,7 @@ class DefaultConfigurationCache internal constructor(
             cacheIO.writeCacheEntryDetailsTo(buildStateRegistry, usedModels, usedMetadata, sideEffects, layout.fileFor(StateType.Entry))
         }
         store.useForStore { layout ->
-            val existingEntries = cacheIO.readCandidateEntries(layout.fileForRead(StateType.Candidates))
-            val newEntries = listOf(CandidateEntry(entryId)) + existingEntries
-//            val newEntries = calculateCandidateEntries(layout, startParameter.entriesPerKey)
+            val newEntries = calculateCandidateEntries(layout, startParameter.entriesPerKey)
             cacheIO.writeCandidateEntries(layout.fileFor(StateType.Candidates), newEntries)
         }
     }
