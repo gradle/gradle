@@ -34,7 +34,7 @@ class CachedTest extends Specification {
     def "Cached may misbehave when used from multiple threads"() {
         def repetitions = 1000
         repetitions.times {
-            def iteration = iteration * repetitions + it
+            def iteration = batch * repetitions + it
             int parties = Math.max((Runtime.getRuntime().availableProcessors() / 2) as int, 2)
             def barrier = new CyclicBarrier(parties + 1)
             def counter = new AtomicInteger(iteration)
@@ -55,7 +55,7 @@ class CachedTest extends Specification {
         }
 
         where:
-        iteration << (0..<5)
+        batch << (0..<5)
     }
 
 }
