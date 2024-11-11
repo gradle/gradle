@@ -117,10 +117,15 @@ class DataSchemaBuilder(
     @Suppress("NestedBlockDepth")
     private
     fun createPreIndex(types: Iterable<KClass<*>>): PreIndex {
+        val typeDiscoveryServices = object : TypeDiscovery.TypeDiscoveryServices {
+            override val propertyExtractor: PropertyExtractor
+                get() = this@DataSchemaBuilder.propertyExtractor
+        }
+
         val allTypesToVisit = buildSet {
             fun visit(type: KClass<*>) {
                 if (add(type)) {
-                    typeDiscovery.getClassesToVisitFrom(type).forEach(::visit)
+                    typeDiscovery.getClassesToVisitFrom(typeDiscoveryServices, type).forEach(::visit)
                 }
             }
             types.forEach(::visit)
