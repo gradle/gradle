@@ -57,6 +57,10 @@ testing {
             targets {
                 all {
                     testTask.configure {
+                        // TODO: Delete after Gradle 9.0, used just to pass Gradleception tests
+                        operator fun ConfigurableFileCollection.plusAssign(fileCollection: FileCollection) {
+                            from(fileCollection)
+                        }
                         testClassesDirs += sharedArchTestClasses.filter { it.isDirectory }
                         classpath += sourceSets["main"].output.classesDirs
                         systemProperty("package.cycle.exclude.patterns", packageCyclesExtension.excludePatterns.get().joinToString(","))
