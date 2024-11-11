@@ -15,11 +15,10 @@
  */
 package org.gradle.testing.jacoco.plugins
 
-import org.gradle.api.Project
+
 import org.gradle.internal.jacoco.JacocoAgentJar
 import org.gradle.process.JavaForkOptions
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
@@ -27,8 +26,7 @@ import spock.lang.Specification
 class JacocoTaskExtensionSpec extends Specification {
     JacocoAgentJar agent = Mock()
     JavaForkOptions task = Mock()
-    Project project = ProjectBuilder.builder().build()
-    JacocoTaskExtension extension = TestUtil.newInstance(JacocoTaskExtension.class, project.objects, agent, task)
+    JacocoTaskExtension extension = TestUtil.newInstance(JacocoTaskExtension.class, agent, task)
     @Rule final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     def 'asJvmArg with default arguments assembles correct string'() {
