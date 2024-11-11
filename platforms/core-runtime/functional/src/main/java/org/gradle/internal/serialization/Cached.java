@@ -62,7 +62,7 @@ public abstract class Cached<T> {
             Callable<T> toCompute = computation;
             if (result == null) {
                 // copy reference into the call stack to avoid exacerbating https://github.com/gradle/gradle/issues/31239
-                result = tryComputation(computation);
+                result = tryComputation(toCompute);
                 computation = null;
             }
             return result;

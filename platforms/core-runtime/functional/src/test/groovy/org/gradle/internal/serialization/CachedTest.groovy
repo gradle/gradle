@@ -32,26 +32,30 @@ class CachedTest extends Specification {
      */
     @Flaky(because = "https://github.com/gradle/gradle/issues/31239")
     def "Cached may misbehave when used from multiple threads"() {
-        int parties = Math.max((Runtime.getRuntime().availableProcessors() / 2) as int, 2)
-        def barrier = new CyclicBarrier(parties + 1)
-        def counter = new AtomicInteger(0)
-        // FIXME should use a thread-safe factory method from Cached, once it is available
-        def cached = Cached.of(counter::incrementAndGet)
-        def concurrent = new ConcurrentTestUtil()
-        parties.times {
-            concurrent.start {
-                barrier.await()
-                // FIXME given enough opportunities, this will fail with a NPE
-                def value = cached.get()
-                // FIXME we should possibly require at-most-once semantics
-                // Such a weak guarantee is all we can provide at this time, as at-most-once is currently not honored
-                assert value > 0
+        def repetitions = 1000
+        repetitions.times {
+            def iteration = iteration * repetitions + it
+            int parties = Math.max((Runtime.getRuntime().availableProcessors() / 2) as int, 2)
+            def barrier = new CyclicBarrier(parties + 1)
+            def counter = new AtomicInteger(iteration)
+            def cached = Cached.of(counter::incrementAndGet)
+            def concurrent = new ConcurrentTestUtil()
+            parties.times {
+                concurrent.start {
+                    barrier.await()
+                    // FIXME given enough opportunities, this will fail with a NPE
+                    def value = cached.get()
+                    // FIXME we should possibly require at-most-once semantics
+                    // Such a weak guarantee is all we can provide at this time, as at-most-once is currently not honored
+                    assert value > iteration
+                }
             }
+            barrier.await()
+            concurrent.finished()
         }
-        barrier.await()
-        concurrent.finished()
 
         where:
-        iteration << (1..10000)
+        iteration << (0..<5)
     }
+
 }
