@@ -26,7 +26,10 @@ import java.util.concurrent.Callable;
 /**
  * Represents a computation that must execute only once and
  * whose result must be cached even (or specially) at serialization time.
- *
+ *<p>
+ * Instances of this type are mutable and ARE NOT thread-safe,
+ * so should not be used from multiple threads.
+ *</p>
  * @param <T> the resulting type
  */
 public abstract class Cached<T> {
@@ -46,6 +49,11 @@ public abstract class Cached<T> {
 
     private static class Deferred<T> extends Cached<T> implements java.io.Serializable, EvaluationOwner {
 
+        /*
+         * TODO-RC fields are volatile as a workaround for call sites still unwisely using Cached from multiple threads.
+         *
+         * @see: https://github.com/gradle/gradle/issues/31239
+         */
         private volatile Callable<T> computation;
         private volatile Try<T> result;
 
