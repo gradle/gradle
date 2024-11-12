@@ -17,25 +17,29 @@
 package org.gradle.internal.build.event.types;
 
 import org.gradle.api.NonNullApi;
-import org.gradle.tooling.internal.protocol.InternalProblemSummariesDetails;
+import org.gradle.tooling.internal.protocol.InternalProblemId;
 import org.gradle.tooling.internal.protocol.InternalProblemSummary;
 
-import java.io.Serializable;
-import java.util.List;
 import java.util.Objects;
 
 @NonNullApi
-public class DefaultProblemsSummariesDetails implements InternalProblemSummariesDetails, Serializable {
+public class DefaultProblemSummary implements InternalProblemSummary {
+    private InternalProblemId problemId;
+    private Integer count;
 
-    private final List<InternalProblemSummary> problemIdCounts;
-
-    public DefaultProblemsSummariesDetails(List<InternalProblemSummary> problemIdCounts) {
-        this.problemIdCounts = problemIdCounts;
+    public DefaultProblemSummary(InternalProblemId problemId, Integer count) {
+        this.problemId = problemId;
+        this.count = count;
     }
 
     @Override
-    public List<InternalProblemSummary> getProblemIdCounts() {
-        return problemIdCounts;
+    public InternalProblemId getProblemId() {
+        return problemId;
+    }
+
+    @Override
+    public Integer getCount() {
+        return count;
     }
 
     @Override
@@ -43,15 +47,15 @@ public class DefaultProblemsSummariesDetails implements InternalProblemSummaries
         if (this == o) {
             return true;
         }
-        if (!(o instanceof DefaultProblemsSummariesDetails)) {
+        if (!(o instanceof DefaultProblemSummary)) {
             return false;
         }
-        DefaultProblemsSummariesDetails that = (DefaultProblemsSummariesDetails) o;
-        return Objects.equals(problemIdCounts, that.problemIdCounts);
+        DefaultProblemSummary that = (DefaultProblemSummary) o;
+        return Objects.equals(problemId, that.problemId) && Objects.equals(count, that.count);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(problemIdCounts);
+        return Objects.hash(problemId, count);
     }
 }
