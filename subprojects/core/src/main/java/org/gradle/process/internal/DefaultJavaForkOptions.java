@@ -25,6 +25,7 @@ import org.gradle.internal.jvm.Jvm;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.JavaDebugOptions;
 import org.gradle.process.JavaForkOptions;
+import org.gradle.process.internal.JvmDebugSpec.JavaDebugOptionsBackedSpec;
 
 import javax.inject.Inject;
 import java.util.ArrayList;
@@ -35,7 +36,7 @@ import java.util.Map;
 public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements JavaForkOptionsInternal {
     private final JvmOptions options;
     private final FileCollectionFactory fileCollectionFactory;
-    private final ObjectFactory objectFactory;
+    private final JavaDebugOptions debugOptions;
     private List<CommandLineArgumentProvider> jvmArgumentProviders;
 
     @Inject
@@ -45,15 +46,15 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
         FileCollectionFactory fileCollectionFactory
     ) {
         super(resolver);
-        this.objectFactory = objectFactory;
         this.fileCollectionFactory = fileCollectionFactory;
-        this.options = new JvmOptions(objectFactory, fileCollectionFactory);
+        this.debugOptions = objectFactory.newInstance(DefaultJavaDebugOptions.class, objectFactory);
+        this.options = new JvmOptions(fileCollectionFactory, new JavaDebugOptionsBackedSpec(debugOptions));
     }
 
     @Override
     public List<String> getAllJvmArgs() {
         if (hasJvmArgumentProviders(this)) {
-            JvmOptions copy = options.createCopy(objectFactory, fileCollectionFactory);
+            JvmOptions copy = options.createCopy(fileCollectionFactory);
             for (CommandLineArgumentProvider jvmArgumentProvider : jvmArgumentProviders) {
                 copy.jvmArgs(jvmArgumentProvider.asArguments());
             }
@@ -204,12 +205,12 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
 
     @Override
     public JavaDebugOptions getDebugOptions() {
-        return options.getDebugOptions();
+        return debugOptions;
     }
 
     @Override
     public void debugOptions(Action<JavaDebugOptions> action) {
-        action.execute(options.getDebugOptions());
+        action.execute(getDebugOptions());
     }
 
     @Override
@@ -236,8 +237,8 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
     }
 
     @Override
-    public EffectiveJavaForkOptions toEffectiveJavaForkOptions(ObjectFactory objectFactory, FileCollectionFactory fileCollectionFactory) {
-        JvmOptions copy = options.createCopy(objectFactory, fileCollectionFactory);
+    public EffectiveJavaForkOptions toEffectiveJavaForkOptions(FileCollectionFactory fileCollectionFactory) {
+        JvmOptions copy = options.createCopy(fileCollectionFactory);
         if (jvmArgumentProviders != null) {
             for (CommandLineArgumentProvider jvmArgumentProvider : jvmArgumentProviders) {
                 copy.jvmArgs(jvmArgumentProvider.asArguments());

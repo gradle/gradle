@@ -20,10 +20,10 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.cache.internal.HeapProportionalCacheSizer;
-import org.gradle.process.JavaDebugOptions;
 import org.gradle.process.JavaForkOptions;
+import org.gradle.process.internal.JvmDebugSpec.DefaultJvmDebugSpec;
+import org.gradle.process.internal.JvmDebugSpec.JavaDebugOptionsBackedSpec;
 import org.gradle.util.internal.ArgumentsSplitter;
 import org.gradle.util.internal.GUtil;
 import org.slf4j.Logger;
@@ -83,20 +83,16 @@ public class JvmOptions {
     private String maxHeapSize;
     private boolean assertionsEnabled;
 
-    private final JavaDebugOptions debugOptions;
+    private final JvmDebugSpec debugSpec;
 
     protected final Map<String, Object> immutableSystemProperties = new TreeMap<>();
 
-    public JvmOptions(ObjectFactory objectFactory, FileCollectionFactory fileCollectionFactory) {
-        this(fileCollectionFactory, objectFactory.newInstance(DefaultJavaDebugOptions.class, objectFactory));
-    }
-
     public JvmOptions(FileCollectionFactory fileCollectionFactory) {
-        this(fileCollectionFactory, new DefaultJavaDebugOptions());
+        this(fileCollectionFactory, new DefaultJvmDebugSpec());
     }
 
-    private JvmOptions(FileCollectionFactory fileCollectionFactory, DefaultJavaDebugOptions debugOptions) {
-        this.debugOptions = debugOptions;
+    public JvmOptions(FileCollectionFactory fileCollectionFactory, JvmDebugSpec debugSpec) {
+        this.debugSpec = debugSpec;
         this.fileCollectionFactory = fileCollectionFactory;
         immutableSystemProperties.put(FILE_ENCODING_KEY, Charset.defaultCharset().name());
         immutableSystemProperties.put(USER_LANGUAGE_KEY, DEFAULT_LOCALE.getLanguage());
@@ -163,21 +159,21 @@ public class JvmOptions {
             args.add("-ea");
         }
 
-        if (debugOptions.getEnabled().get()) {
+        if (debugSpec.isEnabled()) {
             args.add(getDebugArgument());
         }
         return args;
     }
 
     private String getDebugArgument() {
-        return getDebugArgument(debugOptions);
+        return getDebugArgument(debugSpec);
     }
 
-    public static String getDebugArgument(JavaDebugOptions options) {
-        boolean server = options.getServer().get();
-        boolean suspend = options.getSuspend().get();
-        int port = options.getPort().get();
-        String host = options.getHost().map(h -> h + ":").getOrElse("");
+    public static String getDebugArgument(JvmDebugSpec options) {
+        boolean server = options.isServer();
+        boolean suspend = options.isSuspend();
+        int port = options.getPort();
+        String host = options.getHost() == null ? "" : options.getHost() + ":";
         String address = host + port;
         return getDebugArgument(server, suspend, address);
     }
@@ -195,7 +191,7 @@ public class JvmOptions {
         maxHeapSize = null;
         extraJvmArgs.clear();
         assertionsEnabled = false;
-        debugOptions.getEnabled().set(false);
+        debugSpec.setEnabled(false);
         jvmArgs(arguments);
     }
 
@@ -219,9 +215,9 @@ public class JvmOptions {
 
     public void checkDebugConfiguration(Iterable<?> arguments) {
         List<String> debugArgs = collectDebugArgs(arguments);
-        if (!debugArgs.isEmpty() && debugOptions.getEnabled().get()) {
+        if (!debugArgs.isEmpty() && debugSpec.isEnabled()) {
             LOGGER.warn("Debug configuration ignored in favor of the supplied JVM arguments: " + debugArgs);
-            debugOptions.getEnabled().set(false);
+            debugSpec.setEnabled(false);
         }
     }
 
@@ -363,15 +359,15 @@ public class JvmOptions {
     }
 
     public boolean getDebug() {
-        return debugOptions.getEnabled().get();
+        return debugSpec.isEnabled();
     }
 
     public void setDebug(boolean enabled) {
-        debugOptions.getEnabled().set(enabled);
+        debugSpec.setEnabled(enabled);
     }
 
-    public JavaDebugOptions getDebugOptions() {
-        return debugOptions;
+    public JvmDebugSpec getDebugSpec() {
+        return debugSpec;
     }
 
     public void copyTo(JavaForkOptions target) {
@@ -381,12 +377,12 @@ public class JvmOptions {
         target.setMaxHeapSize(maxHeapSize);
         target.bootstrapClasspath(getBootstrapClasspath().getFiles());
         target.setEnableAssertions(assertionsEnabled);
-        copyDebugOptionsTo(target.getDebugOptions());
+        copyDebugOptionsTo(new JavaDebugOptionsBackedSpec(target.getDebugOptions()));
         target.systemProperties(immutableSystemProperties);
     }
 
-    public JvmOptions createCopy(ObjectFactory objectFactory, FileCollectionFactory fileCollectionFactory) {
-        JvmOptions target = new JvmOptions(objectFactory, fileCollectionFactory);
+    public JvmOptions createCopy(FileCollectionFactory fileCollectionFactory) {
+        JvmOptions target = new JvmOptions(fileCollectionFactory);
         target.setJvmArgs(extraJvmArgs);
         target.setSystemProperties(mutableSystemProperties);
         target.setMinHeapSize(minHeapSize);
@@ -395,22 +391,22 @@ public class JvmOptions {
             target.setBootstrapClasspath(getBootstrapClasspath().getFiles());
         }
         target.setEnableAssertions(assertionsEnabled);
-        copyDebugOptionsTo(target.getDebugOptions());
+        copyDebugOptionsTo(target.getDebugSpec());
         target.systemProperties(immutableSystemProperties);
         return target;
     }
 
-    private void copyDebugOptionsTo(JavaDebugOptions otherOptions) {
-        copyDebugOptions(debugOptions, otherOptions);
+    private void copyDebugOptionsTo(JvmDebugSpec otherOptions) {
+        copyDebugOptions(debugSpec, otherOptions);
     }
 
-    static void copyDebugOptions(JavaDebugOptions from, JavaDebugOptions to) {
+    private static void copyDebugOptions(JvmDebugSpec from, JvmDebugSpec to) {
         // This severs the connection between from this debugOptions to the other debugOptions
-        to.getEnabled().set(from.getEnabled().get());
-        to.getHost().set(from.getHost().getOrNull());
-        to.getPort().set(from.getPort().get());
-        to.getServer().set(from.getServer().get());
-        to.getSuspend().set(from.getSuspend().get());
+        to.setEnabled(from.isEnabled());
+        to.setHost(from.getHost());
+        to.setPort(from.getPort());
+        to.setServer(from.isServer());
+        to.setSuspend(from.isSuspend());
     }
 
     public static List<String> fromString(String input) {
