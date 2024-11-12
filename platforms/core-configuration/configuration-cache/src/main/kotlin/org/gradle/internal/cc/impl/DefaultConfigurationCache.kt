@@ -155,6 +155,9 @@ class DefaultConfigurationCache internal constructor(
     val gradlePropertiesController: GradlePropertiesController
         get() = host.service()
 
+    private
+    val currentCandidateEntries = mutableListOf<CandidateEntry>()
+
     override val isLoaded: Boolean
         get() = cacheAction is ConfigurationCacheAction.LOAD
 
@@ -284,15 +287,15 @@ class DefaultConfigurationCache internal constructor(
             cacheIO.writeCacheEntryDetailsTo(buildStateRegistry, usedModels, usedMetadata, sideEffects, layout.fileFor(StateType.Entry))
         }
         store.useForStore { layout ->
-            val newEntries = calculateCandidateEntries(layout, startParameter.entriesPerKey)
+            val newEntries = calculateCandidateEntries(startParameter.entriesPerKey)
             cacheIO.writeCandidateEntries(layout.fileFor(StateType.Candidates), newEntries)
+            currentCandidateEntries.clear()
         }
     }
 
     private
-    fun calculateCandidateEntries(layout: ConfigurationCacheRepository.Layout, entriesPerKey: Int): List<CandidateEntry> {
-        val existingEntries = cacheIO.readCandidateEntries(layout.fileForRead(StateType.Candidates))
-        val tail = existingEntries.take(min(existingEntries.size, entriesPerKey - 1))
+    fun calculateCandidateEntries(entriesPerKey: Int): List<CandidateEntry> {
+        val tail = currentCandidateEntries.take(min(currentCandidateEntries.size, entriesPerKey - 1))
         return listOf(CandidateEntry(entryId)) + tail
     }
 
@@ -409,9 +412,16 @@ class DefaultConfigurationCache internal constructor(
             }.value
             // how to best report changes?
             // 1. could report all differences against each different entry
-            candidates.firstNotNullOfOrNull {
-                checkCandidate(it)
-            } ?: CheckedFingerprint.NotFound
+            for (candidate in candidates) {
+                val result = checkCandidate(candidate)
+                if (result != null) {
+                    currentCandidateEntries.add(0, candidate)
+                    currentCandidateEntries.addAll(candidates.filter { it != candidate })
+                    return@withFingerprintCheckOperations result
+                }
+            }
+            currentCandidateEntries.addAll(candidates)
+            return@withFingerprintCheckOperations CheckedFingerprint.NotFound
         }
     }
 
