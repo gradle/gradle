@@ -47,7 +47,7 @@ class ConfigurationCacheMultiEntriesPerKeyIntegrationTest extends AbstractConfig
         file("gradle.properties") << "org.gradle.configuration-cache.entries-per-key=2"
 
         and:
-        settingsFile ''
+        settingsFile.text = '// initial'
 
         when:
         configurationCacheRun 'help'
@@ -56,34 +56,7 @@ class ConfigurationCacheMultiEntriesPerKeyIntegrationTest extends AbstractConfig
         configurationCache.assertStateStored()
 
         when:
-        settingsFile '// a change'
-
-        and:
-        configurationCacheRun 'help'
-
-        then:
-        configurationCache.assertStateStored()
-
-        when: 'switching back to original settings file'
-        settingsFile.text = ''
-
-        and:
-        configurationCacheRun 'help'
-
-        then:
-        configurationCache.assertStateLoaded()
-
-        when:
-        settingsFile.text = '// a change'
-
-        and:
-        configurationCacheRun 'help'
-
-        then:
-        configurationCache.assertStateLoaded()
-
-        when:
-        settingsFile.text = '// a most recent change'
+        settingsFile.text = '// first change'
 
         and:
         configurationCacheRun 'help'
@@ -92,7 +65,34 @@ class ConfigurationCacheMultiEntriesPerKeyIntegrationTest extends AbstractConfig
         configurationCache.assertStateStored()
 
         when: 'switching back to original settings file'
-        settingsFile.text = ''
+        settingsFile.text = '// initial'
+
+        and:
+        configurationCacheRun 'help'
+
+        then:
+        configurationCache.assertStateLoaded()
+
+        when:
+        settingsFile.text = '// first change'
+
+        and:
+        configurationCacheRun 'help'
+
+        then:
+        configurationCache.assertStateLoaded()
+
+        when:
+        settingsFile.text = '// second change'
+
+        and:
+        configurationCacheRun 'help'
+
+        then:
+        configurationCache.assertStateStored()
+
+        when: 'switching back to original settings file'
+        settingsFile.text = '// initial'
 
         and:
         configurationCacheRun 'help'
