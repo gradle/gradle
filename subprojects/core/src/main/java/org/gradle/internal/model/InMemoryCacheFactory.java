@@ -49,7 +49,7 @@ public class InMemoryCacheFactory {
     }
 
     /**
-     * Create an unbounded cache intended to be accessed concurrently.
+     * Create an unbounded loading cache intended to be accessed concurrently.
      * <p>
      * This cache is optimized for read-heavy workloads and does not permit null values.
      *
@@ -60,7 +60,7 @@ public class InMemoryCacheFactory {
     }
 
     /**
-     * Create a cache similar to that created by {@link #create(Function)}, but which bypasses
+     * Create a loading cache similar to that created by {@link #create(Function)}, but which bypasses
      * the equals and hashcode methods of the key and intead compares object identity. Caches
      * created by this method should be used only with keys that are known to be interned.
      * <p>
@@ -72,7 +72,7 @@ public class InMemoryCacheFactory {
     }
 
     /**
-     * Create a cache similar to that created by {@link #create(Function)}, but which wraps all
+     * Create a loading cache similar to that created by {@link #create(Function)}, but which wraps all
      * value loading in a {@link CalculatedValue}, so that the value loader may safely acquire
      * project locks.
      */
@@ -83,6 +83,13 @@ public class InMemoryCacheFactory {
             workerLimits.getMaxWorkerCount(),
             loader
         );
+    }
+
+    /**
+     * Create an interner that interns values of type {@code T}.
+     */
+    public <T> InMemoryInterner<T> createInterner() {
+        return new DefaultInterner<>(workerLimits.getMaxWorkerCount());
     }
 
     // TODO: Back this cache using a Caffeine cache so we can record statistics
@@ -179,6 +186,25 @@ public class InMemoryCacheFactory {
             // the value container can safely handle synchronization.
             calculatedValue.finalizeIfNotAlready();
             return calculatedValue.get();
+        }
+
+        @Override
+        public void invalidate() {
+            delegate.invalidate();
+        }
+    }
+
+    private static class DefaultInterner<T> implements InMemoryInterner<T> {
+
+        private final DefaultLoadingCache<T, T> delegate;
+
+        public DefaultInterner(int maxConcurrency) {
+            this.delegate = new DefaultLoadingCache<>(maxConcurrency, Function.identity());
+        }
+
+        @Override
+        public T intern(T value) {
+            return delegate.get(value);
         }
 
         @Override

@@ -71,12 +71,13 @@ public class VariantArtifactSetCache {
         }
 
         // Check for a present value first without locking.
-        ArtifactSet result = cache.get(variant.getInstanceId());
+        Long key = variant.getInstanceId();
+        ArtifactSet result = cache.get(key);
         if (result != null) {
             return result;
         }
 
-        return cache.computeIfAbsent(variant.getInstanceId(), id -> createImplicitVariant(component, variant));
+        return cache.computeIfAbsent(key, id -> createImplicitVariant(component, variant));
     }
 
     private static VariantResolvingArtifactSet createImplicitVariant(ComponentGraphResolveState component, VariantGraphResolveState variant) {

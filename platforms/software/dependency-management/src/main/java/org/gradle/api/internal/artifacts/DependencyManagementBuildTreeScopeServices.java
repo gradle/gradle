@@ -77,6 +77,7 @@ import org.gradle.internal.component.local.model.LocalComponentGraphResolveState
 import org.gradle.internal.component.model.ComponentIdGenerator;
 import org.gradle.internal.component.model.PersistentModuleSource;
 import org.gradle.internal.hash.ChecksumService;
+import org.gradle.internal.resolve.resolver.ResolvedVariantCache;
 import org.gradle.internal.resource.cached.ByUrlCachedExternalResourceIndex;
 import org.gradle.internal.resource.cached.CachedExternalResourceIndex;
 import org.gradle.internal.resource.cached.DefaultExternalResourceFileStore;
@@ -116,6 +117,7 @@ class DependencyManagementBuildTreeScopeServices implements ServiceRegistrationP
         registration.add(DefaultProjectLocalComponentProvider.class);
         registration.add(DefaultProjectPublicationRegistry.class);
         registration.add(LocalVariantGraphResolveStateBuilder.class, DefaultLocalVariantGraphResolveStateBuilder.class);
+        registration.add(ResolvedVariantCache.class);
         registration.add(VariantArtifactSetCache.class);
     }
 
