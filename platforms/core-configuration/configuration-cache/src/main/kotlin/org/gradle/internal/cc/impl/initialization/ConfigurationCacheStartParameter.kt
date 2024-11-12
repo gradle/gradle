@@ -119,8 +119,8 @@ class ConfigurationCacheStartParameter internal constructor(
     val configurationCacheLogLevel: LogLevel
         get() = loggingParameters.logLevel
 
-    val isIgnoreInputsInTaskGraphSerialization: Boolean
-        get() = startParameter.isConfigurationCacheIgnoreInputsInTaskGraphSerialization
+    val isIgnoreInputsDuringStore: Boolean
+        get() = startParameter.isConfigurationCacheIgnoreInputsDuringStore
 
     val maxProblems: Int
         get() = startParameter.configurationCacheMaxProblems

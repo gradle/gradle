@@ -410,8 +410,8 @@ class ConfigurationCacheFingerprintController internal constructor(
         override val modelAsProjectDependency: Boolean
             get() = modelParameters.isModelAsProjectDependency
 
-        override val ignoreInputsInConfigurationCacheTaskGraphWriting: Boolean
-            get() = startParameter.isIgnoreInputsInTaskGraphSerialization
+        override val ignoreInputsDuringConfigurationCacheStore: Boolean
+            get() = startParameter.isIgnoreInputsDuringStore
 
         override val instrumentationAgentUsed: Boolean
             get() = agentStatus.isAgentInstrumentationEnabled
@@ -483,8 +483,8 @@ class ConfigurationCacheFingerprintController internal constructor(
         override val invalidateCoupledProjects: Boolean
             get() = modelParameters.isInvalidateCoupledProjects
 
-        override val ignoreInputsInConfigurationCacheTaskGraphWriting: Boolean
-            get() = startParameter.isIgnoreInputsInTaskGraphSerialization
+        override val ignoreInputsDuringConfigurationCacheStore: Boolean
+            get() = startParameter.isIgnoreInputsDuringStore
 
         override val instrumentationAgentUsed: Boolean
             get() = agentStatus.isAgentInstrumentationEnabled

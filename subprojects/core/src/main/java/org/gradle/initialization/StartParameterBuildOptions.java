@@ -70,7 +70,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         new ExportKeysOption(),
         new ConfigurationCacheProblemsOption(),
         new ConfigurationCacheOption(),
-        new ConfigurationCacheIgnoreInputsInTaskGraphSerialization(),
+        new ConfigurationCacheIgnoreInputsDuringStore(),
         new ConfigurationCacheMaxProblemsOption(),
         new ConfigurationCacheIgnoredFileSystemCheckInputs(),
         new ConfigurationCacheDebugOption(),
@@ -513,17 +513,17 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         }
     }
 
-    public static class ConfigurationCacheIgnoreInputsInTaskGraphSerialization extends BooleanBuildOption<StartParameterInternal> {
+    public static class ConfigurationCacheIgnoreInputsDuringStore extends BooleanBuildOption<StartParameterInternal> {
 
         public static final String PROPERTY_NAME = "org.gradle.configuration-cache.inputs.unsafe.ignore.in-serialization";
 
-        public ConfigurationCacheIgnoreInputsInTaskGraphSerialization() {
+        public ConfigurationCacheIgnoreInputsDuringStore() {
             super(PROPERTY_NAME);
         }
 
         @Override
         public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
-            settings.setConfigurationCacheIgnoreInputsInTaskGraphSerialization(value);
+            settings.setConfigurationCacheIgnoreInputsDuringStore(value);
         }
     }
 
