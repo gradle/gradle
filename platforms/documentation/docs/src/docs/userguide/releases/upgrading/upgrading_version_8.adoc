@@ -694,7 +694,7 @@ In Gradle 8.8, this mechanism was extended to permit the retention configuration
 - Specifying `Cleanup.DISABLED` or `Cleanup.ALWAYS` will now prevent or force the cleanup of the local build cache
 - Build cache entry retention is now configured via an `init-script`, link:directory_layout.html#dir:gradle_user_home:configure_cache_cleanup[in the same manner as other caches].
 
-If you want build-cache entries to be retained for 30 days, **remove** any calls to the deprecated method:
+If you want build cache entries to be retained for 30 days, **remove** any calls to the deprecated method:
 
 ```kotlin
 buildCache {
