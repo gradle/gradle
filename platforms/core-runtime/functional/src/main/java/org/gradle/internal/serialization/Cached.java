@@ -26,11 +26,21 @@ import java.util.concurrent.Callable;
 /**
  * Represents a computation that must execute only once and
  * whose result must be cached even (or specially) at serialization time.
- *
+ *<p>
+ * Instances of this type are mutable and ARE NOT thread-safe,
+ * so should not be used from multiple threads.
+ *</p>
  * @param <T> the resulting type
  */
 public abstract class Cached<T> {
 
+    /**
+     * Creates a cacheable computation. The returned object IS NOT safe to be used from multiple threads.
+     * If an unresolved cached computation is used from multiple threads, not only it does not honor
+     * "at-most-once" semantics, but it can fail in unpredictable ways.
+     *
+     * @see <a href="https://github.com/gradle/gradle/issues/31239">bug report</a>
+     */
     public static <T> Cached<T> of(Callable<T> computation) {
         return new Deferred<>(computation);
     }
@@ -39,8 +49,13 @@ public abstract class Cached<T> {
 
     private static class Deferred<T> extends Cached<T> implements java.io.Serializable, EvaluationOwner {
 
-        private Callable<T> computation;
-        private Try<T> result;
+        /*
+         * TODO-RC fields are volatile as a workaround for call sites still unwisely using Cached from multiple threads.
+         *
+         * @see: https://github.com/gradle/gradle/issues/31239
+         */
+        private volatile Callable<T> computation;
+        private volatile Try<T> result;
 
         public Deferred(Callable<T> computation) {
             this.computation = computation;
@@ -52,17 +67,19 @@ public abstract class Cached<T> {
         }
 
         private Try<T> result() {
+            Callable<T> toCompute = computation;
             if (result == null) {
-                result = tryComputation();
+                // copy reference into the call stack to avoid exacerbating https://github.com/gradle/gradle/issues/31239
+                result = tryComputation(toCompute);
                 computation = null;
             }
             return result;
         }
 
         @Nonnull
-        private Try<T> tryComputation() {
+        private Try<T> tryComputation(Callable<T> toCompute) {
             // wrap computation as an "evaluation" so it can be treated specially as other evaluations
-            return EvaluationContext.current().evaluate(this, () -> Try.ofFailable(computation));
+            return EvaluationContext.current().evaluate(this, () -> Try.ofFailable(toCompute));
         }
 
         private Object writeReplace() {
