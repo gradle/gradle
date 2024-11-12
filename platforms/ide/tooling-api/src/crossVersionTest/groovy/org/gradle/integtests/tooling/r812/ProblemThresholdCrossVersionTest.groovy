@@ -27,10 +27,11 @@ import org.gradle.tooling.events.problems.ProblemSummariesEvent
 import org.gradle.tooling.events.problems.SingleProblemEvent
 
 import static org.gradle.api.problems.ReportingScript.getProblemReportingScript
-import static org.gradle.api.problems.internal.DefaultProblemSummarizer.THRESHOLD_DEFAULT_VALUE
-import static org.gradle.api.problems.internal.DefaultProblemSummarizer.THRESHOLD_OPTION
 import static org.gradle.integtests.tooling.r86.ProblemsServiceModelBuilderCrossVersionTest.getBuildScriptSampleContent
+import static org.gradle.integtests.tooling.r89.ProblemProgressEventCrossVersionTest.ProblemProgressListener
 import static org.gradle.integtests.tooling.r89.ProblemProgressEventCrossVersionTest.failureMessage
+import static org.gradle.problems.internal.services.DefaultProblemSummarizer.THRESHOLD_DEFAULT_VALUE
+import static org.gradle.problems.internal.services.DefaultProblemSummarizer.THRESHOLD_OPTION
 
 @ToolingApiVersion(">=8.12")
 @TargetGradleVersion(">=8.12")
@@ -53,7 +54,7 @@ class ProblemThresholdCrossVersionTest extends ToolingApiSpecification {
         then:
         def problems = listener.problems
         problems.size() == THRESHOLD_DEFAULT_VALUE
-        validateFirstNProblems(THRESHOLD_DEFAULT_VALUE, problems)
+        validateNToMProblems(0, THRESHOLD_DEFAULT_VALUE, problems)
         def problemSummariesEvent = listener.summariesEvent as ProblemSummariesEvent
         problemSummariesEvent != null
 
@@ -79,7 +80,7 @@ class ProblemThresholdCrossVersionTest extends ToolingApiSpecification {
         then:
         def problems = listener.problems
         problems.size() == totalSentEventsCount
-        validateFirstNProblems(totalSentEventsCount, problems)
+        validateNToMProblems(0, totalSentEventsCount, problems)
         def problemSummariesEvent = listener.summariesEvent as ProblemSummariesEvent
         problemSummariesEvent != null
         def summaries = problemSummariesEvent.problemSummaries
@@ -106,7 +107,7 @@ class ProblemThresholdCrossVersionTest extends ToolingApiSpecification {
         then:
         def problems = listener.problems
         problems.size() == 1 // 1 because older version does aggregation and only sends the first one.
-        validateFirstNProblems(1, problems)
+        validateNToMProblems(0, 1, problems)
         failureMessage(problems[0].problem.failure) == 'test'
         listener.summariesEvent == null
     }
@@ -133,10 +134,39 @@ class ProblemThresholdCrossVersionTest extends ToolingApiSpecification {
         then:
         def problems = listener.problems
         problems.size() == THRESHOLD_DEFAULT_VALUE + differentProblemCount
-        validateFirstNProblems(THRESHOLD_DEFAULT_VALUE, problems)
+        validateNToMProblems(0, THRESHOLD_DEFAULT_VALUE, problems)
         def problemSummariesEvent = listener.summariesEvent as ProblemSummariesEvent
         def summaries = problemSummariesEvent.problemSummaries
         summaries.size() == 1
+    }
+
+    def "Two problem ids exceed threshold"() {
+        given:
+        def exceedingCount = 2
+        def differentProblemCount = 4
+        def threshold = THRESHOLD_DEFAULT_VALUE + exceedingCount
+        buildFile getProblemReportingScript("""
+            ${getProblemReportingBody(threshold)}
+            ${getProblemReportingBody(threshold, "testCategory2", "label2")}
+            """)
+        def listener = new ProblemProgressListener()
+
+        when:
+        withConnection {
+            it.newBuild()
+                .addProgressListener(listener)
+                .forTasks("reportProblem")
+                .run()
+        }
+
+        then:
+        def problems = listener.problems
+        problems.size() == THRESHOLD_DEFAULT_VALUE * 2
+        validateNToMProblems(0, THRESHOLD_DEFAULT_VALUE, problems)
+        validateNToMProblems(THRESHOLD_DEFAULT_VALUE, problems.size(), problems, "label2", "Generic")
+        def problemSummariesEvent = listener.summariesEvent as ProblemSummariesEvent
+        def summaries = problemSummariesEvent.problemSummaries
+        summaries.size() == 2
     }
 
     def "Problem summarization threshold can be set by an internal option"() {
@@ -161,16 +191,16 @@ class ProblemThresholdCrossVersionTest extends ToolingApiSpecification {
         then:
         def problems = listener.problems
         problems.size() == thresholdInOption
-        validateFirstNProblems(thresholdInOption, problems)
+        validateNToMProblems(0, thresholdInOption, problems)
         def problemSummariesEvent = listener.summariesEvent as ProblemSummariesEvent
         def summaries = problemSummariesEvent.problemSummaries
         summaries.size() == 1
     }
 
-    boolean validateFirstNProblems(int totalSentEventsCount, Collection<SingleProblemEvent> problems) {
-        (0..totalSentEventsCount - 1).every { int index ->
-            problems[index].problem.definition.id.displayName == 'label' &&
-                problems[index].problem.definition.id.group.displayName == 'Generic'
+    boolean validateNToMProblems(int startAt, int totalSentEventsCount, Collection<SingleProblemEvent> problems, String id = "label", String group = "Generic") {
+        (startAt..totalSentEventsCount - 1).every { int index ->
+            problems[index].definition.id.displayName == id &&
+                problems[index].definition.id.group.displayName == group
         }
     }
 
@@ -182,29 +212,5 @@ class ProblemThresholdCrossVersionTest extends ToolingApiSpecification {
                  }
              }
         """
-    }
-
-    static class ProblemProgressListener implements ProgressListener {
-        List<SingleProblemEvent> problems = []
-        ProblemSummariesEvent summariesEvent = null
-
-
-        @Override
-        void statusChanged(ProgressEvent event) {
-            if (event instanceof SingleProblemEvent) {
-                def singleProblem = event as SingleProblemEvent
-
-                // Ignore problems caused by the minimum JVM version deprecation.
-                // These are emitted intermittently depending on the version of Java used to run the test.
-                if (singleProblem.problem.definition.id.name == "executing-gradle-on-jvm-versions-and-lower") {
-                    return
-                }
-
-                this.problems.add(event)
-            } else if (event instanceof ProblemSummariesEvent) {
-                assert summariesEvent == null, "already received a ProblemsSummariesEvent, there should only be one"
-                summariesEvent = event
-            }
-        }
     }
 }

@@ -14,9 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.internal;
+package org.gradle.problems.internal.services;
 
 import org.gradle.api.problems.ProblemId;
+import org.gradle.api.problems.internal.DefaultProblemsSummaryProgressDetails;
+import org.gradle.api.problems.internal.Problem;
+import org.gradle.api.problems.internal.ProblemEmitter;
+import org.gradle.api.problems.internal.ProblemReportCreator;
+import org.gradle.api.problems.internal.ProblemSummarizer;
 import org.gradle.internal.Pair;
 import org.gradle.internal.buildoption.IntegerInternalOption;
 import org.gradle.internal.buildoption.InternalOption;
@@ -24,18 +29,18 @@ import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.OperationIdentifier;
-import org.gradle.problems.buildtree.ProblemReporter;
 
 import javax.annotation.Nullable;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class DefaultProblemSummarizer implements ProblemReporter, ProblemSummarizer {
+import static com.google.common.collect.ImmutableList.toImmutableList;
+
+public class DefaultProblemSummarizer implements ProblemSummarizer {
 
     private final BuildOperationProgressEventEmitter eventEmitter;
     private final CurrentBuildOperationRef currentBuildOperationRef;
@@ -75,13 +80,10 @@ public class DefaultProblemSummarizer implements ProblemReporter, ProblemSummari
     }
 
     private List<Pair<ProblemId, Integer>> getCutOffProblems() {
-        List<Pair<ProblemId, Integer>> cutOffProblems = new ArrayList<Pair<ProblemId, Integer>>();
-        for (Map.Entry<ProblemId, AtomicInteger> entry : seenProblemsWithCounts.entrySet()) {
-            if (entry.getValue().get() > threshold) {
-                cutOffProblems.add(Pair.of(entry.getKey(), entry.getValue().get() - threshold));
-            }
-        }
-        return cutOffProblems;
+        return seenProblemsWithCounts.entrySet().stream()
+            .filter(entry -> entry.getValue().get() > threshold)
+            .map(entry -> Pair.of(entry.getKey(), entry.getValue().get() - threshold))
+            .collect(toImmutableList());
     }
 
     @Override
@@ -90,6 +92,7 @@ public class DefaultProblemSummarizer implements ProblemReporter, ProblemSummari
             return;
         }
 
+        problemReportCreator.emit(problem);
         for (ProblemEmitter problemEmitter : problemEmitters) {
             problemEmitter.emit(problem, id);
         }
@@ -97,13 +100,7 @@ public class DefaultProblemSummarizer implements ProblemReporter, ProblemSummari
 
     private boolean exceededThreshold(Problem problem) {
         ProblemId problemId = problem.getDefinition().getId();
-        //TODO (Reinhold) Is summarization by problem id enough?
-        AtomicInteger count = seenProblemsWithCounts.get(problemId);
-        if (count == null) {
-            count = new AtomicInteger(0);
-            seenProblemsWithCounts.put(problemId, count);
-        }
-        int countValue = count.incrementAndGet();
-        return countValue > threshold;
+        AtomicInteger count = seenProblemsWithCounts.computeIfAbsent(problemId, key -> new AtomicInteger(0));
+        return count.incrementAndGet() > threshold;
     }
 }

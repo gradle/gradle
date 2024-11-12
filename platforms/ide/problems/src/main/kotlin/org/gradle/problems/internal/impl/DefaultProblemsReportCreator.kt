@@ -72,6 +72,14 @@ class DefaultProblemsReportCreator(
                             property("requestedTasks", taskNames.joinToString(" "))
                             property("documentationLink", DocumentationRegistry().getDocumentationFor("problems-report"))
                             property("documentationLinkCaption", "Problem report")
+                            property("summaries") {
+                                jsonList(cutOffProblems) {
+                                    jsonObject {
+                                        problemId(it.left()!!)
+                                        property("count", it.right()!!)
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -85,6 +93,16 @@ class DefaultProblemsReportCreator(
     override fun emit(problem: Problem) {
         problemCount.incrementAndGet()
         report.onProblem(JsonProblemWriter(problem, failureDecorator, failureFactory))
+    }
+}
+
+fun JsonWriter.problemId(id: ProblemId) {
+    property("problemId") {
+        val list = generateSequence(id.group) { it.parent }.toList() + listOf(DefaultProblemGroup(id.name, id.displayName))
+        jsonObjectList(list) { group ->
+            property("name", group.name)
+            property("displayName", group.displayName)
+        }
     }
 }
 
@@ -105,7 +123,8 @@ class JsonProblemWriter(private val problem: Problem, private val failureDecorat
                     }
                 }
 
-                property("problem") { writeStructuredMessage(StructuredMessage.forText(problem.definition.id.displayName)) }
+                val id = problem.definition.id
+                property("problem") { writeStructuredMessage(StructuredMessage.forText(id.displayName)) }
                 property("severity", problem.definition.severity.toString().uppercase())
 
                 problem.details?.let {
@@ -121,13 +140,7 @@ class JsonProblemWriter(private val problem: Problem, private val failureDecorat
                 }
                 problem.definition.documentationLink?.let { property("documentationLink", it.url) }
                 problem.exception?.let { writeError(failureDecorator.decorate(failureFactory.create(it))) }
-                property("problemId") {
-                    val list = generateSequence(problem.definition.id.group) { it.parent }.toList() + listOf(DefaultProblemGroup(problem.definition.id.name, problem.definition.id.displayName))
-                    jsonObjectList(list) { group ->
-                        property("name", group.name)
-                        property("displayName", group.displayName)
-                    }
-                }
+                problemId(id)
 
                 val solutions = problem.solutions
                 if (solutions.isNotEmpty()) {
