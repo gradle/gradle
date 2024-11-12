@@ -27,11 +27,13 @@ import org.gradle.profiler.InvocationSettings
 import org.gradle.profiler.ScenarioContext
 
 import static org.gradle.performance.annotations.ScenarioType.PER_COMMIT
+import static org.gradle.performance.annotations.ScenarioType.PER_DAY
 import static org.gradle.performance.results.OperatingSystem.LINUX
 
-@RunFor(
-    @Scenario(type = PER_COMMIT, operatingSystems = [LINUX], testProjects = ["largeAndroidBuild", "santaTrackerAndroidBuild", "nowInAndroidBuild"])
-)
+@RunFor([
+    @Scenario(type = PER_COMMIT, operatingSystems = [LINUX], testProjects = ["largeAndroidBuild", "santaTrackerAndroidBuild", "nowInAndroidBuild"]),
+    @Scenario(type = PER_DAY, operatingSystems = [LINUX], testProjects = ["extraLargeAndroidBuild"])
+])
 class RealLifeAndroidStudioPerformanceTest extends AbstractCrossVersionPerformanceTest implements AndroidPerformanceTestFixture {
 
     /**
@@ -54,8 +56,8 @@ class RealLifeAndroidStudioPerformanceTest extends AbstractCrossVersionPerforman
         //      Can't upgrade to Studio > Jellyfish with the current infra because no more ZIP available for mac.
         AndroidTestProject.configureForAgpVersion(runner, "8.4.0")
         AndroidTestProject.useKotlinLatestStableOrRcVersion(runner)
-        runner.warmUpRuns = 20
-        runner.runs = 20
+        runner.warmUpRuns = determineWarmUps()
+        runner.runs = determineIterations()
         runner.setupAndroidStudioSync()
         configureLocalProperties()
 
@@ -64,6 +66,20 @@ class RealLifeAndroidStudioPerformanceTest extends AbstractCrossVersionPerforman
 
         then:
         result.assertCurrentVersionHasNotRegressed()
+    }
+
+    private determineWarmUps() {
+        switch(runner.testProject) {
+            case "extraLargeAndroidBuild": return 3
+            default: return 20
+        }
+    }
+
+    private determineIterations() {
+        switch (runner.testProject) {
+            case "extraLargeAndroidBuild": return 10
+            default: return 20
+        }
     }
 
     void configureLocalProperties() {

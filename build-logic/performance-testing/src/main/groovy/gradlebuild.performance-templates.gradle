@@ -421,6 +421,12 @@ performanceTest.registerAndroidTestProject("largeAndroidBuild2", RemoteProject) 
     ref = "16d64faa6055a281874329ff95fbcdd6861b7248"
 }
 
+performanceTest.registerAndroidTestProject("extraLargeAndroidBuild", RemoteProject) {
+    remoteUri = 'https://github.com/gradle/perf-android-extra-large.git'
+    // Pinned from main branch
+    ref = "12791cb2b5bf5b222ad2c1c55fb0c6fee7ae9a84"
+}
+
 performanceTest.registerAndroidTestProject("nowInAndroidBuild", RemoteProject) {
     remoteUri = 'https://github.com/android/nowinandroid.git'
     // Pinned from main branch

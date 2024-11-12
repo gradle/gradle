@@ -265,6 +265,11 @@
   }, {
     "testId" : "org.gradle.performance.regression.android.RealLifeAndroidStudioPerformanceTest.run Android Studio sync",
     "groups" : [ {
+      "testProject" : "extraLargeAndroidBuild",
+      "coverage" : {
+        "per_day" : [ "linux" ]
+      }
+    }, {
       "testProject" : "largeAndroidBuild",
       "coverage" : {
         "per_commit" : [ "linux" ]
