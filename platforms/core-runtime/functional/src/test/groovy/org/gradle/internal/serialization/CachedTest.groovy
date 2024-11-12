@@ -27,12 +27,14 @@ class CachedTest extends Specification {
 
     /**
      * Once https://github.com/gradle/gradle/issues/31239 is addressed,
-     * and we can obtain a thread-safe instance of {@link Cached},
-     * this test should be fixed not to be flaky.
+     * we can remove this test, as unresolved {@link Cached} instances
+     * are not supposed to be used from multiple threads to begin with.
+     *
+     * Alternatively, we could forbid using unresolved `Cached` instances
+     * from multiple threads.
      */
     @Flaky(because = "https://github.com/gradle/gradle/issues/31239")
     def "Cached may misbehave when used from multiple threads"() {
-        def repetitions = 1000
         repetitions.times {
             def iteration = batch * repetitions + it
             int parties = Math.max((Runtime.getRuntime().availableProcessors() / 2) as int, 2)
@@ -43,10 +45,9 @@ class CachedTest extends Specification {
             parties.times {
                 concurrent.start {
                     barrier.await()
-                    // FIXME given enough opportunities, this will fail with a NPE
+                    // given enough opportunities, this will fail with a NPE
                     def value = cached.get()
-                    // FIXME we should possibly require at-most-once semantics
-                    // Such a weak guarantee is all we can provide at this time, as at-most-once is currently not honored
+                    // a weak guarantee is all we can provide, as at-most-once is not honored in multi-threaded scenarios
                     assert value > iteration
                 }
             }
@@ -56,6 +57,7 @@ class CachedTest extends Specification {
 
         where:
         batch << (0..<5)
+        repetitions = 1000
     }
 
 }
