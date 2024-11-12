@@ -49,6 +49,8 @@ dependencies {
     testImplementation(libs.groovyDatetime)
     testImplementation(libs.groovyDateUtil)
 
+    integTestImplementation(projects.problems)
+    
     integTestImplementation(libs.ansiControlSequenceUtil)
 
     testFixturesImplementation(projects.baseServices)

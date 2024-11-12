@@ -19,7 +19,6 @@ package org.gradle.problems.internal.services;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
-import org.gradle.api.problems.internal.DefaultProblemSummarizer;
 import org.gradle.api.problems.internal.DefaultProblems;
 import org.gradle.api.problems.internal.ExceptionProblemRegistry;
 import org.gradle.api.problems.internal.InternalProblems;
@@ -71,7 +70,11 @@ public class ProblemsBuildTreeServices implements ServiceRegistrationProvider {
         InternalOptions internalOptions,
         ProblemReportCreator problemReportCreator
     ) {
-        return new DefaultProblemSummarizer(eventEmitter, currentBuildOperationRef, ImmutableList.of(new BuildOperationBasedProblemEmitter(eventEmitter)), internalOptions, problemReportCreator);
+        return new DefaultProblemSummarizer(eventEmitter,
+            currentBuildOperationRef,
+            ImmutableList.of(new BuildOperationBasedProblemEmitter(eventEmitter)),
+            internalOptions,
+            problemReportCreator);
     }
 
     @Provides
