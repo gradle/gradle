@@ -23,6 +23,7 @@ import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModul
 import org.gradle.api.internal.attributes.AttributeSchemaServices;
 import org.gradle.api.internal.attributes.DefaultAttributesFactory;
 import org.gradle.api.internal.attributes.AttributesFactory;
+import org.gradle.api.internal.attributes.artifact.ImmutableArtifactTypeRegistryFactory;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchemaFactory;
 import org.gradle.api.internal.catalog.DependenciesAccessorsWorkspaceProvider;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
@@ -42,6 +43,7 @@ public class DependencyManagementBuildSessionScopeServices implements ServiceReg
         registration.add(IvyMutableModuleMetadataFactory.class);
         registration.add(PreferJavaRuntimeVariant.class);
         registration.add(ImmutableAttributesSchemaFactory.class);
+        registration.add(ImmutableArtifactTypeRegistryFactory.class);
         registration.add(AttributeSchemaServices.class);
     }
 

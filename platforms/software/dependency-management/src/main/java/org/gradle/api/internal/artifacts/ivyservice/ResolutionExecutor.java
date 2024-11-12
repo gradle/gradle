@@ -32,6 +32,7 @@ import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.ResolverResults;
+import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.internal.artifacts.capability.CapabilitySelectorSerializer;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.ConflictResolution;
@@ -53,7 +54,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Defau
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DependencyArtifactsVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSetResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactsGraphVisitor;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantCache;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VariantArtifactSetCache;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet;
@@ -93,6 +93,7 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributeSchemaServices;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.attributes.artifact.ImmutableArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
@@ -107,6 +108,7 @@ import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler
 import org.gradle.internal.locking.DependencyLockingGraphVisitor;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.resolve.resolver.ResolvedVariantCache;
 
 import javax.inject.Inject;
 import java.util.ArrayList;
@@ -162,6 +164,7 @@ public class ResolutionExecutor {
     private final AttributeSchemaServices attributeSchemaServices;
     private final ResolutionFailureHandler resolutionFailureHandler;
     private final VariantArtifactSetCache variantArtifactSetCache;
+    private final VariantTransformRegistry transformRegistry;
 
     @Inject
     public ResolutionExecutor(
@@ -195,7 +198,8 @@ public class ResolutionExecutor {
         ConsumerProvidedVariantFinder consumerProvidedVariantFinder,
         AttributeSchemaServices attributeSchemaServices,
         ResolutionFailureHandler resolutionFailureHandler,
-        VariantArtifactSetCache variantArtifactSetCache
+        VariantArtifactSetCache variantArtifactSetCache,
+        VariantTransformRegistry transformRegistry
     ) {
         this.dependencyGraphResolver = dependencyGraphResolver;
         this.metadataHandler = metadataHandler;
@@ -228,6 +232,7 @@ public class ResolutionExecutor {
         this.attributeSchemaServices = attributeSchemaServices;
         this.resolutionFailureHandler = resolutionFailureHandler;
         this.variantArtifactSetCache = variantArtifactSetCache;
+        this.transformRegistry = transformRegistry;
     }
 
     /**
@@ -252,7 +257,8 @@ public class ResolutionExecutor {
         DefaultResolvedArtifactsBuilder artifactsBuilder = new DefaultResolvedArtifactsBuilder(buildProjectDependencies);
 
         ComponentResolvers resolvers = getResolvers(resolveContext, Collections.emptyList(), consumerSchema, requestAttributes);
-        DependencyGraphVisitor artifactsGraphVisitor = artifactVisitorFor(artifactsBuilder);
+        ImmutableArtifactTypeRegistry artifactTypeAttributes = attributeSchemaServices.getArtifactTypeRegistryFactory().create(artifactTypeRegistry);
+        DependencyGraphVisitor artifactsGraphVisitor = artifactVisitorFor(artifactsBuilder, artifactTypeAttributes);
 
         ImmutableList<DependencyGraphVisitor> visitors = ImmutableList.of(failureCollector, resolutionResultBuilder, localComponentsVisitor, artifactsGraphVisitor);
         doResolve(resolveContext, rootComponent, resolutionStrategy, resolvers, false, IS_LOCAL_EDGE, visitors);
@@ -269,7 +275,8 @@ public class ResolutionExecutor {
             artifactsBuilder.complete(),
             resolvers,
             requestAttributes,
-            defaultSortOrder
+            defaultSortOrder,
+            artifactTypeAttributes
         );
 
         ResolverResults.LegacyResolverResults legacyResolverResults = DefaultResolverResults.DefaultLegacyResolverResults.buildDependenciesResolved(
@@ -342,7 +349,8 @@ public class ResolutionExecutor {
         CompositeDependencyArtifactsVisitor artifactVisitors = new CompositeDependencyArtifactsVisitor(ImmutableList.of(
             oldModelVisitor, fileDependencyVisitor, artifactsBuilder
         ));
-        graphVisitors.add(artifactVisitorFor(artifactVisitors));
+        ImmutableArtifactTypeRegistry artifactTypeAttributes = attributeSchemaServices.getArtifactTypeRegistryFactory().create(artifactTypeRegistry);
+        graphVisitors.add(artifactVisitorFor(artifactVisitors, artifactTypeAttributes));
 
         doResolve(resolveContext, rootComponent, resolutionStrategy, resolvers, true, Specs.satisfyAll(), graphVisitors.build());
         localComponentsVisitor.complete(ConfigurationInternal.InternalState.GRAPH_RESOLVED);
@@ -385,7 +393,8 @@ public class ResolutionExecutor {
             artifactsResults,
             resolvers,
             requestAttributes,
-            defaultSortOrder
+            defaultSortOrder,
+            artifactTypeAttributes
         );
 
         // Legacy results
@@ -411,10 +420,10 @@ public class ResolutionExecutor {
         return new ArtifactSelectionSpec(requestAttributes, Specs.satisfyAll(), false, false, sortOrder);
     }
 
-    private ResolvedArtifactsGraphVisitor artifactVisitorFor(DependencyArtifactsVisitor artifactsVisitor) {
+    private ResolvedArtifactsGraphVisitor artifactVisitorFor(DependencyArtifactsVisitor artifactsVisitor, ImmutableArtifactTypeRegistry artifactTypeAttributes) {
         return new ResolvedArtifactsGraphVisitor(
             artifactsVisitor,
-            artifactTypeRegistry,
+            artifactTypeAttributes,
             variantArtifactSetCache,
             calculatedValueContainerFactory
         );
@@ -428,7 +437,8 @@ public class ResolutionExecutor {
         VisitedArtifactResults artifactsResults,
         ComponentResolvers resolvers,
         ImmutableAttributes requestAttributes,
-        ResolutionStrategy.SortOrder defaultSortOrder
+        ResolutionStrategy.SortOrder defaultSortOrder,
+        ImmutableArtifactTypeRegistry artifactTypeAttributes
     ) {
         TransformUpstreamDependenciesResolver dependenciesResolver = new DefaultTransformUpstreamDependenciesResolver(
             resolveContext.getResolutionHost(),
@@ -456,9 +466,10 @@ public class ResolutionExecutor {
             attributeSchemaServices,
             resolutionFailureHandler,
             resolvers.getArtifactResolver(),
-            artifactTypeRegistry,
+            artifactTypeAttributes,
             resolvedVariantCache,
-            graphVariantSelector
+            graphVariantSelector,
+            transformRegistry
         );
     }
 

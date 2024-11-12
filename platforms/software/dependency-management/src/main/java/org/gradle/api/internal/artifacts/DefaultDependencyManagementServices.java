@@ -92,7 +92,6 @@ import org.gradle.api.internal.artifacts.transform.TransformInvocationFactory;
 import org.gradle.api.internal.artifacts.transform.TransformParameterScheme;
 import org.gradle.api.internal.artifacts.transform.TransformRegistrationFactory;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
-import org.gradle.api.internal.artifacts.type.DefaultArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.AttributeDescriberRegistry;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.AttributesFactory;
@@ -291,6 +290,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             registration.add(TransformedVariantConverter.class);
             registration.add(ResolutionExecutor.class);
             registration.add(ResolverProviderFactories.class);
+            registration.add(ArtifactTypeRegistry.class);
         }
 
         @Provides
@@ -483,11 +483,6 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 fileResolver,
                 taskDependencyFactory
             );
-        }
-
-        @Provides
-        ArtifactTypeRegistry createArtifactTypeRegistry(Instantiator instantiator, AttributesFactory attributesFactory, CollectionCallbackActionDecorator decorator, VariantTransformRegistry transformRegistry) {
-            return new DefaultArtifactTypeRegistry(instantiator, attributesFactory, decorator, transformRegistry);
         }
 
         @Provides

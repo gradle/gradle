@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
+import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.internal.artifacts.configurations.ResolutionHost;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults;
 import org.gradle.api.internal.artifacts.transform.ArtifactVariantSelector;
@@ -23,14 +24,15 @@ import org.gradle.api.internal.artifacts.transform.AttributeMatchingArtifactVari
 import org.gradle.api.internal.artifacts.transform.ConsumerProvidedVariantFinder;
 import org.gradle.api.internal.artifacts.transform.TransformUpstreamDependenciesResolver;
 import org.gradle.api.internal.artifacts.transform.TransformedVariantFactory;
-import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.AttributeSchemaServices;
 import org.gradle.api.internal.attributes.AttributesFactory;
+import org.gradle.api.internal.attributes.artifact.ImmutableArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.internal.component.model.GraphVariantSelector;
 import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.resolver.DefaultVariantArtifactResolver;
+import org.gradle.internal.resolve.resolver.ResolvedVariantCache;
 
 /**
  * Selects artifacts from all visited artifacts in a graph.
@@ -56,9 +58,10 @@ public class DefaultVisitedArtifactSet implements VisitedArtifactSet {
         AttributeSchemaServices attributeSchemaServices,
         ResolutionFailureHandler resolutionFailureHandler,
         ArtifactResolver artifactResolver,
-        ArtifactTypeRegistry artifactTypeRegistry,
+        ImmutableArtifactTypeRegistry artifactTypeRegistry,
         ResolvedVariantCache resolvedVariantCache,
-        GraphVariantSelector graphVariantSelector
+        GraphVariantSelector graphVariantSelector,
+        VariantTransformRegistry transformRegistry
     ) {
         this.graphResults = graphResults;
         this.resolutionHost = resolutionHost;
@@ -79,7 +82,8 @@ public class DefaultVisitedArtifactSet implements VisitedArtifactSet {
             dependenciesResolver,
             new DefaultVariantArtifactResolver(artifactResolver, artifactTypeRegistry, resolvedVariantCache),
             graphVariantSelector,
-            consumerSchema
+            consumerSchema,
+            transformRegistry
         );
     }
 
