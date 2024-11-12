@@ -47,7 +47,7 @@ import org.gradle.launcher.daemon.diagnostics.DaemonStartupInfo;
 import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.launcher.daemon.toolchain.DaemonJavaToolchainQueryService;
 import org.gradle.launcher.daemon.toolchain.DaemonJvmCriteria;
-import org.gradle.process.internal.DefaultExecActionFactory;
+import org.gradle.process.internal.DefaultExecHandleFactory;
 import org.gradle.process.internal.ExecHandle;
 import org.gradle.process.internal.JvmOptions;
 import org.gradle.util.GradleVersion;
@@ -223,7 +223,7 @@ public class DefaultDaemonStarter implements DaemonStarter {
 
             // This factory should be injected but leaves non-daemon threads running when used from the tooling API client
             @SuppressWarnings("deprecation")
-            DefaultExecActionFactory execActionFactory = DefaultExecActionFactory.root(gradleUserHome);
+            DefaultExecHandleFactory execActionFactory = DefaultExecHandleFactory.root(gradleUserHome);
             try {
                 ExecHandle handle = new DaemonExecHandleBuilder().build(args, workingDir, outputConsumer, stdInput, execActionFactory.newExec());
 
