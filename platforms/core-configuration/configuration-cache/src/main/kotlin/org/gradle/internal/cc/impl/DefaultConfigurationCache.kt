@@ -415,7 +415,7 @@ class DefaultConfigurationCache internal constructor(
     fun saveModel(model: Any) {
         cacheEntryRequiresCommit = true
 
-        // TODO:configuration-cache should this flag affect model storing behavior?
+        // TODO:configuration-cache rename the flag to be non-specific to tasks
         if (startParameter.isIgnoreInputsInTaskGraphSerialization) {
             InstrumentedInputs.discardListener()
         }
@@ -473,9 +473,7 @@ class DefaultConfigurationCache internal constructor(
 
     private
     fun loadModel(): Any = runAtConfigurationTime {
-        // TODO:configuration-cache is this appliccable to model storing as well?
-        // No need to record the `ClassLoaderScope` tree
-        // when loading the task graph.
+        // No need to record the `ClassLoaderScope` tree when loading
         scopeRegistryListener.dispose()
 
         buildOperationRunner.withModelLoadOperation {
