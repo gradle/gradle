@@ -20,19 +20,23 @@ import kotlin.reflect.KClass
 
 
 interface TypeDiscovery {
-    fun getClassesToVisitFrom(kClass: KClass<*>): Iterable<KClass<*>>
+    interface TypeDiscoveryServices {
+        val propertyExtractor: PropertyExtractor
+    }
+
+    fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscoveryServices, kClass: KClass<*>): Iterable<KClass<*>>
 
     companion object {
         val none = object : TypeDiscovery {
-            override fun getClassesToVisitFrom(kClass: KClass<*>): Iterable<KClass<*>> = emptyList()
+            override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscoveryServices, kClass: KClass<*>): Iterable<KClass<*>> = emptyList()
         }
     }
 }
 
 
 class CompositeTypeDiscovery(internal val implementations: Iterable<TypeDiscovery>) : TypeDiscovery {
-    override fun getClassesToVisitFrom(kClass: KClass<*>): Iterable<KClass<*>> =
-        implementations.flatMapTo(mutableSetOf()) { it.getClassesToVisitFrom(kClass) }
+    override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscovery.TypeDiscoveryServices, kClass: KClass<*>): Iterable<KClass<*>> =
+        implementations.flatMapTo(mutableSetOf()) { it.getClassesToVisitFrom(typeDiscoveryServices, kClass) }
 }
 
 

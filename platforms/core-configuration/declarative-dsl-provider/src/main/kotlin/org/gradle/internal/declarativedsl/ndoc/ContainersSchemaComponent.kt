@@ -120,7 +120,7 @@ internal class ContainersSchemaComponent : AnalysisSchemaComponent, ObjectConver
 
     override fun typeDiscovery(): List<TypeDiscovery> = listOf(
         object : TypeDiscovery {
-            override fun getClassesToVisitFrom(kClass: KClass<*>): Iterable<KClass<*>> =
+            override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscovery.TypeDiscoveryServices, kClass: KClass<*>): Iterable<KClass<*>> =
                 containerProperties(kClass).flatMap { property ->
                     listOfNotNull(
                         property.elementType.classifier, // the element type
