@@ -19,21 +19,21 @@ package org.gradle.internal.isolated.models;
 /**
  * TBD
  *
- * @since 8.11
+ * @since 8.12
  */
 public interface IsolatedModelKey<T> {
 
     /**
      * TBD
      *
-     * @since 8.11
+     * @since 8.12
      */
     String getName();
 
     /**
      * TBD
      *
-     * @since 8.11
+     * @since 8.12
      */
     Class<T> getType();
 }

@@ -27,7 +27,7 @@ import java.util.Map;
 /**
  * TBD
  *
- * @since 8.11
+ * @since 8.12
  */
 @ServiceScope({Scope.Build.class, Scope.Project.class})
 @Incubating
@@ -38,35 +38,35 @@ public interface IsolatedModelRouter {
     /**
      * TBD
      *
-     * @since 8.11
+     * @since 8.12
      */
     <T> IsolatedModelKey<T> key(String name, Class<T> type);
 
     /**
      * TBD
      *
-     * @since 8.11
+     * @since 8.12
      */
     <T> IsolatedModelWork<T> work(Provider<T> provider);
 
     /**
      * TBD
      *
-     * @since 8.11
+     * @since 8.12
      */
     <T> Map<String, Provider<T>> getProjectModels(IsolatedModelKey<T> key, Collection<String> projectPaths);
 
     /**
      * TBD
      *
-     * @since 8.11
+     * @since 8.12
      */
     <T> Provider<T> getBuildModel(IsolatedModelKey<T> key);
 
     /**
      * TBD
      *
-     * @since 8.11
+     * @since 8.12
      */
     <T> void postModel(IsolatedModelKey<T> key, IsolatedModelWork<T> work);
 

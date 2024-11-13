@@ -21,7 +21,7 @@ import org.gradle.api.provider.Provider;
 /**
  * TBD
  *
- * @since 8.11
+ * @since 8.12
  */
 public interface IsolatedModelWork<T> {
 

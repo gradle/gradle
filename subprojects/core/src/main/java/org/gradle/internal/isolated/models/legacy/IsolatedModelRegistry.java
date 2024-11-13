@@ -21,14 +21,14 @@ import org.gradle.api.provider.Provider;
 /**
  * TBD
  *
- * @since 8.11
+ * @since 8.12
  */
 public interface IsolatedModelRegistry {
 
     /**
      * TBD
      *
-     * @since 8.11
+     * @since 8.12
      */
     <T> void registerModel(String key, Class<T> type, Provider<T> provider);
 }

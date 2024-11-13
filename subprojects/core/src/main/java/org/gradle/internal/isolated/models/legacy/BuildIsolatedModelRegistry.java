@@ -23,7 +23,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
 /**
  * TBD
  *
- * @since 8.11
+ * @since 8.12
  */
 @Incubating
 @ServiceScope(Scope.Build.class)
