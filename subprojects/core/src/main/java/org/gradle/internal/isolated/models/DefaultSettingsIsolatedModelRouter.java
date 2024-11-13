@@ -16,9 +16,11 @@
 
 package org.gradle.internal.isolated.models;
 
+import org.gradle.api.Project;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
+import org.gradle.api.project.IsolatedProject;
 import org.gradle.api.provider.Provider;
 
 import java.util.Collection;
@@ -73,5 +75,25 @@ public class DefaultSettingsIsolatedModelRouter implements IsolatedModelRouter {
     @Override
     public <T> void postModel(IsolatedModelKey<T> key, IsolatedModelWork<T> work) {
         modelController.register(buildScope, key, work);
+    }
+
+    @Override
+    public <T> void shareModel(String name, Class<T> type, Provider<T> provider) {
+        postModel(key(name, type), work(provider));
+    }
+
+    @Override
+    public <T> Map<IsolatedProject, Provider<T>> getModelPerProject(String name, Class<T> type, Collection<Project> projects) {
+        Map<String, Provider<T>> byPath = getProjectModels(key(name, type), projects.stream().map(Project::getPath).collect(Collectors.toList()));
+        return byPath.keySet().stream()
+            .collect(Collectors.toMap(
+                it -> projectRegistry.getProject(it).getIsolated(),
+                byPath::get
+            ));
+    }
+
+    @Override
+    public <T> Provider<T> getModelForBuild(String name, Class<T> type) {
+        return getBuildModel(key(name, type));
     }
 }

@@ -17,6 +17,8 @@
 package org.gradle.internal.isolated.models;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.Project;
+import org.gradle.api.project.IsolatedProject;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -69,5 +71,15 @@ public interface IsolatedModelRouter {
      * @since 8.12
      */
     <T> void postModel(IsolatedModelKey<T> key, IsolatedModelWork<T> work);
+
+
+    // Simplified API
+
+    <T> void shareModel(String name, Class<T> type, Provider<T> provider);
+
+    // TODO: the return type should probably be MapProvider<IsolatedProject, T>
+    <T> Map<IsolatedProject, Provider<T>> getModelPerProject(String name, Class<T> type, Collection<Project> projects);
+
+    <T> Provider<T> getModelForBuild(String name, Class<T> type);
 
 }
