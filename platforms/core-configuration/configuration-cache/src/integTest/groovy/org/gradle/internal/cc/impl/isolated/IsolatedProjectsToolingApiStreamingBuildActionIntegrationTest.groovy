@@ -40,7 +40,7 @@ class IsolatedProjectsToolingApiStreamingBuildActionIntegrationTest extends Abst
         }
 
         then:
-        fixture.assertStateStored {
+        fixture.assertModelStored {
             projectConfigured(":")
             modelsCreated(":", 3)
         }
@@ -61,7 +61,7 @@ class IsolatedProjectsToolingApiStreamingBuildActionIntegrationTest extends Abst
         }
 
         then:
-        fixture.assertStateLoaded()
+        fixture.assertModelLoaded()
 
         and:
         model2.value == 42
@@ -84,7 +84,7 @@ class IsolatedProjectsToolingApiStreamingBuildActionIntegrationTest extends Abst
         }
 
         then:
-        fixture.assertStateStored {
+        fixture.assertModelStored {
             projectConfigured(":")
             modelsCreated(":", 3)
         }
@@ -107,7 +107,7 @@ class IsolatedProjectsToolingApiStreamingBuildActionIntegrationTest extends Abst
         }
 
         then:
-        fixture.assertStateLoaded()
+        fixture.assertModelLoaded()
 
         and:
         (model2.left as GradleProject).name == "hello-world"

@@ -58,7 +58,7 @@ class IsolatedProjectsToolingModelsWithDependencyResolutionIntegrationTest exten
         model[3].message == "project :d classpath = 0"
 
         and:
-        fixture.assertStateStored {
+        fixture.assertModelStored {
             projectConfigured(":buildSrc")
             projectConfigured(":")
             buildModelCreated()
@@ -77,7 +77,7 @@ class IsolatedProjectsToolingModelsWithDependencyResolutionIntegrationTest exten
         model2[3].message == "project :d classpath = 0"
 
         and:
-        fixture.assertStateLoaded()
+        fixture.assertModelLoaded()
 
         when:
         file("a/build.gradle") << """
@@ -94,7 +94,7 @@ class IsolatedProjectsToolingModelsWithDependencyResolutionIntegrationTest exten
         model3[3].message == "project :d classpath = 0"
 
         and:
-        fixture.assertStateUpdated {
+        fixture.assertModelUpdated {
             fileChanged("a/build.gradle")
             projectConfigured(":buildSrc")
             projectConfigured(":")
@@ -132,7 +132,7 @@ class IsolatedProjectsToolingModelsWithDependencyResolutionIntegrationTest exten
         model[2].message == "project :c classpath = 0"
 
         and:
-        fixture.assertStateStored {
+        fixture.assertModelStored {
             projectConfigured(":buildSrc")
             projectConfigured(":")
             buildModelCreated()
@@ -150,7 +150,7 @@ class IsolatedProjectsToolingModelsWithDependencyResolutionIntegrationTest exten
         model2[2].message == "project :c classpath = 0"
 
         and:
-        fixture.assertStateLoaded()
+        fixture.assertModelLoaded()
 
         when:
         file("a/build.gradle") << """
@@ -168,7 +168,7 @@ class IsolatedProjectsToolingModelsWithDependencyResolutionIntegrationTest exten
         model3[2].message == "project :c classpath = 0"
 
         and:
-        fixture.assertStateUpdated {
+        fixture.assertModelUpdated {
             fileChanged("a/build.gradle")
             projectConfigured(":buildSrc")
             projectConfigured(":")
@@ -188,7 +188,7 @@ class IsolatedProjectsToolingModelsWithDependencyResolutionIntegrationTest exten
         model4[2].message == "project :c classpath = 0"
 
         and:
-        fixture.assertStateLoaded()
+        fixture.assertModelLoaded()
 
         when:
         file("a/build.gradle") << """
@@ -204,7 +204,7 @@ class IsolatedProjectsToolingModelsWithDependencyResolutionIntegrationTest exten
         model5[2].message == "project :c classpath = 0"
 
         and:
-        fixture.assertStateUpdated {
+        fixture.assertModelUpdated {
             fileChanged("a/build.gradle")
             projectConfigured(":buildSrc")
             projectConfigured(":")
@@ -245,7 +245,7 @@ class IsolatedProjectsToolingModelsWithDependencyResolutionIntegrationTest exten
         model[2].message == "project :c classpath = 0"
 
         and:
-        fixture.assertStateStored {
+        fixture.assertModelStored {
             projectConfigured(":buildSrc")
             projectConfigured(":")
             buildModelCreated()
@@ -263,7 +263,7 @@ class IsolatedProjectsToolingModelsWithDependencyResolutionIntegrationTest exten
         model2[2].message == "project :c classpath = 0"
 
         and:
-        fixture.assertStateLoaded()
+        fixture.assertModelLoaded()
 
         when:
         file("a/build.gradle") << """
@@ -281,7 +281,7 @@ class IsolatedProjectsToolingModelsWithDependencyResolutionIntegrationTest exten
         model3[2].message == "project :c classpath = 0"
 
         and:
-        fixture.assertStateUpdated {
+        fixture.assertModelUpdated {
             fileChanged("a/build.gradle")
             projectConfigured(":buildSrc")
             projectConfigured(":")
@@ -301,7 +301,7 @@ class IsolatedProjectsToolingModelsWithDependencyResolutionIntegrationTest exten
         model4[2].message == "project :c classpath = 0"
 
         and:
-        fixture.assertStateLoaded()
+        fixture.assertModelLoaded()
 
         when:
         file("a/build.gradle") << """
@@ -317,7 +317,7 @@ class IsolatedProjectsToolingModelsWithDependencyResolutionIntegrationTest exten
         model5[2].message == "project :c classpath = 0"
 
         and:
-        fixture.assertStateUpdated {
+        fixture.assertModelUpdated {
             fileChanged("a/build.gradle")
             projectConfigured(":buildSrc")
             projectConfigured(":")
@@ -361,7 +361,7 @@ class IsolatedProjectsToolingModelsWithDependencyResolutionIntegrationTest exten
         model[2].message == "project :c classpath = 0"
 
         and:
-        fixture.assertStateStored {
+        fixture.assertModelStored {
             projectConfigured(":buildSrc")
             projectConfigured(":")
             buildModelCreated()
@@ -379,7 +379,7 @@ class IsolatedProjectsToolingModelsWithDependencyResolutionIntegrationTest exten
         model2[2].message == "project :c classpath = 0"
 
         and:
-        fixture.assertStateLoaded()
+        fixture.assertModelLoaded()
 
         when:
         file("a/build.gradle").replace('implementation(project(":b"))', "")
@@ -394,7 +394,7 @@ class IsolatedProjectsToolingModelsWithDependencyResolutionIntegrationTest exten
         model3[2].message == "project :c classpath = 0"
 
         and:
-        fixture.assertStateUpdated {
+        fixture.assertModelUpdated {
             fileChanged("a/build.gradle")
             projectConfigured(":buildSrc")
             projectConfigured(":")
@@ -413,7 +413,7 @@ class IsolatedProjectsToolingModelsWithDependencyResolutionIntegrationTest exten
         model4[2].message == "project :c classpath = 0"
 
         and:
-        fixture.assertStateLoaded()
+        fixture.assertModelLoaded()
 
         when:
         file("a/build.gradle") << """
@@ -429,7 +429,7 @@ class IsolatedProjectsToolingModelsWithDependencyResolutionIntegrationTest exten
         model5[2].message == "project :c classpath = 0"
 
         and:
-        fixture.assertStateUpdated {
+        fixture.assertModelUpdated {
             fileChanged("a/build.gradle")
             projectConfigured(":buildSrc")
             projectConfigured(":")
@@ -473,7 +473,7 @@ class IsolatedProjectsToolingModelsWithDependencyResolutionIntegrationTest exten
         model[2].message == "project :c classpath = 0"
 
         and:
-        fixture.assertStateStored {
+        fixture.assertModelStored {
             projectConfigured(":buildSrc")
             projectConfigured(":")
             buildModelCreated()
@@ -491,7 +491,7 @@ class IsolatedProjectsToolingModelsWithDependencyResolutionIntegrationTest exten
         model2[2].message == "project :c classpath = 0"
 
         and:
-        fixture.assertStateLoaded()
+        fixture.assertModelLoaded()
 
         when:
         file("c/build.gradle") << """
@@ -507,7 +507,7 @@ class IsolatedProjectsToolingModelsWithDependencyResolutionIntegrationTest exten
         model3[2].message == "project :c classpath = 0"
 
         and:
-        fixture.assertStateUpdated {
+        fixture.assertModelUpdated {
             fileChanged("c/build.gradle")
             projectConfigured(":buildSrc")
             projectConfigured(":")
@@ -526,7 +526,7 @@ class IsolatedProjectsToolingModelsWithDependencyResolutionIntegrationTest exten
         model4[2].message == "project :c classpath = 0"
 
         and:
-        fixture.assertStateLoaded()
+        fixture.assertModelLoaded()
 
         when:
         file("b/build.gradle") << """
@@ -542,7 +542,7 @@ class IsolatedProjectsToolingModelsWithDependencyResolutionIntegrationTest exten
         model5[2].message == "project :c classpath = 0"
 
         and:
-        fixture.assertStateUpdated {
+        fixture.assertModelUpdated {
             fileChanged("b/build.gradle")
             projectConfigured(":buildSrc")
             projectConfigured(":")
@@ -594,7 +594,7 @@ class IsolatedProjectsToolingModelsWithDependencyResolutionIntegrationTest exten
         model[3].message == "project :d classpath = 0"
 
         and:
-        fixture.assertStateStored {
+        fixture.assertModelStored {
             projectConfigured(":buildSrc")
             projectConfigured(":")
             buildModelCreated()
@@ -613,7 +613,7 @@ class IsolatedProjectsToolingModelsWithDependencyResolutionIntegrationTest exten
         model2[3].message == "project :d classpath = 0"
 
         and:
-        fixture.assertStateLoaded()
+        fixture.assertModelLoaded()
 
         when:
         file("a/build.gradle") << """
@@ -632,7 +632,7 @@ class IsolatedProjectsToolingModelsWithDependencyResolutionIntegrationTest exten
         model3[3].message == "project :d classpath = 0"
 
         and:
-        fixture.assertStateUpdated {
+        fixture.assertModelUpdated {
             fileChanged("a/build.gradle")
             projectConfigured(":buildSrc")
             projectConfigured(":")
@@ -690,7 +690,7 @@ class IsolatedProjectsToolingModelsWithDependencyResolutionIntegrationTest exten
         model[3].message == "project :d classpath = 0"
 
         and:
-        fixture.assertStateStored {
+        fixture.assertModelStored {
             projectConfigured(":buildSrc")
             projectConfigured(":")
             buildModelCreated()
@@ -717,7 +717,7 @@ class IsolatedProjectsToolingModelsWithDependencyResolutionIntegrationTest exten
         model2[3].message == "project :d classpath = 0"
 
         and:
-        fixture.assertStateLoaded()
+        fixture.assertModelLoaded()
 
         when:
         file("a/build.gradle") << """
@@ -742,7 +742,7 @@ class IsolatedProjectsToolingModelsWithDependencyResolutionIntegrationTest exten
         model3[3].message == "project :d classpath = 0"
 
         and:
-        fixture.assertStateUpdated {
+        fixture.assertModelUpdated {
             fileChanged("a/build.gradle")
             projectConfigured(":buildSrc")
             projectConfigured(":")
