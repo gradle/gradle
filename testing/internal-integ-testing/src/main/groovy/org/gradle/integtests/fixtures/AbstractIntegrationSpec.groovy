@@ -72,7 +72,7 @@ import static org.gradle.util.Matchers.matchesRegexp
 @CleanupTestDirectory
 @SuppressWarnings("IntegrationTestFixtures")
 @IntegrationTestTimeout(DEFAULT_TIMEOUT_SECONDS)
-abstract class AbstractIntegrationSpec extends Specification implements LanguageSpecificTestFileFixture {
+abstract class AbstractIntegrationSpec extends Specification implements LanguageSpecificTestFileFixture, HasGradleExecutor {
 
     @Rule
     public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
@@ -90,11 +90,20 @@ abstract class AbstractIntegrationSpec extends Specification implements Language
     GradleExecuter getExecuter() {
         if (executor == null) {
             executor = createExecuter()
-            if (ignoreCleanupAssertions) {
-                executor.ignoreCleanupAssertions()
-            }
         }
         return executor
+    }
+
+    /**
+     * Applies configuration that needs to be applied
+     * every time an executer runs.
+     *
+     * May be overwritten. In most cases, the overrides should ensure to invoke the base implementation.
+     */
+    protected void setupExecuter() {
+        if (ignoreCleanupAssertions) {
+            executor.ignoreCleanupAssertions()
+        }
     }
 
     BuildTestFixture buildTestFixture = new BuildTestFixture(temporaryFolder)
@@ -446,6 +455,7 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
     }
 
     protected ExecutionResult succeeds(String... tasks) {
+        setupExecuter()
         resetProblemApiCheck()
 
         result = executer.withTasks(*tasks).run()
@@ -494,6 +504,7 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
     }
 
     protected ExecutionFailure fails(List<String> tasks) {
+        setupExecuter()
         resetProblemApiCheck()
 
         failure = executer.withTasks(tasks).runWithFailure()

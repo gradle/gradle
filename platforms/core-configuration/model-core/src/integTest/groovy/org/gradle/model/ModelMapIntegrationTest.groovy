@@ -18,13 +18,14 @@ package org.gradle.model
 
 import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.StableConfigurationCacheDeprecations
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.language.base.FunctionalSourceSet
 import org.gradle.platform.base.ComponentSpec
 import spock.lang.Issue
 
 @UnsupportedWithConfigurationCache(because = "software model")
-class ModelMapIntegrationTest extends AbstractIntegrationSpec {
+class ModelMapIntegrationTest extends AbstractIntegrationSpec implements StableConfigurationCacheDeprecations {
     def "provides basic meta-data for map"() {
         when:
         buildFile '''
@@ -117,6 +118,7 @@ class ModelMapIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
+        expectTaskGetProjectDeprecations()
         fails "components"
         failure.assertHasCause("Cannot create an instance of type 'NonRegisteredComponent' as this type is not known. Known types: ${ComponentSpec.name}, SampleComponent.")
     }
@@ -142,6 +144,7 @@ class ModelMapIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
+        expectTaskGetProjectDeprecations()
         fails "model"
         failure.assertHasCause("Cannot create an instance of type 'NonRegisteredComponent' as this type is not known. Known types: ${ComponentSpec.name}, SampleComponent.")
     }
@@ -170,6 +173,7 @@ class ModelMapIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
+        expectTaskGetProjectDeprecations()
         fails "model"
         failure.assertHasCause("Cannot create an instance of type 'NonRegisteredComponent' as this type is not known. Known types: SampleComponent.")
     }
@@ -196,6 +200,7 @@ class ModelMapIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
+        expectTaskGetProjectDeprecations()
         fails "components"
         failure.assertHasCause("Cannot create an instance of type 'NonRegisteredComponent' as this type is not known. Known types: SampleComponent.")
     }
@@ -221,6 +226,7 @@ class ModelMapIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
+        expectTaskGetProjectDeprecations()
         fails "components"
         failure.assertHasCause("Cannot create 'components.other' with type 'SampleComponent' as this is not a subtype of 'Sample2Component'.")
     }
@@ -247,6 +253,7 @@ class ModelMapIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
+        expectTaskGetProjectDeprecations()
         succeeds "components"
     }
 
@@ -267,6 +274,7 @@ class ModelMapIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
+        expectTaskGetProjectDeprecations()
         fails "model"
         failureHasCause "Cannot create 'things.bad' with type '$FunctionalSourceSet.name' as this is not a subtype of 'Thing'."
     }
@@ -322,6 +330,7 @@ class ModelMapIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
+        expectTaskGetProjectDeprecations()
         succeeds "model"
         ModelReportOutput.from(output).hasNodeStructure {
             things {
@@ -350,6 +359,7 @@ class ModelMapIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
+        expectTaskGetProjectDeprecations()
         fails "model"
         failureHasCause "Exception thrown while executing model rule: things { ... } @ build.gradle line 12, column 17"
         failureHasCause "Cannot create 'things.thing' with type 'UnknownThing' as this is not a subtype of 'Thing'."

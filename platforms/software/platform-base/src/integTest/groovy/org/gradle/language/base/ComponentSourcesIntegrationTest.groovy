@@ -96,6 +96,7 @@ class ComponentSourcesIntegrationTest extends AbstractComponentModelIntegrationT
             }
         """
         when:
+        expectTaskGetProjectDeprecations()
         succeeds "model"
 
         then:

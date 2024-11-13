@@ -17,7 +17,9 @@
 package org.gradle.smoketests
 
 import org.gradle.api.JavaVersion
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
+import org.gradle.util.GradleVersion
 import org.gradle.util.internal.VersionNumber
 import spock.lang.Issue
 
@@ -61,6 +63,11 @@ class KotlinMultiplatformPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
                 kotlinVersionNumber >= VersionNumber.parse('1.9.22') && kotlinVersionNumber.baseVersion < KotlinGradlePluginVersions.KOTLIN_2_0_20,
                 "Internal API BuildOperationExecutor.getCurrentOperation() has been deprecated. This is scheduled to be removed in Gradle 9.0.",
                 "https://youtrack.jetbrains.com/issue/KT-67110"
+            )
+            .expectDeprecationWarningIf(
+                GradleContextualExecuter.notConfigCache,
+                "Invocation of Task.project at execution time has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#task_project",
+                "https://youtrack.jetbrains.com/issue/KT-58374"
             )
             .build()
 

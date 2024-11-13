@@ -17,10 +17,11 @@ package org.gradle.api.reporting.components
 
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.StableConfigurationCacheDeprecations
 import org.gradle.internal.InternalTransformer
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
 
-abstract class AbstractComponentReportIntegrationTest extends AbstractIntegrationSpec {
+abstract class AbstractComponentReportIntegrationTest extends AbstractIntegrationSpec implements StableConfigurationCacheDeprecations {
     InternalTransformer<String, String> formatter = new ComponentReportOutputFormatter()
     JavaVersion currentJvm = JavaVersion.current()
     String currentJavaName = "java" + currentJvm.majorVersion
@@ -33,12 +34,14 @@ abstract class AbstractComponentReportIntegrationTest extends AbstractIntegratio
 
     boolean outputMatches(String expectedOutput) {
         def actualOutput = result.groupedOutput.task(":components").output
-        assert removeDownloadMessageAndEmptyLines(actualOutput) == expected(expectedOutput)
+        assert removeIrrelevantOutput(actualOutput) == expected(expectedOutput)
         return true
     }
 
-    String removeDownloadMessageAndEmptyLines(String output) {
-        return output.readLines().findAll { !it.isEmpty() && !(it ==~ /^Download http.*$/) }.join('\n')
+    String removeIrrelevantOutput(String output) {
+        return output.readLines().findAll {
+            !it.isEmpty() && !(it ==~ /^Download http.*$/) && !(it ==~ /.*has been deprecated.*$/)
+        }.join('\n')
     }
 
     String expected(String normalised) {

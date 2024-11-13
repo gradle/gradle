@@ -18,10 +18,11 @@ package org.gradle.language.base
 
 import groovy.test.NotYetImplemented
 import org.gradle.api.reporting.model.ModelReportOutput
+import org.gradle.integtests.fixtures.StableConfigurationCacheDeprecations
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 
 @UnsupportedWithConfigurationCache(because = "software model")
-class ComponentBinarySourcesIntegrationTest extends AbstractComponentModelIntegrationTest {
+class ComponentBinarySourcesIntegrationTest extends AbstractComponentModelIntegrationTest implements StableConfigurationCacheDeprecations {
     def setup() {
         withCustomComponentType()
         withCustomBinaryType()
@@ -202,6 +203,7 @@ model {
             }
         """
         when:
+        expectTaskGetProjectDeprecations()
         succeeds "model"
 
         then:

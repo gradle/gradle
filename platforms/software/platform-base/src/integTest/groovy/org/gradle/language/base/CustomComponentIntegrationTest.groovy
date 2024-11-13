@@ -18,6 +18,7 @@ package org.gradle.language.base
 
 import groovy.test.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.StableConfigurationCacheDeprecations
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.platform.base.ApplicationSpec
 import org.gradle.platform.base.ComponentSpec
@@ -26,7 +27,7 @@ import org.gradle.platform.base.LibrarySpec
 import org.gradle.platform.base.SourceComponentSpec
 
 @UnsupportedWithConfigurationCache(because = "software model")
-class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
+class CustomComponentIntegrationTest extends AbstractIntegrationSpec implements StableConfigurationCacheDeprecations {
     def "can declare custom managed #componentSpecType"() {
         buildFile << """
             @Managed
@@ -109,6 +110,7 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
+        expectTaskGetProjectDeprecations()
         succeeds "model"
     }
 
@@ -270,6 +272,7 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
+        expectTaskGetProjectDeprecations()
         succeeds "model"
     }
 
@@ -563,6 +566,7 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
+        expectTaskGetProjectDeprecations()
         fails "components"
         failure.assertHasCause("Exception thrown while executing model rule: Broken#broken")
         failure.assertHasCause("broken")
@@ -584,6 +588,7 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
+        expectTaskGetProjectDeprecations()
         fails "components"
         failure.assertHasCause("Exception thrown while executing model rule: Broken#broken(TypeBuilder<BrokenComponentSpec>)")
         failure.assertHasCause("Broken#broken(TypeBuilder<BrokenComponentSpec>) is not a valid component model rule method.")
@@ -672,6 +677,7 @@ model {
         """
 
         expect:
+        expectTaskGetProjectDeprecations()
         succeeds "components"
     }
 }
