@@ -415,8 +415,7 @@ class DefaultConfigurationCache internal constructor(
     fun saveModel(model: Any) {
         cacheEntryRequiresCommit = true
 
-        // TODO:configuration-cache rename the flag to be non-specific to tasks
-        if (startParameter.isIgnoreInputsInTaskGraphSerialization) {
+        if (startParameter.isIgnoreInputsDuringStore) {
             InstrumentedInputs.discardListener()
         }
 
@@ -434,7 +433,7 @@ class DefaultConfigurationCache internal constructor(
     fun saveWorkGraph() {
         cacheEntryRequiresCommit = true
 
-        if (startParameter.isIgnoreInputsInTaskGraphSerialization) {
+        if (startParameter.isIgnoreInputsDuringStore) {
             InstrumentedInputs.discardListener()
         }
 
