@@ -12,4 +12,4 @@ jobs:
       pull-requests: write  # for kentaro-m/auto-assign-action to assign PR reviewers
     runs-on: ubuntu-latest
     steps:
-      - uses: kentaro-m/auto-assign-action@v1.2.6
+      - uses: kentaro-m/auto-assign-action@v2.0.0
