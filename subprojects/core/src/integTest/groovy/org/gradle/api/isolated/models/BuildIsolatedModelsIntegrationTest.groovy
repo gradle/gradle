@@ -55,6 +55,7 @@ class BuildIsolatedModelsIntegrationTest extends AbstractIntegrationSpec {
         """
 
         groovyFile "build-logic/src/main/groovy/my/MyModel.groovy", """
+            package my
             class MyModel {
                 String value
                 MyModel(value) { this.value = value }
