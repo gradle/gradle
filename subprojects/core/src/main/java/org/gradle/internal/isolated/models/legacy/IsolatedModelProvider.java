@@ -17,9 +17,9 @@
 package org.gradle.internal.isolated.models.legacy;
 
 import org.gradle.api.internal.provider.AbstractMinimalProvider;
-import org.gradle.api.internal.provider.EvaluationContext;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.evaluation.EvaluationScopeContext;
 import org.gradle.internal.isolated.models.DefaultIsolatedModelKey;
 import org.gradle.internal.isolated.models.IsolatedModelScope;
 
@@ -50,7 +50,7 @@ public class IsolatedModelProvider<T> extends AbstractMinimalProvider<T> {
 
     @Override
     protected Value<? extends T> calculateOwnValue(ValueConsumer consumer) {
-        try (EvaluationContext.ScopeContext ignored = openScope()) {
+        try (EvaluationScopeContext ignored = openScope()) {
             return getUnderlyingProvider().calculateValue(consumer);
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
