@@ -190,6 +190,7 @@ trait SoftwareTypeFixture {
         return """
             package org.gradle.test;
 
+            import org.gradle.api.file.DirectoryProperty;
             import org.gradle.declarative.dsl.model.annotations.Configuring;
             import org.gradle.declarative.dsl.model.annotations.Restricted;
 
@@ -213,6 +214,8 @@ trait SoftwareTypeFixture {
                 @Restricted
                 public abstract Property<String> getId();
 
+                @Restricted
+                public abstract DirectoryProperty getDir();
 
                 public Foo getFoo() {
                     return foo;

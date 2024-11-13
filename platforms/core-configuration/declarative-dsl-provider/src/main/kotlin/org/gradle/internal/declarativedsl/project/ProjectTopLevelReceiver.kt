@@ -16,5 +16,7 @@
 
 package org.gradle.internal.declarativedsl.project
 
+import org.gradle.api.Project
 
-interface ProjectTopLevelReceiver
+
+interface ProjectTopLevelReceiver : Project // TODO: this is not ok like this
