@@ -28,18 +28,18 @@ class ConfigurationCacheDebugLogIntegrationTest extends AbstractConfigurationCac
     def "logs oid and hashes"() {
         given:
         buildFile """
-        def scriptObject = [foo: "bar"]
-        task ok { Task it ->
-            def someObject = scriptObject
-            def oid = Integer.toHexString(System.identityHashCode(someObject))
-            def hash = Integer.toHexString(someObject.hashCode())
-            doLast {
-                println someObject
-                println("oid = \$oid")
-                println("hash = \$hash")
-                println("ok")
+            def scriptObject = [foo: "bar"]
+            task ok { Task it ->
+                def oid = Integer.toHexString(System.identityHashCode(scriptObject))
+                def hash = Integer.toHexString(scriptObject.hashCode())
+                doLast {
+                    // reference required so it is actually cached
+                    println scriptObject
+                    println("oid = \$oid")
+                    println("hash = \$hash")
+                    println("ok")
+                }
             }
-        }
         """
 
         when:
