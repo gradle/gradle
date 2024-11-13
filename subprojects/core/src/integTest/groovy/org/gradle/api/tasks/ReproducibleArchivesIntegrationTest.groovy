@@ -106,7 +106,7 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
             task tar(type: Tar) {
                 reproducibleFileOrder = true
                 preserveFileTimestamps = false
-                compression = '${compression}'
+                compression = Compression.${compression}
                 from 'dir1', 'dir2', 'dir3'
                 destinationDirectory = buildDir
                 archiveFileName = 'test.tar.${compression}'
@@ -124,8 +124,8 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
         // Reason for different gzip checksum on JDK16: https://jdk.java.net/16/release-notes#JDK-8244706
         where:
         compression | md5
-        'gzip'      | (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_16) ? '022ce6c9bfb4705481fafdbe0d3c0334' : '7b86e679a3c6cda52736e1f167cc04f5')
-        'bzip2'     | '54615d3194655da3f7f72c8859f66fa5'
+        'GZIP'      | (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_16) ? '022ce6c9bfb4705481fafdbe0d3c0334' : '7b86e679a3c6cda52736e1f167cc04f5')
+        'BZIP2'     | '54615d3194655da3f7f72c8859f66fa5'
     }
 
     def "#taskName preserves order of child specs"() {
