@@ -48,7 +48,7 @@ class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProj
         fixture.assertStateLoaded()
     }
 
-    def "'root -> plugins -> root' is allowed"() {
+    def "'root(lib) -> plugins -> root(lib)' is allowed"() {
         given:
         includePluginBuild(settingsFile, "plugins-a")
         applyPlugins(buildFile, "plugin-a")
@@ -61,6 +61,49 @@ class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProj
 
         expect:
         isolatedProjectsRun "help"
+    }
+
+    def "'root(plugin) -> library -> root(plugin)' is prohibited because of a plugin build cycle"() {
+        given:
+        def rootBuildDir = file("root")
+
+        includeLibraryBuild(rootBuildDir.file("settings.gradle"), "../library")
+        applyPlugins(rootBuildDir.file("build.gradle"), "groovy-gradle-plugin")
+        file("root/src/main/groovy/foo.gradle") << ""
+
+        includedBuild("library") {
+            includePluginBuild(settingsScript, "../root")
+            applyPlugins(buildScript, "foo")
+        }
+
+        when:
+        executer.inDirectory(rootBuildDir) // to have a stable root build name
+        isolatedProjectsFails "help"
+
+        then:
+        failureCauseContains("A cycle has been detected in the definition of plugin builds: :root -> :library -> :root.")
+    }
+
+    def "'root(plugin) -> plugins -> root(plugin)' is prohibited because of a plugin build cycle"() {
+        given:
+        def rootBuildDir = file("root")
+
+        includePluginBuild(rootBuildDir.file("settings.gradle"), "../plugins-a")
+        applyPlugins(rootBuildDir.file("build.gradle"), "groovy-gradle-plugin", "plugins-a")
+        file("root/src/main/groovy/foo.gradle") << ""
+
+        includedBuild("plugins-a") {
+            includePluginBuild(settingsScript, "../root")
+            applyPlugins(buildScript, "groovy-gradle-plugin", "foo")
+            srcMainGroovy.file("plugin-a.gradle") << ""
+        }
+
+        when:
+        executer.inDirectory(rootBuildDir) // to have a stable root build name
+        isolatedProjectsFails "help"
+
+        then:
+        failureCauseContains("A cycle has been detected in the definition of plugin builds: :plugins-a -> :root -> :plugins-a.")
     }
 
     def "'root -> plugins-a -> plugins-b -> plugins-c -> plugins-a' is prohibited because of a plugin build cycle"() {
