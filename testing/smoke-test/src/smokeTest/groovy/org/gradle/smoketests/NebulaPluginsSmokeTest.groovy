@@ -256,31 +256,33 @@ testImplementation('junit:junit:4.7')""")
             'com.netflix.nebula.resolution-rules': Versions.of(TestedVersions.nebulaResolutionRules)
         ]
     }
+
+    private static class NebulaPluginDeprecations extends BaseDeprecations {
+
+        NebulaPluginDeprecations(SmokeTestGradleRunner runner) {
+            super(runner)
+        }
+
+        void expectNebulaDependencyLockPluginDeprecations() {
+            // with CC, these are reported as config cache problems only
+            runner.expectDeprecationWarningIf(GradleContextualExecuter.notConfigCache,
+                "Invocation of Task.project at execution time has been deprecated. "+
+                    "This will fail with an error in Gradle 9.0. " +
+                    "Consult the upgrading guide for further information: $BASE_URL/userguide/upgrading_version_7.html#task_project",
+                "https://github.com/nebula-plugins/gradle-dependency-lock-plugin/issues/273"
+            )
+        }
+
+        void expectNebulaLintPluginDeprecations() {
+            // with CC, these are reported as config cache problems only
+            runner.expectDeprecationWarningIf(GradleContextualExecuter.notConfigCache,
+                "Invocation of Task.project at execution time has been deprecated. "+
+                    "This will fail with an error in Gradle 9.0. " +
+                    "Consult the upgrading guide for further information: $BASE_URL/userguide/upgrading_version_7.html#task_project",
+                "https://github.com/nebula-plugins/gradle-lint-plugin/issues/412"
+            )
+        }
+    }
 }
 
-class NebulaPluginDeprecations extends BaseDeprecations {
 
-    NebulaPluginDeprecations(SmokeTestGradleRunner runner) {
-        super(runner)
-    }
-
-    void expectNebulaDependencyLockPluginDeprecations() {
-        // with CC, these are reported as config cache problems only
-        runner.expectDeprecationWarningIf(GradleContextualExecuter.notConfigCache,
-            "Invocation of Task.project at execution time has been deprecated. "+
-            "This will fail with an error in Gradle 9.0. " +
-            "Consult the upgrading guide for further information: $BASE_URL/userguide/upgrading_version_7.html#task_project",
-            "https://github.com/nebula-plugins/gradle-dependency-lock-plugin/issues/273"
-        )
-    }
-
-    void expectNebulaLintPluginDeprecations() {
-        // with CC, these are reported as config cache problems only
-        runner.expectDeprecationWarningIf(GradleContextualExecuter.notConfigCache,
-            "Invocation of Task.project at execution time has been deprecated. "+
-            "This will fail with an error in Gradle 9.0. " +
-            "Consult the upgrading guide for further information: $BASE_URL/userguide/upgrading_version_7.html#task_project",
-            "https://github.com/nebula-plugins/gradle-lint-plugin/issues/412"
-        )
-    }
-}
