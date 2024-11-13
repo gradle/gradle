@@ -156,7 +156,7 @@ class DefaultConfigurationCache internal constructor(
         get() = host.service()
 
     private
-    val currentCandidateEntries = mutableListOf<CandidateEntry>()
+    var currentCandidateEntries: List<CandidateEntry>? = null
 
     override val isLoaded: Boolean
         get() = cacheAction is ConfigurationCacheAction.LOAD
@@ -289,15 +289,15 @@ class DefaultConfigurationCache internal constructor(
         store.useForStore { layout ->
             val newEntries = calculateCandidateEntries(startParameter.entriesPerKey)
             cacheIO.writeCandidateEntries(layout.fileFor(StateType.Candidates), newEntries)
-            currentCandidateEntries.clear()
+            currentCandidateEntries = null
         }
     }
 
     private
-    fun calculateCandidateEntries(entriesPerKey: Int): List<CandidateEntry> {
-        val tail = currentCandidateEntries.take(min(currentCandidateEntries.size, entriesPerKey - 1))
-        return listOf(CandidateEntry(entryId)) + tail
-    }
+    fun calculateCandidateEntries(entriesPerKey: Int): List<CandidateEntry> = currentCandidateEntries?.let { entries ->
+        val tail = entries.take(min(entries.size, entriesPerKey - 1))
+        listOf(CandidateEntry(entryId)) + tail
+    } ?: listOf(CandidateEntry(entryId))
 
     private
     fun determineCacheAction(): Pair<ConfigurationCacheAction, StructuredMessage> = when {
@@ -404,25 +404,24 @@ class DefaultConfigurationCache internal constructor(
     }
 
     private
-    fun checkFingerprint(): CheckedFingerprint {
-        return buildOperationRunner.withFingerprintCheckOperations {
-            // searching for a valid cc entry
-            val candidates = store.useForStateLoad { layout ->
-                cacheIO.readCandidateEntries(layout.fileFor(StateType.Candidates))
-            }.value
-            // how to best report changes?
-            // 1. could report all differences against each different entry
-            for (candidate in candidates) {
-                val result = checkCandidate(candidate)
-                if (result != null) {
-                    currentCandidateEntries.add(0, candidate)
-                    currentCandidateEntries.addAll(candidates.filter { it != candidate })
-                    return@withFingerprintCheckOperations result
+    fun checkFingerprint(): CheckedFingerprint = buildOperationRunner.withFingerprintCheckOperations {
+        // searching for a valid cc entry
+        val candidates = store.useForStateLoad { layout ->
+            cacheIO.readCandidateEntries(layout.fileFor(StateType.Candidates))
+        }.value
+
+        for (candidate in candidates) {
+            val result = checkCandidate(candidate)
+            if (result != null) {
+                currentCandidateEntries = buildList {
+                    add(0, candidate)
+                    addAll(candidates.filter { it != candidate })
                 }
+                return@withFingerprintCheckOperations result
             }
-            currentCandidateEntries.addAll(candidates)
-            return@withFingerprintCheckOperations CheckedFingerprint.NotFound
         }
+        currentCandidateEntries = candidates
+        return@withFingerprintCheckOperations CheckedFingerprint.NotFound
     }
 
     private
