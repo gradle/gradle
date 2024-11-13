@@ -125,6 +125,7 @@ dependencies {
     api(libs.guava)
     api(libs.inject)
     api(libs.jsr305)
+    api(libs.nativePlatform)
 
     implementation(projects.buildOperationsTrace)
     implementation(projects.io)
@@ -132,7 +133,6 @@ dependencies {
     implementation(projects.modelGroovy)
     implementation(projects.serviceRegistryBuilder)
 
-    implementation(libs.nativePlatform)
     implementation(libs.asmCommons)
     implementation(libs.commonsCompress)
     implementation(libs.commonsIo)
