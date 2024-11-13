@@ -117,7 +117,6 @@ public class BuildInclusionCoordinator {
         makeSubstitutionsAvailableFor(build);
     }
 
-
     private void makeSubstitutionsAvailableFor(BuildState build) {
         Deque<BuildState> stack = new ArrayDeque<>();
         Set<BuildState> seen = new HashSet<>();

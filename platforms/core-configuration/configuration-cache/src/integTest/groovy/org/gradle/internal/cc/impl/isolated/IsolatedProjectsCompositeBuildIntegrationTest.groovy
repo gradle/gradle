@@ -48,7 +48,22 @@ class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProj
         fixture.assertStateLoaded()
     }
 
-    def "cycles for plugin builds are prohibited"() {
+    def "'root -> plugins -> root' is allowed"() {
+        given:
+        includePluginBuild(settingsFile, "plugins-a")
+        applyPlugins(buildFile, "plugin-a")
+
+        includedBuild("plugins-a") {
+            applyPlugins(buildScript, "groovy-gradle-plugin")
+            includeLibraryBuild(settingsScript, "../.")
+            srcMainGroovy.file("plugin-a.gradle") << ""
+        }
+
+        expect:
+        isolatedProjectsRun "help"
+    }
+
+    def "'root -> plugins-a -> plugins-b -> plugins-c -> plugins-a' is prohibited because of a plugin build cycle"() {
         given:
         includePluginBuild(settingsFile, "plugins-a")
         applyPlugins(buildFile, "plugin-a")
@@ -72,13 +87,13 @@ class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProj
         }
 
         when:
-        isolatedProjectsFails("help")
+        isolatedProjectsFails "help"
 
         then:
         failureDescriptionContains("A cycle has been detected in the definition of plugin builds: :plugins-a -> :plugins-b -> :plugins-c -> :plugins-a.")
     }
 
-    def "transitive cycles(start is a plugin) for plugin builds are prohibited"() {
+    def "'root -> plugins-a -> library-b -> library-c -> plugins-a' is prohibited because of a plugin build cycle"() {
         given:
         includePluginBuild(settingsFile, "plugins-a")
         applyPlugins(buildFile, "plugin-a")
@@ -98,13 +113,13 @@ class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProj
         }
 
         when:
-        isolatedProjectsFails("help")
+        isolatedProjectsFails "help"
 
         then:
         failureDescriptionContains("A cycle has been detected in the definition of plugin builds: :plugins-a -> :library-b -> :library-c -> :plugins-a.")
     }
 
-    def "transitive cycles(start is a library) for plugin builds are prohibited"() {
+    def "'root -> library-a -> library-b -> plugins-a -> library-c -> library-b' is prohibited because of a plugin build cycle"() {
         given:
         includeLibraryBuild(settingsFile, "library-a")
 
@@ -115,10 +130,6 @@ class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProj
         includedBuild("library-b") {
             includePluginBuild(settingsScript, "../plugins-a")
             applyPlugins(buildScript, "plugin-a")
-        }
-
-        includedBuild("library-c") {
-            includeLibraryBuild(settingsScript, "../library-b")
         }
 
         includedBuild("plugins-a") {
@@ -132,13 +143,41 @@ class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProj
         }
 
         when:
-        isolatedProjectsFails("help")
+        isolatedProjectsFails "help"
 
         then:
         failureDescriptionContains("A cycle has been detected in the definition of plugin builds: :plugins-a -> :library-c -> :library-b -> :plugins-a.")
     }
 
-    def "introduced-by-settings-plugin cycles for plugins builds are prohibited"() {
+    def "'root -> plugins-a -> library-b -> library-c -> library-b -> library-c -> plugins-a is prohibited because of a plugin build cycle"() {
+        given:
+        includePluginBuild(settingsFile, "plugins-a")
+        applyPlugins(buildFile, "plugin-a")
+
+        includedBuild("plugins-a") {
+            applyPlugins(buildScript, "groovy-gradle-plugin")
+            srcMainGroovy.file("plugin-a.gradle") << ""
+            includeLibraryBuild(settingsScript, "../library-b")
+        }
+
+        includedBuild("library-b") {
+            includeLibraryBuild(settingsScript, "../library-c")
+        }
+
+        includedBuild("library-c") {
+            applyPlugins(buildScript, "plugin-a")
+            includePluginBuild(settingsScript, "../plugins-a")
+            includeLibraryBuild(settingsScript, "../library-b")
+        }
+
+        when:
+        isolatedProjectsFails "help"
+
+        then:
+        failureDescriptionContains("A cycle has been detected in the definition of plugin builds: :plugins-a -> :library-b -> :library-c -> :plugins-a.")
+    }
+
+    def "introduced-by-settings-plugin cycles for plugins builds are detected"() {
         given:
         includePluginBuild(settingsFile, "build-logic")
         applyPlugins(buildFile, "plugin-a")
@@ -160,7 +199,7 @@ class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProj
         }
 
         when:
-        isolatedProjectsFails("help")
+        isolatedProjectsFails "help"
 
         then:
         failureDescriptionContains("A cycle has been detected in the definition of plugin builds: :build-logic -> :build-logic.")
@@ -180,7 +219,7 @@ class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProj
         }
 
         expect:
-        isolatedProjectsRun("help")
+        isolatedProjectsRun "help"
     }
 
     def "plugins from included build are safe to be requested concurrently"() {
@@ -200,7 +239,7 @@ class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProj
         applyPlugins(file("b/build.gradle"), "bar")
 
         when:
-        isolatedProjectsRun("help")
+        isolatedProjectsRun "help"
 
         then:
         outputContains("Foo plugin applied to project ':a'")
@@ -248,7 +287,7 @@ class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProj
         applyPlugins(file("b/build.gradle"), "plugin-b")
 
         expect:
-        isolatedProjectsRun("help")
+        isolatedProjectsRun "help"
     }
 
     def "substitutions from library builds are safe to be registered from cycled definition"() {
@@ -292,6 +331,6 @@ class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProj
         """
 
         expect:
-        isolatedProjectsRun("help")
+        isolatedProjectsRun "help"
     }
 }
