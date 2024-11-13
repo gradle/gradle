@@ -124,7 +124,7 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
 
         ScalaRuntime scalaRuntime = project.getExtensions().create(SCALA_RUNTIME_EXTENSION_NAME, ScalaRuntime.class, project);
 
-        ScalaPluginExtension scalaPluginExtension = project.getExtensions().create(ScalaPluginExtension.class, "scala", ScalaPluginExtension.class);
+        ScalaPluginExtension scalaPluginExtension = project.getExtensions().create("scala", ScalaPluginExtension.class);
         scalaPluginExtension.getZincVersion().convention(ScalaBasePlugin.DEFAULT_ZINC_VERSION);
 
         Provider<ResolvableConfiguration> compilerClasspath = getCompilerRuntimeClasspath(project, scalaPluginExtension);
