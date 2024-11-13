@@ -87,7 +87,7 @@ abstract class AbstractIntegrationSpec extends Specification implements Language
     private boolean enableProblemsApiCheck = false
     private BuildOperationsFixture buildOperationsFixture = null
 
-    public GradleExecuter getExecuter() {
+    GradleExecuter getExecuter() {
         if (executor == null) {
             executor = createExecuter()
         }
