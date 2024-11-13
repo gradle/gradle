@@ -30,6 +30,7 @@ public class DefaultIsolatedModelWork<T> implements IsolatedModelWork<T> {
     public Provider<T> prepare() {
         // Mapping here to enforce task dependencies check,
         // so that task-dependency-carrying properties cannot be evaluated at configuration time
+        // TODO:provider-api this should work out of the box for providers
         return provider.map(it -> it);
     }
 }
