@@ -350,6 +350,8 @@ class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec imp
             testSoftwareType {
                 id = "test"
 
+                dir = layout.projectDirectory
+
                 foo {
                     bar = "baz"
                 }
