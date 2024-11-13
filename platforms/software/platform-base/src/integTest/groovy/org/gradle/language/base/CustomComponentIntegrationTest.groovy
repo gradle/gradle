@@ -18,7 +18,7 @@ package org.gradle.language.base
 
 import groovy.test.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.CommonDeprecations
+import org.gradle.integtests.fixtures.StableConfigurationCacheDeprecations
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.platform.base.ApplicationSpec
 import org.gradle.platform.base.ComponentSpec
@@ -27,7 +27,7 @@ import org.gradle.platform.base.LibrarySpec
 import org.gradle.platform.base.SourceComponentSpec
 
 @UnsupportedWithConfigurationCache(because = "software model")
-class CustomComponentIntegrationTest extends AbstractIntegrationSpec implements CommonDeprecations {
+class CustomComponentIntegrationTest extends AbstractIntegrationSpec implements StableConfigurationCacheDeprecations {
     def "can declare custom managed #componentSpecType"() {
         buildFile << """
             @Managed

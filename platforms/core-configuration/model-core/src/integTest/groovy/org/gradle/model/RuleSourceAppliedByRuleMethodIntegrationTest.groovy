@@ -17,12 +17,12 @@
 package org.gradle.model
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.CommonDeprecations
+import org.gradle.integtests.fixtures.StableConfigurationCacheDeprecations
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.language.base.LanguageSourceSet
 
 @UnsupportedWithConfigurationCache(because = "software model")
-class RuleSourceAppliedByRuleMethodIntegrationTest extends AbstractIntegrationSpec implements CommonDeprecations {
+class RuleSourceAppliedByRuleMethodIntegrationTest extends AbstractIntegrationSpec implements StableConfigurationCacheDeprecations {
     def "@Rule method can apply rules to a particular target"() {
         buildFile << '''
             @Managed

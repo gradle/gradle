@@ -19,7 +19,7 @@ package org.gradle.integtests
 import org.gradle.api.attributes.Usage
 import org.gradle.api.tasks.TasksWithInputsAndOutputs
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.CommonDeprecations
+import org.gradle.integtests.fixtures.StableConfigurationCacheDeprecations
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import spock.lang.Issue
@@ -29,7 +29,7 @@ import static org.gradle.integtests.fixtures.executer.TaskOrderSpecs.any
 import static org.gradle.integtests.fixtures.executer.TaskOrderSpecs.exact
 import static org.hamcrest.CoreMatchers.startsWith
 
-class TaskExecutionIntegrationTest extends AbstractIntegrationSpec implements TasksWithInputsAndOutputs, CommonDeprecations {
+class TaskExecutionIntegrationTest extends AbstractIntegrationSpec implements TasksWithInputsAndOutputs, StableConfigurationCacheDeprecations {
 
     int expectedTaskGetProjectDeprecationCount = 0
 

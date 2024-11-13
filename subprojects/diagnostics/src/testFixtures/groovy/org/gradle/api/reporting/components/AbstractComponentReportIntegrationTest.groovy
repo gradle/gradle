@@ -17,11 +17,11 @@ package org.gradle.api.reporting.components
 
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.CommonDeprecations
+import org.gradle.integtests.fixtures.StableConfigurationCacheDeprecations
 import org.gradle.internal.InternalTransformer
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
 
-abstract class AbstractComponentReportIntegrationTest extends AbstractIntegrationSpec implements CommonDeprecations {
+abstract class AbstractComponentReportIntegrationTest extends AbstractIntegrationSpec implements StableConfigurationCacheDeprecations {
     InternalTransformer<String, String> formatter = new ComponentReportOutputFormatter()
     JavaVersion currentJvm = JavaVersion.current()
     String currentJavaName = "java" + currentJvm.majorVersion

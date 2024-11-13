@@ -18,14 +18,14 @@ package org.gradle.model
 
 import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.CommonDeprecations
+import org.gradle.integtests.fixtures.StableConfigurationCacheDeprecations
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.language.base.FunctionalSourceSet
 import org.gradle.platform.base.ComponentSpec
 import spock.lang.Issue
 
 @UnsupportedWithConfigurationCache(because = "software model")
-class ModelMapIntegrationTest extends AbstractIntegrationSpec implements CommonDeprecations {
+class ModelMapIntegrationTest extends AbstractIntegrationSpec implements StableConfigurationCacheDeprecations {
     def "provides basic meta-data for map"() {
         when:
         buildFile '''

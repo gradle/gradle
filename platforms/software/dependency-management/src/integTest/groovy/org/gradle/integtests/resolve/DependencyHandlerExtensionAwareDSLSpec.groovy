@@ -17,10 +17,10 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.CommonDeprecations
+import org.gradle.integtests.fixtures.StableConfigurationCacheDeprecations
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
-class DependencyHandlerExtensionAwareDSLSpec extends AbstractIntegrationSpec implements CommonDeprecations {
+class DependencyHandlerExtensionAwareDSLSpec extends AbstractIntegrationSpec implements StableConfigurationCacheDeprecations {
     @ToBeFixedForConfigurationCache(because = "task uses DependencyHandler API")
     def "can type-safely use DependencyHandler ExtensionAware with the Groovy DSL"() {
         buildFile << """

@@ -20,10 +20,11 @@ import groovy.transform.SelfType
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 
 /**
- * Apply this trait to tests that may need to expect common deprecations.
+ * Apply this trait to tests that may need to expect common deprecations,
+ * typically those that used to be behind the STABLE_CONFIGURATION_CACHE feature flag.
  */
 @SelfType(HasGradleExecutor)
-trait CommonDeprecations {
+trait StableConfigurationCacheDeprecations {
     void expectTaskGetProjectDeprecations(int count = 1) {
         if (GradleContextualExecuter.notConfigCache) {
             count.times {

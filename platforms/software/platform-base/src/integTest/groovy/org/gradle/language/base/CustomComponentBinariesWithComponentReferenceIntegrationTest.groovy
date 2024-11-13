@@ -17,12 +17,12 @@
 package org.gradle.language.base
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.CommonDeprecations
+import org.gradle.integtests.fixtures.StableConfigurationCacheDeprecations
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import spock.lang.Issue
 
 @UnsupportedWithConfigurationCache(because = "software model")
-class CustomComponentBinariesWithComponentReferenceIntegrationTest extends AbstractIntegrationSpec implements CommonDeprecations {
+class CustomComponentBinariesWithComponentReferenceIntegrationTest extends AbstractIntegrationSpec implements StableConfigurationCacheDeprecations {
 
     @Issue("https://issues.gradle.org/browse/GRADLE-3422")
     def "@ComponentBinaries rule is not applied to component reference field of managed binary"() {

@@ -17,13 +17,13 @@
 package org.gradle.model.managed
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.CommonDeprecations
+import org.gradle.integtests.fixtures.StableConfigurationCacheDeprecations
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 
 import static org.hamcrest.CoreMatchers.containsString
 
 @UnsupportedWithConfigurationCache(because = "software model")
-class ManagedModelGroovyScalarConfigurationIntegrationTest extends AbstractIntegrationSpec implements CommonDeprecations {
+class ManagedModelGroovyScalarConfigurationIntegrationTest extends AbstractIntegrationSpec implements StableConfigurationCacheDeprecations {
 
     private static final String CLASSES = '''
         enum Thing {

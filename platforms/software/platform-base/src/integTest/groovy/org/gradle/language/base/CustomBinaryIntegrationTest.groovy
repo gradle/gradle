@@ -17,11 +17,11 @@
 package org.gradle.language.base
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.CommonDeprecations
+import org.gradle.integtests.fixtures.StableConfigurationCacheDeprecations
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 
 @UnsupportedWithConfigurationCache(because = "software model")
-class CustomBinaryIntegrationTest extends AbstractIntegrationSpec implements CommonDeprecations {
+class CustomBinaryIntegrationTest extends AbstractIntegrationSpec implements StableConfigurationCacheDeprecations {
     def "setup"() {
         buildFile << """
 @Managed interface SampleBinary extends BinarySpec {

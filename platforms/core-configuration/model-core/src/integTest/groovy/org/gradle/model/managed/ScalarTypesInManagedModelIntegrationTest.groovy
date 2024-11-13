@@ -18,11 +18,11 @@ package org.gradle.model.managed
 
 import org.gradle.api.artifacts.Configuration
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.CommonDeprecations
+import org.gradle.integtests.fixtures.StableConfigurationCacheDeprecations
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 
 @UnsupportedWithConfigurationCache(because = "software model")
-class ScalarTypesInManagedModelIntegrationTest extends AbstractIntegrationSpec implements CommonDeprecations {
+class ScalarTypesInManagedModelIntegrationTest extends AbstractIntegrationSpec implements StableConfigurationCacheDeprecations {
 
     def "values of primitive types and boxed primitive types are widened as usual when using groovy"() {
         when:

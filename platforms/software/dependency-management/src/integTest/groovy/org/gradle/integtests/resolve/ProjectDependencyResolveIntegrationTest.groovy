@@ -17,7 +17,7 @@ package org.gradle.integtests.resolve
 
 import groovy.test.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.CommonDeprecations
+import org.gradle.integtests.fixtures.StableConfigurationCacheDeprecations
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
@@ -25,7 +25,7 @@ import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Issue
 
 @FluidDependenciesResolveTest
-class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec implements CommonDeprecations {
+class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec implements StableConfigurationCacheDeprecations {
     private ResolveTestFixture resolve = new ResolveTestFixture(buildFile, "compile")
 
     def setup() {

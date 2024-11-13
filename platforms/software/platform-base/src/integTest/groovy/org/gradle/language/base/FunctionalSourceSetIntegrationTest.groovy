@@ -19,13 +19,13 @@ package org.gradle.language.base
 import groovy.test.NotYetImplemented
 import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.CommonDeprecations
+import org.gradle.integtests.fixtures.StableConfigurationCacheDeprecations
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 
 import static org.gradle.util.internal.TextUtil.normaliseFileSeparators
 
 @UnsupportedWithConfigurationCache(because = "software model")
-class FunctionalSourceSetIntegrationTest extends AbstractIntegrationSpec implements CommonDeprecations {
+class FunctionalSourceSetIntegrationTest extends AbstractIntegrationSpec implements StableConfigurationCacheDeprecations {
 
     def "can create a top level functional source set with a rule"() {
         buildFile """

@@ -17,12 +17,12 @@
 package org.gradle.nativeplatform
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.CommonDeprecations
+import org.gradle.integtests.fixtures.StableConfigurationCacheDeprecations
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 
-class NativeDependentComponentsReportIntegrationTest extends AbstractIntegrationSpec implements CommonDeprecations {
+class NativeDependentComponentsReportIntegrationTest extends AbstractIntegrationSpec implements StableConfigurationCacheDeprecations {
 
     def setup() {
         settingsFile << "rootProject.name = 'test'"

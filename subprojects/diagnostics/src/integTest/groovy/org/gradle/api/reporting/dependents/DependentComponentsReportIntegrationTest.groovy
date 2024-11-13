@@ -17,9 +17,9 @@
 package org.gradle.api.reporting.dependents
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.CommonDeprecations
+import org.gradle.integtests.fixtures.StableConfigurationCacheDeprecations
 
-class DependentComponentsReportIntegrationTest extends AbstractIntegrationSpec implements CommonDeprecations {
+class DependentComponentsReportIntegrationTest extends AbstractIntegrationSpec implements StableConfigurationCacheDeprecations {
 
     def setup() {
         settingsFile << "rootProject.name = 'test'"

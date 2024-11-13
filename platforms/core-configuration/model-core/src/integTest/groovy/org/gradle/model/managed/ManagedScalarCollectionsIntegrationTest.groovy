@@ -17,11 +17,11 @@
 package org.gradle.model.managed
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.CommonDeprecations
+import org.gradle.integtests.fixtures.StableConfigurationCacheDeprecations
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 
 @UnsupportedWithConfigurationCache(because = "software model")
-class ManagedScalarCollectionsIntegrationTest extends AbstractIntegrationSpec implements CommonDeprecations {
+class ManagedScalarCollectionsIntegrationTest extends AbstractIntegrationSpec implements StableConfigurationCacheDeprecations {
 
     private final static List<String> MANAGED_SCALAR_COLLECTION_TYPES = ['List', 'Set']
 

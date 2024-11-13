@@ -17,11 +17,11 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.CommonDeprecations
+import org.gradle.integtests.fixtures.StableConfigurationCacheDeprecations
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 
-class ClosureScopeIntegrationTest extends AbstractIntegrationSpec implements CommonDeprecations {
+class ClosureScopeIntegrationTest extends AbstractIntegrationSpec implements StableConfigurationCacheDeprecations {
 
     @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def "check scope when closure in ext"() {

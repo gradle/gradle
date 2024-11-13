@@ -18,13 +18,13 @@ package org.gradle.language.base
 
 import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.CommonDeprecations
+import org.gradle.integtests.fixtures.StableConfigurationCacheDeprecations
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 
 import static org.gradle.util.internal.TextUtil.normaliseFileSeparators
 
 @UnsupportedWithConfigurationCache(because = "software model")
-class LanguageSourceSetIntegrationTest extends AbstractIntegrationSpec implements CommonDeprecations {
+class LanguageSourceSetIntegrationTest extends AbstractIntegrationSpec implements StableConfigurationCacheDeprecations {
 
     def "can not create a top level LSS for using an implementation class"() {
         buildFile.text = """
