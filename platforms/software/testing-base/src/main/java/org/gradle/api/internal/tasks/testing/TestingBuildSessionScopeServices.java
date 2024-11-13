@@ -18,7 +18,7 @@ package org.gradle.api.internal.tasks.testing;
 
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.tasks.testing.operations.TestListenerBuildOperationAdapter;
-import org.gradle.api.tasks.testing.TestEventService;
+import org.gradle.api.tasks.testing.TestEventReporterFactory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.operations.BuildOperationIdFactory;
 import org.gradle.internal.operations.BuildOperationListenerManager;
@@ -34,8 +34,8 @@ public class TestingBuildSessionScopeServices implements ServiceRegistrationProv
     }
 
     @Provides
-    TestEventService createTestEventService(TestListenerBuildOperationAdapter testListenerBuildOperationAdapter) {
-        return new DefaultTestEventService(testListenerBuildOperationAdapter);
+    TestEventReporterFactory createTestEventService(TestListenerBuildOperationAdapter testListenerBuildOperationAdapter) {
+        return new DefaultTestEventReporterFactory(testListenerBuildOperationAdapter);
     }
 
     void configure(ServiceRegistration serviceRegistration, ListenerManager listenerManager, TestListenerBuildOperationAdapter testListenerBuildOperationAdapter) {

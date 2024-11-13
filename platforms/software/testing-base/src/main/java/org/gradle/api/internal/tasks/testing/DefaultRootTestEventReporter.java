@@ -18,33 +18,35 @@ package org.gradle.api.internal.tasks.testing;
 
 import org.gradle.api.NonNullApi;
 import org.gradle.api.tasks.VerificationException;
-import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.id.IdGenerator;
 
-import javax.annotation.Nullable;
 import java.time.Instant;
 
 @NonNullApi
-public class DefaultRootTestEventGenerator extends DefaultCompositeTestEventGenerator {
-    private boolean failed;
+public class DefaultRootTestEventReporter extends DefaultGroupTestEventReporter {
+    private String failureMessage;
 
-    public DefaultRootTestEventGenerator(TestResultProcessor processor, IdGenerator<?> idGenerator, @Nullable TestDescriptorInternal parent, TestDescriptorInternal testDescriptor) {
-        super(processor, idGenerator, parent, testDescriptor);
+    public DefaultRootTestEventReporter(TestResultProcessor processor, IdGenerator<?> idGenerator, TestDescriptorInternal testDescriptor) {
+        super(processor, idGenerator, null, testDescriptor);
     }
 
     @Override
     protected void cleanup() {
         super.cleanup();
-        if (failed) {
-            throw new VerificationException("Test(s) failed.");
+        if (failureMessage != null) {
+            throw new VerificationException(failureMessage);
         }
     }
 
     @Override
-    public void completed(Instant endTime, TestResult.ResultType resultType) {
-        if (resultType == TestResult.ResultType.FAILURE) {
-            failed = true;
-        }
-        super.completed(endTime, resultType);
+    public void failed(Instant endTime) {
+        failureMessage = "Test(s) failed.";
+        super.failed(endTime);
+    }
+
+    @Override
+    public void failed(Instant endTime, String message) {
+        failureMessage = message;
+        super.failed(endTime, message);
     }
 }

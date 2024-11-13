@@ -22,7 +22,7 @@ import org.gradle.tooling.events.OperationDescriptor
 import org.gradle.tooling.events.task.TaskOperationDescriptor
 import org.gradle.tooling.events.test.TestOperationDescriptor
 
-trait CustomTestEventsFixture {
+trait TestEventsFixture {
     abstract ProgressEvents getEvents()
 
     void testEvents(@DelegatesTo(value = TestEventsSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> assertionSpec) {
@@ -54,7 +54,7 @@ trait CustomTestEventsFixture {
     }
 }
 
-class DefaultTestEventsSpec implements CustomTestEventsFixture.TestEventsSpec {
+class DefaultTestEventsSpec implements TestEventsFixture.TestEventsSpec {
     final List<TestOperationDescriptor> testEvents
     final Set<OperationDescriptor> verifiedEvents = []
 
@@ -63,7 +63,7 @@ class DefaultTestEventsSpec implements CustomTestEventsFixture.TestEventsSpec {
     }
 
     @Override
-    void task(String path, @DelegatesTo(value = CustomTestEventsFixture.TestEventSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> rootSpec) {
+    void task(String path, @DelegatesTo(value = TestEventsFixture.TestEventSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> rootSpec) {
         def task = testEvents.find {
             ((TaskOperationDescriptor) it.parent)?.taskPath == path
         }
@@ -75,13 +75,13 @@ class DefaultTestEventsSpec implements CustomTestEventsFixture.TestEventsSpec {
 }
 
 @CompileStatic
-class DefaultTestEventSpec implements CustomTestEventsFixture.CompositeTestEventSpec {
+class DefaultTestEventSpec implements TestEventsFixture.CompositeTestEventSpec {
     private final List<TestOperationDescriptor> testEvents
     private final Set<OperationDescriptor> verifiedEvents
     private final OperationDescriptor parent
     private String testDisplayName
 
-    static void assertSpec(OperationDescriptor descriptor, List<TestOperationDescriptor> testEvents, Set<OperationDescriptor> verifiedEvents, String expectedOperationDisplayName, @DelegatesTo(value = CustomTestEventsFixture.TestEventSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
+    static void assertSpec(OperationDescriptor descriptor, List<TestOperationDescriptor> testEvents, Set<OperationDescriptor> verifiedEvents, String expectedOperationDisplayName, @DelegatesTo(value = TestEventsFixture.TestEventSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
         verifiedEvents.add(descriptor)
         DefaultTestEventSpec childSpec = new DefaultTestEventSpec(descriptor, testEvents, verifiedEvents)
         spec.delegate = childSpec
@@ -109,7 +109,7 @@ class DefaultTestEventSpec implements CustomTestEventsFixture.CompositeTestEvent
     }
 
     @Override
-    void composite(String name, @DelegatesTo(value = CustomTestEventsFixture.CompositeTestEventSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
+    void composite(String name, @DelegatesTo(value = TestEventsFixture.CompositeTestEventSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
         def child = testEvents.find {
             it.parent == parent && it.name == name
         }
@@ -120,7 +120,7 @@ class DefaultTestEventSpec implements CustomTestEventsFixture.CompositeTestEvent
     }
 
     @Override
-    void test(String name, @DelegatesTo(value = CustomTestEventsFixture.TestEventSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
+    void test(String name, @DelegatesTo(value = TestEventsFixture.TestEventSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
         def child = testEvents.find {
             it.parent == parent && it.name == name
         }

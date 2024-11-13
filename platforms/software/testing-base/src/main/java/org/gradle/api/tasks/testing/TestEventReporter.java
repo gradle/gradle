@@ -21,14 +21,15 @@ import org.gradle.api.Incubating;
 import java.time.Instant;
 
 /**
- * Generates test events.
+ * Reports test events.
  *
  * @since 8.12
  */
 @Incubating
-public interface TestEventGenerator extends AutoCloseable {
+public interface TestEventReporter extends AutoCloseable {
     /**
-     * Emit a start event for the test.
+     * Emit a start event for the test. Can only be called once, and must be followed by a call to {@link #succeeded(Instant)}, {@link #skipped(Instant)}, {@link #failed(Instant)},
+     * or {@link #failed(Instant, String)}.
      *
      * @param startTime the time the test started
      * @since 8.12
@@ -45,27 +46,39 @@ public interface TestEventGenerator extends AutoCloseable {
      */
     void output(Instant logTime, TestOutputEvent.Destination destination, String output);
 
-    // TODO non-Throwables, more details, etc
     /**
-     * Emit a failure event for the test. {@link #completed(Instant, TestResult.ResultType)} must still be explicitly called. May not be called before {@link #started(Instant)}.
-     *
-     * <p>
-     * This may be called multiple times if there are multiple failures.
-     * </p>
-     *
-     * @param failure the failure
-     * @since 8.12
-     */
-    void failure(Throwable failure);
-
-    /**
-     * Emit a completion event for the test. May not be called before {@link #started(Instant)}.
+     * Emit a successful completion event for the test. May not be called before {@link #started(Instant)}.
      *
      * @param endTime the time the test completed
-     * @param resultType the result of the test
      * @since 8.12
      */
-    void completed(Instant endTime, TestResult.ResultType resultType);
+    void succeeded(Instant endTime);
+
+    /**
+     * Emit a skipped event for the test. May not be called before {@link #started(Instant)}.
+     *
+     * @param endTime the time the test completed
+     * @since 8.12
+     */
+    void skipped(Instant endTime);
+
+    /**
+     * Emit a failure event for the test. May not be called before {@link #started(Instant)}.
+     *
+     * @param endTime the time the test completed
+     * @since 8.12
+     */
+    void failed(Instant endTime);
+
+    // TODO add more details to the failure
+    /**
+     * Emit a failure event for the test. May not be called before {@link #started(Instant)}.
+     *
+     * @param endTime the time the test completed
+     * @param message the failure message
+     * @since 8.12
+     */
+    void failed(Instant endTime, String message);
 
     /**
      * Close the generator. No further events can be emitted after this.

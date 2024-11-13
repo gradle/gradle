@@ -17,7 +17,8 @@
 package org.gradle.api.internal.tasks.testing;
 
 import org.gradle.api.NonNullApi;
-import org.gradle.api.tasks.testing.TestEventGenerator;
+import org.gradle.api.tasks.VerificationException;
+import org.gradle.api.tasks.testing.TestEventReporter;
 import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
@@ -26,19 +27,19 @@ import javax.annotation.Nullable;
 import java.time.Instant;
 
 @NonNullApi
-public class DefaultTestEventGenerator implements TestEventGenerator {
+public class DefaultTestEventReporter implements TestEventReporter {
     @NonNullApi
     protected enum State {
         CREATED, STARTED, COMPLETED, CLOSED
     }
 
     protected final TestResultProcessor processor;
-    protected final @Nullable TestDescriptorInternal parent;
+    protected final @Nullable DefaultGroupTestEventReporter parent;
     protected final TestDescriptorInternal testDescriptor;
     private State state = State.CREATED;
 
-    public DefaultTestEventGenerator(
-        TestResultProcessor processor, @Nullable TestDescriptorInternal parent, TestDescriptorInternal testDescriptor
+    public DefaultTestEventReporter(
+        TestResultProcessor processor, @Nullable DefaultGroupTestEventReporter parent, TestDescriptorInternal testDescriptor
     ) {
         this.processor = processor;
         this.parent = parent;
@@ -65,7 +66,7 @@ public class DefaultTestEventGenerator implements TestEventGenerator {
             throw new IllegalStateException("started(...) cannot be called twice");
         }
         state = State.STARTED;
-        processor.started(testDescriptor, new TestStartEvent(startTime.toEpochMilli(), parent == null ? null : parent.getId()));
+        processor.started(testDescriptor, new TestStartEvent(startTime.toEpochMilli(), parent == null ? null : parent.testDescriptor.getId()));
     }
 
     @Override
@@ -74,17 +75,34 @@ public class DefaultTestEventGenerator implements TestEventGenerator {
         processor.output(testDescriptor.getId(), new DefaultTestOutputEvent(logTime.toEpochMilli(), destination, output));
     }
 
-    @Override
-    public void failure(Throwable failure) {
+    private void markCompleted() {
         requireRunning();
-        processor.failure(testDescriptor.getId(), TestFailure.fromTestFrameworkFailure(failure));
+        state = State.COMPLETED;
     }
 
     @Override
-    public void completed(Instant endTime, TestResult.ResultType resultType) {
-        requireRunning();
-        state = State.COMPLETED;
-        processor.completed(testDescriptor.getId(), new TestCompleteEvent(endTime.toEpochMilli(), resultType));
+    public void succeeded(Instant endTime) {
+        markCompleted();
+        processor.completed(testDescriptor.getId(), new TestCompleteEvent(endTime.toEpochMilli(), TestResult.ResultType.SUCCESS));
+    }
+
+    @Override
+    public void skipped(Instant endTime) {
+        markCompleted();
+        processor.completed(testDescriptor.getId(), new TestCompleteEvent(endTime.toEpochMilli(), TestResult.ResultType.SKIPPED));
+    }
+
+    @Override
+    public void failed(Instant endTime) {
+        markCompleted();
+        processor.completed(testDescriptor.getId(), new TestCompleteEvent(endTime.toEpochMilli(), TestResult.ResultType.FAILURE));
+    }
+
+    @Override
+    public void failed(Instant endTime, String message) {
+        markCompleted();
+        processor.failure(testDescriptor.getId(), TestFailure.fromTestFrameworkFailure(new VerificationException(message)));
+        processor.completed(testDescriptor.getId(), new TestCompleteEvent(endTime.toEpochMilli(), TestResult.ResultType.FAILURE));
     }
 
     @Override
@@ -96,6 +114,9 @@ public class DefaultTestEventGenerator implements TestEventGenerator {
             throw new IllegalStateException("completed(...) must be called before close() if started(...) was called");
         }
         state = State.CLOSED;
+        if (parent != null) {
+            parent.removeChild(this);
+        }
         cleanup();
     }
 }
