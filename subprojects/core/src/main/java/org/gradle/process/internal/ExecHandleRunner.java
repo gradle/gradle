@@ -16,7 +16,7 @@
 
 package org.gradle.process.internal;
 
-import net.rubygrapefruit.platform.NativeException;
+import net.rubygrapefruit.platform.ProcessLauncher;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.operations.BuildOperationRef;
@@ -32,6 +32,7 @@ public class ExecHandleRunner implements Runnable {
     private final ProcessBuilderFactory processBuilderFactory;
     private final DefaultExecHandle execHandle;
     private final Lock lock = new ReentrantLock();
+    private final ProcessLauncher processLauncher;
     private final Executor executor;
 
     private Process process;
@@ -40,9 +41,7 @@ public class ExecHandleRunner implements Runnable {
     private volatile BuildOperationRef associatedBuildOperation;
 
     public ExecHandleRunner(
-        DefaultExecHandle execHandle,
-        StreamsHandler streamsHandler,
-        Executor executor,
+        DefaultExecHandle execHandle, StreamsHandler streamsHandler, ProcessLauncher processLauncher, Executor executor,
         BuildOperationRef associatedBuildOperation
     ) {
         if (execHandle == null) {
@@ -50,6 +49,7 @@ public class ExecHandleRunner implements Runnable {
         }
         this.execHandle = execHandle;
         this.streamsHandler = streamsHandler;
+        this.processLauncher = processLauncher;
         this.executor = executor;
         this.associatedBuildOperation = associatedBuildOperation;
         this.processBuilderFactory = new ProcessBuilderFactory();
@@ -119,19 +119,11 @@ public class ExecHandleRunner implements Runnable {
                 throw new IllegalStateException("Process has already been aborted");
             }
             ProcessBuilder processBuilder = processBuilderFactory.createProcessBuilder(execHandle);
-            Process process = start(processBuilder);
+            Process process = processLauncher.start(processBuilder);
             streamsHandler.connectStreams(process, execHandle.getDisplayName(), executor);
             this.process = process;
         } finally {
             lock.unlock();
-        }
-    }
-
-    private Process start(ProcessBuilder processBuilder) {
-        try {
-            return processBuilder.start();
-        } catch (Exception e) {
-            throw new NativeException(String.format("Could not start '%s'", processBuilder.command().get(0)), e);
         }
     }
 
