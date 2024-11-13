@@ -41,10 +41,6 @@ class DeclarativeDslServices : AbstractGradleModuleServices() {
     override fun registerBuildServices(registration: ServiceRegistration) {
         registration.addProvider(BuildServices)
     }
-
-    override fun registerProjectServices(registration: ServiceRegistration) {
-        registration.addProvider(ProjectServices)
-    }
 }
 
 
@@ -73,13 +69,6 @@ object BuildServices : ServiceRegistrationProvider {
         StoringInterpretationSchemaBuilder(GradleProcessInterpretationSchemaBuilder(settingsUnderInitialization::instance, softwareTypeRegistry), buildLayoutFactory.settingsDir(gradleInternal))
     )
 
-    private
-    fun BuildLayoutFactory.settingsDir(gradle: GradleInternal): File =
-        getLayoutFor(BuildLayoutConfiguration(gradle.startParameter)).settingsDir
-}
-
-internal
-object ProjectServices : ServiceRegistrationProvider {
     @Provides
     fun createDeclarativeModelDefaultsHandler(
         softwareTypeRegistry: SoftwareTypeRegistry,
@@ -87,4 +76,8 @@ object ProjectServices : ServiceRegistrationProvider {
     ): ModelDefaultsHandler {
         return objectFactory.newInstance(DeclarativeModelDefaultsHandler::class.java, softwareTypeRegistry)
     }
+
+    private
+    fun BuildLayoutFactory.settingsDir(gradle: GradleInternal): File =
+        getLayoutFor(BuildLayoutConfiguration(gradle.startParameter)).settingsDir
 }
