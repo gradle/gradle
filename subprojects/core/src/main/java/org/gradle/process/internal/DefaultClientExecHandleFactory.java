@@ -31,13 +31,13 @@ import java.util.concurrent.Executor;
 import static java.util.Objects.requireNonNull;
 
 @NonNullApi
-public class DefaultExecHandleFactory implements ExecHandleFactory {
+public class DefaultClientExecHandleFactory implements ClientExecHandleFactory {
 
     private final FileResolver fileResolver;
     private final Executor executor;
     private final BuildCancellationToken buildCancellationToken;
 
-    private DefaultExecHandleFactory(
+    private DefaultClientExecHandleFactory(
         FileResolver fileResolver,
         Executor executor,
         BuildCancellationToken buildCancellationToken
@@ -48,21 +48,21 @@ public class DefaultExecHandleFactory implements ExecHandleFactory {
     }
 
     @Override
-    public ExecHandleBuilder newExec() {
-        return new DefaultExecHandleBuilder(fileResolver, executor, buildCancellationToken);
+    public ClientExecHandleBuilder newExecHandleBuilder() {
+        return new DefaultClientExecHandleBuilder(fileResolver, executor, buildCancellationToken);
     }
 
-    public static DefaultExecHandleFactory root(File gradleUserHome) {
+    public static DefaultClientExecHandleFactory root(File gradleUserHome) {
         requireNonNull(gradleUserHome, "gradleUserHome");
         return of(new DefaultFileLookup().getFileResolver(), new DefaultExecutorFactory(), new DefaultBuildCancellationToken());
     }
 
-    public static DefaultExecHandleFactory of(
+    public static DefaultClientExecHandleFactory of(
         FileResolver fileResolver,
         ExecutorFactory executorFactory,
         BuildCancellationToken buildCancellationToken
     ) {
         ManagedExecutor executor = executorFactory.create("Exec process");
-        return new DefaultExecHandleFactory(fileResolver, executor, buildCancellationToken);
+        return new DefaultClientExecHandleFactory(fileResolver, executor, buildCancellationToken);
     }
 }

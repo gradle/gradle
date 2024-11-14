@@ -47,7 +47,7 @@ import org.gradle.launcher.daemon.diagnostics.DaemonStartupInfo;
 import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.launcher.daemon.toolchain.DaemonJavaToolchainQueryService;
 import org.gradle.launcher.daemon.toolchain.DaemonJvmCriteria;
-import org.gradle.process.internal.DefaultExecHandleFactory;
+import org.gradle.process.internal.DefaultClientExecHandleFactory;
 import org.gradle.process.internal.ExecHandle;
 import org.gradle.process.internal.JvmOptions;
 import org.gradle.util.GradleVersion;
@@ -222,10 +222,9 @@ public class DefaultDaemonStarter implements DaemonStarter {
             DaemonOutputConsumer outputConsumer = new DaemonOutputConsumer();
 
             // This factory should be injected but leaves non-daemon threads running when used from the tooling API client
-            @SuppressWarnings("deprecation")
-            DefaultExecHandleFactory execActionFactory = DefaultExecHandleFactory.root(gradleUserHome);
+            DefaultClientExecHandleFactory execActionFactory = DefaultClientExecHandleFactory.root(gradleUserHome);
             try {
-                ExecHandle handle = new DaemonExecHandleBuilder().build(args, workingDir, outputConsumer, stdInput, execActionFactory.newExec());
+                ExecHandle handle = new DaemonExecHandleBuilder().build(args, workingDir, outputConsumer, stdInput, execActionFactory.newExecHandleBuilder());
 
                 handle.start();
                 LOGGER.debug("Gradle daemon process is starting. Waiting for the daemon to detach...");

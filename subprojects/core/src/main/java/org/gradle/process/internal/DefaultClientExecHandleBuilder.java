@@ -1,0 +1,238 @@
+/*
+ * Copyright 2024 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.process.internal;
+
+import com.google.common.collect.Maps;
+import org.gradle.api.internal.file.FileResolver;
+import org.gradle.initialization.BuildCancellationToken;
+import org.gradle.process.internal.streams.EmptyStdInStreamsHandler;
+import org.gradle.process.internal.streams.ForwardStdinStreamsHandler;
+import org.gradle.process.internal.streams.OutputStreamsForwarder;
+import org.gradle.process.internal.streams.SafeStreams;
+
+import java.io.File;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.Executor;
+
+public class DefaultClientExecHandleBuilder implements ClientExecHandleBuilder, ProcessArgumentsSpec.HasExecutable {
+
+    private static final EmptyStdInStreamsHandler DEFAULT_STDIN = new EmptyStdInStreamsHandler();
+
+    private final BuildCancellationToken buildCancellationToken;
+    private final List<ExecHandleListener> listeners;
+    private final ProcessStreamsSpec streamsSpec;
+    private final ProcessArgumentsSpec argumentsSpec;
+    private final FileResolver fileResolver;
+    private final Map<String, Object> environment;
+
+    private StreamsHandler inputHandler = DEFAULT_STDIN;
+    private String displayName;
+    private boolean ignoreExitValue;
+    private boolean redirectErrorStream;
+    private StreamsHandler streamsHandler;
+    private int timeoutMillis = Integer.MAX_VALUE;
+    protected boolean daemon;
+    private final Executor executor;
+    private String executable;
+    private File workingDir;
+
+    public DefaultClientExecHandleBuilder(FileResolver fileResolver, Executor executor, BuildCancellationToken buildCancellationToken) {
+        this.buildCancellationToken = buildCancellationToken;
+        this.executor = executor;
+        this.listeners = new ArrayList<>();
+        this.fileResolver = fileResolver;
+        this.environment = new LinkedHashMap<>();
+        this.argumentsSpec = new ProcessArgumentsSpec(this);
+        this.streamsSpec = new ProcessStreamsSpec();
+        streamsSpec.setStandardOutput(SafeStreams.systemOut());
+        streamsSpec.setErrorOutput(SafeStreams.systemErr());
+        streamsSpec.setStandardInput(SafeStreams.emptyInput());
+    }
+
+    @Override
+    public ClientExecHandleBuilder commandLine(Iterable<?> args) {
+        argumentsSpec.commandLine(args);
+        return this;
+    }
+
+    @Override
+    public ClientExecHandleBuilder commandLine(Object... args) {
+        argumentsSpec.commandLine(args);
+        return this;
+    }
+
+    @Override
+    public ClientExecHandleBuilder setWorkingDir(File dir) {
+        this.workingDir = dir;
+        return this;
+    }
+
+    @Override
+    public ClientExecHandleBuilder setStandardInput(InputStream inputStream) {
+        streamsSpec.setStandardInput(inputStream);
+        this.inputHandler = new ForwardStdinStreamsHandler(inputStream);
+        return this;
+    }
+
+    @Override
+    public ClientExecHandleBuilder setStandardOutput(OutputStream outputStream) {
+        streamsSpec.setStandardOutput(outputStream);
+        return this;
+    }
+
+    @Override
+    public ClientExecHandleBuilder setErrorOutput(OutputStream outputStream) {
+        streamsSpec.setErrorOutput(outputStream);
+        return this;
+    }
+
+    @Override
+    public ClientExecHandleBuilder redirectErrorStream() {
+        this.redirectErrorStream = true;
+        return this;
+    }
+
+    @Override
+    public ClientExecHandleBuilder setDisplayName(String displayName) {
+        this.displayName = displayName;
+        return this;
+    }
+
+    @Override
+    public ClientExecHandleBuilder setDaemon(boolean daemon) {
+        this.daemon = daemon;
+        return this;
+    }
+
+    @Override
+    public ClientExecHandleBuilder streamsHandler(StreamsHandler streamsHandler) {
+        this.streamsHandler = streamsHandler;
+        return this;
+    }
+
+    @Override
+    public ClientExecHandleBuilder setTimeout(int timeoutMillis) {
+        this.timeoutMillis = timeoutMillis;
+        return this;
+    }
+
+    @Override
+    public Map<String, Object> getEnvironment() {
+        return environment;
+    }
+
+    @Override
+    public ClientExecHandleBuilder environment(String key, Object value) {
+        environment.put(key, value);
+        return this;
+    }
+
+    @Override
+    public ClientExecHandleBuilder args(Object... args) {
+        argumentsSpec.args(args);
+        return this;
+    }
+
+    @Override
+    public ClientExecHandleBuilder args(Iterable<?> args) {
+        argumentsSpec.args(args);
+        return this;
+    }
+
+    @Override
+    public List<String> getArgs() {
+        return argumentsSpec.getArgs();
+    }
+
+    @Override
+    public ClientExecHandleBuilder setArgs(Iterable<?> args) {
+        argumentsSpec.setArgs(args);
+        return this;
+    }
+
+    @Override
+    public ClientExecHandleBuilder setIgnoreExitValue(boolean ignoreExitValue) {
+        this.ignoreExitValue = ignoreExitValue;
+        return this;
+    }
+
+    @Override
+    public String getExecutable() {
+        return executable;
+    }
+
+    @Override
+    public void setExecutable(Object executable) {
+        setExecutable(Objects.toString(executable));
+    }
+
+    @Override
+    public ClientExecHandleBuilder setExecutable(String executable) {
+        this.executable = executable;
+        return this;
+    }
+
+    @Override
+    public ExecHandle build() {
+        String displayName = this.displayName == null ? String.format("command '%s'", executable) : this.displayName;
+        File workingDir = this.workingDir == null ? fileResolver.resolve(".") : this.workingDir;
+        List<String> effectiveArguments = argumentsSpec.getAllArguments();
+        Map<String, String> effectiveEnvironment = getEffectiveEnvironment(environment);
+        StreamsHandler effectiveOutputHandler = getEffectiveStreamsHandler(streamsHandler, streamsSpec, redirectErrorStream);
+        return new DefaultExecHandle(
+            displayName,
+            workingDir,
+            executable,
+            effectiveArguments,
+            effectiveEnvironment,
+            effectiveOutputHandler,
+            inputHandler,
+            listeners,
+            redirectErrorStream,
+            timeoutMillis,
+            daemon,
+            executor,
+            buildCancellationToken
+        );
+    }
+
+    private static Map<String, String> getEffectiveEnvironment(Map<String, Object> environment) {
+        Map<String, String> effectiveEnvironment = Maps.newLinkedHashMapWithExpectedSize(environment.size());
+        for (Map.Entry<String, Object> entry : environment.entrySet()) {
+            effectiveEnvironment.put(entry.getKey(), String.valueOf(entry.getValue()));
+        }
+        return effectiveEnvironment;
+    }
+
+    private static StreamsHandler getEffectiveStreamsHandler(StreamsHandler streamsHandler, ProcessStreamsSpec streamsSpec, boolean redirectErrorStream) {
+        if (streamsHandler != null) {
+            return streamsHandler;
+        }
+        boolean shouldReadErrorStream = !redirectErrorStream;
+        return new OutputStreamsForwarder(
+            streamsSpec.getStandardOutput(),
+            streamsSpec.getErrorOutput(),
+            shouldReadErrorStream
+        );
+    }
+}
