@@ -1,5 +1,13 @@
 The Gradle team is excited to announce Gradle @version@.
 
+This is the first patch release for Gradle 8.11.
+It fixes the following issues:
+* TODO
+
+We recommend users upgrade to @version@ instead of 8.11.
+
+***
+
 In this release, builds using the Configuration Cache can become much faster with opt-in [parallel loading and storing](#config-cache) of cache entries. 
 Additionally, projects created with `gradle init` now enable the Configuration Cache by default.
 
