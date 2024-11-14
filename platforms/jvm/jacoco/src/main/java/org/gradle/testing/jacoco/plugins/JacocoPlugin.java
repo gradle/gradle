@@ -91,7 +91,7 @@ public abstract class JacocoPlugin implements Plugin<Project> {
         addJacocoConfigurations();
         JacocoAgentJar agent = instantiator.newInstance(JacocoAgentJar.class, this.project.getServices().get(FileOperations.class));
         JacocoPluginExtension extension = project.getExtensions().create(PLUGIN_EXTENSION_NAME, JacocoPluginExtension.class, project, agent);
-        extension.setToolVersion(DEFAULT_JACOCO_VERSION);
+        extension.getToolVersion().convention(DEFAULT_JACOCO_VERSION);
         final ReportingExtension reportingExtension = (ReportingExtension) project.getExtensions().getByName(ReportingExtension.NAME);
         extension.getReportsDirectory().convention(project.getLayout().dir(project.provider(() -> reportingExtension.file("jacoco"))));
 
@@ -117,7 +117,7 @@ public abstract class JacocoPlugin implements Plugin<Project> {
     }
 
     private void createCoverageDataVariant(ProjectInternal project, JvmTestSuite suite, JvmTestSuiteTarget target) {
-        @SuppressWarnings("deprecation") final Configuration variant = project.getConfigurations().migratingUnlocked(COVERAGE_DATA_ELEMENTS_VARIANT_PREFIX + StringUtils.capitalize(target.getName()), ConfigurationRolesForMigration.CONSUMABLE_DEPENDENCY_SCOPE_TO_CONSUMABLE);
+        final Configuration variant = project.getConfigurations().migratingUnlocked(COVERAGE_DATA_ELEMENTS_VARIANT_PREFIX + StringUtils.capitalize(target.getName()), ConfigurationRolesForMigration.CONSUMABLE_DEPENDENCY_SCOPE_TO_CONSUMABLE);
         variant.setDescription("Binary data file containing results of Jacoco test coverage reporting for the " + suite.getName() + " Test Suite's " + target.getName() + " target.");
         variant.setVisible(false);
 
@@ -160,7 +160,9 @@ public abstract class JacocoPlugin implements Plugin<Project> {
     private void configureAgentDependencies(JacocoAgentJar jacocoAgentJar, final JacocoPluginExtension extension) {
         final Configuration config = project.getConfigurations().getAt(AGENT_CONFIGURATION_NAME);
         jacocoAgentJar.setAgentConf(config);
-        config.defaultDependencies(dependencies -> dependencies.add(project.getDependencies().create("org.jacoco:org.jacoco.agent:" + extension.getToolVersion())));
+        config.defaultDependencies(dependencies -> dependencies.addLater(
+            extension.getToolVersion().map(version -> project.getDependencies().create("org.jacoco:org.jacoco.agent:" + version))
+        ));
     }
 
     /**
@@ -172,7 +174,9 @@ public abstract class JacocoPlugin implements Plugin<Project> {
     private void configureTaskClasspathDefaults(final JacocoPluginExtension extension) {
         final Configuration config = this.project.getConfigurations().getAt(ANT_CONFIGURATION_NAME);
         project.getTasks().withType(JacocoBase.class).configureEach(task -> task.setJacocoClasspath(config));
-        config.defaultDependencies(dependencies -> dependencies.add(project.getDependencies().create("org.jacoco:org.jacoco.ant:" + extension.getToolVersion())));
+        config.defaultDependencies(dependencies -> dependencies.addLater(
+            extension.getToolVersion().map(version -> project.getDependencies().create("org.jacoco:org.jacoco.ant:" + version))
+        ));
     }
 
     /**
