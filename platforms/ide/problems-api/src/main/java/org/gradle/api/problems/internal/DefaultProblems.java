@@ -50,6 +50,11 @@ public class DefaultProblems implements InternalProblems {
         return createReporter();
     }
 
+    @Override
+    public ExceptionProblemRegistry getExceptionProblemRegistry() {
+        return exceptionProblemRegistry;
+    }
+
     @Nonnull
     private DefaultProblemReporter createReporter() {
         return new DefaultProblemReporter(problemSummarizer, problemStream, currentBuildOperationRef, additionalDataBuilderFactory, exceptionProblemRegistry, exceptionAnalyser);

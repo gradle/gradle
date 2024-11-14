@@ -24,6 +24,7 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
+import org.gradle.api.problems.internal.Problem;
 import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
@@ -43,8 +44,11 @@ import org.gradle.util.internal.GUtil;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayDeque;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -94,13 +98,26 @@ public class BuildExceptionReporter implements Action<Throwable> {
     }
 
     public void buildFinished(BuildResult result) {
+        buildFinished(result, Collections.emptyMap());
+    }
+
+    public void buildFinished(BuildResult result, Map<Throwable, Collection<Problem>> problemsForThrowables) {
         Throwable failure = result.getFailure();
         if (failure == null) {
             return;
         }
 
+        System.err.println("PROBLEMS: ");
+        for (Map.Entry<Throwable, Collection<Problem>> problem : problemsForThrowables.entrySet()) {
+            System.err.println("Exception " + problem.getKey().getClass().getName() + " has " +  problem.getValue().size() + " problem(s): ");
+            for (Problem p : problem.getValue()) {
+                System.err.println(" - problem(id=" + p.getDefinition().getId() + ", displayName=" + p.getDefinition().getId().getDisplayName() + ")");
+            }
+        }
+
         execute(failure);
     }
+
 
     @Override
     public void execute(@Nonnull Throwable failure) {

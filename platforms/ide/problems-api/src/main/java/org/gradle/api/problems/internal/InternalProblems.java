@@ -20,6 +20,8 @@ import org.gradle.api.problems.Problems;
 
 public interface InternalProblems extends Problems {
 
+    ExceptionProblemRegistry getExceptionProblemRegistry();
+
     /**
      * Returns a reporter then provides additional problem service functionality specific for Gradle internals.
      *

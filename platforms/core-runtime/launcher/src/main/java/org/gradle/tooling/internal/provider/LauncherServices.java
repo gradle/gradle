@@ -239,7 +239,9 @@ public class LauncherServices extends AbstractGradleModuleServices {
                                     ),
                                     buildStartedTime,
                                     buildRequestMetaData,
-                                    buildLoggerFactory),
+                                    buildLoggerFactory,
+                                    problemsService
+                                    ),
                                 options),
                             gradleEnterprisePluginManager)),
                     eventEmitter,

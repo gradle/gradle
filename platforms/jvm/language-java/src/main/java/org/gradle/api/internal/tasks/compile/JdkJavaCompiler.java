@@ -81,7 +81,11 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
             System.err.println(diagnosticCounts);
         }
         if (!success) {
-            throw new CompilationFailedException(result, diagnosticToProblemListener.getReportedProblems(), diagnosticCounts);
+            throw problemsService.getInternalReporter().throwing(builder -> {
+                builder.id("donat-compilation-failed", "Java compilation error", GradleCoreProblemGroup.compilation().java());
+                builder.contextualLabel("Donat: Compilation failed");
+                builder.withException(new CompilationFailedException(result, diagnosticToProblemListener.getReportedProblems(), diagnosticCounts));
+            });
         }
         return result;
     }
