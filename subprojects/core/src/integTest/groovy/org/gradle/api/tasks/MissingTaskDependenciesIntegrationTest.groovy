@@ -566,6 +566,45 @@ The following types/formats are supported:
         failureCauseContains(cause)
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/27576")
+    def "detects missing dependency when #noSourceTask task has NO-SOURCE, executed in #firstTask -> #secondTask order"() {
+        def producerOutput = file("build/producerOutput.txt")
+
+        buildFile << """
+            def producerOutput = file("$producerOutput")
+
+            task producer {
+                inputs.files("empty-input").skipWhenEmpty(${noSourceTask == "producer"})
+                outputs.file(producerOutput)
+                doLast {
+                    producerOutput.text = "produced"
+                }
+            }
+
+            task consumer {
+                def consumerOutput = file("build/comsumer/consumerOutput.txt")
+                inputs.files(producerOutput).skipWhenEmpty(${noSourceTask == "consumer"})
+                outputs.file(consumerOutput)
+                doLast {
+                    consumerOutput.text = "consumed"
+                }
+            }
+        """
+
+        when:
+        runAndFail(firstTask, secondTask)
+
+        then:
+        assertMissingDependency(":producer", ":consumer", producerOutput)
+
+        where:
+        noSourceTask | firstTask  | secondTask
+        "producer"   | "producer" | "consumer"
+        "producer"   | "consumer" | "producer"
+        "consumer"   | "consumer" | "producer"
+        "consumer"   | "producer" | "consumer"
+    }
+
     void assertMissingDependency(String producerTask, String consumerTask, File... producedConsumedLocations) {
         expectReindentedValidationMessage()
         if (GradleContextualExecuter.configCache) {
