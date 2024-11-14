@@ -87,7 +87,7 @@ This clarifies that adding a provider is possible, and that there is no immediat
 #### File-system watching and continuous mode support on Alpine Linux
 
 [File-system watching](userguide/file_system_watching.html) is now supported on Alpine Linux.
-The feature is enabled by default, as on all our other supported platforms.
+The feature is enabled by default, as on all other supported platforms.
 
 It is now also possible to [run builds in continuous mode](userguide/continuous_builds.html) on Alpine.
 
