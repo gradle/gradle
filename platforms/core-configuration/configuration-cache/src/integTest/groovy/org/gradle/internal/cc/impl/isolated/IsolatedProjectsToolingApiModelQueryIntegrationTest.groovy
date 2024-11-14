@@ -139,6 +139,47 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
         outputContains("Execution of dummyTask")
     }
 
+    def "can cache models with tasks using internal option"() {
+        given:
+        withSomeToolingModelBuilderPluginInBuildSrc()
+        settingsFile << """
+            include("a")
+            include("b")
+        """
+        buildFile << """
+            plugins.apply(my.MyPlugin)
+
+            tasks.register("dummyTask") {
+                println("Configuration of dummyTask")
+                doLast {
+                    println("Execution of dummyTask")
+                }
+            }
+        """
+
+        when:
+        withIsolatedProjects("-Dorg.gradle.internal.isolated-projects.configure-on-demand.tasks=true")
+        fetchModel(SomeToolingModel, ":dummyTask")
+
+        then:
+        fixture.assertModelStored {
+            projectsConfigured(":buildSrc", ":")
+            modelsCreated(":")
+        }
+        outputContains("Configuration of dummyTask")
+        outputContains("Execution of dummyTask")
+
+        when:
+        withIsolatedProjects()
+        fetchModel(SomeToolingModel, ":dummyTask")
+
+        then:
+        fixture.assertModelLoaded()
+        outputDoesNotContain("Configuration of dummyTask")
+        outputDoesNotContain("creating model")
+        outputContains("Execution of dummyTask")
+    }
+
     def "can skip tasks execution during model building"() {
         given:
         withSomeToolingModelBuilderPluginInBuildSrc()
