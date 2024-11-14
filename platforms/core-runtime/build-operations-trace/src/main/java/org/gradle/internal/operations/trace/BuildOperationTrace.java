@@ -37,6 +37,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.internal.Cast;
+import org.gradle.internal.IoActions;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.buildoption.DefaultInternalOptions;
 import org.gradle.internal.buildoption.InternalFlag;
@@ -57,6 +58,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.io.BufferedOutputStream;
 import java.io.BufferedWriter;
+import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -235,10 +237,10 @@ public class BuildOperationTrace implements Stoppable {
                 logOutputStream.write(NEWLINE);
                 logOutputStream.flush();
             } catch (IOException e) {
-                closeQuietly();
+                IoActions.closeQuietly(logOutputStream);
                 throw new RuntimeException(e);
             } catch (Throwable t) {
-                closeQuietly();
+                IoActions.closeQuietly(logOutputStream);
                 throw t;
             }
         }
@@ -250,7 +252,7 @@ public class BuildOperationTrace implements Stoppable {
                     doWriteTreeJson();
                 }
             } finally {
-                closeQuietly();
+                IoActions.closeQuietly(logOutputStream);
             }
         }
 
@@ -276,11 +278,11 @@ public class BuildOperationTrace implements Stoppable {
         private void writeSummaryTree(final List<BuildOperationRecord> roots) throws IOException {
             Path outputPath = Paths.get(basePath + "-tree.txt");
             try (BufferedWriter writer = Files.newBufferedWriter(outputPath, StandardCharsets.UTF_8)) {
-                doWriteTree(roots, writer);
+                doWriteSummaryTree(roots, writer);
             }
         }
 
-        private void doWriteTree(List<BuildOperationRecord> roots, BufferedWriter writer) throws IOException {
+        private void doWriteSummaryTree(List<BuildOperationRecord> roots, BufferedWriter writer) throws IOException {
             Deque<Queue<BuildOperationRecord>> stack = new ArrayDeque<>(Collections.singleton(new ArrayDeque<>(roots)));
             StringBuilder stringBuilder = new StringBuilder();
 
@@ -350,13 +352,6 @@ public class BuildOperationTrace implements Stoppable {
             }
         }
 
-        private void closeQuietly() {
-            try {
-                logOutputStream.close();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
     }
 
     public static BuildOperationTree read(String basePath) {
@@ -664,44 +659,47 @@ public class BuildOperationTrace implements Stoppable {
 
     /**
      * A {@link TraceWriter} that offloads all writing operations to a separate thread.
-     * <p>
-     * This writer takes special care to ensure that any exceptions thrown by the delegate
-     * writer are rethrown on the calling thread, rather than being silently ignored.
      */
     private static class AsyncTraceWriter implements TraceWriter {
 
         private final TraceWriter delegate;
-
-        private final ExecutorService executor;
-        private final AtomicReference<Throwable> failure = new AtomicReference<>();
+        private final AsyncExecutor executor;
 
         public AsyncTraceWriter(TraceWriter delegate) {
             this.delegate = delegate;
-            this.executor = Executors.newSingleThreadExecutor();
+            this.executor = new AsyncExecutor();
         }
 
         @Override
         public void write(SerializedOperation operation) {
-            execute(() -> delegate.write(operation));
+            executor.execute(() -> delegate.write(operation));
         }
 
         @Override
         public void complete(boolean outputTree) {
-            execute(() -> delegate.complete(outputTree));
-            shutdownAndWaitForCompletion();
-            checkForException();
+            try {
+                executor.execute(() -> delegate.complete(outputTree));
+            } finally {
+                IoActions.closeQuietly(executor);
+            }
         }
 
-        private void shutdownAndWaitForCompletion() {
-            executor.shutdown();
-            try {
-                if (!executor.awaitTermination(10, TimeUnit.MINUTES)) {
-                    throw new RuntimeException("Timed out waiting for trace writer to complete");
-                }
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                throw UncheckedException.throwAsUncheckedException(e);
-            }
+    }
+
+    /**
+     * Executes submitted operations sequentially in a separate thread.
+     * <p>
+     * This executor takes special care to ensure that any exceptions thrown by
+     * submitted actions are rethrown on the calling thread, rather than being
+     * silently ignored.
+     */
+    private static class AsyncExecutor implements Closeable {
+
+        private final ExecutorService executor;
+        private final AtomicReference<Throwable> failure = new AtomicReference<>();
+
+        public AsyncExecutor() {
+            this.executor = Executors.newSingleThreadExecutor();
         }
 
         @SuppressWarnings("FutureReturnValueIgnored")
@@ -728,6 +726,20 @@ public class BuildOperationTrace implements Stoppable {
                 // Executor was shut down, but we didn't do it. Just rethrow the rejected exception.
                 throw e;
             }
+        }
+
+        @Override
+        public void close() {
+            executor.shutdown();
+            try {
+                if (!executor.awaitTermination(10, TimeUnit.MINUTES)) {
+                    throw new RuntimeException("Timed out waiting for trace writer to complete");
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
+            checkForException();
         }
 
         private void checkForException() {
