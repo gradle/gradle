@@ -32,7 +32,7 @@ class KillProcessAvailability {
             def e = TestFiles.execHandleFactory().newExec()
                     .commandLine("taskkill.exe", "/?")
                     .redirectErrorStream()
-                    .workingDir(new File(".").absoluteFile) //does not matter
+                    .setWorkingDir(new File(".").absoluteFile) //does not matter
                     .build()
             e.start()
             def result = e.waitForFinish()

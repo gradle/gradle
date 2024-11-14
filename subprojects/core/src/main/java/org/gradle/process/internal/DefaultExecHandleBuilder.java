@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.concurrent.Executor;
 
 /**
- * Use {@link ExecHandleFactory} instead.
+ * Use {@link ClientExecHandleFactory} instead.
  */
 public class DefaultExecHandleBuilder extends AbstractExecHandleBuilder implements ExecHandleBuilder, ProcessArgumentsSpec.HasExecutable {
 

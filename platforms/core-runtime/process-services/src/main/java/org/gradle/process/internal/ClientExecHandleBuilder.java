@@ -61,5 +61,9 @@ public interface ClientExecHandleBuilder {
 
     ClientExecHandleBuilder setExecutable(String executable);
 
+    String getExecutable();
+
+    File getWorkingDir();
+
     ExecHandle build();
 }

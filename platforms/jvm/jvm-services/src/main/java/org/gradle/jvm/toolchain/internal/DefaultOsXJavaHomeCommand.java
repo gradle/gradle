@@ -17,9 +17,10 @@
 package org.gradle.jvm.toolchain.internal;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.gradle.process.internal.ClientExecHandleBuilder;
+import org.gradle.process.internal.ClientExecHandleFactory;
 import org.gradle.process.internal.ExecException;
 import org.gradle.process.internal.ExecHandleBuilder;
-import org.gradle.process.internal.ExecHandleFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,9 +41,9 @@ public class DefaultOsXJavaHomeCommand implements OsXJavaHomeCommand {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultOsXJavaHomeCommand.class);
 
     private static final Pattern INSTALLATION_PATTERN = Pattern.compile(".+\\s+(/.+)");
-    private final ExecHandleFactory execHandleFactory;
+    private final ClientExecHandleFactory execHandleFactory;
 
-    public DefaultOsXJavaHomeCommand(ExecHandleFactory execHandleFactory) {
+    public DefaultOsXJavaHomeCommand(ClientExecHandleFactory execHandleFactory) {
         this.execHandleFactory = execHandleFactory;
     }
 
@@ -83,8 +84,8 @@ public class DefaultOsXJavaHomeCommand implements OsXJavaHomeCommand {
 
     @VisibleForTesting
     protected void executeCommand(ByteArrayOutputStream outputStream) {
-        ExecHandleBuilder execHandleBuilder = execHandleFactory.newExec();
-        execHandleBuilder.workingDir(new File(".").getAbsoluteFile());
+        ClientExecHandleBuilder execHandleBuilder = execHandleFactory.newExec();
+        execHandleBuilder.setWorkingDir(new File(".").getAbsoluteFile());
         execHandleBuilder.commandLine("/usr/libexec/java_home", "-V");
         execHandleBuilder.getEnvironment().remove("JAVA_VERSION"); //JAVA_VERSION filters the content of java_home's output
         execHandleBuilder.setErrorOutput(outputStream); // verbose output is written to stderr

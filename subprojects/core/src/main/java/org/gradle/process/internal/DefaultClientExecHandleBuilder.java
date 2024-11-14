@@ -182,6 +182,11 @@ public class DefaultClientExecHandleBuilder implements ClientExecHandleBuilder, 
     }
 
     @Override
+    public File getWorkingDir() {
+        return workingDir;
+    }
+
+    @Override
     public void setExecutable(Object executable) {
         setExecutable(Objects.toString(executable));
     }

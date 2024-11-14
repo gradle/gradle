@@ -97,7 +97,7 @@ class ProcessFixture {
                 .redirectErrorStream()
                 .setStandardInput(input)
                 .setStandardOutput(output)
-                .workingDir(new File(".").absoluteFile) //does not matter
+                .setWorkingDir(new File(".").absoluteFile) //does not matter
                 .build()
         e.start()
         def result = e.waitForFinish()

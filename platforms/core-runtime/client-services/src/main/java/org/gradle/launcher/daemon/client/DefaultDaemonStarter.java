@@ -224,7 +224,7 @@ public class DefaultDaemonStarter implements DaemonStarter {
             // This factory should be injected but leaves non-daemon threads running when used from the tooling API client
             DefaultClientExecHandleFactory execActionFactory = DefaultClientExecHandleFactory.root(gradleUserHome);
             try {
-                ExecHandle handle = new DaemonExecHandleBuilder().build(args, workingDir, outputConsumer, stdInput, execActionFactory.newExecHandleBuilder());
+                ExecHandle handle = new DaemonExecHandleBuilder().build(args, workingDir, outputConsumer, stdInput, execActionFactory.newExec());
 
                 handle.start();
                 LOGGER.debug("Gradle daemon process is starting. Waiting for the daemon to detach...");

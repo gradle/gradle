@@ -48,7 +48,7 @@ public class DefaultClientExecHandleFactory implements ClientExecHandleFactory {
     }
 
     @Override
-    public ClientExecHandleBuilder newExecHandleBuilder() {
+    public ClientExecHandleBuilder newExec() {
         return new DefaultClientExecHandleBuilder(fileResolver, executor, buildCancellationToken);
     }
 

@@ -17,5 +17,5 @@
 package org.gradle.process.internal;
 
 public interface ClientExecHandleFactory {
-    ClientExecHandleBuilder newExecHandleBuilder();
+    ClientExecHandleBuilder newExec();
 }
