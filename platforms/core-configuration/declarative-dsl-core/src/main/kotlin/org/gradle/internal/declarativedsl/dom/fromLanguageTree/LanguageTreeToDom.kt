@@ -190,7 +190,6 @@ class LanguageTreeToDomContext {
         }
 
         is NamedReference -> when {
-            expr.receiver != null && expr.receiver.asChainedNameOrNull() == "layout" -> ExprConversion.Converted(namedReferenceNode(expr)) //TODO: hack!
             expr.receiver != null -> ExprConversion.Failed(listOf(UnsupportedSyntax(UnsupportedSyntaxCause.NamedReferenceWithExplicitReceiver)))
             else -> ExprConversion.Converted(namedReferenceNode(expr))
         }
