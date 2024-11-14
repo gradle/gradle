@@ -19,7 +19,6 @@ package org.gradle.api.internal.file.copy
 import org.apache.tools.ant.filters.HeadFilter
 import org.apache.tools.ant.filters.StripJavaComments
 import org.gradle.api.Action
-import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Transformer
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.DuplicatesStrategy
@@ -34,7 +33,6 @@ import org.gradle.internal.Actions
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import org.junit.Rule
-import spock.lang.Ignore
 import spock.lang.Specification
 
 import java.nio.charset.Charset
@@ -452,24 +450,6 @@ class DefaultCopySpecTest extends Specification {
 
         where:
         method << ['from', 'into']
-    }
-
-    @Ignore // TODO: how to duplicatre this behaviour with the new Property?
-    def 'setting the filteringCharset to invalid value throws an exception'() {
-        when:
-        spec.filteringCharset.set("THAT_SURE_IS_AN_INVALID_CHARSET")
-
-        then:
-        thrown(InvalidUserDataException)
-    }
-
-    @Ignore // TODO: how to duplicatre this behaviour with the new Property?
-    def 'setting the filteringCharset to null throws an exception'() {
-        when:
-        spec.filteringCharset.set(null)
-
-        then:
-        thrown(NullPointerException)
     }
 
     def 'can add spec hierarchy as child'() {

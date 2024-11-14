@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.file.copy;
 
+import com.google.common.base.Preconditions;
 import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import groovy.text.SimpleTemplateEngine;
@@ -48,6 +49,10 @@ public class FilterChain implements Transformer<InputStream, InputStream> {
     }
 
     public FilterChain(String charset) {
+        Preconditions.checkNotNull(charset, "filteringCharset must not be null");
+        if (!Charset.isSupported(charset)) {
+            throw new InvalidUserDataException(String.format("filteringCharset %s is not supported by your JVM", charset));
+        }
         this.charset = charset;
     }
 
