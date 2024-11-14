@@ -135,17 +135,17 @@ fun IsolateContext.logPropertyProblem(action: String, problem: PropertyProblem) 
 }
 
 
-inline fun <T : WriteContext, R> T.withDebugFrame(name: () -> String, writeAction: T.() -> R): R {
+inline fun <T : WriteContext, R> T.withDebugFrame(name: () -> String, instance: Any? = null, writeAction: T.() -> R): R {
     val tracer = this.tracer
     return if (tracer == null) {
         writeAction()
     } else {
         val frameName = name()
         try {
-            tracer.open(frameName)
+            tracer.open(frameName, instance)
             writeAction()
         } finally {
-            tracer.close(frameName)
+            tracer.close(frameName, instance)
         }
     }
 }
