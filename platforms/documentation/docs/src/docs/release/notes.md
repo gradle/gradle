@@ -1,8 +1,13 @@
 The Gradle team is excited to announce Gradle @version@.
 
 This is the first patch release for Gradle 8.11.
+
 It fixes the following issues:
-* TODO
+
+* [#31268](https://github.com/gradle/gradle/issues/31268) BuildEventsListenerRegistry corrupted with Isolated Projects and parallel configuration
+* [#31282](https://github.com/gradle/gradle/issues/31282) Running executables sporadically fails with ETXTBSY (Text file busy)
+* [#31284](https://github.com/gradle/gradle/issues/31284) ArrayIndexOutOfBoundsException after upgrading to gradle 8.11 when generating problems report
+* [#31310](https://github.com/gradle/gradle/issues/31310) Unable to run Gradle task in 8.10 due to bytecode interception
 
 We recommend users upgrade to @version@ instead of 8.11.
 
