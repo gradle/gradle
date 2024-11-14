@@ -16,11 +16,16 @@
 
 package org.gradle.internal.declarativedsl.mappingToJvm
 
+import org.gradle.declarative.dsl.schema.DataType
+import org.gradle.declarative.dsl.schema.DataTypeRef
 import org.gradle.declarative.dsl.schema.FunctionSemantics
 import org.gradle.declarative.dsl.schema.SchemaFunction
 import org.gradle.internal.declarativedsl.schemaBuilder.ConfigureLambdaHandler
 import kotlin.reflect.KClass
+import kotlin.reflect.KFunction
+import kotlin.reflect.full.instanceParameter
 import kotlin.reflect.full.memberFunctions
+import kotlin.reflect.javaType
 
 
 interface RuntimeFunctionResolver {
@@ -39,13 +44,44 @@ class MemberFunctionResolver(private val configureLambdaHandler: ConfigureLambda
         val parameterBindingStub = schemaFunction.parameters.associateWith { Any() }
         val hasConfigureLambda = (schemaFunction.semantics as? FunctionSemantics.ConfigureSemantics)?.configureBlockRequirement?.allows ?: false
 
-        receiverClass.memberFunctions.forEach { function ->
-            if (function.name == schemaFunction.simpleName && FunctionBinding.convertBinding(function, Any(), parameterBindingStub, hasConfigureLambda, configureLambdaHandler) != null) {
-                return RuntimeFunctionResolver.Resolution.Resolved(ReflectionFunction(function, configureLambdaHandler))
+        val resolutions = receiverClass.memberFunctions
+            .filter { function -> function.name == schemaFunction.simpleName && FunctionBinding.convertBinding(function, Any(), parameterBindingStub, hasConfigureLambda, configureLambdaHandler) != null }
+            .toList()
+
+        return when {
+            resolutions.isEmpty() -> RuntimeFunctionResolver.Resolution.Unresolved
+            resolutions.size == 1 -> RuntimeFunctionResolver.Resolution.Resolved(ReflectionFunction(resolutions[0], configureLambdaHandler))
+            else -> {
+                val refinedResolutions = resolutions.filter { function -> parametersMatch(function, schemaFunction) }
+                val finalResolution = if (refinedResolutions.size == 1) refinedResolutions[0] else
+                    error("Failed disambiguating between following functions: ${resolutions.joinToString(prefix = "\n\t", separator = "\n\t") { f -> f.toString() }}")
+                return RuntimeFunctionResolver.Resolution.Resolved(ReflectionFunction(finalResolution, configureLambdaHandler))
             }
         }
 
-        return RuntimeFunctionResolver.Resolution.Unresolved
+    }
+
+    @OptIn(ExperimentalStdlibApi::class)
+    private fun parametersMatch(function: KFunction<*>, schemaFunction: SchemaFunction): Boolean {
+
+        val actualParameters = function.parameters.subList(if (function.instanceParameter == null) 0 else 1, function.parameters.size)
+        return if (actualParameters.size == schemaFunction.parameters.size) {
+            return actualParameters.zip(schemaFunction.parameters).all { (kp, dp) ->
+                kp.type.javaType.typeName == dp.type.typeName()
+            }
+        } else {
+            false
+        }
+    }
+
+    private fun DataTypeRef.typeName(): String = when (this) {
+        is DataTypeRef.Name -> fqName.qualifiedName
+        is DataTypeRef.Type -> when (dataType) {
+            is DataType.ClassDataType -> (dataType as DataType.ClassDataType).javaTypeName
+            is DataType.ConstantType<*> -> (dataType as DataType.ConstantType<*>).constantType.name
+            is DataType.NullType -> error("function parameter type should never be NULL")
+            is DataType.UnitType -> error("function parameter type should never be UNIT")
+        }
     }
 }
 

@@ -16,7 +16,13 @@
 
 package org.gradle.internal.declarativedsl.project
 
-import org.gradle.api.Project
+import org.gradle.api.file.ProjectLayout
+import org.gradle.declarative.dsl.model.annotations.Restricted
 
 
-interface ProjectTopLevelReceiver : Project // TODO: this is not ok like this
+interface ProjectTopLevelReceiver {
+
+    @get:Restricted
+    val layout: ProjectLayout
+    
+}

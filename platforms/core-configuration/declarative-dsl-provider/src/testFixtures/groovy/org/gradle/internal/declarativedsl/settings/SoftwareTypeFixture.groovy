@@ -190,11 +190,11 @@ trait SoftwareTypeFixture {
         return """
             package org.gradle.test;
 
-            import org.gradle.api.file.DirectoryProperty;
             import org.gradle.declarative.dsl.model.annotations.Configuring;
             import org.gradle.declarative.dsl.model.annotations.Restricted;
 
             import org.gradle.api.Action;
+            import org.gradle.api.file.DirectoryProperty;
             import org.gradle.api.model.ObjectFactory;
             import org.gradle.api.provider.ListProperty;
             import org.gradle.api.provider.Property;
@@ -236,7 +236,9 @@ trait SoftwareTypeFixture {
 
                 @Override
                 public String toString() {
-                    return "id = " + getId().get() + "\\nbar = " + getFoo().getBar().get() + (isFooConfigured ? "\\n(foo is configured)" : "");
+                    return "id = " + getId().get() + "\\n" +
+                        (getDir().isPresent() ? "dir = " + getDir().getOrNull() + "\\n" : "") +
+                        "bar = " + getFoo().getBar().get() + (isFooConfigured ? "\\n(foo is configured)" : "");
                 }
             }
         """
@@ -298,14 +300,17 @@ trait SoftwareTypeFixture {
             import org.gradle.declarative.dsl.model.annotations.Configuring;
             import org.gradle.declarative.dsl.model.annotations.Restricted;
 
-            import org.gradle.api.provider.Property;
             import org.gradle.api.Action;
+            import org.gradle.api.file.DirectoryProperty;
+            import org.gradle.api.provider.Property;
 
             @Restricted
             public interface TestSoftwareTypeExtension {
                 @Restricted
                 Property<String> getId();
 
+                @Restricted
+                public abstract DirectoryProperty getDir();
 
                 Foo getFoo();
 
@@ -355,7 +360,9 @@ trait SoftwareTypeFixture {
 
                 @Override
                 public String toString() {
-                    return "id = " + getId().get() + "\\nbar = " + getFoo().getBar().get();
+                    return "id = " + getId().get() + "\\n" +
+                        (getDir().isPresent() ? "dir = " + getDir().getOrNull() + "\\n" : "") +
+                        "bar = " + getFoo().getBar().get();
                 }
             }
         """
@@ -726,6 +733,7 @@ trait SoftwareTypeFixture {
             import org.gradle.api.DefaultTask;
             import org.gradle.api.Plugin;
             import org.gradle.api.Project;
+            import org.gradle.api.file.DirectoryProperty;
             import org.gradle.api.provider.ListProperty;
             import org.gradle.api.provider.Property;
             import org.gradle.api.tasks.Nested;
@@ -768,6 +776,9 @@ trait SoftwareTypeFixture {
 
                     @Restricted
                     public abstract Property<String> getId();
+
+                    @Restricted
+                    public abstract DirectoryProperty getDir();
 
                     public Foo getFoo() {
                         return foo;

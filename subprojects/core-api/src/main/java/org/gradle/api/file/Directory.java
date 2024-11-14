@@ -17,6 +17,7 @@
 package org.gradle.api.file;
 
 import org.gradle.api.provider.Provider;
+import org.gradle.declarative.dsl.model.annotations.Restricted;
 
 import java.io.File;
 
@@ -48,6 +49,7 @@ public interface Directory extends FileSystemLocation {
      * @param path The path. Can be absolute.
      * @return The directory.
      */
+    @Restricted
     Directory dir(String path);
 
     /**
