@@ -413,33 +413,37 @@ class DefaultConfigurationCache internal constructor(
             cacheIO.readCandidateEntries(layout.fileFor(StateType.Candidates))
         }.value
 
+        val invalidationReasons = mutableListOf<CheckedFingerprint>()
+
         for (candidate in candidates) {
-            val result = checkCandidate(candidate)
-            if (result != null) {
-                currentCandidateEntries = buildList {
-                    add(0, candidate)
-                    addAll(candidates.filter { it != candidate })
+            when (val result = checkCandidate(candidate)) {
+                is CheckedFingerprint.Valid -> {
+                    currentCandidateEntries = buildList {
+                        add(0, candidate)
+                        addAll(candidates.filter { it != candidate })
+                    }
+                    return@withFingerprintCheckOperations CheckedFingerprint.Found(candidate.id)
                 }
-                return@withFingerprintCheckOperations result
+
+                is CheckedFingerprint.EntryInvalid,
+                is CheckedFingerprint.ProjectsInvalid -> invalidationReasons.add(result)
+
+                else -> continue
             }
         }
         currentCandidateEntries = candidates
-        return@withFingerprintCheckOperations CheckedFingerprint.NotFound
+
+        return@withFingerprintCheckOperations invalidationReasons.firstOrNull() ?: CheckedFingerprint.NotFound
     }
 
     private
-    fun checkCandidate(candidateEntry: CandidateEntry): CheckedFingerprint? {
+    fun checkCandidate(candidateEntry: CandidateEntry): CheckedFingerprint {
         // checking a single fingerprint
         val entryName = candidateEntry.id
         val entryStore = cacheRepository.forKey(entryName)
         return entryStore.useForStateLoad { layout ->
             checkedFingerprint(layout)
-        }.value.let {
-            if (it is CheckedFingerprint.Valid)
-                CheckedFingerprint.Found(entryName)
-            else
-                null
-        }
+        }.value
     }
 
     private fun checkedFingerprint(layout: ConfigurationCacheRepository.Layout): CheckedFingerprint {
