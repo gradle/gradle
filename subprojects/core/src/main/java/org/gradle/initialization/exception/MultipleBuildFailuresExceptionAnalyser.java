@@ -17,6 +17,7 @@
 package org.gradle.initialization.exception;
 
 import org.gradle.execution.MultipleBuildFailures;
+import org.gradle.internal.exception.ExceptionAnalyser;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;

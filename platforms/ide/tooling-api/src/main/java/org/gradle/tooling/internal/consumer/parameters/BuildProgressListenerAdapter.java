@@ -70,6 +70,7 @@ import org.gradle.tooling.events.problems.ContextualLabel;
 import org.gradle.tooling.events.problems.Details;
 import org.gradle.tooling.events.problems.DocumentationLink;
 import org.gradle.tooling.events.problems.Location;
+import org.gradle.tooling.events.problems.Problem;
 import org.gradle.tooling.events.problems.ProblemContext;
 import org.gradle.tooling.events.problems.ProblemDefinition;
 import org.gradle.tooling.events.problems.ProblemEvent;
@@ -85,6 +86,7 @@ import org.gradle.tooling.events.problems.internal.DefaultFileLocation;
 import org.gradle.tooling.events.problems.internal.DefaultLineInFileLocation;
 import org.gradle.tooling.events.problems.internal.DefaultOffsetInFileLocation;
 import org.gradle.tooling.events.problems.internal.DefaultPluginIdLocation;
+import org.gradle.tooling.events.problems.internal.DefaultProblem;
 import org.gradle.tooling.events.problems.internal.DefaultProblemAggregation;
 import org.gradle.tooling.events.problems.internal.DefaultProblemAggregationEvent;
 import org.gradle.tooling.events.problems.internal.DefaultProblemDefinition;
@@ -192,6 +194,7 @@ import org.gradle.tooling.internal.protocol.events.InternalProgressEvent;
 import org.gradle.tooling.internal.protocol.events.InternalProjectConfigurationDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalProjectConfigurationResult;
 import org.gradle.tooling.internal.protocol.events.InternalProjectConfigurationResult.InternalPluginApplicationResult;
+import org.gradle.tooling.internal.protocol.events.InternalRootOperationDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalScriptPluginIdentifier;
 import org.gradle.tooling.internal.protocol.events.InternalStatusEvent;
 import org.gradle.tooling.internal.protocol.events.InternalSuccessResult;
@@ -260,6 +263,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
     private final ListenerBroadcast<ProgressListener> fileDownloadListeners = new ListenerBroadcast<>(ProgressListener.class);
     private final ListenerBroadcast<ProgressListener> buildPhaseListeners = new ListenerBroadcast<>(ProgressListener.class);
     private final ListenerBroadcast<ProgressListener> problemListeners = new ListenerBroadcast<>(ProgressListener.class);
+    private final ListenerBroadcast<ProgressListener> rootBuildListeners = new ListenerBroadcast<>(ProgressListener.class);
 
     private final Map<Object, OperationDescriptor> descriptorCache = new HashMap<>();
 
@@ -275,6 +279,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         fileDownloadListeners.addAll(getOrDefault(listeners, OperationType.FILE_DOWNLOAD));
         buildPhaseListeners.addAll(getOrDefault(listeners, OperationType.BUILD_PHASE));
         problemListeners.addAll(getOrDefault(listeners, OperationType.PROBLEMS));
+        rootBuildListeners.addAll(getOrDefault(listeners, OperationType.ROOT));
     }
 
     private static List<ProgressListener> getOrDefault(Map<OperationType, List<ProgressListener>> listeners, OperationType operationType) {
@@ -318,6 +323,9 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         }
         if (!problemListeners.isEmpty()) {
             operations.add(InternalBuildProgressListener.PROBLEMS);
+        }
+        if (!rootBuildListeners.isEmpty()) {
+            operations.add(InternalBuildProgressListener.ROOT);
         }
         return operations;
     }
@@ -386,6 +394,8 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
             broadcastBuildPhaseEvent(progressEvent, (InternalBuildPhaseDescriptor) descriptor);
         } else if (descriptor instanceof InternalProblemDescriptor) {
             broadcastProblemEvent(progressEvent, (InternalProblemDescriptor) descriptor);
+        } else if (descriptor instanceof InternalRootOperationDescriptor) {
+            broadcastRootBuildEvent(progressEvent);
         } else {
             broadcastGenericProgressEvent(progressEvent);
         }
@@ -443,6 +453,13 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         ProblemEvent problemEvent = toProblemEvent(progressEvent, descriptor);
         if (problemEvent != null) {
             problemListeners.getSource().statusChanged(problemEvent);
+        }
+    }
+
+    private void broadcastRootBuildEvent(InternalProgressEvent event) {
+        ProgressEvent progressEvent = toGenericProgressEvent(event);
+        if (progressEvent != null) {
+            rootBuildListeners.getSource().statusChanged(progressEvent);
         }
     }
 
@@ -591,13 +608,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
             return new DefaultSingleProblemEvent(
                 problemEvent.getEventTime(),
                 parentDescriptor,
-                toProblemDefinition(basicProblemDetails.getLabel(), basicProblemDetails.getCategory(), basicProblemDetails.getSeverity(), basicProblemDetails.getDocumentationLink()),
-                toContextualLabel(basicProblemDetails.getLabel().getLabel()),
-                toProblemDetails(basicProblemDetails.getDetails()),
-                toLocations(basicProblemDetails.getLocations()),
-                toSolutions(basicProblemDetails.getSolutions()),
-                toAdditionalData(basicProblemDetails.getAdditionalData()),
-                toFailure(basicProblemDetails)
+                toProblem(basicProblemDetails)
             );
         } else if (details instanceof InternalProblemAggregationDetailsV2) {
             InternalProblemAggregationDetailsV2 problemAggregationDetails = (InternalProblemAggregationDetailsV2) details;
@@ -660,13 +671,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
             return new DefaultSingleProblemEvent(
                 problemEvent.getEventTime(),
                 parentDescriptor,
-                toProblemDefinition(basicProblemDetails.getDefinition()),
-                toContextualLabel(basicProblemDetails.getContextualLabel()),
-                toProblemDetails(basicProblemDetails.getDetails()),
-                toLocations(basicProblemDetails.getLocations()),
-                toSolutions(basicProblemDetails.getSolutions()),
-                toAdditionalData(basicProblemDetails.getAdditionalData()),
-                toFailure(basicProblemDetails.getFailure())
+                toProblem(basicProblemDetails)
             );
         } else if (details instanceof InternalProblemAggregationDetailsVersion3) {
             InternalProblemAggregationDetailsVersion3 problemAggregationDetails = (InternalProblemAggregationDetailsVersion3) details;
@@ -868,6 +873,30 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         Destination destination = Destination.fromCode(event.getResult().getDestination());
         String message = event.getResult().getMessage();
         return new DefaultTestOutputOperationDescriptor(descriptor, parent, destination, message);
+    }
+
+    private static Problem toProblem(InternalBasicProblemDetails basicProblemDetails) {
+        return new DefaultProblem(
+            toProblemDefinition(basicProblemDetails.getLabel(), basicProblemDetails.getCategory(), basicProblemDetails.getSeverity(), basicProblemDetails.getDocumentationLink()),
+            toContextualLabel(basicProblemDetails.getLabel().getLabel()),
+            toProblemDetails(basicProblemDetails.getDetails()),
+            toLocations(basicProblemDetails.getLocations()),
+            toSolutions(basicProblemDetails.getSolutions()),
+            toAdditionalData(basicProblemDetails.getAdditionalData()),
+            toFailure(basicProblemDetails)
+        );
+    }
+
+    private static Problem toProblem(InternalBasicProblemDetailsVersion3 basicProblemDetails) {
+        return new DefaultProblem(
+            toProblemDefinition(basicProblemDetails.getDefinition()),
+            toContextualLabel(basicProblemDetails.getContextualLabel()),
+            toProblemDetails(basicProblemDetails.getDetails()),
+            toLocations(basicProblemDetails.getLocations()),
+            toSolutions(basicProblemDetails.getSolutions()),
+            toAdditionalData(basicProblemDetails.getAdditionalData()),
+            toFailure(basicProblemDetails.getFailure())
+        );
     }
 
     private static ProblemDefinition toProblemDefinition(InternalProblemDefinition problemDefinition) {
@@ -1124,7 +1153,10 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         }
         List<Failure> failures = new ArrayList<>();
         for (InternalFailure cause : causes) {
-            failures.add(toFailure(cause));
+            Failure f = toFailure(cause);
+            if (f != null) {
+                failures.add(f);
+            }
         }
         return failures;
     }
@@ -1137,6 +1169,19 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
     }
 
     private static Failure toFailure(InternalFailure origFailure) {
+        if (origFailure == null) {
+            return null;
+        }
+        List<InternalBasicProblemDetailsVersion3> problems = new ArrayList<>();
+        try {
+            problems.addAll(origFailure.getProblems());
+        } catch (AbstractMethodError ignore) {
+            // Older Gradle versions don't have this method
+        }
+        List<Problem> clientProblems = new ArrayList<>(problems.size());
+        for (InternalBasicProblemDetailsVersion3 problem : problems) {
+            clientProblems.add(createProblemReport(problem));
+        }
         if (origFailure instanceof InternalTestAssertionFailure) {
             if (origFailure instanceof InternalFileComparisonTestAssertionFailure) {
                 InternalTestAssertionFailure assertionFailure = (InternalTestAssertionFailure) origFailure;
@@ -1171,10 +1216,23 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
                 ((InternalTestFrameworkFailure) origFailure).getStacktrace()
             );
         }
-        return origFailure == null ? null : new DefaultFailure(
+        return new DefaultFailure(
             origFailure.getMessage(),
             origFailure.getDescription(),
-            toFailures(origFailure.getCauses()));
+            toFailures(origFailure.getCauses()),
+            clientProblems);
+    }
+
+    private static Problem createProblemReport(InternalBasicProblemDetailsVersion3 basicProblemDetails) {
+        return new DefaultProblem(
+            toProblemDefinition(basicProblemDetails.getDefinition()),
+            toContextualLabel(basicProblemDetails.getContextualLabel()),
+            toProblemDetails(basicProblemDetails.getDetails()),
+            toLocations(basicProblemDetails.getLocations()),
+            toSolutions(basicProblemDetails.getSolutions()),
+            toAdditionalData(basicProblemDetails.getAdditionalData()),
+            toFailure(basicProblemDetails.getFailure())
+        );
     }
 
     private static @Nullable List<AnnotationProcessorResult> toAnnotationProcessorResults(@Nullable List<InternalAnnotationProcessorResult> protocolResults) {

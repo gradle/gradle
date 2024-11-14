@@ -53,7 +53,6 @@ import org.gradle.internal.build.event.types.DefaultProblemsSummariesDetails;
 import org.gradle.internal.build.event.types.DefaultSeverity;
 import org.gradle.internal.build.event.types.DefaultSolution;
 import org.gradle.internal.operations.OperationIdentifier;
-import org.gradle.internal.operations.OperationProgressEvent;
 import org.gradle.tooling.internal.protocol.InternalFailure;
 import org.gradle.tooling.internal.protocol.InternalProblemDefinition;
 import org.gradle.tooling.internal.protocol.InternalProblemEventVersion2;
@@ -77,64 +76,39 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
-import static java.util.Optional.empty;
 import static java.util.stream.Collectors.toMap;
 
 @NonNullApi
-public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperationListener {
+public class ProblemsProgressEventUtils {
 
     private static final InternalSeverity ADVICE = new DefaultSeverity(0);
     private static final InternalSeverity WARNING = new DefaultSeverity(1);
     private static final InternalSeverity ERROR = new DefaultSeverity(2);
 
-    private final Supplier<OperationIdentifier> operationIdentifierSupplier;
-
-    ProblemsProgressEventConsumer(ProgressEventConsumer progressEventConsumer, Supplier<OperationIdentifier> operationIdentifierSupplier) {
-        super(progressEventConsumer);
-        this.operationIdentifierSupplier = operationIdentifierSupplier;
+    private ProblemsProgressEventUtils() {
     }
 
-    @Override
-    public void progress(OperationIdentifier buildOperationId, OperationProgressEvent progressEvent) {
-        Object details = progressEvent.getDetails();
-
-        createProblemEvent(buildOperationId, details)
-            .ifPresent(eventConsumer::progress);
+    static InternalProblemEventVersion2 createProblemEvent(OperationIdentifier buildOperationId, DefaultProblemProgressDetails details, Supplier<OperationIdentifier> operationIdentifierSupplier) {
+        return createProblemEvent(buildOperationId, details.getProblem(), operationIdentifierSupplier);
     }
 
-    private Optional<InternalProblemEventVersion2> createProblemEvent(OperationIdentifier buildOperationId, @Nullable Object details) {
-        if (details instanceof DefaultProblemProgressDetails) {
-            Problem problem = ((DefaultProblemProgressDetails) details).getProblem();
-            return Optional.of(createProblemEvent(buildOperationId, problem));
-        }
-        if (details instanceof DefaultProblemsSummaryProgressDetails) {
-            List<Pair<ProblemId, Integer>> problemIdCounts = ((DefaultProblemsSummaryProgressDetails) details).getProblemIdCounts();
-            return Optional.of(createProblemSummaryEvent(buildOperationId, problemIdCounts));
-        }
-        return empty();
+    static InternalProblemEventVersion2 createProblemSummaryEvent(@Nullable OperationIdentifier buildOperationId, DefaultProblemsSummaryProgressDetails details, Supplier<OperationIdentifier> operationIdentifierSupplier) {
+        return createProblemSummaryEvent(buildOperationId, details.getProblemIdCounts(), operationIdentifierSupplier);
     }
 
-    private InternalProblemEventVersion2 createProblemEvent(OperationIdentifier buildOperationId, Problem problem) {
+    private static InternalProblemEventVersion2 createProblemEvent(OperationIdentifier buildOperationId, Problem problem, Supplier<OperationIdentifier> operationIdentifierSupplier) {
         return new DefaultProblemEvent(
-            createDefaultProblemDescriptor(buildOperationId),
-            new DefaultProblemDetails(
-                toInternalDefinition(problem.getDefinition()),
-                toInternalDetails(problem.getDetails()),
-                toInternalContextualLabel(problem.getContextualLabel()),
-                toInternalLocations(problem.getLocations()),
-                toInternalSolutions(problem.getSolutions()),
-                toInternalAdditionalData(problem.getAdditionalData()),
-                toInternalFailure(problem.getException())
-            )
+            createDefaultProblemDescriptor(buildOperationId, operationIdentifierSupplier),
+            createDefaultProblemDetails(problem)
         );
     }
 
-    private InternalProblemEventVersion2 createProblemSummaryEvent(OperationIdentifier buildOperationId, List<Pair<ProblemId, Integer>> problemIdCounts) {
+    private static InternalProblemEventVersion2 createProblemSummaryEvent(OperationIdentifier buildOperationId, List<Pair<ProblemId, Integer>> problemIdCounts, Supplier<OperationIdentifier> operationIdentifierSupplier) {
         List<InternalProblemSummary> internalIdCounts = problemIdCounts.stream()
             .map(it -> new DefaultProblemSummary(toInternalId(it.left), it.right))
             .collect(toImmutableList());
         return new DefaultProblemEvent(
-            createDefaultProblemDescriptor(buildOperationId),
+            createDefaultProblemDescriptor(buildOperationId, operationIdentifierSupplier),
             new DefaultProblemsSummariesDetails(internalIdCounts)
         );
     }
@@ -147,10 +121,22 @@ public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperatio
         return DefaultFailure.fromThrowable(ex);
     }
 
-    private InternalProblemDescriptor createDefaultProblemDescriptor(OperationIdentifier parentBuildOperationId) {
+    private static InternalProblemDescriptor createDefaultProblemDescriptor(OperationIdentifier parentBuildOperationId, Supplier<OperationIdentifier> operationIdentifierSupplier) {
         return new DefaultProblemDescriptor(
             operationIdentifierSupplier.get(),
             parentBuildOperationId);
+    }
+
+    static DefaultProblemDetails createDefaultProblemDetails(Problem problem) {
+        return new DefaultProblemDetails(
+            toInternalDefinition(problem.getDefinition()),
+            toInternalDetails(problem.getDetails()),
+            toInternalContextualLabel(problem.getContextualLabel()),
+            toInternalLocations(problem.getLocations()),
+            toInternalSolutions(problem.getSolutions()),
+            toInternalAdditionalData(problem.getAdditionalData()),
+            toInternalFailure(problem.getException())
+        );
     }
 
     private static InternalProblemDefinition toInternalDefinition(ProblemDefinition definition) {

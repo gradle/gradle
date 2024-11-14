@@ -32,4 +32,9 @@ public class ProblemsServices extends AbstractGradleModuleServices {
         registration.addProvider(new ProblemsBuildTreeServices());
         registration.add(DefaultProblemSummarizer.class);
     }
+
+    @Override
+    public void registerBuildSessionServices(ServiceRegistration registration) {
+        registration.addProvider(new ProblemsBuildSessionServices());
+    }
 }

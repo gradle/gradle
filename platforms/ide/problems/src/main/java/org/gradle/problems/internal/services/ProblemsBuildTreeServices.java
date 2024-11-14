@@ -19,6 +19,7 @@ package org.gradle.problems.internal.services;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.problems.internal.DefaultProblems;
+import org.gradle.api.problems.internal.ExceptionProblemRegistry;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.problems.internal.ProblemEmitter;
 import org.gradle.api.problems.internal.ProblemSummarizer;
@@ -26,6 +27,7 @@ import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.cc.impl.problems.BuildNameProvider;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.exception.ExceptionAnalyser;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.problems.failure.FailureFactory;
@@ -43,10 +45,18 @@ import org.gradle.problems.internal.impl.DefaultProblemsReportCreator;
 public class ProblemsBuildTreeServices implements ServiceRegistrationProvider {
     @Provides
     InternalProblems createProblemsService(
+        ProblemSummarizer problemSummarizer,
         ProblemStream problemStream,
-        ProblemSummarizer problemSummarizer
+        ExceptionProblemRegistry exceptionProblemRegistry,
+        ExceptionAnalyser exceptionAnalyser
     ) {
-        return new DefaultProblems(problemSummarizer, problemStream, CurrentBuildOperationRef.instance());
+        return new DefaultProblems(
+            problemSummarizer,
+            problemStream,
+            CurrentBuildOperationRef.instance(),
+            exceptionProblemRegistry,
+            exceptionAnalyser
+        );
     }
 
     @Provides

@@ -48,6 +48,13 @@ class ProgressEventConsumer {
             .orElse(null);
     }
 
+    @Nullable
+    OperationIdentifier findStartedParentId(OperationIdentifier identifier) {
+        return ancestryTracker
+            .findClosestMatchingAncestor(identifier, startedIds::contains)
+            .orElse(null);
+    }
+
     void started(InternalOperationStartedProgressEvent event) {
         delegate.dispatch(event);
         startedIds.add(event.getDescriptor().getId());

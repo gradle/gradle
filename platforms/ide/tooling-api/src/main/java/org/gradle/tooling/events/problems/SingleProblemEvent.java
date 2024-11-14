@@ -17,10 +17,6 @@
 package org.gradle.tooling.events.problems;
 
 import org.gradle.api.Incubating;
-import org.gradle.tooling.Failure;
-
-import javax.annotation.Nullable;
-import java.util.List;
 
 /**
  * ProblemEvent with all the details relevant.
@@ -31,62 +27,10 @@ import java.util.List;
 public interface SingleProblemEvent extends ProblemEvent {
 
     /**
-     * Returns the problem definition.
+     * Returns the structural details describing the problem.
      *
-     * @return the definition
-     * @since 8.9
+     * @return the report
+     * @since 8.12
      */
-    ProblemDefinition getDefinition();
-
-    /**
-     * Returns the contextual label.
-     *
-     * @return the problem label
-     * @since 8.9
-     */
-    @Nullable
-    ContextualLabel getContextualLabel();
-
-    /**
-     * Returns the details string.
-     *
-     * @return the problem details
-     * @since 8.8
-     */
-    @Nullable
-    Details getDetails();
-
-    /**
-     * Returns the locations associated with this problem.
-     *
-     * @return the locations
-     * @since 8.8
-     */
-    List<Location> getLocations();
-
-    /**
-     * Returns the list of solutions.
-     *
-     * @return the solutions
-     * @since 8.8
-     */
-    List<Solution> getSolutions();
-
-    /**
-     * Returns the failure associated with this problem.
-     *
-     * @return the failure
-     * @since 8.8
-     */
-    @Nullable
-    Failure getFailure();
-
-    /**
-     * Returns the additional data associated with this problem.
-     *
-     * @return the additional data
-     * @since 8.9
-     */
-    @Nullable
-    AdditionalData getAdditionalData();
+    Problem getProblem();
 }

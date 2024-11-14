@@ -25,6 +25,7 @@ import org.gradle.api.problems.internal.DefaultProblemDefinition
 import org.gradle.api.problems.internal.DefaultProblemId
 import org.gradle.api.problems.internal.DefaultProblems
 import org.gradle.api.problems.internal.DeprecationData
+import org.gradle.api.problems.internal.ExceptionProblemRegistry
 import org.gradle.api.problems.internal.GradleCoreProblemGroup
 import org.gradle.api.problems.internal.ProblemSummarizer
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
@@ -63,7 +64,7 @@ class DeprecationMessagesTest extends Specification {
         currentBuildRef.getId() >> identifier
 
         def buildOperationProgressEventEmitter = Mock(BuildOperationProgressEventEmitter)
-        DeprecationLogger.init(WarningMode.All, buildOperationProgressEventEmitter, new DefaultProblems(problemEmitter, currentBuildRef), diagnosticsFactory.newUnlimitedStream())
+        DeprecationLogger.init(WarningMode.All, buildOperationProgressEventEmitter, new DefaultProblems(problemEmitter, null, currentBuildRef, new ExceptionProblemRegistry(), null), diagnosticsFactory.newUnlimitedStream())
     }
 
     def cleanup() {
