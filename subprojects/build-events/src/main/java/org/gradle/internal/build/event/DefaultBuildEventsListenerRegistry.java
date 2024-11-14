@@ -158,17 +158,17 @@ public class DefaultBuildEventsListenerRegistry implements BuildEventsListenerRe
     }
 
     private void unsubscribeAll() {
+        Collection<AbstractListener<?>> subscribed;
+
         synchronized (subscriptions) {
-            try {
-                Collection<AbstractListener<?>> subscribed = subscriptions.values();
-                subscribed.stream()
-                    .flatMap(it -> it.getListeners().stream())
-                    .forEach(this::unsubscribe);
-                CompositeStoppable.stoppable(subscribed).stop();
-            } finally {
-                subscriptions.clear();
-            }
+            subscribed = ImmutableList.copyOf(subscriptions.values());
+            subscriptions.clear();
         }
+
+        subscribed.stream()
+            .flatMap(it -> it.getListeners().stream())
+            .forEach(this::unsubscribe);
+        CompositeStoppable.stoppable(subscribed).stop();
     }
 
     private void unsubscribe(Object listener) {
