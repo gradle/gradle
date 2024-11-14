@@ -150,7 +150,7 @@ fun BuildType.applyDefaultSettings(os: Os = Os.LINUX, arch: Arch = Arch.AMD64, b
     }
 }
 
-fun javaHome(jvm: Jvm, os: Os, arch: Arch = Arch.AMD64) = "%${os.name.lowercase()}.${jvm.version}.${jvm.vendor}.${arch.suffix}%"
+fun javaHome(jvm: Jvm, os: Os, arch: Arch = Arch.AMD64) = "%${if (os == Os.ALPINE) "linux" else os.name.lowercase()}.${jvm.version}.${jvm.vendor}.${arch.suffix}%"
 
 fun BuildType.paramsForBuildToolBuild(buildJvm: Jvm = BuildToolBuildJvm, os: Os, arch: Arch = Arch.AMD64) {
     params {

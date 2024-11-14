@@ -16,7 +16,7 @@
 
 package org.gradle.testkit.runner
 
-import com.gradle.develocity.testing.annotations.LocalOnly
+import org.gradle.testdistribution.LocalOnly
 import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
