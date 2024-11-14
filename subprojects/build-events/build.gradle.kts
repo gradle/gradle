@@ -17,6 +17,8 @@ dependencies {
     implementation(projects.modelCore)
 
     api(libs.jsr305)
+
+    implementation(libs.errorProneAnnotations)
     implementation(libs.guava)
 
     testImplementation(projects.internalTesting)
