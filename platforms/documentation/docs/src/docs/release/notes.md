@@ -203,7 +203,7 @@ val rootVariant = configurations.runtimeClasspath.incoming
 The updated API allows for more precise traversal of dependency graphs by operating at the variant level instead of the component level.
 For example, traversing dependencies at the variant level allows users to differentiate between a component's production code and its test fixtures.
 
-For more details on how to perform a graph traversal, see [Programmatic Dependency Resolution](userguide/programmatic_dependency_resolution.html).
+For more details on how to perform a graph traversal, see [Programmatic Dependency Resolution](userguide/dependency_graph_resolution.html).
 
 #### API for selecting variants by feature name
 
