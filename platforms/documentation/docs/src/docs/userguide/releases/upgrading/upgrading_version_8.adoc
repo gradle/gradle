@@ -1303,6 +1303,9 @@ Gradle 8.4 now configures XML parsers with security features enabled.
 If your build logic depends on old XML parsers that don't support secure parsing, your build may fail.
 If you encounter a failure, check and update or remove any dependency on legacy XML parsers.
 
+If you are an Android user, please upgrade your AGP version to 8.3.0 or higher to fix the issue caused by AGP itself.
+See the link:https://issuetracker.google.com/u/0/issues/306301014[Update XML parser used in AGP for Gradle 8.4 compatibility] for more details.
+
 If you are unable to upgrade XML parsers coming from your build logic dependencies, you can force the use of the XML parsers built into the JVM.
 In OpenJDK, for example, this can be done by adding the following to `gradle.properties`:
 ```
