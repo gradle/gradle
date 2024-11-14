@@ -449,6 +449,12 @@ fun configureTests() {
                 maxRemoteExecutors = if (project.isPerformanceProject()) 0 else project.maxTestDistributionRemoteExecutors
                 maxLocalExecutors = project.maxTestDistributionLocalExecutors
 
+                if (maxLocalExecutors.orNull != 0) {
+                    localOnly {
+                        includeAnnotationClasses.addAll("org.gradle.testdistribution.LocalOnly")
+                    }
+                }
+
                 val dogfoodingTag = testDistributionDogfoodingTag.getOrElse("gbt-dogfooding")
                 if (BuildEnvironment.isCiServer) {
                     when {

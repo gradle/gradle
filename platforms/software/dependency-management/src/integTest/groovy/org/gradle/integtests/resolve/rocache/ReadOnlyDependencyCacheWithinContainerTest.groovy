@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.resolve.rocache
 
-import com.gradle.develocity.testing.annotations.LocalOnly
+import org.gradle.testdistribution.LocalOnly
 import org.gradle.containers.GradleInContainer
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
