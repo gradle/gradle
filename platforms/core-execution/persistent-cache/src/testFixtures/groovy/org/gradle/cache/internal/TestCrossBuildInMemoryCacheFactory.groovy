@@ -58,12 +58,7 @@ class TestCrossBuildInMemoryCacheFactory implements CrossBuildInMemoryCacheFacto
 
         @Override
         V get(K key, Function<? super K, ? extends V> factory) {
-            def v = values.get(key)
-            if (v == null) {
-                v = factory.apply(key)
-                values.put(key, v)
-            }
-            return v
+            return values.computeIfAbsent(key, factory)
         }
 
         @Override
