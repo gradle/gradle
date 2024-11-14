@@ -21,9 +21,11 @@ import org.gradle.api.internal.file.DefaultFileLookup;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.DefaultBuildCancellationToken;
+import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedExecutor;
+import org.gradle.internal.concurrent.Stoppable;
 
 import java.io.File;
 import java.util.concurrent.Executor;
@@ -31,7 +33,7 @@ import java.util.concurrent.Executor;
 import static java.util.Objects.requireNonNull;
 
 @NonNullApi
-public class DefaultClientExecHandleFactory implements ClientExecHandleFactory {
+public class DefaultClientExecHandleFactory implements ClientExecHandleFactory, Stoppable {
 
     private final FileResolver fileResolver;
     private final Executor executor;
@@ -64,5 +66,10 @@ public class DefaultClientExecHandleFactory implements ClientExecHandleFactory {
     ) {
         ManagedExecutor executor = executorFactory.create("Exec process");
         return new DefaultClientExecHandleFactory(fileResolver, executor, buildCancellationToken);
+    }
+
+    @Override
+    public void stop() {
+        CompositeStoppable.stoppable(executor).stop();
     }
 }

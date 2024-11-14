@@ -73,8 +73,6 @@ public class TestFiles {
     private static final DefaultFileLookup FILE_LOOKUP = new DefaultFileLookup();
     private static final DefaultClientExecHandleFactory EXEC_HANDLE_FACTORY =
         DefaultClientExecHandleFactory.of(resolver(), new DefaultExecutorFactory(), new DefaultBuildCancellationToken());
-    private static final DefaultExecActionFactory EXEC_FACTORY =
-        DefaultExecActionFactory.of(resolver(), fileCollectionFactory(), new DefaultExecutorFactory(), NativeServicesTestFixture.getInstance().get(TemporaryFileProvider.class));
 
     public static FileCollectionInternal empty() {
         return FileCollectionFactory.empty();
@@ -237,7 +235,15 @@ public class TestFiles {
     }
 
     public static ExecFactory execFactory() {
-        return EXEC_FACTORY;
+        return DefaultExecActionFactory.of(
+            resolver(),
+            fileCollectionFactory(),
+            TestUtil.instantiatorFactory().inject(),
+            new DefaultExecutorFactory(),
+            NativeServicesTestFixture.getInstance().get(TemporaryFileProvider.class),
+            new DefaultBuildCancellationToken(),
+            objectFactory()
+        );
     }
 
     public static ExecFactory execFactory(File baseDir) {

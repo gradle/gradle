@@ -29,6 +29,7 @@ import java.util.concurrent.Executor;
 /**
  * Use {@link ClientExecHandleFactory} instead.
  */
+@SuppressWarnings("deprecation")
 public class DefaultExecHandleBuilder extends AbstractExecHandleBuilder implements ExecHandleBuilder, ProcessArgumentsSpec.HasExecutable {
 
     private final ProcessArgumentsSpec argumentsSpec = new ProcessArgumentsSpec(this);

@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.WorkResults;
+import org.gradle.internal.process.ArgCollector;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.process.ExecResult;
 import org.gradle.process.internal.ClientExecHandleBuilder;
@@ -60,7 +61,19 @@ public class CommandLineJavaCompiler implements Compiler<JavaCompileSpec>, Seria
         ClientExecHandleBuilder builder = execHandleFactory.newExec();
         builder.setWorkingDir(spec.getWorkingDir());
         builder.setExecutable(executable);
-        argumentsGenerator.collectArguments(spec, new ExecSpecBackedArgCollector(builder));
+        argumentsGenerator.collectArguments(spec, new ArgCollector() {
+            @Override
+            public ArgCollector args(Object... args) {
+                builder.args(args);
+                return this;
+            }
+
+            @Override
+            public ArgCollector args(Iterable<?> args) {
+                builder.args(args);
+                return this;
+            }
+        });
         builder.setIgnoreExitValue(true);
         return builder.build();
     }

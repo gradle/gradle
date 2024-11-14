@@ -20,7 +20,6 @@ import com.google.common.annotations.VisibleForTesting;
 import org.gradle.process.internal.ClientExecHandleBuilder;
 import org.gradle.process.internal.ClientExecHandleFactory;
 import org.gradle.process.internal.ExecException;
-import org.gradle.process.internal.ExecHandleBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
