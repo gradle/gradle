@@ -64,7 +64,6 @@ import static org.gradle.util.internal.TextUtil.getPluralEnding;
  */
 class SelectorState implements DependencyGraphSelector, ResolvableSelectorState {
     private final ComponentSelector componentSelector;
-    private final boolean constraint;
     private final DependencyToComponentIdResolver resolver;
     private final ResolvedVersionConstraint versionConstraint;
     private final List<ComponentSelectionDescriptorInternal> dependencyReasons = new ArrayList<>(4);
@@ -94,19 +93,18 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
     // outgoing edges pointing to them. If not, then it means the module was
     // evicted, but it can still be reintegrated later in a different path.
     private int outgoingEdgeCount;
+    private int outgoingConstraintEdgeCount;
 
     SelectorState(
         ComponentSelector componentSelector,
         DependencyToComponentIdResolver resolver,
         ResolveState resolveState,
         ModuleResolveState targetModule,
-        boolean versionByAncestor,
-        boolean constraint
+        boolean versionByAncestor
     ) {
         this.componentSelector = componentSelector;
         this.resolver = resolver;
         this.targetModule = targetModule;
-        this.constraint = constraint;
         this.isProjectSelector = componentSelector instanceof ProjectComponentSelector;
 
         if (versionByAncestor) {
@@ -126,14 +124,29 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
         return isProjectSelector;
     }
 
-    public void use(boolean deferSelection) {
+    public void use(boolean deferSelection, boolean isConstraint) {
         outgoingEdgeCount++;
         if (outgoingEdgeCount == 1) {
             targetModule.addSelector(this, deferSelection);
         }
+
+        if (isConstraint) {
+            outgoingConstraintEdgeCount++;
+            if (outgoingConstraintEdgeCount == 1) {
+                targetModule.addConstraintSelector(this);
+            }
+        }
     }
 
-    public void release() {
+    public void release(boolean isConstraint) {
+        if (isConstraint) {
+            outgoingConstraintEdgeCount--;
+            assert outgoingConstraintEdgeCount >= 0 : "Inconsistent selector state detected: constraint edge count cannot be negative";
+            if (outgoingConstraintEdgeCount == 0) {
+                targetModule.removeConstraintSelector(this);
+            }
+        }
+
         outgoingEdgeCount--;
         assert outgoingEdgeCount >= 0 : "Inconsistent selector state detected: outgoing edge count cannot be negative";
         if (outgoingEdgeCount == 0) {
@@ -325,10 +338,6 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
             }
             selectionReason.addCause(descriptor);
         }
-    }
-
-    public boolean isConstraint() {
-        return constraint;
     }
 
     @Override

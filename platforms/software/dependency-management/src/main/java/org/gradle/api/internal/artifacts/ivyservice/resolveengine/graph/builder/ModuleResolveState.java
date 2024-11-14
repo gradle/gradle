@@ -65,7 +65,8 @@ public class ModuleResolveState implements CandidateModule {
     private final ModuleIdentifier id;
     private final List<EdgeState> unattachedEdges = new LinkedList<>();
     private final Map<ModuleVersionIdentifier, ComponentState> versions = new LinkedHashMap<>();
-    private final ModuleSelectors<SelectorState> selectors;
+    private final ModuleSelectors<SelectorState> allSelectors;
+    private final List<SelectorState> constraintSelectors = new ArrayList<>();
     private final ConflictResolution conflictResolution;
     private final AttributesFactory attributesFactory;
     private final Comparator<Version> versionComparator;
@@ -107,7 +108,7 @@ public class ModuleResolveState implements CandidateModule {
         this.rootModule = rootModule;
         this.pendingDependencies = new PendingDependencies(id);
         this.selectorStateResolver = selectorStateResolver;
-        this.selectors = new ModuleSelectors<>(versionComparator, versionParser);
+        this.allSelectors = new ModuleSelectors<>(versionComparator, versionParser);
         this.conflictResolution = conflictResolution;
     }
 
@@ -273,7 +274,7 @@ public class ModuleResolveState implements CandidateModule {
         for (ComponentState version : versions.values()) {
             version.restartIncomingEdges(selected);
         }
-        for (SelectorState selector : selectors) {
+        for (SelectorState selector : allSelectors) {
             selector.overrideSelection(selected);
         }
         if (!unattachedEdges.isEmpty()) {
@@ -312,29 +313,37 @@ public class ModuleResolveState implements CandidateModule {
         );
     }
 
-    void addSelector(SelectorState selector, boolean deferSelection) {
-        selectors.add(selector, deferSelection);
+    void addConstraintSelector(SelectorState selector) {
+        constraintSelectors.add(selector);
         mergedConstraintAttributes = appendAttributes(mergedConstraintAttributes, selector);
+    }
+
+    void addSelector(SelectorState selector, boolean deferSelection) {
+        allSelectors.add(selector, deferSelection);
         if (overriddenSelection) {
             assert selected != null : "An overridden module cannot have selected == null";
             selector.overrideSelection(selected);
         }
     }
 
-    void removeSelector(SelectorState selector) {
-        selectors.remove(selector);
-        boolean alreadyReused = selector.markForReuse();
+    void removeConstraintSelector(SelectorState selector) {
+        constraintSelectors.remove(selector);
         mergedConstraintAttributes = ImmutableAttributes.EMPTY;
-        for (SelectorState selectorState : selectors) {
+        for (SelectorState selectorState : constraintSelectors) {
             mergedConstraintAttributes = appendAttributes(mergedConstraintAttributes, selectorState);
         }
-        if (!alreadyReused && selectors.size() != 0 && selected != null) {
+    }
+
+    void removeSelector(SelectorState selector) {
+        allSelectors.remove(selector);
+        boolean alreadyReused = selector.markForReuse();
+        if (!alreadyReused && allSelectors.size() != 0 && selected != null) {
             maybeUpdateSelection();
         }
     }
 
     public ModuleSelectors<SelectorState> getSelectors() {
-        return selectors;
+        return allSelectors;
     }
 
     List<EdgeState> getUnattachedEdges() {
@@ -354,12 +363,9 @@ public class ModuleResolveState implements CandidateModule {
 
     private ImmutableAttributes appendAttributes(ImmutableAttributes dependencyAttributes, SelectorState selector) {
         try {
-            boolean constraint = selector.isConstraint();
-            if (constraint) {
-                ComponentSelector componentSelector = selector.getComponentSelector();
-                ImmutableAttributes attributes = ((AttributeContainerInternal) componentSelector.getAttributes()).asImmutable();
-                dependencyAttributes = attributesFactory.safeConcat(attributes, dependencyAttributes);
-            }
+            ComponentSelector componentSelector = selector.getComponentSelector();
+            ImmutableAttributes attributes = ((AttributeContainerInternal) componentSelector.getAttributes()).asImmutable();
+            dependencyAttributes = attributesFactory.safeConcat(attributes, dependencyAttributes);
         } catch (AttributeMergingException e) {
             attributeMergingError = e;
         }
@@ -446,12 +452,12 @@ public class ModuleResolveState implements CandidateModule {
             // Never update selection for a replaced module
             return;
         }
-        if (!rootModule && selectors.checkDeferSelection()) {
+        if (!rootModule && allSelectors.checkDeferSelection()) {
             // Selection deferred as we know another selector will be added soon
             return;
         }
-        ComponentState newSelected = selectorStateResolver.selectBest(getId(), selectors);
-        newSelected.setSelectors(selectors);
+        ComponentState newSelected = selectorStateResolver.selectBest(getId(), allSelectors);
+        newSelected.setSelectors(allSelectors);
         if (selected == null) {
             select(newSelected);
         } else if (newSelected != selected) {

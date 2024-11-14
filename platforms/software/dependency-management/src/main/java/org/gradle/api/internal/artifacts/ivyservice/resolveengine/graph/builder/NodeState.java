@@ -525,9 +525,8 @@ public class NodeState implements DependencyGraphNode {
         EdgeState dependencyEdge = edgesCache.computeIfAbsent(dependencyState, ds -> new EdgeState(this, ds, resolutionFilter, resolveState));
         dependencyEdge.computeSelector(); // the selector changes, if the 'versionProvidedByAncestors' state changes
         outgoingEdges.add(dependencyEdge);
-        dependencyEdge.markUsed();
         discoveredEdges.add(dependencyEdge);
-        dependencyEdge.getSelector().use(deferSelection);
+        dependencyEdge.use(deferSelection);
     }
 
     /**
@@ -595,9 +594,8 @@ public class NodeState implements DependencyGraphNode {
         }
         EdgeState edge = potentialEdge.edge;
         virtualEdges.add(edge);
-        edge.markUsed();
         discoveredEdges.add(edge);
-        edge.getSelector().use(false);
+        edge.use(false);
     }
 
 
@@ -1016,7 +1014,7 @@ public class NodeState implements DependencyGraphNode {
     private void disconnectOutgoingEdge(EdgeState outgoingEdge) {
         outgoingEdge.detachFromTargetNodes();
         outgoingEdge.getSelector().getTargetModule().disconnectIncomingEdge(this, outgoingEdge);
-        outgoingEdge.getSelector().release();
+        outgoingEdge.release();
     }
 
     public void restart(ComponentState selected) {
@@ -1127,7 +1125,7 @@ public class NodeState implements DependencyGraphNode {
             // and it can cause a concurrent modification exception
             outgoingEdges.remove(edge);
             edge.markUnused();
-            edge.getSelector().release();
+            edge.release();
         }
     }
 
@@ -1205,7 +1203,7 @@ public class NodeState implements DependencyGraphNode {
             // We can ignore if we are already removing edges anyway
             outgoingEdges.remove(edgeState);
             edgeState.markUnused();
-            edgeState.getSelector().release();
+            edgeState.release();
         }
     }
 

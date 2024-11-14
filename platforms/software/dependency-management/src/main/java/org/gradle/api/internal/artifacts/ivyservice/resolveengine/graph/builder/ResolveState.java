@@ -225,13 +225,12 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
     }
 
     public SelectorState computeSelectorFor(DependencyState dependencyState, boolean ignoreVersion) {
-        boolean constraint = dependencyState.getDependency().isConstraint();
         ComponentSelector selector = dependencyState.getDependency().getSelector();
 
-        SelectorState selectorState = selectors.computeIfAbsent(new SelectorCacheKey(selector, ignoreVersion, constraint), req -> {
+        SelectorState selectorState = selectors.computeIfAbsent(new SelectorCacheKey(selector, ignoreVersion), req -> {
             ModuleIdentifier moduleId = componentSelectorConverter.getModule(selector);
             ModuleResolveState module = getModule(moduleId);
-            return new SelectorState(selector, idResolver, this, module, ignoreVersion, constraint);
+            return new SelectorState(selector, idResolver, this, module, ignoreVersion);
         });
 
         selectorState.update(dependencyState);
@@ -336,20 +335,17 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
     private static class SelectorCacheKey {
         private final ComponentSelector selector;
         private final boolean ignoreVersion;
-        private final boolean constraint;
         private final int hashCode;
 
-        private SelectorCacheKey(ComponentSelector selector, boolean ignoreVersion, boolean constraint) {
+        private SelectorCacheKey(ComponentSelector selector, boolean ignoreVersion) {
             this.selector = selector;
             this.ignoreVersion = ignoreVersion;
-            this.constraint = constraint;
             this.hashCode = computeHashCode();
         }
 
         int computeHashCode() {
             int result = selector.hashCode();
             result = 31 * result + Boolean.hashCode(ignoreVersion);
-            result = 31 * result + Boolean.hashCode(constraint);
             return result;
         }
 
@@ -363,7 +359,6 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
             }
             SelectorCacheKey that = (SelectorCacheKey) o;
             return ignoreVersion == that.ignoreVersion &&
-                constraint == that.constraint &&
                 selector.equals(that.selector);
         }
 

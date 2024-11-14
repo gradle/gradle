@@ -117,6 +117,15 @@ class EdgeState implements DependencyGraphEdge {
         return getSelectedComponent();
     }
 
+    void use(boolean deferSelection) {
+        markUsed();
+        selector.use(deferSelection, isConstraint);
+    }
+
+    void release() {
+        selector.release(isConstraint);
+    }
+
     @Override
     public SelectorState getSelector() {
         return selector;
