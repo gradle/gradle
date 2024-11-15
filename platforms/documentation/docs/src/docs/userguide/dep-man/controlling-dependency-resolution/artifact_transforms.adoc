@@ -396,7 +396,8 @@ To register an artifact transform, you must use link:{groovyDslPath}/org.gradle.
 There are a few points to consider when using `registerTransform()`:
 
 - At least one `from` and `to` attributes are required.
-- Each `from` attribute must have a corresponding `to` attribute, and vice-versa.
+- Each `to` attribute must have a corresponding `from` attribute.
+- Additional `from` attributes can be included which do _not_ have corresponding `to` attributes.
 - The transform action itself can have configuration options. You can configure them with the `parameters {}` block.
 - You must register the transform on the project that has the configuration that will be resolved.
 - You can supply any type implementing link:{groovyDslPath}/org.gradle.api.artifacts.transform.TransformAction.html[TransformAction] to the `registerTransform()` method.

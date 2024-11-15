@@ -85,28 +85,26 @@ import java.util.stream.Stream;
 public class ResolutionFailureHandler {
     public static final String DEFAULT_MESSAGE_PREFIX = "Review the variant matching algorithm at ";
 
-    private final InternalProblems problemsService;
     private final TransformedVariantConverter transformedVariantConverter;
 
     private final ResolutionFailureDescriberRegistry defaultFailureDescribers;
     private final ResolutionFailureDescriberRegistry customFailureDescribers;
 
-    public ResolutionFailureHandler(InstanceGenerator instanceGenerator, InternalProblems problems, TransformedVariantConverter transformedVariantConverter) {
-        this.problemsService = problems;
+    public ResolutionFailureHandler(InstanceGenerator instanceGenerator, InternalProblems problemsService, TransformedVariantConverter transformedVariantConverter) {
         this.transformedVariantConverter = transformedVariantConverter;
 
         this.defaultFailureDescribers = ResolutionFailureDescriberRegistry.standardRegistry(instanceGenerator);
         this.customFailureDescribers = ResolutionFailureDescriberRegistry.emptyRegistry(instanceGenerator);
 
-        configureAdditionalDataBuilder(problemsService);
+        configureAdditionalDataBuilder(problemsService.getAdditionalDataBuilderFactory());
     }
 
-    private static void configureAdditionalDataBuilder(InternalProblems problemsService) {
-        AdditionalDataBuilderFactory additionalDataBuilderFactory = problemsService.getAdditionalDataBuilderFactory();
+    private static void configureAdditionalDataBuilder(AdditionalDataBuilderFactory additionalDataBuilderFactory) {
         if (!additionalDataBuilderFactory.hasProviderForSpec(ResolutionFailureDataSpec.class)) {
             additionalDataBuilderFactory.registerAdditionalDataProvider(
                 ResolutionFailureDataSpec.class,
-                data -> DefaultResolutionFailureData.builder((ResolutionFailureData) data));
+                data -> DefaultResolutionFailureData.builder((ResolutionFailureData) data)
+            );
         }
     }
 
@@ -215,11 +213,10 @@ public class ResolutionFailureHandler {
     public AbstractResolutionFailureException noCompatibleArtifactFailure(
         AttributeMatcher matcher,
         ResolvedVariantSet targetVariantSet,
-        ImmutableAttributes requestedAttributes,
-        List<? extends ResolvedVariant> candidateVariants
+        ImmutableAttributes requestedAttributes
     ) {
         ResolutionCandidateAssessor resolutionCandidateAssessor = new ResolutionCandidateAssessor(requestedAttributes, matcher);
-        List<AssessedCandidate> assessedCandidates = resolutionCandidateAssessor.assessResolvedVariants(candidateVariants);
+        List<AssessedCandidate> assessedCandidates = resolutionCandidateAssessor.assessResolvedVariants(targetVariantSet.getCandidates());
         NoCompatibleArtifactFailure failure = new NoCompatibleArtifactFailure(getOrCreateVariantSetComponentIdentifier(targetVariantSet), targetVariantSet.asDescribable().getDisplayName(), requestedAttributes, assessedCandidates);
         return describeFailure(failure);
     }

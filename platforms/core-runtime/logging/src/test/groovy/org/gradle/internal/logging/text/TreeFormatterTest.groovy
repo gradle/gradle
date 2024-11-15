@@ -135,6 +135,25 @@ class TreeFormatterTest extends Specification {
   - ${longText}""")
     }
 
+    def "formats short node with single child on separate lines when asked alwaysChildrenOnNewLines = #alwaysChildrenOnNewLines"() {
+        given:
+        formatter = new TreeFormatter(alwaysChildrenOnNewLines)
+
+        when:
+        formatter.node("introduction")
+        formatter.startChildren()
+        formatter.node("hello = world")
+        formatter.endChildren()
+
+        then:
+        formatter.toString() == toPlatformLineSeparators(expectation)
+
+        where:
+        alwaysChildrenOnNewLines    || expectation
+        true                        || "introduction:\n  - hello = world"
+        false                       || "introduction: hello = world"
+    }
+
     def "formats node with trailing '.'"() {
         when:
         formatter.node("Some things.")

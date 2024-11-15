@@ -228,7 +228,7 @@ public class DefaultAttributeMatcher implements AttributeMatcher {
             return new CachedQuery(requestedAttributes, attributes);
         }
 
-        public static <T extends HasAttributes> List<T> getMatchesFromCandidateIndices(int[] indices, List<? extends T> candidates) {
+        private static <T extends HasAttributes> List<T> getMatchesFromCandidateIndices(int[] indices, List<? extends T> candidates) {
             if (indices.length == 0) {
                 return Collections.emptyList();
             }

@@ -2,7 +2,7 @@ The Gradle team is excited to announce Gradle @version@.
 
 This release features [1](), [2](), ... [n](), and more.
 
-<!-- 
+<!--
 Include only their name, impactful features should be called out separately below.
  [Some person](https://github.com/some-person)
 
@@ -21,9 +21,71 @@ Switch your build to use Gradle @version@ by updating the [Wrapper](userguide/gr
 
 See the [Gradle 8.x upgrade guide](userguide/upgrading_version_8.html#changes_@baseVersion@) to learn about deprecations, breaking changes, and other considerations when upgrading to Gradle @version@.
 
-For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).   
+For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).
 
 ## New features and usability improvements
+
+### Error and warning reporting improvements
+
+#### Ambiguous Artifact Transformation chains are detected and reported
+
+Previously, when two or more equal-length chains of <<artifact_transforms.adoc#sec,artifact transforms>> produced compatible variants to satisfy a resolution request, Gradle would arbitrarily and silently select one.
+Gradle now emits a deprecation warning for this case.
+
+This deprecation warning is the same failure message that now appears when multiple equal-length chains are available, producing incompatible variants that could each satisfy a resolution request.
+In this case, resolution fails with an ambiguity failure, and Gradle emits a message like this:
+
+```text
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Could not determine the dependencies of task ':forceResolution'.
+> Could not resolve all dependencies for configuration ':resolveMe'.
+   > Found multiple transformation chains that produce a variant of 'root project :' with requested attributes:
+       - color 'red'
+       - matter 'liquid'
+       - shape 'round'
+     Found the following transformation chains:
+       - From configuration ':squareBlueLiquidElements':
+           - With source attributes:
+               - artifactType 'txt'
+               - color 'blue'
+               - matter 'liquid'
+               - shape 'square'
+               - texture 'smooth'
+           - Candidate transformation chains:
+               - Transformation chain: 'BrokenColorTransform' -> 'BrokenShapeTransform':
+                   - 'BrokenColorTransform':
+                       - Converts from attributes:
+                           - color 'blue'
+                           - texture 'smooth'
+                       - To attributes:
+                           - color 'red'
+                           - texture 'bumpy'
+                   - 'BrokenShapeTransform':
+                       - Converts from attributes:
+                           - shape 'square'
+                           - texture 'bumpy'
+                       - To attributes:
+                           - shape 'round'
+               - Transformation chain: 'BrokenColorTransform' -> 'BrokenShapeTransform':
+                   - 'BrokenColorTransform':
+                       - Converts from attributes:
+                           - color 'blue'
+                           - texture 'smooth'
+                       - To attributes:
+                           - color 'red'
+                           - texture 'rough'
+                   - 'BrokenShapeTransform':
+                       - Converts from attributes:
+                           - shape 'square'
+                           - texture 'rough'
+                       - To attributes:
+                           - shape 'round'
+```
+
+The formatting of this message has been improved to comprehensively display information about each complete chain of transformations that produces the candidates that would satisfy the request.
+This allows authors to better analyze and understand their builds, allowing them to remove the ambiguity.
 
 <!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. -->
 
@@ -78,7 +140,7 @@ Gradle provides rich APIs for plugin authors and build engineers to develop cust
 
 #### `DependencyConstraintHandler` now has `addProvider` methods
 
-The [`DependencyConstraintHandler`](javadoc/org/gradle/api/artifacts/dsl/DependencyConstraintHandler.html) now has `addProvider` methods, similar to the 
+The [`DependencyConstraintHandler`](javadoc/org/gradle/api/artifacts/dsl/DependencyConstraintHandler.html) now has `addProvider` methods, similar to the
 [`DependencyHandler`](javadoc/org/gradle/api/artifacts/dsl/DependencyHandler.html).
 
 ```kotlin

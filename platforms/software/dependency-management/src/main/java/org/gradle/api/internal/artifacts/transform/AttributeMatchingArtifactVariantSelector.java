@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import com.google.common.collect.Iterables;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BrokenResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
@@ -27,38 +28,37 @@ import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.api.internal.attributes.matching.AttributeMatcher;
 import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * A {@link ArtifactVariantSelector} that uses attribute matching to select a matching set of artifacts.
- *
+ * <p>
  * If no producer variant is compatible with the requested attributes, this selector will attempt to construct a chain of artifact
  * transforms that can produce a variant compatible with the requested attributes.
- *
+ * <p>
  * An instance of {@link ResolutionFailureHandler} is injected in the constructor
  * to allow the caller to handle failures in a consistent manner as during graph variant selection.
  */
 public class AttributeMatchingArtifactVariantSelector implements ArtifactVariantSelector {
-
     private final ImmutableAttributesSchema consumerSchema;
-    private final ConsumerProvidedVariantFinder consumerProvidedVariantFinder;
     private final AttributesFactory attributesFactory;
     private final AttributeSchemaServices attributeSchemaServices;
-    private final ResolutionFailureHandler failureProcessor;
+    private final ResolutionFailureHandler failureHandler;
+    private final TransformationChainSelector transformationChainSelector;
 
     public AttributeMatchingArtifactVariantSelector(
         ImmutableAttributesSchema consumerSchema,
-        ConsumerProvidedVariantFinder consumerProvidedVariantFinder,
+        ConsumerProvidedVariantFinder transformationChainBuilder,
         AttributesFactory attributesFactory,
         AttributeSchemaServices attributeSchemaServices,
-        ResolutionFailureHandler failureProcessor
+        ResolutionFailureHandler failureHandler
     ) {
         this.consumerSchema = consumerSchema;
-        this.consumerProvidedVariantFinder = consumerProvidedVariantFinder;
         this.attributesFactory = attributesFactory;
         this.attributeSchemaServices = attributeSchemaServices;
-        this.failureProcessor = failureProcessor;
+        this.failureHandler = failureHandler;
+        this.transformationChainSelector = new TransformationChainSelector(transformationChainBuilder, failureHandler);
     }
 
     @Override
@@ -70,7 +70,7 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
         try {
             return doSelect(producer, requestAttributes, allowNoMatchingVariants);
         } catch (Exception t) {
-            return new BrokenResolvedArtifactSet(failureProcessor.unknownArtifactVariantSelectionFailure(producer, requestAttributes, t));
+            return new BrokenResolvedArtifactSet(failureHandler.unknownArtifactVariantSelectionFailure(producer, requestAttributes, t));
         }
     }
 
@@ -80,78 +80,27 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
         boolean allowNoMatchingVariants
     ) {
         AttributeMatcher matcher = attributeSchemaServices.getMatcher(consumerSchema, producer.getProducerSchema());
-        ImmutableAttributes componentRequested = attributesFactory.concat(requestAttributes, producer.getOverriddenAttributes());
-        final List<ResolvedVariant> variants = producer.getCandidates();
+        ImmutableAttributes targetAttributes = attributesFactory.concat(requestAttributes, producer.getOverriddenAttributes());
 
-        List<? extends ResolvedVariant> matches = matcher.matchMultipleCandidates(variants, componentRequested);
-        if (matches.size() == 1) {
-            return matches.get(0).getArtifacts();
-        } else if (matches.size() > 1) {
-            throw failureProcessor.ambiguousArtifactsFailure(matcher, producer, componentRequested, matches);
+        // Check for matching variant without using artifact transforms.  If we found only one, return it.  If we found multiple matches, that's ambiguity.
+        List<ResolvedVariant> matchingVariants = matcher.matchMultipleCandidates(producer.getCandidates(), targetAttributes);
+        if (matchingVariants.size() == 1) {
+            return Iterables.getOnlyElement(matchingVariants).getArtifacts();
+        } else if (matchingVariants.size() > 1) {
+            throw failureHandler.ambiguousArtifactsFailure(matcher, producer, targetAttributes, matchingVariants);
         }
 
-        // We found no matches. Attempt to construct artifact transform chains which produce matching variants.
-        List<TransformedVariant> transformedVariants = consumerProvidedVariantFinder.findTransformedVariants(variants, componentRequested);
-
-        // If there are multiple potential artifact transform variants, perform attribute matching to attempt to find the best.
-        if (transformedVariants.size() > 1) {
-            transformedVariants = tryDisambiguate(matcher, transformedVariants, componentRequested);
+        // We found no matching variant.  Attempt to select a chain of transformations that produces a suitable virtual variant.
+        Optional<TransformedVariant> selectedTransformationChain = transformationChainSelector.selectTransformationChain(producer, targetAttributes, matcher);
+        if (selectedTransformationChain.isPresent()) {
+            return producer.transformCandidate(selectedTransformationChain.get().getRoot(), selectedTransformationChain.get().getTransformedVariantDefinition());
         }
 
-        if (transformedVariants.size() == 1) {
-            TransformedVariant result = transformedVariants.get(0);
-            return producer.transformCandidate(result.getRoot(), result.getTransformedVariantDefinition());
-        }
-
-        if (!transformedVariants.isEmpty()) {
-            throw failureProcessor.ambiguousArtifactTransformsFailure(producer, componentRequested, transformedVariants);
-        }
-
+        // At this point, there is no possibility of a match for the request.  That could be okay if allowed, else it's a failure.
         if (allowNoMatchingVariants) {
             return ResolvedArtifactSet.EMPTY;
+        } else {
+            throw failureHandler.noCompatibleArtifactFailure(matcher, producer, targetAttributes);
         }
-
-        throw failureProcessor.noCompatibleArtifactFailure(matcher, producer, componentRequested, variants);
-    }
-
-    /**
-     * Given a set of potential transform chains, attempt to reduce the set to a minimal set of preferred candidates.
-     * Ideally, this method would return a single candidate.
-     * <p>
-     * This method starts by performing attribute matching on the candidates. This leverages disambiguation rules
-     * from the {@link AttributeMatcher} to reduce the set of candidates. Return a single candidate only one remains.
-     * <p>
-     * If there are multiple results after disambiguation, return a subset of the results such that all candidates have
-     * incompatible attributes values when matched with the <strong>last</strong> candidate. In some cases, this step is
-     * able to arbitrarily reduces the candidate set to a single candidate as long as all remaining candidates are
-     * compatible with each other.
-     */
-    private static List<TransformedVariant> tryDisambiguate(
-        AttributeMatcher matcher,
-        List<TransformedVariant> candidates,
-        ImmutableAttributes componentRequested
-    ) {
-        List<TransformedVariant> matches = matcher.matchMultipleCandidates(candidates, componentRequested);
-        if (matches.size() == 1) {
-            return matches;
-        }
-
-        assert !matches.isEmpty();
-
-        List<TransformedVariant> differentTransforms = new ArrayList<>(1);
-
-        // Choosing the last candidate here is arbitrary.
-        TransformedVariant last = matches.get(matches.size() - 1);
-        differentTransforms.add(last);
-
-        // Find any other candidate which does not match with the last candidate.
-        for (int i = 0; i < matches.size() - 1; i++) {
-            TransformedVariant current = matches.get(i);
-            if (!matcher.areMutuallyCompatible(current.getAttributes(), last.getAttributes())) {
-                differentTransforms.add(current);
-            }
-        }
-
-        return differentTransforms;
     }
 }

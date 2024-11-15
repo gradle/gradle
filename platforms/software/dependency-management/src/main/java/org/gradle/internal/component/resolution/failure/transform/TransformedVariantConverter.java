@@ -37,7 +37,7 @@ public final class TransformedVariantConverter {
         return builder.build();
     }
 
-    private TransformationChainData convert(TransformedVariant transformedVariant) {
+    public TransformationChainData convert(TransformedVariant transformedVariant) {
         TransformDataRecordingVisitor visitor = new TransformDataRecordingVisitor();
         transformedVariant.getTransformChain().visitTransformSteps(visitor);
         SourceVariantData source = new SourceVariantData(transformedVariant.getRoot().asDescribable().getDisplayName(), transformedVariant.getRoot().getAttributes());

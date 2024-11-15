@@ -61,7 +61,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         transformRegistry.registrations >> [transform1, transform2, transform3]
 
         when:
-        def result = transformations.findTransformedVariants(variants, requested)
+        def result = transformations.findCandidateTransformationChains(variants, requested)
 
         then:
         result.size() == 1
@@ -101,7 +101,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         transformRegistry.registrations >> [transform1, transform2, transform3, transform4]
 
         when:
-        def result = transformations.findTransformedVariants(variants, requested)
+        def result = transformations.findCandidateTransformationChains(variants, requested)
 
         then:
         result.size() == 4
@@ -143,7 +143,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         transformRegistry.registrations >> [transform1, transform2]
 
         when:
-        def result = transformations.findTransformedVariants(variants, requested)
+        def result = transformations.findCandidateTransformationChains(variants, requested)
 
         then:
         result.size() == 1
@@ -165,7 +165,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
                 variant(otherVariant.getAttributes()),
                 variant(sourceVariant.getAttributes())
         ]
-        def result2 = transformations.findTransformedVariants(anotherVariants, requested)
+        def result2 = transformations.findCandidateTransformationChains(anotherVariants, requested)
 
         then:
         result2.size() == 1
@@ -216,7 +216,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         transformRegistry.registrations >> [transform1, transform2, transform3, transform4, transform5, transform6]
 
         when:
-        def result = transformations.findTransformedVariants(variants, requested)
+        def result = transformations.findCandidateTransformationChains(variants, requested)
 
         then:
         result.size() == 2
@@ -269,7 +269,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         transformRegistry.registrations >> [transform1, transform2, transform3, transform4]
 
         when:
-        def result = transformations.findTransformedVariants(variants, requested)
+        def result = transformations.findCandidateTransformationChains(variants, requested)
 
         then:
         result.size() == 2
@@ -323,7 +323,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         transformRegistry.registrations >> [registrations[registrationsIndex[0]], registrations[registrationsIndex[1]], registrations[registrationsIndex[2]], registrations[registrationsIndex[3]]]
 
         when:
-        def result = transformations.findTransformedVariants(variants, requested)
+        def result = transformations.findCandidateTransformationChains(variants, requested)
 
         then:
         result.size() == 1
@@ -374,7 +374,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         transformRegistry.registrations >> [transform1, transform2, transform3]
 
         when:
-        def result = transformations.findTransformedVariants(variants, requested)
+        def result = transformations.findCandidateTransformationChains(variants, requested)
 
         then:
         result.size() == 1
@@ -414,7 +414,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         transformRegistry.registrations >> [transform1, transform2]
 
         when:
-        def result = transformations.findTransformedVariants(variants, requested)
+        def result = transformations.findCandidateTransformationChains(variants, requested)
 
         then:
         result.empty
@@ -443,7 +443,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         transformRegistry.registrations >> [transform1, transform2]
 
         when:
-        def result = transformations.findTransformedVariants(variants, requested)
+        def result = transformations.findCandidateTransformationChains(variants, requested)
 
         then:
         result.empty
@@ -455,7 +455,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         0 * attributeMatcher._
 
         when:
-        def result2 = transformations.findTransformedVariants(variants, requested)
+        def result2 = transformations.findCandidateTransformationChains(variants, requested)
 
         then:
         result2.empty
@@ -481,7 +481,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         transformRegistry.registrations >> [transform1]
 
         when:
-        def result = transformations.findTransformedVariants(variants, requested)
+        def result = transformations.findCandidateTransformationChains(variants, requested)
 
         then:
         // sourceVariant transformed by transform1 produces a variant with attributes incompatible with requested

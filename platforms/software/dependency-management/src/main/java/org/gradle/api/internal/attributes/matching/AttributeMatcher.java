@@ -47,7 +47,7 @@ public interface AttributeMatcher {
 
     /**
      * Selects all matches from {@code candidates} that are compatible with the {@code requested}
-     * criteria attributes. Then, if there are more than one match, perform disambiguation to attempt
+     * criteria attributes. Then, if there is more than one match, performs disambiguation to attempt
      * to reduce the set of matches to a more preferred subset.
      */
     <T extends HasAttributes> List<T> matchMultipleCandidates(
