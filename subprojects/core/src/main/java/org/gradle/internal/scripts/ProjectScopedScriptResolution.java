@@ -16,9 +16,9 @@
 
 package org.gradle.internal.scripts;
 
+import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-import org.gradle.util.Path;
 
 import java.util.function.Supplier;
 
@@ -26,10 +26,10 @@ import java.util.function.Supplier;
 public interface ProjectScopedScriptResolution {
     ProjectScopedScriptResolution NO_OP = new ProjectScopedScriptResolution() {
         @Override
-        public <T> T resolveScriptsForProject(Path identityPath, Path buildPath, Path projectPath, Supplier<T> action) {
+        public <T> T resolveScriptsForProject(ProjectIdentity project, Supplier<T> action) {
             return action.get();
         }
     };
 
-    <T> T resolveScriptsForProject(Path identityPath, Path buildPath, Path projectPath, Supplier<T> action);
+    <T> T resolveScriptsForProject(ProjectIdentity project, Supplier<T> action);
 }
