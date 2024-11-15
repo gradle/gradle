@@ -458,14 +458,14 @@ class GrammarToTree(
                             VALUE_ARGUMENT_LIST, LAMBDA_ARGUMENT -> {
                                 valueArguments += node
                             }
-                            else -> tree.parsingError(node, "Parsing failure, unexpected token type in call expression: $tokenType")
+                            else -> collectingFailure(tree.parsingError(node, "Parsing failure, unexpected token type in call expression: $tokenType"))
                         }
                     }
 
                     process(child)
                 }
 
-                if (name == null) tree.parsingError(node, "Name missing from function call!")
+                if (name == null) collectingFailure(tree.parsingError(node, "Name missing from function call!"))
 
                 val arguments = valueArguments.flatMap { valueArguments(tree, it) }.map { checkForFailure(it) }
                 elementIfNoFailures {
@@ -564,7 +564,7 @@ class GrammarToTree(
                         CALL_EXPRESSION -> expression = checkForFailure(callExpression(tree, it))
                         else ->
                             if (it.isExpression()) expression = checkForFailure(expression(tree, it))
-                            else tree.parsingError(it, "Parsing failure, unexpected token type in value argument: $tokenType")
+                            else collectingFailure(tree.parsingError(it, "Parsing failure, unexpected token type in value argument: $tokenType"))
                     }
                 }
 
