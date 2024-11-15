@@ -198,30 +198,6 @@ public class DefaultClientExecHandleBuilder implements ClientExecHandleBuilder, 
     }
 
     @Override
-    public ExecHandle build() {
-        String displayName = this.displayName == null ? String.format("command '%s'", executable) : this.displayName;
-        File workingDir = this.workingDir == null ? fileResolver.resolve(".") : this.workingDir;
-        List<String> effectiveArguments = argumentsSpec.getAllArguments();
-        Map<String, String> effectiveEnvironment = getEffectiveEnvironment(environment);
-        StreamsHandler effectiveOutputHandler = getEffectiveStreamsHandler(streamsHandler, streamsSpec, redirectErrorStream);
-        return new DefaultExecHandle(
-            displayName,
-            workingDir,
-            executable,
-            effectiveArguments,
-            effectiveEnvironment,
-            effectiveOutputHandler,
-            inputHandler,
-            listeners,
-            redirectErrorStream,
-            timeoutMillis,
-            daemon,
-            executor,
-            buildCancellationToken
-        );
-    }
-
-    @Override
     public OutputStream getErrorOutput() {
         return streamsSpec.getErrorOutput();
     }
@@ -284,6 +260,34 @@ public class DefaultClientExecHandleBuilder implements ClientExecHandleBuilder, 
             streamsSpec.getStandardOutput(),
             streamsSpec.getErrorOutput(),
             shouldReadErrorStream
+        );
+    }
+
+    @Override
+    public ExecHandle build() {
+        return buildWithEffectiveArguments(argumentsSpec.getAllArguments());
+    }
+
+    @Override
+    public ExecHandle buildWithEffectiveArguments(List<String> effectiveArguments) {
+        String displayName = this.displayName == null ? String.format("command '%s'", executable) : this.displayName;
+        File workingDir = this.workingDir == null ? fileResolver.resolve(".") : this.workingDir;
+        Map<String, String> effectiveEnvironment = getEffectiveEnvironment(environment);
+        StreamsHandler effectiveOutputHandler = getEffectiveStreamsHandler(streamsHandler, streamsSpec, redirectErrorStream);
+        return new DefaultExecHandle(
+            displayName,
+            workingDir,
+            executable,
+            effectiveArguments,
+            effectiveEnvironment,
+            effectiveOutputHandler,
+            inputHandler,
+            listeners,
+            redirectErrorStream,
+            timeoutMillis,
+            daemon,
+            executor,
+            buildCancellationToken
         );
     }
 }

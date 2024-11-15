@@ -52,6 +52,7 @@ public abstract class DefaultExecActionFactory implements ExecFactory {
     @Nullable
     protected final JavaModuleDetector javaModuleDetector;
     protected final BuildCancellationToken buildCancellationToken;
+    private final ClientExecHandleFactory clientExecHandleFactory;
 
     private DefaultExecActionFactory(
         FileResolver fileResolver,
@@ -59,6 +60,7 @@ public abstract class DefaultExecActionFactory implements ExecFactory {
         ObjectFactory objectFactory,
         Executor executor,
         TemporaryFileProvider temporaryFileProvider,
+        ClientExecHandleFactory clientExecHandleFactory,
         @Nullable JavaModuleDetector javaModuleDetector,
         BuildCancellationToken buildCancellationToken
     ) {
@@ -69,6 +71,7 @@ public abstract class DefaultExecActionFactory implements ExecFactory {
         this.javaModuleDetector = javaModuleDetector;
         this.buildCancellationToken = buildCancellationToken;
         this.executor = executor;
+        this.clientExecHandleFactory = clientExecHandleFactory;
     }
 
     public static DefaultExecActionFactory of(
@@ -78,7 +81,8 @@ public abstract class DefaultExecActionFactory implements ExecFactory {
         ExecutorFactory executorFactory,
         TemporaryFileProvider temporaryFileProvider,
         BuildCancellationToken buildCancellationToken,
-        ObjectFactory objectFactory
+        ObjectFactory objectFactory,
+        ClientExecHandleFactory clientExecHandleFactory
     ) {
         return new DecoratingExecActionFactory(
             fileResolver,
@@ -88,6 +92,7 @@ public abstract class DefaultExecActionFactory implements ExecFactory {
             temporaryFileProvider,
             buildCancellationToken,
             objectFactory,
+            clientExecHandleFactory,
             null,
             null
         );
@@ -95,7 +100,7 @@ public abstract class DefaultExecActionFactory implements ExecFactory {
 
     @Override
     public Builder forContext() {
-        return new BuilderImpl(executor, temporaryFileProvider)
+        return new BuilderImpl(executor, temporaryFileProvider, clientExecHandleFactory)
             .withFileResolver(fileResolver)
             .withFileCollectionFactory(fileCollectionFactory)
             .withBuildCancellationToken(buildCancellationToken)
@@ -138,7 +143,7 @@ public abstract class DefaultExecActionFactory implements ExecFactory {
 
     @Override
     public JavaExecAction newJavaExecAction() {
-        return new DefaultJavaExecAction(fileResolver, fileCollectionFactory, objectFactory, executor, buildCancellationToken, temporaryFileProvider, javaModuleDetector, newJavaForkOptions());
+        return new DefaultJavaExecAction(newJavaExec());
     }
 
     @Override
@@ -149,7 +154,14 @@ public abstract class DefaultExecActionFactory implements ExecFactory {
 
     @Override
     public JavaExecHandleBuilder newJavaExec() {
-        return new JavaExecHandleBuilder(fileResolver, fileCollectionFactory, objectFactory, executor, buildCancellationToken, temporaryFileProvider, javaModuleDetector, newJavaForkOptions());
+        return new JavaExecHandleBuilder(
+            fileCollectionFactory,
+            objectFactory,
+            temporaryFileProvider,
+            javaModuleDetector,
+            newJavaForkOptions(),
+            clientExecHandleFactory.newExec()
+        );
     }
 
     @Override
@@ -171,6 +183,7 @@ public abstract class DefaultExecActionFactory implements ExecFactory {
         private final Executor executor;
         // The temporaryFileProvider is always inherited from the parent
         private final TemporaryFileProvider temporaryFileProvider;
+        private final ClientExecHandleFactory clientExecHandleFactory;
 
         private FileResolver fileResolver;
         private FileCollectionFactory fileCollectionFactory;
@@ -185,10 +198,12 @@ public abstract class DefaultExecActionFactory implements ExecFactory {
 
         BuilderImpl(
             Executor executor,
-            TemporaryFileProvider temporaryFileProvider
+            TemporaryFileProvider temporaryFileProvider,
+            ClientExecHandleFactory clientExecHandleFactory
         ) {
             this.executor = executor;
             this.temporaryFileProvider = temporaryFileProvider;
+            this.clientExecHandleFactory = clientExecHandleFactory;
         }
 
         @Override
@@ -254,8 +269,11 @@ public abstract class DefaultExecActionFactory implements ExecFactory {
                 temporaryFileProvider,
                 buildCancellationToken,
                 objectFactory,
+                clientExecHandleFactory,
                 javaModuleDetector,
-                externalProcessStartedListener);
+                externalProcessStartedListener
+
+            );
         }
     }
 
@@ -272,10 +290,11 @@ public abstract class DefaultExecActionFactory implements ExecFactory {
             TemporaryFileProvider temporaryFileProvider,
             BuildCancellationToken buildCancellationToken,
             ObjectFactory objectFactory,
+            ClientExecHandleFactory clientExecHandleFactory,
             @Nullable JavaModuleDetector javaModuleDetector,
             @Nullable ExternalProcessStartedListener externalProcessStartedListener
         ) {
-            super(fileResolver, fileCollectionFactory, objectFactory, executor, temporaryFileProvider, javaModuleDetector, buildCancellationToken);
+            super(fileResolver, fileCollectionFactory, objectFactory, executor, temporaryFileProvider, clientExecHandleFactory, javaModuleDetector, buildCancellationToken);
             this.instantiator = instantiator;
             this.externalProcessStartedListener = externalProcessStartedListener;
         }

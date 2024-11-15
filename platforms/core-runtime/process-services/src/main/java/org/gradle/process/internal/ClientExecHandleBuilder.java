@@ -41,6 +41,7 @@ public interface ClientExecHandleBuilder extends BaseExecHandleBuilder {
 
     ClientExecHandleBuilder redirectErrorStream();
 
+    @Override
     ClientExecHandleBuilder setDisplayName(String displayName);
 
     ClientExecHandleBuilder setDaemon(boolean daemon);
@@ -63,11 +64,6 @@ public interface ClientExecHandleBuilder extends BaseExecHandleBuilder {
 
     ClientExecHandleBuilder setExecutable(String executable);
 
-    /**
-     * Adds a listener to the list of ExecHandle listeners..
-     */
-    ClientExecHandleBuilder listener(ExecHandleListener listener);
-
     String getExecutable();
 
     File getWorkingDir();
@@ -89,4 +85,6 @@ public interface ClientExecHandleBuilder extends BaseExecHandleBuilder {
     InputStream getStandardInput();
 
     ClientExecHandleBuilder setWorkingDir(Object dir);
+
+    ExecHandle buildWithEffectiveArguments(List<String> effectiveArguments);
 }

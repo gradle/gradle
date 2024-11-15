@@ -19,7 +19,6 @@ import org.gradle.api.Action;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.logging.Logger;
@@ -27,12 +26,10 @@ import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
-import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.JavaDebugOptions;
-import org.gradle.process.JavaExecSpec;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.util.internal.CollectionUtils;
 
@@ -41,11 +38,13 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Executor;
+import java.util.Objects;
 import java.util.jar.Attributes;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
@@ -57,7 +56,7 @@ import static org.gradle.process.internal.util.LongCommandLineDetectionUtil.hasC
 /**
  * Use {@link JavaExecHandleFactory} instead.
  */
-public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements JavaExecSpec, ProcessArgumentsSpec.HasExecutable, JavaForkOptionsInternal {
+public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgumentsSpec.HasExecutable {
     private static final Logger LOGGER = Logging.getLogger(JavaExecHandleBuilder.class);
     private final FileCollectionFactory fileCollectionFactory;
     private final TemporaryFileProvider temporaryFileProvider;
@@ -65,22 +64,19 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
     private final Property<String> mainModule;
     private final Property<String> mainClass;
     private final ListProperty<String> jvmArguments;
+    private final ClientExecHandleBuilder execHandleBuilder;
     private ConfigurableFileCollection classpath;
     private final JavaForkOptionsInternal javaOptions;
-    private final ProcessArgumentsSpec applicationArgsSpec = new ProcessArgumentsSpec(this);
     private final ModularitySpec modularity;
 
     public JavaExecHandleBuilder(
-        FileResolver fileResolver,
         FileCollectionFactory fileCollectionFactory,
         ObjectFactory objectFactory,
-        Executor executor,
-        BuildCancellationToken buildCancellationToken,
         TemporaryFileProvider temporaryFileProvider,
         @Nullable JavaModuleDetector javaModuleDetector,
-        JavaForkOptionsInternal javaOptions
+        JavaForkOptionsInternal javaOptions,
+        ClientExecHandleBuilder execHandleBuilder
     ) {
-        super(fileResolver, executor, buildCancellationToken);
         this.fileCollectionFactory = fileCollectionFactory;
         this.temporaryFileProvider = temporaryFileProvider;
         this.javaModuleDetector = javaModuleDetector;
@@ -90,10 +86,10 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
         this.jvmArguments = objectFactory.listProperty(String.class);
         this.javaOptions = javaOptions;
         this.modularity = new DefaultModularitySpec(objectFactory);
-        executable(javaOptions.getExecutable());
+        this.execHandleBuilder = execHandleBuilder;
+        setExecutable(javaOptions.getExecutable());
     }
 
-    @Override
     public List<String> getAllJvmArgs() {
         return getAllJvmArgs(this.classpath);
     }
@@ -151,192 +147,148 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
         }
     }
 
-    @Override
-    public void setAllJvmArgs(List<String> arguments) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void setAllJvmArgs(Iterable<?> arguments) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public List<String> getJvmArgs() {
         return javaOptions.getJvmArgs();
     }
 
-    @Override
     public void setJvmArgs(List<String> arguments) {
         javaOptions.setJvmArgs(arguments);
     }
 
-    @Override
     public void setJvmArgs(Iterable<?> arguments) {
         javaOptions.setJvmArgs(arguments);
     }
 
-    @Override
     public JavaExecHandleBuilder jvmArgs(Iterable<?> arguments) {
         javaOptions.jvmArgs(arguments);
         return this;
     }
 
-    @Override
     public JavaExecHandleBuilder jvmArgs(Object... arguments) {
         javaOptions.jvmArgs(arguments);
         return this;
     }
 
-    @Override
     public ListProperty<String> getJvmArguments() {
         return jvmArguments;
     }
 
-    @Override
     public Map<String, Object> getSystemProperties() {
         return javaOptions.getSystemProperties();
     }
 
-    @Override
     public void setSystemProperties(Map<String, ?> properties) {
         javaOptions.setSystemProperties(properties);
     }
 
-    @Override
     public JavaExecHandleBuilder systemProperties(Map<String, ?> properties) {
         javaOptions.systemProperties(properties);
         return this;
     }
 
-    @Override
     public JavaExecHandleBuilder systemProperty(String name, Object value) {
         javaOptions.systemProperty(name, value);
         return this;
     }
 
-    @Override
     public FileCollection getBootstrapClasspath() {
         return javaOptions.getBootstrapClasspath();
     }
 
-    @Override
     public void setBootstrapClasspath(FileCollection classpath) {
         javaOptions.setBootstrapClasspath(classpath);
     }
 
-    @Override
     public JavaForkOptions bootstrapClasspath(Object... classpath) {
         javaOptions.bootstrapClasspath(classpath);
-        return this;
+        return javaOptions;
     }
 
-    @Override
     public String getMinHeapSize() {
         return javaOptions.getMinHeapSize();
     }
 
-    @Override
     public void setMinHeapSize(String heapSize) {
         javaOptions.setMinHeapSize(heapSize);
     }
 
-    @Override
     public String getDefaultCharacterEncoding() {
         return javaOptions.getDefaultCharacterEncoding();
     }
 
-    @Override
     public void setDefaultCharacterEncoding(String defaultCharacterEncoding) {
         javaOptions.setDefaultCharacterEncoding(defaultCharacterEncoding);
     }
 
-    @Override
     public String getMaxHeapSize() {
         return javaOptions.getMaxHeapSize();
     }
 
-    @Override
     public void setMaxHeapSize(String heapSize) {
         javaOptions.setMaxHeapSize(heapSize);
     }
 
-    @Override
     public boolean getEnableAssertions() {
         return javaOptions.getEnableAssertions();
     }
 
-    @Override
     public void setEnableAssertions(boolean enabled) {
         javaOptions.setEnableAssertions(enabled);
     }
 
-    @Override
     public boolean getDebug() {
         return javaOptions.getDebug();
     }
 
-    @Override
     public void setDebug(boolean enabled) {
         javaOptions.setDebug(enabled);
     }
 
-    @Override
     public JavaDebugOptions getDebugOptions() {
         return javaOptions.getDebugOptions();
     }
 
-    @Override
     public void debugOptions(Action<JavaDebugOptions> action) {
         javaOptions.debugOptions(action);
     }
 
-    @Override
     public Property<String> getMainModule() {
         return mainModule;
     }
 
-    @Override
     public Property<String> getMainClass() {
         return mainClass;
     }
 
-    @Override
     @Nonnull
     public List<String> getArgs() {
-        return applicationArgsSpec.getArgs();
+        return execHandleBuilder.getArgs();
     }
 
-    @Override
     public JavaExecHandleBuilder setArgs(List<String> applicationArgs) {
-        applicationArgsSpec.setArgs(applicationArgs);
+        execHandleBuilder.setArgs(applicationArgs);
         return this;
     }
 
-    @Override
     public JavaExecHandleBuilder setArgs(Iterable<?> applicationArgs) {
-        applicationArgsSpec.setArgs(applicationArgs);
+        execHandleBuilder.setArgs(applicationArgs);
         return this;
     }
 
-    @Override
     public JavaExecHandleBuilder args(Object... args) {
-        applicationArgsSpec.args(args);
+        execHandleBuilder.args(args);
         return this;
     }
 
-    @Override
-    public JavaExecSpec args(Iterable<?> args) {
-        applicationArgsSpec.args(args);
+    public JavaExecHandleBuilder args(Iterable<?> args) {
+        execHandleBuilder.args(args);
         return this;
     }
 
-    @Override
     public List<CommandLineArgumentProvider> getArgumentProviders() {
-        return applicationArgsSpec.getArgumentProviders();
+        return execHandleBuilder.getArgumentProviders();
     }
 
-    @Override
     public JavaExecHandleBuilder setClasspath(FileCollection classpath) {
         // we need to create a new file collection container to avoid cycles. See: https://github.com/gradle/gradle/issues/8755
         ConfigurableFileCollection newClasspath = fileCollectionFactory.configurableFiles("classpath");
@@ -345,35 +297,120 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
         return this;
     }
 
-    @Override
     public ModularitySpec getModularity() {
         return modularity;
     }
 
-    @Override
     public JavaExecHandleBuilder classpath(Object... paths) {
         this.classpath.from(paths);
         return this;
     }
 
-    @Override
     public FileCollection getClasspath() {
         return classpath;
     }
 
-    @Override
     public List<String> getAllArguments() {
         return getAllArguments(this.classpath);
     }
 
     private List<String> getAllArguments(FileCollection realClasspath) {
         List<String> arguments = new ArrayList<>(getAllJvmArgs(realClasspath));
-        arguments.addAll(applicationArgsSpec.getAllArguments());
+        arguments.addAll(execHandleBuilder.getAllArguments());
         return arguments;
     }
 
+    public List<CommandLineArgumentProvider> getJvmArgumentProviders() {
+        return javaOptions.getJvmArgumentProviders();
+    }
+
+    public void setStandardInput(InputStream inputStream) {
+        execHandleBuilder.setStandardInput(inputStream);
+    }
+
+    public InputStream getStandardInput() {
+        return execHandleBuilder.getStandardInput();
+    }
+
+    public OutputStream getStandardOutput() {
+        return execHandleBuilder.getStandardOutput();
+    }
+
     @Override
-    protected List<String> getEffectiveArguments() {
+    public BaseExecHandleBuilder setStandardOutput(OutputStream outputStream) {
+        return execHandleBuilder.setStandardOutput(outputStream);
+    }
+
+    public OutputStream getErrorOutput() {
+        return execHandleBuilder.getErrorOutput();
+    }
+
+    @Override
+    public BaseExecHandleBuilder setErrorOutput(OutputStream outputStream) {
+        return execHandleBuilder.setErrorOutput(outputStream);
+    }
+
+    public List<String> getCommandLine() {
+        List<String> commandLine = new ArrayList<>();
+        commandLine.add(getExecutable());
+        commandLine.addAll(getAllArguments());
+        return commandLine;
+    }
+
+    @Override
+    public String getExecutable() {
+        return execHandleBuilder.getExecutable();
+    }
+
+    @Override
+    public void setExecutable(Object executable) {
+        execHandleBuilder.setExecutable(Objects.toString(executable));
+    }
+
+    public void setExecutable(String executable) {
+        execHandleBuilder.setExecutable(executable);
+    }
+
+    public File getWorkingDir() {
+        return execHandleBuilder.getWorkingDir();
+    }
+
+    public void setWorkingDir(Object dir) {
+        execHandleBuilder.setWorkingDir(dir);
+    }
+
+    public void setWorkingDir(File dir) {
+        execHandleBuilder.setWorkingDir(dir);
+    }
+
+    public Map<String, Object> getEnvironment() {
+        return execHandleBuilder.getEnvironment();
+    }
+
+    public void setEnvironment(Map<String, ?> environmentVariables) {
+        execHandleBuilder.setEnvironment(environmentVariables);
+    }
+
+    public void environment(Map<String, ?> environmentVariables) {
+        execHandleBuilder.environment(environmentVariables);
+    }
+
+    public void environment(String name, Object value) {
+        execHandleBuilder.environment(name, value);
+    }
+
+    @Override
+    public JavaExecHandleBuilder listener(ExecHandleListener listener) {
+        execHandleBuilder.listener(listener);
+        return this;
+    }
+
+    @Override
+    public BaseExecHandleBuilder setDisplayName(String displayName) {
+        return execHandleBuilder.setDisplayName(displayName);
+    }
+
+    private List<String> getEffectiveArguments() {
         List<String> arguments = getAllArguments();
 
         // Try to shorten command-line if necessary
@@ -410,39 +447,12 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
         return manifest;
     }
 
-    @Override
-    public JavaForkOptions copyTo(JavaForkOptions options) {
-        throw new UnsupportedOperationException();
+    public JavaForkOptions getJavaForkOptions() {
+        return javaOptions;
     }
 
     @Override
-    public JavaExecHandleBuilder setIgnoreExitValue(boolean ignoreExitValue) {
-        super.setIgnoreExitValue(ignoreExitValue);
-        return this;
-    }
-
-    @Override
-    public List<CommandLineArgumentProvider> getJvmArgumentProviders() {
-        return javaOptions.getJvmArgumentProviders();
-    }
-
-    @Override
-    public void setExtraJvmArgs(Iterable<?> jvmArgs) {
-        javaOptions.setExtraJvmArgs(jvmArgs);
-    }
-
-    @Override
-    public Iterable<?> getExtraJvmArgs() {
-        return javaOptions.getExtraJvmArgs();
-    }
-
-    @Override
-    public void checkDebugConfiguration(Iterable<?> arguments) {
-        javaOptions.checkDebugConfiguration(arguments);
-    }
-
-    @Override
-    public EffectiveJavaForkOptions toEffectiveJavaForkOptions(FileCollectionFactory fileCollectionFactory) {
-        return javaOptions.toEffectiveJavaForkOptions(fileCollectionFactory);
+    public ExecHandle build() {
+        return execHandleBuilder.buildWithEffectiveArguments(getEffectiveArguments());
     }
 }

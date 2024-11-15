@@ -252,7 +252,7 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
             NativeServicesTestFixture.initialize();
             GradleInvocation invocation = buildInvocation();
             JavaExecHandleBuilder builder = TestFiles.execFactory().newJavaExec();
-            builder.workingDir(getWorkingDir());
+            builder.setWorkingDir(getWorkingDir());
             builder.setExecutable(new File(getJavaHomeLocation(), "bin/java"));
             builder.classpath(getExecHandleFactoryClasspath());
             builder.jvmArgs(invocation.launcherJvmArgs);

@@ -20,7 +20,14 @@ import java.io.OutputStream;
 
 public interface BaseExecHandleBuilder {
 
+    BaseExecHandleBuilder setDisplayName(String displayName);
     BaseExecHandleBuilder setStandardOutput(OutputStream outputStream);
     BaseExecHandleBuilder setErrorOutput(OutputStream outputStream);
+
+    /**
+     * Adds a listener to the list of ExecHandle listeners..
+     */
+    BaseExecHandleBuilder listener(ExecHandleListener listener);
+
     ExecHandle build();
 }
