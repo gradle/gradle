@@ -412,7 +412,7 @@ class DefaultConfigurationCache internal constructor(
             when (val result = checkCandidate(candidate)) {
                 is CheckedFingerprint.Valid -> {
                     currentCandidateEntries = updateMostRecentEntries(candidate, candidates)
-                    CheckedFingerprint.Found(candidate.id)
+                    return@withFingerprintCheckOperations CheckedFingerprint.Found(candidate.id)
                 }
 
                 is CheckedFingerprint.EntryInvalid,
