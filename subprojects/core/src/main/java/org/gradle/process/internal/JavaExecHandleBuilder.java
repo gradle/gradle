@@ -16,6 +16,7 @@
 package org.gradle.process.internal;
 
 import org.gradle.api.Action;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -57,6 +58,7 @@ import static org.gradle.process.internal.util.LongCommandLineDetectionUtil.hasC
 /**
  * Use {@link JavaExecHandleFactory} instead.
  */
+@NonNullApi
 public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgumentsSpec.HasExecutable {
     private static final Logger LOGGER = Logging.getLogger(JavaExecHandleBuilder.class);
     private final FileCollectionFactory fileCollectionFactory;
@@ -407,7 +409,7 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
     }
 
     @Override
-    public BaseExecHandleBuilder setDisplayName(String displayName) {
+    public BaseExecHandleBuilder setDisplayName(@Nullable String displayName) {
         return execHandleBuilder.setDisplayName(displayName);
     }
 

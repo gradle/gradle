@@ -20,7 +20,6 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.process.ExecResult
 import org.gradle.process.internal.ClientExecHandleBuilder
 import org.gradle.process.internal.ExecHandle
-import org.gradle.process.internal.ExecHandleBuilder
 
 class ScriptExecuter {
     @Delegate

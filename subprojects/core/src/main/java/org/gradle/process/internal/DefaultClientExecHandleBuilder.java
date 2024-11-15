@@ -17,6 +17,7 @@
 package org.gradle.process.internal;
 
 import com.google.common.collect.Maps;
+import org.gradle.api.NonNullApi;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.process.CommandLineArgumentProvider;
@@ -25,6 +26,7 @@ import org.gradle.process.internal.streams.ForwardStdinStreamsHandler;
 import org.gradle.process.internal.streams.OutputStreamsForwarder;
 import org.gradle.process.internal.streams.SafeStreams;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -35,6 +37,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.Executor;
 
+@NonNullApi
 public class DefaultClientExecHandleBuilder implements ClientExecHandleBuilder, ProcessArgumentsSpec.HasExecutable {
 
     private static final EmptyStdInStreamsHandler DEFAULT_STDIN = new EmptyStdInStreamsHandler();
@@ -107,7 +110,7 @@ public class DefaultClientExecHandleBuilder implements ClientExecHandleBuilder, 
     }
 
     @Override
-    public ClientExecHandleBuilder setDisplayName(String displayName) {
+    public ClientExecHandleBuilder setDisplayName(@Nullable String displayName) {
         this.displayName = displayName;
         return this;
     }
@@ -252,7 +255,7 @@ public class DefaultClientExecHandleBuilder implements ClientExecHandleBuilder, 
         return effectiveEnvironment;
     }
 
-    private static StreamsHandler getEffectiveStreamsHandler(StreamsHandler streamsHandler, ProcessStreamsSpec streamsSpec, boolean redirectErrorStream) {
+    private static StreamsHandler getEffectiveStreamsHandler(@Nullable StreamsHandler streamsHandler, ProcessStreamsSpec streamsSpec, boolean redirectErrorStream) {
         if (streamsHandler != null) {
             return streamsHandler;
         }

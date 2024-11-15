@@ -16,14 +16,17 @@
 
 package org.gradle.process.internal;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.process.CommandLineArgumentProvider;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
 
+@NonNullApi
 public interface ClientExecHandleBuilder extends BaseExecHandleBuilder {
     ClientExecHandleBuilder commandLine(Iterable<?> args);
 
@@ -42,7 +45,7 @@ public interface ClientExecHandleBuilder extends BaseExecHandleBuilder {
     ClientExecHandleBuilder redirectErrorStream();
 
     @Override
-    ClientExecHandleBuilder setDisplayName(String displayName);
+    ClientExecHandleBuilder setDisplayName(@Nullable String displayName);
 
     ClientExecHandleBuilder setDaemon(boolean daemon);
 
@@ -78,9 +81,9 @@ public interface ClientExecHandleBuilder extends BaseExecHandleBuilder {
 
     List<CommandLineArgumentProvider> getArgumentProviders();
 
-    void setEnvironment(Map<String,?> environmentVariables);
+    void setEnvironment(Map<String, ?> environmentVariables);
 
-    void environment(Map<String,?> environmentVariables);
+    void environment(Map<String, ?> environmentVariables);
 
     InputStream getStandardInput();
 

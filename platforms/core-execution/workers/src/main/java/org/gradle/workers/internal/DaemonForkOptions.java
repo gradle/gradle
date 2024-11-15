@@ -18,7 +18,6 @@ package org.gradle.workers.internal;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
-import org.gradle.process.JavaForkOptions;
 import org.gradle.process.internal.EffectiveJavaForkOptions;
 import org.gradle.process.internal.EffectiveJavaForkOptions.ReadOnlyJvmOptions;
 import org.gradle.process.internal.JavaExecHandleBuilder;

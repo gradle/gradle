@@ -16,9 +16,11 @@
 
 package org.gradle.process.internal;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
+@NonNullApi
 @ServiceScope(Scope.Global.class)
 public interface ClientExecHandleFactory {
     ClientExecHandleBuilder newExec();
