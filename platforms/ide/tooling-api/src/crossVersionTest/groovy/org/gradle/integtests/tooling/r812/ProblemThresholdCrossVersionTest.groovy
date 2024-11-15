@@ -28,7 +28,6 @@ import org.gradle.tooling.events.problems.SingleProblemEvent
 
 import static org.gradle.api.problems.ReportingScript.getProblemReportingScript
 import static org.gradle.integtests.tooling.r86.ProblemsServiceModelBuilderCrossVersionTest.getBuildScriptSampleContent
-import static org.gradle.integtests.tooling.r89.ProblemProgressEventCrossVersionTest.ProblemProgressListener
 import static org.gradle.integtests.tooling.r89.ProblemProgressEventCrossVersionTest.failureMessage
 import static org.gradle.problems.internal.services.DefaultProblemSummarizer.THRESHOLD_DEFAULT_VALUE
 import static org.gradle.problems.internal.services.DefaultProblemSummarizer.THRESHOLD_OPTION
@@ -199,11 +198,34 @@ class ProblemThresholdCrossVersionTest extends ToolingApiSpecification {
 
     boolean validateNToMProblems(int startAt, int totalSentEventsCount, Collection<SingleProblemEvent> problems, String id = "label", String group = "Generic") {
         (startAt..totalSentEventsCount - 1).every { int index ->
-            problems[index].definition.id.displayName == id &&
-                problems[index].definition.id.group.displayName == group
+            problems[index].problem.definition.id.displayName == id &&
+                problems[index].problem.definition.id.group.displayName == group
         }
     }
 
+    static class ProblemProgressListener implements ProgressListener {
+        List<SingleProblemEvent> problems = []
+        ProblemSummariesEvent summariesEvent = null
+
+
+        @Override
+        void statusChanged(ProgressEvent event) {
+            if (event instanceof SingleProblemEvent) {
+                def singleProblem = event as SingleProblemEvent
+
+                // Ignore problems caused by the minimum JVM version deprecation.
+                // These are emitted intermittently depending on the version of Java used to run the test.
+                if (singleProblem.problem.definition.id.name == "executing-gradle-on-jvm-versions-and-lower") {
+                    return
+                }
+
+                this.problems.add(event)
+            } else if (event instanceof ProblemSummariesEvent) {
+                assert summariesEvent == null, "already received a ProblemsSummariesEvent, there should only be one"
+                summariesEvent = event
+            }
+        }
+    }
     String getProblemReportingBody(int threshold, String category = "testcategory", String label = "label") {
         """($threshold).times {
                  problems.getReporter().reporting {

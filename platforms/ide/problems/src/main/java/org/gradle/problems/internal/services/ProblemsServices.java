@@ -29,7 +29,6 @@ public class ProblemsServices extends AbstractGradleModuleServices {
     @Override
     public void registerBuildTreeServices(ServiceRegistration registration) {
         registration.addProvider(new ProblemsBuildTreeServices());
-//        registration.add(DefaultProblemSummarizer.class);
     }
 
     @Override
