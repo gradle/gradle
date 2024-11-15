@@ -49,7 +49,7 @@ class MethodReferenceInstrumentationIntegrationTest extends AbstractConfiguratio
                         $consumerStatement
                     }
 
-                    private static String readIS(InputStream in) throws Exception {
+                    static String readIS(InputStream in) throws Exception {
                         return new BufferedReader(new InputStreamReader(in, "UTF-8")).readLine();
                     }
                 }
