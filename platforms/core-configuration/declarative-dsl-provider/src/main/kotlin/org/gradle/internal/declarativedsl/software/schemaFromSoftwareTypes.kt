@@ -170,7 +170,6 @@ class RuntimeModelTypeAccessors(
     private
     fun applySoftwareTypePlugin(receiverObject: Any, softwareType: SoftwareTypeImplementation<*>, softwareFeatureApplicator: SoftwareFeatureApplicator): Any {
         require(receiverObject is ProjectInternal) { "unexpected receiver, expected a ProjectInternal instance, got $receiverObject" }
-        receiverObject.pluginManager.apply(softwareType.pluginClass)
         return softwareFeatureApplicator.applyFeatureTo(receiverObject, softwareType)
     }
 }

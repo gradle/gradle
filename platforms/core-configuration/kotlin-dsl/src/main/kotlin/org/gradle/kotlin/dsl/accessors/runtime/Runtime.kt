@@ -160,8 +160,6 @@ fun applySoftwareType(
     configure: Action<in Any>
 ) {
     val softwareType = project.serviceOf<SoftwareTypeRegistry>().softwareTypeImplementations.getValue(name)
-    val pluginClass = softwareType.pluginClass
-    project.pluginManager.apply(pluginClass)
     project.serviceOf<SoftwareFeatureApplicator>().applyFeatureTo(project, softwareType)
     configure.invoke(getSoftwareTypeModelInstance(softwareType, project as ProjectInternal))
 }
