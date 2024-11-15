@@ -120,6 +120,7 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
 
         then:
         fixture.assertModelStored {
+            runsTasks = true
             // TODO:isolated desired behavior
 //            projectsConfigured(":buildSrc", ":")
             projectsConfigured(":buildSrc", ":", ":a", ":b")
@@ -133,7 +134,9 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
         fetchModel(SomeToolingModel, ":dummyTask")
 
         then:
-        fixture.assertModelLoaded()
+        fixture.assertModelLoaded {
+            runsTasks = true
+        }
         outputDoesNotContain("Configuration of dummyTask")
         outputDoesNotContain("creating model")
         outputContains("Execution of dummyTask")
@@ -163,6 +166,7 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
 
         then:
         fixture.assertModelStored {
+            runsTasks = true
             projectsConfigured(":buildSrc", ":")
             modelsCreated(":")
         }
@@ -174,7 +178,9 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
         fetchModel(SomeToolingModel, ":dummyTask")
 
         then:
-        fixture.assertModelLoaded()
+        fixture.assertModelLoaded {
+            runsTasks = true
+        }
         outputDoesNotContain("Configuration of dummyTask")
         outputDoesNotContain("creating model")
         outputContains("Execution of dummyTask")
@@ -207,6 +213,7 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
         then:
         executed(":dummyTask")
         fixture.assertModelStored {
+            runsTasks = true
             projectsConfigured(":buildSrc", ":")
             modelsCreated(":")
         }
