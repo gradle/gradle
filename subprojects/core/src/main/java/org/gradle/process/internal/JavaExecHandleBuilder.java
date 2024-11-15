@@ -31,6 +31,7 @@ import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.JavaDebugOptions;
 import org.gradle.process.JavaForkOptions;
+import org.gradle.process.internal.EffectiveJavaForkOptions.ReadOnlyJvmOptions;
 import org.gradle.util.internal.CollectionUtils;
 
 import javax.annotation.Nonnull;
@@ -447,8 +448,17 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
         return manifest;
     }
 
-    public JavaForkOptions getJavaForkOptions() {
-        return javaOptions;
+    public JavaExecHandleBuilder redirectErrorStream() {
+        execHandleBuilder.redirectErrorStream();
+        return this;
+    }
+
+    public void copyJavaForkOptions(JavaForkOptions source) {
+        source.copyTo(javaOptions);
+    }
+
+    public void copyJavaForkOptions(ReadOnlyJvmOptions source) {
+        source.copyTo(javaOptions);
     }
 
     @Override

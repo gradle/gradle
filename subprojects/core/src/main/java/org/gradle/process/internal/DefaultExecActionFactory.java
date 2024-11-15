@@ -52,7 +52,7 @@ public abstract class DefaultExecActionFactory implements ExecFactory {
     @Nullable
     protected final JavaModuleDetector javaModuleDetector;
     protected final BuildCancellationToken buildCancellationToken;
-    private final ClientExecHandleFactory clientExecHandleFactory;
+    protected final ClientExecHandleFactory clientExecHandleFactory;
 
     private DefaultExecActionFactory(
         FileResolver fileResolver,
@@ -313,17 +313,7 @@ public abstract class DefaultExecActionFactory implements ExecFactory {
         public JavaExecAction newDecoratedJavaExecAction() {
             final JavaForkOptionsInternal forkOptions = newDecoratedJavaForkOptions();
             forkOptions.setExecutable(Jvm.current().getJavaExecutable());
-            DefaultJavaExecAction javaExecAction = instantiator.newInstance(
-                DefaultJavaExecAction.class,
-                fileResolver,
-                fileCollectionFactory,
-                objectFactory,
-                executor,
-                buildCancellationToken,
-                temporaryFileProvider,
-                javaModuleDetector,
-                forkOptions
-            );
+            DefaultJavaExecAction javaExecAction = instantiator.newInstance(DefaultJavaExecAction.class, newJavaExec());
             ExecHandleListener listener = getExecHandleListener();
             if (listener != null) {
                 javaExecAction.listener(listener);

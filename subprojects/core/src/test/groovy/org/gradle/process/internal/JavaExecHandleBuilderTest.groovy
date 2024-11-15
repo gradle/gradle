@@ -29,8 +29,6 @@ import spock.lang.Specification
 
 import java.nio.charset.Charset
 
-import static java.util.Arrays.asList
-
 class JavaExecHandleBuilderTest extends Specification {
     @Rule
     final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())

@@ -392,7 +392,8 @@ public class DefaultJavaExecAction implements JavaExecAction {
         return this;
     }
 
-    public DefaultJavaExecAction listener(ExecHandleListener listener) {
+    @Override
+    public JavaExecAction listener(ExecHandleListener listener) {
         javaExecHandleBuilder.listener(listener);
         return this;
     }

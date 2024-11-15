@@ -82,12 +82,6 @@ public class DefaultClientExecHandleBuilder implements ClientExecHandleBuilder, 
     }
 
     @Override
-    public ClientExecHandleBuilder setWorkingDir(File dir) {
-        this.workingDir = dir;
-        return this;
-    }
-
-    @Override
     public ClientExecHandleBuilder setStandardInput(InputStream inputStream) {
         streamsSpec.setStandardInput(inputStream);
         this.inputHandler = new ForwardStdinStreamsHandler(inputStream);
@@ -176,11 +170,6 @@ public class DefaultClientExecHandleBuilder implements ClientExecHandleBuilder, 
     }
 
     @Override
-    public File getWorkingDir() {
-        return workingDir;
-    }
-
-    @Override
     public void setExecutable(Object executable) {
         setExecutable(Objects.toString(executable));
     }
@@ -239,8 +228,20 @@ public class DefaultClientExecHandleBuilder implements ClientExecHandleBuilder, 
     }
 
     @Override
+    public File getWorkingDir() {
+        return workingDir;
+    }
+
+    @Override
+    public ClientExecHandleBuilder setWorkingDir(File dir) {
+        this.workingDir = fileResolver.resolve(dir);
+        return this;
+    }
+
+    @Override
     public ClientExecHandleBuilder setWorkingDir(Object dir) {
-        return setWorkingDir(fileResolver.resolve(dir));
+        this.workingDir = fileResolver.resolve(dir);
+        return this;
     }
 
     private static Map<String, String> getEffectiveEnvironment(Map<String, Object> environment) {
