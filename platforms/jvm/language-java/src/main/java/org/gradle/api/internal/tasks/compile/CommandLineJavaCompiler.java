@@ -74,7 +74,6 @@ public class CommandLineJavaCompiler implements Compiler<JavaCompileSpec>, Seria
                 return this;
             }
         });
-        builder.setIgnoreExitValue(true);
         return builder.build();
     }
 

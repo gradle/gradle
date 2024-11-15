@@ -17,8 +17,9 @@
 package org.gradle.process.internal;
 
 import com.google.common.collect.Maps;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.initialization.BuildCancellationToken;
+import org.gradle.internal.file.PathToFileResolver;
+import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.internal.streams.EmptyStdInStreamsHandler;
 import org.gradle.process.internal.streams.ForwardStdinStreamsHandler;
 import org.gradle.process.internal.streams.OutputStreamsForwarder;
@@ -42,12 +43,11 @@ public class DefaultClientExecHandleBuilder implements ClientExecHandleBuilder, 
     private final List<ExecHandleListener> listeners;
     private final ProcessStreamsSpec streamsSpec;
     private final ProcessArgumentsSpec argumentsSpec;
-    private final FileResolver fileResolver;
+    private final PathToFileResolver fileResolver;
     private final Map<String, Object> environment;
 
     private StreamsHandler inputHandler = DEFAULT_STDIN;
     private String displayName;
-    private boolean ignoreExitValue;
     private boolean redirectErrorStream;
     private StreamsHandler streamsHandler;
     private int timeoutMillis = Integer.MAX_VALUE;
@@ -56,7 +56,7 @@ public class DefaultClientExecHandleBuilder implements ClientExecHandleBuilder, 
     private String executable;
     private File workingDir;
 
-    public DefaultClientExecHandleBuilder(FileResolver fileResolver, Executor executor, BuildCancellationToken buildCancellationToken) {
+    public DefaultClientExecHandleBuilder(PathToFileResolver fileResolver, Executor executor, BuildCancellationToken buildCancellationToken) {
         this.buildCancellationToken = buildCancellationToken;
         this.executor = executor;
         this.listeners = new ArrayList<>();
@@ -171,12 +171,6 @@ public class DefaultClientExecHandleBuilder implements ClientExecHandleBuilder, 
     }
 
     @Override
-    public ClientExecHandleBuilder setIgnoreExitValue(boolean ignoreExitValue) {
-        this.ignoreExitValue = ignoreExitValue;
-        return this;
-    }
-
-    @Override
     public String getExecutable() {
         return executable;
     }
@@ -194,6 +188,12 @@ public class DefaultClientExecHandleBuilder implements ClientExecHandleBuilder, 
     @Override
     public ClientExecHandleBuilder setExecutable(String executable) {
         this.executable = executable;
+        return this;
+    }
+
+    @Override
+    public ClientExecHandleBuilder listener(ExecHandleListener listener) {
+        listeners.add(listener);
         return this;
     }
 
@@ -219,6 +219,52 @@ public class DefaultClientExecHandleBuilder implements ClientExecHandleBuilder, 
             executor,
             buildCancellationToken
         );
+    }
+
+    @Override
+    public OutputStream getErrorOutput() {
+        return streamsSpec.getErrorOutput();
+    }
+
+    @Override
+    public List<String> getCommandLine() {
+        return argumentsSpec.getCommandLine();
+    }
+
+    @Override
+    public OutputStream getStandardOutput() {
+        return streamsSpec.getStandardOutput();
+    }
+
+    @Override
+    public List<String> getAllArguments() {
+        return argumentsSpec.getAllArguments();
+    }
+
+    @Override
+    public List<CommandLineArgumentProvider> getArgumentProviders() {
+        return argumentsSpec.getArgumentProviders();
+    }
+
+    @Override
+    public void setEnvironment(Map<String, ?> environmentVariables) {
+        environment.clear();
+        environment.putAll(environmentVariables);
+    }
+
+    @Override
+    public void environment(Map<String, ?> environmentVariables) {
+        environment.putAll(environmentVariables);
+    }
+
+    @Override
+    public InputStream getStandardInput() {
+        return streamsSpec.getStandardInput();
+    }
+
+    @Override
+    public ClientExecHandleBuilder setWorkingDir(Object dir) {
+        return setWorkingDir(fileResolver.resolve(dir));
     }
 
     private static Map<String, String> getEffectiveEnvironment(Map<String, Object> environment) {

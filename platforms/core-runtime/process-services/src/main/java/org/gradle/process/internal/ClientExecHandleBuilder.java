@@ -16,6 +16,8 @@
 
 package org.gradle.process.internal;
 
+import org.gradle.process.CommandLineArgumentProvider;
+
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -57,13 +59,34 @@ public interface ClientExecHandleBuilder {
 
     ClientExecHandleBuilder setArgs(Iterable<?> args);
 
-    ClientExecHandleBuilder setIgnoreExitValue(boolean ignoreExitValue);
-
     ClientExecHandleBuilder setExecutable(String executable);
+
+    /**
+     * Adds a listener to the list of ExecHandle listeners..
+     */
+    ClientExecHandleBuilder listener(ExecHandleListener listener);
 
     String getExecutable();
 
     File getWorkingDir();
 
     ExecHandle build();
+
+    OutputStream getErrorOutput();
+
+    List<String> getCommandLine();
+
+    OutputStream getStandardOutput();
+
+    List<String> getAllArguments();
+
+    List<CommandLineArgumentProvider> getArgumentProviders();
+
+    void setEnvironment(Map<String,?> environmentVariables);
+
+    void environment(Map<String,?> environmentVariables);
+
+    InputStream getStandardInput();
+
+    ClientExecHandleBuilder setWorkingDir(Object dir);
 }

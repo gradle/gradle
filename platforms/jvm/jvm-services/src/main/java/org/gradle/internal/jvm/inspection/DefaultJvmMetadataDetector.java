@@ -109,7 +109,6 @@ public class DefaultJvmMetadataDetector implements JvmMetadataDetector {
             exec.args("-Xmx32m", "-Xms32m", "-cp", ".", mainClassname);
             exec.setStandardOutput(out);
             exec.setErrorOutput(errorOutput);
-            exec.setIgnoreExitValue(true);
             ExecResult result = exec.build().start().waitForFinish();
             int exitValue = result.getExitValue();
             if (exitValue == 0) {
