@@ -23,7 +23,7 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val groovyVersion = if (isBundleGroovy4) "4.0.22" else "3.0.22"
     val groovyGroup = if (isBundleGroovy4) "org.apache.groovy" else "org.codehaus.groovy"
 
-    val configurationCacheReportVersion = "1.22"
+    val configurationCacheReportVersion = "1.23"
     val gradleIdeStarterVersion = "0.3"
     val kotlinVersion = "2.0.21"
 
