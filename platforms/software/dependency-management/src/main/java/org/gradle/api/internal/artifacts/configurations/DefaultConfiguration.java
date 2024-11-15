@@ -1257,7 +1257,11 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         copiedConfiguration.declarationAlternatives = declarationAlternatives;
         copiedConfiguration.resolutionAlternatives = resolutionAlternatives;
 
-        copiedConfiguration.getArtifacts().addAll(getAllArtifacts());
+        DeprecationLogger.whileDisabled(() -> {
+            // We can remove this in 9.0 -- the copied configuration will
+            // no longer have the artifacts of the original configuration.
+            copiedConfiguration.getArtifacts().addAll(getAllArtifacts());
+        });
 
         if (!configurationAttributes.isEmpty()) {
             for (Attribute<?> attribute : configurationAttributes.keySet()) {

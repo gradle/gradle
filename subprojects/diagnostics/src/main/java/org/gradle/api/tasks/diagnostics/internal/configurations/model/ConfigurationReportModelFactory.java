@@ -31,6 +31,7 @@ import org.gradle.api.internal.artifacts.configurations.VariantIdentityUniquenes
 import org.gradle.api.internal.attributes.DefaultCompatibilityRuleChain;
 import org.gradle.api.internal.attributes.DefaultDisambiguationRuleChain;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -102,15 +103,22 @@ public final class ConfigurationReportModelFactory {
             capabilities = explicitCapabilities;
         }
 
-        final List<ReportArtifact> artifacts = configuration.getAllArtifacts().stream()
-            .map(a -> convertPublishArtifact(a, fileResolver))
-            .sorted(Comparator.comparing(ReportArtifact::getDisplayName))
-            .collect(Collectors.toList());
+        // Avoid deprecations when querying the artifacts of a configuration.
+        // This allows us to report on the artifacts + variants of configurations
+        // deprecated for consumption.
+        final List<ReportArtifact> artifacts = DeprecationLogger.whileDisabled(() ->
+            configuration.getAllArtifacts().stream()
+                .map(a -> convertPublishArtifact(a, fileResolver))
+                .sorted(Comparator.comparing(ReportArtifact::getDisplayName))
+                .collect(Collectors.toList())
+        );
 
-        final List<ReportSecondaryVariant> variants = configuration.getOutgoing().getVariants().stream()
-            .map(v -> convertConfigurationVariant(v, fileResolver, project.getDependencies().getAttributesSchema()))
-            .sorted(Comparator.comparing(ReportSecondaryVariant::getName))
-            .collect(Collectors.toList());
+        final List<ReportSecondaryVariant> variants = DeprecationLogger.whileDisabled(() ->
+            configuration.getOutgoing().getVariants().stream()
+                .map(v -> convertConfigurationVariant(v, fileResolver, project.getDependencies().getAttributesSchema()))
+                .sorted(Comparator.comparing(ReportSecondaryVariant::getName))
+                .collect(Collectors.toList())
+        );
 
         final ReportConfiguration.Type type;
         if (configuration.isCanBeConsumed() && configuration.isCanBeResolved()) {

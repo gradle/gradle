@@ -165,6 +165,15 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
     @Override
     public NamedDomainObjectContainer<ConfigurationVariant> getVariants() {
         if (variants == null) {
+
+            if (owner.isDeprecatedForConsumption()) {
+                DeprecationLogger.deprecateBehaviour("Adding variants to " + owner.getDisplayName() + ".")
+                    .withContext(owner.getDisplayName() + " is deprecated for consumption. Artifacts and variants should not be added to non-consumable configurations.")
+                    .willBecomeAnErrorInGradle9()
+                    .withUpgradeGuideSection(8, "deprecated_configuration_usage")
+                    .nagUser();
+            }
+
             // Create variants container only as required
             variantFactory = new ConfigurationVariantFactory();
             variants = domainObjectCollectionFactory.newNamedDomainObjectContainer(ConfigurationVariant.class, variantFactory);

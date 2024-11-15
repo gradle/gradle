@@ -90,6 +90,11 @@ class BuildscriptResolutionIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
+        executer.expectDocumentedDeprecationWarning("""Calling configuration method 'getArtifacts()' is deprecated for configuration 'classpath', which has permitted usage(s):
+\tConsumable - this configuration can be selected by another project as a dependency (but this behavior is marked deprecated)
+\tResolvable - this configuration can be resolved by this project to a set of files
+\tDeclarable - this configuration can have dependencies added to it
+This method is only meant to be called on configurations which allow the (non-deprecated) usage(s): 'Consumable'. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_configuration_usage""")
         2.times {
             // Once when resolving the classpath normally, once when re-resolving
             executer.expectDocumentedDeprecationWarning("The classpath configuration has been deprecated for consumption. This will fail with an error in Gradle 9.0. For more information, please refer to https://docs.gradle.org/current/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.")
