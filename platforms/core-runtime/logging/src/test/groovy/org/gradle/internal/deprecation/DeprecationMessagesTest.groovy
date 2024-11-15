@@ -17,25 +17,23 @@
 package org.gradle.internal.deprecation
 
 import org.gradle.api.internal.DocumentationRegistry
+import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.api.problems.Severity
 import org.gradle.api.problems.internal.DefaultDeprecationData
 import org.gradle.api.problems.internal.DefaultProblem
 import org.gradle.api.problems.internal.DefaultProblemDefinition
 import org.gradle.api.problems.internal.DefaultProblemId
-import org.gradle.api.problems.internal.DefaultProblems
 import org.gradle.api.problems.internal.DeprecationData
-import org.gradle.api.problems.internal.ExceptionProblemRegistry
 import org.gradle.api.problems.internal.GradleCoreProblemGroup
-import org.gradle.api.problems.internal.ProblemSummarizer
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.internal.logging.CollectingTestOutputEventListener
 import org.gradle.internal.logging.ConfigureLogging
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter
-import org.gradle.internal.operations.CurrentBuildOperationRef
-import org.gradle.internal.operations.OperationIdentifier
 import org.gradle.internal.problems.NoOpProblemDiagnosticsFactory
 import org.gradle.util.GradleVersion
+import org.gradle.util.TestProblems
+import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -48,27 +46,22 @@ class DeprecationMessagesTest extends Specification {
     private static final DOCUMENTATION_REGISTRY = new DocumentationRegistry()
 
     private final CollectingTestOutputEventListener outputEventListener = new CollectingTestOutputEventListener()
-
     @Rule
     private final ConfigureLogging logging = new ConfigureLogging(outputEventListener)
 
-    private ProblemSummarizer problemEmitter
-    private identifier = new OperationIdentifier(2)
+    private TestProblems problemsService
 
     def setup() {
         def diagnosticsFactory = new NoOpProblemDiagnosticsFactory()
-
-        problemEmitter = Mock(ProblemSummarizer)
-        def currentBuildRef = Mock(CurrentBuildOperationRef)
-
-        currentBuildRef.getId() >> identifier
-
+        problemsService = TestUtil.problemsService()
+        problemsService.recordEmittedProblems()
         def buildOperationProgressEventEmitter = Mock(BuildOperationProgressEventEmitter)
-        DeprecationLogger.init(WarningMode.All, buildOperationProgressEventEmitter, new DefaultProblems(problemEmitter, null, currentBuildRef, new ExceptionProblemRegistry(), null), diagnosticsFactory.newUnlimitedStream())
+        DeprecationLogger.init(WarningMode.All, buildOperationProgressEventEmitter, problemsService, diagnosticsFactory.newUnlimitedStream())
     }
 
     def cleanup() {
         DeprecationLogger.reset()
+        problemsService.resetRecordedProblems()
     }
 
 
@@ -85,7 +78,7 @@ class DeprecationMessagesTest extends Specification {
         then:
         expectMessage "$summary This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}."
 
-        1 * problemEmitter.emit({ it.definition.id.displayName == 'Summary is deprecated.' }, identifier)
+        problemsService.assertProblemEmittedOnce({ it.definition.id.displayName == 'Summary is deprecated.' })
     }
 
     def "logs deprecation message with custom problem id"() {
@@ -101,7 +94,7 @@ class DeprecationMessagesTest extends Specification {
         then:
         expectMessage "$summary This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}."
 
-        1 * problemEmitter.emit({ it.definition.id.displayName == 'summary deprecation' }, identifier)
+        problemsService.assertProblemEmittedOnce({ it.definition.id.displayName == 'summary deprecation' })
     }
 
     def createProblem(deprecationDisplayName) {
@@ -423,7 +416,7 @@ class DeprecationMessagesTest extends Specification {
     }
 
     private void expectMessage(String expectedMessage) {
-        def events = outputEventListener.events
+        def events = outputEventListener.events.findAll {it.logLevel == LogLevel.WARN }
         events.size() == 1
         assert events[0].message == expectedMessage
     }
