@@ -56,7 +56,7 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.UnknownProjectFinder;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultConfigurationResolver;
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager;
 import org.gradle.api.internal.artifacts.ivyservice.ResolutionExecutor;
-import org.gradle.api.internal.artifacts.ivyservice.ShortCircuitEmptyConfigurationResolver;
+import org.gradle.api.internal.artifacts.ivyservice.ShortCircuitingResolutionExecutor;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolverProviderFactories;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModuleMetadataParser;
@@ -611,13 +611,14 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             ResolutionExecutor resolutionExecutor,
             AttributeDesugaring attributeDesugaring
         ) {
-            ConfigurationResolver defaultResolver = new DefaultConfigurationResolver(
-                repositoriesSupplier,
-                resolutionExecutor
+            ShortCircuitingResolutionExecutor shortCircuitingResolutionExecutor = new ShortCircuitingResolutionExecutor(
+                resolutionExecutor,
+                attributeDesugaring
             );
 
-            return new ShortCircuitEmptyConfigurationResolver(
-                defaultResolver,
+            return new DefaultConfigurationResolver(
+                repositoriesSupplier,
+                shortCircuitingResolutionExecutor,
                 attributeDesugaring
             );
         }

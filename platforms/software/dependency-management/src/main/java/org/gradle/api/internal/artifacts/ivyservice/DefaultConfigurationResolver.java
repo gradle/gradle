@@ -16,52 +16,92 @@
 
 package org.gradle.api.internal.artifacts.ivyservice;
 
+import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
+import org.gradle.api.internal.artifacts.DefaultResolverResults;
 import org.gradle.api.internal.artifacts.RepositoriesSupplier;
-import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.ResolverResults;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.DefaultVisitedGraphResults;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolutionResultGraphBuilder;
 import org.gradle.api.internal.artifacts.repositories.ContentFilteringRepository;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
+import org.gradle.api.internal.artifacts.result.MinimalResolutionResult;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.AttributeDesugaring;
+import org.gradle.internal.component.external.model.ImmutableCapabilities;
+import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
+import org.gradle.internal.component.local.model.LocalVariantGraphResolveState;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
 import javax.annotation.Nullable;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * Responsible for resolving a configuration. Delegates to a {@link ResolutionExecutor} to perform
+ * Responsible for resolving a configuration. Delegates to a {@link ShortCircuitingResolutionExecutor} to perform
  * the actual resolution.
  */
 public class DefaultConfigurationResolver implements ConfigurationResolver {
     private final RepositoriesSupplier repositoriesSupplier;
-    private final ResolutionExecutor resolutionExecutor;
+    private final ShortCircuitingResolutionExecutor resolutionExecutor;
+    private final AttributeDesugaring attributeDesugaring;
 
     public DefaultConfigurationResolver(
         RepositoriesSupplier repositoriesSupplier,
-        ResolutionExecutor resolutionExecutor
+        ShortCircuitingResolutionExecutor resolutionExecutor,
+        AttributeDesugaring attributeDesugaring
     ) {
         this.repositoriesSupplier = repositoriesSupplier;
         this.resolutionExecutor = resolutionExecutor;
+        this.attributeDesugaring = attributeDesugaring;
     }
 
     @Override
-    public ResolverResults resolveBuildDependencies(ResolveContext resolveContext) {
-        return resolutionExecutor.resolveBuildDependencies(resolveContext);
+    public ResolverResults resolveBuildDependencies(ConfigurationInternal configuration) {
+        RootComponentMetadataBuilder.RootComponentState rootComponent = configuration.toRootComponent();
+
+        VisitedGraphResults missingConfigurationResults =
+            maybeGetEmptyGraphForInvalidMissingConfigurationWithNoDependencies(configuration, rootComponent.getRootComponent());
+        if (missingConfigurationResults != null) {
+            return DefaultResolverResults.buildDependenciesResolved(missingConfigurationResults, ShortCircuitingResolutionExecutor.EmptyResults.INSTANCE,
+                DefaultResolverResults.DefaultLegacyResolverResults.buildDependenciesResolved(ShortCircuitingResolutionExecutor.EmptyResults.INSTANCE)
+            );
+        }
+
+        return resolutionExecutor.resolveBuildDependencies(configuration);
     }
 
     @Override
-    public ResolverResults resolveGraph(ResolveContext resolveContext) {
-        AttributeContainerInternal attributes = resolveContext.toRootComponent().getRootVariant().getAttributes();
+    public ResolverResults resolveGraph(ConfigurationInternal configuration) {
 
+        RootComponentMetadataBuilder.RootComponentState rootComponent = configuration.toRootComponent();
+        VisitedGraphResults missingConfigurationResults =
+            maybeGetEmptyGraphForInvalidMissingConfigurationWithNoDependencies(configuration, rootComponent.getRootComponent());
+        if (missingConfigurationResults != null) {
+            ResolvedConfiguration resolvedConfiguration = new DefaultResolvedConfiguration(
+                missingConfigurationResults, configuration.getResolutionHost(), ShortCircuitingResolutionExecutor.EmptyResults.INSTANCE, new ShortCircuitingResolutionExecutor.EmptyLenientConfiguration()
+            );
+            return DefaultResolverResults.graphResolved(missingConfigurationResults, ShortCircuitingResolutionExecutor.EmptyResults.INSTANCE,
+                DefaultResolverResults.DefaultLegacyResolverResults.graphResolved(
+                    ShortCircuitingResolutionExecutor.EmptyResults.INSTANCE, resolvedConfiguration
+                )
+            );
+        }
+
+        AttributeContainerInternal attributes = configuration.toRootComponent().getRootVariant().getAttributes();
         List<ResolutionAwareRepository> filteredRepositories = repositoriesSupplier.get().stream()
-            .filter(repository -> !shouldSkipRepository(repository, resolveContext.getName(), attributes))
+            .filter(repository -> !shouldSkipRepository(repository, configuration.getName(), attributes))
             .collect(Collectors.toList());
 
-        return resolutionExecutor.resolveGraph(resolveContext, filteredRepositories);
+        return resolutionExecutor.resolveGraph(configuration, filteredRepositories);
     }
 
     @Override
@@ -119,5 +159,46 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         }
 
         return false;
+    }
+
+    /**
+     * Verifies if the configuration has been removed from the container before it was resolved.
+     * This fails and has failed in the past, but only when the configuration has dependencies.
+     * The short-circuiting done in {@link ShortCircuitingResolutionExecutor} made us not fail
+     * when we should have. So, detect that case and deprecate it. This should be removed in 9.0,
+     * and we will fail later on without any extra logic when calling
+     * {@link RootComponentMetadataBuilder.RootComponentState#getRootVariant()}
+     */
+    @Nullable
+    private VisitedGraphResults maybeGetEmptyGraphForInvalidMissingConfigurationWithNoDependencies(
+        ConfigurationInternal configuration,
+        LocalComponentGraphResolveState rootComponent
+    ) {
+        // This variant can be null if the configuration was removed from the container before resolution.
+        @SuppressWarnings("deprecation") LocalVariantGraphResolveState rootVariant =
+            rootComponent.getConfigurationLegacy(configuration.getName());
+        if (rootVariant == null) {
+            configuration.runDependencyActions();
+            if (configuration.getAllDependencies().isEmpty()) {
+                DeprecationLogger.deprecateBehaviour("Removing a configuration from the container before resolution")
+                    .withAdvice("Do not remove configurations from the container and resolve them after.")
+                    .willBecomeAnErrorInGradle9()
+                    .undocumented()
+                    .nagUser();
+
+                MinimalResolutionResult emptyResult = ResolutionResultGraphBuilder.empty(
+                    rootComponent.getModuleVersionId(),
+                    rootComponent.getId(),
+                    configuration.getAttributes().asImmutable(),
+                    ImmutableCapabilities.of(rootComponent.getDefaultCapability()),
+                    configuration.getName(),
+                    attributeDesugaring
+                );
+
+                return new DefaultVisitedGraphResults(emptyResult, Collections.emptySet(), null);
+            }
+        }
+
+        return null;
     }
 }

@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.ivyservice
 
 import org.gradle.api.artifacts.Dependency
-import org.gradle.api.internal.artifacts.ConfigurationResolver
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.ResolveContext
 import org.gradle.api.internal.artifacts.ResolverResults
@@ -26,6 +25,7 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingState
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSelectionSpec
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor
+import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository
 import org.gradle.api.internal.attributes.AttributeDesugaring
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.specs.Specs
@@ -35,11 +35,11 @@ import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.util.AttributeTestUtil
 import spock.lang.Specification
 
-class ShortCircuitEmptyConfigurationResolverSpec extends Specification {
+class ShortCircuitingResolutionExecutorSpec extends Specification {
 
-    def delegate = Mock(ConfigurationResolver)
+    def delegate = Mock(ResolutionExecutor)
 
-    def dependencyResolver = new ShortCircuitEmptyConfigurationResolver(delegate, new AttributeDesugaring(AttributeTestUtil.attributesFactory()))
+    def dependencyResolver = new ShortCircuitingResolutionExecutor(delegate, new AttributeDesugaring(AttributeTestUtil.attributesFactory()))
 
     def "returns empty build dependencies when no dependencies"() {
         def depVisitor = Mock(TaskDependencyResolveContext)
@@ -71,7 +71,7 @@ class ShortCircuitEmptyConfigurationResolverSpec extends Specification {
         ResolveContext resolveContext = confWithoutDependencies()
 
         when:
-        def results = dependencyResolver.resolveGraph(resolveContext)
+        def results = dependencyResolver.resolveGraph(resolveContext, [])
 
         then:
         results.visitedGraph.resolutionResult.rootSource.get().dependencies.empty
@@ -92,7 +92,7 @@ class ShortCircuitEmptyConfigurationResolverSpec extends Specification {
         ResolveContext resolveContext = confWithoutDependencies()
 
         when:
-        def results = dependencyResolver.resolveGraph(resolveContext)
+        def results = dependencyResolver.resolveGraph(resolveContext, [])
 
         then:
         def resolvedConfig = results.legacyResults.resolvedConfiguration
@@ -134,7 +134,7 @@ class ShortCircuitEmptyConfigurationResolverSpec extends Specification {
         resolveContext.resolutionStrategy >> resolutionStrategy
 
         when:
-        dependencyResolver.resolveGraph(resolveContext)
+        dependencyResolver.resolveGraph(resolveContext, [])
 
         then:
 
@@ -151,13 +151,14 @@ class ShortCircuitEmptyConfigurationResolverSpec extends Specification {
         DependencyLockingProvider lockingProvider = Mock()
         DependencyLockingState lockingState = Mock()
         ResolverResults delegateResults = Mock()
+        List<ResolutionAwareRepository> repos = Mock()
 
         ResolveContext resolveContext = confWithoutDependencies()
         resolveContext.dependencyLockingId >> 'lockedConf'
         resolveContext.resolutionStrategy >> resolutionStrategy
 
         when:
-        def results = dependencyResolver.resolveGraph(resolveContext)
+        def results = dependencyResolver.resolveGraph(resolveContext, repos)
 
         then:
         1 * resolutionStrategy.dependencyLockingEnabled >> true
@@ -165,7 +166,7 @@ class ShortCircuitEmptyConfigurationResolverSpec extends Specification {
         1 * lockingProvider.loadLockState('lockedConf', _) >> lockingState
         1 * lockingState.mustValidateLockState() >> true
         1 * lockingState.lockedDependencies >> [DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId('org', 'foo'), '1.0')]
-        1 * delegate.resolveGraph(resolveContext) >> delegateResults
+        1 * delegate.resolveGraph(resolveContext, repos) >> delegateResults
         results == delegateResults
     }
 
@@ -186,12 +187,13 @@ class ShortCircuitEmptyConfigurationResolverSpec extends Specification {
         given:
         ResolverResults delegateResults = Mock()
         ResolveContext resolveContext = confWithDependencies()
+        List<ResolutionAwareRepository> repos = Mock()
 
         when:
-        def results = dependencyResolver.resolveGraph(resolveContext)
+        def results = dependencyResolver.resolveGraph(resolveContext, repos)
 
         then:
-        1 * delegate.resolveGraph(resolveContext) >> delegateResults
+        1 * delegate.resolveGraph(resolveContext, repos) >> delegateResults
         results == delegateResults
     }
 
