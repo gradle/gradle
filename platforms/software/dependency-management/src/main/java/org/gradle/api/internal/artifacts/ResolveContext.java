@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.internal.artifacts.configurations.ResolutionHost;
-import org.gradle.api.internal.artifacts.configurations.ResolutionResultProvider;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.Conflict;
@@ -61,29 +60,6 @@ public interface ResolveContext {
      * called on a configuration that does not permit this usage.
      */
     RootComponentMetadataBuilder.RootComponentState toRootComponent();
-
-    /**
-     * Returns the cached results of resolution.
-     * <p>
-     * <strong>Avoid this method at all costs</strong>.
-     * <p>
-     * This class is meant to be the _input_ of resolution, however in order to support
-     * resolving dependencies of artifact transforms, we currently provide the results
-     * of resolution here as well.
-     * <p>
-     * This method represents a cycle in the resolution logic. In order to perform
-     * a resolution, we must also have a lazy reference to the results of the resolution.
-     * This is not how resolution should work at all, and we should aim to remove this.
-     */
-    ResolutionResultProvider<ResolverResults> getResolverResults();
-
-    /**
-     * Same as {@link #getResolverResults()} but is stricter in that it will throw
-     * an exception in some cases when called and the results are not available.
-     * <p>
-     * <strong>Avoid this method at all costs</strong>.
-     */
-    ResolutionResultProvider<ResolverResults> getStrictResolverResults();
 
     /**
      * Returns the synthetic dependencies for this context. These dependencies are generated

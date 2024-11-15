@@ -37,6 +37,7 @@ import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
 import org.gradle.internal.component.local.model.LocalVariantGraphResolveState;
 import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.model.CalculatedValue;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
@@ -65,7 +66,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
     }
 
     @Override
-    public ResolverResults resolveBuildDependencies(ConfigurationInternal configuration) {
+    public ResolverResults resolveBuildDependencies(ConfigurationInternal configuration, CalculatedValue<ResolverResults> futureCompleteResults) {
         RootComponentMetadataBuilder.RootComponentState rootComponent = configuration.toRootComponent();
 
         VisitedGraphResults missingConfigurationResults =
@@ -76,7 +77,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
             );
         }
 
-        return resolutionExecutor.resolveBuildDependencies(configuration);
+        return resolutionExecutor.resolveBuildDependencies(configuration, futureCompleteResults);
     }
 
     @Override
