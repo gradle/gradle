@@ -122,7 +122,7 @@ class ConfigurationCacheFixture {
                 configurationCacheBuildOperations.assertStateStored(false)
             }
         } else {
-            configurationCacheBuildOperations.assertNoWorkGraphStore()
+            configurationCacheBuildOperations.assertNoWorkGraphOperations()
         }
 
         if (details.createsModels) {
@@ -132,7 +132,7 @@ class ConfigurationCacheFixture {
                 configurationCacheBuildOperations.assertModelStored()
             }
         } else {
-            configurationCacheBuildOperations.assertNoModelStore()
+            configurationCacheBuildOperations.assertNoModelOperations()
         }
 
         def message = "Configuration cache entry ${details.storeAction}"
@@ -210,12 +210,12 @@ class ConfigurationCacheFixture {
         if (details.runsTasks) {
             configurationCacheBuildOperations.assertStateLoaded()
         } else {
-            configurationCacheBuildOperations.assertNoWorkGraphStore()
+            configurationCacheBuildOperations.assertNoWorkGraphOperations()
         }
         if (details.createsModels) {
             configurationCacheBuildOperations.assertModelLoaded()
         } else {
-            configurationCacheBuildOperations.assertNoModelStore()
+            configurationCacheBuildOperations.assertNoModelOperations()
         }
 
         assertNothingConfigured()
@@ -238,7 +238,7 @@ class ConfigurationCacheFixture {
         spec.postBuildOutputContains("Configuration cache entry ${details.storeAction}.")
 
         configurationCacheBuildOperations.assertStateLoaded()
-        configurationCacheBuildOperations.assertNoModelStore()
+        configurationCacheBuildOperations.assertNoModelOperations()
 
         assertNothingConfigured()
 
@@ -250,12 +250,12 @@ class ConfigurationCacheFixture {
         if (runsTasks) {
             configurationCacheBuildOperations.assertStateStored(loadAfterStore)
         } else {
-            configurationCacheBuildOperations.assertNoWorkGraphStore()
+            configurationCacheBuildOperations.assertNoWorkGraphOperations()
         }
         if (createsModels) {
             configurationCacheBuildOperations.assertModelStored()
         } else {
-            configurationCacheBuildOperations.assertNoModelStore()
+            configurationCacheBuildOperations.assertNoModelOperations()
         }
     }
 

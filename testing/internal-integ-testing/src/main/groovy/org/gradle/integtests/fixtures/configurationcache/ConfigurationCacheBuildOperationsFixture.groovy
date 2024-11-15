@@ -76,16 +76,16 @@ class ConfigurationCacheBuildOperationsFixture {
     }
 
     void assertNoConfigurationCache() {
-        assertNoWorkGraphStore()
-        assertNoModelStore()
+        assertNoWorkGraphOperations()
+        assertNoModelOperations()
     }
 
-    void assertNoWorkGraphStore() {
+    void assertNoWorkGraphOperations() {
         assert workGraphStoreOperation() == null
         assert workGraphLoadOperation() == null
     }
 
-    void assertNoModelStore() {
+    void assertNoModelOperations() {
         assert modelStoreOperation() == null
         assert modelLoadOperation() == null
     }
