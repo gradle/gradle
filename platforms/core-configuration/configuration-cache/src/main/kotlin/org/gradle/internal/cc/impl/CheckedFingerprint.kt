@@ -27,13 +27,14 @@ sealed class CheckedFingerprint {
     // Everything is up-to-date
     object Valid : CheckedFingerprint()
 
-    data class Found(val entryName: String) : CheckedFingerprint()
+    class Found(val entryName: String) : CheckedFingerprint()
 
     // The entry cannot be reused at all and should be recreated from scratch
     class EntryInvalid(val buildPath: Path, val reason: StructuredMessage) : CheckedFingerprint()
 
     // The entry can be reused, however the values for certain projects cannot be reused and should be recreated
     class ProjectsInvalid(
+        val entryName: String,
         /**
          * Identity path of the first project for which an invalidation was detected.
          */

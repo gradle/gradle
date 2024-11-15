@@ -304,7 +304,7 @@ class ConfigurationCacheProblems(
         when (this) {
             is ConfigurationCacheAction.LOAD -> "reusing"
             STORE -> "storing"
-            UPDATE -> "updating"
+            is UPDATE -> "updating"
         }
 
     private
@@ -337,8 +337,8 @@ class ConfigurationCacheProblems(
                 cacheAction == STORE && hasTooManyProblems -> log("Configuration cache entry discarded with too many problems ({}).", problemCountString)
                 cacheAction == STORE && !hasProblems -> log("Configuration cache entry stored.")
                 cacheAction == STORE -> log("Configuration cache entry stored with {}.", problemCountString)
-                cacheAction == UPDATE && !hasProblems -> log("Configuration cache entry updated for {}, {} up-to-date.", updatedProjectsString, reusedProjectsString)
-                cacheAction == UPDATE -> log("Configuration cache entry updated for {} with {}, {} up-to-date.", updatedProjectsString, problemCountString, reusedProjectsString)
+                cacheAction is UPDATE && !hasProblems -> log("Configuration cache entry updated for {}, {} up-to-date.", updatedProjectsString, reusedProjectsString)
+                cacheAction is UPDATE -> log("Configuration cache entry updated for {} with {}, {} up-to-date.", updatedProjectsString, problemCountString, reusedProjectsString)
                 cacheAction is ConfigurationCacheAction.LOAD && !hasProblems -> log("Configuration cache entry reused.")
                 cacheAction is ConfigurationCacheAction.LOAD -> log("Configuration cache entry reused with {}.", problemCountString)
                 hasTooManyProblems -> log("Too many configuration cache problems found ({}).", problemCountString)

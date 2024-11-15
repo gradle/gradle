@@ -25,6 +25,7 @@ import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.internal.RenderingUtils.oxfordListOf
 import org.gradle.internal.RenderingUtils.quotedOxfordListOf
 import org.gradle.internal.cc.base.logger
+import org.gradle.internal.cc.impl.CandidateEntry
 import org.gradle.internal.cc.impl.CheckedFingerprint
 import org.gradle.internal.configuration.problems.StructuredMessage
 import org.gradle.internal.configuration.problems.StructuredMessageBuilder
@@ -90,7 +91,7 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
     }
 
     @Suppress("NestedBlockDepth")
-    suspend fun ReadContext.checkProjectScopedFingerprint(): CheckedFingerprint {
+    suspend fun ReadContext.checkProjectScopedFingerprint(candidateEntry: CandidateEntry): CheckedFingerprint {
         // TODO: log some debug info
         var firstInvalidatedPath: Path? = null
         val projects = hashMapOf<Path, ProjectInvalidationState>()
@@ -141,7 +142,7 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
             val invalidatedProjects = projects.filterValues { it.isInvalid }.mapValues {
                 it.value.toProjectInvalidationData()
             }
-            CheckedFingerprint.ProjectsInvalid(firstInvalidatedPath, invalidatedProjects)
+            CheckedFingerprint.ProjectsInvalid(candidateEntry.id, firstInvalidatedPath, invalidatedProjects)
         }
     }
 
