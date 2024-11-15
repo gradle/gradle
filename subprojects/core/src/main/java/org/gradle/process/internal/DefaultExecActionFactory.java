@@ -220,14 +220,15 @@ public class DefaultExecActionFactory implements ExecFactory {
 
     @Override
     public Builder forContext() {
-        return new BuilderImpl(executor, temporaryFileProvider, execHandleFactory)
+        return new BuilderImpl(executor, temporaryFileProvider)
             .withInstantiator(instantiator)
             .withExternalProcessStartedListener(externalProcessStartedListener)
             .withFileResolver(fileResolver)
             .withFileCollectionFactory(fileCollectionFactory)
             .withBuildCancellationToken(buildCancellationToken)
             .withObjectFactory(objectFactory)
-            .withJavaModuleDetector(javaModuleDetector);
+            .withJavaModuleDetector(javaModuleDetector)
+            .withExecHandleFactory(execHandleFactory);
     }
 
     private static class BuilderImpl implements Builder {
@@ -235,13 +236,13 @@ public class DefaultExecActionFactory implements ExecFactory {
         private final Executor executor;
         // The temporaryFileProvider is always inherited from the parent
         private final TemporaryFileProvider temporaryFileProvider;
-        private final ClientExecHandleFactory clientExecHandleFactory;
 
         private FileResolver fileResolver;
         private FileCollectionFactory fileCollectionFactory;
         private Instantiator instantiator;
         private BuildCancellationToken buildCancellationToken;
         private ObjectFactory objectFactory;
+        private ClientExecHandleFactory clientExecHandleFactory;
         @Nullable
         private JavaModuleDetector javaModuleDetector;
 
@@ -250,12 +251,10 @@ public class DefaultExecActionFactory implements ExecFactory {
 
         BuilderImpl(
             Executor executor,
-            TemporaryFileProvider temporaryFileProvider,
-            ClientExecHandleFactory clientExecHandleFactory
+            TemporaryFileProvider temporaryFileProvider
         ) {
             this.executor = executor;
             this.temporaryFileProvider = temporaryFileProvider;
-            this.clientExecHandleFactory = clientExecHandleFactory;
         }
 
         @Override
@@ -301,6 +300,12 @@ public class DefaultExecActionFactory implements ExecFactory {
         }
 
         @Override
+        public Builder withExecHandleFactory(ClientExecHandleFactory clientExecHandleFactory) {
+            this.clientExecHandleFactory = clientExecHandleFactory;
+            return this;
+        }
+
+        @Override
         public Builder withoutExternalProcessStartedListener() {
             this.externalProcessStartedListener = null;
             return this;
@@ -313,6 +318,7 @@ public class DefaultExecActionFactory implements ExecFactory {
             Preconditions.checkState(instantiator != null, "instantiator is not set");
             Preconditions.checkState(buildCancellationToken != null, "buildCancellationToken is not set");
             Preconditions.checkState(objectFactory != null, "objectFactory is not set");
+            Preconditions.checkState(clientExecHandleFactory != null, "clientExecHandleFactory is not set");
             return new DefaultExecActionFactory(
                 fileResolver,
                 fileCollectionFactory,
