@@ -107,7 +107,7 @@ class ProblemThresholdCrossVersionTest extends ToolingApiSpecification {
         def problems = listener.problems
         problems.size() == 1 // 1 because older version does aggregation and only sends the first one.
         validateFirstNProblems(1, problems)
-        failureMessage(problems[0].failure) == 'test'
+        failureMessage(problems[0].problem.failure) == 'test'
         listener.summariesEvent == null
     }
 
