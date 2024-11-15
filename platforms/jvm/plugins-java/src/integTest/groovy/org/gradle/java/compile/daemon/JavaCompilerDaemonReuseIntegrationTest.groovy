@@ -168,7 +168,7 @@ class JavaCompilerDaemonReuseIntegrationTest extends AbstractCompilerDaemonReuse
         tasks.eachWithIndex { taskName, index ->
             def operation = taskOperations[taskName] as BuildOperationRecord
             assert operation["progress"].find { BuildOperationRecord.Progress progress ->
-                "org.gradle.api.problems.internal.DefaultProblemProgressDetails" == progress.detailsClassName
+                "org.gradle.problems.internal.events.DefaultProblemProgressDetails" == progress.detailsClassName
             }.collect {
                 def progress = (BuildOperationRecord.Progress) it
                 def problemDetails = progress.details["problem"] as Map<String, Object>

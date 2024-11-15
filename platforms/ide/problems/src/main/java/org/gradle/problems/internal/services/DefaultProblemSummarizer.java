@@ -17,7 +17,6 @@
 package org.gradle.problems.internal.services;
 
 import org.gradle.api.problems.ProblemId;
-import org.gradle.api.problems.internal.DefaultProblemsSummaryProgressDetails;
 import org.gradle.api.problems.internal.Problem;
 import org.gradle.api.problems.internal.ProblemEmitter;
 import org.gradle.api.problems.internal.ProblemReportCreator;
@@ -29,6 +28,7 @@ import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.OperationIdentifier;
+import org.gradle.problems.internal.events.DefaultProblemsSummaryProgressDetails;
 
 import javax.annotation.Nullable;
 import java.io.File;

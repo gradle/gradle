@@ -14,13 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.internal;
+package org.gradle.problems.internal.events;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.api.problems.ProblemId;
+import org.gradle.api.problems.internal.ProblemsSummaryProgressDetails;
 import org.gradle.internal.Pair;
 
 import java.util.List;
 
+@NonNullApi
 public class DefaultProblemsSummaryProgressDetails implements ProblemsSummaryProgressDetails {
 
     private final List<Pair<ProblemId, Integer>> problemIdCounts;

@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.internal;
+package org.gradle.util;
 
+import org.gradle.api.problems.internal.Problem;
+import org.gradle.api.problems.internal.ProblemSummarizer;
 import org.gradle.internal.operations.OperationIdentifier;
 
 import javax.annotation.Nullable;
