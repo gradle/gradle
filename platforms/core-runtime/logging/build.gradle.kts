@@ -8,11 +8,6 @@ description = "Logging infrastructure"
 gradlebuildJava.usedInWorkers()
 
 dependencies {
-    api(projects.stdlibJavaExtensions)
-    api(projects.serialization)
-    api(projects.serviceLookup)
-    api(projects.serviceProvider)
-    api(projects.time)
     api(projects.baseServices)
     api(projects.buildOperations)
     api(projects.buildOption)
@@ -22,6 +17,11 @@ dependencies {
     api(projects.loggingApi)
     api(projects.native)
     api(projects.problemsApi)
+    api(projects.serialization)
+    api(projects.serviceLookup)
+    api(projects.serviceProvider)
+    api(projects.stdlibJavaExtensions)
+    api(projects.time)
 
     api(libs.jansi)
     api(libs.jsr305)
@@ -32,11 +32,11 @@ dependencies {
     implementation(projects.messaging)
     implementation(projects.serviceRegistryBuilder)
 
-    implementation(libs.errorProneAnnotations)
-    implementation(libs.julToSlf4j)
-    implementation(libs.commonsLang)
     implementation(libs.commonsIo)
+    implementation(libs.commonsLang)
+    implementation(libs.errorProneAnnotations)
     implementation(libs.guava)
+    implementation(libs.julToSlf4j)
 
     // GSon is not strictly required here but removing it moves the dependency in the distribution from lib to lib/plugins
     // TODO Check if this is an issue
@@ -46,11 +46,13 @@ dependencies {
 
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.testingJvm))
+
+    testImplementation(projects.problems)
+
     testImplementation(libs.groovyDatetime)
     testImplementation(libs.groovyDateUtil)
 
     integTestImplementation(projects.problems)
-    
     integTestImplementation(libs.ansiControlSequenceUtil)
 
     testFixturesImplementation(projects.baseServices)

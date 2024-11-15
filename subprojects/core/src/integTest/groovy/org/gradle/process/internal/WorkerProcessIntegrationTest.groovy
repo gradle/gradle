@@ -26,13 +26,13 @@ import org.gradle.internal.jvm.inspection.CachingJvmMetadataDetector
 import org.gradle.internal.jvm.inspection.DefaultJvmVersionDetector
 import org.gradle.internal.remote.ObjectConnectionBuilder
 import org.gradle.process.internal.health.memory.MemoryManager
-import org.gradle.process.internal.worker.DefaultWorkerProcessFactory
 import org.gradle.process.internal.worker.WorkerProcess
 import org.gradle.process.internal.worker.WorkerProcessBuilder
 import org.gradle.process.internal.worker.WorkerProcessContext
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.internal.TextUtil
+import org.gradle.workers.internal.DefaultWorkerProcessFactory
 import spock.lang.Timeout
 
 import static org.junit.Assert.assertFalse

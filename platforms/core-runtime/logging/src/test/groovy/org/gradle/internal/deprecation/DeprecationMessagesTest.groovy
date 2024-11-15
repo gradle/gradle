@@ -23,7 +23,6 @@ import org.gradle.api.problems.internal.DefaultDeprecationData
 import org.gradle.api.problems.internal.DefaultProblem
 import org.gradle.api.problems.internal.DefaultProblemDefinition
 import org.gradle.api.problems.internal.DefaultProblemId
-import org.gradle.api.problems.internal.DefaultProblems
 import org.gradle.api.problems.internal.DeprecationData
 import org.gradle.api.problems.internal.ExceptionProblemRegistry
 import org.gradle.api.problems.internal.GradleCoreProblemGroup
@@ -35,6 +34,7 @@ import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.internal.operations.CurrentBuildOperationRef
 import org.gradle.internal.operations.OperationIdentifier
 import org.gradle.internal.problems.NoOpProblemDiagnosticsFactory
+import org.gradle.problems.internal.services.DefaultProblems
 import org.gradle.util.GradleVersion
 import org.junit.Rule
 import spock.lang.Specification

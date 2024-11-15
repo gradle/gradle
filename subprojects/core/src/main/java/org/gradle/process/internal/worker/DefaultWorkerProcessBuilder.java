@@ -73,7 +73,7 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
     private boolean shouldPublishJvmMemoryInfo;
     private NativeServicesMode nativeServicesMode = NativeServicesMode.NOT_SET;
 
-    DefaultWorkerProcessBuilder(
+    public DefaultWorkerProcessBuilder(
         JavaExecHandleFactory execHandleFactory,
         MessagingServer server,
         IdGenerator<Long> idGenerator,

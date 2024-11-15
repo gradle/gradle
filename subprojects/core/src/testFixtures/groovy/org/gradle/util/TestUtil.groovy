@@ -42,7 +42,6 @@ import org.gradle.api.internal.tasks.TaskDependencyFactory
 import org.gradle.api.internal.tasks.properties.annotations.OutputPropertyRoleAnnotationHandler
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.problems.Problems
-import org.gradle.api.problems.internal.DefaultProblems
 import org.gradle.api.problems.internal.ExceptionProblemRegistry
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.tasks.util.internal.PatternSets
@@ -64,6 +63,7 @@ import org.gradle.internal.service.ServiceRegistrationProvider
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.state.ManagedFactoryRegistry
 import org.gradle.internal.work.DefaultWorkerLimits
+import org.gradle.problems.internal.services.DefaultProblems
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.work.TestWorkerLeaseService

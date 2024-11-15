@@ -10,6 +10,8 @@ dependencies {
     api(projects.concurrent)
     api(projects.core)
     api(projects.coreApi)
+    api(projects.fileTemp)
+    api(projects.jvmServices)
     api(projects.hashing)
     api(projects.stdlibJavaExtensions)
     api(projects.logging)
@@ -27,8 +29,12 @@ dependencies {
     api(libs.inject)
     api(libs.jsr305)
 
+
     implementation(projects.fileCollections)
     implementation(projects.fileOperations)
+    implementation(projects.persistentCache)
+    implementation(projects.problemsApi)
+    implementation(projects.problems)
     implementation(projects.time)
     implementation(projects.serviceRegistryBuilder)
 

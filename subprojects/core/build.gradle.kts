@@ -70,13 +70,6 @@ errorprone {
 
 dependencies {
     api(projects.baseAsm)
-    api(projects.concurrent)
-    api(projects.instrumentationAgentServices)
-    api(projects.serialization)
-    api(projects.serviceLookup)
-    api(projects.serviceProvider)
-    api(projects.stdlibJavaExtensions)
-    api(projects.time)
     api(projects.baseServices)
     api(projects.baseServicesGroovy)
     api(projects.buildCache)
@@ -87,7 +80,9 @@ dependencies {
     api(projects.buildInitSpecs)
     api(projects.buildOperations)
     api(projects.buildOption)
+    api(projects.buildProcessServices)
     api(projects.cli)
+    api(projects.concurrent)
     api(projects.coreApi)
     api(projects.declarativeDslApi)
     api(projects.enterpriseLogging)
@@ -100,6 +95,8 @@ dependencies {
     api(projects.files)
     api(projects.functional)
     api(projects.hashing)
+    api(projects.instrumentationAgentServices)
+    api(projects.instrumentationReporting)
     api(projects.internalInstrumentationApi)
     api(projects.jvmServices)
     api(projects.logging)
@@ -113,10 +110,13 @@ dependencies {
     api(projects.processMemoryServices)
     api(projects.processServices)
     api(projects.resources)
+    api(projects.serialization)
+    api(projects.serviceLookup)
+    api(projects.serviceProvider)
     api(projects.snapshots)
+    api(projects.stdlibJavaExtensions)
+    api(projects.time)
     api(projects.workerMain)
-    api(projects.buildProcessServices)
-    api(projects.instrumentationReporting)
 
     api(libs.ant)
     api(libs.asm)
@@ -132,7 +132,6 @@ dependencies {
     implementation(projects.modelGroovy)
     implementation(projects.serviceRegistryBuilder)
 
-    implementation(libs.nativePlatform)
     implementation(libs.asmCommons)
     implementation(libs.commonsCompress)
     implementation(libs.commonsIo)
@@ -143,6 +142,7 @@ dependencies {
     implementation(libs.groovyAnt)
     implementation(libs.groovyJson)
     implementation(libs.groovyXml)
+    implementation(libs.nativePlatform)
     implementation(libs.slf4jApi)
     implementation(libs.tomlj) {
         // Used for its nullability annotations, not needed at runtime
@@ -171,7 +171,9 @@ dependencies {
     testImplementation(projects.buildInit)
     testImplementation(projects.platformJvm)
     testImplementation(projects.platformNative)
+    testImplementation(projects.problems)
     testImplementation(projects.testingBase)
+
     testImplementation(libs.jsoup)
     testImplementation(libs.log4jToSlf4j)
     testImplementation(libs.jclToSlf4j)
@@ -232,22 +234,25 @@ dependencies {
     testFixturesApi(projects.unitTestFixtures) {
         because("test fixtures expose ProjectBuilder")
     }
+
     testFixturesImplementation(projects.buildOption)
+    testFixturesImplementation(projects.dependencyManagement) {
+        because("Used in VersionCatalogErrorMessages for org.gradle.api.internal.catalog.DefaultVersionCatalogBuilder.getExcludedNames")
+    }
     testFixturesImplementation(projects.enterpriseOperations)
+    testFixturesImplementation(projects.internalInstrumentationApi)
     testFixturesImplementation(projects.messaging)
     testFixturesImplementation(projects.normalizationJava)
     testFixturesImplementation(projects.persistentCache)
+    testFixturesImplementation(projects.problems)
     testFixturesImplementation(projects.snapshots)
+
     testFixturesImplementation(libs.ant)
     testFixturesImplementation(libs.asm)
     testFixturesImplementation(libs.groovyAnt)
     testFixturesImplementation(libs.guava)
-    testFixturesImplementation(projects.internalInstrumentationApi)
     testFixturesImplementation(libs.ivy)
     testFixturesImplementation(libs.slf4jApi)
-    testFixturesImplementation(projects.dependencyManagement) {
-        because("Used in VersionCatalogErrorMessages for org.gradle.api.internal.catalog.DefaultVersionCatalogBuilder.getExcludedNames")
-    }
 
     testFixturesRuntimeOnly(projects.pluginUse) {
         because("This is a core extension module (see DynamicModulesClassPathProvider.GRADLE_EXTENSION_MODULES)")
@@ -261,21 +266,22 @@ dependencies {
 
     testImplementation(projects.dependencyManagement)
 
-    testImplementation(testFixtures(projects.serialization))
+    testImplementation(testFixtures(projects.baseServices))
     testImplementation(testFixtures(projects.coreApi))
+    testImplementation(testFixtures(projects.diagnostics))
+    testImplementation(testFixtures(projects.execution))
+    testImplementation(testFixtures(projects.logging))
     testImplementation(testFixtures(projects.messaging))
     testImplementation(testFixtures(projects.modelCore))
-    testImplementation(testFixtures(projects.logging))
-    testImplementation(testFixtures(projects.baseServices))
-    testImplementation(testFixtures(projects.diagnostics))
+    testImplementation(testFixtures(projects.serialization))
     testImplementation(testFixtures(projects.snapshots))
-    testImplementation(testFixtures(projects.execution))
 
-    integTestImplementation(projects.workers)
+    integTestImplementation(projects.daemonServices)
     integTestImplementation(projects.dependencyManagement)
     integTestImplementation(projects.launcher)
     integTestImplementation(projects.war)
-    integTestImplementation(projects.daemonServices)
+    integTestImplementation(projects.workers)
+
     integTestImplementation(libs.jansi)
     integTestImplementation(libs.jetbrainsAnnotations)
     integTestImplementation(libs.jetty)

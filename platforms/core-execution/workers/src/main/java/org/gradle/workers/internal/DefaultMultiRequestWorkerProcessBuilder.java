@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.process.internal.worker;
+package org.gradle.workers.internal;
 
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.Cast;
@@ -25,20 +25,25 @@ import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.process.ExecResult;
 import org.gradle.process.internal.JavaExecHandleBuilder;
+import org.gradle.process.internal.worker.DefaultWorkerProcessBuilder;
+import org.gradle.process.internal.worker.MultiRequestClient;
+import org.gradle.process.internal.worker.MultiRequestWorkerProcessBuilder;
+import org.gradle.process.internal.worker.WorkerProcess;
+import org.gradle.process.internal.worker.WorkerProcessException;
+import org.gradle.process.internal.worker.WorkerProcessSettings;
 import org.gradle.process.internal.worker.request.Receiver;
 import org.gradle.process.internal.worker.request.Request;
 import org.gradle.process.internal.worker.request.RequestArgumentSerializers;
 import org.gradle.process.internal.worker.request.RequestProtocol;
 import org.gradle.process.internal.worker.request.RequestSerializerRegistry;
 import org.gradle.process.internal.worker.request.ResponseProtocol;
-import org.gradle.process.internal.worker.request.WorkerAction;
 
 import java.io.File;
 import java.net.URL;
 import java.util.Collections;
 import java.util.Set;
 
-class DefaultMultiRequestWorkerProcessBuilder<IN, OUT> implements MultiRequestWorkerProcessBuilder<IN, OUT> {
+public class DefaultMultiRequestWorkerProcessBuilder<IN, OUT> implements MultiRequestWorkerProcessBuilder<IN, OUT> {
     private final Class<?> workerImplementation;
     private final DefaultWorkerProcessBuilder workerProcessBuilder;
     private final RequestArgumentSerializers argumentSerializers = new RequestArgumentSerializers();

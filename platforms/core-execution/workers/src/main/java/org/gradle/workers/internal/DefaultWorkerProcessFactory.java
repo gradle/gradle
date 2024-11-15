@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.process.internal.worker;
+package org.gradle.workers.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.internal.ClassPathRegistry;
@@ -27,6 +27,13 @@ import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.remote.MessagingServer;
 import org.gradle.process.internal.JavaExecHandleFactory;
 import org.gradle.process.internal.health.memory.MemoryManager;
+import org.gradle.process.internal.worker.DefaultWorkerProcessBuilder;
+import org.gradle.process.internal.worker.MultiRequestWorkerProcessBuilder;
+import org.gradle.process.internal.worker.RequestHandler;
+import org.gradle.process.internal.worker.SingleRequestWorkerProcessBuilder;
+import org.gradle.process.internal.worker.WorkerProcessBuilder;
+import org.gradle.process.internal.worker.WorkerProcessContext;
+import org.gradle.process.internal.worker.WorkerProcessFactory;
 import org.gradle.process.internal.worker.child.ApplicationClassesInSystemClassLoaderWorkerImplementationFactory;
 
 import java.io.File;

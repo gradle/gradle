@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.process.internal.worker.request;
+package org.gradle.workers.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.internal.tasks.properties.annotations.OutputPropertyRoleAnnotationHandler;
-import org.gradle.api.problems.internal.DefaultProblems;
 import org.gradle.api.problems.internal.ExceptionProblemRegistry;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.cache.internal.DefaultCrossBuildInMemoryCacheFactory;
@@ -35,10 +34,16 @@ import org.gradle.internal.remote.internal.hub.StreamFailureHandler;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.Scope.Global;
+import org.gradle.problems.internal.services.DefaultProblems;
 import org.gradle.process.internal.worker.RequestHandler;
 import org.gradle.process.internal.worker.WorkerProcessContext;
 import org.gradle.process.internal.worker.child.WorkerLogEventListener;
 import org.gradle.process.internal.worker.problem.WorkerProblemEmitter;
+import org.gradle.process.internal.worker.request.Request;
+import org.gradle.process.internal.worker.request.RequestArgumentSerializers;
+import org.gradle.process.internal.worker.request.RequestProtocol;
+import org.gradle.process.internal.worker.request.RequestSerializerRegistry;
+import org.gradle.process.internal.worker.request.ResponseProtocol;
 
 import java.io.Serializable;
 import java.util.Collections;

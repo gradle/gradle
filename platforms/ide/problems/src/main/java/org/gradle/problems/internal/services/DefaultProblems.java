@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.internal;
+package org.gradle.problems.internal.services;
 
 import org.gradle.api.problems.ProblemReporter;
+import org.gradle.api.problems.internal.AdditionalDataBuilderFactory;
+import org.gradle.api.problems.internal.DefaultProblemReporter;
+import org.gradle.api.problems.internal.ExceptionProblemRegistry;
+import org.gradle.api.problems.internal.InternalProblemReporter;
+import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.ProblemSummarizer;
 import org.gradle.internal.exception.ExceptionAnalyser;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.service.scopes.Scope;

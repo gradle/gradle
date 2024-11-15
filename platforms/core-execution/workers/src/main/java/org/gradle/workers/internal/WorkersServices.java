@@ -18,6 +18,7 @@ package org.gradle.workers.internal;
 
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.ClassPathRegistry;
+import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.initialization.GradleUserHomeDirProvider;
@@ -26,10 +27,14 @@ import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
+import org.gradle.internal.id.LongIdGenerator;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolation.IsolatableFactory;
+import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.logging.LoggingManagerInternal;
+import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.operations.BuildOperationRunner;
+import org.gradle.internal.remote.MessagingServer;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
@@ -42,6 +47,7 @@ import org.gradle.internal.work.DefaultConditionalExecutionQueueFactory;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.internal.work.WorkerLimits;
+import org.gradle.process.internal.JavaExecHandleFactory;
 import org.gradle.process.internal.JavaForkOptionsFactory;
 import org.gradle.process.internal.health.memory.MemoryManager;
 import org.gradle.process.internal.health.memory.OsMemoryInfo;
@@ -115,6 +121,32 @@ public class WorkersServices extends AbstractGradleModuleServices {
         @Provides
         ActionExecutionSpecFactory createActionExecutionSpecFactory(IsolatableFactory isolatableFactory, IsolatableSerializerRegistry serializerRegistry) {
             return new DefaultActionExecutionSpecFactory(isolatableFactory, serializerRegistry);
+        }
+
+        @Provides
+        WorkerProcessFactory createWorkerProcessFactory(
+            LoggingManagerInternal loggingManagerInternal,
+            MessagingServer messagingServer,
+            ClassPathRegistry classPathRegistry,
+            TemporaryFileProvider temporaryFileProvider,
+            JavaExecHandleFactory execHandleFactory,
+            JvmVersionDetector jvmVersionDetector,
+            MemoryManager memoryManager,
+            GradleUserHomeDirProvider gradleUserHomeDirProvider,
+            OutputEventListener outputEventListener
+        ) {
+            return new DefaultWorkerProcessFactory(
+                loggingManagerInternal,
+                messagingServer,
+                classPathRegistry,
+                new LongIdGenerator(),
+                gradleUserHomeDirProvider.getGradleUserHomeDirectory(),
+                temporaryFileProvider,
+                execHandleFactory,
+                jvmVersionDetector,
+                outputEventListener,
+                memoryManager
+            );
         }
     }
 

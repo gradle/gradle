@@ -18,7 +18,6 @@ package org.gradle.internal.deprecation
 
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.configuration.WarningMode
-import org.gradle.api.problems.internal.DefaultProblems
 import org.gradle.api.problems.internal.ExceptionProblemRegistry
 import org.gradle.api.problems.internal.GradleCoreProblemGroup
 import org.gradle.api.problems.internal.ProblemSummarizer
@@ -39,6 +38,7 @@ import org.gradle.problems.Location
 import org.gradle.problems.ProblemDiagnostics
 import org.gradle.problems.buildtree.ProblemDiagnosticsFactory
 import org.gradle.problems.buildtree.ProblemStream
+import org.gradle.problems.internal.services.DefaultProblems
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.internal.TextUtil
 import org.junit.Rule

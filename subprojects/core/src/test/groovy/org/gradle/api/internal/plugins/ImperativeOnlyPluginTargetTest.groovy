@@ -20,11 +20,11 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.api.problems.internal.DefaultProblems
 import org.gradle.api.problems.internal.ExceptionProblemRegistry
 import org.gradle.api.problems.internal.ProblemSummarizer
 import org.gradle.internal.operations.CurrentBuildOperationRef
 import org.gradle.internal.operations.OperationIdentifier
+import org.gradle.problems.internal.services.DefaultProblems
 import spock.lang.Specification
 
 class ImperativeOnlyPluginTargetTest extends Specification {
