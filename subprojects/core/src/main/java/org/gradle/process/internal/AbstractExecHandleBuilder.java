@@ -30,7 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executor;
 
-public abstract class AbstractExecHandleBuilder extends DefaultProcessForkOptions implements BaseExecSpec {
+public abstract class AbstractExecHandleBuilder extends DefaultProcessForkOptions implements BaseExecSpec, BaseExecHandleBuilder {
     private static final EmptyStdInStreamsHandler DEFAULT_STDIN = new EmptyStdInStreamsHandler();
     private final BuildCancellationToken buildCancellationToken;
     private final List<ExecHandleListener> listeners = new ArrayList<>();
@@ -130,6 +130,7 @@ public abstract class AbstractExecHandleBuilder extends DefaultProcessForkOption
         return this;
     }
 
+    @Override
     public ExecHandle build() {
         String executable = getExecutable();
         if (StringUtils.isEmpty(executable)) {

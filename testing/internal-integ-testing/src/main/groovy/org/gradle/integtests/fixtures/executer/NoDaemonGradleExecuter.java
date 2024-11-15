@@ -23,11 +23,9 @@ import org.gradle.initialization.DefaultBuildCancellationToken;
 import org.gradle.internal.Factory;
 import org.gradle.internal.jvm.JpmsConfiguration;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.process.internal.AbstractExecHandleBuilder;
+import org.gradle.process.internal.BaseExecHandleBuilder;
 import org.gradle.process.internal.ClientExecHandleBuilder;
 import org.gradle.process.internal.DefaultClientExecHandleBuilder;
-import org.gradle.process.internal.DefaultExecHandleBuilder;
-import org.gradle.process.internal.ExecHandleBuilder;
 import org.gradle.process.internal.JvmOptions;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
@@ -187,10 +185,10 @@ public class NoDaemonGradleExecuter extends AbstractGradleExecuter {
         return createForkingGradleHandle(getResultAssertion(), getDefaultCharacterEncoding(), getExecHandleFactory()).start();
     }
 
-    protected Factory<? extends AbstractExecHandleBuilder> getExecHandleFactory() {
-        return new Factory<DefaultExecHandleBuilder>() {
+    protected Factory<BaseExecHandleBuilder> getExecHandleFactory() {
+        return new Factory<BaseExecHandleBuilder>() {
             @Override
-            public DefaultExecHandleBuilder create() {
+            public BaseExecHandleBuilder create() {
                 TestFile gradleHomeDir = getDistribution().getGradleHomeDir();
                 if (gradleHomeDir != null && !gradleHomeDir.isDirectory()) {
                     fail(gradleHomeDir + " is not a directory.\n"
@@ -230,7 +228,7 @@ public class NoDaemonGradleExecuter extends AbstractGradleExecuter {
         };
     }
 
-    protected ForkingGradleHandle createForkingGradleHandle(Action<ExecutionResult> resultAssertion, String encoding, Factory<? extends AbstractExecHandleBuilder> execHandleFactory) {
+    protected ForkingGradleHandle createForkingGradleHandle(Action<ExecutionResult> resultAssertion, String encoding, Factory<BaseExecHandleBuilder> execHandleFactory) {
         return new ForkingGradleHandle(getStdinPipe(), isUseDaemon(), resultAssertion, encoding, execHandleFactory, getDurationMeasurement());
     }
 

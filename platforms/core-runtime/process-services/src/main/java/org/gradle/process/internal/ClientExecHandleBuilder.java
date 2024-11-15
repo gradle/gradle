@@ -24,7 +24,7 @@ import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
 
-public interface ClientExecHandleBuilder {
+public interface ClientExecHandleBuilder extends BaseExecHandleBuilder {
     ClientExecHandleBuilder commandLine(Iterable<?> args);
 
     ClientExecHandleBuilder commandLine(Object... args);
@@ -33,8 +33,10 @@ public interface ClientExecHandleBuilder {
 
     ClientExecHandleBuilder setStandardInput(InputStream inputStream);
 
+    @Override
     ClientExecHandleBuilder setStandardOutput(OutputStream outputStream);
 
+    @Override
     ClientExecHandleBuilder setErrorOutput(OutputStream outputStream);
 
     ClientExecHandleBuilder redirectErrorStream();
@@ -69,8 +71,6 @@ public interface ClientExecHandleBuilder {
     String getExecutable();
 
     File getWorkingDir();
-
-    ExecHandle build();
 
     OutputStream getErrorOutput();
 

@@ -62,6 +62,7 @@ import org.gradle.launcher.exec.BuildActionExecutor;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionResult;
 import org.gradle.launcher.exec.DefaultBuildActionParameters;
+import org.gradle.process.internal.BaseExecHandleBuilder;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
@@ -246,7 +247,7 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
     }
 
     @Override
-    protected Factory<JavaExecHandleBuilder> getExecHandleFactory() {
+    protected Factory<BaseExecHandleBuilder> getExecHandleFactory() {
         return () -> {
             NativeServicesTestFixture.initialize();
             GradleInvocation invocation = buildInvocation();
