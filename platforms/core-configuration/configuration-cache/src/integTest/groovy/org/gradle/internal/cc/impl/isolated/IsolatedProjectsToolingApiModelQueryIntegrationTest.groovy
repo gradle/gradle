@@ -114,26 +114,26 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
             }
         """
 
-        when:
+        when: "requesting a model together with running a task"
         withIsolatedProjects()
         fetchModel(SomeToolingModel, ":dummyTask")
 
-        then:
+        then: "only relevant projects are configured, while work graph and the model are stored in cache"
         fixture.assertModelStored {
             runsTasks = true
             // TODO:isolated desired behavior
-//            projectsConfigured(":buildSrc", ":")
+//            projectsConfigured(":buildSrc", ":") // Note :a and :b were not configured
             projectsConfigured(":buildSrc", ":", ":a", ":b")
             modelsCreated(":")
         }
         outputContains("Configuration of dummyTask")
         outputContains("Execution of dummyTask")
 
-        when:
+        when: "repeating the request"
         withIsolatedProjects()
         fetchModel(SomeToolingModel, ":dummyTask")
 
-        then:
+        then: "no projects are configured, work graph and the model are loaded, tasks are executed before the model is returned"
         fixture.assertModelLoaded {
             runsTasks = true
         }
@@ -160,24 +160,24 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
             }
         """
 
-        when:
+        when: "requesting a model together with running a task"
         withIsolatedProjects("-Dorg.gradle.internal.isolated-projects.configure-on-demand.tasks=true")
         fetchModel(SomeToolingModel, ":dummyTask")
 
-        then:
+        then: "only relevant projects are configured, while work graph and the model are stored in cache"
         fixture.assertModelStored {
             runsTasks = true
-            projectsConfigured(":buildSrc", ":")
+            projectsConfigured(":buildSrc", ":") // Note :a and :b were not configured
             modelsCreated(":")
         }
         outputContains("Configuration of dummyTask")
         outputContains("Execution of dummyTask")
 
-        when:
+        when: "repeating the request"
         withIsolatedProjects()
         fetchModel(SomeToolingModel, ":dummyTask")
 
-        then:
+        then: "no projects are configured, work graph and the model are loaded, tasks are executed before the model is returned"
         fixture.assertModelLoaded {
             runsTasks = true
         }
