@@ -18,6 +18,7 @@ package org.gradle.process.internal;
 
 import org.gradle.api.NonNullApi;
 import org.gradle.process.CommandLineArgumentProvider;
+import org.gradle.process.ProcessForkOptions;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -90,6 +91,8 @@ public interface ClientExecHandleBuilder extends BaseExecHandleBuilder {
     InputStream getStandardInput();
 
     ClientExecHandleBuilder setWorkingDir(Object dir);
+
+    void copyTo(ProcessForkOptions options);
 
     ExecHandle buildWithEffectiveArguments(List<String> effectiveArguments);
 }

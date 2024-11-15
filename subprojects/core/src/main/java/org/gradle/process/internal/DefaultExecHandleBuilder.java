@@ -16,7 +16,6 @@
 
 package org.gradle.process.internal;
 
-import org.gradle.process.BaseExecSpec;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.ProcessForkOptions;
 
@@ -31,14 +30,12 @@ import java.util.Map;
  *
  * Can be merged with {@link ClientExecHandleBuilder} in Gradle 9.0.
  */
-@SuppressWarnings("deprecation")
-public class DefaultExecHandleBuilder implements ExecHandleBuilder, ProcessArgumentsSpec.HasExecutable {
-
-    private final ClientExecHandleBuilder delegate;
-    private boolean ignoreExitValue;
+@SuppressWarnings("DeprecatedIsStillUsed")
+@Deprecated
+public class DefaultExecHandleBuilder extends AbstractExecHandleBuilder implements ExecHandleBuilder, ProcessArgumentsSpec.HasExecutable {
 
     public DefaultExecHandleBuilder(ClientExecHandleBuilder delegate) {
-        this.delegate = delegate;
+        super(delegate);
     }
 
     @Override
@@ -139,14 +136,14 @@ public class DefaultExecHandleBuilder implements ExecHandleBuilder, ProcessArgum
     }
 
     @Override
-    public DefaultExecHandleBuilder setIgnoreExitValue(boolean ignoreExitValue) {
-        this.ignoreExitValue = ignoreExitValue;
-        return this;
+    public List<String> getAllArguments() {
+        return delegate.getAllArguments();
     }
 
     @Override
-    public boolean isIgnoreExitValue() {
-        return ignoreExitValue;
+    public DefaultExecHandleBuilder setIgnoreExitValue(boolean ignoreExitValue) {
+        super.setIgnoreExitValue(ignoreExitValue);
+        return this;
     }
 
     @Override
@@ -174,78 +171,48 @@ public class DefaultExecHandleBuilder implements ExecHandleBuilder, ProcessArgum
     @Override
     public ProcessForkOptions environment(String name, Object value) {
         delegate.environment(name, value);
-        return null;
-    }
-
-    @Override
-    public ProcessForkOptions copyTo(ProcessForkOptions options) {
         return this;
     }
 
     @Override
     public DefaultExecHandleBuilder setDisplayName(String displayName) {
-        delegate.setDisplayName(displayName);
+        super.setDisplayName(displayName);
         return this;
     }
 
     @Override
     public DefaultExecHandleBuilder redirectErrorStream() {
-        delegate.redirectErrorStream();
+        super.redirectErrorStream();
         return this;
     }
 
     @Override
     public DefaultExecHandleBuilder setStandardOutput(OutputStream outputStream) {
-        delegate.setStandardOutput(outputStream);
+        super.setStandardOutput(outputStream);
         return this;
-    }
-
-    @Override
-    public OutputStream getStandardOutput() {
-        return delegate.getStandardOutput();
-    }
-
-    @Override
-    public BaseExecSpec setErrorOutput(OutputStream outputStream) {
-        delegate.setErrorOutput(outputStream);
-        return this;
-    }
-
-    @Override
-    public OutputStream getErrorOutput() {
-        return delegate.getErrorOutput();
-    }
-
-    @Override
-    public List<String> getCommandLine() {
-        return delegate.getCommandLine();
     }
 
     @Override
     public DefaultExecHandleBuilder setStandardInput(InputStream inputStream) {
-        delegate.setStandardInput(inputStream);
+        super.setStandardInput(inputStream);
         return this;
-    }
-
-    @Override
-    public InputStream getStandardInput() {
-        return delegate.getStandardInput();
     }
 
     @Override
     public DefaultExecHandleBuilder streamsHandler(StreamsHandler streamsHandler) {
-        delegate.streamsHandler(streamsHandler);
+        super.streamsHandler(streamsHandler);
         return this;
     }
 
+    @Override
     public DefaultExecHandleBuilder listener(ExecHandleListener listener) {
-        delegate.listener(listener);
+        super.listener(listener);
         return this;
     }
 
     @Override
     public DefaultExecHandleBuilder setTimeout(int timeoutMillis) {
-        delegate.setTimeout(timeoutMillis);
+        super.setTimeout(timeoutMillis);
         return this;
     }
 
@@ -256,7 +223,8 @@ public class DefaultExecHandleBuilder implements ExecHandleBuilder, ProcessArgum
     }
 
     @Override
-    public ExecHandle build() {
-        return delegate.build();
+    public ProcessForkOptions copyTo(ProcessForkOptions options) {
+        delegate.copyTo(options);
+        return this;
     }
 }

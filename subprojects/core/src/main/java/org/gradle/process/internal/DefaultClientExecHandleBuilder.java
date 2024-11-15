@@ -21,6 +21,7 @@ import org.gradle.api.NonNullApi;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.process.CommandLineArgumentProvider;
+import org.gradle.process.ProcessForkOptions;
 import org.gradle.process.internal.streams.EmptyStdInStreamsHandler;
 import org.gradle.process.internal.streams.ForwardStdinStreamsHandler;
 import org.gradle.process.internal.streams.OutputStreamsForwarder;
@@ -245,6 +246,13 @@ public class DefaultClientExecHandleBuilder implements ClientExecHandleBuilder, 
     public ClientExecHandleBuilder setWorkingDir(Object dir) {
         this.workingDir = fileResolver.resolve(dir);
         return this;
+    }
+
+    @Override
+    public void copyTo(ProcessForkOptions options) {
+        options.setExecutable(executable);
+        options.setWorkingDir(workingDir);
+        options.setEnvironment(environment);
     }
 
     private static Map<String, String> getEffectiveEnvironment(Map<String, Object> environment) {
