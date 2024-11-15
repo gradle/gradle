@@ -66,8 +66,8 @@ public class TransformStep implements TaskDependencyContainer, Describable {
     }
 
     public Deferrable<Try<TransformStepSubject>> createInvocation(TransformStepSubject subjectToTransform, TransformUpstreamDependencies upstreamDependencies, @Nullable NodeExecutionContext context) {
-        if (LOGGER.isInfoEnabled()) {
-            LOGGER.info("Transforming {} with {}", subjectToTransform.getDisplayName(), transform.getDisplayName());
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Transforming {} with {}", subjectToTransform.getDisplayName(), transform.getDisplayName());
         }
 
         InputFingerprinter inputFingerprinter = context != null ? context.getService(InputFingerprinter.class) : globalInputFingerprinter;
