@@ -231,20 +231,21 @@ public class DefaultClientExecHandleBuilder implements ClientExecHandleBuilder, 
         return streamsSpec.getStandardInput();
     }
 
+    @Nullable
     @Override
     public File getWorkingDir() {
         return workingDir;
     }
 
     @Override
-    public ClientExecHandleBuilder setWorkingDir(File dir) {
-        this.workingDir = fileResolver.resolve(dir);
+    public ClientExecHandleBuilder setWorkingDir(@Nullable File dir) {
+        this.workingDir = dir == null ? null:  fileResolver.resolve(dir);
         return this;
     }
 
     @Override
-    public ClientExecHandleBuilder setWorkingDir(Object dir) {
-        this.workingDir = fileResolver.resolve(dir);
+    public ClientExecHandleBuilder setWorkingDir(@Nullable Object dir) {
+        this.workingDir = dir == null ? null : fileResolver.resolve(dir);
         return this;
     }
 

@@ -33,8 +33,6 @@ public interface ClientExecHandleBuilder extends BaseExecHandleBuilder {
 
     ClientExecHandleBuilder commandLine(Object... args);
 
-    ClientExecHandleBuilder setWorkingDir(File dir);
-
     ClientExecHandleBuilder setStandardInput(InputStream inputStream);
 
     @Override
@@ -72,7 +70,12 @@ public interface ClientExecHandleBuilder extends BaseExecHandleBuilder {
 
     String getExecutable();
 
+    @Nullable
     File getWorkingDir();
+
+    ClientExecHandleBuilder setWorkingDir(@Nullable Object dir);
+
+    ClientExecHandleBuilder setWorkingDir(@Nullable File dir);
 
     OutputStream getErrorOutput();
 
@@ -90,7 +93,6 @@ public interface ClientExecHandleBuilder extends BaseExecHandleBuilder {
 
     InputStream getStandardInput();
 
-    ClientExecHandleBuilder setWorkingDir(Object dir);
 
     void copyTo(ProcessForkOptions options);
 

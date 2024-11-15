@@ -376,16 +376,17 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
         return this;
     }
 
+    @Nullable
     public File getWorkingDir() {
         return execHandleBuilder.getWorkingDir();
     }
 
-    public JavaExecHandleBuilder setWorkingDir(Object dir) {
+    public JavaExecHandleBuilder setWorkingDir(@Nullable Object dir) {
         execHandleBuilder.setWorkingDir(dir);
         return this;
     }
 
-    public JavaExecHandleBuilder setWorkingDir(File dir) {
+    public JavaExecHandleBuilder setWorkingDir(@Nullable File dir) {
         execHandleBuilder.setWorkingDir(dir);
         return this;
     }
@@ -472,6 +473,10 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
 
     @Override
     public ExecHandle build() {
+        if (execHandleBuilder.getWorkingDir() == null) {
+            // Resolve null working directory in the same way as JavaOptions does
+            execHandleBuilder.setWorkingDir(javaOptions.getWorkingDir());
+        }
         return execHandleBuilder.buildWithEffectiveArguments(getEffectiveArguments());
     }
 }
