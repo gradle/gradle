@@ -782,7 +782,7 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
         configurationCacheRun("resolve1")
 
         then:
-        configurationCache.assertStateStored()
+        configurationCache.assertStateLoaded()
 
         when:
         configurationCacheRun("resolve1")
