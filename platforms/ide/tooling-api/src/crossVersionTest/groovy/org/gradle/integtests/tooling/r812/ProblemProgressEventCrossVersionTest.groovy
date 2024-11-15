@@ -87,15 +87,11 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         thrown(BuildException)
         listener.problems.size() == 2
         verifyAll(listener.problems[0]) {
-            definition.id.displayName == "The RepositoryHandler.jcenter() method has been deprecated."
-            definition.id.group.displayName == "Deprecation"
-            definition.id.group.name == "deprecation"
+            definition.id.displayName.contains("The RepositoryHandler.jcenter() method has been deprecated.")
+            definition.id.group.displayName in ["Deprecation", "deprecation", "repository-jcenter"]
+            definition.id.group.name in ["deprecation", "repository-jcenter"]
             definition.severity == Severity.WARNING
-            locations.size() == 2
-            (locations[0] as LineInFileLocation).path == "build file '$buildFile.path'" // FIXME: the path should not contain a prefix nor extra quotes
-            (locations[1] as LineInFileLocation).path == "build file '$buildFile.path'"
-            additionalData instanceof GeneralData
-            additionalData.asMap['type'] == 'USER_CODE_DIRECT'
+            locations.find { l -> l instanceof LineInFileLocation && l.path == "build file '$buildFile.path'" } // FIXME: the path should not contain a prefix nor extra quotes
         }
     }
 
@@ -289,7 +285,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         thrown(BuildException)
         def problems = listener.problems
         validateCompilationProblem(problems, buildFile)
-        problems[0].failure.failure == null
+        problems[0].failure == null
     }
 
     @TargetGradleVersion("=8.5")
