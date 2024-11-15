@@ -165,9 +165,6 @@ data class StackTracePart(
 
 class FailureDecorator {
 
-    private
-    val stringBuilder = StringBuilder()
-
     fun decorate(failure: Failure): DecoratedFailure {
         return DecoratedFailure(
             exceptionSummaryFor(failure),
@@ -177,13 +174,10 @@ class FailureDecorator {
 
     private
     fun partitionedTraceFor(failure: Failure): List<StackTracePart> {
+        val stringBuilder = StringBuilder()
         val listener = PartitioningFailurePrinterListener(stringBuilder)
-        try {
-            FailurePrinter.print(stringBuilder, failure, listener)
-            return listener.parts
-        } finally {
-            stringBuilder.setLength(0)
-        }
+        FailurePrinter.print(stringBuilder, failure, listener)
+        return listener.parts
     }
 
     private
