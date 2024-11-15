@@ -16,9 +16,6 @@
 
 package org.gradle.process.internal;
 
-import org.gradle.initialization.BuildCancellationToken;
-import org.gradle.initialization.DefaultBuildCancellationToken;
-import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.process.BaseExecSpec;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.ProcessForkOptions;
@@ -28,23 +25,20 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Executor;
 
 /**
- * Use {@link ClientExecHandleFactory} instead.
+ * Deprecated. Use {@link ClientExecHandleBuilder} instead. Kept for now since it's used by the Kotlin plugin.
+ *
+ * Can be merged with {@link ClientExecHandleBuilder} in Gradle 9.0.
  */
 @SuppressWarnings("deprecation")
 public class DefaultExecHandleBuilder implements ExecHandleBuilder, ProcessArgumentsSpec.HasExecutable {
 
-    private final DefaultClientExecHandleBuilder delegate;
+    private final ClientExecHandleBuilder delegate;
     private boolean ignoreExitValue;
 
-    public DefaultExecHandleBuilder(PathToFileResolver fileResolver, Executor executor) {
-        this(fileResolver, executor, new DefaultBuildCancellationToken());
-    }
-
-    public DefaultExecHandleBuilder(PathToFileResolver fileResolver, Executor executor, BuildCancellationToken buildCancellationToken) {
-        this.delegate = new DefaultClientExecHandleBuilder(fileResolver, executor, buildCancellationToken);
+    public DefaultExecHandleBuilder(ClientExecHandleBuilder delegate) {
+        this.delegate = delegate;
     }
 
     @Override

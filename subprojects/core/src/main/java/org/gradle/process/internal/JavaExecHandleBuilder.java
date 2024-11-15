@@ -251,8 +251,9 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
         return javaOptions.getDebugOptions();
     }
 
-    public void debugOptions(Action<JavaDebugOptions> action) {
+    public JavaExecHandleBuilder debugOptions(Action<JavaDebugOptions> action) {
         javaOptions.debugOptions(action);
+        return this;
     }
 
     public Property<String> getMainModule() {
@@ -370,36 +371,42 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
         execHandleBuilder.setExecutable(Objects.toString(executable));
     }
 
-    public void setExecutable(String executable) {
+    public JavaExecHandleBuilder setExecutable(String executable) {
         execHandleBuilder.setExecutable(executable);
+        return this;
     }
 
     public File getWorkingDir() {
         return execHandleBuilder.getWorkingDir();
     }
 
-    public void setWorkingDir(Object dir) {
+    public JavaExecHandleBuilder setWorkingDir(Object dir) {
         execHandleBuilder.setWorkingDir(dir);
+        return this;
     }
 
-    public void setWorkingDir(File dir) {
+    public JavaExecHandleBuilder setWorkingDir(File dir) {
         execHandleBuilder.setWorkingDir(dir);
+        return this;
     }
 
     public Map<String, Object> getEnvironment() {
         return execHandleBuilder.getEnvironment();
     }
 
-    public void setEnvironment(Map<String, ?> environmentVariables) {
+    public JavaExecHandleBuilder setEnvironment(Map<String, ?> environmentVariables) {
         execHandleBuilder.setEnvironment(environmentVariables);
+        return this;
     }
 
-    public void environment(Map<String, ?> environmentVariables) {
+    public JavaExecHandleBuilder environment(Map<String, ?> environmentVariables) {
         execHandleBuilder.environment(environmentVariables);
+        return this;
     }
 
-    public void environment(String name, Object value) {
+    public JavaExecHandleBuilder environment(String name, Object value) {
         execHandleBuilder.environment(name, value);
+        return this;
     }
 
     @Override

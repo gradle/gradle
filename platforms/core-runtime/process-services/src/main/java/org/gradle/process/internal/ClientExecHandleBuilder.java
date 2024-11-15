@@ -67,6 +67,8 @@ public interface ClientExecHandleBuilder extends BaseExecHandleBuilder {
 
     ClientExecHandleBuilder setExecutable(String executable);
 
+    void setExecutable(Object executable);
+
     String getExecutable();
 
     File getWorkingDir();

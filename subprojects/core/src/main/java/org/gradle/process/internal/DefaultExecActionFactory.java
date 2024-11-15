@@ -52,7 +52,7 @@ public class DefaultExecActionFactory implements ExecFactory {
     @Nullable
     protected final JavaModuleDetector javaModuleDetector;
     protected final BuildCancellationToken buildCancellationToken;
-    protected final ClientExecHandleFactory clientExecHandleFactory;
+    protected final ClientExecHandleFactory execHandleFactory;
     protected final Instantiator instantiator;
     protected final ExternalProcessStartedListener externalProcessStartedListener;
 
@@ -64,7 +64,7 @@ public class DefaultExecActionFactory implements ExecFactory {
         TemporaryFileProvider temporaryFileProvider,
         BuildCancellationToken buildCancellationToken,
         ObjectFactory objectFactory,
-        ClientExecHandleFactory clientExecHandleFactory,
+        ClientExecHandleFactory execHandleFactory,
         @Nullable JavaModuleDetector javaModuleDetector,
         @Nullable ExternalProcessStartedListener externalProcessStartedListener
     ) {
@@ -75,7 +75,7 @@ public class DefaultExecActionFactory implements ExecFactory {
         this.javaModuleDetector = javaModuleDetector;
         this.buildCancellationToken = buildCancellationToken;
         this.executor = executor;
-        this.clientExecHandleFactory = clientExecHandleFactory;
+        this.execHandleFactory = execHandleFactory;
         this.instantiator = instantiator;
         this.externalProcessStartedListener = externalProcessStartedListener;
     }
@@ -115,7 +115,7 @@ public class DefaultExecActionFactory implements ExecFactory {
 
     @Override
     public ExecAction newExecAction() {
-        return new DefaultExecAction(fileResolver, executor, buildCancellationToken);
+        return new DefaultExecAction(execHandleFactory.newExec());
     }
 
     @Override
@@ -189,7 +189,7 @@ public class DefaultExecActionFactory implements ExecFactory {
     @Override
     @SuppressWarnings("deprecation")
     public ExecHandleBuilder newExec() {
-        return new DefaultExecHandleBuilder(fileResolver, executor, buildCancellationToken);
+        return new DefaultExecHandleBuilder(execHandleFactory.newExec());
     }
 
     @Override
@@ -200,7 +200,7 @@ public class DefaultExecActionFactory implements ExecFactory {
             temporaryFileProvider,
             javaModuleDetector,
             newJavaForkOptions(),
-            clientExecHandleFactory.newExec()
+            execHandleFactory.newExec()
         );
     }
 
@@ -220,7 +220,7 @@ public class DefaultExecActionFactory implements ExecFactory {
 
     @Override
     public Builder forContext() {
-        return new BuilderImpl(executor, temporaryFileProvider, clientExecHandleFactory)
+        return new BuilderImpl(executor, temporaryFileProvider, execHandleFactory)
             .withInstantiator(instantiator)
             .withExternalProcessStartedListener(externalProcessStartedListener)
             .withFileResolver(fileResolver)
