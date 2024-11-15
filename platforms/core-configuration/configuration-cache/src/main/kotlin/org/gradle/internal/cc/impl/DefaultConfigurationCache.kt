@@ -409,20 +409,13 @@ class DefaultConfigurationCache internal constructor(
     private
     fun checkFingerprint(): CheckedFingerprint = buildOperationRunner.withFingerprintCheckOperations {
         // searching for a valid cc entry
-        val candidates = store.useForStateLoad { layout ->
-            cacheIO.readCandidateEntries(layout.fileFor(StateType.Candidates))
-        }.value
-
+        val candidates = readCandidateEntries()
         val invalidationReasons = mutableListOf<CheckedFingerprint>()
-
         for (candidate in candidates) {
             when (val result = checkCandidate(candidate)) {
                 is CheckedFingerprint.Valid -> {
-                    currentCandidateEntries = buildList {
-                        add(0, candidate)
-                        addAll(candidates.filter { it != candidate })
-                    }
-                    return@withFingerprintCheckOperations CheckedFingerprint.Found(candidate.id)
+                    currentCandidateEntries = updateMostRecentEntries(candidate, candidates)
+                    CheckedFingerprint.Found(candidate.id)
                 }
 
                 is CheckedFingerprint.EntryInvalid,
@@ -432,9 +425,18 @@ class DefaultConfigurationCache internal constructor(
             }
         }
         currentCandidateEntries = candidates
-
-        return@withFingerprintCheckOperations invalidationReasons.firstOrNull() ?: CheckedFingerprint.NotFound
+        invalidationReasons.firstOrNull() ?: CheckedFingerprint.NotFound
     }
+
+    private fun updateMostRecentEntries(candidate: CandidateEntry, candidates: List<CandidateEntry>) = buildList {
+        add(0, candidate)
+        addAll(candidates.filter { it != candidate })
+    }
+
+    private
+    fun readCandidateEntries() = store.useForStateLoad { layout ->
+        cacheIO.readCandidateEntries(layout.fileFor(StateType.Candidates))
+    }.value
 
     private
     fun checkCandidate(candidateEntry: CandidateEntry): CheckedFingerprint {
@@ -446,7 +448,8 @@ class DefaultConfigurationCache internal constructor(
         }.value
     }
 
-    private fun checkedFingerprint(layout: ConfigurationCacheRepository.Layout): CheckedFingerprint {
+    private
+    fun checkedFingerprint(layout: ConfigurationCacheRepository.Layout): CheckedFingerprint {
         val entryFile = layout.fileFor(StateType.Entry)
         val entryDetails = cacheIO.readCacheEntryDetailsFrom(entryFile)
         return if (entryDetails == null) {
