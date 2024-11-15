@@ -592,7 +592,8 @@ The following types/formats are supported:
         """
 
         when:
-        runAndFail(firstTask, secondTask)
+        // Using max-workers=1 to avoid parallel execution and re-ordering of tasks
+        runAndFail(firstTask, secondTask, "--max-workers=1")
 
         then:
         assertMissingDependency(":producer", ":consumer", producerOutput)
