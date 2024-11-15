@@ -78,6 +78,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         new ConfigurationCacheParallelOption(),
         new ConfigurationCacheRecreateOption(),
         new ConfigurationCacheQuietOption(),
+        new ConfigurationCacheEntriesPerKeyOption(),
         new IsolatedProjectsOption(),
         new ProblemReportGenerationOption(),
         new PropertyUpgradeReportOption()
@@ -599,7 +600,20 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
             settings.setConfigurationCacheParallel(value);
         }
+    }
 
+    public static class ConfigurationCacheEntriesPerKeyOption extends IntegerBuildOption<StartParameterInternal> {
+
+        public static final String PROPERTY_NAME = "org.gradle.configuration-cache.entries-per-key";
+
+        public ConfigurationCacheEntriesPerKeyOption() {
+            super(PROPERTY_NAME);
+        }
+
+        @Override
+        public void applyTo(int value, StartParameterInternal settings, Origin origin) {
+            settings.setConfigurationCacheEntriesPerKey(value);
+        }
     }
 
     public static class ConfigurationCacheRecreateOption extends BooleanBuildOption<StartParameterInternal> {
