@@ -207,8 +207,12 @@ class IsolatedProjectsFixture {
      *
      * Also asserts that the appropriate console logging, reports and build operations are generated.
      */
-    void assertModelLoaded() {
-        configurationCache.assertStateLoaded(forModels(new ConfigurationCacheFixture.LoadDetails()))
+    void assertModelLoaded(@DelegatesTo(ConfigurationCacheFixture.LoadDetails) Closure closure = {}) {
+        def details = forModels(new ConfigurationCacheFixture.LoadDetails())
+        closure.delegate = details
+        closure()
+
+        configurationCache.assertStateLoaded(details)
 
         assertHasWarningThatIncubatingFeatureUsed()
         assertNoModelsQueried()
