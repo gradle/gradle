@@ -303,7 +303,8 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
             throw throwVersionCatalogProblemException(getProblemsService(), getProblemsService().getInternalReporter().create(builder ->
                 configureVersionCatalogError(builder, getProblemInVersionCatalog() + "import of external catalog file failed.", CATALOG_FILE_DOES_NOT_EXIST)
                     .details("File '" + modelFile + "' doesn't exist")
-                    .solution("Make sure that the catalog file '" + modelFile.getName() + "' exists before importing it")));
+                    .solution("Make sure that the catalog file '" + modelFile.getName() + "' exists before importing it")
+                    .solution("libs.versions.toml in gradle folder is already taken as default 'libs', please avoid re-declaring it")));
         }
 
         Instrumented.fileOpened(modelFile, getClass().getName());
