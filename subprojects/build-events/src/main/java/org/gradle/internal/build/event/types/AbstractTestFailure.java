@@ -25,8 +25,8 @@ public class AbstractTestFailure extends DefaultFailure implements Serializable 
     private final String className;
     private final String stacktrace;
 
-    protected AbstractTestFailure(String message, String description, List<? extends InternalFailure> causes, String className, String stacktrace) {
-        super(message, description, causes);
+    protected AbstractTestFailure(Class<? extends Throwable> exceptionType, String message, String description, List<? extends InternalFailure> causes, String className, String stacktrace) {
+        super(exceptionType, message, description, causes);
         this.className = className;
         this.stacktrace = stacktrace;
     }

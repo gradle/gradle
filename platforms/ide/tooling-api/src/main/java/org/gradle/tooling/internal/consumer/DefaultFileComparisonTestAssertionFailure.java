@@ -29,8 +29,8 @@ public class DefaultFileComparisonTestAssertionFailure extends DefaultTestAssert
     private final byte[] expectedContent;
     private final byte[] actualContent;
 
-    public DefaultFileComparisonTestAssertionFailure(String message, String description, String expected, String actual, List<? extends Failure> causes, String className, String stacktrace, byte[] expectedContent, byte[] actualContent) {
-        super(message, description, expected, actual, causes, className, stacktrace);
+    public DefaultFileComparisonTestAssertionFailure(@Nullable Class<? extends Throwable> exceptionType, String message, String description, String expected, String actual, List<? extends Failure> causes, String className, String stacktrace, byte[] expectedContent, byte[] actualContent) {
+        super(exceptionType, message, description, expected, actual, causes, className, stacktrace);
         this.expectedContent = expectedContent;
         this.actualContent = actualContent;
     }

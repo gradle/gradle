@@ -161,6 +161,7 @@ import org.gradle.tooling.internal.protocol.InternalBasicProblemDetailsVersion3;
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener;
 import org.gradle.tooling.internal.protocol.InternalFailure;
 import org.gradle.tooling.internal.protocol.InternalFileComparisonTestAssertionFailure;
+import org.gradle.tooling.internal.protocol.InternalJvmFailure;
 import org.gradle.tooling.internal.protocol.InternalProblemAggregationDetailsV2;
 import org.gradle.tooling.internal.protocol.InternalProblemAggregationDetailsVersion3;
 import org.gradle.tooling.internal.protocol.InternalProblemContextDetails;
@@ -1182,10 +1183,18 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         for (InternalBasicProblemDetailsVersion3 problem : problems) {
             clientProblems.add(createProblemReport(problem));
         }
+
+        Class<? extends Throwable> exceptionType = null;
+        if (origFailure instanceof InternalJvmFailure) {
+            exceptionType = ((InternalJvmFailure) origFailure).getExceptionType();
+        }
+
         if (origFailure instanceof InternalTestAssertionFailure) {
             if (origFailure instanceof InternalFileComparisonTestAssertionFailure) {
                 InternalTestAssertionFailure assertionFailure = (InternalTestAssertionFailure) origFailure;
-                return new DefaultFileComparisonTestAssertionFailure(assertionFailure.getMessage(),
+                return new DefaultFileComparisonTestAssertionFailure(
+                    exceptionType,
+                    assertionFailure.getMessage(),
                     assertionFailure.getDescription(),
                     assertionFailure.getExpected(),
                     assertionFailure.getActual(),
@@ -1198,6 +1207,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
             }
             InternalTestAssertionFailure assertionFailure = (InternalTestAssertionFailure) origFailure;
             return new DefaultTestAssertionFailure(
+                exceptionType,
                 assertionFailure.getMessage(),
                 assertionFailure.getDescription(),
                 assertionFailure.getExpected(),
@@ -1209,6 +1219,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         } else if (origFailure instanceof InternalTestFrameworkFailure) {
             InternalTestFrameworkFailure frameworkFailure = (InternalTestFrameworkFailure) origFailure;
             return new DefaultTestFrameworkFailure(
+                exceptionType,
                 frameworkFailure.getMessage(),
                 frameworkFailure.getDescription(),
                 toFailures(origFailure.getCauses()),
@@ -1217,6 +1228,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
             );
         }
         return new DefaultFailure(
+            exceptionType,
             origFailure.getMessage(),
             origFailure.getDescription(),
             toFailures(origFailure.getCauses()),

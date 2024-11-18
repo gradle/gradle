@@ -28,8 +28,8 @@ public class DefaultFileComparisonTestAssertionFailure extends DefaultTestAssert
     private final byte[] expectedContent;
     private final byte[] actualContent;
 
-    private DefaultFileComparisonTestAssertionFailure(String message, String description, List<? extends InternalFailure> causes, String expected, String actual, String className, String stacktrace, byte[] expectedContent, byte[] actualContent) {
-        super(message, description, causes, expected, actual, className, stacktrace);
+    private DefaultFileComparisonTestAssertionFailure(Class<? extends Throwable> exceptionType, String message, String description, List<? extends InternalFailure> causes, String expected, String actual, String className, String stacktrace, byte[] expectedContent, byte[] actualContent) {
+        super(exceptionType, message, description, causes, expected, actual, className, stacktrace);
         this.expectedContent = expectedContent;
         this.actualContent = actualContent;
     }
@@ -52,7 +52,7 @@ public class DefaultFileComparisonTestAssertionFailure extends DefaultTestAssert
         } else {
             causeFailure = Collections.unmodifiableList(causes);
         }
-        return new DefaultFileComparisonTestAssertionFailure(message, stacktrace, causeFailure, expected, actual, className, stacktrace, expectedContent, actualContent);
+        return new DefaultFileComparisonTestAssertionFailure(t.getClass(), message, stacktrace, causeFailure, expected, actual, className, stacktrace, expectedContent, actualContent);
     }
 
     @Override

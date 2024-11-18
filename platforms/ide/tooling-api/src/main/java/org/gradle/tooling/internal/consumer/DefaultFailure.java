@@ -17,29 +17,38 @@
 package org.gradle.tooling.internal.consumer;
 
 import org.gradle.tooling.Failure;
+import org.gradle.tooling.JvmFailure;
 import org.gradle.tooling.events.problems.Problem;
 
+import javax.annotation.Nullable;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Collections;
 import java.util.List;
 
-public class DefaultFailure implements Failure {
-
+public class DefaultFailure implements JvmFailure {
+    private final @Nullable Class<? extends Throwable> exceptionType;
     private final String message;
     private final String description;
     private final List<? extends Failure> causes;
     private final List<Problem> problems;
 
-    public DefaultFailure(String message, String description, List<? extends Failure> causes) {
-        this(message, description, causes, Collections.<Problem>emptyList());
+    public DefaultFailure(@Nullable Class<? extends Throwable> exceptionType, String message, String description, List<? extends Failure> causes) {
+        this(exceptionType, message, description, causes, Collections.<Problem>emptyList());
     }
 
-    public DefaultFailure(String message, String description, List<? extends Failure> causes, List<Problem> problems) {
+    public DefaultFailure(@Nullable Class<? extends Throwable> exceptionType, String message, String description, List<? extends Failure> causes, List<Problem> problems) {
+        this.exceptionType = exceptionType;
         this.message = message;
         this.description = description;
         this.causes = causes;
         this.problems = problems;
+    }
+
+    @Override
+    @Nullable
+    public Class<? extends Throwable> getExceptionType() {
+        return exceptionType;
     }
 
     @Override
@@ -68,6 +77,6 @@ public class DefaultFailure implements Failure {
         t.printStackTrace(wrt);
         Throwable cause = t.getCause();
         DefaultFailure causeFailure = cause != null && cause != t ? fromThrowable(cause) : null;
-        return new DefaultFailure(t.getMessage(), out.toString(), Collections.singletonList(causeFailure));
+        return new DefaultFailure(t.getClass(), t.getMessage(), out.toString(), Collections.singletonList(causeFailure));
     }
 }
