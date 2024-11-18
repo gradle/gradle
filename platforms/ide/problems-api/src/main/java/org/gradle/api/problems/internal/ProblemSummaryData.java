@@ -14,23 +14,27 @@
  * limitations under the License.
  */
 
-package org.gradle.problems.internal;
+package org.gradle.api.problems.internal;
 
-import org.gradle.api.problems.internal.Problem;
-import org.gradle.api.problems.internal.ProblemReportCreator;
-import org.gradle.api.problems.internal.ProblemSummaryData;
+import org.gradle.api.problems.ProblemId;
 
-import java.io.File;
-import java.util.List;
+/**
+ * Problem summary data
+ */
+public class ProblemSummaryData {
+    private final ProblemId problemId;
+    private final int count;
 
-public class NoOpProblemReportCreator implements ProblemReportCreator {
-    @Override
-    public void createReportFile(File reportDir, List<ProblemSummaryData> cutOffProblems) {
-        // no op
+    public ProblemSummaryData(ProblemId problemId, int count) {
+        this.problemId = problemId;
+        this.count = count;
     }
 
-    @Override
-    public void addProblem(Problem problem) {
-        // no op
+    public ProblemId getProblemId() {
+        return problemId;
+    }
+
+    public int getCount() {
+        return count;
     }
 }

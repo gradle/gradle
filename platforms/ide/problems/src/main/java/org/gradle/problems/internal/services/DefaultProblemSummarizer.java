@@ -22,7 +22,7 @@ import org.gradle.api.problems.internal.Problem;
 import org.gradle.api.problems.internal.ProblemEmitter;
 import org.gradle.api.problems.internal.ProblemReportCreator;
 import org.gradle.api.problems.internal.ProblemSummarizer;
-import org.gradle.internal.Pair;
+import org.gradle.api.problems.internal.ProblemSummaryData;
 import org.gradle.internal.buildoption.IntegerInternalOption;
 import org.gradle.internal.buildoption.InternalOption;
 import org.gradle.internal.buildoption.InternalOptions;
@@ -74,15 +74,15 @@ public class DefaultProblemSummarizer implements ProblemSummarizer {
 
     @Override
     public void report(File reportDir, ProblemConsumer validationFailures) {
-        List<Pair<ProblemId, Integer>> cutOffProblems = getCutOffProblems();
-        problemReportCreator.report(reportDir, cutOffProblems);
+        List<ProblemSummaryData> cutOffProblems = getCutOffProblems();
+        problemReportCreator.createReportFile(reportDir, cutOffProblems);
         eventEmitter.emitNow(currentBuildOperationRef.getId(), new DefaultProblemsSummaryProgressDetails(cutOffProblems));
     }
 
-    private List<Pair<ProblemId, Integer>> getCutOffProblems() {
+    private List<ProblemSummaryData> getCutOffProblems() {
         return seenProblemsWithCounts.entrySet().stream()
             .filter(entry -> entry.getValue().get() > threshold)
-            .map(entry -> Pair.of(entry.getKey(), entry.getValue().get() - threshold))
+            .map(entry -> new ProblemSummaryData(entry.getKey(), entry.getValue().get() - threshold))
             .collect(toImmutableList());
     }
 
@@ -92,7 +92,7 @@ public class DefaultProblemSummarizer implements ProblemSummarizer {
             return;
         }
 
-        problemReportCreator.emit(problem);
+        problemReportCreator.addProblem(problem);
         for (ProblemEmitter problemEmitter : problemEmitters) {
             problemEmitter.emit(problem, id);
         }

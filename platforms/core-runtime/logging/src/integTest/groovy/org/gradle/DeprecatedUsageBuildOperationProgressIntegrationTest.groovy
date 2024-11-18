@@ -331,7 +331,7 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
         def summaries = problemSummaries
         summaries.size() == 1
 
-        summaries[0][0].left.name == "thing"
+        summaries[0][0].problemId.name == "thing"
 
         where:
         mode << [WarningMode.None, WarningMode.Summary]

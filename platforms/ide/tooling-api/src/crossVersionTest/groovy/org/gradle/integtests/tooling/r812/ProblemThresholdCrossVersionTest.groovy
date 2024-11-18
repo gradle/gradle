@@ -53,7 +53,7 @@ class ProblemThresholdCrossVersionTest extends ToolingApiSpecification {
         then:
         def problems = listener.problems
         problems.size() == THRESHOLD_DEFAULT_VALUE
-        validateNToMProblems(0, THRESHOLD_DEFAULT_VALUE, problems)
+        validateProblemsRange(0..(THRESHOLD_DEFAULT_VALUE - 1), problems)
         def problemSummariesEvent = listener.summariesEvent as ProblemSummariesEvent
         problemSummariesEvent != null
 
@@ -79,7 +79,7 @@ class ProblemThresholdCrossVersionTest extends ToolingApiSpecification {
         then:
         def problems = listener.problems
         problems.size() == totalSentEventsCount
-        validateNToMProblems(0, totalSentEventsCount, problems)
+        validateProblemsRange(0..(totalSentEventsCount - 1), problems)
         def problemSummariesEvent = listener.summariesEvent as ProblemSummariesEvent
         problemSummariesEvent != null
         def summaries = problemSummariesEvent.problemSummaries
@@ -106,7 +106,7 @@ class ProblemThresholdCrossVersionTest extends ToolingApiSpecification {
         then:
         def problems = listener.problems
         problems.size() == 1 // 1 because older version does aggregation and only sends the first one.
-        validateNToMProblems(0, 1, problems)
+        validateProblemsRange(0..0, problems)
         failureMessage(problems[0].problem.failure) == 'test'
         listener.summariesEvent == null
     }
@@ -133,7 +133,7 @@ class ProblemThresholdCrossVersionTest extends ToolingApiSpecification {
         then:
         def problems = listener.problems
         problems.size() == THRESHOLD_DEFAULT_VALUE + differentProblemCount
-        validateNToMProblems(0, THRESHOLD_DEFAULT_VALUE, problems)
+        validateProblemsRange(0..(THRESHOLD_DEFAULT_VALUE - 1), problems)
         def problemSummariesEvent = listener.summariesEvent as ProblemSummariesEvent
         def summaries = problemSummariesEvent.problemSummaries
         summaries.size() == 1
@@ -161,8 +161,8 @@ class ProblemThresholdCrossVersionTest extends ToolingApiSpecification {
         then:
         def problems = listener.problems
         problems.size() == THRESHOLD_DEFAULT_VALUE * 2
-        validateNToMProblems(0, THRESHOLD_DEFAULT_VALUE, problems)
-        validateNToMProblems(THRESHOLD_DEFAULT_VALUE, problems.size(), problems, "label2", "Generic")
+        validateProblemsRange(0..(THRESHOLD_DEFAULT_VALUE - 1), problems)
+        validateProblemsRange(THRESHOLD_DEFAULT_VALUE..(problems.size() - 1), problems, "label2", "Generic")
         def problemSummariesEvent = listener.summariesEvent as ProblemSummariesEvent
         def summaries = problemSummariesEvent.problemSummaries
         summaries.size() == 2
@@ -190,14 +190,14 @@ class ProblemThresholdCrossVersionTest extends ToolingApiSpecification {
         then:
         def problems = listener.problems
         problems.size() == thresholdInOption
-        validateNToMProblems(0, thresholdInOption, problems)
+        validateProblemsRange(0..(thresholdInOption - 1), problems)
         def problemSummariesEvent = listener.summariesEvent as ProblemSummariesEvent
         def summaries = problemSummariesEvent.problemSummaries
         summaries.size() == 1
     }
 
-    boolean validateNToMProblems(int startAt, int totalSentEventsCount, Collection<SingleProblemEvent> problems, String id = "label", String group = "Generic") {
-        (startAt..totalSentEventsCount - 1).every { int index ->
+    boolean validateProblemsRange(IntRange range, Collection<SingleProblemEvent> problems, String id = "label", String group = "Generic") {
+        range.every { int index ->
             problems[index].problem.definition.id.displayName == id &&
                 problems[index].problem.definition.id.group.displayName == group
         }

@@ -27,8 +27,8 @@ import org.gradle.api.problems.internal.LineInFileLocation
 import org.gradle.api.problems.internal.PluginIdLocation
 import org.gradle.api.problems.internal.Problem
 import org.gradle.api.problems.internal.ProblemReportCreator
+import org.gradle.api.problems.internal.ProblemSummaryData
 import org.gradle.api.problems.internal.TaskPathLocation
-import org.gradle.internal.Pair
 import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.cc.impl.problems.BuildNameProvider
 import org.gradle.internal.cc.impl.problems.JsonSource
@@ -61,7 +61,7 @@ class DefaultProblemsReportCreator(
 
     private val failureDecorator = FailureDecorator()
 
-    override fun report(reportDir: File, cutOffProblems: MutableList<Pair<ProblemId, Int>>) {
+    override fun createReportFile(reportDir: File, problemSummaries: MutableList<ProblemSummaryData>) {
         report.writeReportFileTo(reportDir.resolve("reports/problems"), object : JsonSource {
             override fun writeToJson(jsonWriter: JsonWriter) {
                 with(jsonWriter) {
@@ -73,10 +73,10 @@ class DefaultProblemsReportCreator(
                             property("documentationLink", DocumentationRegistry().getDocumentationFor("problems-report"))
                             property("documentationLinkCaption", "Problem report")
                             property("summaries") {
-                                jsonList(cutOffProblems) {
+                                jsonList(problemSummaries) {
                                     jsonObject {
-                                        problemId(it.left()!!)
-                                        property("count", it.right()!!)
+                                        problemId(it.problemId)
+                                        property("count", it.count)
                                     }
                                 }
                             }
@@ -90,7 +90,7 @@ class DefaultProblemsReportCreator(
         }
     }
 
-    override fun emit(problem: Problem) {
+    override fun addProblem(problem: Problem) {
         problemCount.incrementAndGet()
         report.onProblem(JsonProblemWriter(problem, failureDecorator, failureFactory))
     }
