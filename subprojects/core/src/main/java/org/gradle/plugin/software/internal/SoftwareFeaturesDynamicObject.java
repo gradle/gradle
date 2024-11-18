@@ -24,6 +24,11 @@ import org.gradle.util.internal.ConfigureUtil;
 
 import javax.annotation.Nullable;
 
+/**
+ * Provides a dynamic object that allows software features to be queried and applied to a target object as dynamic
+ * methods.  The software features are looked up by name and if a matching feature is found, the feature is applied
+ * to the target object and the configuration block applied to its public model object.
+ */
 public class SoftwareFeaturesDynamicObject extends AbstractDynamicObject {
     private final SoftwareTypeRegistry softwareTypeRegistry;
     private final SoftwareFeatureApplicator softwareFeatureApplicator;
