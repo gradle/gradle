@@ -62,35 +62,10 @@ import static org.hamcrest.CoreMatchers.containsString
 
 class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
 
-    def "does not nag when service is used by task without a corresponding usesService call and feature preview is NOT enabled"() {
+    def "does nag when service is used by task without a corresponding usesService call"() {
         given:
         serviceImplementation()
         adhocTaskUsingUndeclaredService(1)
-
-        when:
-        succeeds 'broken'
-
-        then:
-        outputDoesNotContain "'Task#usesService'"
-    }
-
-    def "does not nag when an unconstrained service is used by task without a corresponding usesService call and feature preview is enabled"() {
-        given:
-        serviceImplementation()
-        adhocTaskUsingUndeclaredService(null)
-
-        when:
-        succeeds 'broken'
-
-        then:
-        outputDoesNotContain "'Task#usesService'"
-    }
-
-    def "does nag when service is used by task without a corresponding usesService call and feature preview is enabled"() {
-        given:
-        serviceImplementation()
-        adhocTaskUsingUndeclaredService(1)
-        enableStableConfigurationCache()
         executer.expectDocumentedDeprecationWarning(
             "Build service 'counter' is being used by task ':broken' without the corresponding declaration via 'Task#usesService'. " +
                 "This behavior has been deprecated. " +
@@ -105,7 +80,7 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue("https://github.com/gradle/configuration-cache/issues/97")
     @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
-    def "does nag when service is used indirectly via another service even if task declares service reference and feature preview is enabled"() {
+    def "does nag when service is used indirectly via another service even if task declares service reference"() {
         given:
         serviceImplementation()
         buildFile """
@@ -139,7 +114,6 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
                 // reference will be set by name
             }
         """
-        enableStableConfigurationCache()
         executer.expectDocumentedDeprecationWarning(
             "Build service 'counter' is being used by task ':broken' without the corresponding declaration via 'Task#usesService'. " +
                 "This behavior has been deprecated. " +
@@ -154,7 +128,7 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue("https://github.com/gradle/configuration-cache/issues/156")
     @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
-    def "does nag when service is used by artifact transform parameters and feature preview is enabled"() {
+    def "does nag when service is used by artifact transform parameters"() {
         given:
         serviceImplementation()
         buildFile """
@@ -215,7 +189,6 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
         """
         file("src/main/java").createDir()
         file("src/main/java/Foo.java").createFile().text = """class Foo {}"""
-        enableStableConfigurationCache()
         // should not be expected
         executer.expectDocumentedDeprecationWarning(
             "Build service 'counter' is being used by task ':compileJava' without the corresponding declaration via 'Task#usesService'. " +
@@ -239,10 +212,10 @@ service: closed with value 11
         """
     }
 
-    def "does not nag when service is used by task with an explicit usesService call and feature preview is enabled"() {
+    def "does not nag when service is used by task with an explicit usesService call"() {
         given:
         serviceImplementation()
-        customTaskUsingServiceViaProperty()
+        customTaskUsingServiceViaInternalProperty()
         buildFile """
             def serviceProvider = gradle.sharedServices.registerIfAbsent("counter", CountingService) {
                 parameters.initial = 42
@@ -255,7 +228,6 @@ service: closed with value 11
                 }
             }
         """
-        enableStableConfigurationCache()
 
         when:
         succeeds 'explicit'
@@ -298,7 +270,6 @@ service: closed with value 11
                 }
             }
         """
-        enableStableConfigurationCache()
 
         when:
         succeeds 'named'
@@ -315,7 +286,7 @@ service: closed with value 11
     def "can inject shared build service by name when reference is annotated with @ServiceReference('#name') and service type is #registeredServiceType"() {
         given:
         serviceImplementation()
-        customTaskUsingServiceViaProperty("@${ServiceReference.name}('$name')")
+        customTaskUsingServiceViaServiceReference(name)
         buildFile """
 
             abstract class SubCountingService extends CountingService {}
@@ -334,7 +305,6 @@ service: closed with value 11
                 }
             }
         """
-        enableStableConfigurationCache()
 
         when:
         succeeds 'named'
@@ -360,7 +330,7 @@ service: closed with value 11
         given:
         serviceImplementation()
         // unnamed service implies type-based lookup
-        customTaskUsingServiceViaProperty("@${ServiceReference.name}")
+        customTaskUsingServiceViaServiceReference()
         buildFile """
             gradle.sharedServices.registerIfAbsent("counter1", CountingService) {
                 parameters.initial = 10
@@ -378,7 +348,6 @@ service: closed with value 11
                 }
             }
         """
-        enableStableConfigurationCache()
 
         when:
         fails 'ambiguous'
@@ -391,7 +360,7 @@ service: closed with value 11
         given:
         serviceImplementation()
         // unnamed service implies type-based lookup
-        customTaskUsingServiceViaProperty("@${ServiceReference.name}")
+        customTaskUsingServiceViaServiceReference()
         buildFile """
             def service1 = gradle.sharedServices.registerIfAbsent("counter1", CountingService) {
                 parameters.initial = 1
@@ -416,7 +385,6 @@ service: closed with value 11
                 }
             }
         """
-        enableStableConfigurationCache()
 
         when:
         succeeds 'unambiguous'
@@ -433,7 +401,7 @@ service: closed with value 11
     def "injection by name can be overridden by explicit convention"() {
         given:
         serviceImplementation()
-        customTaskUsingServiceViaProperty("@${ServiceReference.name}('counter')")
+        customTaskUsingServiceViaServiceReference("counter")
         buildFile """
             gradle.sharedServices.registerIfAbsent("counter", CountingService) {
                 parameters.initial = 10
@@ -450,7 +418,6 @@ service: closed with value 11
                 usesService(counterProvider2)
             }
         """
-        enableStableConfigurationCache()
 
         when:
         succeeds 'named'
@@ -468,7 +435,7 @@ service: closed with value 10001
     def "injection by name works at configuration time"() {
         given:
         serviceImplementation()
-        customTaskUsingServiceViaProperty("@${ServiceReference.name}('counter')")
+        customTaskUsingServiceViaServiceReference("counter")
         buildFile """
             gradle.sharedServices.registerIfAbsent("counter", CountingService) {
                 parameters.initial = 10
@@ -479,7 +446,6 @@ service: closed with value 10001
                 counter.get().increment()
             }
         """
-        enableStableConfigurationCache()
 
         when:
         succeeds 'named'
@@ -512,7 +478,6 @@ service: closed with value 12
             }
             task missingRequiredService(type: Consumer) {}
         """
-        enableStableConfigurationCache()
 
         when:
         fails 'missingRequiredService'
@@ -541,7 +506,6 @@ service: closed with value 12
             }
             task missingOptionalService(type: Consumer) {}
         """
-        enableStableConfigurationCache()
 
         when:
         succeeds 'missingOptionalService'
@@ -553,10 +517,7 @@ service: closed with value 12
     def "injection by name fails if optional service is not found but used"() {
         given:
         serviceImplementation()
-        customTaskUsingServiceViaProperty("""
-            @${Optional.name}
-            @${ServiceReference.name}('oneCounter')
-        """)
+        customTaskUsingServiceViaOptionalServiceReference("oneCounter")
         buildFile """
             gradle.sharedServices.registerIfAbsent("anotherCounter", CountingService) {
                 parameters.initial = 10
@@ -567,7 +528,6 @@ service: closed with value 12
                 // expect service to be injected by name (it won't though)
             }
         """
-        enableStableConfigurationCache()
 
         when:
         fails 'missingService'
@@ -591,7 +551,6 @@ service: closed with value 12
             }
             task invalidServiceType(type: Consumer) {}
         """
-        enableStableConfigurationCache()
 
         when:
         fails 'invalidServiceType'
@@ -604,19 +563,15 @@ service: closed with value 12
 
     def "service is created once per build on first use and stopped at the end of the build"() {
         serviceImplementation()
-        customTaskUsingServiceViaProperty()
+        customTaskUsingServiceViaServiceReference()
         buildFile """
             def provider = gradle.sharedServices.registerIfAbsent("counter", CountingService) {
                 parameters.initial = 10
             }
 
-            task first(type: Consumer) {
-                counter = provider
-            }
+            task first(type: Consumer)
 
-            task second(type: Consumer) {
-                counter = provider
-            }
+            task second(type: Consumer)
         """
 
         when:
@@ -654,7 +609,7 @@ service: closed with value 12
 
     def "service is not instantiated if not used"() {
         serviceImplementation()
-        customTaskUsingServiceViaProperty("@${ServiceReference.name}")
+        customTaskUsingServiceViaServiceReference()
         buildFile """
             gradle.sharedServices.registerIfAbsent("counter", CountingService) {
                 parameters.initial = 10
@@ -684,12 +639,14 @@ service: closed with value 12
             }
 
             task first {
+                usesService(provider)
                 doFirst {
                     provider.get().increment()
                 }
             }
 
             task second {
+                usesService(provider)
                 doLast {
                     provider.get().increment()
                 }
@@ -727,12 +684,14 @@ service: closed with value 12
             def count = provider.map { it.increment() + 10 }
 
             task first {
+                usesService(provider)
                 doFirst {
                     println("got value = " + count.get())
                 }
             }
 
             task second {
+                usesService(provider)
                 doFirst {
                     println("got value = " + count.get())
                 }
@@ -773,6 +732,7 @@ service: closed with value 12
             }
 
             task count {
+                usesService(provider)
                 doFirst {
                     provider.get().increment()
                 }
@@ -820,6 +780,7 @@ service: closed with value 12
             }
 
             task count {
+                usesService(provider)
                 doFirst {
                     provider.get().increment()
                 }
@@ -894,6 +855,7 @@ service: closed with value 12
 
             project.task('hello') {
                 def projectName = project.name
+                usesService(myService)
                 doLast {
                     assert MyService == myService.type
                     println(myService.get().hello(projectName))
@@ -1024,6 +986,7 @@ Hello, subproject1
                         parameters.initial = 10
                     }
                     project.tasks.register("count") {
+                        usesService(provider)
                         doFirst {
                             provider.get().increment()
                         }
@@ -1079,6 +1042,8 @@ Hello, subproject1
                 parameters.initial = 10
             }
             task count {
+                usesService(counter1)
+                usesService(counter2)
                 doLast {
                     counter1.get().increment()
                     counter2.get().increment()
@@ -1125,6 +1090,7 @@ Hello, subproject1
             params.initial = 12
 
             task first {
+                usesService(provider)
                 doFirst {
                     params.initial = 15 // should have an effect
                     provider.get().reset()
@@ -1134,6 +1100,7 @@ Hello, subproject1
 
             task second {
                 dependsOn first
+                usesService(provider)
                 doFirst {
                     provider.get().increment()
                     params.initial = 456 // should be ignored
@@ -1168,12 +1135,14 @@ Hello, subproject1
             def provider = gradle.sharedServices.registerIfAbsent("counter", CountingService) {}
 
             task first {
+                usesService(provider)
                 doFirst {
                     provider.get().increment()
                 }
             }
 
             task second {
+                usesService(provider)
                 doFirst {
                     provider.get().increment()
                 }
@@ -1205,12 +1174,14 @@ Hello, subproject1
             def provider = gradle.sharedServices.registerIfAbsent("counter", CountingService)
 
             task first {
+                usesService(provider)
                 doFirst {
                     provider.get().increment()
                 }
             }
 
             task second {
+                usesService(provider)
                 doFirst {
                     provider.get().increment()
                 }
@@ -1258,6 +1229,8 @@ Hello, subproject1
             }
 
             task first {
+                usesService(service)
+                usesService(countingService)
                 doFirst {
                     service.get().increment()
                 }
@@ -1265,6 +1238,8 @@ Hello, subproject1
 
             task second {
                 dependsOn first
+                usesService(service)
+                usesService(countingService)
                 doFirst {
                     service.get().increment()
                 }
@@ -1301,6 +1276,7 @@ Hello, subproject1
             }
 
             task check {
+                usesService(provider)
                 doFirst {
                     provider.get().increment()
                 }
@@ -1327,6 +1303,7 @@ Hello, subproject1
             }
 
             task check {
+                usesService(provider)
                 doFirst {
                     provider.get().increment()
                 }
@@ -1354,6 +1331,7 @@ Hello, subproject1
             }
 
             task copy {
+                usesService(provider)
                 doFirst {
                     provider.get().copy("a", "b")
                 }
@@ -1415,6 +1393,7 @@ Hello, subproject1
                 parameters.initial = 10
             }
             task count {
+                usesService(counter1)
                 doLast {
                     counter1.get().increment()
                     throw new RuntimeException("broken")
@@ -1452,12 +1431,14 @@ Hello, subproject1
             }
 
             task first {
+                usesService(provider1)
                 doFirst {
                     provider1.get().increment()
                 }
             }
 
             task second {
+                usesService(provider2)
                 doFirst {
                     provider2.get().increment()
                 }
@@ -1504,12 +1485,14 @@ Hello, subproject1
             }
 
             task first {
+                usesService(provider1)
                 doFirst {
                     provider1.get().increment()
                 }
             }
 
             task second {
+                usesService(provider2)
                 doFirst {
                     provider2.get().increment()
                 }
@@ -1548,6 +1531,9 @@ Hello, subproject1
                 @Inject
                 abstract ObjectFactory getObjects()
 
+                @${ServiceReference.name}
+                abstract Property<CountingService> getCountingService()
+
                 @Nested
                 final Property<NestedBean> unrelated = objects.property(NestedBean).convention(project.providers.provider {
                     println("Resolving provider")
@@ -1564,7 +1550,6 @@ Hello, subproject1
             }
 
             tasks.register('hello', Greeter) {
-                it.usesService(serviceProvider)
                 doLast {
                     println("Hello, \${subject.get()}")
                 }
@@ -1700,12 +1685,6 @@ Hello, subproject1
         succeeds("hello")
     }
 
-    private void enableStableConfigurationCache() {
-        settingsFile '''
-            enableFeaturePreview 'STABLE_CONFIGURATION_CACHE'
-        '''
-    }
-
     private void adhocTaskUsingUndeclaredService(Integer maxParallelUsages) {
         buildFile """
             def serviceProvider = gradle.sharedServices.registerIfAbsent("counter", CountingService) {
@@ -1721,7 +1700,19 @@ Hello, subproject1
         """
     }
 
-    private void customTaskUsingServiceViaProperty(String annotationSnippet = "@Internal", TestFile targetBuildFile = buildFile) {
+    private void customTaskUsingServiceViaOptionalServiceReference(String name = '', TestFile targetBuildFile = buildFile) {
+        customTaskUsingServiceViaProperty("@${Optional.name} @${ServiceReference.name}('$name')", targetBuildFile)
+    }
+
+    private void customTaskUsingServiceViaServiceReference(String name = "", TestFile targetBuildFile = buildFile) {
+        customTaskUsingServiceViaProperty("@${ServiceReference.name}('$name')",  targetBuildFile)
+    }
+
+    private void customTaskUsingServiceViaInternalProperty(TestFile targetBuildFile = buildFile) {
+        customTaskUsingServiceViaProperty("@Internal", targetBuildFile)
+    }
+
+    private void customTaskUsingServiceViaProperty(CharSequence annotationSnippet, TestFile targetBuildFile = buildFile) {
         targetBuildFile << """
             abstract class Consumer extends DefaultTask {
                 ${annotationSnippet}
