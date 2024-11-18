@@ -56,12 +56,9 @@ class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProj
     def "'root(lib) -> plugins -> root(lib)' is allowed"() {
         given:
         includePluginBuild(settingsFile, "plugins-a")
-        applyPlugins(buildFile, "plugin-a")
 
         includedBuild("plugins-a") {
-            applyPlugins(buildScript, "groovy-gradle-plugin")
             includeLibraryBuild(settingsScript, "../.")
-            srcMainGroovy.file("plugin-a.gradle") << ""
         }
 
         expect:
@@ -86,6 +83,7 @@ class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProj
         isolatedProjectsFails "help"
 
         then:
+        failureDescriptionContains("Error resolving plugin [id: 'foo']")
         failureCauseContains("A cycle has been detected in the definition of plugin builds: :root -> :library -> :root.")
     }
 
@@ -108,28 +106,24 @@ class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProj
         isolatedProjectsFails "help"
 
         then:
+        failureDescriptionContains("Error resolving plugin [id: 'foo']")
         failureCauseContains("A cycle has been detected in the definition of plugin builds: :plugins-a -> :root -> :plugins-a.")
     }
 
     def "'root -> plugins-a -> plugins-b -> plugins-c -> plugins-a' is prohibited because of a plugin build cycle"() {
         given:
         includePluginBuild(settingsFile, "plugins-a")
-        applyPlugins(buildFile, "plugin-a")
 
         includedBuild("plugins-a") {
             includePluginBuild(settingsScript, "../plugins-b")
-            applyPlugins(buildScript, "plugin-b")
         }
 
         includedBuild("plugins-b") {
             includePluginBuild(settingsScript, "../plugins-c")
-            applyPlugins(buildScript, "plugin-c")
         }
 
         includedBuild("plugins-c") {
             includePluginBuild(settingsScript, "../plugins-a")
-            applyPlugins(buildScript, "groovy-gradle-plugin", "plugin-a")
-            srcMainGroovy.file("plugin-c.gradle") << ""
         }
 
         when:
@@ -142,7 +136,6 @@ class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProj
     def "'root -> plugins-a -> library-b -> library-c -> plugins-a' is prohibited because of a plugin build cycle"() {
         given:
         includePluginBuild(settingsFile, "plugins-a")
-        applyPlugins(buildFile, "plugin-a")
 
         includedBuild("plugins-a") {
             includeLibraryBuild(settingsScript, "../library-b")
@@ -154,7 +147,6 @@ class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProj
 
         includedBuild("library-c") {
             includePluginBuild(settingsScript, "../plugins-a")
-            applyPlugins(buildScript, "plugin-a")
         }
 
         when:
@@ -174,7 +166,6 @@ class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProj
 
         includedBuild("library-b") {
             includePluginBuild(settingsScript, "../plugins-a")
-            applyPlugins(buildScript, "plugin-a")
         }
 
         includedBuild("plugins-a") {
@@ -195,7 +186,6 @@ class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProj
     def "'root -> plugins-a -> library-b -> library-c -> library-b -> library-c -> plugins-a is prohibited because of a plugin build cycle"() {
         given:
         includePluginBuild(settingsFile, "plugins-a")
-        applyPlugins(buildFile, "plugin-a")
 
         includedBuild("plugins-a") {
             includeLibraryBuild(settingsScript, "../library-b")
@@ -206,7 +196,6 @@ class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProj
         }
 
         includedBuild("library-c") {
-            applyPlugins(buildScript, "plugin-a")
             includePluginBuild(settingsScript, "../plugins-a")
             includeLibraryBuild(settingsScript, "../library-b")
         }
@@ -221,7 +210,6 @@ class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProj
     def "introduced-by-settings-plugin cycles for plugins builds are detected"() {
         given:
         includePluginBuild(settingsFile, "build-logic")
-        applyPlugins(buildFile, "plugin-a")
 
         includedBuild("settings-plugins") {
             applyPlugins(buildScript, "groovy-gradle-plugin")
