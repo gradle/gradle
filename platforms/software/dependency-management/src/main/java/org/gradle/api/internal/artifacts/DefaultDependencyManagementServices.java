@@ -57,8 +57,6 @@ import org.gradle.api.internal.artifacts.ivyservice.DefaultConfigurationResolver
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager;
 import org.gradle.api.internal.artifacts.ivyservice.ResolutionExecutor;
 import org.gradle.api.internal.artifacts.ivyservice.ShortCircuitingResolutionExecutor;
-import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolverProviderFactories;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModuleMetadataParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradlePomModuleDescriptorParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
@@ -289,8 +287,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             registration.add(GraphVariantSelector.class);
             registration.add(TransformedVariantConverter.class);
             registration.add(ResolutionExecutor.class);
-            registration.add(ResolverProviderFactories.class);
             registration.add(ArtifactTypeRegistry.class);
+            registration.add(GlobalDependencyResolutionRules.class);
         }
 
         @Provides
@@ -583,11 +581,6 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 return componentMetadataHandler::createComponentMetadataProcessor;
             }
             return componentMetadataHandler.createFactory(dependencyResolutionManagement);
-        }
-
-        @Provides
-        GlobalDependencyResolutionRules createModuleMetadataHandler(ComponentMetadataProcessorFactory componentMetadataProcessorFactory, ComponentModuleMetadataProcessor moduleMetadataProcessor, List<DependencySubstitutionRules> rules) {
-            return new DefaultGlobalDependencyResolutionRules(componentMetadataProcessorFactory, moduleMetadataProcessor, rules);
         }
 
         @Provides

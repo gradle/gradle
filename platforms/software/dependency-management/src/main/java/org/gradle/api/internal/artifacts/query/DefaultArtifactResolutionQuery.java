@@ -24,8 +24,8 @@ import org.gradle.api.artifacts.result.ComponentArtifactsResult;
 import org.gradle.api.artifacts.result.ComponentResult;
 import org.gradle.api.component.Artifact;
 import org.gradle.api.component.Component;
+import org.gradle.api.internal.artifacts.ComponentMetadataProcessorFactory;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
-import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
 import org.gradle.api.internal.artifacts.RepositoriesSupplier;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyFactory;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
@@ -71,7 +71,7 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
     private final ResolutionStrategyFactory resolutionStrategyFactory;
     private final RepositoriesSupplier repositoriesSupplier;
     private final ExternalModuleComponentResolverFactory externalResolverFactory;
-    private final GlobalDependencyResolutionRules metadataHandler;
+    private final ComponentMetadataProcessorFactory componentMetadataProcessorFactory;
     private final ComponentTypeRegistry componentTypeRegistry;
 
     private final Set<ComponentIdentifier> componentIds = new LinkedHashSet<>();
@@ -82,13 +82,13 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
         ResolutionStrategyFactory resolutionStrategyFactory,
         RepositoriesSupplier repositoriesSupplier,
         ExternalModuleComponentResolverFactory externalResolverFactory,
-        GlobalDependencyResolutionRules metadataHandler,
+        ComponentMetadataProcessorFactory componentMetadataProcessorFactory,
         ComponentTypeRegistry componentTypeRegistry
     ) {
         this.resolutionStrategyFactory = resolutionStrategyFactory;
         this.repositoriesSupplier = repositoriesSupplier;
         this.externalResolverFactory = externalResolverFactory;
-        this.metadataHandler = metadataHandler;
+        this.componentMetadataProcessorFactory = componentMetadataProcessorFactory;
         this.componentTypeRegistry = componentTypeRegistry;
     }
 
@@ -151,7 +151,7 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
 
         ComponentResolvers componentResolvers = externalResolverFactory.createResolvers(
             filteredRepositories,
-            metadataHandler.getComponentMetadataProcessorFactory(),
+            componentMetadataProcessorFactory,
             resolutionStrategy.getComponentSelection(),
             resolutionStrategy.isDependencyVerificationEnabled(),
             resolutionStrategy.getCachePolicy(),

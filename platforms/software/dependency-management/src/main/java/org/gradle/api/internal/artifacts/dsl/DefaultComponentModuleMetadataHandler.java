@@ -17,11 +17,10 @@ package org.gradle.api.internal.artifacts.dsl;
 
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ComponentModuleMetadataDetails;
-import org.gradle.api.artifacts.dsl.ComponentModuleMetadataHandler;
-import org.gradle.api.internal.artifacts.ComponentModuleMetadataProcessor;
+import org.gradle.api.internal.artifacts.ComponentModuleMetadataHandlerInternal;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 
-public class DefaultComponentModuleMetadataHandler implements ComponentModuleMetadataHandler, ComponentModuleMetadataProcessor {
+public class DefaultComponentModuleMetadataHandler implements ComponentModuleMetadataHandlerInternal {
     private final ComponentModuleMetadataContainer moduleMetadataContainer;
 
     public DefaultComponentModuleMetadataHandler(ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
@@ -34,7 +33,7 @@ public class DefaultComponentModuleMetadataHandler implements ComponentModuleMet
     }
 
     @Override
-    public ModuleReplacementsData getModuleReplacements() {
-        return moduleMetadataContainer;
+    public ImmutableModuleReplacements getModuleReplacements() {
+        return moduleMetadataContainer.getReplacements();
     }
 }

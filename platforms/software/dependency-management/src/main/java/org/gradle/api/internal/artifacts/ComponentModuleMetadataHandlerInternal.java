@@ -16,10 +16,14 @@
 
 package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.internal.artifacts.dsl.ModuleReplacementsData;
+import org.gradle.api.artifacts.dsl.ComponentModuleMetadataHandler;
+import org.gradle.api.internal.artifacts.dsl.ImmutableModuleReplacements;
 
-public interface ComponentModuleMetadataProcessor {
-    ComponentModuleMetadataProcessor NO_OP = () -> ModuleReplacementsData.NO_OP;
+/**
+ * Internal counterpart to {@link ComponentModuleMetadataHandler}.
+ */
+public interface ComponentModuleMetadataHandlerInternal extends ComponentModuleMetadataHandler {
 
-    ModuleReplacementsData getModuleReplacements();
+    ImmutableModuleReplacements getModuleReplacements();
+
 }

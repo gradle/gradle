@@ -19,11 +19,11 @@ package org.gradle.api.internal.artifacts.configurations;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
+import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DefaultDependencySubstitutions;
-import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionsInternal;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.ModuleSelectorNotationConverter;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.StartParameterResolutionOverride;
@@ -48,7 +48,7 @@ public class ResolutionStrategyFactory implements Factory<ResolutionStrategyInte
 
     private final BuildState currentBuild;
     private final Instantiator instantiator;
-    private final DependencySubstitutionRules globalDependencySubstitutionRules;
+    private final GlobalDependencyResolutionRules globalDependencySubstitutionRules;
     private final VcsMappingsStore vcsMappingsStore;
     private final AttributesFactory attributesFactory;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
@@ -64,7 +64,7 @@ public class ResolutionStrategyFactory implements Factory<ResolutionStrategyInte
     public ResolutionStrategyFactory(
         BuildState currentBuild,
         Instantiator instantiator,
-        DependencySubstitutionRules globalDependencySubstitutionRules,
+        GlobalDependencyResolutionRules globalDependencySubstitutionRules,
         VcsMappingsStore vcsMappingsStore,
         AttributesFactory attributesFactory,
         ImmutableModuleIdentifierFactory moduleIdentifierFactory,
