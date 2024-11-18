@@ -524,7 +524,7 @@ class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfiguratio
 
                 abstract class ProbeTask extends DefaultTask {
 
-                    @$Internal.name
+                    @$ServiceReference.name
                     public abstract $Property.name<ProbeService> getProbeService();
 
                     public ProbeTask() {}
@@ -630,6 +630,7 @@ class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfiguratio
 
             ${serviceTaskImpl("printValue", injectionAnnotation, propertyType, valueGetter, taskConfiguration)}
 
+            tasks.named("printValue") { usesService(serviceProvider) }
             tasks.named("jar") { dependsOn("printValue") }
         """)
 
@@ -650,7 +651,7 @@ class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfiguratio
         injectionAnnotation                    | propertyType           | taskConfiguration                                       | valueGetter
         "${ServiceReference.name}('constant')" | "ConstantBuildService" | ""                                                      | "value.get().value"
         Internal.name                          | "ConstantBuildService" | "value = serviceProvider; usesService(serviceProvider)" | "value.get().value"
-        Input.name                             | "String"               | "value = serviceProvider.map { it.value }"              | "value.get()"
+        Input.name                             | "String"               | "value = serviceProvider.map { it.value }; usesService(serviceProvider)"              | "value.get()"
     }
 
     @Issue("https://github.com/gradle/gradle/issues/22337")
@@ -663,6 +664,7 @@ class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfiguratio
             def serviceProvider = gradle.sharedServices.registerIfAbsent("constant", ConstantBuildService) {}
 
             ${serviceTaskImpl("printValue", injectionAnnotation, propertyType, valueGetter, taskConfiguration)}
+            tasks.named("printValue") { usesService(serviceProvider) }
         """)
 
         when:
@@ -679,10 +681,10 @@ class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfiguratio
         configurationCache.assertStateLoaded()
 
         where:
-        injectionAnnotation                    | propertyType           | taskConfiguration                                       | valueGetter
-        "${ServiceReference.name}('constant')" | "ConstantBuildService" | ""                                                      | "value.get().value"
-        Internal.name                          | "ConstantBuildService" | "value = serviceProvider; usesService(serviceProvider)" | "value.get().value"
-        Input.name                             | "String"               | "value = serviceProvider.map { it.value }"              | "value.get()"
+        injectionAnnotation                    | propertyType           | taskConfiguration                             | valueGetter
+        "${ServiceReference.name}('constant')" | "ConstantBuildService" | ""                                            | "value.get().value"
+        Internal.name                          | "ConstantBuildService" | "value = serviceProvider"                     | "value.get().value"
+        Input.name                             | "String"               | "value = serviceProvider.map { it.value }"    | "value.get()"
     }
 
     @Issue("https://github.com/gradle/gradle/issues/22337")
@@ -697,6 +699,7 @@ class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfiguratio
                 parameters.input = $valueSourceInput
             }
             ${serviceTaskImpl("printValue", injectionAnnotation, "String", "value.get()", "value = valueSource")}
+            tasks.named("printValue") { usesService(serviceProvider) }
 
             tasks.named("jar") { dependsOn("printValue") }
         """)
@@ -758,11 +761,14 @@ class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfiguratio
             ${constantServiceImpl("ConstantBuildService", "constant")}
 
             ${convertingValueSourceImpl("ConvertingValueSource", "ConstantBuildService", "String", "parameters.input.get().value")}
+
+            def serviceProvider = gradle.sharedServices.registerIfAbsent("constant", ConstantBuildService) {}
             def valueSource = providers.of(ConvertingValueSource) {
-                parameters.input = gradle.sharedServices.registerIfAbsent("constant", ConstantBuildService) {}
+                parameters.input = serviceProvider
             }
 
             ${serviceTaskImpl("printValue", injectionAnnotation, "String", "value.get()", "value = valueSource")}
+            tasks.named("printValue") { usesService(serviceProvider) }
         """)
 
         when:
