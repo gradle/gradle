@@ -330,7 +330,6 @@ public class DefaultExecActionFactory implements ExecFactory {
                 clientExecHandleFactory,
                 javaModuleDetector,
                 externalProcessStartedListener
-
             );
         }
     }

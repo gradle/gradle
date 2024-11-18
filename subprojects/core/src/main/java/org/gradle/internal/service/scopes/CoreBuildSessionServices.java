@@ -161,8 +161,15 @@ public class CoreBuildSessionServices implements ServiceRegistrationProvider {
         return BuildStartedTime.startingAt(Math.min(currentTime, buildRequestMetaData.getStartTime()));
     }
 
+    /**
+     * ClientExecHandleFactory is available in global scope, but we need to provide it here to use a build dir based file resolver.
+     */
     @Provides
-    ClientExecHandleFactory createExecHandleFactory(FileResolver fileResolver, ExecutorFactory executorFactory, BuildCancellationToken buildCancellationToken) {
+    ClientExecHandleFactory createExecHandleFactory(
+        FileResolver fileResolver,
+        ExecutorFactory executorFactory,
+        BuildCancellationToken buildCancellationToken
+    ) {
         return DefaultClientExecHandleFactory.of(fileResolver, executorFactory, buildCancellationToken);
     }
 

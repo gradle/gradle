@@ -109,7 +109,11 @@ public class BasicGlobalScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    ClientExecHandleFactory createExecFactory(FileResolver fileResolver, ExecutorFactory executorFactory, BuildCancellationToken buildCancellationToken) {
+    ClientExecHandleFactory createExecHandleFactory(
+        FileResolver fileResolver,
+        ExecutorFactory executorFactory,
+        BuildCancellationToken buildCancellationToken
+    ) {
         return DefaultClientExecHandleFactory.of(fileResolver, executorFactory, buildCancellationToken);
     }
 
