@@ -21,6 +21,7 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.internal.plugins.DslObject;
+import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.plugins.software.SoftwareType;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
 import org.gradle.api.plugins.ExtensionAware;
@@ -48,24 +49,25 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
  * combination.
  */
 public class DefaultSoftwareFeatureApplicator implements SoftwareFeatureApplicator {
-    private final Project project;
     private final ModelDefaultsApplicator modelDefaultsApplicator;
     private final InspectionScheme inspectionScheme;
     private final InternalProblems problems;
+    private final PluginManagerInternal pluginManager;
     private final Set<AppliedFeature> applied = new HashSet<>();
 
-    public DefaultSoftwareFeatureApplicator(Project project, ModelDefaultsApplicator modelDefaultsApplicator, InspectionScheme inspectionScheme, InternalProblems problems) {
-        this.project = project;
+    public DefaultSoftwareFeatureApplicator(ModelDefaultsApplicator modelDefaultsApplicator, InspectionScheme inspectionScheme, InternalProblems problems, PluginManagerInternal pluginManager) {
         this.modelDefaultsApplicator = modelDefaultsApplicator;
         this.inspectionScheme = inspectionScheme;
         this.problems = problems;
+        this.pluginManager = pluginManager;
     }
 
     @Override
     public <T> T applyFeatureTo(ExtensionAware target, SoftwareTypeImplementation<T> softwareFeature) {
         AppliedFeature appliedFeature = new AppliedFeature(target, softwareFeature);
         if (!applied.contains(appliedFeature)) {
-            Plugin<Project> plugin = project.getPlugins().getPlugin(softwareFeature.getPluginClass());
+            pluginManager.apply(softwareFeature.getPluginClass());
+            Plugin<Project> plugin = pluginManager.getPluginContainer().getPlugin(softwareFeature.getPluginClass());
             applyAndMaybeRegisterExtension(target, softwareFeature, plugin);
             applied.add(appliedFeature);
             modelDefaultsApplicator.applyDefaultsTo(target, plugin, softwareFeature);
