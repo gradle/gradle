@@ -15,7 +15,6 @@
  */
 package org.gradle.process.internal;
 
-import com.google.common.collect.Maps;
 import org.gradle.api.Action;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.file.ConfigurableFileCollection;
@@ -30,7 +29,6 @@ import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.internal.jvm.JavaModuleDetector;
-import org.gradle.internal.jvm.Jvm;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.JavaDebugOptions;
 import org.gradle.process.JavaForkOptions;
@@ -48,7 +46,6 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.jar.Attributes;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
@@ -75,7 +72,6 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
     private ConfigurableFileCollection classpath;
     private final JavaForkOptionsInternal javaOptions;
     private final ModularitySpec modularity;
-    private Map<String, Object> environment;
 
     public JavaExecHandleBuilder(
         FileCollectionFactory fileCollectionFactory,
@@ -207,9 +203,9 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
         javaOptions.setBootstrapClasspath(classpath);
     }
 
-    public JavaForkOptions bootstrapClasspath(Object... classpath) {
+    public JavaExecHandleBuilder bootstrapClasspath(Object... classpath) {
         javaOptions.bootstrapClasspath(classpath);
-        return javaOptions;
+        return this;
     }
 
     public String getMinHeapSize() {
@@ -258,6 +254,56 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
 
     public JavaExecHandleBuilder debugOptions(Action<JavaDebugOptions> action) {
         javaOptions.debugOptions(action);
+        return this;
+    }
+
+
+    @Override
+    public String getExecutable() {
+        return javaOptions.getExecutable();
+    }
+
+    @Override
+    public void setExecutable(Object executable) {
+        javaOptions.setExecutable(executable);
+    }
+
+    public JavaExecHandleBuilder setExecutable(String executable) {
+        javaOptions.setExecutable(executable);
+        return this;
+    }
+
+    @Nullable
+    public File getWorkingDir() {
+        return javaOptions.getWorkingDir();
+    }
+
+    public JavaExecHandleBuilder setWorkingDir(@Nullable Object dir) {
+        javaOptions.setWorkingDir(dir);
+        return this;
+    }
+
+    public JavaExecHandleBuilder setWorkingDir(@Nullable File dir) {
+        javaOptions.setWorkingDir(dir);
+        return this;
+    }
+
+    public Map<String, Object> getEnvironment() {
+        return javaOptions.getEnvironment();
+    }
+
+    public JavaExecHandleBuilder setEnvironment(Map<String, ?> environmentVariables) {
+        javaOptions.setEnvironment(environmentVariables);
+        return this;
+    }
+
+    public JavaExecHandleBuilder environment(Map<String, ?> environmentVariables) {
+        javaOptions.environment(environmentVariables);
+        return this;
+    }
+
+    public JavaExecHandleBuilder environment(String name, Object value) {
+        javaOptions.environment(name, value);
         return this;
     }
 
@@ -369,58 +415,6 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
     }
 
     @Override
-    public String getExecutable() {
-        return execHandleBuilder.getExecutable();
-    }
-
-    @Override
-    public void setExecutable(Object executable) {
-        execHandleBuilder.setExecutable(Objects.toString(executable));
-    }
-
-    public JavaExecHandleBuilder setExecutable(String executable) {
-        execHandleBuilder.setExecutable(executable);
-        return this;
-    }
-
-    @Nullable
-    public File getWorkingDir() {
-        return execHandleBuilder.getWorkingDir();
-    }
-
-    public JavaExecHandleBuilder setWorkingDir(@Nullable Object dir) {
-        execHandleBuilder.setWorkingDir(dir);
-        return this;
-    }
-
-    public JavaExecHandleBuilder setWorkingDir(@Nullable File dir) {
-        execHandleBuilder.setWorkingDir(dir);
-        return this;
-    }
-
-    public Map<String, Object> getEnvironment() {
-        if (environment == null) {
-            setEnvironment(Jvm.getInheritableEnvironmentVariables(execHandleBuilder.getEnvironment()));
-        }
-        return environment;
-    }
-
-    public JavaExecHandleBuilder setEnvironment(Map<String, ?> environmentVariables) {
-        this.environment = Maps.newHashMap(environmentVariables);
-        return this;
-    }
-
-    public JavaExecHandleBuilder environment(Map<String, ?> environmentVariables) {
-        getEnvironment().putAll(environmentVariables);
-        return this;
-    }
-
-    public JavaExecHandleBuilder environment(String name, Object value) {
-        getEnvironment().put(name, value);
-        return this;
-    }
-
-    @Override
     public JavaExecHandleBuilder listener(ExecHandleListener listener) {
         execHandleBuilder.listener(listener);
         return this;
@@ -484,11 +478,11 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
 
     @Override
     public ExecHandle build() {
+        // We delegate properties that are also on ProcessForkOptions interface to JavaForkOptions
+        // to support copy from JavaOptions, and thus we have to copy them to execHandleBuilder here
+        execHandleBuilder.setExecutable(getExecutable());
+        execHandleBuilder.setWorkingDir(getWorkingDir());
         execHandleBuilder.setEnvironment(getEnvironment());
-        if (execHandleBuilder.getWorkingDir() == null) {
-            // Resolve null working directory in the same way as JavaOptions does
-            execHandleBuilder.setWorkingDir(javaOptions.getWorkingDir());
-        }
         return execHandleBuilder.buildWithEffectiveArguments(getEffectiveArguments());
     }
 }
