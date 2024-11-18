@@ -20,13 +20,14 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 
-class IsolatedProjectsCompositeBuildParallelConfigurationIntegrationTest extends AbstractIsolatedProjectsCompositeBuildIntegrationTest {
+class IsolatedProjectsCompositeBuildParallelConfigurationIntegrationTest extends AbstractIsolatedProjectsIntegrationTest implements CompositeBuildSupport {
 
     @Rule
     BlockingHttpServer server = new BlockingHttpServer(5_000)
 
     def setup() {
         server.start()
+        compositeBuildTestFileFactory = { name -> file(name) }
     }
 
     def "plugin builds are being configured in defined order despite plugins from them were requested concurrently"() {

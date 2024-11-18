@@ -18,27 +18,37 @@ package org.gradle.internal.cc.impl.isolated
 
 import org.gradle.test.fixtures.file.TestFile
 
-abstract class AbstractIsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProjectsIntegrationTest {
-    protected def includedBuild(String root, @DelegatesTo(BuildLayout) Closure configure) {
-        configure.setDelegate(new BuildLayout(file("$root/settings.gradle"), file("$root/build.gradle"), file("$root/src/main/groovy")))
+import java.util.function.Function
+
+trait CompositeBuildSupport {
+
+    Function<String, TestFile> compositeBuildTestFileFactory = { name -> throw new IllegalStateException("TestFile factory for CompositeBuildSupport is required") }
+
+    def includedBuild(String root, @DelegatesTo(BuildLayout) Closure configure) {
+        configure.setDelegate(
+            new BuildLayout(
+                compositeBuildTestFileFactory.apply("$root/settings.gradle"),
+                compositeBuildTestFileFactory.apply("$root/build.gradle"),
+                compositeBuildTestFileFactory.apply("$root/src/main/groovy"))
+        )
         configure()
     }
 
-    protected static def includeLibraryBuild(TestFile settingsFile, String build) {
+    def includeLibraryBuild(TestFile settingsFile, String build) {
         settingsFile << """
             includeBuild("$build")
-       """
-    }
-
-    protected static def applyPlugins(TestFile buildFile, String... pluginIds) {
-        buildFile << """
-            plugins {
-                ${pluginIds.collect { """id "$it" """ }.join("\n")}
-        }
         """
     }
 
-    protected static def includePluginBuild(TestFile settingsFile, String... builds) {
+    def applyPlugins(TestFile buildFile, String... pluginIds) {
+        buildFile << """
+            plugins {
+                ${pluginIds.collect { """id "$it" """ }.join("\n")}
+            }
+        """
+    }
+
+    def includePluginBuild(TestFile settingsFile, String... builds) {
         settingsFile << """
             pluginManagement {
                 ${builds.collect { """includeBuild("$it")""" }.join("\n")}
@@ -46,7 +56,7 @@ abstract class AbstractIsolatedProjectsCompositeBuildIntegrationTest extends Abs
         """
     }
 
-    protected class BuildLayout {
+    static class BuildLayout {
         TestFile settingsScript
         TestFile buildScript
         TestFile srcMainGroovy

@@ -16,7 +16,12 @@
 
 package org.gradle.internal.cc.impl.isolated
 
-class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProjectsCompositeBuildIntegrationTest {
+class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProjectsIntegrationTest implements CompositeBuildSupport {
+
+    def setup() {
+        compositeBuildTestFileFactory = { name -> file(name) }
+    }
+
     def "can build libraries composed from multiple builds"() {
         settingsFile << """
             includeBuild("libs")
@@ -113,14 +118,12 @@ class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProj
 
         includedBuild("plugins-a") {
             includePluginBuild(settingsScript, "../plugins-b")
-            applyPlugins(buildScript, "groovy-gradle-plugin", "plugin-b")
-            srcMainGroovy.file("plugin-a.gradle") << ""
+            applyPlugins(buildScript, "plugin-b")
         }
 
         includedBuild("plugins-b") {
             includePluginBuild(settingsScript, "../plugins-c")
-            applyPlugins(buildScript, "groovy-gradle-plugin", "plugin-c")
-            srcMainGroovy.file("plugin-b.gradle") << ""
+            applyPlugins(buildScript, "plugin-c")
         }
 
         includedBuild("plugins-c") {
@@ -143,7 +146,6 @@ class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProj
 
         includedBuild("plugins-a") {
             includeLibraryBuild(settingsScript, "../library-b")
-            srcMainGroovy.file("plugin-a.gradle") << ""
         }
 
         includedBuild("library-b") {
@@ -177,8 +179,6 @@ class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProj
 
         includedBuild("plugins-a") {
             includeLibraryBuild(settingsScript, "../library-c")
-            applyPlugins(buildScript, "groovy-gradle-plugin")
-            srcMainGroovy.file("plugin-a.gradle") << ""
         }
 
         includedBuild("library-c") {
@@ -198,8 +198,6 @@ class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProj
         applyPlugins(buildFile, "plugin-a")
 
         includedBuild("plugins-a") {
-            applyPlugins(buildScript, "groovy-gradle-plugin")
-            srcMainGroovy.file("plugin-a.gradle") << ""
             includeLibraryBuild(settingsScript, "../library-b")
         }
 
@@ -237,8 +235,6 @@ class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProj
         includedBuild("build-logic") {
             includePluginBuild(settingsScript, "../settings-plugins")
             applyPlugins(settingsScript, "my-plugin")
-            applyPlugins(buildScript, "groovy-gradle-plugin")
-            srcMainGroovy.file("plugin-a.gradle") << ""
         }
 
         when:
