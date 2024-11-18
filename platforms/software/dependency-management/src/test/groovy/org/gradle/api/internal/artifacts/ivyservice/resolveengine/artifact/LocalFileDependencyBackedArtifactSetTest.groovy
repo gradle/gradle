@@ -19,9 +19,10 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.AttributeContainer
+import org.gradle.api.internal.artifacts.VariantTransformRegistry
 import org.gradle.api.internal.artifacts.transform.ArtifactVariantSelector
-import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry
 import org.gradle.api.internal.attributes.ImmutableAttributes
+import org.gradle.api.internal.attributes.immutable.artifact.ImmutableArtifactTypeRegistry
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.FileCollectionStructureVisitor
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
@@ -41,8 +42,9 @@ class LocalFileDependencyBackedArtifactSetTest extends Specification {
     def dep = Mock(LocalFileDependencyMetadata)
     def filter = Mock(Spec)
     def selector = Mock(ArtifactVariantSelector)
-    def artifactTypeRegistry = Mock(ArtifactTypeRegistry)
-    def set = new DefaultLocalFileDependencyBackedArtifactSet(dep, filter, selector, artifactTypeRegistry, TestUtil.calculatedValueContainerFactory(), ImmutableAttributes.EMPTY, false)
+    def artifactTypeRegistry = Mock(ImmutableArtifactTypeRegistry)
+    def transformRegistry = Mock(VariantTransformRegistry)
+    def set = new DefaultLocalFileDependencyBackedArtifactSet(dep, filter, selector, artifactTypeRegistry, TestUtil.calculatedValueContainerFactory(), transformRegistry, ImmutableAttributes.EMPTY, false)
 
     def "has build dependencies"() {
         def fileBuildDependencies = Stub(TaskDependency)

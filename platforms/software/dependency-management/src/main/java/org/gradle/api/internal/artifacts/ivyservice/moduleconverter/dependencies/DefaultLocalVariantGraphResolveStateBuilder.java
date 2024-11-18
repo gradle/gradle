@@ -272,14 +272,22 @@ public class DefaultLocalVariantGraphResolveStateBuilder implements LocalVariant
         private final VariantResolveMetadata.Identifier parent;
         private final String name;
 
+        private final int hashCode;
+
         public NonImplicitArtifactVariantIdentifier(VariantResolveMetadata.Identifier parent, String name) {
             this.parent = parent;
             this.name = name;
+
+            this.hashCode = computeHashCode(name, parent);
+        }
+
+        private static int computeHashCode(String name, VariantResolveMetadata.Identifier parent) {
+            return 31 * parent.hashCode() + name.hashCode();
         }
 
         @Override
         public int hashCode() {
-            return 31 * parent.hashCode() + name.hashCode();
+            return hashCode;
         }
 
         @Override

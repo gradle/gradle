@@ -18,12 +18,13 @@ package org.gradle.api.internal.attributes;
 
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchemaFactory;
+import org.gradle.api.internal.attributes.immutable.artifact.ImmutableArtifactTypeRegistryFactory;
 import org.gradle.api.internal.attributes.matching.AttributeMatcher;
 import org.gradle.api.internal.attributes.matching.CachingAttributeSelectionSchema;
 import org.gradle.api.internal.attributes.matching.DefaultAttributeMatcher;
 import org.gradle.api.internal.attributes.matching.DefaultAttributeSelectionSchema;
-import org.gradle.internal.model.InMemoryLoadingCache;
 import org.gradle.internal.model.InMemoryCacheFactory;
+import org.gradle.internal.model.InMemoryLoadingCache;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -36,6 +37,7 @@ import javax.inject.Inject;
 public class AttributeSchemaServices {
 
     private final ImmutableAttributesSchemaFactory attributesSchemaFactory;
+    private final ImmutableArtifactTypeRegistryFactory artifactTypeRegistryFactory;
     private final InMemoryCacheFactory cacheFactory;
 
     private final InMemoryLoadingCache<ImmutableAttributesSchema, AttributeMatcher> matchers;
@@ -43,9 +45,11 @@ public class AttributeSchemaServices {
     @Inject
     public AttributeSchemaServices(
         ImmutableAttributesSchemaFactory attributesSchemaFactory,
+        ImmutableArtifactTypeRegistryFactory artifactTypeRegistryFactory,
         InMemoryCacheFactory cacheFactory
     ) {
         this.attributesSchemaFactory = attributesSchemaFactory;
+        this.artifactTypeRegistryFactory = artifactTypeRegistryFactory;
         this.cacheFactory = cacheFactory;
 
         this.matchers = cacheFactory.createIdentityCache(this::createMatcher);
@@ -56,6 +60,13 @@ public class AttributeSchemaServices {
      */
     public ImmutableAttributesSchemaFactory getSchemaFactory() {
         return attributesSchemaFactory;
+    }
+
+    /**
+     * Get a factory that can produce immutable artifact type registries from mutable ones.
+     */
+    public ImmutableArtifactTypeRegistryFactory getArtifactTypeRegistryFactory() {
+        return artifactTypeRegistryFactory;
     }
 
     /**
