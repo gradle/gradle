@@ -252,9 +252,8 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
         return javaOptions.getDebugOptions();
     }
 
-    public JavaExecHandleBuilder debugOptions(Action<JavaDebugOptions> action) {
+    public void debugOptions(Action<JavaDebugOptions> action) {
         javaOptions.debugOptions(action);
-        return this;
     }
 
 
@@ -268,9 +267,8 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
         javaOptions.setExecutable(executable);
     }
 
-    public JavaExecHandleBuilder setExecutable(String executable) {
+    public void setExecutable(String executable) {
         javaOptions.setExecutable(executable);
-        return this;
     }
 
     @Nullable
@@ -278,14 +276,12 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
         return javaOptions.getWorkingDir();
     }
 
-    public JavaExecHandleBuilder setWorkingDir(@Nullable Object dir) {
+    public void setWorkingDir(@Nullable Object dir) {
         javaOptions.setWorkingDir(dir);
-        return this;
     }
 
-    public JavaExecHandleBuilder setWorkingDir(@Nullable File dir) {
+    public void setWorkingDir(@Nullable File dir) {
         javaOptions.setWorkingDir(dir);
-        return this;
     }
 
     public Map<String, Object> getEnvironment() {
@@ -465,6 +461,14 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
 
     public JavaExecHandleBuilder redirectErrorStream() {
         execHandleBuilder.redirectErrorStream();
+        return this;
+    }
+
+    /**
+     * Kept just for binary compatibility
+     */
+    @Deprecated
+    public JavaExecHandleBuilder setIgnoreExitValue(boolean ignoreExitValue) {
         return this;
     }
 
