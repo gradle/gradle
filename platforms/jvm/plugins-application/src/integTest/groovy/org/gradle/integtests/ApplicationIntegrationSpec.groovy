@@ -62,8 +62,8 @@ class Main {
         run 'installDist'
 
         def builder = new ScriptExecuter()
-        builder.workingDir file('build/install/application/bin')
-        builder.executable "application"
+        builder.setWorkingDir(file('build/install/application/bin'))
+        builder.setExecutable("application")
         if (OperatingSystem.current().windows) {
             builder.environment('APPLICATION_OPTS', '-DtestValue=value -DtestValue2="some value" -DtestValue3="some value"')
         } else {
@@ -102,8 +102,8 @@ class Main {
         run 'installDist'
 
         def builder = new ScriptExecuter()
-        builder.workingDir file('build/install/application/bin')
-        builder.executable "application"
+        builder.setWorkingDir(file('build/install/application/bin'))
+        builder.setExecutable("application")
 
         def result = builder.run()
 
@@ -137,8 +137,8 @@ class Main {
         run 'installDist'
 
         def builder = new ScriptExecuter()
-        builder.workingDir file('build/install/application/bin')
-        builder.executable "application"
+        builder.setWorkingDir(file('build/install/application/bin'))
+        builder.setExecutable("application")
         builder.environment('APPLICATION_OPTS', '-Dvar3=value3')
 
         def result = builder.run()
@@ -181,8 +181,8 @@ class Main {
         run 'installDist'
 
         def builder = new ScriptExecuter()
-        builder.workingDir file('build/install/application/bin')
-        builder.executable "application"
+        builder.setWorkingDir(file('build/install/application/bin'))
+        builder.setExecutable("application")
 
         then:
         def result = builder.run()
@@ -424,10 +424,10 @@ class Main {
         installDir.file("lib/application.jar").assertIsFile()
 
         def builder = new ScriptExecuter()
-        builder.workingDir installDir.file('bin')
-        builder.executable applicationName
-        builder.standardOutput = new ByteArrayOutputStream()
-        builder.errorOutput = new ByteArrayOutputStream()
+        builder.setWorkingDir(installDir.file('bin'))
+        builder.setExecutable(applicationName)
+        builder.setStandardOutput(new ByteArrayOutputStream())
+        builder.setErrorOutput(new ByteArrayOutputStream())
 
         def result = builder.run()
         result.assertNormalExitValue()
@@ -476,8 +476,8 @@ class Main {
         run 'installDist'
 
         def builder = new ScriptExecuter()
-        builder.workingDir file('build/install/application/bin')
-        builder.executable "application"
+        builder.setWorkingDir(file('build/install/application/bin'))
+        builder.setExecutable("application")
         def result = builder.run()
 
         then:
