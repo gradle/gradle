@@ -19,13 +19,6 @@ package org.gradle.internal.deprecation
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.configuration.WarningMode
-import org.gradle.api.problems.Severity
-import org.gradle.api.problems.internal.DefaultDeprecationData
-import org.gradle.api.problems.internal.DefaultProblem
-import org.gradle.api.problems.internal.DefaultProblemDefinition
-import org.gradle.api.problems.internal.DefaultProblemId
-import org.gradle.api.problems.internal.DeprecationData
-import org.gradle.api.problems.internal.GradleCoreProblemGroup
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.internal.logging.CollectingTestOutputEventListener
 import org.gradle.internal.logging.ConfigureLogging
@@ -95,13 +88,6 @@ class DeprecationMessagesTest extends Specification {
         expectMessage "$summary This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}."
 
         problemsService.assertProblemEmittedOnce({ it.definition.id.displayName == 'summary deprecation' })
-    }
-
-    def createProblem(deprecationDisplayName) {
-        def id = new DefaultProblemId(createDefaultDeprecationId(deprecationDisplayName), deprecationDisplayName, GradleCoreProblemGroup.deprecation())
-        def definition = new DefaultProblemDefinition(id, Severity.WARNING, null)
-
-        return new DefaultProblem(definition, "Summary is deprecated.", [], [], "This is scheduled to be removed in Gradle 9.0.", null, new DefaultDeprecationData(DeprecationData.Type.USER_CODE_DIRECT))
     }
 
     def "logs deprecation message with advice"() {
