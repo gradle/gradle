@@ -32,7 +32,6 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -48,8 +47,8 @@ public class DefaultClientExecHandleBuilder implements ClientExecHandleBuilder, 
     private final ProcessStreamsSpec streamsSpec;
     private final ProcessArgumentsSpec argumentsSpec;
     private final PathToFileResolver fileResolver;
-    private final Map<String, Object> environment;
 
+    private Map<String, Object> environment;
     private StreamsHandler inputHandler = DEFAULT_STDIN;
     private String displayName;
     private boolean redirectErrorStream;
@@ -65,7 +64,6 @@ public class DefaultClientExecHandleBuilder implements ClientExecHandleBuilder, 
         this.executor = executor;
         this.listeners = new ArrayList<>();
         this.fileResolver = fileResolver;
-        this.environment = new LinkedHashMap<>();
         this.argumentsSpec = new ProcessArgumentsSpec(this);
         this.streamsSpec = new ProcessStreamsSpec();
         streamsSpec.setStandardOutput(SafeStreams.systemOut());
@@ -131,17 +129,6 @@ public class DefaultClientExecHandleBuilder implements ClientExecHandleBuilder, 
     @Override
     public ClientExecHandleBuilder setTimeout(int timeoutMillis) {
         this.timeoutMillis = timeoutMillis;
-        return this;
-    }
-
-    @Override
-    public Map<String, Object> getEnvironment() {
-        return environment;
-    }
-
-    @Override
-    public ClientExecHandleBuilder environment(String key, Object value) {
-        environment.put(key, value);
         return this;
     }
 
@@ -216,14 +203,27 @@ public class DefaultClientExecHandleBuilder implements ClientExecHandleBuilder, 
     }
 
     @Override
+    public Map<String, Object> getEnvironment() {
+        if (environment == null) {
+            setEnvironment(System.getenv());
+        }
+        return environment;
+    }
+
+    @Override
+    public ClientExecHandleBuilder environment(String key, Object value) {
+        getEnvironment().put(key, value);
+        return this;
+    }
+
+    @Override
     public void setEnvironment(Map<String, ?> environmentVariables) {
-        environment.clear();
-        environment.putAll(environmentVariables);
+        environment = Maps.newHashMap(environmentVariables);
     }
 
     @Override
     public void environment(Map<String, ?> environmentVariables) {
-        environment.putAll(environmentVariables);
+        getEnvironment().putAll(environmentVariables);
     }
 
     @Override
@@ -234,6 +234,9 @@ public class DefaultClientExecHandleBuilder implements ClientExecHandleBuilder, 
     @Nullable
     @Override
     public File getWorkingDir() {
+        if (workingDir == null) {
+            workingDir = fileResolver.resolve(".");
+        }
         return workingDir;
     }
 
@@ -252,8 +255,8 @@ public class DefaultClientExecHandleBuilder implements ClientExecHandleBuilder, 
     @Override
     public void copyTo(ProcessForkOptions options) {
         options.setExecutable(executable);
-        options.setWorkingDir(workingDir);
-        options.setEnvironment(environment);
+        options.setWorkingDir(getWorkingDir());
+        options.setEnvironment(getEnvironment());
     }
 
     private static Map<String, String> getEffectiveEnvironment(Map<String, Object> environment) {
@@ -284,12 +287,11 @@ public class DefaultClientExecHandleBuilder implements ClientExecHandleBuilder, 
     @Override
     public ExecHandle buildWithEffectiveArguments(List<String> effectiveArguments) {
         String displayName = this.displayName == null ? String.format("command '%s'", executable) : this.displayName;
-        File workingDir = this.workingDir == null ? fileResolver.resolve(".") : this.workingDir;
-        Map<String, String> effectiveEnvironment = getEffectiveEnvironment(environment);
+        Map<String, String> effectiveEnvironment = getEffectiveEnvironment(getEnvironment());
         StreamsHandler effectiveOutputHandler = getEffectiveStreamsHandler(streamsHandler, streamsSpec, redirectErrorStream);
         return new DefaultExecHandle(
             displayName,
-            workingDir,
+            getWorkingDir(),
             executable,
             effectiveArguments,
             effectiveEnvironment,

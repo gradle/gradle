@@ -15,6 +15,7 @@
  */
 package org.gradle.process.internal;
 
+import com.google.common.collect.Maps;
 import org.gradle.api.Action;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.file.ConfigurableFileCollection;
@@ -29,6 +30,7 @@ import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.internal.jvm.JavaModuleDetector;
+import org.gradle.internal.jvm.Jvm;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.JavaDebugOptions;
 import org.gradle.process.JavaForkOptions;
@@ -73,6 +75,7 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
     private ConfigurableFileCollection classpath;
     private final JavaForkOptionsInternal javaOptions;
     private final ModularitySpec modularity;
+    private Map<String, Object> environment;
 
     public JavaExecHandleBuilder(
         FileCollectionFactory fileCollectionFactory,
@@ -396,21 +399,24 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
     }
 
     public Map<String, Object> getEnvironment() {
-        return execHandleBuilder.getEnvironment();
+        if (environment == null) {
+            setEnvironment(Jvm.getInheritableEnvironmentVariables(execHandleBuilder.getEnvironment()));
+        }
+        return environment;
     }
 
     public JavaExecHandleBuilder setEnvironment(Map<String, ?> environmentVariables) {
-        execHandleBuilder.setEnvironment(environmentVariables);
+        this.environment = Maps.newHashMap(environmentVariables);
         return this;
     }
 
     public JavaExecHandleBuilder environment(Map<String, ?> environmentVariables) {
-        execHandleBuilder.environment(environmentVariables);
+        getEnvironment().putAll(environmentVariables);
         return this;
     }
 
     public JavaExecHandleBuilder environment(String name, Object value) {
-        execHandleBuilder.environment(name, value);
+        getEnvironment().put(name, value);
         return this;
     }
 
@@ -478,6 +484,7 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
 
     @Override
     public ExecHandle build() {
+        execHandleBuilder.setEnvironment(getEnvironment());
         if (execHandleBuilder.getWorkingDir() == null) {
             // Resolve null working directory in the same way as JavaOptions does
             execHandleBuilder.setWorkingDir(javaOptions.getWorkingDir());
