@@ -60,7 +60,9 @@ import static org.gradle.process.internal.util.LongCommandLineDetectionUtil.hasC
  */
 @NonNullApi
 public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgumentsSpec.HasExecutable {
+
     private static final Logger LOGGER = Logging.getLogger(JavaExecHandleBuilder.class);
+
     private final FileCollectionFactory fileCollectionFactory;
     private final TemporaryFileProvider temporaryFileProvider;
     private final JavaModuleDetector javaModuleDetector;
@@ -341,8 +343,9 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
     }
 
     @Override
-    public BaseExecHandleBuilder setStandardOutput(OutputStream outputStream) {
-        return execHandleBuilder.setStandardOutput(outputStream);
+    public JavaExecHandleBuilder setStandardOutput(OutputStream outputStream) {
+        execHandleBuilder.setStandardOutput(outputStream);
+        return this;
     }
 
     public OutputStream getErrorOutput() {
@@ -350,8 +353,9 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
     }
 
     @Override
-    public BaseExecHandleBuilder setErrorOutput(OutputStream outputStream) {
-        return execHandleBuilder.setErrorOutput(outputStream);
+    public JavaExecHandleBuilder setErrorOutput(OutputStream outputStream) {
+        execHandleBuilder.setErrorOutput(outputStream);
+        return this;
     }
 
     public List<String> getCommandLine() {
@@ -417,8 +421,9 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
     }
 
     @Override
-    public BaseExecHandleBuilder setDisplayName(@Nullable String displayName) {
-        return execHandleBuilder.setDisplayName(displayName);
+    public JavaExecHandleBuilder setDisplayName(@Nullable String displayName) {
+        execHandleBuilder.setDisplayName(displayName);
+        return this;
     }
 
     private List<String> getEffectiveArguments() {
