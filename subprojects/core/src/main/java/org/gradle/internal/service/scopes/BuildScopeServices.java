@@ -26,7 +26,6 @@ import org.gradle.api.internal.DefaultClassPathRegistry;
 import org.gradle.api.internal.DependencyClassPathProvider;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.ExternalProcessStartedListener;
-import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.classpath.ModuleRegistry;
@@ -77,7 +76,6 @@ import org.gradle.api.invocation.BuildInvocationDetails;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.problems.internal.AdditionalDataBuilderFactory;
 import org.gradle.api.provider.ProviderFactory;
-import org.gradle.api.services.internal.BuildServiceProvider;
 import org.gradle.api.services.internal.BuildServiceProviderNagger;
 import org.gradle.api.services.internal.DefaultBuildServicesRegistry;
 import org.gradle.buildinit.specs.internal.BuildInitSpecRegistry;
@@ -171,7 +169,6 @@ import org.gradle.internal.build.DefaultBuildWorkPreparer;
 import org.gradle.internal.build.DefaultPublicBuildPath;
 import org.gradle.internal.build.PublicBuildPath;
 import org.gradle.internal.buildevents.BuildStartedTime;
-import org.gradle.internal.buildoption.FeatureFlags;
 import org.gradle.internal.buildtree.BuildInclusionCoordinator;
 import org.gradle.internal.buildtree.BuildModelParameters;
 import org.gradle.internal.classloader.ClassLoaderFactory;
@@ -772,8 +769,7 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         ServiceRegistry services,
         ListenerManager listenerManager,
         IsolatableFactory isolatableFactory,
-        SharedResourceLeaseRegistry sharedResourceLeaseRegistry,
-        FeatureFlags featureFlags
+        SharedResourceLeaseRegistry sharedResourceLeaseRegistry
     ) {
         // TODO:configuration-cache remove this hack
         // HACK: force the instantiation of FlowScope so its listeners are registered before DefaultBuildServicesRegistry's
@@ -789,9 +785,7 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
             listenerManager,
             isolatableFactory,
             sharedResourceLeaseRegistry,
-            featureFlags.isEnabled(FeaturePreviews.Feature.STABLE_CONFIGURATION_CACHE)
-                ? new BuildServiceProviderNagger(services.get(WorkExecutionTracker.class))
-                : BuildServiceProvider.Listener.EMPTY
+            new BuildServiceProviderNagger(services.get(WorkExecutionTracker.class))
         );
     }
 
