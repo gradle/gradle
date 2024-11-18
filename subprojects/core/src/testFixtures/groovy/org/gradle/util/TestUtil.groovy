@@ -41,10 +41,14 @@ import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory
 import org.gradle.api.internal.tasks.TaskDependencyFactory
 import org.gradle.api.internal.tasks.properties.annotations.OutputPropertyRoleAnnotationHandler
 import org.gradle.api.model.ObjectFactory
-import org.gradle.api.problems.Problems
+import org.gradle.api.problems.ProblemReporter
+import org.gradle.api.problems.internal.AdditionalDataBuilderFactory
 import org.gradle.api.problems.internal.DefaultProblems
 import org.gradle.api.problems.internal.ExceptionProblemRegistry
-import org.gradle.api.problems.internal.NoOpProblemSummarizer
+import org.gradle.api.problems.internal.InternalProblemReporter
+import org.gradle.api.problems.internal.InternalProblems
+import org.gradle.api.problems.internal.Problem
+import org.gradle.api.problems.internal.ProblemSummarizer
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.tasks.util.internal.PatternSets
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
@@ -58,6 +62,7 @@ import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.model.InMemoryCacheFactory
 import org.gradle.internal.model.StateTransitionControllerFactory
 import org.gradle.internal.operations.CurrentBuildOperationRef
+import org.gradle.internal.operations.OperationIdentifier
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.Provides
 import org.gradle.internal.service.ServiceRegistration
@@ -71,7 +76,9 @@ import org.gradle.test.fixtures.work.TestWorkerLeaseService
 import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.testfixtures.internal.ProjectBuilderImpl
+import org.spockframework.lang.Wildcard
 
+import javax.annotation.Nullable
 import java.util.function.Supplier
 
 class TestUtil {
@@ -137,8 +144,8 @@ class TestUtil {
         return services().get(ObjectFactory)
     }
 
-    static Problems problemsService() {
-        return services().get(Problems)
+    static TestProblems problemsService() {
+        return services().get(TestProblems)
     }
 
     static ObjectFactory objectFactory(TestFile baseDir) {
@@ -193,14 +200,8 @@ class TestUtil {
                 }
 
                 @Provides
-                Problems createProblems() {
-                    return new DefaultProblems(
-                        new NoOpProblemSummarizer(),
-                        null,
-                        CurrentBuildOperationRef.instance(),
-                        new ExceptionProblemRegistry(),
-                        null
-                    )
+                TestProblems createProblemsService() {
+                    new TestProblems()
                 }
 
                 @Provides
@@ -364,4 +365,75 @@ class TestUtil {
 
 interface TestClosure {
     Object call(Object param);
+}
+
+class TestProblems implements InternalProblems {
+    private final TestProblemSummarizer summarizer
+    private final InternalProblems delegate
+
+    TestProblems() {
+        this.summarizer = new TestProblemSummarizer()
+        this.delegate = new DefaultProblems(
+            summarizer,
+            null,
+            new TestCurrentBuildOperationRef(),
+            new ExceptionProblemRegistry(),
+            null
+        )
+    }
+
+    @Override
+    ProblemReporter getReporter() {
+        delegate.reporter
+    }
+
+    @Override
+    InternalProblemReporter getInternalReporter() {
+        delegate.internalReporter
+    }
+
+    @Override
+    AdditionalDataBuilderFactory getAdditionalDataBuilderFactory() {
+        delegate.additionalDataBuilderFactory
+    }
+
+    void assertProblemEmittedOnce(Object expectedProblem) {
+        assert summarizer.emitted.size() == 1
+        def actualProblem = summarizer.emitted[0]
+        if (expectedProblem instanceof Closure) {
+            assert expectedProblem.call(actualProblem)
+        } else if (expectedProblem instanceof Problem) {
+            assert expectedProblem == actualProblem
+        } else {
+            assert expectedProblem instanceof Wildcard
+        }
+    }
+
+    void recordEmittedProblems() {
+        summarizer.reset()
+    }
+
+    void resetRecordedProblems() {
+        summarizer.reset()
+    }
+}
+
+class TestProblemSummarizer implements ProblemSummarizer {
+    List emitted = []
+
+    @Override
+    void emit(Problem problem, @Nullable OperationIdentifier id) {
+        emitted.add(problem)
+    }
+
+    void reset() {
+        emitted.clear()
+    }
+}
+
+class TestCurrentBuildOperationRef extends CurrentBuildOperationRef {
+    @Override
+    OperationIdentifier getId() {
+        new OperationIdentifier(42)
+    }
 }
