@@ -41,6 +41,7 @@ import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Handle;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.MethodNode;
 
@@ -55,10 +56,10 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
-import static org.gradle.model.internal.asm.AsmConstants.ASM_LEVEL;
 import static org.gradle.internal.classpath.transforms.CommonTypes.NO_EXCEPTIONS;
 import static org.gradle.internal.classpath.transforms.CommonTypes.STRING_TYPE;
 import static org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter.INSTRUMENTATION_ONLY;
+import static org.gradle.model.internal.asm.AsmConstants.ASM_LEVEL;
 import static org.objectweb.asm.Opcodes.ACC_PRIVATE;
 import static org.objectweb.asm.Opcodes.ACC_STATIC;
 import static org.objectweb.asm.Opcodes.ACC_SYNTHETIC;
@@ -73,7 +74,7 @@ public class InstrumentingClassTransform implements ClassTransform {
     /**
      * Decoration format. Increment this when making changes.
      */
-    private static final int DECORATION_FORMAT = 36;
+    private static final int DECORATION_FORMAT = 37;
 
     private static final Type INSTRUMENTED_TYPE = getType(Instrumented.class);
     private static final Type BYTECODE_INTERCEPTOR_FILTER_TYPE = Type.getType(BytecodeInterceptorFilter.class);
@@ -165,6 +166,7 @@ public class InstrumentingClassTransform implements ClassTransform {
         private final MethodInterceptionListener methodInterceptionListener;
         private int nextBridgeMethodIndex;
 
+        private boolean isInterface;
         private String className;
         private String sourceFileName;
         private boolean hasGroovyCallSites;
@@ -186,6 +188,7 @@ public class InstrumentingClassTransform implements ClassTransform {
         @Override
         public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
             super.visit(version, access, name, signature, superName, interfaces);
+            this.isInterface = (access & Opcodes.ACC_INTERFACE) != 0;
             this.className = name;
         }
 
@@ -287,7 +290,7 @@ public class InstrumentingClassTransform implements ClassTransform {
         }
 
         private Handle makeBridgeMethodHandle(String name, String desc) {
-            return new Handle(H_INVOKESTATIC, className, name, desc, false);
+            return new Handle(H_INVOKESTATIC, className, name, desc, isInterface);
         }
     }
 
