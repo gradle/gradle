@@ -17,7 +17,10 @@
 package org.gradle.internal.logging.text;
 
 import org.gradle.api.logging.LogLevel;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
+@ServiceScope(Scope.Global.class)
 public interface StyledTextOutputFactory {
     /**
      * Creates a {@code StyledTextOutput} with the given category and the standard output log level.

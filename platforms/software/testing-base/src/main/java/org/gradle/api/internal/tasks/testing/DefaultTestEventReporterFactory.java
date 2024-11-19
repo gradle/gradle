@@ -17,25 +17,37 @@
 package org.gradle.api.internal.tasks.testing;
 
 import org.gradle.api.NonNullApi;
-import org.gradle.api.internal.tasks.testing.operations.TestListenerBuildOperationAdapter;
+import org.gradle.api.internal.tasks.testing.logging.SimpleTestEventLogger;
 import org.gradle.api.internal.tasks.testing.results.StateTrackingTestResultProcessor;
+import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
 import org.gradle.api.tasks.testing.GroupTestEventReporter;
 import org.gradle.api.tasks.testing.TestEventReporterFactory;
+import org.gradle.internal.event.ListenerBroadcast;
+import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.id.LongIdGenerator;
+import org.gradle.internal.logging.text.StyledTextOutputFactory;
 
 @NonNullApi
 public final class DefaultTestEventReporterFactory implements TestEventReporterFactory {
-    private final TestListenerBuildOperationAdapter testListenerBuildOperationAdapter;
+    private final StyledTextOutputFactory textOutputFactory;
+    private final ListenerManager listenerManager;
 
-    public DefaultTestEventReporterFactory(TestListenerBuildOperationAdapter testListenerBuildOperationAdapter) {
-        this.testListenerBuildOperationAdapter = testListenerBuildOperationAdapter;
+    public DefaultTestEventReporterFactory(ListenerManager listenerManager, StyledTextOutputFactory textOutputFactory) {
+        this.listenerManager = listenerManager;
+        this.textOutputFactory = textOutputFactory;
     }
 
     @Override
     public GroupTestEventReporter createTestEventReporter(String rootName) {
-        TestResultProcessor processor = new StateTrackingTestResultProcessor(testListenerBuildOperationAdapter);
+        SimpleTestEventLogger eventLogger = new SimpleTestEventLogger(textOutputFactory);
+
+        ListenerBroadcast<TestListenerInternal> testListenerInternalBroadcaster = listenerManager.createAnonymousBroadcaster(TestListenerInternal.class);
+        testListenerInternalBroadcaster.add(eventLogger);
+
+        TestResultProcessor processor = new StateTrackingTestResultProcessor(testListenerInternalBroadcaster.getSource());
         IdGenerator<?> idGenerator = new LongIdGenerator();
+
         return new DefaultRootTestEventReporter(processor, idGenerator, new DefaultTestSuiteDescriptor(idGenerator.generateId(), rootName));
     }
 }
