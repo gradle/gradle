@@ -271,6 +271,7 @@ dependencies {
     testImplementation(testFixtures(projects.diagnostics))
     testImplementation(testFixtures(projects.snapshots))
     testImplementation(testFixtures(projects.execution))
+    testImplementation(testFixtures(projects.time))
 
     integTestImplementation(projects.workers)
     integTestImplementation(projects.dependencyManagement)

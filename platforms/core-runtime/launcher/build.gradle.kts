@@ -68,6 +68,7 @@ dependencies {
     testImplementation(projects.internalIntegTesting)
     testImplementation(testFixtures(projects.serialization))
     testImplementation(testFixtures(projects.core))
+    testImplementation(testFixtures(projects.time))
     testImplementation(testFixtures(projects.logging))
     testImplementation(testFixtures(projects.toolingApi))
     testImplementation(testFixtures(projects.daemonProtocol))
