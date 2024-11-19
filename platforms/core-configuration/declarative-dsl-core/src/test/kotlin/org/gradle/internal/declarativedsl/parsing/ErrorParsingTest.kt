@@ -7,7 +7,7 @@ import org.junit.Test
 class ErrorParsingTest {
 
     @Test
-    fun `constructs we don't support, but our parsing doesn't fail on`() {
+    fun `constructs we don't support, but our parsing does not fail on`() { // TODO: these should become later stage failures at some point
         val code = """5
             a = (1)
             a = f(1).g(2)

@@ -322,6 +322,10 @@ class BasicParsingTest {
             block("param") {
                 a = 1
             }
+            `backtick block` { a = 1 }
+            `backtick block with param` ("param") {
+                b = 2
+            }
             """.trimIndent())
 
         val expected = """
@@ -353,6 +357,39 @@ class BasicParsingTest {
                                     name = a
                                 )
                                 rhs = IntLiteral [indexes: 37..38, line/column: 3/9..3/10, file: test] (1)
+                            )
+                        )
+                    )
+                ]
+            )
+            FunctionCall [indexes: 41..67, line/column: 5/1..5/27, file: test] (
+                name = `backtick block`
+                args = [
+                    FunctionArgument.Lambda [indexes: 58..67, line/column: 5/18..5/27, file: test] (
+                        block = Block [indexes: 60..65, line/column: 5/20..5/25, file: test] (
+                            Assignment [indexes: 60..65, line/column: 5/20..5/25, file: test] (
+                                lhs = NamedReference [indexes: 60..61, line/column: 5/20..5/21, file: test] (
+                                    name = a
+                                )
+                                rhs = IntLiteral [indexes: 64..65, line/column: 5/24..5/25, file: test] (1)
+                            )
+                        )
+                    )
+                ]
+            )
+            FunctionCall [indexes: 68..119, line/column: 6/1..8/2, file: test] (
+                name = `backtick block with param`
+                args = [
+                    FunctionArgument.Positional [indexes: 97..104, line/column: 6/30..6/37, file: test] (
+                        expr = StringLiteral [indexes: 97..104, line/column: 6/30..6/37, file: test] (param)
+                    )
+                    FunctionArgument.Lambda [indexes: 106..119, line/column: 6/39..8/2, file: test] (
+                        block = Block [indexes: 112..117, line/column: 7/5..7/10, file: test] (
+                            Assignment [indexes: 112..117, line/column: 7/5..7/10, file: test] (
+                                lhs = NamedReference [indexes: 112..113, line/column: 7/5..7/6, file: test] (
+                                    name = b
+                                )
+                                rhs = IntLiteral [indexes: 116..117, line/column: 7/9..7/10, file: test] (2)
                             )
                         )
                     )
