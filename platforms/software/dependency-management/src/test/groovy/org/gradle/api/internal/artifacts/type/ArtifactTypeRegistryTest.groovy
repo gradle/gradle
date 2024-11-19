@@ -16,32 +16,31 @@
 
 package org.gradle.api.internal.artifacts.type
 
-
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.CollectionCallbackActionDecorator
-import org.gradle.api.internal.artifacts.VariantTransformRegistry
 import org.gradle.api.internal.attributes.ImmutableAttributes
+import org.gradle.api.internal.attributes.immutable.artifact.ImmutableArtifactTypeRegistry
 import org.gradle.internal.component.model.ComponentArtifactMetadata
 import org.gradle.internal.component.model.IvyArtifactName
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
-class DefaultArtifactTypeRegistryTest extends Specification {
+class ArtifactTypeRegistryTest extends Specification {
     def attributesFactory = AttributeTestUtil.attributesFactory()
-    def registry = new DefaultArtifactTypeRegistry(TestUtil.instantiatorFactory().decorateLenient(), attributesFactory, CollectionCallbackActionDecorator.NOOP, Stub(VariantTransformRegistry))
+    def registry = new ArtifactTypeRegistry(TestUtil.instantiatorFactory().decorateLenient(), attributesFactory, CollectionCallbackActionDecorator.NOOP)
 
     def "creates as required and reuses"() {
         expect:
-        def container = registry.create()
+        def container = registry.getArtifactTypeContainer()
         container != null
-        registry.create().is(container)
+        registry.getArtifactTypeContainer().is(container)
     }
 
     def "can attach an artifact type"() {
         expect:
-        def container = registry.create()
+        def container = registry.getArtifactTypeContainer()
         container.create('jar') {
             attributes.attribute(Attribute.of('thing', String), '123')
         }
@@ -53,17 +52,17 @@ class DefaultArtifactTypeRegistryTest extends Specification {
         def attrs = ImmutableAttributes.EMPTY
 
         expect:
-        registry.mapAttributesFor(attrs, []) == attrs
+        toImmutable(registry).mapAttributesFor(attrs, []) == attrs
     }
 
     def "does not apply any mapping when variant has no artifacts"() {
         def attrs = ImmutableAttributes.EMPTY
 
         given:
-        registry.create().create("aar")
+        registry.getArtifactTypeContainer().create("aar")
 
         expect:
-        registry.mapAttributesFor(attrs, []) == attrs
+        toImmutable(registry).mapAttributesFor(attrs, []) == attrs
     }
 
     def "adds artifactType attribute but does not apply any mapping when no matching artifact type"() {
@@ -77,10 +76,10 @@ class DefaultArtifactTypeRegistryTest extends Specification {
         artifactName.extension >> "jar"
         artifactName.type >> "jar"
 
-        registry.create().create("aar")
+        registry.getArtifactTypeContainer().create("aar")
 
         expect:
-        registry.mapAttributesFor(attrs, [artifact]) == attrsPlusFormat
+        toImmutable(registry).mapAttributesFor(attrs, [artifact]) == attrsPlusFormat
     }
 
     def "applies mapping when no attributes defined for matching type"() {
@@ -94,10 +93,10 @@ class DefaultArtifactTypeRegistryTest extends Specification {
         artifactName.extension >> "jar"
         artifactName.type >> "jar"
 
-        registry.create().create("jar")
+        registry.getArtifactTypeContainer().create("jar")
 
         expect:
-        registry.mapAttributesFor(attrs, [artifact]) == attrsPlusFormat
+        toImmutable(registry).mapAttributesFor(attrs, [artifact]) == attrsPlusFormat
     }
 
     def "applies mapping to matching artifact type"() {
@@ -111,10 +110,10 @@ class DefaultArtifactTypeRegistryTest extends Specification {
         artifactName.extension >> "jar"
         artifactName.type >> "jar"
 
-        registry.create().create("jar").attributes.attribute(Attribute.of("custom", String), "123")
+        registry.getArtifactTypeContainer().create("jar").attributes.attribute(Attribute.of("custom", String), "123")
 
         expect:
-        registry.mapAttributesFor(attrs, [artifact]) == attrsPlusFormat
+        toImmutable(registry).mapAttributesFor(attrs, [artifact]) == attrsPlusFormat
     }
 
     def "adds only default attributes when multiple artifacts with different types"() {
@@ -133,17 +132,17 @@ class DefaultArtifactTypeRegistryTest extends Specification {
         artifactName2.extension >> "zip"
         artifactName2.type >> "zip"
 
-        registry.create().create("jar").attributes.attribute(Attribute.of("custom", String), "123")
-        registry.create().create("zip").attributes.attribute(Attribute.of("custom", String), "234")
+        registry.getArtifactTypeContainer().create("jar").attributes.attribute(Attribute.of("custom", String), "123")
+        registry.getArtifactTypeContainer().create("zip").attributes.attribute(Attribute.of("custom", String), "234")
         registry.defaultArtifactAttributes.attribute(Attribute.of("custom-default", String), "123")
 
         expect:
-        registry.mapAttributesFor(attrs, [artifact1, artifact2]) == attrsPlusFormat
+        toImmutable(registry).mapAttributesFor(attrs, [artifact1, artifact2]) == attrsPlusFormat
     }
 
     def "maps only artifactType attribute for arbitrary files when no extensions are registered"() {
         expect:
-        registry.mapAttributesFor(artifactFile).getAttribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE) == type
+        toImmutable(registry).mapAttributesFor(artifactFile).getAttribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE) == type
 
         where:
         artifactFile    | type
@@ -160,10 +159,10 @@ class DefaultArtifactTypeRegistryTest extends Specification {
         def attrsPlusFormat = concat(attrs, ["artifactType": type, "custom": "123"])
 
         given:
-        registry.create().create(type).attributes.attribute(Attribute.of("custom", String), "123")
+        registry.getArtifactTypeContainer().create(type).attributes.attribute(Attribute.of("custom", String), "123")
 
         expect:
-        registry.mapAttributesFor(artifactFile) == attrsPlusFormat
+        toImmutable(registry).mapAttributesFor(artifactFile) == attrsPlusFormat
 
         where:
         artifactFile    | type
@@ -177,11 +176,11 @@ class DefaultArtifactTypeRegistryTest extends Specification {
         def attrsPlusFormat = concat(attrs, ["artifactType": type])
 
         given:
-        registry.create().create("baz").attributes.attribute(Attribute.of("custom", String), "123")
-        registry.create().create("buzz").attributes.attribute(Attribute.of("custom", String), "234")
+        registry.getArtifactTypeContainer().create("baz").attributes.attribute(Attribute.of("custom", String), "123")
+        registry.getArtifactTypeContainer().create("buzz").attributes.attribute(Attribute.of("custom", String), "234")
 
         expect:
-        registry.mapAttributesFor(artifactFile) == attrsPlusFormat
+        toImmutable(registry).mapAttributesFor(artifactFile) == attrsPlusFormat
 
         where:
         artifactFile    | type
@@ -201,7 +200,7 @@ class DefaultArtifactTypeRegistryTest extends Specification {
         registry.defaultArtifactAttributes.attribute(Attribute.of("custom-default", String), "123")
 
         then:
-        registry.mapAttributesFor(attrs, []) == attrsPlusFormat
+        toImmutable(registry).mapAttributesFor(attrs, []) == attrsPlusFormat
     }
 
     def "applies mapping and default attributes to matching artifact type"() {
@@ -215,11 +214,11 @@ class DefaultArtifactTypeRegistryTest extends Specification {
         artifactName.extension >> "jar"
         artifactName.type >> "jar"
 
-        registry.create().create("jar").attributes.attribute(Attribute.of("custom", String), "123")
+        registry.getArtifactTypeContainer().create("jar").attributes.attribute(Attribute.of("custom", String), "123")
         registry.defaultArtifactAttributes.attribute(Attribute.of("custom-default", String), "123")
 
         expect:
-        registry.mapAttributesFor(attrs, [artifact]) == attrsPlusFormat
+        toImmutable(registry).mapAttributesFor(attrs, [artifact]) == attrsPlusFormat
     }
 
     def "applies default attributes when no attributes defined for matching type"() {
@@ -233,11 +232,11 @@ class DefaultArtifactTypeRegistryTest extends Specification {
         artifactName.extension >> "jar"
         artifactName.type >> "jar"
 
-        registry.create().create("jar")
+        registry.getArtifactTypeContainer().create("jar")
         registry.defaultArtifactAttributes.attribute(Attribute.of("custom-default", String), "123")
 
         expect:
-        registry.mapAttributesFor(attrs, [artifact]) == attrsPlusFormat
+        toImmutable(registry).mapAttributesFor(attrs, [artifact]) == attrsPlusFormat
     }
 
     def "maps default attributes for arbitrary files"() {
@@ -248,7 +247,7 @@ class DefaultArtifactTypeRegistryTest extends Specification {
         registry.defaultArtifactAttributes.attribute(Attribute.of("custom-default", String), "123")
 
         expect:
-        registry.mapAttributesFor(artifactFile) == attrsPlusFormat
+        toImmutable(registry).mapAttributesFor(artifactFile) == attrsPlusFormat
 
         where:
         artifactFile    | type
@@ -269,11 +268,11 @@ class DefaultArtifactTypeRegistryTest extends Specification {
         artifactName.extension >> "jar"
         artifactName.type >> "jar"
 
-        registry.create().create("jar").attributes.attribute(Attribute.of("custom", String), "123")
+        registry.getArtifactTypeContainer().create("jar").attributes.attribute(Attribute.of("custom", String), "123")
         registry.defaultArtifactAttributes.attribute(Attribute.of("custom", String), "321")
 
         expect:
-        registry.mapAttributesFor(attrs, [artifact]) == attrsPlusFormat
+        toImmutable(registry).mapAttributesFor(attrs, [artifact]) == attrsPlusFormat
     }
 
     def "registered attributes win over default attributes for file"() {
@@ -281,11 +280,11 @@ class DefaultArtifactTypeRegistryTest extends Specification {
         def attrsPlusFormat = concat(attrs, ["artifactType": ArtifactTypeDefinition.JAR_TYPE, "custom": "123"])
 
         given:
-        registry.create().create(ArtifactTypeDefinition.JAR_TYPE).attributes.attribute(Attribute.of("custom", String), "123")
+        registry.getArtifactTypeContainer().create(ArtifactTypeDefinition.JAR_TYPE).attributes.attribute(Attribute.of("custom", String), "123")
         registry.defaultArtifactAttributes.attribute(Attribute.of("custom", String), "321")
 
         expect:
-        registry.mapAttributesFor(file("foo.jar")) == attrsPlusFormat
+        toImmutable(registry).mapAttributesFor(file("foo.jar")) == attrsPlusFormat
     }
 
     File file(String name) {
@@ -310,5 +309,9 @@ class DefaultArtifactTypeRegistryTest extends Specification {
             result = attributesFactory.concat(result, attributesFactory.of(Attribute.of(key, String), value))
         }
         return result
+    }
+
+    static ImmutableArtifactTypeRegistry toImmutable(ArtifactTypeRegistry registry) {
+        AttributeTestUtil.services().artifactTypeRegistryFactory.create(registry)
     }
 }

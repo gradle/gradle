@@ -16,25 +16,25 @@
 
 package org.gradle.api.problems.internal;
 
-import org.gradle.internal.operations.OperationIdentifier;
+import org.gradle.api.problems.ProblemId;
 
-import javax.annotation.Nullable;
-import java.io.File;
+/**
+ * Problem summary data
+ */
+public class ProblemSummaryData {
+    private final ProblemId problemId;
+    private final int count;
 
-public class NoOpProblemSummarizer implements ProblemSummarizer {
-
-    @Override
-    public void emit(Problem problem, @Nullable OperationIdentifier id) {
-        // no op
+    public ProblemSummaryData(ProblemId problemId, int count) {
+        this.problemId = problemId;
+        this.count = count;
     }
 
-    @Override
-    public String getId() {
-        return "";
+    public ProblemId getProblemId() {
+        return problemId;
     }
 
-    @Override
-    public void report(File reportDir, ProblemConsumer validationFailures) {
-        //no op
+    public int getCount() {
+        return count;
     }
 }

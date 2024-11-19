@@ -19,8 +19,6 @@ package org.gradle.api.internal.attributes.immutable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Interner;
-import com.google.common.collect.Interners;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.attributes.Attribute;
@@ -28,8 +26,9 @@ import org.gradle.api.attributes.CompatibilityCheckDetails;
 import org.gradle.api.attributes.MultipleCandidatesDetails;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.DefaultAttributeMatchingStrategy;
-import org.gradle.internal.model.InMemoryLoadingCache;
 import org.gradle.internal.model.InMemoryCacheFactory;
+import org.gradle.internal.model.InMemoryInterner;
+import org.gradle.internal.model.InMemoryLoadingCache;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -41,12 +40,13 @@ import java.util.Map;
 @ServiceScope(Scope.BuildSession.class)
 public class ImmutableAttributesSchemaFactory {
 
-    private final Interner<ImmutableAttributesSchema> schemas = Interners.newStrongInterner();
+    private final InMemoryInterner<ImmutableAttributesSchema> schemas;
     private final InMemoryLoadingCache<SchemaPair, ImmutableAttributesSchema> mergedSchemas;
 
     @SuppressWarnings("CheckReturnValue")
     public ImmutableAttributesSchemaFactory(InMemoryCacheFactory cacheFactory) {
-        schemas.intern(ImmutableAttributesSchema.EMPTY);
+        this.schemas = cacheFactory.createInterner();
+        this.schemas.intern(ImmutableAttributesSchema.EMPTY);
         this.mergedSchemas = cacheFactory.create(this::doConcatSchemas);
     }
 

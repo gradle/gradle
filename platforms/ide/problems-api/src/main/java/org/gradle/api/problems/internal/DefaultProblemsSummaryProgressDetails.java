@@ -16,20 +16,17 @@
 
 package org.gradle.api.problems.internal;
 
-import org.gradle.api.problems.ProblemId;
-import org.gradle.internal.Pair;
-
 import java.util.List;
 
 public class DefaultProblemsSummaryProgressDetails implements ProblemsSummaryProgressDetails {
 
-    private final List<Pair<ProblemId, Integer>> problemIdCounts;
+    private final List<ProblemSummaryData> problemIdCounts;
 
-    public DefaultProblemsSummaryProgressDetails(List<Pair<ProblemId, Integer>> problemIdCounts) {
+    public DefaultProblemsSummaryProgressDetails(List<ProblemSummaryData> problemIdCounts) {
         this.problemIdCounts = problemIdCounts;
     }
 
-    public List<Pair<ProblemId, Integer>> getProblemIdCounts() {
+    public List<ProblemSummaryData> getProblemIdCounts() {
         return problemIdCounts;
     }
 }

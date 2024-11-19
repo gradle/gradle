@@ -227,7 +227,6 @@ Class <org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransp
 Class <org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (ArtifactTypeRegistry.java:0)
 Class <org.gradle.api.internal.artifacts.type.DefaultArtifactTypeContainer$DefaultArtifactTypeDefinition> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultArtifactTypeContainer.java:0)
 Class <org.gradle.api.internal.artifacts.type.DefaultArtifactTypeContainer> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultArtifactTypeContainer.java:0)
-Class <org.gradle.api.internal.artifacts.type.DefaultArtifactTypeRegistry> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultArtifactTypeRegistry.java:0)
 Class <org.gradle.api.internal.artifacts.verification.exceptions.ComponentVerificationException> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (ComponentVerificationException.java:0)
 Class <org.gradle.api.internal.artifacts.verification.exceptions.DependencyVerificationException> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DependencyVerificationException.java:0)
 Class <org.gradle.api.internal.artifacts.verification.exceptions.InvalidGpgKeyIdsException> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (InvalidGpgKeyIdsException.java:0)

@@ -14,23 +14,29 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.internal;
+package org.gradle.internal.model;
 
-import org.gradle.internal.operations.OperationIdentifier;
-import org.gradle.internal.service.scopes.Scope;
-import org.gradle.internal.service.scopes.ServiceScope;
-import org.gradle.problems.buildtree.ProblemReporter;
+/**
+ * Interns values, similar to {@link String#intern()}.
+ */
+public interface InMemoryInterner<T> {
 
-import javax.annotation.Nullable;
-
-@ServiceScope(Scope.BuildTree.class)
-public interface ProblemSummarizer extends ProblemReporter {
     /**
-     * Emits the given problem in an implementation specific way.
+     * Intern the provided instance. If this interner has already come across
+     * an instance equal to the provided value, it will return the prior
+     * instance. Otherwise, the provided instance is returned.
      * <p>
-     * The problem will be associated with the given operation identifier.
+     * Returned values may be compared with instance equality ({@code ==})
      *
-     * @param problem The problem to emit.
+     * @param value The value to intern.
+     *
+     * @return An instance equal to {@code value}.
      */
-    void emit(Problem problem, @Nullable OperationIdentifier id);
+    T intern(T value);
+
+    /**
+     * Invalidates the interner, clearing all entries.
+     */
+    void invalidate();
+
 }

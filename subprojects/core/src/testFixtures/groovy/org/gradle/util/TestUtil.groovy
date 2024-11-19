@@ -429,6 +429,17 @@ class TestProblemSummarizer implements ProblemSummarizer {
     void reset() {
         emitted.clear()
     }
+
+    @Override
+    String getId() {
+        //no op
+        return ""
+    }
+
+    @Override
+    void report(File reportDir, ProblemConsumer validationFailures) {
+        //no op
+    }
 }
 
 class TestCurrentBuildOperationRef extends CurrentBuildOperationRef {

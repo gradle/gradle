@@ -23,6 +23,7 @@ import org.gradle.api.problems.internal.ProblemSummarizer;
 import org.gradle.internal.operations.OperationIdentifier;
 
 import javax.annotation.Nullable;
+import java.io.File;
 
 /**
  * Worker-side implementation of {@link ProblemEmitter}.
@@ -40,5 +41,15 @@ public class WorkerProblemEmitter implements ProblemSummarizer {
     @Override
     public void emit(Problem problem, @Nullable OperationIdentifier id) {
         protocol.reportProblem(problem, id);
+    }
+
+    @Override
+    public String getId() {
+        return "";
+    }
+
+    @Override
+    public void report(File reportDir, ProblemConsumer validationFailures) {
+        //no op
     }
 }
