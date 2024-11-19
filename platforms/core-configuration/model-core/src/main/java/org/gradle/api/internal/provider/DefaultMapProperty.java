@@ -30,6 +30,7 @@ import org.gradle.api.internal.provider.MapCollectors.SingleEntry;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
+import org.gradle.internal.evaluation.EvaluationScopeContext;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -336,12 +337,12 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
     }
 
     @Override
-    protected Value<? extends Map<K, V>> calculateValueFrom(EvaluationContext.ScopeContext context, MapSupplier<K, V> value, ValueConsumer consumer) {
+    protected Value<? extends Map<K, V>> calculateValueFrom(EvaluationScopeContext context, MapSupplier<K, V> value, ValueConsumer consumer) {
         return value.calculateValue(consumer);
     }
 
     @Override
-    protected MapSupplier<K, V> finalValue(EvaluationContext.ScopeContext context, MapSupplier<K, V> value, ValueConsumer consumer) {
+    protected MapSupplier<K, V> finalValue(EvaluationScopeContext context, MapSupplier<K, V> value, ValueConsumer consumer) {
         Value<? extends Map<K, V>> result = value.calculateValue(consumer);
         if (!result.isMissing()) {
             return new FixedSupplier(result.getWithoutSideEffect(), uncheckedCast(result.getSideEffect()));
@@ -353,7 +354,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
     }
 
     @Override
-    protected ExecutionTimeValue<? extends Map<K, V>> calculateOwnExecutionTimeValue(EvaluationContext.ScopeContext context, MapSupplier<K, V> value) {
+    protected ExecutionTimeValue<? extends Map<K, V>> calculateOwnExecutionTimeValue(EvaluationScopeContext context, MapSupplier<K, V> value) {
         return value.calculateExecutionTimeValue();
     }
 
@@ -391,7 +392,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
 
         @Override
         protected Value<? extends Set<K>> calculateOwnValue(ValueConsumer consumer) {
-            try (EvaluationContext.ScopeContext context = DefaultMapProperty.this.openScope()) {
+            try (EvaluationScopeContext context = DefaultMapProperty.this.openScope()) {
                 beforeRead(context, consumer);
                 return getSupplier(context).calculateKeys(consumer);
             }

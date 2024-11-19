@@ -156,11 +156,21 @@ public class TreeFormatter implements DiagnosticsVisitor {
      * Appends a method name to the current node.
      */
     public TreeFormatter appendMethod(Method method) {
-        // Implementation is currently dumb, can be made smarter
         append(method.getDeclaringClass().getSimpleName());
         append(".");
         append(method.getName());
-        append("()");
+        append("(");
+        Class<?>[] params = method.getParameterTypes();
+        int numParams = params.length;
+        for (int i = 0; i < numParams; i++) {
+            Class<?> param = params[i];
+            appendType(param);
+            if (i < numParams - 1) {
+                append(", ");
+            }
+        }
+        append(")");
+
         return this;
     }
 

@@ -1,6 +1,7 @@
 package configurations
 
 import common.Os
+import common.VersionedSettingsBranch
 import common.applyDefaultSettings
 import common.toCapitalized
 import common.uuidPrefix
@@ -41,6 +42,14 @@ class StageTriggers(model: CIBuildModel, stage: Stage, prevStage: Stage?, stageP
     }
 }
 
+// https://github.com/gradle/gradle-private/issues/4527
+// https://github.com/gradle/gradle-private/issues/4528
+// Trigger ReadyForNightly and ReadyForRelease for provider-api-migration/public-api-changes branch
+// TODO: remove this after the branch is merged
+fun VersionedSettingsBranch.determineBranchFilter(): String {
+    return branchFilter() + "\n+:provider-api-migration/public-api-changes"
+}
+
 class StageTrigger(
     model: CIBuildModel,
     stage: Stage,
@@ -67,7 +76,7 @@ class StageTrigger(
                 quietPeriodMode = VcsTrigger.QuietPeriodMode.USE_CUSTOM
                 quietPeriod = 90
                 triggerRules = triggerExcludes
-                branchFilter = model.branch.branchFilter()
+                branchFilter = model.branch.determineBranchFilter()
                 enabled = enableTriggers
             }
         } else if (stage.trigger != Trigger.never) {
@@ -86,7 +95,7 @@ class StageTrigger(
                 triggerBuild = always()
                 withPendingChangesOnly = true
                 param("revisionRule", "lastFinished")
-                branchFilter = model.branch.branchFilter()
+                branchFilter = model.branch.determineBranchFilter()
                 enabled = enableTriggers
             }
         }

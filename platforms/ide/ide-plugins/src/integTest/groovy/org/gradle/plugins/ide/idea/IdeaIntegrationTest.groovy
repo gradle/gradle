@@ -22,6 +22,7 @@ import org.custommonkey.xmlunit.Diff
 import org.custommonkey.xmlunit.ElementNameAndAttributeQualifier
 import org.custommonkey.xmlunit.XMLAssert
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
+import org.gradle.integtests.fixtures.StableConfigurationCacheDeprecations
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.plugins.ide.AbstractIdeIntegrationTest
@@ -32,7 +33,7 @@ import org.junit.Test
 
 import java.util.regex.Pattern
 
-class IdeaIntegrationTest extends AbstractIdeIntegrationTest {
+class IdeaIntegrationTest extends AbstractIdeIntegrationTest implements StableConfigurationCacheDeprecations {
     @Rule
     public final TestResources testResources = new TestResources(testDirectoryProvider)
 
@@ -74,7 +75,7 @@ class IdeaIntegrationTest extends AbstractIdeIntegrationTest {
         assertHasExpectedContents('root.iml')
         assertHasExpectedContents('api/api.iml')
         assertHasExpectedContents('webservice/webservice.iml')
-
+        expectTaskGetProjectDeprecations(3)
         executer.withTasks('cleanIdea').run()
     }
 

@@ -16,10 +16,14 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
+import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.internal.artifacts.transform.ArtifactVariantSelector;
 import org.gradle.api.internal.artifacts.transform.ResolvedVariantTransformer;
 import org.gradle.api.internal.artifacts.transform.TransformUpstreamDependenciesResolver;
 import org.gradle.api.internal.artifacts.transform.TransformedVariantFactory;
+import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
+import org.gradle.internal.component.model.GraphVariantSelector;
+import org.gradle.internal.resolve.resolver.VariantArtifactResolver;
 
 /**
  * Services provided by the consumer to be used during artifact selection.
@@ -28,14 +32,26 @@ public class ArtifactSelectionServices {
 
     private final ArtifactVariantSelector variantSelector;
     private final ResolvedVariantTransformer resolvedVariantTransformer;
+    private final VariantArtifactResolver variantResolver;
+    private final GraphVariantSelector graphVariantSelector;
+    private final ImmutableAttributesSchema consumerSchema;
+    private final VariantTransformRegistry transformRegistry;
 
     public ArtifactSelectionServices(
         ArtifactVariantSelector variantSelector,
         TransformedVariantFactory transformedVariantFactory,
-        TransformUpstreamDependenciesResolver dependenciesResolver
+        TransformUpstreamDependenciesResolver dependenciesResolver,
+        VariantArtifactResolver variantResolver,
+        GraphVariantSelector graphVariantSelector,
+        ImmutableAttributesSchema consumerSchema,
+        VariantTransformRegistry transformRegistry
     ) {
         this.variantSelector = variantSelector;
         this.resolvedVariantTransformer = new ResolvedVariantTransformer(transformedVariantFactory, dependenciesResolver);
+        this.variantResolver = variantResolver;
+        this.graphVariantSelector = graphVariantSelector;
+        this.consumerSchema = consumerSchema;
+        this.transformRegistry = transformRegistry;
     }
 
     public ArtifactVariantSelector getArtifactVariantSelector() {
@@ -44,5 +60,21 @@ public class ArtifactSelectionServices {
 
     public ResolvedVariantTransformer getResolvedVariantTransformer() {
         return resolvedVariantTransformer;
+    }
+
+    public VariantArtifactResolver getVariantArtifactResolver() {
+        return variantResolver;
+    }
+
+    public GraphVariantSelector getGraphVariantSelector() {
+        return graphVariantSelector;
+    }
+
+    public ImmutableAttributesSchema getConsumerSchema() {
+        return consumerSchema;
+    }
+
+    public VariantTransformRegistry getTransformRegistry() {
+        return transformRegistry;
     }
 }

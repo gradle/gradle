@@ -19,28 +19,29 @@ package org.gradle.internal.cc.impl
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetVersions
-import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheBuildOperationsFixture
 import org.gradle.integtests.fixtures.executer.GradleExecuter
+import org.gradle.internal.operations.trace.BuildOperationRecord
 import org.gradle.util.GradleVersion
 
-import static org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption.LONG_OPTION
+import javax.annotation.Nullable
 
+import static org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption.LONG_OPTION
 
 @TargetVersions("6.5-rc-1+")
 class ConfigurationCacheCrossVersionTest extends CrossVersionIntegrationSpec {
 
     GradleExecuter previousExecuter
-    ConfigurationCacheBuildOperationsFixture previousFixture
+    BuildOperationsFixture previousFixture
 
     GradleExecuter currentExecuter
-    ConfigurationCacheBuildOperationsFixture currentFixture
+    BuildOperationsFixture currentFixture
 
     def setup() {
         previousExecuter = version(previous)
-        previousFixture = new ConfigurationCacheBuildOperationsFixture(new BuildOperationsFixture(previousExecuter, temporaryFolder))
+        previousFixture = new BuildOperationsFixture(previousExecuter, temporaryFolder)
 
         currentExecuter = version(current)
-        currentFixture = new ConfigurationCacheBuildOperationsFixture(new BuildOperationsFixture(currentExecuter, temporaryFolder))
+        currentFixture = new BuildOperationsFixture(currentExecuter, temporaryFolder)
     }
 
     void runPrevious() {
@@ -58,32 +59,40 @@ class ConfigurationCacheCrossVersionTest extends CrossVersionIntegrationSpec {
     }
 
     def "does not reuse cached state from previous version"() {
-
         when:
         runPrevious()
 
         then:
-        previousFixture.assertStateStored(previous.loadsFromConfigurationCacheAfterStore)
+        assertStateStored(previousFixture)
 
         when:
         runCurrent()
 
         then:
-        currentFixture.assertStateStored()
+        assertStateStored(currentFixture)
     }
 
     def "does not reuse cached state from future version"() {
-
         when:
         runCurrent()
 
         then:
-        currentFixture.assertStateStored()
+        assertStateStored(currentFixture)
 
         when:
         runPrevious()
 
         then:
-        previousFixture.assertStateStored(previous.loadsFromConfigurationCacheAfterStore)
+        assertStateStored(previousFixture)
+    }
+
+    static void assertStateStored(BuildOperationsFixture operations) {
+        def store = workGraphStoreOperation(operations)
+        assert store != null && store.failure == null
+    }
+
+    @Nullable
+    private static BuildOperationRecord workGraphStoreOperation(BuildOperationsFixture operations) {
+        operations.firstMatchingRegex("Store (configuration cache|instant execution) state.*")
     }
 }

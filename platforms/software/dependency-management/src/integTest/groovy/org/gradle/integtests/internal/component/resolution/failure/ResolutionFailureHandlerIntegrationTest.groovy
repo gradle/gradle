@@ -443,7 +443,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
 
         String basicOutput = """   Failures:
       - Could not resolve com.google.code.gson:gson:2.8.5."""
-        String fullOutput = """          - Unable to find a variant providing the requested capability 'com.google.code.gson:gson-test-fixtures':
+        String fullOutput = """          - Unable to find a variant with the requested capability: feature 'test-fixtures':
                - Variant 'compile' provides 'com.google.code.gson:gson:2.8.5'
                - Variant 'enforced-platform-compile' provides 'com.google.code.gson:gson-derived-enforced-platform:2.8.5'
                - Variant 'enforced-platform-runtime' provides 'com.google.code.gson:gson-derived-enforced-platform:2.8.5'

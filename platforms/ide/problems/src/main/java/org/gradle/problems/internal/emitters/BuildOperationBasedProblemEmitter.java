@@ -23,6 +23,8 @@ import org.gradle.api.problems.internal.ProblemEmitter;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.OperationIdentifier;
 
+import javax.annotation.Nullable;
+
 /**
  * Emits problems as build operation progress events.
  *
@@ -38,7 +40,7 @@ public class BuildOperationBasedProblemEmitter implements ProblemEmitter {
     }
 
     @Override
-    public void emit(Problem problem, OperationIdentifier id) {
+    public void emit(Problem problem, @Nullable OperationIdentifier id) {
         eventEmitter.emitNow(id, new DefaultProblemProgressDetails(problem));
     }
 }

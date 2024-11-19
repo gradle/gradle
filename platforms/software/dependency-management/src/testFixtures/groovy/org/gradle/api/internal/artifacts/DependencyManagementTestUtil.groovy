@@ -22,8 +22,6 @@ import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleM
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory
 import org.gradle.api.internal.attributes.AttributeDescriberRegistry
 import org.gradle.api.internal.attributes.AttributeDesugaring
-import org.gradle.api.problems.internal.DefaultProblems
-import org.gradle.api.problems.internal.NoOpProblemEmitter
 import org.gradle.internal.component.external.model.ModuleComponentGraphResolveStateFactory
 import org.gradle.internal.component.external.model.PreferJavaRuntimeVariant
 import org.gradle.internal.component.model.ComponentIdGenerator
@@ -67,7 +65,7 @@ class DependencyManagementTestUtil {
 
         return new ResolutionFailureHandler(
             TestUtil.instantiatorFactory().inject(services),
-            new DefaultProblems([new NoOpProblemEmitter()]),
+            TestUtil.problemsService(),
             new TransformedVariantConverter()
         )
     }

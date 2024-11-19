@@ -16,7 +16,7 @@
 
 package org.gradle.internal.watch
 
-import com.gradle.develocity.testing.annotations.LocalOnly
+import org.gradle.testdistribution.LocalOnly
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.internal.watch.options.FileSystemWatchingSettingsFinalizedProgressDetails
 

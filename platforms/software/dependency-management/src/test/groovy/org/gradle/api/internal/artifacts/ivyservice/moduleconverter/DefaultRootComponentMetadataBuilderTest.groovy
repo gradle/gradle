@@ -54,7 +54,8 @@ class DefaultRootComponentMetadataBuilderTest extends Specification {
             Stub(AttributeDesugaring),
             Stub(ComponentIdGenerator),
             configurationStateBuilder,
-            TestUtil.calculatedValueContainerFactory()
+            TestUtil.calculatedValueContainerFactory(),
+            TestUtil.inMemoryCacheFactory()
         ),
         AttributeTestUtil.services().getSchemaFactory()
     )

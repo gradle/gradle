@@ -18,10 +18,11 @@ package org.gradle.nativeplatform.test.plugins
 
 import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.StableConfigurationCacheDeprecations
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 
 @UnsupportedWithConfigurationCache(because = "software model")
-class TestSuiteDefinitionIntegrationSpec extends AbstractIntegrationSpec {
+class TestSuiteDefinitionIntegrationSpec extends AbstractIntegrationSpec implements StableConfigurationCacheDeprecations {
     def setup() {
         buildFile << """
 interface CustomTestSuite extends TestSuiteSpec {
@@ -86,6 +87,7 @@ model {
 """
 
         when:
+        expectTaskGetProjectDeprecations()
         run "model"
 
         then:
@@ -133,6 +135,7 @@ model {
 """
 
         when:
+        expectTaskGetProjectDeprecations()
         run "model"
 
         then:
@@ -191,6 +194,7 @@ model {
 """
 
         when:
+        expectTaskGetProjectDeprecations()
         run "model"
 
         then:

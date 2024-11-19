@@ -18,10 +18,11 @@ package org.gradle.nativeplatform.test.plugins
 
 import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.StableConfigurationCacheDeprecations
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 
 @UnsupportedWithConfigurationCache(because = "software model")
-class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
+class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec implements StableConfigurationCacheDeprecations {
 
     def "setup"() {
         buildFile """
@@ -104,6 +105,7 @@ class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
 
     def "test suite sources and binaries containers are visible in model report"() {
         when:
+        expectTaskGetProjectDeprecations()
         run "model"
 
         then:
@@ -166,6 +168,7 @@ class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
         """
 
         when:
+        expectTaskGetProjectDeprecations()
         run "model"
 
         then:
@@ -259,6 +262,7 @@ class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
         '''
 
         when:
+        expectTaskGetProjectDeprecations()
         run "model"
 
         then:

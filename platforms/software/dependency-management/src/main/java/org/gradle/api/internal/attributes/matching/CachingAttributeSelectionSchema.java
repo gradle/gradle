@@ -18,12 +18,12 @@ package org.gradle.api.internal.attributes.matching;
 
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.internal.model.InMemoryLoadingCache;
+import org.gradle.internal.model.InMemoryCacheFactory;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
-import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Caches results of a delegate {@link AttributeSelectionSchema}. Not all methods
@@ -34,10 +34,17 @@ public class CachingAttributeSelectionSchema implements AttributeSelectionSchema
 
     private final AttributeSelectionSchema delegate;
 
-    private final Map<ExtraAttributesEntry, Attribute<?>[]> extraAttributesCache = new ConcurrentHashMap<>();
+    private final InMemoryLoadingCache<ExtraAttributesKey, Attribute<?>[]> extraAttributesCache;
+    private final InMemoryLoadingCache<MatchValueKey<?>, Boolean> matchValueCache;
 
-    public CachingAttributeSelectionSchema(AttributeSelectionSchema delegate) {
+    public CachingAttributeSelectionSchema(
+        AttributeSelectionSchema delegate,
+        InMemoryCacheFactory cacheFactory
+    ) {
         this.delegate = delegate;
+
+        this.extraAttributesCache = cacheFactory.create(this::doCollectExtraAttributes);
+        this.matchValueCache = cacheFactory.create(this::doMatchValue);
     }
 
     @Override
@@ -53,7 +60,54 @@ public class CachingAttributeSelectionSchema implements AttributeSelectionSchema
 
     @Override
     public <T> boolean matchValue(Attribute<T> attribute, T requested, T candidate) {
-        return delegate.matchValue(attribute, requested, candidate);
+        return matchValueCache.get(new MatchValueKey<>(attribute, requested, candidate));
+    }
+
+    private <T> boolean doMatchValue(MatchValueKey<T> key) {
+        return delegate.matchValue(key.attribute, key.requested, key.candidate);
+    }
+
+    private static class MatchValueKey<T> {
+        private final Attribute<T> attribute;
+        private final T requested;
+        private final T candidate;
+
+        private final int hashCode;
+
+        private MatchValueKey(Attribute<T> attribute, T requested, T candidate) {
+            this.attribute = attribute;
+            this.requested = requested;
+            this.candidate = candidate;
+
+            this.hashCode = computeHashCode();
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            MatchValueKey<?> that = (MatchValueKey<?>) o;
+            return attribute.equals(that.attribute) &&
+                requested.equals(that.requested) &&
+                candidate.equals(that.candidate);
+        }
+
+        @Override
+        public int hashCode() {
+            return hashCode;
+        }
+
+        private int computeHashCode() {
+            int result = attribute.hashCode();
+            result = 31 * result + requested.hashCode();
+            result = 31 * result + candidate.hashCode();
+            return result;
+        }
     }
 
     @Override
@@ -64,16 +118,20 @@ public class CachingAttributeSelectionSchema implements AttributeSelectionSchema
     @Override
     public Attribute<?>[] collectExtraAttributes(ImmutableAttributes[] candidateAttributeSets, ImmutableAttributes requested) {
         // TODO: Evaluate whether we still need this cache
-        ExtraAttributesEntry entry = new ExtraAttributesEntry(candidateAttributeSets, requested);
-        return extraAttributesCache.computeIfAbsent(entry, key -> delegate.collectExtraAttributes(key.candidates, key.requested));
+        ExtraAttributesKey entry = new ExtraAttributesKey(candidateAttributeSets, requested);
+        return extraAttributesCache.get(entry);
     }
 
-    private static class ExtraAttributesEntry {
+    private Attribute<?>[] doCollectExtraAttributes(ExtraAttributesKey key) {
+        return delegate.collectExtraAttributes(key.candidates, key.requested);
+    }
+
+    private static class ExtraAttributesKey {
         private final ImmutableAttributes[] candidates;
         private final ImmutableAttributes requested;
         private final int hashCode;
 
-        private ExtraAttributesEntry(ImmutableAttributes[] candidates, ImmutableAttributes requested) {
+        private ExtraAttributesKey(ImmutableAttributes[] candidates, ImmutableAttributes requested) {
             this.candidates = candidates;
             this.requested = requested;
             this.hashCode = computeHashCode(candidates, requested);
@@ -101,7 +159,7 @@ public class CachingAttributeSelectionSchema implements AttributeSelectionSchema
             // in different orders. a->foo,b->bar and b->bar,a->foo will .equals each other but
             // will not == each other.
 
-            ExtraAttributesEntry that = (ExtraAttributesEntry) o;
+            ExtraAttributesKey that = (ExtraAttributesKey) o;
             if (requested != that.requested) {
                 return false;
             }

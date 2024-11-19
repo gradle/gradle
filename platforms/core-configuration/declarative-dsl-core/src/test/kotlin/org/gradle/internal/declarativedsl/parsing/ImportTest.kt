@@ -30,7 +30,7 @@ class ImportTest {
     fun testContext(): AnalysisContext {
         return AnalysisContext(
             DefaultAnalysisSchema(
-                DefaultDataClass(DefaultFqName("", ""), emptySet(), emptyList(), emptyList(), emptyList()),
+                DefaultDataClass(DefaultFqName("", ""), "", emptyList(), emptySet(), emptyList(), emptyList(), emptyList()),
                 emptyMap(),
                 emptyMap(),
                 emptyMap(),

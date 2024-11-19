@@ -23,8 +23,6 @@ import org.gradle.api.internal.provider.CircularEvaluationSpec.CircularChainEval
 import org.gradle.api.internal.provider.CircularEvaluationSpec.CircularFunctionEvaluationSpec
 import org.gradle.api.internal.provider.CircularEvaluationSpec.UsesStringProperty
 import org.gradle.api.logging.configuration.WarningMode
-import org.gradle.api.problems.internal.DefaultProblems
-import org.gradle.api.problems.internal.ProblemEmitter
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.TaskState
 import org.gradle.internal.Describables
@@ -43,11 +41,10 @@ class TransformBackedProviderTest extends Specification {
     @Rule
     RedirectStdOutAndErr outputs = new RedirectStdOutAndErr()
     def progressEventEmitter = Mock(BuildOperationProgressEventEmitter)
-    def problemEmitter = Stub(ProblemEmitter)
 
     def setup() {
         DeprecationLogger.reset()
-        DeprecationLogger.init(WarningMode.All, progressEventEmitter, new DefaultProblems([problemEmitter]), Stub(ProblemStream))
+        DeprecationLogger.init(WarningMode.All, progressEventEmitter, TestUtil.problemsService(), Stub(ProblemStream))
     }
 
     def cleanup() {

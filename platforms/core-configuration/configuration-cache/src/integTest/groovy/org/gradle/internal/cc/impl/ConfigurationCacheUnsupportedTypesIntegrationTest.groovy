@@ -17,7 +17,6 @@
 package org.gradle.internal.cc.impl
 
 import org.gradle.api.DefaultTask
-import org.gradle.api.project.IsolatedProject
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.Task
@@ -69,7 +68,7 @@ import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler
 import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyConstraintHandler
 import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyHandler
 import org.gradle.api.internal.artifacts.ivyservice.DefaultResolvedConfiguration
-import org.gradle.api.internal.artifacts.ivyservice.ShortCircuitEmptyConfigurationResolver.EmptyLenientConfiguration
+import org.gradle.api.internal.artifacts.ivyservice.ShortCircuitingResolutionExecutor.EmptyLenientConfiguration
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultResolutionStrategy
 import org.gradle.api.internal.artifacts.query.DefaultArtifactResolutionQuery
 import org.gradle.api.internal.artifacts.repositories.DefaultMavenArtifactRepository
@@ -92,6 +91,7 @@ import org.gradle.api.internal.tasks.DefaultSourceSet
 import org.gradle.api.internal.tasks.DefaultSourceSetContainer
 import org.gradle.api.internal.tasks.DefaultTaskContainer
 import org.gradle.api.invocation.Gradle
+import org.gradle.api.project.IsolatedProject
 import org.gradle.api.services.BuildService
 import org.gradle.api.services.BuildServiceParameters
 import org.gradle.api.tasks.SourceSet

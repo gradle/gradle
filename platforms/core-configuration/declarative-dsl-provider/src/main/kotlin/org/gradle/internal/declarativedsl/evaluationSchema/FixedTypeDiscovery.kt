@@ -25,7 +25,7 @@ import kotlin.reflect.KClass
  */
 internal
 class FixedTypeDiscovery(private val keyClass: KClass<*>, private val discoverClasses: List<KClass<*>>) : TypeDiscovery {
-    override fun getClassesToVisitFrom(kClass: KClass<*>): Iterable<KClass<*>> =
+    override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscovery.TypeDiscoveryServices, kClass: KClass<*>): Iterable<KClass<*>> =
         when (kClass) {
             keyClass -> discoverClasses.distinct()
             else -> emptyList()

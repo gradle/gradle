@@ -29,10 +29,13 @@ dependencies {
     api(libs.kotlinStdlib)
     api(libs.inject)
 
+    implementation(projects.concurrent)
     implementation(projects.declarativeDslInternalUtils)
     implementation(projects.baseServices)
+    implementation(projects.messaging)
     implementation(projects.resources)
     implementation(projects.serviceLookup)
+    implementation(projects.stdlibJavaExtensions)
     implementation(libs.guava)
     implementation(libs.kotlinReflect)
 

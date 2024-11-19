@@ -191,6 +191,18 @@ include::sample[dir="snippets/providers/services/groovy",files="build.gradle[tag
 
 The `FileSystemOperations` service is injected into the `MyFileSystemOperationsTask` task's constructor using the `@Inject` annotation.
 
+With some ceremony, it is possible to use `FileSystemOperations` in an ad-hoc task defined in a build script:
+
+====
+include::sample[dir="snippets/providers/services/kotlin",files="build.gradle.kts[tags=file-system-adhoc]"]
+include::sample[dir="snippets/providers/services/groovy",files="build.gradle[tags=file-system-adhoc]"]
+====
+
+First, you need to declare an interface with a property of type `FileSystemOperations`, here named `InjectedFsOps`, to serve as an injection point.
+Then call the method link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#newInstance(java.lang.Class,java.lang.Object%2E%2E%2E)[`ObjectFactory.newInstance`] to generate an implementation of the interface that holds an injected service.
+
+TIP: This is a good time to consider extracting the ad-hoc task into a proper class.
+
 [[archiveoperations]]
 == 7. `ArchiveOperations`
 
@@ -205,6 +217,18 @@ include::sample[dir="snippets/providers/services/groovy",files="build.gradle[tag
 ====
 
 The `ArchiveOperations` service is injected into the `MyArchiveOperationsTask` task's constructor using the `@Inject` annotation.
+
+With some ceremony, it is possible to use `ArchiveOperations` in an ad-hoc task defined in a build script:
+
+====
+include::sample[dir="snippets/providers/services/kotlin",files="build.gradle.kts[tags=archive-op-adhoc]"]
+include::sample[dir="snippets/providers/services/groovy",files="build.gradle[tags=archive-op-adhoc]"]
+====
+
+First, you need to declare an interface with a property of type `ArchiveOperations`, here named `InjectedArcOps`, to serve as an injection point.
+Then call the method link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#newInstance(java.lang.Class,java.lang.Object%2E%2E%2E)[`ObjectFactory.newInstance`] to generate an implementation of the interface that holds an injected service.
+
+TIP: This is a good time to consider extracting the ad-hoc task into a proper class.
 
 [[execoperations]]
 == 8. `ExecOperations`
@@ -221,8 +245,20 @@ include::sample[dir="snippets/providers/services/groovy",files="build.gradle[tag
 
 The `ExecOperations` is injected into the `MyExecOperationsTask` task's constructor using the `@Inject` annotation.
 
+With some ceremony, it is possible to use `ExecOperations` in an ad-hoc task defined in a build script:
+
+====
+include::sample[dir="snippets/providers/services/kotlin",files="build.gradle.kts[tags=exec-op-adhoc]"]
+include::sample[dir="snippets/providers/services/groovy",files="build.gradle[tags=exec-op-adhoc]"]
+====
+
+First, you need to declare an interface with a property of type `ExecOperations`, here named `InjectedExecOps`, to serve as an injection point.
+Then call the method link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#newInstance(java.lang.Class,java.lang.Object%2E%2E%2E)[`ObjectFactory.newInstance`] to generate an implementation of the interface that holds an injected service.
+
+TIP: This is a good time to consider extracting the ad-hoc task into a proper class.
+
 [[toolingmodelbuilderregistry]]
-== 9 `ToolingModelBuilderRegistry`
+== 9. `ToolingModelBuilderRegistry`
 
 link:{javadocPath}/org/gradle/tooling/provider/model/ToolingModelBuilderRegistry.html[`ToolingModelBuilderRegistry`] is a service that allows you to register custom tooling model builders.
 Tooling models are used to provide rich IDE integration for Gradle projects, allowing IDEs to understand and work with the project's structure, dependencies, and other aspects.

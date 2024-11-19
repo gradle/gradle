@@ -22,7 +22,6 @@ import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.deployment.internal.DefaultDeploymentRegistry
 import org.gradle.initialization.RootBuildLifecycleListener
-import org.gradle.initialization.exception.ExceptionAnalyser
 import org.gradle.internal.build.BuildLifecycleController
 import org.gradle.internal.build.BuildModelControllerServices
 import org.gradle.internal.build.BuildStateRegistry
@@ -30,6 +29,7 @@ import org.gradle.internal.buildtree.BuildTreeLifecycleController
 import org.gradle.internal.buildtree.BuildTreeLifecycleControllerFactory
 import org.gradle.internal.buildtree.BuildTreeState
 import org.gradle.internal.event.ListenerManager
+import org.gradle.internal.exception.ExceptionAnalyser
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.internal.service.DefaultServiceRegistry

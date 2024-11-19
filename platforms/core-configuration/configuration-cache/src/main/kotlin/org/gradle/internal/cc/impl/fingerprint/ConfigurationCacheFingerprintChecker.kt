@@ -57,7 +57,7 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
         val startParameterProperties: Map<String, Any?>
         val buildStartTime: Long
         val invalidateCoupledProjects: Boolean
-        val ignoreInputsInConfigurationCacheTaskGraphWriting: Boolean
+        val ignoreInputsDuringConfigurationCacheStore: Boolean
         val instrumentationAgentUsed: Boolean
         val ignoredFileSystemCheckInputs: String?
         fun gradleProperty(propertyName: String): String?
@@ -258,8 +258,8 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                     host.startParameterProperties != startParameterProperties ->
                         text("the set of Gradle properties has changed: ").text(detailedMessageForChanges(startParameterProperties, host.startParameterProperties))
 
-                    host.ignoreInputsInConfigurationCacheTaskGraphWriting != ignoreInputsInConfigurationCacheTaskGraphWriting ->
-                        text("the value of ignored configuration inputs flag (${StartParameterBuildOptions.ConfigurationCacheIgnoreInputsInTaskGraphSerialization.PROPERTY_NAME}) has changed")
+                    host.ignoreInputsDuringConfigurationCacheStore != ignoreInputsDuringConfigurationCacheStore ->
+                        text("the value of ignored configuration inputs flag (${StartParameterBuildOptions.ConfigurationCacheIgnoreInputsDuringStore.PROPERTY_NAME}) has changed")
 
                     host.instrumentationAgentUsed != instrumentationAgentUsed ->
                         text("the instrumentation Java agent ${if (instrumentationAgentUsed) "is no longer available" else "is now applied"}")

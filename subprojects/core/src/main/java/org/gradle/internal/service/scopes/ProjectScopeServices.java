@@ -39,7 +39,6 @@ import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.api.internal.plugins.DefaultPluginManager;
 import org.gradle.api.internal.plugins.ImperativeOnlyPluginTarget;
-import org.gradle.api.internal.plugins.SoftwareFeatureApplyingPluginTarget;
 import org.gradle.api.internal.plugins.PluginInstantiator;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.plugins.PluginRegistry;
@@ -103,7 +102,6 @@ import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
 import org.gradle.normalization.internal.RuntimeClasspathNormalizationInternal;
 import org.gradle.plugin.software.internal.ModelDefaultsHandler;
 import org.gradle.plugin.software.internal.PluginScheme;
-import org.gradle.plugin.software.internal.SoftwareFeatureApplicator;
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry;
 import org.gradle.process.internal.ExecFactory;
 import org.gradle.tooling.provider.model.internal.DefaultToolingModelBuilderRegistry;
@@ -229,9 +227,7 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
         CollectionCallbackActionDecorator decorator,
         DomainObjectCollectionFactory domainObjectCollectionFactory,
         PluginScheme pluginScheme,
-        InternalProblems problems,
-        SoftwareTypeRegistry softwareTypeRegistry,
-        SoftwareFeatureApplicator softwareFeatureApplicator
+        InternalProblems problems
     ) {
 
         PluginTarget ruleBasedTarget = new RuleBasedPluginTarget(
@@ -240,7 +236,6 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
             modelRuleExtractor,
             modelRuleSourceDetector
         );
-        PluginTarget pluginTarget = new SoftwareFeatureApplyingPluginTarget(project, ruleBasedTarget, softwareTypeRegistry, softwareFeatureApplicator);
         return instantiator.newInstance(
             DefaultPluginManager.class,
             pluginRegistry,
@@ -248,7 +243,7 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
                 instantiatorFactory.injectScheme().withServices(projectScopeServiceRegistry).instantiator(),
                 pluginScheme.getInstantiationScheme().withServices(projectScopeServiceRegistry).instantiator()
             ),
-            pluginTarget,
+            ruleBasedTarget,
             buildOperationRunner,
             userCodeApplicationContext,
             decorator,

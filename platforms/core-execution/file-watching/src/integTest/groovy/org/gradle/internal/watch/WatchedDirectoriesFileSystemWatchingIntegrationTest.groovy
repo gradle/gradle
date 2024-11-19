@@ -17,7 +17,7 @@
 package org.gradle.internal.watch
 
 import com.google.common.collect.ImmutableSet
-import com.gradle.develocity.testing.annotations.LocalOnly
+import org.gradle.testdistribution.LocalOnly
 import org.apache.commons.io.FileUtils
 import org.gradle.cache.GlobalCacheLocations
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter

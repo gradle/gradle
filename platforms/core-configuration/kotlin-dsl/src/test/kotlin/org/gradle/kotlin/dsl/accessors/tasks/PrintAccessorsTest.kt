@@ -66,6 +66,7 @@ class PrintAccessorsTest {
                         modelDefaults = listOf(
                             entry<SharedModelDefaults, TestSoftwareType>("softwareType")
                         ),
+                        softwareTypeEntries = emptyList(),
                         containerElementFactories = listOf()
                     )
                 )
@@ -92,6 +93,7 @@ class PrintAccessorsTest {
                     ),
                     containerElements = listOf(),
                     modelDefaults = listOf(),
+                    softwareTypeEntries = emptyList(),
                     containerElementFactories = listOf()
                 )
             )

@@ -35,7 +35,7 @@ import java.util.Collections;
  * Dependency graph visitor that will build a {@link ResolutionResult} eagerly.
  * It is designed to be used during resolution for build dependencies.
  *
- * @see DefaultConfigurationResolver#resolveBuildDependencies(ResolveContext)
+ * @see ResolutionExecutor#resolveBuildDependencies(ResolveContext)
  */
 public class InMemoryResolutionResultBuilder implements DependencyGraphVisitor {
 

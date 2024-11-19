@@ -38,7 +38,6 @@ import org.gradle.internal.declarativedsl.language.LanguageTreeResult
 import org.gradle.internal.declarativedsl.language.SyntheticallyProduced
 import org.gradle.internal.declarativedsl.project.projectInterpretationSequenceStep
 import org.gradle.plugin.software.internal.ModelDefaultsHandler
-import org.gradle.plugin.software.internal.SoftwareFeatureApplicator
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry
 import javax.inject.Inject
 
@@ -48,12 +47,9 @@ import javax.inject.Inject
  */
 abstract class DeclarativeModelDefaultsHandler @Inject constructor(softwareTypeRegistry: SoftwareTypeRegistry) : ModelDefaultsHandler {
     private
-    val step = lazy { projectInterpretationSequenceStep(softwareTypeRegistry, getSoftwareFeatureApplicator()) }
+    val step = projectInterpretationSequenceStep(softwareTypeRegistry)
     private
     val modelDefaultsRepository = softwareTypeRegistryBasedModelDefaultsRepository(softwareTypeRegistry)
-
-    @Inject
-    abstract fun getSoftwareFeatureApplicator(): SoftwareFeatureApplicator
 
     override fun <T : Any> apply(target: T, softwareTypeName: String, plugin: Plugin<*>) {
         val analysisStepRunner = ApplyDefaultsOnlyAnalysisStepRunner()
@@ -66,7 +62,7 @@ abstract class DeclarativeModelDefaultsHandler @Inject constructor(softwareTypeR
             .runInterpretationSequenceStep(
                 "<none>",
                 "",
-                step.value,
+                step,
                 ConversionStepContext(target, analysisStepContext)
             )
 

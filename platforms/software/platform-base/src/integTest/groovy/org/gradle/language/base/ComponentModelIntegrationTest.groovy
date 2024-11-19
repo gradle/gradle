@@ -122,6 +122,7 @@ model {
 
     def "component sources and binaries containers are visible in model report"() {
         when:
+        expectTaskGetProjectDeprecations()
         succeeds "model"
 
         then:
@@ -147,6 +148,7 @@ model {
         apply plugin: SomeComponentPlugin
         """
         then:
+        expectTaskGetProjectDeprecations()
         succeeds "model"
 
         and:
@@ -183,6 +185,7 @@ model {
         apply plugin: SomeComponentPlugin
         """
         then:
+        expectTaskGetProjectDeprecations()
         succeeds "model"
 
         and:
@@ -248,6 +251,7 @@ afterEach CustomComponent 'newComponent'"""
         apply plugin: SomeComponentPlugin
         """
         then:
+        expectTaskGetProjectDeprecations()
         succeeds "model"
 
         and:
@@ -274,6 +278,7 @@ afterEach CustomComponent 'newComponent'"""
         }
         """
         then:
+        expectTaskGetProjectDeprecations()
         succeeds "model"
 
         and:
@@ -303,6 +308,7 @@ afterEach CustomComponent 'newComponent'"""
         }
         """
         then:
+        expectTaskGetProjectDeprecations()
         succeeds "model"
 
         and:
@@ -371,6 +377,7 @@ afterEach CustomComponent 'newComponent'"""
         }
         """
         then:
+        expectTaskGetProjectDeprecations()
         succeeds "model"
 
         and:
@@ -496,6 +503,7 @@ afterEach CustomComponent 'newComponent'"""
         withBinaries()
 
         when:
+        expectTaskGetProjectDeprecations()
         succeeds "model"
 
         then:
@@ -667,6 +675,7 @@ afterEach CustomComponent 'newComponent'"""
         """
 
         expect:
+        expectTaskGetProjectDeprecations()
         succeeds "components"
     }
 
@@ -702,6 +711,7 @@ afterEach CustomComponent 'newComponent'"""
             apply plugin: MyPlugin
         """
         expect:
+        expectTaskGetProjectDeprecations()
         succeeds "components"
     }
 }

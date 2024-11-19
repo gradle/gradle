@@ -262,6 +262,27 @@ class PropertyAssignmentIntegrationTest extends AbstractIntegrationSpec {
         "FileCollection += Iterable<File>" | "+="      | "ConfigurableFileCollection" | '[file("a.txt")]'       | unsupportedWithCause("Failed to cast object")
     }
 
+    def "Groovy assignment for ConfigurableFileCollection doesn't resolve a Configuration"() {
+        buildFile """
+            configurations {
+                resolvable("customCompileClasspath")
+            }
+
+            abstract class MyTask extends DefaultTask {
+                @InputFiles
+                abstract ConfigurableFileCollection getMyConfiguration()
+            }
+
+            tasks.register("myTask", MyTask) {
+                myConfiguration = configurations.customCompileClasspath
+                assert configurations.customCompileClasspath.state.toString() == "UNRESOLVED"
+            }
+        """
+
+        expect:
+        run("myTask")
+    }
+
     def "test Kotlin eager FileCollection types assignment for #description"() {
         def inputDeclaration = "var input: $inputType = project.files()"
         kotlinBuildFile(inputDeclaration, inputValue, operation)

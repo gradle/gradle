@@ -27,9 +27,9 @@ import org.gradle.api.internal.artifacts.transform.TransformChain;
 import org.gradle.api.internal.artifacts.transform.TransformUpstreamDependenciesResolver;
 import org.gradle.api.internal.artifacts.transform.TransformedArtifactSet;
 import org.gradle.api.internal.artifacts.transform.VariantDefinition;
-import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
+import org.gradle.api.internal.attributes.immutable.artifact.ImmutableArtifactTypeRegistry;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
@@ -79,7 +79,7 @@ public abstract class LocalFileDependencyBackedArtifactSet implements Transforme
     private final LocalFileDependencyMetadata dependencyMetadata;
     private final Spec<? super ComponentIdentifier> componentFilter;
     private final ArtifactVariantSelector variantSelector;
-    private final ArtifactTypeRegistry artifactTypeRegistry;
+    private final ImmutableArtifactTypeRegistry artifactTypeRegistry;
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
     private final boolean allowNoMatchingVariants;
 
@@ -87,7 +87,7 @@ public abstract class LocalFileDependencyBackedArtifactSet implements Transforme
         LocalFileDependencyMetadata dependencyMetadata,
         Spec<? super ComponentIdentifier> componentFilter,
         ArtifactVariantSelector variantSelector,
-        ArtifactTypeRegistry artifactTypeRegistry,
+        ImmutableArtifactTypeRegistry artifactTypeRegistry,
         CalculatedValueContainerFactory calculatedValueContainerFactory,
         boolean allowNoMatchingVariants
     ) {
@@ -103,7 +103,7 @@ public abstract class LocalFileDependencyBackedArtifactSet implements Transforme
         return dependencyMetadata;
     }
 
-    public ArtifactTypeRegistry getArtifactTypeRegistry() {
+    public ImmutableArtifactTypeRegistry getArtifactTypeRegistry() {
         return artifactTypeRegistry;
     }
 

@@ -18,7 +18,6 @@ package org.gradle.plugin.internal;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.NonNullApi;
-import org.gradle.api.Project;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
@@ -27,6 +26,7 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.ScriptClassPathResolver;
 import org.gradle.api.internal.initialization.StandaloneDomainObjectContext;
 import org.gradle.api.internal.plugins.PluginInspector;
+import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.plugins.software.SoftwareType;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
 import org.gradle.api.internal.tasks.properties.InspectionSchemeFactory;
@@ -206,8 +206,8 @@ public class PluginUseServices extends AbstractGradleModuleServices {
     @NonNullApi
     private static class ProjectScopeServices implements ServiceRegistrationProvider {
         @Provides
-        SoftwareFeatureApplicator createSoftwareFeatureApplicator(Project project, ModelDefaultsApplicator modelDefaultsApplicator, PluginScheme pluginScheme, InternalProblems problems) {
-            return new DefaultSoftwareFeatureApplicator(project, modelDefaultsApplicator, pluginScheme.getInspectionScheme(), problems);
+        SoftwareFeatureApplicator createSoftwareFeatureApplicator(ModelDefaultsApplicator modelDefaultsApplicator, PluginScheme pluginScheme, InternalProblems problems, PluginManagerInternal pluginManager) {
+            return new DefaultSoftwareFeatureApplicator(modelDefaultsApplicator, pluginScheme.getInspectionScheme(), problems, pluginManager);
         }
 
         @Provides

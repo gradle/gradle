@@ -22,7 +22,6 @@ import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.HasConfigurableAttributes;
 import org.gradle.api.attributes.MultipleCandidatesDetails;
-import org.gradle.api.internal.ReusableAction;
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenAttributesFactory;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
@@ -90,7 +89,7 @@ public class PlatformSupport {
         return Objects.equal(variant.getAttributes().getAttribute(MavenAttributesFactory.CATEGORY_ATTRIBUTE), Category.ENFORCED_PLATFORM);
     }
 
-    public static class ComponentCategoryDisambiguationRule implements AttributeDisambiguationRule<Category>, ReusableAction {
+    public static class ComponentCategoryDisambiguationRule implements AttributeDisambiguationRule<Category> {
         final Category library;
         final Category platform;
 

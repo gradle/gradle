@@ -17,6 +17,7 @@ package org.gradle.tooling.internal.provider
 
 import org.gradle.api.logging.LogLevel
 import org.gradle.initialization.BuildRequestContext
+import org.gradle.internal.concurrent.CompositeStoppable
 import org.gradle.internal.daemon.client.execution.ClientBuildRequestContext
 import org.gradle.internal.invocation.BuildAction
 import org.gradle.internal.logging.LoggingManagerInternal
@@ -33,7 +34,7 @@ class LoggingBridgingBuildActionExecuterTest extends Specification {
     final ProviderOperationParameters providerParameters = Stub()
 
     //declared type-lessly to work around groovy eclipse plugin bug
-    final executer = new LoggingBridgingBuildActionExecuter(target, loggingManager)
+    final executer = new LoggingBridgingBuildActionExecuter(target, loggingManager, new CompositeStoppable())
 
     def configuresLoggingWhileActionIsExecuting() {
         when:

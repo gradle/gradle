@@ -240,7 +240,7 @@ For example, you would replace `tasks.withType(JavaCompile).name` with `tasks.wi
  * <<#rel4.8:switch_to_publishing_plugins,Switch to the Maven Publish and Ivy Publish plugins>>
  * <<#rel4.8:deferred_configuration,Use deferred configuration with the publishing plugins>>
  * <<#rel4.8:configure_internal_tasks,Configure existing `wrapper` and `init` tasks>> rather than defining your own
- * Consider migrating to the built-in <<dependency_locking#dependency-locking,dependency locking mechanism>> if you are currently using a plugin or custom solution for this
+ * Consider migrating to the built-in <<dependency_locking.adoc#sec:dependency-locking,dependency locking mechanism>> if you are currently using a plugin or custom solution for this
 
 
 === Potential breaking changes
@@ -381,7 +381,7 @@ Follow the API links to learn how to deal with these deprecations (if no extra i
 
 === Potential breaking changes
 
- * Non-Java projects that have a <<declaring_dependencies_adv.adoc#sub:project_dependencies,project dependency>> on a Java project now consume the `runtimeElements` configuration by default instead of the `default` configuration.
+ * Non-Java projects that have a <<declaring_dependencies_basics.adoc#sec:project-dependencies,project dependency>> on a Java project now consume the `runtimeElements` configuration by default instead of the `default` configuration.
 +
 To override this behavior, you can explicitly declare the configuration to use in the project dependency.
 For example: `project(path: ':myJavaProject', configuration: 'default')`.
@@ -715,7 +715,7 @@ Make sure that the AWS account used to publish artifacts has the `s3:PutObjectAc
 }
 ----
 
-See <<declaring_repositories_adv.adoc#sub:s3_cross_account,AWS S3 Cross Account Access>> for more information.
+See <<supported_repository_protocols.adoc#sec:s3-cross-account,AWS S3 Cross Account Access>> for more information.
 
 [[rel4.9:lazy_task_creation]]
 === [4.9] Consider trying the lazy API for task creation and configuration

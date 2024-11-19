@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.options;
 
+import org.gradle.api.provider.Provider;
 import org.gradle.internal.reflect.JavaMethod;
 import org.gradle.util.internal.CollectionUtils;
 
@@ -28,18 +29,18 @@ public class InstanceOptionDescriptor implements OptionDescriptor {
 
     private final Object object;
     private final OptionElement optionElement;
-    private final JavaMethod<Object, Collection> optionValueMethod;
+    private final JavaMethod<Object, ?> optionValueMethod;
     private final boolean clashing;
 
     InstanceOptionDescriptor(Object object, OptionElement optionElement) {
         this(object, optionElement, null, false);
     }
 
-    public InstanceOptionDescriptor(Object object, OptionElement optionElement, JavaMethod<Object, Collection> optionValueMethod) {
+    public InstanceOptionDescriptor(Object object, OptionElement optionElement, JavaMethod<Object, ?> optionValueMethod) {
         this(object, optionElement, optionValueMethod, false);
     }
 
-    public InstanceOptionDescriptor(Object object, OptionElement optionElement, JavaMethod<Object, Collection> optionValueMethod, boolean clashing) {
+    public InstanceOptionDescriptor(Object object, OptionElement optionElement, JavaMethod<Object, ?> optionValueMethod, boolean clashing) {
         this.object = object;
         this.optionElement = optionElement;
         this.optionValueMethod = optionValueMethod;
@@ -70,10 +71,15 @@ public class InstanceOptionDescriptor implements OptionDescriptor {
         return optionElement.getOptionType();
     }
 
+    @SuppressWarnings({"rawtypes", "unchecked"})
     private List<String> readDynamicAvailableValues() {
         if (optionValueMethod != null) {
-            Collection values = optionValueMethod.invoke(object);
-            return CollectionUtils.toStringList(values);
+            Object values = optionValueMethod.invoke(object);
+            if (values instanceof Provider) {
+                return CollectionUtils.toStringList(((Provider<Collection>) values).get());
+            } else {
+                return CollectionUtils.toStringList((Collection) values);
+            }
         }
         return Collections.emptyList();
     }

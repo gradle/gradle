@@ -21,6 +21,7 @@ import com.google.common.collect.Iterables
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.problems.Severity
 import org.gradle.api.problems.internal.GradleCoreProblemGroup
+import org.gradle.api.problems.internal.ProblemsProgressEventEmitterHolder
 import org.gradle.cache.Cache
 import org.gradle.cache.ManualEvictionInMemoryCache
 import org.gradle.caching.internal.controller.BuildCacheController
@@ -49,6 +50,7 @@ import org.gradle.internal.snapshot.impl.DefaultValueSnapshotter
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -121,6 +123,10 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
             validationWarningReporter,
             virtualFileSystem
         )
+    }
+
+    def setup() {
+        ProblemsProgressEventEmitterHolder.init(TestUtil.problemsService())
     }
 
     def "outputs are created"() {

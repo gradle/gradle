@@ -142,12 +142,11 @@ public class BuildActionSerializer {
             encoder.writeBoolean(startParameter.isBuildCacheEnabled());
             encoder.writeBoolean(startParameter.isBuildCacheDebugLogging());
             encoder.writeString(startParameter.getWatchFileSystemMode().name());
-            encoder.writeBoolean(startParameter.isWatchFileSystemDebugLogging());
             encoder.writeBoolean(startParameter.isVfsVerboseLogging());
             valueSerializer.write(encoder, startParameter.getConfigurationCache());
             valueSerializer.write(encoder, startParameter.getIsolatedProjects());
             encoder.writeString(startParameter.getConfigurationCacheProblems().name());
-            encoder.writeBoolean(startParameter.isConfigurationCacheIgnoreInputsInTaskGraphSerialization());
+            encoder.writeBoolean(startParameter.isConfigurationCacheIgnoreInputsDuringStore());
             encoder.writeSmallInt(startParameter.getConfigurationCacheMaxProblems());
             encoder.writeNullableString(startParameter.getConfigurationCacheIgnoredFileSystemCheckInputs());
             encoder.writeBoolean(startParameter.isConfigurationCacheDebug());
@@ -236,12 +235,11 @@ public class BuildActionSerializer {
             startParameter.setBuildCacheEnabled(decoder.readBoolean());
             startParameter.setBuildCacheDebugLogging(decoder.readBoolean());
             startParameter.setWatchFileSystemMode(WatchMode.valueOf(decoder.readString()));
-            startParameter.setWatchFileSystemDebugLogging(decoder.readBoolean());
             startParameter.setVfsVerboseLogging(decoder.readBoolean());
             startParameter.setConfigurationCache(valueSerializer.read(decoder));
             startParameter.setIsolatedProjects(valueSerializer.read(decoder));
             startParameter.setConfigurationCacheProblems(ConfigurationCacheProblemsOption.Value.valueOf(decoder.readString()));
-            startParameter.setConfigurationCacheIgnoreInputsInTaskGraphSerialization(decoder.readBoolean());
+            startParameter.setConfigurationCacheIgnoreInputsDuringStore(decoder.readBoolean());
             startParameter.setConfigurationCacheMaxProblems(decoder.readSmallInt());
             startParameter.setConfigurationCacheIgnoredFileSystemCheckInputs(decoder.readNullableString());
             startParameter.setConfigurationCacheDebug(decoder.readBoolean());

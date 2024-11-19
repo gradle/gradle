@@ -17,6 +17,9 @@
 package org.gradle.tooling.internal.consumer.parameters
 
 import com.google.common.collect.Sets
+import org.gradle.internal.build.event.types.DefaultProblemGroup
+import org.gradle.internal.build.event.types.DefaultProblemId
+import org.gradle.internal.build.event.types.DefaultProblemSummary
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.task.TaskStartEvent
@@ -30,6 +33,7 @@ import static org.gradle.tooling.internal.protocol.InternalBuildProgressListener
 import static org.gradle.tooling.internal.protocol.InternalBuildProgressListener.FILE_DOWNLOAD
 import static org.gradle.tooling.internal.protocol.InternalBuildProgressListener.PROBLEMS
 import static org.gradle.tooling.internal.protocol.InternalBuildProgressListener.PROJECT_CONFIGURATION_EXECUTION
+import static org.gradle.tooling.internal.protocol.InternalBuildProgressListener.ROOT
 import static org.gradle.tooling.internal.protocol.InternalBuildProgressListener.TASK_EXECUTION
 import static org.gradle.tooling.internal.protocol.InternalBuildProgressListener.TEST_EXECUTION
 import static org.gradle.tooling.internal.protocol.InternalBuildProgressListener.TEST_OUTPUT
@@ -55,7 +59,7 @@ class BuildProgressListenerAdapterTest extends Specification {
         expectedSubscribedOperations << Sets.powerSet([TEST_EXECUTION, TASK_EXECUTION,
                                                        BUILD_EXECUTION, WORK_ITEM_EXECUTION,
                                                        PROJECT_CONFIGURATION_EXECUTION, TRANSFORM_EXECUTION,
-                                                       TEST_OUTPUT, FILE_DOWNLOAD, BUILD_PHASE, PROBLEMS] as Set)
+                                                       TEST_OUTPUT, FILE_DOWNLOAD, BUILD_PHASE, PROBLEMS, ROOT] as Set)
     }
 
     def "parent descriptor of a descriptor can be of a different type"() {
@@ -99,5 +103,22 @@ class BuildProgressListenerAdapterTest extends Specification {
         }
     }
 
+    def "sum up counts if multiple summaries with the same problem id are received"() {
+        given:
+        def summaries = [createSummary(), createSummary()]
 
+        when:
+        def providerSummaries = BuildProgressListenerAdapter.toProblemIdSummaries(summaries)
+
+
+        then:
+        providerSummaries.size() == 1
+        providerSummaries.get(0).count == 6
+    }
+
+    def createSummary() {
+        new DefaultProblemSummary(
+            new DefaultProblemId("name", "display name",
+                new DefaultProblemGroup("group name", "group display name", null)), 3)
+    }
 }

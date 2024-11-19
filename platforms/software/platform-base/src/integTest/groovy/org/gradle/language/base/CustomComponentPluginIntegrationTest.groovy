@@ -17,10 +17,11 @@
 package org.gradle.language.base
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.StableConfigurationCacheDeprecations
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 
 @UnsupportedWithConfigurationCache(because = "software model")
-class CustomComponentPluginIntegrationTest extends AbstractIntegrationSpec {
+class CustomComponentPluginIntegrationTest extends AbstractIntegrationSpec implements StableConfigurationCacheDeprecations {
     def "setup"() {
         buildFile << """
 @Managed
@@ -54,6 +55,7 @@ model {
 }
 '''
         then:
+        expectTaskGetProjectDeprecations()
         succeeds "checkModel"
     }
 
@@ -153,11 +155,11 @@ model {
 
         when:
         executer.withArgument("--no-problems-report")
+        expectTaskGetProjectDeprecations()
         succeeds "components"
 
         then:
-        output.contains """> Task :components
-
+        output.contains """
 ------------------------------------------------------------
 Root project 'custom-component'
 ------------------------------------------------------------
@@ -211,6 +213,7 @@ BUILD SUCCESSFUL"""
 '''
 
         then:
+        expectTaskGetProjectDeprecations()
         succeeds "checkModel"
     }
 
@@ -266,6 +269,7 @@ BUILD SUCCESSFUL"""
 '''
 
         then:
+        expectTaskGetProjectDeprecations(2)
         succeeds "checkModel"
     }
 
@@ -318,6 +322,7 @@ BUILD SUCCESSFUL"""
 """
 
         when:
+        expectTaskGetProjectDeprecations()
         fails "model"
 
         then:

@@ -89,5 +89,5 @@ class ConfigurationCacheInputListenerLifecycleIntegrationTest extends AbstractCo
         outputContains("because the value of ignored configuration inputs flag ($IGNORE_INPUTS_PROPERTY) has changed")
     }
 
-    private static final String IGNORE_INPUTS_PROPERTY = StartParameterBuildOptions.ConfigurationCacheIgnoreInputsInTaskGraphSerialization.PROPERTY_NAME
+    private static final String IGNORE_INPUTS_PROPERTY = StartParameterBuildOptions.ConfigurationCacheIgnoreInputsDuringStore.PROPERTY_NAME
 }

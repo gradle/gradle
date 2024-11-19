@@ -22,11 +22,14 @@ import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.internal.provider.DefaultConfigurationTimeBarrier
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.logging.LogLevel
-import org.gradle.configurationcache.LoadResult
-import org.gradle.configurationcache.StoreResult
+import org.gradle.configurationcache.ModelStoreResult
+import org.gradle.configurationcache.WorkGraphLoadResult
+import org.gradle.configurationcache.WorkGraphStoreResult
 import org.gradle.configurationcache.withFingerprintCheckOperations
-import org.gradle.configurationcache.withLoadOperation
-import org.gradle.configurationcache.withStoreOperation
+import org.gradle.configurationcache.withModelLoadOperation
+import org.gradle.configurationcache.withModelStoreOperation
+import org.gradle.configurationcache.withWorkGraphLoadOperation
+import org.gradle.configurationcache.withWorkGraphStoreOperation
 import org.gradle.initialization.GradlePropertiesController
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildtree.BuildActionModelRequirements
@@ -410,79 +413,102 @@ class DefaultConfigurationCache internal constructor(
 
     private
     fun saveModel(model: Any) {
-        saveToCache(
-            stateType = StateType.Model
-        ) { stateFile -> cacheIO.writeModelTo(model, stateFile) }
-    }
-
-    private
-    fun saveWorkGraph() {
-        saveToCache(stateType = StateType.Work) { stateFile ->
-            writeConfigurationCacheState(stateFile)
-        }
-    }
-
-    private
-    fun saveToCache(stateType: StateType, action: (ConfigurationCacheStateFile) -> Unit) {
-
         cacheEntryRequiresCommit = true
 
-        if (startParameter.isIgnoreInputsInTaskGraphSerialization) {
+        if (startParameter.isIgnoreInputsDuringStore) {
             InstrumentedInputs.discardListener()
         }
 
-        buildOperationRunner.withStoreOperation(cacheKey.string) {
-            val stateStoreResult = store.useForStore { layout ->
-                try {
-                    val stateFile = layout.fileFor(stateType)
-                    action(stateFile)
-                    val storeFailure = problems.queryFailure()
-                    storeFailure
-                } catch (error: Exception) {
-                    // Invalidate state on serialization errors
-                    problems.failingBuildDueToSerializationError()
-                    throw error
-                }
+        buildOperationRunner.withModelStoreOperation {
+            val stateStoreResult = runAndStore(stateType = StateType.Model) { stateFile: ConfigurationCacheStateFile ->
+                cacheIO.writeModelTo(model, stateFile)
             }
-
-            val storeFailure = stateStoreResult.value
-            StoreResult(stateStoreResult.accessedFiles, storeFailure)
+            ModelStoreResult(stateStoreResult.value)
         }
 
         crossConfigurationTimeBarrier()
     }
 
     private
+    fun saveWorkGraph() {
+        cacheEntryRequiresCommit = true
+
+        if (startParameter.isIgnoreInputsDuringStore) {
+            InstrumentedInputs.discardListener()
+        }
+
+        buildOperationRunner.withWorkGraphStoreOperation(cacheKey.string) {
+            val stateStoreResult = runAndStore(stateType = StateType.Work) { stateFile: ConfigurationCacheStateFile ->
+                writeConfigurationCacheState(stateFile)
+            }
+            WorkGraphStoreResult(stateStoreResult.accessedFiles, stateStoreResult.value)
+        }
+
+        crossConfigurationTimeBarrier()
+    }
+
+    private
+    fun runAndStore(
+        stateType: StateType,
+        action: (ConfigurationCacheStateFile) -> Unit
+    ): ConfigurationCacheStateStore.StateAccessResult<Throwable?> {
+
+        return store.useForStore { layout ->
+            try {
+                val stateFile = layout.fileFor(stateType)
+                action(stateFile)
+                val storeFailure = problems.queryFailure()
+                storeFailure
+            } catch (error: Exception) {
+                // Invalidate state on serialization errors
+                problems.failingBuildDueToSerializationError()
+                throw error
+            }
+        }
+    }
+
+    private
     data class LoadResultMetadata(val originInvocationId: String? = null)
 
     private
-    fun loadModel(): Any {
-        return loadFromCache(StateType.Model) { stateFile ->
-            LoadResultMetadata() to cacheIO.readModelFrom(stateFile)
+    fun loadModel(): Any = runAtConfigurationTime {
+        // No need to record the `ClassLoaderScope` tree when loading
+        scopeRegistryListener.dispose()
+
+        buildOperationRunner.withModelLoadOperation {
+            val storeLoadResult = store.useForStateLoad(StateType.Model) { stateFile: ConfigurationCacheStateFile ->
+                cacheIO.readModelFrom(stateFile)
+            }
+
+            storeLoadResult.value
         }
     }
 
     private
-    fun loadWorkGraph(graph: BuildTreeWorkGraph, graphBuilder: BuildTreeWorkGraphBuilder?, loadAfterStore: Boolean): BuildTreeWorkGraph.FinalizedGraph {
-        return loadFromCache(StateType.Work) { stateFile ->
-            val (buildInvocationId, workGraph) = cacheIO.readRootBuildStateFrom(stateFile, loadAfterStore, graph, graphBuilder)
-            LoadResultMetadata(buildInvocationId) to workGraph
-        }
-    }
-
-    private
-    fun <T : Any> loadFromCache(stateType: StateType, action: (ConfigurationCacheStateFile) -> Pair<LoadResultMetadata, T>): T {
-        prepareConfigurationTimeBarrier()
+    fun loadWorkGraph(
+        graph: BuildTreeWorkGraph,
+        graphBuilder: BuildTreeWorkGraphBuilder?,
+        loadAfterStore: Boolean
+    ): BuildTreeWorkGraph.FinalizedGraph = runAtConfigurationTime {
 
         // No need to record the `ClassLoaderScope` tree
         // when loading the task graph.
         scopeRegistryListener.dispose()
 
-        val result = buildOperationRunner.withLoadOperation {
-            val storeLoadResult = store.useForStateLoad(stateType, action)
+        buildOperationRunner.withWorkGraphLoadOperation {
+            val storeLoadResult = store.useForStateLoad(StateType.Work) { stateFile: ConfigurationCacheStateFile ->
+                val (buildInvocationId, workGraph) = cacheIO.readRootBuildStateFrom(stateFile, loadAfterStore, graph, graphBuilder)
+                LoadResultMetadata(buildInvocationId) to workGraph
+            }
             val (intermediateLoadResult, actionResult) = storeLoadResult.value
-            LoadResult(storeLoadResult.accessedFiles, intermediateLoadResult.originInvocationId) to actionResult
+            WorkGraphLoadResult(storeLoadResult.accessedFiles, intermediateLoadResult.originInvocationId) to actionResult
         }
+    }
+
+    private
+    inline fun <T> runAtConfigurationTime(block: () -> T): T {
+        prepareConfigurationTimeBarrier()
+        val result = block()
         crossConfigurationTimeBarrier()
         return result
     }

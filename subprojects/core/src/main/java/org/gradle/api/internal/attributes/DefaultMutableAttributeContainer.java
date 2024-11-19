@@ -42,6 +42,8 @@ final class DefaultMutableAttributeContainer extends AbstractAttributeContainer 
 
     private final DefaultAttributesFactory attributesFactory;
 
+    private ImmutableAttributes immutableValue;
+
     public DefaultMutableAttributeContainer(DefaultAttributesFactory attributesFactory) {
         this.attributesFactory = attributesFactory;
     }
@@ -72,6 +74,7 @@ final class DefaultMutableAttributeContainer extends AbstractAttributeContainer 
     private <T> void doInsertion(Attribute<T> key, T value) {
         assertAttributeValueIsNotNull(value);
         assertAttributeTypeIsValid(value.getClass(), key);
+        immutableValue = null;
         attributes.put(key, attributesFactory.isolate(value));
         removeLazyAttributeIfPresent(key);
     }
@@ -146,9 +149,11 @@ final class DefaultMutableAttributeContainer extends AbstractAttributeContainer 
     @Override
     public ImmutableAttributes asImmutable() {
         realizeAllLazyAttributes();
-        return attributesFactory.fromMap(attributes);
+        if (immutableValue == null) {
+            immutableValue = attributesFactory.fromMap(attributes);
+        }
+        return immutableValue;
     }
-
 
     @Override
     public boolean equals(Object o) {
@@ -178,6 +183,7 @@ final class DefaultMutableAttributeContainer extends AbstractAttributeContainer 
     }
 
     private <T> void removeAttributeIfPresent(Attribute<T> key) {
+        immutableValue = null;
         attributes.remove(key);
     }
 

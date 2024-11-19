@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[[sec:component_metadata_rules]]
+[[component-metadata-rules]]
 = Modifying Dependency Metadata
 
 Each component pulled from a repository includes metadata, such as its group, name, version, and the various variants it provides along with their artifacts and dependencies.
@@ -22,6 +22,7 @@ Occasionally, this metadata might be incomplete or incorrect.
 Gradle offers an API to address this issue, allowing you to write *component metadata rules* directly within the build script.
 These rules are applied after a module's metadata is downloaded, but before it's used in dependency resolution.
 
+[[sec:writing-metadata-rule]]
 == Writing a component metadata rule
 
 Component metadata rules are applied within the link:{groovyDslPath}/org.gradle.api.artifacts.dsl.ComponentMetadataHandler.html[`components`] section of the link:{groovyDslPath}/org.gradle.api.artifacts.dsl.DependencyHandler.html[`dependencies`] block in a build script or in the settings script.
@@ -51,7 +52,7 @@ Additionally, services like link:{javadocPath}/org/gradle/api/model/ObjectFactor
 A component metadata rule can be applied to all modules using `all(rule)` or to a specific module using `withModule(groupAndName, rule)`.
 Typically, a rule is tailored to enrich the metadata of a specific module, so the `withModule` API is preferred.
 
-[[sec:rules_in_settings]]
+[[sec:rules-in-settings]]
 === Declaring rules in a central place
 
 NOTE: Declaring component metadata rules in settings is an incubating feature
@@ -87,11 +88,11 @@ include::sample[dir="snippets/dependencyManagement/customizingResolution-metadat
 include::sample[dir="snippets/dependencyManagement/customizingResolution-metadataRule/groovy",files="settings.gradle[tags=prefer-projects]"]
 ====
 
-[[sec:component_metadata_rules_details]]
+[[sec:component-metadata-rules-details]]
 == Which parts of metadata can be modified?
 
 The Component Metadata Rules API focuses on the features supported by Gradle Module Metadata and the dependencies API.
-The key difference between using metadata rules and defining dependencies/artifacts in a build script is that component metadata rules operate directly on <<variant_model.adoc#understanding-variant-selection,variants>>, whereas build scripts often affect multiple variants at once (e.g., an `api` dependency is applied to both `api` and `runtime` variants of a Java library).
+The key difference between using metadata rules and defining dependencies/artifacts in a build script is that component metadata rules operate directly on <<variant_model.adoc#sec:understanding-variant-selection,variants>>, whereas build scripts often affect multiple variants at once (e.g., an `api` dependency is applied to both `api` and `runtime` variants of a Java library).
 
 Variants can be modified through the following methods:
 
@@ -101,32 +102,33 @@ Variants can be modified through the following methods:
 
 The following variant details can be modified:
 
-- **Attributes**: Use the `attributes {}` block to adjust <<variant_model.adoc#sec:abm_configuration_attributes,attributes>> that identify the variant.
-- **Capabilities**: Use the `withCapabilities {}` block to define the <<component_capabilities.adoc#declaring-component-capabilities,capabilities>> the variant provides.
-- **Dependencies**: Use the `withDependencies {}` block to manage the variant’s dependencies, including <<rich_versions.adoc#rich-version-constraints,rich version>> constraints.
+- **Attributes**: Use the `attributes {}` block to adjust <<variant_model.adoc#sec:abm-configuration-attributes,attributes>> that identify the variant.
+- **Capabilities**: Use the `withCapabilities {}` block to define the <<component_capabilities.adoc#sec:declaring-component-capabilities,capabilities>> the variant provides.
+- **Dependencies**: Use the `withDependencies {}` block to manage the variant’s dependencies, including <<dependency_versions.adoc#sec:rich-version-constraints,rich version>> constraints.
 - **Dependency Constraints**: Use the `withDependencyConstraints {}` block to define the variant’s <<dependency_constraints.adoc#sec:adding-constraints-transitive-deps,dependency constraints>>, including rich versions.
 - **Published Files**: Use the `withFiles {}` block to specify the location of the files that make up the variant’s content.
 
 Additionally, several component-level properties can be changed:
 
-- **Component Attributes**: The only <<sec:custom_status_scheme,meaningful attribute>> here is `org.gradle.status`.
+- **Component Attributes**: The only <<sec:custom-status-scheme,meaningful attribute>> here is `org.gradle.status`.
 - **Status Scheme**: Influence how the `org.gradle.status` attribute is interpreted during version selection.
 - **BelongsTo Property**: Used for <component_capabilities.adoc#sec:declaring-capabilities-external-modules,version alignment>> via virtual platforms.
 
 The format of a module's metadata affects how it maps to the variant-centric representation:
 
 - **Gradle Module Metadata**: The data structure is similar to the module’s `.module` file.
-- **POM Metadata**: For modules published with `.pom` metadata, fixed variants are derived as explained in the <<variant_model.adoc#sub:maven-mapping-to-variants,"Mapping POM Files to Variants">>, section.
-- **Ivy Metadata**: If a module was published with an `ivy.xml` file, Ivy configurations can be accessed in place of variants. Their dependencies, constraints, and files can be modified. You can also use `addVariant(name, baseVariantOrConfiguration)` to derive variants from Ivy configurations, such as defining <<variant_model.adoc#sub:ivy-mapping-to-variants,`compile` and `runtime` variants for the Java library plugin>>.
+- **POM Metadata**: For modules published with `.pom` metadata, fixed variants are derived as explained in the <<variant_model.adoc#sec:maven-mapping-to-variants,"Mapping POM Files to Variants">>, section.
+- **Ivy Metadata**: If a module was published with an `ivy.xml` file, Ivy configurations can be accessed in place of variants. Their dependencies, constraints, and files can be modified. You can also use `addVariant(name, baseVariantOrConfiguration)` to derive variants from Ivy configurations, such as defining <<variant_model.adoc#sec:ivy-mapping-to-variants,`compile` and `runtime` variants for the Java library plugin>>.
 
 Before using component metadata rules to adjust a module’s metadata, determine whether the module was published with **Gradle Module Metadata** (`.module` file) or **traditional metadata** (`.pom` or `ivy.xml`):
 
-- **Modules with Gradle Module Metadata**: These typically have complete metadata, but issues can still occur. Only apply component metadata rules if you've clearly identified a problem with the metadata. For dependency resolution issues, first consider using <<rich_versions.adoc#rich-version-constraints,dependency constraints with rich versions>>. If you're developing a library, note that dependency constraints are published as part of your own library’s metadata, making it easier to share the solution with consumers. In contrast, component metadata rules apply only within your own build.
+- **Modules with Gradle Module Metadata**: These typically have complete metadata, but issues can still occur. Only apply component metadata rules if you've clearly identified a problem with the metadata. For dependency resolution issues, first consider using <<dependency_versions.adoc#sec:rich-version-constraints,dependency constraints with rich versions>>. If you're developing a library, note that dependency constraints are published as part of your own library’s metadata, making it easier to share the solution with consumers. In contrast, component metadata rules apply only within your own build.
 - **Modules with Traditional Metadata** (`.pom` or `ivy.xml`): These are more likely to have incomplete metadata since features like variants and dependency constraints aren’t supported in these formats. Such modules might have variants or constraints that were omitted or incorrectly defined as dependencies. In the following sections, we explore examples of OSS modules with incomplete metadata and the rules to add missing information.
 
 As a rule of thumb, you should contemplate if the rule you are writing also works out of context of your build.
 That is, does the rule still produce a correct and useful result if applied in any other build that uses the module(s) it affects?
 
+[[sec:fixing-dependency-details]]
 == Fixing incorrect dependency details
 
 Consider the Jaxen XPath Engine (version `1.1.3`) published on Maven Central.
@@ -144,7 +146,7 @@ Similarly, you can inspect and modify dependency constraints within the `withDep
 In Jaxen version `1.1.4`, the `dom4j`, `jdom`, and `xerces` dependencies are still present but marked as **optional**.
 Optional dependencies are not processed automatically by Gradle or Maven, as they indicate <<feature_variants.adoc#feature_variants,feature variants>> that require additional dependencies.
 However, the `pom` file lacks information about these features and their corresponding dependencies.
-This can be represented in Gradle Module Metadata through variants and <<component_capabilities.adoc#declaring-component-capabilities,capabilities>>, which we can add via a component metadata rule.
+This can be represented in Gradle Module Metadata through variants and <<component_capabilities.adoc#sec:declaring-component-capabilities,capabilities>>, which we can add via a component metadata rule.
 
 ====
 include::sample[dir="snippets/dependencyManagement/customizingResolution-metadataRule/kotlin",files="build.gradle.kts[tags=jaxen-rule-2]"]
@@ -162,6 +164,7 @@ include::sample[dir="snippets/dependencyManagement/customizingResolution-metadat
 
 By applying these rules, Gradle uses the enriched metadata to correctly resolve the optional dependencies when the `jaxen-dom4j` feature is required.
 
+[[sec:publish-variants-explicit-jars]]
 == Making variants published as classified jars explicit
 
 In modern builds, variants are often published as separate artifacts, each represented by its own jar file.
@@ -197,6 +200,7 @@ include::sample[dir="snippets/dependencyManagement/customizingResolution-metadat
 
 With this configuration, Gradle will select the Java 8 variant of Quasar for the compile classpath.
 
+[[sec:encoded-variants-explicit]]
 == Making variants encoded in versions explicit
 
 Another solution to publish multiple alternatives for the same library is the usage of a versioning pattern as done by the popular Guava library.
@@ -229,6 +233,7 @@ include::sample[dir="snippets/dependencyManagement/customizingResolution-metadat
 include::sample[dir="snippets/dependencyManagement/customizingResolution-metadataRule/groovy",files="build.gradle[tags=guava-dependencies]"]
 ====
 
+[[sec:adding-variants-jars]]
 == Adding variants for native jars
 
 Jars with classifiers are also used to separate parts of a library for which multiple alternatives exists, for example native code, from the main artifact.
@@ -271,6 +276,7 @@ Gradle fails to select a variant because a machine architecture needs to be chos
           - Value: 'x86' selects variant: 'natives-windows-x86-runtime'
 ----
 
+[[sec:making-library-flavors]]
 == Making different flavors of a library available through capabilities
 
 Because it is difficult to model <<feature_variants.adoc#feature_variants,optional feature variants>> as separate jars with pom metadata, libraries sometimes comprise different jars with different feature sets.
@@ -293,19 +299,21 @@ include::sample[dir="snippets/dependencyManagement/customizingResolution-metadat
 include::sample[dir="snippets/dependencyManagement/customizingResolution-metadataRule/groovy",files="build.gradle[tags=guice-dependencies]"]
 ====
 
+[[sec:adding-missing-capabilities]]
 == Adding missing capabilities to detect conflicts
 
 Another usage of capabilities is to express that two different modules, for example `log4j` and `log4j-over-slf4j`, provide alternative implementations of the same thing.
 By declaring that both provide the same capability, Gradle only accepts one of them in a dependency graph.
 This example, and how it can be tackled with a component metadata rule, is described in detail in the  <<component_capabilities.adoc#sec:declaring-capabilities-external-modules,feature modelling>> section.
 
+[[sec:making-ivy-modules-variant-aware]]
 == Making Ivy modules variant-aware
 
 Modules published using Ivy do not have variants available by default.
 
 However, _Ivy configurations_ can be mapped to variants as the `addVariant(name, baseVariantOrConfiguration)` accepts any Ivy configuration that was published as base.
 This can be used, for example, to define runtime and compile variants.
-An example of a corresponding rule can be found <<variant_model.adoc#sub:ivy-mapping-to-variants,here>>.
+An example of a corresponding rule can be found <<variant_model.adoc#sec:ivy-mapping-to-variants,here>>.
 Ivy details of Ivy configurations (e.g. dependencies and files) can also be modified using the `withVariant(configurationName)` API.
 However, modifying attributes or capabilities on Ivy configurations has no effect.
 
@@ -317,6 +325,7 @@ include::sample[dir="snippets/dependencyManagement/customizingResolution-metadat
 include::sample[dir="snippets/dependencyManagement/customizingResolution-metadataRule/groovy",files="build.gradle[tags=ivy-component-metadata-rule]"]
 ====
 
+[[sec:filter-maven-metadata]]
 == Filter using Maven metadata
 
 For Maven specific use cases, the component metadata rules API also offers access to other details only found in POM metadata.
@@ -327,20 +336,21 @@ include::sample[dir="snippets/dependencyManagement/customizingResolution-metadat
 include::sample[dir="snippets/dependencyManagement/customizingResolution-metadataRule/groovy",files="build.gradle[tags=maven-packaging-component-metadata-rule]"]
 ====
 
+[[sec:modifying-metadata]]
 == Modifying metadata on the component level for alignment
 
 While all the examples above made modifications to variants of a component, there is also a limited set of modifications that can be done to the metadata of the component itself.
-This information can influence the <<dependency_resolution_adv.adoc#understanding_dependency_resolution,version selection>> process for a module during dependency resolution, which is performed _before_ one or multiple variants of a component are selected.
+This information can influence the <<variant_model.adoc#understanding_dependency_resolution_model,version selection>> process for a module during dependency resolution, which is performed _before_ one or multiple variants of a component are selected.
 
 The first API available on the component is `belongsTo()` to create virtual platforms for aligning versions of multiple modules without Gradle Module Metadata.
 It is explained in detail in the section on <<dependency_version_alignment.adoc#sec:align-versions-unpublished,aligning versions of modules not published with Gradle>>.
 
-[[sec:custom_status_scheme]]
+[[sec:custom-status-scheme]]
 == Modifying metadata on the component level for version selection based on status
 
 Gradle and Gradle Module Metadata also allow attributes to be set on the whole component instead of a single variant.
 Each of these attributes carries special semantics as they influence version selection which is done _before_ variant selection.
-While variant selection can handle <<variant_attributes.adoc#sec:declaring_attributes,any custom attribute>>, version selection only considers attributes for which specific semantics are implemented.
+While variant selection can handle <<variant_attributes.adoc#sec:declaring-attributes,any custom attribute>>, version selection only considers attributes for which specific semantics are implemented.
 At the moment, the only attribute with meaning here is `org.gradle.status`.
 
 --
@@ -355,7 +365,7 @@ It is therefore recommended to only modify this attribute, if any, on the compon
 A dedicated API `setStatus(value)` is available for this.
 To modify another attribute for all variants of a component `withAllVariants { attributes {} }` should be utilised instead.
 
-A module's status is taken into consideration when a <<dependency_versions.adoc#single-version-declarations,_latest_ version selector>> is resolved.
+A module's status is taken into consideration when a <<dependency_versions.adoc#sec:single-version-declarations,_latest_ version selector>> is resolved.
 Specifically, `latest.someStatus` will resolve to the highest module version that has status `someStatus` or a more mature status.
 For example, `latest.integration` will select the highest module version regardless of its status (because `integration` is the least mature status as explained below), whereas `latest.release` will select the highest module version with status `release`.
 

@@ -53,6 +53,7 @@ import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.hash.DefaultChecksumService;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
+import org.gradle.internal.model.InMemoryCacheFactory;
 import org.gradle.internal.model.StateTransitionControllerFactory;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationRunner;
@@ -74,6 +75,7 @@ import java.io.File;
 public class CoreBuildSessionServices implements ServiceRegistrationProvider {
     void configure(ServiceRegistration registration) {
         registration.add(CalculatedValueContainerFactory.class);
+        registration.add(InMemoryCacheFactory.class);
         registration.add(StateTransitionControllerFactory.class);
         registration.add(BuildLayoutValidator.class);
         registration.add(DefaultAsyncWorkTracker.class);

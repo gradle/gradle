@@ -1009,10 +1009,10 @@ conf
         def moduleB = mavenRepo.module('group', 'moduleB', '1.0').dependsOn(moduleC).publish()
         def moduleA = mavenRepo.module('group', 'moduleA', '2.0').dependsOn(moduleB).publish()
         mavenRepo.module('group', 'bom', '1.0')
-                .hasType("pom")
-                .dependencyConstraint(moduleA)
-                .dependencyConstraint(moduleC)
-                .publish()
+            .hasType("pom")
+            .dependencyConstraint(moduleA)
+            .dependencyConstraint(moduleC)
+            .publish()
 
         buildFile << """
             apply plugin: 'java' // Java plugin required for BOM import

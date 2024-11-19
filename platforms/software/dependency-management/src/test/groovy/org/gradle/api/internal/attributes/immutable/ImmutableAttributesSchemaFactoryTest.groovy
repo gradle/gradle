@@ -36,7 +36,7 @@ import static org.gradle.util.AttributeTestUtil.mutableSchema
  */
 class ImmutableAttributesSchemaFactoryTest extends Specification {
 
-    ImmutableAttributesSchemaFactory factory = new ImmutableAttributesSchemaFactory()
+    ImmutableAttributesSchemaFactory factory = new ImmutableAttributesSchemaFactory(TestUtil.inMemoryCacheFactory())
     ImmutableAttributesSchema preferJavaRuntime = new PreferJavaRuntimeVariant(TestUtil.objectInstantiator(), factory).getSchema()
 
     def "empty concat with empty is empty"() {

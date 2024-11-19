@@ -17,7 +17,9 @@
 package org.gradle.nativeplatform.test.xctest.plugins
 
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
+import spock.lang.Ignore
 
+@Ignore("https://github.com/gradle/gradle/issues/31192")
 class XCTestPluginIntegrationTest extends WellBehavedPluginTest {
     @Override
     String getPluginName() {

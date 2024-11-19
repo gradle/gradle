@@ -52,6 +52,7 @@ Gradle supports file system watching on the following operating systems:
 ** CentOS Stream 8 or later
 ** Red Hat Enterprise Linux (RHEL) 8 or later
 ** Amazon Linux 2 or later
+** Alpine Linux 3.20 or later
 * macOS 12 (Monterey) or later on Intel and ARM architectures
 
 == Supported File Systems

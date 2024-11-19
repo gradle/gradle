@@ -18,6 +18,7 @@ package org.gradle.language.base
 
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.StableConfigurationCacheDeprecations
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.test.precondition.Requires
@@ -26,7 +27,7 @@ import org.junit.Rule
 
 @Requires(UnitTestPreconditions.Online)
 @UnsupportedWithConfigurationCache(because = "software model")
-class InternalViewsSampleIntegrationTest extends AbstractIntegrationSpec {
+class InternalViewsSampleIntegrationTest extends AbstractIntegrationSpec implements StableConfigurationCacheDeprecations {
     @Rule
     Sample internalViewsSample = new Sample(temporaryFolder, "customModel/internalViews/groovy")
 
@@ -35,6 +36,7 @@ class InternalViewsSampleIntegrationTest extends AbstractIntegrationSpec {
         given:
         sample internalViewsSample
         when:
+        expectTaskGetProjectDeprecations()
         succeeds "model"
         then:
         println output
