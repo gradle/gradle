@@ -18,7 +18,7 @@ package org.gradle.launcher.exec;
 
 import org.gradle.api.NonNullApi;
 import org.gradle.api.problems.internal.ExceptionProblemRegistry;
-import org.gradle.api.problems.internal.Problem;
+import org.gradle.api.problems.Problem;
 import org.gradle.internal.buildtree.BuildActionRunner;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.operations.BuildOperationContext;

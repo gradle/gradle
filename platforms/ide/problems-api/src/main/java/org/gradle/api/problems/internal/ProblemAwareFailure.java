@@ -17,6 +17,7 @@
 package org.gradle.api.problems.internal;
 
 import org.gradle.api.NonNullApi;
+import org.gradle.api.problems.Problem;
 
 import java.util.Collection;
 

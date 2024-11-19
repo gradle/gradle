@@ -22,7 +22,7 @@ import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.internal.DefaultProblemId;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblems;
-import org.gradle.api.problems.internal.Problem;
+import org.gradle.api.problems.Problem;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
 import org.gradle.model.internal.type.ModelType;

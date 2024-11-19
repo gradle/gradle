@@ -16,7 +16,7 @@
 package org.gradle.api.internal.tasks.compile;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.problems.internal.Problem;
+import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.internal.ProblemAwareFailure;
 import org.gradle.internal.exceptions.CompilationFailedIndicator;
 import org.gradle.internal.exceptions.ResolutionProvider;

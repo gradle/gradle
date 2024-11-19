@@ -17,7 +17,7 @@ package org.gradle.internal.build.event.types;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
-import org.gradle.api.problems.internal.Problem;
+import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.internal.ProblemAwareFailure;
 import org.gradle.internal.exceptions.MultiCauseException;
 import org.gradle.tooling.internal.protocol.InternalBasicProblemDetailsVersion3;

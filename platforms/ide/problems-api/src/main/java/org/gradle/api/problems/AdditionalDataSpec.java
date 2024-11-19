@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.internal;
+package org.gradle.api.problems;
 
-import org.gradle.api.problems.AdditionalDataSpec;
+import org.gradle.api.Incubating;
 
 /**
- * Specifies configuration options when creating a new DeprecationData instance.
+ * Marker interface for additional data that can be attached to a {@link Problem}.
+ *
+ * @since 8.12
  */
-public interface DeprecationDataSpec extends AdditionalDataSpec {
-    DeprecationDataSpec type(DeprecationData.Type type);
+@Incubating
+public interface AdditionalDataSpec {
 }

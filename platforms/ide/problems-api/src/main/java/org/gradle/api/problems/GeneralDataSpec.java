@@ -14,14 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.internal;
+package org.gradle.api.problems;
 
-import java.util.Map;
+import org.gradle.api.Incubating;
 
 /**
- * General additional data type that can be used to attach arbitrary data to a problem with a string map.
+ * Specifies configuration options when creating a new GeneralData instance.
+ *
+ * @since 8.12
  */
-public interface GeneralData extends AdditionalData {
+@Incubating
+public interface GeneralDataSpec extends AdditionalDataSpec {
 
-    Map<String, String> getAsMap();
+    /**
+     * Adds a new entry.
+     *
+     * @since 8.12
+     */
+    GeneralDataSpec put(String key, String value);
 }

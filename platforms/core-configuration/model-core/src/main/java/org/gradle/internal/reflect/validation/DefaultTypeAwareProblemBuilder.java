@@ -17,11 +17,12 @@
 package org.gradle.internal.reflect.validation;
 
 import org.gradle.api.NonNullApi;
+import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.internal.AdditionalDataBuilderFactory;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
+import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.api.problems.internal.InternalProblemBuilder;
-import org.gradle.api.problems.internal.Problem;
 import org.gradle.api.problems.internal.TypeValidationData;
 import org.gradle.api.problems.internal.TypeValidationDataSpec;
 
@@ -76,7 +77,7 @@ public class DefaultTypeAwareProblemBuilder extends DelegatingProblemBuilder imp
         Optional<TypeValidationData> additionalData = Optional.ofNullable((TypeValidationData) problem.getAdditionalData());
         String prefix = introductionFor(additionalData, isTypeIrrelevantInErrorMessage(problem.getDefinition().getId()));
         String text = Optional.ofNullable(problem.getContextualLabel()).orElseGet(() -> problem.getDefinition().getId().getDisplayName());
-        return problem.toBuilder(additionalDataBuilderFactory).contextualLabel(prefix + text).build();
+        return ((InternalProblem) problem).toBuilder(additionalDataBuilderFactory).contextualLabel(prefix + text).build();
     }
 
     private static boolean isTypeIrrelevantInErrorMessage(ProblemId problemId) {

@@ -18,12 +18,12 @@ package org.gradle.internal.reflect.validation;
 
 import org.gradle.api.Action;
 import org.gradle.api.NonNullApi;
+import org.gradle.api.problems.AdditionalDataSpec;
+import org.gradle.api.problems.DocLink;
+import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemGroup;
 import org.gradle.api.problems.Severity;
-import org.gradle.api.problems.internal.AdditionalDataSpec;
-import org.gradle.api.problems.internal.DocLink;
 import org.gradle.api.problems.internal.InternalProblemBuilder;
-import org.gradle.api.problems.internal.Problem;
 
 import javax.annotation.Nullable;
 

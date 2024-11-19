@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.internal;
+package org.gradle.api.problems;
 
-import org.gradle.api.problems.ProblemId;
-import org.gradle.api.problems.Severity;
+import org.gradle.api.Incubating;
 
 import javax.annotation.Nullable;
 
@@ -33,9 +32,17 @@ import javax.annotation.Nullable;
  * </ul>
  * <p>
  * The category and the label uniquely identify the problem definition, the remaining fields only supply additional information.
+ *
+ * @since 8.12
  */
+@Incubating
 public interface ProblemDefinition {
 
+    /**
+     * The problem ID.
+     *
+     * @since 8.12
+     */
     ProblemId getId();
 
     /**
@@ -43,11 +50,15 @@ public interface ProblemDefinition {
      * <p>
      * The severity of a problem is a hint to the user about how important the problem is.
      * ERROR will fail the build, WARNING will not.
+     *
+     * @since 8.12
      */
     Severity getSeverity();
 
     /**
      * A link to the documentation for this problem.
+     *
+     * @since 8.12
      */
     @Nullable
     DocLink getDocumentationLink();

@@ -17,8 +17,11 @@
 package org.gradle.api.problems.internal;
 
 import com.google.common.base.Preconditions;
+import org.gradle.api.problems.DocLink;
 
-public class DefaultDocLink implements DocLink {
+import java.io.Serializable;
+
+public class DefaultDocLink implements DocLink, Serializable {
 
     private final String url;
 

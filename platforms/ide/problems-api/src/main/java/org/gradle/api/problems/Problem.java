@@ -14,18 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.internal;
+package org.gradle.api.problems;
+
+import org.gradle.api.Incubating;
 
 import javax.annotation.Nullable;
 import java.util.List;
 
 /**
  * Interface for describing structured information about a problem.
+ *
+ * @since 8.12
  */
+@Incubating
 public interface Problem {
 
     /**
      * Returns the problem definition, i.e. the data that is independent of the report context.
+     *
+     * @since 8.12
      */
     ProblemDefinition getDefinition();
 
@@ -33,12 +40,15 @@ public interface Problem {
      * Declares a short, but context-dependent message for this problem.
      *
      * @return the contextual label, or null if not available.
+     * @since 8.12
      */
     @Nullable
     String getContextualLabel();
 
     /**
      * Returns solutions and advice that contain context-sensitive data, e.g. the message contains references to variables, locations, etc.
+     *
+     * @since 8.12
      */
     List<String> getSolutions();
 
@@ -47,6 +57,8 @@ public interface Problem {
      * <p>
      * Details can elaborate on the problem, and provide more information about the problem.
      * They can be multiple lines long, but should not detail solutions; for that, use {@link #getSolutions()}.
+     *
+     * @since 8.12
      */
     @Nullable
     String getDetails();
@@ -55,6 +67,8 @@ public interface Problem {
      * Returns the locations where the problem originated.
      * <p>
      * Might be empty if the origin is not known.
+     *
+     * @since 8.12
      */
     List<ProblemLocation> getOriginLocations();
 
@@ -62,11 +76,15 @@ public interface Problem {
      * Returns additional locations, which can help to understand the problem further.
      * <p>
      * Might be empty if there is no meaningful contextual information.
+     *
+     * @since 8.12
      */
     List<ProblemLocation> getContextualLocations();
 
     /**
      * The exception that caused the problem.
+     *
+     * @since 8.12
      */
     @Nullable
     Throwable getException();
@@ -75,12 +93,9 @@ public interface Problem {
      * Additional data attached to the problem.
      * <p>
      * The supported types are listed on {@link AdditionalData}.
+     *
+     * @since 8.12
      */
     @Nullable
     AdditionalData getAdditionalData();
-
-    /**
-     * Returns a problem builder with fields initialized with values from this instance.
-     */
-    InternalProblemBuilder toBuilder(AdditionalDataBuilderFactory additionalDataBuilderFactory);
 }

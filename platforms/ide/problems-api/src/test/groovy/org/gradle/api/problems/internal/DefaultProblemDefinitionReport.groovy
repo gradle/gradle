@@ -17,6 +17,7 @@
 package org.gradle.api.problems.internal
 
 import com.google.common.collect.ImmutableList
+import org.gradle.api.problems.ProblemDefinition
 import org.gradle.api.problems.Severity
 import org.gradle.api.problems.SharedProblemGroup
 import org.gradle.internal.deprecation.Documentation

@@ -16,10 +16,11 @@
 
 package org.gradle.api.problems.internal;
 
+import org.gradle.api.problems.AdditionalDataSpec;
 import org.gradle.internal.component.resolution.failure.interfaces.ResolutionFailure;
 
 /**
- * An {@link AdditionalDataSpec} that produces {@link ResolutionFailureDataSpec} instances
+ * An {@link org.gradle.api.problems.AdditionalDataSpec} that produces {@link ResolutionFailureDataSpec} instances
  * from {@link ResolutionFailure}s.
  */
 public interface ResolutionFailureDataSpec extends AdditionalDataSpec {

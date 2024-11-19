@@ -19,7 +19,7 @@ package org.gradle.problems.internal.rendering;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
-import org.gradle.api.problems.internal.Problem;
+import org.gradle.api.problems.Problem;
 
 import java.io.PrintWriter;
 import java.io.Writer;

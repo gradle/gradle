@@ -19,7 +19,7 @@ package org.gradle.integtests.resolve.catalog
 import org.gradle.api.internal.catalog.problems.VersionCatalogErrorMessages
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemTestFor
-import org.gradle.api.problems.internal.FileLocation
+import org.gradle.api.problems.FileLocation
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.resolve.PluginDslSupport

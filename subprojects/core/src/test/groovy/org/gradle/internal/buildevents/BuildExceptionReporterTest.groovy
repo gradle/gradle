@@ -24,7 +24,7 @@ import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.configuration.LoggingConfiguration
 import org.gradle.api.logging.configuration.ShowStacktrace
-import org.gradle.api.problems.internal.Problem
+import org.gradle.api.problems.Problem
 import org.gradle.api.problems.internal.ProblemAwareFailure
 import org.gradle.api.tasks.TaskExecutionException
 import org.gradle.execution.MultipleBuildFailures

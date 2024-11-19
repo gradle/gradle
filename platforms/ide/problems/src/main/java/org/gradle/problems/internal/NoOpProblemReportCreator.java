@@ -16,7 +16,8 @@
 
 package org.gradle.problems.internal;
 
-import org.gradle.api.problems.internal.Problem;
+
+import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.internal.ProblemReportCreator;
 import org.gradle.api.problems.internal.ProblemSummaryData;
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.internal;
+package org.gradle.api.problems;
+
+import org.gradle.api.Incubating;
 
 /**
  * A file location.
+ *
+ * @since 8.12
  */
+@Incubating
 public interface FileLocation extends ProblemLocation {
 
     /**
      * The path to the file.
      *
      * @return the file path
+     *
+     * @since 8.12
      */
     String getPath();
 }

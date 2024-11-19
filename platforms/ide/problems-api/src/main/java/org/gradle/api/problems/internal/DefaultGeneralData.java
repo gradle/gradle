@@ -17,6 +17,8 @@
 package org.gradle.api.problems.internal;
 
 import com.google.common.collect.ImmutableMap;
+import org.gradle.api.problems.GeneralData;
+import org.gradle.api.problems.GeneralDataSpec;
 
 import javax.annotation.Nullable;
 import java.io.Serializable;

@@ -18,7 +18,7 @@ package org.gradle.internal.deprecation;
 
 import com.google.common.base.Preconditions;
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.problems.internal.DocLink;
+import org.gradle.api.problems.DocLink;
 
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nullable;

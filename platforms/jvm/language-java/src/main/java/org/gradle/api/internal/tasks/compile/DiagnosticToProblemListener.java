@@ -30,7 +30,7 @@ import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblemReporter;
-import org.gradle.api.problems.internal.Problem;
+import org.gradle.api.problems.Problem;
 
 import javax.tools.Diagnostic;
 import javax.tools.DiagnosticListener;
