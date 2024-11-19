@@ -42,7 +42,6 @@ public class ExceptionProblemRegistry {
 
     private final Multimap<Throwable, Problem> problemsForThrowables = Multimaps.synchronizedMultimap(HashMultimap.<Throwable, Problem>create());
 
-
     public void onProblem(Throwable exception, Problem problem) {
         problemsForThrowables.put(exception, problem);
     }

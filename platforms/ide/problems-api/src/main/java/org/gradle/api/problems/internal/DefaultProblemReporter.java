@@ -24,6 +24,7 @@ import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.problems.buildtree.ProblemStream;
 
 import javax.annotation.Nonnull;
+import java.util.Collection;
 
 public class DefaultProblemReporter implements InternalProblemReporter {
 
@@ -73,6 +74,30 @@ public class DefaultProblemReporter implements InternalProblemReporter {
             throw new IllegalStateException("Exception must be non-null");
         } else {
             throw throwError(exception, problem);
+        }
+    }
+
+    @Override
+    public RuntimeException throwing(Throwable exception, Collection<? extends Problem> problems) {
+        Throwable transformedException = transform(exception);
+        for (Problem problem : problems) {
+            Problem problemWithException = new DefaultProblem(
+                problem.getDefinition(),
+                problem.getContextualLabel(),
+                problem.getSolutions(),
+                problem.getOriginLocations(),
+                problem.getContextualLocations(),
+                problem.getDetails(),
+                exception,
+                problem.getAdditionalData()
+            );
+            report(problemWithException);
+            exceptionProblemRegistry.onProblem(transformedException, problemWithException);
+        }
+        if (exception instanceof RuntimeException) {
+            return (RuntimeException) exception;
+        } else {
+            throw new RuntimeException(exception);
         }
     }
 
