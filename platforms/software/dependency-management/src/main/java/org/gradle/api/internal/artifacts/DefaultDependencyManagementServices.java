@@ -92,6 +92,7 @@ import org.gradle.api.internal.artifacts.transform.TransformRegistrationFactory;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.AttributeDescriberRegistry;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
+import org.gradle.api.internal.attributes.AttributeSchemaServices;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.DefaultAttributesSchema;
@@ -597,17 +598,25 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         ConfigurationResolver createConfigurationResolver(
             RepositoriesSupplier repositoriesSupplier,
             ResolutionExecutor resolutionExecutor,
-            AttributeDesugaring attributeDesugaring
+            AttributeDesugaring attributeDesugaring,
+            ArtifactTypeRegistry artifactTypeRegistry,
+            ComponentModuleMetadataHandlerInternal componentModuleMetadataHandler,
+            AttributeSchemaServices attributeSchemaServices,
+            DependencyLockingProvider dependencyLockingProvider
         ) {
             ShortCircuitingResolutionExecutor shortCircuitingResolutionExecutor = new ShortCircuitingResolutionExecutor(
                 resolutionExecutor,
-                attributeDesugaring
+                attributeDesugaring,
+                dependencyLockingProvider
             );
 
             return new DefaultConfigurationResolver(
                 repositoriesSupplier,
                 shortCircuitingResolutionExecutor,
-                attributeDesugaring
+                attributeDesugaring,
+                artifactTypeRegistry,
+                componentModuleMetadataHandler,
+                attributeSchemaServices
             );
         }
 

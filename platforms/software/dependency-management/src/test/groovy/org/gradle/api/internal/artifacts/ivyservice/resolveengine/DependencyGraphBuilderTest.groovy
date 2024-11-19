@@ -35,7 +35,6 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultV
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultExcludeRuleConverter
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultLocalVariantGraphResolveStateBuilder
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyMetadataFactory
@@ -153,16 +152,12 @@ class DependencyGraphBuilderTest extends Specification {
     )
 
     def root = rootProject()
-    def rootComponent = Stub(RootComponentMetadataBuilder.RootComponentState) {
-        getRootComponent() >> root
-        getRootVariant() >> root.getConfigurationLegacy('root')
-        getAttributesSchema() >> attributesSchema
-    }
 
     private TestGraphVisitor resolve(Spec<? super DependencyMetadata> edgeFilter = { true }) {
         def graphVisitor = new TestGraphVisitor()
         builder.resolve(
-            rootComponent,
+            root,
+            root.getConfigurationLegacy('root'),
             [],
             edgeFilter,
             componentSelectorConverter,
