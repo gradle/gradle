@@ -19,6 +19,8 @@ package org.gradle.api.problems;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 
+import java.util.Collection;
+
 /**
  * Defines different ways to report problems.
  *
@@ -66,4 +68,14 @@ public interface ProblemReporter {
      * @since 8.6
      */
     RuntimeException throwing(Action<ProblemSpec> spec);
+
+    /**
+     * Reports the target problems and throws a runtime exception. When this method is used, all reported problems will be associated with the thrown exception.
+     *
+     * @param exception the exception to throw after reporting the problems
+     * @param problems the problems to report
+     * @return nothing, the method throws an exception
+     * @since 8.12
+     */
+    RuntimeException throwing(Throwable exception, Collection<? extends Problem> problems);
 }

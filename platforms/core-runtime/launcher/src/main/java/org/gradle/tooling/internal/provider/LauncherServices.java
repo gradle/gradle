@@ -213,7 +213,8 @@ public class LauncherServices extends AbstractGradleModuleServices {
             InternalOptions options,
             StartParameter startParameter,
             InternalProblems problemsService,
-            ProblemStream problemStream
+            ProblemStream problemStream,
+            ExceptionProblemRegistry registry
         ) {
             return new InitProblems(
                 new InitDeprecationLoggingActionExecutor(
@@ -239,7 +240,9 @@ public class LauncherServices extends AbstractGradleModuleServices {
                                     ),
                                     buildStartedTime,
                                     buildRequestMetaData,
-                                    buildLoggerFactory),
+                                    buildLoggerFactory,
+                                    registry
+                                ),
                                 options),
                             gradleEnterprisePluginManager)),
                     eventEmitter,

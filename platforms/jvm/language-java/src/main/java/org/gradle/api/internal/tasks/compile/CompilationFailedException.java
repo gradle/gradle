@@ -15,11 +15,9 @@
  */
 package org.gradle.api.internal.tasks.compile;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.internal.ProblemAwareFailure;
 import org.gradle.internal.exceptions.CompilationFailedIndicator;
-import org.gradle.internal.exceptions.ResolutionProvider;
 import org.gradle.problems.internal.rendering.ProblemRenderer;
 
 import javax.annotation.Nullable;
@@ -28,9 +26,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
-public class CompilationFailedException extends RuntimeException implements CompilationFailedIndicator, ProblemAwareFailure, ResolutionProvider {
+public class CompilationFailedException extends RuntimeException implements CompilationFailedIndicator, ProblemAwareFailure {
 
     public static final String RESOLUTION_MESSAGE = "Check your code and dependencies to fix the compilation error(s)";
     public static final String COMPILATION_FAILED_DETAILS_ABOVE = "Compilation failed; see the compiler error output for details.";
@@ -82,18 +79,5 @@ public class CompilationFailedException extends RuntimeException implements Comp
     @Override
     public Collection<Problem> getProblems() {
         return reportedProblems;
-    }
-
-    @Override
-    public List<String> getResolutions() {
-        if (reportedProblems.isEmpty()) {
-            return ImmutableList.of(RESOLUTION_MESSAGE);
-        } else {
-            return reportedProblems.stream()
-                .map(Problem::getSolutions)
-                .flatMap(List::stream)
-                .filter(solution -> !solution.isEmpty())
-                .collect(Collectors.toList());
-        }
     }
 }

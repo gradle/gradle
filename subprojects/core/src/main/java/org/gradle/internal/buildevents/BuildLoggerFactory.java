@@ -41,6 +41,6 @@ public class BuildLoggerFactory {
     }
 
     public BuildLogger create(Logger logger, LoggingConfiguration loggingConfiguration, BuildStartedTime buildStartedTime, BuildRequestMetaData buildRequestMetaData) {
-        return new BuildLogger(logger, styledTextOutputFactory, loggingConfiguration, buildRequestMetaData, buildStartedTime, clock, workValidationWarningReporter, gradleEnterprisePluginManager);
+        return new BuildLogger(logger, styledTextOutputFactory, loggingConfiguration, buildRequestMetaData, buildStartedTime, clock, workValidationWarningReporter, gradleEnterprisePluginManager) {};
     }
 }
