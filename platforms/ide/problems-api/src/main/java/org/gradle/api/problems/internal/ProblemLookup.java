@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.exec;
+package org.gradle.api.problems.internal;
 
-import org.gradle.api.problems.internal.ProblemLookup;
-import org.gradle.internal.operations.BuildOperationType;
-import org.gradle.internal.scan.UsedByScanPlugin;
+import java.util.Collection;
 
-@UsedByScanPlugin
-public final class RunBuildBuildOperationType implements BuildOperationType<RunBuildBuildOperationType.Details, RunBuildBuildOperationType.Result> {
-    public interface Details {
-        ProblemLookup getProblemLookup();
-    }
-
-    public interface Result {
-    }
+public interface ProblemLookup {
+    Collection<Problem> findAll(Throwable t);
 }
-
