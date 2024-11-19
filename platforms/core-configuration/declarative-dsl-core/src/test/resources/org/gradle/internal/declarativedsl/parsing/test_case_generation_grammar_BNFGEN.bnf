@@ -27,10 +27,7 @@
 
 <literalOrIdentifier> ::= <simpleIdentifier> | <literalConstant> | <stringLiteral>;
 
-<simpleIdentifier> ::= 10 <nonBacktickIdentifier> | <backtickString>;
-<nonBacktickIdentifier> ::= <letter> | <letter> <letterOrSeparatorOrUnicodeDigit>{2,3} | "_" <letterOrSeparatorOrUnicodeDigit>{1, 3};
-<backtickString> ::= "`" <backtickStringContent>{1,7} "`";
-<backtickStringContent> ::= 10 <letter> | 2 <unicodeDigit> | " " | "$" | "@" | "(" | ")" | "{" | "}" | "[" | "]" | "|" | "&" | "!" | "," | ";" | "\\" | "/" | "\"" | "'";
+<simpleIdentifier> ::= <letter> | <letter> <letterOrSeparatorOrUnicodeDigit>{2,3} | "_" <letterOrSeparatorOrUnicodeDigit>{1, 3};
 
 <letterOrSeparatorOrUnicodeDigit> ::= <letter> | "_" | <unicodeDigit>;
 <unicodeDigit> ::= "\\u0030" | "\\u0031" | "\\u0032" | "\\u0033" | "\\u0034" | "\\u0035" | "\\u0036" | "\\u0037" | "\\u0038" | "\\u0039" |

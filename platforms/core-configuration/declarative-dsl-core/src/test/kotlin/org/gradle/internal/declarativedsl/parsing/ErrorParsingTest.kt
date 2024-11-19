@@ -552,6 +552,8 @@ class ErrorParsingTest {
     }
 
     @Test
+    //TODO: we might want to support backtick identifiers at parsing level, but not in our official grammar,
+    // so they should be rejected at some higher level
     fun `backtick identifiers`() {
         val results = ParseTestUtil.parse(
             """
