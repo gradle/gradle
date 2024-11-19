@@ -1211,6 +1211,7 @@ Hello, subproject1
         serviceImplementation()
         buildFile << """
             interface ForwardingParams extends BuildServiceParameters {
+                ${annotation}
                 Property<CountingService> getService()
             }
 
@@ -1225,7 +1226,7 @@ Hello, subproject1
                 parameters.initial = 10
             }
             def service = gradle.sharedServices.registerIfAbsent("service", ForwardingService) {
-                parameters.service = countingService
+                ${parameterSetup}
             }
 
             task first {
@@ -1267,6 +1268,11 @@ Hello, subproject1
         outputContains("service: value is 11")
         outputContains("service: value is 12")
         outputContains("service: closed with value 12")
+
+        where:
+        annotation                  | parameterSetup
+        "@${ServiceReference.name}" | ""
+        ""                          | "parameters.service = countingService"
     }
 
     def "can inject Gradle provided service #serviceType into build service"() {
