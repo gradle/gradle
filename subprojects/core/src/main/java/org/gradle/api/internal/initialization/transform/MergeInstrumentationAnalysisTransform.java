@@ -28,6 +28,7 @@ import org.gradle.api.internal.initialization.transform.utils.InstrumentationTra
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.services.ServiceReference;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.PathSensitive;
@@ -67,7 +68,7 @@ import static org.gradle.api.internal.initialization.transform.utils.Instrumenta
 public abstract class MergeInstrumentationAnalysisTransform implements TransformAction<MergeInstrumentationAnalysisTransform.Parameters> {
 
     public interface Parameters extends TransformParameters {
-        @Internal
+        @ServiceReference
         Property<CacheInstrumentationDataBuildService> getBuildService();
         @Internal
         Property<Long> getContextId();

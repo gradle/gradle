@@ -25,7 +25,6 @@ import org.gradle.api.internal.initialization.transform.InstrumentationAnalysisT
 import org.gradle.api.internal.initialization.transform.MergeInstrumentationAnalysisTransform;
 import org.gradle.api.internal.initialization.transform.ProjectDependencyInstrumentingArtifactTransform;
 import org.gradle.api.internal.initialization.transform.services.CacheInstrumentationDataBuildService;
-import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.services.BuildServiceRegistry;
 import org.gradle.internal.id.IdGenerator;
@@ -65,19 +64,18 @@ public class InstrumentationTransformRegisterer {
     public ScriptClassPathResolutionContext registerTransforms(DependencyHandler dependencyHandler) {
         long contextId = contextIdGenerator.generateId();
         Provider<CacheInstrumentationDataBuildService> service = buildServiceRegistry.get().registerIfAbsent(BUILD_SERVICE_NAME, CacheInstrumentationDataBuildService.class);
-        registerInstrumentationAndUpgradesPipeline(contextId, dependencyHandler, service);
+        registerInstrumentationAndUpgradesPipeline(contextId, dependencyHandler);
         registerInstrumentationOnlyPipeline(contextId, dependencyHandler);
         return new ScriptClassPathResolutionContext(contextId, service, dependencyHandler);
     }
 
-    private void registerInstrumentationAndUpgradesPipeline(long contextId, DependencyHandler dependencyHandler, Provider<CacheInstrumentationDataBuildService> service) {
+    private void registerInstrumentationAndUpgradesPipeline(long contextId, DependencyHandler dependencyHandler) {
         dependencyHandler.registerTransform(
             InstrumentationAnalysisTransform.class,
             spec -> {
                 spec.getFrom().attribute(INSTRUMENTED_ATTRIBUTE, NOT_INSTRUMENTED.getValue());
                 spec.getTo().attribute(INSTRUMENTED_ATTRIBUTE, ANALYZED_ARTIFACT.getValue());
                 spec.parameters(params -> {
-                    params.getBuildService().set(service);
                     params.getContextId().set(contextId);
                 });
             }
@@ -88,9 +86,8 @@ public class InstrumentationTransformRegisterer {
                 spec.getFrom().attribute(INSTRUMENTED_ATTRIBUTE, ANALYZED_ARTIFACT.getValue());
                 spec.getTo().attribute(INSTRUMENTED_ATTRIBUTE, MERGED_ARTIFACT_ANALYSIS.getValue());
                 spec.parameters(params -> {
-                    params.getBuildService().set(service);
                     params.getContextId().set(contextId);
-                    params.getTypeHierarchyAnalysis().setFrom(service.map(it -> it.getTypeHierarchyAnalysis(contextId)));
+                    params.getTypeHierarchyAnalysis().setFrom(params.getBuildService().map(it -> it.getTypeHierarchyAnalysis(contextId)));
                 });
             }
         );
@@ -98,7 +95,6 @@ public class InstrumentationTransformRegisterer {
             contextId,
             dependencyHandler,
             ExternalDependencyInstrumentingArtifactTransform.class,
-            service,
             MERGED_ARTIFACT_ANALYSIS,
             INSTRUMENTED_AND_UPGRADED,
             params -> {}
@@ -109,7 +105,6 @@ public class InstrumentationTransformRegisterer {
         registerInstrumentingTransform(contextId,
             dependencyHandler,
             ProjectDependencyInstrumentingArtifactTransform.class,
-            Providers.notDefined(),
             NOT_INSTRUMENTED,
             INSTRUMENTED_ONLY,
             params -> params.getIsUpgradeReport().set(propertyUpgradeReportConfig.isEnabled())
@@ -120,7 +115,6 @@ public class InstrumentationTransformRegisterer {
         long contextId,
         DependencyHandler dependencyHandler,
         Class<? extends BaseInstrumentingArtifactTransform<P>> transform,
-        Provider<CacheInstrumentationDataBuildService> service,
         DefaultScriptClassPathResolver.InstrumentationPhase fromPhase,
         DefaultScriptClassPathResolver.InstrumentationPhase toPhase,
         Consumer<P> paramsConfiguration
@@ -131,7 +125,6 @@ public class InstrumentationTransformRegisterer {
                 spec.getFrom().attribute(INSTRUMENTED_ATTRIBUTE, fromPhase.getValue());
                 spec.getTo().attribute(INSTRUMENTED_ATTRIBUTE, toPhase.getValue());
                 spec.parameters(params -> {
-                    params.getBuildService().set(service);
                     params.getContextId().set(contextId);
                     params.getAgentSupported().set(agentStatus.isAgentInstrumentationEnabled());
                     paramsConfiguration.accept(params);
