@@ -16,6 +16,7 @@
 
 package org.gradle.internal.composite;
 
+import org.gradle.api.GradleException;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.initialization.IncludedBuildSpec;
@@ -54,11 +55,14 @@ public class DefaultBuildIncluder implements BuildIncluder {
     @Override
     public CompositeBuildParticipantBuildState includeBuild(IncludedBuildSpec includedBuildSpec) {
         RootBuildState rootBuild = buildRegistry.getRootBuild();
+        BuildDefinition buildDefinition = toBuildDefinition(includedBuildSpec, gradle);
         if (includedBuildSpec.rootDir.equals(rootBuild.getBuildRootDir())) {
+            if (buildDefinition.isPluginBuild()) {
+                throw new GradleException("Root build cannot be included as a plugin build");
+            }
             coordinator.prepareRootBuildForInclusion();
             return rootBuild;
         } else {
-            BuildDefinition buildDefinition = toBuildDefinition(includedBuildSpec, gradle);
             IncludedBuildState build = buildRegistry.addIncludedBuild(buildDefinition, gradle.getOwner());
             coordinator.prepareForInclusion(build, buildDefinition.isPluginBuild());
             return build;
