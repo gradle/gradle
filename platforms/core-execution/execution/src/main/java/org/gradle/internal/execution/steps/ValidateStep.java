@@ -18,11 +18,11 @@ package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.GeneratedSubclasses;
+import org.gradle.api.problems.Problem;
+import org.gradle.api.problems.ProblemReporter;
 import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
-import org.gradle.api.problems.internal.InternalProblemReporter;
 import org.gradle.api.problems.internal.InternalProblems;
-import org.gradle.api.problems.Problem;
 import org.gradle.internal.MutableReference;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkValidationContext;
@@ -78,7 +78,7 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
             .ifPresent(beforeExecutionState -> validateImplementations(work, beforeExecutionState, validationContext));
 
         InternalProblems problemsService = validationContext.getProblemsService();
-        InternalProblemReporter reporter = problemsService.getInternalReporter();
+        ProblemReporter reporter = problemsService.getReporter();
         List<Problem> problems = validationContext.getProblems();
         for (Problem problem : problems) {
             reporter.report(problem);

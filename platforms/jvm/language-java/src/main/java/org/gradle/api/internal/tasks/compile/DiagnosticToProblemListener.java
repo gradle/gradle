@@ -25,12 +25,12 @@ import com.sun.tools.javac.util.JavacMessages;
 import com.sun.tools.javac.util.Log;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.api.problems.Problem;
+import org.gradle.api.problems.ProblemReporter;
 import org.gradle.api.problems.ProblemSpec;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
-import org.gradle.api.problems.internal.InternalProblemReporter;
-import org.gradle.api.problems.Problem;
 
 import javax.tools.Diagnostic;
 import javax.tools.DiagnosticListener;
@@ -56,13 +56,13 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
     private static final Logger LOGGER = Logging.getLogger(DiagnosticToProblemListener.class);
 
     private final Context context;
-    private final InternalProblemReporter problemReporter;
+    private final ProblemReporter problemReporter;
     private final List<Problem> problemsReported = new ArrayList<>();
 
     private int errorCount = 0;
     private int warningCount = 0;
 
-    public DiagnosticToProblemListener(InternalProblemReporter problemReporter, Context context) {
+    public DiagnosticToProblemListener(ProblemReporter problemReporter, Context context) {
         this.problemReporter = problemReporter;
         this.context = context;
     }

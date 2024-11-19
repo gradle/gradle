@@ -174,7 +174,7 @@ public class DefaultBuildTaskSelector implements BuildTaskSelector {
             return child;
         }
 
-        throw problemsService.getInternalReporter().throwing(spec -> {
+        throw problemsService.getReporter().throwing(spec -> {
             nameMatcher.configureProblemId(spec);
             String message = String.format("Cannot locate %s that match '%s' as %s", context.getType(), context.getOriginalPath(), nameMatcher.formatErrorMessage("project", project.getDisplayName()));
             configureProblem(spec, message, context.getOriginalPath().getPath(), new ProjectSelectionException(message));
@@ -195,7 +195,7 @@ public class DefaultBuildTaskSelector implements BuildTaskSelector {
         // - have empty or blank segments (eg `::a`, `a::b`, `a:  :b`, etc)
 
         if (name.isEmpty() || StringUtils.isBlank(name)) {
-            throw problemsService.getInternalReporter().throwing(spec -> {
+            throw problemsService.getReporter().throwing(spec -> {
                 spec.id("empty-path", "Empty path", GradleCoreProblemGroup.taskSelection());
                 String message = String.format("Cannot locate matching %s for an empty path. The path should include a task name (for example %s).", type, examplePaths());
                 configureProblem(spec, message, name, new TaskSelectionException(message));
@@ -204,7 +204,7 @@ public class DefaultBuildTaskSelector implements BuildTaskSelector {
         Path path = Path.path(name);
         Pattern root = Pattern.compile("\\s*:(\\s*:)*\\s*");
         if (root.matcher(name).matches()) {
-            throw problemsService.getInternalReporter().throwing(spec -> {
+            throw problemsService.getReporter().throwing(spec -> {
                 spec.id("missing-task-name", "Missing task name", GradleCoreProblemGroup.taskSelection());
                 String message = String.format("Cannot locate %s that match '%s'. The path should include a task name (for example %s).", type, name, examplePaths());
                 configureProblem(spec, message, name, new TaskSelectionException(message));
@@ -224,7 +224,7 @@ public class DefaultBuildTaskSelector implements BuildTaskSelector {
                 }
             }
 
-            throw problemsService.getInternalReporter().throwing(spec -> {
+            throw problemsService.getReporter().throwing(spec -> {
                 spec.id("empty-segments", "Empty segments", GradleCoreProblemGroup.taskSelection());
                 String message = String.format("Cannot locate %s that match '%s'. The path should not include an empty segment (try '%s' instead).", type, name, normalized);
                 configureProblem(spec, message, name, new TaskSelectionException(message));

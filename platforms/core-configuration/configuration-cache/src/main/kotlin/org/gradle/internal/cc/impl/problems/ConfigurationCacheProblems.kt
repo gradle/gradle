@@ -198,7 +198,7 @@ class ConfigurationCacheProblems(
     private
     fun InternalProblems.onProblem(problem: PropertyProblem, severity: ProblemSeverity) {
         val message = problem.message.render()
-        internalReporter.create {
+        reporter.create {
             id(
                 DeprecationMessageBuilder.createDefaultDeprecationId(message),
                 message,
@@ -211,7 +211,7 @@ class ConfigurationCacheProblems(
             additionalData(PropertyTraceDataSpec::class.java) {
                 trace(problem.trace.containingUserCode)
             }
-        }.also { internalReporter.report(it) }
+        }.also { reporter.report(it) }
     }
 
     private

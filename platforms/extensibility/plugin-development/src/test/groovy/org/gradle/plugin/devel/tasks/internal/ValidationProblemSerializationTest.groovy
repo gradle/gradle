@@ -20,6 +20,7 @@ import com.google.gson.Gson
 import org.gradle.api.problems.DocLink
 import org.gradle.api.problems.GeneralData
 import org.gradle.api.problems.GeneralDataSpec
+import org.gradle.api.problems.ProblemReporter
 import org.gradle.api.problems.Severity
 import org.gradle.api.problems.internal.AdditionalDataBuilderFactory
 import org.gradle.api.problems.internal.DefaultProblemReporter
@@ -27,7 +28,6 @@ import org.gradle.api.problems.internal.DeprecationData
 import org.gradle.api.problems.internal.DeprecationDataSpec
 import org.gradle.api.problems.internal.ExceptionProblemRegistry
 import org.gradle.api.problems.internal.GradleCoreProblemGroup
-import org.gradle.api.problems.internal.InternalProblemReporter
 import org.gradle.api.problems.internal.ProblemSummarizer
 import org.gradle.api.problems.internal.TypeValidationData
 import org.gradle.api.problems.internal.TypeValidationDataSpec
@@ -38,7 +38,7 @@ import spock.lang.Specification
 class ValidationProblemSerializationTest extends Specification {
 
     Gson gson = ValidationProblemSerialization.createGsonBuilder().create()
-    InternalProblemReporter problemReporter = new DefaultProblemReporter(
+    ProblemReporter problemReporter = new DefaultProblemReporter(
             Stub(ProblemSummarizer),
             null,
             CurrentBuildOperationRef.instance(),

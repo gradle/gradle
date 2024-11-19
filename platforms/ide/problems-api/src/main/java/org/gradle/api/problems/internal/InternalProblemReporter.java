@@ -24,26 +24,12 @@ import org.gradle.internal.operations.OperationIdentifier;
 public interface InternalProblemReporter extends ProblemReporter {
 
     /**
-     * Creates a new problem without reporting it immediately.
-     * The created problem can be later reported with {@link #report(Problem)}.
-     *
-     * @param action The problem configuration.
-     * @return The new problem.
-     */
-    Problem create(Action<InternalProblemSpec> action);
-
-    /**
-     * Reports the target problem.
-     *
-     * @param problem The problem to report.
-     */
-    void report(Problem problem);
-
-    /**
      * Reports the target problem with an explicit operation identifier.
      *
      * @param problem The problem to report.
      * @param id The operation identifier.
      */
     void report(Problem problem, OperationIdentifier id);
+
+    Problem internalCreate(Action<InternalProblemSpec> action);
 }

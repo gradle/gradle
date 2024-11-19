@@ -96,7 +96,7 @@ public class DefaultTaskSelector implements TaskSelector {
         String searchContext = getSearchContext(targetProject, includeSubprojects);
 
         if (context.getOriginalPath().getPath().equals(taskName)) {
-            throw getProblemsService().getInternalReporter().throwing(spec -> {
+            throw getProblemsService().getReporter().throwing(spec -> {
                 configureProblem(spec, matcher, context);
                 String message = matcher.formatErrorMessage("Task", searchContext);
                 spec.contextualLabel(message)
@@ -106,7 +106,7 @@ public class DefaultTaskSelector implements TaskSelector {
         String message = String.format("Cannot locate %s that match '%s' as %s", context.getType(), context.getOriginalPath(),
             matcher.formatErrorMessage("task", searchContext));
 
-        throw getProblemsService().getInternalReporter().throwing(spec -> configureProblem(spec, matcher, context)
+        throw getProblemsService().getReporter().throwing(spec -> configureProblem(spec, matcher, context)
             .contextualLabel(message)
             .withException(new TaskSelectionException(message)) // this instead of cause
         );

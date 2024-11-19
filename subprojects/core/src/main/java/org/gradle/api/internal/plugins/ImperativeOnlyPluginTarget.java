@@ -69,7 +69,7 @@ public class ImperativeOnlyPluginTarget<T extends PluginAwareInternal> implement
             return;
         }
 
-        throw problems.getInternalReporter()
+        throw problems.getReporter()
             .throwing(spec -> {
                 String message = String.format(
                     "The plugin must be applied %s, but was applied %s",

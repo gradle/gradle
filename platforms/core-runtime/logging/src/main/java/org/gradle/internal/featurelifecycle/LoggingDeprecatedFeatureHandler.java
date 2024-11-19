@@ -20,13 +20,12 @@ import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.logging.configuration.WarningMode;
-import org.gradle.api.problems.Problems;
+import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.internal.DeprecationDataSpec;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblemReporter;
 import org.gradle.api.problems.internal.InternalProblemSpec;
 import org.gradle.api.problems.internal.InternalProblems;
-import org.gradle.api.problems.Problem;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.deprecation.DeprecatedFeatureUsage;
 import org.gradle.internal.logging.LoggingConfigurationBuildOptions;
@@ -65,10 +64,10 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
 
     private WarningMode warningMode = WarningMode.Summary;
     private BuildOperationProgressEventEmitter progressEventEmitter;
-    private Problems problemsService;
+    private InternalProblems problemsService;
     private GradleException error;
 
-    public void init(WarningMode warningMode, BuildOperationProgressEventEmitter progressEventEmitter, Problems problemsService, ProblemStream problemStream) {
+    public void init(WarningMode warningMode, BuildOperationProgressEventEmitter progressEventEmitter, InternalProblems problemsService, ProblemStream problemStream) {
         this.warningMode = warningMode;
         this.problemStream = problemStream;
         this.progressEventEmitter = progressEventEmitter;
@@ -94,8 +93,8 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
     }
 
     private void reportDeprecation(final DeprecatedFeatureUsage usage, final ProblemDiagnostics diagnostics) {
-        InternalProblemReporter reporter = ((InternalProblems) problemsService).getInternalReporter();
-        Problem problem = reporter.create(new Action<InternalProblemSpec>() {
+        InternalProblemReporter reporter = problemsService.getInternalReporter();
+        Problem problem = reporter.internalCreate(new Action<InternalProblemSpec>() {
             @Override
             public void execute(InternalProblemSpec builder) {
                 InternalProblemSpec problemSpec = builder

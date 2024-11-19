@@ -28,6 +28,24 @@ import org.gradle.api.Incubating;
 public interface ProblemReporter {
 
     /**
+     * Creates a new problem without reporting it immediately.
+     * The created problem can be later reported with {@link #report(Problem)}.
+     *
+     * @param action The problem configuration.
+     * @return The new problem.
+     * @since 8.12
+     */
+    Problem create(Action<ProblemSpec> action);
+
+    /**
+     * Reports the target problem.
+     *
+     * @param problem The problem to report.
+     * @since 8.12
+     */
+    void report(Problem problem);
+
+    /**
      * Configures and reports a new problem.
      * <p>
      * The spec must specify the problem label and the category. Any additional configuration is optional.

@@ -18,9 +18,9 @@ package org.gradle.execution.plan;
 
 import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.InternalProblems;
-import org.gradle.api.problems.Problem;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.WorkValidationException;
@@ -82,7 +82,7 @@ public class DefaultNodeValidator implements NodeValidator {
 
     private void reportErrors(List<? extends Problem> problems, TaskInternal task, WorkValidationContext validationContext) {
         for (Problem problem : problems) {
-            problemsService.getInternalReporter().report(problem);
+            problemsService.getReporter().report(problem);
         }
 
         Set<String> uniqueErrors = getUniqueErrors(problems);

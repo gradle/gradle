@@ -39,6 +39,14 @@
             "changes": [
                 "From non-null returning to null returning breaking change"
             ]
+        },
+        {
+            "type": "org.gradle.util.SingleMessageLogger",
+            "member": "Class org.gradle.util.SingleMessageLogger",
+            "acceptation": "Change in internal API",
+            "changes": [
+                "org.gradle.internal.deprecation.DeprecationLogger.init(org.gradle.api.logging.configuration.WarningMode,org.gradle.internal.operations.BuildOperationProgressEventEmitter,org.gradle.api.problems.Problems,org.gradle.problems.buildtree.ProblemStream)"
+            ]
         }
     ]
 }
