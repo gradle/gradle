@@ -575,6 +575,77 @@ class ErrorParsingTest {
     }
 
     @Test
+    fun `literals as function names`() {
+        val results = ParseTestUtil.parse(
+            """
+            "function"(1)
+            1(2)
+            true(3)
+            null(4)
+            """.trimIndent()
+        )
+
+        val expected = """
+            ErroneousStatement (
+                MultipleFailures(
+                    ParsingError(
+                        message = Parsing failure, unexpected token type in call expression: STRING_TEMPLATE,
+                        potentialElementSource = indexes: 0..10, line/column: 1/1..1/11, file: test,
+                        erroneousSource = indexes: 0..10, line/column: 1/1..1/11, file: test
+                    )
+                    ParsingError(
+                        message = Name missing from function call!,
+                        potentialElementSource = indexes: 0..13, line/column: 1/1..1/14, file: test,
+                        erroneousSource = indexes: 0..13, line/column: 1/1..1/14, file: test
+                    )
+                )
+            )
+            ErroneousStatement (
+                MultipleFailures(
+                    ParsingError(
+                        message = Parsing failure, unexpected token type in call expression: INTEGER_CONSTANT,
+                        potentialElementSource = indexes: 14..15, line/column: 2/1..2/2, file: test,
+                        erroneousSource = indexes: 14..15, line/column: 2/1..2/2, file: test
+                    )
+                    ParsingError(
+                        message = Name missing from function call!,
+                        potentialElementSource = indexes: 14..18, line/column: 2/1..2/5, file: test,
+                        erroneousSource = indexes: 14..18, line/column: 2/1..2/5, file: test
+                    )
+                )
+            )
+            ErroneousStatement (
+                MultipleFailures(
+                    ParsingError(
+                        message = Parsing failure, unexpected token type in call expression: BOOLEAN_CONSTANT,
+                        potentialElementSource = indexes: 19..23, line/column: 3/1..3/5, file: test,
+                        erroneousSource = indexes: 19..23, line/column: 3/1..3/5, file: test
+                    )
+                    ParsingError(
+                        message = Name missing from function call!,
+                        potentialElementSource = indexes: 19..26, line/column: 3/1..3/8, file: test,
+                        erroneousSource = indexes: 19..26, line/column: 3/1..3/8, file: test
+                    )
+                )
+            )
+            ErroneousStatement (
+                MultipleFailures(
+                    ParsingError(
+                        message = Parsing failure, unexpected token type in call expression: NULL,
+                        potentialElementSource = indexes: 27..31, line/column: 4/1..4/5, file: test,
+                        erroneousSource = indexes: 27..31, line/column: 4/1..4/5, file: test
+                    )
+                    ParsingError(
+                        message = Name missing from function call!,
+                        potentialElementSource = indexes: 27..34, line/column: 4/1..4/8, file: test,
+                        erroneousSource = indexes: 27..34, line/column: 4/1..4/8, file: test
+                    )
+                )
+            )""".trimIndent()
+        results.assert(expected)
+    }
+
+    @Test
     fun `reserved keywords`() {
         val results = ParseTestUtil.parse(
             """
