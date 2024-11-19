@@ -158,7 +158,6 @@ import org.gradle.tooling.internal.consumer.DefaultFileComparisonTestAssertionFa
 import org.gradle.tooling.internal.consumer.DefaultTestAssertionFailure;
 import org.gradle.tooling.internal.consumer.DefaultTestFrameworkFailure;
 import org.gradle.tooling.internal.protocol.InternalBasicProblemDetailsVersion3;
-import org.gradle.tooling.internal.protocol.InternalBasicProblemDetailsVersion4;
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener;
 import org.gradle.tooling.internal.protocol.InternalFailure;
 import org.gradle.tooling.internal.protocol.InternalFileComparisonTestAssertionFailure;
@@ -668,21 +667,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         InternalProblemDetailsVersion2 details = problemEvent.getDetails();
         OperationDescriptor parentDescriptor = getParentDescriptor(descriptor.getParentId());
 
-        if (details instanceof InternalBasicProblemDetailsVersion4) {
-            InternalBasicProblemDetailsVersion4 basicProblemDetails = (InternalBasicProblemDetailsVersion4) details;
-            return new DefaultSingleProblemEvent(
-                problemEvent.getEventTime(),
-                parentDescriptor,
-                toProblemDefinition(basicProblemDetails.getDefinition()),
-                toContextualLabel(basicProblemDetails.getContextualLabel()),
-                toProblemDetails(basicProblemDetails.getDetails()),
-                toLocations(basicProblemDetails.getOriginLocations()),
-                toLocations(basicProblemDetails.getContextualLocations()),
-                toSolutions(basicProblemDetails.getSolutions()),
-                toAdditionalData(basicProblemDetails.getAdditionalData()),
-                toFailure(basicProblemDetails.getFailure())
-            );
-        } else if (details instanceof InternalBasicProblemDetailsVersion3) {
+        if (details instanceof InternalBasicProblemDetailsVersion3) {
             InternalBasicProblemDetailsVersion3 basicProblemDetails = (InternalBasicProblemDetailsVersion3) details;
             return new DefaultSingleProblemEvent(
                 problemEvent.getEventTime(),
