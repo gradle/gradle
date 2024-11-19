@@ -39,6 +39,8 @@ public interface ProblemSummariesEvent extends ProblemEvent {
     /**
      * Get problems summaries.
      *
+     * There can be more than one summary for each problem id.
+     *
      * @since 8.12
      */
     List<ProblemSummary> getProblemSummaries();

@@ -14,10 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.problems.internal;
+package org.gradle.api.problems.internal;
 
-import org.gradle.api.problems.internal.ProblemEmitter;
-import org.gradle.problems.buildtree.ProblemReporter;
+import java.io.File;
+import java.util.List;
 
-public interface ProblemReportCreator extends ProblemReporter, ProblemEmitter {
+public interface ProblemReportCreator {
+    /**
+     * Stores a new problem in a temporary file that will be added to the final report when #createProblem is called.
+     */
+    void addProblem(Problem problem);
+
+    /**
+     * Renders a new problem report in the target directory. The report will contain the summaries of the omitted problem reports. The report file is only created if there's at least one problem reported.
+     */
+    void createReportFile(File reportDir, List<ProblemSummaryData> problemSummaries);
 }
