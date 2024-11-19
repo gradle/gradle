@@ -1607,7 +1607,6 @@ Class <org.gradle.internal.build.event.types.AbstractTestResult> is not annotate
 Class <org.gradle.internal.build.event.types.DefaultAnnotationProcessorResult> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultAnnotationProcessorResult.java:0)
 Class <org.gradle.internal.build.event.types.DefaultBinaryPluginIdentifier> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultBinaryPluginIdentifier.java:0)
 Class <org.gradle.internal.build.event.types.DefaultBuildPhaseDescriptor> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultBuildPhaseDescriptor.java:0)
-Class <org.gradle.internal.build.event.types.DefaultFailure$ExceptionLookup> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultFailure.java:0)
 Class <org.gradle.internal.build.event.types.DefaultFailure> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultFailure.java:0)
 Class <org.gradle.internal.build.event.types.DefaultFailureResult> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultFailureResult.java:0)
 Class <org.gradle.internal.build.event.types.DefaultFileDownloadDescriptor> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultFileDownloadDescriptor.java:0)
