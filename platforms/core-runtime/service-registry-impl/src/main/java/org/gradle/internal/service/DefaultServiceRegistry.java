@@ -1117,6 +1117,10 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
                 throw new ServiceValidationException("Cannot register an interface for construction.");
             }
 
+            if (Modifier.isAbstract(implementationType.getModifiers())) {
+                throw new ServiceValidationException("Cannot register an abstract type for construction.");
+            }
+
             validateImplementationForServiceTypes(serviceTypes, implementationType);
 
             Constructor<?> match = InjectUtil.selectConstructor(implementationType);

@@ -416,6 +416,18 @@ class DefaultServiceRegistryTest extends Specification {
         e.message == "Cannot register an interface for construction."
     }
 
+    def "fails when abstract class is registered"() {
+        def registry = new DefaultServiceRegistry()
+        when:
+        registry.register {
+            it.add(AbstractClass)
+        }
+
+        then:
+        def e = thrown(ServiceValidationException)
+        e.message == "Cannot register an abstract type for construction."
+    }
+
     def cachesInstancesCreatedUsingAProviderFactoryMethod() {
         def registry = new DefaultServiceRegistry()
         def provider = new ServiceRegistrationProvider() {
@@ -2118,6 +2130,10 @@ class DefaultServiceRegistryTest extends Specification {
                 }
             }
         }
+    }
+
+    static abstract class AbstractClass {
+
     }
 
     interface TestCloseService extends Closeable {
