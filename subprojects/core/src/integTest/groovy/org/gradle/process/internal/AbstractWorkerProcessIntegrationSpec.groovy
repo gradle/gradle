@@ -82,7 +82,7 @@ abstract class AbstractWorkerProcessIntegrationSpec extends Specification {
     final WorkerProcessClassPathProvider workerProcessClassPathProvider = new WorkerProcessClassPathProvider(globalScopedCache, moduleRegistry)
     final ClassPathRegistry classPathRegistry = new DefaultClassPathRegistry(new DefaultClassPathProvider(moduleRegistry), workerProcessClassPathProvider)
     final JavaExecHandleFactory javaExecHandleFactory = TestFiles.javaExecHandleFactory(tmpDir.testDirectory)
-    final ClientExecHandleFactory execHandleFactory = TestFiles.execHandleFactory(tmpDir.testDirectory)
+    final ClientExecHandleBuilderFactory execHandleFactory = TestFiles.execHandleFactory(tmpDir.testDirectory)
     final OutputEventListener outputEventListener = new TestOutputEventListener()
     final TemporaryFileProvider tmpDirTemporaryFileProvider = TestFiles.tmpDirTemporaryFileProvider(tmpDir.testDirectory)
     final DefaultJvmMetadataDetector defaultJvmMetadataDetector = new DefaultJvmMetadataDetector(

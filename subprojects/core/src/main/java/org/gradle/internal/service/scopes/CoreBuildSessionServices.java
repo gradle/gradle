@@ -69,8 +69,8 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.work.DefaultAsyncWorkTracker;
-import org.gradle.process.internal.ClientExecHandleFactory;
-import org.gradle.process.internal.DefaultClientExecHandleFactory;
+import org.gradle.process.internal.ClientExecHandleBuilderFactory;
+import org.gradle.process.internal.DefaultClientExecHandleBuilderFactory;
 import org.gradle.process.internal.ExecFactory;
 
 import java.io.File;
@@ -165,12 +165,12 @@ public class CoreBuildSessionServices implements ServiceRegistrationProvider {
      * ClientExecHandleFactory is available in global scope, but we need to provide it here to use a build dir based file resolver.
      */
     @Provides
-    ClientExecHandleFactory createExecHandleFactory(
+    ClientExecHandleBuilderFactory createExecHandleFactory(
         FileResolver fileResolver,
         ExecutorFactory executorFactory,
         BuildCancellationToken buildCancellationToken
     ) {
-        return DefaultClientExecHandleFactory.of(fileResolver, executorFactory, buildCancellationToken);
+        return DefaultClientExecHandleBuilderFactory.of(fileResolver, executorFactory, buildCancellationToken);
     }
 
     @Provides
@@ -182,7 +182,7 @@ public class CoreBuildSessionServices implements ServiceRegistrationProvider {
         BuildCancellationToken buildCancellationToken,
         ObjectFactory objectFactory,
         JavaModuleDetector javaModuleDetector,
-        ClientExecHandleFactory clientExecHandleFactory
+        ClientExecHandleBuilderFactory clientExecHandleBuilderFactory
     ) {
         return execFactory.forContext()
             .withFileResolver(fileResolver)
@@ -191,7 +191,7 @@ public class CoreBuildSessionServices implements ServiceRegistrationProvider {
             .withBuildCancellationToken(buildCancellationToken)
             .withObjectFactory(objectFactory)
             .withJavaModuleDetector(javaModuleDetector)
-            .withExecHandleFactory(clientExecHandleFactory)
+            .withExecHandleFactory(clientExecHandleBuilderFactory)
             .build();
     }
 

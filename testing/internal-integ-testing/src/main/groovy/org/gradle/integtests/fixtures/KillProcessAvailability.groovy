@@ -29,7 +29,7 @@ class KillProcessAvailability {
         } else if (OperatingSystem.current().isWindows()) {
             //On some windowses, taskkill does not seem to work when triggered from java
             //On our CIs this works fine
-            def e = TestFiles.execHandleFactory().newExec()
+            def e = TestFiles.execHandleFactory().newExecHandleBuilder()
                     .commandLine("taskkill.exe", "/?")
                     .redirectErrorStream()
                     .setWorkingDir(new File(".").absoluteFile) //does not matter

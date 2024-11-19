@@ -52,8 +52,8 @@ import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.scopes.Scope.Global;
-import org.gradle.process.internal.ClientExecHandleFactory;
-import org.gradle.process.internal.DefaultClientExecHandleFactory;
+import org.gradle.process.internal.ClientExecHandleBuilderFactory;
+import org.gradle.process.internal.DefaultClientExecHandleBuilderFactory;
 
 import java.net.InetAddress;
 
@@ -109,12 +109,12 @@ public class BasicGlobalScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    ClientExecHandleFactory createExecHandleFactory(
+    ClientExecHandleBuilderFactory createExecHandleFactory(
         FileResolver fileResolver,
         ExecutorFactory executorFactory,
         BuildCancellationToken buildCancellationToken
     ) {
-        return DefaultClientExecHandleFactory.of(fileResolver, executorFactory, buildCancellationToken);
+        return DefaultClientExecHandleBuilderFactory.of(fileResolver, executorFactory, buildCancellationToken);
     }
 
     @Provides

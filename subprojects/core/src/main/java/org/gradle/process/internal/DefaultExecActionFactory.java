@@ -52,7 +52,7 @@ public class DefaultExecActionFactory implements ExecFactory {
     @Nullable
     protected final JavaModuleDetector javaModuleDetector;
     protected final BuildCancellationToken buildCancellationToken;
-    protected final ClientExecHandleFactory execHandleFactory;
+    protected final ClientExecHandleBuilderFactory execHandleFactory;
     protected final Instantiator instantiator;
     protected final ExternalProcessStartedListener externalProcessStartedListener;
 
@@ -64,7 +64,7 @@ public class DefaultExecActionFactory implements ExecFactory {
         TemporaryFileProvider temporaryFileProvider,
         BuildCancellationToken buildCancellationToken,
         ObjectFactory objectFactory,
-        ClientExecHandleFactory execHandleFactory,
+        ClientExecHandleBuilderFactory execHandleFactory,
         @Nullable JavaModuleDetector javaModuleDetector,
         @Nullable ExternalProcessStartedListener externalProcessStartedListener
     ) {
@@ -88,7 +88,7 @@ public class DefaultExecActionFactory implements ExecFactory {
         TemporaryFileProvider temporaryFileProvider,
         BuildCancellationToken buildCancellationToken,
         ObjectFactory objectFactory,
-        ClientExecHandleFactory clientExecHandleFactory
+        ClientExecHandleBuilderFactory clientExecHandleBuilderFactory
     ) {
         return new DefaultExecActionFactory(
             fileResolver,
@@ -98,14 +98,14 @@ public class DefaultExecActionFactory implements ExecFactory {
             temporaryFileProvider,
             buildCancellationToken,
             objectFactory,
-            clientExecHandleFactory,
+            clientExecHandleBuilderFactory,
             null,
             null
         );
     }
 
     public ExecAction newDecoratedExecAction() {
-        DefaultExecAction execAction = instantiator.newInstance(DefaultExecAction.class, execHandleFactory.newExec());
+        DefaultExecAction execAction = instantiator.newInstance(DefaultExecAction.class, execHandleFactory.newExecHandleBuilder());
         ExecHandleListener listener = getExecHandleListener();
         if (listener != null) {
             execAction.listener(listener);
@@ -115,7 +115,7 @@ public class DefaultExecActionFactory implements ExecFactory {
 
     @Override
     public ExecAction newExecAction() {
-        return new DefaultExecAction(execHandleFactory.newExec());
+        return new DefaultExecAction(execHandleFactory.newExecHandleBuilder());
     }
 
     @Override
@@ -189,7 +189,7 @@ public class DefaultExecActionFactory implements ExecFactory {
     @Override
     @SuppressWarnings("deprecation")
     public ExecHandleBuilder newExec() {
-        return new DefaultExecHandleBuilder(execHandleFactory.newExec());
+        return new DefaultExecHandleBuilder(execHandleFactory.newExecHandleBuilder());
     }
 
     @Override
@@ -200,7 +200,7 @@ public class DefaultExecActionFactory implements ExecFactory {
             temporaryFileProvider,
             javaModuleDetector,
             newJavaForkOptions(),
-            execHandleFactory.newExec()
+            execHandleFactory.newExecHandleBuilder()
         );
     }
 
@@ -242,7 +242,7 @@ public class DefaultExecActionFactory implements ExecFactory {
         private Instantiator instantiator;
         private BuildCancellationToken buildCancellationToken;
         private ObjectFactory objectFactory;
-        private ClientExecHandleFactory clientExecHandleFactory;
+        private ClientExecHandleBuilderFactory clientExecHandleBuilderFactory;
         @Nullable
         private JavaModuleDetector javaModuleDetector;
 
@@ -300,8 +300,8 @@ public class DefaultExecActionFactory implements ExecFactory {
         }
 
         @Override
-        public Builder withExecHandleFactory(ClientExecHandleFactory clientExecHandleFactory) {
-            this.clientExecHandleFactory = clientExecHandleFactory;
+        public Builder withExecHandleFactory(ClientExecHandleBuilderFactory execHandleBuilderFactory) {
+            this.clientExecHandleBuilderFactory = execHandleBuilderFactory;
             return this;
         }
 
@@ -318,7 +318,7 @@ public class DefaultExecActionFactory implements ExecFactory {
             Preconditions.checkState(instantiator != null, "instantiator is not set");
             Preconditions.checkState(buildCancellationToken != null, "buildCancellationToken is not set");
             Preconditions.checkState(objectFactory != null, "objectFactory is not set");
-            Preconditions.checkState(clientExecHandleFactory != null, "clientExecHandleFactory is not set");
+            Preconditions.checkState(clientExecHandleBuilderFactory != null, "clientExecHandleFactory is not set");
             return new DefaultExecActionFactory(
                 fileResolver,
                 fileCollectionFactory,
@@ -327,7 +327,7 @@ public class DefaultExecActionFactory implements ExecFactory {
                 temporaryFileProvider,
                 buildCancellationToken,
                 objectFactory,
-                clientExecHandleFactory,
+                clientExecHandleBuilderFactory,
                 javaModuleDetector,
                 externalProcessStartedListener
             );

@@ -22,7 +22,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
 /**
  * Propagates notification that the build should be cancelled.
  */
-@ServiceScope({Scope.Global.class, Scope.Build.class, Scope.BuildSession.class})
+@ServiceScope({Scope.Global.class, Scope.BuildSession.class, Scope.Build.class})
 public interface BuildCancellationToken {
 
     boolean isCancellationRequested();

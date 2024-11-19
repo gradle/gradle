@@ -92,7 +92,7 @@ class ProcessFixture {
 
     private String execute(Object[] commandLine, InputStream input) {
         def output = new ByteArrayOutputStream()
-        def e = TestFiles.execHandleFactory().newExec()
+        def e = TestFiles.execHandleFactory().newExecHandleBuilder()
                 .commandLine(commandLine)
                 .redirectErrorStream()
                 .setStandardInput(input)

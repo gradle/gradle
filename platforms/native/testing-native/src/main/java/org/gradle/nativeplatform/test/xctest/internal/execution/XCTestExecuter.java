@@ -33,7 +33,7 @@ import org.gradle.internal.time.Clock;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.process.ExecResult;
 import org.gradle.process.internal.ClientExecHandleBuilder;
-import org.gradle.process.internal.ClientExecHandleFactory;
+import org.gradle.process.internal.ClientExecHandleBuilderFactory;
 import org.gradle.process.internal.ExecException;
 import org.gradle.process.internal.ExecHandle;
 
@@ -60,7 +60,7 @@ import java.util.List;
  */
 public class XCTestExecuter implements TestExecuter<XCTestTestExecutionSpec> {
     @Inject
-    public ClientExecHandleFactory getExecHandleFactory() {
+    public ClientExecHandleBuilderFactory getExecHandleFactory() {
         throw new UnsupportedOperationException();
     }
 
@@ -90,7 +90,7 @@ public class XCTestExecuter implements TestExecuter<XCTestTestExecutionSpec> {
 
         String rootTestSuiteId = testExecutionSpec.getPath();
 
-        TestClassProcessor processor = new XCTestProcessor(getClock(), executable, workingDir, getExecHandleFactory().newExec(), getIdGenerator(), rootTestSuiteId);
+        TestClassProcessor processor = new XCTestProcessor(getClock(), executable, workingDir, getExecHandleFactory().newExecHandleBuilder(), getIdGenerator(), rootTestSuiteId);
 
         Runnable detector = new XCTestDetector(processor, testExecutionSpec.getTestSelection());
 

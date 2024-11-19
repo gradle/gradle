@@ -16,7 +16,7 @@
 
 package org.gradle.jvm.toolchain.internal
 
-import org.gradle.process.internal.ClientExecHandleFactory
+import org.gradle.process.internal.ClientExecHandleBuilderFactory
 import org.gradle.process.internal.ExecException
 import spock.lang.Specification
 
@@ -89,7 +89,7 @@ No Java runtime present, try --request to install.
     }
 
     def "returns empty set when command fails"() {
-        def parser = new DefaultOsXJavaHomeCommand(Mock(ClientExecHandleFactory)) {
+        def parser = new DefaultOsXJavaHomeCommand(Mock(ClientExecHandleBuilderFactory)) {
             @Override
             protected void executeCommand(ByteArrayOutputStream outputStream) {
                 throw new ExecException("command failed")

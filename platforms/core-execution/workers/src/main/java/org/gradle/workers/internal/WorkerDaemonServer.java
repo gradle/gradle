@@ -63,8 +63,8 @@ import org.gradle.internal.service.scopes.WorkerSharedGlobalScopeServices;
 import org.gradle.internal.service.scopes.WorkerSharedProjectScopeServices;
 import org.gradle.internal.service.scopes.WorkerSharedUserHomeScopeServices;
 import org.gradle.internal.state.ManagedFactoryRegistry;
-import org.gradle.process.internal.ClientExecHandleFactory;
-import org.gradle.process.internal.DefaultClientExecHandleFactory;
+import org.gradle.process.internal.ClientExecHandleBuilderFactory;
+import org.gradle.process.internal.DefaultClientExecHandleBuilderFactory;
 import org.gradle.process.internal.DefaultExecActionFactory;
 import org.gradle.process.internal.ExecFactory;
 import org.gradle.process.internal.worker.RequestHandler;
@@ -227,12 +227,12 @@ public class WorkerDaemonServer implements RequestHandler<TransportableActionExe
          * ClientExecHandleFactory is available in global scope, but we need to provide it here to use a build dir based file resolver.
          */
         @Provides
-        ClientExecHandleFactory createExecFactory(
+        ClientExecHandleBuilderFactory createExecFactory(
             FileResolver fileResolver,
             ExecutorFactory executorFactory,
             BuildCancellationToken buildCancellationToken
         ) {
-            return DefaultClientExecHandleFactory.of(fileResolver, executorFactory, buildCancellationToken);
+            return DefaultClientExecHandleBuilderFactory.of(fileResolver, executorFactory, buildCancellationToken);
         }
 
         @Provides
@@ -244,7 +244,7 @@ public class WorkerDaemonServer implements RequestHandler<TransportableActionExe
             ExecutorFactory executorFactory,
             TemporaryFileProvider temporaryFileProvider,
             BuildCancellationToken buildCancellationToken,
-            ClientExecHandleFactory execHandleFactory
+            ClientExecHandleBuilderFactory execHandleFactory
         ) {
             return DefaultExecActionFactory.of(
                 fileResolver,

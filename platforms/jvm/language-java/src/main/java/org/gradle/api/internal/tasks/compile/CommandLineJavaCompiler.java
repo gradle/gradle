@@ -22,7 +22,7 @@ import org.gradle.internal.process.ArgCollector;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.process.ExecResult;
 import org.gradle.process.internal.ClientExecHandleBuilder;
-import org.gradle.process.internal.ClientExecHandleFactory;
+import org.gradle.process.internal.ClientExecHandleBuilderFactory;
 import org.gradle.process.internal.ExecHandle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,9 +36,9 @@ public class CommandLineJavaCompiler implements Compiler<JavaCompileSpec>, Seria
     private static final Logger LOGGER = LoggerFactory.getLogger(CommandLineJavaCompiler.class);
 
     private final CompileSpecToArguments<JavaCompileSpec> argumentsGenerator = new CommandLineJavaCompilerArgumentsGenerator();
-    private final ClientExecHandleFactory execHandleFactory;
+    private final ClientExecHandleBuilderFactory execHandleFactory;
 
-    public CommandLineJavaCompiler(ClientExecHandleFactory execHandleFactory) {
+    public CommandLineJavaCompiler(ClientExecHandleBuilderFactory execHandleFactory) {
         this.execHandleFactory = execHandleFactory;
     }
 
@@ -58,7 +58,7 @@ public class CommandLineJavaCompiler implements Compiler<JavaCompileSpec>, Seria
     }
 
     private ExecHandle createCompilerHandle(String executable, JavaCompileSpec spec) {
-        ClientExecHandleBuilder builder = execHandleFactory.newExec();
+        ClientExecHandleBuilder builder = execHandleFactory.newExecHandleBuilder();
         builder.setWorkingDir(spec.getWorkingDir());
         builder.setExecutable(executable);
         argumentsGenerator.collectArguments(spec, new ArgCollector() {

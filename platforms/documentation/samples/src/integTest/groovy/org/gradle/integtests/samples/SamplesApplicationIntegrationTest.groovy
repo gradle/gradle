@@ -104,10 +104,10 @@ application {
         installDir.file("${executableDir}/my-app.bat").text.contains("MODULE_PATH=")
 
         def builder = new ScriptExecuter()
-        builder.setWorkingDir(installDir.file(executableDir))
-        builder.setExecutable('my-app')
-        builder.setStandardOutput(new ByteArrayOutputStream())
-        builder.setErrorOutput(new ByteArrayOutputStream())
+        builder.workingDir = installDir.file(executableDir)
+        builder.executable = 'my-app'
+        builder.standardOutput = new ByteArrayOutputStream()
+        builder.errorOutput = new ByteArrayOutputStream()
 
         def result = builder.run()
         result.assertNormalExitValue()

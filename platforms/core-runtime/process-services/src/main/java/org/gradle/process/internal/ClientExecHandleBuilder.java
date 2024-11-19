@@ -27,6 +27,9 @@ import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * TODO: Rename to ExecHandleBuilder and remove current ExecHandleBuilder in Gradle 9.0
+ */
 @NonNullApi
 public interface ClientExecHandleBuilder extends BaseExecHandleBuilder {
     ClientExecHandleBuilder commandLine(Iterable<?> args);

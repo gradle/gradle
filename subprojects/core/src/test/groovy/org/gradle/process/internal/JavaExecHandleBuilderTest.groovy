@@ -39,7 +39,7 @@ class JavaExecHandleBuilderTest extends Specification {
         temporaryFileProvider,
         null,
         TestFiles.execFactory().newJavaForkOptions(),
-        TestFiles.execHandleFactory().newExec()
+        TestFiles.execHandleFactory().newExecHandleBuilder()
     )
 
     FileCollectionFactory fileCollectionFactory = TestFiles.fileCollectionFactory()
@@ -174,7 +174,7 @@ class JavaExecHandleBuilderTest extends Specification {
             temporaryFileProvider,
             moduleDetector,
             TestFiles.execFactory().newJavaForkOptions(),
-            TestFiles.execHandleFactory().newExec()
+            TestFiles.execHandleFactory().newExecHandleBuilder()
         )
 
         builder.mainModule.set("mainModule")

@@ -61,6 +61,8 @@ class TestCrossBuildInMemoryCacheFactory implements CrossBuildInMemoryCacheFacto
         @Override
         V get(K key, Function<? super K, ? extends V> factory) {
             try {
+                // Using a lock instead of computeIfAbsent, since with
+                // computeIfAbsent we can get recursive update exception.
                 lock.lock()
                 def v = values.get(key)
                 if (v == null) {

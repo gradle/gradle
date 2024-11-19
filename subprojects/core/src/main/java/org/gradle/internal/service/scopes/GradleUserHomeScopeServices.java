@@ -91,7 +91,7 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.vfs.FileSystemAccess;
-import org.gradle.process.internal.ClientExecHandleFactory;
+import org.gradle.process.internal.ClientExecHandleBuilderFactory;
 import org.gradle.process.internal.ExecFactory;
 import org.gradle.process.internal.JavaExecHandleFactory;
 import org.gradle.process.internal.health.memory.MemoryManager;
@@ -132,7 +132,7 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
     }
 
     @Provides
-    JvmMetadataDetector createJvmMetadataDetector(ClientExecHandleFactory execHandleFactory, TemporaryFileProvider temporaryFileProvider) {
+    JvmMetadataDetector createJvmMetadataDetector(ClientExecHandleBuilderFactory execHandleFactory, TemporaryFileProvider temporaryFileProvider) {
         return new CachingJvmMetadataDetector(
             new ReportingJvmMetadataDetector(
                 new DefaultJvmMetadataDetector(execHandleFactory, temporaryFileProvider),

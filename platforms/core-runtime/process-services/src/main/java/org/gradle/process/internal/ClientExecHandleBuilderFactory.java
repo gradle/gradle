@@ -22,6 +22,6 @@ import org.gradle.internal.service.scopes.ServiceScope;
 
 @NonNullApi
 @ServiceScope({Scope.Global.class, Scope.BuildSession.class})
-public interface ClientExecHandleFactory {
-    ClientExecHandleBuilder newExec();
+public interface ClientExecHandleBuilderFactory {
+    ClientExecHandleBuilder newExecHandleBuilder();
 }

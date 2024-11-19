@@ -24,7 +24,7 @@ import org.gradle.internal.os.OperatingSystem;
 import org.gradle.jvm.toolchain.internal.InstallationLocation;
 import org.gradle.process.ExecResult;
 import org.gradle.process.internal.ClientExecHandleBuilder;
-import org.gradle.process.internal.ClientExecHandleFactory;
+import org.gradle.process.internal.ClientExecHandleBuilderFactory;
 import org.gradle.process.internal.ExecException;
 import org.gradle.util.internal.GFileUtils;
 import org.slf4j.Logger;
@@ -39,14 +39,14 @@ import java.util.EnumMap;
 
 public class DefaultJvmMetadataDetector implements JvmMetadataDetector {
 
-    private final ClientExecHandleFactory execHandleFactory;
+    private final ClientExecHandleBuilderFactory execHandleFactory;
     private final TemporaryFileProvider temporaryFileProvider;
 
     private final Logger logger = LoggerFactory.getLogger(DefaultJvmMetadataDetector.class);
 
     @Inject
     public DefaultJvmMetadataDetector(
-        final ClientExecHandleFactory execHandleFactory,
+        final ClientExecHandleBuilderFactory execHandleFactory,
         final TemporaryFileProvider temporaryFileProvider
     ) {
         this.execHandleFactory = execHandleFactory;
@@ -99,7 +99,7 @@ public class DefaultJvmMetadataDetector implements JvmMetadataDetector {
     private JvmInstallationMetadata getMetadataFromInstallation(File jdkPath) {
         File tmpDir = temporaryFileProvider.createTemporaryDirectory("jvm", "probe");
         File probe = writeProbeClass(tmpDir);
-        ClientExecHandleBuilder exec = execHandleFactory.newExec();
+        ClientExecHandleBuilder exec = execHandleFactory.newExecHandleBuilder();
         exec.setWorkingDir(probe.getParentFile());
         exec.setExecutable(javaExecutable(jdkPath).getAbsolutePath());
         try {

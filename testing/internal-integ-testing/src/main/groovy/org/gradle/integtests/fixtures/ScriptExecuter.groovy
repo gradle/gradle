@@ -23,7 +23,7 @@ import org.gradle.process.internal.ExecHandle
 
 class ScriptExecuter {
     @Delegate
-    ClientExecHandleBuilder builder = TestFiles.execHandleFactory().newExec()
+    ClientExecHandleBuilder builder = TestFiles.execHandleFactory().newExecHandleBuilder()
 
     @Override
     ExecHandle build() {
