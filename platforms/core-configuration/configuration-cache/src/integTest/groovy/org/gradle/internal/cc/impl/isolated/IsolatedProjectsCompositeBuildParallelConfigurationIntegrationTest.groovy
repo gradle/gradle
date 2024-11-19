@@ -27,7 +27,6 @@ class IsolatedProjectsCompositeBuildParallelConfigurationIntegrationTest extends
 
     def setup() {
         server.start()
-        compositeBuildTestFileFactory = { name -> file(name) }
     }
 
     def "plugin builds are being configured in defined order despite plugins from them were requested concurrently"() {

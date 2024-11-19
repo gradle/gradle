@@ -16,20 +16,19 @@
 
 package org.gradle.internal.cc.impl.isolated
 
+import groovy.transform.SelfType
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
 
-import java.util.function.Function
-
+@SelfType(AbstractIntegrationSpec)
 trait CompositeBuildSupport {
-
-    Function<String, TestFile> compositeBuildTestFileFactory = { name -> throw new IllegalStateException("TestFile factory for CompositeBuildSupport is required") }
 
     def includedBuild(String root, @DelegatesTo(BuildLayout) Closure configure) {
         configure.setDelegate(
             new BuildLayout(
-                compositeBuildTestFileFactory.apply("$root/settings.gradle"),
-                compositeBuildTestFileFactory.apply("$root/build.gradle"),
-                compositeBuildTestFileFactory.apply("$root/src/main/groovy"))
+                file("$root/settings.gradle"),
+                file("$root/build.gradle"),
+                file("$root/src/main/groovy"))
         )
         configure()
     }

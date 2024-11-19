@@ -18,10 +18,6 @@ package org.gradle.internal.cc.impl.isolated
 
 class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProjectsIntegrationTest implements CompositeBuildSupport {
 
-    def setup() {
-        compositeBuildTestFileFactory = { name -> file(name) }
-    }
-
     def "can build libraries composed from multiple builds"() {
         settingsFile << """
             includeBuild("libs")
