@@ -177,6 +177,7 @@ public class DefaultDaemonStarter implements DaemonStarter {
             encoder.writeSmallInt(daemonParameters.getNativeServicesMode().ordinal());
             encoder.writeString(daemonUid);
             encoder.writeSmallInt(daemonParameters.getPriority().ordinal());
+            encoder.writeSmallInt(daemonParameters.getLogLevel().ordinal());
             encoder.writeSmallInt(daemonOpts.size());
             for (String daemonOpt : daemonOpts) {
                 encoder.writeString(daemonOpt);

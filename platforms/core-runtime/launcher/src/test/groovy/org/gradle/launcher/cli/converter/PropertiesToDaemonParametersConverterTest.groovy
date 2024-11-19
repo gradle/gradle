@@ -111,6 +111,16 @@ class PropertiesToDaemonParametersConverterTest extends Specification {
         ex.message.contains 'asdf'
     }
 
+    def "shows nice message for invalid log level"() {
+        when:
+        converter.convert((DaemonBuildOptions.DaemonLogLevelOption.GRADLE_PROPERTY): 'asdf', params)
+
+        then:
+        def ex = thrown(IllegalArgumentException)
+        ex.message.contains 'org.gradle.daemon.log.level'
+        ex.message.contains 'asdf'
+    }
+
     def "shows nice message for invalid periodic check interval"() {
         when:
         converter.convert((DaemonBuildOptions.HealthCheckOption.GRADLE_PROPERTY): 'bogus', params)

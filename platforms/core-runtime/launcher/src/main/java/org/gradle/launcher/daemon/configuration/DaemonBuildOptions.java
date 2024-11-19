@@ -17,6 +17,7 @@
 package org.gradle.launcher.daemon.configuration;
 
 import org.gradle.api.NonNullApi;
+import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.buildoption.BooleanBuildOption;
 import org.gradle.internal.buildoption.BooleanCommandLineOptionConfiguration;
 import org.gradle.internal.buildoption.BuildOption;
@@ -56,6 +57,7 @@ public class DaemonBuildOptions extends BuildOptionSet<DaemonParameters> {
         new StopOption(),
         new StatusOption(),
         new PriorityOption(),
+        new DaemonLogLevelOption(),
         new NativeServicesOption()
     );
 
@@ -309,6 +311,25 @@ public class DaemonBuildOptions extends BuildOptionSet<DaemonParameters> {
             } catch (IllegalArgumentException e) {
                 origin.handleInvalidValue(value);
             }
+        }
+    }
+
+    public static class DaemonLogLevelOption extends StringBuildOption<DaemonParameters> {
+        public static final String GRADLE_PROPERTY = "org.gradle.daemon.log.level";
+
+        public DaemonLogLevelOption() {
+            super(GRADLE_PROPERTY, BooleanCommandLineOptionConfiguration.create("log-level", "Defines the log level for the gradle daemon - this is not the log level of your build. Can be " + Arrays.toString(LogLevel.values())));
+        }
+
+        @Override
+        public void applyTo(String value, DaemonParameters settings, Origin origin) {
+            for (LogLevel logLevel : LogLevel.values()) {
+                if (logLevel.name().equalsIgnoreCase(value)) {
+                    settings.setLogLevel(logLevel);
+                    return;
+                }
+            }
+            origin.handleInvalidValue(value, "Must be one of " + Arrays.toString(LogLevel.values()));
         }
     }
 }

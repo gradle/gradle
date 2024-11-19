@@ -23,6 +23,7 @@ description = "Implementation of the Gradle daemon server"
 dependencies {
     api(projects.launcher)
     api(projects.logging)
+    api(projects.loggingApi)
     api(projects.messaging)
 
     implementation(libs.guava)
@@ -30,7 +31,6 @@ dependencies {
     implementation(projects.concurrent)
     implementation(projects.instrumentationAgentServices)
     implementation(projects.stdlibJavaExtensions)
-    implementation(projects.loggingApi)
     implementation(projects.native)
     implementation(projects.serialization)
     implementation(projects.serviceLookup)
