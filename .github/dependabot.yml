@@ -5,10 +5,6 @@
 
 version: 2
 updates:
-  - package-ecosystem: "gomod"
-    directory: "/" # Location of package manifests
-    schedule:
-      interval: "daily"
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
