@@ -90,7 +90,9 @@ private
 class ProjectPropertyAccessorRuntimeResolver : RuntimePropertyResolver {
     override fun resolvePropertyRead(receiverClass: KClass<*>, name: String): RuntimePropertyResolver.ReadResolution =
         if (receiverClass.isSubclassOf(Project::class) && name == "projects") {
-            RuntimePropertyResolver.ReadResolution.ResolvedRead { receiver -> (receiver as Project).extensions.getByName("projects") }
+            RuntimePropertyResolver.ReadResolution.ResolvedRead { receiver ->
+                val value = (receiver as Project).extensions.getByName("projects")
+                value to value::class }
         } else RuntimePropertyResolver.ReadResolution.UnresolvedRead
 
     override fun resolvePropertyWrite(receiverClass: KClass<*>, name: String) = RuntimePropertyResolver.WriteResolution.UnresolvedWrite
