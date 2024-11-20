@@ -42,7 +42,7 @@ import org.gradle.jvm.toolchain.internal.SdkmanInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.ToolchainConfiguration;
 import org.gradle.jvm.toolchain.internal.WindowsInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.install.DefaultJdkCacheDirectory;
-import org.gradle.process.internal.ExecHandleFactory;
+import org.gradle.process.internal.ClientExecHandleBuilderFactory;
 
 import java.util.List;
 
@@ -82,7 +82,7 @@ public class DaemonClientToolchainServices implements ServiceRegistrationProvide
     }
 
     @Provides
-    protected JdkCacheDirectory createJdkCacheDirectory(GradleUserHomeDirProvider gradleUserHomeDirProvider, FileLockManager fileLockManager, ExecHandleFactory execHandleFactory, GradleUserHomeTemporaryFileProvider gradleUserHomeTemporaryFileProvider) {
+    protected JdkCacheDirectory createJdkCacheDirectory(GradleUserHomeDirProvider gradleUserHomeDirProvider, FileLockManager fileLockManager, ClientExecHandleBuilderFactory execHandleFactory, GradleUserHomeTemporaryFileProvider gradleUserHomeTemporaryFileProvider) {
         return new DefaultJdkCacheDirectory(gradleUserHomeDirProvider, null, fileLockManager, new DefaultJvmMetadataDetector(execHandleFactory, gradleUserHomeTemporaryFileProvider), gradleUserHomeTemporaryFileProvider);
     }
 }

@@ -17,6 +17,7 @@
 package org.gradle.process.internal
 
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.initialization.DefaultBuildCancellationToken
 import org.gradle.process.internal.streams.EmptyStdInStreamsHandler
 import org.gradle.process.internal.streams.ForwardStdinStreamsHandler
 import org.gradle.util.UsesNativeServices
@@ -25,8 +26,8 @@ import spock.lang.Specification
 import java.util.concurrent.Executor
 
 @UsesNativeServices
-class DefaultExecHandleBuilderTest extends Specification {
-    private final DefaultExecHandleBuilder builder = new DefaultExecHandleBuilder(TestFiles.pathToFileResolver(), Mock(Executor))
+class DefaultClientExecHandleBuilderTest extends Specification {
+    private final DefaultClientExecHandleBuilder builder = new DefaultClientExecHandleBuilder(TestFiles.pathToFileResolver(), Mock(Executor), new DefaultBuildCancellationToken())
 
     def defaultsToEmptyStandardInput() {
         expect:

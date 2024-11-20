@@ -31,7 +31,9 @@ import org.gradle.api.internal.collections.DefaultDomainObjectCollectionFactory;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FilePropertyFactory;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
+import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.model.DefaultObjectFactory;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.provider.PropertyFactory;
@@ -51,6 +53,7 @@ import org.gradle.configuration.DefaultImportsReader;
 import org.gradle.configuration.ImportsReader;
 import org.gradle.execution.DefaultWorkValidationWarningRecorder;
 import org.gradle.execution.WorkValidationWarningReporter;
+import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.initialization.DefaultClassLoaderRegistry;
 import org.gradle.initialization.DefaultJdkToolsInitializer;
@@ -85,6 +88,7 @@ import org.gradle.internal.operations.DefaultBuildOperationProgressEventEmitter;
 import org.gradle.internal.problems.failure.DefaultFailureFactory;
 import org.gradle.internal.problems.failure.FailureFactory;
 import org.gradle.internal.reflect.DirectInstantiator;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.scripts.DefaultScriptFileResolver;
 import org.gradle.internal.scripts.DefaultScriptFileResolverListeners;
 import org.gradle.internal.scripts.ScriptFileResolvedListener;
@@ -110,6 +114,9 @@ import org.gradle.model.internal.manage.schema.extract.ModelSchemaAspectExtracti
 import org.gradle.model.internal.manage.schema.extract.ModelSchemaAspectExtractor;
 import org.gradle.model.internal.manage.schema.extract.ModelSchemaExtractionStrategy;
 import org.gradle.model.internal.manage.schema.extract.ModelSchemaExtractor;
+import org.gradle.process.internal.ClientExecHandleBuilderFactory;
+import org.gradle.process.internal.DefaultExecActionFactory;
+import org.gradle.process.internal.ExecFactory;
 import org.gradle.process.internal.health.memory.DefaultJvmMemoryInfo;
 import org.gradle.process.internal.health.memory.DefaultMemoryManager;
 import org.gradle.process.internal.health.memory.DefaultOsMemoryInfo;
@@ -285,6 +292,29 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
             taskDependencyFactory,
             fileCollectionFactory,
             domainObjectCollectionFactory);
+    }
+
+    @Provides
+    ExecFactory createExecFactory(
+        FileResolver fileResolver,
+        FileCollectionFactory fileCollectionFactory,
+        Instantiator instantiator,
+        ObjectFactory objectFactory,
+        ExecutorFactory executorFactory,
+        TemporaryFileProvider temporaryFileProvider,
+        BuildCancellationToken buildCancellationToken,
+        ClientExecHandleBuilderFactory execHandleFactory
+    ) {
+        return DefaultExecActionFactory.of(
+            fileResolver,
+            fileCollectionFactory,
+            instantiator,
+            executorFactory,
+            temporaryFileProvider,
+            buildCancellationToken,
+            objectFactory,
+            execHandleFactory
+        );
     }
 
     @Provides

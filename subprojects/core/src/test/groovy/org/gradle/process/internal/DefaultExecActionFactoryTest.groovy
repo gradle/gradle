@@ -18,6 +18,7 @@ package org.gradle.process.internal
 
 import org.apache.commons.io.FileUtils
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.initialization.DefaultBuildCancellationToken
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.process.ExecResult
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
@@ -31,15 +32,19 @@ class DefaultExecActionFactoryTest extends ConcurrentSpec {
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     def resolver = TestFiles.resolver(tmpDir.testDirectory)
+    def execHandleFactory = TestFiles.execHandleFactory(tmpDir.testDirectory)
     def fileCollectionFactory = TestFiles.fileCollectionFactory(tmpDir.testDirectory)
     def instantiator = TestUtil.instantiatorFactory()
-    def factory =
-        DefaultExecActionFactory
-            .of(resolver, fileCollectionFactory, executorFactory, TestFiles.tmpDirTemporaryFileProvider(tmpDir.createDir("tmp")))
-            .forContext()
-            .withInstantiator(instantiator.decorateLenient())
-            .withObjectFactory(TestUtil.objectFactory())
-            .build()
+    def factory = DefaultExecActionFactory.of(
+        resolver,
+        fileCollectionFactory,
+        instantiator.decorateLenient(),
+        executorFactory,
+        TestFiles.tmpDirTemporaryFileProvider(tmpDir.createDir("tmp")),
+        new DefaultBuildCancellationToken(),
+        TestUtil.objectFactory(),
+        execHandleFactory
+    )
 
     def javaexec() {
         File testFile = tmpDir.file("someFile")

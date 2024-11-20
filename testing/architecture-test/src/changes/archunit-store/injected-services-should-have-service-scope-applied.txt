@@ -72,7 +72,6 @@ Class <org.gradle.nativeplatform.toolchain.internal.xcode.SwiftStdlibToolLocator
 Class <org.gradle.normalization.InputNormalizationHandler> is not annotated with @ServiceScope in (InputNormalizationHandler.java:0)
 Class <org.gradle.normalization.internal.InputNormalizationHandlerInternal> is not annotated with @ServiceScope in (InputNormalizationHandlerInternal.java:0)
 Class <org.gradle.plugin.management.PluginManagementSpec> is not annotated with @ServiceScope in (PluginManagementSpec.java:0)
-Class <org.gradle.process.internal.ExecHandleFactory> is not annotated with @ServiceScope in (ExecHandleFactory.java:0)
 Class <org.gradle.process.internal.JavaExecHandleFactory> is not annotated with @ServiceScope in (JavaExecHandleFactory.java:0)
 Class <org.gradle.process.internal.JavaForkOptionsFactory> is not annotated with @ServiceScope in (JavaForkOptionsFactory.java:0)
 Class <org.gradle.process.internal.worker.WorkerProcessFactory> is not annotated with @ServiceScope in (WorkerProcessFactory.java:0)

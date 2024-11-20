@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.process.internal;
 
-import org.gradle.api.NonExtensible;
-import org.gradle.process.ExecResult;
-import org.gradle.process.ExecSpec;
+import org.gradle.api.NonNullApi;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
-@NonExtensible
-public interface ExecAction extends ExecSpec {
-    ExecResult execute() throws ExecException;
-    ExecAction listener(ExecHandleListener listener);
+@NonNullApi
+@ServiceScope({Scope.Global.class, Scope.BuildSession.class})
+public interface ClientExecHandleBuilderFactory {
+    ClientExecHandleBuilder newExecHandleBuilder();
 }

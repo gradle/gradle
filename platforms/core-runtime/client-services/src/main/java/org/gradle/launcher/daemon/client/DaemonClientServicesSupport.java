@@ -54,7 +54,7 @@ import org.gradle.launcher.daemon.protocol.DaemonMessageSerializer;
 import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.toolchain.DaemonJavaToolchainQueryService;
-import org.gradle.process.internal.ExecHandleFactory;
+import org.gradle.process.internal.ClientExecHandleBuilderFactory;
 
 import java.io.InputStream;
 import java.util.UUID;
@@ -100,7 +100,7 @@ public abstract class DaemonClientServicesSupport implements ServiceRegistration
     }
 
     @Provides
-    JvmMetadataDetector createJvmMetadataDetector(ExecHandleFactory execHandleFactory, TemporaryFileProvider temporaryFileProvider, GlobalScopedCacheBuilderFactory globalScopedCacheBuilderFactory) {
+    JvmMetadataDetector createJvmMetadataDetector(ClientExecHandleBuilderFactory execHandleFactory, TemporaryFileProvider temporaryFileProvider, GlobalScopedCacheBuilderFactory globalScopedCacheBuilderFactory) {
         return new PersistentJvmMetadataDetector(new DefaultJvmMetadataDetector(execHandleFactory, temporaryFileProvider), globalScopedCacheBuilderFactory.createCacheBuilder("jvms"));
     }
 
