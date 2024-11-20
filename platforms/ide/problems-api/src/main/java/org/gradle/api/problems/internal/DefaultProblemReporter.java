@@ -80,7 +80,6 @@ public class DefaultProblemReporter implements InternalProblemReporter {
 
     @Override
     public RuntimeException throwing(Throwable exception, Collection<? extends Problem> problems) {
-        Throwable transformedException = transform(exception);
         for (Problem problem : problems) {
             Problem problemWithException = new DefaultProblem(
                 problem.getDefinition(),
@@ -89,11 +88,10 @@ public class DefaultProblemReporter implements InternalProblemReporter {
                 problem.getOriginLocations(),
                 problem.getContextualLocations(),
                 problem.getDetails(),
-                exception,
+                transform(exception),
                 problem.getAdditionalData()
             );
             report(problemWithException);
-            exceptionProblemRegistry.onProblem(transformedException, problemWithException);
         }
         if (exception instanceof RuntimeException) {
             return (RuntimeException) exception;
@@ -104,7 +102,6 @@ public class DefaultProblemReporter implements InternalProblemReporter {
 
     private RuntimeException throwError(Throwable exception, Problem problem) {
         report(problem);
-        exceptionProblemRegistry.onProblem(transform(exception), problem);
         if (exception instanceof RuntimeException) {
             return (RuntimeException) exception;
         } else {
@@ -139,6 +136,13 @@ public class DefaultProblemReporter implements InternalProblemReporter {
         OperationIdentifier id = currentBuildOperationRef.getId();
         if (id != null) {
             report(problem, id);
+        }
+    }
+
+    @Override
+    public void report(Collection<? extends Problem> problems) {
+        for (Problem problem : problems) {
+            report(problem);
         }
     }
 

@@ -48,6 +48,14 @@ public interface ProblemReporter {
     void report(Problem problem);
 
     /**
+     * Reports the target problems.
+     *
+     * @param problems The problems to report.
+     * @since 8.12
+     */
+    void report(Collection<? extends Problem> problems);
+
+    /**
      * Configures and reports a new problem.
      * <p>
      * The spec must specify the problem label and the category. Any additional configuration is optional.
@@ -56,6 +64,7 @@ public interface ProblemReporter {
      * @since 8.6
      */
     void reporting(Action<ProblemSpec> spec);
+
 
     /**
      * Configures a new problem, reports it, and uses it to throw a new exception.
