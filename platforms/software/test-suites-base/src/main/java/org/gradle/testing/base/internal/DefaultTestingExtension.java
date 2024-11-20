@@ -17,18 +17,31 @@
 package org.gradle.testing.base.internal;
 
 import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
+import org.gradle.api.file.Directory;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.reporting.ReportingExtension;
+import org.gradle.api.tasks.testing.AggregateTestReport;
 import org.gradle.testing.base.TestSuite;
 import org.gradle.testing.base.TestingExtension;
+import org.gradle.testing.base.plugins.TestingBasePlugin;
 
 import javax.inject.Inject;
 
 public abstract class DefaultTestingExtension implements TestingExtension {
+
     private final ExtensiblePolymorphicDomainObjectContainer<TestSuite> suites;
+    private final AggregateTestReport results;
 
     @Inject
-    public DefaultTestingExtension() {
+    public DefaultTestingExtension(
+        ReportingExtension reporting
+    ) {
         this.suites = getObjectFactory().polymorphicDomainObjectContainer(TestSuite.class);
+        this.results = reporting.getReports().create("aggregateTestReport", AggregateTestReport.class);
+
+        Provider<Directory> testReportsDir = reporting.getBaseDirectory().dir(TestingBasePlugin.TESTS_DIR_NAME);
+        this.results.getHtmlReportDirectory().set(testReportsDir.map(it -> it.dir("aggregated-results")));
     }
 
     @Inject
@@ -37,5 +50,10 @@ public abstract class DefaultTestingExtension implements TestingExtension {
     @Override
     public ExtensiblePolymorphicDomainObjectContainer<TestSuite> getSuites() {
         return suites;
+    }
+
+    @Override
+    public AggregateTestReport getResults() {
+        return results;
     }
 }

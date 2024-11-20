@@ -17,6 +17,9 @@
 package org.gradle.testing.base;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.file.Directory;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.tasks.TaskProvider;
 
 /**
  * Base test suite target.
@@ -27,4 +30,12 @@ import org.gradle.api.Incubating;
  */
 @Incubating
 public interface TestSuiteTarget {
+
+    // TODO: We only use this test task as something we finalize.
+    // It would be interesting if we added a `Finalizable` interface or something
+    // so that we could abstract away the unit of work for a test suite.
+    TaskProvider<?> getTestTask();
+
+    Provider<Directory> getBinaryResultsDirectory();
+
 }

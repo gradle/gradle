@@ -31,6 +31,7 @@ import org.gradle.internal.service.ServiceRegistry;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -149,7 +150,13 @@ public class LocalTaskNode extends TaskNode {
     }
 
     private Set<Node> getFinalizedBy(TaskDependencyResolver dependencyResolver) {
-        return dependencyResolver.resolveDependenciesFor(task, task.getFinalizedBy());
+        Set<Node> nodes = new HashSet<>();
+        for (TaskInternal.Finalizer finalizer : task.getFinalizers()) {
+            finalizer.configure();
+            nodes.addAll(dependencyResolver.resolveDependenciesFor(task, finalizer.getTaskDependencies()));
+        }
+
+        return nodes;
     }
 
     private Set<Node> getMustRunAfter(TaskDependencyResolver dependencyResolver) {

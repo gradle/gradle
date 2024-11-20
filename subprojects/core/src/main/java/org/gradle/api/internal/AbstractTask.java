@@ -18,12 +18,14 @@ package org.gradle.api.internal;
 
 import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.util.concurrent.Runnables;
 import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import groovy.util.ObservableList;
 import org.codehaus.groovy.runtime.InvokerInvocationException;
 import org.gradle.api.Action;
 import org.gradle.api.AntBuilder;
+import org.gradle.api.Buildable;
 import org.gradle.api.Describable;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
@@ -127,7 +129,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private final DefaultTaskDependency mustRunAfter;
 
-    private final DefaultTaskDependency finalizedBy;
+    private final List<Finalizer> finalizedBy;
 
     private final DefaultTaskDependency shouldRunAfter;
 
@@ -185,7 +187,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         this.state = new TaskStateInternal();
         final TaskDependencyFactory taskDependencyFactory = project.getTaskDependencyFactory();
         this.mustRunAfter = taskDependencyFactory.configurableDependency();
-        this.finalizedBy = taskDependencyFactory.configurableDependency();
+        this.finalizedBy = new ArrayList<>();
         this.shouldRunAfter = taskDependencyFactory.configurableDependency();
         this.lifecycleDependencies = taskDependencyFactory.configurableDependency();
 
@@ -901,28 +903,54 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     @Override
     public void setFinalizedBy(final Iterable<?> finalizedByTasks) {
-        taskMutator.mutate("Task.setFinalizedBy(Iterable)", new Runnable() {
-            @Override
-            public void run() {
-                finalizedBy.setValues(finalizedByTasks);
-            }
+        taskMutator.mutate("Task.setFinalizedBy(Iterable)", () -> {
+            finalizedBy.clear();
+            finalizedBy.add(newFinalizer(ImmutableSet.copyOf(finalizedByTasks), Runnables.doNothing()));
         });
     }
 
     @Override
     public Task finalizedBy(final Object... paths) {
-        taskMutator.mutate("Task.finalizedBy(Object...)", new Runnable() {
-            @Override
-            public void run() {
-                finalizedBy.add(paths);
-            }
+        taskMutator.mutate("Task.finalizedBy(Object...)", () -> {
+            finalizedBy.add(newFinalizer(ImmutableSet.of(paths), Runnables.doNothing()));
         });
         return this;
+    }
+
+    @Override
+    public <T extends Buildable> void finalizedBy(T finalizer, Action<T> action) {
+        taskMutator.mutate("Task.finalizedBy(Buildable, Action)", () -> {
+            finalizedBy.add(newFinalizer(ImmutableSet.of(finalizer), () -> action.execute(finalizer)));
+        });
+    }
+
+    private Finalizer newFinalizer(ImmutableSet<Object> dependencies, Runnable action) {
+        TaskDependencyFactory taskDependencyFactory = project.getTaskDependencyFactory();
+        DefaultTaskDependency defaultTaskDependency = taskDependencyFactory.configurableDependency(dependencies);
+
+        return new Finalizer() {
+            @Override
+            public TaskDependencyInternal getTaskDependencies() {
+                return defaultTaskDependency;
+            }
+
+            @Override
+            public void configure() {
+                action.run();
+            }
+        };
     }
 
     @Internal
     @Override
     public TaskDependency getFinalizedBy() {
+        DefaultTaskDependency dependencies = project.getTaskDependencyFactory().configurableDependency();
+        finalizedBy.forEach(finalizer -> dependencies.add(finalizer.getTaskDependencies()));
+        return dependencies;
+    }
+
+    @Override
+    public List<Finalizer> getFinalizers() {
         return finalizedBy;
     }
 

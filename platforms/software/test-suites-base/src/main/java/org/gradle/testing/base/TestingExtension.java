@@ -18,6 +18,7 @@ package org.gradle.testing.base;
 
 import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.Incubating;
+import org.gradle.api.tasks.testing.AggregateTestReport;
 
 /**
  * This DSL element exists to contain a collection of {@link TestSuite}s.
@@ -32,4 +33,10 @@ public interface TestingExtension {
      * The type of test suites available depend on which other plugins are applied.
      */
     ExtensiblePolymorphicDomainObjectContainer<TestSuite> getSuites();
+
+    /**
+     * A report containing test results from all executed test targets in this project.
+     */
+    AggregateTestReport getResults();
+
 }

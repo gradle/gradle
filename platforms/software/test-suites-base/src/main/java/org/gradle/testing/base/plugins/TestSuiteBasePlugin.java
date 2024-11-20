@@ -19,6 +19,10 @@ package org.gradle.testing.base.plugins;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.internal.tasks.testing.DefaultAggregateTestReport;
+import org.gradle.api.plugins.ReportingBasePlugin;
+import org.gradle.api.reporting.ReportingExtension;
+import org.gradle.api.tasks.testing.AggregateTestReport;
 import org.gradle.testing.base.TestingExtension;
 import org.gradle.testing.base.internal.DefaultTestingExtension;
 
@@ -29,8 +33,25 @@ import org.gradle.testing.base.internal.DefaultTestingExtension;
  */
 @Incubating
 public abstract class TestSuiteBasePlugin implements Plugin<Project> {
+
     @Override
     public void apply(Project project) {
-        project.getExtensions().create(TestingExtension.class, "testing", DefaultTestingExtension.class);
+        project.getPlugins().apply(ReportingBasePlugin.class);
+        ReportingExtension reporting = project.getExtensions().getByType(ReportingExtension.class);
+        reporting.getReports().registerBinding(AggregateTestReport.class, DefaultAggregateTestReport.class);
+
+        TestingExtension testing = project.getExtensions().create(TestingExtension.class, "testing", DefaultTestingExtension.class, reporting);
+
+        // All test suite targets get reported automatically
+        testing.getSuites().configureEach(suite ->
+            suite.getTargets().configureEach(target ->
+                target.getTestTask().configure(task ->
+                    task.finalizedBy(testing.getResults(), results ->
+                        results.getBinaryTestResults().from(target.getBinaryResultsDirectory())
+                    )
+                )
+            )
+        );
     }
+
 }

@@ -42,11 +42,15 @@ class HtmlTestExecutionResult implements TestExecutionResult {
 
     TestExecutionResult assertTestClassesNotExecuted(String... testClasses) {
         def indexFile = new File(htmlReportDirectory, "index.html")
-        if (indexFile.exists()) {
+        if (indexExists()) {
             List<String> executedTestClasses = getExecutedTestClasses()
             assertThat(executedTestClasses, not(hasItems(testClasses)))
         }
         return this
+    }
+
+    boolean indexExists() {
+        indexFile.exists()
     }
 
     private void indexContainsTestClass(String... expectedTestClasses) {
@@ -55,11 +59,15 @@ class HtmlTestExecutionResult implements TestExecutionResult {
     }
 
     private List<String> getExecutedTestClasses() {
-        def indexFile = new File(htmlReportDirectory, "index.html")
-        assert indexFile.exists()
+        File indexFile = getIndexFile()
+        assert indexExists()
         Document html = Jsoup.parse(indexFile, null)
         def executedTestClasses = html.select("div:has(h2:contains(Classes)).tab a").collect { it.text() }
         executedTestClasses
+    }
+
+    private File getIndexFile() {
+        new File(htmlReportDirectory, "index.html")
     }
 
     private void assertHtmlReportForTestClassExists(String... classNames) {

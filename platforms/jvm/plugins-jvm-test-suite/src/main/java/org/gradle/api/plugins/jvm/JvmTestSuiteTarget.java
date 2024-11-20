@@ -34,5 +34,6 @@ public interface JvmTestSuiteTarget extends TestSuiteTarget, Named {
      *
      * @return provider to the test task
      */
+    @Override
     TaskProvider<Test> getTestTask();
 }

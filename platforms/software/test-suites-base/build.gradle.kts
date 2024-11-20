@@ -5,16 +5,17 @@ plugins {
 description = """Base for test suites.
 
 This project is a implementation dependency of many other testing-related subprojects in the Gradle build.
-
-This project is separate from testing-base to avoid needing to be Java 6 compatible.
 """
 
+// TODO: This project should be merged with testing-base. It was separated for historical reasons that are no longer relevant.
+
 dependencies {
-    api(projects.stdlibJavaExtensions)
     api(projects.baseServices)
     api(projects.coreApi)
     api(projects.modelCore)
     api(projects.platformBase)
+    api(projects.stdlibJavaExtensions)
+    api(projects.testingBase)
 
     api(libs.inject)
 

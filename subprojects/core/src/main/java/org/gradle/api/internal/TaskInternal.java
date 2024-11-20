@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.internal.project.taskfactory.TaskIdentity;
 import org.gradle.api.internal.tasks.InputChangesAwareTaskAction;
+import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.internal.tasks.TaskRequiredServices;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.properties.ServiceReferenceSpec;
@@ -126,4 +127,15 @@ public interface TaskInternal extends Task, Configurable<Task> {
      */
     @Internal
     TaskDependency getLifecycleDependencies();
+
+    @Internal
+    List<Finalizer> getFinalizers();
+
+    interface Finalizer {
+
+        TaskDependencyInternal getTaskDependencies();
+
+        void configure();
+
+    }
 }

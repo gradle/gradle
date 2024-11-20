@@ -769,6 +769,15 @@ public interface Task extends Comparable<Task>, ExtensionAware, Named {
     void setFinalizedBy(Iterable<?> finalizedBy);
 
     /**
+     * Declare that if this task is executed, the dependencies of the provided {@code finalizer}
+     * must be executed, and only after this task has completed.
+     *
+     * @param finalizer The buildable that finalizes this task.
+     * @param action An action that configures the provided buildable if this task is to be executed.
+     */
+    <T extends Buildable> void finalizedBy(T finalizer, Action<T> action);
+
+    /**
      * <p>Returns tasks that finalize this task.</p>
      *
      * @return The tasks that finalize this task. Returns an empty set if there are no finalising tasks for this task.
