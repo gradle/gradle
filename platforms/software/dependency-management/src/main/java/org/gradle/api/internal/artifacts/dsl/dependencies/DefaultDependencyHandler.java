@@ -59,6 +59,7 @@ import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.metaobject.MethodAccess;
 import org.gradle.internal.metaobject.MethodMixIn;
 import org.gradle.util.internal.ConfigureUtil;
+import org.gradle.util.internal.TextUtil;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -66,6 +67,7 @@ import java.util.Map;
 
 import static org.gradle.api.artifacts.type.ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE;
 import static org.gradle.internal.component.external.model.TestFixturesSupport.TEST_FIXTURES_CAPABILITY_FEATURE_NAME;
+import static org.gradle.internal.component.external.model.TestFixturesSupport.TEST_FIXTURES_FEATURE_NAME;
 
 public abstract class DefaultDependencyHandler implements DependencyHandlerInternal, MethodMixIn {
     private final ConfigurationContainer configurationContainer;
@@ -388,20 +390,30 @@ public abstract class DefaultDependencyHandler implements DependencyHandlerInter
 
     @Override
     public Dependency testFixtures(Object notation) {
-        Dependency testFixturesDependency = create(notation);
-        if (testFixturesDependency instanceof ModuleDependency) {
-            // Changes here may require changes in DefaultExternalModuleDependencyVariantSpec
-            ModuleDependency moduleDependency = (ModuleDependency) testFixturesDependency;
-            moduleDependency.capabilities(c -> c.requireFeature(TEST_FIXTURES_CAPABILITY_FEATURE_NAME));
-        }
-        return testFixturesDependency;
+        return feature(TEST_FIXTURES_FEATURE_NAME, notation);
     }
 
     @Override
     public Dependency testFixtures(Object notation, Action<? super Dependency> configureAction) {
-        Dependency testFixturesDependency = testFixtures(notation);
-        configureAction.execute(testFixturesDependency);
-        return testFixturesDependency;
+        return feature(TEST_FIXTURES_FEATURE_NAME, notation, configureAction);
+    }
+
+    @Override
+    public Dependency feature(String featureName, Object notation) {
+        Dependency featureDependency = create(notation);
+        if (featureDependency instanceof ModuleDependency) {
+            // Changes here may require changes in DefaultExternalModuleDependencyVariantSpec
+            ModuleDependency moduleDependency = (ModuleDependency) featureDependency;
+            moduleDependency.capabilities(c -> c.requireFeature(TextUtil.camelToKebabCase(featureName)));
+        }
+        return featureDependency;
+    }
+
+    @Override
+    public Dependency feature(String featureName, Object notation, Action<? super Dependency> configureAction) {
+        Dependency featureDependency = feature(featureName, notation);
+        configureAction.execute(featureDependency);
+        return featureDependency;
     }
 
     @Override

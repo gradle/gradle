@@ -149,6 +149,12 @@ abstract class DependencyHandlerDelegate : DependencyHandler {
     override fun testFixtures(notation: Any, configureAction: Action<in Dependency>): Dependency =
         delegate.testFixtures(notation, configureAction)
 
+    override fun feature(featureName: String, notation: Any): Dependency =
+        delegate.feature(featureName, notation)
+
+    override fun feature(featureName: String, notation: Any, configureAction: Action<in Dependency>): Dependency =
+        delegate.feature(featureName, notation, configureAction)
+
     override fun variantOf(dependencyProvider: Provider<MinimalExternalModuleDependency>, variantSpec: Action<in ExternalModuleDependencyVariantSpec>): Provider<MinimalExternalModuleDependency> =
         delegate.variantOf(dependencyProvider, variantSpec)
 
