@@ -413,7 +413,7 @@ class DefaultServiceRegistryTest extends Specification {
 
         then:
         def e = thrown(ServiceValidationException)
-        e.message == "Cannot register an interface for construction."
+        e.message == "Cannot register an interface (java.lang.Runnable) for construction."
     }
 
     def "fails when abstract class is registered"() {
@@ -425,7 +425,7 @@ class DefaultServiceRegistryTest extends Specification {
 
         then:
         def e = thrown(ServiceValidationException)
-        e.message == "Cannot register an abstract type for construction."
+        e.message == "Cannot register an abstract type (org.gradle.internal.service.DefaultServiceRegistryTest.AbstractClass) for construction."
     }
 
     def cachesInstancesCreatedUsingAProviderFactoryMethod() {
