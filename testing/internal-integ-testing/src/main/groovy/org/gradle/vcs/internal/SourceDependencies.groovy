@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
 
 import static org.gradle.internal.hash.Hashing.hashString
+import java.util.concurrent.AbstractExecutorService
 
 @SelfType(AbstractIntegrationSpec)
 trait SourceDependencies {
