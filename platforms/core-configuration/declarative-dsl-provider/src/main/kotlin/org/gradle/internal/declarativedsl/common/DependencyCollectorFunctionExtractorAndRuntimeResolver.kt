@@ -30,6 +30,7 @@ import org.gradle.internal.declarativedsl.analysis.DefaultDataMemberFunction
 import org.gradle.internal.declarativedsl.analysis.FunctionSemanticsInternal
 import org.gradle.internal.declarativedsl.mappingToJvm.DeclarativeRuntimeFunction
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeFunctionResolver
+import org.gradle.internal.declarativedsl.mappingToJvm.nullInstanceAndPublicType
 import org.gradle.internal.declarativedsl.schemaBuilder.DataSchemaBuilder
 import org.gradle.internal.declarativedsl.schemaBuilder.FunctionExtractor
 import org.gradle.internal.declarativedsl.schemaBuilder.toDataTypeRef
@@ -126,7 +127,7 @@ class DependencyCollectorFunctionExtractorAndRuntimeResolver(
                 is ProjectDependency -> dependencyCollector.add(dependencyNotation)
                 else -> dependencyCollector.add(dependencyNotation.toString())
             }
-            return DeclarativeRuntimeFunction.InvocationResult(Unit, null)
+            return DeclarativeRuntimeFunction.InvocationResult(Unit to Unit::class, nullInstanceAndPublicType)
         }
     }
 

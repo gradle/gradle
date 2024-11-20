@@ -44,8 +44,11 @@ import org.gradle.internal.declarativedsl.evaluationSchema.ObjectConversionCompo
 import org.gradle.internal.declarativedsl.evaluationSchema.ifConversionSupported
 import org.gradle.internal.declarativedsl.language.DataTypeInternal
 import org.gradle.internal.declarativedsl.mappingToJvm.DeclarativeRuntimeFunction
+import org.gradle.internal.declarativedsl.mappingToJvm.InstanceAndPublicType
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeCustomAccessors
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeFunctionResolver
+import org.gradle.internal.declarativedsl.mappingToJvm.nullInstanceAndPublicType
+import org.gradle.internal.declarativedsl.mappingToJvm.withFallbackPublicType
 import org.gradle.internal.declarativedsl.schemaBuilder.DataSchemaBuilder
 import org.gradle.internal.declarativedsl.schemaBuilder.FunctionExtractor
 import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery
@@ -65,6 +68,7 @@ import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.full.memberFunctions
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.full.starProjectedType
+import kotlin.reflect.jvm.jvmErasure
 
 
 internal fun EvaluationSchemaBuilder.namedDomainObjectContainers() {
@@ -132,9 +136,9 @@ internal class ContainersSchemaComponent : AnalysisSchemaComponent, ObjectConver
 
     override fun runtimeCustomAccessors(): List<RuntimeCustomAccessors> = listOf(
         object : RuntimeCustomAccessors {
-            override fun getObjectFromCustomAccessor(receiverObject: Any, accessor: ConfigureAccessor.Custom): Any? {
-                val callable = containerByAccessorId[accessor.customAccessorIdentifier]?.originDeclaration?.callable ?: return null
-                return callable.call(receiverObject)
+            override fun getObjectFromCustomAccessor(receiverObject: Any, accessor: ConfigureAccessor.Custom): InstanceAndPublicType {
+                val callable = containerByAccessorId[accessor.customAccessorIdentifier]?.originDeclaration?.callable ?: return nullInstanceAndPublicType
+                return callable.call(receiverObject) to callable.returnType.jvmErasure
             }
         }
     )
@@ -147,7 +151,8 @@ internal class ContainersSchemaComponent : AnalysisSchemaComponent, ObjectConver
                     RuntimeFunctionResolver.Resolution.Resolved(object : DeclarativeRuntimeFunction {
                         override fun callBy(receiver: Any, binding: Map<DataParameter, Any?>, hasLambda: Boolean): DeclarativeRuntimeFunction.InvocationResult {
                             val result = (receiver as NamedDomainObjectContainer<*>).maybeCreate(binding.values.single() as String)
-                            return DeclarativeRuntimeFunction.InvocationResult(result, result)
+                            val resultInstanceAndPublicType = withFallbackPublicType(result)
+                            return DeclarativeRuntimeFunction.InvocationResult(resultInstanceAndPublicType, resultInstanceAndPublicType)
                         }
                     })
                 } else RuntimeFunctionResolver.Resolution.Unresolved

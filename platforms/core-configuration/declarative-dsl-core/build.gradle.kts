@@ -23,6 +23,7 @@ dependencies {
     api(libs.kotlinCompilerEmbeddable)
     api(libs.kotlinStdlib)
 
+    implementation(projects.core)
     implementation(projects.declarativeDslApi)
     implementation(libs.kotlinReflect)
     implementation(libs.kotlinxSerializationCore)

@@ -79,8 +79,7 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFact
         return new FixedFile(file);
     }
 
-    // TODO: how to avoid making this type public?
-    public static class FixedDirectory extends DefaultFileSystemLocation implements Directory, Managed {
+    private static class FixedDirectory extends DefaultFileSystemLocation implements Directory, Managed {
         final FileResolver fileResolver;
         private final FileCollectionFactory fileCollectionFactory;
 
