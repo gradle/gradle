@@ -25,6 +25,8 @@ import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.process.TestJavaMain
 import org.gradle.test.fixtures.dsl.GradleDsl
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.internal.TextUtil
 import org.junit.Rule
 import spock.lang.Issue
@@ -429,6 +431,37 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
         "exec"             | execSpec()     | "Using method exec(Closure)"           | "ExecOperations.exec(Action) or ProviderFactory.exec(Action)"
         "project.javaexec" | javaExecSpec() | "The Project.javaexec(Closure) method" | "ExecOperations.javaexec(Action) or ProviderFactory.javaexec(Action)"
         "javaexec"         | javaExecSpec() | "Using method javaexec(Closure)"       | "ExecOperations.javaexec(Action) or ProviderFactory.javaexec(Action)"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/31282")
+    @Requires(UnitTestPreconditions.NotWindows)
+    def "running multiple tasks that fork processes is multi-thread safe"() {
+        def numOfProjects = 1000
+        numOfProjects.times {
+            settingsFile << """
+                include 'project$it'
+            """
+            file("project${it}/build.gradle") << """
+                abstract class MyExec extends DefaultTask {
+                    @Inject
+                    abstract ExecOperations getExecOperations()
+
+                    @TaskAction
+                    void doIt() {
+                        def script = new File(temporaryDir, "script.sh")
+                        script.text = "#!/bin/bash"
+                        script.executable = true
+                        execOperations.exec {
+                            commandLine script.absolutePath
+                        }
+                        script.delete()
+                    }
+                }
+                tasks.register("run", MyExec)
+            """
+        }
+        expect:
+        succeeds("run", "--max-workers=100", "--parallel")
     }
 
     @UnsupportedWithConfigurationCache(because = "Runs external process at configuration time")

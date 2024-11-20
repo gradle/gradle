@@ -440,6 +440,7 @@ fun configureTests() {
         extensions.findByType<DevelocityTestConfiguration>()?.testDistribution {
             this as TestDistributionConfigurationInternal
             server = uri(testDistributionServerUrl.orElse("https://gbt-td.grdev.net"))
+            useAgentDemandOptimization = true // ideally this would be disabled locally, but dv#41283 blocks that
 
             if (project.testDistributionEnabled && !isUnitTest() && !isPerformanceProject() && !isNativeProject() && !isKotlinDslToolingBuilders()) {
                 enabled = true

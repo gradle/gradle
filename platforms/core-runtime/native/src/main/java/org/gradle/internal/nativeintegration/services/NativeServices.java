@@ -19,11 +19,13 @@ import net.rubygrapefruit.platform.Native;
 import net.rubygrapefruit.platform.NativeException;
 import net.rubygrapefruit.platform.NativeIntegrationUnavailableException;
 import net.rubygrapefruit.platform.Process;
+import net.rubygrapefruit.platform.ProcessLauncher;
 import net.rubygrapefruit.platform.SystemInfo;
 import net.rubygrapefruit.platform.WindowsRegistry;
 import net.rubygrapefruit.platform.file.FileSystems;
 import net.rubygrapefruit.platform.file.Files;
 import net.rubygrapefruit.platform.file.PosixFiles;
+import net.rubygrapefruit.platform.internal.DefaultProcessLauncher;
 import net.rubygrapefruit.platform.memory.Memory;
 import net.rubygrapefruit.platform.terminal.Terminals;
 import org.gradle.api.JavaVersion;
@@ -396,6 +398,18 @@ public class NativeServices implements ServiceRegistrationProvider {
             }
         }
         return notAvailable(Memory.class, operatingSystem);
+    }
+
+    @Provides
+    protected ProcessLauncher createProcessLauncher() {
+        if (useNativeIntegrations) {
+            try {
+                return net.rubygrapefruit.platform.Native.get(ProcessLauncher.class);
+            } catch (NativeIntegrationUnavailableException e) {
+                LOGGER.debug("Native-platform process launcher is not available. Continuing with fallback.");
+            }
+        }
+        return new DefaultProcessLauncher();
     }
 
     @Provides
