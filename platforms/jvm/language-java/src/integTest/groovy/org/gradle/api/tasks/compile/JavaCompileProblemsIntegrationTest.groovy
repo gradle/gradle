@@ -526,7 +526,7 @@ ${fooFileLocation}:9: warning: [cast] redundant cast to $expectedType
     ) {
         assert problem.contextualLabel != null, "Expected contextual label to be non-null, but was null"
 
-        def locations = problem.locations
+        def locations = problem.originLocations
         // We use this counter to assert that we have visited all locations
         def assertedLocationCount = 0
 

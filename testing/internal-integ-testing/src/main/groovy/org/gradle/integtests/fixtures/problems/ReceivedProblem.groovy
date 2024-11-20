@@ -42,7 +42,8 @@ class ReceivedProblem implements Problem {
     private final String contextualLabel
     private final String details
     private final List<String> solutions
-    private final List<ProblemLocation> locations
+    private final List<ProblemLocation> originLocations
+    private final List<ProblemLocation> contextualLocations
     private final ReceivedAdditionalData additionalData
     private final ReceivedException exception
 
@@ -52,7 +53,8 @@ class ReceivedProblem implements Problem {
         this.contextualLabel = problemDetails['contextualLabel'] as String
         this.details =  problemDetails['details'] as String
         this.solutions = problemDetails['solutions'] as List<String>
-        this.locations = fromList(problemDetails['locations'] as List<Object>)
+        this.originLocations = fromList(problemDetails['originLocations'] as List<Object>)
+        this.contextualLocations = fromList(problemDetails['contextualLocations'] as List<Object>)
         this.additionalData = new ReceivedAdditionalData(problemDetails['additionalData'] as Map<String, Object>)
         this.exception = problemDetails['exception'] == null ? null : new ReceivedException(problemDetails['exception'] as Map<String, Object>)
     }
@@ -78,7 +80,7 @@ class ReceivedProblem implements Problem {
     }
 
     <T> T oneLocation(Class<T> type) {
-        def locations = getLocations()
+        def locations = getOriginLocations()
         assert locations.size() == 1
         assert type.isInstance(locations[0])
         locations[0] as T
@@ -114,12 +116,17 @@ class ReceivedProblem implements Problem {
     }
 
     @Override
-    List<ProblemLocation> getLocations() {
-        locations
+    List<ProblemLocation> getOriginLocations() {
+        originLocations
+    }
+
+    @Override
+    List<ProblemLocation> getContextualLocations() {
+        contextualLocations
     }
 
     <T extends ProblemLocation> T getSingleLocation(Class<T> locationType) {
-        def location = locations.find {
+        def location = originLocations.find {
             locationType.isInstance(it)
         }
         assert location != null : "Expected a location of type $locationType, but found none."

@@ -164,6 +164,7 @@ import org.gradle.tooling.internal.protocol.InternalFileComparisonTestAssertionF
 import org.gradle.tooling.internal.protocol.InternalProblemAggregationDetailsV2;
 import org.gradle.tooling.internal.protocol.InternalProblemAggregationDetailsVersion3;
 import org.gradle.tooling.internal.protocol.InternalProblemContextDetails;
+import org.gradle.tooling.internal.protocol.InternalProblemContextDetailsV2;
 import org.gradle.tooling.internal.protocol.InternalProblemDefinition;
 import org.gradle.tooling.internal.protocol.InternalProblemDetails;
 import org.gradle.tooling.internal.protocol.InternalProblemEvent;
@@ -692,13 +693,26 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
 
     @Nonnull
     private static DefaultProblemsOperationContext toSingleProblemContextDetail(InternalProblemContextDetails details) {
-        return new DefaultProblemsOperationContext(
-            toProblemDetails(details.getDetails()),
-            toLocations(details.getLocations()),
-            toSolutions(details.getSolutions()),
-            toAdditionalData(details.getAdditionalData()),
-            toFailure(details.getFailure())
-        );
+        if (details instanceof InternalProblemContextDetailsV2) {
+            InternalProblemContextDetailsV2 detailsV2 = (InternalProblemContextDetailsV2) details;
+            return new DefaultProblemsOperationContext(
+                toProblemDetails(detailsV2.getDetails()),
+                toLocations(detailsV2.getOriginLocations()),
+                toLocations(detailsV2.getContextualLocations()),
+                toSolutions(detailsV2.getSolutions()),
+                toAdditionalData(detailsV2.getAdditionalData()),
+                toFailure(detailsV2.getFailure())
+            );
+        } else {
+            return new DefaultProblemsOperationContext(
+                toProblemDetails(details.getDetails()),
+                toLocations(details.getLocations()),
+                ImmutableList.<Location>of(),
+                toSolutions(details.getSolutions()),
+                toAdditionalData(details.getAdditionalData()),
+                toFailure(details.getFailure())
+            );
+        }
     }
 
     private static List<ProblemContext> toProblemContextDetails(List<InternalProblemContextDetails> problems) {
