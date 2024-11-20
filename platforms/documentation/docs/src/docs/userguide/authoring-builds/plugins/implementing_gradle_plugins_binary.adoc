@@ -699,10 +699,10 @@ When it comes to reporting problems, we support two different modes:
 
 For more details, see the link:{javaDocPath}/org/gradle/api/problems/ProblemReporter.html[ProblemReporter] documentation.
 
-=== Problem aggregation
+=== Problem summarization
 
-When reporting problems, Gradle will aggregate similar problems by sending them through the Tooling API based on the problem's category label.
+When reporting problems, Gradle will summarize similar problems before sending them to any progress event listener, including the  link:{javaDocPath}/org/gradle/tooling/events/ProgressListener.html[Tooling API ProgressListener].
 
-- When a problem is reported, the _first_ occurrence is going to be reported as a link:{javaDocPath}/org/gradle/tooling/events/problems/ProblemDescriptor.html[ProblemDescriptor], containing the complete information about the problem.
-- Any subsequent occurrences of the same problem will be reported as a link:{javaDocPath}org/gradle/tooling/events/problems/ProblemAggregationDescriptor.html[ProblemAggregationDescriptor]. This descriptor will arrive at the _end_ of the build and contain the number of occurrences of the problem.
-- If for any bucket (i.e., category and label pairing), the number of collected occurrences is greater than 10.000, then it will be sent immediately instead of at the end of the build.
+- Initially, the _first_ few instances of a problem are reported as a link:{javaDocPath}/org/gradle/tooling/events/problems/Problem.html[Problem], providing all information available for that problem.
+- Subsequent occurrences of the same problem are grouped and summarized as a link:{javaDocPath}org/gradle/tooling/events/problems/ProblemSummary.html[ProblemSummary], which is delivered by a link:{javaDocPath}org/gradle/tooling/events/problems/ProblemSummariesEvent.html[ProblemSummariesEvent] at the end of the build with the total count of occurrences.
+
