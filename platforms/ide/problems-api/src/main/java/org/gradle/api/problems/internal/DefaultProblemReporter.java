@@ -58,7 +58,7 @@ public class DefaultProblemReporter implements InternalProblemReporter {
     }
 
     @Nonnull
-    private DefaultProblemBuilder createProblemBuilder() {
+    public DefaultProblemBuilder createProblemBuilder() {
         return new DefaultProblemBuilder(infrastructure);
     }
 

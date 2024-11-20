@@ -17,12 +17,13 @@
 package org.gradle.api.problems.internal;
 
 import org.gradle.api.problems.ProblemGroup;
+import org.gradle.api.problems.ProblemId;
 
 public abstract class GradleCoreProblemGroup {
 
     private static final DefaultCompilationProblemGroup COMPILATION_PROBLEM_GROUP = new DefaultCompilationProblemGroup();
-    private static final ProblemGroup DEPRECATION_PROBLEM_GROUP = ProblemGroup.create("deprecation", "Deprecation");
     private static final DefaultValidationProblemGroup VALIDATION_PROBLEM_GROUP = new DefaultValidationProblemGroup();
+    private static final DeprecationProblemGroup DEPRECATION_PROBLEM_GROUP = new DefaultDeprecationProblemGroup();
     private static final ProblemGroup PLUGIN_APPLICATION_PROBLEM_GROUP = ProblemGroup.create("plugin-application", "Plugin application");
     private static final ProblemGroup TASK_SELECTION_PROBLEM_GROUP = ProblemGroup.create("task-selection", "Task selection");
     private static final ProblemGroup VERSION_CATALOG_PROBLEM_GROUP = ProblemGroup.create("dependency-version-catalog", "Version catalog");
@@ -33,7 +34,7 @@ public abstract class GradleCoreProblemGroup {
         return COMPILATION_PROBLEM_GROUP;
     }
 
-    public static ProblemGroup deprecation() {
+    public static DeprecationProblemGroup deprecation() {
         return DEPRECATION_PROBLEM_GROUP;
     }
 
@@ -66,6 +67,13 @@ public abstract class GradleCoreProblemGroup {
         ProblemGroup java();
         ProblemGroup groovy();
         ProblemGroup groovyDsl();
+    }
+
+    public interface DeprecationProblemGroup {
+        ProblemGroup thisGroup();
+        ProblemId generic();
+        ProblemId plugin();
+        ProblemId method();
     }
 
     public interface ValidationProblemGroup {
@@ -107,6 +115,36 @@ public abstract class GradleCoreProblemGroup {
         @Override
         public ProblemGroup groovyDsl() {
             return this.groovyDsl;
+        }
+    }
+
+    private static class DefaultDeprecationProblemGroup implements DeprecationProblemGroup {
+
+        private final ProblemGroup thisGroup = ProblemGroup.create("deprecation", "Deprecation");
+        private final ProblemId generic = ProblemId.create("generic", "Generic deprecation", thisGroup);
+        private final ProblemId plugin = ProblemId.create("plugin", "Plugin deprecation", thisGroup);
+        private final ProblemId method = ProblemId.create("method", "Method deprecation", thisGroup);
+
+        private DefaultDeprecationProblemGroup() {}
+
+        @Override
+        public ProblemGroup thisGroup() {
+            return thisGroup;
+        }
+
+        @Override
+        public ProblemId generic() {
+            return this.generic;
+        }
+
+        @Override
+        public ProblemId plugin() {
+            return this.plugin;
+        }
+
+        @Override
+        public ProblemId method() {
+            return this.method;
         }
     }
 

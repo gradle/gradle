@@ -49,19 +49,19 @@ public class DefaultDeprecationData implements DeprecationData {
 
     public static AdditionalDataBuilder<DeprecationData> builder(@Nullable DeprecationData from) {
         if(from == null) {
-            return new DefaultDeprecationDataBuilder();
+            return new Builder();
         }
-        return new DefaultDeprecationDataBuilder(from);
+        return new Builder(from);
     }
 
-    private static class DefaultDeprecationDataBuilder implements DeprecationDataSpec, AdditionalDataBuilder<DeprecationData> {
+    private static class Builder implements DeprecationDataSpec, AdditionalDataBuilder<DeprecationData> {
 
         private Type type;
 
-        public DefaultDeprecationDataBuilder() {
+        public Builder() {
             this.type = Type.USER_CODE_DIRECT;
         }
-        public DefaultDeprecationDataBuilder(DeprecationData from) {
+        public Builder(DeprecationData from) {
             this.type = from.getType();
         }
 
@@ -70,6 +70,8 @@ public class DefaultDeprecationData implements DeprecationData {
             this.type = type;
             return this;
         }
+
+
 
         @Override
         public DeprecationData build() {
