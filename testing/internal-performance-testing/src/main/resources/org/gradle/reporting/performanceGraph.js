@@ -84,7 +84,7 @@
                 plot.draw();
                 plot.clearSelection();
             };
-        };
+        }
 
         function hoverOnHistoryGraph(event, pos, item) {
             const executionLabel = executionLabels[item.datapoint[0]];
