@@ -26,4 +26,9 @@ public class CompilationFatalException extends RuntimeException implements Compi
     public CompilationFatalException(Throwable cause) {
         super("Unrecoverable compilation error: " + cause.getMessage(), cause);
     }
+
+    @Override
+    public String getDiagnosticCounts() {
+        return null;
+    }
 }

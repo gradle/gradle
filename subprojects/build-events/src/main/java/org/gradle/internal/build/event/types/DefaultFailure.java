@@ -17,7 +17,6 @@ package org.gradle.internal.build.event.types;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.problems.Problem;
-import org.gradle.api.problems.internal.ProblemAwareFailure;
 import org.gradle.api.problems.internal.ProblemLookup;
 import org.gradle.internal.exceptions.MultiCauseException;
 import org.gradle.tooling.internal.protocol.InternalBasicProblemDetailsVersion3;
@@ -97,9 +96,6 @@ public class DefaultFailure implements Serializable, InternalFailure {
         List<Problem> problems = new ArrayList<>();
         if (problemMapping != null) {
             problems.addAll(problemMapping);
-        }
-        if (t instanceof ProblemAwareFailure) {
-            problems.addAll(((ProblemAwareFailure) t).getProblems());
         }
         if (problems.isEmpty()) {
             return new DefaultFailure(t.getMessage(), out.toString(), causeFailures);
