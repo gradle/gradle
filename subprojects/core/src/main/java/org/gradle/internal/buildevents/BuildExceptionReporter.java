@@ -406,7 +406,8 @@ public class BuildExceptionReporter implements Action<Throwable> {
 
     private static String getMessage(Throwable throwable, ProblemLookup problemLookup) {
         try {
-            StringBuilder builder = new StringBuilder(throwable.getMessage());
+            String msg = throwable.getMessage();
+            StringBuilder builder = new StringBuilder(msg == null ? "" : msg);
             Collection<Problem> problems = problemLookup.findAll(throwable);
             if (!problems.isEmpty()) {
                 builder.append(System.lineSeparator());

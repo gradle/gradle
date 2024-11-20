@@ -41,6 +41,13 @@ public interface InternalProblemReporter extends ProblemReporter {
     void report(Problem problem);
 
     /**
+     * Reports the target problems.
+     *
+     * @param problems The problems to report.
+     */
+    void report(Collection<? extends Problem> problems);
+
+    /**
      * Reports the target problem with an explicit operation identifier.
      *
      * @param problem The problem to report.

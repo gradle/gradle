@@ -34,7 +34,7 @@ public class DefaultProblem implements Serializable, Problem {
     private final Throwable exception;
     private final AdditionalData additionalData;
 
-    public DefaultProblem(
+    protected DefaultProblem(
         ProblemDefinition problemDefinition,
         @Nullable String contextualLabel,
         List<String> solutions,

@@ -76,6 +76,9 @@ public class ProblemRenderer {
     }
 
     static void formatMultiline(PrintWriter output, String message, int level) {
+        if (message == null) {
+            return;
+        }
         for (String line : message.split("\n")) {
             for (int i = 0; i < level; i++) {
                 output.print("  ");
