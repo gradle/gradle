@@ -231,7 +231,7 @@ class BuildIsolatedModelsIntegrationTest extends AbstractIntegrationSpec {
         run "help"
 
         then:
-        output.count("Computing model for someKey")
+        output.count("Computing model for someKey") == 1
         outputContains("project ':' model[someKey] = someValue")
         outputContains("project ':a' model[someKey] = someValue")
     }
@@ -241,10 +241,12 @@ class BuildIsolatedModelsIntegrationTest extends AbstractIntegrationSpec {
             rootProject.name = "root"
             include(":a")
 
+            def sharedList = ["settings"]
+
             IsolatedModelRouter isolatedModels = settings.services.get(IsolatedModelRouter)
             isolatedModels.register("someKey", List<String>, providers.provider {
                 println("Computing model for someKey")
-                ["settings"]
+                sharedList
             })
         """
 
@@ -253,15 +255,13 @@ class BuildIsolatedModelsIntegrationTest extends AbstractIntegrationSpec {
         """
 
         buildFile "buildSrc/src/main/groovy/my-plugin.gradle", """
-            IsolatedModelRouter isolatedModels = project.services.get(IsolatedModelRouter)
-
-            def model1 = isolatedModels.fromBuild("someKey", List<String>).get()
+            def model1 = isolated.models.fromBuild("someKey", List<String>).get()
             model1 << project.name
-            println("project '\$path' model[someKey] = \$model1")
+            println("project '\$path' model[someKey][v1] = \$model1")
 
-            def model2 = isolatedModels.fromBuild("someKey", List<String>).get()
+            def model2 = isolated.models.fromBuild("someKey", List<String>).get()
             model2 << project.name
-            println("project '\$path' model[someKey] = \$model2")
+            println("project '\$path' model[someKey][v2] = \$model2")
         """
 
         buildFile """
@@ -276,11 +276,11 @@ class BuildIsolatedModelsIntegrationTest extends AbstractIntegrationSpec {
         run "help"
 
         then:
-        output.count("Computing model for someKey")
-        outputContains("project ':' model[someKey] = [settings, root]")
-        outputContains("project ':' model[someKey] = [settings, root, root]")
-        outputContains("project ':a' model[someKey] = [settings, a]")
-        outputContains("project ':a' model[someKey] = [settings, a, a]")
+        output.count("Computing model for someKey") == 1
+        outputContains("project ':' model[someKey][v1] = [settings, root]")
+        outputContains("project ':' model[someKey][v2] = [settings, root, root]")
+        outputContains("project ':a' model[someKey][v1] = [settings, a]")
+        outputContains("project ':a' model[someKey][v2] = [settings, a, a]")
     }
 
 }
