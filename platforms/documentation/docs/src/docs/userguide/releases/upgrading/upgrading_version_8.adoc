@@ -72,7 +72,7 @@ This method can still be used during configuration time.
 
 This deprecation was originally introduced in <<upgrading_version_7.adoc#task_project, Gradle 7.4>> but was only issued when the <<configuration_cache#config_cache:stable,`STABLE_CONFIGURATION_CACHE`>> feature flag was enabled. That feature flag no longer controls this deprecation.
 
-Note that when the configuration cache is enabled, this deprecation warning is not issued. When the configuration cache is enabled, calls to link:{javadocPath}/org/gradle/api/Task.html#getProject--[Task.getProject()] are reported as problems in the configuration cache report, as usual.
+When the configuration cache is enabled, calls to link:{javadocPath}/org/gradle/api/Task.html#getProject--[Task.getProject()] are reported as configuration cache problems instead of issuing a deprecation warning. 
 
 [[changes_8.11]]
 == Upgrading from 8.10 and earlier
