@@ -152,4 +152,13 @@ class MultiParentClassLoaderTest extends Specification {
         loader1 == loader1
         loader2 != loader1
     }
+
+    def "has meaningful toString"() {
+        given:
+        _ * parent1.toString() >> { "parent1" }
+        _ * parent2.toString() >> { "parent2" }
+
+        expect:
+        loader.toString() == "MultiParentClassLoader(parent1, parent2)"
+    }
 }
