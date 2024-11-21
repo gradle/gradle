@@ -45,7 +45,7 @@ default threshold: 15) and provides a summarized count of additional occurrences
 
 This change ensures a smoother experience when using Gradle with repetitive problems.
 
-An example can be found [here](samples/sample_problems_api_usage.html)
+To learn more, check out our [sample project](samples/sample_problems_api_usage.html)
 <!--
 ================== TEMPLATE ==============================
 

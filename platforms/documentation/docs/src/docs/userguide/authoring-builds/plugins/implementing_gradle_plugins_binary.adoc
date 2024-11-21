@@ -701,7 +701,7 @@ For more details, see the link:{javaDocPath}/org/gradle/api/problems/ProblemRepo
 
 === Problem summarization
 
-When reporting issues, Gradle ensures that the reports are concise and avoid unnecessary redundancy.
+When reporting issues, Gradle ensures that the reports are concise and free of unnecessary redundancy.
 Specifically, it prevents reporting the same problem repeatedly once a certain threshold is reached.
 
 - During the build, the _first_ few instances of a problem are reported as a link:{javaDocPath}/org/gradle/tooling/events/problems/Problem.html[Problem], providing all information available for that problem.
