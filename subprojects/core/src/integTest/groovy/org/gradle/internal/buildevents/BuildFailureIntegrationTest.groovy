@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class BuildFailureIntegrationTest extends AbstractIntegrationSpec {
 
-    @spock.lang.IgnoreRest
     def "still prints errors when exception misbehaves"() {
         // When running in-process, the NPE propagates out of the test fixtures
         executer.requireIsolatedDaemons()

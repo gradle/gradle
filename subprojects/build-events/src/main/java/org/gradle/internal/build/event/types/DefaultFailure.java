@@ -70,8 +70,8 @@ public class DefaultFailure implements Serializable, InternalFailure {
         return problems;
     }
 
-    public static InternalFailure fromThrowable(Throwable t) {
-        return fromThrowable(t, t1 -> ImmutableList.of(), p -> null);
+    public static InternalFailure fromThrowable(Throwable throwable) {
+        return fromThrowable(throwable, t -> ImmutableList.of(), p -> null);
     }
 
     public static InternalFailure fromThrowable(Throwable t, ProblemLookup problemLookup, Function<Problem, InternalBasicProblemDetailsVersion3> mapper) {

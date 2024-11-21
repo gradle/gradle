@@ -1644,7 +1644,6 @@ Class <org.gradle.internal.build.event.types.DefaultWorkItemDescriptor> is not a
 Class <org.gradle.internal.build.event.types.NotFoundFileDownloadSuccessResult> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (NotFoundFileDownloadSuccessResult.java:0)
 Class <org.gradle.internal.buildevents.BuildExceptionReporter$ExceptionFormattingVisitor> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (BuildExceptionReporter.java:0)
 Class <org.gradle.internal.buildevents.BuildLogger> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (BuildLogger.java:0)
-Class <org.gradle.internal.buildevents.BuildLoggerFactory$1> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (BuildLoggerFactory.java:0)
 Class <org.gradle.internal.buildevents.BuildLoggerFactory> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (BuildLoggerFactory.java:0)
 Class <org.gradle.internal.buildevents.BuildResultLogger> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (BuildResultLogger.java:0)
 Class <org.gradle.internal.buildevents.BuildStartedTime> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (BuildStartedTime.java:0)
