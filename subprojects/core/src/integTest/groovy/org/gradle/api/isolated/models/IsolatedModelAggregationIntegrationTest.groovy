@@ -16,18 +16,18 @@
 
 package org.gradle.api.isolated.models
 
-import org.gradle.api.flow.FlowAction
-import org.gradle.api.flow.FlowParameters
-import org.gradle.api.flow.FlowProviders
-import org.gradle.api.flow.FlowScope
-import org.gradle.api.provider.Provider
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.internal.isolated.models.IsolatedModelRouter
 import org.gradle.test.fixtures.dsl.GradleDsl
-
-import javax.inject.Inject
+import org.gradle.util.internal.ToBeImplemented
 
 class IsolatedModelAggregationIntegrationTest extends AbstractIntegrationSpec {
+
+    def setup() {
+        // Required, because the Gradle API jar is computed once a day,
+        // and the new API might not be visible for tests that require compilation
+        // against that API, e.g. the cases like a plugin defined in an included build
+        executer.requireOwnGradleUserHomeDir()
+    }
 
     def "can aggregate task outputs from all projects and process them in root project task"() {
         settingsFile """
@@ -46,15 +46,14 @@ class IsolatedModelAggregationIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            gradle.lifecycle.beforeProject { project ->
+            gradle.lifecycle.beforeProject { Project project ->
                 def numberTask = project.tasks.register("number", SomeTask) {
                     number = project.name.length()
                     output = project.layout.buildDirectory.file("out.txt")
                 }
 
                 Provider<RegularFile> taskOutput = numberTask.flatMap { it.output }
-                def router = project.services.get(org.gradle.internal.isolated.models.IsolatedModelRouter)
-                router.postModel(router.key("numberFile", RegularFile), router.work(taskOutput))
+                isolated.models.register("numberFile", RegularFile, taskOutput)
             }
         """
 
@@ -77,11 +76,9 @@ class IsolatedModelAggregationIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            def router = project.services.get(org.gradle.internal.isolated.models.IsolatedModelRouter)
-
             tasks.register("sum", SummingTask) {
-                Map<String, Provider<RegularFile>> numberFiles =
-                    router.getProjectModels(router.key("numberFile", RegularFile), allprojects.collect { it.path })
+                Map<IsolatedProject, Provider<RegularFile>> numberFiles =
+                    isolated.models.fromProjects("numberFile", RegularFile, allprojects)
                 // TODO: number = files(...) eagerly evaluates the providers inside the collection
                 numbers.from(files(numberFiles.values()))
                 output = layout.buildDirectory.file("sum.txt")
@@ -98,6 +95,7 @@ class IsolatedModelAggregationIntegrationTest extends AbstractIntegrationSpec {
         outFile.text == "7"
     }
 
+    @ToBeImplemented
     def "settings plugin can collect models contributed by projects"() {
         file("build-logic/build.gradle.kts") << """
             plugins {
@@ -107,32 +105,32 @@ class IsolatedModelAggregationIntegrationTest extends AbstractIntegrationSpec {
             ${mavenCentralRepository(GradleDsl.KOTLIN)}
         """
 
-        file("build-logic/src/main/kotlin/my/ProjectApi.kt") << """
+        kotlinFile "build-logic/src/main/kotlin/my/ProjectApi.kt", """
             package my
 
-            import ${Inject.name}
-            import ${Provider.name}
-            import ${IsolatedModelRouter.name}
+            import org.gradle.api.isolated.models.IsolatedModelRouter
+            import org.gradle.api.provider.Provider
+            import javax.inject.Inject
 
             abstract class ProjectApi {
                 @get:Inject
-                abstract val router: IsolatedModelRouter
+                abstract val isolatedModels: IsolatedModelRouter
 
                 fun tag(provider: Provider<String>) {
-                    router.postModel(router.key("tag", String::class.java), router.work(provider))
+                    isolatedModels.register("tag", String::class.java, provider)
                 }
             }
         """
 
-        file("build-logic/src/main/kotlin/my-settings-plugin.settings.gradle.kts") << """
+        kotlinFile "build-logic/src/main/kotlin/my-settings-plugin.settings.gradle.kts", """
             import org.gradle.kotlin.dsl.support.serviceOf
 
             gradle.lifecycle.beforeProject {
                 extensions.create<my.ProjectApi>("projectApi")
             }
 
-            val flowScope = serviceOf<${FlowScope.name}>()
-            val flowProviders = serviceOf<${FlowProviders.name}>()
+            val flowScope = serviceOf<FlowScope>()
+            val flowProviders = serviceOf<FlowProviders>()
 
             flowScope.always(ModelCollectingFlow::class) {
                 parameters {
@@ -140,8 +138,8 @@ class IsolatedModelAggregationIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            abstract class ModelCollectingFlow : ${FlowAction.name}<ModelCollectingFlow.Parameters> {
-                interface Parameters : ${FlowParameters.name} {
+            abstract class ModelCollectingFlow : FlowAction<ModelCollectingFlow.Parameters> {
+                interface Parameters : FlowParameters {
                     @get:Input
                     val buildResult: Property<Boolean>
 
@@ -152,13 +150,13 @@ class IsolatedModelAggregationIntegrationTest extends AbstractIntegrationSpec {
                 // TODO: injecting the router directly leaves a hole of late discovery of models dependent on tasks
                 //  these tasks cannot be executed at this point (in build-finished callback)
                 @get:Inject
-                abstract val router: ${IsolatedModelRouter.name}
+                abstract val router: IsolatedModelRouter
 
                 override fun execute(parameters: Parameters) {
-                    val tags: Map<String, Provider<String>> =
-                        router.getProjectModels(router.key("tag", String::class.java), listOf(":", ":a", ":b"))
+                    val tags: Map<IsolatedProject, Provider<String>> =
+                        router.fromProjects("tag", String::class.java, listOf()) // listOf(":", ":a", ":b").map { project(it) }) // projects are not available in the Flow scope
 
-                    println("Tags after build finished: \${tags.mapValues { it.value.orNull }.toSortedMap()}")
+                    println("Tags after build finished: \${tags.mapValues { it.value.orNull }.toSortedMap(compareBy { it.path })}")
                 }
             }
         """
@@ -188,70 +186,131 @@ class IsolatedModelAggregationIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        run "help"
+        fails "help"
 
         then:
-        outputContains("Tags after build finished: {:=tag-root, :a=null, :b=tag-b}")
+        failure.assertHasDescription("No service of type IsolatedModelRouter available in flow services.")
+        // TODO: expected result
+//        outputContains("Tags after build finished: {:=tag-root, :a=null, :b=tag-b}")
     }
 
     def "validating overlapping task outputs"() {
-        // For all the tasks scheduled in the invocation, validate that none of their output file locations intersect
-        // And report which tasks do have overlapping outputs
+        buildFile file("build-logic/build.gradle"), """
+            plugins {
+                id 'groovy-gradle-plugin'
+            }
 
-        createDirs("sub")
-        settingsFile """
-            rootProject.name = "root"
-            include(":sub")
+            gradlePlugin {
+                plugins {
+                    myProjectPlugin {
+                        id = 'my-project-plugin'
+                        implementationClass = 'my.MyProjectPlugin'
+                    }
+                }
+            }
+        """
 
+        groovyFile "build-logic/src/main/groovy/MyTaskOutputs.groovy", """
+            import org.gradle.api.file.RegularFile
+            class MyTaskOutputs {
+                String taskName
+                RegularFile outputFile
+
+                MyTaskOutputs(taskName, outputFile) {
+                    this.taskName = taskName
+                    this.outputFile = outputFile
+                }
+            }
+        """
+
+        groovyFile "build-logic/src/main/groovy/NumberTask.groovy", """
+            import org.gradle.api.DefaultTask
+            import org.gradle.api.provider.Property
+            import org.gradle.api.tasks.Input
+            import org.gradle.api.tasks.OutputFile
+            import org.gradle.api.tasks.TaskAction
+            import org.gradle.api.file.RegularFileProperty
 
             abstract class NumberTask extends DefaultTask {
                 @Input abstract Property<Integer> getNumber()
                 @OutputFile abstract RegularFileProperty getOutput()
                 @TaskAction run() { output.get().asFile.text = number.get().toString() }
             }
+        """
+
+        groovyFile "build-logic/src/main/groovy/my/MyProjectPlugin.groovy", """
+            package my
+
+            import org.gradle.api.Plugin
+            import org.gradle.api.Project
+            import javax.inject.Inject
+            import org.gradle.api.file.RegularFile
+            import org.gradle.api.provider.Provider
+            import java.util.Map
+            import java.util.List
+            import org.gradle.api.isolated.models.IsolatedModelRouter
+
+            abstract class MyProjectPlugin implements Plugin<Project> {
+                void apply(Project project) {
+                    def task = project.tasks.register("number", NumberTask) {
+                        number = project.name.length()
+                        output = project.isolated.rootProject.projectDirectory.file("build/out.txt")
+                    }
+
+                    def taskPath = project.identityPath.child(task.name)
+                    Provider<List<MyTaskOutputs>> taskOutputs = task.flatMap { it.output }
+                        .map { new MyTaskOutputs(taskPath, it) }
+                    project.isolated.models.register("taskOutputs", List<MyTaskOutputs>, taskOutputs)
+                }
+            }
+        """
+
+        createDirs("sub")
+
+        settingsFile """
+            pluginManagement {
+                includeBuild("build-logic")
+            }
+
+            plugins {
+                // Required to share the MyTaskOutputs type
+                id("my-project-plugin") apply false
+            }
+
+            rootProject.name = "root"
+            include(":sub")
 
             gradle.beforeProject { Project project ->
-                def router = project.services.get(org.gradle.internal.isolated.models.IsolatedModelRouter)
-
-                def task = project.tasks.register("number", NumberTask) {
-                    number = project.name.length()
-                    output = project.isolated.rootProject.projectDirectory.file("build/out.txt")
-                }
-
-                Provider<List<RegularFile>> taskOutputs = task.flatMap { it.output }.map { [it] }
-                router.postModel(router.key("taskOutputs", List<RegularFile>), router.work(taskOutputs))
+                project.plugins.apply("my-project-plugin")
             }
         """
 
         buildFile """
             abstract class CheckOverlaps extends DefaultTask {
-                @InputFiles abstract ConfigurableFileCollection getCandidates()
+                @Input abstract ListProperty<MyTaskOutputs> getCandidates()
                 @TaskAction run() {
-                    List<RegularFile> files = candidates.files.toList()
-                    println("Checking files \$files")
-                    Set<RegularFile> overlaps = []
-                    for (i in 0..< files.size()) {
-                      for (j in (i+1)..< files.size()) {
-                        def f1 = files[i].asFile
-                        def f2 = files[j].asFile
-                        if (f1 == f2) {
-                            overlaps += f1
-                        }
-                      }
+                    // Simulate overlap checking by checking for equality of the paths, instead of containment
+                    Map<String, List<String>> tasksByOutputPath = [:]
+                    candidates.get().each { taskOutputs ->
+                        def outputPath = taskOutputs.outputFile.asFile.getAbsolutePath()
+                        tasksByOutputPath.computeIfAbsent(outputPath) { [] }.add(taskOutputs.taskName)
                     }
-                    println("Found \${overlaps.size()} task output overlaps (checked \${files.size()} files)")
-                    overlaps.each {
-                        println("- '\$it'")
+
+                    println("There are " + tasksByOutputPath.size() + " output locations")
+                    tasksByOutputPath.entrySet().each {
+                        def tasks = it.value
+                        if (tasks.size() > 1) {
+                            println("Tasks " + tasks.toSorted() + " conflict for output location: " + it.key)
+                        }
                     }
                 }
             }
 
-            def router = project.services.get(org.gradle.internal.isolated.models.IsolatedModelRouter)
-                project.tasks.register("overlapsCheck", CheckOverlaps) {
-                    Map<String, Provider<List<RegularFile>>> models =
-                        router.getProjectModels(router.key("taskOutputs", List<RegularFile>), allprojects.collect { it.path })
-                    println("Models: \$models")
-                    candidates.from(files(models.values().flatten()))
+            project.tasks.register("overlapsCheck", CheckOverlaps) {
+                Map<IsolatedProject, Provider<List<MyTaskOutputs>>> models =
+                    isolated.models.fromProjects("taskOutputs", List<MyTaskOutputs>, allprojects)
+                println("Models: \$models")
+                models.values().each { candidates.add(it) }
             }
         """
 
@@ -262,9 +321,8 @@ class IsolatedModelAggregationIntegrationTest extends AbstractIntegrationSpec {
         executed(":number", ":sub:number", ":overlapsCheck")
 
         and:
-        outputContains("Found 1 task output overlaps (checked 1 files)")
+        outputContains("Tasks [:number, :sub:number] conflict for output location")
         file("build/out.txt").text == "3"
     }
-
 
 }

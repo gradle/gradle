@@ -68,6 +68,7 @@ import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.project.taskfactory.TaskInstantiator;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
+import org.gradle.api.isolated.models.IsolatedModelRouter;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
@@ -593,6 +594,10 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     @Override
     // onMutableStateAccess() triggered by #getServices()
     public abstract RoleBasedConfigurationContainerInternal getConfigurations();
+
+    @Inject
+    @Override
+    public abstract IsolatedModelRouter getIsolatedModelRouter();
 
     @Override
     public void setLifecycleActionsState(@Nullable Object state) {

@@ -20,7 +20,6 @@ import org.gradle.api.file.ArchiveOperations
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.flow.FlowParameters
 import org.gradle.internal.instantiation.InstantiatorFactory
-import org.gradle.internal.isolated.models.IsolatedModelRouter
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.ServiceRegistryBuilder
 import org.gradle.internal.service.scopes.Scope
@@ -60,7 +59,7 @@ class FlowScheduler(
                 registration.add(FileSystemOperations::class.java, serviceRegistry.get(FileSystemOperations::class.java))
                 // TODO: injecting the router directly leaves a hole of late discovery of models dependent on tasks
                 //  as it might be too late to execute tasks at the flow execution time (e.g., in build-finished callback)
-                registration.add(IsolatedModelRouter::class.java, serviceRegistry.get(IsolatedModelRouter::class.java))
+//                registration.add(IsolatedModelRouter::class.java, serviceRegistry.get(IsolatedModelRouter::class.java))
             }
             .build()
     }

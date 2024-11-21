@@ -35,6 +35,7 @@ import org.gradle.api.internal.plugins.ExtensionContainerInternal;
 import org.gradle.api.internal.plugins.PluginAwareInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
+import org.gradle.api.isolated.models.IsolatedModelRouter;
 import org.gradle.api.provider.Property;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.groovy.scripts.ScriptSource;
@@ -261,6 +262,8 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
      * */
     @Nullable
     Object getLifecycleActionsState();
+
+    IsolatedModelRouter getIsolatedModelRouter();
 
     interface DetachedResolver {
         RepositoryHandler getRepositories();

@@ -19,6 +19,7 @@ package org.gradle.api.project;
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.file.Directory;
+import org.gradle.api.isolated.models.IsolatedModelRouter;
 
 /**
  * An isolated view of {@link Project} that exposes only those properties that are safe to access from outside of
@@ -73,6 +74,13 @@ public interface IsolatedProject {
      * @since 8.8
      */
     IsolatedProject getRootProject();
+
+    /**
+     * TBD
+     *
+     * @since 8.12
+     */
+    IsolatedModelRouter getModels();
 
     @Override
     int hashCode();

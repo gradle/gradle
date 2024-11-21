@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.isolated.models;
+package org.gradle.api.isolated.models;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
@@ -35,51 +35,26 @@ import java.util.Map;
 @Incubating
 public interface IsolatedModelRouter {
 
-    // TODO: the key can be defined by the producer
+    /**
+     * TBD
+     *
+     * @since 8.12
+     */
+    <T> void register(String name, Class<T> type, Provider<T> provider);
 
     /**
      * TBD
      *
      * @since 8.12
      */
-    <T> IsolatedModelKey<T> key(String name, Class<T> type);
-
-    /**
-     * TBD
-     *
-     * @since 8.12
-     */
-    <T> IsolatedModelWork<T> work(Provider<T> provider);
-
-    /**
-     * TBD
-     *
-     * @since 8.12
-     */
-    <T> Map<String, Provider<T>> getProjectModels(IsolatedModelKey<T> key, Collection<String> projectPaths);
-
-    /**
-     * TBD
-     *
-     * @since 8.12
-     */
-    <T> Provider<T> getBuildModel(IsolatedModelKey<T> key);
-
-    /**
-     * TBD
-     *
-     * @since 8.12
-     */
-    <T> void postModel(IsolatedModelKey<T> key, IsolatedModelWork<T> work);
-
-
-    // Simplified API
-
-    <T> void shareModel(String name, Class<T> type, Provider<T> provider);
-
     // TODO: the return type should probably be MapProvider<IsolatedProject, T>
-    <T> Map<IsolatedProject, Provider<T>> getModelPerProject(String name, Class<T> type, Collection<Project> projects);
+    <T> Map<IsolatedProject, Provider<T>> fromProjects(String name, Class<T> type, Collection<Project> projects);
 
-    <T> Provider<T> getModelForBuild(String name, Class<T> type);
+    /**
+     * TBD
+     *
+     * @since 8.12
+     */
+    <T> Provider<T> fromBuild(String name, Class<T> type);
 
 }
