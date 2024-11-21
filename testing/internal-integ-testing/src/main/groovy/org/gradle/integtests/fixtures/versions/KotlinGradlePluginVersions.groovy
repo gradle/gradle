@@ -100,6 +100,10 @@ class KotlinGradlePluginVersions {
         kgpVersion < VersionNumber.parse(latestStable)
     }
 
+    List<String> languageVersionsSupportedByLatestStableOrRc() {
+        return LANGUAGE_VERSIONS.drop(2)
+    }
+
     static final VersionNumber KOTLIN_1_6_21 = VersionNumber.parse('1.6.21')
     static final VersionNumber KOTLIN_1_8_0 = VersionNumber.parse('1.8.0')
     static final VersionNumber KOTLIN_1_9_0 = VersionNumber.parse('1.9.0')
