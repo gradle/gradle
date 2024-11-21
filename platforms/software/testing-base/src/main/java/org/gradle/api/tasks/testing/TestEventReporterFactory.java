@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,34 +17,27 @@
 package org.gradle.api.tasks.testing;
 
 import org.gradle.api.Incubating;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
- * Standard output or standard error message logged during the execution of the test
+ * A service that provides access to the test event reporting API.
+ *
+ * @since 8.12
  */
-public interface TestOutputEvent {
-
+@ServiceScope({Scope.BuildSession.class})
+@Incubating
+public interface TestEventReporterFactory {
     /**
-     * The time the message was logged, in milliseconds since UNIX epoch.
+     * Returns an object that can be used to report test events.
      *
+     * <p>
+     * When closed, it will throw if the root node has been failed.
+     * </p>
+     *
+     * @param rootName the name for the root node of the test tree
+     * @return the test event reporter
      * @since 8.12
      */
-    @Incubating
-    long getLogTime();
-
-    /**
-     * Destination of the message
-     */
-    Destination getDestination();
-
-    /**
-     * Message content
-     */
-    String getMessage();
-
-    /**
-     * Destination of the message
-     */
-    enum Destination {
-        StdOut, StdErr
-    }
+    GroupTestEventReporter createTestEventReporter(String rootName);
 }

@@ -38,7 +38,7 @@ public class SuiteTestClassProcessor implements TestClassProcessor {
     @Override
     public void startProcessing(TestResultProcessor testResultProcessor) {
         try {
-            resultProcessor = new AttachParentTestResultProcessor(new CaptureTestOutputTestResultProcessor(testResultProcessor, new JULRedirector()));
+            resultProcessor = new AttachParentTestResultProcessor(new CaptureTestOutputTestResultProcessor(clock, testResultProcessor, new JULRedirector()));
             resultProcessor.started(suiteDescriptor, new TestStartEvent(clock.getCurrentTime()));
             processor.startProcessing(resultProcessor);
         } catch (Throwable t) {

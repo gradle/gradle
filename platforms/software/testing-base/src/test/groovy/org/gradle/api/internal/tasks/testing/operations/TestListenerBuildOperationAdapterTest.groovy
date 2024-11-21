@@ -22,24 +22,22 @@ import org.gradle.api.internal.tasks.testing.TestStartEvent
 import org.gradle.api.internal.tasks.testing.logging.SimpleTestOutputEvent
 import org.gradle.api.tasks.testing.TestOutputEvent
 import org.gradle.api.tasks.testing.TestResult
-import org.gradle.internal.operations.BuildOperationIdFactory
 import org.gradle.internal.operations.BuildOperationDescriptor
+import org.gradle.internal.operations.BuildOperationIdFactory
 import org.gradle.internal.operations.BuildOperationListener
-import org.gradle.internal.time.Clock
 import spock.lang.Specification
 
 class TestListenerBuildOperationAdapterTest extends Specification {
 
     public static final int TEST_START_TIMESTAMP = 200
+    public static final int TEST_COMPLETE_TIMESTAMP = 500
 
     BuildOperationListener listener = Mock()
-    Clock clock = Mock()
     BuildOperationIdFactory buildOperationIdFactory = Mock()
-    TestListenerBuildOperationAdapter adapter = new TestListenerBuildOperationAdapter(listener, buildOperationIdFactory, clock)
+    TestListenerBuildOperationAdapter adapter = new TestListenerBuildOperationAdapter(listener, buildOperationIdFactory)
     TestDescriptorInternal parentTestDescriptorInternal = Mock()
     TestDescriptorInternal testDescriptorInternal = Mock()
     TestStartEvent testStartEvent = Mock()
-    TestCompleteEvent testCompleteEvent = Mock()
     TestResult testResult = Mock()
 
     def setup() {
@@ -56,7 +54,6 @@ class TestListenerBuildOperationAdapterTest extends Specification {
 
         then:
         1 * buildOperationIdFactory.nextId() >> 1
-        1 * clock.currentTime >> 0
         1 * listener.started(_, _) >> {
             generatedDescriptor = it[0]
             assert generatedDescriptor.details.testDescriptor == testDescriptorInternal
@@ -64,22 +61,20 @@ class TestListenerBuildOperationAdapterTest extends Specification {
         }
 
         when:
-        adapter.completed(testDescriptorInternal, testResult, testCompleteEvent)
+        adapter.completed(testDescriptorInternal, testResult, new TestCompleteEvent(TEST_COMPLETE_TIMESTAMP))
         then:
         1 * listener.finished(_, _) >> {
             assert generatedDescriptor == it[0] // started and finished descriptors are the same
-            assert it[1].startTime == 0
-            assert it[1].endTime == 500
+            assert it[1].startTime == TEST_START_TIMESTAMP
+            assert it[1].endTime == TEST_COMPLETE_TIMESTAMP
             assert it[1].failure == null // not exposing test failures as operation failures
             assert it[1].result.result == testResult
         }
-        1 * clock.currentTime >> 500
         0 * buildOperationIdFactory.nextId()
     }
 
     def "test output is exposed as progress"() {
         setup:
-        _ * clock.currentTime >> 0
         long operationId = 1
         _ * buildOperationIdFactory.nextId() >> { operationId++ }
         TestOutputEvent testOutputEvent = new SimpleTestOutputEvent()
