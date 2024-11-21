@@ -19,10 +19,13 @@ package org.gradle.integtests.fixtures.executer;
 import com.google.common.io.Files;
 import org.gradle.exemplar.model.Sample;
 import org.gradle.exemplar.test.runner.SampleModifier;
-import org.gradle.integtests.fixtures.versions.LatestNightlyBuildDeterminer;
+import org.gradle.integtests.fixtures.versions.PublishedVersionDeterminer;
+import org.gradle.util.GradleVersion;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Optional;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
@@ -53,24 +56,43 @@ public class DependencyReplacingSampleModifier implements SampleModifier {
     }
 
     private static void replaceDependencies(File scriptFile) {
-        // currently we only want to replace the Tooling API dependency to the latest released snapshot
-        // a better approach would be to target the under development distribution but that takes significant refactorings (ie share the fixtures from the tapi cross-version tests)]
+        // Currently, we only want to replace the Tooling API dependency to the latest released snapshot.
+        // A better approach would be to target the under-development distribution,
+        // but that takes significant refactorings (e.g., sharing fixtures from the TAPI cross-version tests).
         try {
             String content = Files.asCharSource(scriptFile, UTF_8).read();
-            if (toolingApiPattern.matcher(content).find()) {
-                content = toolingApiPattern.matcher(content).replaceAll("org.gradle:gradle-tooling-api:" + latestVersion);
-                content = content.replace("libs-releases", "libs-snapshots");
-                Files.asCharSink(scriptFile, UTF_8).write(content);
+
+            Optional<String> replacement = getReplacementString(content);
+            if (replacement.isPresent()) {
+                Files.asCharSink(scriptFile, UTF_8).write(replacement.get());
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    static Pattern toolingApiPattern = Pattern.compile("org\\.gradle:gradle-tooling-api:\\d+(\\.\\d+)*(-[0-9A-Za-z\\.\\+]+)?");
-    static String latestVersion = getLatestSnapshotVersion();
+    static Optional<String> getReplacementString(String content) {
+        Matcher matcher = toolingApiPattern.matcher(content);
 
-    private static String getLatestSnapshotVersion() {
-        return LatestNightlyBuildDeterminer.getLatestNightlyVersion();
+        // Check if a match is found
+        if (matcher.find()) {
+            // Extract the version from the matched string
+            String existingVersion = matcher.group(1);
+            GradleVersion versionInScript = GradleVersion.version(existingVersion);
+            if (versionInScript.compareTo(latestReleasedVersion) > 0) {
+                String replacement = matcher.replaceAll("org.gradle:gradle-tooling-api:" + latestNightlyVersion);
+                replacement = replacement.replace("libs-releases", "libs-snapshots");
+                return Optional.of(replacement);
+            }
+        }
+        return Optional.empty();
     }
+
+    // Pattern to match the tooling API dependency
+    static Pattern toolingApiPattern = Pattern.compile("org\\.gradle:gradle-tooling-api:(\\d+(\\.\\d+)*)(-[0-9A-Za-z\\.\\+]+)?");
+
+    // Placeholder for the latest versions
+    static String latestNightlyVersion = PublishedVersionDeterminer.getLatestNightlyVersion();
+    static GradleVersion latestReleasedVersion = GradleVersion.version(PublishedVersionDeterminer.getLatestReleasedVersion());
+
 }
