@@ -64,6 +64,20 @@ For instance, this wil *not* be allowed:
 > gradlew init tasks
 ----
 
+[[task_project]]
+==== Calling `Task.getProject()` from a task action
+
+Calling link:{javadocPath}/org/gradle/api/Task.html#getProject--[Task.getProject()] from a task action at execution time is now deprecated and will be made an error in Gradle 9.0.
+This method can still be used during configuration time.
+
+The deprecation is only issued if the configuration cache is **not** enabled.
+When the configuration cache is enabled, calls to link:{javadocPath}/org/gradle/api/Task.html#getProject--[Task.getProject()] are reported as configuration cache problems instead.
+
+This deprecation was originally introduced in <<upgrading_version_7.adoc#task_project, Gradle 7.4>> but was only issued when the <<configuration_cache#config_cache:stable,`STABLE_CONFIGURATION_CACHE`>> feature flag was enabled. That feature flag no longer controls this deprecation.
+This is another step towards moving users away from idioms that are incompatible with the configuration cache, which will become the only mode supported by Gradle in a future release.
+
+Please refer to the <<configuration_cache#config_cache:requirements:use_project_during_execution, configuration cache documentation>> for alternatives to invoking `Task.getProject()` at execution time that are compatible with the configuration cache.
+
 [[changes_8.11]]
 == Upgrading from 8.10 and earlier
 
@@ -340,7 +354,7 @@ These methods on link:{javadocPath}/org/gradle/api/tasks/javadoc/Javadoc.html[Ja
 
 - link:{javadocPath}/org/gradle/api/tasks/javadoc/Javadoc.html#isVerbose()[isVerbose()] is replaced by link:{javadocPath}/org/gradle/external/javadoc/MinimalJavadocOptions.html#isVerbose()[getOptions().isVerbose()]
 - Calling link:{javadocPath}/org/gradle/api/tasks/javadoc/Javadoc.html#setVerbose(boolean)[setVerbose(boolean)] with `true` is replaced by link:{javadocPath}/org/gradle/external/javadoc/MinimalJavadocOptions.html#verbose()[getOptions().verbose()]
-    - Calling `setVerbose(false)` did nothing.
+- Calling `setVerbose(false)` did nothing.
 
 [[changes_8.10]]
 == Upgrading from 8.9 and earlier
