@@ -33,10 +33,9 @@ import org.gradle.internal.operations.OperationIdentifier;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
 
@@ -48,7 +47,7 @@ public class DefaultProblemSummarizer implements ProblemSummarizer {
     private final Integer threshold;
     private final ProblemReportCreator problemReportCreator;
 
-    private final Map<ProblemId, AtomicInteger> seenProblemsWithCounts = new HashMap<ProblemId, AtomicInteger>();
+    private final ConcurrentMap<ProblemId, Integer> seenProblemsWithCounts = new ConcurrentHashMap<>();
 
     public static final InternalOption<Integer> THRESHOLD_OPTION = new IntegerInternalOption("org.gradle.internal.problem.summary.threshold", 15);
     public static final int THRESHOLD_DEFAULT_VALUE = THRESHOLD_OPTION.getDefaultValue();
@@ -81,8 +80,8 @@ public class DefaultProblemSummarizer implements ProblemSummarizer {
 
     private List<ProblemSummaryData> getCutOffProblems() {
         return seenProblemsWithCounts.entrySet().stream()
-            .filter(entry -> entry.getValue().get() > threshold)
-            .map(entry -> new ProblemSummaryData(entry.getKey(), entry.getValue().get() - threshold))
+            .filter(entry -> entry.getValue() > threshold)
+            .map(entry -> new ProblemSummaryData(entry.getKey(), entry.getValue() - threshold))
             .collect(toImmutableList());
     }
 
@@ -99,8 +98,10 @@ public class DefaultProblemSummarizer implements ProblemSummarizer {
     }
 
     private boolean exceededThreshold(Problem problem) {
-        ProblemId problemId = problem.getDefinition().getId();
-        AtomicInteger count = seenProblemsWithCounts.computeIfAbsent(problemId, key -> new AtomicInteger(0));
-        return count.incrementAndGet() > threshold;
+        int count = seenProblemsWithCounts.compute(
+            problem.getDefinition().getId(),
+            (key, value) -> value == null ? 1 : value + 1
+        );
+        return count > threshold;
     }
 }
