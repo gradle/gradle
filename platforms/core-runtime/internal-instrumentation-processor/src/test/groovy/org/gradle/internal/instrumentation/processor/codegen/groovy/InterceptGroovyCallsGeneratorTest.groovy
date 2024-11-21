@@ -48,6 +48,7 @@ class InterceptGroovyCallsGeneratorTest extends InstrumentationCodeGenTest {
         then:
         def expectedJvmInterceptors = source """
             package my;
+            @Generated
             public class InterceptorDeclaration_GroovyBytecodeImpl {
             }
         """
