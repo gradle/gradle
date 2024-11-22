@@ -41,6 +41,8 @@ kotlin {
         compileTaskProvider.configure {
             this as BaseKotlinCompile // TODO: Is there a way we can avoid a cast here?
             pluginClasspath.from(apiGenClasspath)
+            outputs.dir(abiClassesDirectory)
+                .withPropertyName("abiClassesDirectory")
             pluginOptions.add(provider {
                 CompilerPluginConfig().apply {
                     addPluginArgument("org.jetbrains.kotlin.jvm.abi", FilesSubpluginOption(
@@ -56,6 +58,8 @@ kotlin {
 configurations {
     // TODO: Why are we not generating extensions for this configuration?
     named("apiStubElements") {
-        outgoing.artifact(abiClassesDirectory)
+        outgoing.artifact(abiClassesDirectory) {
+            builtBy(kotlin.target.compilations.named("main").flatMap { it.compileTaskProvider })
+        }
     }
 }
