@@ -86,6 +86,10 @@ public final class TaskIdentity<T extends Task> {
         return buildPath.getPath();
     }
 
+    public Path getBuildPathAsPath() {
+        return buildPath;
+    }
+
     public Class<T> getTaskType() {
         return type;
     }

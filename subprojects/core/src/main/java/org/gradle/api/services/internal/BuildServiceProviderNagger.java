@@ -18,6 +18,7 @@ package org.gradle.api.services.internal;
 
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.internal.execution.WorkExecutionTracker;
+import org.gradle.util.Path;
 
 import java.util.Optional;
 
@@ -33,11 +34,36 @@ public class BuildServiceProviderNagger implements BuildServiceProvider.Listener
 
     @Override
     public void beforeGet(BuildServiceProvider<?, ?> provider) {
-        currentTask().ifPresent(task -> {
+        currentTask().filter(task -> isSameBuildTree(provider, task)).ifPresent(task -> {
             if (!isServiceRequiredBy(task, provider)) {
                 nagAboutUndeclaredUsageOf(provider, task);
             }
         });
+    }
+
+    /**
+     * Returns whether the given service provider and task belong to the same build tree.
+     *
+     * The current task may not belong to the current build tree - for instance, when a service
+     * is accessed outside the context of any task.
+     * <p>
+     * Implementation note: concretely, this currently happens in the `GeneratePrecompiledScriptPluginAccessors` task,
+     * which launches a nested empty build and runs code that accesses a service that is not declared by the
+     * "current task" (from the client build).
+     */
+    private static boolean isSameBuildTree(BuildServiceProvider<?, ?> provider, TaskInternal task) {
+        return isSameBuildTree(
+            provider.getServiceDetails().getBuildIdentifier().getBuildPath(),
+            task.getTaskIdentity().getBuildPathAsPath()
+        );
+    }
+
+    private static boolean isSameBuildTree(String serviceBuildPath, Path candidateBuildPath) {
+        if (serviceBuildPath.equals(candidateBuildPath.getPath())) {
+            return true;
+        }
+        Path parentBuildPath = candidateBuildPath.getParent();
+        return parentBuildPath != null && isSameBuildTree(serviceBuildPath, parentBuildPath);
     }
 
     private Optional<TaskInternal> currentTask() {
