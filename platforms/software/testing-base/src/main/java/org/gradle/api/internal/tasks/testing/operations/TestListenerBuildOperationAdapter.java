@@ -21,6 +21,7 @@ import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
 import org.gradle.api.tasks.testing.TestDescriptor;
+import org.gradle.api.tasks.testing.TestMetadataEvent;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -45,7 +46,7 @@ import java.util.Map;
 @ServiceScope(Scope.BuildSession.class)
 public class TestListenerBuildOperationAdapter implements TestListenerInternal {
 
-    private final Map<TestDescriptor, InProgressExecuteTestBuildOperation> runningTests = new HashMap<TestDescriptor, InProgressExecuteTestBuildOperation>();
+    private final Map<TestDescriptor, InProgressExecuteTestBuildOperation> runningTests = new HashMap<>();
     private final BuildOperationListener listener;
     private final BuildOperationIdFactory buildOperationIdFactory;
 
@@ -79,6 +80,15 @@ public class TestListenerBuildOperationAdapter implements TestListenerInternal {
             throw new IllegalStateException("Received output for test that is not running: " + testDescriptor);
         }
         listener.progress(runningOp.descriptor.getId(), new OperationProgressEvent(event.getLogTime(), new OutputProgress(event)));
+    }
+
+    @Override
+    public void metadata(TestDescriptorInternal testDescriptor, TestMetadataEvent event) {
+        InProgressExecuteTestBuildOperation runningOp = runningTests.get(testDescriptor);
+        if (runningOp == null) {
+            throw new IllegalStateException("Received metadata for test that is not running: " + testDescriptor);
+        }
+        listener.progress(runningOp.descriptor.getId(), new OperationProgressEvent(event.getLogTime(), new Metadata(event)));
     }
 
     private BuildOperationDescriptor createTestBuildOperationDescriptor(TestDescriptor testDescriptor, TestStartEvent testStartEvent) {
@@ -123,6 +133,19 @@ public class TestListenerBuildOperationAdapter implements TestListenerInternal {
 
         @Override
         public TestOutputEvent getOutput() {
+            return event;
+        }
+    }
+
+    public static class Metadata implements ExecuteTestBuildOperationType.Metadata {
+        private final TestMetadataEvent event;
+
+        private Metadata(TestMetadataEvent event) {
+            this.event = event;
+        }
+
+        @Override
+        public TestMetadataEvent getMetadata() {
             return event;
         }
     }

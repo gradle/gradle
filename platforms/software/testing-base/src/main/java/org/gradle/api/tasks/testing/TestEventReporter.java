@@ -18,6 +18,7 @@ package org.gradle.api.tasks.testing;
 
 import org.gradle.api.Incubating;
 
+import javax.annotation.Nullable;
 import java.time.Instant;
 
 /**
@@ -100,4 +101,14 @@ public interface TestEventReporter extends AutoCloseable {
      */
     @Override
     void close();
+
+    /**
+     * Emit an event containing metadata about the test or test group currently being run.
+     *
+     * @param logTime the time the metadata was logged, must be between the start and end times of the test if supplied
+     * @param key a key to identify the metadata
+     * @param value the metadata value, which must be serializable by the Tooling API
+     * @since 8.12
+     */
+    void metadata(@Nullable Instant logTime, String key, Object value);
 }

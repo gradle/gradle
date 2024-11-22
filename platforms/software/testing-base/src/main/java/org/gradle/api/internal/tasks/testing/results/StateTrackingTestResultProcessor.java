@@ -22,6 +22,7 @@ import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
 import org.gradle.api.tasks.testing.TestFailure;
+import org.gradle.api.tasks.testing.TestMetadataEvent;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
 
@@ -33,10 +34,10 @@ import java.util.Map;
 public class StateTrackingTestResultProcessor implements TestResultProcessor {
     private final Map<Object, TestState> executing = new HashMap<Object, TestState>();
     private TestDescriptorInternal currentParent;
-    private final TestListenerInternal delegate;
+    private final TestListenerInternal listener;
 
     public StateTrackingTestResultProcessor(TestListenerInternal delegate) {
-        this.delegate = delegate;
+        this.listener = delegate;
     }
 
     @Override
@@ -52,7 +53,7 @@ public class StateTrackingTestResultProcessor implements TestResultProcessor {
                     test, test.getId()));
         }
 
-        delegate.started(state.test, event);
+        listener.started(state.test, event);
     }
 
     private void ensureChildrenCompleted(Object testId, long endTime) {
@@ -94,7 +95,7 @@ public class StateTrackingTestResultProcessor implements TestResultProcessor {
         currentParent = testState.test.getParent();
 
         testState.completed(event);
-        delegate.completed(testState.test, new DefaultTestResult(testState), event);
+        listener.completed(testState.test, new DefaultTestResult(testState), event);
     }
 
     @Override
@@ -110,7 +111,12 @@ public class StateTrackingTestResultProcessor implements TestResultProcessor {
 
     @Override
     public final void output(Object testId, TestOutputEvent event) {
-        delegate.output(findDescriptor(testId), event);
+        listener.output(findDescriptor(testId), event);
+    }
+
+    @Override
+    public void metadata(Object testId, TestMetadataEvent event) {
+        listener.metadata(findDescriptor(testId), event);
     }
 
     private TestDescriptorInternal findDescriptor(Object testId) {

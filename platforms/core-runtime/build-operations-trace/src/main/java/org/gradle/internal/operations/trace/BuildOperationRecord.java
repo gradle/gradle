@@ -45,6 +45,7 @@ public final class BuildOperationRecord {
     public final String failure;
 
     public final List<Progress> progress;
+    public final List<Progress> metadata;
     public final List<BuildOperationRecord> children;
 
     BuildOperationRecord(
@@ -58,7 +59,7 @@ public final class BuildOperationRecord {
         @Nullable Map<String, ?> result,
         @Nullable String resultClassName,
         @Nullable String failure,
-        List<Progress> progress,
+        List<Progress> progresses,
         List<BuildOperationRecord> children
     ) {
         this.id = id;
@@ -71,8 +72,17 @@ public final class BuildOperationRecord {
         this.result = result == null ? null : new StrictMap<String, Object>(result);
         this.resultClassName = resultClassName;
         this.failure = failure;
-        this.progress = progress;
         this.children = children;
+
+        this.progress = new ArrayList<>(progresses.size()); // Expectation is that almost all of these are progress events
+        this.metadata = new ArrayList<>();
+        for (Progress progress : progresses) {
+            if (progress.detailsClassName != null && progress.detailsClassName.endsWith("Metadata")) {
+                this.metadata.add(progress);
+            } else {
+                this.progress.add(progress);
+            }
+        }
     }
 
     Map<String, ?> toSerializable() {
@@ -105,6 +115,10 @@ public final class BuildOperationRecord {
 
         if (!progress.isEmpty()) {
             map.put("progress", transform(progress, Progress::toSerializable));
+        }
+
+        if (!metadata.isEmpty()) {
+            map.put("metadata", transform(metadata, Progress::toSerializable));
         }
 
         if (!children.isEmpty()) {

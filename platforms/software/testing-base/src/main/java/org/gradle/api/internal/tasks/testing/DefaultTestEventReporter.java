@@ -66,6 +66,12 @@ class DefaultTestEventReporter implements TestEventReporter {
     }
 
     @Override
+    public void metadata(@Nullable Instant logTime, String key, Object value) {
+        requireRunning();
+        processor.metadata(testDescriptor.getId(), new DefaultTestMetadataEvent(logTime == null ? null : logTime.toEpochMilli(), key, value));
+    }
+
+    @Override
     public void succeeded(Instant endTime) {
         if (!isComposite()) {
             testResultState.incrementSuccessfulCount();

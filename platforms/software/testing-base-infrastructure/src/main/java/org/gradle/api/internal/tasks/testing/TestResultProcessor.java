@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.testing;
 
 import org.gradle.api.tasks.testing.TestFailure;
+import org.gradle.api.tasks.testing.TestMetadataEvent;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
@@ -42,6 +43,12 @@ public interface TestResultProcessor {
      */
     @UsedByScanPlugin("test-distribution")
     void output(Object testId, TestOutputEvent event);
+
+    /**
+     * Notifies this processor that a test has produced some metadata.
+     */
+    @UsedByScanPlugin("test-distribution")
+    void metadata(Object testId, TestMetadataEvent event);
 
     /**
      * Notifies this processor that a failure has occurred in the given test.

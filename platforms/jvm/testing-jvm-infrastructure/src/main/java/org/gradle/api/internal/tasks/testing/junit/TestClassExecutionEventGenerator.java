@@ -23,6 +23,7 @@ import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
 import org.gradle.api.tasks.testing.TestFailure;
+import org.gradle.api.tasks.testing.TestMetadataEvent;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.time.Clock;
@@ -92,6 +93,11 @@ public class TestClassExecutionEventGenerator implements TestResultProcessor, Te
     @Override
     public void output(Object testId, TestOutputEvent event) {
         resultProcessor.output(testId, event);
+    }
+
+    @Override
+    public void metadata(Object testId, TestMetadataEvent event) {
+        resultProcessor.metadata(testId, event);
     }
 
     @Override
