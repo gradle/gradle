@@ -43,7 +43,6 @@ class DryRunBuildExecutionActionTest extends Specification {
     def "print all selected tasks before proceeding when dry run is enabled"() {
         def task1 = Mock(TaskInternal.class)
         def task2 = Mock(TaskInternal.class)
-        def category = DryRunBuildExecutionAction.class.name
         def contents = Mock(QueryableExecutionPlan)
 
         given:
@@ -55,7 +54,8 @@ class DryRunBuildExecutionActionTest extends Specification {
         action.execute(gradle, executionPlan)
 
         then:
-        textOutputFactory.toString() == "{$category}:task1 {progressstatus}SKIPPED${EOL}{$category}:task2 {progressstatus}SKIPPED$EOL"
+        textOutputFactory.category == DryRunBuildExecutionAction.canonicalName
+        textOutputFactory.output == ":task1 {progressstatus}SKIPPED${EOL}:task2 {progressstatus}SKIPPED$EOL"
         1 * task1.getIdentityPath() >> Path.path(':task1')
         1 * task2.getIdentityPath() >> Path.path(':task2')
         0 * delegate.execute(_, _)

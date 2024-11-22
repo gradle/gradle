@@ -20,26 +20,48 @@ import org.gradle.api.logging.LogLevel;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
+/**
+ * Test fixture for {@link StyledTextOutputFactory} that tracks the styled text produced.
+ *
+ * This is intended to be used in tests and only in cases where a single category/log level is used at a time.
+ *
+ * This fixture allows tests to assert that the correct log category, log level and styled output has been produced.
+ */
 public class TestStyledTextOutputFactory extends AbstractStyledTextOutputFactory implements StyledTextOutputFactory {
     private final List<StyledTextOutput> textOutputs = new ArrayList<StyledTextOutput>();
+    private String category;
+    private LogLevel logLevel;
 
+    /**
+     * {@inheritDoc}
+     *
+     * @implNote This implementation tracks the output of the most recently created category and log level. If the category or log level
+     * changes, the tracked output is reset.
+     */
     @Override
     public StyledTextOutput create(String logCategory, LogLevel logLevel) {
+        if (!Objects.equals(this.category, logCategory) || !Objects.equals(this.logLevel, logLevel)) {
+            reset();
+            this.category = logCategory;
+            this.logLevel = logLevel;
+        }
+
         StyledTextOutput textOutput = new TestStyledTextOutput();
-
-        if (logCategory != null) {
-            textOutput.append("{").append(logCategory).append("}");
-        }
-        if (logLevel != null) {
-            textOutput.append("{").append(logLevel.toString()).append("}");
-        }
-
         textOutputs.add(textOutput);
         return textOutput;
     }
 
+    @Override
     public String toString() {
+        return getOutput();
+    }
+
+    /**
+     * @return the output that has been seen so far.
+     */
+    public String getOutput() {
         StringBuilder builder = new StringBuilder();
         for (StyledTextOutput textOutput: textOutputs) {
             builder.append(textOutput);
@@ -47,7 +69,23 @@ public class TestStyledTextOutputFactory extends AbstractStyledTextOutputFactory
         return builder.toString();
     }
 
-    public void clear() {
+    /**
+     * @return category last seen by the factory.
+     */
+    public String getCategory() {
+        return category;
+    }
+
+    /**
+     * @return log level last seen by the factory.
+     */
+    public LogLevel getLogLevel() {
+        return logLevel;
+    }
+
+    private void reset() {
         textOutputs.clear();
+        category = null;
+        logLevel = null;
     }
 }

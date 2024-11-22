@@ -17,6 +17,7 @@
 package org.gradle.internal.buildevents
 
 import org.gradle.BuildResult
+import org.gradle.api.logging.LogLevel
 import org.gradle.execution.WorkValidationWarningReporter
 import org.gradle.internal.logging.format.DurationFormatter
 import org.gradle.internal.logging.text.StyledTextOutputFactory
@@ -42,7 +43,9 @@ class BuildResultLoggerTest extends Specification {
 
         then:
         1 * durationFormatter.format(10L) >> { "10s" }
-        TextUtil.normaliseLineSeparators(textOutputFactory as String) == "{org.gradle.internal.buildevents.BuildResultLogger}{LIFECYCLE}\n{successheader}ACTION SUCCESSFUL{normal} in 10s\n"
+        textOutputFactory.category == BuildResultLogger.canonicalName
+        textOutputFactory.logLevel == LogLevel.LIFECYCLE
+        TextUtil.normaliseLineSeparators(textOutputFactory.output) == "\n{successheader}ACTION SUCCESSFUL{normal} in 10s\n"
     }
 
     def "logs build failure with total time"() {
@@ -52,6 +55,8 @@ class BuildResultLoggerTest extends Specification {
 
         then:
         1 * durationFormatter.format(10L) >> { "10s" }
-        TextUtil.normaliseLineSeparators(textOutputFactory as String) == "{org.gradle.internal.buildevents.BuildResultLogger}{ERROR}\n{failureheader}ACTION FAILED{normal} in 10s\n"
+        textOutputFactory.category == BuildResultLogger.canonicalName
+        textOutputFactory.logLevel == LogLevel.ERROR
+        TextUtil.normaliseLineSeparators(textOutputFactory.output) == "\n{failureheader}ACTION FAILED{normal} in 10s\n"
     }
 }
