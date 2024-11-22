@@ -31,22 +31,25 @@ import java.util.Objects;
  */
 public class TestStyledTextOutputFactory extends AbstractStyledTextOutputFactory implements StyledTextOutputFactory {
     private final List<StyledTextOutput> textOutputs = new ArrayList<StyledTextOutput>();
+    private boolean created;
     private String category;
     private LogLevel logLevel;
 
     /**
      * {@inheritDoc}
      *
-     * @implNote This implementation tracks the output of the most recently created category and log level. If the category or log level
-     * changes, the tracked output is reset.
+     * @implNote This implementation tracks the output of the first created category and log level. If the category or log level
+     * changes, the factory will fail to create a new styled text output.
      */
     @Override
     public StyledTextOutput create(String logCategory, LogLevel logLevel) {
-        if (!Objects.equals(this.category, logCategory) || !Objects.equals(this.logLevel, logLevel)) {
-            reset();
-            this.category = logCategory;
-            this.logLevel = logLevel;
+        if (created && (!Objects.equals(this.category, logCategory) || !Objects.equals(this.logLevel, logLevel))) {
+            throw new UnsupportedOperationException("This fixture can only be used with a single category and log level.");
         }
+
+        this.created = true;
+        this.category = logCategory;
+        this.logLevel = logLevel;
 
         StyledTextOutput textOutput = new TestStyledTextOutput();
         textOutputs.add(textOutput);
@@ -81,11 +84,5 @@ public class TestStyledTextOutputFactory extends AbstractStyledTextOutputFactory
      */
     public LogLevel getLogLevel() {
         return logLevel;
-    }
-
-    private void reset() {
-        textOutputs.clear();
-        category = null;
-        logLevel = null;
     }
 }
