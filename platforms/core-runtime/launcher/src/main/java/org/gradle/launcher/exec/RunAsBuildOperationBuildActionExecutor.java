@@ -18,7 +18,7 @@ package org.gradle.launcher.exec;
 
 import org.gradle.api.NonNullApi;
 import org.gradle.api.problems.internal.ExceptionProblemRegistry;
-import org.gradle.api.problems.internal.Problem;
+import org.gradle.api.problems.internal.ProblemLookup;
 import org.gradle.internal.buildtree.BuildActionRunner;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.operations.BuildOperationContext;
@@ -29,9 +29,6 @@ import org.gradle.internal.operations.logging.LoggingBuildOperationProgressBroad
 import org.gradle.internal.operations.notify.BuildOperationNotificationValve;
 import org.gradle.internal.session.BuildSessionActionExecutor;
 import org.gradle.internal.session.BuildSessionContext;
-
-import java.util.Collection;
-import java.util.Map;
 
 /**
  * An {@link BuildActionRunner} that wraps all work in a build operation.
@@ -79,8 +76,8 @@ public class RunAsBuildOperationBuildActionExecutor implements BuildSessionActio
                 public BuildOperationDescriptor.Builder description() {
                     return BuildOperationDescriptor.displayName("Run build").details(new RunBuildBuildOperationType.Details() {
                         @Override
-                        public Map<Throwable, Collection<Problem>> getProblemsForThrowables() {
-                            return problemContainer.getProblemsForThrowables();
+                        public ProblemLookup getProblemLookup() {
+                            return problemContainer.getProblemLookup();
                         }
                     });
                 }

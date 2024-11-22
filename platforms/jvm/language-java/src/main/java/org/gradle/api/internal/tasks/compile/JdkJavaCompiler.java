@@ -81,7 +81,10 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
             System.err.println(diagnosticCounts);
         }
         if (!success) {
-            throw new CompilationFailedException(result, diagnosticToProblemListener.getReportedProblems(), diagnosticCounts);
+            CompilationFailedException exception = new CompilationFailedException(result, diagnosticCounts);
+            throw problemsService.getInternalReporter().throwing(exception, diagnosticToProblemListener.getReportedProblems());
+        } else {
+            problemsService.getInternalReporter().report(diagnosticToProblemListener.getReportedProblems());
         }
         return result;
     }
