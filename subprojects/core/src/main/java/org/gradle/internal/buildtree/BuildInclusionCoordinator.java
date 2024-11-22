@@ -17,6 +17,7 @@
 package org.gradle.internal.buildtree;
 
 import org.gradle.internal.build.BuildState;
+import org.gradle.internal.build.CompositeBuildParticipantBuildState;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.build.RootBuildState;
 import org.gradle.internal.composite.IncludedBuildInternal;
@@ -93,7 +94,7 @@ public class BuildInclusionCoordinator {
 
     private void registerGlobalLibrarySubstitutions() {
         for (IncludedBuildState includedBuild : libraryBuilds) {
-            withLockForBuild(includedBuild, () -> substitutionRegistry.registerSubstitutionsFor(includedBuild));
+            registerSubstitutionsFor(includedBuild);
         }
     }
 
@@ -108,7 +109,7 @@ public class BuildInclusionCoordinator {
     public void registerSubstitutionsProvidedBy(BuildState build) {
         if (build instanceof RootBuildState && registerRootSubstitutions) {
             // Make root build substitutions available
-            withLockForBuild(build, () -> substitutionRegistry.registerSubstitutionsFor((RootBuildState) build));
+            registerSubstitutionsFor((RootBuildState) build);
         }
     }
 
@@ -131,11 +132,15 @@ public class BuildInclusionCoordinator {
                 BuildState child = reference.getTarget();
 
                 if (seen.add(child) && child instanceof IncludedBuildState) {
-                    withLockForBuild(child, () -> substitutionRegistry.registerSubstitutionsFor((IncludedBuildState) child));
+                    registerSubstitutionsFor((IncludedBuildState) child);
                     stack.push(child);
                 }
             }
         }
+    }
+
+    private void registerSubstitutionsFor(CompositeBuildParticipantBuildState build) {
+        withLockForBuild(build, () -> substitutionRegistry.registerSubstitutionsFor(build));
     }
 
     private void withLockForBuild(BuildState build, Runnable action) {
