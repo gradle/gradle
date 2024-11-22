@@ -45,6 +45,7 @@ trait TestEventsFixture {
 
     static interface TestEventSpec {
         void testDisplayName(String displayName)
+        void metadata(String key, Object value)
     }
 
     static interface CompositeTestEventSpec extends TestEventSpec {
@@ -80,6 +81,7 @@ class DefaultTestEventSpec implements TestEventsFixture.CompositeTestEventSpec {
     private final Set<OperationDescriptor> verifiedEvents
     private final OperationDescriptor parent
     private String testDisplayName
+    private final Map<String, Object> metadata = [:]
 
     static void assertSpec(OperationDescriptor descriptor, List<TestOperationDescriptor> testEvents, Set<OperationDescriptor> verifiedEvents, String expectedOperationDisplayName, @DelegatesTo(value = TestEventsFixture.TestEventSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
         verifiedEvents.add(descriptor)
@@ -99,6 +101,11 @@ class DefaultTestEventSpec implements TestEventsFixture.CompositeTestEventSpec {
     @Override
     void testDisplayName(String displayName) {
         this.testDisplayName = displayName
+    }
+
+    @Override
+    void metadata(String key, Object value) {
+        this.metadata[key] = value
     }
 
     private static String normalizeExecutor(String name) {

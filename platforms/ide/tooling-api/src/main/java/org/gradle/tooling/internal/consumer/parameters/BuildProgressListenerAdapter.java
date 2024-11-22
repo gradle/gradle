@@ -261,6 +261,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
     private final ListenerBroadcast<ProgressListener> projectConfigurationProgressListeners = new ListenerBroadcast<>(ProgressListener.class);
     private final ListenerBroadcast<ProgressListener> transformProgressListeners = new ListenerBroadcast<>(ProgressListener.class);
     private final ListenerBroadcast<ProgressListener> testOutputProgressListeners = new ListenerBroadcast<>(ProgressListener.class);
+    private final ListenerBroadcast<ProgressListener> testMetadataProgressListeners = new ListenerBroadcast<>(ProgressListener.class);
     private final ListenerBroadcast<ProgressListener> fileDownloadListeners = new ListenerBroadcast<>(ProgressListener.class);
     private final ListenerBroadcast<ProgressListener> buildPhaseListeners = new ListenerBroadcast<>(ProgressListener.class);
     private final ListenerBroadcast<ProgressListener> problemListeners = new ListenerBroadcast<>(ProgressListener.class);
@@ -277,6 +278,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         projectConfigurationProgressListeners.addAll(getOrDefault(listeners, OperationType.PROJECT_CONFIGURATION));
         transformProgressListeners.addAll(getOrDefault(listeners, OperationType.TRANSFORM));
         testOutputProgressListeners.addAll(getOrDefault(listeners, OperationType.TEST_OUTPUT));
+        testMetadataProgressListeners.addAll(getOrDefault(listeners, OperationType.TEST_METADATA));
         fileDownloadListeners.addAll(getOrDefault(listeners, OperationType.FILE_DOWNLOAD));
         buildPhaseListeners.addAll(getOrDefault(listeners, OperationType.BUILD_PHASE));
         problemListeners.addAll(getOrDefault(listeners, OperationType.PROBLEMS));

@@ -52,11 +52,16 @@ public class ToolingApiBuildEventListenerFactory implements BuildEventListenerFa
         }
 
         ProgressEventConsumer progressEventConsumer = new ProgressEventConsumer(consumer, ancestryTracker);
+        MetadataEventConsumer metadataEventConsumer = new MetadataEventConsumer(consumer, ancestryTracker);
 
         ImmutableList.Builder<Object> listeners = ImmutableList.builder();
 
         if (subscriptions.isRequested(OperationType.TEST) && subscriptions.isRequested(OperationType.TEST_OUTPUT)) {
             listeners.add(new ClientForwardingTestOutputOperationListener(progressEventConsumer, idFactory));
+        }
+
+        if (subscriptions.isRequested(OperationType.TEST) && subscriptions.isRequested(OperationType.TEST_METADATA)) {
+            listeners.add(new ClientForwardingTestMetadataOperationListener(metadataEventConsumer, idFactory));
         }
 
         if (subscriptions.isRequested(OperationType.BUILD_PHASE)) {
