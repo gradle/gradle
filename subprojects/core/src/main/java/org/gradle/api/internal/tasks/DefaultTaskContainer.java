@@ -118,6 +118,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         this.projectRegistry = projectRegistry;
     }
 
+    @Deprecated
     @Override
     public Task create(Map<String, ?> options) {
         assertCanMutate("create(Map)");
@@ -270,18 +271,21 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         return create(name, type);
     }
 
+    @Deprecated
     @Override
     public Task create(Map<String, ?> options, Closure configureClosure) throws InvalidUserDataException {
         assertCanMutate("create(Map, Closure)");
         return doCreate(options, ConfigureUtil.configureUsing(configureClosure));
     }
 
+    @Deprecated
     @Override
     public <T extends Task> T create(String name, Class<T> type) {
         assertCanMutate("create(String, Class)");
         return doCreate(name, type, NO_ARGS, Actions.doNothing());
     }
 
+    @Deprecated
     @Override
     public <T extends Task> T create(final String name, final Class<T> type, final Object... constructorArgs) throws InvalidUserDataException {
         assertCanMutate("create(String, Class, Object...)");
@@ -332,12 +336,14 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         return taskFactory.create(identity, constructorArgs);
     }
 
+    @Deprecated
     @Override
     public Task create(String name) {
         assertCanMutate("create(String)");
         return doCreate(name, DefaultTask.class, NO_ARGS, Actions.doNothing());
     }
 
+    @Deprecated
     @Override
     public Task create(String name, Action<? super Task> configureAction) throws InvalidUserDataException {
         assertCanMutate("create(String, Action)");
@@ -359,12 +365,14 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         return replace(name, DefaultTask.class);
     }
 
+    @Deprecated
     @Override
     public Task create(String name, Closure configureClosure) {
         assertCanMutate("create(String, Closure)");
         return doCreate(name, DefaultTask.class, NO_ARGS, ConfigureUtil.configureUsing(configureClosure));
     }
 
+    @Deprecated
     @Override
     public <T extends Task> T create(String name, Class<T> type, Action<? super T> configuration) throws InvalidUserDataException {
         assertCanMutate("create(String, Class, Action)");
