@@ -36,7 +36,7 @@ import static org.gradle.performance.annotations.ScenarioType.PER_COMMIT
 import static org.gradle.performance.annotations.ScenarioType.PER_DAY
 import static org.gradle.performance.fixture.AndroidTestProject.LARGE_ANDROID_BUILD
 import static org.gradle.performance.results.OperatingSystem.LINUX
-import static org.gradle.profiler.mutations.AbstractCleanupMutator.CleanupSchedule.BUILD
+import static org.gradle.profiler.mutations.AbstractScheduledMutator.Schedule.BUILD
 
 class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanceTest implements AndroidPerformanceTestFixture {
 
