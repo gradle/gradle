@@ -18,7 +18,6 @@ package org.gradle.internal.declarativedsl.schemaBuilder
 
 import org.gradle.internal.declarativedsl.analysis.interpretationCheck
 import org.gradle.internal.declarativedsl.mappingToJvm.InstanceAndPublicType
-import org.jetbrains.kotlin.descriptors.runtime.structure.parameterizedTypeArguments
 import java.lang.reflect.Proxy
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
@@ -28,7 +27,6 @@ import kotlin.reflect.full.createType
 import kotlin.reflect.full.declaredMemberFunctions
 import kotlin.reflect.full.instanceParameter
 import kotlin.reflect.full.isSubtypeOf
-import kotlin.reflect.javaType
 import kotlin.reflect.jvm.jvmErasure
 import kotlin.reflect.typeOf
 
