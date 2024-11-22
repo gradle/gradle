@@ -23,7 +23,6 @@ import org.gradle.internal.logging.format.DurationFormatter
 import org.gradle.internal.logging.text.StyledTextOutputFactory
 import org.gradle.internal.logging.text.TestStyledTextOutputFactory
 import org.gradle.internal.time.Clock
-import org.gradle.util.internal.TextUtil
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -45,7 +44,9 @@ class BuildResultLoggerTest extends Specification {
         1 * durationFormatter.format(10L) >> { "10s" }
         textOutputFactory.category == BuildResultLogger.canonicalName
         textOutputFactory.logLevel == LogLevel.LIFECYCLE
-        TextUtil.normaliseLineSeparators(textOutputFactory.output) == "\n{successheader}ACTION SUCCESSFUL{normal} in 10s\n"
+        textOutputFactory.output == """
+{successheader}ACTION SUCCESSFUL{normal} in 10s
+"""
     }
 
     def "logs build failure with total time"() {
@@ -57,6 +58,8 @@ class BuildResultLoggerTest extends Specification {
         1 * durationFormatter.format(10L) >> { "10s" }
         textOutputFactory.category == BuildResultLogger.canonicalName
         textOutputFactory.logLevel == LogLevel.ERROR
-        TextUtil.normaliseLineSeparators(textOutputFactory.output) == "\n{failureheader}ACTION FAILED{normal} in 10s\n"
+        textOutputFactory.output == """
+{failureheader}ACTION FAILED{normal} in 10s
+"""
     }
 }
