@@ -20,7 +20,7 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 
-class IsolatedProjectsCompositeBuildParallelConfigurationIntegrationTest extends AbstractIsolatedProjectsIntegrationTest implements CompositeBuildSupport {
+class IsolatedProjectsCompositeBuildParallelConfigurationIntegrationTest extends AbstractIsolatedProjectsIntegrationTest implements CompositeBuildFixture {
 
     @Rule
     BlockingHttpServer server = new BlockingHttpServer(5_000)

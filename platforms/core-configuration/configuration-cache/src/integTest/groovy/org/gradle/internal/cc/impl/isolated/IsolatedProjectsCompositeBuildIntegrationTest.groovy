@@ -16,7 +16,7 @@
 
 package org.gradle.internal.cc.impl.isolated
 
-class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProjectsIntegrationTest implements CompositeBuildSupport {
+class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProjectsIntegrationTest implements CompositeBuildFixture {
 
     def "can build libraries composed from multiple builds"() {
         settingsFile << """
@@ -49,7 +49,7 @@ class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProj
         fixture.assertStateLoaded()
     }
 
-    def "'root(lib) -> plugins -> root(lib)' is allowed"() {
+    def "cycle between root build and plugin build is allowed"() {
         given:
         includePluginBuild(settingsFile, "plugins-a")
 
@@ -61,7 +61,7 @@ class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProj
         isolatedProjectsRun "help"
     }
 
-    def "'root(plugin) -> library -> root(plugin)' is prohibited because of a plugin build cycle"() {
+    def "root build cannot be included as plugin build from a nested library build"() {
         given:
         def rootBuildDir = file("root")
 
@@ -83,7 +83,7 @@ class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProj
         failureCauseContains("A cycle has been detected in the definition of plugin builds: :root -> :library -> :root.")
     }
 
-    def "'root(plugin) -> plugins -> root(plugin)' is prohibited because of a plugin build cycle"() {
+    def "root build cannot be included as plugin build from a nested plugin build"() {
         given:
         def rootBuildDir = file("root")
 
@@ -106,7 +106,7 @@ class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProj
         failureCauseContains("A cycle has been detected in the definition of plugin builds: :plugins-a -> :root -> :plugins-a.")
     }
 
-    def "'root -> plugins-a -> plugins-b -> plugins-c -> plugins-a' is prohibited because of a plugin build cycle"() {
+    def "direct cycle with plugin builds is not allowed"() {
         given:
         includePluginBuild(settingsFile, "plugins-a")
 
@@ -129,7 +129,7 @@ class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProj
         failureDescriptionContains("A cycle has been detected in the definition of plugin builds: :plugins-a -> :plugins-b -> :plugins-c -> :plugins-a.")
     }
 
-    def "'root -> plugins-a -> library-b -> library-c -> plugins-a' is prohibited because of a plugin build cycle"() {
+    def "transitive cycle with plugin builds is not allowed when it starts from plugin build"() {
         given:
         includePluginBuild(settingsFile, "plugins-a")
 
@@ -152,7 +152,7 @@ class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProj
         failureDescriptionContains("A cycle has been detected in the definition of plugin builds: :plugins-a -> :library-b -> :library-c -> :plugins-a.")
     }
 
-    def "'root -> library-a -> library-b -> plugins-a -> library-c -> library-b' is prohibited because of a plugin build cycle"() {
+    def "transitive cycle with plugin builds is not allowed when it starts from library build"() {
         given:
         includeLibraryBuild(settingsFile, "library-a")
 
@@ -179,7 +179,7 @@ class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProj
         failureDescriptionContains("A cycle has been detected in the definition of plugin builds: :plugins-a -> :library-c -> :library-b -> :plugins-a.")
     }
 
-    def "'root -> plugins-a -> library-b -> library-c -> library-b -> library-c -> plugins-a is prohibited because of a plugin build cycle"() {
+    def "cycle with a plugin build is reported correctly in the presence of a library build cycle"() {
         given:
         includePluginBuild(settingsFile, "plugins-a")
 

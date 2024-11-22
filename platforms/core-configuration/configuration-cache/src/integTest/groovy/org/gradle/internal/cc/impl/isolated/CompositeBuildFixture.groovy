@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
 
 @SelfType(AbstractIntegrationSpec)
-trait CompositeBuildSupport {
+trait CompositeBuildFixture {
 
     def includedBuild(String root, @DelegatesTo(BuildLayout) Closure configure) {
         configure.setDelegate(
