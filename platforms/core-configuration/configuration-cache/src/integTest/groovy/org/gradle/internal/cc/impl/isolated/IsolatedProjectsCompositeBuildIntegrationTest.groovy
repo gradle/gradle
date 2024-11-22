@@ -49,7 +49,7 @@ class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProj
         fixture.assertStateLoaded()
     }
 
-    def "cycle between root build and plugin build is allowed"() {
+    def "cycle between root build and plugin build is not allowed"() {
         given:
         includePluginBuild(settingsFile, "plugins-a")
 
@@ -57,8 +57,11 @@ class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProj
             includeLibraryBuild(settingsScript, "../.")
         }
 
-        expect:
-        isolatedProjectsRun "help"
+        when:
+        isolatedProjectsFails "help"
+
+        then:
+        failureDescriptionContains("A cycle has been detected in the definition of plugin builds: :plugins-a -> : -> :plugins-a.")
     }
 
     def "root build cannot be included as plugin build from a nested library build"() {

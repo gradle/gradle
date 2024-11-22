@@ -55,6 +55,7 @@ public class DefaultBuildIncluder implements BuildIncluder {
     public CompositeBuildParticipantBuildState includeBuild(IncludedBuildSpec includedBuildSpec) {
         RootBuildState rootBuild = buildRegistry.getRootBuild();
         if (includedBuildSpec.rootDir.equals(rootBuild.getBuildRootDir())) {
+            buildRegistry.includeRootBuild(rootBuild, gradle.getOwner());
             coordinator.prepareRootBuildForInclusion();
             return rootBuild;
         } else {

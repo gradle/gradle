@@ -21,6 +21,7 @@ import org.gradle.api.internal.BuildDefinition;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.IncludedBuildFactory;
 import org.gradle.internal.build.IncludedBuildState;
+import org.gradle.internal.build.RootBuildState;
 import org.gradle.internal.event.ListenerManager;
 
 
@@ -37,6 +38,11 @@ public class AcyclicIncludedBuildRegistry extends DefaultIncludedBuildRegistry {
     }
 
     @Override
+    public void includeRootBuild(RootBuildState rootBuild, BuildState referrer) {
+        addEdge(rootBuild, referrer);
+    }
+
+    @Override
     public IncludedBuildState addIncludedBuild(BuildDefinition buildDefinition, BuildState referrer) {
         IncludedBuildState includedBuild = super.addIncludedBuild(buildDefinition, referrer);
         // If the included build was initially registered as a plugin build, any subsequent library registration
@@ -45,9 +51,13 @@ public class AcyclicIncludedBuildRegistry extends DefaultIncludedBuildRegistry {
         if (buildDefinition.isPluginBuild()) {
             cycleDetector.addAcyclicNode(includedBuild);
         }
-        cycleDetector.addEdge(referrer, includedBuild);
-        cycleDetector.findFirstInvalidCycle().ifPresent(AcyclicIncludedBuildRegistry::reportCycle);
+        addEdge(includedBuild, referrer);
         return includedBuild;
+    }
+
+    private void addEdge(BuildState target, BuildState referrer) {
+        cycleDetector.addEdge(referrer, target);
+        cycleDetector.findFirstInvalidCycle().ifPresent(AcyclicIncludedBuildRegistry::reportCycle);
     }
 
     private static void reportCycle(DynamicGraphCycleDetector.Cycle<BuildState> cycle) {
