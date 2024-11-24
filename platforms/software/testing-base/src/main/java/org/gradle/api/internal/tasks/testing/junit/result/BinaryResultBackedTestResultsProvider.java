@@ -17,10 +17,8 @@
 package org.gradle.api.internal.tasks.testing.junit.result;
 
 import org.gradle.api.Action;
-import org.gradle.api.tasks.testing.TestOutputEvent;
 
 import java.io.File;
-import java.io.Writer;
 
 public class BinaryResultBackedTestResultsProvider extends TestOutputStoreBackedResultsProvider {
     private final TestResultSerializer resultSerializer;
@@ -31,59 +29,12 @@ public class BinaryResultBackedTestResultsProvider extends TestOutputStoreBacked
     }
 
     @Override
-    public boolean hasOutput(final long classId, final TestOutputEvent.Destination destination) {
-        final boolean[] hasOutput = new boolean[1];
-        withReader(new Action<TestOutputStore.Reader>() {
-            @Override
-            public void execute(TestOutputStore.Reader reader) {
-                hasOutput[0] = reader.hasOutput(classId, destination);
-            }
-        });
-        return hasOutput[0];
-    }
-
-    @Override
-    public boolean hasOutput(long classId, long testId, TestOutputEvent.Destination destination) {
-        return false;
-    }
-
-    @Override
-    public void writeAllOutput(final long classId, final TestOutputEvent.Destination destination, final Writer writer) {
-        withReader(new Action<TestOutputStore.Reader>() {
-            @Override
-            public void execute(TestOutputStore.Reader reader) {
-                reader.writeAllOutput(classId, destination, writer);
-            }
-        });
+    public void visitClasses(final Action<? super TestClassResult> visitor) {
+        resultSerializer.read(visitor);
     }
 
     @Override
     public boolean isHasResults() {
         return resultSerializer.isHasResults();
-    }
-
-    @Override
-    public void writeNonTestOutput(final long classId, final TestOutputEvent.Destination destination, final Writer writer) {
-        withReader(new Action<TestOutputStore.Reader>() {
-            @Override
-            public void execute(TestOutputStore.Reader reader) {
-                reader.writeNonTestOutput(classId, destination, writer);
-            }
-        });
-    }
-
-    @Override
-    public void writeTestOutput(final long classId, final long testId, final TestOutputEvent.Destination destination, final Writer writer) {
-        withReader(new Action<TestOutputStore.Reader>() {
-            @Override
-            public void execute(TestOutputStore.Reader reader) {
-                reader.writeTestOutput(classId, testId, destination, writer);
-            }
-        });
-    }
-
-    @Override
-    public void visitClasses(final Action<? super TestClassResult> visitor) {
-        resultSerializer.read(visitor);
     }
 }
