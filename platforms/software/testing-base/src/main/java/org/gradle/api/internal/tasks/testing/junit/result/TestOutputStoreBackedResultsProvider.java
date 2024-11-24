@@ -16,39 +16,46 @@
 
 package org.gradle.api.internal.tasks.testing.junit.result;
 
-import org.gradle.api.Action;
-import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.api.tasks.testing.TestOutputEvent;
 
 import java.io.IOException;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
+import java.io.Writer;
 
 public abstract class TestOutputStoreBackedResultsProvider implements TestResultsProvider {
-    private final TestOutputStore outputStore;
-    private final ConcurrentMap<Thread, TestOutputStore.Reader> readers;
+    protected final TestOutputStore.Reader reader;
 
     public TestOutputStoreBackedResultsProvider(TestOutputStore outputStore) {
-        this.outputStore = outputStore;
-        this.readers = new ConcurrentHashMap<Thread, TestOutputStore.Reader>();
+        this.reader = outputStore.reader();
     }
 
-    protected void withReader(Action<TestOutputStore.Reader> action) {
-        action.execute(getReader());
+    @Override
+    public boolean hasOutput(final long classId, final TestOutputEvent.Destination destination) {
+        return reader.hasOutput(classId, destination);
     }
 
-    private TestOutputStore.Reader getReader() {
-        Thread thread = Thread.currentThread();
-        TestOutputStore.Reader reader = readers.get(thread);
-        if (reader == null) {
-            reader = outputStore.reader();
-            readers.put(thread, reader);
-        }
-        return reader;
+    @Override
+    public boolean hasOutput(long classId, long testId, TestOutputEvent.Destination destination) {
+        return reader.hasOutput(classId, testId, destination);
+    }
+
+    @Override
+    public void writeAllOutput(final long classId, final TestOutputEvent.Destination destination, final Writer writer) {
+        reader.writeAllOutput(classId, destination, writer);
+    }
+
+    @Override
+    public void writeNonTestOutput(final long classId, final TestOutputEvent.Destination destination, final Writer writer) {
+        reader.writeNonTestOutput(classId, destination, writer);
+    }
+
+    @Override
+    public void writeTestOutput(final long classId, final long testId, final TestOutputEvent.Destination destination, final Writer writer) {
+        reader.writeTestOutput(classId, testId, destination, writer);
     }
 
     @Override
     public void close() throws IOException {
-        CompositeStoppable.stoppable(readers.values()).stop();
+        reader.close();
     }
 
 }
