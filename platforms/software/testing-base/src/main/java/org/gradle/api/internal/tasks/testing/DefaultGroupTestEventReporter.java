@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.testing;
 
 import org.gradle.api.NonNullApi;
+import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
 import org.gradle.api.tasks.testing.GroupTestEventReporter;
 import org.gradle.api.tasks.testing.TestEventReporter;
 import org.gradle.internal.concurrent.CompositeStoppable;
@@ -32,9 +33,9 @@ public class DefaultGroupTestEventReporter extends DefaultTestEventReporter impl
     private Set<DefaultTestEventReporter> children = new HashSet<>();
 
     public DefaultGroupTestEventReporter(
-        TestResultProcessor processor, IdGenerator<?> idGenerator, @Nullable DefaultGroupTestEventReporter parent, TestDescriptorInternal testDescriptor
+        TestListenerInternal listener, IdGenerator<?> idGenerator, @Nullable DefaultGroupTestEventReporter parent, TestDescriptorInternal testDescriptor
     ) {
-        super(processor, parent, testDescriptor);
+        super(listener, parent, testDescriptor);
         this.idGenerator = idGenerator;
     }
 
@@ -43,6 +44,14 @@ public class DefaultGroupTestEventReporter extends DefaultTestEventReporter impl
             return;
         }
         children.remove(child);
+    }
+
+    @Override
+    protected void markCompleted() {
+        if (!children.isEmpty()) {
+            throw new IllegalStateException("Group was completed before tests.");
+        }
+        super.markCompleted();
     }
 
     @Override
@@ -59,7 +68,7 @@ public class DefaultGroupTestEventReporter extends DefaultTestEventReporter impl
     public TestEventReporter reportTest(String name, String displayName) {
         requireRunning();
         DefaultTestEventReporter child = new DefaultTestEventReporter(
-            processor, this, new DefaultTestDescriptor(idGenerator.generateId(), null, name, null, displayName)
+            listener, this, new DefaultTestDescriptor(idGenerator.generateId(), null, name, null, displayName)
         );
         children.add(child);
         return child;
@@ -69,7 +78,7 @@ public class DefaultGroupTestEventReporter extends DefaultTestEventReporter impl
     public GroupTestEventReporter reportTestGroup(String name) {
         requireRunning();
         DefaultGroupTestEventReporter child = new DefaultGroupTestEventReporter(
-            processor, idGenerator, this, new DefaultTestSuiteDescriptor(idGenerator.generateId(), name)
+            listener, idGenerator, this, new DefaultTestSuiteDescriptor(idGenerator.generateId(), name)
         );
         children.add(child);
         return child;

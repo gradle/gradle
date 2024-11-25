@@ -17,9 +17,8 @@
 package org.gradle.api.internal.tasks.testing;
 
 import org.gradle.api.NonNullApi;
-import org.gradle.api.tasks.VerificationException;
+import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
 import org.gradle.api.tasks.testing.TestEventReporter;
-import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
 
@@ -33,15 +32,15 @@ public class DefaultTestEventReporter implements TestEventReporter {
         CREATED, STARTED, COMPLETED, CLOSED
     }
 
-    protected final TestResultProcessor processor;
+    protected final TestListenerInternal listener;
     protected final @Nullable DefaultGroupTestEventReporter parent;
     protected final TestDescriptorInternal testDescriptor;
     private State state = State.CREATED;
 
     public DefaultTestEventReporter(
-        TestResultProcessor processor, @Nullable DefaultGroupTestEventReporter parent, TestDescriptorInternal testDescriptor
+        TestListenerInternal listener, @Nullable DefaultGroupTestEventReporter parent, TestDescriptorInternal testDescriptor
     ) {
-        this.processor = processor;
+        this.listener = listener;
         this.parent = parent;
         this.testDescriptor = testDescriptor;
     }
@@ -66,16 +65,16 @@ public class DefaultTestEventReporter implements TestEventReporter {
             throw new IllegalStateException("started(...) cannot be called twice");
         }
         state = State.STARTED;
-        processor.started(testDescriptor, new TestStartEvent(startTime.toEpochMilli(), parent == null ? null : parent.testDescriptor.getId()));
+        listener.started(testDescriptor, new TestStartEvent(startTime.toEpochMilli(), parent == null ? null : parent.testDescriptor.getId()));
     }
 
     @Override
     public void output(Instant logTime, TestOutputEvent.Destination destination, String output) {
         requireRunning();
-        processor.output(testDescriptor.getId(), new DefaultTestOutputEvent(logTime.toEpochMilli(), destination, output));
+        listener.output(testDescriptor, new DefaultTestOutputEvent(logTime.toEpochMilli(), destination, output));
     }
 
-    private void markCompleted() {
+    protected void markCompleted() {
         requireRunning();
         state = State.COMPLETED;
     }
@@ -83,26 +82,26 @@ public class DefaultTestEventReporter implements TestEventReporter {
     @Override
     public void succeeded(Instant endTime) {
         markCompleted();
-        processor.completed(testDescriptor.getId(), new TestCompleteEvent(endTime.toEpochMilli(), TestResult.ResultType.SUCCESS));
+        listener.completed(testDescriptor, null, new TestCompleteEvent(endTime.toEpochMilli(), TestResult.ResultType.SUCCESS));
     }
 
     @Override
     public void skipped(Instant endTime) {
         markCompleted();
-        processor.completed(testDescriptor.getId(), new TestCompleteEvent(endTime.toEpochMilli(), TestResult.ResultType.SKIPPED));
+        listener.completed(testDescriptor, null, new TestCompleteEvent(endTime.toEpochMilli(), TestResult.ResultType.SKIPPED));
     }
 
     @Override
     public void failed(Instant endTime) {
         markCompleted();
-        processor.completed(testDescriptor.getId(), new TestCompleteEvent(endTime.toEpochMilli(), TestResult.ResultType.FAILURE));
+        listener.completed(testDescriptor, null, new TestCompleteEvent(endTime.toEpochMilli(), TestResult.ResultType.FAILURE));
     }
 
     @Override
     public void failed(Instant endTime, String message) {
         markCompleted();
-        processor.failure(testDescriptor.getId(), TestFailure.fromTestFrameworkFailure(new VerificationException(message)));
-        processor.completed(testDescriptor.getId(), new TestCompleteEvent(endTime.toEpochMilli(), TestResult.ResultType.FAILURE));
+        // TODO: listener.failure(testDescriptor.getId(), TestFailure.fromTestFrameworkFailure(new VerificationException(message)));
+        listener.completed(testDescriptor, null, new TestCompleteEvent(endTime.toEpochMilli(), TestResult.ResultType.FAILURE));
     }
 
     @Override

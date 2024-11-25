@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.testing;
 
 import org.gradle.api.NonNullApi;
+import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
 import org.gradle.api.tasks.VerificationException;
 import org.gradle.internal.id.IdGenerator;
 
@@ -26,8 +27,8 @@ import java.time.Instant;
 public class DefaultRootTestEventReporter extends DefaultGroupTestEventReporter {
     private String failureMessage;
 
-    public DefaultRootTestEventReporter(TestResultProcessor processor, IdGenerator<?> idGenerator, TestDescriptorInternal testDescriptor) {
-        super(processor, idGenerator, null, testDescriptor);
+    public DefaultRootTestEventReporter(TestListenerInternal listener, IdGenerator<?> idGenerator, TestDescriptorInternal testDescriptor) {
+        super(listener, idGenerator, null, testDescriptor);
     }
 
     @Override

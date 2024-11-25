@@ -48,6 +48,6 @@ public final class DefaultTestEventReporterFactory implements TestEventReporterF
         TestResultProcessor processor = new StateTrackingTestResultProcessor(testListenerInternalBroadcaster.getSource());
         IdGenerator<?> idGenerator = new LongIdGenerator();
 
-        return new DefaultRootTestEventReporter(processor, idGenerator, new DefaultTestSuiteDescriptor(idGenerator.generateId(), rootName));
+        return new DefaultRootTestEventReporter(testListenerInternalBroadcaster.getSource(), idGenerator, new DefaultTestSuiteDescriptor(idGenerator.generateId(), rootName));
     }
 }
