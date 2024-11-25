@@ -79,9 +79,9 @@ public interface BuildStateRegistry {
     void finalizeIncludedBuilds();
 
     /**
-     * Notifies the registry about root build inclusion. No root build creation is happening in this method.
+     * Notifies the registry about root build inclusion.
      */
-    default void includeRootBuild(RootBuildState rootBuild, BuildState referrer) {}
+    default void onRootBuildInclude(RootBuildState rootBuild, BuildState referrer, boolean asPluginBuild) {}
 
     /**
      * Creates an included build. An included build is-a nested build whose projects and outputs are treated as part of the composite build.

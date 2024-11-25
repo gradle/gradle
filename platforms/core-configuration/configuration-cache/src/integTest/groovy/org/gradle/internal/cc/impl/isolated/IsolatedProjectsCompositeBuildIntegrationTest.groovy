@@ -66,47 +66,31 @@ class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProj
 
     def "root build cannot be included as plugin build from a nested library build"() {
         given:
-        def rootBuildDir = file("root")
-
-        includeLibraryBuild(rootBuildDir.file("settings.gradle"), "../library")
-        applyPlugins(rootBuildDir.file("build.gradle"), "groovy-gradle-plugin")
-        file("root/src/main/groovy/foo.gradle") << ""
+        includeLibraryBuild(settingsFile, "library")
 
         includedBuild("library") {
-            includePluginBuild(settingsScript, "../root")
-            applyPlugins(buildScript, "foo")
+            includePluginBuild(settingsScript, "../.")
         }
 
         when:
-        executer.inDirectory(rootBuildDir) // to have a stable root build name
         isolatedProjectsFails "help"
 
         then:
-        failureDescriptionContains("Error resolving plugin [id: 'foo']")
-        failureCauseContains("A cycle has been detected in the definition of plugin builds: :root -> :library -> :root.")
+        failureDescriptionContains("A cycle has been detected in the definition of plugin builds: : -> :library -> :.")
     }
 
     def "root build cannot be included as plugin build from a nested plugin build"() {
         given:
-        def rootBuildDir = file("root")
-
-        includePluginBuild(rootBuildDir.file("settings.gradle"), "../plugins-a")
-        applyPlugins(rootBuildDir.file("build.gradle"), "groovy-gradle-plugin", "plugins-a")
-        file("root/src/main/groovy/foo.gradle") << ""
-
+        includePluginBuild(settingsFile, "plugins-a")
         includedBuild("plugins-a") {
-            includePluginBuild(settingsScript, "../root")
-            applyPlugins(buildScript, "groovy-gradle-plugin", "foo")
-            srcMainGroovy.file("plugin-a.gradle") << ""
+            includePluginBuild(settingsScript, "../.")
         }
 
         when:
-        executer.inDirectory(rootBuildDir) // to have a stable root build name
         isolatedProjectsFails "help"
 
         then:
-        failureDescriptionContains("Error resolving plugin [id: 'foo']")
-        failureCauseContains("A cycle has been detected in the definition of plugin builds: :plugins-a -> :root -> :plugins-a.")
+        failureDescriptionContains("A cycle has been detected in the definition of plugin builds: :plugins-a -> : -> :plugins-a.")
     }
 
     def "direct cycle with plugin builds is not allowed"() {

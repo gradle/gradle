@@ -38,8 +38,8 @@ public class AcyclicIncludedBuildRegistry extends DefaultIncludedBuildRegistry {
     }
 
     @Override
-    public void includeRootBuild(RootBuildState rootBuild, BuildState referrer) {
-        addEdge(rootBuild, referrer);
+    public void onRootBuildInclude(RootBuildState rootBuild, BuildState referrer, boolean isPluginBuild) {
+        addEdge(rootBuild, referrer, isPluginBuild);
     }
 
     @Override
@@ -48,14 +48,14 @@ public class AcyclicIncludedBuildRegistry extends DefaultIncludedBuildRegistry {
         // If the included build was initially registered as a plugin build, any subsequent library registration
         // resulting of that build will still be considered a plugin build, and vice versa.
         // This is why we rely on the upcoming build definition, which reflects the actual user intention.
-        if (buildDefinition.isPluginBuild()) {
-            cycleDetector.addAcyclicNode(includedBuild);
-        }
-        addEdge(includedBuild, referrer);
+        addEdge(includedBuild, referrer, buildDefinition.isPluginBuild());
         return includedBuild;
     }
 
-    private void addEdge(BuildState target, BuildState referrer) {
+    private void addEdge(BuildState target, BuildState referrer, boolean isPluginBuild) {
+        if (isPluginBuild) {
+            cycleDetector.addAcyclicNode(target);
+        }
         cycleDetector.addEdge(referrer, target);
         cycleDetector.findFirstInvalidCycle().ifPresent(AcyclicIncludedBuildRegistry::reportCycle);
     }
