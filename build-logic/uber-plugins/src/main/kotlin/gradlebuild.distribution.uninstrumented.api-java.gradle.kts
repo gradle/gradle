@@ -24,9 +24,16 @@ plugins {
 
 description = "Used for Gradle API projects that don't apply instrumentation"
 
+val extractorClasspathConfig by configurations.creating
+
+dependencies {
+    extractorClasspathConfig("org.gradle:java-api-extractor")
+}
+
 val extractJavaAbi by tasks.registering(ExtractJavaAbi::class) {
     classesDirectories = sourceSets.main.get().output.classesDirs
     outputDirectory = layout.buildDirectory.dir("generated/java-abi")
+    extractorClasspath = extractorClasspathConfig
 }
 
 configurations {

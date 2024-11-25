@@ -68,6 +68,7 @@ public class ApiClassExtractor {
         this.packageNameFilter = packageNameFilter;
         this.apiIncludesPackagePrivateMembers = includePackagePrivateMembers;
         this.apiMemberWriterFactory = apiMemberWriterFactory;
+        System.out.println(">>> USING THE NEW THING");
     }
 
     /**

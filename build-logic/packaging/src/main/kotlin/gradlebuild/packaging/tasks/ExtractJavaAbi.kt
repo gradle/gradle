@@ -21,14 +21,19 @@ import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.SetProperty
 import org.gradle.api.tasks.CacheableTask
+import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.CompileClasspath
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import org.gradle.internal.tools.api.ApiClassExtractor
 import org.gradle.internal.tools.api.impl.JavaApiMemberWriter
+import org.gradle.workers.WorkAction
+import org.gradle.workers.WorkParameters
+import org.gradle.workers.WorkerExecutor
 import java.io.File
 import java.io.InputStream
+import javax.inject.Inject
 
 
 /**
@@ -53,72 +58,100 @@ abstract class ExtractJavaAbi : DefaultTask() {
     @get:OutputDirectory
     abstract val outputDirectory: DirectoryProperty
 
+    @get:Classpath
+    abstract val extractorClasspath: ConfigurableFileCollection
+
+    @get:Inject
+    protected abstract val workerExecutor: WorkerExecutor
+
     @TaskAction
     fun execute() {
-        val apiClassExtractor = with(ApiClassExtractor.withWriter(JavaApiMemberWriter.adapter())) {
-            val publicApiPackages = packages.get()
-            if (publicApiPackages.isNotEmpty()) {
-                includePackagesMatching(publicApiPackages::contains)
-            } else {
-                includePackagePrivateMembers()
-            }
-            build()
+        println("Running ExtractJavaAbi task with classpath: ${extractorClasspath.files}")
+        // Run using classloader isolation to avoid using the ABI extractor from the runtime Gradle distribution
+        val task = this
+        workerExecutor.processIsolation {
+            classpath.setFrom(extractorClasspath)
+        }.submit(ExtractJavaAbiAction::class.java) {
+            packages.set(task.packages)
+            classesDirectories.setFrom(task.classesDirectories)
+            outputDirectory.set(task.outputDirectory)
+        }
+    }
+
+    abstract class ExtractJavaAbiAction @Inject constructor() : WorkAction<ExtractJavaAbiAction.Params> {
+
+        interface Params : WorkParameters {
+            val packages: SetProperty<String>
+            val classesDirectories: ConfigurableFileCollection
+            val outputDirectory: DirectoryProperty
         }
 
-        // Walk the classesDirectory and find each `.class` file
-        classesDirectories.forEach { classDir ->
-            classDir.walk().forEach { inputClassFile ->
-                val relativePath = inputClassFile.relativeTo(classDir).path
-                val outputClassFile = outputDirectory.get().asFile.resolve(relativePath)
-                when (inputClassFile.filtering()) {
-                    ContentFilter.VERBATIM -> {
-                        outputClassFile.parentFile.mkdirs()
-                        inputClassFile.copyTo(outputClassFile)
-                    }
+        override fun execute() {
+            val apiClassExtractor = with(ApiClassExtractor.withWriter(JavaApiMemberWriter.adapter())) {
+                val publicApiPackages = parameters.packages.get()
+                if (publicApiPackages.isNotEmpty()) {
+                    includePackagesMatching(publicApiPackages::contains)
+                } else {
+                    includePackagePrivateMembers()
+                }
+                build()
+            }
 
-                    ContentFilter.API_ONLY -> {
-                        inputClassFile.inputStream().use { input ->
-                            apiClassExtractor.extractApiClassFrom(input)
-                                .ifPresent { apiClass ->
-                                    outputClassFile.parentFile.mkdirs()
-                                    outputClassFile.outputStream().use { output -> output.write(apiClass) }
-                                }
+            // Walk the classesDirectory and find each `.class` file
+            parameters.classesDirectories.forEach { classDir ->
+                classDir.walk().forEach { inputClassFile ->
+                    val relativePath = inputClassFile.relativeTo(classDir).path
+                    val outputClassFile = parameters.outputDirectory.get().asFile.resolve(relativePath)
+                    when (inputClassFile.filtering()) {
+                        ContentFilter.VERBATIM -> {
+                            outputClassFile.parentFile.mkdirs()
+                            inputClassFile.copyTo(outputClassFile)
                         }
-                    }
 
-                    ContentFilter.SKIP -> {
-                        // Skip the file
+                        ContentFilter.API_ONLY -> {
+                            inputClassFile.inputStream().use { input ->
+                                apiClassExtractor.extractApiClassFrom(input)
+                                    .ifPresent { apiClass ->
+                                        outputClassFile.parentFile.mkdirs()
+                                        outputClassFile.outputStream().use { output -> output.write(apiClass) }
+                                    }
+                            }
+                        }
+
+                        ContentFilter.SKIP -> {
+                            // Skip the file
+                        }
                     }
                 }
             }
         }
-    }
 
-    private
-    fun ApiClassExtractor.extractApiClassFrom(input: InputStream) =
-        extractApiClassFrom(input.readAllBytes())
+        private
+        fun ApiClassExtractor.extractApiClassFrom(input: InputStream) =
+            extractApiClassFrom(input.readAllBytes())
 
-    private
-    fun File.filtering(): ContentFilter {
-        if (name.endsWith(".class")) {
-            return if (name.endsWith("/module-info.class")
-                || name.endsWith("/package-info.class")
-            ) {
-                ContentFilter.VERBATIM
-            } else {
-                ContentFilter.API_ONLY
+        private
+        fun File.filtering(): ContentFilter {
+            if (name.endsWith(".class")) {
+                return if (name.endsWith("/module-info.class")
+                    || name.endsWith("/package-info.class")
+                ) {
+                    ContentFilter.VERBATIM
+                } else {
+                    ContentFilter.API_ONLY
+                }
             }
+            if (name.equals("META-INF/groovy/org.codehaus.groovy.runtime.ExtensionModule")) {
+                return ContentFilter.VERBATIM
+            }
+            if (name.equals("META-INF/services/org.codehaus.groovy.transform.ASTTransformation")) {
+                return ContentFilter.VERBATIM
+            }
+            if (name.matches(KOTLIN_MODULE_PATH)) {
+                return ContentFilter.VERBATIM
+            }
+            return ContentFilter.SKIP
         }
-        if (name.equals("META-INF/groovy/org.codehaus.groovy.runtime.ExtensionModule")) {
-            return ContentFilter.VERBATIM
-        }
-        if (name.equals("META-INF/services/org.codehaus.groovy.transform.ASTTransformation")) {
-            return ContentFilter.VERBATIM
-        }
-        if (name.matches(KOTLIN_MODULE_PATH)) {
-            return ContentFilter.VERBATIM
-        }
-        return ContentFilter.SKIP
     }
 
     private
