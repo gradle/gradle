@@ -69,6 +69,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -171,22 +172,17 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
         try {
             List<AccessorSpec> accessorSpecs = readAccessorSpecsFromReplacesEagerProperty(method, annotationMirror, context);
             List<CallInterceptionRequest> requests = new ArrayList<>();
+            Map<String, List<AccessorSpec>> groovyUpgradeAccessorSpecs = new LinkedHashMap<>();
             for (AccessorSpec accessorSpec : accessorSpecs) {
-                switch (accessorSpec.accessorType) {
-                    case GETTER:
-                        createGroovyPropertyInterceptionRequest(accessorSpec, method).ifPresent(requests::add);
-                        CallInterceptionRequest jvmGetterRequest = createJvmGetterInterceptionRequest(accessorSpec, method);
-                        requests.add(jvmGetterRequest);
-                        break;
-                    case SETTER:
-                        createGroovyPropertyInterceptionRequest(accessorSpec, method).ifPresent(requests::add);
-                        CallInterceptionRequest jvmSetterRequest = createJvmSetterInterceptionRequest(accessorSpec, method);
-                        requests.add(jvmSetterRequest);
-                        break;
-                    default:
-                        throw new IllegalArgumentException("Unsupported accessor type: " + accessorSpec.accessorType);
+                if (accessorSpec.interceptorType == BYTECODE_UPGRADE) {
+                    groovyUpgradeAccessorSpecs.computeIfAbsent(accessorSpec.propertyName, __ -> new ArrayList<>()).add(accessorSpec);
                 }
+                requests.add(createJvmInterceptionRequest(method, accessorSpec));
             }
+            groovyUpgradeAccessorSpecs.values().stream()
+                .flatMap(specs -> createGroovyPropertyInterceptionRequests(specs, method).stream())
+                .forEach(requests::add);
+
             return requests.stream()
                 .map(Success::new)
                 .collect(Collectors.toList());
@@ -195,15 +191,48 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
         }
     }
 
-    private Optional<CallInterceptionRequest> createGroovyPropertyInterceptionRequest(AccessorSpec accessor, ExecutableElement method) {
-        if (accessor.interceptorType != BYTECODE_UPGRADE) {
-            return Optional.empty();
+    private List<CallInterceptionRequest> createGroovyPropertyInterceptionRequests(List<AccessorSpec> accessors, ExecutableElement method) {
+        List<CallInterceptionRequest> requests = new ArrayList<>();
+
+        Optional<AccessorSpec> groovyPropertyGetter = accessors.stream()
+            .filter(accessor -> isGroovyPropertyGetter(accessor, accessors))
+            .findFirst();
+        groovyPropertyGetter.ifPresent(getter -> requests.add(createGroovyPropertyInterceptionRequest(getter, GROOVY_PROPERTY_GETTER, method)));
+
+        for (AccessorSpec accessor : accessors) {
+            if (groovyPropertyGetter.isPresent() && accessor == groovyPropertyGetter.get()) {
+                continue;
+            }
+            // Identify property setters only methods that match a property getter
+            CallableKindInfo callableKindInfo = groovyPropertyGetter.isPresent() && isGroovyPropertySetter(accessor, groovyPropertyGetter.get())
+                ? GROOVY_PROPERTY_SETTER
+                : INSTANCE_METHOD;
+            requests.add(createGroovyPropertyInterceptionRequest(accessor, callableKindInfo, method));
         }
-        CallableKindInfo callableKindInfo = isGroovyPropertyGetter(accessor.accessorType, accessor.methodName, accessor.returnType)
-            ? GROOVY_PROPERTY_GETTER
-            : isGroovyPropertySetter(accessor.accessorType, accessor.methodName)
-            ? CallableKindInfo.GROOVY_PROPERTY_SETTER
-            : CallableKindInfo.INSTANCE_METHOD;
+
+        return requests;
+    }
+
+    private static boolean isGroovyPropertyGetter(AccessorSpec accessor, List<AccessorSpec> accessors) {
+        if (accessor.accessorType != AccessorType.GETTER) {
+            return false;
+        }
+        if (accessor.returnType.equals(TypeName.BOOLEAN) || accessor.returnType.equals(TypeName.BOOLEAN.box())) {
+            // For boolean properties we have two getters: isFoo() and getFoo(),
+            // if isFoo() exists then isFoo() is property getter, else we can use getFoo()
+            return isIsGetterMethodName(accessor.methodName) || (isGetGetterMethodName(accessor.methodName) && accessors.stream().noneMatch(a -> isIsGetterMethodName(a.methodName)));
+        }
+        return isGetGetterMethodName(accessor.methodName);
+    }
+
+    private static boolean isGroovyPropertySetter(AccessorSpec accessorSpec, AccessorSpec groovyPropertyGetter) {
+        return accessorSpec.accessorType == AccessorType.SETTER
+            && isSetterMethodName(accessorSpec.methodName)
+            && accessorSpec.parameters.size() == 1
+            && accessorSpec.parameters.get(0).getParameterType().equals(TypeUtils.extractRawType(groovyPropertyGetter.returnType));
+    }
+
+    private CallInterceptionRequest createGroovyPropertyInterceptionRequest(AccessorSpec accessor, CallableKindInfo callableKindInfo, ExecutableElement method) {
         String callableMethodName = callableKindInfo == GROOVY_PROPERTY_GETTER || callableKindInfo == GROOVY_PROPERTY_SETTER
             ? accessor.propertyName
             : accessor.methodName;
@@ -212,11 +241,11 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
         List<RequestExtra> extras = Arrays.asList(new RequestExtra.OriginatingElement(method), new RequestExtra.InterceptGroovyCalls(interceptorsClassName, accessor.interceptorType));
         List<ParameterInfo> callableParameters = prependReceiverParameter(accessor.parameters, extractType(method.getEnclosingElement().asType()));
         Type returnType = TypeUtils.extractRawType(accessor.returnType);
-        return Optional.of(new CallInterceptionRequestImpl(
+        return new CallInterceptionRequestImpl(
             extractCallableInfo(callableKindInfo, method, returnType, callableMethodName, callableParameters),
             extractImplementationInfo(accessor, method, returnType, accessor.methodName, implementationMethodPrefix, accessor.parameters),
             extras
-        ));
+        );
     }
 
     private static List<ParameterInfo> prependReceiverParameter(List<ParameterInfo> parameters, Type receiverType) {
@@ -562,6 +591,17 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
         }
     }
 
+    private CallInterceptionRequest createJvmInterceptionRequest(ExecutableElement method, AccessorSpec accessorSpec) {
+        switch (accessorSpec.accessorType) {
+            case GETTER:
+                return createJvmGetterInterceptionRequest(accessorSpec, method);
+            case SETTER:
+                return createJvmSetterInterceptionRequest(accessorSpec, method);
+            default:
+                throw new IllegalArgumentException("Unsupported accessor type: " + accessorSpec.accessorType);
+        }
+    }
+
     private CallInterceptionRequest createJvmGetterInterceptionRequest(AccessorSpec accessor, ExecutableElement method) {
         List<RequestExtra> extras = getJvmRequestExtras(accessor, method, accessor.binaryCompatibility);
         String callableName = accessor.methodName;
@@ -638,19 +678,6 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
 
     private static String getPropertyName(ExecutableElement method) {
         return getPropertyName(method.getSimpleName().toString());
-    }
-
-    private static boolean isGroovyPropertyGetter(AccessorType accessorType, String methodName, TypeName returnType) {
-        if (accessorType == AccessorType.GETTER) {
-            return returnType.equals(TypeName.BOOLEAN)
-                ? isIsGetterMethodName(methodName)
-                : isGetGetterMethodName(methodName);
-        }
-        return false;
-    }
-
-    private static boolean isGroovyPropertySetter(AccessorType accessorType, String methodName) {
-        return accessorType == AccessorType.SETTER && isSetterMethodName(methodName);
     }
 
     private static String getPropertyName(String methodName) {

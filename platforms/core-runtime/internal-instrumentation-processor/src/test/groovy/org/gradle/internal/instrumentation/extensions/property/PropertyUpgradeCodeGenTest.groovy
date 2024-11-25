@@ -434,12 +434,6 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
                     }
                 }
                 @Generated
-                public static class AddDestinationDirCallInterceptor extends AbstractCallInterceptor implements SignatureAwareCallInterceptor, FilterableCallInterceptor, FilterableBytecodeInterceptor.BytecodeUpgradeInterceptor {
-                    public AddDestinationDirCallInterceptor() {
-                        super(InterceptScope.methodsNamed("addDestinationDir"));
-                    }
-                }
-                @Generated
                 public static class SetDestinationDirCallInterceptor extends AbstractCallInterceptor implements SignatureAwareCallInterceptor, FilterableCallInterceptor, FilterableBytecodeInterceptor.BytecodeUpgradeInterceptor, PropertyAwareCallInterceptor {
                     public SetDestinationDirCallInterceptor() {
                         super(InterceptScope.writesOfPropertiesNamed("destinationDir"), InterceptScope.methodsNamed("setDestinationDir"));
@@ -449,6 +443,12 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
                 public static class DestinationDirCallInterceptor extends AbstractCallInterceptor implements SignatureAwareCallInterceptor, FilterableCallInterceptor, FilterableBytecodeInterceptor.BytecodeUpgradeInterceptor {
                     public DestinationDirCallInterceptor() {
                         super(InterceptScope.methodsNamed("destinationDir"));
+                    }
+                }
+                @Generated
+                public static class AddDestinationDirCallInterceptor extends AbstractCallInterceptor implements SignatureAwareCallInterceptor, FilterableCallInterceptor, FilterableBytecodeInterceptor.BytecodeUpgradeInterceptor {
+                    public AddDestinationDirCallInterceptor() {
+                        super(InterceptScope.methodsNamed("addDestinationDir"));
                     }
                 }
             }
