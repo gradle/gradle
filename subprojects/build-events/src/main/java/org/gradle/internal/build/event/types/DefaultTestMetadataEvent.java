@@ -21,7 +21,10 @@ import org.gradle.tooling.internal.protocol.events.InternalTestMetadataDescripto
 import org.gradle.tooling.internal.protocol.events.InternalTestMetadataEvent;
 import org.gradle.tooling.internal.protocol.events.InternalTestMetadataResult;
 
-public class DefaultTestMetadataEvent extends AbstractProgressEvent<InternalOperationDescriptor> implements InternalTestMetadataEvent {
+/**
+ * Default implementation of the {@code InternalTestMetadataEvent} interface.
+ */
+public final class DefaultTestMetadataEvent extends AbstractProgressEvent<InternalOperationDescriptor> implements InternalTestMetadataEvent {
     private final InternalOperationDescriptor descriptor;
     private final InternalTestMetadataResult result;
 

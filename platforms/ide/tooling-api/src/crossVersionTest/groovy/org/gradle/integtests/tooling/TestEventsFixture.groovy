@@ -66,7 +66,7 @@ class DefaultTestEventsSpec implements TestEventsFixture.TestEventsSpec {
 
     DefaultTestEventsSpec(ProgressEvents events) {
         testEvents = events.tests.collect {(TestOperationDescriptor) it.descriptor }
-        output.addAll(events.getAll().findAll { it instanceof TestOutputEvent }.collect { it.output })
+        output.addAll(events.getAll().findAll { it instanceof TestOutputEvent }.collect { it.descriptor.message })
         metadata.putAll(events.getAll().findAll { it instanceof TestMetadataEvent }.collectEntries { [(it.descriptor.key):it.descriptor.value] })
     }
 
@@ -99,12 +99,12 @@ class DefaultTestEventSpec implements TestEventsFixture.CompositeTestEventSpec {
         List<TestOperationDescriptor> testEvents,
         Set<OperationDescriptor> verifiedEvents,
         String expectedOperationDisplayName,
-        List<String> outputs,
-        Map<String, Object> metadata,
+        List<String> recordedOutputs,
+        Map<String, Object> recordedMetadata,
         @DelegatesTo(value = TestEventsFixture.TestEventSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> spec
     ) {
         verifiedEvents.add(descriptor)
-        DefaultTestEventSpec childSpec = new DefaultTestEventSpec(descriptor, testEvents, verifiedEvents, outputs, metadata)
+        DefaultTestEventSpec childSpec = new DefaultTestEventSpec(descriptor, testEvents, verifiedEvents, recordedOutputs, recordedMetadata)
         spec.delegate = childSpec
         spec.resolveStrategy = Closure.DELEGATE_FIRST
         spec()

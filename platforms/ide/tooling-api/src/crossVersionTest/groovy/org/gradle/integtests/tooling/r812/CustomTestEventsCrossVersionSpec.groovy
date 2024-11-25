@@ -224,7 +224,6 @@ class CustomTestEventsCrossVersionSpec extends ToolingApiSpecification implement
                         reporter.started(Instant.now())
                         try (def myTest = reporter.reportTest("MyTestInternal", "My test!")) {
                             myTest.started(Instant.now())
-                            //myTest.output(Instant.now(), TestOutputEvent.Destination.StdOut, "This is a test output on stdout")
                             myTest.metadata(Instant.now(), "mykey", ${ value instanceof String ? "'$value'" : value })
                             myTest.succeeded(Instant.now())
                         }
@@ -262,6 +261,63 @@ class CustomTestEventsCrossVersionSpec extends ToolingApiSpecification implement
     }
 
     @ToolingApiVersion(">=8.12")
+    def "reports custom test events with multiple metadata events and output"() {
+        given:
+        buildFile("""
+            import java.time.Instant
+
+            abstract class CustomTestTask extends DefaultTask {
+                @Inject
+                abstract TestEventReporterFactory getTestEventReporterFactory()
+
+                @TaskAction
+                void runTests() {
+                    try (def reporter = getTestEventReporterFactory().createTestEventReporter("Custom test root")) {
+                        reporter.started(Instant.now())
+                        try (def myTest = reporter.reportTest("MyTestInternal", "My test!")) {
+                            myTest.started(Instant.now())
+                            myTest.output(Instant.now(), TestOutputEvent.Destination.StdOut, "This is a test output on stdout")
+                            myTest.metadata(Instant.now(), "mykey1", "apple")
+                            myTest.metadata(Instant.now(), "mykey2", 10)
+                            myTest.output(Instant.now(), TestOutputEvent.Destination.StdOut, "More output on stdout")
+                            myTest.metadata(Instant.now(), "mykey3", ["banana", "cherry"])
+                            myTest.succeeded(Instant.now())
+                        }
+                        reporter.succeeded(Instant.now())
+                    }
+                }
+            }
+
+            tasks.register("customTest", CustomTestTask)
+        """)
+
+        when:
+        withConnection {
+            ProjectConnection connection ->
+                connection.newBuild()
+                    .addProgressListener(events, OperationType.TASK, OperationType.TEST, OperationType.TEST_OUTPUT, OperationType.TEST_METADATA)
+                    .forTasks('customTest')
+                    .run()
+        }
+
+        then:
+        testEvents {
+            task(":customTest") {
+                composite("Custom test root") {
+                    test("MyTestInternal") {
+                        testDisplayName "My test!"
+                        output("This is a test output on stdout")
+                        output("More output on stdout")
+                        metadata("mykey1", "apple")
+                        metadata("mykey2", 10)
+                        metadata("mykey3", ["banana", "cherry"])
+                    }
+                }
+            }
+        }
+    }
+
+    @ToolingApiVersion(">=8.12")
     def "reports custom test events with custom metadata type"() {
         given:
         buildFile("""
@@ -277,7 +333,7 @@ class CustomTestEventsCrossVersionSpec extends ToolingApiSpecification implement
                         reporter.started(Instant.now())
                         try (def myTest = reporter.reportTest("MyTestInternal", "My test!")) {
                             myTest.started(Instant.now())
-                            myTest.metadata(Instant.now(), "mykey", new TestType(7))
+                            myTest.metadata(Instant.now(), "mykey", new CustomMetadataType(7))
                             myTest.succeeded(Instant.now())
                         }
                         reporter.succeeded(Instant.now())
@@ -285,11 +341,11 @@ class CustomTestEventsCrossVersionSpec extends ToolingApiSpecification implement
                 }
             }
 
-            // We need to define the custom type in the build script class, which will not be the same runtime class as the one defined in the test class
-            class TestType implements org.gradle.internal.operations.trace.CustomOperationTraceSerialization {
+            // We also need to define the custom type in the build script class, which will not be the same runtime class as the one defined in the test class
+            class CustomMetadataType implements org.gradle.internal.operations.trace.CustomOperationTraceSerialization {
                 private int field
 
-                TestType(int field) {
+                CustomMetadataType(int field) {
                     this.field = field
                 }
 
@@ -323,18 +379,18 @@ class CustomTestEventsCrossVersionSpec extends ToolingApiSpecification implement
                 composite("Custom test root") {
                     test("MyTestInternal") {
                         testDisplayName "My test!"
-                        metadata("mykey", new TestType(7))
+                        metadata("mykey", new CustomMetadataType(7))
                     }
                 }
             }
         }
     }
 
-    // We need to define the custom type in the test class, which will not be the same runtime class as the one defined in the build script
-    static class TestType implements CustomOperationTraceSerialization {
+    // We also need to define the custom type in the test class, which will not be the same runtime class as the one defined in the build script
+    private static class CustomMetadataType implements CustomOperationTraceSerialization {
         private int field
 
-        TestType(int field) {
+        CustomMetadataType(int field) {
             this.field = field
         }
 

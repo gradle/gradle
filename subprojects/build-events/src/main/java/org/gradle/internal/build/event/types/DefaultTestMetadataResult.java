@@ -19,7 +19,10 @@ package org.gradle.internal.build.event.types;
 import org.gradle.tooling.internal.protocol.events.InternalOperationResult;
 import org.gradle.tooling.internal.protocol.events.InternalTestMetadataResult;
 
-public class DefaultTestMetadataResult extends AbstractResult implements InternalOperationResult, InternalTestMetadataResult {
+/**
+ * Default implementation of the {@code InternalTestMetadataResult} interface.
+ */
+public final class DefaultTestMetadataResult extends AbstractResult implements InternalOperationResult, InternalTestMetadataResult {
 
     private final String key;
     private final Object value;

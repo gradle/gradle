@@ -21,7 +21,10 @@ import org.gradle.tooling.internal.protocol.events.InternalTestMetadataDescripto
 
 import java.io.Serializable;
 
-public class DefaultTestMetadataDescriptor implements Serializable, InternalTestMetadataDescriptor {
+/**
+ * Default implementation of the {@code InternalTestMetadataDescriptor} interface.
+ */
+public final class DefaultTestMetadataDescriptor implements Serializable, InternalTestMetadataDescriptor {
     private final OperationIdentifier id;
     private final OperationIdentifier parentId;
 

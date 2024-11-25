@@ -22,8 +22,11 @@ import org.gradle.tooling.events.internal.DefaultOperationDescriptor;
 import org.gradle.tooling.events.test.TestMetadataDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalOperationDescriptor;
 
+/**
+ * Implementation of the {@code TestMetadataDescriptor} interface.
+ */
 @NonNullApi
-public class DefaultTestMetadataOperationDescriptor extends DefaultOperationDescriptor implements TestMetadataDescriptor {
+public final class DefaultTestMetadataOperationDescriptor extends DefaultOperationDescriptor implements TestMetadataDescriptor {
     private final String key;
     private final Object value;
 

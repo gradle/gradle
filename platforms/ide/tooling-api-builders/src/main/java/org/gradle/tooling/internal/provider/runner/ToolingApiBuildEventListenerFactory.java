@@ -52,7 +52,7 @@ public class ToolingApiBuildEventListenerFactory implements BuildEventListenerFa
         }
 
         ProgressEventConsumer progressEventConsumer = new ProgressEventConsumer(consumer, ancestryTracker);
-        MetadataEventConsumer metadataEventConsumer = new MetadataEventConsumer(consumer, ancestryTracker);
+        MetadataEventConsumer metadataEventConsumer = new MetadataEventConsumer(consumer);
 
         ImmutableList.Builder<Object> listeners = ImmutableList.builder();
 
