@@ -1,6 +1,3 @@
-import gradle.kotlin.dsl.accessors._4d90ee38640727ba8d6a57a6ca35d262.apiElements
-import gradle.kotlin.dsl.accessors._4d90ee38640727ba8d6a57a6ca35d262.compileOnlyApi
-
 /*
  * Copyright 2020 the original author or authors.
  *
@@ -18,22 +15,8 @@ import gradle.kotlin.dsl.accessors._4d90ee38640727ba8d6a57a6ca35d262.compileOnly
  */
 
 plugins {
-    id("gradlebuild.java-library")
-    id("gradlebuild.distribution-module")
-    id("gradlebuild.distribution.api")
+    id("gradlebuild.distribution.uninstrumented.api-java")
     id("gradlebuild.instrumented-java-project")
 }
 
-configurations {
-    // TODO: Why are we not generating extensions for this configuration?
-    named("apiStubElements") {
-        extendsFrom(configurations.compileOnlyApi.get())
-
-        // For now, use the regular artifacts so things don't break.
-        // TODO: Use ABI filtered artifacts instead
-        artifacts.addAllLater(configurations.apiElements.map { it.artifacts })
-
-        // TODO: WRITE A TASK TO GET THE ABI CLASSES
-        // outgoing.artifact(abiClassesDirectory)
-    }
-}
+description = "Used for Gradle API projects that apply instrumentation"

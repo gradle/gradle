@@ -54,7 +54,6 @@ kotlin {
     }
 }
 
-// TODO: DO THIS FOR JAVA
 configurations {
     // TODO: Why are we not generating extensions for this configuration?
     named("apiStubElements") {

@@ -18,7 +18,6 @@ import gradlebuild.basics.ImplementationCompletenessAttribute
 import gradlebuild.configureAsCompileJarClasspath
 import gradlebuild.configureAsRuntimeElements
 import gradlebuild.configureAsRuntimeJarClasspath
-import gradlebuild.packaging.transforms.ShrinkPublicApiClassesTransform
 
 plugins {
     id("gradlebuild.dependency-modules")
@@ -45,19 +44,6 @@ val externalRuntimeClasspath = configurations.resolvable("externalRuntimeClasspa
     extendsFrom(externalApi.get())
     extendsFrom(externalRuntimeOnly.get())
     configureAsRuntimeJarClasspath(objects)
-}
-
-dependencies {
-    artifactTypes.getByName("jar") {
-        attributes.attribute(ImplementationCompletenessAttribute.attribute, ImplementationCompletenessAttribute.FULL)
-    }
-
-    // Filter and shrink the published API.
-    registerTransform(ShrinkPublicApiClassesTransform::class.java) {
-        from.attribute(ImplementationCompletenessAttribute.attribute, ImplementationCompletenessAttribute.FULL)
-            .attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements::class.java, LibraryElements.JAR))
-        to.attribute(ImplementationCompletenessAttribute.attribute, ImplementationCompletenessAttribute.STUBS)
-    }
 }
 
 // Defines configurations used to resolve the public Gradle API.

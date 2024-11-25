@@ -14,29 +14,25 @@
  * limitations under the License.
  */
 
-package gradlebuild.packaging.transforms
+package gradlebuild.packaging.tasks
 
-import org.gradle.api.artifacts.transform.CacheableTransform
-import org.gradle.api.artifacts.transform.InputArtifact
-import org.gradle.api.artifacts.transform.TransformAction
-import org.gradle.api.artifacts.transform.TransformOutputs
-import org.gradle.api.artifacts.transform.TransformParameters
-import org.gradle.api.file.FileSystemLocation
-import org.gradle.api.provider.Provider
+import org.gradle.api.DefaultTask
+import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.SetProperty
-import org.gradle.api.tasks.Classpath
+import org.gradle.api.tasks.CacheableTask
+import org.gradle.api.tasks.CompileClasspath
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.TaskAction
 import org.gradle.internal.tools.api.ApiClassExtractor
 import org.gradle.internal.tools.api.impl.JavaApiMemberWriter
 import java.io.File
 import java.io.InputStream
-import java.util.Optional
-import java.util.zip.ZipEntry
-import java.util.zip.ZipFile
 
 
 /**
- * Extract the public API classes from a jar file.
+ * Extract API-only classes from classes directories.
  *
  * Keeps only the following:
  *
@@ -45,41 +41,53 @@ import java.util.zip.ZipFile
  * - `META-INF/services/org.codehaus.groovy.transform.ASTTransformation`
  * - `META-INF/\*.kotlin_module`
  */
-@CacheableTransform
-abstract class ShrinkPublicApiClassesTransform : TransformAction<ShrinkPublicApiClassesTransform.Parameters> {
+@CacheableTask
+abstract class ExtractJavaAbi : DefaultTask() {
 
-    interface Parameters : TransformParameters {
-        @get:Input
-        val packages: SetProperty<String>
-    }
+    @get:Input
+    abstract val packages: SetProperty<String>
 
-    @get:InputArtifact
-    @get:Classpath
-    abstract val inputArtifact: Provider<FileSystemLocation>
+    @get:CompileClasspath
+    abstract val classesDirectories: ConfigurableFileCollection
 
-    override fun transform(outputs: TransformOutputs) {
+    @get:OutputDirectory
+    abstract val outputDirectory: DirectoryProperty
+
+    @TaskAction
+    fun execute() {
         val apiClassExtractor = with(ApiClassExtractor.withWriter(JavaApiMemberWriter.adapter())) {
-            val publicApiPackages = parameters.packages.get()
+            val publicApiPackages = packages.get()
             if (publicApiPackages.isNotEmpty()) {
                 includePackagesMatching(publicApiPackages::contains)
+            } else {
+                includePackagePrivateMembers()
             }
             build()
         }
-        val jarFile = inputArtifact.get().asFile
-        val zipFile = ZipFile(jarFile)
-        val outputRoot = outputs.dir("public-api")
-        zipFile.stream().forEach { entry ->
-            entry.filtering().ifPresent { filtering ->
-                zipFile.getInputStream(entry).use { input ->
-                    when (filtering) {
-                        ContentFilter.VERBATIM ->
-                            outputRoot.withOutputStream(entry.name) { output -> input.copyTo(output) }
 
-                        ContentFilter.API_ONLY ->
+        // Walk the classesDirectory and find each `.class` file
+        classesDirectories.forEach { classDir ->
+            classDir.walk().forEach { inputClassFile ->
+                val relativePath = inputClassFile.relativeTo(classDir).path
+                val outputClassFile = outputDirectory.get().asFile.resolve(relativePath)
+                when (inputClassFile.filtering()) {
+                    ContentFilter.VERBATIM -> {
+                        outputClassFile.parentFile.mkdirs()
+                        inputClassFile.copyTo(outputClassFile)
+                    }
+
+                    ContentFilter.API_ONLY -> {
+                        inputClassFile.inputStream().use { input ->
                             apiClassExtractor.extractApiClassFrom(input)
                                 .ifPresent { apiClass ->
-                                    outputRoot.withOutputStream(entry.name) { output -> output.write(apiClass) }
+                                    outputClassFile.parentFile.mkdirs()
+                                    outputClassFile.outputStream().use { output -> output.write(apiClass) }
                                 }
+                        }
+                    }
+
+                    ContentFilter.SKIP -> {
+                        // Skip the file
                     }
                 }
             }
@@ -91,39 +99,33 @@ abstract class ShrinkPublicApiClassesTransform : TransformAction<ShrinkPublicApi
         extractApiClassFrom(input.readAllBytes())
 
     private
-    fun File.withOutputStream(path: String, action: (output: java.io.OutputStream) -> Unit) {
-        val outputFile = resolve(path)
-        outputFile.parentFile.mkdirs()
-        outputFile.outputStream().use(action)
-    }
-
-    private
-    fun ZipEntry.filtering(): Optional<ContentFilter> {
+    fun File.filtering(): ContentFilter {
         if (name.endsWith(".class")) {
             return if (name.endsWith("/module-info.class")
                 || name.endsWith("/package-info.class")
             ) {
-                Optional.of(ContentFilter.VERBATIM)
+                ContentFilter.VERBATIM
             } else {
-                Optional.of(ContentFilter.API_ONLY)
+                ContentFilter.API_ONLY
             }
         }
         if (name.equals("META-INF/groovy/org.codehaus.groovy.runtime.ExtensionModule")) {
-            return Optional.of(ContentFilter.VERBATIM)
+            return ContentFilter.VERBATIM
         }
         if (name.equals("META-INF/services/org.codehaus.groovy.transform.ASTTransformation")) {
-            return Optional.of(ContentFilter.VERBATIM)
+            return ContentFilter.VERBATIM
         }
         if (name.matches(KOTLIN_MODULE_PATH)) {
-            return Optional.of(ContentFilter.VERBATIM)
+            return ContentFilter.VERBATIM
         }
-        return Optional.empty()
+        return ContentFilter.SKIP
     }
 
     private
     enum class ContentFilter {
         VERBATIM,
-        API_ONLY
+        API_ONLY,
+        SKIP
     }
 
     companion object {
