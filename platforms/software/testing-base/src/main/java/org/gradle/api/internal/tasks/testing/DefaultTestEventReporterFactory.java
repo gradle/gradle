@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.testing;
 
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.tasks.testing.logging.SimpleTestEventLogger;
-import org.gradle.api.internal.tasks.testing.results.StateTrackingTestResultProcessor;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
 import org.gradle.api.tasks.testing.GroupTestEventReporter;
 import org.gradle.api.tasks.testing.TestEventReporterFactory;
@@ -45,9 +44,7 @@ public final class DefaultTestEventReporterFactory implements TestEventReporterF
         ListenerBroadcast<TestListenerInternal> testListenerInternalBroadcaster = listenerManager.createAnonymousBroadcaster(TestListenerInternal.class);
         testListenerInternalBroadcaster.add(eventLogger);
 
-        TestResultProcessor processor = new StateTrackingTestResultProcessor(testListenerInternalBroadcaster.getSource());
         IdGenerator<?> idGenerator = new LongIdGenerator();
-
-        return new DefaultRootTestEventReporter(testListenerInternalBroadcaster.getSource(), idGenerator, new DefaultTestSuiteDescriptor(idGenerator.generateId(), rootName));
+        return new StateTrackingGroupTestEventReporter(new DefaultRootTestEventReporter(testListenerInternalBroadcaster.getSource(), idGenerator, new DefaultTestSuiteDescriptor(idGenerator.generateId(), rootName)));
     }
 }

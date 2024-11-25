@@ -27,95 +27,50 @@ import java.time.Instant;
 
 @NonNullApi
 public class DefaultTestEventReporter implements TestEventReporter {
-    @NonNullApi
-    protected enum State {
-        CREATED, STARTED, COMPLETED, CLOSED
-    }
 
     protected final TestListenerInternal listener;
-    protected final @Nullable DefaultGroupTestEventReporter parent;
+    protected final TestDescriptorInternal parentId;
     protected final TestDescriptorInternal testDescriptor;
-    private State state = State.CREATED;
 
-    public DefaultTestEventReporter(
-        TestListenerInternal listener, @Nullable DefaultGroupTestEventReporter parent, TestDescriptorInternal testDescriptor
-    ) {
+    public DefaultTestEventReporter(TestListenerInternal listener, @Nullable TestDescriptorInternal parentId, TestDescriptorInternal testDescriptor) {
         this.listener = listener;
-        this.parent = parent;
+        this.parentId = parentId;
         this.testDescriptor = testDescriptor;
-    }
-
-    protected void requireRunning() {
-        switch (state) {
-            case CREATED:
-                throw new IllegalStateException("started(...) must be called before any other method");
-            case COMPLETED:
-                throw new IllegalStateException("completed(...) has already been called");
-            case CLOSED:
-                throw new IllegalStateException("close() has already been called");
-        }
-    }
-
-    protected void cleanup() {
     }
 
     @Override
     public void started(Instant startTime) {
-        if (state != State.CREATED) {
-            throw new IllegalStateException("started(...) cannot be called twice");
-        }
-        state = State.STARTED;
-        listener.started(testDescriptor, new TestStartEvent(startTime.toEpochMilli(), parent == null ? null : parent.testDescriptor.getId()));
+        listener.started(testDescriptor, new TestStartEvent(startTime.toEpochMilli(), parentId == null ? null : parentId.getId()));
     }
 
     @Override
     public void output(Instant logTime, TestOutputEvent.Destination destination, String output) {
-        requireRunning();
         listener.output(testDescriptor, new DefaultTestOutputEvent(logTime.toEpochMilli(), destination, output));
-    }
-
-    protected void markCompleted() {
-        requireRunning();
-        state = State.COMPLETED;
     }
 
     @Override
     public void succeeded(Instant endTime) {
-        markCompleted();
         listener.completed(testDescriptor, null, new TestCompleteEvent(endTime.toEpochMilli(), TestResult.ResultType.SUCCESS));
     }
 
     @Override
     public void skipped(Instant endTime) {
-        markCompleted();
         listener.completed(testDescriptor, null, new TestCompleteEvent(endTime.toEpochMilli(), TestResult.ResultType.SKIPPED));
     }
 
     @Override
     public void failed(Instant endTime) {
-        markCompleted();
         listener.completed(testDescriptor, null, new TestCompleteEvent(endTime.toEpochMilli(), TestResult.ResultType.FAILURE));
     }
 
     @Override
     public void failed(Instant endTime, String message) {
-        markCompleted();
         // TODO: listener.failure(testDescriptor.getId(), TestFailure.fromTestFrameworkFailure(new VerificationException(message)));
         listener.completed(testDescriptor, null, new TestCompleteEvent(endTime.toEpochMilli(), TestResult.ResultType.FAILURE));
     }
 
     @Override
     public void close() {
-        if (state == State.CLOSED) {
-            return;
-        }
-        if (state == State.STARTED) {
-            throw new IllegalStateException("completed(...) must be called before close() if started(...) was called");
-        }
-        state = State.CLOSED;
-        if (parent != null) {
-            parent.removeChild(this);
-        }
-        cleanup();
+        // do nothing
     }
 }

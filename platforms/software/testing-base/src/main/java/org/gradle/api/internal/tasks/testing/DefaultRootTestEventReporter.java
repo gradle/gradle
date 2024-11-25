@@ -32,8 +32,8 @@ public class DefaultRootTestEventReporter extends DefaultGroupTestEventReporter 
     }
 
     @Override
-    protected void cleanup() {
-        super.cleanup();
+    public void close() {
+        super.close();
         if (failureMessage != null) {
             throw new VerificationException(failureMessage);
         }
