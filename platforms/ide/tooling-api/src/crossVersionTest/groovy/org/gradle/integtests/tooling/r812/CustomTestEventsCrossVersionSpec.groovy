@@ -23,6 +23,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.OperationType
+
 // Proper test display names were implemented in Gradle 8.8
 @ToolingApiVersion(">=8.8")
 @TargetGradleVersion(">=8.12")
@@ -312,5 +313,56 @@ class CustomTestEventsCrossVersionSpec extends ToolingApiSpecification implement
                 }
             }
         }
+    }
+
+    @ToolingApiVersion("<8.12")
+    def "reporting custom test events with metadata doesn't break older TAPI"() {
+        given:
+        buildFile("""
+            import java.time.Instant
+
+            abstract class CustomTestTask extends DefaultTask {
+                @Inject
+                abstract TestEventReporterFactory getTestEventReporterFactory()
+
+                @TaskAction
+                void runTests() {
+                    try (def reporter = getTestEventReporterFactory().createTestEventReporter("Custom test root")) {
+                        reporter.started(Instant.now())
+                        try (def myTest = reporter.reportTest("MyTestInternal", "My test!")) {
+                            myTest.started(Instant.now())
+                            myTest.metadata(Instant.now(), "mykey", ${ value instanceof String ? "'$value'" : value })
+                            myTest.succeeded(Instant.now())
+                        }
+                        reporter.succeeded(Instant.now())
+                    }
+                }
+            }
+
+            tasks.register("customTest", CustomTestTask)
+        """)
+
+        when:
+        withConnection {
+            ProjectConnection connection ->
+                connection.newBuild()
+                    .addProgressListener(events, OperationType.TASK, OperationType.TEST) // Older TAPI won't have TEST_METADATA available
+                    .forTasks('customTest')
+                    .run()
+        }
+
+        then:
+        testEvents {
+            task(":customTest") {
+                composite("Custom test root") {
+                    test("MyTestInternal") {
+                        testDisplayName "My test!"
+                    }
+                }
+            }
+        }
+
+        where:
+        value << ["my value", 5, [1, 2, 3]]
     }
 }
