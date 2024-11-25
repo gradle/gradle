@@ -74,7 +74,7 @@ class IvyPublishChangingUrlIntegTest extends AbstractIvyPublishIntegTest {
             }
 
             abstract class InitializeRepository extends DefaultTask {
-                @Internal
+                @ServiceReference
                 abstract Property<StagingRepositoryDescriptorRegistryBuildService> getRepositoryRegistry()
 
                 @TaskAction
@@ -83,11 +83,12 @@ class IvyPublishChangingUrlIntegTest extends AbstractIvyPublishIntegTest {
                     repositoryRegistry.get().url = "${repo2.uri}"
                 }
             }
-            task initializeRepository(type: InitializeRepository) {
-                repositoryRegistry.set(registry)
-            }
+            task initializeRepository(type: InitializeRepository)
 
             initializeRepository.dependsOn generateMetadataFileForIvyPublication, generateDescriptorFileForIvyPublication
+            generateMetadataFileForIvyPublication.usesService(registry)
+            generateDescriptorFileForIvyPublication.usesService(registry)
+            publishIvyPublicationToTestRepoRepository.usesService(registry)
             publishIvyPublicationToTestRepoRepository.dependsOn initializeRepository
         """
 
