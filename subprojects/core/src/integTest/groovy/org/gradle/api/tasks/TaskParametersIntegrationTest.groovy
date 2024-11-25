@@ -938,7 +938,7 @@ task someTask(type: SomeTask) {
                 @Inject
                 abstract ProjectLayout getLayout()
 
-                @Internal
+                @ServiceReference
                 abstract Property<EvaluationCountBuildService> getEvaluationCountService()
 
                 private NestedBean bean = new NestedBean()
@@ -992,12 +992,11 @@ task someTask(type: SomeTask) {
                 }
             }
 
-            task myTask(type: CustomTask) {
-                evaluationCountService = evaluationCount
-            }
+            task myTask(type: CustomTask)
 
             task printCounts {
                 dependsOn myTask
+                usesService(evaluationCount)
                 doLast {
                     println(['outputFileCount', 'inputFileCount', 'inputValueCount', 'nestedInputCount', 'nestedInputValueCount'].collect { name ->
                         def actualCount = evaluationCount.get()."\$name"
