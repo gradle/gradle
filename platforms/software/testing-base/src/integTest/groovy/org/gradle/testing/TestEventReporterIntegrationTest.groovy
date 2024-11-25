@@ -230,6 +230,85 @@ Custom test root > My Suite > another failing test FAILED
         firstTestMetadataDetails[1]["value"] == 2
     }
 
+    def "captures multiple metadata values for multiple custom test and correctly associates them"() {
+        given:
+        buildFile("""
+            import java.time.Instant
+
+            abstract class CustomTestTask extends DefaultTask {
+                @Inject
+                abstract TestEventReporterFactory getTestEventReporterFactory()
+
+                @TaskAction
+                void runTests() {
+                   try (def reporter = getTestEventReporterFactory().createTestEventReporter("Custom test root")) {
+                       reporter.started(Instant.now())
+                       try (def mySuite = reporter.reportTestGroup("My Suite")) {
+                            mySuite.started(Instant.now())
+                            try (def myTest = mySuite.reportTest("MyTestInternal", "My test!")) {
+                                 myTest.started(Instant.now())
+                                 myTest.metadata(Instant.now(), "key1", "value1")
+                                 myTest.output(Instant.now(), TestOutputEvent.Destination.StdOut, "This is a test output on stdout")
+                                 myTest.metadata(Instant.now(), "key2", 2)
+                                 myTest.succeeded(Instant.now())
+                            }
+
+                            try (def myTest = mySuite.reportTest("MyTestInternal", "My test 2!")) {
+                                 myTest.started(Instant.now())
+                                 myTest.metadata(Instant.now(), "key3", "value4")
+                                 myTest.succeeded(Instant.now())
+                            }
+                            mySuite.succeeded(Instant.now())
+                       }
+                       reporter.succeeded(Instant.now())
+                   }
+                }
+            }
+
+            tasks.register("customTest", CustomTestTask)
+        """)
+
+        when:
+        succeeds "customTest"
+
+        then: "metadata is retrievable from build operations"
+        def rootTestOp = operations.first(ExecuteTestBuildOperationType)
+        def rootTestOpDetails = rootTestOp.details as Map<String, Map<String, ?>>
+        assert (rootTestOpDetails.testDescriptor.name as String).startsWith("Custom test root")
+
+        def suiteTestOps = operations.children(rootTestOp, ExecuteTestBuildOperationType)
+        assert suiteTestOps.size() == 1
+        def suiteTestOpDetails = suiteTestOps[0].details as Map<String, Map<String, ?>>
+        assert (suiteTestOpDetails.testDescriptor.name as String).startsWith("My Suite")
+
+        def firstLevelTestOps = operations.children(suiteTestOps[0], ExecuteTestBuildOperationType).sort {
+            (it.details as Map<String, TestDescriptorInternal>).testDescriptor.name
+        }
+        assert firstLevelTestOps.size() == 2
+        def firstLevelTestOpDetails1 = firstLevelTestOps[0].details
+        assert firstLevelTestOpDetails1.testDescriptor.name == "MyTestInternal"
+        assert firstLevelTestOpDetails1.testDescriptor.displayName == "My test!"
+        def firstLevelTest2OpDetails = firstLevelTestOps[1].details
+        assert firstLevelTest2OpDetails.testDescriptor.name == "MyTestInternal"
+        assert firstLevelTest2OpDetails.testDescriptor.displayName == "My test 2!"
+
+        List<BuildOperationRecord.Progress> testMetadata1 = firstLevelTestOps[0].metadata
+        testMetadata1.size() == 2
+        def firstTestMetadataDetails = testMetadata1*.details.metadata as List<Map<String, ?>>
+        firstTestMetadataDetails.size() == 2
+        firstTestMetadataDetails[0]["key"] == "key1"
+        firstTestMetadataDetails[0]["value"] == "value1"
+        firstTestMetadataDetails[1]["key"] == "key2"
+        firstTestMetadataDetails[1]["value"] == 2
+
+        List<BuildOperationRecord.Progress> testMetadata2 = firstLevelTestOps[1].metadata
+        testMetadata2.size() == 1
+        def secondTestMetadataDetails = testMetadata2*.details.metadata as List<Map<String, ?>>
+        secondTestMetadataDetails.size() == 1
+        secondTestMetadataDetails[0]["key"] == "key3"
+        secondTestMetadataDetails[0]["value"] == "value4"
+    }
+
     private TestFile singleCustomTestRecordingMetadata(String key, @GroovyBuildScriptLanguage String valueExpression) {
         buildFile("""
             import java.time.Instant
