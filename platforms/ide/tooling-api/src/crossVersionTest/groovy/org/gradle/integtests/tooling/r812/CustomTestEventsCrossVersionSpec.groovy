@@ -16,16 +16,13 @@
 
 package org.gradle.integtests.tooling.r812
 
-
 import org.gradle.integtests.tooling.TestEventsFixture
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.internal.operations.trace.CustomOperationTraceSerialization
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.OperationType
-
 // Proper test display names were implemented in Gradle 8.8
 @ToolingApiVersion(">=8.8")
 @TargetGradleVersion(">=8.12")
