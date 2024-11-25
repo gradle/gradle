@@ -27,7 +27,6 @@ import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.id.IdGenerator;
 
-import javax.annotation.Nullable;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.concurrent.atomic.AtomicLong;
@@ -36,7 +35,6 @@ import java.util.concurrent.atomic.AtomicLong;
 public class DefaultGroupTestEventReporter implements GroupTestEventReporter {
     private final IdGenerator<?> idGenerator;
     private final TestListenerInternal listener;
-    private final TestDescriptorInternal parentId;
     private final TestDescriptorInternal testDescriptor;
 
     private final AtomicLong totalCount = new AtomicLong(0);
@@ -45,31 +43,30 @@ public class DefaultGroupTestEventReporter implements GroupTestEventReporter {
 
     private long startTime;
 
-    DefaultGroupTestEventReporter(TestListenerInternal listener, IdGenerator<?> idGenerator, @Nullable TestDescriptorInternal parentId, TestDescriptorInternal testDescriptor) {
+    DefaultGroupTestEventReporter(TestListenerInternal listener, IdGenerator<?> idGenerator, TestDescriptorInternal testDescriptor) {
         this.idGenerator = idGenerator;
         this.listener = listener;
-        this.parentId = parentId;
         this.testDescriptor = testDescriptor;
     }
 
     @Override
     public TestEventReporter reportTest(String name, String displayName) {
         return new StateTrackingTestEventReporter(totalCount, successfulCount, failureCount, new DefaultTestEventReporter(
-            listener, testDescriptor, new DefaultTestDescriptor(idGenerator.generateId(), null, name, null, displayName))
+            listener, new DecoratingTestDescriptor(new DefaultTestDescriptor(idGenerator.generateId(), null, name, null, displayName), testDescriptor))
         );
     }
 
     @Override
     public GroupTestEventReporter reportTestGroup(String name) {
         return new StateTrackingGroupTestEventReporter(totalCount, successfulCount, failureCount, new DefaultGroupTestEventReporter(
-            listener, idGenerator, testDescriptor, new DefaultTestSuiteDescriptor(idGenerator.generateId(), name)
-        ));
+            listener, idGenerator, new DecoratingTestDescriptor(new DefaultTestSuiteDescriptor(idGenerator.generateId(), name), testDescriptor))
+        );
     }
 
     @Override
     public void started(Instant startTime) {
         this.startTime = startTime.toEpochMilli();
-        listener.started(testDescriptor, new TestStartEvent(startTime.toEpochMilli(), parentId == null ? null : parentId.getId()));
+        listener.started(testDescriptor, new TestStartEvent(startTime.toEpochMilli(), testDescriptor.getParent() == null ? null : testDescriptor.getParent().getId()));
     }
 
     @Override

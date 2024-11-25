@@ -68,7 +68,7 @@ class TestEventReporterIntegrationTest extends AbstractIntegrationSpec {
 
         def customTestOutput = failure.groupedOutput.task(":customTest")
         customTestOutput.assertOutputContains("""Custom test root > My Suite > My failing test :( FAILED
-    org.gradle.api.tasks.VerificationException: my failure""")
+    java.lang.Throwable: my failure""")
 
         then: "test build operations are emitted in expected hierarchy"
         def rootTestOp = operations.first(ExecuteTestBuildOperationType)

@@ -25,7 +25,6 @@ import org.gradle.api.tasks.testing.TestFailureDetails;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
 
-import javax.annotation.Nullable;
 import java.time.Instant;
 import java.util.Collections;
 
@@ -33,21 +32,19 @@ import java.util.Collections;
 public class DefaultTestEventReporter implements TestEventReporter {
 
     protected final TestListenerInternal listener;
-    protected final TestDescriptorInternal parentId;
     protected final TestDescriptorInternal testDescriptor;
 
     private long startTime;
 
-    public DefaultTestEventReporter(TestListenerInternal listener, @Nullable TestDescriptorInternal parentId, TestDescriptorInternal testDescriptor) {
+    public DefaultTestEventReporter(TestListenerInternal listener, TestDescriptorInternal testDescriptor) {
         this.listener = listener;
-        this.parentId = parentId;
         this.testDescriptor = testDescriptor;
     }
 
     @Override
     public void started(Instant startTime) {
         this.startTime = startTime.toEpochMilli();
-        listener.started(testDescriptor, new TestStartEvent(startTime.toEpochMilli(), parentId == null ? null : parentId.getId()));
+        listener.started(testDescriptor, new TestStartEvent(startTime.toEpochMilli(), testDescriptor.getParent() == null ? null : testDescriptor.getParent().getId()));
     }
 
     @Override

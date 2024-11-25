@@ -28,7 +28,7 @@ public class DefaultRootTestEventReporter extends DefaultGroupTestEventReporter 
     private String failureMessage;
 
     public DefaultRootTestEventReporter(TestListenerInternal listener, IdGenerator<?> idGenerator, TestDescriptorInternal testDescriptor) {
-        super(listener, idGenerator, null, testDescriptor);
+        super(listener, idGenerator, testDescriptor);
     }
 
     @Override
