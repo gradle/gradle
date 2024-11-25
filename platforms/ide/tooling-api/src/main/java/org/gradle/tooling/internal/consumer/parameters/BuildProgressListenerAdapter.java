@@ -118,6 +118,8 @@ import org.gradle.tooling.events.task.java.JavaCompileTaskOperationResult.Annota
 import org.gradle.tooling.events.test.Destination;
 import org.gradle.tooling.events.test.JvmTestKind;
 import org.gradle.tooling.events.test.TestFinishEvent;
+import org.gradle.tooling.events.test.TestMetadataDescriptor;
+import org.gradle.tooling.events.test.TestMetadataEvent;
 import org.gradle.tooling.events.test.TestOperationDescriptor;
 import org.gradle.tooling.events.test.TestOperationResult;
 import org.gradle.tooling.events.test.TestOutputDescriptor;
@@ -127,6 +129,8 @@ import org.gradle.tooling.events.test.TestStartEvent;
 import org.gradle.tooling.events.test.internal.DefaultJvmTestOperationDescriptor;
 import org.gradle.tooling.events.test.internal.DefaultTestFailureResult;
 import org.gradle.tooling.events.test.internal.DefaultTestFinishEvent;
+import org.gradle.tooling.events.test.internal.DefaultTestMetadataEvent;
+import org.gradle.tooling.events.test.internal.DefaultTestMetadataOperationDescriptor;
 import org.gradle.tooling.events.test.internal.DefaultTestOperationDescriptor;
 import org.gradle.tooling.events.test.internal.DefaultTestOutputEvent;
 import org.gradle.tooling.events.test.internal.DefaultTestOutputOperationDescriptor;
@@ -209,6 +213,8 @@ import org.gradle.tooling.internal.protocol.events.InternalTaskWithExtraInfoDesc
 import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalTestFailureResult;
 import org.gradle.tooling.internal.protocol.events.InternalTestFinishedProgressEvent;
+import org.gradle.tooling.internal.protocol.events.InternalTestMetadataDescriptor;
+import org.gradle.tooling.internal.protocol.events.InternalTestMetadataEvent;
 import org.gradle.tooling.internal.protocol.events.InternalTestOutputDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalTestOutputEvent;
 import org.gradle.tooling.internal.protocol.events.InternalTestProgressEvent;
@@ -318,6 +324,9 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         if (!testOutputProgressListeners.isEmpty()) {
             operations.add(InternalBuildProgressListener.TEST_OUTPUT);
         }
+        if (!testMetadataProgressListeners.isEmpty()) {
+            operations.add(InternalBuildProgressListener.TEST_METADATA);
+        }
         if (!fileDownloadListeners.isEmpty()) {
             operations.add(InternalBuildProgressListener.FILE_DOWNLOAD);
         }
@@ -360,6 +369,8 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
             transformProgressListeners.getSource().statusChanged(event);
         } else if (event instanceof TestOutputEvent) {
             testOutputProgressListeners.getSource().statusChanged(event);
+        } else if (event instanceof TestMetadataEvent) {
+            testMetadataProgressListeners.getSource().statusChanged(event);
         } else if (event instanceof BuildPhaseProgressEvent) {
             buildPhaseListeners.getSource().statusChanged(event);
         } else if (event instanceof ProblemEvent) {
@@ -389,7 +400,9 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
             broadcastTransformProgressEvent(progressEvent, (InternalTransformDescriptor) descriptor);
         } else if (descriptor instanceof InternalTestOutputDescriptor) {
             broadcastTestOutputEvent(progressEvent, (InternalTestOutputDescriptor) descriptor);
-        } else if (progressEvent instanceof InternalStatusEvent) {
+        } else if (descriptor instanceof InternalTestMetadataDescriptor) {
+            broadcastTestMetadataEvent(progressEvent, (InternalTestMetadataDescriptor) descriptor);
+        }else if (progressEvent instanceof InternalStatusEvent) {
             broadcastStatusEvent((InternalStatusEvent) progressEvent);
         } else if (descriptor instanceof InternalFileDownloadDescriptor) {
             broadcastFileDownloadEvent(progressEvent, (InternalFileDownloadDescriptor) descriptor);
@@ -449,6 +462,13 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         TestOutputEvent outputEvent = toTestOutputEvent(event, descriptor);
         if (outputEvent != null) {
             testOutputProgressListeners.getSource().statusChanged(outputEvent);
+        }
+    }
+
+    private void broadcastTestMetadataEvent(InternalProgressEvent event, InternalTestMetadataDescriptor descriptor) {
+        TestMetadataEvent metadataEvent = toTestMetadataEvent(event, descriptor);
+        if (metadataEvent != null) {
+            testMetadataProgressListeners.getSource().statusChanged(metadataEvent);
         }
     }
 
@@ -589,6 +609,19 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
     private TestOutputEvent transformTestOutput(InternalTestOutputEvent event, InternalTestOutputDescriptor descriptor) {
         TestOutputDescriptor clientDescriptor = addDescriptor(event.getDescriptor(), toTestOutputDescriptor(event, descriptor));
         return new DefaultTestOutputEvent(event.getEventTime(), clientDescriptor);
+    }
+
+    private @Nullable TestMetadataEvent toTestMetadataEvent(InternalProgressEvent event, InternalTestMetadataDescriptor descriptor) {
+        if (event instanceof InternalTestMetadataEvent) {
+            return transformTestMetadata((InternalTestMetadataEvent) event, descriptor);
+        } else {
+            return null;
+        }
+    }
+
+    private TestMetadataEvent transformTestMetadata(InternalTestMetadataEvent event, InternalTestMetadataDescriptor descriptor) {
+        TestMetadataDescriptor clientDescriptor = addDescriptor(event.getDescriptor(), toTestMetadataDescriptor(event, descriptor));
+        return new DefaultTestMetadataEvent(event.getEventTime(), clientDescriptor);
     }
 
     private @Nullable ProblemEvent toProblemEvent(InternalProgressEvent progressEvent, InternalProblemDescriptor descriptor) {
@@ -889,6 +922,13 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         Destination destination = Destination.fromCode(event.getResult().getDestination());
         String message = event.getResult().getMessage();
         return new DefaultTestOutputOperationDescriptor(descriptor, parent, destination, message);
+    }
+
+    private TestMetadataDescriptor toTestMetadataDescriptor(InternalTestMetadataEvent event, InternalTestMetadataDescriptor descriptor) {
+        OperationDescriptor parent = getParentDescriptor(descriptor.getParentId());
+        String key = event.getResult().getKey();
+        Object value = event.getResult().getValue();
+        return new DefaultTestMetadataOperationDescriptor(descriptor, parent, key, value);
     }
 
     private static Problem toProblem(InternalBasicProblemDetails basicProblemDetails) {

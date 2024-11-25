@@ -22,6 +22,7 @@ import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.internal.operations.trace.CustomOperationTraceSerialization
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.OperationType
 
@@ -207,7 +208,8 @@ class CustomTestEventsCrossVersionSpec extends ToolingApiSpecification implement
         }
     }
 
-    def "reports custom test events with metadata"() {
+    @ToolingApiVersion(">=8.12")
+    def "reports custom test events with metadata #value"() {
         given:
         buildFile("""
             import java.time.Instant
@@ -222,7 +224,8 @@ class CustomTestEventsCrossVersionSpec extends ToolingApiSpecification implement
                         reporter.started(Instant.now())
                         try (def myTest = reporter.reportTest("MyTestInternal", "My test!")) {
                             myTest.started(Instant.now())
-                            myTest.metadata(Instant.now(), "mykey", "myvalue")
+                            //myTest.output(Instant.now(), TestOutputEvent.Destination.StdOut, "This is a test output on stdout")
+                            myTest.metadata(Instant.now(), "mykey", ${ value instanceof String ? "'$value'" : value })
                             myTest.succeeded(Instant.now())
                         }
                         reporter.succeeded(Instant.now())
@@ -237,7 +240,7 @@ class CustomTestEventsCrossVersionSpec extends ToolingApiSpecification implement
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild()
-                    .addProgressListener(events, OperationType.TASK, OperationType.TEST)
+                    .addProgressListener(events, OperationType.TASK, OperationType.TEST, OperationType.TEST_OUTPUT, OperationType.TEST_METADATA)
                     .forTasks('customTest')
                     .run()
         }
@@ -248,10 +251,102 @@ class CustomTestEventsCrossVersionSpec extends ToolingApiSpecification implement
                 composite("Custom test root") {
                     test("MyTestInternal") {
                         testDisplayName "My test!"
-                        metadata("mykey", "myvalue")
+                        metadata("mykey", value)
                     }
                 }
             }
+        }
+
+        where:
+        value << ["my value", 5, [1, 2, 3]]
+    }
+
+    @ToolingApiVersion(">=8.12")
+    def "reports custom test events with custom metadata type"() {
+        given:
+        buildFile("""
+            import java.time.Instant
+
+            abstract class CustomTestTask extends DefaultTask {
+                @Inject
+                abstract TestEventReporterFactory getTestEventReporterFactory()
+
+                @TaskAction
+                void runTests() {
+                    try (def reporter = getTestEventReporterFactory().createTestEventReporter("Custom test root")) {
+                        reporter.started(Instant.now())
+                        try (def myTest = reporter.reportTest("MyTestInternal", "My test!")) {
+                            myTest.started(Instant.now())
+                            myTest.metadata(Instant.now(), "mykey", new TestType(7))
+                            myTest.succeeded(Instant.now())
+                        }
+                        reporter.succeeded(Instant.now())
+                    }
+                }
+            }
+
+            // We need to define the custom type in the build script class, which will not be the same runtime class as the one defined in the test class
+            class TestType implements org.gradle.internal.operations.trace.CustomOperationTraceSerialization {
+                private int field
+
+                TestType(int field) {
+                    this.field = field
+                }
+
+                @Override
+                Object getCustomOperationTraceSerializableModel() {
+                    return ["my custom serializable type", "with some values", "in a list", field]
+                }
+
+                @Override
+                boolean equals(Object obj) {
+                    // So we'll use a looser definition of equality here
+                    return obj != null && this.class.simpleName == obj.class.simpleName && this.field == obj.field
+                }
+            }
+
+            tasks.register("customTest", CustomTestTask)
+        """)
+
+        when:
+        withConnection {
+            ProjectConnection connection ->
+                connection.newBuild()
+                    .addProgressListener(events, OperationType.TASK, OperationType.TEST, OperationType.TEST_OUTPUT, OperationType.TEST_METADATA)
+                    .forTasks('customTest')
+                    .run()
+        }
+
+        then:
+        testEvents {
+            task(":customTest") {
+                composite("Custom test root") {
+                    test("MyTestInternal") {
+                        testDisplayName "My test!"
+                        metadata("mykey", new TestType(7))
+                    }
+                }
+            }
+        }
+    }
+
+    // We need to define the custom type in the test class, which will not be the same runtime class as the one defined in the build script
+    static class TestType implements CustomOperationTraceSerialization {
+        private int field
+
+        TestType(int field) {
+            this.field = field
+        }
+
+        @Override
+        Object getCustomOperationTraceSerializableModel() {
+            return ["my custom serializable type", "with some values", "in a list", field]
+        }
+
+        @Override
+        boolean equals(Object obj) {
+            // So we'll use a looser definition of equality here
+            return obj != null && this.class.simpleName == obj.class.simpleName && this.field == obj.field
         }
     }
 }

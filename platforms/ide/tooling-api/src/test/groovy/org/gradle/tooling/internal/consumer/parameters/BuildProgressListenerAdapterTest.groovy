@@ -37,6 +37,7 @@ import static org.gradle.tooling.internal.protocol.InternalBuildProgressListener
 import static org.gradle.tooling.internal.protocol.InternalBuildProgressListener.TASK_EXECUTION
 import static org.gradle.tooling.internal.protocol.InternalBuildProgressListener.TEST_EXECUTION
 import static org.gradle.tooling.internal.protocol.InternalBuildProgressListener.TEST_OUTPUT
+import static org.gradle.tooling.internal.protocol.InternalBuildProgressListener.TEST_METADATA
 import static org.gradle.tooling.internal.protocol.InternalBuildProgressListener.TRANSFORM_EXECUTION
 import static org.gradle.tooling.internal.protocol.InternalBuildProgressListener.WORK_ITEM_EXECUTION
 
@@ -59,7 +60,7 @@ class BuildProgressListenerAdapterTest extends Specification {
         expectedSubscribedOperations << Sets.powerSet([TEST_EXECUTION, TASK_EXECUTION,
                                                        BUILD_EXECUTION, WORK_ITEM_EXECUTION,
                                                        PROJECT_CONFIGURATION_EXECUTION, TRANSFORM_EXECUTION,
-                                                       TEST_OUTPUT, FILE_DOWNLOAD, BUILD_PHASE, PROBLEMS, ROOT] as Set)
+                                                       TEST_OUTPUT, TEST_METADATA, FILE_DOWNLOAD, BUILD_PHASE, PROBLEMS, ROOT] as Set)
     }
 
     def "parent descriptor of a descriptor can be of a different type"() {
