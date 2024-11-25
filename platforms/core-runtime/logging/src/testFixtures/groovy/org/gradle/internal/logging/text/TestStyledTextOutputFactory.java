@@ -17,6 +17,7 @@
 package org.gradle.internal.logging.text;
 
 import org.gradle.api.logging.LogLevel;
+import org.gradle.util.internal.TextUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -69,7 +70,7 @@ public class TestStyledTextOutputFactory extends AbstractStyledTextOutputFactory
         for (StyledTextOutput textOutput: textOutputs) {
             builder.append(textOutput);
         }
-        return builder.toString();
+        return TextUtil.normaliseLineSeparators(builder.toString());
     }
 
     /**
