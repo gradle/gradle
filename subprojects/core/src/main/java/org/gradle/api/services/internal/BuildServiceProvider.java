@@ -49,6 +49,10 @@ public abstract class BuildServiceProvider<T extends BuildService<P>, P extends 
         throw new UnsupportedOperationException("Unexpected provider for a build service: " + service);
     }
 
+    public boolean isConstrained() {
+        return getServiceDetails().isConstrained();
+    }
+
     public interface Listener {
         Listener EMPTY = provider -> {
         };

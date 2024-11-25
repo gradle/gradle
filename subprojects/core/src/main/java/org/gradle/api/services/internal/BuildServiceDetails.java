@@ -73,4 +73,8 @@ public class BuildServiceDetails<T extends BuildService<P>, P extends BuildServi
     public boolean isResolved() {
         return resolved;
     }
+
+    public boolean isConstrained() {
+        return !BuildService.Unconstrained.class.isAssignableFrom(implementationType);
+    }
 }

@@ -76,8 +76,9 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
 
     def "does not nag when an unconstrained service is used by task without a corresponding usesService call and feature preview is enabled"() {
         given:
-        serviceImplementation()
+        serviceImplementation(unconstrained: true)
         adhocTaskUsingUndeclaredService(null)
+        enableStableConfigurationCache()
 
         when:
         succeeds 'broken'
@@ -1739,13 +1740,13 @@ Hello, subproject1
         """
     }
 
-    def serviceImplementation() {
+    def serviceImplementation(boolean unconstrained = false) {
         buildFile """
             interface CountingParams extends BuildServiceParameters {
                 Property<Integer> getInitial()
             }
 
-            abstract class CountingService implements BuildService<CountingParams>, AutoCloseable {
+            abstract class CountingService implements ${BuildService.name}<CountingParams>${unconstrained ? ", ${BuildService.Unconstrained.name}" : ""}, AutoCloseable {
                 int value
 
                 CountingService() {

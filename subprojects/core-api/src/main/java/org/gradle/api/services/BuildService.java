@@ -17,6 +17,8 @@
 package org.gradle.api.services;
 
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
+import org.gradle.api.provider.Provider;
 
 import javax.inject.Inject;
 
@@ -47,4 +49,22 @@ public interface BuildService<T extends BuildServiceParameters> {
      */
     @Inject
     T getParameters();
+
+    /**
+     * Marker interface to be applied to build services that have no constraints for usage.
+     * <p>
+     * Tasks that use unconstrained build services are exempt from explicitly declaring their
+     * usage using via {@link ServiceReference} or {@link org.gradle.api.Task#usesService(Provider)}.
+     * </p>
+     * <p>
+     * Note that while converting a constrained service into an unconstrained one is safe,
+     * the opposite would be a breaking change, as all tasks using it would need to explicitly
+     * declare they use the service.
+     * </p>
+     *
+     * @since 8.12
+     * @see BuildService
+     */
+    @Incubating
+    interface Unconstrained {}
 }
