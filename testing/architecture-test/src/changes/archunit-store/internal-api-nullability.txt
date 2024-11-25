@@ -741,7 +741,6 @@ Class <org.gradle.api.internal.tasks.testing.TestFrameworkDistributionModule> is
 Class <org.gradle.api.internal.tasks.testing.TestResultProcessor> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (TestResultProcessor.java:0)
 Class <org.gradle.api.internal.tasks.testing.TestStartEvent> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (TestStartEvent.java:0)
 Class <org.gradle.api.internal.tasks.testing.TestSuiteExecutionException> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (TestSuiteExecutionException.java:0)
-Class <org.gradle.api.internal.tasks.testing.TestingBasePluginServices> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (TestingBasePluginServices.java:0)
 Class <org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (WorkerTestClassProcessorFactory.java:0)
 Class <org.gradle.api.internal.tasks.testing.detection.AbstractTestFrameworkDetector$1> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (AbstractTestFrameworkDetector.java:0)
 Class <org.gradle.api.internal.tasks.testing.detection.AbstractTestFrameworkDetector$TestClass> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (AbstractTestFrameworkDetector.java:0)

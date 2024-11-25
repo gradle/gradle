@@ -57,7 +57,6 @@ Class <org.gradle.initialization.ProjectDescriptorRegistry> is not annotated wit
 Class <org.gradle.internal.actor.ActorFactory> is not annotated with @ServiceScope in (ActorFactory.java:0)
 Class <org.gradle.internal.build.PublicBuildPath> is not annotated with @ServiceScope in (PublicBuildPath.java:0)
 Class <org.gradle.internal.file.PathToFileResolver> is not annotated with @ServiceScope in (PathToFileResolver.java:0)
-Class <org.gradle.internal.logging.text.StyledTextOutputFactory> is not annotated with @ServiceScope in (StyledTextOutputFactory.java:0)
 Class <org.gradle.internal.nativeintegration.filesystem.FileSystem> is not annotated with @ServiceScope in (FileSystem.java:0)
 Class <org.gradle.internal.nativeintegration.network.HostnameLookup> is not annotated with @ServiceScope in (HostnameLookup.java:0)
 Class <org.gradle.internal.operations.logging.BuildOperationLoggerFactory> is not annotated with @ServiceScope in (BuildOperationLoggerFactory.java:0)

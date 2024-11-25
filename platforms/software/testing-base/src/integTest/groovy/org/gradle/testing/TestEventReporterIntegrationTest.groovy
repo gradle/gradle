@@ -48,7 +48,7 @@ class TestEventReporterIntegrationTest extends AbstractIntegrationSpec {
                             try (def myTest = mySuite.reportTest("MyTestInternal2", "My failing test :(")) {
                                  myTest.started(Instant.now())
                                  myTest.output(Instant.now(), TestOutputEvent.Destination.StdErr, "Some text on stderr")
-                                 myTest.failed(Instant.now(), "Test framework failure")
+                                 myTest.failed(Instant.now(), "my failure")
                             }
                             mySuite.failed(Instant.now())
                        }
@@ -65,6 +65,10 @@ class TestEventReporterIntegrationTest extends AbstractIntegrationSpec {
 
         then: "threw VerificationException"
         failure.assertHasCause("Test(s) failed.")
+
+        def customTestOutput = failure.groupedOutput.task(":customTest")
+        customTestOutput.assertOutputContains("""Custom test root > My Suite > My failing test :( FAILED
+    org.gradle.api.tasks.VerificationException: my failure""")
 
         then: "test build operations are emitted in expected hierarchy"
         def rootTestOp = operations.first(ExecuteTestBuildOperationType)

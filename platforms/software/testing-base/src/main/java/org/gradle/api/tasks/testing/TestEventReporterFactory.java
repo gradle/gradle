@@ -25,7 +25,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
  *
  * @since 8.12
  */
-@ServiceScope({Scope.BuildSession.class})
+@ServiceScope(Scope.Build.class)
 @Incubating
 public interface TestEventReporterFactory {
     /**
