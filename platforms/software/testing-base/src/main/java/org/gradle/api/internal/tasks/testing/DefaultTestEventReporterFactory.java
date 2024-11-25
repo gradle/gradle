@@ -45,6 +45,6 @@ public final class DefaultTestEventReporterFactory implements TestEventReporterF
         testListenerInternalBroadcaster.add(eventLogger);
 
         IdGenerator<?> idGenerator = new LongIdGenerator();
-        return new StateTrackingGroupTestEventReporter(new DefaultRootTestEventReporter(testListenerInternalBroadcaster.getSource(), idGenerator, new DefaultTestSuiteDescriptor(idGenerator.generateId(), rootName)));
+        return new LifecycleTrackingGroupTestEventReporter(new DefaultRootTestEventReporter(testListenerInternalBroadcaster.getSource(), idGenerator, new DefaultTestSuiteDescriptor(idGenerator.generateId(), rootName)));
     }
 }

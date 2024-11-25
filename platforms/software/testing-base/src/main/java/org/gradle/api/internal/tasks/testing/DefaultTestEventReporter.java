@@ -17,13 +17,17 @@
 package org.gradle.api.internal.tasks.testing;
 
 import org.gradle.api.NonNullApi;
+import org.gradle.api.internal.tasks.testing.results.DefaultTestResult;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
 import org.gradle.api.tasks.testing.TestEventReporter;
+import org.gradle.api.tasks.testing.TestFailure;
+import org.gradle.api.tasks.testing.TestFailureDetails;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
 
 import javax.annotation.Nullable;
 import java.time.Instant;
+import java.util.Collections;
 
 @NonNullApi
 public class DefaultTestEventReporter implements TestEventReporter {
@@ -31,6 +35,8 @@ public class DefaultTestEventReporter implements TestEventReporter {
     protected final TestListenerInternal listener;
     protected final TestDescriptorInternal parentId;
     protected final TestDescriptorInternal testDescriptor;
+
+    private long startTime;
 
     public DefaultTestEventReporter(TestListenerInternal listener, @Nullable TestDescriptorInternal parentId, TestDescriptorInternal testDescriptor) {
         this.listener = listener;
@@ -40,6 +46,7 @@ public class DefaultTestEventReporter implements TestEventReporter {
 
     @Override
     public void started(Instant startTime) {
+        this.startTime = startTime.toEpochMilli();
         listener.started(testDescriptor, new TestStartEvent(startTime.toEpochMilli(), parentId == null ? null : parentId.getId()));
     }
 
@@ -50,23 +57,24 @@ public class DefaultTestEventReporter implements TestEventReporter {
 
     @Override
     public void succeeded(Instant endTime) {
-        listener.completed(testDescriptor, null, new TestCompleteEvent(endTime.toEpochMilli(), TestResult.ResultType.SUCCESS));
+        listener.completed(testDescriptor, new DefaultTestResult(TestResult.ResultType.SUCCESS, startTime, endTime.toEpochMilli(), 1, 1, 0, Collections.emptyList()), new TestCompleteEvent(endTime.toEpochMilli(), TestResult.ResultType.SUCCESS));
     }
 
     @Override
     public void skipped(Instant endTime) {
-        listener.completed(testDescriptor, null, new TestCompleteEvent(endTime.toEpochMilli(), TestResult.ResultType.SKIPPED));
+        listener.completed(testDescriptor, new DefaultTestResult(TestResult.ResultType.SKIPPED, startTime, endTime.toEpochMilli(), 1, 0, 0, Collections.emptyList()), new TestCompleteEvent(endTime.toEpochMilli(), TestResult.ResultType.SKIPPED));
     }
 
     @Override
     public void failed(Instant endTime) {
-        listener.completed(testDescriptor, null, new TestCompleteEvent(endTime.toEpochMilli(), TestResult.ResultType.FAILURE));
+        listener.completed(testDescriptor, new DefaultTestResult(TestResult.ResultType.FAILURE, startTime, endTime.toEpochMilli(), 1, 0, 1, Collections.emptyList()), new TestCompleteEvent(endTime.toEpochMilli(), TestResult.ResultType.FAILURE));
     }
 
     @Override
     public void failed(Instant endTime, String message) {
-        // TODO: listener.failure(testDescriptor.getId(), TestFailure.fromTestFrameworkFailure(new VerificationException(message)));
-        listener.completed(testDescriptor, null, new TestCompleteEvent(endTime.toEpochMilli(), TestResult.ResultType.FAILURE));
+        TestFailureDetails failureDetails = new DefaultTestFailureDetails(message, Throwable.class.getName(), "", false, false, null, null, null, null);
+        TestFailure testFailure = new DefaultTestFailure(new Throwable(message), failureDetails, Collections.emptyList());
+        listener.completed(testDescriptor, new DefaultTestResult(TestResult.ResultType.FAILURE, startTime, endTime.toEpochMilli(), 1, 0, 1, Collections.singletonList(testFailure)), new TestCompleteEvent(endTime.toEpochMilli(), TestResult.ResultType.FAILURE));
     }
 
     @Override

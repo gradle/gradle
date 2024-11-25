@@ -18,48 +18,24 @@ package org.gradle.api.internal.tasks.testing;
 
 import org.gradle.api.tasks.testing.GroupTestEventReporter;
 import org.gradle.api.tasks.testing.TestEventReporter;
-import org.gradle.internal.concurrent.CompositeStoppable;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class StateTrackingGroupTestEventReporter extends StateTrackingTestEventReporter implements GroupTestEventReporter {
     private final GroupTestEventReporter delegate;
-    private final Set<StateTrackingTestEventReporter> children = new HashSet<>();
 
-    StateTrackingGroupTestEventReporter(GroupTestEventReporter delegate) {
-        super(delegate);
+    public StateTrackingGroupTestEventReporter(AtomicLong totalCount, AtomicLong successfulCount, AtomicLong failureCount, GroupTestEventReporter delegate) {
+        super(totalCount, successfulCount, failureCount, delegate);
         this.delegate = delegate;
     }
 
     @Override
-    protected void markCompleted() {
-        for (StateTrackingTestEventReporter child : children) {
-            if (!child.isCompleted()) {
-                throw new IllegalStateException("Group was completed before tests.");
-            }
-        }
-        super.markCompleted();
-    }
-
-    @Override
-    public void close() {
-        super.close();
-        // Now that it's safe, stop all children
-        CompositeStoppable.stoppable(children).stop();
-    }
-
-    @Override
     public TestEventReporter reportTest(String name, String displayName) {
-        StateTrackingTestEventReporter child = new StateTrackingTestEventReporter(delegate.reportTest(name, displayName));
-        children.add(child);
-        return child;
+        return delegate.reportTest(name, displayName);
     }
 
     @Override
     public GroupTestEventReporter reportTestGroup(String name) {
-        StateTrackingGroupTestEventReporter child = new StateTrackingGroupTestEventReporter(delegate.reportTestGroup(name));
-        children.add(child);
-        return child;
+        return delegate.reportTestGroup(name);
     }
 }

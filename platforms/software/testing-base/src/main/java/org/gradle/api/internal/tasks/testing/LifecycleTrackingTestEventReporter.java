@@ -16,64 +16,94 @@
 
 package org.gradle.api.internal.tasks.testing;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.api.tasks.testing.TestEventReporter;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 
 import java.time.Instant;
-import java.util.concurrent.atomic.AtomicLong;
 
-public class StateTrackingTestEventReporter implements TestEventReporter {
-    private final AtomicLong totalCount;
-    private final AtomicLong successfulCount;
-    private final AtomicLong failureCount;
-    private final TestEventReporter delegate;
-
-    public StateTrackingTestEventReporter(AtomicLong totalCount, AtomicLong successfulCount, AtomicLong failureCount, TestEventReporter delegate) {
-        this.totalCount = totalCount;
-        this.successfulCount = successfulCount;
-        this.failureCount = failureCount;
+public class LifecycleTrackingTestEventReporter implements TestEventReporter {
+    LifecycleTrackingTestEventReporter(TestEventReporter delegate) {
         this.delegate = delegate;
     }
 
+    @NonNullApi
+    private enum State {
+        CREATED, STARTED, COMPLETED, CLOSED
+    }
+
+    private State state = State.CREATED;
+    private final TestEventReporter delegate;
+
     @Override
     public void started(Instant startTime) {
+        if (state != State.CREATED) {
+            throw new IllegalStateException("started(...) cannot be called twice");
+        }
+        state = State.STARTED;
         delegate.started(startTime);
     }
 
     @Override
     public void output(Instant logTime, TestOutputEvent.Destination destination, String output) {
+        requireRunning();
         delegate.output(logTime, destination, output);
     }
 
     @Override
     public void succeeded(Instant endTime) {
-        totalCount.incrementAndGet();
-        successfulCount.incrementAndGet();
+        markCompleted();
         delegate.succeeded(endTime);
     }
 
     @Override
     public void skipped(Instant endTime) {
-        totalCount.incrementAndGet();
+        markCompleted();
         delegate.skipped(endTime);
     }
 
     @Override
     public void failed(Instant endTime) {
-        totalCount.incrementAndGet();
-        failureCount.incrementAndGet();
+        markCompleted();
         delegate.failed(endTime);
     }
 
     @Override
     public void failed(Instant endTime, String message) {
-        totalCount.incrementAndGet();
-        failureCount.incrementAndGet();
+        markCompleted();
         delegate.failed(endTime, message);
     }
 
     @Override
     public void close() {
+        if (state == State.CLOSED) {
+            return;
+        }
+        if (state == State.STARTED) {
+            throw new IllegalStateException("completed(...) must be called before close() if started(...) was called");
+        }
+        state = State.CLOSED;
+
         delegate.close();
+    }
+
+    protected boolean isCompleted() {
+        return state == State.CLOSED;
+    }
+
+    protected void requireRunning() {
+        switch (state) {
+            case CREATED:
+                throw new IllegalStateException("started(...) must be called before any other method");
+            case COMPLETED:
+                throw new IllegalStateException("completed(...) has already been called");
+            case CLOSED:
+                throw new IllegalStateException("close() has already been called");
+        }
+    }
+
+    protected void markCompleted() {
+        requireRunning();
+        state = State.COMPLETED;
     }
 }
