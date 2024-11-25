@@ -178,9 +178,9 @@ class PropertyUpgradeCustomInterceptorCodeGenTest extends InstrumentationCodeGen
                     }
                 }
                 @Generated
-                public static class SetMaxErrorsCallInterceptor extends AbstractCallInterceptor implements SignatureAwareCallInterceptor, FilterableCallInterceptor, FilterableBytecodeInterceptor.BytecodeUpgradeInterceptor {
+                public static class SetMaxErrorsCallInterceptor extends AbstractCallInterceptor implements SignatureAwareCallInterceptor, FilterableCallInterceptor, FilterableBytecodeInterceptor.BytecodeUpgradeInterceptor, PropertyAwareCallInterceptor {
                     public SetMaxErrorsCallInterceptor() {
-                        super(InterceptScope.methodsNamed("setMaxErrors"));
+                        super(InterceptScope.writesOfPropertiesNamed("maxErrors"), InterceptScope.methodsNamed("setMaxErrors"));
                     }
                 }
             }

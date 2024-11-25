@@ -86,6 +86,7 @@ import static org.gradle.internal.instrumentation.api.declarations.InterceptorDe
 import static org.gradle.internal.instrumentation.api.types.BytecodeInterceptorType.BYTECODE_UPGRADE;
 import static org.gradle.internal.instrumentation.api.types.BytecodeInterceptorType.BYTECODE_UPGRADE_REPORT;
 import static org.gradle.internal.instrumentation.model.CallableKindInfo.GROOVY_PROPERTY_GETTER;
+import static org.gradle.internal.instrumentation.model.CallableKindInfo.GROOVY_PROPERTY_SETTER;
 import static org.gradle.internal.instrumentation.model.CallableKindInfo.INSTANCE_METHOD;
 import static org.gradle.internal.instrumentation.model.ParameterKindInfo.METHOD_PARAMETER;
 import static org.gradle.internal.instrumentation.model.ParameterKindInfo.RECEIVER;
@@ -198,10 +199,14 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
         if (accessor.interceptorType != BYTECODE_UPGRADE) {
             return Optional.empty();
         }
-        CallableKindInfo callableKindInfo = isGroovyProperty(accessor.accessorType, accessor.methodName, accessor.returnType)
+        CallableKindInfo callableKindInfo = isGroovyPropertyGetter(accessor.accessorType, accessor.methodName, accessor.returnType)
             ? GROOVY_PROPERTY_GETTER
-            : INSTANCE_METHOD;
-        String callableMethodName = callableKindInfo == GROOVY_PROPERTY_GETTER ? accessor.propertyName : accessor.methodName;
+            : isGroovyPropertySetter(accessor.accessorType, accessor.methodName)
+            ? CallableKindInfo.GROOVY_PROPERTY_SETTER
+            : CallableKindInfo.INSTANCE_METHOD;
+        String callableMethodName = callableKindInfo == GROOVY_PROPERTY_GETTER || callableKindInfo == GROOVY_PROPERTY_SETTER
+            ? accessor.propertyName
+            : accessor.methodName;
         String implementationMethodPrefix = accessor.accessorType == AccessorType.GETTER ? "get" : "set";
         String interceptorsClassName = getGroovyInterceptorsClassName(accessor.interceptorType);
         List<RequestExtra> extras = Arrays.asList(new RequestExtra.OriginatingElement(method), new RequestExtra.InterceptGroovyCalls(interceptorsClassName, accessor.interceptorType));
@@ -635,13 +640,17 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
         return getPropertyName(method.getSimpleName().toString());
     }
 
-    private static boolean isGroovyProperty(AccessorType accessorType, String methodName, TypeName returnType) {
+    private static boolean isGroovyPropertyGetter(AccessorType accessorType, String methodName, TypeName returnType) {
         if (accessorType == AccessorType.GETTER) {
             return returnType.equals(TypeName.BOOLEAN)
                 ? isIsGetterMethodName(methodName)
                 : isGetGetterMethodName(methodName);
         }
         return false;
+    }
+
+    private static boolean isGroovyPropertySetter(AccessorType accessorType, String methodName) {
+        return accessorType == AccessorType.SETTER && isSetterMethodName(methodName);
     }
 
     private static String getPropertyName(String methodName) {
