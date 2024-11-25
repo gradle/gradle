@@ -80,17 +80,7 @@ public class DefaultProblemReporter implements InternalProblemReporter {
     @Override
     public RuntimeException throwing(Throwable exception, Collection<? extends Problem> problems) {
         for (Problem problem : problems) {
-            Problem problemWithException = new DefaultProblem(
-                problem.getDefinition(),
-                problem.getContextualLabel(),
-                problem.getSolutions(),
-                problem.getOriginLocations(),
-                problem.getContextualLocations(),
-                problem.getDetails(),
-                transform(exception),
-                problem.getAdditionalData()
-            );
-            report(problemWithException);
+            report(problem.toBuilder(additionalDataBuilderFactory).withException(transform(exception)).build());
         }
         if (exception instanceof RuntimeException) {
             return (RuntimeException) exception;
@@ -149,6 +139,8 @@ public class DefaultProblemReporter implements InternalProblemReporter {
      */
     @Override
     public void report(Problem problem, OperationIdentifier id) {
+        String taskPath = ProblemTaskPathTracker.getTaskIdentityPath();
+        problem = taskPath == null ? problem : problem.toBuilder(additionalDataBuilderFactory).taskPathLocation(taskPath).build();
         Throwable exception = problem.getException();
         if (exception != null) {
             exceptionProblemRegistry.onProblem(transform(exception), problem);

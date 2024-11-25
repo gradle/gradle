@@ -36,4 +36,10 @@ public class DefaultWorkerProblemProtocol implements WorkerProblemProtocol {
         InternalProblemReporter problemsService = ProblemsProgressEventEmitterHolder.get().getInternalReporter();
         problemsService.report(problem, id);
     }
+
+    @Override
+    public void reportProblem(Problem problem, OperationIdentifier id, String taskPath) {
+        InternalProblemReporter problemsService = ProblemsProgressEventEmitterHolder.get().getInternalReporter();
+        problemsService.report(taskPath == null ? problem : problem.toBuilder(null).taskPathLocation(taskPath).build(), id);
+    }
 }

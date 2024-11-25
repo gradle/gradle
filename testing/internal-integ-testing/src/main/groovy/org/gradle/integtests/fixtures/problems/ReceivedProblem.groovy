@@ -31,6 +31,7 @@ import org.gradle.api.problems.internal.PluginIdLocation
 import org.gradle.api.problems.internal.Problem
 import org.gradle.api.problems.internal.ProblemDefinition
 import org.gradle.api.problems.internal.ProblemLocation
+import org.gradle.api.problems.internal.TaskPathLocation
 
 /*
  * A deserialized representation of a problem received from the build operation trace.
@@ -68,6 +69,10 @@ class ReceivedProblem implements Problem {
                 result += new ReceivedLineInFileLocation(location as Map<String, Object>)
             } else if (location['offset'] != null) {
                 result += new ReceivedOffsetInFileLocation(location as Map<String, Object>)
+            } else if (location['path'] != null) {
+                result += new ReceivedFileLocation(location as Map<String, Object>)
+            } else if (location['buildTreePath'] != null) {
+                result += new ReceivedTaskPathLocation(location as Map<String, Object>)
             } else {
                 result += new ReceivedFileLocation(location as Map<String, Object>)
             }
@@ -77,6 +82,14 @@ class ReceivedProblem implements Problem {
 
     long getOperationId() {
         operationId
+    }
+
+    <T> T firstLocationOfType(Class<T> type) {
+        def locations = getOriginLocations()
+        def location = locations.find { type.isInstance(it) } as T
+        assert location != null
+        assert type.isInstance(location)
+        location
     }
 
     <T> T oneLocation(Class<T> type) {
@@ -356,6 +369,19 @@ class ReceivedProblem implements Problem {
         @Override
         String getPluginId() {
             pluginId
+        }
+    }
+
+    static class ReceivedTaskPathLocation implements TaskPathLocation {
+        private final String buildTreePath
+
+        ReceivedTaskPathLocation(Map<String, Object> location) {
+            this.buildTreePath = location['buildTreePath'] as String
+        }
+
+        @Override
+        String getBuildTreePath() {
+            buildTreePath
         }
     }
 

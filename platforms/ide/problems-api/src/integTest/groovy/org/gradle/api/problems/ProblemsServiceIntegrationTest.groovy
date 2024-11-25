@@ -18,6 +18,7 @@ package org.gradle.api.problems
 
 import org.gradle.api.problems.internal.LineInFileLocation
 import org.gradle.api.problems.internal.OffsetInFileLocation
+import org.gradle.api.problems.internal.TaskPathLocation
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.GroovyBuildScriptLanguage
 
@@ -48,8 +49,8 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         verifyAll(receivedProblem) {
             definition.id.fqid == 'problems-api:missing-id'
             definition.id.displayName == 'Problem id must be specified'
-            originLocations.size() == 1
-            with(oneLocation(LineInFileLocation)) {
+            originLocations.size() == 2
+            with(firstLocationOfType(LineInFileLocation)) {
                 length == -1
                 column == -1
                 line == 11
@@ -73,7 +74,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         verifyAll(receivedProblem) {
             definition.id.fqid == 'generic:type'
             definition.id.displayName == 'label'
-            with(oneLocation(LineInFileLocation)) {
+            with(firstLocationOfType(LineInFileLocation)) {
                 length == -1
                 column == -1
                 line == 11
@@ -99,7 +100,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         verifyAll(receivedProblem) {
             definition.id.fqid == 'generic:type'
             definition.id.displayName == 'label'
-            with(oneLocation(LineInFileLocation)) {
+            with(firstLocationOfType(LineInFileLocation)) {
                 length == -1
                 column == -1
                 line == 11
@@ -139,7 +140,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         verifyAll(receivedProblem.originLocations) {
-            size() == 2
+            size() == 3
             with(get(0) as OffsetInFileLocation) {
                 path == 'test-location'
                 offset == 1
@@ -150,6 +151,9 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
                 column == -1
                 line == 11
                 path == "build file '$buildFile.absolutePath'"
+            }
+            with(get(2) as TaskPathLocation) {
+                buildTreePath == ':reportProblem'
             }
         }
     }
@@ -168,7 +172,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         verifyAll(receivedProblem.originLocations) {
-            size() == 2
+            size() == 3
             with(get(0) as LineInFileLocation) {
                 length == -1
                 column == 2
@@ -294,7 +298,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         verifyAll(receivedProblem) {
             definition.id.fqid == 'problems-api:unsupported-additional-data'
             definition.id.displayName == 'Unsupported additional data type'
-            with(oneLocation(LineInFileLocation)) {
+            with(firstLocationOfType(LineInFileLocation)) {
                 length == -1
                 column == -1
                 line == 11
