@@ -331,6 +331,7 @@ class WorkerExecutorParametersIntegrationTest extends AbstractIntegrationSpec {
             def countingService = gradle.sharedServices.registerIfAbsent("counting", CountingService) { }
 
             task runWork(type: ParameterTask) {
+                usesService(countingService)
                 isolationMode = '${isolationMode}'
                 parameters {
                     testParam.set(countingService)
