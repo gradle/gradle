@@ -17,88 +17,69 @@
 package org.gradle.api.internal.tasks.testing.junit.result;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimap;
+import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Multimaps;
 import org.gradle.api.Action;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.internal.concurrent.CompositeStoppable;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicLong;
-
-import static org.gradle.util.internal.CollectionUtils.any;
+import java.util.List;
 
 public class AggregateTestResultsProvider implements TestResultsProvider {
-    private final Iterable<TestResultsProvider> providers;
-    private Multimap<Long, DelegateProvider> classOutputProviders;
+    private final Iterable<TestResultsProvider> delegates;
+    private final PersistentTestResult result;
 
-    public AggregateTestResultsProvider(Iterable<TestResultsProvider> providers) {
-        this.providers = providers;
+    public AggregateTestResultsProvider(Iterable<TestResultsProvider> delegates) {
+        Iterator<TestResultsProvider> iterator = delegates.iterator();
+        Preconditions.checkArgument(iterator.hasNext(), "At least one delegate is required");
+        this.delegates = delegates;
+        PersistentTestResult result = iterator.next().getResult();
+        while (iterator.hasNext()) {
+            result = result.merge(iterator.next().getResult());
+        }
+        this.result = result;
     }
 
     @Override
-    public void visitClasses(final Action<? super TestClassResult> visitor) {
-        final Map<String, OverlaidIdProxyingTestClassResult> aggregatedTestResults = new LinkedHashMap<String, OverlaidIdProxyingTestClassResult>();
-        classOutputProviders = ArrayListMultimap.create();
-        final AtomicLong newIdCounter = new AtomicLong();
-        for (final TestResultsProvider provider : providers) {
-            provider.visitClasses(new Action<TestClassResult>() {
-                @Override
-                public void execute(final TestClassResult classResult) {
-                    OverlaidIdProxyingTestClassResult newTestResult = aggregatedTestResults.get(classResult.getClassName());
-                    if (newTestResult != null) {
-                        newTestResult.addTestClassResult(classResult);
-                    } else {
-                        long newId = newIdCounter.incrementAndGet();
-                        newTestResult = new OverlaidIdProxyingTestClassResult(newId, classResult);
-                        aggregatedTestResults.put(classResult.getClassName(), newTestResult);
-                    }
-                    classOutputProviders.put(newTestResult.getId(), new DelegateProvider(classResult.getId(), provider));
-                }
+    public void visitChildren(Action<? super TestResultsProvider> visitor) {
+        ListMultimap<String, TestResultsProvider> childProvidersByName = Multimaps.newListMultimap(new LinkedHashMap<>(), ArrayList::new);
+        for (final TestResultsProvider provider : delegates) {
+            provider.visitChildren(childProvider -> {
+                String name = childProvider.getResult().getName();
+                childProvidersByName.put(name, childProvider);
             });
         }
-        for (OverlaidIdProxyingTestClassResult classResult : aggregatedTestResults.values()) {
-            visitor.execute(classResult);
-        }
-    }
-
-    private static class DelegateProvider {
-        private final long id;
-        private final TestResultsProvider provider;
-
-        private DelegateProvider(long id, TestResultsProvider provider) {
-            this.id = id;
-            this.provider = provider;
-        }
-    }
-
-    private static class OverlaidIdProxyingTestClassResult extends TestClassResult {
-        private final Map<Long, TestClassResult> delegates = new LinkedHashMap<Long, TestClassResult>();
-
-        public OverlaidIdProxyingTestClassResult(long id, TestClassResult delegate) {
-            super(id, delegate.getClassName(), delegate.getStartTime());
-            addTestClassResult(delegate);
-        }
-
-        void addTestClassResult(TestClassResult delegate) {
-            Preconditions.checkArgument(delegates.isEmpty() || delegates.values().iterator().next().getClassName().equals(delegate.getClassName()));
-            delegates.put(delegate.getId(), delegate);
-            for (TestMethodResult result : delegate.getResults()) {
-                add(result);
-            }
-            if (delegate.getStartTime() < getStartTime()) {
-                setStartTime(delegate.getStartTime());
+        for (List<TestResultsProvider> providers : Multimaps.asMap(childProvidersByName).values()) {
+            // Optimize by dropping the wrapper if there is only one provider
+            if (providers.size() == 1) {
+                visitor.execute(providers.get(0));
+            } else {
+                visitor.execute(new AggregateTestResultsProvider(providers));
             }
         }
     }
 
     @Override
-    public boolean hasOutput(long classId, final TestOutputEvent.Destination destination) {
-        for (DelegateProvider delegateProvider : classOutputProviders.get(classId)) {
-            if (delegateProvider.provider.hasOutput(delegateProvider.id, destination)) {
+    public PersistentTestResult getResult() {
+        return result;
+    }
+
+    @Override
+    public void copyOutput(TestOutputEvent.Destination destination, Writer writer) {
+        for (TestResultsProvider delegate : delegates) {
+            delegate.copyOutput(destination, writer);
+        }
+    }
+
+    @Override
+    public boolean hasOutput(TestOutputEvent.Destination destination) {
+        for (TestResultsProvider delegate : delegates) {
+            if (delegate.hasOutput(destination)) {
                 return true;
             }
         }
@@ -106,43 +87,17 @@ public class AggregateTestResultsProvider implements TestResultsProvider {
     }
 
     @Override
-    public boolean hasOutput(long classId, final long testId, final TestOutputEvent.Destination destination) {
-        for (DelegateProvider delegateProvider : classOutputProviders.get(classId)) {
-            if (delegateProvider.provider.hasOutput(delegateProvider.id, testId, destination)) {
+    public boolean hasChildren() {
+        for (TestResultsProvider delegate : delegates) {
+            if (delegate.hasChildren()) {
                 return true;
             }
         }
         return false;
-    }
-
-    @Override
-    public void writeAllOutput(long classId, TestOutputEvent.Destination destination, Writer writer) {
-        for (DelegateProvider delegateProvider : classOutputProviders.get(classId)) {
-            delegateProvider.provider.writeAllOutput(delegateProvider.id, destination, writer);
-        }
-    }
-
-    @Override
-    public boolean isHasResults() {
-        return any(providers, TestResultsProvider::isHasResults);
-    }
-
-    @Override
-    public void writeNonTestOutput(long classId, TestOutputEvent.Destination destination, Writer writer) {
-        for (DelegateProvider delegateProvider : classOutputProviders.get(classId)) {
-            delegateProvider.provider.writeNonTestOutput(delegateProvider.id, destination, writer);
-        }
-    }
-
-    @Override
-    public void writeTestOutput(long classId, long testId, TestOutputEvent.Destination destination, Writer writer) {
-        for (DelegateProvider delegateProvider : classOutputProviders.get(classId)) {
-            delegateProvider.provider.writeTestOutput(delegateProvider.id, testId, destination, writer);
-        }
     }
 
     @Override
     public void close() throws IOException {
-        CompositeStoppable.stoppable(providers).stop();
+        CompositeStoppable.stoppable(delegates).stop();
     }
 }

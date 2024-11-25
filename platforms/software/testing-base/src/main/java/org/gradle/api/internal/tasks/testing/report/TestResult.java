@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.tasks.testing.report;
 
-import org.gradle.api.internal.tasks.testing.junit.result.TestFailure;
+import org.gradle.api.internal.tasks.testing.junit.result.PersistentTestFailure;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,7 +25,7 @@ import static org.gradle.api.tasks.testing.TestResult.ResultType;
 public class TestResult extends TestResultModel implements Comparable<TestResult> {
     private final long duration;
     final ClassTestResults classResults;
-    final List<TestFailure> failures = new ArrayList<TestFailure>();
+    final List<PersistentTestFailure> failures = new ArrayList<PersistentTestFailure>();
     final String name;
     final String displayName;
     boolean ignored;
@@ -80,7 +80,7 @@ public class TestResult extends TestResultModel implements Comparable<TestResult
         return classResults;
     }
 
-    public List<TestFailure> getFailures() {
+    public List<PersistentTestFailure> getFailures() {
         return failures;
     }
 
@@ -88,7 +88,7 @@ public class TestResult extends TestResultModel implements Comparable<TestResult
         return ignored;
     }
 
-    public void addFailure(TestFailure failure) {
+    public void addFailure(PersistentTestFailure failure) {
         classResults.failed(this);
         failures.add(failure);
     }

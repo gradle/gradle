@@ -16,6 +16,7 @@
 package org.gradle.api.internal.tasks.testing.report;
 
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider;
 import org.gradle.internal.FileUtils;
 
 import java.util.Collection;
@@ -26,33 +27,25 @@ import java.util.TreeSet;
  * Test results for a given class.
  */
 public class ClassTestResults extends CompositeTestResults {
-    private final long id;
-    private final String name;
-    private final String displayName;
+    private final TestResultsProvider provider;
     private final PackageTestResults packageResults;
-    private final Set<TestResult> results = new TreeSet<TestResult>();
+    private final Set<TestResult> results = new TreeSet<>();
     private final String baseUrl;
 
-    public ClassTestResults(long id, String name, PackageTestResults packageResults) {
-        this(id, name, name, packageResults);
-    }
-
-    public ClassTestResults(long id, String name, String displayName, PackageTestResults packageResults) {
+    public ClassTestResults(TestResultsProvider provider, PackageTestResults packageResults) {
         super(packageResults);
-        this.id = id;
-        this.name = name;
-        this.displayName = displayName;
+        this.provider = provider;
         this.packageResults = packageResults;
-        baseUrl = "classes/" + FileUtils.toSafeFileName(name) + ".html";
+        baseUrl = "classes/" + FileUtils.toSafeFileName(provider.getResult().getName()) + ".html";
     }
 
-    public long getId() {
-        return id;
+    public TestResultsProvider getProvider() {
+        return provider;
     }
 
     @Override
     public String getTitle() {
-        return name.equals(displayName) ? "Class " + name : displayName;
+        return getName().equals(getDisplayName()) ? "Class " + getName() : getDisplayName();
     }
 
     @Override
@@ -61,24 +54,24 @@ public class ClassTestResults extends CompositeTestResults {
     }
 
     public String getName() {
-        return name;
+        return provider.getResult().getName();
     }
 
     public String getDisplayName() {
-        return displayName;
+        return provider.getResult().getDisplayName();
     }
 
     public String getReportName() {
-        if (displayName != null && !displayName.equals(name)) {
-            return displayName;
+        if (getDisplayName() != null && !getDisplayName().equals(getName())) {
+            return getDisplayName();
         }
         return getSimpleName();
     }
 
     public String getSimpleName() {
-        String simpleName = StringUtils.substringAfterLast(name, ".");
-        if (simpleName.equals("")) {
-            return name;
+        String simpleName = StringUtils.substringAfterLast(getName(), ".");
+        if (simpleName.isEmpty()) {
+            return getName();
         }
         return simpleName;
     }

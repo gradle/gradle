@@ -34,7 +34,7 @@ import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.internal.tasks.testing.junit.result.Binary2JUnitXmlReportGenerator;
 import org.gradle.api.internal.tasks.testing.junit.result.InMemoryTestResultsProvider;
 import org.gradle.api.internal.tasks.testing.junit.result.JUnitXmlResultOptions;
-import org.gradle.api.internal.tasks.testing.junit.result.TestClassResult;
+import org.gradle.api.internal.tasks.testing.junit.result.PersistentTestResult;
 import org.gradle.api.internal.tasks.testing.junit.result.TestOutputStore;
 import org.gradle.api.internal.tasks.testing.junit.result.TestReportDataCollector;
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultSerializer;
@@ -88,10 +88,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Abstract class for all test tasks.
@@ -484,10 +482,10 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         }
 
         // Record test events to `results`, and test outputs to `testOutputStore`
-        Map<String, TestClassResult> results = new HashMap<>();
+        PersistentTestResult.Builder rootResultBuilder = new PersistentTestResult.Builder();
         TestOutputStore testOutputStore = new TestOutputStore(binaryResultsDir);
         TestOutputStore.Writer outputWriter = testOutputStore.writer();
-        TestReportDataCollector testReportDataCollector = new TestReportDataCollector(results, outputWriter);
+        TestReportDataCollector testReportDataCollector = new TestReportDataCollector(rootResultBuilder, outputWriter);
         addTestListener(testReportDataCollector);
         addTestOutputListener(testReportDataCollector);
 
@@ -514,22 +512,29 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
 
         TestResultProcessor resultProcessor = new StateTrackingTestResultProcessor(resultProcessorDelegate);
 
-        try {
-            testExecuter.execute(executionSpec, resultProcessor);
-        } finally {
-            parentProgressLogger.completed();
-            testWorkerProgressListener.completeAll();
-            testListenerSubscriptions.removeAllListeners();
-            testOutputListenerSubscriptions.removeAllListeners();
-            testListenerInternalBroadcaster.removeAll();
-            outputWriter.close();
+        // We close the writer using try-with-resources for proper exception handling
+        // Once we're 9+ here we can just put `try (outputWriter)` instead of adding a variable.
+        try (TestOutputStore.Writer ignored = outputWriter) {
+            try {
+                testExecuter.execute(executionSpec, resultProcessor);
+            } finally {
+                parentProgressLogger.completed();
+                testWorkerProgressListener.completeAll();
+                testListenerSubscriptions.removeAllListeners();
+                testOutputListenerSubscriptions.removeAllListeners();
+                testListenerInternalBroadcaster.removeAll();
+            }
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
         }
 
+        PersistentTestResult rootResult = rootResultBuilder.build();
+
         // Write binary results to disk
-        new TestResultSerializer(binaryResultsDir).write(results.values());
+        new TestResultSerializer(binaryResultsDir).write(rootResult);
 
         // Generate HTML and XML reports
-        createReporting(results, testOutputStore);
+        createReporting(rootResult, testOutputStore);
 
         handleCollectedResults(testCountLogger);
     }
@@ -590,8 +595,8 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         return reasons;
     }
 
-    private void createReporting(Map<String, TestClassResult> results, TestOutputStore testOutputStore) {
-        TestResultsProvider testResultsProvider = new InMemoryTestResultsProvider(results.values(), testOutputStore);
+    private void createReporting(PersistentTestResult rootResult, TestOutputStore testOutputStore) {
+        TestResultsProvider testResultsProvider = new InMemoryTestResultsProvider(rootResult, testOutputStore.reader());
 
         try {
 

@@ -19,9 +19,8 @@ package org.gradle.api.tasks.testing;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.tasks.testing.junit.result.AggregateTestResultsProvider;
-import org.gradle.api.internal.tasks.testing.junit.result.BinaryResultBackedTestResultsProvider;
+import org.gradle.api.internal.tasks.testing.junit.result.InMemoryTestResultsProvider;
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider;
 import org.gradle.api.internal.tasks.testing.report.HtmlTestReport;
 import org.gradle.api.model.ObjectFactory;
@@ -42,16 +41,17 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.work.DisableCachingByDefault;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import static org.gradle.internal.concurrent.CompositeStoppable.stoppable;
 import static org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType.GETTER;
 import static org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType.SETTER;
 import static org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.BinaryCompatibility.ACCESSORS_KEPT;
-import static org.gradle.util.internal.CollectionUtils.collect;
 
 /**
  * Generates an HTML test report from the results of one or more {@link Test} tasks.
@@ -188,7 +188,7 @@ public abstract class TestReport extends DefaultTask {
     void generateReport() {
         TestResultsProvider resultsProvider = createAggregateProvider();
         try {
-            if (resultsProvider.isHasResults()) {
+            if (resultsProvider.hasChildren()) {
                 HtmlTestReport testReport = new HtmlTestReport(getBuildOperationRunner(), getBuildOperationExecutor());
                 testReport.generateReport(resultsProvider, getDestinationDirectory().get().getAsFile());
             } else {
@@ -200,18 +200,26 @@ public abstract class TestReport extends DefaultTask {
         }
     }
 
+    @Nullable
     private TestResultsProvider createAggregateProvider() {
-        List<TestResultsProvider> resultsProviders = new LinkedList<TestResultsProvider>();
-        try {
-            FileCollection resultDirs = getTestResults();
-            if (resultDirs.getFiles().size() == 1) {
-                return new BinaryResultBackedTestResultsProvider(resultDirs.getSingleFile());
-            } else {
-                return new AggregateTestResultsProvider(collect(resultDirs, resultsProviders, BinaryResultBackedTestResultsProvider::new));
+        Set<File> resultDirs = getTestResults().getFiles();
+        if (resultDirs.size() == 1) {
+            return InMemoryTestResultsProvider.loadFromDirectory(resultDirs.iterator().next());
+        } else {
+            List<TestResultsProvider> resultsProviders = new ArrayList<>(resultDirs.size());
+            try {
+                for (File resultDir : resultDirs) {
+                    TestResultsProvider resultsProvider = InMemoryTestResultsProvider.loadFromDirectory(resultDir);
+                    if (resultsProvider != null) {
+                        resultsProviders.add(resultsProvider);
+                    }
+                }
+            } catch (Throwable e) {
+                // In case of any error, stop all the providers we loaded so far
+                stoppable(resultsProviders).stop();
+                throw e;
             }
-        } catch (RuntimeException e) {
-            stoppable(resultsProviders).stop();
-            throw e;
+            return new AggregateTestResultsProvider(resultsProviders);
         }
     }
 }

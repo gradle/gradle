@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.tasks.testing.junit.result;
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.ListMultimap;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.tasks.testing.TestDescriptor;
 import org.gradle.api.tasks.testing.TestListener;
@@ -29,7 +27,6 @@ import org.gradle.internal.serialize.PlaceholderExceptionSupport;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -37,81 +34,70 @@ import java.util.Map;
  */
 public class TestReportDataCollector implements TestListener, TestOutputListener {
 
-    public static final String EXECUTION_FAILURE = "failed to execute tests";
-    private final Map<String, TestClassResult> results;
+    /**
+     * Object used in {@link #assignedIds} to represent the root node, to avoid using {@code null} as a key.
+     */
+    private static final Object ROOT_ID = new Object();
+    private final Map<Long, PersistentTestResult.Builder> inProgressResults = new HashMap<>();
+    private final Map<Object, Long> assignedIds = new HashMap<>();
     private final TestOutputStore.Writer outputWriter;
-    private final Map<TestDescriptor, TestMethodResult> currentTestMethods = new HashMap<TestDescriptor, TestMethodResult>();
-    private final ListMultimap<Object, TestOutputEvent> pendingOutputEvents = ArrayListMultimap.create();
-    private long internalIdCounter = 1;
+    private long internalIdCounter = 0L;
 
-    public TestReportDataCollector(Map<String, TestClassResult> results, TestOutputStore.Writer outputWriter) {
-        this.results = results;
+    public TestReportDataCollector(PersistentTestResult.Builder rootResult, TestOutputStore.Writer outputWriter) {
+        long id = internalIdCounter++;
+        this.inProgressResults.put(id, rootResult.id(id));
+        this.assignedIds.put(ROOT_ID, id);
         this.outputWriter = outputWriter;
     }
 
     @Override
     public void beforeSuite(TestDescriptor suite) {
+        startResultCapturing(suite);
     }
 
     @Override
     public void afterSuite(TestDescriptor suite, TestResult result) {
-        List<TestOutputEvent> outputEvents = pendingOutputEvents.removeAll(((TestDescriptorInternal) suite).getId());
-        if (result.getResultType() == TestResult.ResultType.FAILURE && !result.getExceptions().isEmpty()) {
-            //there are some exceptions attached to the suite. Let's make sure they are reported to the user.
-            //this may happen for example when suite initialisation fails and no tests are executed
-            TestMethodResult methodResult = new TestMethodResult(internalIdCounter++, EXECUTION_FAILURE);
-            TestClassResult classResult = new TestClassResult(internalIdCounter++, suite.getName(), result.getStartTime());
-            for (Throwable throwable : result.getExceptions()) {
-                methodResult.addFailure(failureMessage(throwable), stackTrace(throwable), exceptionClassName(throwable));
-            }
-            for (TestOutputEvent outputEvent : outputEvents) {
-                outputWriter.onOutput(classResult.getId(), methodResult.getId(), outputEvent);
-            }
-            methodResult.completed(result);
-            classResult.add(methodResult);
-            results.put(suite.getName(), classResult);
-        } else if (result.getResultType() == TestResult.ResultType.SKIPPED) {
-            String parentClassName = findEnclosingClassName(suite.getParent());
-            String classDisplayName = ((TestDescriptorInternal) suite).getClassDisplayName();
-            if (parentClassName != null) {
-                TestClassResult classResult = results.get(parentClassName);
-
-                if (classResult == null) {
-                    classResult = new TestClassResult(internalIdCounter++, parentClassName, classDisplayName, result.getStartTime());
-                    results.put(parentClassName, classResult);
-                }
-
-                TestMethodResult methodResult = new TestMethodResult(internalIdCounter++, suite.getName());
-                methodResult.completed(result);
-                classResult.add(methodResult);
-            }
-        }
+        finishResult((TestDescriptorInternal) suite, result);
     }
 
     @Override
-    public void beforeTest(TestDescriptor testDescriptor) {
-        TestDescriptorInternal testDescriptorInternal = (TestDescriptorInternal) testDescriptor;
-        TestMethodResult methodResult = new TestMethodResult(internalIdCounter++, testDescriptorInternal.getName(), testDescriptorInternal.getDisplayName());
-        currentTestMethods.put(testDescriptor, methodResult);
+    public void beforeTest(TestDescriptor suite) {
+        startResultCapturing(suite);
     }
 
     @Override
     public void afterTest(TestDescriptor testDescriptor, TestResult result) {
-        String className = testDescriptor.getClassName();
-        String classDisplayName = ((TestDescriptorInternal) testDescriptor).getClassDisplayName();
-        TestMethodResult methodResult = currentTestMethods.remove(testDescriptor).completed(result);
+        finishResult((TestDescriptorInternal) testDescriptor, result);
+    }
+
+    private void startResultCapturing(TestDescriptor suite) {
+        long id = internalIdCounter++;
+        assignedIds.put(((TestDescriptorInternal) suite).getId(), id);
+        PersistentTestResult.Builder testNodeBuilder = PersistentTestResult.builder()
+            .id(id)
+            .name(suite.getName())
+            .displayName(suite.getDisplayName());
+        inProgressResults.put(id, testNodeBuilder);
+    }
+
+    private void finishResult(TestDescriptorInternal testDescriptor, TestResult result) {
+        long id = assignedIds.get(testDescriptor.getId());
+        PersistentTestResult.Builder testNodeBuilder = inProgressResults.remove(id)
+            .startTime(result.getStartTime())
+            .endTime(result.getEndTime())
+            .resultType(result.getResultType());
+
         for (Throwable throwable : result.getExceptions()) {
-            methodResult.addFailure(failureMessage(throwable), stackTrace(throwable), exceptionClassName(throwable));
+            testNodeBuilder.addFailure(new PersistentTestFailure(failureMessage(throwable), stackTrace(throwable), exceptionClassName(throwable)));
         }
-        TestClassResult classResult = results.get(className);
-        if (classResult == null) {
-            classResult = new TestClassResult(internalIdCounter++, className, classDisplayName, result.getStartTime());
-            results.put(className, classResult);
-        } else if (classResult.getStartTime() == 0) {
-            //class results may be created earlier, where we don't yet have access to the start time
-            classResult.setStartTime(result.getStartTime());
+
+        long parentId;
+        if (testDescriptor.getParent() == null) {
+            parentId = assignedIds.get(ROOT_ID);
+        } else {
+            parentId = assignedIds.get(testDescriptor.getParent().getId());
         }
-        classResult.add(methodResult);
+        inProgressResults.get(parentId).addChild(testNodeBuilder.build());
     }
 
     private String failureMessage(Throwable throwable) {
@@ -146,36 +132,7 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
 
     @Override
     public void onOutput(TestDescriptor testDescriptor, TestOutputEvent outputEvent) {
-        String className = findEnclosingClassName(testDescriptor);
-        if (className == null) {
-            pendingOutputEvents.put(((TestDescriptorInternal) testDescriptor).getId(), outputEvent);
-            return;
-        }
-        TestClassResult classResult = results.get(className);
-        if (classResult == null) {
-            //it's possible that we receive an output for a suite here
-            //in this case we will create the test result for a suite that normally would not be created
-            //feels like this scenario should modelled more explicitly
-            classResult = new TestClassResult(internalIdCounter++, className, ((TestDescriptorInternal) testDescriptor).getClassDisplayName(), 0);
-            results.put(className, classResult);
-        }
-
-        TestMethodResult methodResult = currentTestMethods.get(testDescriptor);
-        if (methodResult == null) {
-            outputWriter.onOutput(classResult.getId(), outputEvent);
-        } else {
-            outputWriter.onOutput(classResult.getId(), methodResult.getId(), outputEvent);
-        }
-    }
-
-    private static String findEnclosingClassName(TestDescriptor testDescriptor) {
-        if (testDescriptor == null) {
-            return null;
-        }
-        String className = testDescriptor.getClassName();
-        if (className != null) {
-            return className;
-        }
-        return findEnclosingClassName(testDescriptor.getParent());
+        long testId = assignedIds.get(((TestDescriptorInternal) testDescriptor).getId());
+        outputWriter.onOutput(testId, outputEvent);
     }
 }
