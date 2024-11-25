@@ -88,7 +88,7 @@ public class TestListenerBuildOperationAdapter implements TestListenerInternal {
         if (runningOp == null) {
             throw new IllegalStateException("Received metadata for test that is not running: " + testDescriptor);
         }
-        listener.progress(runningOp.descriptor.getId(), new OperationProgressEvent(event.getLogTime(), new Metadata(event)));
+        listener.progress(runningOp.descriptor.getId(), new OperationProgressEvent(event.getLogTime() != null ? event.getLogTime() : -1L, new Metadata(event)));
     }
 
     private BuildOperationDescriptor createTestBuildOperationDescriptor(TestDescriptor testDescriptor, TestStartEvent testStartEvent) {

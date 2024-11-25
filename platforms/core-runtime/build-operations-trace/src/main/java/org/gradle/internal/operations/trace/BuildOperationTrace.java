@@ -427,7 +427,7 @@ public class BuildOperationTrace implements Stoppable {
                 roots.add(new BuildOperationRecord(
                     -1L, null,
                     "Dangling pending operations",
-                    0, 0, null, null, null, null, null,
+                    0L, 0L, null, null, null, null, null,
                     convertProgressEvents(danglingProgress),
                     Collections.emptyList()
                 ));

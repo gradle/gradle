@@ -259,6 +259,55 @@ class CustomTestEventsCrossVersionSpec extends ToolingApiSpecification implement
     }
 
     @ToolingApiVersion(">=8.12")
+    def "reports custom test events with metadata with null timestamp"() {
+        given:
+        buildFile("""
+            import java.time.Instant
+
+            abstract class CustomTestTask extends DefaultTask {
+                @Inject
+                abstract TestEventReporterFactory getTestEventReporterFactory()
+
+                @TaskAction
+                void runTests() {
+                    try (def reporter = getTestEventReporterFactory().createTestEventReporter("Custom test root")) {
+                        reporter.started(Instant.now())
+                        try (def myTest = reporter.reportTest("MyTestInternal", "My test!")) {
+                            myTest.started(Instant.now())
+                            myTest.metadata(null, "mykey", "myvalue")
+                            myTest.succeeded(Instant.now())
+                        }
+                        reporter.succeeded(Instant.now())
+                    }
+                }
+            }
+
+            tasks.register("customTest", CustomTestTask)
+        """)
+
+        when:
+        withConnection {
+            ProjectConnection connection ->
+                connection.newBuild()
+                    .addProgressListener(events, OperationType.TASK, OperationType.TEST, OperationType.TEST_OUTPUT, OperationType.TEST_METADATA)
+                    .forTasks('customTest')
+                    .run()
+        }
+
+        then:
+        testEvents {
+            task(":customTest") {
+                composite("Custom test root") {
+                    test("MyTestInternal") {
+                        testDisplayName "My test!"
+                        metadata("mykey", "myvalue")
+                    }
+                }
+            }
+        }
+    }
+
+    @ToolingApiVersion(">=8.12")
     def "reports custom test events with multiple metadata events and output"() {
         given:
         buildFile("""

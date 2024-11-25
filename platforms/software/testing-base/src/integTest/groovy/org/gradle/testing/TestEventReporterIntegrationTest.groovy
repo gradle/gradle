@@ -136,6 +136,23 @@ Custom test root > My Suite > another failing test FAILED
         firstTestMetadataDetails[0]["value"] == "my value"
     }
 
+    def "captures metadata for custom test with null timestamp"() {
+        given:
+        singleCustomTestRecordingMetadata("my key", "'my value'", true)
+
+        when:
+        succeeds "customTest"
+
+        then: "metadata is retrievable from build operations"
+        List<BuildOperationRecord.Progress> testMetadata = getMetadataForOnlyTest()
+        testMetadata.size() == 1
+        def firstTestMetadataDetails = testMetadata*.details.metadata as List<Map<String, ?>>
+        firstTestMetadataDetails.size() == 1
+        firstTestMetadataDetails[0]["logTime"] == null
+        firstTestMetadataDetails[0]["key"] == "my key"
+        firstTestMetadataDetails[0]["value"] == "my value"
+    }
+
     def "captures List metadata for custom test"() {
         given:
         singleCustomTestRecordingMetadata("my key", "[1, 2, 3]")
@@ -399,7 +416,8 @@ Custom test root > My Suite > another failing test FAILED
         secondTestMetadataDetails[0]["value"] == "value4"
     }
 
-    private TestFile singleCustomTestRecordingMetadata(String key, @GroovyBuildScriptLanguage String valueExpression) {
+    private TestFile singleCustomTestRecordingMetadata(String key, @GroovyBuildScriptLanguage String valueExpression, boolean nullTimestamp = false) {
+        String timestampStr = nullTimestamp ? "null" : "Instant.now()"
         buildFile("""
             import java.time.Instant
             import javax.inject.Inject
@@ -417,7 +435,7 @@ Custom test root > My Suite > another failing test FAILED
                             try (def myTest = mySuite.reportTest("MyTestInternal", "My test!")) {
                                  myTest.started(Instant.now())
                                  myTest.output(Instant.now(), TestOutputEvent.Destination.StdOut, "This is a test output on stdout")
-                                 myTest.metadata(Instant.now(), "$key", $valueExpression)
+                                 myTest.metadata($timestampStr, "$key", $valueExpression)
                                  myTest.succeeded(Instant.now())
                             }
                             mySuite.succeeded(Instant.now())
