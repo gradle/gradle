@@ -21,10 +21,10 @@ import org.gradle.api.tasks.testing.TestEventReporter;
 
 import java.util.concurrent.atomic.AtomicLong;
 
-public class StateTrackingGroupTestEventReporter extends StateTrackingTestEventReporter implements GroupTestEventReporter {
+class StateTrackingGroupTestEventReporter extends StateTrackingTestEventReporter implements GroupTestEventReporter {
     private final GroupTestEventReporter delegate;
 
-    public StateTrackingGroupTestEventReporter(AtomicLong totalCount, AtomicLong successfulCount, AtomicLong failureCount, GroupTestEventReporter delegate) {
+    StateTrackingGroupTestEventReporter(AtomicLong totalCount, AtomicLong successfulCount, AtomicLong failureCount, GroupTestEventReporter delegate) {
         super(totalCount, successfulCount, failureCount, delegate);
         this.delegate = delegate;
     }

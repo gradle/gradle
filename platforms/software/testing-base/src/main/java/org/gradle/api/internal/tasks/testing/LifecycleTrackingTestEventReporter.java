@@ -22,7 +22,7 @@ import org.gradle.api.tasks.testing.TestOutputEvent;
 
 import java.time.Instant;
 
-public class LifecycleTrackingTestEventReporter implements TestEventReporter {
+class LifecycleTrackingTestEventReporter implements TestEventReporter {
     LifecycleTrackingTestEventReporter(TestEventReporter delegate) {
         this.delegate = delegate;
     }

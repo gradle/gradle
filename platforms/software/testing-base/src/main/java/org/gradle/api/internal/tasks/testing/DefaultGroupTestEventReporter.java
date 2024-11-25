@@ -32,7 +32,7 @@ import java.util.Collections;
 import java.util.concurrent.atomic.AtomicLong;
 
 @NonNullApi
-public class DefaultGroupTestEventReporter implements GroupTestEventReporter {
+class DefaultGroupTestEventReporter implements GroupTestEventReporter {
     private final IdGenerator<?> idGenerator;
     private final TestListenerInternal listener;
     private final TestDescriptorInternal testDescriptor;

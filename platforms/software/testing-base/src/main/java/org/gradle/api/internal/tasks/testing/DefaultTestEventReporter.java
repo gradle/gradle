@@ -29,14 +29,14 @@ import java.time.Instant;
 import java.util.Collections;
 
 @NonNullApi
-public class DefaultTestEventReporter implements TestEventReporter {
+class DefaultTestEventReporter implements TestEventReporter {
 
     protected final TestListenerInternal listener;
     protected final TestDescriptorInternal testDescriptor;
 
     private long startTime;
 
-    public DefaultTestEventReporter(TestListenerInternal listener, TestDescriptorInternal testDescriptor) {
+    DefaultTestEventReporter(TestListenerInternal listener, TestDescriptorInternal testDescriptor) {
         this.listener = listener;
         this.testDescriptor = testDescriptor;
     }

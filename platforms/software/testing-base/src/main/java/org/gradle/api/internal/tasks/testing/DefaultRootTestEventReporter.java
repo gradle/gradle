@@ -24,10 +24,10 @@ import org.gradle.internal.id.IdGenerator;
 import java.time.Instant;
 
 @NonNullApi
-public class DefaultRootTestEventReporter extends DefaultGroupTestEventReporter {
+class DefaultRootTestEventReporter extends DefaultGroupTestEventReporter {
     private String failureMessage;
 
-    public DefaultRootTestEventReporter(TestListenerInternal listener, IdGenerator<?> idGenerator, TestDescriptorInternal testDescriptor) {
+    DefaultRootTestEventReporter(TestListenerInternal listener, IdGenerator<?> idGenerator, TestDescriptorInternal testDescriptor) {
         super(listener, idGenerator, testDescriptor);
     }
 

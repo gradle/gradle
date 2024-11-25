@@ -23,7 +23,7 @@ import org.gradle.internal.concurrent.CompositeStoppable;
 import java.util.HashSet;
 import java.util.Set;
 
-public class LifecycleTrackingGroupTestEventReporter extends LifecycleTrackingTestEventReporter implements GroupTestEventReporter {
+class LifecycleTrackingGroupTestEventReporter extends LifecycleTrackingTestEventReporter implements GroupTestEventReporter {
     private final GroupTestEventReporter delegate;
     private final Set<LifecycleTrackingTestEventReporter> children = new HashSet<>();
 
