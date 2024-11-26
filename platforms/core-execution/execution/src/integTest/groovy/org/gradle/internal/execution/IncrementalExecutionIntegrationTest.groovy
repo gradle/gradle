@@ -596,28 +596,33 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
 
     def "reports max three file changes"() {
         given:
+        def outputDir = file("parent")
         def files = [
-            "file1": file("parent1/outFile"),
-            "file2": file("parent2/outFile"),
-            "file3": file("parent3/outFile"),
-            "file4": file("parent4/outFile")
+            outputDir.createFile("outFile1"),
+            outputDir.createFile("outFile2"),
+            outputDir.createFile("outFile3"),
+            outputDir.createFile("outFile4"),
+            outputDir.createFile("outFile5"),
+            outputDir.createFile("outFile6")
         ]
-        def unitOfWork = builder.withOutputFiles(files).withWork { ->
+        def unitOfWork = builder.withOutputDirs(outputDir).withWork { ->
+            files.each { it.createFile() }
             UnitOfWork.WorkResult.DID_WORK
         }.build()
         execute(unitOfWork)
 
         when:
-        files.each {
-            it.value.createFile()
-        }
+        outputDir.deleteDir()
         def result = execute(unitOfWork)
 
         then:
-        def executionReasons = files.take(3).collect {
-            "Output property '${it.key}' file ${it.value.absolutePath} has been added.".toString()
-        } + ["and more..."]
-        result.executionReasons == executionReasons
+        def executionReasons = [
+            "Output property 'defaultDir0' file ${outputDir.absolutePath} has been removed.",
+            "Output property 'defaultDir0' file ${files[0].absolutePath} has been removed.",
+            "Output property 'defaultDir0' file ${files[1].absolutePath} has been removed.",
+            "and more..."
+        ]
+        result.executionReasons as List<String> == executionReasons
     }
 
     List<String> inputFilesRemoved(Map<String, List<File>> removedFiles) {
