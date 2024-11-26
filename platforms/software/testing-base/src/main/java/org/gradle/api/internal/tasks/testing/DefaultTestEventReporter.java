@@ -66,9 +66,8 @@ class DefaultTestEventReporter implements TestEventReporter {
     }
 
     @Override
-    public void metadata(@Nullable Instant logTime, String key, Object value) {
-        requireRunning();
-        processor.metadata(testDescriptor.getId(), new DefaultTestMetadataEvent(logTime == null ? null : logTime.toEpochMilli(), key, value));
+    public void metadata(Instant logTime, String key, Object value) {
+        listener.metadata(testDescriptor, new DefaultTestMetadataEvent(logTime.toEpochMilli(), key, value));
     }
 
     @Override
