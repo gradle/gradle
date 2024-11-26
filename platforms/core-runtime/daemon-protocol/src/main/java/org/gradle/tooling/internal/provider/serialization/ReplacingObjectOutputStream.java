@@ -26,7 +26,6 @@ import java.io.OutputStream;
 import java.util.Arrays;
 
 @NonNullApi
-@SuppressWarnings("all")
 public class ReplacingObjectOutputStream extends ObjectOutputStream {
     private final LazyPayloadSerializerContainer payloadSerializer;
     private final Class<?>[] classes;

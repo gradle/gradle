@@ -26,6 +26,7 @@ import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.problems.ProblemEvent
 import org.gradle.tooling.events.problems.SingleProblemEvent
+import org.gradle.tooling.events.problems.internal.GeneralData
 import org.gradle.util.GradleVersion
 
 /**
@@ -42,7 +43,7 @@ class ResolutionFailureDataCrossVersionIntegrationTest extends ToolingApiSpecifi
             TestResolutionFailure failure = new TestResolutionFailure()
             getProblems().${report(targetVersion)} {
                 it.${id(targetVersion)}
-                problems.internal.DefaultResolutionFailureData(failure))
+                .additionalData(${additionalData()})
             }
         """
 
@@ -60,6 +61,10 @@ class ResolutionFailureDataCrossVersionIntegrationTest extends ToolingApiSpecifi
         }
     }
 
+    def String additionalData() {
+        targetVersion < GradleVersion.version("8.13") ? "ResolutionFailureDataSpec.class, data -> data.from(failure)" : "new org.gradle.api.problems.internal.DefaultResolutionFailureData(failure)"
+    }
+
     @ToolingApiVersion(">=8.13")
     def "can supply ResolutionFailureData (Tooling API client >= 8.13)"() {
         given:
@@ -68,7 +73,7 @@ class ResolutionFailureDataCrossVersionIntegrationTest extends ToolingApiSpecifi
 
             getProblems().${report(targetVersion)} {
                 it.${id(targetVersion)}
-                 .additionalData(${targetVersion < GradleVersion.version("8.13") ? "ResolutionFailureDataSpec.class, data -> data.from(failure)" : "new org.gradle.api.problems.internal.DefaultResolutionFailureData(failure)"})
+                 .additionalData(${additionalData()})
             }
         """
 

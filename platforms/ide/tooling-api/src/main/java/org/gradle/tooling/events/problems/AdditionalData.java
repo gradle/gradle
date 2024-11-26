@@ -51,6 +51,8 @@ public interface AdditionalData {
 
     /**
      * Returns custom object with provided type or null if not available.
+     * This is based on the same mechanics used for custom model building. The class/interface provided must be compatible with the class of the instance provided as additional data.
+     * Compatible in this context means it must have the same methods as the instance provided, but it does not need to be the same class.
      *
      * @since 8.13
      */
