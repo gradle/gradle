@@ -87,6 +87,7 @@ public class JavaApiMemberWriter implements ApiMemberWriter {
         // Without this parameter annotations for non-static inner class constructors would
         // end up having one more parameter than they should, because the first parameter
         // (pointing to `this` of the enclosing type) should not be listed.
+        // See https://gitlab.ow2.org/asm/asm/-/issues/318023
         if (method.getSignature() != null) {
             int parameterCount = SignatureParameterCounter.countParameters(method.getSignature());
             mv.visitAnnotableParameterCount(parameterCount, true);
