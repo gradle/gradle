@@ -1,0 +1,8 @@
+test > FailingSuite > failingTest() FAILED
+    org.gradle.api.tasks.VerificationException: This is a test failure
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':test'.
+> Test(s) failed.
