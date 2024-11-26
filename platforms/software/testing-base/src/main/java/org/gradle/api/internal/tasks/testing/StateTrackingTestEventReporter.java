@@ -23,14 +23,20 @@ import org.gradle.api.tasks.testing.TestOutputEvent;
 import java.time.Instant;
 import java.util.concurrent.atomic.AtomicLong;
 
+/**
+ * Tracks the number of tests that have been run.
+ *
+ * This is used by groups to track the metrics of tests started within them.
+ *
+ */
 @NonNullApi
-class StateTrackingTestEventReporter<T extends TestEventReporter> implements TestEventReporter {
+class StateTrackingTestEventReporter implements TestEventReporter {
     private final AtomicLong totalCount;
     private final AtomicLong successfulCount;
     private final AtomicLong failureCount;
-    protected final T delegate;
+    private final TestEventReporter delegate;
 
-    StateTrackingTestEventReporter(AtomicLong totalCount, AtomicLong successfulCount, AtomicLong failureCount, T delegate) {
+    StateTrackingTestEventReporter(AtomicLong totalCount, AtomicLong successfulCount, AtomicLong failureCount, TestEventReporter delegate) {
         this.totalCount = totalCount;
         this.successfulCount = successfulCount;
         this.failureCount = failureCount;

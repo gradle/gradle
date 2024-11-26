@@ -55,11 +55,12 @@ public class SimpleTestEventLogger implements TestListenerInternal {
 
     @Override
     public void completed(TestDescriptorInternal descriptor, TestResult result, TestCompleteEvent completeEvent) {
-        StyledTextOutput output = textOutputFactory.create(SimpleTestEventLogger.class);
 
         // Only rendering the final test descriptors
         if (!descriptor.isComposite()) {
             if (result.getResultType() == TestResult.ResultType.FAILURE) {
+                StyledTextOutput output = textOutputFactory.create(SimpleTestEventLogger.class);
+
                 // Print header with path to descriptor
                 output.println().append(toEventPath(descriptor)).append(" ");
 
@@ -85,6 +86,10 @@ public class SimpleTestEventLogger implements TestListenerInternal {
                     }
                 }
             }
+        } else if (descriptor.getParent() == null) {
+            // print the result of the root most group
+            StyledTextOutput output = textOutputFactory.create(SimpleTestEventLogger.class);
+            output.println().formatln("%d tests completed, %d succeeded, %d failed", result.getTestCount(), result.getSuccessfulTestCount(), result.getFailedTestCount());
         }
     }
 

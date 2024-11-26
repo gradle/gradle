@@ -19,22 +19,62 @@ package org.gradle.api.internal.tasks.testing;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.tasks.testing.GroupTestEventReporter;
 import org.gradle.api.tasks.testing.TestEventReporter;
+import org.gradle.api.tasks.testing.TestOutputEvent;
 
+import java.time.Instant;
 import java.util.concurrent.atomic.AtomicLong;
 
 @NonNullApi
-class StateTrackingGroupTestEventReporter extends StateTrackingTestEventReporter<GroupTestEventReporter> implements GroupTestEventReporter {
+class StateTrackingGroupTestEventReporter implements GroupTestEventReporter {
+    private final AtomicLong totalCount;
+    private final AtomicLong successfulCount;
+    private final AtomicLong failureCount;
+    private final GroupTestEventReporter delegate;
+
     StateTrackingGroupTestEventReporter(AtomicLong totalCount, AtomicLong successfulCount, AtomicLong failureCount, GroupTestEventReporter delegate) {
-        super(totalCount, successfulCount, failureCount, delegate);
+        this.totalCount = totalCount;
+        this.successfulCount = successfulCount;
+        this.failureCount = failureCount;
+        this.delegate = delegate;
     }
 
     @Override
     public TestEventReporter reportTest(String name, String displayName) {
-        return delegate.reportTest(name, displayName);
+        return new StateTrackingTestEventReporter(totalCount, successfulCount, failureCount, delegate.reportTest(name, displayName));
     }
 
     @Override
     public GroupTestEventReporter reportTestGroup(String name) {
-        return delegate.reportTestGroup(name);
+        return new StateTrackingGroupTestEventReporter(totalCount, successfulCount, failureCount, delegate.reportTestGroup(name));
+    }
+
+    @Override
+    public void started(Instant startTime) {
+        delegate.started(startTime);
+    }
+
+    @Override
+    public void output(Instant logTime, TestOutputEvent.Destination destination, String output) {
+        delegate.output(logTime, destination, output);
+    }
+
+    @Override
+    public void succeeded(Instant endTime) {
+        delegate.succeeded(endTime);
+    }
+
+    @Override
+    public void skipped(Instant endTime) {
+        delegate.skipped(endTime);
+    }
+
+    @Override
+    public void failed(Instant endTime, String message, String additionalContent) {
+        delegate.failed(endTime, message, additionalContent);
+    }
+
+    @Override
+    public void close() {
+        delegate.close();
     }
 }
