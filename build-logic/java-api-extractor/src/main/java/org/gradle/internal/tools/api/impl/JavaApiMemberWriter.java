@@ -23,6 +23,9 @@ import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.ModuleVisitor;
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.signature.SignatureReader;
+import org.objectweb.asm.signature.SignatureVisitor;
 
 import java.util.Set;
 
@@ -80,12 +83,42 @@ public class JavaApiMemberWriter implements ApiMemberWriter {
             method.getExceptions().toArray(new String[0]));
         writeMethodAnnotations(mv, method.getAnnotations());
         writeMethodAnnotations(mv, method.getParameterAnnotations());
+
+        // Without this parameter annotations for non-static inner class constructors would
+        // end up having one more parameter than they should, because the first parameter
+        // (pointing to `this` of the enclosing type) should not be listed.
+        if (method.getSignature() != null) {
+            int parameterCount = SignatureParameterCounter.countParameters(method.getSignature());
+            mv.visitAnnotableParameterCount(parameterCount, true);
+            mv.visitAnnotableParameterCount(parameterCount, false);
+        }
+
         method.getAnnotationDefaultValue().ifPresent(value -> {
             AnnotationVisitor av = mv.visitAnnotationDefault();
             writeAnnotationValue(av, value);
             av.visitEnd();
         });
         mv.visitEnd();
+    }
+
+    private static class SignatureParameterCounter extends SignatureVisitor {
+        private int parameterCount;
+
+        private SignatureParameterCounter() {
+            super(Opcodes.ASM9);
+        }
+
+        public static int countParameters(String signature) {
+            SignatureParameterCounter counter = new SignatureParameterCounter();
+            new SignatureReader(signature).accept(counter);
+            return counter.parameterCount;
+        }
+
+        @Override
+        public SignatureVisitor visitParameterType() {
+            parameterCount++;
+            return super.visitParameterType();
+        }
     }
 
     @Override
