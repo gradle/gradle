@@ -41,13 +41,13 @@ class DefaultRootTestEventReporter extends DefaultGroupTestEventReporter {
 
     @Override
     public void failed(Instant endTime) {
-        failureMessage = "Test(s) failed.";
         super.failed(endTime);
+        failureMessage = "Test(s) failed.";
     }
 
     @Override
-    public void failed(Instant endTime, String message) {
+    public void failed(Instant endTime, String message, String additionalContent) {
         failureMessage = message;
-        super.failed(endTime, message);
+        super.failed(endTime, message, additionalContent);
     }
 }

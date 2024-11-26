@@ -22,6 +22,7 @@ import org.gradle.api.tasks.testing.TestOutputEvent;
 
 import java.time.Instant;
 
+@NonNullApi
 class LifecycleTrackingTestEventReporter<T extends TestEventReporter> implements TestEventReporter {
     protected final T delegate;
 
@@ -63,15 +64,9 @@ class LifecycleTrackingTestEventReporter<T extends TestEventReporter> implements
     }
 
     @Override
-    public void failed(Instant endTime) {
+    public void failed(Instant endTime, String message, String additionalContent) {
         markCompleted();
-        delegate.failed(endTime);
-    }
-
-    @Override
-    public void failed(Instant endTime, String message) {
-        markCompleted();
-        delegate.failed(endTime, message);
+        delegate.failed(endTime, message, additionalContent);
     }
 
     @Override

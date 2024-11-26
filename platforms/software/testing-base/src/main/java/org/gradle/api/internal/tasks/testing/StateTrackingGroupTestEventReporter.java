@@ -16,11 +16,13 @@
 
 package org.gradle.api.internal.tasks.testing;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.api.tasks.testing.GroupTestEventReporter;
 import org.gradle.api.tasks.testing.TestEventReporter;
 
 import java.util.concurrent.atomic.AtomicLong;
 
+@NonNullApi
 class StateTrackingGroupTestEventReporter extends StateTrackingTestEventReporter<GroupTestEventReporter> implements GroupTestEventReporter {
     StateTrackingGroupTestEventReporter(AtomicLong totalCount, AtomicLong successfulCount, AtomicLong failureCount, GroupTestEventReporter delegate) {
         super(totalCount, successfulCount, failureCount, delegate);

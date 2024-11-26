@@ -68,9 +68,10 @@ public interface TestEventReporter extends AutoCloseable {
      * @param endTime the time the test completed
      * @since 8.12
      */
-    void failed(Instant endTime);
+    default void failed(Instant endTime) {
+        failed(endTime, "");
+    }
 
-    // TODO add more details to the failure
     /**
      * Emit a failure event for the test. May not be called before {@link #started(Instant)}.
      *
@@ -78,7 +79,19 @@ public interface TestEventReporter extends AutoCloseable {
      * @param message the failure message
      * @since 8.12
      */
-    void failed(Instant endTime, String message);
+    default void failed(Instant endTime, String message) {
+        failed(endTime, message, "");
+    }
+
+    /**
+     * Emit a failure event for the test. May not be called before {@link #started(Instant)}.
+     *
+     * @param endTime the time the test completed
+     * @param message the failure message
+     * @param additionalContent additional content for the failure, like a stacktrace
+     * @since 8.12
+     */
+    void failed(Instant endTime, String message, String additionalContent);
 
     /**
      * Close the generator. No further events can be emitted after this.

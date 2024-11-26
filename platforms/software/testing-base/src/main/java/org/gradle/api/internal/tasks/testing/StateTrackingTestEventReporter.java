@@ -16,12 +16,14 @@
 
 package org.gradle.api.internal.tasks.testing;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.api.tasks.testing.TestEventReporter;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 
 import java.time.Instant;
 import java.util.concurrent.atomic.AtomicLong;
 
+@NonNullApi
 class StateTrackingTestEventReporter<T extends TestEventReporter> implements TestEventReporter {
     private final AtomicLong totalCount;
     private final AtomicLong successfulCount;
@@ -37,6 +39,7 @@ class StateTrackingTestEventReporter<T extends TestEventReporter> implements Tes
 
     @Override
     public void started(Instant startTime) {
+        totalCount.incrementAndGet();
         delegate.started(startTime);
     }
 
@@ -47,27 +50,17 @@ class StateTrackingTestEventReporter<T extends TestEventReporter> implements Tes
 
     @Override
     public void succeeded(Instant endTime) {
-        totalCount.incrementAndGet();
         successfulCount.incrementAndGet();
         delegate.succeeded(endTime);
     }
 
     @Override
     public void skipped(Instant endTime) {
-        totalCount.incrementAndGet();
         delegate.skipped(endTime);
     }
 
     @Override
-    public void failed(Instant endTime) {
-        totalCount.incrementAndGet();
-        failureCount.incrementAndGet();
-        delegate.failed(endTime);
-    }
-
-    @Override
-    public void failed(Instant endTime, String message) {
-        totalCount.incrementAndGet();
+    public void failed(Instant endTime, String message, String additionalContent) {
         failureCount.incrementAndGet();
         delegate.failed(endTime, message);
     }

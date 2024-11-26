@@ -85,13 +85,8 @@ class DefaultGroupTestEventReporter implements GroupTestEventReporter {
     }
 
     @Override
-    public void failed(Instant endTime) {
-        listener.completed(testDescriptor, new DefaultTestResult(TestResult.ResultType.FAILURE, startTime, endTime.toEpochMilli(), totalCount.get(), successfulCount.get(), failureCount.get(), Collections.emptyList()), new TestCompleteEvent(endTime.toEpochMilli(), TestResult.ResultType.FAILURE));
-    }
-
-    @Override
-    public void failed(Instant endTime, String message) {
-        TestFailureDetails failureDetails = new DefaultTestFailureDetails(message, Throwable.class.getName(), "", false, false, null, null, null, null);
+    public void failed(Instant endTime, String message, String additionalContent) {
+        TestFailureDetails failureDetails = new DefaultTestFailureDetails(message, Throwable.class.getName(), "", true, false, null, null, null, null);
         TestFailure testFailure = new DefaultTestFailure(new Throwable(message), failureDetails, Collections.emptyList());
         listener.completed(testDescriptor, new DefaultTestResult(TestResult.ResultType.FAILURE, startTime, endTime.toEpochMilli(), totalCount.get(), successfulCount.get(), failureCount.get(), Collections.singletonList(testFailure)), new TestCompleteEvent(endTime.toEpochMilli(), TestResult.ResultType.FAILURE));
     }
