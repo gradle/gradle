@@ -14,18 +14,19 @@ This guide will help you to...
 
 ## Before you start
 
-Before starting to work on a feature or a bug fix, please open an issue to discuss the use case or bug with us. This can save everyone a lot of time and frustration.
+Before starting to work on a feature or a bug fix, please open an issue to discuss the use case or bug with us, or post a comment in the relevant issue. 
+This can save everyone a lot of time and frustration.
 
 For any non-trivial change, we need to be able to answer these questions:
 
 * Why is this change done? What's the use case?
-* For user facing features, what will the API look like?
+* For user-facing features, what will the API look like?
 * What test cases should it have? What could go wrong?
 * How will it roughly be implemented? We'll happily provide code pointers to save you time.
 
 We may ask you to answer these questions directly in the GitHub issue or (for large changes) in a shared Google Doc.
 
-If you are looking for good first issues, take a look at the list of [good first issues](https://github.com/gradle/gradle/labels/good%20first%20issue) that should be actionable and ready for a contribution.
+Please note that some features may be out of the team's current focus, and it can take significant time for the team to review the PR thoroughly and address it fully.
 
 ### Security vulnerabilities
 
@@ -40,6 +41,18 @@ Contributors must follow the Code of Conduct outlined at [https://gradle.org/con
 If you run into any trouble, please reach out to us on the issue you are working on.
 There is a `#contributing` channel on the community Slack which you can use
 to ask any questions.
+
+## Finding issues to work on
+
+If you are looking for good first issues, take a look at the list of [good first issues](https://github.com/gradle/gradle/labels/good%20first%20issue) that should be actionable and ready for a contribution.
+
+If you are looking for a contribution that is more substantial, you can look at the [help wanted issues](https://github.com/gradle/gradle/issues?q=is%3Aissue%20state%3Aopen%20label%3A%22%F0%9F%8C%B3%20help%20wanted%22).
+These issues are more complex and might be challenging for first-time contributors.
+
+You can share your interest in fixing the issue by commenting on it.
+If somebody shared their interest in the issue, please consider letting them work on it.
+However, if there are no changes for more than a week, it's safe to assume that the issue is up for grabs.
+There is no need to ask for an assignment or for permission to work on those issues, just comment and start working on it.
 
 ## Setting up your development environment
 
