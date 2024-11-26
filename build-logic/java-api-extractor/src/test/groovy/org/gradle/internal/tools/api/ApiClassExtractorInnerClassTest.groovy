@@ -17,6 +17,7 @@
 package org.gradle.internal.tools.api
 
 import org.objectweb.asm.Opcodes
+import spock.lang.Issue
 
 import java.lang.reflect.Modifier
 
@@ -156,5 +157,44 @@ class ApiClassExtractorInnerClassTest extends ApiClassExtractorTestSupport {
         then:
         !api.isApiClassExtractedFrom(inner)
         extractedOuter.classes.length == 0
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/31416")
+    def "can compile against extracted inner class with annotations on its constructor"() {
+        given:
+        def api = toApi([
+            'Outer': '''
+                public class Outer<T> {
+                   public class Inner<I extends T> {
+                       public Inner(String name, Class<I> type, @Nullable java.util.function.Consumer<? super I> configureAction) {
+                           // Constructor
+                       }
+                   }
+                }
+            ''',
+            'Nullable': '''
+                @java.lang.annotation.Retention(java.lang.annotation.RetentionPolicy.RUNTIME)
+                public @interface Nullable {}
+            '''
+        ])
+
+        def apiStubDir = new File(temporaryFolder, "api-stubs")
+        apiStubDir.mkdirs()
+        new File(apiStubDir, 'Outer.class').bytes = api.extractApiClassFrom((api.classes['Outer']))
+        new File(apiStubDir, 'Outer$Inner.class').bytes = api.extractApiClassFrom((api.classes['Outer$Inner']))
+
+        when:
+        def consumer = compileTo(new File(temporaryFolder, 'consumerDir'), [
+            'Main': '''
+                public class Main {
+                    public static void main(String[] args) {
+                        System.out.println("Hello " + Outer.Inner.class.getName());
+                    }
+                }
+            '''
+        ], [apiStubDir])
+
+        then:
+        consumer.classes.Main.clazz.name == "Main"
     }
 }
