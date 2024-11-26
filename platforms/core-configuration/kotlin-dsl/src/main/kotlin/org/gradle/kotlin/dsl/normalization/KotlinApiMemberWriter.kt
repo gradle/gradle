@@ -81,11 +81,11 @@ class KotlinApiMemberWriter private constructor(apiMemberAdapter: ClassVisitor) 
         super.writeClassAnnotations(annotationMembers.filter { it.name != kotlinMetadataAnnotationSignature }.toSet())
     }
 
-    override fun writeMethod(method: MethodMember) {
+    override fun writeMethod(declaringInnerClass: InnerClassMember?, method: MethodMember) {
         when {
             method.isInternal() -> return
             method.isInline() -> throw publicInlineFunction(method)
-            else -> super.writeMethod(method)
+            else -> super.writeMethod(declaringInnerClass, method)
         }
     }
 

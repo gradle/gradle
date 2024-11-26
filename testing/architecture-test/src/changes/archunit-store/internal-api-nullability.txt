@@ -2657,7 +2657,6 @@ Class <org.gradle.internal.tools.api.impl.ClassMember> is not annotated (directl
 Class <org.gradle.internal.tools.api.impl.EnumAnnotationValue> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (EnumAnnotationValue.java:0)
 Class <org.gradle.internal.tools.api.impl.FieldMember> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (FieldMember.java:0)
 Class <org.gradle.internal.tools.api.impl.InnerClassMember> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (InnerClassMember.java:0)
-Class <org.gradle.internal.tools.api.impl.JavaApiMemberWriter$SignatureParameterCounter> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (JavaApiMemberWriter.java:0)
 Class <org.gradle.internal.tools.api.impl.JavaApiMemberWriter> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (JavaApiMemberWriter.java:0)
 Class <org.gradle.internal.tools.api.impl.Member> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (Member.java:0)
 Class <org.gradle.internal.tools.api.impl.MethodMember> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (MethodMember.java:0)

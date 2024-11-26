@@ -40,7 +40,7 @@ public interface ApiMemberWriter {
 
     void writeClass(ClassMember classMember, Set<MethodMember> methods, Set<FieldMember> fields, Set<InnerClassMember> innerClasses);
 
-    void writeMethod(MethodMember method);
+    void writeMethod(/* Nullable */ InnerClassMember declaringInnerClass, MethodMember method);
 
     void writeClassAnnotations(Set<AnnotationMember> annotationMembers);
 

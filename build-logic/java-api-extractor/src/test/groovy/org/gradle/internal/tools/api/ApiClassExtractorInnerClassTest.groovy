@@ -164,9 +164,15 @@ class ApiClassExtractorInnerClassTest extends ApiClassExtractorTestSupport {
         given:
         def api = toApi([
             'Outer': '''
-                public class Outer<T> {
-                   public class Inner<I extends T> {
-                       public Inner(String name, Class<I> type, @Nullable java.util.function.Consumer<? super I> configureAction) {
+                public class Outer {
+                   public class NonStaticInner {
+                       public NonStaticInner(@Nullable String name) {
+                           // Constructor
+                       }
+                   }
+
+                   public static class StaticInner {
+                       public StaticInner(@Nullable String name) {
                            // Constructor
                        }
                    }
@@ -180,15 +186,17 @@ class ApiClassExtractorInnerClassTest extends ApiClassExtractorTestSupport {
 
         def apiStubDir = new File(temporaryFolder, "api-stubs")
         apiStubDir.mkdirs()
-        new File(apiStubDir, 'Outer.class').bytes = api.extractApiClassFrom((api.classes['Outer']))
-        new File(apiStubDir, 'Outer$Inner.class').bytes = api.extractApiClassFrom((api.classes['Outer$Inner']))
+        ['Outer', 'Outer$NonStaticInner', 'Outer$StaticInner'].each {
+            new File(apiStubDir, "${it}.class").bytes = api.extractApiClassFrom(api.classes[it])
+        }
 
         when:
-        def consumer = compileTo(new File(temporaryFolder, 'consumerDir'), [
+        def consumer = compileTo(new File(temporaryFolder, 'consumer'), [
             'Main': '''
                 public class Main {
                     public static void main(String[] args) {
-                        System.out.println("Hello " + Outer.Inner.class.getName());
+                        System.out.println("Hello " + Outer.NonStaticInner.class.getName());
+                        System.out.println("Hello " + Outer.StaticInner.class.getName());
                     }
                 }
             '''

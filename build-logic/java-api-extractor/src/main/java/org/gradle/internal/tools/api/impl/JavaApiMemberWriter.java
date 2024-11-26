@@ -23,11 +23,11 @@ import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.ModuleVisitor;
-import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.signature.SignatureReader;
-import org.objectweb.asm.signature.SignatureVisitor;
+import org.objectweb.asm.Type;
 
 import java.util.Set;
+
+import static org.objectweb.asm.Opcodes.ACC_STATIC;
 
 public class JavaApiMemberWriter implements ApiMemberWriter {
 
@@ -60,8 +60,12 @@ public class JavaApiMemberWriter implements ApiMemberWriter {
         for (String permittedSubclass : classMember.getPermittedSubclasses()) {
             apiMemberAdapter.visitPermittedSubclass(permittedSubclass);
         }
+        InnerClassMember declaringInnerClass = innerClasses.stream()
+            .filter(innerClass -> innerClass.getName().equals(classMember.getName()))
+            .findFirst()
+            .orElse(null);
         for (MethodMember method : methods) {
-            writeMethod(method);
+            writeMethod(declaringInnerClass, method);
         }
         for (FieldMember field : fields) {
             FieldVisitor fieldVisitor = apiMemberAdapter.visitField(
@@ -77,7 +81,7 @@ public class JavaApiMemberWriter implements ApiMemberWriter {
     }
 
     @Override
-    public void writeMethod(MethodMember method) {
+    public void writeMethod(/* Nullable */ InnerClassMember declaringInnerClass, MethodMember method) {
         MethodVisitor mv = apiMemberAdapter.visitMethod(
             method.getAccess(), method.getName(), method.getTypeDesc(), method.getSignature(),
             method.getExceptions().toArray(new String[0]));
@@ -88,8 +92,10 @@ public class JavaApiMemberWriter implements ApiMemberWriter {
         // end up having one more parameter than they should, because the first parameter
         // (pointing to `this` of the enclosing type) should not be listed.
         // See https://gitlab.ow2.org/asm/asm/-/issues/318023
-        if (method.getSignature() != null) {
-            int parameterCount = SignatureParameterCounter.countParameters(method.getSignature());
+        if (method.getName().equals("<init>")
+            && declaringInnerClass != null
+            && (declaringInnerClass.getAccess() & ACC_STATIC) != ACC_STATIC) {
+            int parameterCount = Type.getArgumentCount(method.getTypeDesc()) - 1;
             mv.visitAnnotableParameterCount(parameterCount, true);
             mv.visitAnnotableParameterCount(parameterCount, false);
         }
@@ -100,26 +106,6 @@ public class JavaApiMemberWriter implements ApiMemberWriter {
             av.visitEnd();
         });
         mv.visitEnd();
-    }
-
-    private static class SignatureParameterCounter extends SignatureVisitor {
-        private int parameterCount;
-
-        private SignatureParameterCounter() {
-            super(Opcodes.ASM9);
-        }
-
-        public static int countParameters(String signature) {
-            SignatureParameterCounter counter = new SignatureParameterCounter();
-            new SignatureReader(signature).accept(counter);
-            return counter.parameterCount;
-        }
-
-        @Override
-        public SignatureVisitor visitParameterType() {
-            parameterCount++;
-            return super.visitParameterType();
-        }
     }
 
     @Override
