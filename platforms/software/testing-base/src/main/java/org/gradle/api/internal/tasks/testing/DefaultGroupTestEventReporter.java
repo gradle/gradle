@@ -51,7 +51,7 @@ class DefaultGroupTestEventReporter implements GroupTestEventReporter {
 
     @Override
     public TestEventReporter reportTest(String name, String displayName) {
-        return new StateTrackingTestEventReporter(totalCount, successfulCount, failureCount, new DefaultTestEventReporter(
+        return new StateTrackingTestEventReporter<TestEventReporter>(totalCount, successfulCount, failureCount, new DefaultTestEventReporter(
             listener, new DecoratingTestDescriptor(new DefaultTestDescriptor(idGenerator.generateId(), null, name, null, displayName), testDescriptor))
         );
     }

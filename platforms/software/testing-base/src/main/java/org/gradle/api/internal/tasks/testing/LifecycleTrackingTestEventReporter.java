@@ -22,18 +22,18 @@ import org.gradle.api.tasks.testing.TestOutputEvent;
 
 import java.time.Instant;
 
-class LifecycleTrackingTestEventReporter implements TestEventReporter {
-    LifecycleTrackingTestEventReporter(TestEventReporter delegate) {
-        this.delegate = delegate;
-    }
+class LifecycleTrackingTestEventReporter<T extends TestEventReporter> implements TestEventReporter {
+    protected final T delegate;
 
     @NonNullApi
     private enum State {
-        CREATED, STARTED, COMPLETED, CLOSED
+        CREATED, STARTED, COMPLETED, CLOSED;
     }
-
     private State state = State.CREATED;
-    private final TestEventReporter delegate;
+
+    LifecycleTrackingTestEventReporter(T delegate) {
+        this.delegate = delegate;
+    }
 
     @Override
     public void started(Instant startTime) {

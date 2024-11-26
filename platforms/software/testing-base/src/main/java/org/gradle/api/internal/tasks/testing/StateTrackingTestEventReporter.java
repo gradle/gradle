@@ -22,13 +22,13 @@ import org.gradle.api.tasks.testing.TestOutputEvent;
 import java.time.Instant;
 import java.util.concurrent.atomic.AtomicLong;
 
-class StateTrackingTestEventReporter implements TestEventReporter {
+class StateTrackingTestEventReporter<T extends TestEventReporter> implements TestEventReporter {
     private final AtomicLong totalCount;
     private final AtomicLong successfulCount;
     private final AtomicLong failureCount;
-    private final TestEventReporter delegate;
+    protected final T delegate;
 
-    StateTrackingTestEventReporter(AtomicLong totalCount, AtomicLong successfulCount, AtomicLong failureCount, TestEventReporter delegate) {
+    StateTrackingTestEventReporter(AtomicLong totalCount, AtomicLong successfulCount, AtomicLong failureCount, T delegate) {
         this.totalCount = totalCount;
         this.successfulCount = successfulCount;
         this.failureCount = failureCount;

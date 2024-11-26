@@ -23,18 +23,16 @@ import org.gradle.internal.concurrent.CompositeStoppable;
 import java.util.HashSet;
 import java.util.Set;
 
-class LifecycleTrackingGroupTestEventReporter extends LifecycleTrackingTestEventReporter implements GroupTestEventReporter {
-    private final GroupTestEventReporter delegate;
-    private final Set<LifecycleTrackingTestEventReporter> children = new HashSet<>();
+class LifecycleTrackingGroupTestEventReporter extends LifecycleTrackingTestEventReporter<GroupTestEventReporter> implements GroupTestEventReporter {
+    private final Set<LifecycleTrackingTestEventReporter<?>> children = new HashSet<>();
 
     LifecycleTrackingGroupTestEventReporter(GroupTestEventReporter delegate) {
         super(delegate);
-        this.delegate = delegate;
     }
 
     @Override
     protected void markCompleted() {
-        for (LifecycleTrackingTestEventReporter child : children) {
+        for (LifecycleTrackingTestEventReporter<?> child : children) {
             if (!child.isCompleted()) {
                 throw new IllegalStateException("Group was completed before tests.");
             }
@@ -51,7 +49,7 @@ class LifecycleTrackingGroupTestEventReporter extends LifecycleTrackingTestEvent
 
     @Override
     public TestEventReporter reportTest(String name, String displayName) {
-        LifecycleTrackingTestEventReporter child = new LifecycleTrackingTestEventReporter(delegate.reportTest(name, displayName));
+        LifecycleTrackingTestEventReporter<TestEventReporter> child = new LifecycleTrackingTestEventReporter<>(delegate.reportTest(name, displayName));
         children.add(child);
         return child;
     }
