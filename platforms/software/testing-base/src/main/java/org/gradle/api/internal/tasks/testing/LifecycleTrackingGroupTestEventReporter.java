@@ -47,6 +47,7 @@ class LifecycleTrackingGroupTestEventReporter extends LifecycleTrackingTestEvent
         super.close();
         // Now that it's safe, stop all children
         CompositeStoppable.stoppable(children).stop();
+        children.clear();
     }
 
     @Override
