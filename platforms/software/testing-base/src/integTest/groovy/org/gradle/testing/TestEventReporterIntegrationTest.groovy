@@ -68,7 +68,9 @@ class TestEventReporterIntegrationTest extends AbstractIntegrationSpec {
 
         def customTestOutput = failure.groupedOutput.task(":customTest")
         customTestOutput.assertOutputContains("""Custom test root > My Suite > My failing test :( FAILED
-    my failure""")
+    my failure
+
+2 tests completed, 1 succeeded, 1 failed""")
 
         then: "test build operations are emitted in expected hierarchy"
         def rootTestOp = operations.first(ExecuteTestBuildOperationType)
