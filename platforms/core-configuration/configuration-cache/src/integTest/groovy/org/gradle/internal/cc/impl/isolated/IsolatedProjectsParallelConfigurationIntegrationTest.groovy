@@ -83,5 +83,4 @@ class IsolatedProjectsParallelConfigurationIntegrationTest extends AbstractIsola
     }
 
     // TODO Test -x behavior
-    // TODO Test included builds behavior
 }
