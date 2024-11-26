@@ -19,6 +19,7 @@ package org.gradle.tooling.events.problems;
 import org.gradle.api.Incubating;
 import org.gradle.api.NonNullApi;
 
+import javax.annotation.Nullable;
 import java.util.Map;
 
 /**
@@ -40,4 +41,19 @@ public interface AdditionalData {
      * @since 8.6
      */
     Map<String, Object> getAsMap();
+
+    /**
+     * Returns custom object
+     *
+     * @since 8.13
+     */
+    Object get();
+
+    /**
+     * Returns custom object with provided type or null if not available.
+     *
+     * @since 8.13
+     */
+    @Nullable
+    <T> T get(Class<T> type);
 }

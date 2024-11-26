@@ -29,10 +29,9 @@ public class DefaultProblemDefinition implements ProblemDefinition {
 
     private final ProblemId id;
     private final Severity severity;
-    @Nullable
     private final DocumentationLink documentationLink;
 
-    public DefaultProblemDefinition(ProblemId id, Severity severity, DocumentationLink documentationLink) {
+    public DefaultProblemDefinition(ProblemId id, Severity severity, @Nullable DocumentationLink documentationLink) {
         this.id = id;
         this.severity = severity;
         this.documentationLink = documentationLink;

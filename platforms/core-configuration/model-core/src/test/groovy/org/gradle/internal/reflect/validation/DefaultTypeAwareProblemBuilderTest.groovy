@@ -23,21 +23,19 @@ class DefaultTypeAwareProblemBuilderTest extends Specification {
 
     def "render introduction without type"() {
         given:
-        def data = DefaultTypeValidationData.builder()
-            .typeName("foo")
-            .propertyName("bar")
-            .build()
+        def data = createTypeValidationData()
 
         expect:
         DefaultTypeAwareProblemBuilder.introductionFor(Optional.of(data), true) == "Property 'bar' "
     }
 
+    def DefaultTypeValidationData createTypeValidationData() {
+        new DefaultTypeValidationData(null, "bar", null, null, "foo")
+    }
+
     def "render introduction with type"() {
         given:
-        def data = DefaultTypeValidationData.builder()
-            .typeName("foo")
-            .propertyName("bar")
-            .build()
+        def data = createTypeValidationData()
 
         expect:
         DefaultTypeAwareProblemBuilder.introductionFor(Optional.of(data), false) == "Type 'foo' property 'bar' "

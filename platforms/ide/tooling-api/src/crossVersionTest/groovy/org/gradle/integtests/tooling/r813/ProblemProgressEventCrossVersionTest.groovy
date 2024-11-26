@@ -16,13 +16,17 @@
 
 package org.gradle.integtests.tooling.r813
 
+
 import org.gradle.integtests.fixtures.GroovyBuildScriptLanguage
 import org.gradle.integtests.tooling.fixture.ProblemsApiGroovyScriptUtils
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.integtests.tooling.r812.SomeData
 import org.gradle.integtests.tooling.r85.CustomModel
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.Failure
 import org.gradle.tooling.events.ProgressEvent
@@ -32,13 +36,13 @@ import org.gradle.tooling.events.problems.Problem
 import org.gradle.tooling.events.problems.Severity
 import org.gradle.tooling.events.problems.SingleProblemEvent
 import org.gradle.tooling.events.problems.TaskPathLocation
-import org.gradle.tooling.events.problems.internal.GeneralData
 import org.gradle.util.GradleVersion
 import org.junit.Assume
 
 import static org.gradle.integtests.fixtures.AvailableJavaHomes.getJdk17
 import static org.gradle.integtests.fixtures.AvailableJavaHomes.getJdk21
 import static org.gradle.integtests.fixtures.AvailableJavaHomes.getJdk8
+import static org.gradle.integtests.tooling.fixture.ProblemsApiGroovyScriptUtils.report
 import static org.gradle.integtests.tooling.r86.ProblemProgressEventCrossVersionTest.getProblemReportTaskString
 import static org.gradle.integtests.tooling.r86.ProblemsServiceModelBuilderCrossVersionTest.getBuildScriptSampleContent
 
@@ -60,15 +64,19 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         return listener.problems
     }
 
+    def getGeneralDataString() {
+        targetVersion < GradleVersion.version("8.13") ? "org.gradle.api.problems.internal.GeneralDataSpec, data -> data.put('aKey', 'aValue')" : "new org.gradle.api.problems.internal.DefaultGeneralData(['aKey': 'aValue'])"
+    }
+
     def "Problems expose details via Tooling API events with failure"() {
         given:
         withReportProblemTask """
-            getProblems().${ProblemsApiGroovyScriptUtils.report(targetVersion)} {
+            getProblems().${report(targetVersion)} {
               it.${ProblemsApiGroovyScriptUtils.id(targetVersion, 'id', 'shortProblemMessage')}
                 $documentationConfig
                 .lineInFileLocation("/tmp/foo", 1, 2, 3)
                 $detailsConfig
-                .additionalData(org.gradle.api.problems.internal.GeneralDataSpec, data -> data.put("aKey", "aValue"))
+                .additionalData(${getGeneralDataString()})
                 .severity(Severity.WARNING)
                 .solution("try this instead")
             }
@@ -101,12 +109,12 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
     def "Problems expose details via Tooling API events with problem definition"() {
         given:
         withReportProblemTask """
-            getProblems().${ProblemsApiGroovyScriptUtils.report(targetVersion)} {
+            getProblems().${report(targetVersion)} {
                 it.${ProblemsApiGroovyScriptUtils.id(targetVersion, 'id', 'shortProblemMessage')}
                 $documentationConfig
                 .lineInFileLocation("/tmp/foo", 1, 2, 3)
                 $detailsConfig
-                .additionalData(org.gradle.api.problems.internal.GeneralDataSpec, data -> data.put("aKey", "aValue"))
+                .additionalData(${getGeneralDataString()})
                 .severity(Severity.WARNING)
                 .solution("try this instead")
             }
@@ -133,6 +141,157 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         detailsConfig              | expectedDetails | documentationConfig                         | expecteDocumentation
         '.details("long message")' | "long message"  | '.documentedAt("https://docs.example.org")' | 'https://docs.example.org'
         ''                         | null            | ''                                          | null
+    }
+
+    @TargetGradleVersion(">=8.13")
+    def "can serialize arbitrary additional data"() {
+        given:
+        buildFile """
+            import org.gradle.api.problems.Severity
+
+            class SomeData implements CustomAdditionalData {
+                String typeName
+
+                SomeData(String typeName) {
+                    this.typeName = typeName
+                }
+            }
+
+            abstract class ProblemReportingTask extends DefaultTask {
+                @Inject
+                protected abstract Problems getProblems();
+
+                @TaskAction
+                void run() {
+                    getProblems().${report(targetVersion)} {
+                        it.${id(targetVersion)}
+                        .lineInFileLocation("/tmp/foo", 1, 2, 3)
+                        .additionalData(new SomeData("typeName"))
+                        .severity(Severity.WARNING)
+                    }
+                }
+            }
+
+            abstract class MyPlugin implements Plugin<Project> {
+                void apply(Project project) {
+                    project.tasks.register("reportProblem", ProblemReportingTask)
+                }
+            }
+
+            apply(plugin: MyPlugin)
+       """
+        when:
+
+        def listener = new ProblemProgressListener()
+        withConnection { connection ->
+            connection.newBuild().forTasks('reportProblem')
+                .addProgressListener(listener)
+                .run()
+        }
+        def problems = listener.problems
+
+        then:
+        problems.size() == 1
+        verifyAll(problems[0]) {
+            additionalData.get(SomeData).typeName == 'typeName'
+        }
+    }
+
+    @TargetGradleVersion(">=8.13")
+    @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
+    def "can handle invalid and null additional data"() {
+        given:
+        buildFile """
+            import org.gradle.api.problems.Severity
+
+            class InvalidData implements CustomAdditionalData {
+                Object invalidNonSerializeableMember = new Object()
+            }
+
+            abstract class ProblemReportingTask extends DefaultTask {
+                @Inject
+                protected abstract Problems getProblems();
+
+                @TaskAction
+                void run() {
+                    getProblems().${report(targetVersion)} {
+                        it.${id(targetVersion)}
+                        .lineInFileLocation("/tmp/foo", 1, 2, 3)
+                        .additionalData($inputData)
+                        .severity(Severity.WARNING)
+                        .solution("try this instead")
+                    }
+                }
+            }
+
+            abstract class MyPlugin implements Plugin<Project> {
+                void apply(Project project) {
+                    project.tasks.register("reportProblem", ProblemReportingTask)
+                }
+            }
+
+            apply(plugin: MyPlugin)
+       """
+        when:
+
+        def listener = new ProblemProgressListener()
+        withConnection { connection ->
+            connection.newBuild().forTasks('reportProblem')
+                .addProgressListener(listener)
+                .run()
+        }
+        def problems = listener.problems
+
+        then:
+        problems.size() == 1
+        verifyAll(problems[0]) {
+            additionalData.get(SomeData) == null
+        }
+
+        where:
+        inputData << ['null', 'new InvalidData()']
+    }
+
+    @TargetGradleVersion(">=8.13")
+    def "doesn't compile with invalid base type"() {
+        given:
+        buildFile """
+            import org.gradle.api.problems.Severity
+
+            abstract class ProblemReportingTask extends DefaultTask {
+                @Inject
+                protected abstract Problems getProblems();
+
+                @TaskAction
+                void run() {
+                    getProblems().${report(targetVersion)} {
+                        it.id("id", "shortProblemMessage")
+                        .lineInFileLocation("/tmp/foo", 1, 2, 3)
+                        .additionalData(new Object())
+                        .severity(Severity.WARNING)
+                    }
+                }
+            }
+
+            abstract class MyPlugin implements Plugin<Project> {
+                void apply(Project project) {
+                    project.tasks.register("reportProblem", ProblemReportingTask)
+                }
+            }
+
+            apply(plugin: MyPlugin)
+       """
+        when:
+
+        def listener = new ProblemProgressListener()
+        withConnection { connection ->
+            connection.newBuild().forTasks('reportProblem')
+                .addProgressListener(listener)
+                .run()
+        }
+
+        then:
+        thrown(BuildException)
     }
 
     def "Can serialize groovy compilation error"() {
@@ -194,6 +353,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         problems[0].definition.id.group.name == 'compilation'
     }
 
+    @TargetGradleVersion(">=8.13")
     def "Property validation failure should produce problem report with domain-specific additional data"() {
         setup:
         file('buildSrc/src/main/java/MyTask.java') << '''
@@ -229,7 +389,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         then:
         thrown(BuildException)
         listener.problems.size() == 1
-        (listener.problems[0].additionalData as GeneralData).asMap['typeName']== 'MyTask'
+        (listener.problems[0].additionalData.get()).typeName == 'MyTask'
     }
 
     @TargetGradleVersion("=8.6")
@@ -301,5 +461,13 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
 
     def failureMessage(failure) {
         failure instanceof Failure ? failure.message : failure.failure.message
+    }
+
+    String id(GradleVersion targetVersion) {
+        if (targetVersion < GradleVersion.version("8.13")) {
+            'id("type", "label")'
+        } else {
+            'id(org.gradle.api.problems.ProblemId.create("type", "label", org.gradle.api.problems.ProblemGroup.create("generic", "Generic")))'
+        }
     }
 }

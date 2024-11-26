@@ -54,7 +54,7 @@ public class ActionBasedModelDefaultsHandler implements ModelDefaultsHandler {
     public <T> void apply(T target, String softwareTypeName, Plugin<?> plugin) {
         SoftwareTypeImplementation<?> softwareTypeImplementation = softwareTypeRegistry.getSoftwareTypeImplementations().get(softwareTypeName);
 
-        DefaultTypeValidationContext typeValidationContext = DefaultTypeValidationContext.withRootType(plugin.getClass(), false, problems);
+        DefaultTypeValidationContext typeValidationContext = DefaultTypeValidationContext.withRootType(plugin.getClass(), false);
         inspectionScheme.getPropertyWalker().visitProperties(
             plugin,
             typeValidationContext,

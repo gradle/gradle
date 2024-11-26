@@ -27,5 +27,4 @@ public interface InternalProblems extends Problems {
      */
     InternalProblemReporter getInternalReporter();
 
-    AdditionalDataBuilderFactory getAdditionalDataBuilderFactory();
 }

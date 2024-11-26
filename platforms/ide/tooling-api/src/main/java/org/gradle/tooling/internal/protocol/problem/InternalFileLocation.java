@@ -16,6 +16,13 @@
 
 package org.gradle.tooling.internal.protocol.problem;
 
+
+/**
+ * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
+ *
+ * @since 8.6
+ */
+
 public interface InternalFileLocation extends InternalLocation {
 
     String getPath();

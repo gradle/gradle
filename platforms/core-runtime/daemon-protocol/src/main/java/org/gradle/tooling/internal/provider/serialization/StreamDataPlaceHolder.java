@@ -14,12 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.internal;
+package org.gradle.tooling.internal.provider.serialization;
 
-import org.gradle.api.problems.Problem;
+import org.gradle.api.NonNullApi;
 
-/**
- * Marker interface for additional data that can be attached to a {@link Problem}.
- */
-public interface AdditionalDataSpec {
+import java.io.Serializable;
+
+@NonNullApi
+public class StreamDataPlaceHolder implements Serializable {
+    private final SerializedPayload data;
+
+    public StreamDataPlaceHolder(SerializedPayload data) {
+        this.data = data;
+    }
+
+    public SerializedPayload getData() {
+        return data;
+    }
 }

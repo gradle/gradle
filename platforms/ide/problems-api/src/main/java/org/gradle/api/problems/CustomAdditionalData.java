@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.internal;
+package org.gradle.api.problems;
 
-public interface PropertyTraceDataSpec extends AdditionalDataSpec {
 
-    PropertyTraceDataSpec trace(String trace);
+import org.gradle.api.Incubating;
 
+/**
+ * Additional data type that can be used to attach custom additional data to a problem.
+ * Any Third party plugin can implement this interface to attach custom additional data to a problem.
+ *
+ * @since 8.13
+ */
+@Incubating
+public interface CustomAdditionalData extends AdditionalData {
 }

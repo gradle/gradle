@@ -28,11 +28,7 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.matching.AttributeMatcher;
-import org.gradle.api.problems.internal.AdditionalDataBuilderFactory;
-import org.gradle.api.problems.internal.DefaultResolutionFailureData;
 import org.gradle.api.problems.internal.InternalProblems;
-import org.gradle.api.problems.internal.ResolutionFailureData;
-import org.gradle.api.problems.internal.ResolutionFailureDataSpec;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
@@ -96,17 +92,6 @@ public class ResolutionFailureHandler {
 
         this.defaultFailureDescribers = ResolutionFailureDescriberRegistry.standardRegistry(instanceGenerator);
         this.customFailureDescribers = ResolutionFailureDescriberRegistry.emptyRegistry(instanceGenerator);
-
-        configureAdditionalDataBuilder(problemsService.getAdditionalDataBuilderFactory());
-    }
-
-    private static void configureAdditionalDataBuilder(AdditionalDataBuilderFactory additionalDataBuilderFactory) {
-        if (!additionalDataBuilderFactory.hasProviderForSpec(ResolutionFailureDataSpec.class)) {
-            additionalDataBuilderFactory.registerAdditionalDataProvider(
-                ResolutionFailureDataSpec.class,
-                data -> DefaultResolutionFailureData.builder((ResolutionFailureData) data)
-            );
-        }
     }
 
     // region Component Selection failures

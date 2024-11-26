@@ -16,7 +16,16 @@
 
 package org.gradle.tooling.internal.protocol.problem;
 
+import javax.annotation.Nullable;
+
+/**
+ * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
+ *
+ * @since 8.6
+ */
+
 public interface InternalDocumentationLink {
 
+    @Nullable
     String getUrl();
 }

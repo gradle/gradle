@@ -50,5 +50,6 @@ public interface InternalBasicProblemDetailsVersion3 extends InternalProblemDeta
     @Nullable
     InternalFailure getFailure();
 
+    @Nullable
     InternalAdditionalData getAdditionalData();
 }

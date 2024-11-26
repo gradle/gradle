@@ -18,20 +18,38 @@ package org.gradle.tooling.events.problems.internal;
 
 import com.google.common.collect.ImmutableMap;
 import org.gradle.tooling.events.problems.AdditionalData;
+import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 
+import javax.annotation.Nullable;
 import java.io.Serializable;
 import java.util.Map;
 
-public class GeneralData implements AdditionalData, Serializable {
+public class DefaultAdditionalData implements AdditionalData, Serializable {
 
     private final Map<String, Object> additionalData;
+    private final Object additionalDataCustomInstance;
 
-    public GeneralData(Map<String, Object> additionalData) {
+    public DefaultAdditionalData(Map<String, Object> additionalData, @Nullable Object additionalDataCustomInstance) {
         this.additionalData = ImmutableMap.copyOf(additionalData);
+        this.additionalDataCustomInstance = additionalDataCustomInstance;
     }
 
     @Override
     public Map<String, Object> getAsMap() {
         return additionalData;
+    }
+
+    @Override
+    public Object get() {
+        return additionalDataCustomInstance;
+    }
+
+    @Override
+    @Nullable
+    public <T> T get(Class<T> type) {
+        if (additionalDataCustomInstance == null) {
+            return null;
+        }
+        return new ProtocolToModelAdapter().adapt(type, additionalDataCustomInstance);
     }
 }
