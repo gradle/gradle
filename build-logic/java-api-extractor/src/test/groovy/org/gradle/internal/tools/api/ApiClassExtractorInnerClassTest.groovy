@@ -166,22 +166,26 @@ class ApiClassExtractorInnerClassTest extends ApiClassExtractorTestSupport {
             'Outer': '''
                 public class Outer {
                    public class NonStaticInner {
-                       public NonStaticInner(@Nullable String name) {
+                       public NonStaticInner(@RuntimeVisible @RuntimeInvisible String name) {
                            // Constructor
                        }
                    }
 
                    public static class StaticInner {
-                       public StaticInner(@Nullable String name) {
+                       public StaticInner(@RuntimeVisible @RuntimeInvisible String name) {
                            // Constructor
                        }
                    }
                 }
             ''',
-            'Nullable': '''
+            'RuntimeVisible': '''
                 @java.lang.annotation.Retention(java.lang.annotation.RetentionPolicy.RUNTIME)
-                public @interface Nullable {}
-            '''
+                public @interface RuntimeVisible {}
+            ''',
+            'RuntimeInvisible': '''
+                @java.lang.annotation.Retention(java.lang.annotation.RetentionPolicy.CLASS)
+                public @interface RuntimeInvisible {}
+            ''',
         ])
 
         def apiStubDir = new File(temporaryFolder, "api-stubs")
