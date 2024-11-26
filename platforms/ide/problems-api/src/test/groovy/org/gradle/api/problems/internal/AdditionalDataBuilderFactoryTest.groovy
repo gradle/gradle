@@ -16,6 +16,9 @@
 
 package org.gradle.api.problems.internal
 
+import org.gradle.api.problems.AdditionalData
+import org.gradle.api.problems.AdditionalDataBuilder
+import org.gradle.api.problems.AdditionalDataSpec
 import spock.lang.Specification
 
 import javax.annotation.Nullable
@@ -26,7 +29,7 @@ import javax.annotation.Nullable
 class AdditionalDataBuilderFactoryTest extends Specification {
     def "can register additional data builder"() {
         given:
-        def factory = new AdditionalDataBuilderFactory()
+        def factory = new DefaultAdditionalDataBuilderFactory()
 
         when:
         factory.registerAdditionalDataProvider(CustomAdditionalDataSpec.class, data -> CustomAdditionalData.builder((CustomAdditionalData) data))
@@ -37,7 +40,7 @@ class AdditionalDataBuilderFactoryTest extends Specification {
 
     def "can not register additional data builder for the same type twice"() {
         given:
-        def factory = new AdditionalDataBuilderFactory()
+        def factory = new DefaultAdditionalDataBuilderFactory()
 
         when:
         2.times {

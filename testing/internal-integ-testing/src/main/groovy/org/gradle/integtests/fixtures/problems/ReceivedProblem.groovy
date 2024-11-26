@@ -17,11 +17,11 @@
 package org.gradle.integtests.fixtures.problems
 
 import groovy.transform.CompileStatic
+import org.gradle.api.problems.AdditionalData
+import org.gradle.api.problems.AdditionalDataBuilderFactory
 import org.gradle.api.problems.ProblemGroup
 import org.gradle.api.problems.ProblemId
 import org.gradle.api.problems.Severity
-import org.gradle.api.problems.internal.AdditionalData
-import org.gradle.api.problems.internal.AdditionalDataBuilderFactory
 import org.gradle.api.problems.internal.DocLink
 import org.gradle.api.problems.internal.FileLocation
 import org.gradle.api.problems.internal.InternalProblemBuilder

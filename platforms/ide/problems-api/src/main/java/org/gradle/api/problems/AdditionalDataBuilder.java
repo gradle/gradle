@@ -14,10 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.internal;
+package org.gradle.api.problems;
+
+import org.gradle.api.Incubating;
 
 /**
- * Marker interface for additional data that can be attached to a {@link Problem}.
+ * A builder interface for creating instances of {@link AdditionalData}.
+ *
+ * @param <T> the type of {@link AdditionalData} to be built
+ * @since 8.12
  */
-public interface AdditionalDataSpec {
+@Incubating
+public interface AdditionalDataBuilder<T extends AdditionalData> {
+
+    /**
+     * Builds and returns an instance of the {@link AdditionalData}.
+     *
+     * @return an instance of the {@link AdditionalData}
+     * @since 8.12
+     */
+    T build();
 }

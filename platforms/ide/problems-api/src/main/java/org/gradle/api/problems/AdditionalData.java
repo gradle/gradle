@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.internal;
+package org.gradle.api.problems;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.problems.internal.InternalProblemSpec;
+import org.gradle.api.problems.internal.Problem;
 
 /**
  * Marker interface for additional data that can be attached to a {@link Problem}.
@@ -31,6 +33,7 @@ import org.gradle.api.Incubating;
  *     <li>{@link org.gradle.api.problems.internal.PropertyTraceData}</li>
  * </ul>
  *
+ * @since 8.12
  * @see InternalProblemSpec#additionalData(Class, Action)
  */
 @Incubating

@@ -33,7 +33,7 @@ import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
 import org.gradle.api.problems.ProblemGroup;
 import org.gradle.api.problems.ProblemId;
-import org.gradle.api.problems.internal.AdditionalData;
+import org.gradle.api.problems.AdditionalData;
 import org.gradle.api.problems.internal.DefaultDeprecationData;
 import org.gradle.api.problems.internal.DefaultFileLocation;
 import org.gradle.api.problems.internal.DefaultGeneralData;

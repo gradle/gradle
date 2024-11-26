@@ -42,4 +42,12 @@ public interface Problems {
      * @since 8.11
      */
     ProblemReporter getReporter();
+
+    /**
+     * Return an AdditionalDataBuilderFactory.
+     *
+     * @return The AdditionalDataBuilderFactory.
+     * @since 8.12
+     */
+    AdditionalDataBuilderFactory getAdditionalDataBuilderFactory();
 }

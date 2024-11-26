@@ -17,6 +17,7 @@
 package org.gradle.api.problems.internal;
 
 import com.google.common.collect.ImmutableMap;
+import org.gradle.api.problems.AdditionalData;
 import org.gradle.internal.component.resolution.failure.interfaces.ResolutionFailure;
 
 /**

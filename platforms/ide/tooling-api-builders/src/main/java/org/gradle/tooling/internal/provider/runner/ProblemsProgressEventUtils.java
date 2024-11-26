@@ -21,7 +21,7 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.problems.ProblemGroup;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.Severity;
-import org.gradle.api.problems.internal.AdditionalData;
+import org.gradle.api.problems.AdditionalData;
 import org.gradle.api.problems.internal.DefaultProblemProgressDetails;
 import org.gradle.api.problems.internal.DefaultProblemsSummaryProgressDetails;
 import org.gradle.api.problems.internal.DeprecationData;

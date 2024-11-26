@@ -17,6 +17,7 @@
 package org.gradle.api.problems.internal;
 
 import org.gradle.api.Action;
+import org.gradle.api.problems.AdditionalDataBuilderFactory;
 import org.gradle.api.problems.ProblemSpec;
 import org.gradle.internal.exception.ExceptionAnalyser;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
