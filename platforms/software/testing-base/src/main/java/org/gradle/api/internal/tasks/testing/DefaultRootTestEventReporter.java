@@ -20,6 +20,7 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
 import org.gradle.api.tasks.VerificationException;
 import org.gradle.internal.id.IdGenerator;
+import org.gradle.util.internal.TextUtil;
 
 import java.time.Instant;
 
@@ -40,14 +41,12 @@ class DefaultRootTestEventReporter extends DefaultGroupTestEventReporter {
     }
 
     @Override
-    public void failed(Instant endTime) {
-        super.failed(endTime);
-        failureMessage = "Test(s) failed.";
-    }
-
-    @Override
     public void failed(Instant endTime, String message, String additionalContent) {
-        failureMessage = message;
+        if (TextUtil.isBlank(message)) {
+            this.failureMessage = "Test(s) failed.";
+        } else {
+            this.failureMessage = message;
+        }
         super.failed(endTime, message, additionalContent);
     }
 }

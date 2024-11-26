@@ -41,12 +41,12 @@ class SimpleTestEventLoggerTest extends Specification {
         0 * _
     }
 
-    def "renders failures for simple test"() {
+    def "renders assertion failures for simple test"() {
         def textOutputFactory = new TestStyledTextOutputFactory()
         def logger = new SimpleTestEventLogger(textOutputFactory)
 
         def descriptor = new DefaultTestDescriptor(0, "Class", "method", "Class", "method()")
-        def result = new DefaultTestResult(TestResult.ResultType.FAILURE, 0, 0, 0, 0, 0, [new DefaultTestFailure(null, new DefaultTestFailureDetails("message", "Exception", "stack", false, false, null, null, null, null), [])])
+        def result = new DefaultTestResult(TestResult.ResultType.FAILURE, 0, 0, 0, 0, 0, [new DefaultTestFailure(null, new DefaultTestFailureDetails("message", "Exception", "stack", true, false, null, null, null, null), [])])
         def complete = new TestCompleteEvent(0, TestResult.ResultType.FAILURE)
 
         when:
@@ -56,7 +56,46 @@ class SimpleTestEventLoggerTest extends Specification {
         textOutputFactory.logLevel == null
         textOutputFactory.output == """
 method() {failure}FAILED{normal}
-    {identifier}Exception{normal}: message
+    {failure}message{normal}
+"""
+    }
+
+    def "renders test framework failures for simple test"() {
+        def textOutputFactory = new TestStyledTextOutputFactory()
+        def logger = new SimpleTestEventLogger(textOutputFactory)
+
+        def descriptor = new DefaultTestDescriptor(0, "Class", "method", "Class", "method()")
+        def result = new DefaultTestResult(TestResult.ResultType.FAILURE, 0, 0, 0, 0, 0, [new DefaultTestFailure(null, new DefaultTestFailureDetails("message", "TestFrameworkException", "stack", false, false, null, null, null, null), [])])
+        def complete = new TestCompleteEvent(0, TestResult.ResultType.FAILURE)
+
+        when:
+        logger.completed(descriptor, result, complete)
+        then:
+        textOutputFactory.category == SimpleTestEventLogger.canonicalName
+        textOutputFactory.logLevel == null
+        textOutputFactory.output == """
+method() {failure}FAILED{normal}
+    {identifier}TestFrameworkException{normal}: message
+"""
+    }
+
+    def "renders comparison failures for simple test"() {
+        def textOutputFactory = new TestStyledTextOutputFactory()
+        def logger = new SimpleTestEventLogger(textOutputFactory)
+
+        def descriptor = new DefaultTestDescriptor(0, "Class", "method", "Class", "method()")
+        def result = new DefaultTestResult(TestResult.ResultType.FAILURE, 0, 0, 0, 0, 0, [new DefaultTestFailure(null, new DefaultTestFailureDetails("message", "TestFrameworkException", "stack", false, true, "expected", "actual", null, null), [])])
+        def complete = new TestCompleteEvent(0, TestResult.ResultType.FAILURE)
+
+        when:
+        logger.completed(descriptor, result, complete)
+        then:
+        textOutputFactory.category == SimpleTestEventLogger.canonicalName
+        textOutputFactory.logLevel == null
+        textOutputFactory.output == """
+method() {failure}FAILED{normal}
+    Expected: {failure}expected{normal}
+    Actual: {success}actual{normal}
 """
     }
 

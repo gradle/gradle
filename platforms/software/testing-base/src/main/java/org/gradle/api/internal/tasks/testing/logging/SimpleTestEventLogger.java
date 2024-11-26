@@ -25,10 +25,12 @@ import org.gradle.api.internal.tasks.testing.TestStartEvent;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
 import org.gradle.api.tasks.testing.TestDescriptor;
 import org.gradle.api.tasks.testing.TestFailure;
+import org.gradle.api.tasks.testing.TestFailureDetails;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
+import org.gradle.util.internal.TextUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -66,9 +68,20 @@ public class SimpleTestEventLogger implements TestListenerInternal {
 
                 // Print the failure message(s)
                 for (TestFailure failure : result.getFailures()) {
-                    if (failure.getDetails().getMessage() != null) {
-                        output.append("    ").withStyle(StyledTextOutput.Style.Identifier).append(failure.getDetails().getClassName());
-                        output.append(": ").println(failure.getDetails().getMessage());
+                    TestFailureDetails details = failure.getDetails();
+                    if (!TextUtil.isBlank(details.getMessage())) {
+                        if (details.isAssertionFailure()) {
+                            // test assertion (should be most common)
+                            output.append("    ").withStyle(StyledTextOutput.Style.Failure).println(details.getMessage());
+                        } else if (details.isFileComparisonFailure()) {
+                            // comparison failure
+                            output.append("    Expected: ").withStyle(StyledTextOutput.Style.Failure).println(details.getExpected());
+                            output.append("    Actual: ").withStyle(StyledTextOutput.Style.Success).println(details.getActual());
+                        } else {
+                            // test framework failure?
+                            output.append("    ").withStyle(StyledTextOutput.Style.Identifier).append(details.getClassName());
+                            output.append(": ").println(details.getMessage());
+                        }
                     }
                 }
             }
