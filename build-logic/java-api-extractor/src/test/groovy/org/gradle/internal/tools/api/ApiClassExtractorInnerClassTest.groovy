@@ -17,6 +17,7 @@
 package org.gradle.internal.tools.api
 
 import org.objectweb.asm.Opcodes
+import spock.lang.Issue
 
 import java.lang.reflect.Modifier
 
@@ -156,5 +157,56 @@ class ApiClassExtractorInnerClassTest extends ApiClassExtractorTestSupport {
         then:
         !api.isApiClassExtractedFrom(inner)
         extractedOuter.classes.length == 0
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/31416")
+    def "can compile against extracted inner class with annotations on its constructor"() {
+        given:
+        def api = toApi([
+            'Outer': '''
+                public class Outer {
+                   public class NonStaticInner {
+                       public NonStaticInner(@RuntimeVisible @RuntimeInvisible String name) {
+                           // Constructor
+                       }
+                   }
+
+                   public static class StaticInner {
+                       public StaticInner(@RuntimeVisible @RuntimeInvisible String name) {
+                           // Constructor
+                       }
+                   }
+                }
+            ''',
+            'RuntimeVisible': '''
+                @java.lang.annotation.Retention(java.lang.annotation.RetentionPolicy.RUNTIME)
+                public @interface RuntimeVisible {}
+            ''',
+            'RuntimeInvisible': '''
+                @java.lang.annotation.Retention(java.lang.annotation.RetentionPolicy.CLASS)
+                public @interface RuntimeInvisible {}
+            ''',
+        ])
+
+        def apiStubDir = new File(temporaryFolder, "api-stubs")
+        apiStubDir.mkdirs()
+        ['Outer', 'Outer$NonStaticInner', 'Outer$StaticInner'].each {
+            new File(apiStubDir, "${it}.class").bytes = api.extractApiClassFrom(api.classes[it])
+        }
+
+        when:
+        def consumer = compileTo(new File(temporaryFolder, 'consumer'), [
+            'Main': '''
+                public class Main {
+                    public static void main(String[] args) {
+                        System.out.println("Hello " + Outer.NonStaticInner.class.getName());
+                        System.out.println("Hello " + Outer.StaticInner.class.getName());
+                    }
+                }
+            '''
+        ], [apiStubDir])
+
+        then:
+        consumer.classes.Main.clazz.name == "Main"
     }
 }

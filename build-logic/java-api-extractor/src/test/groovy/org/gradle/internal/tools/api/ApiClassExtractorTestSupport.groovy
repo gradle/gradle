@@ -27,6 +27,7 @@ import javax.tools.DiagnosticCollector
 import javax.tools.JavaCompiler
 import javax.tools.JavaFileObject
 import javax.tools.SimpleJavaFileObject
+import javax.tools.StandardLocation
 import javax.tools.ToolProvider
 import java.lang.reflect.Constructor
 import java.lang.reflect.Field
@@ -50,9 +51,9 @@ class ApiClassExtractorTestSupport extends Specification {
     }
 
     @CompileStatic
-    private static class ApiClassLoader extends URLClassLoader {
+    private static class DefiningClassLoader extends URLClassLoader {
 
-        ApiClassLoader() {
+        DefiningClassLoader() {
             super(new URL[0], systemClassLoader.parent)
         }
 
@@ -62,13 +63,13 @@ class ApiClassExtractorTestSupport extends Specification {
     }
 
     @CompileStatic
-    static class ApiContainer {
-        private final ApiClassLoader apiClassLoader = new ApiClassLoader()
+    static class ClassContainer {
+        private final DefiningClassLoader classLoader = new DefiningClassLoader()
         private final ApiClassExtractor apiClassExtractor
 
         public final Map<String, GeneratedClass> classes
 
-        ApiContainer(List<String> packages, boolean includePackagePrivate, Map<String, GeneratedClass> classes) {
+        ClassContainer(List<String> packages, boolean includePackagePrivate, Map<String, GeneratedClass> classes) {
             this.apiClassExtractor = ApiClassExtractor.withWriter(JavaApiMemberWriter.adapter()).with {
                 if (!packages.empty) {
                     includePackagesMatching { packages.contains(it) }
@@ -82,7 +83,7 @@ class ApiClassExtractorTestSupport extends Specification {
         }
 
         protected Class<?> extractAndLoadApiClassFrom(GeneratedClass clazz) {
-            apiClassLoader.loadClassFromBytes(apiClassExtractor.extractApiClassFrom(clazz.bytes).get())
+            classLoader.loadClassFromBytes(apiClassExtractor.extractApiClassFrom(clazz.bytes).get())
         }
 
         protected byte[] extractApiClassFrom(GeneratedClass clazz) {
@@ -116,25 +117,33 @@ class ApiClassExtractorTestSupport extends Specification {
     // you also update `ApiClassExtractorTest#target binary compatibility is maintained` with new assumptions.
     private static final String DEFAULT_TARGET_VERSION = '8'
 
-    protected ApiContainer toApi(Map<String, String> sources) {
+    protected ClassContainer toApi(Map<String, String> sources) {
         toApi(DEFAULT_TARGET_VERSION, [], sources)
     }
 
-    protected ApiContainer toApi(String targetVersion, Map<String, String> sources) {
+    protected ClassContainer toApi(String targetVersion, Map<String, String> sources) {
         toApi(targetVersion, [], sources)
     }
 
-    protected ApiContainer toApi(List<String> packages, Map<String, String> sources) {
+    protected ClassContainer toApi(List<String> packages, Map<String, String> sources) {
         toApi(DEFAULT_TARGET_VERSION, packages, sources)
     }
 
-    protected ApiContainer toApi(String targetVersion, List<String> packages, Map<String, String> sources) {
-        def dir = new File(temporaryFolder, 'out')
+    protected ClassContainer toApi(String targetVersion, List<String> packages, Map<String, String> sources) {
+        return compileTo(new File(temporaryFolder, 'api'), targetVersion, packages, sources, [])
+    }
+
+    protected ClassContainer compileTo(File dir, Map<String, String> sources, List<File> classpath) {
+        return compileTo(dir, DEFAULT_TARGET_VERSION, [], sources, classpath)
+    }
+
+    protected ClassContainer compileTo(File dir, String targetVersion, List<String> packages, Map<String, String> sources, List<File> classpath) {
         dir.mkdirs()
         def fileManager = compiler.getStandardFileManager(null, null, null)
+        fileManager.setLocation(StandardLocation.CLASS_PATH, classpath);
         def diagnostics = new DiagnosticCollector<JavaFileObject>()
         def task = compiler.getTask(
-            new OutputStreamWriter(new ByteArrayOutputStream()),
+            null,
             fileManager,
             diagnostics,
             ['-d', dir.absolutePath, '-source', targetVersion, '-target', targetVersion],
@@ -144,14 +153,14 @@ class ApiClassExtractorTestSupport extends Specification {
         if (task.call()) {
             def classLoader = new URLClassLoader([dir.toURI().toURL()] as URL[], ClassLoader.systemClassLoader.parent)
             // Load the class from the classloader by name....
-            def entries = [:].withDefault { String cn ->
+            Map<String, GeneratedClass> entries = [:].withDefault { String cn ->
                 def f = new File(dir, toFileName(cn, true))
                 if (f.exists()) {
                     return new GeneratedClass(f.bytes, classLoader.loadClass(cn))
                 }
                 throw new AssertionError("Cannot find class $cn. Test is very likely not written correctly.")
             }
-            return new ApiContainer(packages, packages.empty, entries)
+            return new ClassContainer(packages, packages.empty, entries)
         }
 
         StringBuilder sb = new StringBuilder("Error in compilation of test sources:\n")
