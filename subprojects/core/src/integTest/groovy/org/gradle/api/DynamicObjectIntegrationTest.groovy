@@ -381,6 +381,16 @@ assert 'overridden value' == global
             assert test.prop == 'new value'
 '''
 
+        executer.expectDocumentedDeprecationWarning(
+            "Space-assignment syntax in Groovy DSL has been deprecated. " +
+                "This is scheduled to be removed in Gradle 10.0. Use assignment ('description = <value>') or explicit setter instead. " +
+                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#groovy_space_assignment_syntax"
+        )
+        executer.expectDocumentedDeprecationWarning(
+            "Space-assignment syntax in Groovy DSL has been deprecated. " +
+                "This is scheduled to be removed in Gradle 10.0. Use assignment ('prop = <value>') or explicit setter instead. " +
+                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#groovy_space_assignment_syntax"
+        )
 
         expect:
         succeeds("test")

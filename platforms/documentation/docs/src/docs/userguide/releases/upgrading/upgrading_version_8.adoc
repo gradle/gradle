@@ -137,6 +137,30 @@ This is another step towards moving users away from idioms that are incompatible
 
 Please refer to the <<configuration_cache#config_cache:requirements:use_project_during_execution, configuration cache documentation>> for alternatives to invoking `Task.getProject()` at execution time that are compatible with the configuration cache.
 
+[[groovy_space_assignment_syntax]]
+=== Groovy "space assignment" syntax
+
+Currently, there are multiple ways to set a property with Groovy DSL syntax:
+
+[source]
+---
+propertyName = value
+setPropertyName(value)
+setPropertyName value
+propertyName value
+---
+
+The latter one, "space-assignment", is a Gradle-specific feature that is not part of the Groovy language.
+In regular Groovy, this would be just a method call: `propertyName(value)`.
+This feature may be a source of confusion (especially for new users) and adds an extra layer of complexity for users and the Gradle codebase without providing any significant value.
+
+It is now deprecated and will be removed in Gradle 10.0.
+Use explicit assignment `propertyName = value` syntax or a method call instead.
+Note that in some places there are explicit methods that are named exactly like property.
+While they can be used like `propertyName value`, it is recommended to use the `propertyName(value)` syntax for consistency.
+
+[[deprecated_configuration_cache_options]]
+
 [[changes_8.11]]
 == Upgrading from 8.10 and earlier
 
