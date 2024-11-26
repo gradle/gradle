@@ -1,19 +1,13 @@
+import gradlebuild.basics.configurationCacheEnabledForDocsTests
+import gradlebuild.basics.googleApisJs
+import gradlebuild.basics.repoRoot
+import gradlebuild.basics.runBrokenForConfigurationCacheDocsTests
+import gradlebuild.integrationtests.model.GradleDistribution
 import org.asciidoctor.gradle.jvm.AsciidoctorTask
 import org.gradle.docs.internal.tasks.CheckLinks
 import org.gradle.docs.samples.internal.tasks.InstallSample
 import org.gradle.internal.os.OperatingSystem
-
-import javax.inject.Inject
-
-import java.io.File
 import java.io.FileFilter
-
-import gradlebuild.integrationtests.model.GradleDistribution
-
-import gradlebuild.basics.repoRoot
-import gradlebuild.basics.configurationCacheEnabledForDocsTests
-import gradlebuild.basics.runBrokenForConfigurationCacheDocsTests
-import gradlebuild.basics.googleApisJs
 
 plugins {
     id("java-library") // Needed for the dependency-analysis plugin. However, we should not need this. This is not a real library.
@@ -508,7 +502,12 @@ samples {
             description = "Pass arguments to a custom task."
             category = "Writing Custom Tasks"
         }
-
+        val customTestTask by creating {
+            sampleDirectory = samplesRoot.dir("writing-tasks/custom-test-task")
+            displayName = "Implementing a task that runs tests"
+            description = "Running tests outside of the JVM."
+            category = "Writing Custom Tasks"
+        }
         val tasksWithDependencyResolutionResultInputs by creating {
             sampleDirectory = samplesRoot.dir("writing-tasks/tasks-with-dependency-resolution-result-inputs")
             displayName = "Implementing tasks with dependency resolution result inputs"

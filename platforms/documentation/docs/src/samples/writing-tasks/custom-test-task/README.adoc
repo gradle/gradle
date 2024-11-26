@@ -1,0 +1,12 @@
+NOTE: You can open the samples inside an IDE using the https://www.jetbrains.com/help/idea/gradle.html#gradle_import_project_start[IntelliJ native importer] or https://projects.eclipse.org/projects/tools.buildship[Eclipse Buildship].
+
+This sample shows how to create a plugin with a custom task that generates test events like the built-in `Test` task.
+The plugin is packaged via an included build.
+
+====
+include::sample[dir="kotlin",files="build.gradle.kts[];settings.gradle.kts[]"]
+include::sample[dir="groovy",files="build.gradle[];settings.gradle[]"]
+====
+
+For more information, see link:{userManualPath}/custom_plugins.html[Gradle Plugins reference chapter].
+
