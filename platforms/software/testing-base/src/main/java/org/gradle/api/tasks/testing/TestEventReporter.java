@@ -37,7 +37,7 @@ public interface TestEventReporter extends AutoCloseable {
     void started(Instant startTime);
 
     /**
-     * Emit a output event for the test. May be called multiple times. May not be called before {@link #started(Instant)}.
+     * Emit an output event for the test. May be called multiple times. May not be called before {@link #started(Instant)}.
      *
      * @param logTime the time the output was logged, must be between the start and end times of the test
      * @param destination the destination of the output
