@@ -14,10 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.internal;
+package org.gradle.integtests.tooling.r812;
 
-public interface PropertyTraceDataSpec extends AdditionalDataSpec {
-
-    PropertyTraceDataSpec trace(String trace);
-
+public interface SomeData {
+    String getTypeName();
 }

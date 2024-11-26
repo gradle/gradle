@@ -19,6 +19,7 @@ package org.gradle.api.problems.internal;
 import javax.annotation.Nullable;
 import java.io.Serializable;
 
+@Nullable
 public class DefaultTypeValidationData implements TypeValidationData, Serializable {
 
     private final String pluginId;
@@ -27,7 +28,13 @@ public class DefaultTypeValidationData implements TypeValidationData, Serializab
     private final String parentPropertyName;
     private final String typeName;
 
-    public DefaultTypeValidationData(String pluginId, String propertyName, String functionName, String parentPropertyName, String typeName) {
+    public DefaultTypeValidationData(
+        @Nullable String pluginId,
+        @Nullable String propertyName,
+        @Nullable String functionName,
+        @Nullable String parentPropertyName,
+        @Nullable String typeName
+    ) {
         this.pluginId = pluginId;
         this.propertyName = propertyName;
         this.functionName = functionName;
@@ -36,89 +43,32 @@ public class DefaultTypeValidationData implements TypeValidationData, Serializab
     }
 
     @Override
+    @Nullable
     public String getPluginId() {
         return pluginId;
     }
 
     @Override
+    @Nullable
     public String getPropertyName() {
         return propertyName;
     }
 
     @Override
+    @Nullable
     public String getFunctionName() {
         return functionName;
     }
 
     @Override
+    @Nullable
     public String getParentPropertyName() {
         return parentPropertyName;
     }
 
     @Override
+    @Nullable
     public String getTypeName() {
         return typeName;
-    }
-
-    public static AdditionalDataBuilder<TypeValidationData> builder(@Nullable TypeValidationData from) {
-        if(from == null) {
-            return new DefaultTypeValidationDataBuilder();
-        }
-        return new DefaultTypeValidationDataBuilder(from);
-    }
-
-    private static class DefaultTypeValidationDataBuilder implements TypeValidationDataSpec, AdditionalDataBuilder<TypeValidationData> {
-
-        private String pluginId;
-        private String propertyName;
-        private String functionName;
-        private String parentPropertyName;
-        private String typeName;
-
-        public DefaultTypeValidationDataBuilder() {
-        }
-
-        public DefaultTypeValidationDataBuilder(TypeValidationData from) {
-            this.pluginId = from.getPluginId();
-            this.propertyName = from.getPropertyName();
-            this.functionName = from.getFunctionName();
-            this.parentPropertyName = from.getParentPropertyName();
-            this.typeName = from.getTypeName();
-        }
-
-        @Override
-        public DefaultTypeValidationData build() {
-            return new DefaultTypeValidationData(pluginId, propertyName, functionName, parentPropertyName, typeName);
-        }
-
-        @Override
-        public TypeValidationDataSpec pluginId(String pluginId) {
-            this.pluginId = pluginId;
-            return this;
-        }
-
-        @Override
-        public TypeValidationDataSpec propertyName(String propertyName) {
-            this.propertyName = propertyName;
-            return this;
-        }
-
-        @Override
-        public TypeValidationDataSpec functionName(String functionName) {
-            this.functionName = functionName;
-            return this;
-        }
-
-        @Override
-        public TypeValidationDataSpec parentPropertyName(String parentPropertyName) {
-            this.parentPropertyName = parentPropertyName;
-            return this;
-        }
-
-        @Override
-        public TypeValidationDataSpec typeName(String typeName) {
-            this.typeName = typeName;
-            return this;
-        }
     }
 }
