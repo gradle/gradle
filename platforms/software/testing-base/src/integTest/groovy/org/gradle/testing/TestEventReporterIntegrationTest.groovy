@@ -136,23 +136,6 @@ Custom test root > My Suite > another failing test FAILED
         firstTestMetadataDetails[0]["value"] == "my value"
     }
 
-    def "captures metadata for custom test with null timestamp"() {
-        given:
-        singleCustomTestRecordingMetadata("my key", "'my value'", true)
-
-        when:
-        succeeds "customTest"
-
-        then: "metadata is retrievable from build operations"
-        List<BuildOperationRecord.Progress> testMetadata = getMetadataForOnlyTest()
-        testMetadata.size() == 1
-        def firstTestMetadataDetails = testMetadata*.details.metadata as List<Map<String, ?>>
-        firstTestMetadataDetails.size() == 1
-        firstTestMetadataDetails[0]["logTime"] == null
-        firstTestMetadataDetails[0]["key"] == "my key"
-        firstTestMetadataDetails[0]["value"] == "my value"
-    }
-
     def "captures List metadata for custom test"() {
         given:
         singleCustomTestRecordingMetadata("my key", "[1, 2, 3]")
@@ -416,8 +399,207 @@ Custom test root > My Suite > another failing test FAILED
         secondTestMetadataDetails[0]["value"] == "value4"
     }
 
-    private TestFile singleCustomTestRecordingMetadata(String key, @GroovyBuildScriptLanguage String valueExpression, boolean nullTimestamp = false) {
-        String timestampStr = nullTimestamp ? "null" : "Instant.now()"
+    def "null metadata timestamps aren't allowed"() {
+        given:
+        buildFile("""
+            import java.time.Instant
+
+            abstract class CustomTestTask extends DefaultTask {
+                @Inject
+                abstract TestEventReporterFactory getTestEventReporterFactory()
+
+                @TaskAction
+                void runTests() {
+                   try (def reporter = getTestEventReporterFactory().createTestEventReporter("Custom test root")) {
+                       reporter.started(Instant.now())
+                       try (def mySuite = reporter.reportTestGroup("My Suite")) {
+                            mySuite.started(Instant.now())
+                            try (def myTest = mySuite.reportTest("MyTestInternal", "My test!")) {
+                                 myTest.started(Instant.now())
+                                 myTest.metadata(null, "key", "value")
+                                 myTest.succeeded(Instant.now())
+                            }
+                            mySuite.succeeded(Instant.now())
+                       }
+                       reporter.succeeded(Instant.now())
+                   }
+                }
+            }
+
+            tasks.register("customTest", CustomTestTask)
+        """)
+
+        expect:
+        fails "customTest", "-S"
+
+        and:
+        failure.assertHasCause("logTime can not be null!")
+    }
+
+    def "null metadata keys aren't allowed"() {
+        given:
+        buildFile("""
+            import java.time.Instant
+
+            abstract class CustomTestTask extends DefaultTask {
+                @Inject
+                abstract TestEventReporterFactory getTestEventReporterFactory()
+
+                @TaskAction
+                void runTests() {
+                   try (def reporter = getTestEventReporterFactory().createTestEventReporter("Custom test root")) {
+                       reporter.started(Instant.now())
+                       try (def mySuite = reporter.reportTestGroup("My Suite")) {
+                            mySuite.started(Instant.now())
+                            try (def myTest = mySuite.reportTest("MyTestInternal", "My test!")) {
+                                 myTest.started(Instant.now())
+                                 myTest.metadata(Instant.now(), null, "value")
+                                 myTest.succeeded(Instant.now())
+                            }
+                            mySuite.succeeded(Instant.now())
+                       }
+                       reporter.succeeded(Instant.now())
+                   }
+                }
+            }
+
+            tasks.register("customTest", CustomTestTask)
+        """)
+
+        expect:
+        fails "customTest"
+
+        and:
+        failure.assertHasCause("Metadata key can not be null!")
+    }
+
+    def "null metadata values aren't allowed"() {
+        given:
+        singleCustomTestRecordingMetadata("mykey", null)
+
+        expect:
+        fails "customTest"
+
+        and:
+        failure.assertHasCause("Metadata value can not be null!")
+    }
+
+    def "metadata events can reuse test start time"() {
+        given:
+        buildFile("""
+            import java.time.Instant
+
+            abstract class CustomTestTask extends DefaultTask {
+                @Inject
+                abstract TestEventReporterFactory getTestEventReporterFactory()
+
+                @TaskAction
+                void runTests() {
+                   try (def reporter = getTestEventReporterFactory().createTestEventReporter("Custom test root")) {
+                       reporter.started(Instant.now())
+                       try (def mySuite = reporter.reportTestGroup("My Suite")) {
+                            mySuite.started(Instant.now())
+                            try (def myTest = mySuite.reportTest("MyTestInternal", "My test!")) {
+                                 def start = Instant.now()
+                                 myTest.started(start)
+                                 myTest.metadata(start, "mykey", "myvalue")
+                                 myTest.succeeded(Instant.now())
+                            }
+                            mySuite.succeeded(Instant.now())
+                       }
+                       reporter.succeeded(Instant.now())
+                   }
+                }
+            }
+
+            tasks.register("customTest", CustomTestTask)
+        """)
+
+        expect:
+        succeeds "customTest"
+    }
+
+    def "metadata timestamps before test start time aren't validated"() {
+        buildFile("""
+            import java.time.Instant
+
+            abstract class CustomTestTask extends DefaultTask {
+                @Inject
+                abstract TestEventReporterFactory getTestEventReporterFactory()
+
+                @TaskAction
+                void runTests() {
+                   try (def reporter = getTestEventReporterFactory().createTestEventReporter("Custom test root")) {
+                       reporter.started(Instant.now())
+                       try (def mySuite = reporter.reportTestGroup("My Suite")) {
+                            mySuite.started(Instant.now())
+                            try (def myTest = mySuite.reportTest("MyTestInternal", "My test!")) {
+                                 def start = Instant.now()
+                                 myTest.started(start)
+                                 myTest.metadata(start.minusMillis(1), "mykey", "myvalue")
+                                 def end = Instant.now()
+                                 myTest.succeeded(end)
+                            }
+                            mySuite.succeeded(Instant.now())
+                       }
+                       reporter.succeeded(Instant.now())
+                   }
+                }
+            }
+
+            tasks.register("customTest", CustomTestTask)
+        """)
+
+        expect:
+        succeeds "customTest"
+    }
+
+    def "metadata events can reuse keys, with last event reported"() {
+        given:
+        buildFile("""
+            import java.time.Instant
+
+            abstract class CustomTestTask extends DefaultTask {
+                @Inject
+                abstract TestEventReporterFactory getTestEventReporterFactory()
+
+                @TaskAction
+                void runTests() {
+                   try (def reporter = getTestEventReporterFactory().createTestEventReporter("Custom test root")) {
+                       reporter.started(Instant.now())
+                       try (def mySuite = reporter.reportTestGroup("My Suite")) {
+                            mySuite.started(Instant.now())
+                            try (def myTest = mySuite.reportTest("MyTestInternal", "My test!")) {
+                                 myTest.started(Instant.now())
+                                 myTest.metadata(Instant.now(), "mykey", "myvalue")
+                                 myTest.metadata(Instant.now(), "mykey", "updated")
+                                 myTest.succeeded(Instant.now())
+                            }
+                            mySuite.succeeded(Instant.now())
+                       }
+                       reporter.succeeded(Instant.now())
+                   }
+                }
+            }
+
+            tasks.register("customTest", CustomTestTask)
+        """)
+
+        when:
+        succeeds "customTest"
+
+        then: "metadata is retrievable from build operations"
+        List<BuildOperationRecord.Progress> testMetadata = getMetadataForOnlyTest()
+        testMetadata.size() == 2
+        def firstTestMetadataDetails = testMetadata*.details.metadata as List<Map<String, ?>>
+        firstTestMetadataDetails.size() == 2
+        firstTestMetadataDetails[0]["key"] == "mykey"
+        firstTestMetadataDetails[0]["value"] == "myvalue"
+        firstTestMetadataDetails[1]["key"] == "mykey"
+        firstTestMetadataDetails[1]["value"] == "updated"
+    }
+
+    private TestFile singleCustomTestRecordingMetadata(String key, @GroovyBuildScriptLanguage String valueExpression) {
         buildFile("""
             import java.time.Instant
             import javax.inject.Inject
@@ -435,7 +617,7 @@ Custom test root > My Suite > another failing test FAILED
                             try (def myTest = mySuite.reportTest("MyTestInternal", "My test!")) {
                                  myTest.started(Instant.now())
                                  myTest.output(Instant.now(), TestOutputEvent.Destination.StdOut, "This is a test output on stdout")
-                                 myTest.metadata($timestampStr, "$key", $valueExpression)
+                                 myTest.metadata(Instant.now(), "$key", $valueExpression)
                                  myTest.succeeded(Instant.now())
                             }
                             mySuite.succeeded(Instant.now())

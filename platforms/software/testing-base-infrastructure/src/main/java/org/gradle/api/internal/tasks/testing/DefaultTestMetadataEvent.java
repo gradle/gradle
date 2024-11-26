@@ -16,28 +16,31 @@
 
 package org.gradle.api.internal.tasks.testing;
 
+import com.google.common.base.Preconditions;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.tasks.testing.TestMetadataEvent;
 
-import javax.annotation.Nullable;
-
+/**
+ * Default implementation of the {@code TestMetadataEvent} interface.
+ */
 @NonNullApi
 public final class DefaultTestMetadataEvent implements TestMetadataEvent {
-    @Nullable
-    private final Long logTime;
+    private final long logTime;
 
     private final String key;
     private final Object value;
 
-    public DefaultTestMetadataEvent(@Nullable Long logTime, String key, Object metadata) {
+    public DefaultTestMetadataEvent(long logTime, String key, Object metadata) {
+        Preconditions.checkNotNull(key, "Metadata key can not be null!");
+        Preconditions.checkNotNull(metadata, "Metadata value can not be null!");
+
         this.logTime = logTime;
         this.key = key;
         this.value = metadata;
     }
 
-    @Nullable
     @Override
-    public Long getLogTime() {
+    public long getLogTime() {
         return logTime;
     }
 

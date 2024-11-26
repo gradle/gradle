@@ -18,8 +18,6 @@ package org.gradle.api.tasks.testing;
 
 import org.gradle.api.Incubating;
 
-import javax.annotation.Nullable;
-
 /**
  * Metadata captured during the execution of a test.
  *
@@ -29,12 +27,14 @@ import javax.annotation.Nullable;
 public interface TestMetadataEvent {
     /**
      * The time the message was logged.
+     * <p>
+     * Producers can supply the same value as the test start time to indicate that the metadata is "timeless", such
+     * as environment information that isn't tied to a specific point during test execution.
      *
      * @return log time, in milliseconds since UNIX epoch
      * @since 8.12
      */
-    @Nullable
-    Long getLogTime();
+    long getLogTime();
 
     /**
      * Retrieves the key used to identify the metadata for this event.

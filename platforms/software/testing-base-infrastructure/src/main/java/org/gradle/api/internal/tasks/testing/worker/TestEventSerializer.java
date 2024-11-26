@@ -187,7 +187,7 @@ public class TestEventSerializer {
 
         @Override
         public void write(Encoder encoder, DefaultTestMetadataEvent value) throws Exception {
-            encoder.writeLong(value.getLogTime() == null ? 0L : value.getLogTime());
+            encoder.writeLong(value.getLogTime());
             encoder.writeString(value.getKey());
             encoder.writeBinary(serialize(value.getValue()));
         }

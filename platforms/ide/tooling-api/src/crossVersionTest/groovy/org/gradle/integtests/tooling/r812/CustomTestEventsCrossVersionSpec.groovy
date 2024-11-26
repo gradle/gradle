@@ -259,7 +259,7 @@ class CustomTestEventsCrossVersionSpec extends ToolingApiSpecification implement
     }
 
     @ToolingApiVersion(">=8.12")
-    def "reports custom test events with metadata with null timestamp"() {
+    def "reports custom test events with metadata reusing test start timestamp"() {
         given:
         buildFile("""
             import java.time.Instant
@@ -273,8 +273,9 @@ class CustomTestEventsCrossVersionSpec extends ToolingApiSpecification implement
                     try (def reporter = getTestEventReporterFactory().createTestEventReporter("Custom test root")) {
                         reporter.started(Instant.now())
                         try (def myTest = reporter.reportTest("MyTestInternal", "My test!")) {
-                            myTest.started(Instant.now())
-                            myTest.metadata(null, "mykey", "myvalue")
+                            def start = Instant.now()
+                            myTest.started(start)
+                            myTest.metadata(start, "mykey", "myvalue")
                             myTest.succeeded(Instant.now())
                         }
                         reporter.succeeded(Instant.now())
