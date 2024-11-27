@@ -176,6 +176,14 @@ class ApiClassExtractorTestSupport extends Specification {
         toApi([(fqn): script]).classes[fqn]
     }
 
+    @CompileStatic
+    protected static File writeClass(ClassContainer container, name, File targetDir) {
+        targetDir.mkdirs()
+        def classFile = new File(targetDir, "${name}.class")
+        classFile.bytes = container.extractApiClassFrom(container.classes[name])
+        return classFile
+    }
+
     protected void noSuchMethod(Class c, String name, Class... argTypes) {
         try {
             c.getDeclaredMethod(name, argTypes)

@@ -189,9 +189,8 @@ class ApiClassExtractorInnerClassTest extends ApiClassExtractorTestSupport {
         ])
 
         def apiStubDir = new File(temporaryFolder, "api-stubs")
-        apiStubDir.mkdirs()
         ['Outer', 'Outer$NonStaticInner', 'Outer$StaticInner'].each {
-            new File(apiStubDir, "${it}.class").bytes = api.extractApiClassFrom(api.classes[it])
+            writeClass(api, it, apiStubDir)
         }
 
         when:
