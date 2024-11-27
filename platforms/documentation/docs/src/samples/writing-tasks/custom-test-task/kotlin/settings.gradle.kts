@@ -1,2 +1,2 @@
-rootProject.name = "task-with-arguments"
+rootProject.name = "custom-test-task"
 includeBuild("plugin")
