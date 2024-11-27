@@ -212,7 +212,7 @@ abstract class AbstractTestFilteringIntegrationTest extends AbstractTestingMulti
     def "executes multiple methods from different classes"() {
         buildFile << """
             test {
-              filter.setIncludePatterns 'Foo*.pass*'
+              filter.includePatterns = ['Foo*.pass*']
             }
         """
         file("src/test/java/Foo1Test.java") << """
