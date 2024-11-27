@@ -581,7 +581,6 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
             toolchainExecutable, "toolchain from `javaLauncher` property");
     }
 
-
     private Set<String> getPreviousFailedTestClasses() {
         SerializableTestResultStore store = new SerializableTestResultStore(getBinaryResultsDirectory().getAsFile().get().toPath());
         // We ignore if we can't read the old results file, as this is just an optimization.
