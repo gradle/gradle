@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static com.google.common.collect.Lists.transform;
 
@@ -45,7 +46,6 @@ public final class BuildOperationRecord {
     public final String failure;
 
     public final List<Progress> progress;
-    public final List<Progress> metadata;
     public final List<BuildOperationRecord> children;
 
     BuildOperationRecord(
@@ -59,7 +59,7 @@ public final class BuildOperationRecord {
         @Nullable Map<String, ?> result,
         @Nullable String resultClassName,
         @Nullable String failure,
-        List<Progress> progresses,
+        List<Progress> progress,
         List<BuildOperationRecord> children
     ) {
         this.id = id;
@@ -74,15 +74,7 @@ public final class BuildOperationRecord {
         this.failure = failure;
         this.children = children;
 
-        this.progress = new ArrayList<>(progresses.size()); // Expectation is that almost all of these are progress events
-        this.metadata = new ArrayList<>();
-        for (Progress progress : progresses) {
-            if (progress.detailsClassName != null && progress.detailsClassName.endsWith("Metadata")) {
-                this.metadata.add(progress);
-            } else {
-                this.progress.add(progress);
-            }
-        }
+        this.progress = new ArrayList<>(progress);
     }
 
     Map<String, ?> toSerializable() {
@@ -117,10 +109,6 @@ public final class BuildOperationRecord {
             map.put("progress", transform(progress, Progress::toSerializable));
         }
 
-        if (!metadata.isEmpty()) {
-            map.put("metadata", transform(metadata, Progress::toSerializable));
-        }
-
         if (!children.isEmpty()) {
             map.put("children", transform(children, BuildOperationRecord::toSerializable));
         }
@@ -152,6 +140,12 @@ public final class BuildOperationRecord {
             }
         }
         return result;
+    }
+
+    public List<Progress> getMetadata() {
+        return progress.stream()
+            .filter(progress -> progress.detailsClassName != null && progress.detailsClassName.endsWith("Metadata"))
+            .collect(Collectors.toList());
     }
 
     @Override
