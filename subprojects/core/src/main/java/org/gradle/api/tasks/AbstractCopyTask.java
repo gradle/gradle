@@ -91,14 +91,14 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
                 .skipWhenEmpty();
 
             getInputs().property(specPropertyName + ".destPath", (Callable<String>) () -> resolver.getDestPath().getPathString());
-            getInputs().property(specPropertyName + ".caseSensitive", (Callable<Boolean>) spec::isCaseSensitive);
-            getInputs().property(specPropertyName + ".includeEmptyDirs", (Callable<Boolean>) spec::getIncludeEmptyDirs);
-            getInputs().property(specPropertyName + ".duplicatesStrategy", (Callable<DuplicatesStrategy>) spec::getDuplicatesStrategy);
+            getInputs().property(specPropertyName + ".caseSensitive", spec.getCaseSensitive());
+            getInputs().property(specPropertyName + ".includeEmptyDirs", spec.getIncludeEmptyDirs());
+            getInputs().property(specPropertyName + ".duplicatesStrategy",  spec.getDuplicatesStrategy());
             getInputs().property(specPropertyName + ".dirPermissions", spec.getDirPermissions().map(FilePermissions::toUnixNumeric))
                 .optional(true);
             getInputs().property(specPropertyName + ".filePermissions", spec.getFilePermissions().map(FilePermissions::toUnixNumeric))
                 .optional(true);
-            getInputs().property(specPropertyName + ".filteringCharset", (Callable<String>) spec::getFilteringCharset);
+            getInputs().property(specPropertyName + ".filteringCharset", spec.getFilteringCharset());
         });
         this.getOutputs().doNotCacheIf(
             "Has custom actions",
@@ -195,17 +195,8 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
      */
     @Internal
     @Override
-    @ToBeReplacedByLazyProperty
-    public boolean isCaseSensitive() {
-        return getMainSpec().isCaseSensitive();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void setCaseSensitive(boolean caseSensitive) {
-        getMainSpec().setCaseSensitive(caseSensitive);
+    public Property<Boolean> getCaseSensitive() {
+        return getMainSpec().getCaseSensitive();
     }
 
     /**
@@ -213,34 +204,16 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
      */
     @Internal
     @Override
-    @ToBeReplacedByLazyProperty
-    public boolean getIncludeEmptyDirs() {
+    public Property<Boolean> getIncludeEmptyDirs() {
         return getMainSpec().getIncludeEmptyDirs();
     }
 
     /**
      * {@inheritDoc}
      */
-    @Override
-    public void setIncludeEmptyDirs(boolean includeEmptyDirs) {
-        getMainSpec().setIncludeEmptyDirs(includeEmptyDirs);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void setDuplicatesStrategy(DuplicatesStrategy strategy) {
-        getRootSpec().setDuplicatesStrategy(strategy);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
     @Internal
     @Override
-    @ToBeReplacedByLazyProperty
-    public DuplicatesStrategy getDuplicatesStrategy() {
+    public Property<DuplicatesStrategy> getDuplicatesStrategy() {
         return getRootSpec().getDuplicatesStrategy();
     }
 
@@ -639,16 +612,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
      */
     @Internal
     @Override
-    @ToBeReplacedByLazyProperty
-    public String getFilteringCharset() {
+    public Property<String> getFilteringCharset() {
         return getMainSpec().getFilteringCharset();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void setFilteringCharset(String charset) {
-        getMainSpec().setFilteringCharset(charset);
     }
 }

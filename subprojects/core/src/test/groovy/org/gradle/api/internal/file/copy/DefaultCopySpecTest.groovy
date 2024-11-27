@@ -19,7 +19,6 @@ package org.gradle.api.internal.file.copy
 import org.apache.tools.ant.filters.HeadFilter
 import org.apache.tools.ant.filters.StripJavaComments
 import org.gradle.api.Action
-import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Transformer
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.DuplicatesStrategy
@@ -382,33 +381,33 @@ class DefaultCopySpecTest extends Specification {
 
     def 'properties accessed directly have defaults'() {
         expect:
-        spec.caseSensitive
+        spec.caseSensitive.get()
         spec.includeEmptyDirs
-        spec.duplicatesStrategy == DuplicatesStrategy.INCLUDE
+        spec.duplicatesStrategy.get() == DuplicatesStrategy.INHERIT
         spec.fileMode == null
         !spec.filePermissions.isPresent()
         spec.dirMode == null
         !spec.dirPermissions.isPresent()
-        spec.filteringCharset == Charset.defaultCharset().name()
+        spec.filteringCharset.get() == Charset.defaultCharset().name()
     }
 
     def 'file permissions can be set via #method'(String method, Closure setter) {
         when:
-        spec.caseSensitive = false
-        spec.includeEmptyDirs = false
-        spec.duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+        spec.caseSensitive.set(false)
+        spec.includeEmptyDirs.set(false)
+        spec.duplicatesStrategy.set(DuplicatesStrategy.EXCLUDE)
         setter.call(spec, objectFactory)
-        spec.filteringCharset = 'UTF8'
+        spec.filteringCharset.set('UTF8')
 
         then:
-        !spec.caseSensitive
-        !spec.includeEmptyDirs
-        spec.duplicatesStrategy == DuplicatesStrategy.EXCLUDE
+        !spec.caseSensitive.get()
+        !spec.includeEmptyDirs.get()
+        spec.duplicatesStrategy.get() == DuplicatesStrategy.EXCLUDE
         spec.fileMode == 0444
         toPermissionString(spec.filePermissions.get()) == "r--r--r--"
         spec.dirMode == 0655
         toPermissionString(spec.dirPermissions.get()) == "rw-r-xr-x"
-        spec.filteringCharset == 'UTF8'
+        spec.filteringCharset.get() == 'UTF8'
 
         where:
         method             | setter
@@ -432,41 +431,25 @@ class DefaultCopySpecTest extends Specification {
 
     def 'properties accessed directly on specs created using #method inherit from parents'() {
         when: //set non defaults on root
-        spec.caseSensitive = false
-        spec.includeEmptyDirs = false
-        spec.duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+        spec.caseSensitive.set(false)
+        spec.includeEmptyDirs.set(false)
+        spec.duplicatesStrategy.set(DuplicatesStrategy.EXCLUDE)
         spec.fileMode = 1
         spec.dirMode = 2
-        spec.filteringCharset = "ISO_8859_1"
+        spec.filteringCharset.set("ISO_8859_1")
 
         DefaultCopySpec child = unpackWrapper(spec."${method}"("child") {})
 
         then: //children still have these non defaults
-        !child.caseSensitive
-        !child.includeEmptyDirs
-        child.duplicatesStrategy == DuplicatesStrategy.EXCLUDE
+        !child.caseSensitive.get()
+        !child.includeEmptyDirs.get()
+        child.duplicatesStrategy.get() == DuplicatesStrategy.EXCLUDE
         child.fileMode == 1
         child.dirMode == 2
-        child.filteringCharset == "ISO_8859_1"
+        child.filteringCharset.get() == "ISO_8859_1"
 
         where:
         method << ['from', 'into']
-    }
-
-    def 'setting the filteringCharset to invalid value throws an exception'() {
-        when:
-        spec.filteringCharset = "THAT_SURE_IS_AN_INVALID_CHARSET"
-
-        then:
-        thrown(InvalidUserDataException)
-    }
-
-    def 'setting the filteringCharset to null throws an exception'() {
-        when:
-        spec.filteringCharset = null
-
-        then:
-        thrown(NullPointerException)
     }
 
     def 'can add spec hierarchy as child'() {

@@ -1573,7 +1573,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
                 from 'dir1'
                 from 'dir2'
                 into 'dest'
-                duplicatesStrategy = 'exclude'
+                duplicatesStrategy = DuplicatesStrategy.EXCLUDE
             }
         '''.stripIndent()
 
@@ -1611,7 +1611,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
                 from 'dir1'
                 from 'dir2'
                 into 'dest'
-                duplicatesStrategy = 'include'
+                duplicatesStrategy = DuplicatesStrategy.INCLUDE
             }
         '''.stripIndent()
 
@@ -1650,7 +1650,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
                 from 'dir2'
                 rename 'file2.txt', 'file.txt'
                 into 'dest'
-                eachFile { it.duplicatesStrategy = 'exclude' }
+                eachFile { it.duplicatesStrategy = DuplicatesStrategy.EXCLUDE }
             }
         '''.stripIndent()
 
@@ -1677,7 +1677,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
                 into ('./subdir') {
                     from 'dir2'
                 }
-                duplicatesStrategy = 'fail'
+                duplicatesStrategy = DuplicatesStrategy.FAIL
             }
         '''.stripIndent()
 

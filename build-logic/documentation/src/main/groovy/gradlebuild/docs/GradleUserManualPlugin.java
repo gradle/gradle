@@ -186,7 +186,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
         });
 
         TaskProvider<Sync> userguideFlattenSources = tasks.register("stageUserguideSource", Sync.class, task -> {
-            task.setDuplicatesStrategy(DuplicatesStrategy.FAIL);
+            Gradle9PropertyUpgradeSupport.setProperty(task, "setDuplicatesStrategy", DuplicatesStrategy.FAIL);
 
             // TODO: This doesn't allow adoc files to be generated?
             task.from(extension.getUserManual().getRoot(), sub -> {
@@ -200,14 +200,14 @@ public class GradleUserManualPlugin implements Plugin<Project> {
                 sub.into("snippets");
                 sub.exclude("**/.gradle/**");
                 sub.exclude("**/build/**");
-                sub.setIncludeEmptyDirs(false);
+                Gradle9PropertyUpgradeSupport.setProperty(sub, "setIncludeEmptyDirs", false);
             });
             task.from(extension.getUserManual().getSamples(), sub -> {
                 sub.into("samples");
                 sub.exclude("**/*.adoc");
                 sub.exclude("**/.gradle/**");
                 sub.exclude("**/build/**");
-                sub.setIncludeEmptyDirs(false);
+                Gradle9PropertyUpgradeSupport.setProperty(sub, "setIncludeEmptyDirs", false);
             });
             task.from(extension.getCssFiles(), sub -> sub.into("css"));
             task.from(extension.getUserManual().getRoot().dir("img"), sub -> {

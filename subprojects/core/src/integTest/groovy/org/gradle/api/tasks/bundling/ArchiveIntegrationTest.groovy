@@ -890,7 +890,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         createFilesStructureForDupeTests()
         buildFile << archiveTaskWithDuplicates(archiveType) << """
             archive {
-                eachFile { it.duplicatesStrategy = 'exclude' }
+                eachFile { it.duplicatesStrategy = DuplicatesStrategy.EXCLUDE }
             }
         """
         when:
@@ -916,7 +916,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
                     destinationDirectory = buildDir
                     rename 'file2.txt', 'file1.txt'
                     archiveFileName = 'test.${archiveType}'
-                    eachFile { it.duplicatesStrategy = 'exclude' }
+                    eachFile { it.duplicatesStrategy = DuplicatesStrategy.EXCLUDE }
                 }
                 """
         when:

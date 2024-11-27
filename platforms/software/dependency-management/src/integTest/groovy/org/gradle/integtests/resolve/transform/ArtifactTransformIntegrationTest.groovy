@@ -1000,7 +1000,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
 
             ["api1", "api2"].each { conf ->
                 tasks.register("resolve\$conf", Copy) {
-                    duplicatesStrategy = 'INCLUDE'
+                    duplicatesStrategy = DuplicatesStrategy.INCLUDE
                     def artifacts = configurations."\$conf".incoming.artifactView {
                         attributes { it.attribute(artifactType, 'transformed') }
                     }.artifacts
@@ -2820,7 +2820,7 @@ Found the following transforms:
             ${declareTransform(transformImplementation)}
 
             task resolve(type: Copy) {
-                duplicatesStrategy = 'INCLUDE'
+                duplicatesStrategy = DuplicatesStrategy.INCLUDE
                 def artifacts = configurations.compile.incoming.artifactView {
                     attributes { it.attribute(artifactType, 'size') }
                     lenient(providers.gradleProperty("lenient").present)

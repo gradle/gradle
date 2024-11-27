@@ -26,6 +26,7 @@ import org.gradle.api.file.FileVisitor
 import org.gradle.api.file.RelativePath
 import org.gradle.api.internal.file.CopyActionProcessingStreamAction
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.internal.provider.Providers
 import org.gradle.api.tasks.WorkResult
 import org.gradle.api.tasks.WorkResults
 import org.gradle.internal.logging.ConfigureLogging
@@ -37,6 +38,13 @@ import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Shared
 import spock.lang.Specification
+
+import java.nio.charset.Charset
+
+import static org.gradle.api.file.DuplicatesStrategy.EXCLUDE
+import static org.gradle.api.file.DuplicatesStrategy.FAIL
+import static org.gradle.api.file.DuplicatesStrategy.INHERIT
+import static org.gradle.api.file.DuplicatesStrategy.WARN
 
 class DuplicateHandlingCopyActionExecutorTest extends Specification {
 
@@ -59,12 +67,16 @@ class DuplicateHandlingCopyActionExecutorTest extends Specification {
     def copySpec = Mock(MyCopySpec) {
         getChildren() >> []
     }
-    def copySpecResolver = Mock(CopySpecResolver)
+    def copySpecResolver = Mock(CopySpecResolver) {
+        getIncludeEmptyDirs() >> Providers.of(false)
+        getFilteringCharset() >> Providers.of(Charset.defaultCharset().name())
+    }
 
     def duplicatesIncludedByDefault() {
         given:
         files 'path/file1.txt', 'path/file2.txt', 'path/file1.txt'
         actions {}
+        copySpecResolver.duplicatesStrategy >> Providers.of(INHERIT)
 
         when:
         visit()
@@ -77,7 +89,8 @@ class DuplicateHandlingCopyActionExecutorTest extends Specification {
     def duplicatesExcludedByPerFileConfiguration() {
         given:
         files 'path/file1.txt', 'path/file2.txt', 'path/file1.txt'
-        actions { it.duplicatesStrategy = 'exclude' }
+        actions { it.duplicatesStrategy = EXCLUDE }
+        copySpecResolver.duplicatesStrategy >> Providers.of(INHERIT)
 
         when:
         visit()
@@ -94,7 +107,8 @@ class DuplicateHandlingCopyActionExecutorTest extends Specification {
         given:
         files 'module1/path/file1.txt', 'module1/path/file2.txt', 'module2/path/file1.txt'
 
-        actions({ it.name = it.name.replaceAll('module[0-9]+/', '') }, { it.duplicatesStrategy = 'exclude' })
+        actions({ it.name = it.name.replaceAll('module[0-9]+/', '') }, { it.duplicatesStrategy = EXCLUDE })
+        copySpecResolver.duplicatesStrategy >> Providers.of(INHERIT)
 
         when:
         visit()
@@ -108,7 +122,7 @@ class DuplicateHandlingCopyActionExecutorTest extends Specification {
         given:
         files 'path/file1.txt', 'path/file2.txt', 'path/file1.txt'
         actions {}
-        copySpecResolver.duplicatesStrategy >> DuplicatesStrategy.EXCLUDE
+        copySpecResolver.duplicatesStrategy >> Providers.of(EXCLUDE)
 
         when:
         visit()
@@ -122,7 +136,7 @@ class DuplicateHandlingCopyActionExecutorTest extends Specification {
         given:
         files 'path/file1.txt', 'path/file2.txt', 'path/file1.txt'
         actions {}
-        copySpecResolver.duplicatesStrategy >> DuplicatesStrategy.FAIL
+        copySpecResolver.duplicatesStrategy >> Providers.of(FAIL)
 
         when:
         visit()
@@ -137,7 +151,7 @@ class DuplicateHandlingCopyActionExecutorTest extends Specification {
         given:
         files 'path/file1.txt', 'path/file2.txt', 'path/file1.txt'
         actions {}
-        copySpecResolver.duplicatesStrategy >> DuplicatesStrategy.WARN
+        copySpecResolver.duplicatesStrategy >> Providers.of(DuplicatesStrategy.WARN)
 
         when:
         visit()
@@ -152,7 +166,8 @@ class DuplicateHandlingCopyActionExecutorTest extends Specification {
     def duplicatesWarnByPerFileConfiguration() {
         given:
         files 'path/file1.txt', 'path/file2.txt', 'path/file1.txt'
-        actions { it.duplicatesStrategy = 'warn' }
+        actions { it.duplicatesStrategy = WARN }
+        copySpecResolver.duplicatesStrategy >> Providers.of(INHERIT)
 
         when:
         visit()
@@ -166,7 +181,8 @@ class DuplicateHandlingCopyActionExecutorTest extends Specification {
     def duplicatesFailByPerFileConfiguration() {
         given:
         files 'path/file1.txt', 'path/file2.txt', 'path/file1.txt'
-        actions { it.duplicatesStrategy = 'fail' }
+        actions { it.duplicatesStrategy = FAIL }
+        copySpecResolver.duplicatesStrategy >> Providers.of(INHERIT)
 
         when:
         visit()

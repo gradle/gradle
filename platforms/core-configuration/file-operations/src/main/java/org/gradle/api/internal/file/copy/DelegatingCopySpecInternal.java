@@ -43,33 +43,18 @@ public abstract class DelegatingCopySpecInternal implements CopySpecInternal {
     abstract protected CopySpecInternal getDelegateCopySpec();
 
     @Override
-    public boolean isCaseSensitive() {
-        return getDelegateCopySpec().isCaseSensitive();
+    public Property<Boolean> getCaseSensitive() {
+        return getDelegateCopySpec().getCaseSensitive();
     }
 
     @Override
-    public void setCaseSensitive(boolean caseSensitive) {
-        getDelegateCopySpec().setCaseSensitive(caseSensitive);
-    }
-
-    @Override
-    public boolean getIncludeEmptyDirs() {
+    public Property<Boolean> getIncludeEmptyDirs() {
         return getDelegateCopySpec().getIncludeEmptyDirs();
     }
 
     @Override
-    public void setIncludeEmptyDirs(boolean includeEmptyDirs) {
-        getDelegateCopySpec().setIncludeEmptyDirs(includeEmptyDirs);
-    }
-
-    @Override
-    public DuplicatesStrategy getDuplicatesStrategy() {
+    public Property<DuplicatesStrategy> getDuplicatesStrategy() {
         return getDelegateCopySpec().getDuplicatesStrategy();
-    }
-
-    @Override
-    public void setDuplicatesStrategy(DuplicatesStrategy strategy) {
-        getDelegateCopySpec().setDuplicatesStrategy(strategy);
     }
 
     @Override
@@ -327,13 +312,8 @@ public abstract class DelegatingCopySpecInternal implements CopySpecInternal {
     }
 
     @Override
-    public String getFilteringCharset() {
+    public Property<String> getFilteringCharset() {
         return getDelegateCopySpec().getFilteringCharset();
-    }
-
-    @Override
-    public void setFilteringCharset(String charset) {
-        getDelegateCopySpec().setFilteringCharset(charset);
     }
 
     @Override

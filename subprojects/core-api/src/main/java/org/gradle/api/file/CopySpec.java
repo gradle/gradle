@@ -21,10 +21,12 @@ import groovy.transform.stc.ClosureParams;
 import groovy.transform.stc.SimpleType;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
+import org.gradle.api.provider.Property;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.internal.HasInternalProtocol;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 
 import java.io.FilterReader;
 import java.util.Map;
@@ -95,30 +97,22 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
      *
      * @return true for case-sensitive matching.
      */
-    @ToBeReplacedByLazyProperty
-    boolean isCaseSensitive();
-
-    /**
-     * Specifies whether case-sensitive pattern matching should be used for this CopySpec.
-     *
-     * @param caseSensitive true for case-sensitive matching.
-     */
-    void setCaseSensitive(boolean caseSensitive);
+    @ReplacesEagerProperty(originalType = boolean.class)
+    Property<Boolean> getCaseSensitive();
 
     /**
      * Tells if empty target directories will be included in the copy.
      *
      * @return <code>true</code> if empty target directories will be included in the copy, <code>false</code> otherwise
      */
-    @ToBeReplacedByLazyProperty
-    boolean getIncludeEmptyDirs();
-
-    /**
-     * Controls if empty target directories should be included in the copy.
-     *
-     * @param includeEmptyDirs <code>true</code> if empty target directories should be included in the copy, <code>false</code> otherwise
-     */
-    void setIncludeEmptyDirs(boolean includeEmptyDirs);
+    @ReplacesEagerProperty(
+        originalType = boolean.class,
+        replacedAccessors = {
+            @ReplacedAccessor(value = ReplacedAccessor.AccessorType.GETTER, name = "getIncludeEmptyDirs", originalType = boolean.class),
+            @ReplacedAccessor(value = ReplacedAccessor.AccessorType.SETTER, name = "setIncludeEmptyDirs", originalType = boolean.class)
+        }
+    )
+    Property<Boolean> getIncludeEmptyDirs();
 
     /**
      * Returns the strategy to use when trying to copy more than one file to the same destination.
@@ -130,14 +124,8 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
      * @return the strategy to use for files included by this copy spec.
      * @see DuplicatesStrategy
      */
-    @ToBeReplacedByLazyProperty
-    DuplicatesStrategy getDuplicatesStrategy();
-
-    /**
-     * The strategy to use when trying to copy more than one file to the same destination. Set to {@link DuplicatesStrategy#INHERIT}, the default strategy, to use
-     * the strategy inherited from the parent copy spec, if any, or {@link DuplicatesStrategy#INCLUDE} if this copy spec has no parent.
-     */
-    void setDuplicatesStrategy(DuplicatesStrategy strategy);
+    @ReplacesEagerProperty
+    Property<DuplicatesStrategy> getDuplicatesStrategy();
 
     /**
      * Configure the {@link org.gradle.api.file.FileCopyDetails} for each file whose path matches the specified Ant-style pattern.
@@ -414,14 +402,6 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
      * @return the charset used to read and write files when filtering
      * @since 2.14
      */
-    @ToBeReplacedByLazyProperty
-    String getFilteringCharset();
-
-    /**
-     * Specifies the charset used to read and write files when filtering.
-     *
-     * @param charset the name of the charset to use when filtering files
-     * @since 2.14
-     */
-    void setFilteringCharset(String charset);
+    @ReplacesEagerProperty(originalType = String.class)
+    Property<String> getFilteringCharset();
 }

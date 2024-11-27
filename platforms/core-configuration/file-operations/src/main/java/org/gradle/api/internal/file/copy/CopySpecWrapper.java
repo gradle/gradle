@@ -58,33 +58,18 @@ public class CopySpecWrapper implements SyncSpec {
     }
 
     @Override
-    public boolean isCaseSensitive() {
-        return delegate.isCaseSensitive();
+    public Property<Boolean> getCaseSensitive() {
+        return delegate.getCaseSensitive();
     }
 
     @Override
-    public void setCaseSensitive(boolean caseSensitive) {
-        delegate.setCaseSensitive(caseSensitive);
-    }
-
-    @Override
-    public boolean getIncludeEmptyDirs() {
+    public Property<Boolean> getIncludeEmptyDirs() {
         return delegate.getIncludeEmptyDirs();
     }
 
     @Override
-    public void setIncludeEmptyDirs(boolean includeEmptyDirs) {
-        delegate.setIncludeEmptyDirs(includeEmptyDirs);
-    }
-
-    @Override
-    public DuplicatesStrategy getDuplicatesStrategy() {
+    public Property<DuplicatesStrategy> getDuplicatesStrategy() {
         return delegate.getDuplicatesStrategy();
-    }
-
-    @Override
-    public void setDuplicatesStrategy(DuplicatesStrategy strategy) {
-        delegate.setDuplicatesStrategy(strategy);
     }
 
     @Override
@@ -338,13 +323,8 @@ public class CopySpecWrapper implements SyncSpec {
     }
 
     @Override
-    public String getFilteringCharset() {
+    public Property<String> getFilteringCharset() {
         return delegate.getFilteringCharset();
-    }
-
-    @Override
-    public void setFilteringCharset(String charset) {
-        delegate.setFilteringCharset(charset);
     }
 
     @Override

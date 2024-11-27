@@ -55,9 +55,9 @@ class DefaultCopySpecCodec(
             write(value.sourceRootsForThisSpec)
             write(value.patterns)
             writeEnum(value.duplicatesStrategyForThisSpec)
-            writeBoolean(value.includeEmptyDirs)
-            writeBoolean(value.isCaseSensitive)
-            writeString(value.filteringCharset)
+            writeBoolean(value.includeEmptyDirs.get())
+            writeBoolean(value.caseSensitive.get())
+            writeString(value.filteringCharset.get())
             writeNullableSmallInt(value.dirPermissions.map(ConfigurableFilePermissions::toUnixNumeric).orNull)
             writeNullableSmallInt(value.filePermissions.map(ConfigurableFilePermissions::toUnixNumeric).orNull)
             writeCollection(value.copyActions)
@@ -79,10 +79,10 @@ class DefaultCopySpecCodec(
             val actions = readList().uncheckedCast<List<Action<FileCopyDetails>>>()
             val children = readList().uncheckedCast<List<CopySpecInternal>>()
             val copySpec = DefaultCopySpec(fileCollectionFactory, objectFactory, instantiator, patternSetFactory, destPath, sourceFiles, patterns, actions, children)
-            copySpec.duplicatesStrategy = duplicatesStrategy
-            copySpec.includeEmptyDirs = includeEmptyDirs
-            copySpec.isCaseSensitive = isCaseSensitive
-            copySpec.filteringCharset = filteringCharset
+            copySpec.duplicatesStrategy.set(duplicatesStrategy)
+            copySpec.includeEmptyDirs.set(includeEmptyDirs)
+            copySpec.caseSensitive.set(isCaseSensitive)
+            copySpec.filteringCharset.set(filteringCharset)
             if (dirMode != null) {
                 copySpec.dirPermissions.set(fileSystemOperations.permissions(dirMode))
             }

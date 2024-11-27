@@ -19,6 +19,8 @@ package org.gradle.api.file
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.test.fixtures.file.TestFile
 
+import static org.gradle.api.file.DuplicatesStrategy.INCLUDE
+
 class ProjectCopySpecTest extends AbstractProjectBuilderSpec {
 
     TestFile getCopySource() {
@@ -41,20 +43,20 @@ class ProjectCopySpecTest extends AbstractProjectBuilderSpec {
         copySource.createFile("file")
         def copySpec = project.copySpec {
             copySpecRootCalled = true
-            delegate.duplicatesStrategy "include"
+            delegate.duplicatesStrategy = INCLUDE
             from copySource
 
             from copySource, {
-                delegate.duplicatesStrategy "include"
+                delegate.duplicatesStrategy = INCLUDE
                 delegate.eachFile {
                     copySpecNestedEachFileCalled = true
-                    delegate.duplicatesStrategy "include"
+                    delegate.duplicatesStrategy = INCLUDE
                 }
             }
 
             eachFile {
                 copySpecEachFileCalled = true
-                delegate.duplicatesStrategy "include"
+                delegate.duplicatesStrategy = INCLUDE
             }
         }
 
@@ -65,16 +67,16 @@ class ProjectCopySpecTest extends AbstractProjectBuilderSpec {
             with copySpec
             from copySource
             from copySource, {
-                delegate.duplicatesStrategy "include"
+                delegate.duplicatesStrategy = INCLUDE
                 eachFile {
                     copyNestedEachFileCalled = true
-                    delegate.duplicatesStrategy "include"
+                    delegate.duplicatesStrategy = INCLUDE
                 }
             }
-            delegate.duplicatesStrategy "include"
+            delegate.duplicatesStrategy = INCLUDE
 
             eachFile {
-                delegate.duplicatesStrategy "include"
+                delegate.duplicatesStrategy = INCLUDE
                 copyEachFileCalled = true
             }
         }

@@ -16,24 +16,31 @@
 package org.gradle.api.internal.file.copy
 
 import org.gradle.api.Action
+import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.file.FileCopyDetails
-import org.gradle.api.file.FileTree
 import org.gradle.api.file.FileVisitDetails
 import org.gradle.api.file.FileVisitor
 import org.gradle.api.internal.file.CopyActionProcessingStreamAction
+import org.gradle.api.internal.provider.Providers
 import org.gradle.api.model.ObjectFactory
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
+import java.nio.charset.Charset
+
 class CopyFileVisitorImplTest extends Specification {
-    CopySpecResolver specResolver = Mock()
     CopyActionProcessingStreamAction action = Mock()
     Instantiator instantiator = Mock()
-    ObjectFactory objectFactory = Mock()
+    ObjectFactory objectFactory = TestUtil.objectFactory()
     FileSystem fileSystem = Mock()
-    FileTree source = Mock()
     FileVisitor copyFileVisitorImpl
+
+    def specResolver = Mock(CopySpecResolver) {
+        getDuplicatesStrategy() >> Providers.of(DuplicatesStrategy.INHERIT)
+        getFilteringCharset() >> Providers.of(Charset.defaultCharset().name())
+    }
 
     def setup() {
         copyFileVisitorImpl = new CopyFileVisitorImpl(specResolver, action, instantiator, objectFactory, fileSystem, false)

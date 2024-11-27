@@ -40,6 +40,7 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.pattern.PatternMatcher;
 import org.gradle.api.internal.file.pattern.PatternMatcherFactory;
+import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
@@ -83,14 +84,14 @@ public class DefaultCopySpec implements CopySpecInternal {
     private final List<Action<? super FileCopyDetails>> copyActions = new LinkedList<>();
     private final Property<ConfigurableFilePermissions> dirPermissions;
     private final Property<ConfigurableFilePermissions> filePermissions;
+    private final Property<Boolean> caseSensitive;
+    private final Property<Boolean> includeEmptyDirs;
+    private final PatternFilterable preserve = new PatternSet();
+    private final Property<DuplicatesStrategy> duplicatesStrategy;
+    private final Property<String> filteringCharset;
     private Object destDir;
     private boolean hasCustomActions;
-    private Boolean caseSensitive;
-    private Boolean includeEmptyDirs;
-    private DuplicatesStrategy duplicatesStrategy = DuplicatesStrategy.INHERIT;
-    private String filteringCharset;
     private final List<CopySpecListener> listeners = new LinkedList<>();
-    private PatternFilterable preserve = new PatternSet();
 
     @Inject
     public DefaultCopySpec(FileCollectionFactory fileCollectionFactory, ObjectFactory objectFactory, Instantiator instantiator, Factory<PatternSet> patternSetFactory) {
@@ -106,6 +107,10 @@ public class DefaultCopySpec implements CopySpecInternal {
         this.patternSet = patternSet;
         this.filePermissions = objectFactory.property(ConfigurableFilePermissions.class);
         this.dirPermissions = objectFactory.property(ConfigurableFilePermissions.class);
+        this.caseSensitive = objectFactory.property(Boolean.class);
+        this.includeEmptyDirs = objectFactory.property(Boolean.class);
+        this.duplicatesStrategy = objectFactory.property(DuplicatesStrategy.class);
+        this.filteringCharset = objectFactory.property(String.class);
     }
 
     public DefaultCopySpec(FileCollectionFactory fileCollectionFactory, ObjectFactory objectFactory, Instantiator instantiator, Factory<PatternSet> patternSetFactory, @Nullable String destPath, FileCollection source, PatternSet patternSet, Collection<? extends Action<? super FileCopyDetails>> copyActions, Collection<CopySpecInternal> children) {
@@ -280,42 +285,39 @@ public class DefaultCopySpec implements CopySpecInternal {
     }
 
     @Override
-    public boolean isCaseSensitive() {
-        return buildRootResolver().isCaseSensitive();
+    public Property<Boolean> getCaseSensitive() {
+        if (!caseSensitive.isPresent()) {
+            caseSensitive.set(buildRootResolver().getCaseSensitive());
+        }
+        return caseSensitive;
     }
 
     @Override
-    public void setCaseSensitive(boolean caseSensitive) {
-        this.caseSensitive = caseSensitive;
-    }
-
-    @Override
-    public boolean getIncludeEmptyDirs() {
-        return buildRootResolver().getIncludeEmptyDirs();
-    }
-
-    @Override
-    public void setIncludeEmptyDirs(boolean includeEmptyDirs) {
-        this.includeEmptyDirs = includeEmptyDirs;
+    public Property<Boolean> getIncludeEmptyDirs() {
+        if (!includeEmptyDirs.isPresent()) {
+            includeEmptyDirs.set(buildRootResolver().getIncludeEmptyDirs());
+        }
+        return includeEmptyDirs;
     }
 
     public DuplicatesStrategy getDuplicatesStrategyForThisSpec() {
+        if (!duplicatesStrategy.isPresent()) {
+            duplicatesStrategy.set(buildRootResolver().getDuplicatesStrategy());
+        }
+        return duplicatesStrategy.get();
+    }
+
+    @Override
+    public Property<DuplicatesStrategy> getDuplicatesStrategy() {
+        if (!duplicatesStrategy.isPresent()) {
+            duplicatesStrategy.set(buildRootResolver().getDuplicatesStrategy());
+        }
         return duplicatesStrategy;
     }
 
     @Override
-    public DuplicatesStrategy getDuplicatesStrategy() {
-        return buildRootResolver().getDuplicatesStrategy();
-    }
-
-    @Override
-    public void setDuplicatesStrategy(DuplicatesStrategy strategy) {
-        this.duplicatesStrategy = strategy;
-    }
-
-    @Override
     public CopySpec filesMatching(String pattern, Action<? super FileCopyDetails> action) {
-        PatternMatcher matcher = PatternMatcherFactory.getPatternMatcher(true, isCaseSensitive(), pattern);
+        PatternMatcher matcher = PatternMatcherFactory.getPatternMatcher(true, getCaseSensitive().get(), pattern);
         return eachFile(new MatchingCopyAction(matcher, action));
     }
 
@@ -324,13 +326,13 @@ public class DefaultCopySpec implements CopySpecInternal {
         if (!patterns.iterator().hasNext()) {
             throw new InvalidUserDataException("must provide at least one pattern to match");
         }
-        PatternMatcher matcher = PatternMatcherFactory.getPatternsMatcher(true, isCaseSensitive(), patterns);
+        PatternMatcher matcher = PatternMatcherFactory.getPatternsMatcher(true, getCaseSensitive().get(), patterns);
         return eachFile(new MatchingCopyAction(matcher, action));
     }
 
     @Override
     public CopySpec filesNotMatching(String pattern, Action<? super FileCopyDetails> action) {
-        PatternMatcher matcher = PatternMatcherFactory.getPatternMatcher(true, isCaseSensitive(), pattern);
+        PatternMatcher matcher = PatternMatcherFactory.getPatternMatcher(true, getCaseSensitive().get(), pattern);
         return eachFile(new MatchingCopyAction(matcher.negate(), action));
     }
 
@@ -339,7 +341,7 @@ public class DefaultCopySpec implements CopySpecInternal {
         if (!patterns.iterator().hasNext()) {
             throw new InvalidUserDataException("must provide at least one pattern to not match");
         }
-        PatternMatcher matcher = PatternMatcherFactory.getPatternsMatcher(true, isCaseSensitive(), patterns);
+        PatternMatcher matcher = PatternMatcherFactory.getPatternsMatcher(true, getCaseSensitive().get(), patterns);
         return eachFile(new MatchingCopyAction(matcher.negate(), action));
     }
 
@@ -610,17 +612,11 @@ public class DefaultCopySpec implements CopySpecInternal {
     }
 
     @Override
-    public String getFilteringCharset() {
-        return buildRootResolver().getFilteringCharset();
-    }
-
-    @Override
-    public void setFilteringCharset(String charset) {
-        Preconditions.checkNotNull(charset, "filteringCharset must not be null");
-        if (!Charset.isSupported(charset)) {
-            throw new InvalidUserDataException(String.format("filteringCharset %s is not supported by your JVM", charset));
+    public Property<String> getFilteringCharset() {
+        if (!filteringCharset.isPresent()) {
+            filteringCharset.set(buildRootResolver().getFilteringCharset());
         }
-        this.filteringCharset = charset;
+        return filteringCharset;
     }
 
     private static class MapBackedExpandAction implements Action<FileCopyDetails> {
@@ -764,19 +760,19 @@ public class DefaultCopySpec implements CopySpecInternal {
         }
 
         @Override
-        public DuplicatesStrategy getDuplicatesStrategy() {
-            if (duplicatesStrategy != DuplicatesStrategy.INHERIT) {
+        public Provider<DuplicatesStrategy> getDuplicatesStrategy() {
+            if (duplicatesStrategy.isPresent() && duplicatesStrategy.get() != DuplicatesStrategy.INHERIT) {
                 return duplicatesStrategy;
             }
             if (parentResolver != null) {
                 return parentResolver.getDuplicatesStrategy();
             }
-            return DuplicatesStrategy.INCLUDE;
+            return Providers.of(DuplicatesStrategy.INHERIT);
         }
 
         @Override
         public boolean isDefaultDuplicateStrategy() {
-            if (duplicatesStrategy != DuplicatesStrategy.INHERIT) {
+            if (duplicatesStrategy.isPresent() && duplicatesStrategy.get() != DuplicatesStrategy.INHERIT) {
                 return false;
             }
             if (parentResolver != null) {
@@ -786,14 +782,14 @@ public class DefaultCopySpec implements CopySpecInternal {
         }
 
         @Override
-        public boolean isCaseSensitive() {
-            if (caseSensitive != null) {
+        public Provider<Boolean> getCaseSensitive() {
+            if (caseSensitive.isPresent()) {
                 return caseSensitive;
             }
             if (parentResolver != null) {
-                return parentResolver.isCaseSensitive();
+                return parentResolver.getCaseSensitive();
             }
-            return true;
+            return Providers.of(true);
         }
 
         @Override
@@ -852,14 +848,14 @@ public class DefaultCopySpec implements CopySpecInternal {
         }
 
         @Override
-        public boolean getIncludeEmptyDirs() {
-            if (includeEmptyDirs != null) {
+        public Provider<Boolean> getIncludeEmptyDirs() {
+            if (includeEmptyDirs.isPresent()) {
                 return includeEmptyDirs;
             }
             if (parentResolver != null) {
                 return parentResolver.getIncludeEmptyDirs();
             }
-            return true;
+            return Providers.of(true);
         }
 
         @Override
@@ -875,7 +871,7 @@ public class DefaultCopySpec implements CopySpecInternal {
         public PatternSet getPatternSet() {
             PatternSet patterns = patternSetFactory.create();
             assert patterns != null;
-            patterns.setCaseSensitive(isCaseSensitive());
+            patterns.setCaseSensitive(getCaseSensitive().get());
             patterns.include(this.getAllIncludes());
             patterns.includeSpecs(getAllIncludeSpecs());
             patterns.exclude(this.getAllExcludes());
@@ -892,14 +888,14 @@ public class DefaultCopySpec implements CopySpecInternal {
         }
 
         @Override
-        public String getFilteringCharset() {
-            if (filteringCharset != null) {
+        public Provider<String> getFilteringCharset() {
+            if (filteringCharset.isPresent()) {
                 return filteringCharset;
             }
             if (parentResolver != null) {
                 return parentResolver.getFilteringCharset();
             }
-            return Charset.defaultCharset().name();
+            return Providers.of(Charset.defaultCharset().name());
         }
     }
 
