@@ -25,8 +25,10 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.ModuleVisitor;
 import org.objectweb.asm.Type;
 
+import java.util.Optional;
 import java.util.Set;
 
+import static org.objectweb.asm.Opcodes.ACC_ENUM;
 import static org.objectweb.asm.Opcodes.ACC_STATIC;
 
 public class JavaApiMemberWriter implements ApiMemberWriter {
@@ -65,7 +67,7 @@ public class JavaApiMemberWriter implements ApiMemberWriter {
             .findFirst()
             .orElse(null);
         for (MethodMember method : methods) {
-            writeMethod(declaringInnerClass, method);
+            writeMethod(classMember, declaringInnerClass, method);
         }
         for (FieldMember field : fields) {
             FieldVisitor fieldVisitor = apiMemberAdapter.visitField(
@@ -81,24 +83,23 @@ public class JavaApiMemberWriter implements ApiMemberWriter {
     }
 
     @Override
-    public void writeMethod(/* Nullable */ InnerClassMember declaringInnerClass, MethodMember method) {
+    public void writeMethod(ClassMember classMember, /* Nullable */ InnerClassMember declaringInnerClass, MethodMember method) {
         MethodVisitor mv = apiMemberAdapter.visitMethod(
             method.getAccess(), method.getName(), method.getTypeDesc(), method.getSignature(),
             method.getExceptions().toArray(new String[0]));
         writeMethodAnnotations(mv, method.getAnnotations());
         writeMethodAnnotations(mv, method.getParameterAnnotations());
 
-        // Without this parameter annotations for non-static inner class constructors would
-        // end up having one more parameter than they should, because the first parameter
-        // (pointing to `this` of the enclosing type) should not be listed.
+        // In some cases ASM generates the wrong number of parameter annotation entries
+        // in the written classfile. This is a workaround to fix that.
         // See https://gitlab.ow2.org/asm/asm/-/issues/318023
-        if (method.getName().equals("<init>")
-            && declaringInnerClass != null
-            && (declaringInnerClass.getAccess() & ACC_STATIC) != ACC_STATIC) {
-            int parameterCount = Type.getArgumentCount(method.getTypeDesc()) - 1;
-            mv.visitAnnotableParameterCount(parameterCount, true);
-            mv.visitAnnotableParameterCount(parameterCount, false);
-        }
+        calculateNonAnnotableParameterCount(classMember, declaringInnerClass, method)
+            .ifPresent(nonAnnotableParameterCount -> {
+                int totalParameterCount = Type.getArgumentCount(method.getTypeDesc());
+                int annotableParameterCount = totalParameterCount - nonAnnotableParameterCount;
+                mv.visitAnnotableParameterCount(annotableParameterCount, true);
+                mv.visitAnnotableParameterCount(annotableParameterCount, false);
+            });
 
         method.getAnnotationDefaultValue().ifPresent(value -> {
             AnnotationVisitor av = mv.visitAnnotationDefault();
@@ -106,6 +107,22 @@ public class JavaApiMemberWriter implements ApiMemberWriter {
             av.visitEnd();
         });
         mv.visitEnd();
+    }
+
+    private static Optional<Integer> calculateNonAnnotableParameterCount(ClassMember classMember, /* Nullable */ InnerClassMember declaringInnerClass, MethodMember method) {
+        if (method.getName().equals("<init>")) {
+            if ((classMember.getAccess() & ACC_ENUM) == ACC_ENUM) {
+                // Enum constructors have an implicit String and int parameter containing
+                // the name and ordinal of the value that is non-annotable.
+                return Optional.of(2);
+            } else if (declaringInnerClass != null
+                && (declaringInnerClass.getAccess() & ACC_STATIC) != ACC_STATIC) {
+                // Non-static inner-class constructors have an implicit, non-annotable parameter
+                // pointing to the enclosing class instance
+                return Optional.of(1);
+            }
+        }
+        return Optional.empty();
     }
 
     @Override
