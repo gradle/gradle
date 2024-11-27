@@ -86,7 +86,7 @@ public abstract class PublishToMavenRepository extends AbstractPublishToMaven {
         PublishSpec spec = this.spec.get();
         MavenNormalizedPublication publication = spec.publication;
         MavenArtifactRepository repository = spec.repository.get(getServices());
-        getDuplicatePublicationTracker().checkCanPublish(publication, repository.getUrl(), repository.getName());
+        getDuplicatePublicationTracker().checkCanPublish(publication, repository.getUrl().get(), repository.getName());
         doPublish(publication, repository);
     }
 
@@ -158,7 +158,7 @@ public abstract class PublishToMavenRepository extends AbstractPublishToMaven {
 
             private Object writeReplace() {
                 CredentialsSpec credentialsSpec = repository.getConfiguredCredentials().map(it -> CredentialsSpec.of(repository.getName(), it)).getOrNull();
-                return new DefaultRepositorySpec(repository.getName(), repository.getUrl(), repository.isAllowInsecureProtocol(), credentialsSpec, repository.getConfiguredAuthentication());
+                return new DefaultRepositorySpec(repository.getName(), repository.getUrl().get(), repository.getAllowInsecureProtocol().get(), credentialsSpec, repository.getConfiguredAuthentication());
             }
         }
 
@@ -180,8 +180,8 @@ public abstract class PublishToMavenRepository extends AbstractPublishToMaven {
             MavenArtifactRepository get(ServiceRegistry services) {
                 DefaultMavenArtifactRepository repository = (DefaultMavenArtifactRepository) services.get(BaseRepositoryFactory.class).createMavenRepository();
                 repository.setName(name);
-                repository.setUrl(repositoryUrl);
-                repository.setAllowInsecureProtocol(allowInsecureProtocol);
+                repository.getUrl().set(repositoryUrl);
+                repository.getAllowInsecureProtocol().set(allowInsecureProtocol);
                 if (credentials != null) {
                     Provider<? extends Credentials> provider = services.get(ProviderFactory.class).credentials(credentials.getType(), name);
                     repository.setConfiguredCredentials(provider.get());
