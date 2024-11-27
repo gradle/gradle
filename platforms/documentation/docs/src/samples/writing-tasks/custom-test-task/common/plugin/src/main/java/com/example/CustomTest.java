@@ -2,8 +2,8 @@ package com.example;
 
 import org.gradle.api.DefaultTask;
 import org.gradle.api.provider.Property;
-import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.api.tasks.testing.GroupTestEventReporter;
 import org.gradle.api.tasks.testing.TestEventReporter;
@@ -12,9 +12,6 @@ import org.gradle.api.tasks.testing.TestOutputEvent;
 
 import javax.inject.Inject;
 import java.time.Instant;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Random;
 
 /**
  * A custom task that demonstrates the {@code TestEventReporter} API.
@@ -55,6 +52,13 @@ public abstract class CustomTest extends DefaultTask {
                     try (TestEventReporter test = suite.reportTest("test" + i, "test(" + i + ")")) {
                         // Start an individual test case
                         test.started(Instant.now());
+
+                        // Simulate some activity
+                        try {
+                            Thread.sleep(100);
+                        } catch (InterruptedException e) {
+                            // ignored
+                        }
 
                         // Output must occur between started and terminal methods (succeeded, failed, skipped)
                         test.output(Instant.now(), TestOutputEvent.Destination.StdOut, "This is some standard output");
