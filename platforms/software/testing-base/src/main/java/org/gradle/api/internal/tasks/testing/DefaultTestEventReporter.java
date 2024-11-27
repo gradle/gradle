@@ -29,11 +29,11 @@ import java.time.Instant;
 import java.util.Collections;
 
 @NonNullApi
-final class DefaultTestEventReporter implements TestEventReporter {
+class DefaultTestEventReporter implements TestEventReporter {
 
-    private final TestListenerInternal listener;
-    private final TestDescriptorInternal testDescriptor;
-    private final TestResultState testResultState;
+    protected final TestListenerInternal listener;
+    protected final TestDescriptorInternal testDescriptor;
+    protected final TestResultState testResultState;
 
     private long startTime;
 
@@ -43,9 +43,19 @@ final class DefaultTestEventReporter implements TestEventReporter {
         this.testResultState = testResultState;
     }
 
+    /**
+     * Only non-composite test events should be counted in the test result state.
+     * @return true if this is a composite test event reporter
+     */
+    protected boolean isComposite() {
+        return false;
+    }
+
     @Override
     public void started(Instant startTime) {
-        testResultState.incrementTotalCount();
+        if (!isComposite()) {
+            testResultState.incrementTotalCount();
+        }
         this.startTime = startTime.toEpochMilli();
         listener.started(testDescriptor, new TestStartEvent(startTime.toEpochMilli(), testDescriptor.getParent() == null ? null : testDescriptor.getParent().getId()));
     }
@@ -57,21 +67,25 @@ final class DefaultTestEventReporter implements TestEventReporter {
 
     @Override
     public void succeeded(Instant endTime) {
-        testResultState.incrementSuccessfulCount();
-        listener.completed(testDescriptor, new DefaultTestResult(TestResult.ResultType.SUCCESS, startTime, endTime.toEpochMilli(), 1, 1, 0, Collections.emptyList()), new TestCompleteEvent(endTime.toEpochMilli(), TestResult.ResultType.SUCCESS));
+        if (!isComposite()) {
+            testResultState.incrementSuccessfulCount();
+        }
+        listener.completed(testDescriptor, new DefaultTestResult(TestResult.ResultType.SUCCESS, startTime, endTime.toEpochMilli(), testResultState.getTotalCount(), testResultState.getSuccessfulCount(), testResultState.getFailureCount(), Collections.emptyList()), new TestCompleteEvent(endTime.toEpochMilli(), TestResult.ResultType.SUCCESS));
     }
 
     @Override
     public void skipped(Instant endTime) {
-        listener.completed(testDescriptor, new DefaultTestResult(TestResult.ResultType.SKIPPED, startTime, endTime.toEpochMilli(), 1, 0, 0, Collections.emptyList()), new TestCompleteEvent(endTime.toEpochMilli(), TestResult.ResultType.SKIPPED));
+        listener.completed(testDescriptor, new DefaultTestResult(TestResult.ResultType.SKIPPED, startTime, endTime.toEpochMilli(), testResultState.getTotalCount(), testResultState.getSuccessfulCount(), testResultState.getFailureCount(), Collections.emptyList()), new TestCompleteEvent(endTime.toEpochMilli(), TestResult.ResultType.SKIPPED));
     }
 
     @Override
     public void failed(Instant endTime, String message, String additionalContent) {
-        testResultState.incrementFailureCount();
+        if (!isComposite()) {
+            testResultState.incrementFailureCount();
+        }
         TestFailureDetails failureDetails = new DefaultTestFailureDetails(message, Throwable.class.getName(), additionalContent, true, false, null, null, null, null);
         TestFailure testFailure = new DefaultTestFailure(new Throwable(message), failureDetails, Collections.emptyList());
-        listener.completed(testDescriptor, new DefaultTestResult(TestResult.ResultType.FAILURE, startTime, endTime.toEpochMilli(), 1, 0, 1, Collections.singletonList(testFailure)), new TestCompleteEvent(endTime.toEpochMilli(), TestResult.ResultType.FAILURE));
+        listener.completed(testDescriptor, new DefaultTestResult(TestResult.ResultType.FAILURE, startTime, endTime.toEpochMilli(), testResultState.getTotalCount(), testResultState.getSuccessfulCount(), testResultState.getFailureCount(), Collections.singletonList(testFailure)), new TestCompleteEvent(endTime.toEpochMilli(), TestResult.ResultType.FAILURE));
     }
 
     @Override

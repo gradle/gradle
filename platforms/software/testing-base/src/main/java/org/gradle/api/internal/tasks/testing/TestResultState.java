@@ -16,9 +16,21 @@
 
 package org.gradle.api.internal.tasks.testing;
 
+import org.gradle.api.NonNullApi;
+
 import javax.annotation.Nullable;
 import java.util.concurrent.atomic.AtomicLong;
 
+/**
+ * Tracks the number of tests and successes/failures and the hierarchy of test results.
+ *
+ * Given a hierarchy
+ * Root > Group > Test 1...5
+ *
+ * Test 1...5 will have a parent of Group, and Group will have a parent of Root.
+ * Composite test results are calculated by summing the results of all children. This is done by incrementing the parent's count when a child's count is incremented.
+ */
+@NonNullApi
 class TestResultState {
     private final @Nullable TestResultState parent;
     private final AtomicLong totalCount = new AtomicLong(0);
@@ -32,6 +44,7 @@ class TestResultState {
     long getTotalCount() {
         return totalCount.get();
     }
+
     void incrementTotalCount() {
         totalCount.incrementAndGet();
         if (parent!=null) {

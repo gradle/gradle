@@ -17,40 +17,30 @@
 package org.gradle.api.internal.tasks.testing;
 
 import org.gradle.api.NonNullApi;
-import org.gradle.api.internal.tasks.testing.results.DefaultTestResult;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
 import org.gradle.api.tasks.testing.GroupTestEventReporter;
 import org.gradle.api.tasks.testing.TestEventReporter;
-import org.gradle.api.tasks.testing.TestFailure;
-import org.gradle.api.tasks.testing.TestFailureDetails;
-import org.gradle.api.tasks.testing.TestOutputEvent;
-import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.id.IdGenerator;
 
-import java.time.Instant;
-import java.util.Collections;
-
 @NonNullApi
-class DefaultGroupTestEventReporter implements GroupTestEventReporter {
+class DefaultGroupTestEventReporter extends DefaultTestEventReporter implements GroupTestEventReporter {
     private final IdGenerator<?> idGenerator;
-    private final TestListenerInternal listener;
-    private final TestDescriptorInternal testDescriptor;
-    private final TestResultState testResultState;
-
-    private long startTime;
 
     DefaultGroupTestEventReporter(TestListenerInternal listener, IdGenerator<?> idGenerator, TestDescriptorInternal testDescriptor, TestResultState testResultState) {
+        super(listener, testDescriptor, testResultState);
         this.idGenerator = idGenerator;
-        this.listener = listener;
-        this.testDescriptor = testDescriptor;
-        this.testResultState = testResultState;
+    }
+
+    @Override
+    protected boolean isComposite() {
+        return true;
     }
 
     @Override
     public TestEventReporter reportTest(String name, String displayName) {
         return new DefaultTestEventReporter(listener,
             new DecoratingTestDescriptor(new DefaultTestDescriptor(idGenerator.generateId(), null, name, null, displayName), testDescriptor),
-            testResultState
+            new TestResultState(testResultState)
         );
     }
 
@@ -62,38 +52,5 @@ class DefaultGroupTestEventReporter implements GroupTestEventReporter {
             new DecoratingTestDescriptor(new DefaultTestSuiteDescriptor(idGenerator.generateId(), name), testDescriptor),
             new TestResultState(testResultState)
         );
-    }
-
-    @Override
-    public void started(Instant startTime) {
-        this.startTime = startTime.toEpochMilli();
-        listener.started(testDescriptor, new TestStartEvent(startTime.toEpochMilli(), testDescriptor.getParent() == null ? null : testDescriptor.getParent().getId()));
-    }
-
-    @Override
-    public void output(Instant logTime, TestOutputEvent.Destination destination, String output) {
-        listener.output(testDescriptor, new DefaultTestOutputEvent(logTime.toEpochMilli(), destination, output));
-    }
-
-    @Override
-    public void succeeded(Instant endTime) {
-        listener.completed(testDescriptor, new DefaultTestResult(TestResult.ResultType.SUCCESS, startTime, endTime.toEpochMilli(), testResultState.getTotalCount(), testResultState.getSuccessfulCount(), testResultState.getFailureCount(), Collections.emptyList()), new TestCompleteEvent(endTime.toEpochMilli(), TestResult.ResultType.SUCCESS));
-    }
-
-    @Override
-    public void skipped(Instant endTime) {
-        listener.completed(testDescriptor, new DefaultTestResult(TestResult.ResultType.SKIPPED, startTime, endTime.toEpochMilli(), testResultState.getTotalCount(), testResultState.getSuccessfulCount(), testResultState.getFailureCount(), Collections.emptyList()), new TestCompleteEvent(endTime.toEpochMilli(), TestResult.ResultType.SKIPPED));
-    }
-
-    @Override
-    public void failed(Instant endTime, String message, String additionalContent) {
-        TestFailureDetails failureDetails = new DefaultTestFailureDetails(message, Throwable.class.getName(), "", true, false, null, null, null, null);
-        TestFailure testFailure = new DefaultTestFailure(new Throwable(message), failureDetails, Collections.emptyList());
-        listener.completed(testDescriptor, new DefaultTestResult(TestResult.ResultType.FAILURE, startTime, endTime.toEpochMilli(), testResultState.getTotalCount(), testResultState.getSuccessfulCount(), testResultState.getFailureCount(), Collections.singletonList(testFailure)), new TestCompleteEvent(endTime.toEpochMilli(), TestResult.ResultType.FAILURE));
-    }
-
-    @Override
-    public void close() {
-        // do nothing
     }
 }
