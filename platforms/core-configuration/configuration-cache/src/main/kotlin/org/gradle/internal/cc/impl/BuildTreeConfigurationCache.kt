@@ -48,6 +48,9 @@ interface BuildTreeConfigurationCache {
      */
     fun maybePrepareModel(action: () -> Unit)
 
+    // TODO: a potential solution specifically for the case of including the root build
+    fun prepareRootBuild(action: () -> Unit)
+
     /**
      * Loads the cached model, if available, or else runs the given function to create it and then writes the result to the cache.
      */

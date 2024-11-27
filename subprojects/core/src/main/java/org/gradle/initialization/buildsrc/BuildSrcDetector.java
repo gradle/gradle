@@ -17,6 +17,7 @@
 package org.gradle.initialization.buildsrc;
 
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.classpath.Instrumented;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,6 +44,9 @@ public class BuildSrcDetector {
     }
 
     public static boolean isValidBuildSrcBuild(File buildSrcDir) {
+        String configurationInputConsumer = BuildSrcDetector.class.getName();
+        // TODO: this does not work, because this code is executed "too early", and CC has not installed the listeners yet
+        Instrumented.fileSystemEntryObserved(buildSrcDir, configurationInputConsumer);
         if (!buildSrcDir.exists()) {
             return false;
         }
