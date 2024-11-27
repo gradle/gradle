@@ -133,6 +133,7 @@ Custom test root > My Suite > another failing test FAILED
         def firstTestMetadataDetails = testMetadata*.details.metadata as List<Map<String, ?>>
         firstTestMetadataDetails.size() == 1
         firstTestMetadataDetails[0]["key"] == "my key"
+        firstTestMetadataDetails[0]["value"].class == String.class
         firstTestMetadataDetails[0]["value"] == "my value"
     }
 
@@ -149,6 +150,7 @@ Custom test root > My Suite > another failing test FAILED
         def firstTestMetadataDetails = testMetadata*.details.metadata as List<Map<String, ?>>
         firstTestMetadataDetails.size() == 1
         firstTestMetadataDetails[0]["key"] == "my key"
+        firstTestMetadataDetails[0]["value"].class == ArrayList.class
         firstTestMetadataDetails[0]["value"] == [1, 2, 3]
     }
 
@@ -165,6 +167,7 @@ Custom test root > My Suite > another failing test FAILED
         def firstTestMetadataDetails = testMetadata*.details.metadata as List<Map<String, ?>>
         firstTestMetadataDetails.size() == 1
         firstTestMetadataDetails[0]["key"] == "my key"
+        firstTestMetadataDetails[0]["value"].class == Long.class
         firstTestMetadataDetails[0]["value"] == new GregorianCalendar(2024, 11, 27).toInstant().toEpochMilli()
     }
 
@@ -210,6 +213,7 @@ Custom test root > My Suite > another failing test FAILED
         def firstTestMetadataDetails = testMetadata*.details.metadata as List<Map<String, ?>>
         firstTestMetadataDetails.size() == 1
         firstTestMetadataDetails[0]["key"] == "my key"
+        firstTestMetadataDetails[0]["value"].class == String.class
         firstTestMetadataDetails[0]["value"] == new File(testDirectory.file("build", "somefile.txt").absolutePath).absolutePath
     }
 
