@@ -66,7 +66,6 @@ abstract class ExtractJavaAbi : DefaultTask() {
 
     @TaskAction
     fun execute() {
-        println("Running ExtractJavaAbi task with classpath: ${extractorClasspath.files}")
         // Run using classloader isolation to avoid using the ABI extractor from the runtime Gradle distribution
         val task = this
         workerExecutor.processIsolation {
