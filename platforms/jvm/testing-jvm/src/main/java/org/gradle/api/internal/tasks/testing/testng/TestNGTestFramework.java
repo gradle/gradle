@@ -56,7 +56,7 @@ public abstract class TestNGTestFramework implements TestFramework {
     }
 
     private static void conventionMapOutputDirectory(TestNGOptions options, final DirectoryReport html) {
-        options.getOutputDirectory().set(html.getOutputLocation());
+        options.getOutputDirectory().convention(html.getOutputLocation());
     }
 
     @Inject
