@@ -69,6 +69,8 @@ class DefaultTestEventReporter implements TestEventReporter {
     @Override
     public void metadata(Instant logTime, String key, Object value) {
         Preconditions.checkNotNull(logTime, "logTime can not be null!");
+        Preconditions.checkNotNull(key, "Metadata key can not be null!");
+        Preconditions.checkNotNull(value, "Metadata value can not be null!");
         listener.metadata(testDescriptor, new DefaultTestMetadataEvent(logTime.toEpochMilli(), key, value));
     }
 

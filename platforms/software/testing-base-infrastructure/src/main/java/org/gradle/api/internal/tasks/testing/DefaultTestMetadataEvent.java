@@ -31,9 +31,6 @@ public final class DefaultTestMetadataEvent implements TestMetadataEvent {
     private final Object value;
 
     public DefaultTestMetadataEvent(long logTime, String key, Object metadata) {
-        Preconditions.checkNotNull(key, "Metadata key can not be null!");
-        Preconditions.checkNotNull(metadata, "Metadata value can not be null!");
-
         this.logTime = logTime;
         this.key = key;
         this.value = metadata;
