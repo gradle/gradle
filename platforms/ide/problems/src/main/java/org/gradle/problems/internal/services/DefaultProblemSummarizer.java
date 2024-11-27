@@ -98,10 +98,7 @@ public class DefaultProblemSummarizer implements ProblemSummarizer {
     }
 
     private boolean exceededThreshold(Problem problem) {
-        int count = seenProblemsWithCounts.compute(
-            problem.getDefinition().getId(),
-            (key, value) -> value == null ? 1 : value + 1
-        );
+        int count = seenProblemsWithCounts.merge(problem.getDefinition().getId(), 1, Integer::sum);
         return count > threshold;
     }
 }
