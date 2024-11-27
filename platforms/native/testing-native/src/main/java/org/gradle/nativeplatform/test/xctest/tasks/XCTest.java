@@ -63,7 +63,7 @@ public abstract class XCTest extends AbstractTestTask {
         DefaultTestFilter testFilter = (DefaultTestFilter) getFilter();
 
         return new XCTestTestExecutionSpec(workingDirectory.getAsFile().get(), runScriptFile.getAsFile().get(), getPath(),
-            new XCTestSelection(testFilter.getIncludePatterns(), testFilter.getCommandLineIncludePatterns()));
+            new XCTestSelection(testFilter.getIncludePatterns().get(), testFilter.getCommandLineIncludePatterns().get()));
     }
 
     /**
