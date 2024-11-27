@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.testing;
 
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.tasks.testing.logging.SimpleTestEventLogger;
+import org.gradle.api.internal.tasks.testing.logging.TestEventProgressListener;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
 import org.gradle.api.tasks.testing.GroupTestEventReporter;
 import org.gradle.api.tasks.testing.TestEventReporterFactory;
@@ -25,24 +26,29 @@ import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.id.LongIdGenerator;
+import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 
 @NonNullApi
 public final class DefaultTestEventReporterFactory implements TestEventReporterFactory {
-    private final StyledTextOutputFactory textOutputFactory;
     private final ListenerManager listenerManager;
+    private final StyledTextOutputFactory textOutputFactory;
+    private final ProgressLoggerFactory progressLoggerFactory;
 
-    public DefaultTestEventReporterFactory(ListenerManager listenerManager, StyledTextOutputFactory textOutputFactory) {
+    public DefaultTestEventReporterFactory(ListenerManager listenerManager, StyledTextOutputFactory textOutputFactory, ProgressLoggerFactory progressLoggerFactory) {
         this.listenerManager = listenerManager;
         this.textOutputFactory = textOutputFactory;
+        this.progressLoggerFactory = progressLoggerFactory;
     }
 
     @Override
     public GroupTestEventReporter createTestEventReporter(String rootName) {
-        SimpleTestEventLogger eventLogger = new SimpleTestEventLogger(textOutputFactory);
-
         ListenerBroadcast<TestListenerInternal> testListenerInternalBroadcaster = listenerManager.createAnonymousBroadcaster(TestListenerInternal.class);
-        testListenerInternalBroadcaster.add(eventLogger);
+
+        // Renders console output for the task
+        testListenerInternalBroadcaster.add(new SimpleTestEventLogger(textOutputFactory));
+        // Emits progress logger events
+        testListenerInternalBroadcaster.add(new TestEventProgressListener(progressLoggerFactory));
 
         IdGenerator<?> idGenerator = new LongIdGenerator();
         return new LifecycleTrackingGroupTestEventReporter(new DefaultRootTestEventReporter(testListenerInternalBroadcaster.getSource(), idGenerator, new DefaultTestSuiteDescriptor(idGenerator.generateId(), rootName)));

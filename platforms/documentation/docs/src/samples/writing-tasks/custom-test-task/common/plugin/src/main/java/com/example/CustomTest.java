@@ -37,8 +37,78 @@ public abstract class CustomTest extends DefaultTask {
         // The API uses try-with-resources and AutoCloseable to enforce lifecycle checks
         // You can manually call close() on a reporter. Once closed or completed, a test/group cannot generate
         // more events
-        try (GroupTestEventReporter root = getTestEventReporterFactory().createTestEventReporter(getName())) {
+        try (GroupTestEventReporter root = getTestEventReporterFactory().createTestEventReporter("all tests")) {
             root.started(Instant.now());
+
+            // Demonstrate parallel execution
+            try (GroupTestEventReporter parallel = root.reportTestGroup("ParallelSuite")) {
+                parallel.started(Instant.now());
+
+                GroupTestEventReporter worker1 = parallel.reportTestGroup("Worker 1");
+                GroupTestEventReporter worker2 = parallel.reportTestGroup("Worker 2");
+                GroupTestEventReporter worker3 = parallel.reportTestGroup("Worker 3");
+
+                try (worker1; worker2; worker3) {
+                    worker1.started(Instant.now());
+                    worker2.started(Instant.now());
+                    worker3.started(Instant.now());
+
+                    TestEventReporter test1 = worker1.reportTest("parallelTest1", "parallelTest1()");
+                    TestEventReporter test2 = worker2.reportTest("parallelTest2", "parallelTest2()");
+                    TestEventReporter test3 = worker2.reportTest("parallelTest3", "parallelTest3()");
+
+                    try (test1; test2; test3) {
+                        test1.started(Instant.now());
+                        test2.started(Instant.now());
+                        test3.started(Instant.now());
+
+                        // Simulate some activity
+                        try {
+                            Thread.sleep(250);
+                        } catch (InterruptedException e) {
+                            // ignored
+                        }
+                        test1.succeeded(Instant.now());
+
+                        try {
+                            Thread.sleep(500);
+                        } catch (InterruptedException e) {
+                            // ignored
+                        }
+                        test2.succeeded(Instant.now());
+
+                        try {
+                            Thread.sleep(100);
+                        } catch (InterruptedException e) {
+                            // ignored
+                        }
+                        test3.succeeded(Instant.now());
+                    }
+                    worker1.succeeded(Instant.now());
+                    worker2.succeeded(Instant.now());
+                    worker3.succeeded(Instant.now());
+                }
+
+                parallel.succeeded(Instant.now());
+            }
+
+            // If requested, demonstrate a failing test
+            if (getFail().get()) {
+                try (GroupTestEventReporter suite = root.reportTestGroup("FailingSuite")) {
+                    suite.started(Instant.now());
+                    try (TestEventReporter test = suite.reportTest("failingTest", "failingTest()")) {
+                        test.started(Instant.now());
+                        // Simulate some activity
+                        try {
+                            Thread.sleep(300);
+                        } catch (InterruptedException e) {
+                            // ignored
+                        }
+                        test.failed(Instant.now(), "This is a test failure");
+                    }
+                    suite.failed(Instant.now(), "This is additional message for the suite failure");
+                }
+            }
 
             // Demonstrate a test suite with multiple test outcomes
             // This has one level of nesting similar to JUnit
@@ -55,7 +125,7 @@ public abstract class CustomTest extends DefaultTask {
 
                         // Simulate some activity
                         try {
-                            Thread.sleep(100);
+                            Thread.sleep(250);
                         } catch (InterruptedException e) {
                             // ignored
                         }
@@ -96,16 +166,7 @@ public abstract class CustomTest extends DefaultTask {
                 outer.succeeded(Instant.now());
             }
 
-            // If requested, demonstrate a failing test
             if (getFail().get()) {
-                try (GroupTestEventReporter suite = root.reportTestGroup("FailingSuite")) {
-                    suite.started(Instant.now());
-                    try (TestEventReporter test = suite.reportTest("failingTest", "failingTest()")) {
-                        test.started(Instant.now());
-                        test.failed(Instant.now(), "This is a test failure");
-                    }
-                    suite.failed(Instant.now(), "This is additional message for the suite failure");
-                }
                 root.failed(Instant.now());
             } else {
                 root.succeeded(Instant.now());

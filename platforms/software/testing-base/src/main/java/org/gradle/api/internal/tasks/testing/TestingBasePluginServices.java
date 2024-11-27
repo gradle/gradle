@@ -20,6 +20,7 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.tasks.testing.operations.TestListenerBuildOperationAdapter;
 import org.gradle.api.tasks.testing.TestEventReporterFactory;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.operations.BuildOperationIdFactory;
 import org.gradle.internal.operations.BuildOperationListenerManager;
@@ -55,8 +56,8 @@ public class TestingBasePluginServices extends AbstractGradleModuleServices {
     @NonNullApi
     public static class TestingBuildScopeServices implements ServiceRegistrationProvider {
         @Provides
-        TestEventReporterFactory createTestEventService(ListenerManager listenerManager, StyledTextOutputFactory textOutputFactory) {
-            return new DefaultTestEventReporterFactory(listenerManager, textOutputFactory);
+        TestEventReporterFactory createTestEventService(ListenerManager listenerManager, StyledTextOutputFactory textOutputFactory, ProgressLoggerFactory progressLoggerFactory) {
+            return new DefaultTestEventReporterFactory(listenerManager, textOutputFactory, progressLoggerFactory);
         }
     }
 }
