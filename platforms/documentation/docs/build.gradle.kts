@@ -635,6 +635,8 @@ tasks.named<Test>("docsTest") {
             get().isCompatibleWith(version)
 
         // workaround for https://github.com/gradle/dotcom/issues/5958
+        // TODO: Fix for Gradle 10, use failOnNoMatchingTests instead
+        @Suppress("DEPRECATION")
         isFailOnNoMatchingTests = false
         // Only execute C++ sample tests on Linux because it is the configured target
         if (!OperatingSystem.current().isLinux) {
