@@ -22,6 +22,12 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Objects;
 
+/**
+ * Either a build or a project as a target for model building.
+ * <p>
+ * The target is identified by minimal information provided via Tooling API,
+ * such as the root directory of the target build.
+ */
 public class BuildTreeModelTarget {
 
     public static BuildTreeModelTarget ofBuild(File buildRootDir) {
