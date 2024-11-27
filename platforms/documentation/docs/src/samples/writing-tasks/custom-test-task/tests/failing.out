@@ -1,7 +1,7 @@
-test > FailingSuite > failingTest() FAILED
+all tests > FailingSuite > failingTest() FAILED
     This is a test failure
 
-12 tests completed, 7 succeeded, 4 skipped, 1 failed
+15 tests completed, 10 succeeded, 4 skipped, 1 failed
 
 FAILURE: Build failed with an exception.
 

@@ -92,4 +92,9 @@ class DefaultTestEventReporter implements TestEventReporter {
     public void close() {
         // do nothing
     }
+
+    @Override
+    public String toString() {
+        return "reporter for " + testDescriptor.getDisplayName();
+    }
 }

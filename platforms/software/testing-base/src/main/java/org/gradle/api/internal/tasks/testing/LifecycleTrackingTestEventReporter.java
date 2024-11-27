@@ -101,4 +101,9 @@ class LifecycleTrackingTestEventReporter<T extends TestEventReporter> implements
         requireRunning();
         state = State.COMPLETED;
     }
+
+    @Override
+    public String toString() {
+        return delegate.toString();
+    }
 }

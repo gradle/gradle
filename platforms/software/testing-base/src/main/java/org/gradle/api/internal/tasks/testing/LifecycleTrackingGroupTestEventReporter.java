@@ -36,7 +36,7 @@ class LifecycleTrackingGroupTestEventReporter extends LifecycleTrackingTestEvent
     protected void markCompleted() {
         for (LifecycleTrackingTestEventReporter<?> child : children) {
             if (!child.isCompleted()) {
-                throw new IllegalStateException("Group was completed before tests.");
+                throw new IllegalStateException(String.format("Group was completed before tests (%s).", child));
             }
         }
         super.markCompleted();
