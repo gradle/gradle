@@ -53,6 +53,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -327,8 +328,8 @@ public class BuildExceptionReporter implements Action<Throwable> {
                 context.appendResolution(output ->
                     output.text(join("\n " + LINE_PREFIX_LENGTH_SPACES, resolution.split("\n"))))
             );
-        boolean hasNonGradleSpecificCauseInAncestry = hasCauseAncestry(details.failure, NonGradleCause.class);
-        if (details.exceptionStyle == ExceptionStyle.NONE && !hasNonGradleSpecificCauseInAncestry) {
+        boolean shouldDisplayGenericResolutions = !hasCauseAncestry(details.failure, NonGradleCause.class) && !hasProblemReportsWithSolutions(ImmutableList.of(details.failure), problemLookup);
+        if (details.exceptionStyle == ExceptionStyle.NONE && shouldDisplayGenericResolutions) {
             context.appendResolution(output ->
                 runWithOption(output, STACKTRACE_LONG_OPTION, " option to get the stack trace.")
             );
@@ -336,7 +337,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
 
         LogLevel logLevel = loggingConfiguration.getLogLevel();
         boolean isLessThanInfo = logLevel.ordinal() > INFO.ordinal();
-        if (logLevel != DEBUG && !hasNonGradleSpecificCauseInAncestry) {
+        if (logLevel != DEBUG && shouldDisplayGenericResolutions) {
             context.appendResolution(output -> {
                 output.text("Run with ");
                 if (isLessThanInfo) {
@@ -352,9 +353,21 @@ public class BuildExceptionReporter implements Action<Throwable> {
             addBuildScanMessage(context);
         }
 
-        if (!hasNonGradleSpecificCauseInAncestry) {
+        if (shouldDisplayGenericResolutions) {
             context.appendResolution(this::writeGeneralTips);
         }
+    }
+
+    private static boolean hasProblemReportsWithSolutions(List<? extends Throwable> throwables, ProblemLookup problemLookup) {
+        for (Throwable throwable : throwables) {
+            Optional<String> first = problemLookup.findAll(throwable).stream().flatMap(p -> p.getSolutions().stream()).findFirst();
+            if (first.isPresent()) {
+                return true;
+            } else {
+               return hasProblemReportsWithSolutions(getCauses(throwable), problemLookup);
+            }
+        }
+        return false;
     }
 
     private static void runWithOption(StyledTextOutput output, String optionName, String text) {
