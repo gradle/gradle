@@ -24,9 +24,10 @@ import static org.junit.Assume.assumeFalse
 
 class ConfigurationCacheBuildSrcChangesIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
+    def configurationCache = newConfigurationCacheFixture()
+
     def "invalidates cache upon change to buildSrc #changeFixtureSpec"() {
         given:
-        def configurationCache = newConfigurationCacheFixture()
         def changeFixture = changeFixtureSpec.fixtureForProjectDir(file('buildSrc'))
         changeFixture.setup()
         buildFile << """
@@ -68,7 +69,6 @@ class ConfigurationCacheBuildSrcChangesIntegrationTest extends AbstractConfigura
         )
 
         given:
-        def configurationCache = newConfigurationCacheFixture()
         file("buildSrc/build.gradle.kts").text = """
 
             interface Params: $ValueSourceParameters.name {
@@ -136,4 +136,41 @@ class ConfigurationCacheBuildSrcChangesIntegrationTest extends AbstractConfigura
         'Gradle property'     | 'providers.gradleProperty("test_is_ci")' | '-Ptest_is_ci=true'
         'gradle.properties'   | 'providers.gradleProperty("test_is_ci")' | ''
     }
+
+    def "invalidates cache upon changes to presence of buildSrc"() {
+        settingsFile """
+            rootProject.name = "root"
+        """
+
+        when:
+        createDir("buildSrc")
+        createDir("buildSrc/src")
+//        file("buildSrc/src/foo.txt") << "bar"
+        configurationCacheRun "help"
+
+        then:
+//        file("buildSrc").assertDoesNotExist()
+        file("buildSrc").assertExists()
+        configurationCache.assertStateStored()
+
+        when:
+        settingsFile "buildSrc/settings.gradle", """
+            rootProject.name = "buildSrc"
+            println("Configuring buildSrc")
+        """
+        configurationCacheRun "help"
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("Configuring buildSrc")
+
+        when:
+        file("buildSrc").deleteDir()
+
+        then:
+        configurationCache.assertStateStored()
+        outputDoesNotContain("Configuring buildSrc")
+    }
+
+    // TODO: buildSrc in included builds
 }
