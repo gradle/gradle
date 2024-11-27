@@ -566,6 +566,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      */
     @TaskAction
     public void executeTests() {
+        filter.validate();
         LogLevel currentLevel = determineCurrentLogLevel();
         TestLogging levelLogging = getTestLogging().get(currentLevel);
         TestExceptionFormatter exceptionFormatter = getExceptionFormatter(levelLogging);
@@ -723,7 +724,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     }
 
     private boolean shouldFailOnNoMatchingTests() {
-        return patternFiltersSpecified() && filter.isFailOnNoMatchingTests();
+        return patternFiltersSpecified() && filter.getFailOnNoMatchingTests().get();
     }
 
     boolean testsAreNotFiltered() {
@@ -731,9 +732,9 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     }
 
     private boolean patternFiltersSpecified() {
-        return !filter.getIncludePatterns().isEmpty()
-            || !filter.getCommandLineIncludePatterns().isEmpty()
-            || !filter.getExcludePatterns().isEmpty();
+        return !filter.getIncludePatterns().get().isEmpty()
+            || !filter.getCommandLineIncludePatterns().get().isEmpty()
+            || !filter.getExcludePatterns().get().isEmpty();
     }
 
     private String createNoMatchingTestErrorMessage() {
@@ -749,11 +750,11 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     @Internal
     protected List<String> getNoMatchingTestErrorReasons() {
         List<String> reasons = new ArrayList<String>();
-        if (!getFilter().getIncludePatterns().isEmpty()) {
-            reasons.add(getFilter().getIncludePatterns() + "(filter.includeTestsMatching)");
+        if (!getFilter().getIncludePatterns().get().isEmpty()) {
+            reasons.add(getFilter().getIncludePatterns().get() + "(filter.includeTestsMatching)");
         }
-        if (!filter.getCommandLineIncludePatterns().isEmpty()) {
-            reasons.add(filter.getCommandLineIncludePatterns() + "(--tests filter)");
+        if (!filter.getCommandLineIncludePatterns().get().isEmpty()) {
+            reasons.add(filter.getCommandLineIncludePatterns().get() + "(--tests filter)");
         }
         return reasons;
     }
@@ -768,7 +769,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      */
     @Option(option = "tests", description = "Sets test class or method name to be included (in addition to the test task filters), '*' is supported.")
     public AbstractTestTask setTestNameIncludePatterns(List<String> testNamePattern) {
-        filter.setCommandLineIncludePatterns(testNamePattern);
+        filter.getCommandLineIncludePatterns().set(testNamePattern);
         return this;
     }
 
