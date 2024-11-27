@@ -36,7 +36,7 @@ public final class DefaultTestMetadataEvent extends AbstractProgressEvent<Intern
 
     @Override
     public String getDisplayName() {
-        return "output";
+        return "metadata";
     }
 
     @Override
