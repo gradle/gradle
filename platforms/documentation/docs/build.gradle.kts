@@ -669,6 +669,11 @@ tasks.named<Test>("docsTest") {
             excludeTestsMatching("org.gradle.docs.samples.*.snippet-test-kit-gradle-version_*_testKitFunctionalTestSpockGradleDistribution.sample")
         }
 
+        if (!javaVersion.isCompatibleWith(JavaVersion.VERSION_21)) {
+            // Sample requests Java 21
+            excludeTestsMatching("org.gradle.docs.samples.*.custom-test-task_*_consumer.sample")
+        }
+
         if (javaVersion.isCompatibleWith(JavaVersion.VERSION_22)) {
             // Does not work due to JVM validation issue: https://youtrack.jetbrains.com/issue/KT-66919
             excludeTestsMatching("org.gradle.docs.samples.*.building-kotlin-*")
