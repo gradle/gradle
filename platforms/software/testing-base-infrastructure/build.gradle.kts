@@ -23,7 +23,6 @@ dependencies {
     implementation(projects.serviceRegistryBuilder)
 
     implementation(libs.commonsLang)
-    implementation(libs.guava)
     implementation(libs.slf4jApi)
 
     testImplementation(projects.serviceRegistryImpl)

@@ -52,6 +52,12 @@ class LifecycleTrackingTestEventReporter<T extends TestEventReporter> implements
     }
 
     @Override
+    public void metadata(Instant logTime, String key, Object value) {
+        requireRunning();
+        delegate.metadata(logTime, key, value);
+    }
+
+    @Override
     public void succeeded(Instant endTime) {
         markCompleted();
         delegate.succeeded(endTime);

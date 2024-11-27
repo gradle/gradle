@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.testing;
 
-import com.google.common.base.Preconditions;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.tasks.testing.TestMetadataEvent;
 
