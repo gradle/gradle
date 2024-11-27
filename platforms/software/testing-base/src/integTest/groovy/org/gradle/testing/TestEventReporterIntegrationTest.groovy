@@ -98,12 +98,12 @@ Custom test root > My Suite > another failing test FAILED
         def firstLevelTestOps = operations.children(suiteTestOps[0], ExecuteTestBuildOperationType).sort {
             (it.details as Map<String, TestDescriptorInternal>).testDescriptor.name
         }
-        firstLevelTestOps.size() == 2
+        firstLevelTestOps.size() == 3
         def firstLevelTestOpDetails = firstLevelTestOps*.details as List<Map<String, Map<String, ?>>>
-        firstLevelTestOpDetails*.testDescriptor.name == ["MyTestInternal", "MyTestInternal2"]
-        firstLevelTestOpDetails*.testDescriptor.displayName == ["My test!", "My failing test :("]
-        firstLevelTestOpDetails*.testDescriptor.className == [null, null]
-        firstLevelTestOpDetails*.testDescriptor.composite == [false, false]
+        firstLevelTestOpDetails*.testDescriptor.name == ["myTestInternal", "myTestInternal2", "myTestInternal3"]
+        firstLevelTestOpDetails*.testDescriptor.displayName == ["My test!", "My failing test :(", "another failing test"]
+        firstLevelTestOpDetails*.testDescriptor.className == [null, null, null]
+        firstLevelTestOpDetails*.testDescriptor.composite == [false, false, false]
 
         def firstTestOutputProgress = firstLevelTestOps[0].progress
         firstTestOutputProgress.size() == 2
@@ -150,6 +150,22 @@ Custom test root > My Suite > another failing test FAILED
         firstTestMetadataDetails.size() == 1
         firstTestMetadataDetails[0]["key"] == "my key"
         firstTestMetadataDetails[0]["value"] == [1, 2, 3]
+    }
+
+    def "captures calendar metadata for custom test"() {
+        given:
+        singleCustomTestRecordingMetadata("my key", "new GregorianCalendar(2024, 11, 27)")
+
+        when:
+        succeeds "customTest"
+
+        then: "metadata is retrievable from build operations"
+        List<BuildOperationRecord.Progress> testMetadata = getMetadataForOnlyTest()
+        testMetadata.size() == 1
+        def firstTestMetadataDetails = testMetadata*.details.metadata as List<Map<String, ?>>
+        firstTestMetadataDetails.size() == 1
+        firstTestMetadataDetails[0]["key"] == "my key"
+        firstTestMetadataDetails[0]["value"] == new GregorianCalendar(2024, 11, 27).toInstant().toEpochMilli()
     }
 
     def "captures File metadata for custom test"() {
