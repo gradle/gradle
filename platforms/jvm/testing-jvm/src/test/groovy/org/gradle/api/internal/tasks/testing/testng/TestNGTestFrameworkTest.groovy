@@ -60,7 +60,7 @@ public class TestNGTestFrameworkTest extends Specification {
     }
 
     TestNGTestFramework createFramework() {
-        TestNGTestFramework framework = new TestNGTestFramework(testTask, new DefaultTestFilter(), objects)
+        TestNGTestFramework framework = new TestNGTestFramework(testTask, TestUtil.newInstance(DefaultTestFilter), objects)
         framework.options.outputDirectory = project.file('build/test-results')
         return framework
     }
