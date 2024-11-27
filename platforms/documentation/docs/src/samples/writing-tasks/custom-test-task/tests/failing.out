@@ -1,5 +1,7 @@
 test > FailingSuite > failingTest() FAILED
-    org.gradle.api.tasks.VerificationException: This is a test failure
+    This is a test failure
+
+12 tests completed, 7 succeeded, 4 skipped, 1 failed
 
 FAILURE: Build failed with an exception.
 

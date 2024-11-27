@@ -16,9 +16,11 @@
 
 package org.gradle.api.internal.tasks.testing.logging
 
+import org.gradle.api.internal.tasks.testing.DecoratingTestDescriptor
 import org.gradle.api.internal.tasks.testing.DefaultTestDescriptor
 import org.gradle.api.internal.tasks.testing.DefaultTestFailure
 import org.gradle.api.internal.tasks.testing.DefaultTestFailureDetails
+import org.gradle.api.internal.tasks.testing.DefaultTestSuiteDescriptor
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal
 import org.gradle.api.internal.tasks.testing.TestStartEvent
@@ -41,12 +43,12 @@ class SimpleTestEventLoggerTest extends Specification {
         0 * _
     }
 
-    def "renders failures for simple test"() {
+    def "renders assertion failures for simple test"() {
         def textOutputFactory = new TestStyledTextOutputFactory()
         def logger = new SimpleTestEventLogger(textOutputFactory)
 
         def descriptor = new DefaultTestDescriptor(0, "Class", "method", "Class", "method()")
-        def result = new DefaultTestResult(TestResult.ResultType.FAILURE, 0, 0, 0, 0, 0, [new DefaultTestFailure(null, new DefaultTestFailureDetails("message", "Exception", "stack", false, false, null, null, null, null), [])])
+        def result = new DefaultTestResult(TestResult.ResultType.FAILURE, 0, 0, 0, 0, 0, [new DefaultTestFailure(null, new DefaultTestFailureDetails("message", "Exception", "stack", true, false, null, null, null, null), [])])
         def complete = new TestCompleteEvent(0, TestResult.ResultType.FAILURE)
 
         when:
@@ -56,8 +58,87 @@ class SimpleTestEventLoggerTest extends Specification {
         textOutputFactory.logLevel == null
         textOutputFactory.output == """
 method() {failure}FAILED{normal}
-    {identifier}Exception{normal}: message
+    {failure}message{normal}
 """
+    }
+
+    def "renders test framework failures for simple test"() {
+        def textOutputFactory = new TestStyledTextOutputFactory()
+        def logger = new SimpleTestEventLogger(textOutputFactory)
+
+        def descriptor = new DefaultTestDescriptor(0, "Class", "method", "Class", "method()")
+        def result = new DefaultTestResult(TestResult.ResultType.FAILURE, 0, 0, 0, 0, 0, [new DefaultTestFailure(null, new DefaultTestFailureDetails("message", "TestFrameworkException", "stack", false, false, null, null, null, null), [])])
+        def complete = new TestCompleteEvent(0, TestResult.ResultType.FAILURE)
+
+        when:
+        logger.completed(descriptor, result, complete)
+        then:
+        textOutputFactory.category == SimpleTestEventLogger.canonicalName
+        textOutputFactory.logLevel == null
+        textOutputFactory.output == """
+method() {failure}FAILED{normal}
+    {identifier}TestFrameworkException{normal}: message
+"""
+    }
+
+    def "renders comparison failures for simple test"() {
+        def textOutputFactory = new TestStyledTextOutputFactory()
+        def logger = new SimpleTestEventLogger(textOutputFactory)
+
+        def descriptor = new DefaultTestDescriptor(0, "Class", "method", "Class", "method()")
+        def result = new DefaultTestResult(TestResult.ResultType.FAILURE, 0, 0, 0, 0, 0, [new DefaultTestFailure(null, new DefaultTestFailureDetails("message", "TestFrameworkException", "stack", false, true, "expected", "actual", null, null), [])])
+        def complete = new TestCompleteEvent(0, TestResult.ResultType.FAILURE)
+
+        when:
+        logger.completed(descriptor, result, complete)
+        then:
+        textOutputFactory.category == SimpleTestEventLogger.canonicalName
+        textOutputFactory.logLevel == null
+        textOutputFactory.output == """
+method() {failure}FAILED{normal}
+    Expected: {failure}expected{normal}
+    Actual: {success}actual{normal}
+"""
+    }
+
+    def "renders summary"() {
+        def textOutputFactory = new TestStyledTextOutputFactory()
+        def logger = new SimpleTestEventLogger(textOutputFactory)
+
+        def descriptor = new DefaultTestSuiteDescriptor(0, "Root")
+        def result = new DefaultTestResult(TestResult.ResultType.FAILURE, 0, 0, totalCount, successes, failures, [])
+        def complete = new TestCompleteEvent(0, TestResult.ResultType.FAILURE)
+
+        when:
+        logger.completed(descriptor, result, complete)
+        then:
+        textOutputFactory.output == summary
+
+        where:
+        totalCount | successes | failures | summary
+        // render nothing when there are no failures
+        0         | 0         | 0        | ""
+        1         | 1         | 0        | ""
+        1         | 0         | 0        | ""
+        // render only when there are >0 in a category
+        1         | 0         | 1        | "\n1 test completed, 1 failed\n"
+        2         | 1         | 1        | "\n2 tests completed, 1 succeeded, 1 failed\n"
+        3         | 1         | 1        | "\n3 tests completed, 1 succeeded, 1 skipped, 1 failed\n"
+    }
+
+    def "does not render intermediate groups"() {
+        def textOutputFactory = new TestStyledTextOutputFactory()
+        def logger = new SimpleTestEventLogger(textOutputFactory)
+
+        def parent = new DefaultTestSuiteDescriptor(0, "Root")
+        def descriptor = new DecoratingTestDescriptor(new DefaultTestSuiteDescriptor(1, "Child"), parent)
+        def result = new DefaultTestResult(TestResult.ResultType.FAILURE, 0, 0, 1, 0, 1, [])
+        def complete = new TestCompleteEvent(0, TestResult.ResultType.FAILURE)
+
+        when:
+        logger.completed(descriptor, result, complete)
+        then:
+        textOutputFactory.output == ""
     }
 
     def "does not render skipped"() {

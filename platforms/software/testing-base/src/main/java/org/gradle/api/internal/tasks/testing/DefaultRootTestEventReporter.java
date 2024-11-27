@@ -17,36 +17,36 @@
 package org.gradle.api.internal.tasks.testing;
 
 import org.gradle.api.NonNullApi;
+import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
 import org.gradle.api.tasks.VerificationException;
 import org.gradle.internal.id.IdGenerator;
+import org.gradle.util.internal.TextUtil;
 
 import java.time.Instant;
 
 @NonNullApi
-public class DefaultRootTestEventReporter extends DefaultGroupTestEventReporter {
+class DefaultRootTestEventReporter extends DefaultGroupTestEventReporter {
     private String failureMessage;
 
-    public DefaultRootTestEventReporter(TestResultProcessor processor, IdGenerator<?> idGenerator, TestDescriptorInternal testDescriptor) {
-        super(processor, idGenerator, null, testDescriptor);
+    DefaultRootTestEventReporter(TestListenerInternal listener, IdGenerator<?> idGenerator, TestDescriptorInternal testDescriptor) {
+        super(listener, idGenerator, testDescriptor, new TestResultState(null));
     }
 
     @Override
-    protected void cleanup() {
-        super.cleanup();
+    public void close() {
+        super.close();
         if (failureMessage != null) {
             throw new VerificationException(failureMessage);
         }
     }
 
     @Override
-    public void failed(Instant endTime) {
-        failureMessage = "Test(s) failed.";
-        super.failed(endTime);
-    }
-
-    @Override
-    public void failed(Instant endTime, String message) {
-        failureMessage = message;
-        super.failed(endTime, message);
+    public void failed(Instant endTime, String message, String additionalContent) {
+        if (TextUtil.isBlank(message)) {
+            this.failureMessage = "Test(s) failed.";
+        } else {
+            this.failureMessage = message;
+        }
+        super.failed(endTime, message, additionalContent);
     }
 }

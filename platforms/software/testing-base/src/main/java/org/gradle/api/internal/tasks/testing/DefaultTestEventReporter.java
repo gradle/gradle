@@ -17,106 +17,79 @@
 package org.gradle.api.internal.tasks.testing;
 
 import org.gradle.api.NonNullApi;
-import org.gradle.api.tasks.VerificationException;
+import org.gradle.api.internal.tasks.testing.results.DefaultTestResult;
+import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
 import org.gradle.api.tasks.testing.TestEventReporter;
 import org.gradle.api.tasks.testing.TestFailure;
+import org.gradle.api.tasks.testing.TestFailureDetails;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
 
-import javax.annotation.Nullable;
 import java.time.Instant;
+import java.util.Collections;
 
 @NonNullApi
-public class DefaultTestEventReporter implements TestEventReporter {
-    @NonNullApi
-    protected enum State {
-        CREATED, STARTED, COMPLETED, CLOSED
-    }
+class DefaultTestEventReporter implements TestEventReporter {
 
-    protected final TestResultProcessor processor;
-    protected final @Nullable DefaultGroupTestEventReporter parent;
+    protected final TestListenerInternal listener;
     protected final TestDescriptorInternal testDescriptor;
-    private State state = State.CREATED;
+    protected final TestResultState testResultState;
 
-    public DefaultTestEventReporter(
-        TestResultProcessor processor, @Nullable DefaultGroupTestEventReporter parent, TestDescriptorInternal testDescriptor
-    ) {
-        this.processor = processor;
-        this.parent = parent;
+    private long startTime;
+
+    DefaultTestEventReporter(TestListenerInternal listener, TestDescriptorInternal testDescriptor, TestResultState testResultState) {
+        this.listener = listener;
         this.testDescriptor = testDescriptor;
+        this.testResultState = testResultState;
     }
 
-    protected void requireRunning() {
-        switch (state) {
-            case CREATED:
-                throw new IllegalStateException("started(...) must be called before any other method");
-            case COMPLETED:
-                throw new IllegalStateException("completed(...) has already been called");
-            case CLOSED:
-                throw new IllegalStateException("close() has already been called");
-        }
-    }
-
-    protected void cleanup() {
+    /**
+     * Only non-composite test events should be counted in the test result state.
+     * @return true if this is a composite test event reporter
+     */
+    protected boolean isComposite() {
+        return false;
     }
 
     @Override
     public void started(Instant startTime) {
-        if (state != State.CREATED) {
-            throw new IllegalStateException("started(...) cannot be called twice");
+        if (!isComposite()) {
+            testResultState.incrementTotalCount();
         }
-        state = State.STARTED;
-        processor.started(testDescriptor, new TestStartEvent(startTime.toEpochMilli(), parent == null ? null : parent.testDescriptor.getId()));
+        this.startTime = startTime.toEpochMilli();
+        listener.started(testDescriptor, new TestStartEvent(startTime.toEpochMilli(), testDescriptor.getParent() == null ? null : testDescriptor.getParent().getId()));
     }
 
     @Override
     public void output(Instant logTime, TestOutputEvent.Destination destination, String output) {
-        requireRunning();
-        processor.output(testDescriptor.getId(), new DefaultTestOutputEvent(logTime.toEpochMilli(), destination, output));
-    }
-
-    private void markCompleted() {
-        requireRunning();
-        state = State.COMPLETED;
+        listener.output(testDescriptor, new DefaultTestOutputEvent(logTime.toEpochMilli(), destination, output));
     }
 
     @Override
     public void succeeded(Instant endTime) {
-        markCompleted();
-        processor.completed(testDescriptor.getId(), new TestCompleteEvent(endTime.toEpochMilli(), TestResult.ResultType.SUCCESS));
+        if (!isComposite()) {
+            testResultState.incrementSuccessfulCount();
+        }
+        listener.completed(testDescriptor, new DefaultTestResult(TestResult.ResultType.SUCCESS, startTime, endTime.toEpochMilli(), testResultState.getTotalCount(), testResultState.getSuccessfulCount(), testResultState.getFailureCount(), Collections.emptyList()), new TestCompleteEvent(endTime.toEpochMilli(), TestResult.ResultType.SUCCESS));
     }
 
     @Override
     public void skipped(Instant endTime) {
-        markCompleted();
-        processor.completed(testDescriptor.getId(), new TestCompleteEvent(endTime.toEpochMilli(), TestResult.ResultType.SKIPPED));
+        listener.completed(testDescriptor, new DefaultTestResult(TestResult.ResultType.SKIPPED, startTime, endTime.toEpochMilli(), testResultState.getTotalCount(), testResultState.getSuccessfulCount(), testResultState.getFailureCount(), Collections.emptyList()), new TestCompleteEvent(endTime.toEpochMilli(), TestResult.ResultType.SKIPPED));
     }
 
     @Override
-    public void failed(Instant endTime) {
-        markCompleted();
-        processor.completed(testDescriptor.getId(), new TestCompleteEvent(endTime.toEpochMilli(), TestResult.ResultType.FAILURE));
-    }
-
-    @Override
-    public void failed(Instant endTime, String message) {
-        markCompleted();
-        processor.failure(testDescriptor.getId(), TestFailure.fromTestFrameworkFailure(new VerificationException(message)));
-        processor.completed(testDescriptor.getId(), new TestCompleteEvent(endTime.toEpochMilli(), TestResult.ResultType.FAILURE));
+    public void failed(Instant endTime, String message, String additionalContent) {
+        if (!isComposite()) {
+            testResultState.incrementFailureCount();
+        }
+        TestFailureDetails failureDetails = new DefaultTestFailureDetails(message, Throwable.class.getName(), additionalContent, true, false, null, null, null, null);
+        TestFailure testFailure = new DefaultTestFailure(new Throwable(message), failureDetails, Collections.emptyList());
+        listener.completed(testDescriptor, new DefaultTestResult(TestResult.ResultType.FAILURE, startTime, endTime.toEpochMilli(), testResultState.getTotalCount(), testResultState.getSuccessfulCount(), testResultState.getFailureCount(), Collections.singletonList(testFailure)), new TestCompleteEvent(endTime.toEpochMilli(), TestResult.ResultType.FAILURE));
     }
 
     @Override
     public void close() {
-        if (state == State.CLOSED) {
-            return;
-        }
-        if (state == State.STARTED) {
-            throw new IllegalStateException("completed(...) must be called before close() if started(...) was called");
-        }
-        state = State.CLOSED;
-        if (parent != null) {
-            parent.removeChild(this);
-        }
-        cleanup();
+        // do nothing
     }
 }

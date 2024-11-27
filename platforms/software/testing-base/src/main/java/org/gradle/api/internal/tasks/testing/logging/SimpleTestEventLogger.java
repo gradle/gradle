@@ -25,10 +25,12 @@ import org.gradle.api.internal.tasks.testing.TestStartEvent;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
 import org.gradle.api.tasks.testing.TestDescriptor;
 import org.gradle.api.tasks.testing.TestFailure;
+import org.gradle.api.tasks.testing.TestFailureDetails;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
+import org.gradle.util.internal.TextUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -53,11 +55,12 @@ public class SimpleTestEventLogger implements TestListenerInternal {
 
     @Override
     public void completed(TestDescriptorInternal descriptor, TestResult result, TestCompleteEvent completeEvent) {
-        StyledTextOutput output = textOutputFactory.create(SimpleTestEventLogger.class);
 
         // Only rendering the final test descriptors
         if (!descriptor.isComposite()) {
             if (result.getResultType() == TestResult.ResultType.FAILURE) {
+                StyledTextOutput output = textOutputFactory.create(SimpleTestEventLogger.class);
+
                 // Print header with path to descriptor
                 output.println().append(toEventPath(descriptor)).append(" ");
 
@@ -66,11 +69,45 @@ public class SimpleTestEventLogger implements TestListenerInternal {
 
                 // Print the failure message(s)
                 for (TestFailure failure : result.getFailures()) {
-                    if (failure.getDetails().getMessage() != null) {
-                        output.append("    ").withStyle(StyledTextOutput.Style.Identifier).append(failure.getDetails().getClassName());
-                        output.append(": ").println(failure.getDetails().getMessage());
+                    TestFailureDetails details = failure.getDetails();
+                    if (!TextUtil.isBlank(details.getMessage())) {
+                        if (details.isAssertionFailure()) {
+                            // test assertion (should be most common)
+                            output.append("    ").withStyle(StyledTextOutput.Style.Failure).println(details.getMessage());
+                        } else if (details.isFileComparisonFailure()) {
+                            // comparison failure
+                            output.append("    Expected: ").withStyle(StyledTextOutput.Style.Failure).println(details.getExpected());
+                            output.append("    Actual: ").withStyle(StyledTextOutput.Style.Success).println(details.getActual());
+                        } else {
+                            // test framework failure?
+                            output.append("    ").withStyle(StyledTextOutput.Style.Identifier).append(details.getClassName());
+                            output.append(": ").println(details.getMessage());
+                        }
                     }
                 }
+            }
+        } else if (descriptor.getParent() == null) {
+            // At least one test failed
+            if (result.getFailedTestCount() > 0) {
+                // print the result of the root most group
+                StyledTextOutput output = textOutputFactory.create(SimpleTestEventLogger.class);
+
+                output.println();
+                if (result.getTestCount() == 1) {
+                    output.append("1 test completed");
+                } else {
+                    output.format("%d tests completed", result.getTestCount());
+                }
+                if (result.getSuccessfulTestCount() > 0) {
+                    output.format(", %d succeeded", result.getSuccessfulTestCount());
+                }
+                if (result.getSkippedTestCount() > 0) {
+                    output.format(", %d skipped", result.getSkippedTestCount());
+                }
+                if (result.getFailedTestCount() > 0) {
+                    output.format(", %d failed", result.getFailedTestCount());
+                }
+                output.println();
             }
         }
     }

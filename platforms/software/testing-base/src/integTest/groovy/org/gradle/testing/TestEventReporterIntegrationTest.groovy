@@ -39,16 +39,20 @@ class TestEventReporterIntegrationTest extends AbstractIntegrationSpec {
                        reporter.started(Instant.now())
                        try (def mySuite = reporter.reportTestGroup("My Suite")) {
                             mySuite.started(Instant.now())
-                            try (def myTest = mySuite.reportTest("MyTestInternal", "My test!")) {
+                            try (def myTest = mySuite.reportTest("myTestInternal", "My test!")) {
                                  myTest.started(Instant.now())
                                  myTest.output(Instant.now(), TestOutputEvent.Destination.StdOut, "This is a test output on stdout")
                                  myTest.output(Instant.now(), TestOutputEvent.Destination.StdErr, "This is a test output on stderr")
                                  myTest.succeeded(Instant.now())
                             }
-                            try (def myTest = mySuite.reportTest("MyTestInternal2", "My failing test :(")) {
+                            try (def myTest = mySuite.reportTest("myTestInternal2", "My failing test :(")) {
                                  myTest.started(Instant.now())
                                  myTest.output(Instant.now(), TestOutputEvent.Destination.StdErr, "Some text on stderr")
                                  myTest.failed(Instant.now(), "my failure")
+                            }
+                            try (def myTest = mySuite.reportTest("myTestInternal3", "another failing test")) {
+                                 myTest.started(Instant.now())
+                                 myTest.failed(Instant.now()) // no failure message
                             }
                             mySuite.failed(Instant.now())
                        }
@@ -68,7 +72,11 @@ class TestEventReporterIntegrationTest extends AbstractIntegrationSpec {
 
         def customTestOutput = failure.groupedOutput.task(":customTest")
         customTestOutput.assertOutputContains("""Custom test root > My Suite > My failing test :( FAILED
-    org.gradle.api.tasks.VerificationException: my failure""")
+    my failure
+
+Custom test root > My Suite > another failing test FAILED
+
+3 tests completed, 1 succeeded, 2 failed""")
 
         then: "test build operations are emitted in expected hierarchy"
         def rootTestOp = operations.first(ExecuteTestBuildOperationType)
@@ -87,12 +95,12 @@ class TestEventReporterIntegrationTest extends AbstractIntegrationSpec {
         def firstLevelTestOps = operations.children(suiteTestOps[0], ExecuteTestBuildOperationType).sort {
             (it.details as Map<String, TestDescriptorInternal>).testDescriptor.name
         }
-        assert firstLevelTestOps.size() == 2
+        assert firstLevelTestOps.size() == 3
         def firstLevelTestOpDetails = firstLevelTestOps*.details as List<Map<String, Map<String, ?>>>
-        assert firstLevelTestOpDetails*.testDescriptor.name == ["MyTestInternal", "MyTestInternal2"]
-        assert firstLevelTestOpDetails*.testDescriptor.displayName == ["My test!", "My failing test :("]
-        assert firstLevelTestOpDetails*.testDescriptor.className == [null, null]
-        assert firstLevelTestOpDetails*.testDescriptor.composite == [false, false]
+        assert firstLevelTestOpDetails*.testDescriptor.name == ["myTestInternal", "myTestInternal2", "myTestInternal3"]
+        assert firstLevelTestOpDetails*.testDescriptor.displayName == ["My test!", "My failing test :(", "another failing test"]
+        assert firstLevelTestOpDetails*.testDescriptor.className == [null, null, null]
+        assert firstLevelTestOpDetails*.testDescriptor.composite == [false, false, false]
 
         def firstTestOutputProgress = firstLevelTestOps[0].progress
         assert firstTestOutputProgress.size() == 2
@@ -107,5 +115,8 @@ class TestEventReporterIntegrationTest extends AbstractIntegrationSpec {
         def secondTestOutputs = secondTestOutputProgress[0].details.output as Map<String, ?>
         assert secondTestOutputs.destination == "StdErr"
         assert secondTestOutputs.message == "Some text on stderr"
+
+        def thirdTestOutputProgress = firstLevelTestOps[2].progress
+        assert thirdTestOutputProgress.size() == 0
     }
 }
