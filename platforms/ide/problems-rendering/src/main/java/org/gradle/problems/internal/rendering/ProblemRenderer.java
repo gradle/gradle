@@ -56,7 +56,12 @@ public class ProblemRenderer {
     }
 
     static void renderProblemGroup(PrintWriter output, ProblemId id, List<Problem> groupedProblems) {
-        groupedProblems.forEach(problem -> renderProblem(output, problem));
+        String sep = "";
+        for (Problem problem : groupedProblems) {
+            output.printf(sep);
+            renderProblem(output, problem);
+            sep = "%n";
+        }
     }
 
     static void renderProblem(PrintWriter output, Problem problem) {
@@ -70,6 +75,7 @@ public class ProblemRenderer {
                 formatMultiline(output, problem.getDefinition().getId().getDisplayName(), 1);
             }
             if (problem.getDetails() != null) {
+                output.printf("%n");
                 formatMultiline(output, problem.getDetails(), 2);
             }
         }
@@ -79,11 +85,16 @@ public class ProblemRenderer {
         if (message == null) {
             return;
         }
-        for (String line : message.split("\n")) {
-            for (int i = 0; i < level; i++) {
+        String[] lines = message.split("\n");
+        for (int i = 0; i < lines.length; i++) {
+            for (int j = 0; j < level; j++) {
                 output.print("  ");
             }
-            output.printf("%s%n", line);
+            if (i == lines.length - 1) { // don't print extra newline at the end of the last line
+                output.printf("%s", lines[i]);
+            } else {
+                output.printf("%s%n", lines[i]);
+            }
         }
     }
 }

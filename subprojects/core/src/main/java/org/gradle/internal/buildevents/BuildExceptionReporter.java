@@ -419,6 +419,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
                 if (throwable instanceof CompilationFailedIndicator) {
                     String diagnosticCounts = ((CompilationFailedIndicator) throwable).getDiagnosticCounts();
                     if (diagnosticCounts != null) {
+                        builder.append(System.lineSeparator());
                         builder.append(diagnosticCounts);
                     }
                 }
