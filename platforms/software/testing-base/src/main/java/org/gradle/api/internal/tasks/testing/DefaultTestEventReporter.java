@@ -29,20 +29,23 @@ import java.time.Instant;
 import java.util.Collections;
 
 @NonNullApi
-class DefaultTestEventReporter implements TestEventReporter {
+final class DefaultTestEventReporter implements TestEventReporter {
 
-    protected final TestListenerInternal listener;
-    protected final TestDescriptorInternal testDescriptor;
+    private final TestListenerInternal listener;
+    private final TestDescriptorInternal testDescriptor;
+    private final TestResultState testResultState;
 
     private long startTime;
 
-    DefaultTestEventReporter(TestListenerInternal listener, TestDescriptorInternal testDescriptor) {
+    DefaultTestEventReporter(TestListenerInternal listener, TestDescriptorInternal testDescriptor, TestResultState testResultState) {
         this.listener = listener;
         this.testDescriptor = testDescriptor;
+        this.testResultState = testResultState;
     }
 
     @Override
     public void started(Instant startTime) {
+        testResultState.incrementTotalCount();
         this.startTime = startTime.toEpochMilli();
         listener.started(testDescriptor, new TestStartEvent(startTime.toEpochMilli(), testDescriptor.getParent() == null ? null : testDescriptor.getParent().getId()));
     }
@@ -54,6 +57,7 @@ class DefaultTestEventReporter implements TestEventReporter {
 
     @Override
     public void succeeded(Instant endTime) {
+        testResultState.incrementSuccessfulCount();
         listener.completed(testDescriptor, new DefaultTestResult(TestResult.ResultType.SUCCESS, startTime, endTime.toEpochMilli(), 1, 1, 0, Collections.emptyList()), new TestCompleteEvent(endTime.toEpochMilli(), TestResult.ResultType.SUCCESS));
     }
 
@@ -64,6 +68,7 @@ class DefaultTestEventReporter implements TestEventReporter {
 
     @Override
     public void failed(Instant endTime, String message, String additionalContent) {
+        testResultState.incrementFailureCount();
         TestFailureDetails failureDetails = new DefaultTestFailureDetails(message, Throwable.class.getName(), additionalContent, true, false, null, null, null, null);
         TestFailure testFailure = new DefaultTestFailure(new Throwable(message), failureDetails, Collections.emptyList());
         listener.completed(testDescriptor, new DefaultTestResult(TestResult.ResultType.FAILURE, startTime, endTime.toEpochMilli(), 1, 0, 1, Collections.singletonList(testFailure)), new TestCompleteEvent(endTime.toEpochMilli(), TestResult.ResultType.FAILURE));
