@@ -87,9 +87,28 @@ public class SimpleTestEventLogger implements TestListenerInternal {
                 }
             }
         } else if (descriptor.getParent() == null) {
-            // print the result of the root most group
-            StyledTextOutput output = textOutputFactory.create(SimpleTestEventLogger.class);
-            output.println().formatln("%d tests completed, %d succeeded, %d failed", result.getTestCount(), result.getSuccessfulTestCount(), result.getFailedTestCount());
+            // At least one test failed
+            if (result.getFailedTestCount() > 0) {
+                // print the result of the root most group
+                StyledTextOutput output = textOutputFactory.create(SimpleTestEventLogger.class);
+
+                output.println();
+                if (result.getTestCount() == 1) {
+                    output.append("1 test completed");
+                } else {
+                    output.format("%d tests completed", result.getTestCount());
+                }
+                if (result.getSuccessfulTestCount() > 0) {
+                    output.format(", %d succeeded", result.getSuccessfulTestCount());
+                }
+                if (result.getSkippedTestCount() > 0) {
+                    output.format(", %d skipped", result.getSkippedTestCount());
+                }
+                if (result.getFailedTestCount() > 0) {
+                    output.format(", %d failed", result.getFailedTestCount());
+                }
+                output.println();
+            }
         }
     }
 
