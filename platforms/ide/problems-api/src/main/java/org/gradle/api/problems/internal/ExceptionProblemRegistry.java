@@ -56,7 +56,6 @@ public class ExceptionProblemRegistry {
      */
     private class DefaultProblemLookup implements ProblemLookup {
 
-
         private final Multimap<String, Throwable> lookup;
 
         DefaultProblemLookup() {
@@ -104,8 +103,7 @@ public class ExceptionProblemRegistry {
                         return candidate;
                     }
                 }
-            } catch (RuntimeException e) {
-                e.printStackTrace();
+            } catch (RuntimeException ignore) {
                 return null;
             }
             return null;
