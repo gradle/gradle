@@ -20,5 +20,5 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:2.0.21")
     implementation("org.gradle:test-retry-gradle-plugin:1.5.2")
 
-    implementation("io.gitlab.arturbosch.detekt:detekt-gradle-plugin:1.23.6")
+    implementation("io.gitlab.arturbosch.detekt:detekt-gradle-plugin:1.23.7")
 }
