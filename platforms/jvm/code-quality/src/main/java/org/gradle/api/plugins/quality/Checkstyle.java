@@ -22,6 +22,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileTree;
+import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.provider.ProviderApiDeprecationLogger;
 import org.gradle.api.plugins.quality.internal.CheckstyleAction;
 import org.gradle.api.plugins.quality.internal.CheckstyleActionParameters;
@@ -34,6 +35,7 @@ import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Console;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
@@ -42,6 +44,7 @@ import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.instrumentation.api.annotations.BytecodeUpgrade;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.Describables;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
@@ -55,7 +58,7 @@ import java.io.File;
  */
 @CacheableTask
 public abstract class Checkstyle extends AbstractCodeQualityTask implements Reporting<CheckstyleReports> {
-    private TextResource config;
+    private final TextResource config;
     private final CheckstyleReports reports;
     private final DirectoryProperty configDirectory;
     private final Property<Boolean> enableExternalDtdLoad;
@@ -65,25 +68,31 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
         this.configDirectory = getObjectFactory().directoryProperty();
         this.reports = getObjectFactory().newInstance(CheckstyleReportsImpl.class, Describables.quoted("Task", getIdentityPath()));
         this.enableExternalDtdLoad = getObjectFactory().property(Boolean.class).convention(false);
+        this.config = getProject().getResources().getText().fromFile(getConfigFile());
         getMaxErrors().convention(0);
         getMaxWarnings().convention(Integer.MAX_VALUE);
         getShowViolations().convention(true);
     }
 
-    /**
-     * The Checkstyle configuration file to use.
-     */
-    @Internal
-    @ToBeReplacedByLazyProperty
-    public File getConfigFile() {
-        return getConfig() == null ? null : getConfig().asFile();
-    }
 
     /**
      * The Checkstyle configuration file to use.
      */
-    public void setConfigFile(File configFile) {
-        setConfig(getProject().getResources().getText().fromFile(configFile));
+    @InputFile
+    @PathSensitive(PathSensitivity.RELATIVE)
+    @ReplacesEagerProperty(adapter = ConfigFileAdapter.class)
+    public abstract RegularFileProperty getConfigFile();
+
+    static class ConfigFileAdapter {
+        @BytecodeUpgrade
+        static void setConfigFile(Checkstyle checkstyle, File configFile) {
+            checkstyle.getConfigFile().set(configFile);
+        }
+
+        @BytecodeUpgrade
+        static File getConfigFile(Checkstyle checkstyle) {
+            return checkstyle.getConfigFile().getAsFile().getOrNull();
+        }
     }
 
     /**
@@ -206,9 +215,10 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
      *
      * @since 2.2
      */
-    @Nested
+    @Internal
+    @NotToBeReplacedByLazyProperty(because = "TextResource is lazy")
     public TextResource getConfig() {
-        return config;
+        return getConfigFile().isPresent() ? config : null;
     }
 
     /**
@@ -217,7 +227,11 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
      * @since 2.2
      */
     public void setConfig(TextResource config) {
-        this.config = config;
+        if (config == null) {
+            getConfigFile().set((File) null);
+        } else {
+            getConfigFile().fileProvider(getProject().provider(config::asFile));
+        }
     }
 
     /**
@@ -296,7 +310,6 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
      * See <a href="https://checkstyle.org/config_system_properties.html#Enable_External_DTD_load">Checkstyle documentation</a> for more details.
      *
      * @return property to enable the use of external DTD files
-     *
      * @since 7.6
      */
     @Incubating

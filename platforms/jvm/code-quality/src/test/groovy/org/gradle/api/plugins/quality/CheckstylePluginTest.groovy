@@ -59,7 +59,7 @@ class CheckstylePluginTest extends AbstractProjectBuilderSpec {
     def "configures checkstyle extension"() {
         expect:
         CheckstyleExtension extension = project.extensions.checkstyle
-        extension.configFile == project.file("config/checkstyle/checkstyle.xml")
+        extension.configFile.get().getAsFile() == project.file("config/checkstyle/checkstyle.xml")
         extension.configDirectory.get().getAsFile() == project.file("config/checkstyle")
         extension.config.inputFiles.singleFile == project.file("config/checkstyle/checkstyle.xml")
         extension.configProperties.get() == [:]
@@ -89,7 +89,7 @@ class CheckstylePluginTest extends AbstractProjectBuilderSpec {
             assert description == "Run Checkstyle analysis for ${sourceSet.name} classes".toString()
             assert checkstyleClasspath.files == project.configurations.checkstyle.files
             assert classpath.files == (sourceSet.output + sourceSet.compileClasspath).files
-            assert configFile == project.file("config/checkstyle/checkstyle.xml")
+            assert configFile.get().getAsFile() == project.file("config/checkstyle/checkstyle.xml")
             assert configDirectory.get().getAsFile() == project.file("config/checkstyle")
             assert config.inputFiles.singleFile == project.file("config/checkstyle/checkstyle.xml")
             assert configProperties.get() == [:]
@@ -110,7 +110,7 @@ class CheckstylePluginTest extends AbstractProjectBuilderSpec {
         task.description == null
         task.source.isEmpty()
         task.checkstyleClasspath.files == project.configurations.checkstyle.files
-        task.configFile == project.file("config/checkstyle/checkstyle.xml")
+        task.configFile.get().getAsFile() == project.file("config/checkstyle/checkstyle.xml")
         task.configDirectory.get().getAsFile() == project.file("config/checkstyle")
         task.config.inputFiles.singleFile == project.file("config/checkstyle/checkstyle.xml")
         task.configProperties.get() == [:]
@@ -139,7 +139,7 @@ class CheckstylePluginTest extends AbstractProjectBuilderSpec {
             test
             other
         }
-        ((CheckstyleExtension)project.checkstyle).with {
+        ((CheckstyleExtension) project.checkstyle).with {
             sourceSets = [project.sourceSets.main]
             config = project.resources.text.fromFile("checkstyle-config")
             configDirectory.set(project.file("custom"))
@@ -167,7 +167,7 @@ class CheckstylePluginTest extends AbstractProjectBuilderSpec {
             assert description == "Run Checkstyle analysis for ${sourceSet.name} classes"
             assert source as List == sourceSet.allJava as List
             assert checkstyleClasspath.files == project.configurations["checkstyle"].files
-            assert configFile == project.file("checkstyle-config")
+            assert configFile.get().getAsFile() == project.file("checkstyle-config")
             assert configDirectory.get().getAsFile() == project.file("custom")
             assert config.inputFiles.singleFile == project.file("checkstyle-config")
             assert configProperties.get() == [foo: "foo"]
@@ -182,7 +182,7 @@ class CheckstylePluginTest extends AbstractProjectBuilderSpec {
 
     def "can customize any additional checkstyle tasks via extension"() {
         def task = project.tasks.create("checkstyleCustom", Checkstyle)
-        ((CheckstyleExtension)project.checkstyle).with {
+        ((CheckstyleExtension) project.checkstyle).with {
             config = project.resources.text.fromFile("checkstyle-config")
             configDirectory.set(project.file("custom"))
             configProperties = [foo: "foo"]
@@ -195,7 +195,7 @@ class CheckstylePluginTest extends AbstractProjectBuilderSpec {
         task.description == null
         task.source.isEmpty()
         task.checkstyleClasspath.files == project.configurations.checkstyle.files
-        task.configFile == project.file("checkstyle-config")
+        task.configFile.get().getAsFile() == project.file("checkstyle-config")
         task.configDirectory.get().getAsFile() == project.file("custom")
         task.config.inputFiles.singleFile == project.file("checkstyle-config")
         task.configProperties.get() == [foo: "foo"]
@@ -208,22 +208,22 @@ class CheckstylePluginTest extends AbstractProjectBuilderSpec {
     def "can use legacy configFile extension property"() {
         project.pluginManager.apply(JavaPlugin)
 
-        ((CheckstyleExtension)project.checkstyle).with {
+        ((CheckstyleExtension) project.checkstyle).with {
             configFile = project.file("checkstyle-config")
         }
 
         expect:
-        project.checkstyle.configFile == project.file("checkstyle-config") // computed property
-        project.tasks.checkstyleMain.configFile == project.file("checkstyle-config")
-        project.tasks.checkstyleTest.configFile == project.file("checkstyle-config")
+        project.checkstyle.configFile.get().getAsFile() == project.file("checkstyle-config") // computed property
+        project.tasks.checkstyleMain.configFile.get().getAsFile() == project.file("checkstyle-config")
+        project.tasks.checkstyleTest.configFile.get().getAsFile() == project.file("checkstyle-config")
     }
 
     def "changing the config dir changes the config file location"() {
-        ((CheckstyleExtension)project.checkstyle).with {
+        ((CheckstyleExtension) project.checkstyle).with {
             configDirectory.set(project.file("custom"))
         }
         expect:
-        project.checkstyle.configFile == project.file("custom/checkstyle.xml") // computed property
+        project.checkstyle.configFile.get().getAsFile() == project.file("custom/checkstyle.xml") // computed property
     }
 
     def "tool configuration has correct attributes"() {
