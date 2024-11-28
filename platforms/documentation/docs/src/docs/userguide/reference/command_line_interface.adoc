@@ -608,6 +608,15 @@ Set to `rich` to enable color and other rich output in the console output, regar
 +
 Set to `verbose` to enable color and other rich output like `rich` with output task names and outcomes at the lifecycle log level, (as is done by default in Gradle 3.5 and earlier).
 
+[[sec:command_line_problems]]
+=== Reporting problems
+
+`--no-problems-report`::
+Disable the generation of `build/reports/problems-report.html`, by default this report is generated with problems provided to the <<implementing_gradle_plugins_binary.adoc#sec:reporting_problems,Problems API>>.
+
+`--problems-report`::
+Enable the generation of `build/reports/problems-report.html`. This is the default behaviour. The report is generated with problems provided to the <<implementing_gradle_plugins_binary.adoc#sec:reporting_problems,Problems API>>.
+
 [[sec:command_line_warnings]]
 === Showing or hiding warnings
 By default, Gradle won't display all warnings (e.g. deprecation warnings). Instead, Gradle will collect them and render a summary at the end of the build like:
