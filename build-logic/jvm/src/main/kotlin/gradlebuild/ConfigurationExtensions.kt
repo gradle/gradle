@@ -17,7 +17,6 @@
 package gradlebuild
 
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.ConsumableConfiguration
 import org.gradle.api.artifacts.ResolvableConfiguration
 import org.gradle.api.attributes.Bundling
 import org.gradle.api.attributes.Category
