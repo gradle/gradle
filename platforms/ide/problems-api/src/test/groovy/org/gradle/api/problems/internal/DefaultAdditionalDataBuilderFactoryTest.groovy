@@ -26,7 +26,7 @@ import javax.annotation.Nullable
 /**
  * Tests for [AdditionalDataBuilderFactory].
  */
-class AdditionalDataBuilderFactoryTest extends Specification {
+class DefaultAdditionalDataBuilderFactoryTest extends Specification {
     def "can register additional data builder"() {
         given:
         def factory = new DefaultAdditionalDataBuilderFactory()
@@ -64,6 +64,11 @@ class AdditionalDataBuilderFactoryTest extends Specification {
                 return new CustomAdditionalDataBuilder()
             }
             return new CustomAdditionalDataBuilder(data)
+        }
+
+        @Override
+        Map<String, String> getAsMap() {
+            return ["value": value]
         }
     }
 

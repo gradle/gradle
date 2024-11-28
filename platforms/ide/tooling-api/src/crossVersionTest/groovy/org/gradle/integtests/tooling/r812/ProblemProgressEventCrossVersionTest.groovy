@@ -30,8 +30,8 @@ import org.gradle.tooling.events.problems.LineInFileLocation
 import org.gradle.tooling.events.problems.Problem
 import org.gradle.tooling.events.problems.Severity
 import org.gradle.tooling.events.problems.SingleProblemEvent
+import org.gradle.tooling.events.problems.internal.DefaultAdditionalData
 import org.gradle.tooling.events.problems.TaskPathLocation
-import org.gradle.tooling.events.problems.internal.GeneralData
 import org.gradle.util.GradleVersion
 import org.junit.Assume
 
@@ -101,6 +101,44 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         withReportProblemTask """
             getProblems().${targetVersion >= GradleVersion.version("8.11") ? 'getReporter()' : 'forNamespace("org.example.plugin")'}.reporting {
                 it.${targetVersion < GradleVersion.version("8.8") ? 'label("shortProblemMessage").category("main", "sub", "id")' : 'id("id", "shortProblemMessage")'}
+                $documentationConfig
+                .lineInFileLocation("/tmp/foo", 1, 2, 3)
+                $detailsConfig
+                .additionalData(org.gradle.api.problems.internal.GeneralDataSpec, data -> data.put("aKey", "aValue"))
+                .severity(Severity.WARNING)
+                .solution("try this instead")
+            }
+        """
+        when:
+
+        def problems = runTask()
+
+        then:
+        problems.size() == 1
+        verifyAll(problems[0]) {
+            details?.details == expectedDetails
+            definition.documentationLink?.url == expectedDocumentation
+            locations.size() == 2
+            (locations[0] as LineInFileLocation).path == '/tmp/foo'
+            (locations[1] as LineInFileLocation).path == "build file '$buildFile.path'"
+            definition.severity == Severity.WARNING
+            solutions.size() == 1
+            solutions[0].solution == 'try this instead'
+        }
+
+        where:
+        detailsConfig              | expectedDetails | documentationConfig                         | expectedDocumentation
+        '.details("long message")' | "long message"  | '.documentedAt("https://docs.example.org")' | 'https://docs.example.org'
+        ''                         | null            | ''                                          | null
+    }
+
+    @TargetGradleVersion(">=8.12")
+    def "daaa"() {
+        given:
+        buildFile
+        withReportProblemTask """
+            getProblems().getReporter().reporting {
+                it.id("id", "shortProblemMessage")
                 $documentationConfig
                 .lineInFileLocation("/tmp/foo", 1, 2, 3)
                 $detailsConfig
@@ -266,7 +304,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         then:
         thrown(BuildException)
         listener.problems.size() == 1
-        (listener.problems[0].additionalData as GeneralData).asMap['typeName']== 'MyTask'
+        (listener.problems[0].additionalData as DefaultAdditionalData).asMap['typeName'] == 'MyTask'
     }
 
     @TargetGradleVersion("=8.6")

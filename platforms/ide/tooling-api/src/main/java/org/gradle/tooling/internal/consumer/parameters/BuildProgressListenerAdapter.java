@@ -79,6 +79,7 @@ import org.gradle.tooling.events.problems.ProblemId;
 import org.gradle.tooling.events.problems.ProblemSummary;
 import org.gradle.tooling.events.problems.Severity;
 import org.gradle.tooling.events.problems.Solution;
+import org.gradle.tooling.events.problems.internal.DefaultAdditionalData;
 import org.gradle.tooling.events.problems.internal.DefaultContextualLabel;
 import org.gradle.tooling.events.problems.internal.DefaultDetails;
 import org.gradle.tooling.events.problems.internal.DefaultDocumentationLink;
@@ -99,7 +100,6 @@ import org.gradle.tooling.events.problems.internal.DefaultSeverity;
 import org.gradle.tooling.events.problems.internal.DefaultSingleProblemEvent;
 import org.gradle.tooling.events.problems.internal.DefaultSolution;
 import org.gradle.tooling.events.problems.internal.DefaultTaskPathLocation;
-import org.gradle.tooling.events.problems.internal.GeneralData;
 import org.gradle.tooling.events.task.TaskFinishEvent;
 import org.gradle.tooling.events.task.TaskOperationDescriptor;
 import org.gradle.tooling.events.task.TaskOperationResult;
@@ -955,18 +955,20 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
     }
 
     private static AdditionalData toAdditionalData(InternalAdditionalData additionalData) {
-        return new GeneralData(additionalData.getAsMap());
+        return new DefaultAdditionalData(additionalData.getAsMap(), null);
     }
 
+    @Nullable
     private static ContextualLabel toContextualLabel(@Nullable InternalContextualLabel contextualLabel) {
         return contextualLabel == null ? null : new DefaultContextualLabel(contextualLabel.getContextualLabel());
     }
 
+    @Nullable
     private static ContextualLabel toContextualLabel(@Nullable String contextualLabel) {
         return contextualLabel == null ? null : new DefaultContextualLabel(contextualLabel);
     }
 
-    private static Severity toProblemSeverity(InternalSeverity severity) {
+    private static Severity toProblemSeverity(@Nullable InternalSeverity severity) {
         return DefaultSeverity.from(severity != null ? severity.getSeverity() : Severity.WARNING.getSeverity());
     }
 
@@ -993,6 +995,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         return result;
     }
 
+    @Nullable
     private static DocumentationLink toDocumentationLink(@Nullable InternalDocumentationLink link) {
         return link == null || link.getUrl() == null ? null : new DefaultDocumentationLink(link.getUrl());
     }
@@ -1005,6 +1008,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         return result;
     }
 
+    @Nullable
     private static Details toProblemDetails(@Nullable InternalDetails details) {
         if (details != null) {
             return new DefaultDetails(details.getDetails());
@@ -1175,6 +1179,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         return failures;
     }
 
+    @Nullable
     private static Failure toFailure(InternalBasicProblemDetails problemDetails) {
         if (!(problemDetails instanceof InternalBasicProblemDetailsVersion2)) {
             return null;
@@ -1182,7 +1187,8 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         return toFailure(((InternalBasicProblemDetailsVersion2) problemDetails).getFailure());
     }
 
-    private static Failure toFailure(InternalFailure origFailure) {
+    @Nullable
+    private static Failure toFailure(@Nullable InternalFailure origFailure) {
         if (origFailure == null) {
             return null;
         }

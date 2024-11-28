@@ -30,8 +30,8 @@ import org.gradle.tooling.events.problems.LineInFileLocation
 import org.gradle.tooling.events.problems.ProblemSummariesEvent
 import org.gradle.tooling.events.problems.Severity
 import org.gradle.tooling.events.problems.SingleProblemEvent
+import org.gradle.tooling.events.problems.internal.DefaultAdditionalData
 import org.gradle.tooling.events.problems.TaskPathLocation
-import org.gradle.tooling.events.problems.internal.GeneralData
 import org.gradle.util.GradleVersion
 import org.junit.Assume
 
@@ -94,7 +94,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
             locations.size() == 2
             (locations[0] as LineInFileLocation).path == "build file '$buildFile.path'" // FIXME: the path should not contain a prefix nor extra quotes
             (locations[1] as LineInFileLocation).path == "build file '$buildFile.path'"
-            additionalData instanceof GeneralData
+            additionalData instanceof DefaultAdditionalData
             additionalData.asMap['type'] == 'USER_CODE_DIRECT'
         }
     }
@@ -271,7 +271,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         then:
         thrown(BuildException)
         listener.problems.size() == 1
-        (listener.problems[0].additionalData as GeneralData).asMap['typeName']== 'MyTask'
+        (listener.problems[0].additionalData as DefaultAdditionalData).asMap['typeName'] == 'MyTask'
     }
 
     @TargetGradleVersion("=8.6")

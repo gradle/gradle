@@ -56,7 +56,7 @@ class ReceivedProblem implements Problem {
         this.solutions = problemDetails['solutions'] as List<String>
         this.originLocations = fromList(problemDetails['originLocations'] as List<Object>)
         this.contextualLocations = fromList(problemDetails['contextualLocations'] as List<Object>)
-        this.additionalData = new ReceivedAdditionalData(problemDetails['additionalData'] as Map<String, Object>)
+        this.additionalData = new ReceivedAdditionalData(problemDetails['additionalData'] as Map<String, String>)
         this.exception = problemDetails['exception'] == null ? null : new ReceivedException(problemDetails['exception'] as Map<String, Object>)
     }
 
@@ -64,7 +64,7 @@ class ReceivedProblem implements Problem {
         List<ProblemLocation> result = []
         locations.each { location ->
             if (location['pluginId'] != null) {
-                result += new ReceivedPluginIdLocation(location as Map<String, Object>)
+                result += new ReceivedPluginIdLocation(location as Map<String, String>)
             } else if (location['line'] != null) {
                 result += new ReceivedLineInFileLocation(location as Map<String, Object>)
             } else if (location['offset'] != null) {
@@ -362,7 +362,7 @@ class ReceivedProblem implements Problem {
     static class ReceivedPluginIdLocation implements PluginIdLocation {
         private final String pluginId
 
-        ReceivedPluginIdLocation(Map<String, Object> location) {
+        ReceivedPluginIdLocation(Map<String, String> location) {
             this.pluginId = location['pluginId'] as String
         }
 
@@ -386,23 +386,23 @@ class ReceivedProblem implements Problem {
     }
 
     static class ReceivedAdditionalData implements AdditionalData {
-        private final Map<String, Object> data
+        private final Map<String, String> data
 
-        ReceivedAdditionalData(Map<String, Object> data) {
+        ReceivedAdditionalData(Map<String, String> data) {
             if (data == null) {
                 this.data = [:]
             } else {
                 def d = data.findAll { k, v -> v != null }
                 // GeneralData already contains asMap property; it is removed for clarity
                 if (d['asMap'] instanceof Map) {
-                    this.data = d['asMap'] as Map<String, Object>
+                    this.data = d['asMap'] as Map<String, String>
                 } else {
                     this.data = d
                 }
             }
         }
 
-        Map<String, Object> getAsMap() {
+        Map<String, String> getAsMap() {
             data
         }
 

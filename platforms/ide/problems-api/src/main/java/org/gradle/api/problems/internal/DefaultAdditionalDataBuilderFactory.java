@@ -25,7 +25,6 @@ import org.gradle.api.problems.AdditionalDataSpec;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
@@ -91,13 +90,11 @@ public final class DefaultAdditionalDataBuilderFactory implements AdditionalData
 
     @Override
     public <U extends AdditionalDataSpec> AdditionalDataBuilder<? extends AdditionalData> createAdditionalDataBuilder(Class<? extends U> specType, @Nullable AdditionalData additionalData) {
-        if (additionalData == null) {
-            return builderFor(specType, null, "Unsupported type: " + specType);
-        }
         if (isCompatible(specType, additionalData)) {
-            return builderFor(specType, additionalData, "Unsupported instance: " + additionalData);
+            return builderFor(specType, additionalData);
         }
-        throw new IllegalArgumentException("Additional data of type " + additionalData.getClass() + " is already set");
+        throw new IllegalArgumentException("Additional data " +
+            (additionalData == null ? "<null>" : "of type " + additionalData.getClass().getName()) + " is not compatible with spec type " + specType);
     }
 
     @Override
@@ -105,19 +102,18 @@ public final class DefaultAdditionalDataBuilderFactory implements AdditionalData
         return additionalDataProviders.containsKey(specType);
     }
 
-    private <U extends AdditionalDataSpec> boolean isCompatible(Class<? extends U> specType, @Nonnull AdditionalData additionalData) {
+    private <U extends AdditionalDataSpec> boolean isCompatible(Class<? extends U> specType, @Nullable AdditionalData additionalData) {
         DataTypeAndProvider dataTypeAndProvider = additionalDataProviders.get(specType);
-        return dataTypeAndProvider != null && dataTypeAndProvider.dataType.isInstance(additionalData);
+        return additionalData == null || (dataTypeAndProvider != null && dataTypeAndProvider.dataType.isInstance(additionalData));
     }
 
-    @SuppressWarnings("unchecked")
-    private <S extends AdditionalData, U extends AdditionalDataSpec> AdditionalDataBuilder<S> builderFor(Class<? extends U> specType, @Nullable S instance, String illegalArgumentMessage) {
+    private <S extends AdditionalData, U extends AdditionalDataSpec> AdditionalDataBuilder<? extends AdditionalData> builderFor(Class<? extends U> specType, @Nullable S instance) {
         Preconditions.checkNotNull(specType);
         DataTypeAndProvider dataTypeAndProvider = additionalDataProviders.get(specType);
         if (dataTypeAndProvider != null) {
-            return (AdditionalDataBuilder<S>) dataTypeAndProvider.builderProvider.provide(instance);
+            return dataTypeAndProvider.builderProvider.provide(instance);
         }
-        throw new IllegalArgumentException(illegalArgumentMessage);
+        throw new IllegalArgumentException("Unsupported instance: " + instance);
     }
 
     private static class DataTypeAndProvider {

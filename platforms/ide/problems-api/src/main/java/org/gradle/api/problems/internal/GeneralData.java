@@ -18,12 +18,9 @@ package org.gradle.api.problems.internal;
 
 import org.gradle.api.problems.AdditionalData;
 
-import java.util.Map;
-
 /**
  * General additional data type that can be used to attach arbitrary data to a problem with a string map.
  */
 public interface GeneralData extends AdditionalData {
 
-    Map<String, String> getAsMap();
 }

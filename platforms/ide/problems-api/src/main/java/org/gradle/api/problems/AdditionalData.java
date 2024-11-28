@@ -21,6 +21,8 @@ import org.gradle.api.Incubating;
 import org.gradle.api.problems.internal.InternalProblemSpec;
 import org.gradle.api.problems.internal.Problem;
 
+import java.util.Map;
+
 /**
  * Marker interface for additional data that can be attached to a {@link Problem}.
  * <p>
@@ -33,10 +35,16 @@ import org.gradle.api.problems.internal.Problem;
  *     <li>{@link org.gradle.api.problems.internal.PropertyTraceData}</li>
  * </ul>
  *
- * @since 8.12
  * @see InternalProblemSpec#additionalData(Class, Action)
+ * @since 8.12
  */
 @Incubating
 public interface AdditionalData {
 
+    /**
+     * Data as Map for compatibility.
+     *
+     * @since 8.12
+     */
+    Map<String, String> getAsMap();
 }

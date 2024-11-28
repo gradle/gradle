@@ -16,10 +16,12 @@
 
 package org.gradle.api.problems.internal;
 
+import com.google.common.collect.ImmutableMap;
 import org.gradle.api.problems.AdditionalDataBuilder;
 
 import javax.annotation.Nullable;
 import java.io.Serializable;
+import java.util.Map;
 
 public class DefaultTypeValidationData implements TypeValidationData, Serializable {
 
@@ -67,6 +69,17 @@ public class DefaultTypeValidationData implements TypeValidationData, Serializab
             return new DefaultTypeValidationDataBuilder();
         }
         return new DefaultTypeValidationDataBuilder(from);
+    }
+
+    @Override
+    public Map<String, String> getAsMap() {
+        return ImmutableMap.of(
+            "pluginId", pluginId,
+            "propertyName", propertyName,
+            "functionName", functionName,
+            "parentPropertyName", parentPropertyName,
+            "typeName", typeName
+        );
     }
 
     private static class DefaultTypeValidationDataBuilder implements TypeValidationDataSpec, AdditionalDataBuilder<TypeValidationData> {

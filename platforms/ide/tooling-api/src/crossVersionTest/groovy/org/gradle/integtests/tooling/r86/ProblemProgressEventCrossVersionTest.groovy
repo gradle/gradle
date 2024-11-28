@@ -49,8 +49,17 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
                 }
             }
 
-            tasks.register("reportProblem", ProblemReportingTask)
-        """
+            abstract class MyPlugin implements Plugin<Project> {
+                @Inject
+                protected abstract Problems getProblems();
+
+                void apply(Project project) {
+                    project.tasks.register("reportProblem", ProblemReportingTask)
+                }
+            }
+
+            apply(plugin: MyPlugin)
+       """
     }
 
     def runTask() {

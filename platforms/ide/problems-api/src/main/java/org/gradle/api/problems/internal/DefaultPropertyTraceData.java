@@ -16,9 +16,11 @@
 
 package org.gradle.api.problems.internal;
 
+import com.google.common.collect.ImmutableMap;
 import org.gradle.api.problems.AdditionalDataBuilder;
 
 import javax.annotation.Nullable;
+import java.util.Map;
 
 public class DefaultPropertyTraceData implements PropertyTraceData {
     private final String trace;
@@ -41,6 +43,11 @@ public class DefaultPropertyTraceData implements PropertyTraceData {
     @Override
     public String getTrace() {
         return trace;
+    }
+
+    @Override
+    public Map<String, String> getAsMap() {
+        return ImmutableMap.of("trace", trace);
     }
 
     private static class DefaultPropertyTraceDataBuilder implements PropertyTraceDataSpec, AdditionalDataBuilder<PropertyTraceData> {
