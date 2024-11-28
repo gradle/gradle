@@ -203,10 +203,12 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
             if (groovyPropertyGetter.isPresent() && accessor == groovyPropertyGetter.get()) {
                 continue;
             }
+            // TODO: Fix for Gradle 9.0
             // Identify property setters only methods that match a property getter
-            CallableKindInfo callableKindInfo = groovyPropertyGetter.isPresent() && isGroovyPropertySetter(accessor, groovyPropertyGetter.get())
-                ? GROOVY_PROPERTY_SETTER
-                : INSTANCE_METHOD;
+            // CallableKindInfo callableKindInfo = groovyPropertyGetter.isPresent() && isGroovyPropertySetter(accessor, groovyPropertyGetter.get())
+            //    ? GROOVY_PROPERTY_SETTER
+            //    : INSTANCE_METHOD;
+            CallableKindInfo callableKindInfo = INSTANCE_METHOD;
             requests.add(createGroovyPropertyInterceptionRequest(accessor, callableKindInfo, method));
         }
 
@@ -225,6 +227,7 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
         return isGetGetterMethodName(accessor.methodName);
     }
 
+    @SuppressWarnings("unused")
     private static boolean isGroovyPropertySetter(AccessorSpec accessorSpec, AccessorSpec groovyPropertyGetter) {
         return accessorSpec.accessorType == AccessorType.SETTER
             && isSetterMethodName(accessorSpec.methodName)
