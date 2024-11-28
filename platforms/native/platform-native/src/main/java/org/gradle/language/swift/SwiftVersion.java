@@ -34,7 +34,7 @@ public enum SwiftVersion {
     /**
      * Swift 6 major version.
      *
-     * @since 8.11
+     * @since 8.12
      */
     SWIFT6(6);
 
