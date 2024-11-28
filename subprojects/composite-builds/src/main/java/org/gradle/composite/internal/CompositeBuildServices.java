@@ -23,6 +23,7 @@ import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.composite.CompositeBuildContext;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.composite.internal.plugins.CompositeBuildPluginResolverContributor;
+import org.gradle.configuration.internal.ConfigurationInputsTrackingRunner;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.IncludedBuildFactory;
 import org.gradle.internal.buildtree.BuildModelParameters;
@@ -74,13 +75,14 @@ public class CompositeBuildServices extends AbstractGradleModuleServices {
             BuildModelParameters buildModelParameters,
             IncludedBuildFactory includedBuildFactory,
             ListenerManager listenerManager,
-            BuildStateFactory buildStateFactory
+            BuildStateFactory buildStateFactory,
+            ConfigurationInputsTrackingRunner configurationInputsTrackingRunner
         ) {
             if (buildModelParameters.isIsolatedProjects()) {
                 // IP mode prohibits cycles in included plugin builds graph
-                return new AcyclicIncludedBuildRegistry(includedBuildFactory, listenerManager, buildStateFactory);
+                return new AcyclicIncludedBuildRegistry(includedBuildFactory, listenerManager, buildStateFactory, configurationInputsTrackingRunner);
             } else {
-                return new DefaultIncludedBuildRegistry(includedBuildFactory, listenerManager, buildStateFactory);
+                return new DefaultIncludedBuildRegistry(includedBuildFactory, listenerManager, buildStateFactory, configurationInputsTrackingRunner);
             }
         }
 

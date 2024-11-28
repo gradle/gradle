@@ -22,6 +22,7 @@ import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.internal.provider.DefaultConfigurationTimeBarrier
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.logging.LogLevel
+import org.gradle.configuration.internal.ConfigurationInputsTrackingRunner
 import org.gradle.configurationcache.ModelStoreResult
 import org.gradle.configurationcache.WorkGraphLoadResult
 import org.gradle.configurationcache.WorkGraphStoreResult
@@ -70,6 +71,7 @@ import org.gradle.util.Path
 import java.io.File
 import java.io.OutputStream
 import java.util.Locale
+import java.util.function.Supplier
 
 
 @Suppress("LongParameterList")
@@ -95,7 +97,7 @@ class DefaultConfigurationCache internal constructor(
     private val calculatedValueContainerFactory: CalculatedValueContainerFactory,
     private val modelSideEffectExecutor: ConfigurationCacheBuildTreeModelSideEffectExecutor,
     private val deferredRootBuildGradle: DeferredRootBuildGradle
-) : BuildTreeConfigurationCache, Stoppable {
+) : BuildTreeConfigurationCache, Stoppable, ConfigurationInputsTrackingRunner {
 
     private
     lateinit var cacheAction: ConfigurationCacheAction
@@ -392,6 +394,12 @@ class DefaultConfigurationCache internal constructor(
                 }
             }
         }.value
+    }
+
+    override fun <T : Any> runTrackingConfigurationInputs(action: Supplier<T>): T {
+        return runWorkThatContributesToCacheEntry {
+            action.get()
+        }
     }
 
     private

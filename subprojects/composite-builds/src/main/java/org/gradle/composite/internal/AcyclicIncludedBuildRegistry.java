@@ -18,6 +18,7 @@ package org.gradle.composite.internal;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.BuildDefinition;
+import org.gradle.configuration.internal.ConfigurationInputsTrackingRunner;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.IncludedBuildFactory;
 import org.gradle.internal.build.IncludedBuildState;
@@ -32,9 +33,10 @@ public class AcyclicIncludedBuildRegistry extends DefaultIncludedBuildRegistry {
     public AcyclicIncludedBuildRegistry(
         IncludedBuildFactory includedBuildFactory,
         ListenerManager listenerManager,
-        BuildStateFactory buildStateFactory
+        BuildStateFactory buildStateFactory,
+        ConfigurationInputsTrackingRunner configurationInputsTrackingRunner
     ) {
-        super(includedBuildFactory, listenerManager, buildStateFactory);
+        super(includedBuildFactory, listenerManager, buildStateFactory, configurationInputsTrackingRunner);
     }
 
     @Override

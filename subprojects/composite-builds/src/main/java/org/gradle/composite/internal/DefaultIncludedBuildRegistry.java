@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
+import org.gradle.configuration.internal.ConfigurationInputsTrackingRunner;
 import org.gradle.initialization.buildsrc.BuildSrcDetector;
 import org.gradle.internal.build.BuildAddedListener;
 import org.gradle.internal.build.BuildState;
@@ -56,6 +57,7 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
     private final IncludedBuildFactory includedBuildFactory;
     private final BuildAddedListener buildAddedBroadcaster;
     private final BuildStateFactory buildStateFactory;
+    private final ConfigurationInputsTrackingRunner configurationInputsTrackingRunner;
 
     // TODO: Locking around the following state
     private RootBuildState rootBuild;
@@ -66,10 +68,16 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
     private final Map<Path, File> nestedBuildDirectoriesByPath = new LinkedHashMap<>();
     private final Deque<IncludedBuildState> pendingIncludedBuilds = new ArrayDeque<>();
 
-    public DefaultIncludedBuildRegistry(IncludedBuildFactory includedBuildFactory, ListenerManager listenerManager, BuildStateFactory buildStateFactory) {
+    public DefaultIncludedBuildRegistry(
+        IncludedBuildFactory includedBuildFactory,
+        ListenerManager listenerManager,
+        BuildStateFactory buildStateFactory,
+        ConfigurationInputsTrackingRunner configurationInputsTrackingRunner
+    ) {
         this.includedBuildFactory = includedBuildFactory;
         this.buildAddedBroadcaster = listenerManager.getBroadcaster(BuildAddedListener.class);
         this.buildStateFactory = buildStateFactory;
+        this.configurationInputsTrackingRunner = configurationInputsTrackingRunner;
     }
 
     @Override
@@ -171,7 +179,10 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
 
     private void maybeAddBuildSrcBuild(BuildState owner) {
         File buildSrcDir = new File(owner.getBuildRootDir(), SettingsInternal.BUILD_SRC);
-        if (!BuildSrcDetector.isValidBuildSrcBuild(buildSrcDir)) {
+        boolean isValidBuildSrcBuild = configurationInputsTrackingRunner.runTrackingConfigurationInputs(() ->
+            BuildSrcDetector.isValidBuildSrcBuild(buildSrcDir)
+        );
+        if (!isValidBuildSrcBuild) {
             return;
         }
 
