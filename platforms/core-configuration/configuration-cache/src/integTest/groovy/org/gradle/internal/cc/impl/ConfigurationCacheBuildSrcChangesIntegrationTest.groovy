@@ -137,40 +137,119 @@ class ConfigurationCacheBuildSrcChangesIntegrationTest extends AbstractConfigura
         'gradle.properties'   | 'providers.gradleProperty("test_is_ci")' | ''
     }
 
-    def "invalidates cache upon changes to presence of buildSrc"() {
+    def "invalidates cache upon change to presence of valid buildSrc by creating #buildSrcNewFile"() {
+        given:
+        def buildOperations = newBuildOperationsFixture()
         settingsFile """
             rootProject.name = "root"
         """
 
         when:
-        createDir("buildSrc")
-        createDir("buildSrc/src")
-//        file("buildSrc/src/foo.txt") << "bar"
         configurationCacheRun "help"
-
         then:
-//        file("buildSrc").assertDoesNotExist()
-        file("buildSrc").assertExists()
         configurationCache.assertStateStored()
+        buildOperations.none("Load build (:buildSrc)")
 
         when:
-        settingsFile "buildSrc/settings.gradle", """
-            rootProject.name = "buildSrc"
-            println("Configuring buildSrc")
-        """
+        file("buildSrc/$buildSrcNewFile").touch()
         configurationCacheRun "help"
-
         then:
         configurationCache.assertStateStored()
-        outputContains("Configuring buildSrc")
+        buildOperations.only("Load build (:buildSrc)")
 
         when:
         file("buildSrc").deleteDir()
+        configurationCacheRun "help"
+        then:
+        configurationCache.assertStateStored()
+        buildOperations.none("Load build (:buildSrc)")
+
+        where:
+        _ | buildSrcNewFile
+        _ | "settings.gradle"
+//        _ | "build.gradle"
+//        _ | "src/main/groovy/MyClass.groovy"
+    }
+
+    def "invalidates cache upon change to presence of valid buildSrc in #parentBuild build by creating #buildSrcNewFile"() {
+        given:
+        def buildOperations = newBuildOperationsFixture()
+        settingsFile """
+            rootProject.name = "root"
+            includeBuild("included")
+        """
+        settingsFile "$parentBuild/settings.gradle", """
+            rootProject.name = "parent-of-buildSrc"
+        """
+
+        def buildSrcBuildPath = ":$parentBuild:buildSrc"
+        def buildSrcDir = "$parentBuild/buildSrc"
+
+        when:
+        configurationCacheRun "help"
+        then:
+        configurationCache.assertStateStored()
+        buildOperations.none("Load build ($buildSrcBuildPath)")
+
+        when:
+        file("$buildSrcDir/$buildSrcNewFile").touch()
+        configurationCacheRun "help"
+        then:
+        configurationCache.assertStateStored()
+        buildOperations.only("Load build ($buildSrcBuildPath)")
+
+        when:
+        file(buildSrcDir).deleteDir()
+        configurationCacheRun "help"
+        then:
+        configurationCache.assertStateStored()
+        buildOperations.none("Load build ($buildSrcBuildPath)")
+
+        where:
+        parentBuild | buildSrcNewFile
+        "included"  | "settings.gradle"
+        "included"  | "build.gradle"
+        "included"  | "src/main/groovy/MyClass.groovy"
+        "buildSrc"  | "settings.gradle"
+        "buildSrc"  | "build.gradle"
+        "buildSrc"  | "src/main/groovy/MyClass.groovy"
+    }
+
+    def "reuses cache upon changing invalid buildSrc by creating #description"() {
+        def changeFile = file(path)
+
+        when:
+        configurationCacheRun "help"
 
         then:
         configurationCache.assertStateStored()
-        outputDoesNotContain("Configuring buildSrc")
-    }
 
-    // TODO: buildSrc in included builds
+        when:
+        if (isDir) {
+            changeFile.createDir()
+        } else {
+            changeFile.touch()
+        }
+        configurationCacheRun "help"
+        then:
+        configurationCache.assertStateLoaded()
+
+        when:
+        if (isDir) {
+            changeFile.deleteDir()
+        } else {
+            changeFile.delete()
+        }
+        configurationCacheRun "help"
+
+        then:
+        configurationCache.assertStateLoaded()
+
+        where:
+        description          | isDir | path
+        "buildSrc dir"       | true  | "buildSrc"
+        "buildSrc file"      | false | "buildSrc"
+        "buildSrc with file" | false | "buildSrc/not-build.gradle"
+        "buildSrc with dir"  | false | "buildSrc/not-src/main/groovy/MyClass.groovy"
+    }
 }
