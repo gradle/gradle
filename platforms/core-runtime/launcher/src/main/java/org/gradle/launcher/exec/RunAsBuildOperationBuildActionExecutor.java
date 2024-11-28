@@ -18,7 +18,7 @@ package org.gradle.launcher.exec;
 
 import org.gradle.api.NonNullApi;
 import org.gradle.api.problems.internal.ExceptionProblemRegistry;
-import org.gradle.api.problems.internal.ProblemLookup;
+import org.gradle.api.problems.internal.ProblemLocator;
 import org.gradle.internal.buildtree.BuildActionRunner;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.operations.BuildOperationContext;
@@ -76,8 +76,8 @@ public class RunAsBuildOperationBuildActionExecutor implements BuildSessionActio
                 public BuildOperationDescriptor.Builder description() {
                     return BuildOperationDescriptor.displayName("Run build").details(new RunBuildBuildOperationType.Details() {
                         @Override
-                        public ProblemLookup getProblemLookup() {
-                            return problemContainer.getProblemLookup();
+                        public ProblemLocator getProblemLookup() {
+                            return problemContainer.getProblemLocator();
                         }
                     });
                 }

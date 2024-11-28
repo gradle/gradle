@@ -16,14 +16,14 @@
 
 package org.gradle.launcher.exec;
 
-import org.gradle.api.problems.internal.ProblemLookup;
+import org.gradle.api.problems.internal.ProblemLocator;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
 @UsedByScanPlugin
 public final class RunBuildBuildOperationType implements BuildOperationType<RunBuildBuildOperationType.Details, RunBuildBuildOperationType.Result> {
     public interface Details {
-        ProblemLookup getProblemLookup();
+        ProblemLocator getProblemLookup();
     }
 
     public interface Result {

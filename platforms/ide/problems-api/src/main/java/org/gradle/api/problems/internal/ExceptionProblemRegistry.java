@@ -46,19 +46,19 @@ public class ExceptionProblemRegistry {
         problemsForThrowables.put(exception, problem);
     }
 
-    public ProblemLookup getProblemLookup() {
-        return new DefaultProblemLookup();
+    public ProblemLocator getProblemLocator() {
+        return new DefaultProblemLocator();
     }
 
     /*
      * Workaround for the fact that the exception thrown by the worker is not the same instance as the one that was thrown by the build. With the lookup we can find the original exception by comparing
      * the stack frames. The comparison is expensive, so we only do when it's necessary (when the original exception does not contain the target and there's a matching class name and message).
      */
-    private class DefaultProblemLookup implements ProblemLookup {
+    private class DefaultProblemLocator implements ProblemLocator {
 
         private final Multimap<String, Throwable> lookup;
 
-        DefaultProblemLookup() {
+        DefaultProblemLocator() {
             this.lookup = initLookup(problemsForThrowables.keySet());
         }
 

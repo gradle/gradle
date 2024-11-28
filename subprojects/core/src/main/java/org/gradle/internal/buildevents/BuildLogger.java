@@ -25,7 +25,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
-import org.gradle.api.problems.internal.ProblemLookup;
+import org.gradle.api.problems.internal.ProblemLocator;
 import org.gradle.execution.WorkValidationWarningReporter;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.initialization.BuildRequestMetaData;
@@ -119,13 +119,13 @@ public class BuildLogger implements InternalBuildListener, TaskExecutionGraphLis
         logResult(buildFailure, t -> Collections.emptyList());
     }
 
-    public void logResult(Throwable buildFailure, ProblemLookup problemLookup) {
+    public void logResult(Throwable buildFailure, ProblemLocator problemLocator) {
         if (action == null) {
             // This logger has been replaced (for example using `Gradle.useLogger()`), so don't log anything
             return;
         }
         BuildResult buildResult = new BuildResult(action, null, buildFailure);
-        exceptionReporter.buildFinished(buildResult, problemLookup);
+        exceptionReporter.buildFinished(buildResult, problemLocator);
         resultLogger.buildFinished(buildResult);
     }
 }
