@@ -589,8 +589,8 @@ performanceTest.registerTestProject("workerApiProject", Copy) {
 }
 
 tasks.withType(JvmProjectGeneratorTask).configureEach {
-    if (project.hasProperty("springDmPluginVersion")) {
-        templateArgs['springDmPluginVersion'] = springDmPluginVersion
+    if (providers.gradleProperty("springDmPluginVersion").isPresent()) {
+        templateArgs['springDmPluginVersion'] = providers.gradleProperty("springDmPluginVersion").get()
     }
     templateArgs['projectDependencies'] = true
 }
