@@ -251,8 +251,6 @@ fun enforceKotlinCompatibility(targetVersion: Provider<Int>, useRelease: Provide
         }
     }
 }
-//
-//class ImplCompatibilityRule
 
 class ImplCompletenessDisambiguationRule : AttributeDisambiguationRule<ImplementationCompletenessAttribute> {
     override fun execute(t: MultipleCandidatesDetails<ImplementationCompletenessAttribute>) {

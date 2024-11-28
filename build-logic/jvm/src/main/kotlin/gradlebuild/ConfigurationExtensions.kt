@@ -58,7 +58,6 @@ fun Configuration.configureAsRuntimeJarClasspath(objects: ObjectFactory) {
 }
 
 
-
 fun ResolvableConfiguration.configureAsCompileJarClasspath(objects: ObjectFactory) {
     attributes {
         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_API))
