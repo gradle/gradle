@@ -47,7 +47,7 @@ public abstract class XCTestSourceElement extends SwiftSourceElement implements 
 
         for (XCTestSourceFileElement testSuite : testSuites) {
             content.append("extension " + testSuite.getTestSuiteName() + " {\n");
-            content.append("  public static var allTests = [\n");
+            content.append("  public static let allTests = [\n");
             for (XCTestCaseElement testCase : testSuite.getTestCases()) {
                 content.append("    (\"" + testCase.getName() + "\", " + testCase.getName() + "),\n");
             }

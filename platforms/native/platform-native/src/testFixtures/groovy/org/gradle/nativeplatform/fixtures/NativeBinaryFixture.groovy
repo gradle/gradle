@@ -124,13 +124,17 @@ class NativeBinaryFixture {
         } else {
             def symbols = binaryInfo.listDebugSymbols()
             def symbolNames = symbols.collect { it.name }
-            def isOlderSwiftc = toolChain.meets(ToolChainRequirement.SWIFTC) && toolChain.version < VersionNumber.version(5, 10)
+            // Older versions of swift used the object file instead of source file in some cases
+            // Also, swift 6 on Linux uses object file names
+            def hasObjectNames = toolChain.meets(ToolChainRequirement.SWIFTC) && (
+                toolChain.version < VersionNumber.version(5, 10) ||
+                    (OperatingSystem.current().isLinux() && toolChain.version >= VersionNumber.version(6))
+            )
             sourceFileNames.each { sourceFileName ->
                 if (sourceFileName in symbolNames) {
                     return
                 }
-                if (isOlderSwiftc) {
-                    // Older versions used the object file instead of source file in some cases
+                if (hasObjectNames) {
                     def objFileName = sourceFileName.replace(".swift", ".o")
                     if (symbolNames.any { it.endsWith(objFileName) }) {
                         return

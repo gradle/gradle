@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.test.xctest.plugins
+package org.gradle.nativeplatform.fixtures.app
 
-import org.gradle.integtests.fixtures.WellBehavedPluginTest
+class Swift6WithSwift5XCTest extends MainWithXCTestSourceElement {
+    final Swift6 main
+    final XCTestSourceElement test
 
-class XCTestPluginIntegrationTest extends WellBehavedPluginTest {
-    @Override
-    String getPluginName() {
-        return "xctest"
+    Swift6WithSwift5XCTest(String projectName) {
+        super(projectName)
+        this.main = new Swift6(projectName)
+        this.test = new XCTestSourceElement(projectName) {
+            @Override
+            List<XCTestSourceFileElement> getTestSuites() {
+                return [new Swift5Test().withImport(main.moduleName)]
+            }
+        }
     }
 }

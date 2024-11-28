@@ -30,6 +30,6 @@ public class MacOSSdkPathLocator extends AbstractLocator {
 
     @Override
     protected List<String> getXcrunFlags() {
-        return ImmutableList.of("--show-sdk-path");
+        return ImmutableList.of("--sdk", "macosx", "--show-sdk-path");
     }
 }
