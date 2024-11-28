@@ -29,7 +29,17 @@ public class FeaturePreviews {
     public enum Feature implements FeatureFlag {
         GROOVY_COMPILATION_AVOIDANCE(true, null),
         TYPESAFE_PROJECT_ACCESSORS(true, null),
-        STABLE_CONFIGURATION_CACHE(true, "org.gradle.configuration-cache.stable");
+        STABLE_CONFIGURATION_CACHE(true, "org.gradle.configuration-cache.stable"),
+        /**
+         * When enabled, service usage must be explicitly declared, or deprecation warnings will be issued.
+         * <p>
+         *     This functionality used to be behind {@link #STABLE_CONFIGURATION_CACHE}, but since it triggers false
+         *     positives and does not cover several required scenarios
+         *     (services used by work that is not tasks, services used at configuration time),
+         *     it is now behind a specific (internal) feature, used only by some internal tests.
+         * </p>
+         */
+        INTERNAL_BUILD_SERVICE_USAGE(true, null);
 
         public static Feature withName(String name) {
             try {

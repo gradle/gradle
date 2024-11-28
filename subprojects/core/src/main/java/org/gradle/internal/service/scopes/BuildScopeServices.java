@@ -789,7 +789,7 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
             listenerManager,
             isolatableFactory,
             sharedResourceLeaseRegistry,
-            featureFlags.isEnabled(FeaturePreviews.Feature.STABLE_CONFIGURATION_CACHE)
+            featureFlags.isEnabled(FeaturePreviews.Feature.INTERNAL_BUILD_SERVICE_USAGE)
                 ? new BuildServiceProviderNagger(services.get(WorkExecutionTracker.class))
                 : BuildServiceProvider.Listener.EMPTY
         );

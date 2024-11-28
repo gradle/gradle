@@ -244,7 +244,6 @@ class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfiguratio
             pluginManagement {
                 includeBuild 'counting-service-plugin'
             }
-            enableFeaturePreview 'STABLE_CONFIGURATION_CACHE'
         """
         file('build.gradle') << """
             plugins { id 'counting-service-plugin' version '1.0' }
