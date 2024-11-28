@@ -181,9 +181,9 @@ class PropertyUpgradeCustomInterceptorCodeGenTest extends InstrumentationCodeGen
                     }
                 }
                 @Generated
-                public static class SetMaxErrorsCallInterceptor extends AbstractCallInterceptor implements SignatureAwareCallInterceptor, FilterableCallInterceptor, FilterableBytecodeInterceptor.BytecodeUpgradeInterceptor, PropertyAwareCallInterceptor {
+                public static class SetMaxErrorsCallInterceptor extends AbstractCallInterceptor implements SignatureAwareCallInterceptor, FilterableCallInterceptor, FilterableBytecodeInterceptor.BytecodeUpgradeInterceptor {
                     public SetMaxErrorsCallInterceptor() {
-                        super(InterceptScope.writesOfPropertiesNamed("maxErrors"), InterceptScope.methodsNamed("setMaxErrors"));
+                        super(InterceptScope.methodsNamed("setMaxErrors"));
                     }
                 }
             }
@@ -267,9 +267,9 @@ class PropertyUpgradeCustomInterceptorCodeGenTest extends InstrumentationCodeGen
                 }
 
                 @Generated
-                public static class SetMaxErrorsCallInterceptor extends AbstractCallInterceptor implements SignatureAwareCallInterceptor, FilterableCallInterceptor, FilterableBytecodeInterceptor.BytecodeUpgradeInterceptor, PropertyAwareCallInterceptor {
+                public static class SetMaxErrorsCallInterceptor extends AbstractCallInterceptor implements SignatureAwareCallInterceptor, FilterableCallInterceptor, FilterableBytecodeInterceptor.BytecodeUpgradeInterceptor {
                     public SetMaxErrorsCallInterceptor() {
-                        super(InterceptScope.writesOfPropertiesNamed("maxErrors"), InterceptScope.methodsNamed("setMaxErrors"));
+                        super(InterceptScope.methodsNamed("setMaxErrors"));
                     }
                 }
             }
