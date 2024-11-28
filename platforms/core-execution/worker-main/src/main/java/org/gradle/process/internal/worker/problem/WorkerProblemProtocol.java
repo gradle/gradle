@@ -26,5 +26,4 @@ import javax.annotation.Nullable;
  */
 public interface WorkerProblemProtocol {
     void reportProblem(Problem problem, @Nullable OperationIdentifier id);
-    void reportProblem(Problem problem, @Nullable OperationIdentifier id, String taskPath);
 }

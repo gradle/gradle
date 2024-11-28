@@ -126,12 +126,8 @@ public class Receiver implements ResponseProtocol, StreamCompletion, StreamFailu
 
     @Override
     public void reportProblem(Problem problem, OperationIdentifier id) {
-        problemProtocol.reportProblem(problem, id, this.taskPath);
-    }
-
-    @Override
-    public void reportProblem(Problem problem, @Nullable OperationIdentifier id, String taskPath) {
-        problemProtocol.reportProblem(problem, id, this.taskPath);
+        problem = this.taskPath == null ? problem : problem.toBuilder(null).taskPathLocation(this.taskPath).build();
+        problemProtocol.reportProblem(problem, id);
     }
 
     @Override
