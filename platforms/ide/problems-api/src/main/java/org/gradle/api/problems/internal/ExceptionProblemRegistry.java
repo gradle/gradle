@@ -126,7 +126,7 @@ public class ExceptionProblemRegistry {
             StackTraceElement[] s1 = t1.getStackTrace();
             StackTraceElement[] s2 = t2.getStackTrace();
             for (int i = 0; i < s1.length && i < s2.length; i++) {
-                if (!isSackTraceElementEquals(s1[i], s2[i])) {
+                if (!isStackTraceElementEquals(s1[i], s2[i])) {
                     return false;
                 }
             }
@@ -135,7 +135,7 @@ public class ExceptionProblemRegistry {
             return deepEquals(t1.getCause(), t2.getCause(), seen);
         }
 
-        private boolean isSackTraceElementEquals(StackTraceElement s1, StackTraceElement s2) {
+        private boolean isStackTraceElementEquals(StackTraceElement s1, StackTraceElement s2) {
             if (!s1.getClassName().equals(s2.getClassName())) {
                 return false;
             }
