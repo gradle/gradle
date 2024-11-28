@@ -153,8 +153,8 @@ public class DefaultAntBuilder extends BasicAntBuilder implements GroovyObject {
     }
 
     private static void configureTask(Target target, AntTarget task, File baseDir, Transformer<? extends String, ? super String> taskNamer) {
-        task.setTarget(target);
-        task.setBaseDir(baseDir);
+        task.getTarget().set(target);
+        task.getBaseDir().set(baseDir);
 
         final List<String> taskDependencyNames = getTaskDependencyNames(target, taskNamer);
         task.dependsOn(new AntTargetsTaskDependency(taskDependencyNames));

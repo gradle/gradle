@@ -107,17 +107,17 @@ class DefaultAntBuilderTest extends AbstractProjectBuilderSpec {
         then:
         def task = project.tasks.target1
         task instanceof AntTarget
-        task.target.name == 'target1'
+        task.target.get().name == 'target1'
 
         and:
         def task2 = project.tasks.target2
         task2 instanceof AntTarget
-        task2.target.name == 'target2'
+        task2.target.get().name == 'target2'
 
         and:
         def task3 = project.tasks.target3
         task3 instanceof AntTarget
-        task3.target.name == 'target3'
+        task3.target.get().name == 'target3'
     }
 
     def "can nest elements"() {
@@ -193,7 +193,7 @@ class DefaultAntBuilderTest extends AbstractProjectBuilderSpec {
         then:
         def task = project.tasks.'a-target1'
         task instanceof AntTarget
-        task.target.name == 'target1'
+        task.target.get().name == 'target1'
         task.taskDependencies.getDependencies(task).name.sort() == ["a-target2", "a-target3"]
     }
 
