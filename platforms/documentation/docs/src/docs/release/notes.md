@@ -109,6 +109,15 @@ The feature is enabled by default, as on all other supported platforms.
 
 It is now also possible to [run builds in continuous mode](userguide/continuous_builds.html) on Alpine.
 
+<a name="swift-support"></a>
+### Swift support
+
+Gradle’s [Swift support](userguide/building_swift_projects.html) allows building and testing native Swift libraries and applications.
+
+#### Basic Swift 6 support
+
+Gradle now supports [Swift 6](https://www.swift.org/blog/announcing-swift-6/), introduced with [Xcode 16.0](https://developer.apple.com/documentation/xcode-release-notes/xcode-16-release-notes), extending its capabilities to the latest major version of Swift.
+
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
 ==========================================================

@@ -33,6 +33,12 @@
             ]
         },
         {
+            "type": "org.gradle.language.swift.SwiftVersion",
+            "member": "Field SWIFT6",
+            "acceptation": "No need to incubate",
+            "changes": []
+        },
+        {
             "type": "org.gradle.tooling.events.problems.ProblemDefinition",
             "member": "Method org.gradle.tooling.events.problems.ProblemDefinition.getDocumentationLink()",
             "acceptation": "Change in incubating API",

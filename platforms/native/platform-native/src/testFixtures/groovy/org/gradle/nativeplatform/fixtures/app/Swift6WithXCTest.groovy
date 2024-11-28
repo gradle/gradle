@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.language.swift.plugins
+package org.gradle.nativeplatform.fixtures.app
 
-import org.gradle.integtests.fixtures.WellBehavedPluginTest
+class Swift6WithXCTest extends MainWithXCTestSourceElement {
+    final Swift6 main
+    final XCTestSourceElement test
 
-class SwiftLibraryPluginIntegrationTest extends WellBehavedPluginTest {
-    def "plugin can build with empty project with static lib"() {
-        given:
-        applyPlugin()
-        buildFile << """
-            library.linkage = [Linkage.STATIC]
-        """
-
-        expect:
-        succeeds mainTask
+    Swift6WithXCTest(String projectName) {
+        super(projectName)
+        this.main = new Swift6(projectName)
+        this.test = new XCTestSourceElement(projectName) {
+            @Override
+            List<XCTestSourceFileElement> getTestSuites() {
+                return [new Swift6Test().withImport(main.moduleName)]
+            }
+        }
     }
 }
