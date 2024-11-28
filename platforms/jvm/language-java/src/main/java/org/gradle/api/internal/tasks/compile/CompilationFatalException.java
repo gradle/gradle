@@ -18,6 +18,8 @@ package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.internal.exceptions.CompilationFailedIndicator;
 
+import javax.annotation.Nullable;
+
 /**
  * Indicates a fatal error during compilation. Gradle will not try to recover output files from a previous compilation.
  */
@@ -28,6 +30,7 @@ public class CompilationFatalException extends RuntimeException implements Compi
     }
 
     @Override
+    @Nullable
     public String getDiagnosticCounts() {
         return null;
     }
