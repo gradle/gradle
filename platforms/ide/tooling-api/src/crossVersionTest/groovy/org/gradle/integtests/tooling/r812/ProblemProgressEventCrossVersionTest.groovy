@@ -118,7 +118,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         verifyAll(problems[0]) {
             details?.details == expectedDetails
             definition.documentationLink?.url == expectedDocumentation
-            locations.size() == targetVersion >= GradleVersion.version("8.12") ? 3 : 2
+            locations.size() >= 2
             (locations[0] as LineInFileLocation).path == '/tmp/foo'
             (locations[1] as LineInFileLocation).path == "build file '$buildFile.path'"
             if (targetVersion >= GradleVersion.version("8.12")) {
