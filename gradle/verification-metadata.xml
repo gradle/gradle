@@ -826,6 +826,11 @@
             <pgp value="CB764D538CF417822B4108341CF69814023DEDE9"/>
          </artifact>
       </component>
+      <component group="dev.drewhamilton.poko" name="poko-annotations-jvm" version="0.16.0">
+         <artifact name="poko-annotations-jvm-0.16.0.jar">
+            <pgp value="09939C73246B4BA7444CAA453D002DBC5EA9615F"/>
+         </artifact>
+      </component>
       <component group="flot" name="flot" version="0.8.1">
          <artifact name="flot-0.8.1-min.js">
             <sha256 value="889e1e07300265211222ad70b0644b9af0954eb2f9eaf06544c0e436967f434f" origin="Verified" reason="Artifact is not signed"/>
@@ -886,8 +891,8 @@
             <pgp value="47EB6836245D2D40E89DFB4136D4E9618F3ADAB5"/>
          </artifact>
       </component>
-      <component group="io.gitlab.arturbosch.detekt" name="detekt-gradle-plugin" version="1.23.6">
-         <artifact name="detekt-gradle-plugin-1.23.6.jar">
+      <component group="io.gitlab.arturbosch.detekt" name="detekt-gradle-plugin" version="1.23.7">
+         <artifact name="detekt-gradle-plugin-1.23.7.jar">
             <pgp value="5F6C2148AD4911FE308110E5F0D0AE433308B042"/>
          </artifact>
       </component>
@@ -1423,6 +1428,11 @@
             <pgp value="9E93DB1192CEE3D3B581AABB37E9D58EA4598641"/>
          </artifact>
       </component>
+      <component group="org.jcommander" name="jcommander" version="1.85">
+         <artifact name="jcommander-1.85.jar">
+            <pgp value="1D85469D8559C2E1DF5F925131D2D79DF7E85DD3"/>
+         </artifact>
+      </component>
       <component group="org.jetbrains" name="annotations" version="13.0">
          <artifact name="annotations-13.0.jar">
             <pgp value="2E3A1AFFE42B5F53AF19F780BCF4173966770193"/>
@@ -1446,11 +1456,6 @@
       <component group="org.jetbrains.kotlin" name="kotlin-stdlib" version="2.0.0">
          <artifact name="kotlin-stdlib-2.0.0-all.jar">
             <sha256 value="30e05222bc067fffb896a3276b5f1e3f29450bf1d9461d27a19ce0efc793b5cd" origin="Verified" reason="No asc file on plugins.gradle.org"/>
-         </artifact>
-      </component>
-      <component group="org.jetbrains.kotlin" name="kotlin-reflect" version="2.0.0">
-         <artifact name="kotlin-reflect-2.0.0.jar">
-            <sha256 value="111bd906921937f76da17760641116d04b57a7a12fcf980efe7c6767f45179f0" origin="Verified" reason="No asc file on plugins.gradle.org"/>
          </artifact>
       </component>
       <component group="org.jetbrains.kotlin" name="kotlin-stdlib-jdk7" version="1.6.21">
@@ -1582,8 +1587,8 @@
             <sha256 value="8e6439fcc1f2fe87b5dfc20eb13289acba8047e9cfadf45ad3dc5c57a9bcd054" reason="Artifact is not signed"/>
          </artifact>
       </component>
-      <component group="org.snakeyaml" name="snakeyaml-engine" version="2.6">
-         <artifact name="snakeyaml-engine-2.6.jar">
+      <component group="org.snakeyaml" name="snakeyaml-engine" version="2.7">
+         <artifact name="snakeyaml-engine-2.7.jar">
             <pgp value="120D6F34E627ED3A772EBBFE55C7E5E701832382"/>
          </artifact>
       </component>
