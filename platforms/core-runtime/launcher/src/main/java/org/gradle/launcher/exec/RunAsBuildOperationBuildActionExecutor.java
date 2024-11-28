@@ -41,19 +41,19 @@ public class RunAsBuildOperationBuildActionExecutor implements BuildSessionActio
     private final BuildOperationRunner buildOperationRunner;
     private final LoggingBuildOperationProgressBroadcaster loggingBuildOperationProgressBroadcaster;
     private final BuildOperationNotificationValve buildOperationNotificationValve;
-    private final ExceptionProblemRegistry problemContainer;
+    private final ExceptionProblemRegistry exceptionProblemRegistry;
 
     public RunAsBuildOperationBuildActionExecutor(BuildSessionActionExecutor delegate,
                                                   BuildOperationRunner buildOperationRunner,
                                                   LoggingBuildOperationProgressBroadcaster loggingBuildOperationProgressBroadcaster,
                                                   BuildOperationNotificationValve buildOperationNotificationValve,
-                                                  ExceptionProblemRegistry problemContainer
+                                                  ExceptionProblemRegistry exceptionProblemRegistry
     ) {
         this.delegate = delegate;
         this.buildOperationRunner = buildOperationRunner;
         this.loggingBuildOperationProgressBroadcaster = loggingBuildOperationProgressBroadcaster;
         this.buildOperationNotificationValve = buildOperationNotificationValve;
-        this.problemContainer = problemContainer;
+        this.exceptionProblemRegistry = exceptionProblemRegistry;
     }
 
     @Override
@@ -77,7 +77,7 @@ public class RunAsBuildOperationBuildActionExecutor implements BuildSessionActio
                     return BuildOperationDescriptor.displayName("Run build").details(new RunBuildBuildOperationType.Details() {
                         @Override
                         public ProblemLocator getProblemLookup() {
-                            return problemContainer.getProblemLocator();
+                            return exceptionProblemRegistry.getProblemLocator();
                         }
                     });
                 }
