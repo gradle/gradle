@@ -1,7 +1,9 @@
 NOTE: You can open the samples inside an IDE using the https://www.jetbrains.com/help/idea/gradle.html#gradle_import_project_start[IntelliJ native importer] or https://projects.eclipse.org/projects/tools.buildship[Eclipse Buildship].
 
-This sample shows how to create a plugin with a custom task that generates test events like the built-in `Test` task.
+This sample shows how to create a plugin with a custom task that generates test events like the built-in `Test` task for JVM-based tests.
 The plugin is packaged via an included build.
+
+This sample is intended to demonstrate how a platform provider, like Android or Kotlin Multiplatform, would use a low-level API to generate test events. 
 
 ====
 include::sample[dir="kotlin",files="build.gradle.kts[];settings.gradle.kts[]"]
@@ -9,6 +11,7 @@ include::sample[dir="groovy",files="build.gradle[];settings.gradle[]"]
 ====
 
 This sample contains two parts:
+
 * The `custom-test-task` plugin, which defines a custom task that generates test events.
 * The `consumer` build, which creates a Tooling API client to receive the test events.
 
