@@ -48,7 +48,11 @@ The embedded Kotlin has been updated from 2.0.20 to link:https://github.com/JetB
 
 Ant has been updated to https://github.com/apache/ant/blob/rel/1.10.15/WHATSNEW[Ant 1.10.15].
 
-=== Swift SDK discovery
+==== Upgrade to Zinc 1.10.4
+
+Zinc has been updated to https://github.com/sbt/zinc/releases/tag/v1.10.4[1.10.4].
+
+==== Swift SDK discovery
 
 To determine the location of the Mac OS X SDK for Swift, Gradle now passes the `--sdk macosx` arguments to `xcrun`.
 This is necessary because the SDK could be discovered inconsistently without this argument across different environments.
