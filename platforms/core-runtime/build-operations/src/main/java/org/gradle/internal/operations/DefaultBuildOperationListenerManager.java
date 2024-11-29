@@ -27,73 +27,22 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class DefaultBuildOperationListenerManager implements BuildOperationListenerManager {
 
-    // This cannot be CopyOnWriteArrayList because we need to iterate it in reverse,
-    // which requires atomically getting an iterator and the size.
-    // Moreover, we iterate this list far more often that we mutate,
-    // making a (albeit home grown) copy-on-write strategy more appealing.
-    private List<ProgressShieldingBuildOperationListener> listeners = Collections.emptyList();
-    private final Lock listenersLock = new ReentrantLock();
-
-    private final BuildOperationListener broadcaster = new BuildOperationListener() {
-        @Override
-        public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
-            List<? extends BuildOperationListener> listeners = DefaultBuildOperationListenerManager.this.listeners;
-            //noinspection ForLoopReplaceableByForEach
-            for (int i = 0; i < listeners.size(); ++i) {
-                listeners.get(i).started(buildOperation, startEvent);
-            }
-        }
-
-        @Override
-        public void progress(OperationIdentifier operationIdentifier, OperationProgressEvent progressEvent) {
-            List<? extends BuildOperationListener> listeners = DefaultBuildOperationListenerManager.this.listeners;
-            //noinspection ForLoopReplaceableByForEach
-            for (int i = 0; i < listeners.size(); ++i) {
-                listeners.get(i).progress(operationIdentifier, progressEvent);
-            }
-        }
-
-        @Override
-        public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
-            List<? extends BuildOperationListener> listeners = DefaultBuildOperationListenerManager.this.listeners;
-            for (int i = listeners.size() - 1; i >= 0; --i) {
-                listeners.get(i).finished(buildOperation, finishEvent);
-            }
-        }
-    };
+    private final CompositeBuildOperationListener broadcaster = new CompositeBuildOperationListener();
+    private final BuildOperationListener shieldedListener = new ProgressShieldingBuildOperationListener(broadcaster);
 
     @Override
     public void addListener(BuildOperationListener listener) {
-        listenersLock.lock();
-        try {
-            List<ProgressShieldingBuildOperationListener> listeners = new ArrayList<ProgressShieldingBuildOperationListener>(this.listeners);
-            listeners.add(new ProgressShieldingBuildOperationListener(listener));
-            this.listeners = listeners;
-        } finally {
-            listenersLock.unlock();
-        }
+        broadcaster.addListener(listener);
     }
 
     @Override
     public void removeListener(BuildOperationListener listener) {
-        listenersLock.lock();
-        try {
-            List<ProgressShieldingBuildOperationListener> listeners = new ArrayList<ProgressShieldingBuildOperationListener>(this.listeners);
-            ListIterator<ProgressShieldingBuildOperationListener> listIterator = listeners.listIterator();
-            while (listIterator.hasNext()) {
-                if (listIterator.next().delegate.equals(listener)) {
-                    listIterator.remove();
-                }
-            }
-            this.listeners = listeners;
-        } finally {
-            listenersLock.unlock();
-        }
+        broadcaster.removeListener(listener);
     }
 
     @Override
     public BuildOperationListener getBroadcaster() {
-        return broadcaster;
+        return shieldedListener;
     }
 
     /**
@@ -110,8 +59,8 @@ public class DefaultBuildOperationListenerManager implements BuildOperationListe
 
         @Override
         public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
-            active.put(buildOperation.getId(), Boolean.TRUE);
             delegate.started(buildOperation, startEvent);
+            active.put(buildOperation.getId(), Boolean.TRUE);
         }
 
         @Override
@@ -125,6 +74,69 @@ public class DefaultBuildOperationListenerManager implements BuildOperationListe
         public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
             active.remove(buildOperation.getId());
             delegate.finished(buildOperation, finishEvent);
+        }
+    }
+
+    private static class CompositeBuildOperationListener implements BuildOperationListener {
+
+        // This cannot be CopyOnWriteArrayList because we need to iterate it in reverse,
+        // which requires atomically getting an iterator and the size.
+        // Moreover, we iterate this list far more often that we mutate,
+        // making a (albeit home grown) copy-on-write strategy more appealing.
+        private volatile List<BuildOperationListener> listeners = Collections.emptyList();
+        private final Lock listenersLock = new ReentrantLock();
+
+        public void addListener(BuildOperationListener listener) {
+            listenersLock.lock();
+            try {
+                List<BuildOperationListener> listeners = new ArrayList<BuildOperationListener>(this.listeners);
+                listeners.add(listener);
+                this.listeners = listeners;
+            } finally {
+                listenersLock.unlock();
+            }
+        }
+
+        public void removeListener(BuildOperationListener listener) {
+            listenersLock.lock();
+            try {
+                List<BuildOperationListener> listeners = new ArrayList<BuildOperationListener>(this.listeners);
+                ListIterator<BuildOperationListener> listIterator = listeners.listIterator();
+                while (listIterator.hasNext()) {
+                    if (listIterator.next().equals(listener)) {
+                        listIterator.remove();
+                    }
+                }
+                this.listeners = listeners;
+            } finally {
+                listenersLock.unlock();
+            }
+        }
+
+        @Override
+        public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
+            List<BuildOperationListener> listeners = this.listeners;
+            //noinspection ForLoopReplaceableByForEach
+            for (int i = 0; i < listeners.size(); ++i) {
+                listeners.get(i).started(buildOperation, startEvent);
+            }
+        }
+
+        @Override
+        public void progress(OperationIdentifier operationIdentifier, OperationProgressEvent progressEvent) {
+            List<BuildOperationListener> listeners = this.listeners;
+            //noinspection ForLoopReplaceableByForEach
+            for (int i = 0; i < listeners.size(); ++i) {
+                listeners.get(i).progress(operationIdentifier, progressEvent);
+            }
+        }
+
+        @Override
+        public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
+            List<BuildOperationListener> listeners = this.listeners;
+            for (int i = listeners.size() - 1; i >= 0; --i) {
+                listeners.get(i).finished(buildOperation, finishEvent);
+            }
         }
     }
 }
