@@ -349,7 +349,7 @@ class ConfigurationCacheFingerprintController internal constructor(
         writingState = writingState.dispose()
     }
 
-    suspend fun ReadContext.checkBuildScopedFingerprint(host: Host): CheckedFingerprint =
+    suspend fun ReadContext.checkBuildScopedFingerprint(host: Host) =
         ConfigurationCacheFingerprintChecker(CacheFingerprintCheckerHost(host)).run {
             checkBuildScopedFingerprint()
         }

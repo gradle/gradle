@@ -47,6 +47,13 @@ typealias InvalidationReason = StructuredMessage
 
 
 internal
+sealed class BuildScopedFingerprintResult {
+    object Valid : BuildScopedFingerprintResult()
+    data class Invalid(val reason: InvalidationReason) : BuildScopedFingerprintResult()
+}
+
+
+internal
 class ConfigurationCacheFingerprintChecker(private val host: Host) {
 
     interface Host {
@@ -71,7 +78,7 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
         fun isRemoteScriptUpToDate(uri: URI): Boolean
     }
 
-    suspend fun ReadContext.checkBuildScopedFingerprint(): CheckedFingerprint {
+    suspend fun ReadContext.checkBuildScopedFingerprint(): BuildScopedFingerprintResult {
         // TODO: log some debug info
         while (true) {
             when (val input = read()) {
@@ -80,14 +87,14 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                     // An input that is not specific to a project. If it is out-of-date, then invalidate the whole cache entry and skip any further checks
                     val reason = check(input)
                     if (reason != null) {
-                        return CheckedFingerprint.EntryInvalid(host.buildPath, reason)
+                        return BuildScopedFingerprintResult.Invalid(reason)
                     }
                 }
 
                 else -> error("Unexpected configuration cache fingerprint: $input")
             }
         }
-        return CheckedFingerprint.Valid
+        return BuildScopedFingerprintResult.Valid
     }
 
     @Suppress("NestedBlockDepth")
@@ -103,6 +110,7 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                     state.buildPath = input.buildPath
                     state.projectPath = input.projectPath
                 }
+
                 is ProjectSpecificFingerprint.ProjectFingerprint -> {
                     // An input that is specific to a project. If it is out-of-date, then invalidate that project's values and continue checking values
                     // Don't check a value for a project that is already out-of-date
@@ -137,7 +145,7 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
             }
         }
         return if (firstInvalidatedPath == null) {
-            CheckedFingerprint.Valid
+            CheckedFingerprint.Found(candidateEntry.id)
         } else {
             val invalidatedProjects = projects.filterValues { it.isInvalid }.mapValues {
                 it.value.toProjectInvalidationData()

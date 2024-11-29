@@ -40,6 +40,7 @@ import org.gradle.internal.cc.base.serialize.HostServiceProvider
 import org.gradle.internal.cc.base.serialize.IsolateOwners
 import org.gradle.internal.cc.base.serialize.service
 import org.gradle.internal.cc.impl.cacheentry.EntryDetails
+import org.gradle.internal.cc.impl.fingerprint.BuildScopedFingerprintResult
 import org.gradle.internal.cc.impl.fingerprint.ConfigurationCacheFingerprintController
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
 import org.gradle.internal.cc.impl.metadata.ProjectMetadataController
@@ -378,10 +379,6 @@ class DefaultConfigurationCache internal constructor(
                     logBootstrapSummary(description)
                     ConfigurationCacheAction.LOAD(checkedFingerprint.entryName) to description
                 }
-
-                is CheckedFingerprint.Valid -> {
-                    TODO("should be replaced by Found")
-                }
             }
         }
     }
@@ -414,9 +411,9 @@ class DefaultConfigurationCache internal constructor(
         val invalidationReasons = mutableListOf<CheckedFingerprint>()
         for (candidate in candidates) {
             when (val result = checkCandidate(candidate)) {
-                is CheckedFingerprint.Valid -> {
+                is CheckedFingerprint.Found -> {
                     currentCandidateEntries = updateMostRecentEntries(candidate, candidates)
-                    return@withFingerprintCheckOperations CheckedFingerprint.Found(candidate.id)
+                    return@withFingerprintCheckOperations result
                 }
 
                 is CheckedFingerprint.EntryInvalid,
@@ -426,7 +423,8 @@ class DefaultConfigurationCache internal constructor(
             }
         }
         currentCandidateEntries = candidates
-        invalidationReasons.firstOrNull() ?: CheckedFingerprint.NotFound
+        invalidationReasons.firstOrNull()
+            ?: CheckedFingerprint.NotFound
     }
 
     private fun updateMostRecentEntries(candidate: CandidateEntry, candidates: List<CandidateEntry>) = buildList {
@@ -655,7 +653,7 @@ class DefaultConfigurationCache internal constructor(
         loadGradleProperties()
 
         return checkFingerprintAgainstLoadedProperties(entryDetails, layout, candidateEntry).also { result ->
-            if (result !== CheckedFingerprint.Valid) {
+            if (result !is CheckedFingerprint.Found) {
                 // Force Gradle properties to be reloaded so the Gradle properties files
                 // along with any Gradle property defining system properties and environment variables
                 // are added to the new fingerprint.
@@ -665,21 +663,35 @@ class DefaultConfigurationCache internal constructor(
     }
 
     private
-    fun checkFingerprintAgainstLoadedProperties(entryDetails: EntryDetails, layout: ConfigurationCacheRepository.Layout, candidateEntry: CandidateEntry): CheckedFingerprint {
-        val result = checkBuildScopedFingerprint(layout.fileFor(StateType.BuildFingerprint))
-        if (result !is CheckedFingerprint.Valid) {
-            return result
+    fun checkFingerprintAgainstLoadedProperties(
+        entryDetails: EntryDetails,
+        layout: ConfigurationCacheRepository.Layout,
+        candidateEntry: CandidateEntry
+    ): CheckedFingerprint =
+        when (val result = checkBuildScopedFingerprint(layout.fileFor(StateType.BuildFingerprint))) {
+            is BuildScopedFingerprintResult.Invalid -> {
+                CheckedFingerprint.EntryInvalid(buildPath(), result.reason)
+            }
+
+            BuildScopedFingerprintResult.Valid -> {
+                checkProjectFingerprintAgainstLoadedProperties(layout, candidateEntry, entryDetails)
+            }
         }
 
+    private
+    fun checkProjectFingerprintAgainstLoadedProperties(
+        layout: ConfigurationCacheRepository.Layout,
+        candidateEntry: CandidateEntry,
+        entryDetails: EntryDetails
+    ): CheckedFingerprint {
         // Build inputs are up-to-date, check project specific inputs
-
         val projectResult = checkProjectScopedFingerprint(layout.fileFor(StateType.ProjectFingerprint), candidateEntry)
         if (projectResult is CheckedFingerprint.ProjectsInvalid) {
             intermediateModels.restoreFromCacheEntry(entryDetails.intermediateModels, projectResult)
             projectMetadata.restoreFromCacheEntry(entryDetails.projectMetadata, projectResult)
         }
 
-        if (projectResult is CheckedFingerprint.Valid) {
+        if (projectResult is CheckedFingerprint.Found) {
             val sideEffects = buildTreeModelSideEffects.restoreFromCacheEntry(entryDetails.sideEffects)
             loadedSideEffects += sideEffects
         }
@@ -688,13 +700,12 @@ class DefaultConfigurationCache internal constructor(
     }
 
     private
-    fun checkBuildScopedFingerprint(fingerprintFile: ConfigurationCacheStateFile): CheckedFingerprint {
-        return readFingerprintFile(fingerprintFile) { host ->
+    fun checkBuildScopedFingerprint(fingerprintFile: ConfigurationCacheStateFile) =
+        readFingerprintFile(fingerprintFile) { host ->
             cacheFingerprintController.run {
                 checkBuildScopedFingerprint(host)
             }
         }
-    }
 
     private
     fun checkProjectScopedFingerprint(fingerprintFile: ConfigurationCacheStateFile, candidateEntry: CandidateEntry): CheckedFingerprint {
@@ -714,7 +725,7 @@ class DefaultConfigurationCache internal constructor(
             withIsolate(isolateOwnerHost, codecs.fingerprintTypesCodec()) {
                 action(object : ConfigurationCacheFingerprintController.Host {
                     override val buildPath: Path
-                        get() = host.service<GradleInternal>().identityPath
+                        get() = buildPath()
                     override val valueSourceProviderFactory: ValueSourceProviderFactory
                         get() = host.service()
                     override val gradleProperties: GradleProperties
@@ -722,6 +733,10 @@ class DefaultConfigurationCache internal constructor(
                 })
             }
         }
+
+    private
+    fun buildPath(): Path =
+        host.service<GradleInternal>().identityPath
 
     private
     fun registerWatchableBuildDirectories(buildDirs: Iterable<File>) {

@@ -24,7 +24,6 @@ import org.gradle.api.logging.Logger
 import org.gradle.api.provider.ValueSource
 import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.internal.Try
-import org.gradle.internal.cc.impl.CheckedFingerprint
 import org.gradle.internal.configuration.problems.PropertyProblem
 import org.gradle.internal.configuration.problems.PropertyTrace
 import org.gradle.internal.configuration.problems.StructuredMessageBuilder
@@ -306,9 +305,8 @@ class ConfigurationCacheFingerprintCheckerTest {
             }
         }
         return when (checkedFingerprint) {
-            is CheckedFingerprint.Valid -> null
-            is CheckedFingerprint.EntryInvalid -> checkedFingerprint.reason.toString()
-            else -> throw IllegalArgumentException()
+            is BuildScopedFingerprintResult.Valid -> null
+            is BuildScopedFingerprintResult.Invalid -> checkedFingerprint.reason.toString()
         }
     }
 
