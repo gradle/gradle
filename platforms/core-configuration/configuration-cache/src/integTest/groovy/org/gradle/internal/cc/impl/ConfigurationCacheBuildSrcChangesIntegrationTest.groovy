@@ -167,8 +167,8 @@ class ConfigurationCacheBuildSrcChangesIntegrationTest extends AbstractConfigura
         where:
         _ | buildSrcNewFile
         _ | "settings.gradle"
-//        _ | "build.gradle"
-//        _ | "src/main/groovy/MyClass.groovy"
+        _ | "build.gradle"
+        _ | "src/main/groovy/MyClass.groovy"
     }
 
     def "invalidates cache upon change to presence of valid buildSrc in #parentBuild build by creating #buildSrcNewFile"() {
@@ -178,6 +178,7 @@ class ConfigurationCacheBuildSrcChangesIntegrationTest extends AbstractConfigura
             rootProject.name = "root"
             includeBuild("included")
         """
+        settingsFile "included/settings.gradle", ""
         settingsFile "$parentBuild/settings.gradle", """
             rootProject.name = "parent-of-buildSrc"
         """
