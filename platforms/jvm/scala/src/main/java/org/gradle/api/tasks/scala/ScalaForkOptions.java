@@ -34,10 +34,16 @@ package org.gradle.api.tasks.scala;
 
 import org.gradle.api.tasks.compile.ProviderAwareCompilerDaemonForkOptions;
 
+import java.util.Collections;
+
 /**
  * Fork options for Scala compilation. Only take effect if {@code BaseScalaCompileOptions.fork}
  * is {@code true}.
  */
 public abstract class ScalaForkOptions extends ProviderAwareCompilerDaemonForkOptions {
     private static final long serialVersionUID = 0;
+
+    public ScalaForkOptions() {
+        setJvmArgs(Collections.singletonList("-Dxsbt.skip.cp.lookup=true"));
+    }
 }
