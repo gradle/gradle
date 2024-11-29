@@ -18,6 +18,7 @@ package org.gradle.api.tasks.bundling;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
@@ -33,16 +34,14 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.internal.Transformers;
+import org.gradle.internal.instrumentation.api.annotations.BytecodeUpgrade;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.util.internal.ConfigureUtil;
 import org.gradle.work.DisableCachingByDefault;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.concurrent.Callable;
 
 import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
@@ -54,7 +53,6 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
 public abstract class War extends Jar {
     public static final String WAR_EXTENSION = "war";
 
-    private FileCollection classpath;
     private final DefaultCopySpec webInf;
     private final DirectoryProperty webAppDirectory;
 
@@ -66,11 +64,11 @@ public abstract class War extends Jar {
         webInf = (DefaultCopySpec) getRootSpec().addChildBeforeSpec(getMainSpec()).into("WEB-INF");
         webInf.into("classes", spec -> spec.from((Callable<Iterable<File>>) () -> {
             FileCollection classpath = getClasspath();
-            return classpath != null ? classpath.filter(spec(File::isDirectory)) : Collections.emptyList();
+            return classpath.filter(spec(File::isDirectory));
         }));
         webInf.into("lib", spec -> spec.from((Callable<Iterable<File>>) () -> {
             FileCollection classpath = getClasspath();
-            return classpath != null ? classpath.filter(spec(File::isFile)) : Collections.emptyList();
+            return classpath.filter(spec(File::isFile));
         }));
 
         CopySpecInternal renameSpec = webInf.addChild();
@@ -88,7 +86,7 @@ public abstract class War extends Jar {
     }
 
     @Internal
-    @ToBeReplacedByLazyProperty(comment = "This should probably stay eager")
+    @NotToBeReplacedByLazyProperty(because = "Read-only nested like property")
     public CopySpec getWebInf() {
         return webInf.addChild();
     }
@@ -121,47 +119,22 @@ public abstract class War extends Jar {
     }
 
     /**
-     * Returns the classpath to include in the WAR archive. Any JAR or ZIP files in this classpath are included in the {@code WEB-INF/lib} directory. Any directories in this classpath are included in
-     * the {@code WEB-INF/classes} directory.
-     *
-     * @return The classpath. Returns an empty collection when there is no classpath to include in the WAR.
+     * Classpath to include in the WAR archive.
+     * <p>
+     * Any JAR or ZIP files in this classpath are included in the {@code WEB-INF/lib} directory.
+     * Any directories in this classpath are included in the {@code WEB-INF/classes} directory.
      */
-    @Nullable
-    @Optional
     @Classpath
-    @ToBeReplacedByLazyProperty
-    public FileCollection getClasspath() {
-        return classpath;
-    }
-
-    /**
-     * Sets the classpath to include in the WAR archive.
-     *
-     * @param classpath The classpath. Must not be null.
-     * @since 4.0
-     */
-    public void setClasspath(FileCollection classpath) {
-        setClasspath((Object) classpath);
-    }
-
-    /**
-     * Sets the classpath to include in the WAR archive.
-     *
-     * @param classpath The classpath. Must not be null.
-     */
-    public void setClasspath(Object classpath) {
-        this.classpath = getProject().files(classpath);
-    }
+    @ReplacesEagerProperty(adapter = ClasspathAdapter.class)
+    public abstract ConfigurableFileCollection getClasspath();
 
     /**
      * Adds files to the classpath to include in the WAR archive.
      *
      * @param classpath The files to add. These are evaluated as per {@link org.gradle.api.Project#files(Object...)}
      */
-    @SuppressWarnings("rawtypes")
     public void classpath(Object... classpath) {
-        FileCollection oldClasspath = getClasspath();
-        this.classpath = getProject().files(oldClasspath != null ? oldClasspath : new ArrayList(), classpath);
+        getClasspath().from(classpath);
     }
 
     /**
@@ -188,5 +161,22 @@ public abstract class War extends Jar {
     @Internal
     public DirectoryProperty getWebAppDirectory() {
         return webAppDirectory;
+    }
+
+    static class ClasspathAdapter {
+        @BytecodeUpgrade
+        static FileCollection getClasspath(War task) {
+            return task.getClasspath();
+        }
+
+        @BytecodeUpgrade
+        static void setClasspath(War task, Object classpath) {
+            task.getClasspath().setFrom(classpath);
+        }
+
+        @BytecodeUpgrade
+        static void setClasspath(War task, FileCollection classpath) {
+            setClasspath(task, (Object) classpath);
+        }
     }
 }
