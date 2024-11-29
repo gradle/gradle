@@ -295,11 +295,11 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                 }
             }
 
-            is ConfigurationCacheFingerprint.BuildSrcCandidate -> input.run {
+            is ConfigurationCacheFingerprint.MissingBuildSrc -> input.run {
                 val currentValid = host.hasValidBuildSrc(buildSrcDir)
-                ifOrNull(currentValid != valid) {
+                ifOrNull(currentValid) {
                     text("a buildSrc build at ").reference(displayNameOf(buildSrcDir))
-                        .text(" has been ${if (currentValid) "added" else "removed"}")
+                        .text(" has been added")
                 }
             }
         }

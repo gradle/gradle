@@ -163,7 +163,6 @@ class ConfigurationCacheBuildSrcChangesIntegrationTest extends AbstractConfigura
         configurationCacheRun "help"
         then:
         configurationCache.assertStateStored()
-        outputContains("Calculating task graph as configuration cache cannot be reused because a buildSrc build at 'buildSrc' has been removed.")
         buildOperations.none("Load build (:buildSrc)")
 
         where:
@@ -207,7 +206,6 @@ class ConfigurationCacheBuildSrcChangesIntegrationTest extends AbstractConfigura
         configurationCacheRun "help"
         then:
         configurationCache.assertStateStored()
-        outputContains("Calculating task graph as configuration cache cannot be reused because a buildSrc build at '$parentBuild/buildSrc' has been removed.")
         buildOperations.none("Load build ($buildSrcBuildPath)")
 
         where:
