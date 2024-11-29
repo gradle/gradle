@@ -35,6 +35,7 @@ import org.gradle.internal.serialize.graph.CloseableWriteContext
 import org.gradle.internal.serialize.graph.IsolateOwner
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.function.Supplier
 
 internal
@@ -52,7 +53,7 @@ class DefaultFingerprintContributor(
     private val instrumentedInputAccessListener: InstrumentedInputAccessListener,
     private val currentStateStore: CurrentStateStore,
     private val deferredRootBuildGradle: DeferredRootBuildGradle
-): FingerprintContributor, ConfigurationInputsTrackingRunner {
+) : FingerprintContributor, ConfigurationInputsTrackingRunner {
 
     private
     val host by lazy { deferredRootBuildGradle.gradle.services.get<HostServiceProvider>() }
@@ -66,19 +67,29 @@ class DefaultFingerprintContributor(
     private
     val cacheIO by lazy { host.service<ConfigurationCacheBuildTreeIO>() }
 
+    private
+    val trackingCounter = AtomicInteger(0)
+
     override fun <T : Any> runTrackingConfigurationInputs(action: Supplier<T>): T {
         return contributeToFingerprint {
             action.get()
         }
     }
+
     override fun <T> contributeToFingerprint(
         action: () -> T
     ): T {
-        prepareForWork(store::assignSpoolFile, ::cacheFingerprintWriteContextFor)
+        val c = trackingCounter.getAndIncrement()
+        if (c == 0) {
+            prepareForWork(store::assignSpoolFile, ::cacheFingerprintWriteContextFor)
+        }
         try {
             return action()
         } finally {
-            doneWithWork()
+            if (c == 0) {
+                doneWithWork()
+            }
+            trackingCounter.getAndDecrement()
         }
     }
 

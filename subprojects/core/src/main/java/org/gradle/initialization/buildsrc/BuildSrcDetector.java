@@ -45,22 +45,26 @@ public class BuildSrcDetector {
 
     public static boolean isValidBuildSrcBuild(File buildSrcDir) {
         String configurationInputConsumer = BuildSrcDetector.class.getName();
-        // TODO: this does not work, because this code is executed "too early", and CC has not installed the listeners yet
-        Instrumented.fileSystemEntryObserved(buildSrcDir, configurationInputConsumer);
         if (!buildSrcDir.exists()) {
+            Instrumented.fileSystemEntryObserved(buildSrcDir, configurationInputConsumer);
             return false;
         }
         if (!buildSrcDir.isDirectory()) {
             LOGGER.info("Ignoring buildSrc: not a directory.");
+            Instrumented.fileSystemEntryObserved(buildSrcDir, configurationInputConsumer);
             return false;
         }
 
         for (String buildFileName : GRADLE_BUILD_FILES) {
-            if (new File(buildSrcDir, buildFileName).exists()) {
+            File file = new File(buildSrcDir, buildFileName);
+            if (file.exists()) {
+                Instrumented.fileSystemEntryObserved(file, configurationInputConsumer);
                 return true;
             }
         }
-        if (containsFiles(new File(buildSrcDir, "src"))) {
+        File srcSubDir = new File(buildSrcDir, "src");
+        if (containsFiles(srcSubDir)) {
+            Instrumented.fileSystemEntryObserved(srcSubDir, configurationInputConsumer);
             return true;
         }
         LOGGER.info("Ignoring buildSrc directory: does not contain 'settings.gradle[.kts]', 'build.gradle[.kts]', or a 'src' directory.");

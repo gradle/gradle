@@ -247,6 +247,11 @@ class ConfigurationCacheFingerprintController internal constructor(
             fingerprintWriter.append(fingerprint)
         }
 
+        override fun <T> resolveScriptsForProject(project: ProjectIdentityPath, action: () -> T): T {
+            // Ignore scripts resolved while loading from cache
+            return action()
+        }
+
         override fun commit(
             buildScopedFingerprint: ConfigurationCacheStateFile,
             projectScopedFingerprint: ConfigurationCacheStateFile
