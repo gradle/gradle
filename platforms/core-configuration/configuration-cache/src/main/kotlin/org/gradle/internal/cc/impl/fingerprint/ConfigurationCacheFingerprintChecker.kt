@@ -179,7 +179,7 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
     private
     fun MutableMap<Path, ProjectInvalidationState>.entryFor(path: Path) = computeIfAbsent(path, ::ProjectInvalidationState)
 
-    @Suppress("CyclomaticComplexMethod")
+    @Suppress("CyclomaticComplexMethod", "LongMethod")
     private
     fun check(input: ConfigurationCacheFingerprint): InvalidationReason? = structuredMessageOrNull {
         when (input) {
