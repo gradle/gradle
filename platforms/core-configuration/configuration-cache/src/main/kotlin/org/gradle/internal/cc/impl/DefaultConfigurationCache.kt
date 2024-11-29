@@ -191,12 +191,6 @@ class DefaultConfigurationCache internal constructor(
         }
     }
 
-    override fun prepareRootBuild(action: () -> Unit) {
-        runWorkThatContributesToCacheEntry {
-            action()
-        }
-    }
-
     override fun <T : Any> loadOrCreateModel(creator: () -> T): T {
         if (isLoaded) {
             runLoadedSideEffects()

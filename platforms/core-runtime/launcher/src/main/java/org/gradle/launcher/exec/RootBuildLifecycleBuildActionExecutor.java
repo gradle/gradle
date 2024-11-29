@@ -50,7 +50,6 @@ public class RootBuildLifecycleBuildActionExecutor implements BuildTreeActionExe
                 .nagUser();
         }
 
-        // TODO: potential solution is to wrap "createRootBuild" call into an input tracking lambda
         RootBuildState rootBuild = buildStateRegistry.createRootBuild(BuildDefinition.fromStartParameter(action.getStartParameter(), null));
         return rootBuild.run(buildController -> buildActionRunner.run(action, buildController));
     }
