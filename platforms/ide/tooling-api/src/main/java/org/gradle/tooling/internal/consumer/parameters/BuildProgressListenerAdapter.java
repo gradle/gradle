@@ -1186,15 +1186,18 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         if (origFailure == null) {
             return null;
         }
-        List<InternalBasicProblemDetailsVersion3> problems = new ArrayList<>();
+        List<InternalBasicProblemDetailsVersion3> problemDetails = new ArrayList<>();
         try {
-            problems.addAll(origFailure.getProblems());
+            problemDetails.addAll(origFailure.getProblems());
         } catch (AbstractMethodError ignore) {
             // Older Gradle versions don't have this method
         }
-        List<Problem> clientProblems = new ArrayList<>(problems.size());
-        for (InternalBasicProblemDetailsVersion3 problem : problems) {
-            clientProblems.add(createProblemReport(problem));
+        List<Problem> clientProblems = new ArrayList<>(problemDetails.size());
+        for (InternalBasicProblemDetailsVersion3 problemDetail : problemDetails) {
+            if (problemDetail == null) { // Should not happen, but with some older snapshot versions we see this.
+                continue;
+            }
+            clientProblems.add(createProblemReport(problemDetail));
         }
         if (origFailure instanceof InternalTestAssertionFailure) {
             if (origFailure instanceof InternalFileComparisonTestAssertionFailure) {
