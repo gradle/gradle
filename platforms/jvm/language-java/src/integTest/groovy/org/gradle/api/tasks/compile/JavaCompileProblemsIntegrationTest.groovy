@@ -528,7 +528,7 @@ ${fooFileLocation}:9: warning: [cast] redundant cast to $expectedType
 
         def locations = problem.originLocations
         // We use this counter to assert that we have visited all locations
-        def assertedLocationCount = 0
+        def assertedLocationCount = 1
 
         if (expectLineLocation) {
             LineInFileLocation positionLocation = locations.find {
