@@ -25,7 +25,7 @@ sealed class CheckedFingerprint {
     object NotFound : CheckedFingerprint()
 
     // Everything is up-to-date
-    class Found(val entryName: String) : CheckedFingerprint()
+    class Found(val entryId: String) : CheckedFingerprint()
 
     // The entry cannot be reused at all and should be recreated from scratch
     class EntryInvalid(val buildPath: Path, val reason: StructuredMessage) : CheckedFingerprint()

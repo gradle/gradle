@@ -132,6 +132,11 @@ enum class StateType(val encryptable: Boolean = false) {
      * The index file that points to all of these things
      */
     Entry(false),
+
+    /**
+     * The per cache-key file that lists all known configuration cache entries
+     * for that key.
+     */
     Candidates(false)
 }
 

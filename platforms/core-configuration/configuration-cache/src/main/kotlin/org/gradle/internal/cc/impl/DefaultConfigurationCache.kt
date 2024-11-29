@@ -40,6 +40,7 @@ import org.gradle.internal.cc.base.serialize.HostServiceProvider
 import org.gradle.internal.cc.base.serialize.IsolateOwners
 import org.gradle.internal.cc.base.serialize.service
 import org.gradle.internal.cc.impl.cacheentry.EntryDetails
+import org.gradle.internal.cc.impl.extensions.withMostRecentEntry
 import org.gradle.internal.cc.impl.fingerprint.BuildScopedFingerprintResult
 import org.gradle.internal.cc.impl.fingerprint.ConfigurationCacheFingerprintController
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
@@ -72,7 +73,6 @@ import java.io.File
 import java.io.OutputStream
 import java.util.Locale
 import java.util.UUID
-import kotlin.math.min
 
 
 @Suppress("LongParameterList")
@@ -158,9 +158,6 @@ class DefaultConfigurationCache internal constructor(
     private
     val gradlePropertiesController: GradlePropertiesController
         get() = host.service()
-
-    private
-    var currentCandidateEntries: List<CandidateEntry>? = null
 
     override val isLoaded: Boolean
         get() = cacheAction is ConfigurationCacheAction.LOAD
@@ -251,8 +248,8 @@ class DefaultConfigurationCache internal constructor(
 
     override fun finalizeCacheEntry() {
         if (problems.shouldDiscardEntry) {
-            entryStore.useForStore { layout ->
-                layout.fileFor(StateType.Entry).delete()
+            entryStore.useForStore {
+                fileFor(StateType.Entry).delete()
             }
             cacheEntryRequiresCommit = false
         } else if (cacheEntryRequiresCommit) {
@@ -284,25 +281,15 @@ class DefaultConfigurationCache internal constructor(
 
     private
     fun commitCacheEntry(reusedProjects: Set<Path>) {
-        entryStore.useForStore { layout ->
-            writeConfigurationCacheFingerprint(layout, reusedProjects)
+        entryStore.useForStore {
+            writeConfigurationCacheFingerprint(reusedProjects)
             val usedModels = intermediateModels.collectAccessedValues()
             val usedMetadata = projectMetadata.collectAccessedValues()
             val sideEffects = buildTreeModelSideEffects.collectSideEffects()
-            cacheIO.writeCacheEntryDetailsTo(buildStateRegistry, usedModels, usedMetadata, sideEffects, layout.fileFor(StateType.Entry))
+            cacheIO.writeCacheEntryDetailsTo(buildStateRegistry, usedModels, usedMetadata, sideEffects, fileFor(StateType.Entry))
         }
-        store.useForStore { layout ->
-            val newEntries = calculateCandidateEntries(startParameter.entriesPerKey)
-            cacheIO.writeCandidateEntries(layout.fileFor(StateType.Candidates), newEntries)
-            currentCandidateEntries = null
-        }
+        updateMostRecentEntry(entryId)
     }
-
-    private
-    fun calculateCandidateEntries(entriesPerKey: Int): List<CandidateEntry> = currentCandidateEntries?.let { entries ->
-        val tail = entries.take(min(entries.size, entriesPerKey - 1))
-        listOf(CandidateEntry(entryId)) + tail
-    } ?: listOf(CandidateEntry(entryId))
 
     private
     fun determineCacheAction(): Pair<ConfigurationCacheAction, StructuredMessage> = when {
@@ -377,7 +364,7 @@ class DefaultConfigurationCache internal constructor(
                 is CheckedFingerprint.Found -> {
                     val description = StructuredMessage.forText("Reusing configuration cache.")
                     logBootstrapSummary(description)
-                    ConfigurationCacheAction.LOAD(checkedFingerprint.entryName) to description
+                    ConfigurationCacheAction.LOAD(checkedFingerprint.entryId) to description
                 }
             }
         }
@@ -406,56 +393,80 @@ class DefaultConfigurationCache internal constructor(
 
     private
     fun checkFingerprint(): CheckedFingerprint = buildOperationRunner.withFingerprintCheckOperations {
-        // searching for a valid cc entry
-        val candidates = readCandidateEntries()
-        val invalidationReasons = mutableListOf<CheckedFingerprint>()
-        for (candidate in candidates) {
-            when (val result = checkCandidate(candidate)) {
-                is CheckedFingerprint.Found -> {
-                    currentCandidateEntries = updateMostRecentEntries(candidate, candidates)
-                    return@withFingerprintCheckOperations result
-                }
-
-                is CheckedFingerprint.EntryInvalid,
-                is CheckedFingerprint.ProjectsInvalid -> invalidationReasons.add(result)
-
-                else -> continue
-            }
+        val candidates = loadCandidateEntries()
+        val result = searchForValidEntry(candidates)
+        if (result is CheckedFingerprint.Found) {
+            updateMostRecentEntry(result.entryId)
         }
-        currentCandidateEntries = candidates
-        invalidationReasons.firstOrNull()
-            ?: CheckedFingerprint.NotFound
-    }
-
-    private fun updateMostRecentEntries(candidate: CandidateEntry, candidates: List<CandidateEntry>) = buildList {
-        add(0, candidate)
-        addAll(candidates.filter { it != candidate })
+        result
     }
 
     private
-    fun readCandidateEntries() = store.useForStateLoad { layout ->
-        cacheIO.readCandidateEntries(layout.fileFor(StateType.Candidates))
+    fun searchForValidEntry(candidates: List<CandidateEntry>): CheckedFingerprint {
+        var firstInvalidResult: CheckedFingerprint? = null
+        for (candidate in candidates) {
+            when (val result = checkCandidate(candidate)) {
+                is CheckedFingerprint.Found -> {
+                    return result
+                }
+
+                is CheckedFingerprint.EntryInvalid,
+                is CheckedFingerprint.ProjectsInvalid -> {
+                    if (firstInvalidResult == null) {
+                        firstInvalidResult = result
+                    }
+                }
+
+                CheckedFingerprint.NotFound -> continue
+            }
+        }
+        return firstInvalidResult
+            ?: CheckedFingerprint.NotFound
+    }
+
+    private
+    fun loadCandidateEntries() = store.useForStateLoad {
+        readCandidateEntries()
     }.value
+
+    private
+    fun updateMostRecentEntry(mostRecent: String) = store.useForStore {
+        writeCandidateEntries(
+            readCandidateEntries().withMostRecentEntry(
+                CandidateEntry(mostRecent),
+                startParameter.entriesPerKey
+            )
+        )
+    }
+
+    private
+    fun ConfigurationCacheRepository.Layout.writeCandidateEntries(entries: List<CandidateEntry>) {
+        cacheIO.writeCandidateEntries(fileFor(StateType.Candidates), entries)
+    }
+
+    private
+    fun ConfigurationCacheRepository.Layout.readCandidateEntries() =
+        cacheIO.readCandidateEntries(fileForRead(StateType.Candidates))
 
     private
     fun checkCandidate(candidateEntry: CandidateEntry): CheckedFingerprint {
         // checking a single fingerprint
         val entryName = candidateEntry.id
         val entryStore = cacheRepository.forKey(entryName)
-        return entryStore.useForStateLoad { layout ->
-            checkedFingerprint(layout, candidateEntry)
+        return entryStore.useForStateLoad {
+            checkedFingerprint(candidateEntry)
         }.value
     }
 
     private
-    fun checkedFingerprint(layout: ConfigurationCacheRepository.Layout, candidateEntry: CandidateEntry): CheckedFingerprint {
-        val entryFile = layout.fileFor(StateType.Entry)
+    fun ConfigurationCacheRepository.Layout.checkedFingerprint(candidateEntry: CandidateEntry): CheckedFingerprint {
+        val entryFile = fileFor(StateType.Entry)
         val entryDetails = cacheIO.readCacheEntryDetailsFrom(entryFile)
         return if (entryDetails == null) {
             // No entry file -> treat the entry as empty/missing/invalid
             CheckedFingerprint.NotFound
         } else {
-            checkFingerprint(entryDetails, layout, candidateEntry)
+            checkFingerprint(entryDetails, candidateEntry)
         }
     }
 
@@ -524,9 +535,9 @@ class DefaultConfigurationCache internal constructor(
         action: (ConfigurationCacheStateFile) -> Unit
     ): ConfigurationCacheStateStore.StateAccessResult<Throwable?> {
 
-        return entryStore.useForStore { layout ->
+        return entryStore.useForStore {
             try {
-                val stateFile = layout.fileFor(stateType)
+                val stateFile = fileFor(stateType)
                 action(stateFile)
                 val storeFailure = problems.queryFailure()
                 storeFailure
@@ -601,16 +612,16 @@ class DefaultConfigurationCache internal constructor(
         cacheIO.writeRootBuildStateTo(stateFile)
 
     private
-    fun writeConfigurationCacheFingerprint(layout: ConfigurationCacheRepository.Layout, reusedProjects: Set<Path>) {
+    fun ConfigurationCacheRepository.Layout.writeConfigurationCacheFingerprint(reusedProjects: Set<Path>) {
         // Collect fingerprint entries for any projects whose state was reused from cache
         if (reusedProjects.isNotEmpty()) {
-            readFingerprintFile(layout.fileForRead(StateType.ProjectFingerprint)) { host ->
+            readFingerprintFile(fileForRead(StateType.ProjectFingerprint)) { host ->
                 cacheFingerprintController.run {
                     collectFingerprintForReusedProjects(host, reusedProjects)
                 }
             }
         }
-        cacheFingerprintController.commitFingerprintTo(layout.fileFor(StateType.BuildFingerprint), layout.fileFor(StateType.ProjectFingerprint))
+        cacheFingerprintController.commitFingerprintTo(fileFor(StateType.BuildFingerprint), fileFor(StateType.ProjectFingerprint))
     }
 
     private
@@ -644,7 +655,7 @@ class DefaultConfigurationCache internal constructor(
     }
 
     private
-    fun checkFingerprint(entryDetails: EntryDetails, layout: ConfigurationCacheRepository.Layout, candidateEntry: CandidateEntry): CheckedFingerprint {
+    fun ConfigurationCacheRepository.Layout.checkFingerprint(entryDetails: EntryDetails, candidateEntry: CandidateEntry): CheckedFingerprint {
         // Register all included build root directories as watchable hierarchies,
         // so we can load the fingerprint for build scripts and other files from included builds
         // without violating file system invariants.
@@ -652,7 +663,7 @@ class DefaultConfigurationCache internal constructor(
 
         loadGradleProperties()
 
-        return checkFingerprintAgainstLoadedProperties(entryDetails, layout, candidateEntry).also { result ->
+        return checkFingerprintAgainstLoadedProperties(entryDetails, candidateEntry).also { result ->
             if (result !is CheckedFingerprint.Found) {
                 // Force Gradle properties to be reloaded so the Gradle properties files
                 // along with any Gradle property defining system properties and environment variables
@@ -663,29 +674,27 @@ class DefaultConfigurationCache internal constructor(
     }
 
     private
-    fun checkFingerprintAgainstLoadedProperties(
+    fun ConfigurationCacheRepository.Layout.checkFingerprintAgainstLoadedProperties(
         entryDetails: EntryDetails,
-        layout: ConfigurationCacheRepository.Layout,
         candidateEntry: CandidateEntry
     ): CheckedFingerprint =
-        when (val result = checkBuildScopedFingerprint(layout.fileFor(StateType.BuildFingerprint))) {
+        when (val result = checkBuildScopedFingerprint(fileFor(StateType.BuildFingerprint))) {
             is BuildScopedFingerprintResult.Invalid -> {
                 CheckedFingerprint.EntryInvalid(buildPath(), result.reason)
             }
 
             BuildScopedFingerprintResult.Valid -> {
-                checkProjectFingerprintAgainstLoadedProperties(layout, candidateEntry, entryDetails)
+                checkProjectFingerprintAgainstLoadedProperties(candidateEntry, entryDetails)
             }
         }
 
     private
-    fun checkProjectFingerprintAgainstLoadedProperties(
-        layout: ConfigurationCacheRepository.Layout,
+    fun ConfigurationCacheRepository.Layout.checkProjectFingerprintAgainstLoadedProperties(
         candidateEntry: CandidateEntry,
         entryDetails: EntryDetails
     ): CheckedFingerprint {
         // Build inputs are up-to-date, check project specific inputs
-        val projectResult = checkProjectScopedFingerprint(layout.fileFor(StateType.ProjectFingerprint), candidateEntry)
+        val projectResult = checkProjectScopedFingerprint(fileFor(StateType.ProjectFingerprint), candidateEntry)
         if (projectResult is CheckedFingerprint.ProjectsInvalid) {
             intermediateModels.restoreFromCacheEntry(entryDetails.intermediateModels, projectResult)
             projectMetadata.restoreFromCacheEntry(entryDetails.projectMetadata, projectResult)
