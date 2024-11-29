@@ -68,6 +68,7 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
         fun displayNameOf(fileOrDirectory: File): String
         fun instantiateValueSourceOf(obtainedValue: ObtainedValue): ValueSource<Any, ValueSourceParameters>
         fun isRemoteScriptUpToDate(uri: URI): Boolean
+        fun hasValidBuildSrc(candidateBuildSrc: File): Boolean
     }
 
     suspend fun ReadContext.checkBuildScopedFingerprint(): CheckedFingerprint {
@@ -102,6 +103,7 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                     state.buildPath = input.buildPath
                     state.projectPath = input.projectPath
                 }
+
                 is ProjectSpecificFingerprint.ProjectFingerprint -> {
                     // An input that is specific to a project. If it is out-of-date, then invalidate that project's values and continue checking values
                     // Don't check a value for a project that is already out-of-date
@@ -266,6 +268,7 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
 
                     host.ignoredFileSystemCheckInputs != ignoredFileSystemCheckInputPaths ->
                         text("the set of paths ignored in file-system-check input tracking (${StartParameterBuildOptions.ConfigurationCacheIgnoredFileSystemCheckInputs.PROPERTY_NAME}) has changed")
+
                     else -> null
                 }
             }
@@ -289,6 +292,14 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                 }
                 ifOrNull(currentWithoutIgnored != snapshotWithoutIgnored) {
                     text("the set of system properties prefixed by ").reference(prefix).text(" has changed: ").text(detailedMessageForChanges(snapshotWithoutIgnored, currentWithoutIgnored))
+                }
+            }
+
+            is ConfigurationCacheFingerprint.BuildSrcCandidate -> input.run {
+                val currentValid = host.hasValidBuildSrc(buildSrcDir)
+                ifOrNull(currentValid != valid) {
+                    text("a buildSrc build at ").reference(displayNameOf(buildSrcDir))
+                        .text(" has been ${if (currentValid) "added" else "removed"}")
                 }
             }
         }

@@ -21,6 +21,7 @@ import org.gradle.api.Describable
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentSelector
+import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.Expiry
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ChangingValueDependencyResolutionListener
 import org.gradle.api.internal.file.FileCollectionFactory
@@ -44,6 +45,10 @@ import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.groovy.scripts.internal.ScriptSourceListener
+import org.gradle.initialization.buildsrc.BuildSrcDetector
+import org.gradle.internal.build.BuildAddedListener
+import org.gradle.internal.build.BuildState
+import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildoption.FeatureFlag
 import org.gradle.internal.buildoption.FeatureFlagListener
 import org.gradle.internal.cc.base.services.ConfigurationCacheEnvironmentChangeTracker
@@ -95,6 +100,7 @@ class ConfigurationCacheFingerprintWriter(
     private val workExecutionTracker: WorkExecutionTracker,
     private val environmentChangeTracker: ConfigurationCacheEnvironmentChangeTracker,
     private val inputTrackingState: InputTrackingState,
+    buildStateRegistry: BuildStateRegistry,
 ) : ValueSourceProviderFactory.ValueListener,
     ValueSourceProviderFactory.ComputationListener,
     WorkInputListener,
@@ -108,6 +114,7 @@ class ConfigurationCacheFingerprintWriter(
     FeatureFlagListener,
     FileCollectionObservationListener,
     ScriptSourceListener,
+    BuildAddedListener,
     ConfigurationCacheEnvironment.Listener {
 
     interface Host {
@@ -188,6 +195,10 @@ class ConfigurationCacheFingerprintWriter(
                 host.ignoredFileSystemCheckInputs
             )
         )
+
+        buildStateRegistry.visitBuilds { buildState ->
+            captureBuildSrcPresence(buildState)
+        }
     }
 
     /**
@@ -202,6 +213,21 @@ class ConfigurationCacheFingerprintWriter(
             }
         }
         CompositeStoppable.stoppable(buildScopedWriter, projectScopedWriter).stop()
+    }
+
+    override fun buildAdded(buildState: BuildState) {
+        captureBuildSrcPresence(buildState)
+    }
+
+    private
+    fun captureBuildSrcPresence(buildState: BuildState) {
+        if (isInputTrackingDisabled()) {
+            return
+        }
+
+        val candidateBuildSrc = File(buildState.buildRootDir, SettingsInternal.BUILD_SRC)
+        val valid = BuildSrcDetector.isValidBuildSrcBuild(candidateBuildSrc)
+        buildScopedSink.write(ConfigurationCacheFingerprint.BuildSrcCandidate(candidateBuildSrc, valid))
     }
 
     override fun scriptSourceObserved(scriptSource: ScriptSource) {
