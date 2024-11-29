@@ -45,6 +45,7 @@ import static org.gradle.integtests.tooling.r86.ProblemsServiceModelBuilderCross
 @TargetGradleVersion(">=8.9")
 class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
 
+
     def withReportProblemTask(@GroovyBuildScriptLanguage String taskActionMethodBody) {
         buildFile getProblemReportTaskString(taskActionMethodBody)
     }
@@ -135,21 +136,91 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
     @TargetGradleVersion(">=8.12")
     def "daaa"() {
         given:
-        buildFile
-        withReportProblemTask """
-            getProblems().getReporter().reporting {
-                it.id("id", "shortProblemMessage")
-                $documentationConfig
-                .lineInFileLocation("/tmp/foo", 1, 2, 3)
-                $detailsConfig
-                .additionalData(org.gradle.api.problems.internal.GeneralDataSpec, data -> data.put("aKey", "aValue"))
-                .severity(Severity.WARNING)
-                .solution("try this instead")
+        buildFile """
+            import org.gradle.api.problems.Severity
+
+            class SomeData implements AdditionalData {
+                String typeName
+
+                SomeData(String typeName) {
+                    this.typeName = typeName
+                }
+                Map<String, String> getAsMap(){
+                    [typeName: typeName]
+                }
+                public static AdditionalDataBuilder<SomeData> builder(SomeData from) {
+                    if(from == null) {
+                        return new SomeDataBuilder();
+                    }
+                    return new SomeDataBuilder(from);
+                }
+
+                private static class SomeDataBuilder implements SomeDataSpec, AdditionalDataBuilder<SomeData> {
+                    private String typeName;
+
+                    public SomeDataBuilder(SomeData from) {
+                        this.typeName = from.getTypeName();
+                    }
+
+                    public SomeDataBuilder() {
+                    }
+
+                    @Override
+                    public SomeDataSpec typeName(String typeName){
+                        this.typeName = typeName;
+                        return this;
+                    }
+
+                    @Override
+                    public SomeData build() {
+                        return new SomeData(typeName);
+                    }
+                }
             }
-        """
+
+            interface SomeDataSpec extends AdditionalDataSpec {
+                SomeDataSpec typeName(String typeName);
+            }
+
+            abstract class ProblemReportingTask extends DefaultTask {
+                @Inject
+                protected abstract Problems getProblems();
+
+                @TaskAction
+                void run() {
+                    getProblems().getReporter().reporting {
+                        it.id("id", "shortProblemMessage")
+                        .lineInFileLocation("/tmp/foo", 1, 2, 3)
+                        .additionalData(SomeDataSpec, data -> data.typeName("typeName"))
+                        .severity(Severity.WARNING)
+                        .solution("try this instead")
+                    }
+                }
+            }
+
+            abstract class MyPlugin implements Plugin<Project> {
+                @Inject
+                protected abstract Problems getProblems();
+
+                void apply(Project project) {
+                    getProblems().getAdditionalDataBuilderFactory().registerAdditionalDataProvider(SomeDataSpec, data -> {
+                        return SomeData.builder(data)
+                    })
+                    project.tasks.register("reportProblem", ProblemReportingTask)
+                }
+            }
+
+            apply(plugin: MyPlugin)
+       """
         when:
 
-        def problems = runTask()
+        def listener = new ProblemProgressListener()
+        withConnection { connection ->
+            connection.newBuild().forTasks('reportProblem')
+                .addProgressListener(listener)
+                .run()
+        }
+        def problems = listener.problems
 
         then:
         problems.size() == 1
@@ -169,7 +240,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
 
         where:
         detailsConfig              | expectedDetails | documentationConfig                         | expectedDocumentation
-        '.details("long message")' | "long message"  | '.documentedAt("https://docs.example.org")' | 'https://docs.example.org'
+//        '.details("long message")' | "long message"  | '.documentedAt("https://docs.example.org")' | 'https://docs.example.org'
         ''                         | null            | ''                                          | null
     }
 

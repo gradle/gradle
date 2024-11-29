@@ -35,7 +35,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         //  issue https://github.com/gradle/gradle/issues/27484
     }
 
-    static String getProblemReportTaskString(String taskActionMethodBody) {
+    static String getProblemReportTaskString(@GroovyBuildScriptLanguage String taskActionMethodBody) {
         """
             import org.gradle.api.problems.Severity
 
