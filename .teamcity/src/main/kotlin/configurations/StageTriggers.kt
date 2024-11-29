@@ -1,7 +1,6 @@
 package configurations
 
 import common.Os
-import common.VersionedSettingsBranch
 import common.applyDefaultSettings
 import common.toCapitalized
 import common.uuidPrefix
@@ -46,8 +45,11 @@ class StageTriggers(model: CIBuildModel, stage: Stage, prevStage: Stage?, stageP
 // https://github.com/gradle/gradle-private/issues/4528
 // Trigger ReadyForNightly and ReadyForRelease for provider-api-migration/public-api-changes branch
 // TODO: remove this after the branch is merged
-fun VersionedSettingsBranch.determineBranchFilter(): String {
-    return branchFilter() + "\n+:provider-api-migration/public-api-changes"
+const val PROVIDER_API_MIGRATION_BRANCH = "provider-api-migration/public-api-changes"
+const val BOT_DAILY_UPGRADLE_WRAPPER_BRANCH = "bot/upgradle-to-latest-wrapper*"
+
+fun determineBranchFilter(vararg branches: String): String {
+    return branches.map { "+:$it" }.joinToString("\n")
 }
 
 class StageTrigger(
@@ -76,7 +78,11 @@ class StageTrigger(
                 quietPeriodMode = VcsTrigger.QuietPeriodMode.USE_CUSTOM
                 quietPeriod = 90
                 triggerRules = triggerExcludes
-                branchFilter = model.branch.determineBranchFilter()
+                branchFilter = determineBranchFilter(
+                    model.branch.branchName,
+                    PROVIDER_API_MIGRATION_BRANCH,
+                    BOT_DAILY_UPGRADLE_WRAPPER_BRANCH
+                )
                 enabled = enableTriggers
             }
         } else if (stage.trigger != Trigger.never) {
@@ -95,7 +101,10 @@ class StageTrigger(
                 triggerBuild = always()
                 withPendingChangesOnly = true
                 param("revisionRule", "lastFinished")
-                branchFilter = model.branch.determineBranchFilter()
+                branchFilter = determineBranchFilter(
+                    model.branch.branchName,
+                    PROVIDER_API_MIGRATION_BRANCH
+                )
                 enabled = enableTriggers
             }
         }
