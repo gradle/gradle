@@ -22,7 +22,6 @@ import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.internal.provider.DefaultConfigurationTimeBarrier
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.logging.LogLevel
-import org.gradle.configuration.internal.ConfigurationInputsTrackingRunner
 import org.gradle.configurationcache.ModelStoreResult
 import org.gradle.configurationcache.WorkGraphLoadResult
 import org.gradle.configurationcache.WorkGraphStoreResult
@@ -42,6 +41,7 @@ import org.gradle.internal.cc.base.serialize.IsolateOwners
 import org.gradle.internal.cc.base.serialize.service
 import org.gradle.internal.cc.impl.cacheentry.EntryDetails
 import org.gradle.internal.cc.impl.fingerprint.ConfigurationCacheFingerprintController
+import org.gradle.internal.cc.impl.fingerprint.FingerprintContributor
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
 import org.gradle.internal.cc.impl.metadata.ProjectMetadataController
 import org.gradle.internal.cc.impl.models.BuildTreeModelSideEffectStore
@@ -56,11 +56,9 @@ import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.configuration.inputs.InstrumentedInputs
 import org.gradle.internal.configuration.problems.StructuredMessage
 import org.gradle.internal.extensions.core.get
-import org.gradle.internal.extensions.stdlib.toDefaultLowerCase
 import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.operations.BuildOperationRunner
-import org.gradle.internal.serialize.graph.CloseableWriteContext
 import org.gradle.internal.serialize.graph.IsolateOwner
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.withIsolate
@@ -69,9 +67,7 @@ import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem
 import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier
 import org.gradle.util.Path
 import java.io.File
-import java.io.OutputStream
 import java.util.Locale
-import java.util.function.Supplier
 
 
 @Suppress("LongParameterList")
@@ -80,14 +76,14 @@ class DefaultConfigurationCache internal constructor(
     private val cacheKey: ConfigurationCacheKey,
     private val problems: ConfigurationCacheProblems,
     private val scopeRegistryListener: ConfigurationCacheClassLoaderScopeRegistryListener,
-    private val cacheRepository: ConfigurationCacheRepository,
-    private val instrumentedInputAccessListener: InstrumentedInputAccessListener,
     private val configurationTimeBarrier: ConfigurationTimeBarrier,
     private val buildActionModelRequirements: BuildActionModelRequirements,
     private val buildStateRegistry: BuildStateRegistry,
     private val virtualFileSystem: BuildLifecycleAwareVirtualFileSystem,
     private val buildOperationRunner: BuildOperationRunner,
     private val cacheFingerprintController: ConfigurationCacheFingerprintController,
+    private val cacheFingerprintContributor: FingerprintContributor,
+    private val currentStateStore: CurrentStateStore,
     private val resolveStateFactory: LocalComponentGraphResolveStateFactory,
     /**
      * Force the [FileSystemAccess] service to be initialized as it initializes important static state.
@@ -97,7 +93,7 @@ class DefaultConfigurationCache internal constructor(
     private val calculatedValueContainerFactory: CalculatedValueContainerFactory,
     private val modelSideEffectExecutor: ConfigurationCacheBuildTreeModelSideEffectExecutor,
     private val deferredRootBuildGradle: DeferredRootBuildGradle
-) : BuildTreeConfigurationCache, Stoppable, ConfigurationInputsTrackingRunner {
+) : BuildTreeConfigurationCache, Stoppable {
 
     private
     lateinit var cacheAction: ConfigurationCacheAction
@@ -116,10 +112,7 @@ class DefaultConfigurationCache internal constructor(
     val loadedSideEffects = mutableListOf<BuildTreeModelSideEffect>()
 
     private
-    val storeDelegate = lazy { cacheRepository.forKey(cacheKey.string) }
-
-    private
-    val store by storeDelegate
+    val store by lazy { currentStateStore.store }
 
     private
     val cacheIO by lazy { host.service<ConfigurationCacheBuildTreeIO>() }
@@ -369,7 +362,6 @@ class DefaultConfigurationCache internal constructor(
         stoppable.addIfInitialized(lazyBuildTreeModelSideEffects)
         stoppable.addIfInitialized(lazyIntermediateModels)
         stoppable.addIfInitialized(lazyProjectMetadata)
-        stoppable.addIfInitialized(storeDelegate)
         stoppable.stop()
     }
 
@@ -396,33 +388,11 @@ class DefaultConfigurationCache internal constructor(
         }.value
     }
 
-    override fun <T : Any> runTrackingConfigurationInputs(action: Supplier<T>): T {
-        return runWorkThatContributesToCacheEntry {
-            action.get()
-        }
-    }
-
     private
     fun <T> runWorkThatContributesToCacheEntry(action: () -> T): T {
-        prepareForWork()
-        try {
-            return action()
-        } finally {
-            doneWithWork()
-        }
-    }
-
-    private
-    fun prepareForWork() {
-        prepareConfigurationTimeBarrier()
-        startCollectingCacheFingerprint()
-        InstrumentedInputs.setListener(instrumentedInputAccessListener)
-    }
-
-    private
-    fun doneWithWork() {
-        InstrumentedInputs.discardListener()
-        cacheFingerprintController.stopCollectingFingerprint()
+        return cacheFingerprintContributor.contributeToFingerprint(
+            action
+        )
     }
 
     private
@@ -554,36 +524,6 @@ class DefaultConfigurationCache internal constructor(
             }
         }
         cacheFingerprintController.commitFingerprintTo(layout.fileFor(StateType.BuildFingerprint), layout.fileFor(StateType.ProjectFingerprint))
-    }
-
-    private
-    fun startCollectingCacheFingerprint() {
-        cacheFingerprintController.maybeStartCollectingFingerprint(
-            store.assignSpoolFile(StateType.BuildFingerprint),
-            store.assignSpoolFile(StateType.ProjectFingerprint)
-        ) { stateFile ->
-            cacheFingerprintWriteContextFor(stateFile.stateType, stateFile.file::outputStream) {
-                profileNameFor(stateFile)
-            }
-        }
-    }
-
-    private
-    fun profileNameFor(stateFile: ConfigurationCacheStateStore.StateFile) =
-        stateFile.stateType.name.replace(Regex("\\p{Upper}")) { match ->
-            " " + match.value.toDefaultLowerCase()
-        }.drop(1)
-
-    private
-    fun cacheFingerprintWriteContextFor(
-        stateType: StateType,
-        outputStream: () -> OutputStream,
-        profile: () -> String
-    ): CloseableWriteContext {
-        val (context, codecs) = cacheIO.writeContextFor("cacheFingerprintWriteContext", stateType, outputStream, profile)
-        return context.apply {
-            push(isolateOwnerHost, codecs.fingerprintTypesCodec())
-        }
     }
 
     private

@@ -17,6 +17,7 @@
 package org.gradle.internal.cc.impl
 
 import org.gradle.cache.internal.streams.ValueStore
+import org.gradle.internal.extensions.stdlib.toDefaultLowerCase
 import java.io.File
 
 
@@ -54,4 +55,11 @@ interface ConfigurationCacheStateStore {
         writer: ValueStore.Writer<T>,
         reader: ValueStore.Reader<T>
     ): ValueStore<T>
+
 }
+
+internal
+fun ConfigurationCacheStateStore.StateFile.profileName() =
+    this.stateType.name.replace(Regex("\\p{Upper}")) { match ->
+        " " + match.value.toDefaultLowerCase()
+    }.drop(1)

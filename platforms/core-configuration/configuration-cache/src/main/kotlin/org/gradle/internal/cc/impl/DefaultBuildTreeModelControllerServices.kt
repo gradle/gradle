@@ -39,6 +39,7 @@ import org.gradle.internal.buildtree.RunTasksRequirements
 import org.gradle.internal.cc.base.logger
 import org.gradle.internal.cc.base.services.ConfigurationCacheEnvironmentChangeTracker
 import org.gradle.internal.cc.impl.fingerprint.ConfigurationCacheFingerprintController
+import org.gradle.internal.cc.impl.fingerprint.DefaultFingerprintContributor
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheInjectedClasspathInstrumentationStrategy
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
 import org.gradle.internal.cc.impl.initialization.DefaultConfigurationCacheProblemsListener
@@ -244,6 +245,8 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
             registration.add(DefaultConfigurationCache::class.java)
             registration.add(InstrumentedExecutionAccessListenerRegistry::class.java)
             registration.add(ConfigurationCacheFingerprintController::class.java)
+            registration.add(CurrentStateStore::class.java)
+            registration.add(DefaultFingerprintContributor::class.java)
             registration.addProvider(ConfigurationCacheBuildTreeProvider())
             registration.add(ConfigurationCacheBuildTreeModelSideEffectExecutor::class.java)
             registration.add(DefaultDeferredRootBuildGradle::class.java)
