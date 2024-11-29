@@ -328,7 +328,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
                 context.appendResolution(output ->
                     output.text(join("\n " + LINE_PREFIX_LENGTH_SPACES, resolution.split("\n"))))
             );
-        boolean shouldDisplayGenericResolutions = !hasCauseAncestry(details.failure, NonGradleCause.class) && !hasProblemReportsWithSolutions(ImmutableList.of(details.failure), problemLookup);
+        boolean shouldDisplayGenericResolutions = !hasCauseAncestry(details.failure, NonGradleCause.class) && !hasProblemReportsWithSolutions(details.failure, problemLookup);
         if (details.exceptionStyle == ExceptionStyle.NONE && shouldDisplayGenericResolutions) {
             context.appendResolution(output ->
                 runWithOption(output, STACKTRACE_LONG_OPTION, " option to get the stack trace.")
@@ -358,16 +358,17 @@ public class BuildExceptionReporter implements Action<Throwable> {
         }
     }
 
-    private static boolean hasProblemReportsWithSolutions(List<? extends Throwable> throwables, ProblemLookup problemLookup) {
-        for (Throwable throwable : throwables) {
-            Optional<String> first = problemLookup.findAll(throwable).stream().flatMap(p -> p.getSolutions().stream()).findFirst();
-            if (first.isPresent()) {
-                return true;
-            } else {
-               return hasProblemReportsWithSolutions(getCauses(throwable), problemLookup);
-            }
+    private static boolean hasProblemReportsWithSolutions(Throwable throwable, ProblemLookup problemLookup) {
+        Optional<String> solution = problemLookup.findAll(throwable).stream().flatMap(p -> p.getSolutions().stream()).findFirst();
+        if (solution.isPresent()) {
+            return true;
+        } else {
+            return hasProblemReportsWithSolutions(getCauses(throwable), problemLookup);
         }
-        return false;
+    }
+
+    private static boolean hasProblemReportsWithSolutions(List<? extends Throwable> throwables, ProblemLookup problemLookup) {
+        return throwables.stream().anyMatch(t -> hasProblemReportsWithSolutions(t, problemLookup));
     }
 
     private static void runWithOption(StyledTextOutput output, String optionName, String text) {

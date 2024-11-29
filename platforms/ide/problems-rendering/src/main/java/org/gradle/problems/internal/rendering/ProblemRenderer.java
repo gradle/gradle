@@ -16,10 +16,12 @@
 
 package org.gradle.problems.internal.rendering;
 
+import com.google.common.base.Strings;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.Problem;
+import org.gradle.util.internal.TextUtil;
 
 import java.io.PrintWriter;
 import java.io.Writer;
@@ -85,16 +87,9 @@ public class ProblemRenderer {
         if (message == null) {
             return;
         }
-        String[] lines = message.split("\n");
-        for (int i = 0; i < lines.length; i++) {
-            for (int j = 0; j < level; j++) {
-                output.print("  ");
-            }
-            if (i == lines.length - 1) { // don't print extra newline at the end of the last line
-                output.printf("%s", lines[i]);
-            } else {
-                output.printf("%s%n", lines[i]);
-            }
-        }
+        @SuppressWarnings("InlineMeInliner")
+        String prefix = Strings.repeat(" ", level * 2);
+        String formatted = TextUtil.indent(message, prefix);
+        output.print(formatted);
     }
 }
