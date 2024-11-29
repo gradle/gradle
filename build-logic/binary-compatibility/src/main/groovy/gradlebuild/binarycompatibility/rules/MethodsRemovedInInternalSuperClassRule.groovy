@@ -102,8 +102,19 @@ class MethodsRemovedInInternalSuperClassRule extends AbstractSuperClassChangesRu
     }
 
     private boolean containsMethod(CtClass c, CtMethod method) {
-        // TODO signature contains return type
-        // but return type can be overridden
-        return collectAllPublicApiMethods(c).any { it.name == method.name && it.signature == method.signature }
+        return collectAllPublicApiMethods(c).any { it.name == method.name && methodSignaturesMatch(it, method) }
+    }
+
+    private static String methodSignaturesMatch(CtMethod methodInSubClass, CtMethod method) {
+        return methodParametersFromSignature(methodInSubClass) == methodParametersFromSignature(method)
+            // Subclass can override method return type
+            && methodInSubClass.returnType.subtypeOf(method.returnType)
+    }
+
+    /**
+     * Returns method parameters from method signature, e.g. "(Ljava/lang/String;I)V" -> "(Ljava/lang/String;I)"
+     */
+    private static String methodParametersFromSignature(CtMethod method) {
+        return method.signature.substring(0, method.signature.indexOf(")") + 1)
     }
 }
