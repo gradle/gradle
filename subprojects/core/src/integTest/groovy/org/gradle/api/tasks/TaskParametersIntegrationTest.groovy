@@ -134,7 +134,7 @@ class TaskParametersIntegrationTest extends AbstractIntegrationSpec implements V
         outputContains "Input property 'inputs2' file ${file("input2.txt")} has been added."
 
         when:
-        succeeds "test"
+        succeeds "test", "--info"
 
         then:
         skipped ':test'
