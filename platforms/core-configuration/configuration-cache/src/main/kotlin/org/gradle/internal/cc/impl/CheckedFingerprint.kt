@@ -31,6 +31,7 @@ sealed class CheckedFingerprint {
     class EntryInvalid(val buildPath: Path, val reason: StructuredMessage) : CheckedFingerprint()
 
     // The entry can be reused, however the values for certain projects cannot be reused and should be recreated
+    // TODO:isolated when keeping multiple entries per key, Gradle should look for the entry with the least number of invalid projects
     class ProjectsInvalid(
         val entryName: String,
         /**
@@ -56,5 +57,9 @@ sealed class CheckedFingerprint {
     /**
      * Information about an invalidated project.
      */
-    data class ProjectInvalidationData(val buildPath: Path, val projectPath: Path, val message: StructuredMessage)
+    data class ProjectInvalidationData(
+        val buildPath: Path,
+        val projectPath: Path,
+        val message: StructuredMessage
+    )
 }
