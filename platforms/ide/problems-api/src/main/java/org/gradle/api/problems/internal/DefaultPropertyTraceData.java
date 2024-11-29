@@ -36,10 +36,6 @@ public class DefaultPropertyTraceData implements PropertyTraceData {
         return new DefaultPropertyTraceDataBuilder(from);
     }
 
-    public static AdditionalDataBuilder<PropertyTraceData> builder() {
-        return new DefaultPropertyTraceDataBuilder();
-    }
-
     @Override
     public String getTrace() {
         return trace;
