@@ -31,6 +31,7 @@ import org.gradle.internal.cc.impl.ConfigurationCacheStateFile
 import org.gradle.internal.cc.impl.ConfigurationCacheStateStore.StateFile
 import org.gradle.internal.cc.impl.InputTrackingState
 import org.gradle.internal.cc.impl.ProjectIdentityPath
+import org.gradle.internal.cc.impl.StateType
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
 import org.gradle.internal.cc.impl.problems.ConfigurationCacheProblems
 import org.gradle.internal.cc.impl.services.RemoteScriptUpToDateChecker
@@ -314,10 +315,11 @@ class ConfigurationCacheFingerprintController internal constructor(
     // This should be strict but currently this method may be called multiple times when a
     // build invocation both runs tasks and queries models
     fun maybeStartCollectingFingerprint(
-        buildScopedSpoolFile: StateFile,
-        projectScopedSpoolFile: StateFile,
+        stateFileAssigner: (StateType) -> StateFile,
         writeContextForOutputStream: (StateFile) -> CloseableWriteContext
     ) {
+        val buildScopedSpoolFile = stateFileAssigner(StateType.BuildFingerprint)
+        val projectScopedSpoolFile = stateFileAssigner(StateType.ProjectFingerprint)
         writingState = writingState.maybeStart(buildScopedSpoolFile, projectScopedSpoolFile, writeContextForOutputStream)
     }
 
