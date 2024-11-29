@@ -57,7 +57,6 @@ internal
 class ConfigurationCacheFingerprintChecker(private val host: Host) {
 
     interface Host {
-        val buildPath: Path
         val isEncrypted: Boolean
         val encryptionKeyHashCode: HashCode
         val gradleUserHomeDir: File

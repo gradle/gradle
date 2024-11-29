@@ -103,7 +103,6 @@ class ConfigurationCacheFingerprintController internal constructor(
 ) : Stoppable, ProjectScopedScriptResolution {
 
     interface Host {
-        val buildPath: Path
         val valueSourceProviderFactory: ValueSourceProviderFactory
         val gradleProperties: GradleProperties
     }
@@ -459,9 +458,6 @@ class ConfigurationCacheFingerprintController internal constructor(
 
         private
         val gradleProperties by lazy(host::gradleProperties)
-
-        override val buildPath: Path
-            get() = host.buildPath
 
         override val isEncrypted: Boolean
             get() = encryptionService.isEncrypting

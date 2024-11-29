@@ -724,8 +724,6 @@ class DefaultConfigurationCache internal constructor(
         cacheIO.withReadContextFor(fingerprintFile) { codecs ->
             withIsolate(isolateOwnerHost, codecs.fingerprintTypesCodec()) {
                 action(object : ConfigurationCacheFingerprintController.Host {
-                    override val buildPath: Path
-                        get() = buildPath()
                     override val valueSourceProviderFactory: ValueSourceProviderFactory
                         get() = host.service()
                     override val gradleProperties: GradleProperties
