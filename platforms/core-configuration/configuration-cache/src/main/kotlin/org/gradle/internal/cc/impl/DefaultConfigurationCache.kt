@@ -497,7 +497,7 @@ class DefaultConfigurationCache internal constructor(
         action: (ConfigurationCacheStateFile) -> Unit
     ): ConfigurationCacheStateStore.StateAccessResult<Throwable?> {
 
-        return store.useForStore { layout ->
+        return entryStore.useForStore { layout ->
             try {
                 val stateFile = layout.fileFor(stateType)
                 action(stateFile)
@@ -520,7 +520,7 @@ class DefaultConfigurationCache internal constructor(
         scopeRegistryListener.dispose()
 
         buildOperationRunner.withModelLoadOperation {
-            val storeLoadResult = store.useForStateLoad(StateType.Model) { stateFile: ConfigurationCacheStateFile ->
+            val storeLoadResult = entryStore.useForStateLoad(StateType.Model) { stateFile: ConfigurationCacheStateFile ->
                 cacheIO.readModelFrom(stateFile)
             }
 
@@ -540,7 +540,7 @@ class DefaultConfigurationCache internal constructor(
         scopeRegistryListener.dispose()
 
         buildOperationRunner.withWorkGraphLoadOperation {
-            val storeLoadResult = store.useForStateLoad(StateType.Work) { stateFile: ConfigurationCacheStateFile ->
+            val storeLoadResult = entryStore.useForStateLoad(StateType.Work) { stateFile: ConfigurationCacheStateFile ->
                 val (buildInvocationId, workGraph) = cacheIO.readRootBuildStateFrom(stateFile, loadAfterStore, graph, graphBuilder)
                 LoadResultMetadata(buildInvocationId) to workGraph
             }
@@ -589,8 +589,8 @@ class DefaultConfigurationCache internal constructor(
     private
     fun startCollectingCacheFingerprint() {
         cacheFingerprintController.maybeStartCollectingFingerprint(
-            store.assignSpoolFile(StateType.BuildFingerprint),
-            store.assignSpoolFile(StateType.ProjectFingerprint)
+            entryStore.assignSpoolFile(StateType.BuildFingerprint),
+            entryStore.assignSpoolFile(StateType.ProjectFingerprint)
         ) { stateFile ->
             cacheFingerprintWriteContextFor(stateFile.stateType, stateFile.file::outputStream) {
                 profileNameFor(stateFile)
