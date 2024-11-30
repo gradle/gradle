@@ -363,7 +363,7 @@ class DefaultConfigurationCache internal constructor(
                         checkedFingerprint.firstReason.render()
                     )
                     logBootstrapSummary(description)
-                    ConfigurationCacheAction.UPDATE(checkedFingerprint.entryName) to description
+                    ConfigurationCacheAction.UPDATE(checkedFingerprint.entryId) to description
                 }
 
                 is CheckedFingerprint.Found -> {

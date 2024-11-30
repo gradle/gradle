@@ -33,7 +33,10 @@ sealed class CheckedFingerprint {
     // The entry can be reused, however the values for certain projects cannot be reused and should be recreated
     // TODO:isolated when keeping multiple entries per key, Gradle should look for the entry with the least number of invalid projects
     class ProjectsInvalid(
-        val entryName: String,
+        /**
+         * Configuration cache entry id.
+         */
+        val entryId: String,
         /**
          * Identity path of the first project for which an invalidation was detected.
          */
