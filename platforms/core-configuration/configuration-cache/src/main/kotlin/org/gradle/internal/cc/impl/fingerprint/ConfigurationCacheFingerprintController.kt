@@ -395,7 +395,7 @@ class ConfigurationCacheFingerprintController internal constructor(
         override val gradleUserHomeDir: File
             get() = startParameter.gradleUserHomeDir
 
-        override val projectProperties: Map<String, Any?>
+        override val projectProperties: Map<String, String>
             get() = startParameter.projectProperties
 
         override val allInitScripts: List<File>
@@ -474,7 +474,7 @@ class ConfigurationCacheFingerprintController internal constructor(
         override val allInitScripts: List<File>
             get() = startParameter.allInitScripts
 
-        override val projectProperties: Map<String, Any?>
+        override val projectProperties: Map<String, String>
             get() = startParameter.projectProperties
 
         override val buildStartTime: Long

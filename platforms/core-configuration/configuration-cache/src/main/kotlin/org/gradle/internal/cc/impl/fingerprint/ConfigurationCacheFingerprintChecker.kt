@@ -54,7 +54,7 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
         val encryptionKeyHashCode: HashCode
         val gradleUserHomeDir: File
         val allInitScripts: List<File>
-        val projectProperties: Map<String, Any?>
+        val projectProperties: Map<String,String>
         val buildStartTime: Long
         val invalidateCoupledProjects: Boolean
         val ignoreInputsDuringConfigurationCacheStore: Boolean
