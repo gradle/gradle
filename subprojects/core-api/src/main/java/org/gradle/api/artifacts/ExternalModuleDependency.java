@@ -20,18 +20,19 @@ package org.gradle.api.artifacts;
  */
 public interface ExternalModuleDependency extends ExternalDependency {
     /**
-     * Returns whether or not Gradle should always check for a change in the remote repository.
+     * Returns whether Gradle may check for a change in the remote repository
      *
      * @see #setChanging(boolean)
      */
     boolean isChanging();
 
     /**
-     * Sets whether or not Gradle should always check for a change in the remote repository. If set to true, Gradle will
-     * check the remote repository even if a dependency with the same version is already in the local cache. Defaults to
-     * false.
+     * Sets whether Gradle may check for a change in the remote repository. If set to true, Gradle will
+     * check the remote repository if either --refresh--dependencies was passed or the local entry has expired.
+     * If set to false, Gradle will use the local entry even if there is a new artifact in the remote repository
+     * and --refresh-dependencies was passed. Defaults to false.
      *
-     * @param changing Whether or not Gradle should always check for a change in the remote repository
+     * @param changing Gradle checks for a change in the remote repository, even if a local entry already exists
      * @return this
      */
     ExternalModuleDependency setChanging(boolean changing);
