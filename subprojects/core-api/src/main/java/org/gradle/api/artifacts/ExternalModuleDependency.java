@@ -32,7 +32,7 @@ public interface ExternalModuleDependency extends ExternalDependency {
      * If set to false, Gradle will use the local entry even if there is a new artifact in the remote repository
      * and --refresh-dependencies was passed. Defaults to false.
      *
-     * @param changing Gradle checks for a change in the remote repository, even if a local entry already exists
+     * @param changing Gradle can check for a change in the remote repository, even if a local entry already exists
      * @return this
      */
     ExternalModuleDependency setChanging(boolean changing);
