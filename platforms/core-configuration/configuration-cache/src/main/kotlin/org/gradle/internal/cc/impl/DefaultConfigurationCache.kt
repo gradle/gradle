@@ -248,9 +248,6 @@ class DefaultConfigurationCache internal constructor(
 
     override fun finalizeCacheEntry() {
         if (problems.shouldDiscardEntry) {
-            entryStore.useForStore {
-                fileFor(StateType.Entry).delete()
-            }
             discardEntry()
             cacheEntryRequiresCommit = false
         } else if (cacheEntryRequiresCommit) {
