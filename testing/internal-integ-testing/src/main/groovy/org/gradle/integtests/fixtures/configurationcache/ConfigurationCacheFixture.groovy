@@ -331,7 +331,7 @@ class ConfigurationCacheFixture {
             reasons.add("file '${file.replace('/', File.separator)}'")
         }
         if (invalidationDetails.changedGradleProperty) {
-            reasons.add("the set of Gradle properties")
+            reasons.add("the set of Project properties")
         }
         if (invalidationDetails.changedSystemProperty != null) {
             reasons.add("system property '$invalidationDetails.changedSystemProperty'")
