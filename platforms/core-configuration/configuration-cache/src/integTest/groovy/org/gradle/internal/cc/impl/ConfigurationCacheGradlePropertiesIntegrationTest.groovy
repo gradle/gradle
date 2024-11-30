@@ -140,7 +140,7 @@ class ConfigurationCacheGradlePropertiesIntegrationTest extends AbstractConfigur
         configurationCache.assertStateStored()
     }
 
-    def "detects dynamic Gradle property access in settings script"() {
+    def "detects dynamic Project property access in settings script"() {
         given:
         def configurationCache = newConfigurationCacheFixture()
         settingsFile << """
@@ -148,21 +148,21 @@ class ConfigurationCacheGradlePropertiesIntegrationTest extends AbstractConfigur
         """
 
         when:
-        configurationCacheRun "help", "-PgradleProp=1", "-PunusedProperty=42"
+        configurationCacheRun "help", "-PProjectProp=1", "-PunusedProperty=42"
 
         then:
         outputContains '1!'
         configurationCache.assertStateStored()
 
         when:
-        configurationCacheRun "help", "-PunusedProperty=42", "-PgradleProp=1"
+        configurationCacheRun "help", "-PunusedProperty=42", "-PProjectProp=1"
 
         then:
         outputDoesNotContain '1!'
         configurationCache.assertStateLoaded()
 
         when:
-        configurationCacheRun "help", "-PgradleProp=2"
+        configurationCacheRun "help", "-PProjectProp=2"
 
         then:
         outputContains '2!'
