@@ -18,14 +18,10 @@ package org.gradle.internal.cc.impl.extensions
 
 
 internal
-fun <T> List<T>.withMostRecentEntry(mostRecent: T, maxEntries: Int): List<T> {
-    if (isEmpty()) {
-        return listOf(mostRecent)
-    }
-    if (this[0] == mostRecent) {
-        return this
-    }
-    return buildList(maxEntries) {
+fun <T> List<T>.withMostRecentEntry(mostRecent: T, maxEntries: Int): List<T> = when {
+    isEmpty() -> listOf(mostRecent)
+    first() == mostRecent -> this
+    else -> buildList(maxEntries) {
         add(mostRecent)
         val remaining = maxEntries - 1
         if (remaining > 0) {
