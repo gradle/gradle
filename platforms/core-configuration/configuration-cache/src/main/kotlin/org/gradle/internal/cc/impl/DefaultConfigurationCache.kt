@@ -251,6 +251,7 @@ class DefaultConfigurationCache internal constructor(
             entryStore.useForStore {
                 fileFor(StateType.Entry).delete()
             }
+            discardEntry()
             cacheEntryRequiresCommit = false
         } else if (cacheEntryRequiresCommit) {
             val projectUsage = collectProjectUsage()
@@ -264,6 +265,13 @@ class DefaultConfigurationCache internal constructor(
             cacheFingerprintController.stop()
         } finally {
             scopeRegistryListener.dispose()
+        }
+    }
+
+    private
+    fun discardEntry() {
+        updateCandidateEntries {
+            minus(CandidateEntry(entryId))
         }
     }
 
@@ -430,13 +438,21 @@ class DefaultConfigurationCache internal constructor(
     }.value
 
     private
-    fun updateMostRecentEntry(mostRecent: String) = store.useForStore {
-        writeCandidateEntries(
-            readCandidateEntries().withMostRecentEntry(
+    fun updateMostRecentEntry(mostRecent: String) =
+        updateCandidateEntries {
+            withMostRecentEntry(
                 CandidateEntry(mostRecent),
                 startParameter.entriesPerKey
             )
-        )
+        }
+
+    private
+    fun updateCandidateEntries(update: List<CandidateEntry>.() -> List<CandidateEntry>) = store.useForStore {
+        val existingEntries = readCandidateEntries()
+        val newEntries = update(existingEntries)
+        if (existingEntries != newEntries) {
+            writeCandidateEntries(newEntries)
+        }
     }
 
     private
