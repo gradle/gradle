@@ -134,6 +134,7 @@ class DefaultConfigurationCache internal constructor(
     private
     val cacheIO by lazy { host.service<ConfigurationCacheBuildTreeIO>() }
 
+    /** TODO:configuration-cache should these be using [store] or [entryStore]? */
     private
     val lazyBuildTreeModelSideEffects = lazy { BuildTreeModelSideEffectStore(isolateOwnerHost, cacheIO, store) }
 
