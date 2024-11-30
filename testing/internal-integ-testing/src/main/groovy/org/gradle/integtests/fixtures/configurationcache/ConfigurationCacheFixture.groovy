@@ -330,7 +330,7 @@ class ConfigurationCacheFixture {
         invalidationDetails.changedFiles.each { file ->
             reasons.add("file '${file.replace('/', File.separator)}'")
         }
-        if (invalidationDetails.changedGradleProperty) {
+        if (invalidationDetails.changedProjectProperty) {
             reasons.add("the set of Project properties")
         }
         if (invalidationDetails.changedSystemProperty != null) {
@@ -436,7 +436,7 @@ class ConfigurationCacheFixture {
 
     trait HasInvalidationReason {
         List<String> changedFiles = []
-        boolean changedGradleProperty
+        boolean changedProjectProperty
         String changedSystemProperty
         String changedTask
 
@@ -448,8 +448,8 @@ class ConfigurationCacheFixture {
             changedTask = name
         }
 
-        void gradlePropertyChanged() {
-            changedGradleProperty = true
+        void projectPropertyChanged() {
+            changedProjectProperty = true
         }
 
         void systemPropertyChanged(String name) {
