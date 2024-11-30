@@ -115,7 +115,7 @@ class ConfigurationCacheFingerprintWriter(
         val encryptionKeyHashCode: HashCode
         val gradleUserHomeDir: File
         val allInitScripts: List<File>
-        val startParameterProperties: Map<String, Any?>
+        val projectProperties: Map<String, Any?>
         val buildStartTime: Long
         val cacheIntermediateModels: Boolean
         val modelAsProjectDependency: Boolean
@@ -182,7 +182,7 @@ class ConfigurationCacheFingerprintWriter(
             ConfigurationCacheFingerprint.GradleEnvironment(
                 host.gradleUserHomeDir,
                 jvmFingerprint(),
-                host.startParameterProperties,
+                host.projectProperties,
                 host.ignoreInputsDuringConfigurationCacheStore,
                 host.instrumentationAgentUsed,
                 host.ignoredFileSystemCheckInputs

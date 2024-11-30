@@ -26,12 +26,12 @@ object Workarounds {
     // TODO:[DefaultBuildTreeLifecycleController.isEligibleToRunTasks()] remove once fixed
 
     private
-    val ignoredStartParameterProperties = arrayOf(
+    val ignoredProjectProperties = arrayOf(
         KotlinDslModelsParameters.CORRELATION_ID_GRADLE_PROPERTY_NAME // Changing by IDE
     )
 
-    fun isIgnoredStartParameterProperty(key: String): Boolean =
-        ignoredStartParameterProperties.contains(key)
+    fun isIgnoredProjectProperty(key: String): Boolean =
+        ignoredProjectProperties.contains(key)
 
 
     fun canReadSystemProperty(from: String): Boolean =
