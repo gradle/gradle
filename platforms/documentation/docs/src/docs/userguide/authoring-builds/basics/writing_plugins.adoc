@@ -73,9 +73,9 @@ include::sample[dir="snippets/plugins/simple/groovy", files="build.gradle[tags=p
 
 Note that this is a simple hello-world example and does not reflect best practices.
 
-IMPORTANT: Script plugins are *not* recommended. Plugin code should *not* be in your `build.gradle(.kts)` file.
+IMPORTANT: Script plugins are *not* recommended.
 
-Plugins should always be written as _pre-compiled script plugins_, _convention plugins_ or _binary plugins_.
+The best practice for developing plugins is to create _convention plugins_ or _binary plugins_.
 
 == Pre-compiled script plugin
 
