@@ -23,7 +23,7 @@ class ConfigurationCacheMultiEntriesPerKeyIntegrationTest extends AbstractConfig
         def configurationCache = newConfigurationCacheFixture()
 
         and:
-        settingsFile ''
+        settingsFile.text = '// original branch'
 
         when:
         configurationCacheRun 'help'
@@ -32,10 +32,16 @@ class ConfigurationCacheMultiEntriesPerKeyIntegrationTest extends AbstractConfig
         configurationCache.assertStateStored()
 
         when:
-        settingsFile '// a change'
+        settingsFile.text = '// second branch'
 
         and:
         configurationCacheRun 'help'
+
+        then:
+        configurationCache.assertStateStored()
+
+        when: 'switching back to original branch'
+        settingsFile.text = '// original branch'
 
         then:
         configurationCache.assertStateStored()
@@ -47,7 +53,7 @@ class ConfigurationCacheMultiEntriesPerKeyIntegrationTest extends AbstractConfig
         file("gradle.properties") << "org.gradle.configuration-cache.entries-per-key=2"
 
         and:
-        settingsFile.text = '// initial'
+        settingsFile.text = '// original branch'
 
         when:
         configurationCacheRun 'help'
@@ -56,7 +62,7 @@ class ConfigurationCacheMultiEntriesPerKeyIntegrationTest extends AbstractConfig
         configurationCache.assertStateStored()
 
         when:
-        settingsFile.text = '// first change'
+        settingsFile.text = '// second branch'
 
         and:
         configurationCacheRun 'help'
@@ -64,8 +70,8 @@ class ConfigurationCacheMultiEntriesPerKeyIntegrationTest extends AbstractConfig
         then:
         configurationCache.assertStateStored()
 
-        when: 'switching back to original settings file'
-        settingsFile.text = '// initial'
+        when: 'switching back to original branch'
+        settingsFile.text = '// original branch'
 
         and:
         configurationCacheRun 'help'
@@ -74,7 +80,7 @@ class ConfigurationCacheMultiEntriesPerKeyIntegrationTest extends AbstractConfig
         configurationCache.assertStateLoaded()
 
         when:
-        settingsFile.text = '// first change'
+        settingsFile.text = '// second branch'
 
         and:
         configurationCacheRun 'help'
@@ -83,7 +89,7 @@ class ConfigurationCacheMultiEntriesPerKeyIntegrationTest extends AbstractConfig
         configurationCache.assertStateLoaded()
 
         when:
-        settingsFile.text = '// second change'
+        settingsFile.text = '// third branch'
 
         and:
         configurationCacheRun 'help'
@@ -91,13 +97,13 @@ class ConfigurationCacheMultiEntriesPerKeyIntegrationTest extends AbstractConfig
         then:
         configurationCache.assertStateStored()
 
-        when: 'switching back to original settings file'
-        settingsFile.text = '// initial'
+        when: 'switching back to original branch'
+        settingsFile.text = '// original branch'
 
         and:
         configurationCacheRun 'help'
 
-        then: 'old entries are evicted'
+        then: 'least recently used entries are evicted'
         configurationCache.assertStateStored()
     }
 }
