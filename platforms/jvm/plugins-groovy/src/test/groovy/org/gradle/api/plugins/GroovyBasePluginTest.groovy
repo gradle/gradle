@@ -28,7 +28,9 @@ import org.junit.Test
 
 import static org.gradle.api.tasks.TaskDependencyMatchers.dependsOn
 import static org.gradle.util.internal.WrapUtil.toLinkedSet
-import static org.hamcrest.CoreMatchers.*
+import static org.hamcrest.CoreMatchers.equalTo
+import static org.hamcrest.CoreMatchers.hasItem
+import static org.hamcrest.CoreMatchers.instanceOf
 import static org.hamcrest.MatcherAssert.assertThat
 import static org.junit.Assert.assertTrue
 
@@ -71,7 +73,7 @@ class GroovyBasePluginTest {
     @Test void configuresAdditionalTasksDefinedByTheBuildScript() {
         def task = project.task('otherGroovydoc', type: Groovydoc)
         assertThat(task.destinationDir.asFile.get(), equalTo(new File(project.docsDir, 'groovydoc')))
-        assertThat(task.docTitle.get(), equalTo(project.extensions.getByType(ReportingExtension).apiDocTitle))
-        assertThat(task.windowTitle.get(), equalTo(project.extensions.getByType(ReportingExtension).apiDocTitle))
+        assertThat(task.docTitle.get(), equalTo(project.extensions.getByType(ReportingExtension).apiDocTitle.get()))
+        assertThat(task.windowTitle.get(), equalTo(project.extensions.getByType(ReportingExtension).apiDocTitle.get()))
     }
 }
