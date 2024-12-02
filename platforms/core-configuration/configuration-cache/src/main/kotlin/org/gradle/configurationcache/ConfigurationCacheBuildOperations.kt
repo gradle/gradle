@@ -152,25 +152,25 @@ class FingerprintCheckResult(
 
     override fun getStatus(): CheckStatus = when (checkResult) {
         is CheckedFingerprint.NotFound -> CheckStatus.NOT_FOUND
-        is CheckedFingerprint.Found -> {
+        is CheckedFingerprint.Valid -> {
             when (checkResult.invalidProjects) {
                 null -> CheckStatus.VALID
                 else -> CheckStatus.PARTIAL
             }
         }
 
-        is CheckedFingerprint.EntryInvalid -> CheckStatus.INVALID
+        is CheckedFingerprint.Invalid -> CheckStatus.INVALID
     }
 
     override fun getBuildInvalidationReasons(): List<BuildInvalidationReasons> {
         return when (checkResult) {
-            is CheckedFingerprint.EntryInvalid -> listOf(BuildInvalidationReasonsImpl(checkResult.buildPath, checkResult.reason))
+            is CheckedFingerprint.Invalid -> listOf(BuildInvalidationReasonsImpl(checkResult.buildPath, checkResult.reason))
             else -> emptyList()
         }
     }
 
     override fun getProjectInvalidationReasons(): List<ProjectInvalidationReasons> = when {
-        checkResult is CheckedFingerprint.Found && checkResult.invalidProjects != null -> {
+        checkResult is CheckedFingerprint.Valid && checkResult.invalidProjects != null -> {
             val invalidProjects = checkResult.invalidProjects
             buildList(invalidProjects.size) {
                 // First reason is shown to the user.

@@ -394,7 +394,7 @@ class DefaultConfigurationCache internal constructor(
                     ConfigurationCacheAction.STORE to description
                 }
 
-                is CheckedFingerprint.EntryInvalid -> {
+                is CheckedFingerprint.Invalid -> {
                     val description = formatBootstrapSummary(
                         "%s as configuration cache cannot be reused because %s.",
                         buildActionModelRequirements.actionDisplayName.capitalizedDisplayName,
@@ -404,7 +404,7 @@ class DefaultConfigurationCache internal constructor(
                     ConfigurationCacheAction.STORE to description
                 }
 
-                is CheckedFingerprint.Found -> {
+                is CheckedFingerprint.Valid -> {
                     when (val invalid = checkedFingerprint.invalidProjects) {
                         null -> {
                             val description = StructuredMessage.forText("Reusing configuration cache.")
@@ -452,8 +452,7 @@ class DefaultConfigurationCache internal constructor(
     fun checkFingerprint(): CheckedFingerprint = buildOperationRunner.withFingerprintCheckOperations {
         val candidates = loadCandidateEntries()
         val result = searchForValidEntry(candidates)
-        if (result is CheckedFingerprint.Found) {
-            // TODO: move side-effects here
+        if (result is CheckedFingerprint.Valid) {
             updateMostRecentEntry(result.entryId)
         }
         result
@@ -464,11 +463,11 @@ class DefaultConfigurationCache internal constructor(
         var firstInvalidResult: CheckedFingerprint? = null
         for (candidate in candidates) {
             when (val result = checkCandidate(candidate)) {
-                is CheckedFingerprint.Found -> {
+                is CheckedFingerprint.Valid -> {
                     return result
                 }
 
-                is CheckedFingerprint.EntryInvalid -> {
+                is CheckedFingerprint.Invalid -> {
                     if (firstInvalidResult == null) {
                         firstInvalidResult = result
                     }
@@ -726,7 +725,7 @@ class DefaultConfigurationCache internal constructor(
         loadGradleProperties()
 
         return checkFingerprintAgainstLoadedProperties(candidateEntry).also { result ->
-            if (result !is CheckedFingerprint.Found) {
+            if (result !is CheckedFingerprint.Valid) {
                 // Force Gradle properties to be reloaded so the Gradle properties files
                 // along with any Gradle property defining system properties and environment variables
                 // are added to the new fingerprint.
@@ -742,13 +741,13 @@ class DefaultConfigurationCache internal constructor(
         when (val invalidationReason = checkBuildScopedFingerprint(fileFor(StateType.BuildFingerprint))) {
             null -> {
                 // Build inputs are up-to-date, check project specific inputs
-                CheckedFingerprint.Found(
+                CheckedFingerprint.Valid(
                     candidateEntry.id,
                     checkProjectScopedFingerprint(fileFor(StateType.ProjectFingerprint))
                 )
             }
 
-            else -> CheckedFingerprint.EntryInvalid(buildPath(), invalidationReason)
+            else -> CheckedFingerprint.Invalid(buildPath(), invalidationReason)
         }
 
     private
