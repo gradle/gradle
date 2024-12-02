@@ -136,13 +136,35 @@ class DefaultConfigurationCache internal constructor(
 
     /** TODO:configuration-cache should these be using [store] or [entryStore]? */
     private
-    val lazyBuildTreeModelSideEffects = lazy { BuildTreeModelSideEffectStore(isolateOwnerHost, cacheIO, store) }
+    val lazyBuildTreeModelSideEffects = lazy {
+        BuildTreeModelSideEffectStore(
+            isolateOwnerHost,
+            cacheIO,
+            store
+        )
+    }
 
     private
-    val lazyIntermediateModels = lazy { IntermediateModelController(isolateOwnerHost, cacheIO, store, calculatedValueContainerFactory, cacheFingerprintController) }
+    val lazyIntermediateModels = lazy {
+        IntermediateModelController(
+            isolateOwnerHost,
+            cacheIO,
+            store,
+            calculatedValueContainerFactory,
+            cacheFingerprintController
+        )
+    }
 
     private
-    val lazyProjectMetadata = lazy { ProjectMetadataController(isolateOwnerHost, cacheIO, resolveStateFactory, store, calculatedValueContainerFactory) }
+    val lazyProjectMetadata = lazy {
+        ProjectMetadataController(
+            isolateOwnerHost,
+            cacheIO,
+            resolveStateFactory,
+            store,
+            calculatedValueContainerFactory
+        )
+    }
 
     private
     val buildTreeModelSideEffects
@@ -357,20 +379,24 @@ class DefaultConfigurationCache internal constructor(
                     ConfigurationCacheAction.STORE to description
                 }
 
-                is CheckedFingerprint.ProjectsInvalid -> {
-                    val description = formatBootstrapSummary(
-                        "%s as configuration cache cannot be reused because %s.",
-                        buildActionModelRequirements.actionDisplayName.capitalizedDisplayName,
-                        checkedFingerprint.firstReason.render()
-                    )
-                    logBootstrapSummary(description)
-                    ConfigurationCacheAction.UPDATE(checkedFingerprint.entryId) to description
-                }
-
                 is CheckedFingerprint.Found -> {
-                    val description = StructuredMessage.forText("Reusing configuration cache.")
-                    logBootstrapSummary(description)
-                    ConfigurationCacheAction.LOAD(checkedFingerprint.entryId) to description
+                    when (val invalid = checkedFingerprint.invalidProjects) {
+                        null -> {
+                            val description = StructuredMessage.forText("Reusing configuration cache.")
+                            logBootstrapSummary(description)
+                            ConfigurationCacheAction.LOAD(checkedFingerprint.entryId) to description
+                        }
+
+                        else -> {
+                            val description = formatBootstrapSummary(
+                                "%s as configuration cache cannot be reused because %s.",
+                                buildActionModelRequirements.actionDisplayName.capitalizedDisplayName,
+                                invalid.first.reason.render()
+                            )
+                            logBootstrapSummary(description)
+                            ConfigurationCacheAction.UPDATE(checkedFingerprint.entryId) to description
+                        }
+                    }
                 }
             }
         }
@@ -402,6 +428,7 @@ class DefaultConfigurationCache internal constructor(
         val candidates = loadCandidateEntries()
         val result = searchForValidEntry(candidates)
         if (result is CheckedFingerprint.Found) {
+            // TODO: move side-effects here
             updateMostRecentEntry(result.entryId)
         }
         result
@@ -416,8 +443,7 @@ class DefaultConfigurationCache internal constructor(
                     return result
                 }
 
-                is CheckedFingerprint.EntryInvalid,
-                is CheckedFingerprint.ProjectsInvalid -> {
+                is CheckedFingerprint.EntryInvalid -> {
                     if (firstInvalidResult == null) {
                         firstInvalidResult = result
                     }
@@ -449,6 +475,7 @@ class DefaultConfigurationCache internal constructor(
         val existingEntries = readCandidateEntries()
         val newEntries = update(existingEntries)
         if (existingEntries != newEntries) {
+            // TODO:configuration-cache queue up evicted entry paths for deletion
             writeCandidateEntries(newEntries)
         }
     }
@@ -698,28 +725,28 @@ class DefaultConfigurationCache internal constructor(
             }
 
             BuildScopedFingerprintResult.Valid -> {
-                checkProjectFingerprintAgainstLoadedProperties(candidateEntry, entryDetails)
+                CheckedFingerprint.Found(
+                    candidateEntry.id,
+                    checkProjectFingerprintAgainstLoadedProperties(entryDetails)
+                )
             }
         }
 
     private
     fun ConfigurationCacheRepository.Layout.checkProjectFingerprintAgainstLoadedProperties(
-        candidateEntry: CandidateEntry,
         entryDetails: EntryDetails
-    ): CheckedFingerprint {
+    ): CheckedFingerprint.InvalidProjects? {
         // Build inputs are up-to-date, check project specific inputs
-        val projectResult = checkProjectScopedFingerprint(fileFor(StateType.ProjectFingerprint), candidateEntry)
-        if (projectResult is CheckedFingerprint.ProjectsInvalid) {
-            intermediateModels.restoreFromCacheEntry(entryDetails.intermediateModels, projectResult)
-            projectMetadata.restoreFromCacheEntry(entryDetails.projectMetadata, projectResult)
-        }
-
-        if (projectResult is CheckedFingerprint.Found) {
+        val invalidProjects = checkProjectScopedFingerprint(fileFor(StateType.ProjectFingerprint))
+        if (invalidProjects != null) {
+            intermediateModels.restoreFromCacheEntry(entryDetails.intermediateModels, invalidProjects)
+            projectMetadata.restoreFromCacheEntry(entryDetails.projectMetadata, invalidProjects)
+        } else {
             val sideEffects = buildTreeModelSideEffects.restoreFromCacheEntry(entryDetails.sideEffects)
             loadedSideEffects += sideEffects
         }
 
-        return projectResult
+        return invalidProjects
     }
 
     private
@@ -731,13 +758,12 @@ class DefaultConfigurationCache internal constructor(
         }
 
     private
-    fun checkProjectScopedFingerprint(fingerprintFile: ConfigurationCacheStateFile, candidateEntry: CandidateEntry): CheckedFingerprint {
-        return readFingerprintFile(fingerprintFile) { host ->
+    fun checkProjectScopedFingerprint(fingerprintFile: ConfigurationCacheStateFile) =
+        readFingerprintFile(fingerprintFile) { host ->
             cacheFingerprintController.run {
-                checkProjectScopedFingerprint(host, candidateEntry)
+                checkProjectScopedFingerprint(host)
             }
         }
-    }
 
     private
     fun <T> readFingerprintFile(

@@ -26,8 +26,6 @@ import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.cc.base.services.ConfigurationCacheEnvironmentChangeTracker
-import org.gradle.internal.cc.impl.CandidateEntry
-import org.gradle.internal.cc.impl.CheckedFingerprint
 import org.gradle.internal.cc.impl.ConfigurationCacheStateFile
 import org.gradle.internal.cc.impl.ConfigurationCacheStateStore.StateFile
 import org.gradle.internal.cc.impl.InputTrackingState
@@ -353,9 +351,9 @@ class ConfigurationCacheFingerprintController internal constructor(
             checkBuildScopedFingerprint()
         }
 
-    suspend fun ReadContext.checkProjectScopedFingerprint(host: Host, candidateEntry: CandidateEntry): CheckedFingerprint =
+    suspend fun ReadContext.checkProjectScopedFingerprint(host: Host) =
         ConfigurationCacheFingerprintChecker(CacheFingerprintCheckerHost(host)).run {
-            checkProjectScopedFingerprint(candidateEntry)
+            checkProjectScopedFingerprint()
         }
 
     suspend fun ReadContext.collectFingerprintForReusedProjects(host: Host, reusedProjects: Set<Path>): Unit =

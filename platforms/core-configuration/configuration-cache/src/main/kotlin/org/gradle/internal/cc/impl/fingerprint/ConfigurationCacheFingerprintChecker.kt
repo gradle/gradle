@@ -25,7 +25,6 @@ import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.internal.RenderingUtils.oxfordListOf
 import org.gradle.internal.RenderingUtils.quotedOxfordListOf
 import org.gradle.internal.cc.base.logger
-import org.gradle.internal.cc.impl.CandidateEntry
 import org.gradle.internal.cc.impl.CheckedFingerprint
 import org.gradle.internal.configuration.problems.StructuredMessage
 import org.gradle.internal.configuration.problems.StructuredMessageBuilder
@@ -97,7 +96,7 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
     }
 
     @Suppress("NestedBlockDepth")
-    suspend fun ReadContext.checkProjectScopedFingerprint(candidateEntry: CandidateEntry): CheckedFingerprint {
+    suspend fun ReadContext.checkProjectScopedFingerprint(): CheckedFingerprint.InvalidProjects? {
         // TODO: log some debug info
         var firstInvalidatedPath: Path? = null
         val projects = hashMapOf<Path, ProjectInvalidationState>()
@@ -143,13 +142,13 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                 else -> error("Unexpected configuration cache fingerprint: $input")
             }
         }
-        return if (firstInvalidatedPath == null) {
-            CheckedFingerprint.Found(candidateEntry.id)
-        } else {
-            val invalidatedProjects = projects.filterValues { it.isInvalid }.mapValues {
-                it.value.toProjectInvalidationData()
-            }
-            CheckedFingerprint.ProjectsInvalid(candidateEntry.id, firstInvalidatedPath, invalidatedProjects)
+        return firstInvalidatedPath?.let { path ->
+            CheckedFingerprint.InvalidProjects(
+                path,
+                projects
+                    .filterValues { it.isInvalid }
+                    .mapValues { it.value.toProjectInvalidationData() }
+            )
         }
     }
 
@@ -274,6 +273,7 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
 
                     host.ignoredFileSystemCheckInputs != ignoredFileSystemCheckInputPaths ->
                         text("the set of paths ignored in file-system-check input tracking (${StartParameterBuildOptions.ConfigurationCacheIgnoredFileSystemCheckInputs.PROPERTY_NAME}) has changed")
+
                     else -> null
                 }
             }
@@ -491,7 +491,7 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
             }
         }
 
-        fun toProjectInvalidationData(): CheckedFingerprint.ProjectInvalidationData {
+        fun toProjectInvalidationData(): CheckedFingerprint.InvalidProject {
             val buildPath = this.buildPath
             val projectPath = this.projectPath
             require(buildPath != null) {
@@ -500,7 +500,7 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
             require(projectPath != null) {
                 "projectPath for project $identityPath wasn't loaded from the fingerprint"
             }
-            return CheckedFingerprint.ProjectInvalidationData(buildPath, projectPath, invalidationReason)
+            return CheckedFingerprint.InvalidProject(buildPath, projectPath, invalidationReason)
         }
     }
 }
