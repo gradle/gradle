@@ -176,9 +176,6 @@ include::sample[dir="snippets/plugins/simple/groovy/sub-project-a", files="build
 
 In the example, the `application` plugin, which is included with Gradle, has been applied, describing our project as a Java application.
 
-The Kotlin gradle plugin, version 1.9.0, has also been applied.
-This plugin is not included with Gradle and, therefore, has to be described using a `plugin id` and a `plugin version` so that Gradle can find and apply it.
-
 === 2. Define the locations where dependencies can be found
 
 A project generally has a number of dependencies it needs to do its work.
