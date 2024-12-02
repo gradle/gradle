@@ -21,4 +21,6 @@ import java.util.Map;
 public interface InternalAdditionalData {
 
     Map<String, Object> getAsMap();
+
+    Object get();
 }

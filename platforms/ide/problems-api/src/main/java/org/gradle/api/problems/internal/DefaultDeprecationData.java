@@ -43,8 +43,14 @@ public class DefaultDeprecationData implements DeprecationData {
     }
 
     @Override
-    public Map<String, String> getAsMap() {
-        return ImmutableMap.of("type", type.name());
+    public Map<String, Object> getAsMap() {
+        return ImmutableMap.<String, Object>of("type", type.name());
+    }
+
+    @Nullable
+    @Override
+    public Object get() {
+        return this;
     }
 
     private static class DefaultDeprecationDataBuilder implements DeprecationDataSpec, AdditionalDataBuilder<DeprecationData> {

@@ -56,7 +56,7 @@ class ReceivedProblem implements Problem {
         this.solutions = problemDetails['solutions'] as List<String>
         this.originLocations = fromList(problemDetails['originLocations'] as List<Object>)
         this.contextualLocations = fromList(problemDetails['contextualLocations'] as List<Object>)
-        this.additionalData = new ReceivedAdditionalData(problemDetails['additionalData'] as Map<String, String>)
+        this.additionalData = new ReceivedAdditionalData(problemDetails['additionalData'] as Map<String, Object>)
         this.exception = problemDetails['exception'] == null ? null : new ReceivedException(problemDetails['exception'] as Map<String, Object>)
     }
 
@@ -386,24 +386,29 @@ class ReceivedProblem implements Problem {
     }
 
     static class ReceivedAdditionalData implements AdditionalData {
-        private final Map<String, String> data
+        private final Map<String, Object> data
 
-        ReceivedAdditionalData(Map<String, String> data) {
+        ReceivedAdditionalData(Map<String, Object> data) {
             if (data == null) {
                 this.data = [:]
             } else {
                 def d = data.findAll { k, v -> v != null }
                 // GeneralData already contains asMap property; it is removed for clarity
                 if (d['asMap'] instanceof Map) {
-                    this.data = d['asMap'] as Map<String, String>
+                    this.data = d['asMap'] as Map<String, Object>
                 } else {
                     this.data = d
                 }
             }
         }
 
-        Map<String, String> getAsMap() {
+        Map<String, Object> getAsMap() {
             data
+        }
+
+        @Override
+        Object get() {
+            return this
         }
 
         boolean containsAll(Map<String, Object> properties) {

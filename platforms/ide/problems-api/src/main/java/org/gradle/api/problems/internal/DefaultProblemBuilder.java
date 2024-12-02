@@ -307,8 +307,14 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
         }
 
         @Override
-        public Map<String, String> getAsMap() {
-            return ImmutableMap.of("type", type.getName());
+        public Map<String, Object> getAsMap() {
+            return ImmutableMap.<String, Object>of("type", type.getName());
+        }
+
+        @Nullable
+        @Override
+        public Object get() {
+            return null;
         }
     }
 }

@@ -21,6 +21,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.problems.internal.InternalProblemSpec;
 import org.gradle.api.problems.internal.Problem;
 
+import javax.annotation.Nullable;
 import java.util.Map;
 
 /**
@@ -46,5 +47,13 @@ public interface AdditionalData {
      *
      * @since 8.12
      */
-    Map<String, String> getAsMap();
+    Map<String, Object> getAsMap();
+
+    /**
+     * Returns additional data instance.
+     *
+     * @since 8.12
+     */
+    @Nullable
+    Object get();
 }

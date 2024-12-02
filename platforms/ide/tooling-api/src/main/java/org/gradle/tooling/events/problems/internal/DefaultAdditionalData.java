@@ -18,6 +18,7 @@ package org.gradle.tooling.events.problems.internal;
 
 import com.google.common.collect.ImmutableMap;
 import org.gradle.tooling.events.problems.AdditionalData;
+import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 
 import javax.annotation.Nullable;
 import java.io.Serializable;
@@ -46,9 +47,9 @@ public class DefaultAdditionalData implements AdditionalData, Serializable {
     @Override
     @Nullable
     public <T> T get(Class<T> type) {
-        if (type.isInstance(additionalDataCustomInstance)) {
-            return type.cast(additionalDataCustomInstance);
+        if (additionalDataCustomInstance == null) {
+            return null;
         }
-        return null;
+        return new ProtocolToModelAdapter().adapt(type, additionalDataCustomInstance);
     }
 }

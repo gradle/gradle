@@ -42,8 +42,14 @@ public class DefaultPropertyTraceData implements PropertyTraceData {
     }
 
     @Override
-    public Map<String, String> getAsMap() {
-        return ImmutableMap.of("trace", trace);
+    public Map<String, Object> getAsMap() {
+        return ImmutableMap.<String, Object>of("trace", trace);
+    }
+
+    @Nullable
+    @Override
+    public Object get() {
+        return this;
     }
 
     private static class DefaultPropertyTraceDataBuilder implements PropertyTraceDataSpec, AdditionalDataBuilder<PropertyTraceData> {

@@ -18,10 +18,10 @@ package org.gradle.tooling.internal.provider.runner;
 
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.NonNullApi;
+import org.gradle.api.problems.AdditionalData;
 import org.gradle.api.problems.ProblemGroup;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.Severity;
-import org.gradle.api.problems.AdditionalData;
 import org.gradle.api.problems.internal.DefaultProblemProgressDetails;
 import org.gradle.api.problems.internal.DefaultProblemsSummaryProgressDetails;
 import org.gradle.api.problems.internal.DeprecationData;
@@ -72,7 +72,6 @@ import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Supplier;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
@@ -217,24 +216,20 @@ public class ProblemsProgressEventUtils {
         if (additionalData instanceof DeprecationData) {
             // For now, we only expose deprecation data to the tooling API with generic additional data
             DeprecationData data = (DeprecationData) additionalData;
-            return new DefaultAdditionalData(ImmutableMap.of("type", data.getType().name()));
+            return new DefaultAdditionalData(ImmutableMap.of("type", data.getType().name()), data);
         } else if (additionalData instanceof TypeValidationData) {
             TypeValidationData data = (TypeValidationData) additionalData;
-            ImmutableMap.Builder<String, Object> builder = ImmutableMap.builder();
-            Optional.ofNullable(data.getPluginId()).ifPresent(pluginId -> builder.put("pluginId", pluginId));
-            Optional.ofNullable(data.getPropertyName()).ifPresent(propertyName -> builder.put("propertyName", propertyName));
-            Optional.ofNullable(data.getParentPropertyName()).ifPresent(parentPropertyName -> builder.put("parentPropertyName", parentPropertyName));
-            Optional.ofNullable(data.getTypeName()).ifPresent(typeName -> builder.put("typeName", typeName));
-            return new DefaultAdditionalData(builder.build());
+            return new DefaultAdditionalData(data.getAsMap(), data);
         } else if (additionalData instanceof GeneralData) {
             GeneralData data = (GeneralData) additionalData;
             return new DefaultAdditionalData(
                 data.getAsMap().entrySet().stream()
                     .filter(entry -> isSupportedType(entry.getValue()))
-                    .collect(toMap(Map.Entry::getKey, Map.Entry::getValue))
+                    .collect(toMap(Map.Entry::getKey, Map.Entry::getValue)),
+                data
             );
         } else {
-            return new DefaultAdditionalData(Collections.emptyMap());
+            return new DefaultAdditionalData(Collections.emptyMap(), additionalData == null ? null : additionalData.get());
         }
     }
 

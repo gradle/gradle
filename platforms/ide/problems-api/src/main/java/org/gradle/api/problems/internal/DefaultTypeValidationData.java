@@ -23,6 +23,7 @@ import javax.annotation.Nullable;
 import java.io.Serializable;
 import java.util.Map;
 
+@Nullable
 public class DefaultTypeValidationData implements TypeValidationData, Serializable {
 
     private final String pluginId;
@@ -31,7 +32,13 @@ public class DefaultTypeValidationData implements TypeValidationData, Serializab
     private final String parentPropertyName;
     private final String typeName;
 
-    public DefaultTypeValidationData(String pluginId, String propertyName, String functionName, String parentPropertyName, String typeName) {
+    public DefaultTypeValidationData(
+        @Nullable String pluginId,
+        @Nullable String propertyName,
+        @Nullable String functionName,
+        @Nullable String parentPropertyName,
+        @Nullable String typeName
+    ) {
         this.pluginId = pluginId;
         this.propertyName = propertyName;
         this.functionName = functionName;
@@ -40,54 +47,80 @@ public class DefaultTypeValidationData implements TypeValidationData, Serializab
     }
 
     @Override
+    @Nullable
     public String getPluginId() {
         return pluginId;
     }
 
     @Override
+    @Nullable
     public String getPropertyName() {
         return propertyName;
     }
 
     @Override
+    @Nullable
     public String getFunctionName() {
         return functionName;
     }
 
     @Override
+    @Nullable
     public String getParentPropertyName() {
         return parentPropertyName;
     }
 
     @Override
+    @Nullable
     public String getTypeName() {
         return typeName;
     }
 
     public static AdditionalDataBuilder<TypeValidationData> builder(@Nullable TypeValidationData from) {
-        if(from == null) {
+        if (from == null) {
             return new DefaultTypeValidationDataBuilder();
         }
         return new DefaultTypeValidationDataBuilder(from);
     }
 
     @Override
-    public Map<String, String> getAsMap() {
-        return ImmutableMap.of(
-            "pluginId", pluginId,
-            "propertyName", propertyName,
-            "functionName", functionName,
-            "parentPropertyName", parentPropertyName,
-            "typeName", typeName
-        );
+    public Map<String, Object> getAsMap() {
+        ImmutableMap.Builder<String, Object> builder = ImmutableMap.builder();
+        if (pluginId != null) {
+            builder.put("pluginId", pluginId);
+        }
+        if (propertyName != null) {
+            builder.put("propertyName", propertyName);
+        }
+        if (functionName != null) {
+            builder.put("functionName", functionName);
+        }
+        if (parentPropertyName != null) {
+            builder.put("parentPropertyName", parentPropertyName);
+        }
+        if (typeName != null) {
+            builder.put("typeName", typeName);
+        }
+        return builder.build();
+    }
+
+    @Nullable
+    @Override
+    public Object get() {
+        return this;
     }
 
     private static class DefaultTypeValidationDataBuilder implements TypeValidationDataSpec, AdditionalDataBuilder<TypeValidationData> {
 
+        @Nullable
         private String pluginId;
+        @Nullable
         private String propertyName;
+        @Nullable
         private String functionName;
+        @Nullable
         private String parentPropertyName;
+        @Nullable
         private String typeName;
 
         public DefaultTypeValidationDataBuilder() {

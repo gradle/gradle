@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableMap;
 import org.gradle.api.NonNullApi;
 import org.gradle.tooling.internal.protocol.problem.InternalAdditionalData;
 
+import javax.annotation.Nullable;
 import java.io.Serializable;
 import java.util.Map;
 
@@ -27,13 +28,21 @@ import java.util.Map;
 public class DefaultAdditionalData implements InternalAdditionalData, Serializable {
 
     private final Map<String, Object> additionalData;
+    private final Object additionalDataCustomInstance;
 
-    public DefaultAdditionalData(Map<String, Object> additionalData) {
+    public DefaultAdditionalData(Map<String, Object> additionalData, @Nullable Object additionalDataCustomInstance) {
         this.additionalData = ImmutableMap.copyOf(additionalData);
+        this.additionalDataCustomInstance = additionalDataCustomInstance;
     }
 
     @Override
     public Map<String, Object> getAsMap() {
         return additionalData;
+    }
+
+    @Nullable
+    @Override
+    public Object get() {
+        return additionalDataCustomInstance;
     }
 }

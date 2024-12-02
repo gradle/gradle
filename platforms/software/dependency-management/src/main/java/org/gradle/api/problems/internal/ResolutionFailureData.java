@@ -39,8 +39,8 @@ public interface ResolutionFailureData extends GeneralData {
     ResolutionFailure getResolutionFailure();
 
     @Override
-    default ImmutableMap<String, String> getAsMap() {
-        return ImmutableMap.<String, String>builder()
+    default ImmutableMap<String, Object> getAsMap() {
+        return ImmutableMap.<String, Object>builder()
             .put("requestTarget", getResolutionFailure().describeRequestTarget())
             .put("problemId", getResolutionFailure().getProblemId().name())
             .put("problemDisplayName", getResolutionFailure().getProblemId().getDisplayName())

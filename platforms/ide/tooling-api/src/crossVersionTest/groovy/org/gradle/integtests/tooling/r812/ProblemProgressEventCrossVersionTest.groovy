@@ -30,8 +30,8 @@ import org.gradle.tooling.events.problems.LineInFileLocation
 import org.gradle.tooling.events.problems.Problem
 import org.gradle.tooling.events.problems.Severity
 import org.gradle.tooling.events.problems.SingleProblemEvent
-import org.gradle.tooling.events.problems.internal.DefaultAdditionalData
 import org.gradle.tooling.events.problems.TaskPathLocation
+import org.gradle.tooling.events.problems.internal.DefaultAdditionalData
 import org.gradle.util.GradleVersion
 import org.junit.Assume
 
@@ -133,6 +133,11 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         ''                         | null            | ''                                          | null
     }
 
+
+    interface SomeData {
+        String getTypeName()
+    }
+
     @TargetGradleVersion(">=8.12")
     def "daaa"() {
         given:
@@ -148,7 +153,11 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
                 Map<String, String> getAsMap(){
                     [typeName: typeName]
                 }
-                public static AdditionalDataBuilder<SomeData> builder(SomeData from) {
+                 @Override
+                 Object get(){
+                 return this
+                }
+static AdditionalDataBuilder<SomeData> builder(SomeData from) {
                     if(from == null) {
                         return new SomeDataBuilder();
                     }
@@ -158,21 +167,21 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
                 private static class SomeDataBuilder implements SomeDataSpec, AdditionalDataBuilder<SomeData> {
                     private String typeName;
 
-                    public SomeDataBuilder(SomeData from) {
+                    SomeDataBuilder(SomeData from) {
                         this.typeName = from.getTypeName();
                     }
 
-                    public SomeDataBuilder() {
+                    SomeDataBuilder() {
                     }
 
                     @Override
-                    public SomeDataSpec typeName(String typeName){
+                    SomeDataSpec typeName(String typeName){
                         this.typeName = typeName;
                         return this;
                     }
 
                     @Override
-                    public SomeData build() {
+                    SomeData build() {
                         return new SomeData(typeName);
                     }
                 }
@@ -225,14 +234,13 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         then:
         problems.size() == 1
         verifyAll(problems[0]) {
+            additionalData.get(SomeData).typeName == 'typeName'
             details?.details == expectedDetails
             definition.documentationLink?.url == expectedDocumentation
             locations.size() >= 2
             (locations[0] as LineInFileLocation).path == '/tmp/foo'
             (locations[1] as LineInFileLocation).path == "build file '$buildFile.path'"
-            if (targetVersion >= GradleVersion.version("8.12")) {
-                assert (locations[2] as TaskPathLocation).buildTreePath == ':reportProblem'
-            }
+            assert (locations[2] as TaskPathLocation).buildTreePath == ':reportProblem'
             definition.severity == Severity.WARNING
             solutions.size() == 1
             solutions[0].solution == 'try this instead'

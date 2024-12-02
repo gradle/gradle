@@ -70,6 +70,11 @@ class DefaultAdditionalDataBuilderFactoryTest extends Specification {
         Map<String, String> getAsMap() {
             return ["value": value]
         }
+
+        @Override
+        Object get() {
+            return this
+        }
     }
 
     private static final class CustomAdditionalDataBuilder implements AdditionalDataBuilder<CustomAdditionalData> {
