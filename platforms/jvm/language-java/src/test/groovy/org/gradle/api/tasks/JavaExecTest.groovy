@@ -37,7 +37,7 @@ class JavaExecTest extends AbstractProjectBuilderSpec {
         def invalidExecutable = temporaryFolder.file("invalid")
 
         when:
-        task.executable = invalidExecutable
+        task.executable = invalidExecutable.absolutePath
         execute(task)
 
         then:

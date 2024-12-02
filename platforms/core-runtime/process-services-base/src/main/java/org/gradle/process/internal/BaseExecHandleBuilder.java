@@ -19,14 +19,21 @@ package org.gradle.process.internal;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
+import java.io.File;
+import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Map;
 
 @NullMarked
 public interface BaseExecHandleBuilder {
 
     BaseExecHandleBuilder setDisplayName(@Nullable String displayName);
     BaseExecHandleBuilder setStandardOutput(OutputStream outputStream);
+    BaseExecHandleBuilder setStandardInput(InputStream inputStream);
     BaseExecHandleBuilder setErrorOutput(OutputStream outputStream);
+    BaseExecHandleBuilder setExecutable(String s);
+    BaseExecHandleBuilder setWorkingDir(File asFile);
+    BaseExecHandleBuilder setEnvironment(Map<String, Object> stringObjectMap);
 
     /**
      * Adds a listener to the list of ExecHandle listeners..
@@ -34,4 +41,5 @@ public interface BaseExecHandleBuilder {
     BaseExecHandleBuilder listener(ExecHandleListener listener);
 
     ExecHandle build();
+
 }

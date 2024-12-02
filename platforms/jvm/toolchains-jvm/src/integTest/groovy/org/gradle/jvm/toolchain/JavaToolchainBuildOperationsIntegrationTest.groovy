@@ -337,7 +337,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
             }.get().executablePath
 
             test {
-                executable = javaExecutable
+                executable = javaExecutable.asFile.absolutePath
             }
         """
 
@@ -381,7 +381,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
             }.get().executablePath
 
             test {
-                executable = javaExecutable
+                executable = javaExecutable.asFile.absolutePath
             }
         """
 

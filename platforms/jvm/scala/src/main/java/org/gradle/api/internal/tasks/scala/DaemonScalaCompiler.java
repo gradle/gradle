@@ -64,6 +64,7 @@ public class DaemonScalaCompiler<T extends ScalaJavaJointCompileSpec> extends Ab
     private final ClassPathRegistry classPathRegistry;
     private final ClassLoaderRegistry classLoaderRegistry;
 
+    @SuppressWarnings("this-escape")
     public DaemonScalaCompiler(File daemonWorkingDir, HashedClasspath hashedScalaClasspath, CompilerWorkerExecutor compilerWorkerExecutor, Iterable<File> zincClasspath, JavaForkOptionsFactory forkOptionsFactory, ClassPathRegistry classPathRegistry, ClassLoaderRegistry classLoaderRegistry) {
         super(compilerWorkerExecutor);
         this.hashedScalaClasspath = hashedScalaClasspath;
@@ -92,7 +93,7 @@ public class DaemonScalaCompiler<T extends ScalaJavaJointCompileSpec> extends Ab
         JavaForkOptions javaForkOptions = new MinimalCompilerDaemonForkOptionsConverter(forkOptionsFactory).transform(mergeForkOptions(javaOptions, forkOptions));
         javaForkOptions.systemProperty("xsbt.skip.cp.lookup", true);
         javaForkOptions.getWorkingDirectory().set(daemonWorkingDir);
-        javaForkOptions.setExecutable(spec.getJavaExecutable().getAbsolutePath());
+        javaForkOptions.getExecutable().set(spec.getJavaExecutable().getAbsolutePath());
 
         ClassPath compilerClasspath = classPathRegistry.getClassPath("SCALA-COMPILER").plus(DefaultClassPath.of(zincClasspath));
 
