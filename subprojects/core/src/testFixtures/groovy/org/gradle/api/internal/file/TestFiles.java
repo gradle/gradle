@@ -251,7 +251,7 @@ public class TestFiles {
             .withFileResolver(resolver(baseDir))
             .withFileCollectionFactory(fileCollectionFactory(baseDir))
             .withInstantiator(TestUtil.instantiatorFactory().inject())
-            .withObjectFactory(objectFactory())
+            .withObjectFactory(objectFactory(baseDir))
             .build();
     }
 

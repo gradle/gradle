@@ -285,7 +285,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         compile.sourceCompatibility == project.java.sourceCompatibility.toString()
 
         def test = project.task('customTest', type: Test.class)
-        test.workingDir == project.projectDir
+        test.workingDir.asFile.get() == project.projectDir
         test.reports.junitXml.outputLocation.get().asFile == new File(project.java.testResultsDir.getAsFile().get(), 'customTest')
         test.reports.html.outputLocation.get().asFile == new File(project.java.testReportDir.getAsFile().get(), 'customTest')
         test.reports.junitXml.required.get()
