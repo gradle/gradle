@@ -16,11 +16,15 @@
 
 package org.gradle.process.internal;
 
+import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.MapProperty;
+import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.ProcessForkOptions;
 
-import java.io.File;
 import java.util.List;
 import java.util.Map;
 
@@ -31,46 +35,39 @@ import java.util.Map;
  */
 @SuppressWarnings("DeprecatedIsStillUsed")
 @Deprecated
-public class DefaultExecHandleBuilder extends AbstractExecHandleBuilder implements ExecHandleBuilder, ProcessArgumentsSpec.HasExecutable {
+public class DefaultExecHandleBuilder extends AbstractExecHandleBuilder implements ExecHandleBuilder {
 
-    public DefaultExecHandleBuilder(ObjectFactory objectFactory, ClientExecHandleBuilder delegate) {
+    private final FileResolver resolver;
+
+    public DefaultExecHandleBuilder(ObjectFactory objectFactory, FileResolver resolver, ClientExecHandleBuilder delegate) {
         super(objectFactory, delegate);
+        this.resolver = resolver;
     }
 
     @Override
-    public String getExecutable() {
-        return delegate.getExecutable();
-    }
-
-    @Override
-    public void setExecutable(String executable) {
-        delegate.setExecutable(executable);
-    }
-
-    @Override
-    public void setExecutable(Object executable) {
-        delegate.setExecutable(executable);
+    public Property<String> getExecutable() {
+        return super.getExecutable();
     }
 
     @Override
     public DefaultExecHandleBuilder executable(Object executable) {
-        delegate.setExecutable(executable);
+        super.executable(executable);
         return this;
     }
 
     @Override
-    public File getWorkingDir() {
-        return delegate.getWorkingDir();
+    public DirectoryProperty getWorkingDir() {
+        return workingDir;
     }
 
     @Override
-    public void setWorkingDir(File dir) {
-        delegate.setWorkingDir(dir);
-    }
-
-    @Override
-    public void setWorkingDir(Object dir) {
-        delegate.setWorkingDir(dir);
+    public DefaultExecHandleBuilder workingDir(Object dir) {
+        if (dir instanceof Provider) {
+            getWorkingDir().fileProvider(((Provider<?>) dir).map(resolver::resolve));
+        } else {
+            getWorkingDir().set(resolver.resolve(dir));
+        }
+        return this;
     }
 
     @Override
@@ -140,30 +137,19 @@ public class DefaultExecHandleBuilder extends AbstractExecHandleBuilder implemen
     }
 
     @Override
-    public DefaultExecHandleBuilder workingDir(Object dir) {
-        delegate.setWorkingDir(dir);
-        return this;
-    }
-
-    @Override
-    public Map<String, Object> getEnvironment() {
-        return delegate.getEnvironment();
-    }
-
-    @Override
-    public void setEnvironment(Map<String, ?> environmentVariables) {
-        delegate.setEnvironment(environmentVariables);
+    public MapProperty<String, Object> getEnvironment() {
+        return super.getEnvironment();
     }
 
     @Override
     public ProcessForkOptions environment(Map<String, ?> environmentVariables) {
-        delegate.environment(environmentVariables);
+        getEnvironment().putAll(environmentVariables);
         return this;
     }
 
     @Override
     public ProcessForkOptions environment(String name, Object value) {
-        delegate.environment(name, value);
+        getEnvironment().put(name, value);
         return this;
     }
 
