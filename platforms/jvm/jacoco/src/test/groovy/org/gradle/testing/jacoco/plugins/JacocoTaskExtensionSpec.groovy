@@ -15,7 +15,7 @@
  */
 package org.gradle.testing.jacoco.plugins
 
-
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.jacoco.JacocoAgentJar
 import org.gradle.process.JavaForkOptions
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -24,17 +24,21 @@ import org.junit.Rule
 import spock.lang.Specification
 
 class JacocoTaskExtensionSpec extends Specification {
+    @Rule
+    final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
+
     JacocoAgentJar agent = Mock()
-    JavaForkOptions task = Mock()
+    JavaForkOptions task = Mock(JavaForkOptions) {
+        getWorkingDir() >> TestFiles.filePropertyFactory().newDirectoryProperty().fileValue(temporaryFolder.file("workingDir"))
+    }
     JacocoTaskExtension extension = TestUtil.newInstance(JacocoTaskExtension.class, agent, task)
-    @Rule final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     def 'asJvmArg with default arguments assembles correct string'() {
         setup:
         agent.supportsJmx() >> true
         agent.supportsInclNoLocationClasses() >> true
         agent.jar >> temporaryFolder.file('fakeagent.jar')
-        task.getWorkingDir() >> temporaryFolder.file(".")
+
         expect:
         extension.asJvmArg.get() == "-javaagent:${agent.jar.absolutePath}=append=true,inclnolocationclasses=false,dumponexit=true,output=file,jmx=false"
     }
@@ -43,7 +47,6 @@ class JacocoTaskExtensionSpec extends Specification {
         given:
         agent.supportsJmx() >> false
         agent.jar >> temporaryFolder.file('fakeagent.jar')
-        task.getWorkingDir() >> temporaryFolder.file("workingDir")
 
         expect:
         extension.asJvmArg.get() == "-javaagent:${agent.jar.absolutePath}=append=true,dumponexit=true,output=file"
@@ -53,7 +56,6 @@ class JacocoTaskExtensionSpec extends Specification {
         given:
         agent.supportsInclNoLocationClasses() >> false
         agent.jar >> temporaryFolder.file('fakeagent.jar')
-        task.getWorkingDir() >> temporaryFolder.file("workingDir")
 
         expect:
         extension.asJvmArg.get() == "-javaagent:${agent.jar.absolutePath}=append=true,dumponexit=true,output=file"
@@ -64,7 +66,6 @@ class JacocoTaskExtensionSpec extends Specification {
         agent.supportsJmx() >> true
         agent.supportsInclNoLocationClasses() >> true
         agent.jar >> temporaryFolder.file('workingDir/subfolder/fakeagent.jar')
-        task.getWorkingDir() >> temporaryFolder.file("workingDir")
 
         extension.with {
             destinationFile = temporaryFolder.file('build/jacoco/fake.exec')

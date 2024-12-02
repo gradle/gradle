@@ -100,7 +100,7 @@ public abstract class NativeBinariesTestPlugin implements Plugin<Project> {
             InstallExecutable installTask = (InstallExecutable) tasks.getInstall();
             RunTestExecutable runTask = (RunTestExecutable) tasks.getRun();
             runTask.getInputs().files(installTask.getOutputs().getFiles()).withPropertyName("installTask.outputs").withPathSensitivity(PathSensitivity.RELATIVE);
-            runTask.setExecutable(installTask.getRunScriptFile().get().getAsFile().getPath());
+            runTask.getExecutable().set(installTask.getRunScriptFile().map(file -> file.getAsFile().getPath()));
             Project project = runTask.getProject();
             runTask.setOutputDir(project.getLayout().getBuildDirectory().getAsFile().map(it -> namingScheme.getOutputDirectory(it, "test-results")).get());
         }

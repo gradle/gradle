@@ -139,6 +139,7 @@ class CompilerMetaDataProviderFactoryTest extends Specification {
         1 * execAction.getStandardOutput() >> _
         1 * execAction.getErrorOutput() >> _
         1 * execAction.getIgnoreExitValue() >> _
+        1 * execAction.getWorkingDir() >> _
         1 * execAction.execute() >> execResult
         1 * execResult.exitValue >> 1
     }

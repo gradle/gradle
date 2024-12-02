@@ -253,11 +253,9 @@ public abstract class JacocoTaskExtension {
     @Internal
     @ReplacesEagerProperty
     public Provider<String> getAsJvmArg() {
-        // TODO[rebase-throwaway]: revert to task.getWorkingDir().map(...) once JavaForkOptions is migrated (commit 05eac6dfa09)
-        return getEnabled().map(__ -> {
-            File workingDir = task.getWorkingDir();
+        return task.getWorkingDir().map(workingDir -> {
             StringBuilder builder = new StringBuilder();
-            ArgumentAppender argument = new ArgumentAppender(builder, workingDir);
+            ArgumentAppender argument = new ArgumentAppender(builder, workingDir.getAsFile());
             builder.append("-javaagent:");
             builder.append(agent.getJar().getAbsolutePath());
             builder.append('=');

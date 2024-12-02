@@ -178,7 +178,7 @@ public class GccMetadataProvider extends AbstractMetadataProvider<GccMetadata> {
 
     private String mapCygwinPath(File cygpathExe, String cygwinPath) {
         ExecAction execAction = getExecActionFactory().newExecAction();
-        execAction.setWorkingDir(new File(".").getAbsolutePath());
+        execAction.getWorkingDir().set(new File(".").getAbsoluteFile());
         execAction.commandLine(cygpathExe.getAbsolutePath(), "-w", cygwinPath);
         StreamByteBuffer buffer = new StreamByteBuffer();
         StreamByteBuffer errorBuffer = new StreamByteBuffer();
