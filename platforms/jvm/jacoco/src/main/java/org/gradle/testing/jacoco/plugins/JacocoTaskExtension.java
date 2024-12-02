@@ -25,7 +25,6 @@ import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
@@ -69,7 +68,6 @@ public abstract class JacocoTaskExtension {
 
     private final JacocoAgentJar agent;
     private final JavaForkOptions task;
-    private final ProviderFactory providers;
 
     /**
      * Creates a Jacoco task extension.
@@ -78,10 +76,9 @@ public abstract class JacocoTaskExtension {
      * @param task the task we extend
      */
     @Inject
-    public JacocoTaskExtension(ProviderFactory providers, JacocoAgentJar agent, JavaForkOptions task) {
+    public JacocoTaskExtension(JacocoAgentJar agent, JavaForkOptions task) {
         this.agent = agent;
         this.task = task;
-        this.providers = providers;
         getEnabled().convention(true);
         getIncludeNoLocationClasses().convention(false);
         getDumpOnExit().convention(true);
@@ -268,9 +265,9 @@ public abstract class JacocoTaskExtension {
     @Internal
     @ReplacesEagerProperty
     public Provider<String> getAsJvmArg() {
-        return providers.provider(() -> {
+        return task.getWorkingDir().map(workingDir -> {
             StringBuilder builder = new StringBuilder();
-            ArgumentAppender argument = new ArgumentAppender(builder, task.getWorkingDir());
+            ArgumentAppender argument = new ArgumentAppender(builder, workingDir.getAsFile());
             builder.append("-javaagent:");
             builder.append(agent.getJar().getAbsolutePath());
             builder.append('=');
