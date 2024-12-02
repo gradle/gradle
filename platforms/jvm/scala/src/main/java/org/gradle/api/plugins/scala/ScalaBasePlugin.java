@@ -417,7 +417,7 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
                 scalaDoc.getClasspath()
             )));
             scalaDoc.getDestinationDir().convention(javaPluginExtension(project).getDocsDir().dir("scaladoc"));
-            scalaDoc.getTitle().convention(providers.provider(() -> project.getExtensions().getByType(ReportingExtension.class).getApiDocTitle()));
+            scalaDoc.getTitle().convention(project.getExtensions().getByType(ReportingExtension.class).getApiDocTitle());
             scalaDoc.getJavaLauncher().convention(getJavaLauncher(project));
         });
     }

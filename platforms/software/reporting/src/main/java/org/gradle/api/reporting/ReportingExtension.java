@@ -19,9 +19,11 @@ import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.api.provider.Provider;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -32,12 +34,9 @@ import java.io.File;
  * Example usage:
  * <pre>
  * reporting {
- *     baseDirectory = layout.buildDirectory.dir("our-reports")
+ *     baseDirectory = layout.buildDirectory().dir("our-reports")
  * }
  * </pre>
- * <p>
- * When implementing a task that produces reports, the location of where to generate reports should be obtained
- * via the {@link #file(String)} method of this extension.
  */
 public abstract class ReportingExtension {
 
@@ -47,20 +46,27 @@ public abstract class ReportingExtension {
     public static final String NAME = "reporting";
 
     /**
-     * The default name of the base directory for all reports, relative to {@link org.gradle.api.file.ProjectLayout#getBuildDirectory()} ({@value}).
+     * The default name of the base directory for all reports, relative to {@link ProjectLayout#getBuildDirectory()} ({@value}).
      */
     public static final String DEFAULT_REPORTS_DIR_NAME = "reports";
 
     private final ProjectInternal project;
-    private final DirectoryProperty baseDirectory;
     private final ExtensiblePolymorphicDomainObjectContainer<ReportSpec> reports;
+    private final Provider<String> apiDocTitle;
 
     @Inject
     public ReportingExtension(Project project) {
         this.project = (ProjectInternal)project;
-        this.baseDirectory = project.getObjects().directoryProperty();
         this.reports = project.getObjects().polymorphicDomainObjectContainer(ReportSpec.class);
-        baseDirectory.set(project.getLayout().getBuildDirectory().dir(DEFAULT_REPORTS_DIR_NAME));
+        getBaseDirectory().set(project.getLayout().getBuildDirectory().dir(DEFAULT_REPORTS_DIR_NAME));
+        this.apiDocTitle = project.getProviders().provider(() -> {
+            Object version = project.getVersion();
+            if (Project.DEFAULT_VERSION.equals(version)) {
+                return project.getName() + " API";
+            } else {
+                return project.getName() + " " + version + " API";
+            }
+        });
     }
 
     /**
@@ -68,9 +74,7 @@ public abstract class ReportingExtension {
      *
      * @since 4.4
      */
-    public DirectoryProperty getBaseDirectory() {
-        return baseDirectory;
-    }
+    public abstract DirectoryProperty getBaseDirectory();
 
     /**
      * Creates a file object for the given path, relative to {@link #getBaseDirectory()}.
@@ -84,15 +88,10 @@ public abstract class ReportingExtension {
         return this.project.getServices().get(FileLookup.class).getFileResolver(getBaseDirectory().getAsFile().get()).resolve(path);
     }
 
-    @ToBeReplacedByLazyProperty
     // TODO this doesn't belong here, that java plugin should add an extension to this guy with this
-    public String getApiDocTitle() {
-        Object version = project.getVersion();
-        if (Project.DEFAULT_VERSION.equals(version)) {
-            return project.getName() + " API";
-        } else {
-            return project.getName() + " " + version + " API";
-        }
+    @ReplacesEagerProperty
+    public Provider<String> getApiDocTitle() {
+        return apiDocTitle;
     }
 
     /**
