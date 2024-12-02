@@ -172,11 +172,8 @@ class ConfigurationCacheBuildOperationsIntegrationTest extends AbstractConfigura
         workGraphStoredAndLoaded()
 
         and:
-        def cacheDirs = subDirsOf(file('lib/.gradle/configuration-cache'))
-        cacheDirs.size() == 2 // key dir, entry dir
-
-        def keyDir = cacheDirs.find { dir -> dir.listFiles().any { file -> file.name == "candidates.bin" } }
-        def entryDir = cacheDirs.find { it != keyDir }
+        def cacheDir = file('lib/.gradle/configuration-cache')
+        def entryDir = single(subDirsOf(cacheDir).findAll { containsFileNamed("entry.bin", it) })
         def entryFiles = entryDir.listFiles().toList()
             .findAll { it.name !in ['entry.bin', 'buildfingerprint.bin', 'projectfingerprint.bin'] } // TODO: include fingerprints as well
 
@@ -780,8 +777,12 @@ class ConfigurationCacheBuildOperationsIntegrationTest extends AbstractConfigura
 
     private static <T> T single(List<T> list) {
         list.with {
-            assert size() == 1
+            assert size() == 1, "Expecting a singleton list, got $list"
             get(0)
         }
+    }
+
+    private static boolean containsFileNamed(String name, TestFile dir) {
+        dir.listFiles().any { file -> file.name == name }
     }
 }
