@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,21 +16,15 @@
 
 package org.gradle.api.reporting;
 
-import org.gradle.api.file.RegularFileProperty;
-import org.gradle.api.provider.Provider;
-import org.gradle.api.tasks.OutputFile;
+import org.gradle.internal.instrumentation.api.annotations.BytecodeUpgrade;
 
-/**
- * A report that is a single file.
- */
-public interface SingleFileReport extends ConfigurableReport {
-    @Override
-    @OutputFile
-    RegularFileProperty getOutputLocation();
+import java.io.File;
 
-    /**
-     * Always returns {@link Report.OutputType#FILE}
-     */
-    @Override
-    Provider<OutputType> getOutputType();
+class ReportAdapters {
+    static class EntryPointAdapter {
+        @BytecodeUpgrade
+        static File getEntryPoint(DirectoryReport report) {
+            return report.getEntryPoint().get().getAsFile();
+        }
+    }
 }

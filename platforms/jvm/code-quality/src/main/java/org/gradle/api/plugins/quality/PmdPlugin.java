@@ -26,7 +26,6 @@ import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaToolchainService;
@@ -163,15 +162,16 @@ public abstract class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
 
     private void configureReportsConventionMapping(Pmd task, final String baseName) {
         ProjectLayout layout = project.getLayout();
-        ProviderFactory providers = project.getProviders();
         Provider<Directory> reportsDir = extension.getReportsDir();
         task.getReports().all(action(report -> {
             report.getRequired().convention(true);
             report.getOutputLocation().convention(
-                layout.getProjectDirectory().file(providers.provider(() -> {
-                    String reportFileName = baseName + "." + report.getName();
-                    return new File(reportsDir.get().getAsFile(), reportFileName).getAbsolutePath();
-                }))
+                layout.getProjectDirectory().file(
+                    reportsDir.zip(report.getName(), (dir, name) -> {
+                        String reportFileName = baseName + "." + name;
+                        return new File(dir.getAsFile(), reportFileName).getAbsolutePath();
+                    })
+                )
             );
         }));
     }

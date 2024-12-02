@@ -206,14 +206,14 @@ public abstract class JacocoPlugin implements Plugin<Project> {
 
     private void configureJacocoReportDefaults(final JacocoPluginExtension extension, final JacocoReport reportTask) {
         reportTask.getReports().all(action(report ->
-            report.getRequired().convention(report.getName().equals("html"))
+            report.getRequired().convention(report.getName().map(name -> name.equals("html")))
         ));
         DirectoryProperty reportsDir = extension.getReportsDirectory();
         reportTask.getReports().all(action(report -> {
-            if (report.getOutputType().equals(Report.OutputType.DIRECTORY)) {
-                ((DirectoryReport)report).getOutputLocation().convention(reportsDir.dir(reportTask.getName() + "/" + report.getName()));
+            if (report.getOutputType().get().equals(Report.OutputType.DIRECTORY)) {
+                ((DirectoryReport) report).getOutputLocation().convention(reportsDir.dir(reportTask.getName() + "/" + report.getName().get()));
             } else {
-                ((SingleFileReport)report).getOutputLocation().convention(reportsDir.file(reportTask.getName() + "/" + reportTask.getName() + "." + report.getName()));
+                ((SingleFileReport) report).getOutputLocation().convention(reportsDir.file(reportTask.getName() + "/" + reportTask.getName() + "." + report.getName().get()));
             }
         }));
     }
@@ -252,10 +252,10 @@ public abstract class JacocoPlugin implements Plugin<Project> {
                     // this one uses the `testTaskProvider` and the `reportTask`. The other just
                     // uses the `reportTask`.
                     // https://github.com/gradle/gradle/issues/6343
-                    if (report.getOutputType().equals(Report.OutputType.DIRECTORY)) {
-                        ((DirectoryReport)report).getOutputLocation().convention(reportsDir.dir(testTaskName + "/" + report.getName()));
+                    if (report.getOutputType().get().equals(Report.OutputType.DIRECTORY)) {
+                        ((DirectoryReport) report).getOutputLocation().convention(reportsDir.dir(testTaskName + "/" + report.getName().get()));
                     } else {
-                        ((SingleFileReport)report).getOutputLocation().convention(reportsDir.file(testTaskName + "/" + reportTask.getName() + "." + report.getName()));
+                        ((SingleFileReport) report).getOutputLocation().convention(reportsDir.file(testTaskName + "/" + reportTask.getName() + "." + report.getName().get()));
                     }
                 }));
             });

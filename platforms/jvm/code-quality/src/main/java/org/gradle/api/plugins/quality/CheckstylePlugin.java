@@ -21,7 +21,6 @@ import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.resources.TextResource;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.jvm.toolchain.JavaLauncher;
@@ -106,15 +105,16 @@ public abstract class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkst
 
     private void configureReportsConventionMapping(Checkstyle task, final String baseName) {
         ProjectLayout layout = project.getLayout();
-        ProviderFactory providers = project.getProviders();
         Provider<Directory> reportsDir = extension.getReportsDir();
         task.getReports().all(action(report -> {
-            report.getRequired().convention(!report.getName().equals("sarif"));
+            report.getRequired().convention(report.getName().map(name -> !name.equals("sarif")));
             report.getOutputLocation().convention(
-                layout.getProjectDirectory().file(providers.provider(() -> {
-                    String reportFileName = baseName + "." + report.getName();
-                    return new File(reportsDir.get().getAsFile(), reportFileName).getAbsolutePath();
-                }))
+                layout.getProjectDirectory().file(
+                    reportsDir.zip(report.getName(), (dir, name) -> {
+                        String reportFileName = baseName + "." + name;
+                        return new File(dir.getAsFile(), reportFileName).getAbsolutePath();
+                    })
+                )
             );
         }));
     }
