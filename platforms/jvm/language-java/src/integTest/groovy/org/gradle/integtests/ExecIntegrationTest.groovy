@@ -114,7 +114,7 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
             task execTask(type: Exec) {
                 dependsOn sourceSets.main.runtimeClasspath
                 def testFile = file("${'$'}buildDir/${'$'}name")
-                executable = Jvm.current().getJavaExecutable()
+                executable = Jvm.current().getJavaExecutable().absolutePath
                 args '-cp', sourceSets.main.runtimeClasspath.asPath, 'org.gradle.TestMain', projectDir, testFile
                 doLast {
                     assert testFile.exists()
@@ -127,7 +127,7 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
                 def testFile = file("${'$'}buildDir/${'$'}name")
                 doFirst {
                     project.exec {
-                        executable Jvm.current().getJavaExecutable()
+                        executable Jvm.current().getJavaExecutable().absolutePath
                         args '-cp', sourceSets.main.runtimeClasspath.asPath, 'org.gradle.TestMain', projectDir, testFile
                         assert !(delegate instanceof ExtensionAware)
                     }
@@ -142,7 +142,7 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
                 File testFile = layout.buildDirectory.file(name).get().asFile
                 execOperations.exec {
                     assert !(it instanceof ExtensionAware)
-                    it.executable Jvm.current().getJavaExecutable()
+                    it.executable Jvm.current().getJavaExecutable().absolutePath
                     it.args '-cp', execClasspath.asPath, 'org.gradle.TestMain', layout.projectDirectory.asFile, testFile
                 }
                 assert testFile.exists()
@@ -197,7 +197,7 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
                 inputs.files sourceSets.main.runtimeClasspath
                 def testFile = file("$buildDir/out.txt")
                 outputs.file testFile
-                executable = org.gradle.internal.jvm.Jvm.current().getJavaExecutable()
+                executable = org.gradle.internal.jvm.Jvm.current().getJavaExecutable().absolutePath
                 args '-cp', sourceSets.main.runtimeClasspath.asPath, 'org.gradle.TestMain', projectDir, testFile
                 doLast {
                     assert testFile.exists()
@@ -260,7 +260,7 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
                     classPath: sourceSets.main.runtimeClasspath,
                     outputFile: testFile
                 )
-                executable = org.gradle.internal.jvm.Jvm.current().getJavaExecutable()
+                executable = org.gradle.internal.jvm.Jvm.current().getJavaExecutable().absolutePath
                 doLast {
                     assert testFile.exists()
                 }
@@ -300,7 +300,7 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
             task execTask(type: Exec) {
                 dependsOn sourceSets.main.runtimeClasspath
                 def testFile = file("${'$'}buildDir/${'$'}name")
-                executable = Jvm.current().getJavaExecutable()
+                executable = Jvm.current().getJavaExecutable().absolutePath
                 args '-cp', sourceSets.main.runtimeClasspath.asPath, 'org.gradle.TestMain', projectDir, testFile
                 def output = new ByteArrayOutputStream()
                 standardOutput = output
@@ -317,7 +317,7 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
                 doLast {
                     def output = new ByteArrayOutputStream()
                     project.exec {
-                        executable Jvm.current().getJavaExecutable()
+                        executable Jvm.current().getJavaExecutable().absolutePath
                         args '-cp', sourceSets.main.runtimeClasspath.asPath, 'org.gradle.TestMain', projectDir, testFile
                         standardOutput = output
                         assert !(delegate instanceof ExtensionAware)
@@ -333,7 +333,7 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
                 def output = new ByteArrayOutputStream()
                 execOperations.exec {
                     assert !(it instanceof ExtensionAware)
-                    it.executable Jvm.current().getJavaExecutable()
+                    it.executable Jvm.current().getJavaExecutable().absolutePath
                     it.args '-cp', execClasspath.asPath, 'org.gradle.TestMain', layout.projectDirectory.asFile, testFile
                     it.standardOutput = output
                 }

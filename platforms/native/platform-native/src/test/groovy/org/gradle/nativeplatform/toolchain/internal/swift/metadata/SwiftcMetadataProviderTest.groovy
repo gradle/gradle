@@ -84,6 +84,7 @@ Target: x86_64-unknown-linux-gnu
         1 * action.getStandardOutput() >> _
         1 * action.getErrorOutput() >> _
         1 * action.getIgnoreExitValue() >> _
+        1 * action.getWorkingDir() >> _
         1 * execResult.getExitValue() >> 1
 
         and:
@@ -104,6 +105,7 @@ Target: x86_64-unknown-linux-gnu
         1 * action.getStandardOutput() >> standardOutput
         1 * action.getErrorOutput() >> _
         1 * action.getIgnoreExitValue() >> _
+        1 * action.getWorkingDir() >> _
         1 * standardOutput.set(_) >> { OutputStream outstr -> outstr << output }
         1 * action.execute() >> result
         def provider = new SwiftcMetadataProvider(execActionFactory)

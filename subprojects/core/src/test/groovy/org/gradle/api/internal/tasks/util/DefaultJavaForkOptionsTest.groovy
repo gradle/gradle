@@ -254,7 +254,7 @@ class DefaultJavaForkOptionsTest extends Specification {
         options.copyTo(target)
 
         then:
-        target.getExecutable() == 'executable'
+        target.getExecutable().get() == 'executable'
         target.getJvmArgs().get() == ['arg']
         target.getSystemProperties().get() == [key: 12]
         target.getMinHeapSize().get() == '64m'
