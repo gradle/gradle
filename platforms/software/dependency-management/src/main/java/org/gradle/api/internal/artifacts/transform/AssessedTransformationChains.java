@@ -77,7 +77,7 @@ import java.util.Optional;
     public AssessedTransformationChains(ImmutableAttributes targetAttributes, AttributeMatcher attributeMatcher, List<TransformedVariant> chainsToAssess) {
         this.attributeMatcher = attributeMatcher;
         this.preferredChains = attributeMatcher.matchMultipleCandidates(chainsToAssess, targetAttributes);
-        this.preferredChainsByFingerprint = () -> {
+        this.preferredChainsByFingerprint = Lazy.unsafe().of(() -> {
             TransformedVariantConverter transformedVariantConverter = new TransformedVariantConverter();
 
             // Fingerprint all preferred chains to build a map from each unique fingerprint -> all preferred chains with that fingerprint
@@ -88,7 +88,7 @@ import java.util.Optional;
             });
 
             return result;
-        };
+        });
     }
 
     /**
