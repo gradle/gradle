@@ -84,7 +84,7 @@ class ReportContainerIntegTest extends AbstractIntegrationSpec {
                 @TaskAction
                 def doStuff() {
                     reports.enabled.each {
-                         if (it.outputType == Report.OutputType.FILE) {
+                         if (it.outputType.get() == Report.OutputType.FILE) {
                              assert it.outputLocation.asFile.get().parentFile.exists() && it.outputLocation.asFile.get().parentFile.directory
                              it.outputLocation.asFile.get() << value.get()
                          } else {
@@ -104,7 +104,8 @@ class ReportContainerIntegTest extends AbstractIntegrationSpec {
                 value = provider { project.value }
                 reports.all {
                     it.required = true
-                    outputLocation.set(it.outputType == Report.OutputType.DIRECTORY ? file(it.name) : file("\$it.name/file"))
+                    def name = it.name.get()
+                    outputLocation.set(it.outputType.get() == Report.OutputType.DIRECTORY ? file(name) : file("\$name/file"))
                 }
             }
         """

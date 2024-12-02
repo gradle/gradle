@@ -122,7 +122,7 @@ public abstract class HtmlDependencyReportTask extends AbstractDependencyReportT
         HtmlDependencyReporter reporter = new HtmlDependencyReporter(getVersionSelectorScheme(), getVersionComparator(), getVersionParser());
         reporter.render(projectsWithConfigurations.get(), reports.getHtml().getOutputLocation().getAsFile().get());
 
-        getLogger().lifecycle("See the report at: {}", new ConsoleRenderer().asClickableFileUrl(reports.getHtml().getEntryPoint()));
+        getLogger().lifecycle("See the report at: {}", new ConsoleRenderer().asClickableFileUrl(reports.getHtml().getEntryPoint().get().getAsFile()));
     }
 
     private ProjectsWithConfigurations<ProjectDetails.ProjectNameAndPath, ConfigurationDetails> computeProjectsWithConfigurations() {
