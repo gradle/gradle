@@ -21,6 +21,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.internal.lambdas.SerializableLambdas;
 import org.gradle.api.internal.resolve.ProjectModelResolver;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.internal.service.ServiceRegistry;
@@ -109,7 +110,7 @@ public abstract class NativeBinariesTestPlugin implements Plugin<Project> {
             InstallExecutable installTask = (InstallExecutable) tasks.getInstall();
             RunTestExecutable runTask = (RunTestExecutable) tasks.getRun();
             runTask.getInputs().files(installTask.getOutputs().getFiles()).withPropertyName("installTask.outputs").withPathSensitivity(PathSensitivity.RELATIVE);
-            runTask.setExecutable(installTask.getRunScriptFile().get().getAsFile().getPath());
+            runTask.getExecutable().set(installTask.getRunScriptFile().map(SerializableLambdas.transformer(file -> file.getAsFile().getPath())));
             Project project = runTask.getProject();
             runTask.setOutputDir(project.getLayout().getBuildDirectory().getAsFile().map(it -> namingScheme.getOutputDirectory(it, "test-results")).get());
         }

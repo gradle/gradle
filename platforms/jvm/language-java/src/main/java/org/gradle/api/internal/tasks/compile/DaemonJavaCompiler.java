@@ -41,6 +41,7 @@ public class DaemonJavaCompiler extends AbstractDaemonCompiler<JavaCompileSpec> 
     private final File daemonWorkingDir;
     private final ClassPathRegistry classPathRegistry;
 
+    @SuppressWarnings("this-escape")
     public DaemonJavaCompiler(File daemonWorkingDir, JavaHomeBasedJavaCompilerFactory javaCompilerFactory, CompilerWorkerExecutor compilerWorkerExecutor, JavaForkOptionsFactory forkOptionsFactory, ClassPathRegistry classPathRegistry) {
         super(compilerWorkerExecutor);
         this.javaCompilerFactory = javaCompilerFactory;
@@ -71,7 +72,7 @@ public class DaemonJavaCompiler extends AbstractDaemonCompiler<JavaCompileSpec> 
         MinimalJavaCompilerDaemonForkOptions forkOptions = spec.getCompileOptions().getForkOptions();
         JavaForkOptions javaForkOptions = new MinimalCompilerDaemonForkOptionsConverter(forkOptionsFactory).transform(forkOptions);
         javaForkOptions.getWorkingDirectory().set(daemonWorkingDir);
-        javaForkOptions.setExecutable(jvm.getJavaExecutable());
+        javaForkOptions.getExecutable().set(jvm.getJavaExecutable().getAbsolutePath());
 
         ClassPath compilerClasspath = classPathRegistry.getClassPath("JAVA-COMPILER");
 
