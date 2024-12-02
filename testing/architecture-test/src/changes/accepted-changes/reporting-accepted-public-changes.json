@@ -1,0 +1,12 @@
+{
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.api.reporting.ReportingExtension",
+            "member": "Method org.gradle.api.reporting.ReportingExtension.getBaseDirectory()",
+            "acceptation": "Changed to idiomatic injection",
+            "changes": [
+                "Method is now abstract"
+            ]
+        }
+    ]
+}
