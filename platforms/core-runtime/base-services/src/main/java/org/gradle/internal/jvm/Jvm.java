@@ -368,9 +368,9 @@ public class Jvm implements JavaInfo {
         return Optional.absent();
     }
 
-    public static Map<String, ?> getInheritableEnvironmentVariables(Map<String, ?> envVars) {
-        Map<String, Object> vars = new HashMap<String, Object>();
-        for (Map.Entry<String, ?> entry : envVars.entrySet()) {
+    public static Map<String, String> getInheritableEnvironmentVariables(Map<String, String> envVars) {
+        Map<String, String> vars = new HashMap<String, String>();
+        for (Map.Entry<String, String> entry : envVars.entrySet()) {
             // The following are known variables that can change between builds and should not be inherited
             if (APP_NAME_REGEX.matcher(entry.getKey()).matches()
                 || JAVA_MAIN_CLASS_REGEX.matcher(entry.getKey()).matches()
