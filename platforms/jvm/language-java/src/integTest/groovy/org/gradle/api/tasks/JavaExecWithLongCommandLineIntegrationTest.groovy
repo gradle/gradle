@@ -49,16 +49,14 @@ class JavaExecWithLongCommandLineIntegrationTest extends AbstractIntegrationSpec
 
             tasks.register("runWithExecOperations") {
                 dependsOn sourceSets.main.runtimeClasspath
-                def runExecutable = run.executable ? run.executable : null
+                def runExecutable = run.executable
                 def runClasspath = run.classpath
                 def runMain = run.mainClass
                 def runArgs = run.args
                 def execOps = services.get(ExecOperations)
                 doLast {
                     execOps.javaexec {
-                        if (runExecutable) {
-                           executable = runExecutable
-                        }
+                        executable = runExecutable
                         classpath = runClasspath
                         mainClass = runMain
                         args runArgs

@@ -371,15 +371,13 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
         test.getBinaryResultsDirectory().convention(javaPluginExtension.getTestResultsDir().dir(test.getName() + "/binary"));
         test.workingDir(project.getProjectDir());
 
-        Provider<JavaToolchainSpec> toolchainOverrideSpec = project.provider(() ->
-            TestExecutableUtils.getExecutableToolchainSpec(test, propertyFactory));
+        Provider<JavaToolchainSpec> toolchainOverrideSpec = TestExecutableUtils.getExecutableToolchainSpec(test, propertyFactory);
         test.getJavaLauncher().convention(getToolchainTool(project, JavaToolchainService::launcherFor, toolchainOverrideSpec));
     }
 
     private void configureJavaExecTasks(Project project) {
         project.getTasks().withType(JavaExec.class).configureEach(javaExec -> {
-            Provider<JavaToolchainSpec> toolchainOverrideSpec = project.provider(() ->
-                JavaExecExecutableUtils.getExecutableOverrideToolchainSpec(javaExec, propertyFactory));
+            Provider<JavaToolchainSpec> toolchainOverrideSpec = JavaExecExecutableUtils.getExecutableOverrideToolchainSpec(javaExec, propertyFactory);
             javaExec.getJavaLauncher().convention(getToolchainTool(project, JavaToolchainService::launcherFor, toolchainOverrideSpec));
         });
     }
