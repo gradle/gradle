@@ -638,6 +638,16 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         return this;
     }
 
+    /**
+     * Sets the JUnit Platform selector patterns to be used for test discovery.
+     * See the JUnit Platform documentation for more information.
+     */
+    @Option(option = "select-tests", description = "Sets the JUnit Platform selector patterns (requires JUnitPlatform to be used).")
+    public AbstractTestTask setJunitPlatformSelectorPatterns(List<String> junitPlatformSelectorPatterns) {
+        filter.setJunitPlatformSelectorPatterns(junitPlatformSelectorPatterns);
+        return this;
+    }
+
     @Internal
     boolean getFailFast() {
         return failFast;
