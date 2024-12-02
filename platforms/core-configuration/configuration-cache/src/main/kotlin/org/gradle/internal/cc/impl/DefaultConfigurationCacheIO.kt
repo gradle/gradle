@@ -150,15 +150,13 @@ class DefaultConfigurationCacheIO internal constructor(
         }
     }
 
-    override fun readCandidateEntries(stateFile: ConfigurationCacheStateFile): List<CandidateEntry> {
-        return when {
-            !stateFile.exists -> {
-                emptyList()
-            }
+    override fun readCandidateEntries(stateFile: ConfigurationCacheStateFile): List<CandidateEntry> = when {
+        !stateFile.exists -> {
+            emptyList()
+        }
 
-            else -> withReadContextFor(stateFile, SpecialDecoders()) {
-                readStrings().map { CandidateEntry(it) }
-            }
+        else -> withReadContextFor(stateFile, SpecialDecoders()) {
+            readStrings().map { CandidateEntry(it) }
         }
     }
 
