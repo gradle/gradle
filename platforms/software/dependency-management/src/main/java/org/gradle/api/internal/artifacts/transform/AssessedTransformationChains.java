@@ -22,11 +22,10 @@ import org.gradle.internal.component.resolution.failure.transform.Transformation
 import org.gradle.internal.component.resolution.failure.transform.TransformedVariantConverter;
 import org.gradle.internal.lazy.Lazy;
 
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * Represents information about a set of related transformation chains that all
@@ -53,12 +52,13 @@ import java.util.stream.Collectors;
     private final List<TransformedVariant> preferredChains;
 
     /**
-     * Each value in this lazily computed map represents a group of transformation chains that produce the same fingerprint,
-     * which means they represent the same transformations applied in a different sequence.
+     * Each value in this lazily computed map contains an arbitrary representative of each group of transformation chains
+     * within the preferred chains that produce the same fingerprint.  Each set thus represents the <strong>SAME</strong>
+     * transformations applied in <strong>ANY</strong> sequence.
      * <p>
      * Fingerprinting is an expensive operation, so this map is computed only when needed.
      */
-    private final Lazy<LinkedHashMap<TransformationChainData.TransformationChainFingerprint, List<TransformedVariant>>> preferredChainsByFingerprint;
+    private final Lazy<LinkedHashMap<TransformationChainData.TransformationChainFingerprint, TransformedVariant>> preferredChainsByFingerprint;
 
     private final AttributeMatcher attributeMatcher;
 
@@ -81,10 +81,10 @@ import java.util.stream.Collectors;
             TransformedVariantConverter transformedVariantConverter = new TransformedVariantConverter();
 
             // Fingerprint all preferred chains to build a map from each unique fingerprint -> all preferred chains with that fingerprint
-            LinkedHashMap<TransformationChainData.TransformationChainFingerprint, List<TransformedVariant>> result = new LinkedHashMap<>(preferredChains.size());
+            LinkedHashMap<TransformationChainData.TransformationChainFingerprint, TransformedVariant> result = new LinkedHashMap<>(preferredChains.size());
             preferredChains.forEach(chain -> {
                 TransformationChainData.TransformationChainFingerprint fingerprint = transformedVariantConverter.convert(chain).fingerprint();
-                result.computeIfAbsent(fingerprint, f -> new ArrayList<>()).add(chain);
+                result.putIfAbsent(fingerprint, chain);
             });
 
             return result;
@@ -118,13 +118,9 @@ import java.util.stream.Collectors;
      * <p>
      * It remains important to use the <strong>LAST</strong> compatible match, as this was the previous behavior,
      * and is tested in {@code DisambiguateArtifactTransformIntegrationTest}.
-     * <p>
-     * This behavior is really <strong>NOT</strong> desirable.  This should be removed in Gradle 9.0.
      *
      * @return first preferred transformation chain in this result set if one exists; else {@link Optional#empty()}
      */
-    @Deprecated
-    @SuppressWarnings("DeprecatedIsStillUsed")
     public Optional<TransformedVariant> getArbitraryPreferredMatchingChain() {
         return !preferredChains.isEmpty() ? Optional.ofNullable(preferredChains.get(preferredChains.size() - 1)) : Optional.empty();
     }
@@ -162,15 +158,14 @@ import java.util.stream.Collectors;
      * <p>
      * So within {@link #preferredChains}, each unique fingerprint is associated with a list containing
      * potentially multiple chains.  The method will (arbitrarily) select the first such chain with a particular
-     * fingerprint encountered within that list.
+     * fingerprint encountered within that list.  As each group of chains with the same fingerprint produces
+     * the same result, all chains in that group are all necessarily mutually compatible.
      * <p>
      * This triggers fingerprinting.
      *
      * @return one arbitrary chain from each distinct set of chains with an identical fingerprint within the preferred chains
      */
-    public List<TransformedVariant> getDistinctMatchingChainRepresentatives() {
-        return preferredChainsByFingerprint.get().values().stream()
-            .map(transformedVariants -> transformedVariants.get(0))
-            .collect(Collectors.toList());
+    public Collection<TransformedVariant> getDistinctPreferredChainRepresentatives() {
+        return preferredChainsByFingerprint.get().values();
     }
 }

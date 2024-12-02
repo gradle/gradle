@@ -58,6 +58,7 @@ import org.gradle.internal.component.resolution.failure.type.NoVariantsWithMatch
 import org.gradle.internal.component.resolution.failure.type.UnknownArtifactSelectionFailure;
 import org.gradle.internal.instantiation.InstanceGenerator;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -203,7 +204,7 @@ public class ResolutionFailureHandler {
     public AbstractResolutionFailureException ambiguousArtifactTransformsFailure(
         ResolvedVariantSet targetVariantSet,
         ImmutableAttributes requestedAttributes,
-        List<TransformedVariant> transformedVariants
+        Collection<TransformedVariant> transformedVariants
     ) {
         ImmutableList<TransformationChainData> transformationChainDatas = transformedVariantConverter.convert(transformedVariants);
         AmbiguousArtifactTransformsFailure failure = new AmbiguousArtifactTransformsFailure(getOrCreateVariantSetComponentIdentifier(targetVariantSet), targetVariantSet.asDescribable().getDisplayName(), requestedAttributes, transformationChainDatas);
