@@ -143,7 +143,7 @@ public abstract class ValidatePlugins extends DefaultTask {
                         );
 
                     }
-                    spec.getForkOptions().setExecutable(launcher.getExecutablePath());
+                    spec.getForkOptions().getExecutable().set(launcher.getExecutablePath().getAsFile().getAbsolutePath());
                 } else {
                     ProblemId problemId = ProblemId.create(
                         "missing-java-toolchain-plugin",
