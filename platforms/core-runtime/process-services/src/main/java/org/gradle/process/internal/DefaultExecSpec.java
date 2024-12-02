@@ -16,6 +16,7 @@
 
 package org.gradle.process.internal;
 
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.process.BaseExecSpec;
 import org.gradle.process.CommandLineArgumentProvider;
@@ -25,13 +26,23 @@ import javax.inject.Inject;
 import java.util.List;
 
 
-public abstract class DefaultExecSpec extends DefaultProcessForkOptions implements ExecSpec, ProcessArgumentsSpec.HasExecutable {
+public abstract class DefaultExecSpec extends DefaultProcessForkOptions implements ExecSpec {
 
-    private final ProcessArgumentsSpec argumentsSpec = new ProcessArgumentsSpec(this);
+    private final ProcessArgumentsSpec argumentsSpec = new ProcessArgumentsSpec(new ProcessArgumentsSpec.HasExecutable() {
+        @Override
+        public String getExecutable() {
+            return DefaultExecSpec.this.getExecutable().get();
+        }
+
+        @Override
+        public void setExecutable(Object executable) {
+            DefaultExecSpec.this.executable(executable);
+        }
+    });
 
     @Inject
-    public DefaultExecSpec(PathToFileResolver resolver) {
-        super(resolver);
+    public DefaultExecSpec(ObjectFactory objectFactory, PathToFileResolver resolver) {
+        super(objectFactory, resolver);
         getIgnoreExitValue().convention(false);
     }
 
@@ -55,6 +66,9 @@ public abstract class DefaultExecSpec extends DefaultProcessForkOptions implemen
         }
         if (source.getErrorOutput().isPresent()) {
             target.getErrorOutput().set(source.getErrorOutput());
+        }
+        if (source.getExecutable().isPresent()) {
+            target.getExecutable().set(source.getExecutable());
         }
     }
 

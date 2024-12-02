@@ -33,14 +33,11 @@ import java.io.File;
 @DisableCachingByDefault(because = "Not made cacheable, yet")
 public abstract class RunTestExecutable extends AbstractExecTask<RunTestExecutable> implements VerificationTask {
     /**
-     * The directory where the results should be generated.
-     */
-    private File outputDir;
-    /**
      * Should the build continue if a test fails, or should the build break?
      */
     private boolean ignoreFailures;
 
+    @SuppressWarnings("this-escape")
     public RunTestExecutable() {
         super(RunTestExecutable.class);
     }
@@ -48,10 +45,7 @@ public abstract class RunTestExecutable extends AbstractExecTask<RunTestExecutab
     @TaskAction
     @Override
     protected void exec() {
-        // Make convention mapping work
         getOutputDir().mkdirs();
-        setExecutable(getExecutable());
-        getWorkingDirectory().set(getOutputDir());
 
         try {
             super.exec();
@@ -75,11 +69,11 @@ public abstract class RunTestExecutable extends AbstractExecTask<RunTestExecutab
 
     @OutputDirectory
     public File getOutputDir() {
-        return outputDir;
+        return getWorkingDirectory().getAsFile().get();
     }
 
     public void setOutputDir(File outputDir) {
-        this.outputDir = outputDir;
+        getWorkingDirectory().set(outputDir);
     }
 
     /**

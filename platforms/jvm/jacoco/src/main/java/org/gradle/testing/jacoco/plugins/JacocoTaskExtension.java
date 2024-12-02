@@ -282,7 +282,7 @@ public abstract class JacocoTaskExtension {
         return getEnabled().map(__ -> {
             File workingDir = task.getWorkingDirectory().get().getAsFile();
             StringBuilder builder = new StringBuilder();
-            ArgumentAppender argument = new ArgumentAppender(builder, workingDir);
+            ArgumentAppender argument = new ArgumentAppender(builder, workingDir.getAsFile());
             builder.append("-javaagent:");
             builder.append(agent.getJar().getAbsolutePath());
             builder.append('=');

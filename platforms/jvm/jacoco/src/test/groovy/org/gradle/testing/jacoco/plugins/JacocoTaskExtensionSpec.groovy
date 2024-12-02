@@ -15,7 +15,7 @@
  */
 package org.gradle.testing.jacoco.plugins
 
-
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.jacoco.JacocoAgentJar
 import org.gradle.process.JavaForkOptions
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -24,10 +24,14 @@ import org.junit.Rule
 import spock.lang.Specification
 
 class JacocoTaskExtensionSpec extends Specification {
+    @Rule
+    final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
+
     JacocoAgentJar agent = Mock()
-    JavaForkOptions task = Mock()
+    JavaForkOptions task = Mock(JavaForkOptions) {
+        getWorkingDirectory() >> TestFiles.filePropertyFactory().newDirectoryProperty().fileValue(temporaryFolder.file("workingDir"))
+    }
     JacocoTaskExtension extension = TestUtil.newInstance(JacocoTaskExtension.class, agent, task)
-    @Rule final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     def 'asJvmArg with default arguments assembles correct string'() {
         setup:
@@ -115,7 +119,7 @@ class JacocoTaskExtensionSpec extends Specification {
     }
 
     private workingDirProperty(File dir) {
-        def property = project.objects.directoryProperty()
+        def property = TestUtil.objectFactory().directoryProperty()
         property.set(dir)
         return property
     }

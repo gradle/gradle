@@ -18,9 +18,11 @@ package org.gradle.process;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.model.ReplacedBy;
+import org.gradle.api.provider.MapProperty;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Internal;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 
 import java.io.File;
 import java.util.Map;
@@ -34,23 +36,8 @@ public interface ProcessForkOptions {
      *
      * @return The executable.
      */
-    @ToBeReplacedByLazyProperty
-    String getExecutable();
-
-    /**
-     * Sets the name of the executable to use.
-     *
-     * @param executable The executable. Must not be null.
-     * @since 4.0
-     */
-    void setExecutable(String executable);
-
-    /**
-     * Sets the name of the executable to use.
-     *
-     * @param executable The executable. Must not be null.
-     */
-    void setExecutable(Object executable);
+    @ReplacesEagerProperty(adapter = ProcessForkOptionsAdapters.ExecutableAdapter.class)
+    Property<String> getExecutable();
 
     /**
      * Sets the name of the executable to use.
@@ -109,15 +96,8 @@ public interface ProcessForkOptions {
      *
      * @return The environment. Returns an empty map when there are no environment variables.
      */
-    @ToBeReplacedByLazyProperty
-    Map<String, Object> getEnvironment();
-
-    /**
-     * Sets the environment variable to use for the process.
-     *
-     * @param environmentVariables The environment variables. Must not be null.
-     */
-    void setEnvironment(Map<String, ?> environmentVariables);
+    @ReplacesEagerProperty
+    MapProperty<String, Object> getEnvironment();
 
     /**
      * Adds some environment variables to the environment for this process.
