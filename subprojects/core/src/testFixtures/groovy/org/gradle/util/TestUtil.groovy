@@ -158,7 +158,7 @@ class TestUtil {
         return services().get(TestProblems)
     }
 
-    static ObjectFactory objectFactory(TestFile baseDir) {
+    static ObjectFactory objectFactory(File baseDir) {
         ServiceRegistry services = services(baseDir)
         return services.get(ObjectFactory)
     }
