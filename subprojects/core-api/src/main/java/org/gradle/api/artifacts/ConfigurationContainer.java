@@ -134,9 +134,11 @@ public interface ConfigurationContainer extends NamedDomainObjectContainer<Confi
     /**
      * Registers a {@link ResolvableConfiguration} with an immutable role. Resolvable configurations
      * are meant to resolve dependency graphs and their artifacts.
+     * <p>
+     * This operation is lazy, the returned element is NOT realized.
+     * A {@link NamedDomainObjectProvider lazy wrapper} is returned, allowing to continue to use it with other lazy APIs.
      *
      * @param name The name of the configuration to register.
-     *
      * @return A provider which creates a new resolvable configuration.
      *
      * @throws InvalidUserDataException If a configuration with the given {@code name} already exists in this container.
@@ -149,6 +151,9 @@ public interface ConfigurationContainer extends NamedDomainObjectContainer<Confi
     /**
      * Registers a {@link ResolvableConfiguration} via {@link #resolvable(String)} and then
      * configures it with the provided action.
+     * <p>
+     * This operation is lazy, the returned element is NOT realized.
+     * A {@link NamedDomainObjectProvider lazy wrapper} is returned, allowing to continue to use it with other lazy APIs.
      *
      * @param name The name of the configuration to register.
      * @param action The action to apply to the configuration.
@@ -165,6 +170,9 @@ public interface ConfigurationContainer extends NamedDomainObjectContainer<Confi
     /**
      * Registers a new {@link ConsumableConfiguration} with an immutable role. Consumable configurations
      * are meant to act as a variant in the context of Dependency Management and Publishing.
+     * <p>
+     * This operation is lazy, the returned element is NOT realized.
+     * A {@link NamedDomainObjectProvider lazy wrapper} is returned, allowing to continue to use it with other lazy APIs.
      *
      * @param name The name of the configuration to register.
      *
@@ -180,6 +188,9 @@ public interface ConfigurationContainer extends NamedDomainObjectContainer<Confi
     /**
      * Registers a {@link ConsumableConfiguration} via {@link #consumable(String)} and then
      * configures it with the provided action.
+     * <p>
+     * This operation is lazy, the returned element is NOT realized.
+     * A {@link NamedDomainObjectProvider lazy wrapper} is returned, allowing to continue to use it with other lazy APIs.
      *
      * @param name The name of the configuration to register.
      * @param action The action to apply to the configuration.
@@ -197,6 +208,9 @@ public interface ConfigurationContainer extends NamedDomainObjectContainer<Confi
      * Registers a new {@link DependencyScopeConfiguration} with an immutable role. Dependency scope configurations
      * collect dependencies, dependency constraints, and exclude rules to be used by both resolvable
      * and consumable configurations.
+     * <p>
+     * This operation is lazy, the returned element is NOT realized.
+     * A {@link NamedDomainObjectProvider lazy wrapper} is returned, allowing to continue to use it with other lazy APIs.
      *
      * @param name The name of the configuration to register.
      *
@@ -212,6 +226,9 @@ public interface ConfigurationContainer extends NamedDomainObjectContainer<Confi
     /**
      * Registers a {@link DependencyScopeConfiguration} via {@link #dependencyScope(String)} and then
      * configures it with the provided action.
+     * <p>
+     * This operation is lazy, the returned element is NOT realized.
+     * A {@link NamedDomainObjectProvider lazy wrapper} is returned, allowing to continue to use it with other lazy APIs.
      *
      * @param name The name of the configuration to register.
      * @param action The action to apply to the configuration.
