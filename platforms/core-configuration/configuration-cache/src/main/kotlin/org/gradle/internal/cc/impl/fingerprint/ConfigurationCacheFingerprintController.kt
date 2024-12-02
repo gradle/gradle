@@ -24,6 +24,8 @@ import org.gradle.api.internal.properties.GradleProperties
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
+import org.gradle.initialization.buildsrc.BuildSrcDetector
+import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.cc.base.services.ConfigurationCacheEnvironmentChangeTracker
 import org.gradle.internal.cc.impl.CheckedFingerprint
@@ -98,7 +100,8 @@ class ConfigurationCacheFingerprintController internal constructor(
     private val agentStatus: AgentStatus,
     private val problems: ConfigurationCacheProblems,
     private val encryptionService: EncryptionService,
-    private val configurationTimeBarrier: ConfigurationTimeBarrier
+    private val configurationTimeBarrier: ConfigurationTimeBarrier,
+    private val buildStateRegistry: BuildStateRegistry,
 ) : Stoppable, ProjectScopedScriptResolution {
 
     interface Host {
@@ -172,7 +175,8 @@ class ConfigurationCacheFingerprintController internal constructor(
                 directoryFileTreeFactory,
                 workExecutionTracker,
                 environmentChangeTracker,
-                inputTrackingState
+                inputTrackingState,
+                buildStateRegistry
             )
             addListener(fingerprintWriter)
             return Writing(fingerprintWriter, buildScopedSpoolFile, projectScopedSpoolFile)
@@ -519,6 +523,10 @@ class ConfigurationCacheFingerprintController internal constructor(
 
         override fun isRemoteScriptUpToDate(uri: URI): Boolean =
             remoteScriptUpToDateChecker.isUpToDate(uri)
+
+        override fun hasValidBuildSrc(candidateBuildSrc: File): Boolean {
+            return BuildSrcDetector.isValidBuildSrcBuild(candidateBuildSrc)
+        }
     }
 
     private
