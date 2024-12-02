@@ -17,7 +17,6 @@ package org.gradle.process.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
@@ -62,7 +61,7 @@ import static org.gradle.process.internal.util.LongCommandLineDetectionUtil.hasC
  * Use {@link JavaExecHandleFactory} instead.
  */
 @NullMarked
-public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgumentsSpec.HasExecutable {
+public class JavaExecHandleBuilder implements BaseExecHandleBuilder {
 
     private static final Logger LOGGER = Logging.getLogger(JavaExecHandleBuilder.class);
 
@@ -77,7 +76,6 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
     private final JavaForkOptionsInternal javaOptions;
     private final ModularitySpec modularity;
 
-    @SuppressWarnings("this-escape")
     public JavaExecHandleBuilder(
         FileCollectionFactory fileCollectionFactory,
         ObjectFactory objectFactory,
@@ -96,7 +94,6 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
         this.javaOptions = javaOptions;
         this.modularity = new DefaultModularitySpec(objectFactory);
         this.execHandleBuilder = execHandleBuilder;
-        setExecutable(javaOptions.getExecutable());
     }
 
     public Provider<List<String>> getAllJvmArgs() {
@@ -260,43 +257,33 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
         javaOptions.debugOptions(action);
     }
 
-    @Override
     public String getExecutable() {
-        return javaOptions.getExecutable();
+        return javaOptions.getExecutable().get();
+    }
+
+    public void setExecutable(File executable) {
+        setExecutable(executable.getAbsolutePath());
     }
 
     @Override
-    public void setExecutable(Object executable) {
-        javaOptions.setExecutable(executable);
+    public JavaExecHandleBuilder setExecutable(String executable) {
+        javaOptions.getExecutable().set(executable);
+        return this;
     }
 
-    public void setExecutable(String executable) {
-        javaOptions.setExecutable(executable);
+    @Override
+    public JavaExecHandleBuilder setWorkingDir(@Nullable File dir) {
+        javaOptions.getWorkingDir().set(dir);
+        return this;
     }
 
-    public DirectoryProperty getWorkingDirectory() {
-        return javaOptions.getWorkingDirectory();
+    JavaForkOptionsInternal getJavaOptions() {
+        return javaOptions;
     }
 
-    @Nullable
-    public File getWorkingDir() {
-        return javaOptions.getWorkingDir();
-    }
-
-    public void setWorkingDir(@Nullable Object dir) {
-        javaOptions.setWorkingDir(dir);
-    }
-
-    public void setWorkingDir(@Nullable File dir) {
-        javaOptions.setWorkingDir(dir);
-    }
-
-    public Map<String, Object> getEnvironment() {
-        return javaOptions.getEnvironment();
-    }
-
-    public JavaExecHandleBuilder setEnvironment(Map<String, ?> environmentVariables) {
-        javaOptions.setEnvironment(environmentVariables);
+    @Override
+    public JavaExecHandleBuilder setEnvironment(Map<String, Object> environmentVariables) {
+        javaOptions.getEnvironment().set(environmentVariables);
         return this;
     }
 
@@ -382,8 +369,10 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
         return javaOptions.getJvmArgumentProviders();
     }
 
-    public void setStandardInput(InputStream inputStream) {
+    @Override
+    public JavaExecHandleBuilder setStandardInput(InputStream inputStream) {
         execHandleBuilder.setStandardInput(inputStream);
+        return this;
     }
 
     public InputStream getStandardInput() {
@@ -530,9 +519,9 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
     public ExecHandle build() {
         // We delegate properties that are also on ProcessForkOptions interface to JavaForkOptions
         // to support copy from JavaOptions, and thus we have to copy them to execHandleBuilder here
-        execHandleBuilder.setExecutable(getExecutable());
-        execHandleBuilder.setWorkingDir(getWorkingDirectory().get().getAsFile());
-        execHandleBuilder.setEnvironment(getEnvironment());
+        execHandleBuilder.setExecutable(javaOptions.getExecutable().get());
+        execHandleBuilder.setWorkingDir(javaOptions.getWorkingDir().getAsFile().get());
+        execHandleBuilder.setEnvironment(javaOptions.getEnvironment().get());
         return execHandleBuilder.buildWithEffectiveArguments(getEffectiveArguments());
     }
 }

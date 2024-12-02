@@ -172,7 +172,7 @@ public class DefaultTestTaskPropertiesService implements TestTaskPropertiesServi
         boolean testIsModule = javaModuleDetector.isModule(task.getModularity().getInferModulePath().get(), task.getTestClassesDirs());
         JavaForkOptions forkOptions = forkOptionsFactory.newJavaForkOptions();
         task.copyTo(forkOptions);
-        String executable = forkOptions.getExecutable();
+        String executable = forkOptions.getExecutable().get();
         return new DefaultTestTaskForkOptions(
             forkOptions.getWorkingDirectory().get().getAsFile(),
             executable,

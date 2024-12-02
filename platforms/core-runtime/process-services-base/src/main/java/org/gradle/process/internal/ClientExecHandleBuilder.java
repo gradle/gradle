@@ -36,6 +36,7 @@ public interface ClientExecHandleBuilder extends BaseExecHandleBuilder {
 
     ClientExecHandleBuilder commandLine(Object... args);
 
+    @Override
     ClientExecHandleBuilder setStandardInput(InputStream inputStream);
 
     @Override
@@ -67,6 +68,7 @@ public interface ClientExecHandleBuilder extends BaseExecHandleBuilder {
 
     ClientExecHandleBuilder setArgs(Iterable<?> args);
 
+    @Override
     ClientExecHandleBuilder setExecutable(String executable);
 
     void setExecutable(Object executable);
@@ -76,8 +78,7 @@ public interface ClientExecHandleBuilder extends BaseExecHandleBuilder {
     @Nullable
     File getWorkingDir();
 
-    ClientExecHandleBuilder setWorkingDir(@Nullable Object dir);
-
+    @Override
     ClientExecHandleBuilder setWorkingDir(@Nullable File dir);
 
     OutputStream getErrorOutput();
@@ -90,7 +91,8 @@ public interface ClientExecHandleBuilder extends BaseExecHandleBuilder {
 
     List<CommandLineArgumentProvider> getArgumentProviders();
 
-    void setEnvironment(Map<String, ?> environmentVariables);
+    @Override
+    ClientExecHandleBuilder setEnvironment(Map<String, Object> environmentVariables);
 
     void environment(Map<String, ?> environmentVariables);
 
