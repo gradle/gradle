@@ -16,10 +16,14 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantSet;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.matching.AttributeMatcher;
+import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler;
+import org.gradle.internal.component.resolution.failure.exception.AbstractResolutionFailureException;
 import org.gradle.internal.component.resolution.failure.transform.TransformationChainData;
 import org.gradle.internal.component.resolution.failure.transform.TransformedVariantConverter;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.lazy.Lazy;
 
 import java.util.Collection;
@@ -28,12 +32,13 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Represents information about a set of related transformation chains that all
- * satisfy an attribute matching request.
+ * Disambiguates a set of related transformation chains that all satisfy an attribute matching request.
  * <p>
- * This assessment can be used to determine whether there is any ambiguity in the list of chains.
+ * This class accomplishes this goal by internally assessing the given chains to separate truly
+ * distinct chains with unique fingerprints using a lazily computed field ({@link #preferredChainsByFingerprint}).
+ * This internal assessment can be used to determine whether there is any ambiguity in the given chains.
  * <p>
- * Immutable data class with a lazily computed field ({@link #preferredChainsByFingerprint}).
+ * It reports any ambiguity failures to the given {@link ResolutionFailureHandler}.
  * <p>
  * Requirements:
  * <ul>
@@ -43,7 +48,12 @@ import java.util.Optional;
  *     <li>All chains to assess <strong>MUST</strong> be of equal length.</li>
  * </ul>
  */
-/* package */ final class AssessedTransformationChains {
+/* package */ final class TransformationChainsDisambiguator {
+    private final ResolutionFailureHandler failureHandler;
+    private final ResolvedVariantSet producer;
+    private final ImmutableAttributes targetAttributes;
+    private final AttributeMatcher attributeMatcher;
+
     /**
      * The preferred matching chains are the best matches of the chains supplied to the constructor for assessment.
      * Those chains are all <strong>COMPATIBLE</strong> with the target attributes, but may not all be <strong>EXACT</strong> matches,
@@ -60,8 +70,6 @@ import java.util.Optional;
      */
     private final Lazy<LinkedHashMap<TransformationChainData.TransformationChainFingerprint, TransformedVariant>> preferredChainsByFingerprint;
 
-    private final AttributeMatcher attributeMatcher;
-
     /**
      * Create an assessment of a given list of transformation chains by fingerprinting those chains
      * to disambiguate which are mutually compatible and which are truly distinct.
@@ -70,12 +78,18 @@ import java.util.Optional;
      * of target attributes (which is not supplied to this class).  These requirements are
      * <strong>NOT</strong> verified by this constructor.
      *
+     * @param failureHandler resolution failure handler to use to report any unresolvable ambiguity
+     * @param producer the resolved variant set that produced the chains to assess
      * @param targetAttributes the attributes we are aiming to match via a transformation chain
      * @param attributeMatcher the attribute matcher to use to determine compatible results
      * @param chainsToAssess the candidate transformation chains to disambiguate
      */
-    public AssessedTransformationChains(ImmutableAttributes targetAttributes, AttributeMatcher attributeMatcher, List<TransformedVariant> chainsToAssess) {
+    public TransformationChainsDisambiguator(ResolutionFailureHandler failureHandler, ResolvedVariantSet producer, ImmutableAttributes targetAttributes, AttributeMatcher attributeMatcher, List<TransformedVariant> chainsToAssess) {
+        this.failureHandler = failureHandler;
+        this.producer = producer;
+        this.targetAttributes = targetAttributes;
         this.attributeMatcher = attributeMatcher;
+
         this.preferredChains = attributeMatcher.matchMultipleCandidates(chainsToAssess, targetAttributes);
         this.preferredChainsByFingerprint = Lazy.unsafe().of(() -> {
             TransformedVariantConverter transformedVariantConverter = new TransformedVariantConverter();
@@ -92,25 +106,61 @@ import java.util.Optional;
     }
 
     /**
-     * Return the single preferred chain, if only one exists.
+     * Given a set of potential transformation chains, attempts to reduce the set to a single, unambiguous, compatible candidate.
      * <p>
-     * This does <strong>NOT</strong>> trigger fingerprinting.
+     * If this isn't possible because there are multiple compatible matches, this checks if they are truly distinct,
+     * and not just re-sequencings of the same chain.  If they are <strong>NOT</strong> distinct, it arbitrarily
+     * returns one.
+     * <p>
+     * If multiple, compatible, truly distinct matches exist, we'll warn (for now), but this behavior is
+     * deprecated.  As of Gradle 9.0, this will also fail.
      *
-     * @return single preferred transformation chain in this result set if one exists; else {@link Optional#empty()}
+     * @return single, unambiguous, preferred chain for use, selected as described above
      */
-    public Optional<TransformedVariant> getSinglePreferredChain() {
-        return preferredChains.size() == 1 ? Optional.of(preferredChains.get(0)) : Optional.empty();
+    public Optional<TransformedVariant> disambiguate() {
+        // If only a single preferred chain was found, then the ambiguity
+        // was due to multiple compatible chains, containing only one EXACT match.  We will use the exact match
+        // and can return early, skipping any fingerprinting work.
+        if (preferredChains.size() == 1) {
+            return Optional.of(preferredChains.get(0));
+        }
+
+        // Multiple unique fingerprints in the preferred chains is a problem, however, we will not fail the build yet.
+        if (preferredChainsByFingerprint.get().size() > 1) {
+            // To maintain behavior (for now), if the multiple matches are COMPATIBLE we will only emit a deprecation,
+            // as this is what Gradle used to do.  In Gradle 9, we can remove this inner if and throw immediately.
+            if (allPreferredChainsAreCompatible()) {
+                warnThatMultipleDistinctChainsAreAvailable(producer, targetAttributes, failureHandler, getDistinctPreferredChainRepresentatives());
+                return getArbitraryPreferredMatchingChain();
+            } else {
+                // At this point, there are multiple distinct chains that are not compatible with each other.  This is right out.
+                // It has never been allowed and fails the build.  The error message should report one representative of each
+                // distinct chain, so that the author can understand what's happening here and correct it.
+                throw failureHandler.ambiguousArtifactTransformsFailure(producer, targetAttributes, getDistinctPreferredChainRepresentatives());
+            }
+        } else {
+            return getArbitraryPreferredMatchingChain();
+        }
     }
 
-    /**
-     * Check if the preferred chains include chains with different fingerprints.
-     * <p>
-     * This triggers fingerprinting.
-     *
-     * @return {@code true} if multiple distinct preferred chains are available; {@code false} otherwise
-     */
-    public boolean areMultipleDistinctPreferredChainsPresent() {
-        return preferredChainsByFingerprint.get().size() > 1;
+    @Deprecated
+    @SuppressWarnings("DeprecatedIsStillUsed")
+    private void warnThatMultipleDistinctChainsAreAvailable(ResolvedVariantSet targetVariantSet, ImmutableAttributes requestedAttributes, ResolutionFailureHandler failureHandler, Collection<TransformedVariant> trulyDistinctChains) {
+        // Yes, building this context is ugly, but there's no sense extracting the formatting logic if this is going away in Gradle 9, just reuse it for now
+        String context;
+        try {
+            throw failureHandler.ambiguousArtifactTransformsFailure(targetVariantSet, requestedAttributes, trulyDistinctChains);
+        } catch (AbstractResolutionFailureException e) {
+            int startIdx = e.getMessage().indexOf("Found multiple transformation chains");
+            context = System.lineSeparator() + e.getMessage().substring(startIdx) + System.lineSeparator();
+        }
+
+        DeprecationLogger.deprecateBehaviour("There are multiple distinct artifact transformation chains of the same length that would satisfy this request.")
+            .withAdvice("Remove one or more registered transforms, or add additional attributes to them to ensure only a single valid transformation chain exists.")
+            .withContext(context)
+            .willBecomeAnErrorInGradle9()
+            .withUpgradeGuideSection(8, "deprecated_ambiguous_transformation_chains")
+            .nagUser();
     }
 
     /**
@@ -121,7 +171,7 @@ import java.util.Optional;
      *
      * @return first preferred transformation chain in this result set if one exists; else {@link Optional#empty()}
      */
-    public Optional<TransformedVariant> getArbitraryPreferredMatchingChain() {
+    private Optional<TransformedVariant> getArbitraryPreferredMatchingChain() {
         return !preferredChains.isEmpty() ? Optional.ofNullable(preferredChains.get(preferredChains.size() - 1)) : Optional.empty();
     }
 
@@ -132,7 +182,7 @@ import java.util.Optional;
      *
      * @return {@code true} if all preferred chains are mutually compatible; {@code false} otherwise
      */
-    public boolean allPreferredChainsAreCompatible() {
+    private boolean allPreferredChainsAreCompatible() {
         TransformedVariant compareTo = preferredChains.get(0); // Compatibility is transitive, so arbitrarily pick the first chain to compare against all others
         return preferredChains.stream()
             .filter(current -> current != compareTo) // Skip the first chain, as it's the one we're comparing against, and comparisons are expensive
@@ -165,7 +215,7 @@ import java.util.Optional;
      *
      * @return one arbitrary chain from each distinct set of chains with an identical fingerprint within the preferred chains
      */
-    public Collection<TransformedVariant> getDistinctPreferredChainRepresentatives() {
+    private Collection<TransformedVariant> getDistinctPreferredChainRepresentatives() {
         return preferredChainsByFingerprint.get().values();
     }
 }

@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import com.google.common.collect.Iterables;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BrokenResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
@@ -85,7 +84,7 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
         // Check for matching variant without using artifact transforms.  If we found only one, return it.  If we found multiple matches, that's ambiguity.
         List<ResolvedVariant> matchingVariants = matcher.matchMultipleCandidates(producer.getCandidates(), targetAttributes);
         if (matchingVariants.size() == 1) {
-            return Iterables.getOnlyElement(matchingVariants).getArtifacts();
+            return matchingVariants.get(0).getArtifacts();
         } else if (matchingVariants.size() > 1) {
             throw failureHandler.ambiguousArtifactsFailure(matcher, producer, targetAttributes, matchingVariants);
         }

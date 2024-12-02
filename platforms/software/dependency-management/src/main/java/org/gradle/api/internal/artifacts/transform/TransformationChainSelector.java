@@ -20,10 +20,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.matching.AttributeMatcher;
 import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler;
-import org.gradle.internal.component.resolution.failure.exception.AbstractResolutionFailureException;
-import org.gradle.internal.deprecation.DeprecationLogger;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -37,7 +34,7 @@ import java.util.Optional;
  * <p>
  * This class is not meant to take any action on the resulting chain.  It only encapsulates
  * the logic for finding candidate chains and selecting the appropriate chain if possible.
- *
+ * <p>
  * It reports any ambiguity failures to the given {@link ResolutionFailureHandler}.
  */
 /* package */ final class TransformationChainSelector {
@@ -67,70 +64,10 @@ import java.util.Optional;
         if (candidateChains.size() == 1) {
             return Optional.of(candidateChains.get(0));
         } else if (candidateChains.size() > 1) {
-            return disambiguateTransformationChains(producer, targetAttributes, attributeMatcher, candidateChains);
+            TransformationChainsDisambiguator transformationChainsDisambiguator = new TransformationChainsDisambiguator(failureHandler, producer, targetAttributes, attributeMatcher, candidateChains);
+            return transformationChainsDisambiguator.disambiguate();
         } else {
             return Optional.empty();
         }
-    }
-
-    /**
-     * Given a set of potential transformation chains, attempts to reduce the set to a single, unambiguous, compatible candidate.
-     * <p>
-     * If this isn't possible because there are multiple compatible matches, this checks if they are truly distinct,
-     * and not just re-sequencings of the same chain.  If they are <strong>NOT</strong> distinct, it arbitrarily
-     * returns one.
-     * <p>
-     * If multiple, compatible, truly distinct matches exist, we'll warn (for now), but this behavior is
-     * deprecated.  As of Gradle 9.0, this will also fail.
-     *
-     * @return single, unambiguous, preferred chain for use, selected as described above
-     */
-    private Optional<TransformedVariant> disambiguateTransformationChains(ResolvedVariantSet producer, ImmutableAttributes targetAttributes, AttributeMatcher attributeMatcher, List<TransformedVariant> candidateChains) {
-        AssessedTransformationChains assessedChains = new AssessedTransformationChains(targetAttributes, attributeMatcher, candidateChains);
-
-        // After assessing the candidate chains, if only a single preferred chain was found, then the ambiguity
-        // was due to multiple compatible chains, containing only one EXACT match.  We will use the exact match
-        // and can return early, skipping any fingerprinting work.
-        Optional<TransformedVariant> singlePreferredChain = assessedChains.getSinglePreferredChain();
-        if (singlePreferredChain.isPresent()) {
-            return singlePreferredChain;
-        }
-
-        if (assessedChains.areMultipleDistinctPreferredChainsPresent()) {
-            // Multiple fingerprints are a problem, however, we will not fail the build just yet.  To maintain behavior (for now),
-            // if the multiple matches are COMPATIBLE we will only emit a deprecation , as this is what the build used to do.
-            // In Gradle 9, we can remove this inner if and throw immediately.
-            if (assessedChains.allPreferredChainsAreCompatible()) {
-                warnThatMultipleDistinctChainsAreAvailable(producer, targetAttributes, failureHandler, assessedChains.getDistinctPreferredChainRepresentatives());
-                return assessedChains.getArbitraryPreferredMatchingChain();
-            } else {
-                // At this point, there are multiple distinct chains that are not compatible with each other.  This is right out.
-                // It has never been allowed and fails the build.  The error message should report one representative of each
-                // distinct chain, so that the author can understand what's happening here and correct it.
-                throw failureHandler.ambiguousArtifactTransformsFailure(producer, targetAttributes, assessedChains.getDistinctPreferredChainRepresentatives());
-            }
-        } else {
-            return assessedChains.getArbitraryPreferredMatchingChain();
-        }
-    }
-
-    @Deprecated
-    @SuppressWarnings("DeprecatedIsStillUsed")
-    private void warnThatMultipleDistinctChainsAreAvailable(ResolvedVariantSet targetVariantSet, ImmutableAttributes requestedAttributes, ResolutionFailureHandler failureHandler, Collection<TransformedVariant> trulyDistinctChains) {
-        // Yes, building this context is ugly, but there's no sense extracting the formatting logic if this is going away in Gradle 9, just reuse it for now
-        String context;
-        try {
-            throw failureHandler.ambiguousArtifactTransformsFailure(targetVariantSet, requestedAttributes, trulyDistinctChains);
-        } catch (AbstractResolutionFailureException e) {
-            int startIdx = e.getMessage().indexOf("Found multiple transformation chains");
-            context = System.lineSeparator() + e.getMessage().substring(startIdx) + System.lineSeparator();
-        }
-
-        DeprecationLogger.deprecateBehaviour("There are multiple distinct artifact transformation chains of the same length that would satisfy this request.")
-            .withAdvice("Remove one or more registered transforms, or add additional attributes to them to ensure only a single valid transformation chain exists.")
-            .withContext(context)
-            .willBecomeAnErrorInGradle9()
-            .withUpgradeGuideSection(8, "deprecated_ambiguous_transformation_chains")
-            .nagUser();
     }
 }
