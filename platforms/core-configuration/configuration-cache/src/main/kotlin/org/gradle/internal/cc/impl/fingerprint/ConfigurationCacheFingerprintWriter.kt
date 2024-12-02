@@ -46,8 +46,6 @@ import org.gradle.api.tasks.util.PatternSet
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.groovy.scripts.internal.ScriptSourceListener
 import org.gradle.initialization.buildsrc.BuildSrcDetector
-import org.gradle.internal.build.BuildAddedListener
-import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildoption.FeatureFlag
 import org.gradle.internal.buildoption.FeatureFlagListener
@@ -100,7 +98,7 @@ class ConfigurationCacheFingerprintWriter(
     private val workExecutionTracker: WorkExecutionTracker,
     private val environmentChangeTracker: ConfigurationCacheEnvironmentChangeTracker,
     private val inputTrackingState: InputTrackingState,
-    buildStateRegistry: BuildStateRegistry,
+    private val buildStateRegistry: BuildStateRegistry,
 ) : ValueSourceProviderFactory.ValueListener,
     ValueSourceProviderFactory.ComputationListener,
     WorkInputListener,
@@ -114,7 +112,6 @@ class ConfigurationCacheFingerprintWriter(
     FeatureFlagListener,
     FileCollectionObservationListener,
     ScriptSourceListener,
-    BuildAddedListener,
     ConfigurationCacheEnvironment.Listener {
 
     interface Host {
@@ -195,10 +192,6 @@ class ConfigurationCacheFingerprintWriter(
                 host.ignoredFileSystemCheckInputs
             )
         )
-
-        buildStateRegistry.visitBuilds { buildState ->
-            captureBuildSrcPresence(buildState)
-        }
     }
 
     /**
@@ -208,6 +201,7 @@ class ConfigurationCacheFingerprintWriter(
      */
     fun close() {
         synchronized(this) {
+            captureBuildSrcPresence()
             closestChangingValue?.let {
                 buildScopedSink.write(it)
             }
@@ -215,19 +209,13 @@ class ConfigurationCacheFingerprintWriter(
         CompositeStoppable.stoppable(buildScopedWriter, projectScopedWriter).stop()
     }
 
-    override fun buildAdded(buildState: BuildState) {
-        captureBuildSrcPresence(buildState)
-    }
-
     private
-    fun captureBuildSrcPresence(buildState: BuildState) {
-        if (isInputTrackingDisabled()) {
-            return
+    fun captureBuildSrcPresence() {
+        buildStateRegistry.visitBuilds { buildState ->
+            val candidateBuildSrc = File(buildState.buildRootDir, SettingsInternal.BUILD_SRC)
+            val valid = BuildSrcDetector.isValidBuildSrcBuild(candidateBuildSrc)
+            buildScopedSink.write(ConfigurationCacheFingerprint.BuildSrcCandidate(candidateBuildSrc, valid))
         }
-
-        val candidateBuildSrc = File(buildState.buildRootDir, SettingsInternal.BUILD_SRC)
-        val valid = BuildSrcDetector.isValidBuildSrcBuild(candidateBuildSrc)
-        buildScopedSink.write(ConfigurationCacheFingerprint.BuildSrcCandidate(candidateBuildSrc, valid))
     }
 
     override fun scriptSourceObserved(scriptSource: ScriptSource) {
