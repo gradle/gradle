@@ -160,8 +160,7 @@ public abstract class ApplicationPlugin implements Plugin<Project> {
             run.getModularity().getInferModulePath().convention(javaPluginExtension.getModularity().getInferModulePath());
             PropertyFactory propertyFactory = getPropertyFactory();
 
-            Provider<JavaToolchainSpec> toolchainOverrideSpec = project.provider(() ->
-                JavaExecExecutableUtils.getExecutableOverrideToolchainSpec(run, propertyFactory));
+            Provider<JavaToolchainSpec> toolchainOverrideSpec = JavaExecExecutableUtils.getExecutableOverrideToolchainSpec(run, propertyFactory);
             run.getJavaLauncher().convention(getToolchainTool(project, JavaToolchainService::launcherFor, toolchainOverrideSpec));
         });
     }
