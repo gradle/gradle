@@ -298,7 +298,7 @@ public class TreeFormatter implements DiagnosticsVisitor {
             output.append(node.value);
         }
 
-        Separator separator = node.getFirstChildSeparator();
+        Separator separator = node.getFirstChildSeparator(alwaysChildrenOnNewlines);
 
         if (!separator.newLine) {
             output.append(separator.text);
@@ -336,7 +336,7 @@ public class TreeFormatter implements DiagnosticsVisitor {
         final String text;
     }
 
-    private class Node {
+    private static class Node {
         final Node parent;
         final StringBuilder value;
         Node firstChild;
@@ -366,7 +366,7 @@ public class TreeFormatter implements DiagnosticsVisitor {
             }
         }
 
-        Separator getFirstChildSeparator() {
+        Separator getFirstChildSeparator(boolean alwaysChildrenOnNewlines) {
             if (firstChild == null) {
                 return Separator.NewLine;
             }
