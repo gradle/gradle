@@ -42,7 +42,7 @@ import java.util.Map;
 /**
  * Use {@link ExecActionFactory} (for core code) or {@link org.gradle.process.ExecOperations} (for plugin code) instead.
  *
- * TODO: We should remove setters and have abstract getters in Gradle 9.0 and configure builder in execute() method.
+ * TODO: We should have just abstract getters in Gradle 9.0 and configure builder in execute() method, but this class is not decorated in all cases yet.
  */
 public class DefaultJavaExecAction implements JavaExecAction {
 
@@ -57,6 +57,9 @@ public class DefaultJavaExecAction implements JavaExecAction {
 
     @Override
     public ExecResult execute() {
+        execAction.getExecutable().set(javaExecHandleBuilder.getJavaOptions().getExecutable().get());
+        execAction.getWorkingDir().set(javaExecHandleBuilder.getJavaOptions().getWorkingDir().get());
+        execAction.getEnvironment().set(javaExecHandleBuilder.getJavaOptions().getEnvironment().get());
         execAction.configure(javaExecHandleBuilder);
         ExecHandle execHandle = javaExecHandleBuilder.build();
         ExecResult execResult = execHandle.start().waitForFinish();
@@ -263,44 +266,40 @@ public class DefaultJavaExecAction implements JavaExecAction {
 
     @Override
     public Property<String> getExecutable() {
-        return execAction.getExecutable();
+        return javaExecHandleBuilder.getJavaOptions().getExecutable();
     }
+
     @Override
     public ProcessForkOptions executable(Object executable) {
-        execAction.executable(executable);
+        javaExecHandleBuilder.getJavaOptions().executable(executable);
         return this;
     }
 
     @Override
     public DirectoryProperty getWorkingDir() {
-        return execAction.getWorkingDir();
+        return javaExecHandleBuilder.getJavaOptions().getWorkingDir();
     }
 
     @Override
     public ProcessForkOptions workingDir(Object dir) {
-        execAction.workingDir(dir);
+        javaExecHandleBuilder.getJavaOptions().workingDir(dir);
         return this;
     }
 
     @Override
-    public Map<String, Object> getEnvironment() {
-        return javaExecHandleBuilder.getEnvironment();
-    }
-
-    @Override
-    public void setEnvironment(Map<String, ?> environmentVariables) {
-        javaExecHandleBuilder.setEnvironment(environmentVariables);
+    public MapProperty<String, Object> getEnvironment() {
+        return javaExecHandleBuilder.getJavaOptions().getEnvironment();
     }
 
     @Override
     public ProcessForkOptions environment(Map<String, ?> environmentVariables) {
-        javaExecHandleBuilder.environment(environmentVariables);
+        javaExecHandleBuilder.getJavaOptions().environment(environmentVariables);
         return this;
     }
 
     @Override
     public ProcessForkOptions environment(String name, Object value) {
-        javaExecHandleBuilder.environment(name, value);
+        javaExecHandleBuilder.getJavaOptions().environment(name, value);
         return this;
     }
 

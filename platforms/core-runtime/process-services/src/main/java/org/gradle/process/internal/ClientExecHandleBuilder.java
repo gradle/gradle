@@ -78,8 +78,6 @@ public interface ClientExecHandleBuilder extends BaseExecHandleBuilder {
     @Nullable
     File getWorkingDir();
 
-    ClientExecHandleBuilder setWorkingDir(@Nullable Object dir);
-
     @Override
     ClientExecHandleBuilder setWorkingDir(@Nullable File dir);
 
@@ -93,7 +91,10 @@ public interface ClientExecHandleBuilder extends BaseExecHandleBuilder {
 
     List<CommandLineArgumentProvider> getArgumentProviders();
 
-    void setEnvironment(Map<String, ?> environmentVariables);
+    Map<String, Object> getDefaultEnvironment();
+
+    @Override
+    ClientExecHandleBuilder setEnvironment(Map<String, Object> environmentVariables);
 
     void environment(Map<String, ?> environmentVariables);
 

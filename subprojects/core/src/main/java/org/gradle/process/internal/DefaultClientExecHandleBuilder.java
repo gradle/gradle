@@ -203,9 +203,15 @@ public class DefaultClientExecHandleBuilder implements ClientExecHandleBuilder, 
     }
 
     @Override
+    @SuppressWarnings("unchecked")
+    public Map<String, Object> getDefaultEnvironment() {
+        return (Map<String, Object>) (Map<String, ?>) System.getenv();
+    }
+
+    @Override
     public Map<String, Object> getEnvironment() {
         if (environment == null) {
-            setEnvironment(System.getenv());
+            setEnvironment(getDefaultEnvironment());
         }
         return environment;
     }
@@ -217,8 +223,9 @@ public class DefaultClientExecHandleBuilder implements ClientExecHandleBuilder, 
     }
 
     @Override
-    public void setEnvironment(Map<String, ?> environmentVariables) {
+    public ClientExecHandleBuilder setEnvironment(Map<String, Object> environmentVariables) {
         environment = Maps.newHashMap(environmentVariables);
+        return this;
     }
 
     @Override
@@ -242,12 +249,6 @@ public class DefaultClientExecHandleBuilder implements ClientExecHandleBuilder, 
 
     @Override
     public ClientExecHandleBuilder setWorkingDir(@Nullable File dir) {
-        this.workingDir = dir == null ? null:  fileResolver.resolve(dir);
-        return this;
-    }
-
-    @Override
-    public ClientExecHandleBuilder setWorkingDir(@Nullable Object dir) {
         this.workingDir = dir == null ? null : fileResolver.resolve(dir);
         return this;
     }
@@ -256,7 +257,7 @@ public class DefaultClientExecHandleBuilder implements ClientExecHandleBuilder, 
     public void copyTo(ProcessForkOptions options) {
         options.getExecutable().set(executable);
         options.getWorkingDir().set(getWorkingDir());
-        options.setEnvironment(getEnvironment());
+        options.getEnvironment().set(getEnvironment());
     }
 
     private static Map<String, String> getEffectiveEnvironment(Map<String, Object> environment) {

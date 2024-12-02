@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.tasks.util
+package org.gradle.process.internal
 
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.process.ProcessForkOptions
-import org.gradle.process.internal.DefaultProcessForkOptions
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class DefaultProcessForkOptionsTest extends Specification {
@@ -25,7 +25,7 @@ class DefaultProcessForkOptionsTest extends Specification {
     def resolver = Mock(FileResolver.class) {
         resolve(".") >> baseDir
     }
-    def options = new DefaultProcessForkOptions(resolver)
+    def options = new DefaultProcessForkOptions(TestUtil.objectFactory(), resolver)
 
     def defaultValues() {
         expect:

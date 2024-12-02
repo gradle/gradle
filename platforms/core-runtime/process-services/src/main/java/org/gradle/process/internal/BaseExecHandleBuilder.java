@@ -22,6 +22,7 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Map;
 
 @NonNullApi
 public interface BaseExecHandleBuilder {
@@ -32,6 +33,7 @@ public interface BaseExecHandleBuilder {
     BaseExecHandleBuilder setErrorOutput(OutputStream outputStream);
     BaseExecHandleBuilder setExecutable(String s);
     BaseExecHandleBuilder setWorkingDir(File asFile);
+    BaseExecHandleBuilder setEnvironment(Map<String, Object> stringObjectMap);
 
     /**
      * Adds a listener to the list of ExecHandle listeners..

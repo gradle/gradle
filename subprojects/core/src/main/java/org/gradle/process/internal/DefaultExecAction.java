@@ -20,6 +20,7 @@ import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.process.CommandLineArgumentProvider;
@@ -46,6 +47,7 @@ public class DefaultExecAction implements ExecAction {
     private final Property<OutputStream> errorOutput;
     private final Property<String> executable;
     private final DirectoryProperty workingDir;
+    private final MapProperty<String, Object> environment;
     private final FileResolver fileResolver;
 
     @Inject
@@ -58,8 +60,8 @@ public class DefaultExecAction implements ExecAction {
         this.errorOutput = objectFactory.property(OutputStream.class);
         this.executable = objectFactory.property(String.class);
         this.workingDir = objectFactory.directoryProperty();
+        this.environment = objectFactory.mapProperty(String.class, Object.class).value(Providers.changing(execHandleBuilder::getDefaultEnvironment));
     }
-
 
     @Override
     public ExecAction configure(BaseExecHandleBuilder builder) {
@@ -78,6 +80,7 @@ public class DefaultExecAction implements ExecAction {
         if (getWorkingDir().isPresent()) {
             builder.setWorkingDir(getWorkingDir().get().getAsFile());
         }
+        builder.setEnvironment(getEnvironment().get());
         return this;
     }
 
@@ -184,24 +187,19 @@ public class DefaultExecAction implements ExecAction {
     }
 
     @Override
-    public Map<String, Object> getEnvironment() {
-        return execHandleBuilder.getEnvironment();
-    }
-
-    @Override
-    public void setEnvironment(Map<String, ?> environmentVariables) {
-        execHandleBuilder.setEnvironment(environmentVariables);
+    public MapProperty<String, Object> getEnvironment() {
+        return environment;
     }
 
     @Override
     public ExecAction environment(Map<String, ?> environmentVariables) {
-        execHandleBuilder.environment(environmentVariables);
+        environment.putAll(environmentVariables);
         return this;
     }
 
     @Override
     public ExecAction environment(String name, Object value) {
-        execHandleBuilder.environment(name, value);
+        environment.put(name, value);
         return this;
     }
 

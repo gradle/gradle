@@ -515,17 +515,8 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     @Internal
-    @ToBeReplacedByLazyProperty
-    public Map<String, Object> getEnvironment() {
+    public MapProperty<String, Object> getEnvironment() {
         return javaExecSpec.getEnvironment();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void setEnvironment(Map<String, ?> environmentVariables) {
-        javaExecSpec.setEnvironment(environmentVariables);
     }
 
     /**

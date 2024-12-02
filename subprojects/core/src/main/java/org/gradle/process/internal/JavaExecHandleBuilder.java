@@ -257,7 +257,7 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder {
     }
 
     public String getExecutable() {
-        return execHandleBuilder.getExecutable();
+        return javaOptions.getExecutable().get();
     }
 
     public void setExecutable(File executable) {
@@ -266,22 +266,23 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder {
 
     @Override
     public JavaExecHandleBuilder setExecutable(String executable) {
-        execHandleBuilder.setExecutable(executable);
+        javaOptions.getExecutable().set(executable);
         return this;
     }
 
     @Override
     public JavaExecHandleBuilder setWorkingDir(@Nullable File dir) {
-        execHandleBuilder.setWorkingDir(dir);
+        javaOptions.getWorkingDir().set(dir);
         return this;
     }
 
-    public Map<String, Object> getEnvironment() {
-        return javaOptions.getEnvironment();
+    JavaForkOptionsInternal getJavaOptions() {
+        return javaOptions;
     }
 
-    public JavaExecHandleBuilder setEnvironment(Map<String, ?> environmentVariables) {
-        javaOptions.setEnvironment(environmentVariables);
+    @Override
+    public JavaExecHandleBuilder setEnvironment(Map<String, Object> environmentVariables) {
+        javaOptions.getEnvironment().set(environmentVariables);
         return this;
     }
 
@@ -476,9 +477,11 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder {
 
     @Override
     public ExecHandle build() {
-        // We delegate environment to JavaForkOptions, so we filter out environment variables in the same way as DefaultJavaForkOptions.
-        // Thus we have to copy them to execHandleBuilder here.
-        execHandleBuilder.setEnvironment(getEnvironment());
+        // We delegate properties that are also on ProcessForkOptions interface to JavaForkOptions
+        // to support copy from JavaOptions, and thus we have to copy them to execHandleBuilder here
+        execHandleBuilder.setExecutable(javaOptions.getExecutable().get());
+        execHandleBuilder.setWorkingDir(javaOptions.getWorkingDir().getAsFile().get());
+        execHandleBuilder.setEnvironment(javaOptions.getEnvironment().get());
         return execHandleBuilder.buildWithEffectiveArguments(getEffectiveArguments());
     }
 }

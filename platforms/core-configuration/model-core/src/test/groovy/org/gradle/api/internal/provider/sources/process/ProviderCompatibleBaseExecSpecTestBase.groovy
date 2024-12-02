@@ -39,22 +39,22 @@ abstract class ProviderCompatibleBaseExecSpecTestBase extends Specification {
         specUnderTest.environment("SOMEVAR", "someval")
 
         when:
-        specUnderTest.setEnvironment(OTHERVAR: "otherval")
+        specUnderTest.environment = [OTHERVAR: "otherval"]
 
         then:
-        specUnderTest.getEnvironment() == [OTHERVAR: "otherval"]
+        specUnderTest.getEnvironment().get() == [OTHERVAR: "otherval"]
     }
 
     def "adding variables after setting environment is working"() {
         given:
-        specUnderTest.setEnvironment(SOMEVAR: "someval")
+        specUnderTest.environment = [SOMEVAR: "someval"]
 
         when:
         specUnderTest.environment(OTHERVAR: "otherval")
         specUnderTest.environment("ADDEDVAR", "addedval")
 
         then:
-        specUnderTest.getEnvironment() == [OTHERVAR: "otherval", SOMEVAR: "someval", ADDEDVAR: "addedval"]
+        specUnderTest.getEnvironment().get() == [OTHERVAR: "otherval", SOMEVAR: "someval", ADDEDVAR: "addedval"]
     }
 
     def "spec without environment doesn't set environment properties on parameters"() {
@@ -88,7 +88,7 @@ abstract class ProviderCompatibleBaseExecSpecTestBase extends Specification {
         def parameters = newParameters()
 
         when:
-        specUnderTest.setEnvironment(FOO: "bar")
+        specUnderTest.environment = [FOO: "bar"]
         specUnderTest.copyToParameters(parameters)
 
         then:
@@ -102,7 +102,7 @@ abstract class ProviderCompatibleBaseExecSpecTestBase extends Specification {
         def parameters = newParameters()
 
         when:
-        specUnderTest.setEnvironment(FOO: "bar")
+        specUnderTest.environment = [FOO: "bar"]
         specUnderTest.environment("OTHER", "value")
         specUnderTest.copyToParameters(parameters)
 
@@ -174,7 +174,6 @@ abstract class ProviderCompatibleBaseExecSpecTestBase extends Specification {
         where:
         configureAction                                   | _
         configure { it.workingDir("foo/bar") }            | _
-        configure { it.workingDir = "foo/bar" }           | _
         configure { it.workingDir = new File("foo/bar") } | _
     }
 

@@ -461,8 +461,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      */
     @Override
     @Internal
-    @ToBeReplacedByLazyProperty
-    public Map<String, Object> getEnvironment() {
+    public MapProperty<String, Object> getEnvironment() {
         return forkOptions.getEnvironment();
     }
 
@@ -482,14 +481,6 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     public Test environment(String name, Object value) {
         forkOptions.environment(name, value);
         return this;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void setEnvironment(Map<String, ?> environmentVariables) {
-        forkOptions.setEnvironment(environmentVariables);
     }
 
     /**

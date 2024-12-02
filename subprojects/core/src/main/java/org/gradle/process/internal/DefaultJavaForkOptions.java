@@ -180,6 +180,11 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
     }
 
     @Override
+    public Map<String, ?> getDefaultEnvironment() {
+        return this.getInheritableEnvironment();
+    }
+
+    @Override
     public JavaForkOptions copyTo(JavaForkOptions target) {
         super.copyTo(target);
         target.getJvmArgs().set(getJvmArgs());
@@ -208,7 +213,7 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
         return new EffectiveJavaForkOptions(
             getExecutable().get(),
             getWorkingDir().getAsFile().get(),
-            getEnvironment(),
+            getEnvironment().get(),
             copy
         );
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.provider.sources.process;
+@file:Incubating
 
-import org.gradle.process.JavaExecSpec;
+package org.gradle.kotlin.dsl
 
-import javax.inject.Inject;
+import org.gradle.api.Incubating
+import org.gradle.process.ProcessForkOptions
 
-class ProviderCompatibleJavaExecSpec extends ProviderCompatibleBaseExecSpec implements DelegatingJavaExecSpec {
-    private final JavaExecSpec execSpec;
-
-    @Inject
-    public ProviderCompatibleJavaExecSpec(JavaExecSpec execSpec) {
-        this.execSpec = execSpec;
-    }
-
-    @Override
-    public JavaExecSpec getDelegate() {
-        return execSpec;
-    }
+/**
+ * Pair variant for setting [ProcessForkOptions.getEnvironment], added for backward compatibility.
+ * @since 9.0
+ */
+@Incubating
+@Suppress("NOTHING_TO_INLINE")
+inline fun ProcessForkOptions.setEnvironment(vararg environment: Pair<String, Any?>) {
+    this.environment.set(environment.toMap())
 }

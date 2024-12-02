@@ -128,7 +128,7 @@ public abstract class ProcessOutputValueSource implements ValueSource<ProcessOut
                 spec.getWorkingDir().set(getParameters().getWorkingDirectory());
             }
             if (hasFullEnvironment()) {
-                spec.setEnvironment(getParameters().getFullEnvironment().get());
+                spec.getEnvironment().set(getParameters().getFullEnvironment().get());
             } else if (hasAdditionalEnvVars()) {
                 spec.environment(getParameters().getAdditionalEnvironmentVariables().get());
             }

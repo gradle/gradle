@@ -162,7 +162,7 @@ class DaemonForkOptionsTest extends Specification {
 
     def "is compatible with compatible java forkOptions"() {
         def javaForkOptions = execFactory.newJavaForkOptions()
-        javaForkOptions.workingDir = systemSpecificAbsolutePath("foo")
+        javaForkOptions.workingDir = new File(systemSpecificAbsolutePath("foo"))
         javaForkOptions.minHeapSize = "128m"
         javaForkOptions.maxHeapSize = "1g"
         javaForkOptions.jvmArgs = ["-server", "-verbose:gc"]
@@ -177,12 +177,12 @@ class DaemonForkOptionsTest extends Specification {
 
     def "is not compatible with incompatible java forkOptions"() {
         def javaForkOptions1 = execFactory.newJavaForkOptions()
-        javaForkOptions1.workingDir = systemSpecificAbsolutePath("foo")
+        javaForkOptions1.workingDir = new File(systemSpecificAbsolutePath("foo"))
         javaForkOptions1.minHeapSize = "128m"
         javaForkOptions1.maxHeapSize = "1g"
         javaForkOptions1.jvmArgs = ["-server", "-verbose:gc"]
         def javaForkOptions2 = execFactory.newJavaForkOptions()
-        javaForkOptions2.workingDir = systemSpecificAbsolutePath("foo")
+        javaForkOptions2.workingDir = new File(systemSpecificAbsolutePath("foo"))
         javaForkOptions2.minHeapSize = "256m"
         javaForkOptions2.maxHeapSize = "1g"
         javaForkOptions2.jvmArgs = ["-server", "-verbose:gc"]
@@ -197,7 +197,7 @@ class DaemonForkOptionsTest extends Specification {
 
     DaemonForkOptionsBuilder daemonForkOptionsBuilder() {
         def javaForkOptions = execFactory.newJavaForkOptions()
-        javaForkOptions.workingDir = systemSpecificAbsolutePath("foo")
+        javaForkOptions.workingDir = new File(systemSpecificAbsolutePath("foo"))
         return daemonForkOptionsBuilder(javaForkOptions)
     }
 

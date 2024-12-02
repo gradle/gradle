@@ -19,6 +19,7 @@ package org.gradle.process.internal;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.process.CommandLineArgumentProvider;
@@ -136,24 +137,19 @@ public class DefaultExecHandleBuilder extends AbstractExecHandleBuilder implemen
     }
 
     @Override
-    public Map<String, Object> getEnvironment() {
-        return delegate.getEnvironment();
-    }
-
-    @Override
-    public void setEnvironment(Map<String, ?> environmentVariables) {
-        delegate.setEnvironment(environmentVariables);
+    public MapProperty<String, Object> getEnvironment() {
+        return super.getEnvironment();
     }
 
     @Override
     public ProcessForkOptions environment(Map<String, ?> environmentVariables) {
-        delegate.environment(environmentVariables);
+        getEnvironment().putAll(environmentVariables);
         return this;
     }
 
     @Override
     public ProcessForkOptions environment(String name, Object value) {
-        delegate.environment(name, value);
+        getEnvironment().put(name, value);
         return this;
     }
 

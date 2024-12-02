@@ -17,6 +17,7 @@
 package org.gradle.api.internal.provider.sources.process;
 
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.process.BaseExecSpec;
 import org.gradle.process.ProcessForkOptions;
@@ -78,13 +79,8 @@ interface DelegatingBaseExecSpec extends BaseExecSpec {
     }
 
     @Override
-    default Map<String, Object> getEnvironment() {
+    default MapProperty<String, Object> getEnvironment() {
         return getDelegate().getEnvironment();
-    }
-
-    @Override
-    default void setEnvironment(Map<String, ?> environmentVariables) {
-        getDelegate().setEnvironment(environmentVariables);
     }
 
     @Override

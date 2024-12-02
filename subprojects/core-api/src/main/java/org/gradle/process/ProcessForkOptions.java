@@ -16,9 +16,9 @@
 package org.gradle.process;
 
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 import java.util.Map;
 
@@ -64,15 +64,8 @@ public interface ProcessForkOptions {
      *
      * @return The environment. Returns an empty map when there are no environment variables.
      */
-    @ToBeReplacedByLazyProperty
-    Map<String, Object> getEnvironment();
-
-    /**
-     * Sets the environment variable to use for the process.
-     *
-     * @param environmentVariables The environment variables. Must not be null.
-     */
-    void setEnvironment(Map<String, ?> environmentVariables);
+    @ReplacesEagerProperty
+    MapProperty<String, Object> getEnvironment();
 
     /**
      * Adds some environment variables to the environment for this process.

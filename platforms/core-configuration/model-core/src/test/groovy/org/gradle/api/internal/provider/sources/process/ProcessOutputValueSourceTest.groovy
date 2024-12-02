@@ -43,7 +43,7 @@ class ProcessOutputValueSourceTest extends ValueSourceBasedSpec {
         then:
         1 * execOperations.exec(_) >> { Action<? super ExecSpec> action -> action.execute(spec) }
         spec.getCommandLine() == ["echo", "hello"]
-        spec.environment == System.getenv()
+        spec.environment.get() == System.getenv()
     }
 
     def "full environment is propagated to execOperations"() {
@@ -60,7 +60,7 @@ class ProcessOutputValueSourceTest extends ValueSourceBasedSpec {
 
         then:
         1 * execOperations.exec(_) >> { Action<? super ExecSpec> action -> action.execute(spec) }
-        spec.environment == [FOO: "BAR"]
+        spec.environment.get() == [FOO: "BAR"]
     }
 
     def "additional environment is propagated to execOperations"() {
@@ -77,7 +77,7 @@ class ProcessOutputValueSourceTest extends ValueSourceBasedSpec {
 
         then:
         1 * execOperations.exec(_) >> { Action<? super ExecSpec> action -> action.execute(spec) }
-        spec.environment == System.getenv() + [FOO: "BAR"]
+        spec.environment.get() == System.getenv() + [FOO: "BAR"]
     }
 
     def "specifying both full and additional environment is an error"() {

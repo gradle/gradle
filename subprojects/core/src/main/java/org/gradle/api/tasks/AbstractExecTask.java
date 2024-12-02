@@ -19,6 +19,7 @@ import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.provider.ProviderApiDeprecationLogger;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.instrumentation.api.annotations.BytecodeUpgrade;
@@ -229,17 +230,8 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
      */
     @Internal
     @Override
-    @ToBeReplacedByLazyProperty
-    public Map<String, Object> getEnvironment() {
+    public MapProperty<String, Object> getEnvironment() {
         return execSpec.getEnvironment();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void setEnvironment(Map<String, ?> environmentVariables) {
-        execSpec.setEnvironment(environmentVariables);
     }
 
     /**
