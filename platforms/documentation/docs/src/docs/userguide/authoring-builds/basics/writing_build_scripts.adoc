@@ -356,7 +356,7 @@ include::sample[dir="snippets/tutorial/localVariables/groovy",files="build.gradl
 [[sec:extra_properties]]
 ==== Extra Properties
 
-Gradle's enhanced objects, including projects, tasks, and source sets, can hold user-defined properties.
+<<properties_providers.adoc#properties_and_providers,Gradle's enhanced objects>>, including projects, tasks, and source sets, can hold user-defined properties.
 
 [.multi-language-text.lang-kotlin]
 Add, read, and set extra properties via the owning object's `extra` property. Alternatively, you can access extra properties via Kotlin delegated properties using `by extra`.
