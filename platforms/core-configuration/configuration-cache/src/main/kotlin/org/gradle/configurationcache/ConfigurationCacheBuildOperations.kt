@@ -152,21 +152,21 @@ class FingerprintCheckResult(
 
     override fun getStatus(): CheckStatus = when (checkResult) {
         is CheckedFingerprint.NotFound -> CheckStatus.NOT_FOUND
+        is CheckedFingerprint.Invalid -> CheckStatus.INVALID
         is CheckedFingerprint.Valid -> {
             when (checkResult.invalidProjects) {
                 null -> CheckStatus.VALID
                 else -> CheckStatus.PARTIAL
             }
         }
-
-        is CheckedFingerprint.Invalid -> CheckStatus.INVALID
     }
 
-    override fun getBuildInvalidationReasons(): List<BuildInvalidationReasons> {
-        return when (checkResult) {
-            is CheckedFingerprint.Invalid -> listOf(BuildInvalidationReasonsImpl(checkResult.buildPath, checkResult.reason))
-            else -> emptyList()
-        }
+    override fun getBuildInvalidationReasons(): List<BuildInvalidationReasons> = when (checkResult) {
+        is CheckedFingerprint.Invalid -> listOf(
+            BuildInvalidationReasonsImpl(checkResult.buildPath, checkResult.reason)
+        )
+
+        else -> emptyList()
     }
 
     override fun getProjectInvalidationReasons(): List<ProjectInvalidationReasons> = when {
