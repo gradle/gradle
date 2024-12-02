@@ -187,6 +187,7 @@ class ConfigurationCacheBuildSrcChangesIntegrationTest extends AbstractConfigura
 
         def buildSrcBuildPath = ":$parentBuild:buildSrc"
         def buildSrcDir = "$parentBuild/buildSrc"
+        def ccReasonPath = buildSrcDir.replace("/", File.separator)
 
         when:
         configurationCacheRun "help"
@@ -199,7 +200,7 @@ class ConfigurationCacheBuildSrcChangesIntegrationTest extends AbstractConfigura
         configurationCacheRun "help"
         then:
         configurationCache.assertStateStored()
-        outputContains("Calculating task graph as configuration cache cannot be reused because a buildSrc build at '$parentBuild/buildSrc' has been added.")
+        outputContains("Calculating task graph as configuration cache cannot be reused because a buildSrc build at '$ccReasonPath' has been added.")
         buildOperations.only("Load build ($buildSrcBuildPath)")
 
         when:
@@ -207,7 +208,7 @@ class ConfigurationCacheBuildSrcChangesIntegrationTest extends AbstractConfigura
         configurationCacheRun "help"
         then:
         configurationCache.assertStateStored()
-        outputContains("Calculating task graph as configuration cache cannot be reused because a buildSrc build at '$parentBuild/buildSrc' has been removed.")
+        outputContains("Calculating task graph as configuration cache cannot be reused because a buildSrc build at '$ccReasonPath' has been removed.")
         buildOperations.none("Load build ($buildSrcBuildPath)")
 
         where:
