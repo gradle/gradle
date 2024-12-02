@@ -190,7 +190,7 @@ class ConfigurationCacheStandardStreamsIntegrationTest extends AbstractConfigura
         """
             tasks.register("run", Exec) {
                 dependsOn(compileJava)
-                executable = ${Jvm.canonicalName}.current().javaExecutable
+                executable = ${Jvm.canonicalName}.current().javaExecutable.absolutePath
                 args '-cp', project.layout.files(compileJava).asPath, 'Main' ${formatArgument args["extraArg"], { ", '$it'" }}
 
                 ${formatStreamArgument args, "standardInput"}

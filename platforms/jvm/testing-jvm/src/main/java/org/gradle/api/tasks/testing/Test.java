@@ -205,7 +205,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         stableClasspath.from((Callable<Object>) this::getClasspath);
         forkOptions = getForkOptionsFactory().newDecoratedJavaForkOptions();
         forkOptions.getEnableAssertions().set(true);
-        forkOptions.setExecutable(null);
+        forkOptions.getExecutable().unset();
         modularity = objectFactory.newInstance(DefaultModularitySpec.class);
         getJavaLauncher().convention(createJavaLauncherConvention());
         getJavaLauncher().finalizeValueOnRead();
@@ -219,7 +219,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     private Provider<JavaLauncher> createJavaLauncherConvention() {
         final JavaToolchainService javaToolchainService = getJavaToolchainService();
         PropertyFactory propertyFactory = getPropertyFactory();
-        Provider<JavaToolchainSpec> executableOverrideToolchainSpec = getProviderFactory().provider(() -> TestExecutableUtils.getExecutableToolchainSpec(Test.this, propertyFactory));
+        Provider<JavaToolchainSpec> executableOverrideToolchainSpec = TestExecutableUtils.getExecutableToolchainSpec(Test.this, propertyFactory);
 
         return executableOverrideToolchainSpec
             .flatMap((Transformer<Provider<JavaLauncher>, JavaToolchainSpec>) javaToolchainService::launcherFor)
@@ -249,22 +249,6 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * {@inheritDoc}
      */
     @Override
-    public void setWorkingDir(File dir) {
-        forkOptions.setWorkingDir(dir);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void setWorkingDir(Object dir) {
-        forkOptions.setWorkingDir(dir);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
     public Test workingDir(Object dir) {
         forkOptions.workingDir(dir);
         return this;
@@ -287,8 +271,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      */
     @Override
     @Internal
-    @ToBeReplacedByLazyProperty
-    public String getExecutable() {
+    public Property<String> getExecutable() {
         return forkOptions.getExecutable();
     }
 
@@ -299,22 +282,6 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     public Test executable(Object executable) {
         forkOptions.executable(executable);
         return this;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void setExecutable(String executable) {
-        forkOptions.setExecutable(executable);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void setExecutable(Object executable) {
-        forkOptions.setExecutable(executable);
     }
 
     /**
@@ -504,8 +471,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      */
     @Override
     @Internal
-    @ToBeReplacedByLazyProperty
-    public Map<String, Object> getEnvironment() {
+    public MapProperty<String, Object> getEnvironment() {
         return forkOptions.getEnvironment();
     }
 
@@ -531,14 +497,6 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * {@inheritDoc}
      */
     @Override
-    public void setEnvironment(Map<String, ?> environmentVariables) {
-        forkOptions.setEnvironment(environmentVariables);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
     public Test copyTo(ProcessForkOptions target) {
         forkOptions.copyTo(target);
         copyToolchainAsExecutable(target);
@@ -556,8 +514,8 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     }
 
     private void copyToolchainAsExecutable(ProcessForkOptions target) {
-        String executable = getJavaLauncher().get().getExecutablePath().toString();
-        target.setExecutable(executable);
+        Provider<String> executable = getJavaLauncher().map(launcher -> launcher.getExecutablePath().toString());
+        target.getExecutable().set(executable);
     }
 
     /**
@@ -634,7 +592,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
 
     private void validateExecutableMatchesToolchain() {
         File toolchainExecutable = getJavaLauncher().get().getExecutablePath().getAsFile();
-        String customExecutable = getExecutable();
+        String customExecutable = getExecutable().getOrNull();
         JavaExecutableUtils.validateExecutable(
             customExecutable, "Toolchain from `executable` property",
             toolchainExecutable, "toolchain from `javaLauncher` property");

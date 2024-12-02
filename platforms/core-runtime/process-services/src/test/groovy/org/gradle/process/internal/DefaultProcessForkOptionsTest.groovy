@@ -24,28 +24,17 @@ class DefaultProcessForkOptionsTest extends Specification {
     def resolver = Mock(FileResolver.class) {
         resolve(".") >> baseDir
     }
-    // Use the ObjectFactory constructor so the working-directory DirectoryProperty is backed by a real
-    // file resolver (the legacy PathToFileResolver constructor needs NativeServices, which isn't available here).
     def options = TestUtil.newInstance(DefaultProcessForkOptions, TestUtil.objectFactory(), resolver)
 
     def defaultValues() {
         expect:
-        options.executable == null
-        !options.environment.empty
-    }
-
-    def resolvesWorkingDirectoryOnGet() {
-        when:
-        options.workingDir = 12
-
-        then:
-        1 * resolver.resolve(12) >> baseDir
-        options.workingDir == baseDir.absoluteFile
+        options.executable.getOrNull() == null
+        !options.environment.get().empty
     }
 
     def convertsEnvironmentToString() {
         when:
-        options.environment = [key1: 12, key2: "${1+2}", key3: null]
+        options.environment = [key1: 12, key2: "${1+2}", key3: "null"]
 
         then:
         options.actualEnvironment == [key1: '12', key2: '3', key3: 'null']
@@ -56,20 +45,20 @@ class DefaultProcessForkOptionsTest extends Specification {
         options.environment = [:]
 
         then:
-        options.environment == [:]
+        options.environment.get() == [:]
 
         when:
         options.environment('key', 12)
 
         then:
-        options.environment == [key: 12]
+        options.environment.get() == [key: 12]
         options.actualEnvironment == [key: '12']
 
         when:
         options.environment(key2: "value")
 
         then:
-        options.environment == [key: 12, key2: "value"]
+        options.environment.get() == [key: 12, key2: "value"]
     }
 
     def canCopyToTargetOptions() {
@@ -83,7 +72,7 @@ class DefaultProcessForkOptionsTest extends Specification {
 
         then:
         target.getWorkingDirectory().get().asFile == baseDir.absoluteFile
-        target.executable == 'executable'
-        target.environment == [key: '12']
+        target.getExecutable().get() == 'executable'
+        target.getEnvironment().get() == [key: '12']
     }
 }
