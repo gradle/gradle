@@ -20,41 +20,44 @@ import groovy.lang.Closure;
 import org.gradle.api.Describable;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.file.FileSystemLocationProperty;
+import org.gradle.api.internal.provider.Providers;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.reporting.ConfigurableReport;
 import org.gradle.api.reporting.Report;
 import org.gradle.util.internal.ConfigureUtil;
 
 public abstract class SimpleReport implements ConfigurableReport {
-    private final String name;
-    private final Describable displayName;
-    private final OutputType outputType;
+
+    private final Provider<String> name;
+    private final Provider<String> displayName;
+    private final Provider<OutputType> outputType;
 
     public SimpleReport(String name, Describable displayName, OutputType outputType) {
-        this.name = name;
-        this.displayName = displayName;
-        this.outputType = outputType;
+        this.name = Providers.of(name);
+        this.displayName = Providers.of(displayName.getDisplayName());
+        this.outputType = Providers.of(outputType);
     }
 
     @Override
-    public String getName() {
+    public Provider<String> getName() {
         return name;
     }
 
     @Override
-    public String getDisplayName() {
-        return displayName.getDisplayName();
+    public Provider<String> getDisplayName() {
+        return displayName;
     }
 
     @Override
     public String toString() {
-        return "Report " + getName();
+        return "Report " + getName().get();
     }
 
     @Override
     public abstract FileSystemLocationProperty<? extends FileSystemLocation> getOutputLocation();
 
     @Override
-    public OutputType getOutputType() {
+    public Provider<OutputType> getOutputType() {
         return outputType;
     }
 
