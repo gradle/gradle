@@ -334,6 +334,20 @@ include::{snippetsPath}/tutorial/dynamic/tests/dynamic.out[]
 ----
 ====
 
+[[sec:gradle_types]]
+=== Gradle Types
+
+In Gradle, **types**, **properties**, and **providers** are foundational for managing and configuring build logic:
+
+- **Types**: Gradle defines types (like `Task`, `Configuration`, `File`, etc.) to represent build components.
+You can extend these types to create custom tasks or domain objects.
+- **Properties**: Gradle properties (e.g., `Property<T>`, `ListProperty<T>`, `SetProperty<T>`) are used for build configuration.
+They allow lazy evaluation, meaning their values are calculated only when needed, enhancing flexibility and performance.
+- **Providers**: A `Provider<T>` represents a value that is computed or retrieved lazily.
+Providers are often used with properties to defer value computation until necessary. This is especially useful for integrating dynamic, runtime values into your build.
+
+You can learn more about this in <<properties_providers.adoc#properties_and_providers,Understanding Gradle Types>>.
+
 [[sec:declaring_variables]]
 === Declare Variables
 
