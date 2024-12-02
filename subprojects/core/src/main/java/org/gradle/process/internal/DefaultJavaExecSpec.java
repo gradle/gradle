@@ -35,9 +35,19 @@ import java.util.List;
 import static org.gradle.process.internal.DefaultExecSpec.copyBaseExecSpecTo;
 
 
-public abstract class DefaultJavaExecSpec extends DefaultJavaForkOptions implements JavaExecSpec, ProcessArgumentsSpec.HasExecutable {
+public abstract class DefaultJavaExecSpec extends DefaultJavaForkOptions implements JavaExecSpec {
 
-    private final ProcessArgumentsSpec argumentsSpec = new ProcessArgumentsSpec(this);
+    private final ProcessArgumentsSpec argumentsSpec = new ProcessArgumentsSpec(new ProcessArgumentsSpec.HasExecutable() {
+        @Override
+        public String getExecutable() {
+            return DefaultJavaExecSpec.this.getExecutable().get();
+        }
+
+        @Override
+        public void setExecutable(Object executable) {
+            DefaultJavaExecSpec.this.executable(executable);
+        }
+    });
 
     private final Property<String> mainClass;
     private final Property<String> mainModule;

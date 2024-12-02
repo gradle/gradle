@@ -414,7 +414,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         task dependsOn(JvmConstants.TEST_CLASSES_TASK_NAME, JvmConstants.CLASSES_TASK_NAME, JvmConstants.COMPILE_JAVA_TASK_NAME, JvmConstants.COMPILE_TEST_JAVA_TASK_NAME)
         task.classpath.files == project.sourceSets.test.runtimeClasspath.files
         task.testClassesDirs.contains(project.sourceSets.test.java.destinationDirectory.get().asFile)
-        task.workingDir == project.projectDir
+        task.workingDir.asFile.get() == project.projectDir
     }
 
     def "applies mappings to tasks added by the build script"() {
@@ -427,7 +427,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         then:
         task.classpath.files == project.sourceSets.test.runtimeClasspath.files
         task.testClassesDirs.contains(project.sourceSets.test.java.destinationDirectory.get().asFile)
-        task.workingDir == project.projectDir
+        task.workingDir.asFile.get() == project.projectDir
         task.reports.junitXml.outputLocation.get().asFile == new File(project.testResultsDir, 'customTest')
         task.reports.html.outputLocation.get().asFile == new File(project.testReportDir, 'customTest')
     }
