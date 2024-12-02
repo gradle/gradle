@@ -39,8 +39,12 @@ public class DetachedConfigurationsProvider implements ConfigurationsProvider {
     }
 
     @Override
-    public void visitAll(Consumer<ConfigurationInternal> visitor) {
-        visitor.accept(theOnlyConfiguration);
+    public void visitConsumable(Consumer<ConfigurationInternal> visitor) {
+        // In Gradle 9.0, detached configurations will never be consumable.
+        // Until then, visit it.
+        if (theOnlyConfiguration.isCanBeConsumed()) {
+            visitor.accept(theOnlyConfiguration);
+        }
     }
 
     @Override

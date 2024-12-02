@@ -137,16 +137,20 @@ class SigningConfigurationsIntegrationSpec extends SigningIntegrationSpec {
     def "duplicated inputs are handled"() {
         given:
         buildFile << """
+            configurations {
+                foo
+            }
+
             signing {
                 ${signingConfiguration()}
-                sign configurations.archives
+                sign configurations.foo
             }
 
             ${keyInfo.addAsPropertiesScript()}
 
             artifacts {
-                // depend directly on 'jar' task in addition to dependency through 'archives'
-                archives jar
+                // depend directly on 'jar' task in addition to dependency through 'foo'
+                foo jar
             }
         """
 
@@ -154,7 +158,7 @@ class SigningConfigurationsIntegrationSpec extends SigningIntegrationSpec {
         run "buildSignatures"
 
         then:
-        executedAndNotSkipped ":signArchives"
+        executedAndNotSkipped ":signFoo"
 
         and:
         file("build", "libs", "sign-1.0.jar.asc").text
@@ -180,5 +184,71 @@ class SigningConfigurationsIntegrationSpec extends SigningIntegrationSpec {
         executer.expectDocumentedDeprecationWarning("The signatures configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 9.0. Please use another configuration instead. For more information, please refer to https://docs.gradle.org/current/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.")
         executer.expectDocumentedDeprecationWarning("The signatures configuration has been deprecated for resolution. This will fail with an error in Gradle 9.0. Please resolve another configuration instead. For more information, please refer to https://docs.gradle.org/current/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.")
         succeeds("help")
+    }
+
+    def "can sign archives"() {
+        buildFile.text = """
+            plugins {
+                id 'signing'
+            }
+
+            ${keyInfo.addAsPropertiesScript()}
+
+            signing {
+                ${signingConfiguration()}
+                sign configurations.archives
+            }
+        """
+
+        expect:
+        succeeds("signArchives")
+    }
+
+    def "can sign archives with java"() {
+        buildFile.text = """
+            plugins {
+                id 'signing'
+                id 'java'
+            }
+
+            ${keyInfo.addAsPropertiesScript()}
+
+            signing {
+                ${signingConfiguration()}
+                sign configurations.archives
+            }
+        """
+
+        expect:
+        succeeds("signArchives")
+    }
+
+    def "can sign archives with parent conf"() {
+
+        buildFile.text = """
+            plugins {
+                id 'signing'
+            }
+
+            tasks.register("jar", Jar) {
+            }
+
+            configurations {
+                parent {
+                    outgoing.artifact(tasks.jar)
+                }
+                archives.extendsFrom(parent)
+            }
+
+            ${keyInfo.addAsPropertiesScript()}
+
+            signing {
+                ${signingConfiguration()}
+                sign configurations.archives
+            }
+        """
+
+        expect:
+        succeeds("signArchives")
     }
 }

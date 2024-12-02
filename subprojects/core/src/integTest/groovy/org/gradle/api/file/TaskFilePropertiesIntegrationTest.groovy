@@ -151,11 +151,16 @@ class TaskFilePropertiesIntegrationTest extends AbstractIntegrationSpec {
         // Include a configuration with transitive dep on a Jar and an unmanaged Jar.
         settingsFile 'include "a", "b"'
 
-        buildFile('a/build.gradle', '''
-            configurations.create("compile")
-            dependencies { compile project(path: ':b', configuration: 'archives') }
+        buildFile('a/build.gradle', """
+            configurations {
+                compile
+            }
 
-            task doStuff(type: InputTask) {
+            dependencies {
+                compile project(path: ':b', configuration: 'outgoing')
+            }
+
+            tasks.register('doStuff', InputTask) {
                 src = configurations.compile + fileTree('src/java')
             }
 
@@ -163,29 +168,36 @@ class TaskFilePropertiesIntegrationTest extends AbstractIntegrationSpec {
                 @InputFiles
                 def FileCollection src
             }
-        ''')
-        buildFile('b/build.gradle', '''
-            apply plugin: 'base'
-            task jar {
+        """)
+        buildFile('b/build.gradle', """
+            tasks.register("jar") {
                 def jarFile = file('b.jar')
                 doLast {
                     jarFile.text = 'some jar'
                 }
             }
 
-            task otherJar(type: Jar) {
+            tasks.register("otherJar", Jar) {
                 destinationDirectory = buildDir
             }
 
             configurations {
                 create("deps")
-                archives {
+                consumable("outgoing") {
                     extendsFrom deps
                 }
             }
-            dependencies { deps files('b.jar') { builtBy jar } }
-            artifacts { archives otherJar }
-        ''')
+
+            dependencies {
+                deps files('b.jar') {
+                    builtBy jar
+                }
+            }
+
+            artifacts {
+                outgoing otherJar
+            }
+        """)
 
         when:
         run("doStuff")

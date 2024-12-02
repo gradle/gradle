@@ -424,7 +424,6 @@ Class <org.gradle.api.internal.plugins.ApplyPluginBuildOperationType> is not ann
 Class <org.gradle.api.internal.plugins.BuildConfigurationRule> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (BuildConfigurationRule.java:0)
 Class <org.gradle.api.internal.plugins.ClassloaderBackedPluginDescriptorLocator> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (ClassloaderBackedPluginDescriptorLocator.java:0)
 Class <org.gradle.api.internal.plugins.DefaultAppliedPlugin> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultAppliedPlugin.java:0)
-Class <org.gradle.api.internal.plugins.DefaultArtifactPublicationSet$DefaultArtifactProvider> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultArtifactPublicationSet.java:0)
 Class <org.gradle.api.internal.plugins.DefaultArtifactPublicationSet> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultArtifactPublicationSet.java:0)
 Class <org.gradle.api.internal.plugins.DefaultJavaAppStartScriptGenerationDetails> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultJavaAppStartScriptGenerationDetails.java:0)
 Class <org.gradle.api.internal.plugins.DefaultObjectConfigurationAction$1> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultObjectConfigurationAction.java:0)

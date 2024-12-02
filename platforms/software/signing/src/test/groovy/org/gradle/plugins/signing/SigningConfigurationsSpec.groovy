@@ -39,7 +39,7 @@ class SigningConfigurationsSpec extends SigningProjectSpec {
         }
 
         then:
-        def signingTasks = [project.signArchives, project.signMeta]
+        def signingTasks = [project.tasks.signArchives, project.tasks.signMeta]
 
         // TODO - find way to test that the appropriate dependencies have been setup
         //        it would be easy if we could do…
@@ -49,7 +49,7 @@ class SigningConfigurationsSpec extends SigningProjectSpec {
         //        but we can't because of https://issues.gradle.org/browse/GRADLE-1608
 
         and:
-        configurations.signatures.artifacts.size() == 3
+        configurations.signatures.artifacts.size() == 5
         signingTasks.every { it.signatures.every { it in configurations.signatures.artifacts } }
     }
 

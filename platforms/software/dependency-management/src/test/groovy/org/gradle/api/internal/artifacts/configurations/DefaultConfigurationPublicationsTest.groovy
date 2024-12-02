@@ -45,9 +45,15 @@ class DefaultConfigurationPublicationsTest extends Specification {
     def fileCollectionFactory = TestFiles.fileCollectionFactory()
     def attributesFactory = AttributeTestUtil.attributesFactory()
     def displayName = Describables.of("<config>")
-    def publications = new DefaultConfigurationPublications(displayName, artifacts, {
+
+    def owner = Mock(ConfigurationInternal) {
+        getArtifacts() >> artifacts
+        getAttributes() >> parentAttributes
+    }
+
+    def publications = new DefaultConfigurationPublications(displayName, owner, {
         allArtifacts
-    }, parentAttributes, TestUtil.instantiatorFactory().decorateLenient(), artifactNotationParser, capabilityNotationParser, fileCollectionFactory, attributesFactory,
+    }, TestUtil.instantiatorFactory().decorateLenient(), artifactNotationParser, capabilityNotationParser, fileCollectionFactory, attributesFactory,
         TestUtil.domainObjectCollectionFactory(), TestFiles.taskDependencyFactory()
     )
 

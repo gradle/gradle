@@ -38,6 +38,7 @@ import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.FinalizableValue;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 
@@ -48,10 +49,10 @@ import java.util.List;
 
 public class DefaultConfigurationPublications implements ConfigurationPublications, FinalizableValue {
     private final DisplayName displayName;
-    private final PublishArtifactSet artifacts;
+    private final ConfigurationInternal owner;
     private final PublishArtifactSetProvider allArtifacts;
-    private final AttributeContainerInternal parentAttributes;
-    private final AttributeContainerInternal attributes;
+
+    // Services
     private final Instantiator instantiator;
     private final NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser;
     private final NotationParser<Object, Capability> capabilityNotationParser;
@@ -59,6 +60,9 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
     private final AttributesFactory attributesFactory;
     private final DomainObjectCollectionFactory domainObjectCollectionFactory;
     private final TaskDependencyFactory taskDependencyFactory;
+
+    // Mutable State
+    private final AttributeContainerInternal attributes;
     private NamedDomainObjectContainer<ConfigurationVariant> variants;
     private ConfigurationVariantFactory variantFactory;
     private DomainObjectSet<Capability> capabilities;
@@ -66,9 +70,8 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
 
     public DefaultConfigurationPublications(
         DisplayName displayName,
-        PublishArtifactSet artifacts,
+        ConfigurationInternal owner,
         PublishArtifactSetProvider allArtifacts,
-        AttributeContainerInternal parentAttributes,
         Instantiator instantiator,
         NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser,
         NotationParser<Object, Capability> capabilityNotationParser,
@@ -78,9 +81,12 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
         TaskDependencyFactory taskDependencyFactory
     ) {
         this.displayName = displayName;
-        this.artifacts = artifacts;
+        this.owner = owner;
         this.allArtifacts = allArtifacts;
-        this.parentAttributes = parentAttributes;
+
+        this.attributes = attributesFactory.mutable(owner.getAttributes());
+
+        // Services
         this.instantiator = instantiator;
         this.artifactNotationParser = artifactNotationParser;
         this.capabilityNotationParser = capabilityNotationParser;
@@ -88,11 +94,14 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
         this.attributesFactory = attributesFactory;
         this.domainObjectCollectionFactory = domainObjectCollectionFactory;
         this.taskDependencyFactory = taskDependencyFactory;
-        this.attributes = attributesFactory.mutable(parentAttributes);
     }
 
     public void collectVariants(ConfigurationInternal.VariantVisitor visitor) {
-        PublishArtifactSet allArtifactSet = allArtifacts.getPublishArtifactSet();
+
+        // Do not nag about deprecation when collecting the artifacts for the variant metadata.
+        // We will nag later on if variant is actually consumed.
+        PublishArtifactSet allArtifactSet = DeprecationLogger.whileDisabled(allArtifacts::getPublishArtifactSet);
+
         if (variants == null || variants.isEmpty() || !allArtifactSet.isEmpty()) {
             visitor.visitOwnVariant(displayName, attributes.asImmutable(), allArtifactSet);
         }
@@ -116,24 +125,24 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
 
     @Override
     public PublishArtifactSet getArtifacts() {
-        return artifacts;
+        return owner.getArtifacts();
     }
 
     @Override
     public void artifact(Object notation) {
-        artifacts.add(artifactNotationParser.parseNotation(notation));
+        owner.getArtifacts().add(artifactNotationParser.parseNotation(notation));
     }
 
     @Override
     public void artifact(Object notation, Action<? super ConfigurablePublishArtifact> configureAction) {
         ConfigurablePublishArtifact publishArtifact = artifactNotationParser.parseNotation(notation);
-        artifacts.add(publishArtifact);
+        owner.getArtifacts().add(publishArtifact);
         configureAction.execute(publishArtifact);
     }
 
     @Override
     public void artifacts(Provider<? extends Iterable<? extends Object>> provider) {
-        artifacts.addAllLater(provider.map(iterable -> {
+        owner.getArtifacts().addAllLater(provider.map(iterable -> {
             List<PublishArtifact> results = new ArrayList<>();
             iterable.forEach(notation -> results.add(artifactNotationParser.parseNotation(notation)));
             return results;
@@ -142,7 +151,7 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
 
     @Override
     public void artifacts(Provider<? extends Iterable<? extends Object>> provider, Action<? super ConfigurablePublishArtifact> configureAction) {
-        artifacts.addAllLater(provider.map(iterable -> {
+        owner.getArtifacts().addAllLater(provider.map(iterable -> {
             List<PublishArtifact> results = new ArrayList<>();
             iterable.forEach(notation -> {
                 ConfigurablePublishArtifact artifact = artifactNotationParser.parseNotation(notation);
@@ -156,6 +165,15 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
     @Override
     public NamedDomainObjectContainer<ConfigurationVariant> getVariants() {
         if (variants == null) {
+
+            if (owner.isDeprecatedForConsumption()) {
+                DeprecationLogger.deprecateBehaviour("Adding variants to " + owner.getDisplayName() + ".")
+                    .withContext(owner.getDisplayName() + " is deprecated for consumption. Artifacts and variants should not be added to non-consumable configurations.")
+                    .willBecomeAnErrorInGradle9()
+                    .withUpgradeGuideSection(8, "deprecated_configuration_usage")
+                    .nagUser();
+            }
+
             // Create variants container only as required
             variantFactory = new ConfigurationVariantFactory();
             variants = domainObjectCollectionFactory.newNamedDomainObjectContainer(ConfigurationVariant.class, variantFactory);
@@ -205,7 +223,7 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
         public ConfigurationVariant create(String name) {
             if (canCreate) {
                 return instantiator.newInstance(
-                    DefaultVariant.class, displayName, name, parentAttributes, artifactNotationParser, fileCollectionFactory, attributesFactory, domainObjectCollectionFactory, taskDependencyFactory
+                    DefaultVariant.class, displayName, name, owner.getAttributes(), artifactNotationParser, fileCollectionFactory, attributesFactory, domainObjectCollectionFactory, taskDependencyFactory
                 );
             } else {
                 throw new InvalidUserCodeException("Cannot create variant '" + name + "' after dependency " + displayName + " has been resolved");

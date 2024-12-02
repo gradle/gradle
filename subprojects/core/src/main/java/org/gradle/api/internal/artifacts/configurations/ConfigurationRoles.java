@@ -78,6 +78,11 @@ public final class ConfigurationRoles {
     public static final ConfigurationRole DEPENDENCY_SCOPE = createNonDeprecatedRole("Dependency Scope", false, false, true);
 
     /**
+     * Exclusively intended as a target migration role for configurations intended to be removed in the next major version.
+     */
+    public static final ConfigurationRole REMOVED = createNonDeprecatedRole("None", false, false, false);
+
+    /**
      * Creates a new role which is not deprecated for any usage.
      */
     private static ConfigurationRole createNonDeprecatedRole(String name, boolean consumable, boolean resolvable, boolean declarable) {

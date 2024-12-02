@@ -396,7 +396,7 @@ class DefaultConfigurationContainerTest extends Specification {
     @NotYetImplemented
     def "can find all configurations even when they're registered"() {
         when:
-        configurationContainer.register("foo")
+        configurationContainer.resolvable("foo")
         configurationContainer.create("bar")
         then:
         configurationContainer.withType(ConfigurationInternal).toList()*.name == ["bar", "foo"]

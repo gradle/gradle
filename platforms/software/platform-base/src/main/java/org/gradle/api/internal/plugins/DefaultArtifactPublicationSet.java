@@ -15,26 +15,17 @@
  */
 package org.gradle.api.internal.plugins;
 
-import com.google.common.collect.Sets;
-import org.gradle.api.Action;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.PublishArtifactSet;
-import org.gradle.api.internal.provider.AbstractMinimalProvider;
-import org.gradle.api.internal.provider.ChangingValue;
-import org.gradle.api.internal.provider.ChangingValueHandler;
-import org.gradle.api.internal.provider.CollectionProviderInternal;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
-import java.util.LinkedHashSet;
-import java.util.Set;
 
 /**
  * The policy for which artifacts should be published by default when none are explicitly declared.
  */
 public abstract class DefaultArtifactPublicationSet {
     private final PublishArtifactSet artifactContainer;
-    private DefaultArtifactProvider defaultArtifactProvider;
 
     @Inject
     public DefaultArtifactPublicationSet(PublishArtifactSet artifactContainer) {
@@ -42,93 +33,19 @@ public abstract class DefaultArtifactPublicationSet {
     }
 
     public void addCandidate(PublishArtifact artifact) {
-        if (defaultArtifactProvider == null) {
-            defaultArtifactProvider = new DefaultArtifactProvider();
-            artifactContainer.addAllLater(defaultArtifactProvider);
-        }
-        defaultArtifactProvider.addArtifact(artifact);
-    }
 
-    DefaultArtifactProvider getDefaultArtifactProvider() {
-        return defaultArtifactProvider;
-    }
+        DeprecationLogger.deprecateMethod(DefaultArtifactPublicationSet.class, "addCandidate(PublishArtifact)")
+            .withContext("DefaultArtifactPublicationSet is deprecated and will be removed in Gradle 9.0.")
+            .withAdvice("To ensure the 'assemble' task builds the artifact, use tasks.assemble.dependsOn(artifact).")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "deprecate_automatically_assembled_artifacts")
+            .nagUser();
 
-    private static class DefaultArtifactProvider extends AbstractMinimalProvider<Set<PublishArtifact>> implements CollectionProviderInternal<PublishArtifact, Set<PublishArtifact>>, ChangingValue<Set<PublishArtifact>> {
-        private Set<PublishArtifact> defaultArtifacts;
-        private Set<PublishArtifact> artifacts;
-        private PublishArtifact currentDefault;
-        private final ChangingValueHandler<Set<PublishArtifact>> changingValue = new ChangingValueHandler<Set<PublishArtifact>>();
+        // Adding artifacts to the archives configuration also produces a deprecation warning.
+        // Avoid the duplicate deprecation warnings.
+        DeprecationLogger.whileDisabled(() -> {
+            artifactContainer.add(artifact);
+        });
 
-        void addArtifact(PublishArtifact artifact) {
-            if (artifacts == null) {
-                artifacts = new LinkedHashSet<>();
-            }
-
-            if (artifacts.add(artifact) && defaultArtifacts != null) {
-                Set<PublishArtifact> previousArtifacts = Sets.newLinkedHashSet(defaultArtifacts);
-                defaultArtifacts = null;
-                changingValue.handle(previousArtifacts);
-            }
-        }
-
-        @Override
-        public Class<? extends PublishArtifact> getElementType() {
-            return PublishArtifact.class;
-        }
-
-        @Override
-        public int size() {
-            if (artifacts == null) {
-                return 0;
-            }
-            return artifacts.size();
-        }
-
-        @Nullable
-        @Override
-        public Class<Set<PublishArtifact>> getType() {
-            return null;
-        }
-
-        @Override
-        protected Value<Set<PublishArtifact>> calculateOwnValue(ValueConsumer consumer) {
-            if (defaultArtifacts == null) {
-                defaultArtifacts = new LinkedHashSet<>();
-                currentDefault = null;
-                if (artifacts != null) {
-                    for (PublishArtifact artifact : artifacts) {
-                        String thisType = artifact.getType();
-
-                        if (currentDefault == null) {
-                            defaultArtifacts.add(artifact);
-                            currentDefault = artifact;
-                        } else {
-                            String currentType = currentDefault.getType();
-                            if (thisType.equals("ear")) {
-                                replaceCurrent(artifact);
-                            } else if (thisType.equals("war")) {
-                                if (currentType.equals("jar")) {
-                                    replaceCurrent(artifact);
-                                }
-                            } else if (!thisType.equals("jar")) {
-                                defaultArtifacts.add(artifact);
-                            }
-                        }
-                    }
-                }
-            }
-            return Value.of(defaultArtifacts);
-        }
-
-        void replaceCurrent(PublishArtifact artifact) {
-            defaultArtifacts.remove(currentDefault);
-            defaultArtifacts.add(artifact);
-            currentDefault = artifact;
-        }
-
-        @Override
-        public void onValueChange(Action<Set<PublishArtifact>> action) {
-            changingValue.onValueChange(action);
-        }
     }
 }

@@ -55,7 +55,7 @@ class PersonImpl implements Person { }
         succeeds "assemble"
     }
 
-    def "assemble builds only the EAR by default"() {
+    def "assemble builds the JAR, WAR, and EAR by default"() {
         given:
         file("settings.gradle") << "rootProject.name = 'root'"
 
@@ -70,8 +70,8 @@ apply plugin: 'ear'
         run "assemble"
 
         then:
-        !file("build/libs/root.jar").exists()
-        !file("build/libs/root.war").exists()
+        file("build/libs/root.jar").exists()
+        file("build/libs/root.war").exists()
         file("build/libs/root.ear").exists()
     }
 }

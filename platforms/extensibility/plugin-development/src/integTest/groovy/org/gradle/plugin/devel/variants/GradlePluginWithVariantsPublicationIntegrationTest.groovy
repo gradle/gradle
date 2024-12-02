@@ -54,11 +54,9 @@ class GradlePluginWithVariantsPublicationIntegrationTest extends AbstractIntegra
                     capability(project.group.toString(), project.name, project.version.toString())
                 }
             }
-            configurations.configureEach {
-                if (canBeConsumed && name.startsWith(gradle7.name))  {
-                    attributes {
-                        attribute(GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE, objects.named(GradlePluginApiVersion, '7.0'))
-                    }
+            [configurations.gradle7ApiElements, configurations.gradle7RuntimeElements].each {
+                it.attributes {
+                    attribute(GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE, objects.named(GradlePluginApiVersion, '7.0'))
                 }
             }
             tasks.named(gradle7.processResourcesTaskName) {
@@ -155,11 +153,9 @@ class GradlePluginWithVariantsPublicationIntegrationTest extends AbstractIntegra
             group = "com.example"
             version = "1.0"
 
-            configurations.configureEach {
-                if (canBeConsumed)  {
-                    attributes {
-                        attribute(GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE, objects.named(GradlePluginApiVersion, '1000.0'))
-                    }
+            [configurations.apiElements, configurations.runtimeElements].each {
+                it.attributes {
+                    attribute(GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE, objects.named(GradlePluginApiVersion, '1000.0'))
                 }
             }
 
@@ -332,15 +328,14 @@ class GradlePluginWithVariantsPublicationIntegrationTest extends AbstractIntegra
             }
 
             def color = Attribute.of("color", String)
-            configurations.configureEach {
-                if (canBeConsumed && name.startsWith(alternate.name))  {
-                    attributes {
-                        attribute(color, 'green')
-                    }
-                } else if (canBeConsumed && !name.startsWith(alternate.name))  {
-                    attributes {
-                        attribute(color, 'blue')
-                    }
+            [configurations.apiElements, configurations.runtimeElements].each {
+                it.attributes {
+                    attribute(color, 'blue')
+                }
+            }
+            [configurations.alternateApiElements, configurations.alternateRuntimeElements].each {
+                it.attributes {
+                    attribute(color, 'green')
                 }
             }
 

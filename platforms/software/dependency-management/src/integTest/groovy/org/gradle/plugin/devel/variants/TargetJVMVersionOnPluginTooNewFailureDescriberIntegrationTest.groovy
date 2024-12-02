@@ -132,11 +132,9 @@ class TargetJVMVersionOnPluginTooNewFailureDescriberIntegrationTest extends Abst
             group = "com.example"
             version = "1.0"
 
-            configurations.configureEach {
-                if (canBeConsumed)  {
-                    attributes {
-                        attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, $tooHighJava)
-                    }
+            [configurations.apiElements, configurations.runtimeElements].each {
+                attributes {
+                    attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, $tooHighJava)
                 }
             }
 

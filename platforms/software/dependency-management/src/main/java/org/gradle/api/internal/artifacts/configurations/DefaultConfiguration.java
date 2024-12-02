@@ -20,6 +20,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import groovy.lang.Closure;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.WordUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Describable;
@@ -314,7 +315,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
         this.artifacts = new DefaultPublishArtifactSet(Describables.of(displayName, "artifacts"), ownArtifacts, fileCollectionFactory, taskDependencyFactory);
 
-        this.outgoing = instantiator.newInstance(DefaultConfigurationPublications.class, displayName, artifacts, new AllArtifactsProvider(), configurationAttributes, instantiator, artifactNotationParser, capabilityNotationParser, fileCollectionFactory, attributesFactory, domainObjectCollectionFactory, taskDependencyFactory);
+        this.outgoing = instantiator.newInstance(DefaultConfigurationPublications.class, displayName, this, new AllArtifactsProvider(), instantiator, artifactNotationParser, capabilityNotationParser, fileCollectionFactory, attributesFactory, domainObjectCollectionFactory, taskDependencyFactory);
         this.rootComponentMetadataBuilder = rootComponentMetadataBuilder;
         this.currentResolveState = domainObjectContext.getModel().newCalculatedValue(Optional.empty());
         this.defaultConfigurationFactory = defaultConfigurationFactory;
@@ -1022,11 +1023,17 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     @Override
     public PublishArtifactSet getArtifacts() {
+        // We need to use the special cased guard here since AGP and KGP use role-less (non-consumable)
+        // configurations for publishing and add artifacts to them. This guard allows us to still
+        // emit warnings when the configuration is deprecated for consumption but permit allowing
+        // artifacts for non-consumable configurations.
+        warnOnSpecialCaseDeprecatedUsage("getArtifacts()", ProperMethodUsage.CONSUMABLE);
         return artifacts;
     }
 
     @Override
     public PublishArtifactSet getAllArtifacts() {
+        warnOnSpecialCaseDeprecatedUsage("getAllArtifacts()", ProperMethodUsage.CONSUMABLE);
         initAllArtifacts();
         return allArtifacts;
     }
@@ -1104,7 +1111,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     @Deprecated // TODO:Finalize Upload Removal - Issue #21439
     @Override
     public String getUploadTaskName() {
-        return Configurations.uploadTaskName(getName());
+        return "upload" + StringUtils.capitalize(getName());
     }
 
     @Override
@@ -1230,7 +1237,11 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         copiedConfiguration.declarationAlternatives = declarationAlternatives;
         copiedConfiguration.resolutionAlternatives = resolutionAlternatives;
 
-        copiedConfiguration.getArtifacts().addAll(getAllArtifacts());
+        DeprecationLogger.whileDisabled(() -> {
+            // We can remove this in 9.0 -- the copied configuration will
+            // no longer have the artifacts of the original configuration.
+            copiedConfiguration.getArtifacts().addAll(getAllArtifacts());
+        });
 
         if (!configurationAttributes.isEmpty()) {
             for (Attribute<?> attribute : configurationAttributes.keySet()) {
@@ -1496,25 +1507,39 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         return new DefaultConfigurationIdentity(buildPath, projectPath, name);
     }
 
-    private boolean isProperUsage(boolean allowDeprecated, ProperMethodUsage... properUsages) {
+    private boolean isProperUsage(boolean allowNotAllowed, boolean allowDeprecated, ProperMethodUsage... properUsages) {
         for (ProperMethodUsage properUsage : properUsages) {
-            if (properUsage.isProperUsage(this, allowDeprecated)) {
+            if ((allowNotAllowed || properUsage.isAllowed(this)) &&
+                (allowDeprecated || !properUsage.isDeprecated(this))
+            ) {
                 return true;
             }
         }
+
         return false;
     }
 
     private void warnOnInvalidInternalAPIUsage(String methodName, ProperMethodUsage... properUsages) {
-        warnOnDeprecatedUsage(methodName, true, properUsages);
+        warnOnDeprecatedUsage(methodName, false, true, properUsages);
     }
 
     private void warnOnDeprecatedUsage(String methodName, ProperMethodUsage... properUsages) {
-        warnOnDeprecatedUsage(methodName, false, properUsages);
+        warnOnDeprecatedUsage(methodName, false, false, properUsages);
     }
 
-    private void warnOnDeprecatedUsage(String methodName, boolean allowDeprecated, ProperMethodUsage... properUsages) {
-        if (!isProperUsage(allowDeprecated, properUsages)) {
+    /**
+     * Intended to guard methods that are only meant to be used in the given {@code properUsages} usages,
+     * but are being used outside of those roles by existing build logic.
+     * <p>
+     * Guarding methods with this method will emit a deprecation warning if the method is called on a configuration
+     * for that deprecated usage, but permits the invalid usage if the configuration does not have that usage at all.
+     */
+    private void warnOnSpecialCaseDeprecatedUsage(String methodName, ProperMethodUsage... properUsages) {
+        warnOnDeprecatedUsage(methodName, true, false, properUsages);
+    }
+
+    private void warnOnDeprecatedUsage(String methodName, boolean allowNotAllowed, boolean allowDeprecated, ProperMethodUsage... properUsages) {
+        if (!isProperUsage(allowNotAllowed, allowDeprecated, properUsages)) {
             String msgTemplate = "Calling configuration method '%s' is deprecated for configuration '%s', which has permitted usage(s):\n" +
                 "%s\n" +
                 "This method is only meant to be called on configurations which allow the %susage(s): '%s'.";
@@ -2069,10 +2094,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         abstract boolean isAllowed(ConfigurationInternal configuration);
 
         abstract boolean isDeprecated(ConfigurationInternal configuration);
-
-        boolean isProperUsage(ConfigurationInternal configuration, boolean allowDeprecated) {
-            return isAllowed(configuration) && (allowDeprecated || !isDeprecated(configuration));
-        }
 
         public static String buildProperName(ProperMethodUsage usage) {
             return WordUtils.capitalizeFully(usage.name().replace('_', ' '));

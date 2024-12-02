@@ -38,11 +38,17 @@ project(':ear') {
 
     dependencies {
         deploy project(':java')
-        deploy project(path: ':web', configuration: 'archives')
+        deploy project(path: ':web', configuration: 'war')
     }
 }
 project(':web') {
     apply plugin: 'war'
+
+    configurations {
+        war {
+            outgoing.artifact(tasks.war)
+        }
+    }
 
     dependencies {
         providedCompile 'javax.servlet:javax.servlet-api:3.1.0'

@@ -24,7 +24,6 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
-import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
@@ -130,7 +129,13 @@ public abstract class EarPlugin implements Plugin<Project> {
                 deploymentDescriptor.setDescription(project.getDescription());
             }
         }
-        project.getExtensions().getByType(DefaultArtifactPublicationSet.class).addCandidate(new LazyPublishArtifact(ear, ((ProjectInternal) project).getFileResolver(), taskDependencyFactory));
+
+        // Build the ear artifact when running the 'assemble' task
+        LazyPublishArtifact earArtifact = new LazyPublishArtifact(ear, ((ProjectInternal) project).getFileResolver(), taskDependencyFactory);
+        DeprecationLogger.whileDisabled(() -> {
+            // In 9.0, we should directly add a dependency from the 'assemble' task to 'earArtifact'
+            project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION).getArtifacts().add(earArtifact);
+        });
     }
 
     private void wireEarTaskConventions(Project project, final EarPluginConvention earConvention) {
