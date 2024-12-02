@@ -37,6 +37,6 @@ class DefaultSingleFileReportTest extends Specification {
         report.conventionMapping.map("destination") { output }
 
         report.outputLocation.asFile.get() == resolvedOutput
-        report.displayName == "name report for owner"
+        report.displayName.get() == "name report for owner"
     }
 }
