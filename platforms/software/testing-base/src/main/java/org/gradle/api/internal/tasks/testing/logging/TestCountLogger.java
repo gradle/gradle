@@ -25,6 +25,14 @@ import org.gradle.util.internal.TextUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Reports a live-updating total of tests run, failed and skipped.
+ * <p>
+ * Output text appears in the console like so:
+ * <pre>
+ * > :project-name:testTaskName > 6659 tests completed, 1 failed, 2 skipped
+ * </pre>
+ */
 public class TestCountLogger implements TestListener {
     private final ProgressLoggerFactory factory;
     private ProgressLogger progressLogger;

@@ -169,7 +169,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
      * @return The source files. Never returns null.
      */
     @Internal
-    @ToBeReplacedByLazyProperty
+    @NotToBeReplacedByLazyProperty(because = "Read-only nested like property")
     public FileCollection getSource() {
         return rootSpec.buildRootResolver().getAllSource();
     }

@@ -125,14 +125,15 @@ dependencies {
     api(libs.guava)
     api(libs.inject)
     api(libs.jsr305)
+    api(libs.nativePlatform)
 
     implementation(projects.buildOperationsTrace)
     implementation(projects.io)
     implementation(projects.inputTracking)
     implementation(projects.modelGroovy)
+    implementation(projects.problemsRendering)
     implementation(projects.serviceRegistryBuilder)
 
-    implementation(libs.nativePlatform)
     implementation(libs.asmCommons)
     implementation(libs.commonsCompress)
     implementation(libs.commonsIo)
@@ -270,6 +271,7 @@ dependencies {
     testImplementation(testFixtures(projects.diagnostics))
     testImplementation(testFixtures(projects.snapshots))
     testImplementation(testFixtures(projects.execution))
+    testImplementation(testFixtures(projects.time))
 
     integTestImplementation(projects.workers)
     integTestImplementation(projects.dependencyManagement)

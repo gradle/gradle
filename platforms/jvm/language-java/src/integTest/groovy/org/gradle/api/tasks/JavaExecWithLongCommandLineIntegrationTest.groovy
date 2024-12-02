@@ -95,6 +95,9 @@ class JavaExecWithLongCommandLineIntegrationTest extends AbstractIntegrationSpec
                 "This is scheduled to be removed in Gradle 9.0. " +
                 "Use ExecOperations.javaexec(Action) or ProviderFactory.javaexec(Action) instead. " +
                 "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_project_exec")
+            executer.expectDocumentedDeprecationWarning("Invocation of Task.project at execution time has been deprecated. "+
+                "This will fail with an error in Gradle 9.0. " +
+                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#task_project")
         }
         fails taskName
 
@@ -121,6 +124,9 @@ class JavaExecWithLongCommandLineIntegrationTest extends AbstractIntegrationSpec
                 "This is scheduled to be removed in Gradle 9.0. " +
                 "Use ExecOperations.javaexec(Action) or ProviderFactory.javaexec(Action) instead. " +
                 "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_project_exec")
+            executer.expectDocumentedDeprecationWarning("Invocation of Task.project at execution time has been deprecated. "+
+                "This will fail with an error in Gradle 9.0. " +
+                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#task_project")
         }
         fails taskName
 
@@ -149,6 +155,9 @@ class JavaExecWithLongCommandLineIntegrationTest extends AbstractIntegrationSpec
                 "This is scheduled to be removed in Gradle 9.0. " +
                 "Use ExecOperations.javaexec(Action) or ProviderFactory.javaexec(Action) instead. " +
                 "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_project_exec")
+            executer.expectDocumentedDeprecationWarning("Invocation of Task.project at execution time has been deprecated. "+
+                "This will fail with an error in Gradle 9.0. " +
+                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#task_project")
         }
         fails taskName
 
@@ -182,6 +191,9 @@ class JavaExecWithLongCommandLineIntegrationTest extends AbstractIntegrationSpec
                 "This is scheduled to be removed in Gradle 9.0. " +
                 "Use ExecOperations.javaexec(Action) or ProviderFactory.javaexec(Action) instead. " +
                 "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_project_exec")
+            executer.expectDocumentedDeprecationWarning("Invocation of Task.project at execution time has been deprecated. "+
+                "This will fail with an error in Gradle 9.0. " +
+                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#task_project")
         }
         succeeds taskName, "-i"
 

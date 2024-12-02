@@ -59,15 +59,18 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
     private final ResourceLocation scriptResource;
     private final ClassLoaderScope classLoaderScope;
     private final DependencyResolutionServices dependencyResolutionServices;
-    private final DependencyLockingHandler dependencyLockingHandler;
     private final BuildLogicBuilder buildLogicBuilder;
+
     // The following values are relatively expensive to create, so defer creation until required
-    private ClassPath resolvedClasspath;
     private RepositoryHandler repositoryHandler;
     private DependencyHandler dependencyHandler;
-    private ScriptClassPathResolutionContext resolutionContext;
+    private DependencyLockingHandler dependencyLockingHandler;
     private RoleBasedConfigurationContainerInternal configContainer;
+
+    // Lazy classpath state
+    private ScriptClassPathResolutionContext resolutionContext;
     private Configuration classpathConfiguration;
+    private ClassPath resolvedClasspath;
 
     @Inject
     public DefaultScriptHandler(
@@ -79,7 +82,6 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
         this.dependencyResolutionServices = dependencyResolutionServices;
         this.scriptResource = scriptSource.getResource().getLocation();
         this.classLoaderScope = classLoaderScope;
-        this.dependencyLockingHandler = dependencyResolutionServices.getDependencyLockingHandler();
         this.buildLogicBuilder = buildLogicBuilder;
         JavaEcosystemSupport.configureServices(dependencyResolutionServices.getAttributesSchema(), dependencyResolutionServices.getAttributeDescribers(), dependencyResolutionServices.getObjectFactory());
     }
@@ -176,6 +178,9 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
 
     @Override
     public DependencyLockingHandler getDependencyLocking() {
+        if (dependencyLockingHandler == null) {
+            dependencyLockingHandler = dependencyResolutionServices.getDependencyLockingHandler();
+        }
         return dependencyLockingHandler;
     }
 

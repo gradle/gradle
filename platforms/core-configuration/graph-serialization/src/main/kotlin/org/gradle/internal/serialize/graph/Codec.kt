@@ -84,9 +84,9 @@ fun <I, R> CloseableWriteContext.writeWith(
 
 interface Tracer {
 
-    fun open(frame: String)
+    fun open(frame: String, instance: Any?)
 
-    fun close(frame: String)
+    fun close(frame: String, instance: Any?)
 }
 
 

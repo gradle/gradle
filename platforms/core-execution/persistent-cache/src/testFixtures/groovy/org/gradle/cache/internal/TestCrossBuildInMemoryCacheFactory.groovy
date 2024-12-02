@@ -18,6 +18,7 @@ package org.gradle.cache.internal
 
 
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.locks.ReentrantLock
 import java.util.function.Function
 import java.util.function.Predicate
 
@@ -49,6 +50,7 @@ class TestCrossBuildInMemoryCacheFactory implements CrossBuildInMemoryCacheFacto
     }
 
     static class TestCache<K, V> implements CrossBuildInMemoryCache<K, V> {
+        private final ReentrantLock lock = new ReentrantLock(true)
         private final Map<K, V> values = new ConcurrentHashMap<>()
 
         @Override
@@ -58,12 +60,19 @@ class TestCrossBuildInMemoryCacheFactory implements CrossBuildInMemoryCacheFacto
 
         @Override
         V get(K key, Function<? super K, ? extends V> factory) {
-            def v = values.get(key)
-            if (v == null) {
-                v = factory.apply(key)
-                values.put(key, v)
+            try {
+                // Using a lock instead of computeIfAbsent, since with
+                // computeIfAbsent we can get recursive update exception.
+                lock.lock()
+                def v = values.get(key)
+                if (v == null) {
+                    v = factory.apply(key)
+                    values.put(key, v)
+                }
+                return v
+            } finally {
+                lock.unlock()
             }
-            return v
         }
 
         @Override

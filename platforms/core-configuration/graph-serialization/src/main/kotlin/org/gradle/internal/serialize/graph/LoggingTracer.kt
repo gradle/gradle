@@ -31,19 +31,23 @@ class LoggingTracer(
     private
     var nextSequenceNumber = 0L
 
-    override fun open(frame: String) {
-        log(frame, 'O')
+    override fun open(frame: String, instance: Any?) {
+        log(frame, instance, 'O')
     }
 
-    override fun close(frame: String) {
-        log(frame, 'C')
+    override fun close(frame: String, instance: Any?) {
+        log(frame, instance, 'C')
     }
 
     private
-    fun log(frame: String, openOrClose: Char) {
+    fun log(frame: String, instance: Any?, openOrClose: Char) {
+        val oidAndHash = instance
+            ?.let { System.identityHashCode(it).toString(16) to it.hashCode().toString(16) }
+            ?.let { (oid, hash) -> """"oid":"$oid","hash":"$hash",""" }
+            ?: ""
         logger.log(
             level,
-            """{"profile":"$profile","type":"$openOrClose","frame":"$frame","at":${writePosition()},"sn":${nextSequenceNumber()}}"""
+            """{"profile":"$profile","type":"$openOrClose","frame":"$frame",$oidAndHash"at":${writePosition()},"sn":${nextSequenceNumber()}}"""
         )
     }
 

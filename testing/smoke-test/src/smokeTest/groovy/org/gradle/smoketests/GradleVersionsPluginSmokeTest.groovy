@@ -16,6 +16,7 @@
 
 package org.gradle.smoketests
 
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.util.GradleVersion
 import org.gradle.util.internal.VersionNumber
 import org.junit.Assume
@@ -60,6 +61,15 @@ class GradleVersionsPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
         runner.expectDeprecationWarning(
             "The LenientConfiguration.getFirstLevelModuleDependencies(Spec) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use getFirstLevelModuleDependencies() instead. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#deprecate_filtered_configuration_file_and_filecollection_methods",
             "https://github.com/ben-manes/gradle-versions-plugin/pull/856"
+        )
+
+        // with CC, these are reported as config cache problems only
+        runner.expectDeprecationWarningIf(
+            GradleContextualExecuter.isNotConfigCache(),
+            "Invocation of Task.project at execution time has been deprecated. " +
+                "This will fail with an error in Gradle 9.0. " +
+                "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#task_project",
+            "https://github.com/ben-manes/gradle-versions-plugin/issues/910"
         )
 
         def result = runner.build()

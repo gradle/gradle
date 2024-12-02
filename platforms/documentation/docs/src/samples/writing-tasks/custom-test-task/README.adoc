@@ -1,0 +1,31 @@
+NOTE: You can open the samples inside an IDE using the https://www.jetbrains.com/help/idea/gradle.html#gradle_import_project_start[IntelliJ native importer] or https://projects.eclipse.org/projects/tools.buildship[Eclipse Buildship].
+
+This sample shows how to create a plugin with a custom task that generates test events like the built-in `Test` task for JVM-based tests.
+The plugin is packaged via an included build.
+
+This sample is intended to demonstrate how a platform provider, like Android or Kotlin Multiplatform, would use a low-level API to generate test events. 
+
+====
+include::sample[dir="kotlin",files="build.gradle.kts[];settings.gradle.kts[]"]
+include::sample[dir="groovy",files="build.gradle[];settings.gradle[]"]
+====
+
+This sample contains two parts:
+
+* The `custom-test-task` plugin, which defines a custom task that generates test events.
+* The `consumer` build, which creates a Tooling API client to receive the test events.
+
+NOTE: The `consumer` requires Java 21.
+
+Run `gradle test` to run the custom test task. By default, no tests will fail and nothing will appear in the console log.
+
+Run `gradle test --fail` to run the custom test task with failing tests. The console log will show the test events.
+
+Run `gradle :consumer:run` to run the Tooling API client. The client will run `gradle test`, like above and print out any received test events.
+
+As a platform provided for an ecosystem, you would create custom test tasks and use the `TestEventReporter` APIs to generate test events.
+
+As a tooling integrator, like an IDE, you would use the Tooling API client to receive test events and display them as appropriate to the user.
+
+For more information, see link:{userManualPath}/custom_plugins.html[Gradle Plugins reference chapter].
+

@@ -84,11 +84,11 @@ public class EffectiveJavaForkOptions {
             && jvmOptions.getBootstrapClasspath().getFiles().containsAll(forkOptions.getJvmOptions().getBootstrapClasspath().getFiles());
     }
 
-    public void copyTo(JavaForkOptions target) {
+    public void copyTo(JavaExecHandleBuilder target) {
         target.setExecutable(executable);
         target.setWorkingDir(workingDir);
         target.setEnvironment(environment);
-        jvmOptions.copyTo(target);
+        target.copyJavaForkOptions(jvmOptions);
     }
 
     @Override

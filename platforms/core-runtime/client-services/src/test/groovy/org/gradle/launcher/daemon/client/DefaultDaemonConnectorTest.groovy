@@ -29,6 +29,7 @@ import org.gradle.launcher.daemon.configuration.DaemonPriority
 import org.gradle.launcher.daemon.context.DaemonContext
 import org.gradle.launcher.daemon.context.DefaultDaemonContext
 import org.gradle.launcher.daemon.diagnostics.DaemonStartupInfo
+import org.gradle.launcher.daemon.registry.DaemonDir
 import org.gradle.launcher.daemon.registry.DaemonInfo
 import org.gradle.launcher.daemon.registry.EmbeddedDaemonRegistry
 import spock.lang.Specification
@@ -62,6 +63,7 @@ class DefaultDaemonConnectorTest extends Specification {
 
     def createConnector() {
         def connector = Spy(DefaultDaemonConnector, constructorArgs: [
+                new DaemonDir(new File("registry")),
                 new EmbeddedDaemonRegistry(),
                 Spy(OutgoingConnectorStub),
                 { startBusyDaemon() } as DaemonStarter,

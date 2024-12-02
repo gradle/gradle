@@ -16,6 +16,9 @@
 
 package org.gradle.launcher.exec;
 
+import org.gradle.api.NonNullApi;
+import org.gradle.api.problems.internal.ExceptionProblemRegistry;
+import org.gradle.api.problems.internal.ProblemLookup;
 import org.gradle.internal.buildtree.BuildActionRunner;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.operations.BuildOperationContext;
@@ -30,24 +33,27 @@ import org.gradle.internal.session.BuildSessionContext;
 /**
  * An {@link BuildActionRunner} that wraps all work in a build operation.
  */
+@NonNullApi
 public class RunAsBuildOperationBuildActionExecutor implements BuildSessionActionExecutor {
-    private static final RunBuildBuildOperationType.Details DETAILS = new RunBuildBuildOperationType.Details() {
-    };
     private static final RunBuildBuildOperationType.Result RESULT = new RunBuildBuildOperationType.Result() {
     };
     private final BuildSessionActionExecutor delegate;
     private final BuildOperationRunner buildOperationRunner;
     private final LoggingBuildOperationProgressBroadcaster loggingBuildOperationProgressBroadcaster;
     private final BuildOperationNotificationValve buildOperationNotificationValve;
+    private final ExceptionProblemRegistry problemContainer;
 
     public RunAsBuildOperationBuildActionExecutor(BuildSessionActionExecutor delegate,
                                                   BuildOperationRunner buildOperationRunner,
                                                   LoggingBuildOperationProgressBroadcaster loggingBuildOperationProgressBroadcaster,
-                                                  BuildOperationNotificationValve buildOperationNotificationValve) {
+                                                  BuildOperationNotificationValve buildOperationNotificationValve,
+                                                  ExceptionProblemRegistry problemContainer
+    ) {
         this.delegate = delegate;
         this.buildOperationRunner = buildOperationRunner;
         this.loggingBuildOperationProgressBroadcaster = loggingBuildOperationProgressBroadcaster;
         this.buildOperationNotificationValve = buildOperationNotificationValve;
+        this.problemContainer = problemContainer;
     }
 
     @Override
@@ -68,7 +74,12 @@ public class RunAsBuildOperationBuildActionExecutor implements BuildSessionActio
 
                 @Override
                 public BuildOperationDescriptor.Builder description() {
-                    return BuildOperationDescriptor.displayName("Run build").details(DETAILS);
+                    return BuildOperationDescriptor.displayName("Run build").details(new RunBuildBuildOperationType.Details() {
+                        @Override
+                        public ProblemLookup getProblemLookup() {
+                            return problemContainer.getProblemLookup();
+                        }
+                    });
                 }
             });
         } finally {

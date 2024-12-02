@@ -36,8 +36,9 @@ import org.gradle.internal.component.model.ImmutableModuleSources;
 import org.gradle.internal.component.model.ModuleSources;
 import org.gradle.internal.component.model.VariantGraphResolveState;
 import org.gradle.internal.model.CalculatedValue;
-import org.gradle.internal.model.CalculatedValueCache;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
+import org.gradle.internal.model.InMemoryLoadingCache;
+import org.gradle.internal.model.InMemoryCacheFactory;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -61,9 +62,10 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
     private final LocalVariantGraphResolveStateFactory variantFactory;
     private final Transformer<LocalComponentArtifactMetadata, LocalComponentArtifactMetadata> artifactTransformer;
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
+    private final InMemoryCacheFactory cacheFactory;
 
     // The graph resolve state for variants selected by name
-    private final CalculatedValueCache<String, LocalVariantGraphResolveState> variants;
+    private final InMemoryLoadingCache<String, LocalVariantGraphResolveState> variants;
 
     // The variants to use for variant selection during graph resolution
     private final AtomicReference<CalculatedValue<LocalComponentGraphSelectionCandidates>> graphSelectionCandidates = new AtomicReference<>();
@@ -79,6 +81,7 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
         boolean adHoc,
         LocalVariantGraphResolveStateFactory variantFactory,
         CalculatedValueContainerFactory calculatedValueContainerFactory,
+        InMemoryCacheFactory cacheFactory,
         @Nullable Transformer<LocalComponentArtifactMetadata, LocalComponentArtifactMetadata> artifactTransformer
     ) {
         super(instanceId, metadata, attributeDesugaring);
@@ -86,10 +89,11 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
         this.adHoc = adHoc;
         this.variantFactory = variantFactory;
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
+        this.cacheFactory = cacheFactory;
         this.artifactTransformer = artifactTransformer;
 
         // Mutable state
-        this.variants = calculatedValueContainerFactory.createCache(Describables.of("variants"));
+        this.variants = cacheFactory.createCalculatedValueCache(Describables.of("variants"), this::doCreateLegacyConfiguration);
         initCalculatedValues();
     }
 
@@ -98,7 +102,7 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
         // TODO: This is not really thread-safe.
         //       We should atomically clear all the different fields at once.
         //       Or better yet, we should not allow reevaluation of the state.
-        variants.clear();
+        variants.invalidate();
         variantFactory.invalidate();
         initCalculatedValues();
     }
@@ -156,6 +160,7 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
             adHoc,
             variantFactory,
             calculatedValueContainerFactory,
+            cacheFactory,
             cachedTransformer
         );
     }
@@ -225,16 +230,18 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
     @Override
     @Deprecated
     public LocalVariantGraphResolveState getConfigurationLegacy(String configurationName) {
-        return variants.computeIfAbsent(configurationName, n -> {
-            LocalVariantGraphResolveState variant = variantFactory.getVariantByConfigurationName(configurationName);
-            if (variant == null) {
-                return null;
-            }
-            if (artifactTransformer != null) {
-                return variant.copyWithTransformedArtifacts(artifactTransformer);
-            }
-            return variant;
-        });
+        return variants.get(configurationName);
+    }
+
+    private @Nullable LocalVariantGraphResolveState doCreateLegacyConfiguration(String n) {
+        LocalVariantGraphResolveState variant = variantFactory.getVariantByConfigurationName(n);
+        if (variant == null) {
+            return null;
+        }
+        if (artifactTransformer != null) {
+            return variant.copyWithTransformedArtifacts(artifactTransformer);
+        }
+        return variant;
     }
 
     private static class LocalComponentArtifactResolveMetadata implements ComponentArtifactResolveMetadata {

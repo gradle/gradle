@@ -60,7 +60,7 @@ import org.gradle.jvm.toolchain.internal.install.DefaultJavaToolchainProvisionin
 import org.gradle.jvm.toolchain.internal.install.DefaultJdkCacheDirectory;
 import org.gradle.jvm.toolchain.internal.install.SecureFileDownloader;
 import org.gradle.platform.internal.DefaultBuildPlatform;
-import org.gradle.process.internal.ExecHandleFactory;
+import org.gradle.process.internal.ClientExecHandleBuilderFactory;
 
 import java.util.List;
 
@@ -88,7 +88,7 @@ public class ToolchainsJvmServices extends AbstractGradleModuleServices {
         }
 
         @Provides
-        protected JdkCacheDirectory createJdkCacheDirectory(ObjectFactory objectFactory, GradleUserHomeDirProvider homeDirProvider, FileOperations operations, FileLockManager lockManager, ExecHandleFactory execHandleFactory, GradleUserHomeTemporaryFileProvider temporaryFileProvider) {
+        protected JdkCacheDirectory createJdkCacheDirectory(ObjectFactory objectFactory, GradleUserHomeDirProvider homeDirProvider, FileOperations operations, FileLockManager lockManager, ClientExecHandleBuilderFactory execHandleFactory, GradleUserHomeTemporaryFileProvider temporaryFileProvider) {
             return new DefaultJdkCacheDirectory(homeDirProvider, operations, lockManager, new DefaultJvmMetadataDetector(execHandleFactory, temporaryFileProvider), temporaryFileProvider);
         }
 

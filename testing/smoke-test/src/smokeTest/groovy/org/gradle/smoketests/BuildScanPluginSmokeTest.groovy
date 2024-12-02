@@ -149,7 +149,8 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
         "3.17.5",
         "3.17.6",
         "3.18",
-        "3.18.1"
+        "3.18.1",
+        "3.18.2"
     ]
 
     // Current injection scripts support Develocity plugin 3.3 and above
@@ -428,7 +429,7 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
     }
 
     SmokeTestGradleRunner scanRunner(String... args) {
-        // Run with --build-cache to test also build-cache events
+        // Run with --build-cache to test also build cache events
         runner("build", "-Dscan.dump", "--build-cache", *args)
     }
 

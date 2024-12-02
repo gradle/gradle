@@ -20,42 +20,30 @@ import com.google.common.base.Preconditions;
 import org.gradle.api.Action;
 import org.gradle.api.internal.ExternalProcessStartedListener;
 import org.gradle.api.internal.file.DefaultFileCollectionFactory;
-import org.gradle.api.internal.file.DefaultFileLookup;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory;
-import org.gradle.api.internal.file.temp.GradleUserHomeTemporaryFileProvider;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
-import org.gradle.api.internal.model.InstantiatorBackedObjectFactory;
 import org.gradle.api.internal.provider.PropertyHost;
 import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.api.tasks.util.internal.PatternSets;
 import org.gradle.initialization.BuildCancellationToken;
-import org.gradle.initialization.DefaultBuildCancellationToken;
-import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.internal.Factory;
-import org.gradle.internal.concurrent.CompositeStoppable;
-import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.nativeintegration.services.FileSystems;
-import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.process.ExecResult;
 import org.gradle.process.ExecSpec;
 import org.gradle.process.JavaExecSpec;
 
 import javax.annotation.Nullable;
-import java.io.File;
 import java.util.concurrent.Executor;
 
-import static java.util.Objects.requireNonNull;
-
-public abstract class DefaultExecActionFactory implements ExecFactory {
+public class DefaultExecActionFactory implements ExecFactory {
     protected final FileResolver fileResolver;
     protected final Executor executor;
     protected final FileCollectionFactory fileCollectionFactory;
@@ -64,15 +52,21 @@ public abstract class DefaultExecActionFactory implements ExecFactory {
     @Nullable
     protected final JavaModuleDetector javaModuleDetector;
     protected final BuildCancellationToken buildCancellationToken;
+    protected final ClientExecHandleBuilderFactory execHandleFactory;
+    protected final Instantiator instantiator;
+    protected final ExternalProcessStartedListener externalProcessStartedListener;
 
     private DefaultExecActionFactory(
         FileResolver fileResolver,
         FileCollectionFactory fileCollectionFactory,
-        ObjectFactory objectFactory,
+        Instantiator instantiator,
         Executor executor,
         TemporaryFileProvider temporaryFileProvider,
+        BuildCancellationToken buildCancellationToken,
+        ObjectFactory objectFactory,
+        ClientExecHandleBuilderFactory execHandleFactory,
         @Nullable JavaModuleDetector javaModuleDetector,
-        BuildCancellationToken buildCancellationToken
+        @Nullable ExternalProcessStartedListener externalProcessStartedListener
     ) {
         this.fileResolver = fileResolver;
         this.fileCollectionFactory = fileCollectionFactory;
@@ -81,62 +75,54 @@ public abstract class DefaultExecActionFactory implements ExecFactory {
         this.javaModuleDetector = javaModuleDetector;
         this.buildCancellationToken = buildCancellationToken;
         this.executor = executor;
-    }
-
-    // Do not use this. It's here because some of the services this type needs are not easily accessed in certain cases and will be removed ay some point. Use one of the other methods instead
-    @Deprecated
-    public static DefaultExecActionFactory root(File gradleUserHome) {
-        requireNonNull(gradleUserHome, "gradleUserHome");
-        Factory<PatternSet> patternSetFactory = PatternSets.getNonCachingPatternSetFactory();
-        FileResolver resolver = new DefaultFileLookup().getFileResolver();
-        DefaultFileCollectionFactory fileCollectionFactory = new DefaultFileCollectionFactory(resolver, DefaultTaskDependencyFactory.withNoAssociatedProject(), new DefaultDirectoryFileTreeFactory(), patternSetFactory, PropertyHost.NO_OP, FileSystems.getDefault());
-        GradleUserHomeDirProvider userHomeDirProvider = () -> gradleUserHome;
-        TemporaryFileProvider temporaryFileProvider = new GradleUserHomeTemporaryFileProvider(userHomeDirProvider);
-        return of(resolver, fileCollectionFactory, new InstantiatorBackedObjectFactory(DirectInstantiator.INSTANCE), new DefaultExecutorFactory(), new DefaultBuildCancellationToken(), temporaryFileProvider);
+        this.execHandleFactory = execHandleFactory;
+        this.instantiator = instantiator;
+        this.externalProcessStartedListener = externalProcessStartedListener;
     }
 
     public static DefaultExecActionFactory of(
         FileResolver fileResolver,
         FileCollectionFactory fileCollectionFactory,
+        Instantiator instantiator,
         ExecutorFactory executorFactory,
-        TemporaryFileProvider temporaryFileProvider
-    ) {
-        return of(fileResolver, fileCollectionFactory, new InstantiatorBackedObjectFactory(DirectInstantiator.INSTANCE), executorFactory, new DefaultBuildCancellationToken(), temporaryFileProvider);
-    }
-
-    private static DefaultExecActionFactory of(
-        FileResolver fileResolver,
-        FileCollectionFactory fileCollectionFactory,
-        ObjectFactory objectFactory,
-        ExecutorFactory executorFactory,
+        TemporaryFileProvider temporaryFileProvider,
         BuildCancellationToken buildCancellationToken,
-        TemporaryFileProvider temporaryFileProvider
+        ObjectFactory objectFactory,
+        ClientExecHandleBuilderFactory clientExecHandleBuilderFactory
     ) {
-        return new RootExecFactory(fileResolver, fileCollectionFactory, objectFactory, executorFactory, buildCancellationToken, temporaryFileProvider);
-    }
-
-    @Override
-    public Builder forContext() {
-        return new BuilderImpl(executor, temporaryFileProvider)
-            .withFileResolver(fileResolver)
-            .withFileCollectionFactory(fileCollectionFactory)
-            .withBuildCancellationToken(buildCancellationToken)
-            .withObjectFactory(objectFactory)
-            .withJavaModuleDetector(javaModuleDetector);
+        return new DefaultExecActionFactory(
+            fileResolver,
+            fileCollectionFactory,
+            instantiator,
+            executorFactory.create("Exec process"),
+            temporaryFileProvider,
+            buildCancellationToken,
+            objectFactory,
+            clientExecHandleBuilderFactory,
+            null,
+            null
+        );
     }
 
     public ExecAction newDecoratedExecAction() {
-        throw new UnsupportedOperationException();
+        DefaultExecAction execAction = instantiator.newInstance(DefaultExecAction.class, execHandleFactory.newExecHandleBuilder());
+        ExecHandleListener listener = getExecHandleListener();
+        if (listener != null) {
+            execAction.listener(listener);
+        }
+        return execAction;
     }
 
     @Override
     public ExecAction newExecAction() {
-        return new DefaultExecAction(fileResolver, executor, buildCancellationToken);
+        return new DefaultExecAction(execHandleFactory.newExecHandleBuilder());
     }
 
     @Override
     public JavaForkOptionsInternal newDecoratedJavaForkOptions() {
-        throw new UnsupportedOperationException();
+        final DefaultJavaForkOptions forkOptions = instantiator.newInstance(DefaultJavaForkOptions.class, objectFactory, fileResolver, fileCollectionFactory);
+        forkOptions.setExecutable(Jvm.current().getJavaExecutable());
+        return forkOptions;
     }
 
     @Override
@@ -155,27 +141,67 @@ public abstract class DefaultExecActionFactory implements ExecFactory {
         // NOTE: We do not want/need a decorated version of JvmOptions or JavaDebugOptions because
         // these immutable instances are held across builds and will retain classloaders/services in the decorated object
         DefaultFileCollectionFactory fileCollectionFactory = new DefaultFileCollectionFactory(fileResolver, DefaultTaskDependencyFactory.withNoAssociatedProject(), new DefaultDirectoryFileTreeFactory(), nonCachingPatternSetFactory, PropertyHost.NO_OP, FileSystems.getDefault());
-        ObjectFactory objectFactory = new InstantiatorBackedObjectFactory(DirectInstantiator.INSTANCE);
-        return options.toEffectiveJavaForkOptions(objectFactory, fileCollectionFactory);
+        return options.toEffectiveJavaForkOptions(fileCollectionFactory);
     }
 
     public JavaExecAction newDecoratedJavaExecAction() {
-        throw new UnsupportedOperationException();
+        final JavaForkOptionsInternal forkOptions = newDecoratedJavaForkOptions();
+        forkOptions.setExecutable(Jvm.current().getJavaExecutable());
+        DefaultJavaExecAction javaExecAction = instantiator.newInstance(DefaultJavaExecAction.class, newJavaExec());
+        ExecHandleListener listener = getExecHandleListener();
+        if (listener != null) {
+            javaExecAction.listener(listener);
+        }
+        return javaExecAction;
+    }
+
+    @Nullable
+    private ExecHandleListener getExecHandleListener() {
+        if (externalProcessStartedListener == null) {
+            return null;
+        }
+
+        return new ExecHandleListener() {
+            @Override
+            public void beforeExecutionStarted(ExecHandle execHandle) {
+                StringBuilder command = new StringBuilder(execHandle.getCommand());
+                for (String argument : execHandle.getArguments()) {
+                    command.append(' ').append(argument);
+                }
+                externalProcessStartedListener.onExternalProcessStarted(command.toString(), /* consumer */ null);
+            }
+
+            @Override
+            public void executionStarted(ExecHandle execHandle) {
+            }
+
+            @Override
+            public void executionFinished(ExecHandle execHandle, ExecResult execResult) {
+            }
+        };
     }
 
     @Override
     public JavaExecAction newJavaExecAction() {
-        return new DefaultJavaExecAction(fileResolver, fileCollectionFactory, objectFactory, executor, buildCancellationToken, temporaryFileProvider, javaModuleDetector, newJavaForkOptions());
+        return new DefaultJavaExecAction(newJavaExec());
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public ExecHandleBuilder newExec() {
-        return new DefaultExecHandleBuilder(fileResolver, executor, buildCancellationToken);
+        return new DefaultExecHandleBuilder(execHandleFactory.newExecHandleBuilder());
     }
 
     @Override
     public JavaExecHandleBuilder newJavaExec() {
-        return new JavaExecHandleBuilder(fileResolver, fileCollectionFactory, objectFactory, executor, buildCancellationToken, temporaryFileProvider, javaModuleDetector, newJavaForkOptions());
+        return new JavaExecHandleBuilder(
+            fileCollectionFactory,
+            objectFactory,
+            temporaryFileProvider,
+            javaModuleDetector,
+            newJavaForkOptions(),
+            execHandleFactory.newExecHandleBuilder()
+        );
     }
 
     @Override
@@ -192,6 +218,19 @@ public abstract class DefaultExecActionFactory implements ExecFactory {
         return execAction.execute();
     }
 
+    @Override
+    public Builder forContext() {
+        return new BuilderImpl(executor, temporaryFileProvider)
+            .withInstantiator(instantiator)
+            .withExternalProcessStartedListener(externalProcessStartedListener)
+            .withFileResolver(fileResolver)
+            .withFileCollectionFactory(fileCollectionFactory)
+            .withBuildCancellationToken(buildCancellationToken)
+            .withObjectFactory(objectFactory)
+            .withJavaModuleDetector(javaModuleDetector)
+            .withExecHandleFactory(execHandleFactory);
+    }
+
     private static class BuilderImpl implements Builder {
         // The executor is always inherited from the parent
         private final Executor executor;
@@ -203,6 +242,7 @@ public abstract class DefaultExecActionFactory implements ExecFactory {
         private Instantiator instantiator;
         private BuildCancellationToken buildCancellationToken;
         private ObjectFactory objectFactory;
+        private ClientExecHandleBuilderFactory clientExecHandleBuilderFactory;
         @Nullable
         private JavaModuleDetector javaModuleDetector;
 
@@ -260,6 +300,12 @@ public abstract class DefaultExecActionFactory implements ExecFactory {
         }
 
         @Override
+        public Builder withExecHandleFactory(ClientExecHandleBuilderFactory execHandleBuilderFactory) {
+            this.clientExecHandleBuilderFactory = execHandleBuilderFactory;
+            return this;
+        }
+
+        @Override
         public Builder withoutExternalProcessStartedListener() {
             this.externalProcessStartedListener = null;
             return this;
@@ -272,7 +318,8 @@ public abstract class DefaultExecActionFactory implements ExecFactory {
             Preconditions.checkState(instantiator != null, "instantiator is not set");
             Preconditions.checkState(buildCancellationToken != null, "buildCancellationToken is not set");
             Preconditions.checkState(objectFactory != null, "objectFactory is not set");
-            return new DecoratingExecActionFactory(
+            Preconditions.checkState(clientExecHandleBuilderFactory != null, "clientExecHandleFactory is not set");
+            return new DefaultExecActionFactory(
                 fileResolver,
                 fileCollectionFactory,
                 instantiator,
@@ -280,118 +327,10 @@ public abstract class DefaultExecActionFactory implements ExecFactory {
                 temporaryFileProvider,
                 buildCancellationToken,
                 objectFactory,
+                clientExecHandleBuilderFactory,
                 javaModuleDetector,
-                externalProcessStartedListener);
-        }
-    }
-
-    private static class RootExecFactory extends DefaultExecActionFactory implements Stoppable {
-        public RootExecFactory(
-            FileResolver fileResolver,
-            FileCollectionFactory fileCollectionFactory,
-            ObjectFactory objectFactory,
-            ExecutorFactory executorFactory,
-            BuildCancellationToken buildCancellationToken,
-            TemporaryFileProvider temporaryFileProvider
-        ) {
-            super(fileResolver, fileCollectionFactory, objectFactory, executorFactory.create("Exec process"), temporaryFileProvider, null, buildCancellationToken);
-        }
-
-        @Override
-        public void stop() {
-            CompositeStoppable.stoppable(executor).stop();
-        }
-    }
-
-    private static class DecoratingExecActionFactory extends DefaultExecActionFactory {
-        private final Instantiator instantiator;
-        @Nullable
-        private final ExternalProcessStartedListener externalProcessStartedListener;
-
-        DecoratingExecActionFactory(
-            FileResolver fileResolver,
-            FileCollectionFactory fileCollectionFactory,
-            Instantiator instantiator,
-            Executor executor,
-            TemporaryFileProvider temporaryFileProvider,
-            BuildCancellationToken buildCancellationToken,
-            ObjectFactory objectFactory,
-            @Nullable JavaModuleDetector javaModuleDetector,
-            @Nullable ExternalProcessStartedListener externalProcessStartedListener
-        ) {
-            super(fileResolver, fileCollectionFactory, objectFactory, executor, temporaryFileProvider, javaModuleDetector, buildCancellationToken);
-            this.instantiator = instantiator;
-            this.externalProcessStartedListener = externalProcessStartedListener;
-        }
-
-        @Override
-        public ExecAction newDecoratedExecAction() {
-            DefaultExecAction execAction = instantiator.newInstance(DefaultExecAction.class, fileResolver, executor, buildCancellationToken);
-            ExecHandleListener listener = getExecHandleListener();
-            if (listener != null) {
-                execAction.listener(listener);
-            }
-            return execAction;
-        }
-
-        @Override
-        public JavaExecAction newDecoratedJavaExecAction() {
-            final JavaForkOptionsInternal forkOptions = newDecoratedJavaForkOptions();
-            forkOptions.setExecutable(Jvm.current().getJavaExecutable());
-            DefaultJavaExecAction javaExecAction = instantiator.newInstance(
-                DefaultJavaExecAction.class,
-                fileResolver,
-                fileCollectionFactory,
-                objectFactory,
-                executor,
-                buildCancellationToken,
-                temporaryFileProvider,
-                javaModuleDetector,
-                forkOptions
+                externalProcessStartedListener
             );
-            ExecHandleListener listener = getExecHandleListener();
-            if (listener != null) {
-                javaExecAction.listener(listener);
-            }
-            return javaExecAction;
-        }
-
-        @Override
-        public JavaForkOptionsInternal newDecoratedJavaForkOptions() {
-            final DefaultJavaForkOptions forkOptions = instantiator.newInstance(DefaultJavaForkOptions.class, objectFactory, fileResolver, fileCollectionFactory);
-            forkOptions.setExecutable(Jvm.current().getJavaExecutable());
-            return forkOptions;
-        }
-
-        @Override
-        public Builder forContext() {
-            return super.forContext().withInstantiator(instantiator).withExternalProcessStartedListener(externalProcessStartedListener);
-        }
-
-        @Nullable
-        private ExecHandleListener getExecHandleListener() {
-            if (externalProcessStartedListener == null) {
-                return null;
-            }
-
-            return new ExecHandleListener() {
-                @Override
-                public void beforeExecutionStarted(ExecHandle execHandle) {
-                    StringBuilder command = new StringBuilder(execHandle.getCommand());
-                    for (String argument : execHandle.getArguments()) {
-                        command.append(' ').append(argument);
-                    }
-                    externalProcessStartedListener.onExternalProcessStarted(command.toString(), /* consumer */ null);
-                }
-
-                @Override
-                public void executionStarted(ExecHandle execHandle) {
-                }
-
-                @Override
-                public void executionFinished(ExecHandle execHandle, ExecResult execResult) {
-                }
-            };
         }
     }
 }

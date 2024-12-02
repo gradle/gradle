@@ -39,9 +39,4 @@ public interface CalculatedValueFactory {
      */
     <T> CalculatedValue<T> create(DisplayName displayName, T value);
 
-    /**
-     * Creates a cache backed by calculated values.
-     */
-    <K, V> CalculatedValueCache<K, V> createCache(DisplayName type);
-
 }

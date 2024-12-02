@@ -109,13 +109,22 @@ class PropertyUpgradeCustomInterceptorCodeGenTest extends InstrumentationCodeGen
 
                 static class MaxErrorsAdapter {
                     @BytecodeUpgrade
+                    static int maxErrors(Task task) {
+                        return 0;
+                    }
+                    @BytecodeUpgrade
                     static int getMaxErrors(Task task) {
                         return 0;
                     }
-
                     @BytecodeUpgrade
                     static Task maxErrors(Task task, int maxErrors) {
                         return task;
+                    }
+                    @BytecodeUpgrade
+                    static void setMaxErrors(Task task, int maxErrors) {
+                    }
+                    @BytecodeUpgrade
+                    static void setMaxErrors(Task task, Integer maxErrors) {
                     }
                 }
             }
@@ -125,7 +134,7 @@ class PropertyUpgradeCustomInterceptorCodeGenTest extends InstrumentationCodeGen
         Compilation compilation = compile(givenSource)
 
         then:
-        def expectedGeneratedClass = source """
+        def expectedJavaInterceptorClass = source """
             package org.gradle.internal.classpath.generated;
 
             @Generated
@@ -133,24 +142,146 @@ class PropertyUpgradeCustomInterceptorCodeGenTest extends InstrumentationCodeGen
                  @Override
                  public boolean visitMethodInsn(MethodVisitorScope mv, String className, int opcode, String owner, String name,
                          String descriptor, boolean isInterface, Supplier<MethodNode> readMethodNode) {
-                     if (metadata.isInstanceOf(owner, "org/gradle/test/Task")) {
-                         if (name.equals("getMaxErrors") && descriptor.equals("()I") && (opcode == Opcodes.INVOKEVIRTUAL || opcode == Opcodes.INVOKEINTERFACE)) {
-                             mv._INVOKESTATIC(\$\$_BRIDGE_FOR\$\$_TASK\$\$_MAX_ERRORS_ADAPTER_TYPE, "access_get_getMaxErrors", "(Lorg/gradle/test/Task;)I");
-                             return true;
-                         }
-                         if (name.equals("maxErrors") && descriptor.equals("(I)Lorg/gradle/test/Task;") && (opcode == Opcodes.INVOKEVIRTUAL || opcode == Opcodes.INVOKEINTERFACE)) {
-                             mv._INVOKESTATIC(\$\$_BRIDGE_FOR\$\$_TASK\$\$_MAX_ERRORS_ADAPTER_TYPE, "access_set_maxErrors", "(Lorg/gradle/test/Task;I)Lorg/gradle/test/Task;");
-                             return true;
-                         }
-                     }
-                     return false;
-                 }
+                    if (metadata.isInstanceOf(owner, "org/gradle/test/Task")) {
+                        if (name.equals("getMaxErrors") && descriptor.equals("()I") && (opcode == Opcodes.INVOKEVIRTUAL || opcode == Opcodes.INVOKEINTERFACE)) {
+                            mv._INVOKESTATIC(\$\$_BRIDGE_FOR\$\$_TASK\$\$_MAX_ERRORS_ADAPTER_TYPE, "access_get_getMaxErrors", "(Lorg/gradle/test/Task;)I");
+                            return true;
+                        }
+                        if (name.equals("maxErrors") && descriptor.equals("()I") && (opcode == Opcodes.INVOKEVIRTUAL || opcode == Opcodes.INVOKEINTERFACE)) {
+                            mv._INVOKESTATIC(\$\$_BRIDGE_FOR\$\$_TASK\$\$_MAX_ERRORS_ADAPTER_TYPE, "access_get_maxErrors", "(Lorg/gradle/test/Task;)I");
+                            return true;
+                        }
+                        if (name.equals("maxErrors") && descriptor.equals("(I)Lorg/gradle/test/Task;") && (opcode == Opcodes.INVOKEVIRTUAL || opcode == Opcodes.INVOKEINTERFACE)) {
+                            mv._INVOKESTATIC(\$\$_BRIDGE_FOR\$\$_TASK\$\$_MAX_ERRORS_ADAPTER_TYPE, "access_set_maxErrors", "(Lorg/gradle/test/Task;I)Lorg/gradle/test/Task;");
+                            return true;
+                        }
+                        if (name.equals("setMaxErrors") && descriptor.equals("(I)V") && (opcode == Opcodes.INVOKEVIRTUAL || opcode == Opcodes.INVOKEINTERFACE)) {
+                            mv._INVOKESTATIC(\$\$_BRIDGE_FOR\$\$_TASK\$\$_MAX_ERRORS_ADAPTER_TYPE, "access_set_setMaxErrors", "(Lorg/gradle/test/Task;I)V");
+                            return true;
+                        }
+                        if (name.equals("setMaxErrors") && descriptor.equals("(Ljava/lang/Integer;)V") && (opcode == Opcodes.INVOKEVIRTUAL || opcode == Opcodes.INVOKEINTERFACE)) {
+                            mv._INVOKESTATIC(\$\$_BRIDGE_FOR\$\$_TASK\$\$_MAX_ERRORS_ADAPTER_TYPE, "access_set_setMaxErrors", "(Lorg/gradle/test/Task;Ljava/lang/Integer;)V");
+                            return true;
+                        }
+                    }
+                    return false;
+            }
+        """
+        // Just make sure that the groovy interceptors are generated
+        def expectedGroovyInterceptors = source """
+            package org.gradle.internal.classpath.generated;
+            @Generated
+            public class InterceptorDeclaration_PropertyUpgradesGroovyInterceptors_TestProject {
+                @Generated
+                public static class GetMaxErrorsCallInterceptor extends AbstractCallInterceptor implements SignatureAwareCallInterceptor, FilterableCallInterceptor, FilterableBytecodeInterceptor.BytecodeUpgradeInterceptor, PropertyAwareCallInterceptor {
+                    public GetMaxErrorsCallInterceptor() {
+                        super(InterceptScope.readsOfPropertiesNamed("maxErrors"), InterceptScope.methodsNamed("getMaxErrors"));
+                    }
+                }
+                @Generated
+                public static class MaxErrorsCallInterceptor extends AbstractCallInterceptor implements SignatureAwareCallInterceptor, FilterableCallInterceptor, FilterableBytecodeInterceptor.BytecodeUpgradeInterceptor {
+                    public MaxErrorsCallInterceptor() {
+                        super(InterceptScope.methodsNamed("maxErrors"));
+                    }
+                }
+                @Generated
+                public static class SetMaxErrorsCallInterceptor extends AbstractCallInterceptor implements SignatureAwareCallInterceptor, FilterableCallInterceptor, FilterableBytecodeInterceptor.BytecodeUpgradeInterceptor, PropertyAwareCallInterceptor {
+                    public SetMaxErrorsCallInterceptor() {
+                        super(InterceptScope.writesOfPropertiesNamed("maxErrors"), InterceptScope.methodsNamed("setMaxErrors"));
+                    }
+                }
             }
         """
         assertThat(compilation).succeededWithoutWarnings()
         assertThat(compilation)
-            .generatedSourceFile(fqName(expectedGeneratedClass))
-            .containsElementsIn(expectedGeneratedClass)
+            .generatedSourceFile(fqName(expectedJavaInterceptorClass))
+            .containsElementsIn(expectedJavaInterceptorClass)
+        assertThat(compilation)
+            .generatedSourceFile(fqName(expectedGroovyInterceptors))
+            .containsElementsIn(expectedGroovyInterceptors)
+    }
+
+    def "should generate Groovy interceptor for custom adapter with booleans"() {
+        given:
+        def givenSource = source """
+            package org.gradle.test;
+
+            import org.gradle.api.provider.Property;
+            import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
+            import org.gradle.internal.instrumentation.api.annotations.BytecodeUpgrade;
+
+            public abstract class Task {
+                @ReplacesEagerProperty(adapter = Task.MaxErrorsAdapter.class)
+                public abstract Property<Integer> getMaxErrors();
+
+                static class MaxErrorsAdapter {
+                    @BytecodeUpgrade
+                    static boolean maxErrors(Task task) {
+                        return true;
+                    }
+                    @BytecodeUpgrade
+                    static boolean isMaxErrors(Task task) {
+                        return true;
+                    }
+                    @BytecodeUpgrade
+                    static Boolean getMaxErrors(Task task) {
+                        return true;
+                    }
+                    @BytecodeUpgrade
+                    static void setMaxErrors(Task task, int maxErrors) {
+                    }
+                    @BytecodeUpgrade
+                    static void setMaxErrors(Task task, boolean maxErrors) {
+                    }
+                    @BytecodeUpgrade
+                    static void setMaxErrors(Task task, Boolean maxErrors) {
+                    }
+                }
+            }
+        """
+
+        when:
+        Compilation compilation = compile(givenSource)
+
+        then:
+        // Just make sure that the groovy interceptors are generated
+        def expectedGroovyInterceptors = source """
+            package org.gradle.internal.classpath.generated;
+            @Generated
+            public class InterceptorDeclaration_PropertyUpgradesGroovyInterceptors_TestProject {
+                @Generated
+                public static class IsMaxErrorsCallInterceptor extends AbstractCallInterceptor implements SignatureAwareCallInterceptor, FilterableCallInterceptor, FilterableBytecodeInterceptor.BytecodeUpgradeInterceptor, PropertyAwareCallInterceptor {
+                    public IsMaxErrorsCallInterceptor() {
+                        super(InterceptScope.readsOfPropertiesNamed("maxErrors"), InterceptScope.methodsNamed("isMaxErrors"));
+                    }
+                }
+
+                @Generated
+                public static class GetMaxErrorsCallInterceptor extends AbstractCallInterceptor implements SignatureAwareCallInterceptor, FilterableCallInterceptor, FilterableBytecodeInterceptor.BytecodeUpgradeInterceptor {
+                    public GetMaxErrorsCallInterceptor() {
+                        super(InterceptScope.methodsNamed("getMaxErrors"));
+                    }
+                }
+
+                @Generated
+                public static class MaxErrorsCallInterceptor extends AbstractCallInterceptor implements SignatureAwareCallInterceptor, FilterableCallInterceptor, FilterableBytecodeInterceptor.BytecodeUpgradeInterceptor {
+                    public MaxErrorsCallInterceptor() {
+                        super(InterceptScope.methodsNamed("maxErrors"));
+                    }
+                }
+
+                @Generated
+                public static class SetMaxErrorsCallInterceptor extends AbstractCallInterceptor implements SignatureAwareCallInterceptor, FilterableCallInterceptor, FilterableBytecodeInterceptor.BytecodeUpgradeInterceptor, PropertyAwareCallInterceptor {
+                    public SetMaxErrorsCallInterceptor() {
+                        super(InterceptScope.writesOfPropertiesNamed("maxErrors"), InterceptScope.methodsNamed("setMaxErrors"));
+                    }
+                }
+            }
+        """
+        assertThat(compilation).succeededWithoutWarnings()
+        assertThat(compilation)
+            .generatedSourceFile(fqName(expectedGroovyInterceptors))
+            .containsElementsIn(expectedGroovyInterceptors)
     }
 
     def "should fail compilation if adapter and it's methods are not package-private"() {

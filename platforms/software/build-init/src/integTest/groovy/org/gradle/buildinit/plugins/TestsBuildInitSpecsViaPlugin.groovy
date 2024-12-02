@@ -23,6 +23,7 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.plugin.PluginBuilder
+import org.hamcrest.Matchers
 
 /**
  * Fixture that provides for publishing a test plugin that adds a custom project spec to a
@@ -44,7 +45,6 @@ trait TestsBuildInitSpecsViaPlugin {
                             url '${mavenRepo.uri}'
                         }
 
-                        ${RepoScriptBlockUtil.googleRepositoryDefinition()} // For AGP, needed by D-G prototype
                         ${RepoScriptBlockUtil.gradlePluginRepositoryDefinition()}
                     }
                 }
@@ -152,8 +152,8 @@ trait TestsBuildInitSpecsViaPlugin {
 
     void assertProjectFileGenerated(String fileName, String content) {
         def projectFile = file("new-project/$fileName")
-        assert projectFile.exists(), "Project file '$fileName' does not exist."
-        assert projectFile.text == content
+        projectFile.assertExists()
+        projectFile.assertContents(Matchers.equalTo(content))
     }
 
     void canBuildGeneratedProject(Jvm jvm = AvailableJavaHomes.getAvailableJdks(JavaVersion.current()).get(0)) {

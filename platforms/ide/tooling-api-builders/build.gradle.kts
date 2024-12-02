@@ -15,12 +15,14 @@ dependencies {
     implementation(projects.coreApi)
     implementation(projects.dependencyManagement)
     implementation(projects.launcher)
+    implementation(projects.problemsApi)
     implementation(projects.testingBase)
+    implementation(projects.testingBaseInfrastructure)
     implementation(projects.testingJvm)
     implementation(projects.workers)
-    implementation(projects.testingBaseInfrastructure)
-    implementation(libs.guava)
+
     implementation(libs.commonsIo)
+    implementation(libs.guava)
 
     api(libs.jsr305)
     api(projects.baseServices)
@@ -30,7 +32,6 @@ dependencies {
     api(projects.daemonProtocol)
     api(projects.enterpriseOperations)
     api(projects.stdlibJavaExtensions)
-    api(projects.problemsApi)
     api(projects.serviceProvider)
     api(projects.toolingApi)
 

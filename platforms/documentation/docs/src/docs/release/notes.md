@@ -27,8 +27,26 @@ For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility
 
 <!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. -->
 
-<!--
 
+<a name="Problems API"></a>
+
+### Problems API improvements
+
+#### Enhanced Problem Summarization for Improved Usability
+
+This release introduces a new problem summarization mechanism that reduces redundancy in problem reporting during builds. The feature limits the number of identical problems reported for each group (
+default threshold: 15) and provides a summarized count of additional occurrences at the end of the build.
+
+##### Key Improvements
+
+- **Optimized Event Reporting**: Summarized problems minimize the data sent to clients, improving performance and reducing resource consumption.
+- **Simplified Developer Experience**: Cleaner problem reports with less noise, making it easier to identify and address critical issues.
+- **Enhanced Reporting**: Summarized problem details are reflected in the Messages, Group, and Locations tabs, maintaining clarity while reducing verbosity.
+
+This change ensures a smoother experience when using Gradle with repetitive problems.
+
+To learn more, check out our [sample project](samples/sample_problems_api_usage.html)
+<!--
 ================== TEMPLATE ==============================
 
 <a name="FILL-IN-KEY-AREA"></a>
@@ -81,6 +99,24 @@ dependencies {
 ```
 
 This clarifies that adding a provider is possible, and that there is no immediately usable return value. The ability to pass a provider to `DependencyConstraintHandler.add` is unaffected.
+
+### Other improvements
+
+#### File-system watching and continuous mode support on Alpine Linux
+
+[File-system watching](userguide/file_system_watching.html) is now supported on Alpine Linux.
+The feature is enabled by default, as on all other supported platforms.
+
+It is now also possible to [run builds in continuous mode](userguide/continuous_builds.html) on Alpine.
+
+<a name="swift-support"></a>
+### Swift support
+
+Gradle’s [Swift support](userguide/building_swift_projects.html) allows building and testing native Swift libraries and applications.
+
+#### Basic Swift 6 support
+
+Gradle now supports [Swift 6](https://www.swift.org/blog/announcing-swift-6/), introduced with [Xcode 16.0](https://developer.apple.com/documentation/xcode-release-notes/xcode-16-release-notes), extending its capabilities to the latest major version of Swift.
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE

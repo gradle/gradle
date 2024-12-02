@@ -19,11 +19,13 @@ import net.rubygrapefruit.platform.Native;
 import net.rubygrapefruit.platform.NativeException;
 import net.rubygrapefruit.platform.NativeIntegrationUnavailableException;
 import net.rubygrapefruit.platform.Process;
+import net.rubygrapefruit.platform.ProcessLauncher;
 import net.rubygrapefruit.platform.SystemInfo;
 import net.rubygrapefruit.platform.WindowsRegistry;
 import net.rubygrapefruit.platform.file.FileSystems;
 import net.rubygrapefruit.platform.file.Files;
 import net.rubygrapefruit.platform.file.PosixFiles;
+import net.rubygrapefruit.platform.internal.DefaultProcessLauncher;
 import net.rubygrapefruit.platform.memory.Memory;
 import net.rubygrapefruit.platform.terminal.Terminals;
 import org.gradle.api.JavaVersion;
@@ -225,7 +227,7 @@ public class NativeServices implements ServiceRegistrationProvider {
 
     private void initializeNativeIntegrations(File userHomeDir, NativeServicesMode nativeServicesMode) {
         this.userHomeDir = userHomeDir;
-        useNativeIntegrations = shouldUseNativeIntegration(nativeServicesMode);
+        useNativeIntegrations = nativeServicesMode.isEnabled();
         nativeBaseDir = getNativeServicesDir(userHomeDir).getAbsoluteFile();
         if (useNativeIntegrations) {
             try {
@@ -248,48 +250,6 @@ public class NativeServices implements ServiceRegistrationProvider {
             }
             LOGGER.info("Initialized native services in: {}", nativeBaseDir);
         }
-    }
-
-    private static boolean shouldUseNativeIntegration(NativeServicesMode nativeServicesMode) {
-        if (!nativeServicesMode.isEnabled()) {
-            return false;
-        }
-        if (isLinuxWithMusl()) {
-            LOGGER.debug("Native-platform is not available on Linux with musl libc.");
-            return false;
-        }
-        return true;
-    }
-
-    /**
-     * Our native libraries don't currently support musl libc.
-     * See <a href="https://github.com/gradle/gradle/issues/24875">#24875</a>.
-     */
-    private static boolean isLinuxWithMusl() {
-        if (!OperatingSystem.current().isLinux()) {
-            return false;
-        }
-
-        // Musl libc maps /lib/ld-musl-aarch64.so.1 into memory, let's try to find it
-        try {
-            File mapFilesDir = new File("/proc/self/map_files");
-            if (!mapFilesDir.isDirectory()) {
-                return false;
-            }
-            File[] files = mapFilesDir.listFiles();
-            if (files == null) {
-                return false;
-            }
-            for (File file : files) {
-                if (file.getCanonicalFile().getName().contains("-musl-")) {
-                    return true;
-                }
-            }
-        } catch (Exception e) {
-            // Ignored
-        }
-
-        return false;
     }
 
     private void initializeFeatures(EnumSet<NativeFeatures> requestedFeatures) {
@@ -438,6 +398,18 @@ public class NativeServices implements ServiceRegistrationProvider {
             }
         }
         return notAvailable(Memory.class, operatingSystem);
+    }
+
+    @Provides
+    protected ProcessLauncher createProcessLauncher() {
+        if (useNativeIntegrations) {
+            try {
+                return net.rubygrapefruit.platform.Native.get(ProcessLauncher.class);
+            } catch (NativeIntegrationUnavailableException e) {
+                LOGGER.debug("Native-platform process launcher is not available. Continuing with fallback.");
+            }
+        }
+        return new DefaultProcessLauncher();
     }
 
     @Provides

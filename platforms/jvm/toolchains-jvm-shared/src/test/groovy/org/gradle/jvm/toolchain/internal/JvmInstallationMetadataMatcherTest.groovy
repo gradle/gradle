@@ -25,9 +25,9 @@ import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.jvm.toolchain.JvmImplementation
 import org.gradle.jvm.toolchain.JvmVendorSpec
 import org.gradle.process.ExecResult
+import org.gradle.process.internal.ClientExecHandleBuilder
+import org.gradle.process.internal.ClientExecHandleBuilderFactory
 import org.gradle.process.internal.ExecHandle
-import org.gradle.process.internal.ExecHandleBuilder
-import org.gradle.process.internal.ExecHandleFactory
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.TestUtil
 import spock.lang.Specification
@@ -84,9 +84,9 @@ class JvmInstallationMetadataMatcherTest extends Specification {
             assert actualProperties.keySet() == probedSystemProperties.collect { it.systemPropertyKey }.toSet()
         }
 
-        def execHandleFactory = Mock(ExecHandleFactory)
-        def exec = Mock(ExecHandleBuilder)
-        execHandleFactory.newExec() >> exec
+        def execHandleFactory = Mock(ClientExecHandleBuilderFactory)
+        def exec = Mock(ClientExecHandleBuilder)
+        execHandleFactory.newExecHandleBuilder() >> exec
         PrintStream output
         exec.setStandardOutput(_ as OutputStream) >> { OutputStream outputStream ->
             output = new PrintStream(outputStream)
@@ -109,7 +109,7 @@ class JvmInstallationMetadataMatcherTest extends Specification {
         execHandleFactory
     }
 
-    private DefaultJvmMetadataDetector createDefaultJvmMetadataDetector(ExecHandleFactory execHandleFactory) {
+    private DefaultJvmMetadataDetector createDefaultJvmMetadataDetector(ClientExecHandleBuilderFactory execHandleFactory) {
         return new DefaultJvmMetadataDetector(
                 execHandleFactory,
                 TestFiles.tmpDirTemporaryFileProvider(tmpDir)

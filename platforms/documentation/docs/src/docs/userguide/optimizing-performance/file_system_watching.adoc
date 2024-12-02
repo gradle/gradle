@@ -48,10 +48,11 @@ Gradle supports file system watching on the following operating systems:
 
 * Windows 10, version 1709 and later
 * Linux, tested on the following distributions:
-** Ubuntu 16.04 or later
-** CentOS Stream 8 or later
-** Red Hat Enterprise Linux (RHEL) 8 or later
-** Amazon Linux 2 or later
+** Ubuntu 16.04
+** CentOS Stream 9
+** Red Hat Enterprise Linux (RHEL) 8
+** Amazon Linux 2
+** Alpine Linux 3.20
 * macOS 12 (Monterey) or later on Intel and ARM architectures
 
 == Supported File Systems
@@ -70,18 +71,16 @@ Gradle also supports VirtualBox's shared folders.
 
 Network file systems like Samba and NFS are not supported.
 
-.Symlinks
---
-File system watching is not compatible with symlinks.
-If your project files include symlinks, symlinked files do not benefit from file system-watching optimizations.
---
-
 == Unsupported File Systems
 
 When enabled by default, file system watching acts conservatively when it encounters content on unsupported file systems.
 This can happen if you mount a project directory or subdirectory from a network drive.
 Gradle doesn't retain information about unsupported file systems between builds when enabled by default.
 If you explicitly enable file system watching, Gradle retains information about unsupported file systems between builds.
+
+=== Symlinks
+
+Files and directories in your project that are accessed via symlinks do not benefit from file system-watching optimizations.
 
 == Logging
 

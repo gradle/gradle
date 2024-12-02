@@ -24,11 +24,9 @@ import org.gradle.internal.build.BuildState
 import org.gradle.internal.declarativedsl.evaluationSchema.DefaultInterpretationSequence
 import org.gradle.internal.declarativedsl.evaluationSchema.SimpleInterpretationSequenceStep
 import org.gradle.internal.declarativedsl.evaluator.GradleProcessInterpretationSchemaBuilder
-import org.gradle.internal.declarativedsl.evaluator.LoadedProjectScriptContext
-import org.gradle.internal.declarativedsl.evaluator.LoadedSettingsScriptContext
+import org.gradle.internal.declarativedsl.evaluator.schema.DeclarativeScriptContext
 import org.gradle.internal.declarativedsl.evaluator.schema.DefaultEvaluationSchema
 import org.gradle.internal.declarativedsl.evaluator.schema.InterpretationSchemaBuildingResult
-import org.gradle.plugin.software.internal.SoftwareFeatureApplicator
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry
 import org.gradle.tooling.provider.model.internal.BuildScopeModelBuilder
 import java.io.Serializable
@@ -42,16 +40,12 @@ class DeclarativeSchemaModelBuilder(
         // Make sure the project tree has been loaded and can be queried (but not necessarily configured)
         target.ensureProjectsLoaded()
 
-        val schemaBuilder = GradleProcessInterpretationSchemaBuilder(softwareTypeRegistry)
+        val schemaBuilder = GradleProcessInterpretationSchemaBuilder({ target.mutableModel.settings }, softwareTypeRegistry)
 
-        val settings = target.mutableModel.settings
-        val settingsContext = LoadedSettingsScriptContext(settings, settings.classLoaderScope, settings.settingsScript)
-
-        val settingsSequence = schemaBuilder.getEvaluationSchemaForScript(settingsContext)
+        val settingsSequence = schemaBuilder.getEvaluationSchemaForScript(DeclarativeScriptContext.SettingsScript)
             .sequenceOrError().analysisOnly()
 
-        val projectContext = LoadedProjectScriptContext(SoftwareFeatureApplicator.ANALYSIS_ONLY)
-        val projectSequence = schemaBuilder.getEvaluationSchemaForScript(projectContext)
+        val projectSequence = schemaBuilder.getEvaluationSchemaForScript(DeclarativeScriptContext.ProjectScript)
             .sequenceOrError().analysisOnly()
 
         return DefaultDeclarativeSchemaModel(settingsSequence, projectSequence)

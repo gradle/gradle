@@ -47,7 +47,7 @@ class IsolatedProjectsToolingApiKotlinDslIntegrationTest extends AbstractIsolate
         def model = fetchModel(KotlinDslScriptsModel)
 
         then:
-        fixture.assertStateStored {
+        fixture.assertModelStored {
             modelsCreated(":", KotlinDslScriptsModel)
             modelsCreated(":a", [isolatedScriptsModel])
         }
@@ -60,7 +60,7 @@ class IsolatedProjectsToolingApiKotlinDslIntegrationTest extends AbstractIsolate
         fetchModel(KotlinDslScriptsModel)
 
         then:
-        fixture.assertStateLoaded()
+        fixture.assertModelLoaded()
     }
 
     static void checkKotlinDslScriptsModel(actual, expected) {

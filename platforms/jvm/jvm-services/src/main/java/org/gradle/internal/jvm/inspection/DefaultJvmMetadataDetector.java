@@ -23,9 +23,9 @@ import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.jvm.toolchain.internal.InstallationLocation;
 import org.gradle.process.ExecResult;
+import org.gradle.process.internal.ClientExecHandleBuilder;
+import org.gradle.process.internal.ClientExecHandleBuilderFactory;
 import org.gradle.process.internal.ExecException;
-import org.gradle.process.internal.ExecHandleBuilder;
-import org.gradle.process.internal.ExecHandleFactory;
 import org.gradle.util.internal.GFileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,14 +39,14 @@ import java.util.EnumMap;
 
 public class DefaultJvmMetadataDetector implements JvmMetadataDetector {
 
-    private final ExecHandleFactory execHandleFactory;
+    private final ClientExecHandleBuilderFactory execHandleFactory;
     private final TemporaryFileProvider temporaryFileProvider;
 
     private final Logger logger = LoggerFactory.getLogger(DefaultJvmMetadataDetector.class);
 
     @Inject
     public DefaultJvmMetadataDetector(
-        final ExecHandleFactory execHandleFactory,
+        final ClientExecHandleBuilderFactory execHandleFactory,
         final TemporaryFileProvider temporaryFileProvider
     ) {
         this.execHandleFactory = execHandleFactory;
@@ -99,9 +99,9 @@ public class DefaultJvmMetadataDetector implements JvmMetadataDetector {
     private JvmInstallationMetadata getMetadataFromInstallation(File jdkPath) {
         File tmpDir = temporaryFileProvider.createTemporaryDirectory("jvm", "probe");
         File probe = writeProbeClass(tmpDir);
-        ExecHandleBuilder exec = execHandleFactory.newExec();
+        ClientExecHandleBuilder exec = execHandleFactory.newExecHandleBuilder();
         exec.setWorkingDir(probe.getParentFile());
-        exec.executable(javaExecutable(jdkPath));
+        exec.setExecutable(javaExecutable(jdkPath).getAbsolutePath());
         try {
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             ByteArrayOutputStream errorOutput = new ByteArrayOutputStream();
@@ -109,7 +109,6 @@ public class DefaultJvmMetadataDetector implements JvmMetadataDetector {
             exec.args("-Xmx32m", "-Xms32m", "-cp", ".", mainClassname);
             exec.setStandardOutput(out);
             exec.setErrorOutput(errorOutput);
-            exec.setIgnoreExitValue(true);
             ExecResult result = exec.build().start().waitForFinish();
             int exitValue = result.getExitValue();
             if (exitValue == 0) {

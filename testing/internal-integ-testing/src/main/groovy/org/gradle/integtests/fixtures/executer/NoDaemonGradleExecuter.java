@@ -19,12 +19,13 @@ package org.gradle.integtests.fixtures.executer;
 import org.gradle.api.Action;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCachesProvider;
 import org.gradle.api.internal.file.TestFiles;
+import org.gradle.initialization.DefaultBuildCancellationToken;
 import org.gradle.internal.Factory;
 import org.gradle.internal.jvm.JpmsConfiguration;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.process.internal.AbstractExecHandleBuilder;
-import org.gradle.process.internal.DefaultExecHandleBuilder;
-import org.gradle.process.internal.ExecHandleBuilder;
+import org.gradle.process.internal.BaseExecHandleBuilder;
+import org.gradle.process.internal.ClientExecHandleBuilder;
+import org.gradle.process.internal.DefaultClientExecHandleBuilder;
 import org.gradle.process.internal.JvmOptions;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
@@ -184,10 +185,10 @@ public class NoDaemonGradleExecuter extends AbstractGradleExecuter {
         return createForkingGradleHandle(getResultAssertion(), getDefaultCharacterEncoding(), getExecHandleFactory()).start();
     }
 
-    protected Factory<? extends AbstractExecHandleBuilder> getExecHandleFactory() {
-        return new Factory<DefaultExecHandleBuilder>() {
+    protected Factory<BaseExecHandleBuilder> getExecHandleFactory() {
+        return new Factory<BaseExecHandleBuilder>() {
             @Override
-            public DefaultExecHandleBuilder create() {
+            public BaseExecHandleBuilder create() {
                 TestFile gradleHomeDir = getDistribution().getGradleHomeDir();
                 if (gradleHomeDir != null && !gradleHomeDir.isDirectory()) {
                     fail(gradleHomeDir + " is not a directory.\n"
@@ -195,7 +196,7 @@ public class NoDaemonGradleExecuter extends AbstractGradleExecuter {
                 }
 
                 NativeServicesTestFixture.initialize();
-                DefaultExecHandleBuilder builder = new DefaultExecHandleBuilder(TestFiles.pathToFileResolver(), Executors.newCachedThreadPool()) {
+                DefaultClientExecHandleBuilder builder = new DefaultClientExecHandleBuilder(TestFiles.pathToFileResolver(), Executors.newCachedThreadPool(), new DefaultBuildCancellationToken()) {
                     @Override
                     public File getWorkingDir() {
                         // Override this, so that the working directory is not canonicalised. Some int tests require that
@@ -214,7 +215,7 @@ public class NoDaemonGradleExecuter extends AbstractGradleExecuter {
                 GradleInvocation invocation = buildInvocation();
 
                 builder.environment(invocation.environmentVars);
-                builder.workingDir(getWorkingDir());
+                builder.setWorkingDir(getWorkingDir());
                 builder.setStandardInput(connectStdIn());
 
                 builder.args(invocation.args);
@@ -227,7 +228,7 @@ public class NoDaemonGradleExecuter extends AbstractGradleExecuter {
         };
     }
 
-    protected ForkingGradleHandle createForkingGradleHandle(Action<ExecutionResult> resultAssertion, String encoding, Factory<? extends AbstractExecHandleBuilder> execHandleFactory) {
+    protected ForkingGradleHandle createForkingGradleHandle(Action<ExecutionResult> resultAssertion, String encoding, Factory<BaseExecHandleBuilder> execHandleFactory) {
         return new ForkingGradleHandle(getStdinPipe(), isUseDaemon(), resultAssertion, encoding, execHandleFactory, getDurationMeasurement());
     }
 
@@ -242,19 +243,19 @@ public class NoDaemonGradleExecuter extends AbstractGradleExecuter {
     }
 
     private interface ExecHandlerConfigurer {
-        void configure(ExecHandleBuilder builder);
+        void configure(ClientExecHandleBuilder builder);
     }
 
     private class WindowsConfigurer implements ExecHandlerConfigurer {
         @Override
-        public void configure(ExecHandleBuilder builder) {
+        public void configure(ClientExecHandleBuilder builder) {
             String cmd;
             if (getExecutable() != null) {
                 cmd = getExecutable().replace('/', File.separatorChar);
             } else {
                 cmd = "gradle";
             }
-            builder.executable("cmd.exe");
+            builder.setExecutable("cmd.exe");
 
             List<String> allArgs = builder.getArgs();
             String actualCommand = quote(quote(cmd) + " " + allArgs.stream().map(NoDaemonGradleExecuter::quote).collect(joining(" ")));
@@ -289,16 +290,16 @@ public class NoDaemonGradleExecuter extends AbstractGradleExecuter {
 
     private class UnixConfigurer implements ExecHandlerConfigurer {
         @Override
-        public void configure(ExecHandleBuilder builder) {
+        public void configure(ClientExecHandleBuilder builder) {
             if (getExecutable() != null) {
                 File exe = new File(getExecutable());
                 if (exe.isAbsolute()) {
-                    builder.executable(exe.getAbsolutePath());
+                    builder.setExecutable(exe.getAbsolutePath());
                 } else {
-                    builder.executable(String.format("%s/%s", getWorkingDir().getAbsolutePath(), getExecutable()));
+                    builder.setExecutable(String.format("%s/%s", getWorkingDir().getAbsolutePath(), getExecutable()));
                 }
             } else {
-                builder.executable(String.format("%s/bin/gradle", getDistribution().getGradleHomeDir().getAbsolutePath()));
+                builder.setExecutable(String.format("%s/bin/gradle", getDistribution().getGradleHomeDir().getAbsolutePath()));
             }
         }
     }

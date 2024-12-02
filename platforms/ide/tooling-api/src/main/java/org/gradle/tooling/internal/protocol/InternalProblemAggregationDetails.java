@@ -18,6 +18,9 @@ package org.gradle.tooling.internal.protocol;
 
 import org.gradle.api.NonNullApi;
 
+/**
+ * <p>DO NOT CHANGE THIS INTERFACE - it is part of the cross-version protocol.
+ */
 @NonNullApi
 public interface InternalProblemAggregationDetails extends InternalProblemDetails {
 

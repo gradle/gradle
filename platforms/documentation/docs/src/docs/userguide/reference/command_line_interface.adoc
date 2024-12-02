@@ -608,6 +608,15 @@ Set to `rich` to enable color and other rich output in the console output, regar
 +
 Set to `verbose` to enable color and other rich output like `rich` with output task names and outcomes at the lifecycle log level, (as is done by default in Gradle 3.5 and earlier).
 
+[[sec:command_line_problems]]
+=== Reporting problems
+
+`--no-problems-report`::
+Disable the generation of `build/reports/problems-report.html`, by default this report is generated with problems provided to the <<implementing_gradle_plugins_binary.adoc#sec:reporting_problems,Problems API>>.
+
+`--problems-report`::
+Enable the generation of `build/reports/problems-report.html`. This is the default behaviour. The report is generated with problems provided to the <<implementing_gradle_plugins_binary.adoc#sec:reporting_problems,Problems API>>.
+
 [[sec:command_line_warnings]]
 === Showing or hiding warnings
 By default, Gradle won't display all warnings (e.g. deprecation warnings). Instead, Gradle will collect them and render a summary at the end of the build like:
@@ -652,10 +661,10 @@ The following options affect how builds are executed by changing what is built o
 Run the build as a <<composite_builds.adoc#composite_builds,composite>>, including the specified build.
 
 `--offline`::
-Specifies that the build should operate <<dynamic_versions.adoc#sec:controlling_dependency_caching_command_line,without accessing network resources>>.
+Specifies that the build should operate <<dependency_caching.adoc#sec:controlling-dependency-caching-command-line,without accessing network resources>>.
 
 `-U`, `--refresh-dependencies`::
-Refresh the <<dynamic_versions.adoc#sec:controlling_dependency_caching_command_line,state of dependencies>>.
+Refresh the <<dependency_caching.adoc#sec:controlling-dependency-caching-command-line,state of dependencies>>.
 
 `--continue`::
 <<command_line_interface.adoc#sec:continue_build_on_failure,Continue task execution>> after a task failure.
@@ -667,10 +676,10 @@ Run Gradle with all task actions disabled. Use this to show which task would hav
 Enables <<#sec:continuous_build,continuous build>>. Gradle does not exit and will re-execute tasks when task file inputs change.
 
 `--write-locks`::
-Indicates that all resolved configurations that are _lockable_ should have their <<dependency_locking.adoc#dependency-locking,lock state>> persisted.
+Indicates that all resolved configurations that are _lockable_ should have their <<dependency_locking.adoc#locking-versions,lock state>> persisted.
 
 `--update-locks <group:name>[,<group:name>]*`::
-Indicates that versions for the specified modules have to be updated in the <<dependency_locking.adoc#dependency-locking,lock file>>.
+Indicates that versions for the specified modules have to be updated in the <<dependency_locking.adoc#locking-versions,lock file>>.
 +
 This flag also implies `--write-locks`.
 

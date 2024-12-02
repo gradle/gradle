@@ -24,30 +24,20 @@ import org.gradle.internal.build.event.BuildEventSubscriptions;
 import org.gradle.internal.build.event.OperationResultPostProcessor;
 import org.gradle.internal.build.event.OperationResultPostProcessorFactory;
 import org.gradle.internal.operations.BuildOperationAncestryTracker;
-import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationIdFactory;
 import org.gradle.internal.operations.BuildOperationListener;
-import org.gradle.internal.operations.OperationFinishEvent;
 import org.gradle.internal.operations.OperationIdentifier;
-import org.gradle.internal.operations.OperationProgressEvent;
-import org.gradle.internal.operations.OperationStartEvent;
-import org.gradle.problems.buildtree.ProblemReporter;
 import org.gradle.tooling.events.OperationType;
 
-import javax.annotation.Nonnull;
-import java.io.File;
 import java.util.List;
-import java.util.Optional;
-import java.util.function.Supplier;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
 
 @NonNullApi
-public class ToolingApiBuildEventListenerFactory implements BuildEventListenerFactory, ProblemReporter {
+public class ToolingApiBuildEventListenerFactory implements BuildEventListenerFactory {
     private final BuildOperationAncestryTracker ancestryTracker;
     private final BuildOperationIdFactory idFactory;
     private final List<OperationResultPostProcessorFactory> postProcessorFactories;
-    private Optional<AggregatingProblemConsumer> problemAggregator = Optional.empty();
 
     ToolingApiBuildEventListenerFactory(BuildOperationAncestryTracker ancestryTracker, BuildOperationIdFactory idFactory, List<OperationResultPostProcessorFactory> postProcessorFactories) {
         this.ancestryTracker = ancestryTracker;
@@ -83,7 +73,7 @@ public class ToolingApiBuildEventListenerFactory implements BuildEventListenerFa
         OperationDependenciesResolver operationDependenciesResolver = new OperationDependenciesResolver();
 
         PluginApplicationTracker pluginApplicationTracker = new PluginApplicationTracker(ancestryTracker);
-        TestTaskExecutionTracker testTaskTracker = new TestTaskExecutionTracker(ancestryTracker);
+        TaskForTestEventTracker testTaskTracker = new TaskForTestEventTracker(ancestryTracker);
         ProjectConfigurationTracker projectConfigurationTracker = new ProjectConfigurationTracker(ancestryTracker, pluginApplicationTracker);
         TaskOriginTracker taskOriginTracker = new TaskOriginTracker(pluginApplicationTracker);
 
@@ -114,44 +104,7 @@ public class ToolingApiBuildEventListenerFactory implements BuildEventListenerFa
     }
 
     private BuildOperationListener createBuildOperationListener(BuildEventSubscriptions subscriptions, ProgressEventConsumer progressEventConsumer) {
-        if (subscriptions.isRequested(OperationType.PROBLEMS)) {
-            return createProblemsProgressConsumer(progressEventConsumer);
-        }
-        if (subscriptions.isRequested(OperationType.GENERIC)) {
-            return new ClientForwardingBuildOperationListener(progressEventConsumer);
-        }
-        return NO_OP;
-    }
-
-    @Nonnull
-    private ProblemsProgressEventConsumer createProblemsProgressConsumer(ProgressEventConsumer progressEventConsumer) {
-        Supplier<OperationIdentifier> operationIdentifierSupplier = () -> new OperationIdentifier(idFactory.nextId());
-        AggregatingProblemConsumer aggregator = new AggregatingProblemConsumer(progressEventConsumer, operationIdentifierSupplier);
-        this.problemAggregator = Optional.of(aggregator);
-        return new ProblemsProgressEventConsumer(progressEventConsumer, operationIdentifierSupplier, aggregator);
-    }
-
-    private static final BuildOperationListener NO_OP = new BuildOperationListener() {
-        @Override
-        public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
-        }
-
-        @Override
-        public void progress(OperationIdentifier buildOperationId, OperationProgressEvent progressEvent) {
-        }
-
-        @Override
-        public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
-        }
-    };
-
-    @Override
-    public String getId() {
-        return "problems";
-    }
-
-    @Override
-    public void report(File reportDir, ProblemConsumer validationFailures) {
-        problemAggregator.ifPresent(AggregatingProblemConsumer::sendProblemSummaries);
+        // TODO (donat) think of a better name for this class
+        return new ClientForwardingBuildOperationListener(progressEventConsumer, subscriptions, () -> new OperationIdentifier(idFactory.nextId()));
     }
 }

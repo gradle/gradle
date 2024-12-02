@@ -34,6 +34,7 @@ class BasicParsingTest {
             """
             f(x = y)
             f(1)
+            f()
             """.trimIndent()
         )
 
@@ -56,6 +57,10 @@ class BasicParsingTest {
                             expr = IntLiteral [indexes: 11..12, line/column: 2/3..2/4, file: test] (1)
                         )
                     ]
+                )
+                FunctionCall [indexes: 14..17, line/column: 3/1..3/4, file: test] (
+                    name = f
+                    args = []
                 )""".trimIndent()
         results.assert(expected)
     }
@@ -220,6 +225,62 @@ class BasicParsingTest {
     }
 
     @Test
+    fun `parses assigning value factory`() {
+        val results = ParseTestUtil.parse(
+            """
+            a = f(1)
+            """.trimIndent()
+        )
+
+        val expected = """
+            Assignment [indexes: 0..8, line/column: 1/1..1/9, file: test] (
+                lhs = NamedReference [indexes: 0..1, line/column: 1/1..1/2, file: test] (
+                    name = a
+                )
+                rhs = FunctionCall [indexes: 4..8, line/column: 1/5..1/9, file: test] (
+                    name = f
+                    args = [
+                        FunctionArgument.Positional [indexes: 6..7, line/column: 1/7..1/8, file: test] (
+                            expr = IntLiteral [indexes: 6..7, line/column: 1/7..1/8, file: test] (1)
+                        )
+                    ]
+                )
+            )""".trimIndent()
+        results.assert(expected)
+    }
+
+    @Test
+    fun `parses assigning function invocation after an access chain`() {
+        val results = ParseTestUtil.parse(
+            """
+            a = f.g.h(7)
+            """.trimIndent()
+        )
+
+        val expected = """
+            Assignment [indexes: 0..12, line/column: 1/1..1/13, file: test] (
+                lhs = NamedReference [indexes: 0..1, line/column: 1/1..1/2, file: test] (
+                    name = a
+                )
+                rhs = FunctionCall [indexes: 8..12, line/column: 1/9..1/13, file: test] (
+                    name = h
+                    receiver = NamedReference [indexes: 6..7, line/column: 1/7..1/8, file: test] (
+                        receiver = NamedReference [indexes: 4..5, line/column: 1/5..1/6, file: test] (
+                            name = f
+                        )
+                        name = g
+                    )
+                    args = [
+                        FunctionArgument.Positional [indexes: 10..11, line/column: 1/11..1/12, file: test] (
+                            expr = IntLiteral [indexes: 10..11, line/column: 1/11..1/12, file: test] (7)
+                        )
+                    ]
+                )
+            )""".trimIndent()
+        results.assert(expected)
+    }
+
+    @Test
     fun `parses a local val`() {
         val results = ParseTestUtil.parse("val a = 1")
 
@@ -258,6 +319,13 @@ class BasicParsingTest {
         val results = ParseTestUtil.parse(
             """
             a { b = 1 }
+            block("param") {
+                a = 1
+            }
+            `backtick block` { a = 1 }
+            `backtick block with param` ("param") {
+                b = 2
+            }
             """.trimIndent())
 
         val expected = """
@@ -271,6 +339,57 @@ class BasicParsingTest {
                                     name = b
                                 )
                                 rhs = IntLiteral [indexes: 8..9, line/column: 1/9..1/10, file: test] (1)
+                            )
+                        )
+                    )
+                ]
+            )
+            FunctionCall [indexes: 12..40, line/column: 2/1..4/2, file: test] (
+                name = block
+                args = [
+                    FunctionArgument.Positional [indexes: 18..25, line/column: 2/7..2/14, file: test] (
+                        expr = StringLiteral [indexes: 18..25, line/column: 2/7..2/14, file: test] (param)
+                    )
+                    FunctionArgument.Lambda [indexes: 27..40, line/column: 2/16..4/2, file: test] (
+                        block = Block [indexes: 33..38, line/column: 3/5..3/10, file: test] (
+                            Assignment [indexes: 33..38, line/column: 3/5..3/10, file: test] (
+                                lhs = NamedReference [indexes: 33..34, line/column: 3/5..3/6, file: test] (
+                                    name = a
+                                )
+                                rhs = IntLiteral [indexes: 37..38, line/column: 3/9..3/10, file: test] (1)
+                            )
+                        )
+                    )
+                ]
+            )
+            FunctionCall [indexes: 41..67, line/column: 5/1..5/27, file: test] (
+                name = `backtick block`
+                args = [
+                    FunctionArgument.Lambda [indexes: 58..67, line/column: 5/18..5/27, file: test] (
+                        block = Block [indexes: 60..65, line/column: 5/20..5/25, file: test] (
+                            Assignment [indexes: 60..65, line/column: 5/20..5/25, file: test] (
+                                lhs = NamedReference [indexes: 60..61, line/column: 5/20..5/21, file: test] (
+                                    name = a
+                                )
+                                rhs = IntLiteral [indexes: 64..65, line/column: 5/24..5/25, file: test] (1)
+                            )
+                        )
+                    )
+                ]
+            )
+            FunctionCall [indexes: 68..119, line/column: 6/1..8/2, file: test] (
+                name = `backtick block with param`
+                args = [
+                    FunctionArgument.Positional [indexes: 97..104, line/column: 6/30..6/37, file: test] (
+                        expr = StringLiteral [indexes: 97..104, line/column: 6/30..6/37, file: test] (param)
+                    )
+                    FunctionArgument.Lambda [indexes: 106..119, line/column: 6/39..8/2, file: test] (
+                        block = Block [indexes: 112..117, line/column: 7/5..7/10, file: test] (
+                            Assignment [indexes: 112..117, line/column: 7/5..7/10, file: test] (
+                                lhs = NamedReference [indexes: 112..113, line/column: 7/5..7/6, file: test] (
+                                    name = b
+                                )
+                                rhs = IntLiteral [indexes: 116..117, line/column: 7/9..7/10, file: test] (2)
                             )
                         )
                     )

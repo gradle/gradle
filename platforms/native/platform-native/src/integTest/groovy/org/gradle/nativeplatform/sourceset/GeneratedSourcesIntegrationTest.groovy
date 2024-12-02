@@ -87,6 +87,7 @@ model {
 """
 
         then:
+        expectTaskGetProjectDeprecations()
         executableBuilt(app)
     }
 
@@ -121,6 +122,7 @@ model {
 """
 
         then:
+        expectTaskGetProjectDeprecations()
         executableBuilt(app)
     }
 
@@ -151,6 +153,7 @@ model {
 """
 
         then:
+        expectTaskGetProjectDeprecations()
         executableBuilt(app)
     }
 
@@ -185,6 +188,7 @@ model {
 """
 
         then:
+        expectTaskGetProjectDeprecations()
         executableBuilt(app)
     }
 
@@ -223,6 +227,7 @@ model {
 """
 
         then:
+        expectTaskGetProjectDeprecations()
         executableBuilt(app)
     }
 
@@ -255,6 +260,7 @@ model {
 """
 
         then:
+        expectTaskGetProjectDeprecations()
         executableBuilt(app)
     }
 
@@ -291,6 +297,7 @@ model {
 """
 
         then:
+        expectTaskGetProjectDeprecations()
         executableBuilt(app)
     }
 
@@ -326,6 +333,7 @@ model {
 """
 
         then:
+        expectTaskGetProjectDeprecations()
         executableBuilt(app)
     }
 
@@ -387,6 +395,7 @@ model {
 """
 
         then:
+        expectTaskGetProjectDeprecations()
         executableBuilt(app)
     }
 
@@ -421,6 +430,7 @@ lateConfiguredGenerator {
 """
 
         then:
+        expectTaskGetProjectDeprecations()
         executableBuilt(app)
     }
 
@@ -448,6 +458,7 @@ model {
 """
 
         when:
+        expectTaskGetProjectDeprecations()
         succeeds "visualStudio"
 
         then:

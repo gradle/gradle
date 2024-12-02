@@ -30,4 +30,9 @@ public class ProblemsServices extends AbstractGradleModuleServices {
     public void registerBuildTreeServices(ServiceRegistration registration) {
         registration.addProvider(new ProblemsBuildTreeServices());
     }
+
+    @Override
+    public void registerBuildSessionServices(ServiceRegistration registration) {
+        registration.addProvider(new ProblemsBuildSessionServices());
+    }
 }

@@ -38,34 +38,39 @@ class BuildInvocationsCrossVersionSpec extends ToolingApiSpecification {
 
         file("b/build.gradle") << '''
             task t3 {
+                def projectName = project.name
                 doLast {
-                    println "t3 in $project.name"
+                    println "t3 in $projectName"
                 }
             }
             task t2 {
+                def projectName = project.name
                 doLast {
-                    println "t2 in $project.name"
+                    println "t2 in $projectName"
                 }
             }
         '''
 
         file("b/c/build.gradle") << '''
             task t1 {
+                def projectName = project.name
                 doLast {
-                    println "t1 in $project.name"
+                    println "t1 in $projectName"
                 }
             }
             task t2 {
+                def projectName = project.name
                 doLast {
-                    println "t2 in $project.name"
+                    println "t2 in $projectName"
                 }
             }
         '''
 
         buildFile << '''
             task t1 {
+                def projectName = project.name
                 doLast {
-                    println "t1 in $project.name"
+                    println "t1 in $projectName"
                 }
             }
         '''

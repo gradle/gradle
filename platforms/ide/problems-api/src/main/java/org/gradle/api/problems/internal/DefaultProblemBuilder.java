@@ -64,7 +64,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
         this.solutions = new ArrayList<String>(problem.getSolutions());
         this.severity = problem.getDefinition().getSeverity();
 
-        locations.addAll(problem.getLocations());
+        locations.addAll(problem.getOriginLocations());
 
         this.details = problem.getDetails();
         this.docLink = problem.getDefinition().getDocumentationLink();
@@ -73,19 +73,19 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
         this.problemStream = null;
     }
 
-    @SuppressWarnings("ConstantValue")
     @Override
     public Problem build() {
         // id is mandatory
-        if (id == null) {
+        if (getId() == null) {
             return invalidProblem("missing-id", "Problem id must be specified", null);
-        } else if (id.getGroup() == null) {
+        } else if (getId().getGroup() == null) {
             return invalidProblem("missing-parent", "Problem id must have a parent", null);
         }
 
         if (additionalData instanceof UnsupportedAdditionalDataSpec) {
             return invalidProblem("unsupported-additional-data", "Unsupported additional data type",
-                "Unsupported additional data type: " + ((UnsupportedAdditionalDataSpec) additionalData).getType().getName() + ". Supported types are: " + additionalDataBuilderFactory.getSupportedTypes());
+                "Unsupported additional data type: " + ((UnsupportedAdditionalDataSpec) additionalData).getType().getName() +
+                    ". Supported types are: " + additionalDataBuilderFactory.getSupportedTypes());
         }
 
         Throwable exceptionForProblemInstantiation = getExceptionForProblemInstantiation();
@@ -93,8 +93,17 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
             addLocationsFromProblemStream(this.locations, exceptionForProblemInstantiation);
         }
 
-        ProblemDefinition problemDefinition = new DefaultProblemDefinition(id, getSeverity(), docLink);
-        return new DefaultProblem(problemDefinition, contextualLabel, solutions, locations.build(), details, exceptionForProblemInstantiation, additionalData);
+        ProblemDefinition problemDefinition = new DefaultProblemDefinition(getId(), getSeverity(), docLink);
+        return new DefaultProblem(
+            problemDefinition,
+            contextualLabel,
+            solutions,
+            locations.build(),
+            ImmutableList.<ProblemLocation>of(),
+            details,
+            exceptionForProblemInstantiation,
+            additionalData
+        );
     }
 
     private void addLocationsFromProblemStream(ImmutableList.Builder<ProblemLocation> locations, Throwable exceptionForProblemInstantiation) {
@@ -125,13 +134,14 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
             "problems-api",
             "Problems API")
         ).stackLocation();
-        ProblemDefinition problemDefinition = new DefaultProblemDefinition(this.id, Severity.WARNING, null);
+        ProblemDefinition problemDefinition = new DefaultProblemDefinition(this.getId(), Severity.WARNING, null);
         Throwable exceptionForProblemInstantiation = getExceptionForProblemInstantiation();
         ImmutableList.Builder<ProblemLocation> problemLocations = ImmutableList.builder();
         addLocationsFromProblemStream(problemLocations, exceptionForProblemInstantiation);
         return new DefaultProblem(problemDefinition, contextualLabel,
             ImmutableList.<String>of(),
             problemLocations.build(),
+            ImmutableList.<ProblemLocation>of(),
             null,
             exceptionForProblemInstantiation,
             null);
@@ -272,6 +282,10 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
 
     protected void addLocation(ProblemLocation location) {
         this.locations.add(location);
+    }
+
+    public ProblemId getId() {
+        return id;
     }
 
     private static class UnsupportedAdditionalDataSpec implements AdditionalData {

@@ -18,7 +18,7 @@ package org.gradle.internal.declarativedsl
 
 import com.nhaarman.mockitokotlin2.mock
 import org.gradle.api.Action
-import org.gradle.api.initialization.Settings
+import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.api.plugins.ExtensionsSchema
 import org.gradle.api.plugins.ExtensionsSchema.ExtensionSchema
@@ -37,7 +37,7 @@ class SettingsExtensionsSchemaTest {
 
     @Test
     fun `settings extensions are imported in declarative dsl schema`() {
-        val settingsMock: Settings = run {
+        val settingsMock: SettingsInternal = run {
             val extensionsMock = run {
                 val myExtensionMock = mock<MyExtension>()
                 val extensionsSchemaMock = mock<ExtensionsSchema> {
@@ -51,7 +51,7 @@ class SettingsExtensionsSchemaTest {
                     on { getByName("myExtension") }.thenReturn(myExtensionMock)
                 }
             }
-            mock<Settings> {
+            mock<SettingsInternal> {
                 on { extensions }.thenReturn(extensionsMock)
             }
         }

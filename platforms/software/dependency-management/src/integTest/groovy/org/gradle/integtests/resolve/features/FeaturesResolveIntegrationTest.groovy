@@ -120,7 +120,7 @@ class FeaturesResolveIntegrationTest extends AbstractModuleDependencyResolveTest
         fails 'checkDeps'
 
         then:
-        failure.assertHasCause("""Unable to find a variant providing the requested capability 'org:feature-3':
+        failure.assertHasCause("""Unable to find a variant with the requested capability: coordinates 'org:feature-3':
    - Variant 'api' provides 'org:foo:1.0'
    - Variant 'feature1' provides 'org:feature-1:1.0'
    - Variant 'feature2' provides 'org:feature-2:1.0'

@@ -66,7 +66,7 @@ public class PublicApiCorrectnessTest {
             .or(primitive)
             // NOTE: we don't want to include java.util.function here because Gradle public API uses custom types like org.gradle.api.Action and org.gradle.api.Spec
             // Mixing these custom types with java.util.function types would make the public API harder to use, especially for plugin authors.
-            .or(resideInAnyPackage("java.lang", "java.util", "java.util.concurrent", "java.util.regex", "java.lang.reflect", "java.io")
+            .or(resideInAnyPackage("java.lang", "java.util", "java.util.concurrent", "java.util.regex", "java.lang.reflect", "java.io", "java.time")
                 .or(type(byte[].class))
                 .or(type(URI.class))
                 .or(type(URL.class))

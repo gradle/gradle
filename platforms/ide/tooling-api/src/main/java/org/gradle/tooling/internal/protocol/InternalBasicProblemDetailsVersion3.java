@@ -27,6 +27,11 @@ import org.gradle.tooling.internal.protocol.problem.InternalSolution;
 import javax.annotation.Nullable;
 import java.util.List;
 
+/**
+ * <p>DO NOT CHANGE THIS INTERFACE - it is part of the cross-version protocol.
+ *
+ * @since 8.12
+ */
 @NonNullApi
 public interface InternalBasicProblemDetailsVersion3 extends InternalProblemDetailsVersion2 {
 

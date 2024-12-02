@@ -16,6 +16,8 @@
 
 package org.gradle.internal.tools.api
 
+import spock.lang.Issue
+
 import java.lang.annotation.ElementType
 import java.lang.reflect.Method
 
@@ -379,6 +381,47 @@ class ApiClassExtractorAnnotationsTest extends ApiClassExtractorTestSupport {
         extractedAnnotation.type() == Integer
         extractedMethods["value"].defaultValue == 42
         extractedAnnotation.value() == 42
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/31436")
+    def "can compile against extracted enum class with annotations on its constructor"() {
+        given:
+        def api = toApi([
+            'MyEnum': '''
+                public enum MyEnum {
+                    VALUE("meta");
+
+                    MyEnum(@RuntimeVisible @RuntimeInvisible String metadata) {
+                        // Constructor
+                    }
+                }
+            ''',
+            'RuntimeVisible': '''
+                @java.lang.annotation.Retention(java.lang.annotation.RetentionPolicy.RUNTIME)
+                public @interface RuntimeVisible {}
+            ''',
+            'RuntimeInvisible': '''
+                @java.lang.annotation.Retention(java.lang.annotation.RetentionPolicy.CLASS)
+                public @interface RuntimeInvisible {}
+            ''',
+        ])
+
+        def apiStubDir = new File(temporaryFolder, "api-stubs")
+        writeClass(api, 'MyEnum', apiStubDir)
+
+        when:
+        def consumer = compileTo(new File(temporaryFolder, 'consumer'), [
+            'Main': '''
+                public class Main {
+                    public static void main(String[] args) {
+                        System.out.println("Hello " + MyEnum.class.getName());
+                    }
+                }
+            '''
+        ], [apiStubDir])
+
+        then:
+        consumer.classes.Main.clazz.name == "Main"
     }
 
     private static Map<String, Method> mapMethods(Method[] methods) {

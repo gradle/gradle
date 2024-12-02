@@ -90,7 +90,7 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
         given:
         serviceImplementation()
         adhocTaskUsingUndeclaredService(1)
-        enableStableConfigurationCache()
+        enableServiceUsageDeclaration()
         executer.expectDocumentedDeprecationWarning(
             "Build service 'counter' is being used by task ':broken' without the corresponding declaration via 'Task#usesService'. " +
                 "This behavior has been deprecated. " +
@@ -139,7 +139,7 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
                 // reference will be set by name
             }
         """
-        enableStableConfigurationCache()
+        enableServiceUsageDeclaration()
         executer.expectDocumentedDeprecationWarning(
             "Build service 'counter' is being used by task ':broken' without the corresponding declaration via 'Task#usesService'. " +
                 "This behavior has been deprecated. " +
@@ -215,7 +215,7 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
         """
         file("src/main/java").createDir()
         file("src/main/java/Foo.java").createFile().text = """class Foo {}"""
-        enableStableConfigurationCache()
+        enableServiceUsageDeclaration()
         // should not be expected
         executer.expectDocumentedDeprecationWarning(
             "Build service 'counter' is being used by task ':compileJava' without the corresponding declaration via 'Task#usesService'. " +
@@ -255,7 +255,7 @@ service: closed with value 11
                 }
             }
         """
-        enableStableConfigurationCache()
+        enableServiceUsageDeclaration()
 
         when:
         succeeds 'explicit'
@@ -298,7 +298,7 @@ service: closed with value 11
                 }
             }
         """
-        enableStableConfigurationCache()
+        enableServiceUsageDeclaration()
 
         when:
         succeeds 'named'
@@ -334,7 +334,7 @@ service: closed with value 11
                 }
             }
         """
-        enableStableConfigurationCache()
+        enableServiceUsageDeclaration()
 
         when:
         succeeds 'named'
@@ -378,7 +378,7 @@ service: closed with value 11
                 }
             }
         """
-        enableStableConfigurationCache()
+        enableServiceUsageDeclaration()
 
         when:
         fails 'ambiguous'
@@ -416,7 +416,7 @@ service: closed with value 11
                 }
             }
         """
-        enableStableConfigurationCache()
+        enableServiceUsageDeclaration()
 
         when:
         succeeds 'unambiguous'
@@ -450,7 +450,7 @@ service: closed with value 11
                 usesService(counterProvider2)
             }
         """
-        enableStableConfigurationCache()
+        enableServiceUsageDeclaration()
 
         when:
         succeeds 'named'
@@ -479,7 +479,7 @@ service: closed with value 10001
                 counter.get().increment()
             }
         """
-        enableStableConfigurationCache()
+        enableServiceUsageDeclaration()
 
         when:
         succeeds 'named'
@@ -512,7 +512,7 @@ service: closed with value 12
             }
             task missingRequiredService(type: Consumer) {}
         """
-        enableStableConfigurationCache()
+        enableServiceUsageDeclaration()
 
         when:
         fails 'missingRequiredService'
@@ -541,7 +541,7 @@ service: closed with value 12
             }
             task missingOptionalService(type: Consumer) {}
         """
-        enableStableConfigurationCache()
+        enableServiceUsageDeclaration()
 
         when:
         succeeds 'missingOptionalService'
@@ -567,7 +567,7 @@ service: closed with value 12
                 // expect service to be injected by name (it won't though)
             }
         """
-        enableStableConfigurationCache()
+        enableServiceUsageDeclaration()
 
         when:
         fails 'missingService'
@@ -591,7 +591,7 @@ service: closed with value 12
             }
             task invalidServiceType(type: Consumer) {}
         """
-        enableStableConfigurationCache()
+        enableServiceUsageDeclaration()
 
         when:
         fails 'invalidServiceType'
@@ -1700,9 +1700,9 @@ Hello, subproject1
         succeeds("hello")
     }
 
-    private void enableStableConfigurationCache() {
+    private void enableServiceUsageDeclaration() {
         settingsFile '''
-            enableFeaturePreview 'STABLE_CONFIGURATION_CACHE'
+            enableFeaturePreview "${org.gradle.api.internal.FeaturePreviews.Feature.INTERNAL_BUILD_SERVICE_USAGE}"
         '''
     }
 

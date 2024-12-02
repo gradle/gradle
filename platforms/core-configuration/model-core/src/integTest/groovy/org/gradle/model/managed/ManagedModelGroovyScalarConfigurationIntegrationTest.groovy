@@ -17,12 +17,13 @@
 package org.gradle.model.managed
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.StableConfigurationCacheDeprecations
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 
 import static org.hamcrest.CoreMatchers.containsString
 
 @UnsupportedWithConfigurationCache(because = "software model")
-class ManagedModelGroovyScalarConfigurationIntegrationTest extends AbstractIntegrationSpec {
+class ManagedModelGroovyScalarConfigurationIntegrationTest extends AbstractIntegrationSpec implements StableConfigurationCacheDeprecations {
 
     private static final String CLASSES = '''
         enum Thing {
@@ -495,6 +496,7 @@ The following types/formats are supported:
         '''
 
         then:
+        expectTaskGetProjectDeprecations(5)
         succeeds 'printResolvedValues'
 
         and:
@@ -531,6 +533,7 @@ The following types/formats are supported:
         '''
 
         then:
+        expectTaskGetProjectDeprecations()
         fails 'model'
 
         and:
@@ -546,6 +549,7 @@ The following types/formats are supported:
         '''
 
         then:
+        expectTaskGetProjectDeprecations()
         fails 'model'
 
         and:
@@ -605,6 +609,7 @@ The following types/formats are supported:
         file('p2/build.gradle') << model
 
         then:
+        expectTaskGetProjectDeprecations(3)
         succeeds ':p1:printResolvedValues', ':p2:printResolvedValues'
 
         and:

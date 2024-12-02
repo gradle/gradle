@@ -17,7 +17,6 @@
 package org.gradle.initialization;
 
 import com.google.common.base.Splitter;
-import com.google.common.collect.ImmutableList;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.verification.DependencyVerificationMode;
 import org.gradle.api.internal.StartParameterInternal;
@@ -37,12 +36,13 @@ import org.gradle.internal.watch.registry.WatchMode;
 
 import java.io.File;
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInternal> {
 
-    private static List<BuildOption<StartParameterInternal>> options = ImmutableList.of(
+    private static List<BuildOption<StartParameterInternal>> options = Arrays.asList(
         new ProjectCacheDirOption(),
         new RerunTasksOption(),
         new ProfileOption(),
@@ -60,7 +60,6 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         new BuildCacheOption(),
         new BuildCacheDebugLoggingOption(),
         new WatchFileSystemOption(),
-        new WatchFileSystemDebugLoggingOption(),
         new VfsVerboseLoggingOption(),
         new BuildScanOption(),
         new DependencyLockingWriteOption(),
@@ -71,7 +70,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         new ExportKeysOption(),
         new ConfigurationCacheProblemsOption(),
         new ConfigurationCacheOption(),
-        new ConfigurationCacheIgnoreInputsInTaskGraphSerialization(),
+        new ConfigurationCacheIgnoreInputsDuringStore(),
         new ConfigurationCacheMaxProblemsOption(),
         new ConfigurationCacheIgnoredFileSystemCheckInputs(),
         new ConfigurationCacheDebugOption(),
@@ -319,19 +318,6 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         }
     }
 
-    public static class WatchFileSystemDebugLoggingOption extends BooleanBuildOption<StartParameterInternal> {
-        public static final String GRADLE_PROPERTY = "org.gradle.vfs.watch.debug";
-
-        public WatchFileSystemDebugLoggingOption() {
-            super(GRADLE_PROPERTY);
-        }
-
-        @Override
-        public void applyTo(boolean value, StartParameterInternal startParameter, Origin origin) {
-            startParameter.setWatchFileSystemDebugLogging(value);
-        }
-    }
-
     public static class VfsVerboseLoggingOption extends BooleanBuildOption<StartParameterInternal> {
         public static final String GRADLE_PROPERTY = "org.gradle.vfs.verbose";
 
@@ -527,17 +513,17 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         }
     }
 
-    public static class ConfigurationCacheIgnoreInputsInTaskGraphSerialization extends BooleanBuildOption<StartParameterInternal> {
+    public static class ConfigurationCacheIgnoreInputsDuringStore extends BooleanBuildOption<StartParameterInternal> {
 
         public static final String PROPERTY_NAME = "org.gradle.configuration-cache.inputs.unsafe.ignore.in-serialization";
 
-        public ConfigurationCacheIgnoreInputsInTaskGraphSerialization() {
+        public ConfigurationCacheIgnoreInputsDuringStore() {
             super(PROPERTY_NAME);
         }
 
         @Override
         public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
-            settings.setConfigurationCacheIgnoreInputsInTaskGraphSerialization(value);
+            settings.setConfigurationCacheIgnoreInputsDuringStore(value);
         }
     }
 

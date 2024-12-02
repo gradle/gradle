@@ -28,16 +28,16 @@ import org.gradle.test.preconditions.UnitTestPreconditions
 
 @Requires(UnitTestPreconditions.Jdk17OrLater)
 class BuildInitSpecsIntegrationTest extends AbstractInitIntegrationSpec implements TestsBuildInitSpecsViaPlugin, JavaToolchainFixture {
-    private static final String DECLARATIVE_JVM_PLUGIN_ID = "org.gradle.experimental.jvm-ecosystem"
-    private static final String DECLARATIVE_PLUGIN_VERSION = "0.1.15"
+    private static final String DECLARATIVE_JVM_PLUGIN_ID = "org.gradle.experimental.jvm-ecosystem-init"
+    private static final String DECLARATIVE_PLUGIN_VERSION = "0.1.33"
     private static final String DECLARATIVE_PLUGIN_SPEC = "$DECLARATIVE_JVM_PLUGIN_ID:$DECLARATIVE_PLUGIN_VERSION"
 
     // Just need an arbitrary Plugin<Settings> here, so use the Declarative Prototype.  Note that we can't use JVM, because
-    // An exception occurred applying plugin request [id: 'org.gradle.experimental.jvm-ecosystem', version: '0.1.15', apply: true]
+    // An exception occurred applying plugin request [id: 'org.gradle.experimental.jvm-ecosystem', version: '0.1.21', apply: true]
     //> Failed to apply plugin 'org.gradle.jvm-toolchain-management'.
     //   > Cannot add extension with name 'jvm', as there is an extension already registered with that name.
     private static final String ARBITRARY_PLUGIN_ID = "org.gradle.experimental.declarative-common"
-    private static final String ARBITRARY_PLUGIN_VERSION = "0.1.15"
+    private static final String ARBITRARY_PLUGIN_VERSION = "0.1.33"
     private static final String ARBITRARY_PLUGIN_SPEC = "$ARBITRARY_PLUGIN_ID:$ARBITRARY_PLUGIN_VERSION"
 
     def "can specify 3rd party plugin using argument to init"() {
@@ -261,16 +261,16 @@ class BuildInitSpecsIntegrationTest extends AbstractInitIntegrationSpec implemen
         assertResolvedPlugin(DECLARATIVE_JVM_PLUGIN_ID, DECLARATIVE_PLUGIN_VERSION)
         assertLoadedSpec("Declarative Java Application Project", "java-application")
 
+        // TODO: update D-G prototype to auto-update the version in generated projects from the current D-G prototype version (non-static templates)
         // Smoke test 2 DCL files
         assertProjectFileGenerated("settings.gradle.dcl", """pluginManagement {
     repositories {
-        google() // Needed for the Android plugin, applied by the unified plugin
         gradlePluginPortal()
     }
 }
 
 plugins {
-    id("$DECLARATIVE_JVM_PLUGIN_ID").version("$DECLARATIVE_PLUGIN_VERSION")
+    id("org.gradle.experimental.jvm-ecosystem").version("0.1.30")
 }
 
 rootProject.name = "example-java-app"
@@ -368,7 +368,6 @@ Known types:
         println "Executing: '${args.join(" ")}'"
         println "Working Dir: '$targetDir'"
 
-        executer.noDeprecationChecks() // TODO: We don't care about these here, they are from the declarative-prototype build, remove when depending upon published version and not included build
         succeeds args
     }
 

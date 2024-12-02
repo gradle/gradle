@@ -17,7 +17,6 @@
 package org.gradle.internal.jvm;
 
 import com.google.common.base.Optional;
-import com.google.common.collect.Sets;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.jvm.JavaVersionParser;
 import org.gradle.internal.FileUtils;
@@ -28,8 +27,9 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
@@ -38,7 +38,7 @@ import java.util.regex.Pattern;
 public class Jvm implements JavaInfo {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Jvm.class);
-    private static final HashSet<String> VENDOR_PROPERTIES = Sets.newHashSet("java.vendor", "java.vm.vendor");
+    private static final Collection<String> VENDOR_PROPERTIES = Arrays.asList("java.vendor", "java.vm.vendor");
     private static final AtomicReference<Jvm> CURRENT = new AtomicReference<Jvm>();
     private static final Pattern APP_NAME_REGEX = Pattern.compile("APP_NAME_\\d+");
     private static final Pattern JAVA_MAIN_CLASS_REGEX = Pattern.compile("JAVA_MAIN_CLASS_\\d+");

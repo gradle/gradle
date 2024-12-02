@@ -104,7 +104,7 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
     }
 
     void "start fails when process cannot be started"() {
-        def execHandle = handle().setDisplayName("awesome").executable("no_such_command").build()
+        def execHandle = handle().setDisplayName("awesome").setExecutable("no_such_command").build()
 
         when:
         execHandle.start()
@@ -447,11 +447,11 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
         }
     }
 
-    private DefaultExecHandleBuilder handle() {
-        new DefaultExecHandleBuilder(TestFiles.pathToFileResolver(), executor, buildCancellationToken)
-            .executable(Jvm.current().getJavaExecutable().getAbsolutePath())
+    private ClientExecHandleBuilder handle() {
+        new DefaultClientExecHandleBuilder(TestFiles.pathToFileResolver(), executor, buildCancellationToken)
+            .setExecutable(Jvm.current().getJavaExecutable().getAbsolutePath())
             .setTimeout(20000) //sanity timeout
-            .workingDir(tmpDir.getTestDirectory())
+            .setWorkingDir(tmpDir.getTestDirectory())
             .environment('CLASSPATH', mergeClasspath())
     }
 

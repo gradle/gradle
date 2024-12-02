@@ -13,10 +13,13 @@ dependencies {
     api(projects.coreApi)
     api(projects.messaging)
     api(projects.toolingApi)
+    api(projects.problemsApi)
 
     implementation(projects.modelCore)
 
     api(libs.jsr305)
+
+    implementation(libs.errorProneAnnotations)
     implementation(libs.guava)
 
     testImplementation(projects.internalTesting)
