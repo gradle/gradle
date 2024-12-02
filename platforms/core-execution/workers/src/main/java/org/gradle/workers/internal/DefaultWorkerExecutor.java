@@ -133,14 +133,14 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
     @Override
     public WorkQueue processIsolation(Action<? super ProcessWorkerSpec> action) {
         DefaultProcessWorkerSpec spec = instantiator.newInstance(DefaultProcessWorkerSpec.class, forkOptionsFactory.newDecoratedJavaForkOptions());
-        File defaultWorkingDir = spec.getForkOptions().getWorkingDir();
+        File defaultWorkingDir = spec.getForkOptions().getWorkingDir().getAsFile().get();
         File workingDirectory = workerDirectoryProvider.getWorkingDirectory();
         action.execute(spec);
 
-        if (!defaultWorkingDir.equals(spec.getForkOptions().getWorkingDir())) {
+        if (!defaultWorkingDir.equals(spec.getForkOptions().getWorkingDir().getAsFile().get())) {
             throw new IllegalArgumentException("Setting the working directory of a worker is not supported.");
         } else {
-            spec.getForkOptions().setWorkingDir(workingDirectory);
+            spec.getForkOptions().getWorkingDir().set(workingDirectory);
         }
 
         return instantiator.newInstance(DefaultWorkQueue.class, this, spec, daemonWorkerFactory);
@@ -233,7 +233,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
             ProcessWorkerSpec processConfiguration = (ProcessWorkerSpec) configuration;
             JavaForkOptions forkOptions = forkOptionsFactory.newJavaForkOptions();
             processConfiguration.getForkOptions().copyTo(forkOptions);
-            forkOptions.setWorkingDir(workerDirectoryProvider.getWorkingDirectory());
+            forkOptions.getWorkingDir().set(workerDirectoryProvider.getWorkingDirectory());
 
             ClassPath isolatedFromChanges = classpathTransformer.copyingTransform(DefaultClassPath.of(processConfiguration.getClasspath()));
             builder.javaForkOptions(forkOptions)

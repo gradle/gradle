@@ -90,7 +90,7 @@ public abstract class ValidatePlugins extends DefaultTask {
         getWorkerExecutor()
             .processIsolation(spec -> {
                 if (getLauncher().isPresent()) {
-                    spec.getForkOptions().setExecutable(getLauncher().get().getExecutablePath());
+                    spec.getForkOptions().getExecutable().set(getLauncher().map(launcher -> launcher.getExecutablePath().getAsFile().getAbsolutePath()));
                 } else {
                     DeprecationLogger.deprecateBehaviour("Using task ValidatePlugins without applying the Java Toolchain plugin.")
                         .withProblemIdDisplayName("Using task ValidatePlugins without applying the Java Toolchain plugin.")
@@ -98,7 +98,7 @@ public abstract class ValidatePlugins extends DefaultTask {
                         .willBecomeAnErrorInGradle9()
                         .withUpgradeGuideSection(8, "validate_plugins_without_java_toolchain")
                         .nagUser();
-                    spec.getForkOptions().setExecutable(Jvm.current().getJavaExecutable());
+                    spec.getForkOptions().getExecutable().set(Jvm.current().getJavaExecutable().getAbsolutePath());
                 }
                 spec.getClasspath().setFrom(getClasses(), getClasspath());
             })

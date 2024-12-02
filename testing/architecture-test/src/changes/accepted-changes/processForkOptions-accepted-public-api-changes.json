@@ -1,0 +1,12 @@
+{
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_4i8m7ubpazumv0o7fg1f6fdogKt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_4i8m7ubpazumv0o7fg1f6fdogKt.setEnvironment(org.gradle.process.ProcessForkOptions,kotlin.Pair[])",
+            "acceptation": "Auto generated accessors",
+            "changes": [
+                "Method has been removed"
+            ]
+        }
+    ]
+}

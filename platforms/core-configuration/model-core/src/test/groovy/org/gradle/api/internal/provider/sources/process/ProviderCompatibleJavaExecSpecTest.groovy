@@ -18,6 +18,7 @@ package org.gradle.api.internal.provider.sources.process
 
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.process.JavaExecSpec
+import org.gradle.util.TestUtil
 
 class ProviderCompatibleJavaExecSpecTest extends ProviderCompatibleBaseExecSpecTestBase {
     def "spec sets commandLine on parameters"() {
@@ -35,7 +36,7 @@ class ProviderCompatibleJavaExecSpecTest extends ProviderCompatibleBaseExecSpecT
 
     @Override
     protected ProviderCompatibleJavaExecSpec createSpecUnderTest() {
-        def spec = new ProviderCompatibleJavaExecSpec(TestFiles.execFactory(tmpDir.testDirectory).newJavaExecAction())
+        def spec = TestUtil.newInstance(ProviderCompatibleJavaExecSpec, TestFiles.execFactory(tmpDir.testDirectory).newJavaExecAction())
         spec.mainClass.set("org.example.Main")  // This is mandatory to operate on the JavaExecSpec implementation
         return spec
     }
