@@ -96,7 +96,7 @@ interface ConfigurationCacheBuildTreeIO : ConfigurationCacheOperationIO {
     fun <R> withWriteContextFor(
         stateFile: ConfigurationCacheStateFile,
         profile: () -> String,
-        specialEncoders: SpecialEncoders,
+        specialEncoders: SpecialEncoders = SpecialEncoders(),
         writeOperation: suspend WriteContext.(Codecs) -> R
     ): R =
         withWriteContextFor(stateFile.stateFile.name, stateFile.stateType, stateFile::outputStream, profile, specialEncoders, writeOperation)

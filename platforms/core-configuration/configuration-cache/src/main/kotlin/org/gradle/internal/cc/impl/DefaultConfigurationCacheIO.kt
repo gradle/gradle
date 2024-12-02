@@ -137,29 +137,6 @@ class DefaultConfigurationCacheIO internal constructor(
         }
     }
 
-    private
-    fun WriteContext.writeModelKey(key: ModelKey) {
-        writeNullableString(key.identityPath?.path)
-        writeString(key.modelName)
-        writeNullableString(key.parameterHash?.toString())
-    }
-
-    override fun writeCandidateEntries(stateFile: ConfigurationCacheStateFile, entries: List<CandidateEntry>) {
-        withWriteContextFor(stateFile, { "candidates" }, SpecialEncoders()) {
-            writeStrings(entries.map { it.id })
-        }
-    }
-
-    override fun readCandidateEntries(stateFile: ConfigurationCacheStateFile): List<CandidateEntry> = when {
-        !stateFile.exists -> {
-            emptyList()
-        }
-
-        else -> withReadContextFor(stateFile, SpecialDecoders()) {
-            readStrings().map { CandidateEntry(it) }
-        }
-    }
-
     override fun readCacheEntryDetailsFrom(stateFile: ConfigurationCacheStateFile): EntryDetails? {
         if (!stateFile.exists) {
             return null
@@ -183,6 +160,29 @@ class DefaultConfigurationCacheIO internal constructor(
                 addressSerializer.read(this)
             }
             EntryDetails(rootDirs, intermediateModels, metadata, sideEffects)
+        }
+    }
+
+    private
+    fun WriteContext.writeModelKey(key: ModelKey) {
+        writeNullableString(key.identityPath?.path)
+        writeString(key.modelName)
+        writeNullableString(key.parameterHash?.toString())
+    }
+
+    override fun writeCandidateEntries(stateFile: ConfigurationCacheStateFile, entries: List<CandidateEntry>) {
+        withWriteContextFor(stateFile, { "candidates" }) {
+            writeStrings(entries.map { it.id })
+        }
+    }
+
+    override fun readCandidateEntries(stateFile: ConfigurationCacheStateFile): List<CandidateEntry> = when {
+        !stateFile.exists -> {
+            emptyList()
+        }
+
+        else -> withReadContextFor(stateFile) {
+            readStrings().map { CandidateEntry(it) }
         }
     }
 
