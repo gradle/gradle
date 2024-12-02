@@ -112,7 +112,7 @@ public abstract class InstallXCTestBundle extends DefaultTask {
             + "</plist>");
 
         getExecOperations().exec(SerializableLambdas.action(execSpec -> {
-            execSpec.setWorkingDir(bundleDir);
+            execSpec.getWorkingDir().set(bundleDir);
             execSpec.executable(getSwiftStdlibToolLocator().find());
             execSpec.args(
                 "--copy",
