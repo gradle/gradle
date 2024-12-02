@@ -51,7 +51,7 @@ sourceSets {
 // end::custom-source-set[]
 
 // tag::custom-report-dirs[]
-reporting.baseDir = file("my-reports")
+reporting.baseDirectory = file("my-reports")
 java.testResultsDir = layout.buildDirectory.dir("my-test-results")
 
 tasks.register("showDirs") {

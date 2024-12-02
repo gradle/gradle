@@ -271,6 +271,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @deprecated Use {@code getLayout().getBuildDirectory()} instead
      */
     @Deprecated
+    //TODO: to be removed in 9.0
     File getBuildDir();
 
     /**
