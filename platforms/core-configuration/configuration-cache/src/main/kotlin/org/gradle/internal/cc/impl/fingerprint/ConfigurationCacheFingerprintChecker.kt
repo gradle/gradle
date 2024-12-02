@@ -49,7 +49,6 @@ internal
 class ConfigurationCacheFingerprintChecker(private val host: Host) {
 
     interface Host {
-        val buildPath: Path
         val isEncrypted: Boolean
         val encryptionKeyHashCode: HashCode
         val gradleUserHomeDir: File
@@ -71,7 +70,7 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
         fun hasValidBuildSrc(candidateBuildSrc: File): Boolean
     }
 
-    suspend fun ReadContext.checkBuildScopedFingerprint(): CheckedFingerprint {
+    suspend fun ReadContext.checkBuildScopedFingerprint(): InvalidationReason? {
         // TODO: log some debug info
         while (true) {
             when (val input = read()) {
@@ -80,18 +79,18 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                     // An input that is not specific to a project. If it is out-of-date, then invalidate the whole cache entry and skip any further checks
                     val reason = check(input)
                     if (reason != null) {
-                        return CheckedFingerprint.EntryInvalid(host.buildPath, reason)
+                        return reason
                     }
                 }
 
                 else -> error("Unexpected configuration cache fingerprint: $input")
             }
         }
-        return CheckedFingerprint.Valid
+        return null
     }
 
     @Suppress("NestedBlockDepth")
-    suspend fun ReadContext.checkProjectScopedFingerprint(): CheckedFingerprint {
+    suspend fun ReadContext.checkProjectScopedFingerprint(): CheckedFingerprint.InvalidProjects? {
         // TODO: log some debug info
         var firstInvalidatedPath: Path? = null
         val projects = hashMapOf<Path, ProjectInvalidationState>()
@@ -137,13 +136,13 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                 else -> error("Unexpected configuration cache fingerprint: $input")
             }
         }
-        return if (firstInvalidatedPath == null) {
-            CheckedFingerprint.Valid
-        } else {
-            val invalidatedProjects = projects.filterValues { it.isInvalid }.mapValues {
-                it.value.toProjectInvalidationData()
-            }
-            CheckedFingerprint.ProjectsInvalid(firstInvalidatedPath, invalidatedProjects)
+        return firstInvalidatedPath?.let { path ->
+            CheckedFingerprint.InvalidProjects(
+                path,
+                projects
+                    .filterValues { it.isInvalid }
+                    .mapValues { it.value.toProjectInvalidationData() }
+            )
         }
     }
 
@@ -494,7 +493,7 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
             }
         }
 
-        fun toProjectInvalidationData(): CheckedFingerprint.ProjectInvalidationData {
+        fun toProjectInvalidationData(): CheckedFingerprint.InvalidProject {
             val buildPath = this.buildPath
             val projectPath = this.projectPath
             require(buildPath != null) {
@@ -503,7 +502,7 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
             require(projectPath != null) {
                 "projectPath for project $identityPath wasn't loaded from the fingerprint"
             }
-            return CheckedFingerprint.ProjectInvalidationData(buildPath, projectPath, invalidationReason)
+            return CheckedFingerprint.InvalidProject(buildPath, projectPath, invalidationReason)
         }
     }
 }

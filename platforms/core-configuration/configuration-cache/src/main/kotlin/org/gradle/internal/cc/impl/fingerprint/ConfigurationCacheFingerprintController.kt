@@ -28,7 +28,6 @@ import org.gradle.initialization.buildsrc.BuildSrcDetector
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.cc.base.services.ConfigurationCacheEnvironmentChangeTracker
-import org.gradle.internal.cc.impl.CheckedFingerprint
 import org.gradle.internal.cc.impl.ConfigurationCacheStateFile
 import org.gradle.internal.cc.impl.ConfigurationCacheStateStore.StateFile
 import org.gradle.internal.cc.impl.InputTrackingState
@@ -105,7 +104,6 @@ class ConfigurationCacheFingerprintController internal constructor(
 ) : Stoppable, ProjectScopedScriptResolution {
 
     interface Host {
-        val buildPath: Path
         val valueSourceProviderFactory: ValueSourceProviderFactory
         val gradleProperties: GradleProperties
     }
@@ -352,12 +350,12 @@ class ConfigurationCacheFingerprintController internal constructor(
         writingState = writingState.dispose()
     }
 
-    suspend fun ReadContext.checkBuildScopedFingerprint(host: Host): CheckedFingerprint =
+    suspend fun ReadContext.checkBuildScopedFingerprint(host: Host) =
         ConfigurationCacheFingerprintChecker(CacheFingerprintCheckerHost(host)).run {
             checkBuildScopedFingerprint()
         }
 
-    suspend fun ReadContext.checkProjectScopedFingerprint(host: Host): CheckedFingerprint =
+    suspend fun ReadContext.checkProjectScopedFingerprint(host: Host) =
         ConfigurationCacheFingerprintChecker(CacheFingerprintCheckerHost(host)).run {
             checkProjectScopedFingerprint()
         }
@@ -462,9 +460,6 @@ class ConfigurationCacheFingerprintController internal constructor(
 
         private
         val gradleProperties by lazy(host::gradleProperties)
-
-        override val buildPath: Path
-            get() = host.buildPath
 
         override val isEncrypted: Boolean
             get() = encryptionService.isEncrypting
