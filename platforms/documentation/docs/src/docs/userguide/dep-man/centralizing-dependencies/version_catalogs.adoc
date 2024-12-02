@@ -26,10 +26,10 @@ include::sample[dir="snippets/dependencyManagement/catalogs-settings/groovy",fil
 
 In this example, `libs` represents the catalog, and `groovy` is a dependency available in it.
 
-Where the version catalog defining `libs.groovy.core` is a `libs.version.toml` file in the `gradle` directory:
+Where the version catalog defining `libs.groovy.core` is a `libs.versions.toml` file in the `gradle` directory:
 
 [source,toml]
-.gradle/libs.version.toml
+.gradle/libs.versions.toml
 ----
 [libraries]
 groovy-core = { group = "org.codehaus.groovy", name = "groovy", version = "3.0.5" }
