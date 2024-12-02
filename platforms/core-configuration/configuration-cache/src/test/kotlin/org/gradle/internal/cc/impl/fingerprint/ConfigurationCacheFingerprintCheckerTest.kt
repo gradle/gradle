@@ -297,10 +297,7 @@ class ConfigurationCacheFingerprintCheckerTest {
                 checkBuildScopedFingerprint()
             }
         }
-        return when (checkedFingerprint) {
-            is BuildScopedFingerprintResult.Valid -> null
-            is BuildScopedFingerprintResult.Invalid -> checkedFingerprint.reason.toString()
-        }
+        return checkedFingerprint?.toString()
     }
 
     private

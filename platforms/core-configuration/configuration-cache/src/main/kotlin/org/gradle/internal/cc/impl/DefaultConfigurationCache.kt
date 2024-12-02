@@ -40,7 +40,6 @@ import org.gradle.internal.cc.base.serialize.HostServiceProvider
 import org.gradle.internal.cc.base.serialize.IsolateOwners
 import org.gradle.internal.cc.base.serialize.service
 import org.gradle.internal.cc.impl.extensions.withMostRecentEntry
-import org.gradle.internal.cc.impl.fingerprint.BuildScopedFingerprintResult
 import org.gradle.internal.cc.impl.fingerprint.ConfigurationCacheFingerprintController
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
 import org.gradle.internal.cc.impl.metadata.ProjectMetadataController
@@ -740,18 +739,16 @@ class DefaultConfigurationCache internal constructor(
     fun ConfigurationCacheRepository.Layout.checkFingerprintAgainstLoadedProperties(
         candidateEntry: CandidateEntry
     ): CheckedFingerprint =
-        when (val result = checkBuildScopedFingerprint(fileFor(StateType.BuildFingerprint))) {
-            is BuildScopedFingerprintResult.Invalid -> {
-                CheckedFingerprint.EntryInvalid(buildPath(), result.reason)
-            }
-
-            BuildScopedFingerprintResult.Valid -> {
+        when (val invalidationReason = checkBuildScopedFingerprint(fileFor(StateType.BuildFingerprint))) {
+            null -> {
                 // Build inputs are up-to-date, check project specific inputs
                 CheckedFingerprint.Found(
                     candidateEntry.id,
                     checkProjectScopedFingerprint(fileFor(StateType.ProjectFingerprint))
                 )
             }
+
+            else -> CheckedFingerprint.EntryInvalid(buildPath(), invalidationReason)
         }
 
     private

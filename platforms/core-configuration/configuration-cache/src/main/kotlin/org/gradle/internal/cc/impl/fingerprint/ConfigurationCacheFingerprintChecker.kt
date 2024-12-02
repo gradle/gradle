@@ -46,13 +46,6 @@ typealias InvalidationReason = StructuredMessage
 
 
 internal
-sealed class BuildScopedFingerprintResult {
-    object Valid : BuildScopedFingerprintResult()
-    data class Invalid(val reason: InvalidationReason) : BuildScopedFingerprintResult()
-}
-
-
-internal
 class ConfigurationCacheFingerprintChecker(private val host: Host) {
 
     interface Host {
@@ -76,7 +69,7 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
         fun isRemoteScriptUpToDate(uri: URI): Boolean
     }
 
-    suspend fun ReadContext.checkBuildScopedFingerprint(): BuildScopedFingerprintResult {
+    suspend fun ReadContext.checkBuildScopedFingerprint(): InvalidationReason? {
         // TODO: log some debug info
         while (true) {
             when (val input = read()) {
@@ -85,14 +78,14 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                     // An input that is not specific to a project. If it is out-of-date, then invalidate the whole cache entry and skip any further checks
                     val reason = check(input)
                     if (reason != null) {
-                        return BuildScopedFingerprintResult.Invalid(reason)
+                        return reason
                     }
                 }
 
                 else -> error("Unexpected configuration cache fingerprint: $input")
             }
         }
-        return BuildScopedFingerprintResult.Valid
+        return null
     }
 
     @Suppress("NestedBlockDepth")
