@@ -88,26 +88,34 @@ import java.util.Optional;
     private Optional<TransformedVariant> disambiguateTransformationChains(ResolvedVariantSet producer, ImmutableAttributes targetAttributes, AttributeMatcher attributeMatcher, List<TransformedVariant> candidateChains) {
         AssessedTransformationChains assessedChains = new AssessedTransformationChains(targetAttributes, attributeMatcher, candidateChains);
 
-        // After assessing the candidate chains, if a single distinct chain found, then the ambiguity was due to re-sequencings of the same set of transforms.
-        Optional<TransformedVariant> singleDistinctMatchingChain = assessedChains.getSingleDistinctMatchingChain();
-        if (singleDistinctMatchingChain.isPresent()) {
-            return singleDistinctMatchingChain;
+        // After assessing the candidate chains, if only a single preferred chain was found, then the ambiguity
+        // was due to multiple compatible chains, containing only one EXACT match.  We will use the exact match.
+        Optional<TransformedVariant> singlePreferredChain = assessedChains.getSinglePreferredChain();
+        if (singlePreferredChain.isPresent()) {
+            return singlePreferredChain;
         }
 
-        //  At this point, we have real ambiguity.  There are more than one compatible matches with distinct fingerprints.
-        // The build author needs to be notified and should address this ambiguity.
-        List<TransformedVariant> singleGroupOfCompatibleChains = assessedChains.getSingleGroupOfCompatibleChains();
-        if (!singleGroupOfCompatibleChains.isEmpty()) {
-            // However, we will not necessarily fail the build just yet.  To maintain behavior (for now), we will not fail and
+        // At this point, there are more than one preferred matches.  We need to check if they have distinct fingerprints
+        // If they DO then the build author needs to be notified and should address this ambiguity.  If they DON'T,
+        // and are merely re-sequencings of the same chain, we can arbitrarily pick one.
+        if (assessedChains.areMultipleDistinctPreferredChainsPresent()) {
+            // This is a problem, however, we will not fail the build just yet.  To maintain behavior (for now), we will not fail and
             // only emit a deprecation if the multiple matches are COMPATIBLE, as this is what the build used to do.  This can error in Gradle 9.
-            warnThatMultipleDistinctChainsAreAvailable(producer, targetAttributes, failureHandler, assessedChains.getDistinctMatchingChainRepresentatives());
-            return Optional.of(singleGroupOfCompatibleChains.get(singleGroupOfCompatibleChains.size() - 1)); // Important to use LAST compatible match, as this is the previous behavior, and is tests in DisambiguateArtifactTransformIntegrationTest
+            if (assessedChains.allPreferredChainsAreCompatible()) {
+                warnThatMultipleDistinctChainsAreAvailable(producer, targetAttributes, failureHandler, assessedChains.getDistinctMatchingChainRepresentatives());
+                @SuppressWarnings("deprecation")
+                Optional<TransformedVariant> arbitraryChoice = assessedChains.getArbitraryPreferredMatchingChain();
+                return arbitraryChoice;
+            } else {
+                // At this point, there are multiple distinct chains that are not compatible with each other.  This is right out.
+                // It has never been allowed and fails the build.  The error message should report one representative of each
+                // distinct chain, so that the author can understand what's happening here and correct it.
+                throw failureHandler.ambiguousArtifactTransformsFailure(producer, targetAttributes, assessedChains.getDistinctMatchingChainRepresentatives());
+            }
         }
 
-        // At this point, there are multiple distinct chains that are not compatible with each other.  This is right out.
-        // It has never been allowed and fails the build.  The error message should report one representative of each
-        // distinct chain, so that the author can understand what's happening here and correct it.
-        throw failureHandler.ambiguousArtifactTransformsFailure(producer, targetAttributes, assessedChains.getDistinctMatchingChainRepresentatives());
+        // If we get here, there are 0 preferred chains - this should be impossible.
+        throw new IllegalStateException("No preferred chains found out of: " + candidateChains.size() + " candidates!");
     }
 
     private void warnThatMultipleDistinctChainsAreAvailable(ResolvedVariantSet targetVariantSet, ImmutableAttributes requestedAttributes, ResolutionFailureHandler failureHandler, List<TransformedVariant> trulyDistinctChains) {
