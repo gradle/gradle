@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.internal.artifacts.ComponentMetadataProcessor
 import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy
@@ -34,10 +35,10 @@ import org.gradle.internal.component.external.model.ModuleComponentArtifactIdent
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata
 import org.gradle.internal.component.external.model.ModuleComponentGraphResolveState
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata
-import org.gradle.internal.component.external.model.ModuleDependencyMetadata
 import org.gradle.internal.component.model.ComponentArtifactMetadata
 import org.gradle.internal.component.model.ComponentArtifactResolveMetadata
 import org.gradle.internal.component.model.ComponentOverrideMetadata
+import org.gradle.internal.component.model.DefaultComponentOverrideMetadata
 import org.gradle.internal.component.model.ImmutableModuleSources
 import org.gradle.internal.hash.Hashing
 import org.gradle.internal.resolve.result.BuildableArtifactFileResolveResult
@@ -100,14 +101,14 @@ class CachingModuleComponentRepositoryTest extends Specification {
     }
 
     def "does not use cache when module version listing can be determined locally"() {
-        def dependency = Mock(ModuleDependencyMetadata)
+        def dependency = Mock(ModuleComponentSelector)
         def result = new DefaultBuildableModuleVersionListingResolveResult()
 
         when:
-        repo.localAccess.listModuleVersions(dependency, result)
+        repo.localAccess.listModuleVersions(dependency, DefaultComponentOverrideMetadata.EMPTY, result)
 
         then:
-        realLocalAccess.listModuleVersions(dependency, result) >> {
+        realLocalAccess.listModuleVersions(dependency, _, result) >> {
             result.listed(['a', 'b', 'c'])
         }
         0 * _

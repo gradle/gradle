@@ -32,7 +32,6 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionS
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleConflictResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.CapabilitiesConflictHandler;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.DefaultCapabilitiesConflictHandler;
@@ -483,7 +482,7 @@ public class DependencyGraphBuilder {
         for (NodeState node : cs.getNodes()) {
             List<EdgeState> incomingEdges = node.getIncomingEdges();
             for (EdgeState incomingEdge : incomingEdges) {
-                ComponentSelector selector = incomingEdge.getSelector().getSelector();
+                ComponentSelector selector = incomingEdge.getSelector().getComponentSelector();
                 incomingEdge.failWith(new ModuleVersionResolveException(selector, () ->
                     String.format("Could not resolve %s: Resolution strategy disallows usage of dynamic versions", selector)));
             }
@@ -497,7 +496,7 @@ public class DependencyGraphBuilder {
             List<EdgeState> incomingEdges = node.getIncomingEdges();
             for (EdgeState incomingEdge : incomingEdges) {
                 if (moduleIsChanging || incomingEdge.getDependencyMetadata().isChanging()) {
-                    ComponentSelector selector = incomingEdge.getSelector().getSelector();
+                    ComponentSelector selector = incomingEdge.getSelector().getComponentSelector();
                     incomingEdge.failWith(new ModuleVersionResolveException(selector, () ->
                         String.format("Could not resolve %s: Resolution strategy disallows usage of changing versions", selector)));
                 }
@@ -559,7 +558,7 @@ public class DependencyGraphBuilder {
             for (EdgeState incomingEdge : participatingModule.getIncomingEdges()) {
                 SelectorState selector = incomingEdge.getSelector();
                 if (isPlatformForcedEdge(selector)) {
-                    ComponentSelector componentSelector = selector.getSelector();
+                    ComponentSelector componentSelector = selector.getComponentSelector();
                     if (componentSelector instanceof ModuleComponentSelector) {
                         ModuleComponentSelector mcs = (ModuleComponentSelector) componentSelector;
                         if (!incomingEdge.getFrom().getComponent().getModule().equals(module)) {
@@ -605,11 +604,6 @@ public class DependencyGraphBuilder {
      */
     private static void assembleResult(ResolveState resolveState, DependencyGraphVisitor visitor) {
         visitor.start(resolveState.getRoot());
-
-        // Visit the selectors
-        for (DependencyGraphSelector selector : resolveState.getSelectors()) {
-            visitor.visitSelector(selector);
-        }
 
         // Visit the nodes prior to visiting the edges
         for (NodeState nodeState : resolveState.getNodes()) {

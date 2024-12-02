@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.ComponentMetadataSupplierDetails;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.ArtifactVerificationOperation;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.repositories.metadata.DefaultMetadataFileSource;
@@ -34,7 +35,6 @@ import org.gradle.internal.component.external.model.ModuleComponentArtifactIdent
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentFileArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentGraphResolveState;
-import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentArtifactResolveMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
@@ -108,8 +108,8 @@ public class DependencyVerifyingModuleComponentRepository implements ModuleCompo
         }
 
         @Override
-        public void listModuleVersions(ModuleDependencyMetadata dependency, BuildableModuleVersionListingResolveResult result) {
-            delegate.listModuleVersions(dependency, result);
+        public void listModuleVersions(ModuleComponentSelector selector, ComponentOverrideMetadata overrideMetadata, BuildableModuleVersionListingResolveResult result) {
+            delegate.listModuleVersions(selector, overrideMetadata, result);
         }
 
         private boolean hasUsableResult(BuildableModuleComponentMetaDataResolveResult<ModuleComponentGraphResolveState> result) {

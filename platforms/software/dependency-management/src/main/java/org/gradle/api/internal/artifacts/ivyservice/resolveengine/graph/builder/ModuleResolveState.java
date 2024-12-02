@@ -352,10 +352,9 @@ public class ModuleResolveState implements CandidateModule {
 
     private ImmutableAttributes appendAttributes(ImmutableAttributes dependencyAttributes, SelectorState selectorState) {
         try {
-            DependencyMetadata dependencyMetadata = selectorState.getDependencyMetadata();
-            boolean constraint = dependencyMetadata.isConstraint();
+            boolean constraint = selectorState.isConstraint();
             if (constraint) {
-                ComponentSelector selector = dependencyMetadata.getSelector();
+                ComponentSelector selector = selectorState.getComponentSelector();
                 ImmutableAttributes attributes = ((AttributeContainerInternal) selector.getAttributes()).asImmutable();
                 dependencyAttributes = attributesFactory.safeConcat(attributes, dependencyAttributes);
             }

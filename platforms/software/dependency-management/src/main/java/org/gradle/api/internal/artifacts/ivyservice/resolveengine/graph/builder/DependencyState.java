@@ -20,6 +20,8 @@ import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
+import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
+import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.ArtifactSelectionDetailsInternal;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionApplicator;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 import org.gradle.internal.Describables;
@@ -30,11 +32,11 @@ import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 
+import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons.BY_ANCESTOR;
@@ -59,22 +61,29 @@ class DependencyState {
 
     private final List<ComponentSelectionDescriptorInternal> ruleDescriptors;
     private final ComponentSelectorConverter componentSelectorConverter;
+    private final ModuleVersionResolveException substitutionFailure;
     private final int hashCode;
 
     private ModuleIdentifier moduleIdentifier;
-    public ModuleVersionResolveException failure;
     private boolean reasonsAlreadyAdded;
     private Map<DependencySubstitutionApplicator.SubstitutionResult, DependencyState> substitutionResultMap;
 
     DependencyState(DependencyMetadata dependency, ComponentSelectorConverter componentSelectorConverter) {
-        this(dependency, dependency.getSelector(), Collections.emptyList(), componentSelectorConverter);
+        this(dependency, dependency.getSelector(), Collections.emptyList(), componentSelectorConverter, null);
     }
 
-    private DependencyState(DependencyMetadata dependency, ComponentSelector requested, List<ComponentSelectionDescriptorInternal> ruleDescriptors, ComponentSelectorConverter componentSelectorConverter) {
+    private DependencyState(
+        DependencyMetadata dependency,
+        ComponentSelector requested,
+        List<ComponentSelectionDescriptorInternal> ruleDescriptors,
+        ComponentSelectorConverter componentSelectorConverter,
+        @Nullable ModuleVersionResolveException substitutionFailure
+    ) {
         this.dependency = dependency;
         this.requested = requested;
         this.ruleDescriptors = ruleDescriptors;
         this.componentSelectorConverter = componentSelectorConverter;
+        this.substitutionFailure = substitutionFailure;
         this.hashCode = computeHashCode();
     }
 
@@ -92,6 +101,11 @@ class DependencyState {
         return dependency;
     }
 
+    @Nullable
+    public ModuleVersionResolveException getSubstitutionFailure() {
+        return substitutionFailure;
+    }
+
     public ModuleIdentifier getModuleIdentifier() {
         if (moduleIdentifier == null) {
             moduleIdentifier = componentSelectorConverter.getModule(dependency.getSelector());
@@ -99,15 +113,14 @@ class DependencyState {
         return moduleIdentifier;
     }
 
-    public DependencyState withTarget(ComponentSelector target, List<ComponentSelectionDescriptorInternal> ruleDescriptors) {
+    private DependencyState withTarget(ComponentSelector target, List<ComponentSelectionDescriptorInternal> ruleDescriptors) {
         DependencyMetadata targeted = dependency.withTarget(target);
-        return new DependencyState(targeted, requested, ruleDescriptors, componentSelectorConverter);
+        return new DependencyState(targeted, requested, ruleDescriptors, componentSelectorConverter, substitutionFailure);
     }
 
-
-    public DependencyState withTargetAndArtifacts(ComponentSelector target, List<DependencyArtifactSelector> targetSelectors, List<ComponentSelectionDescriptorInternal> ruleDescriptors) {
+    private DependencyState withTargetAndArtifacts(ComponentSelector target, List<DependencyArtifactSelector> targetSelectors, List<ComponentSelectionDescriptorInternal> ruleDescriptors) {
         DependencyMetadata targeted = dependency.withTargetAndArtifacts(target, toIvyArtifacts(target, targetSelectors));
-        return new DependencyState(targeted, requested, ruleDescriptors, componentSelectorConverter);
+        return new DependencyState(targeted, requested, ruleDescriptors, componentSelectorConverter, substitutionFailure);
     }
 
     private List<IvyArtifactName> toIvyArtifacts(ComponentSelector target, List<DependencyArtifactSelector> targetSelectors) {
@@ -212,10 +225,22 @@ class DependencyState {
         return hashCode;
     }
 
-    public DependencyState withSubstitution(DependencySubstitutionApplicator.SubstitutionResult substitutionResult, Function<DependencySubstitutionApplicator.SubstitutionResult, DependencyState> mappingFunction) {
+    public DependencyState withSubstitution(DependencySubstitutionApplicator.SubstitutionResult substitutionResult, DependencySubstitutionInternal details) {
         if (substitutionResultMap == null) {
             substitutionResultMap = new HashMap<>();
         }
-        return substitutionResultMap.computeIfAbsent(substitutionResult, mappingFunction);
+
+        // This caching works because our substitutionResult are cached themselves
+        return substitutionResultMap.computeIfAbsent(substitutionResult, result -> {
+            ArtifactSelectionDetailsInternal artifactSelectionDetails = details.getArtifactSelectionDetails();
+            if (artifactSelectionDetails.isUpdated()) {
+                return withTargetAndArtifacts(details.getTarget(), artifactSelectionDetails.getTargetSelectors(), details.getRuleDescriptors());
+            }
+            return withTarget(details.getTarget(), details.getRuleDescriptors());
+        });
+    }
+
+    public DependencyState withSubstitutionFailure(ModuleVersionResolveException failure) {
+        return new DependencyState(dependency, requested, ruleDescriptors, componentSelectorConverter, failure);
     }
 }
