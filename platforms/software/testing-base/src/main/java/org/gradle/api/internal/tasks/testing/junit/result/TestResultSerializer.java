@@ -26,7 +26,10 @@ import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
 
 import javax.annotation.Nullable;
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -46,12 +49,12 @@ public class TestResultSerializer {
         this.resultsFile = resultsDir.toPath().resolve("results.bin");
     }
 
-    public void write(PersistentTestResult rootResult) {
+    public void write(PersistentTestResultTree rootResultTree) {
         try (OutputStream outputStream = Files.newOutputStream(resultsFile)) {
-            if (!rootResult.getChildren().isEmpty()) { // only write if we have results, otherwise truncate
+            if (!rootResultTree.getChildren().isEmpty()) { // only write if we have results, otherwise truncate
                 FlushableEncoder encoder = new KryoBackedEncoder(outputStream);
                 encoder.writeSmallInt(RESULT_VERSION);
-                write(rootResult, encoder);
+                write(rootResultTree, encoder);
                 encoder.flush();
             }
         } catch (IOException e) {
@@ -59,8 +62,9 @@ public class TestResultSerializer {
         }
     }
 
-    private static void write(PersistentTestResult result, Encoder encoder) throws IOException {
-        encoder.writeSmallLong(result.getId());
+    private static void write(PersistentTestResultTree tree, Encoder encoder) throws IOException {
+        encoder.writeSmallLong(tree.getId());
+        PersistentTestResult result = tree.getResult();
         encoder.writeString(result.getName());
         encoder.writeString(result.getDisplayName());
         encoder.writeSmallInt(result.getResultType().ordinal());
@@ -74,14 +78,14 @@ public class TestResultSerializer {
             encoder.writeString(testFailure.getStackTrace());
         }
 
-        encoder.writeSmallInt(result.getChildren().size());
-        for (PersistentTestResult methodResult : result.getChildren()) {
-            write(methodResult, encoder);
+        encoder.writeSmallInt(tree.getChildren().size());
+        for (PersistentTestResultTree childTree : tree.getChildren()) {
+            write(childTree, encoder);
         }
     }
 
     @Nullable
-    public PersistentTestResult read(VersionMismatchAction versionMismatchAction) {
+    public PersistentTestResultTree read(VersionMismatchAction versionMismatchAction) {
         if (!isHasResults()) {
             return null;
         }
@@ -110,7 +114,7 @@ public class TestResultSerializer {
         }
     }
 
-    private static PersistentTestResult read(Decoder decoder) throws IOException {
+    private static PersistentTestResultTree read(Decoder decoder) throws IOException {
         long id = decoder.readSmallLong();
         String name = decoder.readString();
         String displayName = decoder.readString();
@@ -128,11 +132,11 @@ public class TestResultSerializer {
         }
 
         int childCount = decoder.readSmallInt();
-        List<PersistentTestResult> children = new ArrayList<>(childCount);
+        List<PersistentTestResultTree> children = new ArrayList<>(childCount);
         for (int i = 0; i < childCount; i++) {
             children.add(read(decoder));
         }
 
-        return new PersistentTestResult(id, name, displayName, resultType, startTime, endTime, failures, children);
+        return new PersistentTestResultTree(id, new PersistentTestResult(name, displayName, resultType, startTime, endTime, failures), children);
     }
 }

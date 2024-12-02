@@ -17,122 +17,126 @@
 package org.gradle.api.internal.tasks.testing.junit.result
 
 import org.gradle.api.Action
+import org.gradle.api.internal.tasks.testing.BuildableTestResultsProvider
 import org.gradle.api.tasks.testing.TestOutputEvent
 import org.gradle.api.tasks.testing.TestResult
 import spock.lang.Specification
 
 class AggregateTestResultsProviderTest extends Specification {
-    def provider1 = Mock(TestResultsProvider)
-    def provider2 = Mock(TestResultsProvider)
-    def provider = new AggregateTestResultsProvider([provider1, provider2])
-
-    def "visits classes from each provider and reassigns class ids"() {
-        def action = Mock(Action)
-        def class1 = Stub(TestClassResult) {
-            getClassName() >> 'class-1'
+    def "visits results from each provider"() {
+        given:
+        def root1 = new BuildableTestResultsProvider().tap {
+            result("root-1")
+            child {
+                result("class-1")
+            }
         }
-        def class2 = Stub(TestClassResult) {
-            getClassName() >> 'class-2'
+        def root2 = new BuildableTestResultsProvider().tap {
+            result("root-2")
+            child {
+                result("class-2")
+            }
         }
+        def aggregate = new AggregateTestResultsProvider("Aggregate", "Aggregate", [root1, root2])
 
         when:
-        provider.visitClasses(action)
-
-        then:
-        1 * provider1.visitClasses(_) >> { Action a -> a.execute(class1) }
-        1 * provider2.visitClasses(_) >> { Action a -> a.execute(class2) }
-        // TODO(radimk): should not assume order
-        1 * action.execute(_) >> { TestClassResult r ->
-            assert r.id == 1
-            assert r.className == 'class-1'
-        }
-        1 * action.execute(_) >> { TestClassResult r ->
-            assert r.id == 2
-            assert r.className == 'class-2'
-        }
-        0 * action._
-    }
-
-    def "maps class id to original id when fetching test output"() {
-        def writer = Stub(Writer)
-        def class1 = Stub(TestClassResult) {
-            getId() >> 12
-            getClassName() >> 'class-1'
-        }
-        def class2 = Stub(TestClassResult) {
-            getId() >> 12
-            getClassName() >> 'class-2'
+        List<PersistentTestResult> results = []
+        aggregate.visitChildren {
+            results.add(it.result)
         }
 
-        when:
-        provider.visitClasses(Stub(Action))
-
         then:
-        1 * provider1.visitClasses(_) >> { Action a -> a.execute(class1) }
-        1 * provider2.visitClasses(_) >> { Action a -> a.execute(class2) }
-
-        when:
-        provider.hasOutput(1, TestOutputEvent.Destination.StdOut)
-        provider.writeAllOutput(1, TestOutputEvent.Destination.StdOut, writer)
-        provider.writeTestOutput(1, 11, TestOutputEvent.Destination.StdOut, writer)
-        provider.writeNonTestOutput(1, TestOutputEvent.Destination.StdOut, writer)
-
-        then:
-        1 * provider1.hasOutput(12, TestOutputEvent.Destination.StdOut)
-        1 * provider1.writeAllOutput(12, TestOutputEvent.Destination.StdOut, writer)
-        1 * provider1.writeTestOutput(12, 11, TestOutputEvent.Destination.StdOut, writer)
-        1 * provider1.writeNonTestOutput(12, TestOutputEvent.Destination.StdOut, writer)
-
-        when:
-        provider.hasOutput(2, TestOutputEvent.Destination.StdOut)
-        provider.writeAllOutput(2, TestOutputEvent.Destination.StdOut, writer)
-
-        then:
-        1 * provider2.hasOutput(12, TestOutputEvent.Destination.StdOut)
-        1 * provider2.writeAllOutput(12, TestOutputEvent.Destination.StdOut, writer)
+        results*.name == ['class-1', 'class-2']
     }
 
     def "processes duplicate classes"() {
-        def action = Mock(Action)
-        def class1 = Stub(TestClassResult) {
-            getClassName() >> 'class-1'
+        def root1 = new BuildableTestResultsProvider().tap {
+            result("root-1")
+            child {
+                result("class-1")
+                child {
+                    result("test-a")
+                }
+            }
         }
-        def class2 = Stub(TestClassResult) {
-            getClassName() >> 'class-1'
+        def root2 = new BuildableTestResultsProvider().tap {
+            result("root-2")
+            child {
+                result("class-1")
+                child {
+                    result("test-b")
+                }
+            }
         }
+        def aggregate = new AggregateTestResultsProvider("Aggregate", "Aggregate", [root1, root2])
 
         when:
-        provider.visitClasses(action)
+        List<PersistentTestResult> results = []
+        aggregate.visitChildren {
+            results.add(it.result)
+            it.visitChildren {
+                results.add(it.result)
+            }
+        }
 
         then:
-        1 * provider1.visitClasses(_) >> { Action a -> a.execute(class1) }
-        1 * provider2.visitClasses(_) >> { Action a -> a.execute(class2) }
-        1 * action.execute(_) >> { TestClassResult r ->
-            assert r.id == 1
-            assert r.className == 'class-1'
-        }
-        0 * action._
+        results*.name == ['class-1', 'test-a', 'test-b']
     }
 
     def "merge methods in duplicate classes"() {
         final long startTimeSooner = 122000
         final long startTimeLater = 123000
-        def action = Mock(Action)
-        def class1 = Stub(TestClassResult) {
-            getClassName() >> 'class-1'
-            getResults() >> Collections.singletonList(new TestMethodResult(101, 'methodFoo', TestResult.ResultType.SUCCESS, 10, 123456))
-            getStartTime() >> startTimeLater
+        final long endTimeSooner = 123456
+        final long endTimeLater = 123678
+        def root1 = new BuildableTestResultsProvider().tap {
+            result("root-1")
+            child {
+                result("class-1") {
+                    startTime(startTimeSooner)
+                    endTime(endTimeSooner)
+                }
+                child {
+                    result("test-a") {
+                        startTime(startTimeSooner)
+                        endTime(startTimeSooner + 10)
+                        resultType(TestResult.ResultType.SUCCESS)
+                    }
+                }
+            }
         }
-        def class2 = Stub(TestClassResult) {
-            getClassName() >> 'class-1'
-            getResults() >> Collections.singletonList(new TestMethodResult(101, 'methodFoo', TestResult.ResultType.FAILURE, 100, 123678))
-            getStartTime() >> startTimeSooner
+        def root2 = new BuildableTestResultsProvider().tap {
+            result("root-2")
+            child {
+                result("class-1") {
+                    startTime(startTimeLater)
+                    endTime(endTimeLater)
+                }
+                child {
+                    result("test-a") {
+                        startTime(startTimeLater)
+                        endTime(startTimeLater + 100)
+                        resultType(TestResult.ResultType.FAILURE)
+                    }
+                }
+            }
         }
+        def aggregate = new AggregateTestResultsProvider("Aggregate", "Aggregate", [root1, root2])
 
         when:
-        provider.visitClasses(action)
+        List<PersistentTestResult> results = []
+        aggregate.visitChildren {
+            results.add(it.result)
+            it.visitChildren {
+                results.add(it.result)
+            }
+        }
 
         then:
+        results*.name == ['class-1', 'test-a']
+        results*.startTime == [startTimeSooner, startTimeSooner]
+        results[0].endTime == endTimeLater
+        results[1].endTime == startTimeLater + 100
+        // TODO what to do here? classes must be merged, but methods are actually not merged and are reported as separate results?
         1 * provider1.visitClasses(_) >> { Action a -> a.execute(class1) }
         1 * provider2.visitClasses(_) >> { Action a -> a.execute(class2) }
         1 * action.execute(_) >> { TestClassResult r ->
@@ -148,40 +152,4 @@ class AggregateTestResultsProviderTest extends Specification {
         }
         0 * action._
     }
-
-    def "maps class ids to original id when fetching test output for merged classes"() {
-        def writer = Stub(Writer)
-        def class1 = Stub(TestClassResult) {
-            getId() >> 12
-            getClassName() >> 'class-1'
-        }
-        def class2 = Stub(TestClassResult) {
-            getId() >> 12
-            getClassName() >> 'class-1'
-        }
-
-        when:
-        provider.visitClasses(Stub(Action))
-
-        then:
-        1 * provider1.visitClasses(_) >> { Action a -> a.execute(class1) }
-        1 * provider2.visitClasses(_) >> { Action a -> a.execute(class2) }
-
-        when:
-        provider.hasOutput(1, TestOutputEvent.Destination.StdOut)
-        provider.writeAllOutput(1, TestOutputEvent.Destination.StdOut, writer)
-        provider.writeTestOutput(1, 11, TestOutputEvent.Destination.StdOut, writer)
-        provider.writeNonTestOutput(1, TestOutputEvent.Destination.StdOut, writer)
-
-        then:
-        1 * provider1.hasOutput(12, TestOutputEvent.Destination.StdOut)
-        1 * provider1.writeAllOutput(12, TestOutputEvent.Destination.StdOut, writer)
-        1 * provider1.writeTestOutput(12, 11, TestOutputEvent.Destination.StdOut, writer)
-        1 * provider1.writeNonTestOutput(12, TestOutputEvent.Destination.StdOut, writer)
-        1 * provider2.hasOutput(12, TestOutputEvent.Destination.StdOut)
-        1 * provider2.writeAllOutput(12, TestOutputEvent.Destination.StdOut, writer)
-        1 * provider2.writeTestOutput(12, 11, TestOutputEvent.Destination.StdOut, writer)
-        1 * provider2.writeNonTestOutput(12, TestOutputEvent.Destination.StdOut, writer)
-    }
-
 }

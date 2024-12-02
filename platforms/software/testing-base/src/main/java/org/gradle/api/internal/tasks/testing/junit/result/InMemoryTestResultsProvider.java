@@ -30,52 +30,52 @@ import java.io.Writer;
 public class InMemoryTestResultsProvider implements TestResultsProvider {
     @Nullable
     public static InMemoryTestResultsProvider loadFromDirectory(File resultsDir) {
-        PersistentTestResult result = new TestResultSerializer(resultsDir).read(TestResultSerializer.VersionMismatchAction.THROW_EXCEPTION);
-        if (result == null) {
+        PersistentTestResultTree tree = new TestResultSerializer(resultsDir).read(TestResultSerializer.VersionMismatchAction.THROW_EXCEPTION);
+        if (tree == null) {
             return null;
         }
-        return new InMemoryTestResultsProvider(result, new TestOutputStore(resultsDir).reader());
+        return new InMemoryTestResultsProvider(tree, new TestOutputStore(resultsDir).reader());
     }
 
-    private final PersistentTestResult result;
+    private final PersistentTestResultTree tree;
     private final TestOutputStore.Reader reader;
 
-    public InMemoryTestResultsProvider(PersistentTestResult result, TestOutputStore.Reader reader) {
-        if (result == null) {
-            throw new IllegalArgumentException("result cannot be null");
+    public InMemoryTestResultsProvider(PersistentTestResultTree tree, TestOutputStore.Reader reader) {
+        if (tree == null) {
+            throw new IllegalArgumentException("tree cannot be null");
         }
         if (reader == null) {
             throw new IllegalArgumentException("reader cannot be null");
         }
-        this.result = result;
+        this.tree = tree;
         this.reader = reader;
     }
 
     @Override
     public PersistentTestResult getResult() {
-        return result;
+        return tree.getResult();
     }
 
     @Override
     public void visitChildren(Action<? super TestResultsProvider> visitor) {
-        for (PersistentTestResult child : result.getChildren()) {
+        for (PersistentTestResultTree child : tree.getChildren()) {
             visitor.execute(new InMemoryTestResultsProvider(child, reader));
         }
     }
 
     @Override
     public boolean hasChildren() {
-        return !result.getChildren().isEmpty();
+        return !tree.getChildren().isEmpty();
     }
 
     @Override
     public void copyOutput(TestOutputEvent.Destination destination, Writer writer) {
-        reader.copyTestOutput(result.getId(), destination, writer);
+        reader.copyTestOutput(tree.getId(), destination, writer);
     }
 
     @Override
     public boolean hasOutput(TestOutputEvent.Destination destination) {
-        return reader.hasOutput(result.getId(), destination);
+        return reader.hasOutput(tree.getId(), destination);
     }
 
     @Override

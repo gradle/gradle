@@ -219,7 +219,7 @@ public abstract class TestReport extends DefaultTask {
                 stoppable(resultsProviders).stop();
                 throw e;
             }
-            return new AggregateTestResultsProvider(resultsProviders);
+            return new AggregateTestResultsProvider("TestReportAggregation", "Test Report Aggregation", resultsProviders);
         }
     }
 }

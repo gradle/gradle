@@ -37,8 +37,7 @@ import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.detection.DefaultTestExecuter;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework;
-import org.gradle.api.internal.tasks.testing.junit.result.PersistentTestResult;
-import org.gradle.api.internal.tasks.testing.junit.result.TestClassResult;
+import org.gradle.api.internal.tasks.testing.junit.result.PersistentTestResultTree;
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultSerializer;
 import org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestFramework;
 import org.gradle.api.internal.tasks.testing.testng.TestNGTestFramework;
@@ -690,15 +689,15 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
 
     private Set<String> getPreviousFailedTestClasses() {
         TestResultSerializer serializer = new TestResultSerializer(getBinaryResultsDirectory().getAsFile().get());
-        PersistentTestResult rootResult = serializer.read(TestResultSerializer.VersionMismatchAction.RETURN_NULL);
-        if (rootResult == null) {
+        PersistentTestResultTree rootResultTree = serializer.read(TestResultSerializer.VersionMismatchAction.RETURN_NULL);
+        if (rootResultTree == null) {
             return Collections.emptySet();
         }
         final Set<String> previousFailedTestClasses = new HashSet<>();
-        for (PersistentTestResult classResult : rootResult.getChildren()) {
-            if (classResult.getResultType() == TestResult.ResultType.FAILURE) {
-            previousFailedTestClasses.add(classResult.getName());
-                }
+        for (PersistentTestResultTree classResultTree : rootResultTree.getChildren()) {
+            if (classResultTree.getResult().getResultType() == TestResult.ResultType.FAILURE) {
+                previousFailedTestClasses.add(classResultTree.getResult().getName());
+            }
         }
         return previousFailedTestClasses;
     }

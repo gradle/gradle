@@ -35,19 +35,12 @@ public final class PersistentTestResult {
     }
 
     public static final class Builder {
-        private Long id;
         private String name;
         private String displayName;
         private TestResult.ResultType resultType;
         private Long startTime;
         private Long endTime;
         private final ImmutableList.Builder<PersistentTestFailure> failures = ImmutableList.builder();
-        private final ImmutableList.Builder<PersistentTestResult> children = ImmutableList.builder();
-
-        public Builder id(long id) {
-            this.id = id;
-            return this;
-        }
 
         public Builder name(String name) {
             this.name = name;
@@ -79,15 +72,7 @@ public final class PersistentTestResult {
             return this;
         }
 
-        public Builder addChild(PersistentTestResult child) {
-            children.add(child);
-            return this;
-        }
-
         public PersistentTestResult build() {
-            if (id == null) {
-                throw new IllegalStateException("id is required");
-            }
             if (name == null) {
                 throw new IllegalStateException("name is required");
             }
@@ -103,7 +88,7 @@ public final class PersistentTestResult {
             if (endTime == null) {
                 throw new IllegalStateException("endTime is required");
             }
-            return new PersistentTestResult(id, name, displayName, resultType, startTime, endTime, failures.build(), children.build());
+            return new PersistentTestResult(name, displayName, resultType, startTime, endTime, failures.build());
         }
     }
 
@@ -131,8 +116,6 @@ public final class PersistentTestResult {
         return TestResult.ResultType.FAILURE;
     }
 
-    private final List<PersistentTestResult> children;
-    private final long id;
     private final String name;
     private final String displayName;
     private final TestResult.ResultType resultType;
@@ -140,22 +123,13 @@ public final class PersistentTestResult {
     private final long endTime;
     private final List<PersistentTestFailure> failures;
 
-    public PersistentTestResult(long id, String name, String displayName, TestResult.ResultType resultType, long startTime, long endTime, List<PersistentTestFailure> failures, List<PersistentTestResult> children) {
-        if (id < 1) {
-            throw new IllegalArgumentException("id must be > 0");
-        }
-        this.id = id;
+    public PersistentTestResult(String name, String displayName, TestResult.ResultType resultType, long startTime, long endTime, List<PersistentTestFailure> failures) {
         this.name = name;
         this.displayName = displayName;
         this.resultType = resultType;
         this.startTime = startTime;
         this.endTime = endTime;
         this.failures = failures;
-        this.children = children;
-    }
-
-    public long getId() {
-        return id;
     }
 
     public String getName() {
@@ -186,14 +160,18 @@ public final class PersistentTestResult {
         return failures;
     }
 
-    public List<PersistentTestResult> getChildren() {
-        return children;
+    public Builder toBuilder() {
+        Builder builder = new Builder();
+        builder.name(name);
+        builder.displayName(displayName);
+        builder.resultType(resultType);
+        builder.startTime(startTime);
+        builder.endTime(endTime);
+        builder.failures.addAll(failures);
+        return builder;
     }
 
     public PersistentTestResult merge(PersistentTestResult other) {
-        if (id != other.id) {
-            throw new IllegalArgumentException("Cannot merge results with different ids");
-        }
         if (!name.equals(other.name)) {
             throw new IllegalArgumentException("Cannot merge results with different names");
         }
@@ -206,9 +184,6 @@ public final class PersistentTestResult {
         ImmutableList.Builder<PersistentTestFailure> failures = ImmutableList.builderWithExpectedSize(this.failures.size() + other.failures.size());
         failures.addAll(this.failures);
         failures.addAll(other.failures);
-        ImmutableList.Builder<PersistentTestResult> children = ImmutableList.builderWithExpectedSize(this.children.size() + other.children.size());
-        children.addAll(this.children);
-        children.addAll(other.children);
-        return new PersistentTestResult(id, name, displayName, resultType, startTime, endTime, failures.build(), children.build());
+        return new PersistentTestResult(name, displayName, resultType, startTime, endTime, failures.build());
     }
 }

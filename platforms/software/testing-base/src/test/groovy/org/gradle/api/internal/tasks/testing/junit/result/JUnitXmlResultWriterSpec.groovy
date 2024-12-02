@@ -17,24 +17,17 @@
 package org.gradle.api.internal.tasks.testing.junit.result
 
 import org.gradle.api.internal.tasks.testing.BuildableTestResultsProvider
-import org.gradle.api.internal.tasks.testing.results.DefaultTestResult
 import org.gradle.integtests.fixtures.JUnitTestClassExecutionResult
 import org.gradle.integtests.fixtures.TestResultOutputAssociation
 import org.gradle.internal.SystemProperties
 import spock.lang.Issue
 import spock.lang.Specification
 
-import static java.util.Collections.emptyList
-import static org.gradle.api.tasks.testing.TestOutputEvent.Destination.StdErr
-import static org.gradle.api.tasks.testing.TestOutputEvent.Destination.StdOut
 import static org.gradle.api.tasks.testing.TestResult.ResultType.FAILURE
 import static org.gradle.api.tasks.testing.TestResult.ResultType.SKIPPED
-import static org.gradle.api.tasks.testing.TestResult.ResultType.SUCCESS
 import static org.hamcrest.CoreMatchers.equalTo
 
 class JUnitXmlResultWriterSpec extends Specification {
-    private provider = Mock(TestResultsProvider)
-
     private startTime = 1353344968049
 
     def "writes xml JUnit result"() {
@@ -42,17 +35,45 @@ class JUnitXmlResultWriterSpec extends Specification {
         def options = new JUnitXmlResultOptions(false, false, true, true)
 
         and:
-        TestClassResult result = new TestClassResult(1, "com.foo.FooTest", startTime)
-        result.add(new TestMethodResult(1, "some test", SUCCESS, 15, startTime + 25))
-        result.add(new TestMethodResult(2, "some test two", SUCCESS, 15, startTime + 30))
-        result.add(new TestMethodResult(3, "some failing test", FAILURE, 10, startTime + 40).addFailure("failure message", "[stack-trace]", "ExceptionType"))
-        result.add(new TestMethodResult(4, "some skipped test", SKIPPED, 10, startTime + 45))
-
-        provider.writeAllOutput(1, StdOut, _) >> { args -> args[2].write("1st output message\n2nd output message\n") }
-        provider.writeAllOutput(1, StdErr, _) >> { args -> args[2].write("err") }
+        def provider = new BuildableTestResultsProvider()
+        provider.with {
+            result("com.foo.FooTest") {
+                startTime(this.startTime)
+                endTime(this.startTime + 45)
+            }
+            stdout("1st output message\n2nd output message\n")
+            stderr("err")
+            child {
+                result("some test") {
+                    startTime(this.startTime + 10)
+                    endTime(this.startTime + 25)
+                }
+            }
+            child {
+                result("some test two") {
+                    startTime(this.startTime + 15)
+                    endTime(this.startTime + 30)
+                }
+            }
+            child {
+                result("some failing test") {
+                    startTime(this.startTime + 30)
+                    endTime(this.startTime + 40)
+                    resultType(FAILURE)
+                    addFailure(new PersistentTestFailure("failure message", "[stack-trace]", "ExceptionType"))
+                }
+            }
+            child {
+                result("some skipped test") {
+                    startTime(this.startTime + 35)
+                    endTime(this.startTime + 45)
+                    resultType(SKIPPED)
+                }
+            }
+        }
 
         when:
-        def xml = getXml(result, options)
+        def xml = getXml(provider, options)
 
         then:
         new JUnitTestClassExecutionResult(xml, "com.foo.FooTest", "com.foo.FooTest", TestResultOutputAssociation.WITH_SUITE)
@@ -90,12 +111,22 @@ class JUnitXmlResultWriterSpec extends Specification {
         def options = new JUnitXmlResultOptions(false, false, true, true)
 
         and:
-        TestClassResult result = new TestClassResult(1, "com.foo.FooTest", startTime)
-        result.add(new TestMethodResult(1, "some test").completed(new DefaultTestResult(SUCCESS, startTime + 100, startTime + 300, 1, 1, 0, emptyList())))
-        _ * provider.writeAllOutput(_, _, _)
+        def provider = new BuildableTestResultsProvider()
+        provider.with {
+            result("com.foo.FooTest") {
+                startTime(this.startTime)
+                endTime(this.startTime + 300)
+            }
+            child {
+                result("some test") {
+                    startTime(this.startTime + 100)
+                    endTime(this.startTime + 300)
+                }
+            }
+        }
 
         when:
-        def xml = getXml(result, options)
+        def xml = getXml(provider, options)
 
         then:
         xml == """<?xml version="1.0" encoding="UTF-8"?>
@@ -113,13 +144,26 @@ class JUnitXmlResultWriterSpec extends Specification {
         def options = new JUnitXmlResultOptions(false, false, true, true)
 
         and:
-        TestClassResult result = new TestClassResult(1, "com.foo.FooTest", startTime)
-        result.add(new TestMethodResult(1, "some \ud8d3\ude01 test", FAILURE, 200, 300).addFailure("<> encoded!\ud8d3\ude02", "<non ascii:\ud8d3\ude02 \u0302>", "<Exception\ud8d3\ude29>"))
-        provider.writeAllOutput(_, StdErr, _) >> { args -> args[2].write("with \ud8d3\ude31CDATA end token: ]]> some ascii: ż") }
-        provider.writeAllOutput(_, StdOut, _) >> { args -> args[2].write("with CDATA end token: ]]> some ascii: \ud8d3\udd20ż") }
+        def provider = new BuildableTestResultsProvider()
+        provider.with {
+            result("com.foo.FooTest") {
+                startTime(this.startTime)
+                endTime(this.startTime + 300)
+            }
+            stdout("with CDATA end token: ]]> some ascii: \ud8d3\udd20ż")
+            stderr("with \ud8d3\ude31CDATA end token: ]]> some ascii: ż")
+            child {
+                result("some \ud8d3\ude01 test") {
+                    startTime(this.startTime + 100)
+                    endTime(this.startTime + 300)
+                    resultType(FAILURE)
+                    addFailure(new PersistentTestFailure("<> encoded!\ud8d3\ude02", "<non ascii:\ud8d3\ude02 \u0302>", "<Exception\ud8d3\ude29>"))
+                }
+            }
+        }
 
         when:
-        def xml = getXml(result, options)
+        def xml = getXml(provider, options)
 
         then:
         //attribute and text is encoded:
@@ -134,10 +178,16 @@ class JUnitXmlResultWriterSpec extends Specification {
         def options = new JUnitXmlResultOptions(false, false, true, true)
 
         and:
-        TestClassResult result = new TestClassResult(1, "com.foo.IgnoredTest", startTime)
+        def provider = new BuildableTestResultsProvider()
+        provider.with {
+            result("com.foo.IgnoredTest") {
+                startTime(this.startTime)
+                endTime(this.startTime)
+            }
+        }
 
         when:
-        def xml = getXml(result, options)
+        def xml = getXml(provider, options)
 
         then:
         xml == """<?xml version="1.0" encoding="UTF-8"?>
@@ -154,19 +204,31 @@ class JUnitXmlResultWriterSpec extends Specification {
         def options = new JUnitXmlResultOptions(true, false, true, true)
 
         and:
-        provider = new BuildableTestResultsProvider()
+        def provider = new BuildableTestResultsProvider()
 
         when:
-        def testClass = provider.testClassResult("com.Foo") {
+        provider.with {
+            result("com.Foo") {
+                startTime(0)
+                endTime(1000)
+            }
             stdout "class-out"
             stderr "class-err"
-            testcase("m1") {
+            child {
+                result("m1") {
+                    startTime(0)
+                    endTime(1000)
+                }
                 stderr " m1-err-1"
                 stdout " m1-out-1"
                 stdout " m1-out-2"
                 stderr " m1-err-2"
             }
-            testcase("m2") {
+            child {
+                result("m2") {
+                    startTime(0)
+                    endTime(1000)
+                }
                 stderr " m2-err-1"
                 stdout " m2-out-1"
                 stdout " m2-out-2"
@@ -175,7 +237,7 @@ class JUnitXmlResultWriterSpec extends Specification {
         }
 
         then:
-        getXml(testClass, options) == """<?xml version="1.0" encoding="UTF-8"?>
+        getXml(provider, options) == """<?xml version="1.0" encoding="UTF-8"?>
 <testsuite name="com.Foo" tests="2" skipped="0" failures="0" errors="0" timestamp="1970-01-01T00:00:00" hostname="localhost" time="1.0">
   <properties/>
   <testcase name="m1" classname="com.Foo" time="1.0">
@@ -197,11 +259,22 @@ class JUnitXmlResultWriterSpec extends Specification {
         def options = new JUnitXmlResultOptions(false, false, true, true)
 
         and:
-        TestClassResult result = new TestClassResult(1, "com.foo.FooTest", startTime)
-        result.add(new TestMethodResult(3, "some failing test", FAILURE, 10, startTime + 40))
+        def provider = new BuildableTestResultsProvider()
+        provider.with {
+            result("com.foo.FooTest") {
+                startTime(this.startTime)
+            }
+            child {
+                result("some failing test") {
+                    startTime(this.startTime + 30)
+                    endTime(this.startTime + 40)
+                    resultType(FAILURE)
+                }
+            }
+        }
 
         when:
-        def xml = getXml(result, options)
+        def xml = getXml(provider, options)
 
         then:
         new JUnitTestClassExecutionResult(xml, "com.foo.FooTest", "com.foo.FooTest", TestResultOutputAssociation.WITH_SUITE)
@@ -215,17 +288,50 @@ class JUnitXmlResultWriterSpec extends Specification {
         def options = new JUnitXmlResultOptions(false, false, true, true)
 
         and:
-        TestClassResult result = new TestClassResult(1, "com.foo.FooTest", displayName, startTime)
-        result.add(new TestMethodResult(1, "some test", "some test displayName", SUCCESS, 15, startTime + 25))
-        result.add(new TestMethodResult(2, "some test two", "some test two displayName", SUCCESS, 15, startTime + 30))
-        result.add(new TestMethodResult(3, "some failing test", "some failing test displayName", FAILURE, 10, startTime + 40).addFailure("failure message", "[stack-trace]", "ExceptionType"))
-        result.add(new TestMethodResult(4, "some skipped test", "some skipped test displayName", SKIPPED, 10, startTime + 45))
-
-        provider.writeAllOutput(1, StdOut, _) >> { args -> args[2].write("1st output message\n2nd output message\n") }
-        provider.writeAllOutput(1, StdErr, _) >> { args -> args[2].write("err") }
+        def provider = new BuildableTestResultsProvider()
+        provider.with {
+            result("com.foo.FooTest") {
+                delegate.displayName(displayName)
+                startTime(this.startTime)
+                endTime(this.startTime + 45)
+            }
+            stdout("1st output message\n2nd output message\n")
+            stderr("err")
+            child {
+                result("some test") {
+                    delegate.displayName("some test displayName")
+                    startTime(this.startTime + 10)
+                    endTime(this.startTime + 25)
+                }
+            }
+            child {
+                result("some test two") {
+                    delegate.displayName("some test two displayName")
+                    startTime(this.startTime + 15)
+                    endTime(this.startTime + 30)
+                }
+            }
+            child {
+                result("some failing test") {
+                    delegate.displayName("some failing test displayName")
+                    startTime(this.startTime + 30)
+                    endTime(this.startTime + 40)
+                    resultType(FAILURE)
+                    addFailure(new PersistentTestFailure("failure message", "[stack-trace]", "ExceptionType"))
+                }
+            }
+            child {
+                result("some skipped test") {
+                    delegate.displayName("some skipped test displayName")
+                    startTime(this.startTime + 35)
+                    endTime(this.startTime + 45)
+                    resultType(SKIPPED)
+                }
+            }
+        }
 
         when:
-        def xml = getXml(result, options)
+        def xml = getXml(provider, options)
 
         then:
         new JUnitTestClassExecutionResult(xml, "com.foo.FooTest", writtenName, TestResultOutputAssociation.WITH_SUITE)
@@ -267,13 +373,13 @@ class JUnitXmlResultWriterSpec extends Specification {
     def "omit system-out section"() {
         given:
         def options = new JUnitXmlResultOptions(true, false, false, true)
-        provider = new BuildableTestResultsProvider()
+        def provider = new BuildableTestResultsProvider()
 
         when:
-        def testClass = generateTestClassWithOutput(provider)
+        generateTestClassWithOutput(provider)
 
         then:
-        def xml = getXml(testClass, options)
+        def xml = getXml(provider, options)
         xml == """<?xml version="1.0" encoding="UTF-8"?>
 <testsuite name="com.foo.FooTest" tests="1" skipped="0" failures="0" errors="0" timestamp="1970-01-01T00:00:00" hostname="localhost" time="1.0">
   <properties/>
@@ -289,13 +395,13 @@ class JUnitXmlResultWriterSpec extends Specification {
     def "omit system-err section"() {
         given:
         def options = new JUnitXmlResultOptions(true, false, true, false)
-        provider = new BuildableTestResultsProvider()
+        def provider = new BuildableTestResultsProvider()
 
         when:
-        def testClass = generateTestClassWithOutput(provider)
+        generateTestClassWithOutput(provider)
 
         then:
-        def xml = getXml(testClass, options)
+        def xml = getXml(provider, options)
         xml == """<?xml version="1.0" encoding="UTF-8"?>
 <testsuite name="com.foo.FooTest" tests="1" skipped="0" failures="0" errors="0" timestamp="1970-01-01T00:00:00" hostname="localhost" time="1.0">
   <properties/>
@@ -311,13 +417,13 @@ class JUnitXmlResultWriterSpec extends Specification {
     def "show system-err and system-out sections"() {
         given:
         def options = new JUnitXmlResultOptions(true, false, true, true)
-        provider = new BuildableTestResultsProvider()
+        def provider = new BuildableTestResultsProvider()
 
         when:
-        def testClass = generateTestClassWithOutput(provider)
+        generateTestClassWithOutput(provider)
 
         then:
-        def xml = getXml(testClass, options)
+        def xml = getXml(provider, options)
         xml == """<?xml version="1.0" encoding="UTF-8"?>
 <testsuite name="com.foo.FooTest" tests="1" skipped="0" failures="0" errors="0" timestamp="1970-01-01T00:00:00" hostname="localhost" time="1.0">
   <properties/>
@@ -335,13 +441,13 @@ class JUnitXmlResultWriterSpec extends Specification {
     def "omit system-err and system-out sections"() {
         given:
         def options = new JUnitXmlResultOptions(true, false, false, false)
-        provider = new BuildableTestResultsProvider()
+        def provider = new BuildableTestResultsProvider()
 
         when:
-        def testClass = generateTestClassWithOutput(provider)
+        generateTestClassWithOutput(provider)
 
         then:
-        def xml = getXml(testClass, options)
+        def xml = getXml(provider, options)
         xml == """<?xml version="1.0" encoding="UTF-8"?>
 <testsuite name="com.foo.FooTest" tests="1" skipped="0" failures="0" errors="0" timestamp="1970-01-01T00:00:00" hostname="localhost" time="1.0">
   <properties/>
@@ -350,23 +456,31 @@ class JUnitXmlResultWriterSpec extends Specification {
 """
     }
 
-    private String getXml(TestClassResult result, JUnitXmlResultOptions options) {
+    private static String getXml(BuildableTestResultsProvider result, JUnitXmlResultOptions options) {
         def text = new ByteArrayOutputStream()
         getGenerator(options).write(result, text)
         return text.toString("UTF-8").replace(SystemProperties.instance.lineSeparator, "\n")
     }
 
-    private JUnitXmlResultWriter getGenerator(JUnitXmlResultOptions options) {
-        return new JUnitXmlResultWriter("localhost", provider, options)
+    private static JUnitXmlResultWriter getGenerator(JUnitXmlResultOptions options) {
+        return new JUnitXmlResultWriter("localhost", options)
     }
 
-    private BuildableTestResultsProvider.BuildableTestClassResult generateTestClassWithOutput(BuildableTestResultsProvider provider) {
-        provider.testClassResult("com.foo.FooTest") {
-            stdout "suite-out"
-            stderr "suite-err"
-            testcase("test-case") {
-                stderr "test-err"
-                stdout "test-out"
+    private static void generateTestClassWithOutput(BuildableTestResultsProvider provider) {
+        provider.with {
+            result("com.foo.FooTest") {
+                startTime(0)
+                endTime(1000)
+            }
+            stdout("suite-out")
+            stderr("suite-err")
+            child {
+                result("test-case") {
+                    startTime(0)
+                    endTime(1000)
+                }
+                stdout("test-out")
+                stderr("test-err")
             }
         }
     }

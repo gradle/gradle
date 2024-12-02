@@ -34,13 +34,25 @@ public class AggregateTestResultsProvider implements TestResultsProvider {
     private final Iterable<TestResultsProvider> delegates;
     private final PersistentTestResult result;
 
-    public AggregateTestResultsProvider(Iterable<TestResultsProvider> delegates) {
+    /**
+     * Creates a new provider that aggregates the results of the given providers.
+     *
+     * <p>
+     * A new root name and display name must be given, as a single {@link PersistentTestResult} that summarizes the root result of each delegate must be created.
+     * </p>
+     *
+     * @param newRootName the name of the new root result
+     * @param newRootDisplayName the display name of the new root result
+     * @param delegates the providers to aggregate
+     */
+    public AggregateTestResultsProvider(String newRootName, String newRootDisplayName, Iterable<TestResultsProvider> delegates) {
         Iterator<TestResultsProvider> iterator = delegates.iterator();
         Preconditions.checkArgument(iterator.hasNext(), "At least one delegate is required");
         this.delegates = delegates;
-        PersistentTestResult result = iterator.next().getResult();
+        PersistentTestResult result = iterator.next().getResult().toBuilder().name(newRootName).displayName(newRootDisplayName).build();
         while (iterator.hasNext()) {
-            result = result.merge(iterator.next().getResult());
+            PersistentTestResult nextResult = iterator.next().getResult().toBuilder().name(newRootName).displayName(newRootDisplayName).build();
+            result = result.merge(nextResult);
         }
         this.result = result;
     }
@@ -51,7 +63,15 @@ public class AggregateTestResultsProvider implements TestResultsProvider {
         for (final TestResultsProvider provider : delegates) {
             provider.visitChildren(childProvider -> {
                 String name = childProvider.getResult().getName();
-                childProvidersByName.put(name, childProvider);
+                List<TestResultsProvider> providers = childProvidersByName.get(name);
+                if (!providers.isEmpty()) {
+                    PersistentTestResult existingResult = providers.get(0).getResult();
+                    if (!existingResult.getDisplayName().equals(childProvider.getResult().getDisplayName())) {
+                        // If we want to support this, a behavior needs to be defined
+                        throw new IllegalStateException(String.format("Multiple children with the same name '%s' but different display names: '%s' and '%s'", name, existingResult.getDisplayName(), childProvider.getResult().getDisplayName()));
+                    }
+                }
+                providers.add(childProvider);
             });
         }
         for (List<TestResultsProvider> providers : Multimaps.asMap(childProvidersByName).values()) {
@@ -59,7 +79,8 @@ public class AggregateTestResultsProvider implements TestResultsProvider {
             if (providers.size() == 1) {
                 visitor.execute(providers.get(0));
             } else {
-                visitor.execute(new AggregateTestResultsProvider(providers));
+                PersistentTestResult result = providers.get(0).getResult();
+                visitor.execute(new AggregateTestResultsProvider(result.getName(), result.getDisplayName(), providers));
             }
         }
     }

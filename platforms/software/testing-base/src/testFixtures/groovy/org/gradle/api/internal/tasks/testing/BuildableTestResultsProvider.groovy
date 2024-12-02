@@ -17,146 +17,81 @@
 package org.gradle.api.internal.tasks.testing
 
 import org.gradle.api.Action
-import org.gradle.api.internal.tasks.testing.junit.result.TestClassResult
-import org.gradle.api.internal.tasks.testing.junit.result.PersistentTestFailure
-import org.gradle.api.internal.tasks.testing.junit.result.TestMethodResult
+import org.gradle.api.internal.tasks.testing.junit.result.PersistentTestResult
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider
 import org.gradle.api.tasks.testing.TestOutputEvent
 import org.gradle.api.tasks.testing.TestResult
-import org.gradle.util.internal.ConfigureUtil
 
 import static org.gradle.api.tasks.testing.TestOutputEvent.Destination.StdErr
 import static org.gradle.api.tasks.testing.TestOutputEvent.Destination.StdOut
 
 class BuildableTestResultsProvider implements TestResultsProvider {
 
-    long timestamp = 0
-    Map<Long, BuildableTestClassResult> testClasses = [:]
-    long idCounter = 1
+    private PersistentTestResult result
+    private List<BuildableTestResultsProvider> children = []
+    private List<TestOutputEvent> outputEvents = []
 
-    BuildableTestClassResult testClassResult(String className, @DelegatesTo(value = BuildableTestClassResult, strategy = Closure.DELEGATE_FIRST) Closure configClosure = {}) {
-        BuildableTestClassResult testSuite = new BuildableTestClassResult(idCounter++, className, timestamp)
-        testSuite.with(configClosure)
-        testClasses[testSuite.id] = testSuite
+    BuildableTestResultsProvider() {
     }
 
-    void writeAllOutput(long classId, TestOutputEvent.Destination destination, Writer writer) {
-        doWrite(classId, 0, true, destination, writer)
+    @Override
+    PersistentTestResult getResult() {
+        return result
     }
 
-    void writeNonTestOutput(long classId, TestOutputEvent.Destination destination, Writer writer) {
-        doWrite(classId, 0, false, destination, writer)
+    void result(String name, @DelegatesTo(value = PersistentTestResult.Builder, strategy = Closure.DELEGATE_FIRST) Closure<?> action = {}) {
+        PersistentTestResult.Builder result = PersistentTestResult.builder()
+            .name(name)
+            .displayName(name)
+            .startTime(System.currentTimeMillis())
+            .endTime(System.currentTimeMillis())
+            .resultType(TestResult.ResultType.SUCCESS)
+        action.delegate = result
+        action.resolveStrategy = Closure.DELEGATE_FIRST
+        action()
+        this.result = result.build()
     }
 
-    void writeTestOutput(long classId, long testId, TestOutputEvent.Destination destination, Writer writer) {
-        doWrite(classId, testId, false, destination, writer)
+    void stdout(String output) {
+        outputEvents << new DefaultTestOutputEvent(System.currentTimeMillis(), StdOut, output)
     }
 
-    void doWrite(long classId, long testId, boolean allClassOutput, TestOutputEvent.Destination destination, Writer writer) {
-        BuildableTestClassResult testCase = testClasses[classId]
-        testCase.outputEvents.each { BuildableOutputEvent event ->
-            if (event.testOutputEvent.destination == destination && (allClassOutput || testId == event.testId)) {
-                writer.append(event.testOutputEvent.message)
+    void stderr(String output) {
+        outputEvents << new DefaultTestOutputEvent(System.currentTimeMillis(), StdErr, output)
+    }
+
+    BuildableTestResultsProvider child(@DelegatesTo(value = BuildableTestResultsProvider, strategy = Closure.DELEGATE_FIRST) Closure<?> action) {
+        def child = new BuildableTestResultsProvider()
+        action.delegate = child
+        action.resolveStrategy = Closure.DELEGATE_FIRST
+        action()
+        children << child
+        return child
+    }
+
+    @Override
+    void copyOutput(TestOutputEvent.Destination destination, Writer writer) {
+        outputEvents.each {
+            if (it.destination == destination) {
+                writer.write(it.message)
             }
         }
     }
 
-    void visitClasses(Action<? super TestClassResult> visitor) {
-        testClasses.values().each {
-            visitor.execute(it)
-        }
-    }
-
-    boolean isHasResults() {
-        !testClasses.isEmpty()
-    }
-
-    boolean hasOutput(long classId, TestOutputEvent.Destination destination) {
-        testClasses[classId]?.outputEvents?.find { it.testOutputEvent.destination == destination }
+    @Override
+    boolean hasOutput(TestOutputEvent.Destination destination) {
+        return outputEvents.any { it.destination == destination }
     }
 
     @Override
-    boolean hasOutput(long classId, long testId, TestOutputEvent.Destination destination) {
-        testClasses[classId]?.outputEvents?.find { it.testId == testId && it.testOutputEvent.destination == destination }
+    boolean hasChildren() {
+        return !children.isEmpty()
     }
 
-    static class BuildableOutputEvent {
-        long testId
-        TestOutputEvent testOutputEvent
-
-        BuildableOutputEvent(long testId, TestOutputEvent testOutputEvent) {
-            this.testId = testId
-            this.testOutputEvent = testOutputEvent
-        }
-    }
-
-    class BuildableTestClassResult extends TestClassResult {
-        List<BuildableOutputEvent> outputEvents = []
-
-        long duration = 1000
-
-        Map<String, Integer> methodCounter = [:]
-
-        BuildableTestClassResult(long id, String className, long startTime) {
-            super(id, className, startTime)
-        }
-
-        BuildableTestMethodResult testcase(String name, @DelegatesTo(value = BuildableTestMethodResult, strategy = Closure.DELEGATE_FIRST) Closure configClosure = {}) {
-            testcase(idCounter++, name, configClosure)
-        }
-
-        BuildableTestMethodResult testcase(long id, String name, @DelegatesTo(value = BuildableTestMethodResult, strategy = Closure.DELEGATE_FIRST) Closure configClosure = {}) {
-            def duration = methodCounter.compute(name) { ignored, value ->  value == null ? 1 : value + 1 } * 1000
-            BuildableTestMethodResult methodResult = new BuildableTestMethodResult(id, name, outputEvents, new SimpleTestResult(duration))
-            add(methodResult)
-            ConfigureUtil.configure(configClosure, methodResult)
-        }
-
-        def stderr(String output) {
-            outputEvents << new BuildableOutputEvent(0, new DefaultTestOutputEvent(StdErr, output))
-        }
-
-        def stdout(String output) {
-            outputEvents << new BuildableOutputEvent(0, new DefaultTestOutputEvent(StdOut, output))
-        }
-
-        @Override
-        long getDuration() {
-            this.duration
-        }
-    }
-
-    static class BuildableTestMethodResult extends TestMethodResult {
-
-        long duration
-        List<PersistentTestFailure> failures = []
-
-        TestResult.ResultType resultType = TestResult.ResultType.SUCCESS
-
-        private final List<BuildableOutputEvent> outputEvents
-
-        BuildableTestMethodResult(long id, String name, List<BuildableOutputEvent> outputEvents, TestResult result) {
-            super(id, name)
-            completed(result)
-            this.outputEvents = outputEvents
-            duration = result.endTime - result.startTime;
-        }
-
-        void failure(String message, String stackTrace) {
-            failures.add(new PersistentTestFailure(message, stackTrace, "ExceptionType"))
-            resultType = TestResult.ResultType.FAILURE
-        }
-
-        void ignore() {
-            resultType = TestResult.ResultType.SKIPPED
-        }
-
-        def stderr(String output) {
-            outputEvents << new BuildableOutputEvent(getId(), new DefaultTestOutputEvent(StdErr, output))
-        }
-
-        def stdout(String output) {
-            outputEvents << new BuildableOutputEvent(getId(), new DefaultTestOutputEvent(StdOut, output))
+    @Override
+    void visitChildren(Action<? super TestResultsProvider> visitor) {
+        children.each {
+            visitor.execute(it)
         }
     }
 

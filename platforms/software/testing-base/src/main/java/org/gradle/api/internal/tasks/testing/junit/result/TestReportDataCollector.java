@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.tasks.testing.junit.result;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.tasks.testing.TestDescriptor;
 import org.gradle.api.tasks.testing.TestListener;
@@ -27,6 +29,7 @@ import org.gradle.internal.serialize.PlaceholderExceptionSupport;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -35,24 +38,26 @@ import java.util.Map;
 public class TestReportDataCollector implements TestListener, TestOutputListener {
 
     /**
-     * Object used in {@link #assignedIds} to represent the root node, to avoid using {@code null} as a key.
+     * Object used in {@link #childTreesById} to represent the root node, to avoid using {@code null} as a key.
      */
     private static final Object ROOT_ID = new Object();
-    private final Map<Long, PersistentTestResult.Builder> inProgressResults = new HashMap<>();
+    private final Map<Object, PersistentTestResult.Builder> inProgressResultsById = new HashMap<>();
     private final Map<Object, Long> assignedIds = new HashMap<>();
+    private final ListMultimap<Object, PersistentTestResultTree> childTreesById = ArrayListMultimap.create();
     private final TestOutputStore.Writer outputWriter;
     private long internalIdCounter = 0L;
 
-    public TestReportDataCollector(PersistentTestResult.Builder rootResult, TestOutputStore.Writer outputWriter) {
-        long id = internalIdCounter++;
-        this.inProgressResults.put(id, rootResult.id(id));
-        this.assignedIds.put(ROOT_ID, id);
+    public TestReportDataCollector(TestOutputStore.Writer outputWriter) {
         this.outputWriter = outputWriter;
+    }
+
+    public List<PersistentTestResultTree> removeRootChildTrees() {
+        return childTreesById.removeAll(ROOT_ID);
     }
 
     @Override
     public void beforeSuite(TestDescriptor suite) {
-        startResultCapturing(suite);
+        startResultCapturing((TestDescriptorInternal) suite);
     }
 
     @Override
@@ -62,7 +67,7 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
 
     @Override
     public void beforeTest(TestDescriptor suite) {
-        startResultCapturing(suite);
+        startResultCapturing((TestDescriptorInternal) suite);
     }
 
     @Override
@@ -70,19 +75,19 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
         finishResult((TestDescriptorInternal) testDescriptor, result);
     }
 
-    private void startResultCapturing(TestDescriptor suite) {
-        long id = internalIdCounter++;
-        assignedIds.put(((TestDescriptorInternal) suite).getId(), id);
+    private void startResultCapturing(TestDescriptorInternal suite) {
         PersistentTestResult.Builder testNodeBuilder = PersistentTestResult.builder()
-            .id(id)
             .name(suite.getName())
             .displayName(suite.getDisplayName());
-        inProgressResults.put(id, testNodeBuilder);
+        inProgressResultsById.put(suite.getId(), testNodeBuilder);
+
+        // Assign ID for use in output capturing
+        long id = internalIdCounter++;
+        assignedIds.put(suite.getId(), id);
     }
 
     private void finishResult(TestDescriptorInternal testDescriptor, TestResult result) {
-        long id = assignedIds.get(testDescriptor.getId());
-        PersistentTestResult.Builder testNodeBuilder = inProgressResults.remove(id)
+        PersistentTestResult.Builder testNodeBuilder = inProgressResultsById.remove(testDescriptor.getId())
             .startTime(result.getStartTime())
             .endTime(result.getEndTime())
             .resultType(result.getResultType());
@@ -91,13 +96,13 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
             testNodeBuilder.addFailure(new PersistentTestFailure(failureMessage(throwable), stackTrace(throwable), exceptionClassName(throwable)));
         }
 
-        long parentId;
-        if (testDescriptor.getParent() == null) {
-            parentId = assignedIds.get(ROOT_ID);
-        } else {
-            parentId = assignedIds.get(testDescriptor.getParent().getId());
-        }
-        inProgressResults.get(parentId).addChild(testNodeBuilder.build());
+        long id = assignedIds.get(testDescriptor.getId());
+        List<PersistentTestResultTree> childTrees = this.childTreesById.removeAll(testDescriptor.getId());
+
+        PersistentTestResultTree tree = new PersistentTestResultTree(id, testNodeBuilder.build(), childTrees);
+
+        Object parentId = testDescriptor.getParent() == null ? ROOT_ID : testDescriptor.getParent().getId();
+        this.childTreesById.put(parentId, tree);
     }
 
     private String failureMessage(Throwable throwable) {
@@ -106,7 +111,7 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
         } catch (Throwable t) {
             String exceptionClassName = exceptionClassName(throwable);
             return String.format("Could not determine failure message for exception of type %s: %s",
-                    exceptionClassName, t);
+                exceptionClassName, t);
         }
     }
 
