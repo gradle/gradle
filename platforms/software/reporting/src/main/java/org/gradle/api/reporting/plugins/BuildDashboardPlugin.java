@@ -47,7 +47,9 @@ public abstract class BuildDashboardPlugin implements Plugin<Project> {
                 buildDashboardTask.setGroup("reporting");
 
                 DirectoryReport htmlReport = buildDashboardTask.getReports().getHtml();
-                htmlReport.getOutputLocation().convention(project.getExtensions().getByType(ReportingExtension.class).getBaseDirectory().dir("buildDashboard"));
+                htmlReport.getOutputLocation().convention(
+                    project.getExtensions().getByType(ReportingExtension.class).getBaseDirectory().dir("buildDashboard")
+                );
             }
         });
 
