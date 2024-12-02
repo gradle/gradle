@@ -129,7 +129,7 @@ public class DefaultReportContainer<T extends Report> extends DefaultNamedDomain
         @Override
         public <N extends T> N instantiateReport(Class<N> clazz, Object... constructionArgs) {
             N report = instantiator.newInstance(clazz, constructionArgs);
-            String name = report.getName();
+            String name = report.getName().get();
             if (name.equals("enabled")) {
                 throw new InvalidUserDataException("Reports that are part of a ReportContainer cannot be named 'enabled'");
             }

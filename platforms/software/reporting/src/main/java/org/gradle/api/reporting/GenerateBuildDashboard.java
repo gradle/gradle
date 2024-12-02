@@ -64,7 +64,7 @@ public abstract class GenerateBuildDashboard extends DefaultTask implements Repo
                 .filter(report -> !getReports().contains(report))
                 .map(report -> {
                     File outputLocation = report.getOutputLocation().get().getAsFile();
-                    return new ReportState(report.getDisplayName(), outputLocation, outputLocation.exists());
+                    return new ReportState(report.getDisplayName().get(), outputLocation, outputLocation.exists());
                 })
                 .collect(Collectors.toCollection(LinkedHashSet::new))
         );
@@ -170,7 +170,7 @@ public abstract class GenerateBuildDashboard extends DefaultTask implements Repo
     void run() {
         if (getReports().getHtml().getRequired().get()) {
             BuildDashboardGenerator generator = new BuildDashboardGenerator();
-            generator.render(getEnabledInputReports(), reports.getHtml().getEntryPoint());
+            generator.render(getEnabledInputReports(), reports.getHtml().getEntryPoint().get().getAsFile());
         } else {
             setDidWork(false);
         }

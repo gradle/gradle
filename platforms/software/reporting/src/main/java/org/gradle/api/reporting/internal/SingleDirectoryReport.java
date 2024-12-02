@@ -17,9 +17,11 @@
 package org.gradle.api.reporting.internal;
 
 import org.gradle.api.Describable;
+import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.provider.DefaultProvider;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.reporting.DirectoryReport;
 import org.gradle.internal.Describables;
 import org.jspecify.annotations.Nullable;
@@ -46,11 +48,14 @@ public abstract class SingleDirectoryReport extends SimpleReport implements Dire
     protected abstract ProjectLayout getProjectLayout();
 
     @Override
-    public File getEntryPoint() {
+    public Provider<? extends FileSystemLocation> getEntryPoint() {
+        // NOTE: here, getLocationOnly is required because without it, an error is thrown:
+        // > Property 'outputLocation' is declared as an output property of Report html (type SingleDirectoryReport) but does not have a task associated with it.
+        // See https://github.com/gradle/gradle/issues/29826
         if (relativeEntryPath == null) {
-            return getOutputLocation().getAsFile().get();
+            return getOutputLocation().getLocationOnly();
         } else {
-            return new File(getOutputLocation().getAsFile().getOrNull(), relativeEntryPath);
+            return getOutputLocation().getLocationOnly().map(dir -> dir.file(relativeEntryPath));
         }
     }
 }
