@@ -7,7 +7,7 @@ repositories {
 }
 
 // tag::transitive-per-configuration[]
-configurations.all {
+configurations.configureEach {
     transitive = false
 }
 
