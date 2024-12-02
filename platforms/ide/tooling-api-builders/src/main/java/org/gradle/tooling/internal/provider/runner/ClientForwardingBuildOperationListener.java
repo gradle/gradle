@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.problems.internal.DefaultProblemProgressDetails;
 import org.gradle.api.problems.internal.DefaultProblemsSummaryProgressDetails;
@@ -39,9 +40,10 @@ import org.gradle.launcher.exec.RunBuildBuildOperationType;
 import org.gradle.tooling.events.OperationType;
 import org.gradle.tooling.internal.protocol.InternalFailure;
 
-import javax.annotation.Nullable;
-import java.util.Collections;
 import java.util.function.Supplier;
+
+import static org.gradle.tooling.internal.provider.runner.ProblemsProgressEventUtils.createProblemEvent;
+import static org.gradle.tooling.internal.provider.runner.ProblemsProgressEventUtils.createProblemSummaryEvent;
 
 /**
  * Build listener that forwards all receiving events to the client via the provided {@code ProgressEventConsumer} instance.
@@ -78,9 +80,21 @@ class ClientForwardingBuildOperationListener implements BuildOperationListener {
         if (problemsRequested) {
             Object details = progressEvent.getDetails();
             if (details instanceof DefaultProblemProgressDetails) {
-                eventConsumer.progress(ProblemsProgressEventUtils.createProblemEvent(eventConsumer.findStartedParentId(buildOperationId), (DefaultProblemProgressDetails) details, operationIdentifierSupplier));
+                eventConsumer.progress(
+                    createProblemEvent(
+                        eventConsumer.findStartedParentId(buildOperationId),
+                        (DefaultProblemProgressDetails) details,
+                        operationIdentifierSupplier
+                    )
+                );
             } else if (details instanceof DefaultProblemsSummaryProgressDetails) {
-                eventConsumer.progress(ProblemsProgressEventUtils.createProblemSummaryEvent(eventConsumer.findStartedParentId(buildOperationId), (DefaultProblemsSummaryProgressDetails) details, operationIdentifierSupplier));
+                eventConsumer.progress(
+                    createProblemSummaryEvent(
+                        eventConsumer.findStartedParentId(buildOperationId),
+                        (DefaultProblemsSummaryProgressDetails) details,
+                        operationIdentifierSupplier
+                    )
+                );
             }
         }
     }
@@ -112,20 +126,16 @@ class ClientForwardingBuildOperationListener implements BuildOperationListener {
     }
 
     static AbstractOperationResult toOperationResult(OperationFinishEvent result) {
-        return toOperationResult(result, null);
+        return toOperationResult(result, t -> ImmutableList.of());
     }
 
-    static AbstractOperationResult toOperationResult(OperationFinishEvent result, @Nullable ProblemLookup problemLookup) {
+    static AbstractOperationResult toOperationResult(OperationFinishEvent result, ProblemLookup problemLookup) {
         Throwable failure = result.getFailure();
         long startTime = result.getStartTime();
         long endTime = result.getEndTime();
         if (failure != null) {
-            if (problemLookup != null) {
-                InternalFailure rootFailure = DefaultFailure.fromThrowable(failure, problemLookup, ProblemsProgressEventUtils::createDefaultProblemDetails);
-                return new DefaultFailureResult(startTime, endTime, Collections.singletonList(rootFailure));
-            } else {
-                return new DefaultFailureResult(startTime, endTime, Collections.singletonList(DefaultFailure.fromThrowable(failure)));
-            }
+            InternalFailure rootFailure = DefaultFailure.fromThrowable(failure, problemLookup, ProblemsProgressEventUtils::createDefaultProblemDetails);
+            return new DefaultFailureResult(startTime, endTime, ImmutableList.of(rootFailure));
         }
         return new DefaultSuccessResult(startTime, endTime);
     }

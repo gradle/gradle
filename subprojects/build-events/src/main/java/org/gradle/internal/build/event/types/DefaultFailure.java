@@ -22,15 +22,16 @@ import org.gradle.internal.exceptions.MultiCauseException;
 import org.gradle.tooling.internal.protocol.InternalBasicProblemDetailsVersion3;
 import org.gradle.tooling.internal.protocol.InternalFailure;
 
+import javax.annotation.Nonnull;
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.io.StringWriter;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Function;
-import java.util.stream.Collectors;
+
+import static com.google.common.collect.ImmutableList.toImmutableList;
 
 public class DefaultFailure implements Serializable, InternalFailure {
 
@@ -81,26 +82,29 @@ public class DefaultFailure implements Serializable, InternalFailure {
         StringWriter out = new StringWriter();
         PrintWriter wrt = new PrintWriter(out);
         t.printStackTrace(wrt);
-        Throwable cause = t.getCause();
-        List<InternalFailure> causeFailures;
+        List<InternalFailure> causeFailures = getCauseFailures(problemLookup, mapper, t.getCause());
+
+        List<InternalBasicProblemDetailsVersion3> problemDetails = problemLookup.findAll(t).stream()
+            .map(mapper)
+            .filter(Objects::nonNull)
+            .collect(toImmutableList());
+        return new DefaultFailure(t.getMessage(),
+            out.toString(),
+            causeFailures,
+            problemDetails);
+    }
+
+    @Nonnull
+    private static List<InternalFailure> getCauseFailures(ProblemLookup problemLookup, Function<Problem, InternalBasicProblemDetailsVersion3> mapper, Throwable cause) {
         if (cause == null) {
-            causeFailures = Collections.emptyList();
+            return ImmutableList.of();
         } else if (cause instanceof MultiCauseException) {
             MultiCauseException multiCause = (MultiCauseException) cause;
-            causeFailures = multiCause.getCauses().stream().map(f -> fromThrowable(f, problemLookup, mapper)).collect(Collectors.toList());
+            return multiCause.getCauses().stream()
+                .map(f -> fromThrowable(f, problemLookup, mapper))
+                .collect(toImmutableList());
         } else {
-            causeFailures = Collections.singletonList(fromThrowable(cause, problemLookup, mapper));
-        }
-        Collection<Problem> problemMapping = problemLookup.findAll(t);
-
-        List<Problem> problems = new ArrayList<>();
-        if (problemMapping != null) {
-            problems.addAll(problemMapping);
-        }
-        if (problems.isEmpty()) {
-            return new DefaultFailure(t.getMessage(), out.toString(), causeFailures);
-        } else {
-            return new DefaultFailure(t.getMessage(), out.toString(), causeFailures, problems.stream().map(mapper).collect(Collectors.toList()));
+            return ImmutableList.of(fromThrowable(cause, problemLookup, mapper));
         }
     }
 }
