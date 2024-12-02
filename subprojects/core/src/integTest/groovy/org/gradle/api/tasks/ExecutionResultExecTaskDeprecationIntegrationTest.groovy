@@ -29,7 +29,7 @@ class ExecutionResultExecTaskDeprecationIntegrationTest extends AbstractExecutio
 
             task run(type: Exec) {
                 dependsOn(compileJava)
-                executable = ${Jvm.canonicalName}.current().javaExecutable
+                executable = ${Jvm.canonicalName}.current().javaExecutable.absolutePath
                 args '-cp', project.layout.files(compileJava).asPath, 'driver.Driver', "1"
             }
         """

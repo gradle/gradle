@@ -281,6 +281,7 @@ End of search list."""
         1 * action.getStandardOutput() >> _
         1 * action.getErrorOutput() >> _
         1 * action.getIgnoreExitValue() >> _
+        1 * action.getWorkingDir() >> _
         1 * action.execute() >> execResult
         1 * execResult.getExitValue() >> 1
 
@@ -414,6 +415,7 @@ End of search list."""
         1 * action.getStandardOutput() >> standardOutput
         1 * action.getErrorOutput() >> errorOutput
         1 * action.getIgnoreExitValue() >> _
+        1 * action.getWorkingDir() >> _
         1 * standardOutput.set(_) >> { OutputStream outstr -> outstr << output }
         1 * errorOutput.set(_) >> { OutputStream errorstr -> errorstr << error }
         1 * action.execute() >> result
@@ -427,6 +429,7 @@ End of search list."""
         1 * action.commandLine(cygpath.absolutePath, '-w', from)
         1 * action.getStandardOutput() >> standardOutput
         1 * action.getErrorOutput() >> _
+        1 * action.getWorkingDir() >> _
         1 * standardOutput.set(_) >> { OutputStream outputStream -> outputStream.write(to.bytes) }
         1 * action.execute() >> execResult
         _ * execResult.assertNormalExitValue()

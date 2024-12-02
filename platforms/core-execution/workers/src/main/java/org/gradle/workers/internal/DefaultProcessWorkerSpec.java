@@ -19,8 +19,10 @@ package org.gradle.workers.internal;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.Action;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Provider;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.process.JavaForkOptions;
+import org.gradle.process.internal.DefaultProcessForkOptions;
 import org.gradle.workers.ClassLoaderWorkerSpec;
 import org.gradle.workers.ProcessWorkerSpec;
 
@@ -42,7 +44,7 @@ public class DefaultProcessWorkerSpec extends DefaultClassLoaderWorkerSpec imple
     public DefaultProcessWorkerSpec(JavaForkOptions forkOptions, ObjectFactory objectFactory) {
         super(objectFactory);
         this.forkOptions = forkOptions;
-        this.forkOptions.setEnvironment(sanitizeEnvironment(forkOptions));
+        this.forkOptions.getEnvironment().convention(sanitizeEnvironment());
     }
 
     /**
@@ -51,13 +53,15 @@ public class DefaultProcessWorkerSpec extends DefaultClassLoaderWorkerSpec imple
      * On Unix systems we need to pass a few environment variables to make sure
      * the file system is accessed with the right encoding.
      */
-    private static Map<String, Object> sanitizeEnvironment(JavaForkOptions forkOptions) {
-        if (!OperatingSystem.current().isUnix()) {
-            return ImmutableMap.of();
-        }
-        return forkOptions.getEnvironment().entrySet().stream()
-            .filter(entry -> INHERITED_UNIX_ENVIRONMENT.matcher(entry.getKey()).matches())
-            .collect(ImmutableMap.toImmutableMap(Map.Entry::getKey, Map.Entry::getValue));
+    private static Provider<Map<String, Object>> sanitizeEnvironment() {
+        return DefaultProcessForkOptions.CURRENT_ENVIRONMENT.map(env -> {
+            if (!OperatingSystem.current().isUnix()) {
+                return ImmutableMap.of();
+            }
+            return env.entrySet().stream()
+                .filter(entry -> INHERITED_UNIX_ENVIRONMENT.matcher(entry.getKey()).matches())
+                .collect(ImmutableMap.toImmutableMap(Map.Entry::getKey, Map.Entry::getValue));
+        });
     }
 
     @Override
