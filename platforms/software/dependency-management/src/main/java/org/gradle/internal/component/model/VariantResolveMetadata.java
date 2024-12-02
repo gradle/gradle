@@ -66,6 +66,8 @@ public interface VariantResolveMetadata {
 
     /**
      * An opaque identifier for a an artifact variant.
+     * <p>
+     * Implementations must implement equals and hashCode.
      */
     interface Identifier {
     }

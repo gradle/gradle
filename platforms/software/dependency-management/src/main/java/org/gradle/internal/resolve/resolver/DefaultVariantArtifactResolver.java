@@ -17,15 +17,12 @@
 package org.gradle.internal.resolve.resolver;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactBackedResolvedVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.immutable.artifact.ImmutableArtifactTypeRegistry;
 import org.gradle.internal.Describables;
-import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
@@ -61,56 +58,14 @@ public class DefaultVariantArtifactResolver implements VariantArtifactResolver {
             ImmutableCapabilities.EMPTY
         );
 
-        return toResolvedVariant(component, adhoc, identifier, artifacts);
+        return resolveVariantArtifactSet(component, adhoc);
     }
 
     @Override
-    public ResolvedVariant resolveVariant(ComponentArtifactResolveMetadata component, VariantResolveMetadata artifactVariant) {
-        return toResolvedVariant(component, artifactVariant, artifactVariant.getIdentifier(), artifactVariant.getArtifacts());
-    }
-
-    @Override
-    public ResolvedVariant resolveVariant(ComponentArtifactResolveMetadata component, VariantResolveMetadata artifactVariant, ExcludeSpec exclusions) {
-        ImmutableList<? extends ComponentArtifactMetadata> sourceArtifacts = artifactVariant.getArtifacts();
-        ImmutableList<ComponentArtifactMetadata> overrideArtifacts = maybeExcludeArtifacts(component, sourceArtifacts, exclusions);
-        if (overrideArtifacts != null) {
-            // If we override artifacts, this is an adhoc variant, therefore it has no identifier.
-            return toResolvedVariant(component, artifactVariant, null, overrideArtifacts);
-        } else {
-            return toResolvedVariant(component, artifactVariant, artifactVariant.getIdentifier(), sourceArtifacts);
-        }
-    }
-
-    @Nullable
-    private static ImmutableList<ComponentArtifactMetadata> maybeExcludeArtifacts(ComponentArtifactResolveMetadata component, ImmutableList<? extends ComponentArtifactMetadata> artifacts, ExcludeSpec exclusions) {
-        ModuleIdentifier module = component.getModuleVersionId().getModule();
-
-        // artifactsToResolve are those not excluded by their owning module
-        boolean hasExcludedArtifact = false;
-        ImmutableList.Builder<ComponentArtifactMetadata> artifactsToResolveBuilder = ImmutableList.builderWithExpectedSize(artifacts.size());
-        for (ComponentArtifactMetadata artifact : artifacts) {
-            if (!exclusions.excludesArtifact(module, artifact.getName())) {
-                artifactsToResolveBuilder.add(artifact);
-            } else {
-                hasExcludedArtifact = true;
-            }
-        }
-
-        if (hasExcludedArtifact) {
-            return artifactsToResolveBuilder.build();
-        }
-
-        return null;
-    }
-
-    private ResolvedVariant toResolvedVariant(
-        ComponentArtifactResolveMetadata component,
-        VariantResolveMetadata artifactVariant,
-        @Nullable VariantResolveMetadata.Identifier identifier,
-        ImmutableList<? extends ComponentArtifactMetadata> artifacts
-    ) {
-        if (identifier == null || !artifactVariant.isEligibleForCaching()) {
-            return createResolvedVariant(identifier, component, artifactVariant, artifacts, artifactTypeRegistry);
+    public ResolvedVariant resolveVariantArtifactSet(ComponentArtifactResolveMetadata component, VariantResolveMetadata artifactSet) {
+        VariantResolveMetadata.Identifier identifier = artifactSet.getIdentifier();
+        if (identifier == null || !artifactSet.isEligibleForCaching()) {
+            return createResolvedVariant(identifier, component, artifactSet, artifactTypeRegistry);
         }
 
         // We use the artifact type registry as a key here, since for each consumer the registry may be different.
@@ -127,7 +82,7 @@ public class DefaultVariantArtifactResolver implements VariantArtifactResolver {
 
         // Calculate the value with locking
         return resolvedVariantCache.computeIfAbsent(key, k ->
-            createResolvedVariant(k.variantIdentifier, component, artifactVariant, artifacts, k.artifactTypeRegistry)
+            createResolvedVariant(k.variantIdentifier, component, artifactSet, k.artifactTypeRegistry)
         );
     }
 
@@ -135,11 +90,15 @@ public class DefaultVariantArtifactResolver implements VariantArtifactResolver {
         @Nullable VariantResolveMetadata.Identifier identifier,
         ComponentArtifactResolveMetadata component,
         VariantResolveMetadata artifactVariant,
-        ImmutableList<? extends ComponentArtifactMetadata> artifacts,
         ImmutableArtifactTypeRegistry artifactTypeRegistry
     ) {
-        DisplayName displayName = artifactVariant.asDescribable();
+        // TODO: In order to apply the artifact type registry, we need to realize the artifacts now, earlier than we should.
+        // Since the artifact type registry must be applied before artifact selection, which occurs before task dependencies
+        // execute, and since the artifact type registry is a function of the artifacts themselves, which are only known after task
+        // dependencies execute, the artifact type registry is inherently flawed. It must be deprecated and removed.
+        ImmutableList<? extends ComponentArtifactMetadata> artifacts = artifactVariant.getArtifacts();
         ImmutableAttributes attributes = artifactTypeRegistry.mapAttributesFor(artifactVariant.getAttributes(), artifacts);
+
         ImmutableCapabilities capabilities = withImplicitCapability(artifactVariant.getCapabilities(), component);
 
         // TODO: This value gets cached in a build-tree-scoped cache. It captures a project-scoped `artifactResolver`, which
@@ -155,7 +114,14 @@ public class DefaultVariantArtifactResolver implements VariantArtifactResolver {
         // the same one that resolves its artifacts. This would benefit greatly from "repository deduplication", where we could
         // consider repositories from multiple projects as equivalent as long as they are configured the same (same url, cache policy,
         // component metadata rules, metadata sources, etc.). We should probably leverage ComponentArtifactResolveMetadata#getSources() for this.
-        return new ArtifactBackedResolvedVariant(identifier, displayName, attributes, capabilities, artifacts, new DefaultComponentArtifactResolver(component, artifactResolver));
+        return new ArtifactBackedResolvedVariant(
+            identifier,
+            artifactVariant.asDescribable(),
+            attributes,
+            capabilities,
+            artifacts,
+            new DefaultComponentArtifactResolver(component, artifactResolver)
+        );
     }
 
     private static ImmutableCapabilities withImplicitCapability(ImmutableCapabilities capabilities, ComponentArtifactResolveMetadata component) {
