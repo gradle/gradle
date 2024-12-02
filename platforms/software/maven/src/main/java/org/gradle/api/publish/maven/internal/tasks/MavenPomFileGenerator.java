@@ -22,6 +22,7 @@ import org.apache.maven.model.CiManagement;
 import org.apache.maven.model.Contributor;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.DependencyManagement;
+import org.apache.maven.model.DeploymentRepository;
 import org.apache.maven.model.Developer;
 import org.apache.maven.model.DistributionManagement;
 import org.apache.maven.model.Exclusion;
@@ -47,6 +48,7 @@ import org.gradle.api.publish.maven.MavenPomLicense;
 import org.gradle.api.publish.maven.MavenPomMailingList;
 import org.gradle.api.publish.maven.MavenPomOrganization;
 import org.gradle.api.publish.maven.MavenPomRelocation;
+import org.gradle.api.publish.maven.MavenPomDeploymentRepository;
 import org.gradle.api.publish.maven.MavenPomScm;
 import org.gradle.api.publish.maven.internal.dependencies.MavenDependency;
 import org.gradle.api.publish.maven.internal.dependencies.MavenPomDependencies;
@@ -213,6 +215,9 @@ public final class MavenPomFileGenerator {
         if (source.getRelocation() != null) {
             target.setRelocation(convertRelocation(source.getRelocation()));
         }
+        if (source.getRepository() != null) {
+            target.setRepository(convertDeploymentRepository(source.getRepository()));
+        }
         return target;
     }
 
@@ -222,6 +227,16 @@ public final class MavenPomFileGenerator {
         target.setArtifactId(source.getArtifactId().getOrNull());
         target.setVersion(source.getVersion().getOrNull());
         target.setMessage(source.getMessage().getOrNull());
+        return target;
+    }
+
+    private static DeploymentRepository convertDeploymentRepository(MavenPomDeploymentRepository source) {
+        DeploymentRepository target = new DeploymentRepository();
+        target.setId(source.getId().getOrNull());
+        target.setName(source.getName().getOrNull());
+        target.setUniqueVersion(source.getUniqueVersion().getOrElse(true));
+        target.setUrl(source.getUrl().getOrNull());
+        target.setLayout(source.getLayout().getOrElse("default"));
         return target;
     }
 
