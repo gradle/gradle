@@ -371,7 +371,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         task.source.files == project.sourceSets.main.allJava.files
         assertThat(task.classpath, sameCollection(project.layout.files(project.sourceSets.main.output, project.sourceSets.main.compileClasspath)))
         task.destinationDir.get().asFile == project.java.docsDir.file("javadoc").get().asFile
-        task.title.get() == project.extensions.getByType(ReportingExtension).apiDocTitle
+        task.title.get() == project.extensions.getByType(ReportingExtension).apiDocTitle.get()
 
         when:
         task = project.tasks["buildArchives"]

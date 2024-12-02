@@ -81,7 +81,7 @@ class GroovyBasePluginTest extends Specification {
 
         then:
         task.destinationDir.asFile.get() == project.java.docsDir.file('groovydoc').get().asFile
-        task.docTitle.get() == project.extensions.getByType(ReportingExtension).apiDocTitle
-        task.windowTitle.get() == project.extensions.getByType(ReportingExtension).apiDocTitle
+        task.docTitle.get() == project.extensions.getByType(ReportingExtension).apiDocTitle.get()
+        task.windowTitle.get() == project.extensions.getByType(ReportingExtension).apiDocTitle.get()
     }
 }
