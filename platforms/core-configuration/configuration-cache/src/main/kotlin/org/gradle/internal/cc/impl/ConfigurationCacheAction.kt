@@ -19,6 +19,6 @@ package org.gradle.internal.cc.impl
 
 internal sealed class ConfigurationCacheAction {
     class LOAD(val entryId: String) : ConfigurationCacheAction()
-    class UPDATE(val entryId: String) : ConfigurationCacheAction()
+    class UPDATE(val entryId: String, val invalidProjects: CheckedFingerprint.InvalidProjects) : ConfigurationCacheAction()
     object STORE : ConfigurationCacheAction()
 }

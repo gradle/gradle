@@ -39,7 +39,6 @@ import org.gradle.internal.cc.base.logger
 import org.gradle.internal.cc.base.serialize.HostServiceProvider
 import org.gradle.internal.cc.base.serialize.IsolateOwners
 import org.gradle.internal.cc.base.serialize.service
-import org.gradle.internal.cc.impl.cacheentry.EntryDetails
 import org.gradle.internal.cc.impl.extensions.withMostRecentEntry
 import org.gradle.internal.cc.impl.fingerprint.BuildScopedFingerprintResult
 import org.gradle.internal.cc.impl.fingerprint.ConfigurationCacheFingerprintController
@@ -75,7 +74,7 @@ import java.util.Locale
 import java.util.UUID
 
 
-@Suppress("LongParameterList")
+@Suppress("LongParameterList", "LargeClass")
 class DefaultConfigurationCache internal constructor(
     private val startParameter: ConfigurationCacheStartParameter,
     private val cacheKey: ConfigurationCacheKey,
@@ -140,7 +139,7 @@ class DefaultConfigurationCache internal constructor(
         BuildTreeModelSideEffectStore(
             isolateOwnerHost,
             cacheIO,
-            store
+            entryStore
         )
     }
 
@@ -149,7 +148,7 @@ class DefaultConfigurationCache internal constructor(
         IntermediateModelController(
             isolateOwnerHost,
             cacheIO,
-            store,
+            entryStore,
             calculatedValueContainerFactory,
             cacheFingerprintController
         )
@@ -161,7 +160,7 @@ class DefaultConfigurationCache internal constructor(
             isolateOwnerHost,
             cacheIO,
             resolveStateFactory,
-            store,
+            entryStore,
             calculatedValueContainerFactory
         )
     }
@@ -191,12 +190,39 @@ class DefaultConfigurationCache internal constructor(
         this.entryId = when (cacheAction) {
             is ConfigurationCacheAction.LOAD -> cacheAction.entryId
             is ConfigurationCacheAction.UPDATE -> cacheAction.entryId
-            else -> UUID.randomUUID().toString()
+            ConfigurationCacheAction.STORE -> UUID.randomUUID().toString()
         }
+        initializeCacheEntrySideEffects(cacheAction)
         problems.action(cacheAction, cacheActionDescription)
+    }
+
+    private
+    fun initializeCacheEntrySideEffects(cacheAction: ConfigurationCacheAction) {
+        when (cacheAction) {
+            is ConfigurationCacheAction.LOAD -> {
+                val entryDetails = readEntryDetails()
+                val sideEffects = buildTreeModelSideEffects.restoreFromCacheEntry(entryDetails.sideEffects)
+                loadedSideEffects += sideEffects
+            }
+
+            is ConfigurationCacheAction.UPDATE -> {
+                val invalidProjects = cacheAction.invalidProjects
+                val entryDetails = readEntryDetails()
+                intermediateModels.restoreFromCacheEntry(entryDetails.intermediateModels, invalidProjects)
+                projectMetadata.restoreFromCacheEntry(entryDetails.projectMetadata, invalidProjects)
+            }
+
+            ConfigurationCacheAction.STORE -> {}
+        }
         // TODO:isolated find a way to avoid this late binding
         modelSideEffectExecutor.sideEffectStore = buildTreeModelSideEffects
     }
+
+    private
+    fun readEntryDetails() =
+        entryStore.useForStateLoad(StateType.Entry) {
+            cacheIO.readCacheEntryDetailsFrom(it)!!
+        }.value
 
     override fun loadOrScheduleRequestedTasks(
         graph: BuildTreeWorkGraph,
@@ -394,7 +420,7 @@ class DefaultConfigurationCache internal constructor(
                                 invalid.first.reason.render()
                             )
                             logBootstrapSummary(description)
-                            ConfigurationCacheAction.UPDATE(checkedFingerprint.entryId) to description
+                            ConfigurationCacheAction.UPDATE(checkedFingerprint.entryId, invalid) to description
                         }
                     }
                 }
@@ -500,16 +526,12 @@ class DefaultConfigurationCache internal constructor(
     }
 
     private
-    fun ConfigurationCacheRepository.Layout.checkedFingerprint(candidateEntry: CandidateEntry): CheckedFingerprint {
-        val entryFile = fileFor(StateType.Entry)
-        val entryDetails = cacheIO.readCacheEntryDetailsFrom(entryFile)
-        return if (entryDetails == null) {
-            // No entry file -> treat the entry as empty/missing/invalid
-            CheckedFingerprint.NotFound
-        } else {
-            checkFingerprint(entryDetails, candidateEntry)
-        }
-    }
+    fun ConfigurationCacheRepository.Layout.checkedFingerprint(candidateEntry: CandidateEntry): CheckedFingerprint =
+        cacheIO.readCacheEntryDetailsFrom(fileFor(StateType.Entry))
+            ?.let { entryDetails ->
+                // TODO:configuration-cache read only rootDirs at this point
+                checkFingerprint(candidateEntry, entryDetails.rootDirs)
+            } ?: CheckedFingerprint.NotFound
 
     private
     fun <T> runWorkThatContributesToCacheEntry(action: () -> T): T {
@@ -696,15 +718,15 @@ class DefaultConfigurationCache internal constructor(
     }
 
     private
-    fun ConfigurationCacheRepository.Layout.checkFingerprint(entryDetails: EntryDetails, candidateEntry: CandidateEntry): CheckedFingerprint {
+    fun ConfigurationCacheRepository.Layout.checkFingerprint(candidateEntry: CandidateEntry, rootDirs: List<File>): CheckedFingerprint {
         // Register all included build root directories as watchable hierarchies,
         // so we can load the fingerprint for build scripts and other files from included builds
         // without violating file system invariants.
-        registerWatchableBuildDirectories(entryDetails.rootDirs)
+        registerWatchableBuildDirectories(rootDirs)
 
         loadGradleProperties()
 
-        return checkFingerprintAgainstLoadedProperties(entryDetails, candidateEntry).also { result ->
+        return checkFingerprintAgainstLoadedProperties(candidateEntry).also { result ->
             if (result !is CheckedFingerprint.Found) {
                 // Force Gradle properties to be reloaded so the Gradle properties files
                 // along with any Gradle property defining system properties and environment variables
@@ -716,7 +738,6 @@ class DefaultConfigurationCache internal constructor(
 
     private
     fun ConfigurationCacheRepository.Layout.checkFingerprintAgainstLoadedProperties(
-        entryDetails: EntryDetails,
         candidateEntry: CandidateEntry
     ): CheckedFingerprint =
         when (val result = checkBuildScopedFingerprint(fileFor(StateType.BuildFingerprint))) {
@@ -725,29 +746,13 @@ class DefaultConfigurationCache internal constructor(
             }
 
             BuildScopedFingerprintResult.Valid -> {
+                // Build inputs are up-to-date, check project specific inputs
                 CheckedFingerprint.Found(
                     candidateEntry.id,
-                    checkProjectFingerprintAgainstLoadedProperties(entryDetails)
+                    checkProjectScopedFingerprint(fileFor(StateType.ProjectFingerprint))
                 )
             }
         }
-
-    private
-    fun ConfigurationCacheRepository.Layout.checkProjectFingerprintAgainstLoadedProperties(
-        entryDetails: EntryDetails
-    ): CheckedFingerprint.InvalidProjects? {
-        // Build inputs are up-to-date, check project specific inputs
-        val invalidProjects = checkProjectScopedFingerprint(fileFor(StateType.ProjectFingerprint))
-        if (invalidProjects != null) {
-            intermediateModels.restoreFromCacheEntry(entryDetails.intermediateModels, invalidProjects)
-            projectMetadata.restoreFromCacheEntry(entryDetails.projectMetadata, invalidProjects)
-        } else {
-            val sideEffects = buildTreeModelSideEffects.restoreFromCacheEntry(entryDetails.sideEffects)
-            loadedSideEffects += sideEffects
-        }
-
-        return invalidProjects
-    }
 
     private
     fun checkBuildScopedFingerprint(fingerprintFile: ConfigurationCacheStateFile) =
