@@ -18,10 +18,13 @@ package org.gradle.smoketests
 
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
+import spock.lang.Ignore
 import spock.lang.Issue
 
 class SpotBugsPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
 
+    // TODO: fix/remove in 9.0
+    @Ignore("Not compatible with breaking changes in Report class, see https://github.com/spotbugs/spotbugs-gradle-plugin/blob/master/src/main/kotlin/com/github/spotbugs/snom/SpotBugsReport.kt")
     @Issue('https://plugins.gradle.org/plugin/com.github.spotbugs')
     @Requires(UnitTestPreconditions.Jdk11OrEarlier)
     def 'spotbugs plugin'() {

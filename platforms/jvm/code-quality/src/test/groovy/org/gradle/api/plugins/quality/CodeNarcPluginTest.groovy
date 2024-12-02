@@ -79,7 +79,7 @@ class CodeNarcPluginTest extends AbstractProjectBuilderSpec {
         task.maxPriority1Violations.get() == 0
         task.maxPriority2Violations.get() == 0
         task.maxPriority3Violations.get() == 0
-        task.reports.enabled*.name == ["html"]
+        task.reports.enabled*.name.collect { it.get() } == ["html"]
         task.reports.html.outputLocation.asFile.get() == project.file("build/reports/codenarc/custom.html")
         task.ignoreFailures == false
     }
@@ -114,7 +114,7 @@ class CodeNarcPluginTest extends AbstractProjectBuilderSpec {
         task.maxPriority1Violations.get() == 10
         task.maxPriority2Violations.get() == 50
         task.maxPriority3Violations.get() == 200
-        task.reports.enabled*.name == ["xml"]
+        task.reports.enabled*.name.collect { it.get() } == ["xml"]
         task.reports.xml.outputLocation.asFile.get() == project.file("codenarc-reports/custom.xml")
         task.ignoreFailures == true
     }
