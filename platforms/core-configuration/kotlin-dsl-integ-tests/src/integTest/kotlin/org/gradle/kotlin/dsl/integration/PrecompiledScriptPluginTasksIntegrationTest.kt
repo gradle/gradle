@@ -23,7 +23,6 @@ import org.gradle.kotlin.dsl.fixtures.normalisedPath
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
@@ -80,8 +79,9 @@ class PrecompiledScriptPluginTasksIntegrationTest : AbstractKotlinIntegrationTes
             """.trimIndent()
         )
 
+        getExecuter().expectDocumentedDeprecationWarning("The ReportingExtension.file(path) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use baseDirectory.dir(path) or baseDirectory.file(path) property instead Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#provider_api_migration")
         build("generateScriptPluginAdapters")
-
+        getExecuter().expectDocumentedDeprecationWarning("The ReportingExtension.file(path) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use baseDirectory.dir(path) or baseDirectory.file(path) property instead Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#provider_api_migration")
         build("detekt")
     }
 
