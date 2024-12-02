@@ -176,6 +176,7 @@ class CommandLineToolVersionLocatorTest extends VswhereSpec {
         1 * execAction.getStandardOutput() >> standardOutput
         1 * execAction.getErrorOutput() >> _
         1 * execAction.getIgnoreExitValue() >> _
+        1 * execAction.getWorkingDir() >> _
         1 * standardOutput.set(_ as OutputStream) >> { args ->
             outputStream = args[0]
         }

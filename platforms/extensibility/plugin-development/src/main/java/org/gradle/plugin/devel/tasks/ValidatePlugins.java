@@ -95,7 +95,7 @@ public abstract class ValidatePlugins extends DefaultTask {
         getWorkerExecutor()
             .processIsolation(spec -> {
                 if (getLauncher().isPresent()) {
-                    spec.getForkOptions().setExecutable(getLauncher().get().getExecutablePath());
+                    spec.getForkOptions().getExecutable().set(getLauncher().map(launcher -> launcher.getExecutablePath().getAsFile().getAbsolutePath()));
                 } else {
                     ProblemId problemId = ProblemId.create(
                         "missing-java-toolchain-plugin",

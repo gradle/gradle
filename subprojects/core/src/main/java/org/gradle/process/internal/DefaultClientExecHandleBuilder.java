@@ -18,6 +18,7 @@ package org.gradle.process.internal;
 
 import com.google.common.collect.Maps;
 import org.gradle.initialization.BuildCancellationToken;
+import org.gradle.internal.Cast;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.ProcessForkOptions;
@@ -203,11 +204,16 @@ public class DefaultClientExecHandleBuilder implements ClientExecHandleBuilder, 
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public Map<String, Object> getEnvironment() {
         if (environment == null) {
-            setEnvironment(System.getenv());
+            setEnvironment(Cast.uncheckedCast(getCurrentEnvironment()));
         }
         return environment;
+    }
+
+    static Map<String, String> getCurrentEnvironment() {
+        return System.getenv();
     }
 
     @Override
@@ -217,8 +223,9 @@ public class DefaultClientExecHandleBuilder implements ClientExecHandleBuilder, 
     }
 
     @Override
-    public void setEnvironment(Map<String, ?> environmentVariables) {
+    public ClientExecHandleBuilder setEnvironment(Map<String, Object> environmentVariables) {
         environment = Maps.newHashMap(environmentVariables);
+        return this;
     }
 
     @Override
@@ -242,21 +249,15 @@ public class DefaultClientExecHandleBuilder implements ClientExecHandleBuilder, 
 
     @Override
     public ClientExecHandleBuilder setWorkingDir(@Nullable File dir) {
-        this.workingDir = dir == null ? null:  fileResolver.resolve(dir);
-        return this;
-    }
-
-    @Override
-    public ClientExecHandleBuilder setWorkingDir(@Nullable Object dir) {
         this.workingDir = dir == null ? null : fileResolver.resolve(dir);
         return this;
     }
 
     @Override
     public void copyTo(ProcessForkOptions options) {
-        options.setExecutable(executable);
-        options.setWorkingDir(getWorkingDir());
-        options.setEnvironment(getEnvironment());
+        options.getExecutable().set(executable);
+        options.getWorkingDir().set(getWorkingDir());
+        options.getEnvironment().set(getEnvironment());
     }
 
     private static Map<String, String> getEffectiveEnvironment(Map<String, Object> environment) {

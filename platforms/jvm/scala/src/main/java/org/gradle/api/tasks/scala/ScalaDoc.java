@@ -193,7 +193,7 @@ public abstract class ScalaDoc extends SourceTask {
                 forkOptions.getMaxHeapSize().set(getMaxMemory());
             }
 
-            forkOptions.setExecutable(javaLauncher.get().getExecutablePath().getAsFile().getAbsolutePath());
+            forkOptions.getExecutable().set(javaLauncher.map(launcher -> launcher.getExecutablePath().getAsFile().getAbsolutePath()));
         });
         queue.submit(GenerateScaladoc.class, parameters -> {
             @Nullable

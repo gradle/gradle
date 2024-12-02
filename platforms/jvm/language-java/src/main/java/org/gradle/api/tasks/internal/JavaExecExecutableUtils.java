@@ -17,20 +17,14 @@
 package org.gradle.api.tasks.internal;
 
 import org.gradle.api.internal.provider.PropertyFactory;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.JavaExec;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.internal.SpecificInstallationToolchainSpec;
-import org.jspecify.annotations.Nullable;
 
 public class JavaExecExecutableUtils {
 
-    @Nullable
-    public static JavaToolchainSpec getExecutableOverrideToolchainSpec(JavaExec task, PropertyFactory propertyFactory) {
-        String customExecutable = task.getExecutable();
-        if (customExecutable != null) {
-            return SpecificInstallationToolchainSpec.fromJavaExecutable(propertyFactory, customExecutable);
-        }
-
-        return null;
+    public static Provider<JavaToolchainSpec> getExecutableOverrideToolchainSpec(JavaExec task, PropertyFactory propertyFactory) {
+        return task.getExecutable().map(executable -> SpecificInstallationToolchainSpec.fromJavaExecutable(propertyFactory, executable));
     }
 }
