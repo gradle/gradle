@@ -42,35 +42,39 @@ internal
 class KotlinCompileClasspathFingerprinter(
     cacheService: ResourceSnapshotterCacheService,
     fileCollectionSnapshotter: FileCollectionSnapshotter,
-    stringInterner: StringInterner
-) : AbstractFileCollectionFingerprinter(
-    ClasspathFingerprintingStrategy.compileClasspathFallbackToRuntimeClasspath(
-        CachingResourceHasher(
-            AbiExtractingClasspathResourceHasher.withoutFallback(ApiClassExtractor
-                .withWriter(KotlinApiMemberWriter.adapter())
-                .includePackagePrivateMembers()
-                .build()),
-            cacheService
-        ),
-        ClasspathFingerprintingStrategy.runtimeClasspathResourceHasher(
-            RuntimeClasspathResourceHasher(),
-            LineEndingSensitivity.DEFAULT,
-            PropertiesFileFilter.FILTER_NOTHING,
-            ResourceEntryFilter.FILTER_NOTHING,
-            ResourceFilter.FILTER_NOTHING
-        ),
-        cacheService,
-        stringInterner,
-        CompileAvoidanceExceptionReporter()
-    ),
-    fileCollectionSnapshotter
-),
+    stringInterner: StringInterner,
+) : AbstractFileCollectionFingerprinter(fileCollectionFingerprintingStrategy(cacheService, stringInterner), fileCollectionSnapshotter),
     CompileClasspathFingerprinter {
 
     override fun getNormalizer(): FileNormalizer {
         return InputNormalizer.COMPILE_CLASSPATH
     }
 }
+
+
+private
+fun fileCollectionFingerprintingStrategy(
+    cacheService: ResourceSnapshotterCacheService,
+    stringInterner: StringInterner,
+): ClasspathFingerprintingStrategy = ClasspathFingerprintingStrategy.compileClasspathFallbackToRuntimeClasspath(
+    CachingResourceHasher(
+        AbiExtractingClasspathResourceHasher.withoutFallback(ApiClassExtractor
+                .withWriter(KotlinApiMemberWriter.adapter())
+                .includePackagePrivateMembers()
+                .build()),
+        cacheService
+    ),
+    ClasspathFingerprintingStrategy.runtimeClasspathResourceHasher(
+        RuntimeClasspathResourceHasher(),
+        LineEndingSensitivity.DEFAULT,
+        PropertiesFileFilter.FILTER_NOTHING,
+        ResourceEntryFilter.FILTER_NOTHING,
+        ResourceFilter.FILTER_NOTHING
+    ),
+    cacheService,
+    stringInterner,
+    CompileAvoidanceExceptionReporter()
+)
 
 
 private

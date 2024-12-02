@@ -56,8 +56,7 @@ class BuildSrcScriptCompileAvoidanceIntegrationTest : AbstractCompileAvoidanceIn
             """
         )
         withUniqueScript("$packageName.foo()")
-        configureProjectAndExpectCompileAvoidanceWarnings().assertBuildScriptCompiled().assertOutputContains("foo")
-            .assertContainsCompileAvoidanceWarning("buildSrc.jar: class com/example/FooKt: inline fun foo(): compile avoidance is not supported with public inline functions")
+        configureProject().assertBuildScriptCompiled().assertOutputContains("foo")
 
         givenKotlinScriptInBuildSrcContains(
             "Foo",
@@ -67,8 +66,7 @@ class BuildSrcScriptCompileAvoidanceIntegrationTest : AbstractCompileAvoidanceIn
             }
             """
         )
-        configureProjectAndExpectCompileAvoidanceWarnings().assertBuildScriptBodyRecompiled().assertOutputContains("bar")
-            .assertContainsCompileAvoidanceWarning("buildSrc.jar: class com/example/FooKt: inline fun foo(): compile avoidance is not supported with public inline functions")
+        configureProject().assertBuildScriptBodyRecompiled().assertOutputContains("bar")
     }
 
     @Test
