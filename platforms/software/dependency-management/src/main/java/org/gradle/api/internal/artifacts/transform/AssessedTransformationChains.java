@@ -23,6 +23,7 @@ import org.gradle.api.internal.attributes.matching.AttributeMatcher;
 import org.gradle.internal.component.resolution.failure.transform.TransformationChainData;
 import org.gradle.internal.component.resolution.failure.transform.TransformedVariantConverter;
 
+import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -40,17 +41,24 @@ import java.util.stream.Collectors;
  * <p>
  * This assessment can be used to determine whether there is any ambiguity in the list of chains.
  * <p>
- * Immutable data class.  All included chains should produce results that are compatible
+ * Immutable-ish data class with a lazily computed field ({@link #matchingChainsByFingerprint}).  All
+ * included chains should produce results that are compatible
  * with the given target attributes (but may or may not be <strong>mutually compatible</strong>
  * with each other).  If more than one chain is present, it may or may not be truly distinct
  * from all the other chains.  All matching chains should be of equal length.
  */
 /* package */ final class AssessedTransformationChains {
     /**
+     * The preferred matching chains are the best matches of the chains supplied by the constructor.
+     * Those change are all COMPATIBLE, but may not all be EXACT matches, which would be preferred.
+     * This is determined by the attribute matcher.
+     */
+    private final List<TransformedVariant> preferredMatchingChains;
+    /**
      * Each value in this map represents a group of transformation chains that produce the same fingerprint,
      * which means they represent the same transformations applied in a different sequence.
      */
-    private final Map<TransformationChainData.TransformationChainFingerprint, List<TransformedVariant>> matchingChainsByFingerprint;
+    private Map<TransformationChainData.TransformationChainFingerprint, List<TransformedVariant>> matchingChainsByFingerprint;
     private final AttributeMatcher attributeMatcher;
 
     /**
@@ -64,18 +72,8 @@ import java.util.stream.Collectors;
     public AssessedTransformationChains(ImmutableAttributes targetAttributes, AttributeMatcher attributeMatcher, List<TransformedVariant> chainsToAssess) {
         Preconditions.checkArgument(chainsToAssess.stream().map(c -> c.getTransformChain().length()).distinct().count() == 1, "a");
 
-        // This is necessary as we may have multiple COMPATIBLE chains in the chainsToAssess list, but one (or more) may be preferable EXACT matches
-        List<TransformedVariant> preferredMatchingChains = attributeMatcher.matchMultipleCandidates(chainsToAssess, targetAttributes);
-        TransformedVariantConverter transformedVariantConverter = new TransformedVariantConverter();
-
-        // Fingerprint all matching chains to build map from fingerPrint -> chains with that fingerprint
-        this.matchingChainsByFingerprint = new LinkedHashMap<>(preferredMatchingChains.size());
-        preferredMatchingChains.forEach(chain -> {
-            TransformationChainData.TransformationChainFingerprint fingerprint = transformedVariantConverter.convert(chain).fingerprint();
-            matchingChainsByFingerprint.computeIfAbsent(fingerprint, f -> new ArrayList<>()).add(chain);
-        });
-
         this.attributeMatcher = attributeMatcher;
+        this.preferredMatchingChains = attributeMatcher.matchMultipleCandidates(chainsToAssess, targetAttributes);
     }
 
     /**
@@ -84,18 +82,15 @@ import java.util.stream.Collectors;
      * For example, chains of A -> B -> C -> D and A -> C -> B -> D are merely re-sequencings of the same chain and
      * are not truly distinct.  This is fine, Gradle will just arbitrarily pick one, as the different order
      * that steps are run is PROBABLY not meaningful - the SAME work will be done.
+     * <p>
+     * As we are keeping track of the preferred chains, we don't need to check fingerprinting here - if there
+     * is a truly distinct chain, this would mean only one matching chain with a single fingerprint, which would be
+     * present in the preferred chains anyway.
      *
      * @return single truly distinct transformation chain in this result set if one exists; else {@link Optional#empty()}
      */
     public Optional<TransformedVariant> getSingleDistinctMatchingChain() {
-        if (matchingChainsByFingerprint.size() == 1) {
-            TransformationChainData.TransformationChainFingerprint onlyFingerprint = Iterables.getOnlyElement(matchingChainsByFingerprint.keySet());
-            List<TransformedVariant> chainsWithOnlyFingerprint = matchingChainsByFingerprint.get(onlyFingerprint);
-            if (chainsWithOnlyFingerprint.size() == 1) {
-                return Optional.of(chainsWithOnlyFingerprint.get(0));
-            }
-        }
-        return Optional.empty();
+        return preferredMatchingChains.size() == 1 ? Optional.of(preferredMatchingChains.get(0)) : Optional.empty();
     }
 
     /**
@@ -106,7 +101,7 @@ import java.util.stream.Collectors;
      * @return one arbitrary chain from each distinct set of chains within the matching candidates
      */
     public List<TransformedVariant> getDistinctMatchingChainRepresentatives() {
-        return matchingChainsByFingerprint.values().stream()
+        return getMatchingChainsByFingerprint().values().stream()
             .map(transformedVariants -> transformedVariants.get(0))
             .collect(Collectors.toList());
     }
@@ -127,7 +122,7 @@ import java.util.stream.Collectors;
     public List<TransformedVariant> getSingleGroupOfCompatibleChains() {
         Set<List<TransformedVariant>> compatibilityGroups = new LinkedHashSet<>(); // Preserve ordering of chains within each compatibility group
 
-        matchingChainsByFingerprint.values().stream()
+        getMatchingChainsByFingerprint().values().stream()
             .flatMap(Collection::stream)
             .forEach(chain -> findCompatiblityGroup(attributeMatcher, compatibilityGroups, chain).add(chain));
 
@@ -144,5 +139,20 @@ import java.util.stream.Collectors;
         List<TransformedVariant> newGroup = new ArrayList<>();
         compatibilityGroups.add(newGroup);
         return newGroup;
+    }
+
+    @Nonnull
+    private Map<TransformationChainData.TransformationChainFingerprint, List<TransformedVariant>> getMatchingChainsByFingerprint() {
+        if (matchingChainsByFingerprint == null) {
+            TransformedVariantConverter transformedVariantConverter = new TransformedVariantConverter();
+
+            // Fingerprint all matching chains to build map from fingerPrint -> chains with that fingerprint
+            matchingChainsByFingerprint = new LinkedHashMap<>(preferredMatchingChains.size());
+            preferredMatchingChains.forEach(chain -> {
+                TransformationChainData.TransformationChainFingerprint fingerprint = transformedVariantConverter.convert(chain).fingerprint();
+                matchingChainsByFingerprint.computeIfAbsent(fingerprint, f -> new ArrayList<>()).add(chain);
+            });
+        }
+        return matchingChainsByFingerprint;
     }
 }
