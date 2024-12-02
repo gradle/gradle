@@ -130,9 +130,9 @@ public abstract class CodeNarcPlugin extends AbstractCodeQualityPlugin<CodeNarc>
         });
         Provider<Directory> reportsDir = extension.getReportsDir();
         task.getReports().all(action(report -> {
-            report.getRequired().convention(reportFormat.map(format -> report.getName().equals(format)));
+            report.getRequired().convention(reportFormat.map(format -> report.getName().get().equals(format)));
             report.getOutputLocation().convention(reportsDir.map(directory -> {
-                String fileSuffix = report.getName().equals("text") ? "txt" : report.getName();
+                String fileSuffix = report.getName().get().equals("text") ? "txt" : report.getName().get();
                 return directory.file(baseName + "." + fileSuffix);
             }));
         }));
