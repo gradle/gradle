@@ -35,7 +35,7 @@ public class ValueSanitizers {
         }
     };
 
-    private static final ValueSanitizer<Object> IMPLICIT_CAST_TO_LONG_SANITIZER = new ValueSanitizer<Object>() {
+    private static final ValueSanitizer<Object> LONG_VALUE_SANITIZER = new ValueSanitizer<Object>() {
         @Override
         @Nullable
         public Object sanitize(@Nullable Object value) {
@@ -55,37 +55,15 @@ public class ValueSanitizers {
         }
     };
 
-    private static final ValueCollector<Object> IDENTITY_VALUE_COLLECTOR = new ValueCollector<Object>() {
-        @Override
-        public void add(@Nullable Object value, ImmutableCollection.Builder<Object> dest) {
-            dest.add(value);
-        }
-
-        @Override
-        public void addAll(Iterable<?> values, ImmutableCollection.Builder<Object> dest) {
-            dest.addAll(values);
-        }
-    };
-
-    private static final ValueCollector<Object> STRING_VALUE_COLLECTOR = new ValueCollector<Object>() {
-        @Override
-        public void add(@Nullable Object value, ImmutableCollection.Builder<Object> dest) {
-            dest.add(STRING_VALUE_SANITIZER.sanitize(value));
-        }
-
-        @Override
-        public void addAll(Iterable<?> values, ImmutableCollection.Builder<Object> dest) {
-            for (Object value : values) {
-                add(value, dest);
-            }
-        }
-    };
+    private static final ValueCollector<Object> IDENTITY_VALUE_COLLECTOR = valueCollectorWithValueSanitizer(IDENTITY_SANITIZER);
+    private static final ValueCollector<Object> STRING_VALUE_COLLECTOR = valueCollectorWithValueSanitizer(STRING_VALUE_SANITIZER);
+    private static final ValueCollector<Object> LONG_VALUE_COLLECTOR = valueCollectorWithValueSanitizer(LONG_VALUE_SANITIZER);
 
     public static <T> ValueSanitizer<T> forType(Class<? extends T> targetType) {
         if (String.class.equals(targetType)) {
             return Cast.uncheckedCast(STRING_VALUE_SANITIZER);
         } else if (Long.class.equals(targetType)) {
-            return Cast.uncheckedCast(IMPLICIT_CAST_TO_LONG_SANITIZER);
+            return Cast.uncheckedCast(LONG_VALUE_SANITIZER);
         } else {
             return Cast.uncheckedCast(IDENTITY_SANITIZER);
         }
@@ -94,8 +72,26 @@ public class ValueSanitizers {
     public static <T> ValueCollector<T> collectorFor(Class<? extends T> elementType) {
         if (String.class.equals(elementType)) {
             return Cast.uncheckedCast(STRING_VALUE_COLLECTOR);
+        } else if (Long.class.equals(elementType)) {
+            return Cast.uncheckedCast(LONG_VALUE_COLLECTOR);
         } else {
             return Cast.uncheckedCast(IDENTITY_VALUE_COLLECTOR);
         }
+    }
+
+    private static ValueCollector<Object> valueCollectorWithValueSanitizer(ValueSanitizer<Object> sanitizer) {
+        return new ValueCollector<Object>() {
+            @Override
+            public void add(@Nullable Object value, ImmutableCollection.Builder<Object> dest) {
+                dest.add(sanitizer.sanitize(value));
+            }
+
+            @Override
+            public void addAll(Iterable<?> values, ImmutableCollection.Builder<Object> dest) {
+                for (Object value : values) {
+                    add(value, dest);
+                }
+            }
+        };
     }
 }
