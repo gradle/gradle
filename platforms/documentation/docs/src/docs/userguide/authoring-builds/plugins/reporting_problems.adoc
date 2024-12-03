@@ -53,3 +53,71 @@ Specifically, it prevents reporting the same problem repeatedly once a certain t
 - During the build, the _first_ few instances of a problem are reported as a link:{javaDocPath}/org/gradle/tooling/events/problems/Problem.html[Problem], providing all information available for that problem.
 - At the end of the build, subsequent occurrences of the same problem are grouped and summarized as a link:{javaDocPath}org/gradle/tooling/events/problems/ProblemSummary.html[ProblemSummary].
 This summary is delivered as with a link:{javaDocPath}org/gradle/tooling/events/problems/ProblemSummariesEvent.html[ProblemSummariesEvent], which provides the total count of occurrences.
+
+=== Build failures
+
+The standard approach for indicating a build failure is to throw an exception.
+link:{javaDocPath}org/gradle/api/problems/ProblemReporter.html#throwing(org.gradle.api.Action)[ProblemReporter] provides enhanced support for this by allowing exceptions to be thrown with associated problem reports.
+
+```java
+package reporters;
+
+import org.gradle.api.DefaultTask;
+import org.gradle.api.problems.Problems;
+import org.gradle.api.tasks.TaskAction;
+
+import javax.inject.Inject;
+
+public abstract class FailingTask extends DefaultTask {
+
+    @Inject
+    public abstract Problems getProblems();
+
+    @TaskAction
+    public void run() {
+        throw getProblems().getReporter().throwing(problemSpec -> {
+            problemSpec.id("sample-error", "Sample Error");
+            problemSpec.contextualLabel("This happened because ProblemReporter.throwing() was called");
+            problemSpec.details("This is a demonstration of how to add\ndetailed information to a build failure");
+            problemSpec.documentedAt("https://example.com/docs");
+            problemSpec.withException(new RuntimeException("Message from runtime exception"));
+            problemSpec.solution("Remove the Problems.throwing() method call from the task action");
+        });
+    }
+}
+```
+
+This ensures that build failures are clearly linked to the underlying issues and that these problems are properly communicated to various clients.
+When a build failure is reported using the Problems API, all clients (Tooling API, CLI, Build Scans, etc.)  will have access to the association.
+
+==== Command-line interface
+
+The CLI build failure output will include detailed information about the problem.
+Error messages and descriptions are sourced directly from the problem report.
+If the problem report includes a solution or recommended actions, these will be displayed in place of generic resolutions.
+
+```
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':sample-project:myFailingTask'.
+> Message from runtime exception
+    This happened because ProblemReporter.throwing() was called
+      This is a demonstration of how to add
+      detailed information to a build failure
+
+* Try:
+> Remove the Problems.throwing() method call from the task action
+> Run with --scan to get full insights.
+
+BUILD FAILED in 0ms
+```
+
+==== Tooling API clients
+
+Tooling API clients can access detailed problem reports associated with build failures via the `Failure` object on the root build operation.
+To receive these reports, the clients must register a progress listener for the `OperationType.ROOT` operation type.
+The progress listener callback should then check if the operation result is of type `FailureResult`, and then it can access the associated problems via `Failure.getProblems()`.
+
+In addition, there's a more convenient way to access the failure details.
+If clients configure the project connection with `LongRunningOperation.withFailureDetails()`, the Tooling API implicitly subscribes to the `ROOT` operation type and provides failure details via the `GradleConnectionException.getFailures()` method.
