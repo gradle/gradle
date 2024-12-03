@@ -402,7 +402,7 @@ Custom test root > My Suite > another failing test FAILED
         assert firstLevelTest2OpDetails.testDescriptor.name == "MyTestInternal"
         assert firstLevelTest2OpDetails.testDescriptor.displayName == "My test 2!"
 
-        List<BuildOperationRecord.Progress> testMetadata1 = firstLevelTestOps[0].metadata
+        List<BuildOperationRecord.Progress> testMetadata1 = firstLevelTestOps[0].progress(ExecuteTestBuildOperationType.Metadata)
         testMetadata1.size() == 2
         def firstTestMetadataDetails = testMetadata1*.details.metadata as List<Map<String, ?>>
         firstTestMetadataDetails.size() == 2
@@ -411,7 +411,7 @@ Custom test root > My Suite > another failing test FAILED
         firstTestMetadataDetails[1]["key"] == "key2"
         firstTestMetadataDetails[1]["value"] == 2
 
-        List<BuildOperationRecord.Progress> testMetadata2 = firstLevelTestOps[1].metadata
+        List<BuildOperationRecord.Progress> testMetadata2 = firstLevelTestOps[1].progress(ExecuteTestBuildOperationType.Metadata)
         testMetadata2.size() == 1
         def secondTestMetadataDetails = testMetadata2*.details.metadata as List<Map<String, ?>>
         secondTestMetadataDetails.size() == 1
@@ -675,6 +675,6 @@ Custom test root > My Suite > another failing test FAILED
         assert firstLevelTestOpDetails*.testDescriptor.className == [null]
         assert firstLevelTestOpDetails*.testDescriptor.composite == [false]
 
-        return firstLevelTestOps[0].metadata
+        return firstLevelTestOps[0].progress(ExecuteTestBuildOperationType.Metadata)
     }
 }

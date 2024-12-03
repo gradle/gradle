@@ -24,7 +24,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import static com.google.common.collect.Lists.transform;
 import static org.gradle.internal.Cast.uncheckedCast;
@@ -154,12 +153,6 @@ public final class BuildOperationRecord {
             }
         }
         return result;
-    }
-
-    public List<Progress> getMetadata() {
-        return progress.stream()
-            .filter(progress -> progress.detailsClassName != null && progress.detailsClassName.endsWith("Metadata"))
-            .collect(Collectors.toList());
     }
 
     @Override
