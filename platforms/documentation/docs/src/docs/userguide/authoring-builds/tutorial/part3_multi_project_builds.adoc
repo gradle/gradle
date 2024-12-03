@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[[partr3_multi_project_builds]]
+[[part3_multi_project_builds]]
 = Part 3: Multi-Project Builds
 
 Learn the basics of structuring Gradle projects using subprojects and composite builds.
@@ -29,8 +29,8 @@ Learn the basics of structuring Gradle projects using subprojects and composite 
 [[part3_begin]]
 == Step 0. Before you Begin
 
-1. You initialized your Java app in <<partr1_gradle_init.adoc#part1_begin,part 1>>.
-2. You understand the Gradle Build Lifecycle from <<partr2_build_lifecycle.adoc#part2_begin,part 2>>.
+1. You initialized your Java app in <<part1_gradle_init_project.adoc#part1_begin,part 1>>.
+2. You understand the Gradle Build Lifecycle from <<part2_build_lifecycle.adoc#part2_begin,part 2>>.
 
 == Step 1. About Multi-Project Builds
 
@@ -586,4 +586,4 @@ Multi-project builds are great for organizing projects with many modules such as
 Composite (include) builds are great for separating build logic (i.e., convention plugins) or testing systems (i.e., patching a library)
 
 [.text-right]
-**Next Step:** <<partr4_settings_file#partr4_settings_file,Settings File>> >>
+**Next Step:** <<part4_settings_file#part4_settings_file,Settings File>> >>

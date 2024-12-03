@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[[partr6_writing_tasks]]
+[[part6_writing_tasks]]
 = Part 6: Writing Tasks
 
 Learn the basics of authoring Gradle tasks by creating a simple one in your Build script.
@@ -27,11 +27,11 @@ Learn the basics of authoring Gradle tasks by creating a simple one in your Buil
 [[part6_begin]]
 == Step 0. Before you Begin
 
-1. You initialized your Java app in <<partr1_gradle_init.adoc#part1_begin,part 1>>.
-2. You understand the Gradle Build Lifecycle from <<partr2_build_lifecycle.adoc#part2_begin,part 2>>.
-3. You added a subproject and a separate Build in <<partr3_multi_project_builds#part3_begin, part3>>.
-4. You viewed a Settings file in <<partr4_settings_file.adoc#part4_begin,part 4>>.
-5. You authored a Build script in <<partr5_build_scripts.adoc#part5_begin,part 5>>.
+1. You initialized your Java app in <<part1_gradle_init_project.adoc#part1_begin,part 1>>.
+2. You understand the Gradle Build Lifecycle from <<part2_build_lifecycle.adoc#part2_begin,part 2>>.
+3. You added a subproject and a separate Build in <<part3_multi_project_builds#part3_begin, part3>>.
+4. You viewed a Settings file in <<part4_settings_file.adoc#part4_begin,part 4>>.
+5. You authored a Build script in <<part5_build_scripts.adoc#part5_begin,part 5>>.
 
 == Step 1. Understand Tasks
 A Task is an executable piece of code that contains sequences of actions.
@@ -213,4 +213,4 @@ BUILD SUCCESSFUL in 1s
 ----
 
 [.text-right]
-**Next Step:** <<partr7_writing_plugins#partr7_writing_plugins,Writing Plugins>> >>
+**Next Step:** <<part7_writing_plugins#part7_writing_plugins,Writing Plugins>> >>

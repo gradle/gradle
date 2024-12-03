@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[[partr5_build_scripts]]
+[[part5_build_scripts]]
 = Part 5: Writing a Build Script
 
 Learn the basics of authoring Gradle by developing the Build Script.
@@ -30,10 +30,10 @@ Learn the basics of authoring Gradle by developing the Build Script.
 [[part5_begin]]
 == Step 0. Before you Begin
 
-1. You initialized your Java app in <<partr1_gradle_init.adoc#part1_begin,part 1>>.
-2. You understand the Gradle Build Lifecycle from <<partr2_build_lifecycle.adoc#part2_begin,part 2>>.
-3. You added a subproject and a separate Build in <<partr3_multi_project_builds#part3_begin, part3>>.
-4. You viewed a Settings file in <<partr4_settings_file.adoc#part4_begin,part 4>>.
+1. You initialized your Java app in <<part1_gradle_init_project.adoc#part1_begin,part 1>>.
+2. You understand the Gradle Build Lifecycle from <<part2_build_lifecycle.adoc#part2_begin,part 2>>.
+3. You added a subproject and a separate Build in <<part3_multi_project_builds#part3_begin, part3>>.
+4. You viewed a Settings file in <<part4_settings_file.adoc#part4_begin,part 4>>.
 
 == Step 1. The `Project` object
 
@@ -432,4 +432,4 @@ Hello from plugin 'com.tutorial.greeting'
 ----
 
 [.text-right]
-**Next Step:** <<partr6_writing_tasks#partr6_writing_tasks,Writing Tasks>> >>
+**Next Step:** <<part6_writing_tasks#part6_writing_tasks,Writing Tasks>> >>
