@@ -55,11 +55,11 @@ public class DefaultCleanupProgressMonitor implements CleanupProgressMonitor {
             + optionalNumber(", ", skipped, " skipped"));
     }
 
-    private String mandatoryNumber(long value, String singular, String plural) {
+    private static String mandatoryNumber(long value, String singular, String plural) {
         return value == 1 ? value + singular : value + plural;
     }
 
-    private String optionalNumber(String separator, long value, String description) {
+    private static String optionalNumber(String separator, long value, String description) {
         return value == 0 ? "" : separator + value + description;
     }
 }

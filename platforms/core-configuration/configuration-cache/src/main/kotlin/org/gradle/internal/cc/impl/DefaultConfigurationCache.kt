@@ -498,8 +498,19 @@ class DefaultConfigurationCache internal constructor(
         val existingEntries = readCandidateEntries()
         val newEntries = update(existingEntries)
         if (existingEntries != newEntries) {
-            // TODO:configuration-cache queue up evicted entry paths for deletion
             writeCandidateEntries(newEntries)
+            scheduleForCollection(existingEntries - newEntries.toHashSet())
+        }
+    }
+
+    private
+    fun scheduleForCollection(evictedEntries: List<CandidateEntry>) {
+        if (evictedEntries.isNotEmpty()) {
+            host.service<ConfigurationCacheEntryCollector>().let { collector ->
+                evictedEntries.forEach { entry ->
+                    collector.scheduleForCollection(entry.id)
+                }
+            }
         }
     }
 

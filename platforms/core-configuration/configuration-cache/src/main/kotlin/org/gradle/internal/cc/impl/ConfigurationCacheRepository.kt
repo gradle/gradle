@@ -21,8 +21,10 @@ import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.cache.CacheConfigurationsInternal
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheCleanupStrategyFactory
+import org.gradle.cache.CleanupAction
+import org.gradle.cache.CleanupProgressMonitor
 import org.gradle.cache.FileLockManager
-import org.gradle.cache.PersistentCache
+import org.gradle.cache.internal.FilesFinder
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup
 import org.gradle.cache.internal.SingleDepthFilesFinder
 import org.gradle.cache.internal.streams.DefaultValueStore
@@ -49,7 +51,7 @@ import java.util.Collections
 import java.util.function.Supplier
 
 
-@ServiceScope(Scope.BuildTree::class)
+@ServiceScope(Scope.BuildSession::class)
 internal
 class ConfigurationCacheRepository(
     cacheBuilderFactory: BuildTreeScopedCacheBuilderFactory,
@@ -57,8 +59,31 @@ class ConfigurationCacheRepository(
     private val fileAccessTimeJournal: FileAccessTimeJournal,
     private val fileSystem: FileSystem
 ) : Stoppable {
+
     fun forKey(cacheKey: String): ConfigurationCacheStateStore {
-        return StoreImpl(cache.baseDirFor(cacheKey))
+        return StoreImpl(dirForEntry(cacheKey))
+    }
+
+    interface CleanupContext {
+        val eligibleFilesFinder: FilesFinder
+        fun dirForEntry(entry: String): File
+        fun applyCleanupAction(action: CleanupAction, monitor: CleanupProgressMonitor)
+    }
+
+    fun withExclusiveCleanupAccess(action: CleanupContext.() -> Unit) {
+        cache.withFileLock {
+            action(object : CleanupContext {
+                override val eligibleFilesFinder: FilesFinder
+                    get() = cleanupEligibleFilesFinder()
+
+                override fun dirForEntry(entry: String): File =
+                    this@ConfigurationCacheRepository.dirForEntry(entry)
+
+                override fun applyCleanupAction(action: CleanupAction, monitor: CleanupProgressMonitor) {
+                    action.clean(cache, monitor)
+                }
+            })
+        }
     }
 
     abstract class Layout {
@@ -88,10 +113,6 @@ class ConfigurationCacheRepository(
 
         override fun fileFor(stateType: StateType): ConfigurationCacheStateFile =
             cacheDir.readableConfigurationCacheStateFile(stateType, onFileAccess)
-    }
-
-    override fun stop() {
-        cache.close()
     }
 
     internal
@@ -257,17 +278,25 @@ class ConfigurationCacheRepository(
         .withLruCacheCleanup()
         .open()
 
+    override fun stop() {
+        cache.close()
+    }
+
     private
     fun CacheBuilder.withLruCacheCleanup(): CacheBuilder =
         withCleanupStrategy(
             cacheCleanupStrategyFactory.daily(
                 LeastRecentlyUsedCacheCleanup(
-                    SingleDepthFilesFinder(cleanupDepth),
+                    cleanupEligibleFilesFinder(),
                     fileAccessTimeJournal,
                     TimestampSuppliers.daysAgo(cleanupMaxAgeDays)
                 )
             )
         )
+
+    private
+    fun cleanupEligibleFilesFinder() =
+        SingleDepthFilesFinder(cleanupDepth)
 
     private
     val fileAccessTracker by unsafeLazy {
@@ -293,8 +322,8 @@ class ConfigurationCacheRepository(
         )
 
     private
-    fun PersistentCache.baseDirFor(cacheKey: String) =
-        baseDir.resolve(cacheKey)
+    fun dirForEntry(cacheKey: String) =
+        cache.baseDir.resolve(cacheKey)
 }
 
 
