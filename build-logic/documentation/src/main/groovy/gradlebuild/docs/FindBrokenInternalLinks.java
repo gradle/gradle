@@ -22,6 +22,7 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.tasks.CacheableTask;
+import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.InputDirectory;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.PathSensitive;
@@ -64,9 +65,9 @@ public abstract class FindBrokenInternalLinks extends DefaultTask {
     @PathSensitive(PathSensitivity.RELATIVE)
     public abstract DirectoryProperty getJavadocRoot();
 
-    @InputDirectory
-    @PathSensitive(PathSensitivity.RELATIVE)
-    public abstract DirectoryProperty getReleaseNotesRoot();
+    @InputFile
+    @PathSensitive(PathSensitivity.NONE)
+    public abstract RegularFileProperty getReleaseNotesFile();
 
     @OutputFile
     public abstract RegularFileProperty getReportFile();
@@ -74,9 +75,8 @@ public abstract class FindBrokenInternalLinks extends DefaultTask {
     @TaskAction
     public void checkDeadLinks() {
         Map<File, List<Error>> errors = new TreeMap<>();
-        File releaseNotesFile = getReleaseNotesRoot().file("raw.html").get().getAsFile();
 
-        gatherDeadLinksInFileReleaseNotes(releaseNotesFile, errors);
+        gatherDeadLinksInFileReleaseNotes(errors);
 
         getDocumentationRoot().getAsFileTree().matching(pattern -> pattern.include("**/*.adoc")).forEach(file -> {
             gatherDeadLinksInFile(file, errors);
@@ -120,9 +120,10 @@ public abstract class FindBrokenInternalLinks extends DefaultTask {
 
     }
 
-    private void gatherDeadLinksInFileReleaseNotes(File sourceFile, Map<File, List<Error>> errors) {
+    private void gatherDeadLinksInFileReleaseNotes(Map<File, List<Error>> errors) {
         int lineNumber = 0;
         List<Error> errorsForFile = new ArrayList<>();
+        File sourceFile = getReleaseNotesFile().get().getAsFile();
 
         try (BufferedReader br = new BufferedReader(new FileReader(sourceFile))) {
             String line = br.readLine();
