@@ -27,6 +27,7 @@ import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationIdFactory;
 import org.gradle.internal.operations.BuildOperationListener;
+import org.gradle.internal.operations.BuildOperationListenerManager;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.OperationFinishEvent;
 import org.gradle.internal.operations.OperationIdentifier;
@@ -36,6 +37,7 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.time.Clock;
 
+import javax.inject.Inject;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -54,9 +56,10 @@ public class TestListenerBuildOperationAdapter implements TestListenerInternal {
     private final BuildOperationListener listener;
     private final BuildOperationIdFactory buildOperationIdFactory;
 
-    public TestListenerBuildOperationAdapter(Clock clock, BuildOperationListener listener, BuildOperationIdFactory buildOperationIdFactory) {
+    @Inject
+    public TestListenerBuildOperationAdapter(Clock clock, BuildOperationListenerManager listener, BuildOperationIdFactory buildOperationIdFactory) {
         this.clock = clock;
-        this.listener = listener;
+        this.listener = listener.getBroadcaster();
         this.buildOperationIdFactory = buildOperationIdFactory;
     }
 

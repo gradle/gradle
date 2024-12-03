@@ -17,28 +17,45 @@
 package org.gradle.api.internal.tasks.testing;
 
 import org.gradle.api.NonNullApi;
+import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.tasks.testing.logging.SimpleTestEventLogger;
 import org.gradle.api.internal.tasks.testing.logging.TestEventProgressListener;
+import org.gradle.api.internal.tasks.testing.results.HtmlTestReportGenerator;
+import org.gradle.api.internal.tasks.testing.results.TestExecutionResultsListener;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
 import org.gradle.api.tasks.testing.GroupTestEventReporter;
 import org.gradle.api.tasks.testing.TestEventReporterFactory;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.id.LongIdGenerator;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 
+import javax.inject.Inject;
+import java.nio.file.Path;
+
 @NonNullApi
 public final class DefaultTestEventReporterFactory implements TestEventReporterFactory {
+
     private final ListenerManager listenerManager;
     private final StyledTextOutputFactory textOutputFactory;
     private final ProgressLoggerFactory progressLoggerFactory;
+    private final ProjectLayout projectLayout;
+    private final HtmlTestReportGenerator htmlTestReportGenerator;
 
-    public DefaultTestEventReporterFactory(ListenerManager listenerManager, StyledTextOutputFactory textOutputFactory, ProgressLoggerFactory progressLoggerFactory) {
+    @Inject
+    public DefaultTestEventReporterFactory(
+        ListenerManager listenerManager,
+        StyledTextOutputFactory textOutputFactory,
+        ProgressLoggerFactory progressLoggerFactory,
+        ProjectLayout projectLayout,
+        HtmlTestReportGenerator htmlTestReportGenerator
+    ) {
         this.listenerManager = listenerManager;
         this.textOutputFactory = textOutputFactory;
         this.progressLoggerFactory = progressLoggerFactory;
+        this.projectLayout = projectLayout;
+        this.htmlTestReportGenerator = htmlTestReportGenerator;
     }
 
     @Override
@@ -47,10 +64,27 @@ public final class DefaultTestEventReporterFactory implements TestEventReporterF
 
         // Renders console output for the task
         testListenerInternalBroadcaster.add(new SimpleTestEventLogger(textOutputFactory));
+
         // Emits progress logger events
         testListenerInternalBroadcaster.add(new TestEventProgressListener(progressLoggerFactory));
 
-        IdGenerator<?> idGenerator = new LongIdGenerator();
-        return new LifecycleTrackingGroupTestEventReporter(new DefaultRootTestEventReporter(testListenerInternalBroadcaster.getSource(), idGenerator, new DefaultTestSuiteDescriptor(idGenerator.generateId(), rootName)));
+        // Record all emitted results to disk
+        Path resultsDir = projectLayout.getBuildDirectory().get().dir("test-results").dir(rootName).getAsFile().toPath();
+        RootTestEventRecorder binaryResultsRecorder = new RootTestEventRecorder(resultsDir);
+        testListenerInternalBroadcaster.add(binaryResultsRecorder);
+
+        // TODO: Use dir from reporting extension?
+        Path reportDir = projectLayout.getBuildDirectory().get().dir("reports").dir("tests").dir(rootName).getAsFile().toPath();
+
+        return new LifecycleTrackingGroupTestEventReporter(new DefaultRootTestEventReporter(
+            rootName,
+            testListenerInternalBroadcaster.getSource(),
+            new LongIdGenerator(),
+            reportDir,
+            binaryResultsRecorder,
+            htmlTestReportGenerator,
+            listenerManager.getBroadcaster(TestExecutionResultsListener.class)
+        ));
     }
+
 }

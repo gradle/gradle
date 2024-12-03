@@ -18,17 +18,11 @@ package org.gradle.api.internal.tasks.testing;
 
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.tasks.testing.operations.TestListenerBuildOperationAdapter;
-import org.gradle.api.tasks.testing.TestEventReporterFactory;
-import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.logging.progress.ProgressLoggerFactory;
-import org.gradle.internal.logging.text.StyledTextOutputFactory;
-import org.gradle.internal.operations.BuildOperationIdFactory;
-import org.gradle.internal.operations.BuildOperationListenerManager;
-import org.gradle.internal.service.Provides;
+import org.gradle.api.internal.tasks.testing.results.AggregateTestEventReporter;
+import org.gradle.api.internal.tasks.testing.results.HtmlTestReportGenerator;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
-import org.gradle.internal.time.Clock;
 
 @NonNullApi
 public class TestingBasePluginServices extends AbstractGradleModuleServices {
@@ -38,27 +32,35 @@ public class TestingBasePluginServices extends AbstractGradleModuleServices {
     }
 
     @Override
-    public void registerBuildServices(ServiceRegistration registration) {
-        registration.addProvider(new TestingBuildScopeServices());
+    public void registerBuildTreeServices(ServiceRegistration registration) {
+        registration.addProvider(new TestingBuildTreeScopeServices());
+    }
+
+    @Override
+    public void registerProjectServices(ServiceRegistration registration) {
+        registration.addProvider(new TestingProjectScopeServices());
     }
 
     @NonNullApi
     public static class TestingBuildSessionScopeServices implements ServiceRegistrationProvider {
-        @Provides
-        TestListenerBuildOperationAdapter createTestListenerBuildOperationAdapter(Clock clock, BuildOperationListenerManager listener, BuildOperationIdFactory buildOperationIdFactory) {
-            return new TestListenerBuildOperationAdapter(clock, listener.getBroadcaster(), buildOperationIdFactory);
-        }
-
-        void configure(ServiceRegistration serviceRegistration, ListenerManager listenerManager, TestListenerBuildOperationAdapter testListenerBuildOperationAdapter) {
-            listenerManager.addListener(testListenerBuildOperationAdapter);
+        void configure(ServiceRegistration serviceRegistration) {
+            serviceRegistration.add(TestListenerBuildOperationAdapter.class);
+            serviceRegistration.add(HtmlTestReportGenerator.class);
         }
     }
 
     @NonNullApi
-    public static class TestingBuildScopeServices implements ServiceRegistrationProvider {
-        @Provides
-        TestEventReporterFactory createTestEventService(ListenerManager listenerManager, StyledTextOutputFactory textOutputFactory, ProgressLoggerFactory progressLoggerFactory) {
-            return new DefaultTestEventReporterFactory(listenerManager, textOutputFactory, progressLoggerFactory);
+    public static class TestingBuildTreeScopeServices implements ServiceRegistrationProvider {
+        void configure(ServiceRegistration serviceRegistration) {
+            serviceRegistration.add(AggregateTestEventReporter.class);
         }
     }
+
+    @NonNullApi
+    public static class TestingProjectScopeServices implements ServiceRegistrationProvider {
+        void configure(ServiceRegistration serviceRegistration) {
+            serviceRegistration.add(DefaultTestEventReporterFactory.class);
+        }
+    }
+
 }

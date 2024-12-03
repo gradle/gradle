@@ -26,8 +26,10 @@ import org.gradle.api.tasks.testing.TestOutputListener;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.serialize.PlaceholderExceptionSupport;
 
+import java.io.Closeable;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,18 +37,22 @@ import java.util.Map;
 /**
  * Collects the test results into memory and spools the test output to file during execution (to avoid holding it all in memory).
  */
-public class TestReportDataCollector implements TestListener, TestOutputListener {
+public class TestReportDataCollector implements TestListener, TestOutputListener, Closeable {
 
     public static final String EXECUTION_FAILURE = "failed to execute tests";
+
+    private final Path resultsDirectory;
     private final Map<String, TestClassResult> results;
     private final TestOutputStore.Writer outputWriter;
+
     private final Map<TestDescriptor, TestMethodResult> currentTestMethods = new HashMap<TestDescriptor, TestMethodResult>();
     private final ListMultimap<Object, TestOutputEvent> pendingOutputEvents = ArrayListMultimap.create();
     private long internalIdCounter = 1;
 
-    public TestReportDataCollector(Map<String, TestClassResult> results, TestOutputStore.Writer outputWriter) {
+    public TestReportDataCollector(Path resultsDirectory, Map<String, TestClassResult> results) {
+        this.resultsDirectory = resultsDirectory;
         this.results = results;
-        this.outputWriter = outputWriter;
+        this.outputWriter = new TestOutputStore(resultsDirectory.toFile()).writer();
     }
 
     @Override
@@ -103,6 +109,13 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
         for (Throwable throwable : result.getExceptions()) {
             methodResult.addFailure(failureMessage(throwable), stackTrace(throwable), exceptionClassName(throwable));
         }
+
+        // TODO: Ugly hack to handle test events without a class
+        // We should make this code handle class-less tests properly
+        if (className == null) {
+            className = "no-class";
+        }
+
         TestClassResult classResult = results.get(className);
         if (classResult == null) {
             classResult = new TestClassResult(internalIdCounter++, className, classDisplayName, result.getStartTime());
@@ -178,4 +191,11 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
         }
         return findEnclosingClassName(testDescriptor.getParent());
     }
+
+    @Override
+    public void close() {
+        outputWriter.close();
+        new TestResultSerializer(resultsDirectory.toFile()).write(results.values());
+    }
+
 }
