@@ -150,7 +150,6 @@ public abstract class FindBrokenInternalLinks extends DefaultTask {
             String fileName = getFileName(link, sourceFile);
             File referencedFile = new File(getDocumentationRoot().get().getAsFile(), fileName);
             if (!referencedFile.exists()) {
-                    System.out.println("File doesn't exist");
                     errorsForFile.add(new Error(lineNumber, line, "Looking for file named " + fileName));
             }
         }
