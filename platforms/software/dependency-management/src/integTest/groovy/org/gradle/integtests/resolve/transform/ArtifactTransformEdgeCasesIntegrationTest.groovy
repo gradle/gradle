@@ -805,17 +805,20 @@ public class MyClass {
 def artifactType = Attribute.of('artifactType', String)
 def extraAttribute = Attribute.of('extra', String)
 
-allprojects {
+project(':lib') {
+    apply plugin: 'java-library'
+
     repositories {
         maven { url "${mavenRepo.uri}" }
     }
 }
-project(':lib') {
-    apply plugin: 'java-library'
-}
 
 project(':app') {
     apply plugin: 'java'
+
+    repositories {
+        maven { url "${mavenRepo.uri}" }
+    }
 
     dependencies {
         implementation 'test:test:1.3'
