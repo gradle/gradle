@@ -69,7 +69,7 @@ File system watching supports the following file system types:
 
 Gradle also supports VirtualBox's shared folders.
 
-Network file systems like Samba and NFS are not supported.
+Network file systems like Samba and NFS are not supported. Microsoft Dev Drives (ReFS) are also not supported.
 
 == Unsupported File Systems
 
