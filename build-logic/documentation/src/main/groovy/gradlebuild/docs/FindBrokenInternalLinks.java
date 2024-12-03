@@ -53,6 +53,8 @@ public abstract class FindBrokenInternalLinks extends DefaultTask {
     private final Pattern linkWithHashPattern = Pattern.compile("([a-zA-Z_0-9-.]*)#(.*)");
     private final Pattern javadocLinkPattern = Pattern.compile("link:\\{javadocPath\\}/(.*?\\.html)");
     private final Pattern markdownLinkPattern = Pattern.compile("\\[[^]]+]\\([^)^\\\\]+\\)");
+    private final Pattern releaseNotesJavadocPattern = Pattern.compile("javadoc/(.*?\\.html)");
+    private final Pattern releaseNotesUserGuidePattern = Pattern.compile("userguide/(.*?)(?=\\.html)");
 
     @InputDirectory
     @PathSensitive(PathSensitivity.RELATIVE)
@@ -62,12 +64,19 @@ public abstract class FindBrokenInternalLinks extends DefaultTask {
     @PathSensitive(PathSensitivity.RELATIVE)
     public abstract DirectoryProperty getJavadocRoot();
 
+    @InputDirectory
+    @PathSensitive(PathSensitivity.RELATIVE)
+    public abstract DirectoryProperty getReleaseNotesRoot();
+
     @OutputFile
     public abstract RegularFileProperty getReportFile();
 
     @TaskAction
     public void checkDeadLinks() {
         Map<File, List<Error>> errors = new TreeMap<>();
+        File releaseNotesFile = getReleaseNotesRoot().file("raw.html").get().getAsFile();
+
+        gatherDeadLinksInFileReleaseNotes(releaseNotesFile, errors);
 
         getDocumentationRoot().getAsFileTree().matching(pattern -> pattern.include("**/*.adoc")).forEach(file -> {
             gatherDeadLinksInFile(file, errors);
@@ -109,6 +118,59 @@ public abstract class FindBrokenInternalLinks extends DefaultTask {
         fw.println("#");
         fw.println("# The checker also rejects Markdown-style links, such as [text](https://example.com/something) as they do not render properly");
 
+    }
+
+    private void gatherDeadLinksInFileReleaseNotes(File sourceFile, Map<File, List<Error>> errors) {
+        int lineNumber = 0;
+        List<Error> errorsForFile = new ArrayList<>();
+
+        try (BufferedReader br = new BufferedReader(new FileReader(sourceFile))) {
+            String line = br.readLine();
+            while (line != null) {
+                lineNumber++;
+                gatherDeadLinksInLineReleaseNotes(sourceFile, line, lineNumber, errorsForFile);
+                gatherDeadJavadocLinksInLineReleaseNotes(sourceFile, line, lineNumber, errorsForFile);
+
+                line = br.readLine();
+            }
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+
+        if (!errorsForFile.isEmpty()) {
+            errors.put(sourceFile, errorsForFile);
+        }
+    }
+
+    private void gatherDeadLinksInLineReleaseNotes(File sourceFile, String line, int lineNumber, List<Error> errorsForFile) {
+        Matcher matcher = releaseNotesUserGuidePattern.matcher(line);
+        while (matcher.find()) {
+            MatchResult xrefMatcher = matcher.toMatchResult();
+            String link = xrefMatcher.group(1);
+            String fileName = getFileName(link, sourceFile);
+            File referencedFile = new File(getDocumentationRoot().get().getAsFile(), fileName);
+            if (!referencedFile.exists()) {
+                    System.out.println("File doesn't exist");
+                    errorsForFile.add(new Error(lineNumber, line, "Looking for file named " + fileName));
+            }
+        }
+    }
+
+    private void gatherDeadJavadocLinksInLineReleaseNotes(File sourceFile, String line, int lineNumber, List<Error> errorsForFile) {
+        Matcher matcher = releaseNotesJavadocPattern.matcher(line);
+        while (matcher.find()) {
+            MatchResult linkMatcher = matcher.toMatchResult();
+            String link = linkMatcher.group(1);
+            File referencedFile = new File(getJavadocRoot().get().getAsFile(), link);
+            if (!referencedFile.exists() || referencedFile.isDirectory()) {
+                String errMsg = "Missing Javadoc file for " + link + " in " + sourceFile.getName();
+                if (link.startsWith("javadoc")) {
+                    errMsg += " (You may need to remove the leading `javadoc` path component)";
+                }
+                errorsForFile.add(new Error(lineNumber, line, errMsg));
+            }
+            // TODO: Also parse the HTML in the javadoc file to check if the specific method is present
+        }
     }
 
     private void gatherDeadLinksInFile(File sourceFile, Map<File, List<Error>> errors) {
