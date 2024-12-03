@@ -120,7 +120,7 @@ class DefaultConfigurationCacheIO internal constructor(
         stateFile: ConfigurationCacheStateFile
     ) {
         val rootDirs = collectRootDirs(buildStateRegistry)
-        writeConfigurationCacheState(stateFile) {
+        withWriteContextFor(stateFile, { "entry details" }) {
             writeCollection(rootDirs) { writeFile(it) }
             val addressSerializer = BlockAddressSerializer()
             writeCollection(intermediateModels.entries) { entry ->
@@ -141,7 +141,7 @@ class DefaultConfigurationCacheIO internal constructor(
         if (!stateFile.exists) {
             return null
         }
-        return readConfigurationCacheState(stateFile) {
+        return withReadContextFor(stateFile) {
             val rootDirs = readList { readFile() }
             val addressSerializer = BlockAddressSerializer()
             val intermediateModels = mutableMapOf<ModelKey, BlockAddress>()
