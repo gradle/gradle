@@ -49,7 +49,7 @@ You then switch to Branch B to conduct a code review, help a colleague, or addre
 You then switch back to Branch A to continue your original work.
 When you next build, all of the outputs previously built while working on Branch A can be reused from the cache, saving potentially a lot of time.
 
-== The Android Gradle Plugin and the Gradle Build Tool
+== The Android Gradle Plugin
 
 Android Studio users should use the latest Android Gradle Plugin to ensure compatibility and benefit from performance improvements in new releases.
 
