@@ -1,4 +1,4 @@
-// Copyright (C) 2023 Gradle, Inc.
+// Copyright (C) 2024 Gradle, Inc.
 //
 // Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
 // you may not use this file except in compliance with the License.
@@ -18,13 +18,14 @@
 [[sec:gradle_documentation]]
 == Gradle Documentation
 
-_Copyright © 2007-2023 Gradle, Inc._
+Copyright © 2024 Gradle, Inc. All rights reserved.
+Gradle is a trademark of Gradle, Inc.
 
-Gradle build tool source code is open-source and licensed under the link:https://github.com/gradle/gradle/blob/master/LICENSE[Apache License 2.0].
+Gradle's Build Tool source code is open-source and licensed under the link:https://github.com/gradle/gradle/blob/master/LICENSE[Apache License 2.0].
 
-Gradle user manual and DSL reference manual are licensed under link:http://creativecommons.org/licenses/by-nc-sa/4.0/[Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License].
+Gradle's User Manual and DSL Reference Manual are licensed under link:http://creativecommons.org/licenses/by-nc-sa/4.0/[Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License].
 
 [[licenses:build_scan_plugin]]
 == Gradle Build Scan Plugin
 
-Use of the link:https://scans.gradle.com/plugin/[build scan plugin] is subject to link:https://gradle.com/legal/terms-of-service/[Gradle's Terms of Service].
+Use of the link:https://scans.gradle.com/plugin/[Build Scan plugin] is subject to link:https://gradle.com/legal/terms-of-service/[Gradle's Terms of Service].
