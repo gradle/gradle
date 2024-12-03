@@ -63,10 +63,9 @@ class MemberFunctionResolver(private val configureLambdaHandler: ConfigureLambda
 
     @OptIn(ExperimentalStdlibApi::class)
     private fun parametersMatch(function: KFunction<*>, schemaFunction: SchemaFunction): Boolean {
-
         val actualParameters = function.parameters.subList(if (function.instanceParameter == null) 0 else 1, function.parameters.size)
         return if (actualParameters.size == schemaFunction.parameters.size) {
-            return actualParameters.zip(schemaFunction.parameters).all { (kp, dp) ->
+            actualParameters.zip(schemaFunction.parameters).all { (kp, dp) ->
                 kp.type.javaType.typeName == dp.type.typeName()
             }
         } else {
