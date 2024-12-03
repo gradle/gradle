@@ -43,7 +43,7 @@ CI already built this commit -- why should you re-do that work?
 === Switching branches
 
 During local development, it is not uncommon to switch branches several times per day.
-This defeats <<incremental_build.adoc#incremental_build,incremental build>> (i.e., `UP-TO-DATE` checks), but this issue is mitigated via use of the local build cache.
+This defeats <<incremental_build.adoc#incremental_build, incremental build>> (i.e., `UP-TO-DATE` checks), but this issue is mitigated via the use of the local build cache.
 You might run a build on Branch A, which will populate the local cache.
 You then switch to Branch B to conduct a code review, help a colleague, or address feedback on an open PR.
 You then switch back to Branch A to continue your original work.
