@@ -123,7 +123,7 @@ method() {failure}FAILED{normal}
         // render only when there are >0 in a category
         1         | 0         | 1        | "\n1 test completed, 1 failed\n"
         2         | 1         | 1        | "\n2 tests completed, 1 succeeded, 1 failed\n"
-        3         | 1         | 1        | "\n3 tests completed, 1 succeeded, 1 skipped, 1 failed\n"
+        3         | 1         | 1        | "\n3 tests completed, 1 succeeded, 1 failed, 1 skipped\n"
     }
 
     def "does not render intermediate groups"() {
