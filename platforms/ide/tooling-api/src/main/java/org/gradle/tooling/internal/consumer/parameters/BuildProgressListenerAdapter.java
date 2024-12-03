@@ -118,7 +118,6 @@ import org.gradle.tooling.events.task.java.JavaCompileTaskOperationResult.Annota
 import org.gradle.tooling.events.test.Destination;
 import org.gradle.tooling.events.test.JvmTestKind;
 import org.gradle.tooling.events.test.TestFinishEvent;
-import org.gradle.tooling.events.test.TestMetadataDescriptor;
 import org.gradle.tooling.events.test.TestMetadataEvent;
 import org.gradle.tooling.events.test.TestOperationDescriptor;
 import org.gradle.tooling.events.test.TestOperationResult;
@@ -130,7 +129,6 @@ import org.gradle.tooling.events.test.internal.DefaultJvmTestOperationDescriptor
 import org.gradle.tooling.events.test.internal.DefaultTestFailureResult;
 import org.gradle.tooling.events.test.internal.DefaultTestFinishEvent;
 import org.gradle.tooling.events.test.internal.DefaultTestMetadataEvent;
-import org.gradle.tooling.events.test.internal.DefaultTestMetadataOperationDescriptor;
 import org.gradle.tooling.events.test.internal.DefaultTestOperationDescriptor;
 import org.gradle.tooling.events.test.internal.DefaultTestOutputEvent;
 import org.gradle.tooling.events.test.internal.DefaultTestOutputOperationDescriptor;
@@ -257,6 +255,8 @@ import static java.util.Collections.emptyList;
 /**
  * Converts progress events sent from the tooling provider to the tooling client to the corresponding event types available on the public Tooling API, and broadcasts the converted events to the
  * matching progress listeners. This adapter handles all the different incoming progress event types (except the original logging-derived progress listener).
+ *
+ * This adapts tooling provider internal types into the public types on the consumer.
  */
 public class BuildProgressListenerAdapter implements InternalBuildProgressListener {
 
@@ -620,8 +620,8 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
     }
 
     private TestMetadataEvent transformTestMetadata(InternalTestMetadataEvent event, InternalTestMetadataDescriptor descriptor) {
-        TestMetadataDescriptor clientDescriptor = addDescriptor(event.getDescriptor(), toTestMetadataDescriptor(event, descriptor));
-        return new DefaultTestMetadataEvent(event.getEventTime(), clientDescriptor);
+        OperationDescriptor clientDescriptor = addDescriptor(event.getDescriptor(), toDescriptor(descriptor));
+        return new DefaultTestMetadataEvent(event.getEventTime(), clientDescriptor, event.getKey(), event.getValue());
     }
 
     private @Nullable ProblemEvent toProblemEvent(InternalProgressEvent progressEvent, InternalProblemDescriptor descriptor) {
@@ -922,13 +922,6 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         Destination destination = Destination.fromCode(event.getResult().getDestination());
         String message = event.getResult().getMessage();
         return new DefaultTestOutputOperationDescriptor(descriptor, parent, destination, message);
-    }
-
-    private TestMetadataDescriptor toTestMetadataDescriptor(InternalTestMetadataEvent event, InternalTestMetadataDescriptor descriptor) {
-        OperationDescriptor parent = getParentDescriptor(descriptor.getParentId());
-        String key = event.getResult().getKey();
-        Object value = event.getResult().getValue();
-        return new DefaultTestMetadataOperationDescriptor(descriptor, parent, key, value);
     }
 
     private static Problem toProblem(InternalBasicProblemDetails basicProblemDetails) {

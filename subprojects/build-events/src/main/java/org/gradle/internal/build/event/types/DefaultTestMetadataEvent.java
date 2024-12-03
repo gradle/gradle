@@ -16,36 +16,36 @@
 
 package org.gradle.internal.build.event.types;
 
-import org.gradle.tooling.internal.protocol.events.InternalOperationDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalTestMetadataDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalTestMetadataEvent;
-import org.gradle.tooling.internal.protocol.events.InternalTestMetadataResult;
 
 /**
  * Default implementation of the {@code InternalTestMetadataEvent} interface.
+ *
+ * This is created by the provider side of the tooling API.
  */
-public final class DefaultTestMetadataEvent extends AbstractProgressEvent<InternalOperationDescriptor> implements InternalTestMetadataEvent {
-    private final InternalOperationDescriptor descriptor;
-    private final InternalTestMetadataResult result;
+public final class DefaultTestMetadataEvent extends AbstractProgressEvent<InternalTestMetadataDescriptor> implements InternalTestMetadataEvent {
+    private final String key;
+    private final Object value;
 
-    public DefaultTestMetadataEvent(long startTime, InternalTestMetadataDescriptor descriptor, InternalTestMetadataResult result) {
+    public DefaultTestMetadataEvent(long startTime, InternalTestMetadataDescriptor descriptor, String key, Object value) {
         super(startTime, descriptor);
-        this.descriptor = descriptor;
-        this.result = result;
+        this.key = key;
+        this.value = value;
     }
 
     @Override
     public String getDisplayName() {
-        return "metadata";
+        return getDescriptor().getDisplayName() + " for " + key;
     }
 
     @Override
-    public InternalOperationDescriptor getDescriptor() {
-        return descriptor;
+    public String getKey() {
+        return key;
     }
 
     @Override
-    public InternalTestMetadataResult getResult() {
-        return result;
+    public Object getValue() {
+        return value;
     }
 }

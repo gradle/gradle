@@ -21,8 +21,11 @@ package org.gradle.tooling.internal.protocol.events;
  *
  * @since 8.12
  */
-public interface InternalTestMetadataEvent extends InternalOperationFinishedProgressEvent {
-
+public interface InternalTestMetadataEvent extends InternalProgressEvent {
     @Override
-    InternalTestMetadataResult getResult();
+    InternalTestMetadataDescriptor getDescriptor();
+
+    String getKey();
+
+    Object getValue();
 }

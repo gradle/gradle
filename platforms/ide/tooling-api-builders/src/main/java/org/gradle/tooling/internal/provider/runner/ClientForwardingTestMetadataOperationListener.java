@@ -18,11 +18,9 @@ package org.gradle.tooling.internal.provider.runner;
 
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.tasks.testing.operations.ExecuteTestBuildOperationType;
-import org.gradle.api.internal.tasks.testing.operations.TestListenerBuildOperationAdapter;
 import org.gradle.api.tasks.testing.TestMetadataEvent;
 import org.gradle.internal.build.event.types.DefaultTestMetadataDescriptor;
 import org.gradle.internal.build.event.types.DefaultTestMetadataEvent;
-import org.gradle.internal.build.event.types.DefaultTestMetadataResult;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationIdFactory;
 import org.gradle.internal.operations.BuildOperationListener;
@@ -34,6 +32,8 @@ import org.gradle.tooling.internal.protocol.events.InternalTestMetadataDescripto
 
 /**
  * Test listener that forwards the test metadata events.
+ *
+ * This listener adapts build operation test events sent from the build into internal test events shared with the consumer.
  */
 @NonNullApi
 /* package */ class ClientForwardingTestMetadataOperationListener implements BuildOperationListener {
@@ -53,11 +53,10 @@ import org.gradle.tooling.internal.protocol.events.InternalTestMetadataDescripto
     public void progress(OperationIdentifier buildOperationId, OperationProgressEvent progressEvent) {
         Object details = progressEvent.getDetails();
         if (details instanceof ExecuteTestBuildOperationType.Metadata) {
-            TestListenerBuildOperationAdapter.Metadata metadata = (TestListenerBuildOperationAdapter.Metadata) details;
+            ExecuteTestBuildOperationType.Metadata metadata = (ExecuteTestBuildOperationType.Metadata) details;
             InternalTestMetadataDescriptor descriptor = new DefaultTestMetadataDescriptor(new OperationIdentifier(idFactory.nextId()), buildOperationId);
             TestMetadataEvent metadataMetadataEvent = metadata.getMetadata();
-            DefaultTestMetadataResult result = new DefaultTestMetadataResult(progressEvent.getTime(), progressEvent.getTime(), metadataMetadataEvent.getKey(), metadataMetadataEvent.getValue());
-            eventConsumer.progress(new DefaultTestMetadataEvent(progressEvent.getTime(), descriptor, result));
+            eventConsumer.progress(new DefaultTestMetadataEvent(progressEvent.getTime(), descriptor, metadataMetadataEvent.getKey(), metadataMetadataEvent.getValue()));
         }
     }
 

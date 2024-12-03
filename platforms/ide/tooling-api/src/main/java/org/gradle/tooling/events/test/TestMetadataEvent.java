@@ -28,6 +28,17 @@ import org.gradle.tooling.events.ProgressEvent;
  */
 @Incubating
 public interface TestMetadataEvent extends ProgressEvent {
-    @Override
-    TestMetadataDescriptor getDescriptor();
+    /**
+     * Describes the key used to identify the metadata.
+     *
+     * @since 8.12
+     */
+    String getKey();
+
+    /**
+     * The metadata itself.
+     *
+     * @since 8.12
+     */
+    Object getValue();
 }

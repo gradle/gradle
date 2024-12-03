@@ -17,7 +17,7 @@
 package org.gradle.tooling.events.test.internal;
 
 import org.gradle.api.NonNullApi;
-import org.gradle.tooling.events.test.TestMetadataDescriptor;
+import org.gradle.tooling.events.OperationDescriptor;
 import org.gradle.tooling.events.test.TestMetadataEvent;
 
 /**
@@ -26,11 +26,15 @@ import org.gradle.tooling.events.test.TestMetadataEvent;
 @NonNullApi
 public class DefaultTestMetadataEvent implements TestMetadataEvent {
     private final long eventTime;
-    private final TestMetadataDescriptor descriptor;
+    private final OperationDescriptor descriptor;
+    private final String key;
+    private final Object value;
 
-    public DefaultTestMetadataEvent(long eventTime, TestMetadataDescriptor descriptor) {
+    public DefaultTestMetadataEvent(long eventTime, OperationDescriptor descriptor, String key, Object value) {
         this.eventTime = eventTime;
         this.descriptor = descriptor;
+        this.key = key;
+        this.value = value;
     }
 
     @Override
@@ -40,16 +44,26 @@ public class DefaultTestMetadataEvent implements TestMetadataEvent {
 
     @Override
     public String getDisplayName() {
-        return descriptor.getKey();
+        return descriptor.getDisplayName();
     }
 
     @Override
-    public TestMetadataDescriptor getDescriptor() {
+    public OperationDescriptor getDescriptor() {
         return descriptor;
     }
 
     @Override
     public String toString() {
         return getDisplayName(); // This must == displayName, see TestEventsFixture
+    }
+
+    @Override
+    public String getKey() {
+        return key;
+    }
+
+    @Override
+    public Object getValue() {
+        return value;
     }
 }

@@ -58,40 +58,39 @@ trait TestEventsFixture {
     }
 }
 
+@CompileStatic
 class DefaultTestEventsSpec implements TestEventsFixture.TestEventsSpec {
     final List<TestOperationDescriptor> testEvents
     final Set<OperationDescriptor> verifiedEvents = []
-    final Map<TestOperationDescriptor, List<String>> outputByDescriptor = [:]
-    final Map<TestOperationDescriptor, Map<String, Object>> metadataByDescriptor = [:]
+    final Map<TestOperationDescriptor, List<String>> outputByDescriptor
+    final Map<TestOperationDescriptor, Map<String, Object>> metadataByDescriptor
 
     DefaultTestEventsSpec(ProgressEvents events) {
         testEvents = events.tests.collect {(TestOperationDescriptor) it.descriptor }
 
-        events.getAll()
+        outputByDescriptor = events.getAll()
             .findAll { it instanceof TestOutputEvent }
-            .each {
-                def desc = it.descriptor
-                def outputForDescriptor = outputByDescriptor.computeIfAbsent(desc.parent) { [] }
-                outputForDescriptor << it.descriptor.message
+            .collect { (TestOutputEvent) it }
+            .groupBy {it.descriptor.parent }
+            .collectEntries { entry ->
+                [(entry.key): entry.value*.descriptor.message]
             }
-
-        events.getAll()
+        metadataByDescriptor = events.getAll()
             .findAll { it instanceof TestMetadataEvent }
-            .each {
-                def desc = it.descriptor
-                def metadataForDescriptor = metadataByDescriptor.computeIfAbsent(desc.parent) { [:] }
-                metadataForDescriptor[desc.key] = desc.value
+            .collect { (TestMetadataEvent) it }
+            .groupBy {it.descriptor.parent }
+            .collectEntries { entry ->
+                [(entry.key): entry.value.collectEntries {[(it.key): it.value] }]
             }
     }
 
-    @SuppressWarnings('GroovyAccessibility')
     @Override
     void task(String path, @DelegatesTo(value = TestEventsFixture.TestEventSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> rootSpec) {
         def task = testEvents.find {
             ((TaskOperationDescriptor) it.parent)?.taskPath == path
         }
         if (task == null) {
-            throw new AssertionError("Expected to find a test task $path but none was found")
+            throw new AssertionError((Object)"Expected to find a test task $path but none was found")
         }
         DefaultTestEventSpec.assertSpec(task.parent, testEvents, verifiedEvents, "Task $path", outputByDescriptor, metadataByDescriptor, rootSpec)
     }
