@@ -24,7 +24,6 @@ import org.gradle.api.internal.tasks.testing.DefaultTestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.DefaultTestDescriptor;
 import org.gradle.api.internal.tasks.testing.DefaultTestFailure;
 import org.gradle.api.internal.tasks.testing.DefaultTestFailureDetails;
-import org.gradle.api.internal.tasks.testing.DefaultTestMetadataEvent;
 import org.gradle.api.internal.tasks.testing.DefaultTestMethodDescriptor;
 import org.gradle.api.internal.tasks.testing.DefaultTestOutputEvent;
 import org.gradle.api.internal.tasks.testing.DefaultTestSuiteDescriptor;
@@ -42,12 +41,7 @@ import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.serialize.SerializerRegistry;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -67,7 +61,6 @@ public class TestEventSerializer {
         registry.register(TestStartEvent.class, new TestStartEventSerializer());
         registry.register(TestCompleteEvent.class, new TestCompleteEventSerializer());
         registry.register(DefaultTestOutputEvent.class, new DefaultTestOutputEventSerializer());
-        // registry.register(DefaultTestMetadataEvent.class, new DefaultTestMetadataEventSerializer()); This isn't needed until we need to support sending test metadata from a worker
         Serializer<Throwable> throwableSerializer = factory.getSerializerFor(Throwable.class);
         registry.register(Throwable.class, throwableSerializer);
         registry.register(DefaultTestFailure.class, new DefaultTestFailureSerializer(throwableSerializer));
@@ -173,89 +166,6 @@ public class TestEventSerializer {
             encoder.writeLong(value.getLogTime());
             destinationSerializer.write(encoder, value.getDestination());
             encoder.writeString(value.getMessage());
-        }
-    }
-
-    // Unnecessary until we need to support sending test metadata from a worker
-    @SuppressWarnings("unused")
-    private static class DefaultTestMetadataEventSerializer implements Serializer<DefaultTestMetadataEvent> {
-        @Override
-        public DefaultTestMetadataEvent read(Decoder decoder) throws Exception {
-            long logTime = decoder.readLong();
-            String key = decoder.readString();
-            Object value = deserialize(decoder.readBinary());
-            return new DefaultTestMetadataEvent(logTime, key, value);
-        }
-
-        @Override
-        public void write(Encoder encoder, DefaultTestMetadataEvent value) throws Exception {
-            encoder.writeLong(value.getLogTime());
-            encoder.writeString(value.getKey());
-            encoder.writeBinary(serialize(value.getValue()));
-        }
-
-        @SuppressWarnings("ThrowFromFinallyBlock")
-        private byte[] serialize(Object obj) {
-            if (!(obj instanceof Serializable)) {
-                throw new IllegalArgumentException("Object must implement Serializable");
-            }
-
-            ByteArrayOutputStream bos = null;
-            ObjectOutputStream oos = null;
-
-            try {
-                bos = new ByteArrayOutputStream();
-                oos = new ObjectOutputStream(bos);
-                oos.writeObject(obj);
-                oos.flush();
-                return bos.toByteArray();
-            } catch (Exception e) {
-                throw new TestFailureSerializationException("Error serializing metadata: ", e);
-            } finally {
-                if (oos != null) {
-                    try {
-                        oos.close();
-                    } catch (IOException e) {
-                        throw new TestFailureSerializationException("Error serializing metadata: ", e);
-                    }
-                }
-                if (bos != null) {
-                    try {
-                        bos.close();
-                    } catch (IOException e) {
-                        throw new TestFailureSerializationException("Error serializing metadata: ", e);
-                    }
-                }
-            }
-        }
-
-        @SuppressWarnings("ThrowFromFinallyBlock")
-        private Object deserialize(byte[] data) {
-            ByteArrayInputStream bis = null;
-            ObjectInputStream ois = null;
-
-            try {
-                bis = new ByteArrayInputStream(data);
-                ois = new ObjectInputStream(bis);
-                return ois.readObject();
-            } catch (Exception e) {
-                throw new TestFailureSerializationException("Error serializing metadata: ", e);
-            } finally {
-                if (ois != null) {
-                    try {
-                        ois.close();
-                    } catch (IOException e) {
-                        throw new TestFailureSerializationException("Error serializing metadata: ", e);
-                    }
-                }
-                if (bis != null) {
-                    try {
-                        bis.close();
-                    } catch (IOException e) {
-                        throw new TestFailureSerializationException("Error serializing metadata: ", e);
-                    }
-                }
-            }
         }
     }
 
