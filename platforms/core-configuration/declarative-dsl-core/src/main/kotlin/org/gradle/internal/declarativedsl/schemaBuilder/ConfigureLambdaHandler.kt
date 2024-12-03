@@ -34,7 +34,7 @@ import kotlin.reflect.typeOf
 interface ConfigureLambdaHandler {
     fun getTypeConfiguredByLambda(type: KType): KType?
     fun isConfigureLambdaForType(configuredType: KType, maybeLambdaType: KType): Boolean
-    fun produceValueCaptor(lambdaType: KType, typeConfiguredByLambda: KType): ValueCaptor
+    fun produceValueCaptor(lambdaType: KType): ValueCaptor
 
     class ValueCaptor(
         val lambda: Any,
@@ -62,10 +62,10 @@ operator fun ConfigureLambdaHandler.plus(other: ConfigureLambdaHandler) =
 val kotlinFunctionAsConfigureLambda: ConfigureLambdaHandler = object : ConfigureLambdaHandler {
     override fun getTypeConfiguredByLambda(type: KType): KType? = if (isConfigureLambdaType(type)) type.arguments[0].type else null
     override fun isConfigureLambdaForType(configuredType: KType, maybeLambdaType: KType): Boolean = isConfigureLambdaType(maybeLambdaType, configuredType)
-    override fun produceValueCaptor(lambdaType: KType, typeConfiguredByLambda: KType): ConfigureLambdaHandler.ValueCaptor {
+    override fun produceValueCaptor(lambdaType: KType): ConfigureLambdaHandler.ValueCaptor {
         lateinit var value: Any
         val lambda: Function1<Any, Unit> = { value = it }
-        return ConfigureLambdaHandler.ValueCaptor(lambda, lazy { value to typeConfiguredByLambda.jvmErasure })
+        return ConfigureLambdaHandler.ValueCaptor(lambda, lazy { value to getTypeConfiguredByLambda(lambdaType)?.jvmErasure })
     }
 
     private
@@ -92,11 +92,11 @@ class CompositeConfigureLambdas(internal val implementations: List<ConfigureLamb
     override fun isConfigureLambdaForType(configuredType: KType, maybeLambdaType: KType): Boolean =
         implementations.any { it.isConfigureLambdaForType(configuredType, maybeLambdaType) }
 
-    override fun produceValueCaptor(lambdaType: KType, typeConfiguredByLambda: KType): ConfigureLambdaHandler.ValueCaptor {
+    override fun produceValueCaptor(lambdaType: KType): ConfigureLambdaHandler.ValueCaptor {
         val implementation = implementations.firstOrNull { it.getTypeConfiguredByLambda(lambdaType) != null } // TODO: can this be simplified now, that we know the type configured by the lambda?
         when (implementation) {
             null -> throw IllegalAccessException("none of the configure lambda handlers could produce an instance")
-            else -> return implementation.produceValueCaptor(lambdaType, typeConfiguredByLambda)
+            else -> return implementation.produceValueCaptor(lambdaType)
         }
     }
 }
@@ -130,13 +130,13 @@ fun treatInterfaceAsConfigureLambda(functionalInterface: KClass<*>): ConfigureLa
     override fun isConfigureLambdaForType(configuredType: KType, maybeLambdaType: KType) =
         maybeLambdaType.isSubtypeOf(interfaceTypeWithArgument(configuredType))
 
-    override fun produceValueCaptor(lambdaType: KType, typeConfiguredByLambda: KType): ConfigureLambdaHandler.ValueCaptor {
+    override fun produceValueCaptor(lambdaType: KType): ConfigureLambdaHandler.ValueCaptor {
         require(lambdaType.isSubtypeOf(starProjectedType)) { "requested lambda type $lambdaType is not a subtype of the interface $starProjectedType" }
-        return valueCaptor(typeConfiguredByLambda)
+        return valueCaptor(getTypeConfiguredByLambda(lambdaType))
     }
 
     private
-    fun valueCaptor(typeConfiguredByLambda: KType): ConfigureLambdaHandler.ValueCaptor {
+    fun valueCaptor(typeConfiguredByLambda: KType?): ConfigureLambdaHandler.ValueCaptor {
         var value: Any? = null
         val lambda = Proxy.newProxyInstance(
             functionalInterface.java.classLoader,
@@ -145,6 +145,6 @@ fun treatInterfaceAsConfigureLambda(functionalInterface: KClass<*>): ConfigureLa
             value = args[0]
             return@newProxyInstance null
         }
-        return ConfigureLambdaHandler.ValueCaptor(lambda, lazy { value to typeConfiguredByLambda.jvmErasure})
+        return ConfigureLambdaHandler.ValueCaptor(lambda, lazy { value to typeConfiguredByLambda?.jvmErasure})
     }
 }

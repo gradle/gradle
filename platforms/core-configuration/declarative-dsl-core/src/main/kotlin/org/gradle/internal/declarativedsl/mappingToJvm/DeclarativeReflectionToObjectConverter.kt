@@ -35,7 +35,7 @@ class DeclarativeReflectionToObjectConverter(
 
             objectReflection.addedObjects.forEach { addedObject ->
                 // We need the side effect of invoking the function producing the object, if it was there
-                getObjectByResolvedOrigin(addedObject.objectOrigin).first
+                getObjectByResolvedOrigin(addedObject.objectOrigin)
                 apply(addedObject, conversionFilter)
                 // TODO: maybe add the "containers" to the schema, so that added objects can be better expressed in this interpretation step
             }
