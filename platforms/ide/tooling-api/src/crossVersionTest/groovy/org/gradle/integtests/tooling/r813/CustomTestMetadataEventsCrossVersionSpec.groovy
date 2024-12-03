@@ -187,6 +187,72 @@ class CustomTestMetadataEventsCrossVersionSpec extends ToolingApiSpecification i
         }
     }
 
+    def "reports custom test events at root, group and nested group levels"() {
+        given:
+        buildFile("""
+            import java.time.Instant
+
+            abstract class CustomTestTask extends DefaultTask {
+                @Inject
+                abstract TestEventReporterFactory getTestEventReporterFactory()
+
+                @TaskAction
+                void runTests() {
+                    try (def root = getTestEventReporterFactory().createTestEventReporter("Custom test root")) {
+                        root.started(Instant.now())
+                        root.metadata(Instant.now(), "myroot", "my root value")
+                        try (def myGroup = root.reportTestGroup("My Group")) {
+                            myGroup.started(Instant.now())
+                            myGroup.metadata(Instant.now(), "mygroup", "my group value")
+                            try (def myInnerGroup = myGroup.reportTestGroup("My Inner Group")) {
+                                myInnerGroup.started(Instant.now())
+                                myInnerGroup.metadata(Instant.now(), "myinnergroup", "my inner group value")
+                                try (def myTest = myInnerGroup.reportTest("MyTestInternal", "My test!")) {
+                                    myTest.started(Instant.now())
+                                    myTest.metadata(Instant.now(), "mytest", "my test value")
+                                    myTest.succeeded(Instant.now())
+                                }
+                                myInnerGroup.succeeded(Instant.now())
+                            }
+                            myGroup.succeeded(Instant.now())
+                        }
+                        root.succeeded(Instant.now())
+                    }
+                }
+            }
+
+            tasks.register("customTest", CustomTestTask)
+        """)
+
+        when:
+        withConnection {
+            ProjectConnection connection ->
+                connection.newBuild()
+                    .addProgressListener(events, OperationType.TASK, OperationType.TEST, OperationType.TEST_OUTPUT, OperationType.TEST_METADATA)
+                    .forTasks('customTest')
+                    .run()
+        }
+
+        then:
+        testEvents {
+            task(":customTest") {
+                composite("Custom test root") {
+                    metadata("myroot", "my root value")
+                    composite("My Group") {
+                        metadata("mygroup", "my group value")
+                        composite("My Inner Group") {
+                            metadata("myinnergroup", "my inner group value")
+                            test("MyTestInternal") {
+                                testDisplayName "My test!"
+                                metadata("mytest", "my test value")
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     def "reporting custom test events with metadata doesn't break older TAPI"() {
         given:
         buildFile("""

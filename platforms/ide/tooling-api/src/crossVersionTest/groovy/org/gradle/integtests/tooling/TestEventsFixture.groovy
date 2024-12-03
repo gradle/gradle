@@ -61,13 +61,27 @@ trait TestEventsFixture {
 class DefaultTestEventsSpec implements TestEventsFixture.TestEventsSpec {
     final List<TestOperationDescriptor> testEvents
     final Set<OperationDescriptor> verifiedEvents = []
-    final List<String> output = []
-    final Map<String, Object> metadata = [:]
+    final Map<TestOperationDescriptor, List<String>> outputByDescriptor = [:]
+    final Map<TestOperationDescriptor, Map<String, Object>> metadataByDescriptor = [:]
 
     DefaultTestEventsSpec(ProgressEvents events) {
         testEvents = events.tests.collect {(TestOperationDescriptor) it.descriptor }
-        output.addAll(events.getAll().findAll { it instanceof TestOutputEvent }.collect { it.descriptor.message })
-        metadata.putAll(events.getAll().findAll { it instanceof TestMetadataEvent }.collectEntries { [(it.descriptor.key):it.descriptor.value] })
+
+        events.getAll()
+            .findAll { it instanceof TestOutputEvent }
+            .each {
+                def desc = it.descriptor
+                def outputForDescriptor = outputByDescriptor.computeIfAbsent(desc.parent) { [] }
+                outputForDescriptor << it.descriptor.message
+            }
+
+        events.getAll()
+            .findAll { it instanceof TestMetadataEvent }
+            .each {
+                def desc = it.descriptor
+                def metadataForDescriptor = metadataByDescriptor.computeIfAbsent(desc.parent) { [:] }
+                metadataForDescriptor[desc.key] = desc.value
+            }
     }
 
     @SuppressWarnings('GroovyAccessibility')
@@ -79,7 +93,7 @@ class DefaultTestEventsSpec implements TestEventsFixture.TestEventsSpec {
         if (task == null) {
             throw new AssertionError("Expected to find a test task $path but none was found")
         }
-        DefaultTestEventSpec.assertSpec(task.parent, testEvents, verifiedEvents, "Task $path", output, metadata, rootSpec)
+        DefaultTestEventSpec.assertSpec(task.parent, testEvents, verifiedEvents, "Task $path", outputByDescriptor, metadataByDescriptor, rootSpec)
     }
 }
 
@@ -89,18 +103,18 @@ class DefaultTestEventSpec implements TestEventsFixture.CompositeTestEventSpec {
     private final Set<OperationDescriptor> verifiedEvents
     private final OperationDescriptor parent
     private String testDisplayName
-    private final List<String> recordedOutputs = []
-    private final List<String> outputsToVerify = []
-    private final Map<String, Object> recordedMetadata = [:]
-    private final Map<String, Object> metadataToVerify = [:]
+    private final Map<TestOperationDescriptor, List<String>> recordedOutputs = [:]
+    private final Map<TestOperationDescriptor, List<String>> outputsToVerify = [:]
+    private final Map<TestOperationDescriptor, Map<String, Object>> recordedMetadata = [:]
+    private final Map<TestOperationDescriptor, Map<String, Object>> metadataToVerify = [:]
 
     static void assertSpec(
         OperationDescriptor descriptor,
         List<TestOperationDescriptor> testEvents,
         Set<OperationDescriptor> verifiedEvents,
         String expectedOperationDisplayName,
-        List<String> recordedOutputs,
-        Map<String, Object> recordedMetadata,
+        Map<TestOperationDescriptor, List<String>> recordedOutputs,
+        Map<TestOperationDescriptor, Map<String, Object>> recordedMetadata,
         @DelegatesTo(value = TestEventsFixture.TestEventSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> spec
     ) {
         verifiedEvents.add(descriptor)
@@ -111,11 +125,11 @@ class DefaultTestEventSpec implements TestEventsFixture.CompositeTestEventSpec {
         childSpec.validate(expectedOperationDisplayName)
     }
 
-    DefaultTestEventSpec(OperationDescriptor parent, List<TestOperationDescriptor> testEvents, Set<OperationDescriptor> verifiedEvents, List<String> recordedOutputs, Map<String, Object> recordedMetadata) {
+    DefaultTestEventSpec(OperationDescriptor parent, List<TestOperationDescriptor> testEvents, Set<OperationDescriptor> verifiedEvents, Map<TestOperationDescriptor, List<String>> recordedOutputs, Map<TestOperationDescriptor, Map<String, Object>> recordedMetadata) {
         this.parent = parent
         this.testEvents = testEvents
         this.verifiedEvents = verifiedEvents
-        this.recordedOutputs.addAll(recordedOutputs)
+        this.recordedOutputs.putAll(recordedOutputs)
         this.recordedMetadata.putAll(recordedMetadata)
     }
 
@@ -126,12 +140,14 @@ class DefaultTestEventSpec implements TestEventsFixture.CompositeTestEventSpec {
 
     @Override
     void output(String msg) {
-        this.outputsToVerify.add(msg)
+        def outputForDescriptor = this.outputsToVerify.computeIfAbsent((TestOperationDescriptor) this.parent) { [] }
+        outputForDescriptor << msg
     }
 
     @Override
     void metadata(String key, Object value) {
-        this.metadataToVerify[key] = value
+        def metadataForDescriptor = this.metadataToVerify.computeIfAbsent((TestOperationDescriptor) this.parent) { [:] }
+        metadataForDescriptor[key] = value
     }
 
     private static String normalizeExecutor(String name) {
@@ -178,12 +194,11 @@ class DefaultTestEventSpec implements TestEventsFixture.CompositeTestEventSpec {
     }
 
     void validate(String expectedOperationDisplayName) {
+        assert recordedMetadata[this.parent] == metadataToVerify[this.parent]
+        assert recordedOutputs[this.parent] == outputsToVerify[this.parent]
+
         if (testDisplayName != null && parent.respondsTo("getTestDisplayName")) {
             assert testDisplayName == ((TestOperationDescriptor) parent).testDisplayName
-
-            assert recordedOutputs == outputsToVerify
-            assert recordedMetadata == metadataToVerify
-
             return
         }
 
