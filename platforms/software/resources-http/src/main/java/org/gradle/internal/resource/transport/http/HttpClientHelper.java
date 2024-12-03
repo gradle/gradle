@@ -82,7 +82,7 @@ public class HttpClientHelper implements Closeable {
         this.documentationRegistry = documentationRegistry;
         this.settings = settings;
         if (!settings.getAuthenticationSettings().isEmpty()) {
-            sharedContext = new ConcurrentLinkedQueue<HttpContext>();
+            sharedContext = new ConcurrentLinkedQueue<>();
         } else {
             sharedContext = null;
         }
@@ -97,12 +97,30 @@ public class HttpClientHelper implements Closeable {
     }
 
     HttpClientResponse performRawGet(String source, boolean revalidate) {
-        return performRequest(new HttpGet(source), revalidate);
+        return performRawGet(source, revalidate, null, null);
+    }
+
+    HttpClientResponse performRawGet(String source, boolean revalidate, @Nullable Long rangeStart, @Nullable Long rangeEnd) {
+        HttpGet get = new HttpGet(source);
+        if (rangeStart != null) {
+            // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Range
+            StringBuilder builder = new StringBuilder().append("bytes=").append(rangeStart).append("-");
+            if (rangeEnd != null) {
+                builder.append(rangeEnd);
+            }
+            get.setHeader(HttpHeaders.RANGE, builder.toString());
+        }
+        return performRequest(get, revalidate);
     }
 
     @Nonnull
     public HttpClientResponse performGet(String source, boolean revalidate) {
-        return processResponse(performRawGet(source, revalidate));
+        return performGet(source, revalidate, null, null);
+    }
+
+    @Nonnull
+    public HttpClientResponse performGet(String source, boolean revalidate, @Nullable Long rangeStart, @Nullable Long rangeEnd) {
+        return processResponse(performRawGet(source, revalidate, rangeStart, rangeEnd));
     }
 
     public HttpClientResponse performRequest(HttpRequestBase request, boolean revalidate) {

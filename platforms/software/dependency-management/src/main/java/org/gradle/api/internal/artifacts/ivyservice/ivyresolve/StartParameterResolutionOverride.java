@@ -189,7 +189,7 @@ public class StartParameterResolutionOverride {
     private static class OfflineExternalResourceConnector implements ExternalResourceConnector {
         @Nullable
         @Override
-        public <T> T withContent(ExternalResourceName location, boolean revalidate, ExternalResource.ContentAndMetadataAction<T> action) throws ResourceException {
+        public <T> T withContent(ExternalResourceName location, boolean revalidate, @Nullable File partPosition, ExternalResource.ContentAndMetadataAction<T> action) throws ResourceException {
             throw offlineResource(location);
         }
 
