@@ -54,6 +54,7 @@ class ConfigurationCacheServices : AbstractGradleModuleServices() {
         registration.run {
             add(DefaultBuildTreeModelControllerServices::class.java)
             add(ConfigurationCacheRepository::class.java)
+            add(ConfigurationCacheEntryCollector::class.java)
         }
     }
 
