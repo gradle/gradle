@@ -17,6 +17,7 @@
 package org.gradle.tooling.internal.provider.runner;
 
 import org.gradle.api.NonNullApi;
+import org.gradle.api.internal.tasks.testing.operations.ExecuteTestBuildOperationType;
 import org.gradle.api.internal.tasks.testing.operations.TestListenerBuildOperationAdapter;
 import org.gradle.api.tasks.testing.TestMetadataEvent;
 import org.gradle.internal.build.event.types.DefaultTestMetadataDescriptor;
@@ -51,7 +52,7 @@ import org.gradle.tooling.internal.protocol.events.InternalTestMetadataDescripto
     @Override
     public void progress(OperationIdentifier buildOperationId, OperationProgressEvent progressEvent) {
         Object details = progressEvent.getDetails();
-        if (details instanceof TestListenerBuildOperationAdapter.Metadata) {
+        if (details instanceof ExecuteTestBuildOperationType.Metadata) {
             TestListenerBuildOperationAdapter.Metadata metadata = (TestListenerBuildOperationAdapter.Metadata) details;
             InternalTestMetadataDescriptor descriptor = new DefaultTestMetadataDescriptor(new OperationIdentifier(idFactory.nextId()), buildOperationId);
             TestMetadataEvent metadataMetadataEvent = metadata.getMetadata();
