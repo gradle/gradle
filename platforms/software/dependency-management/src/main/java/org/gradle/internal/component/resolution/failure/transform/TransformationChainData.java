@@ -17,9 +17,9 @@
 package org.gradle.internal.component.resolution.failure.transform;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 
-import java.util.HashSet;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -90,11 +90,11 @@ public final class TransformationChainData {
      */
     public static final class TransformationChainFingerprint {
         private final SourceVariantData startingVariant;
-        private final HashSet<TransformData> steps;
+        private final ImmutableSet<TransformData> steps;
 
         public TransformationChainFingerprint(TransformationChainData chain) {
             startingVariant = chain.startingVariant;
-            steps = new HashSet<>(chain.steps);
+            steps = ImmutableSet.copyOf(chain.steps);
         }
 
         @Override
