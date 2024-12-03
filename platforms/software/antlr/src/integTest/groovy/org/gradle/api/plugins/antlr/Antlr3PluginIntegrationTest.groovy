@@ -18,10 +18,27 @@ package org.gradle.api.plugins.antlr
 class Antlr3PluginIntegrationTest extends AbstractAntlrIntegrationTest {
 
     String antlrDependency = "org.antlr:antlr:3.5.2"
+    String runtimeDependency = "org.antlr:antlr-runtime:3.5.2"
 
     def "analyze good grammar"() {
         goodGrammar()
         goodProgram()
+        expect:
+        succeeds("generateGrammarSource")
+
+        assertGrammarSourceGenerated("AnotherGrammar")
+        assertGrammarSourceGenerated("org/acme/test/Test")
+        assertAntlrVersion(3)
+
+        succeeds("build")
+    }
+
+    def "works using antlrTool instead of antlr"() {
+        buildFile.text = buildFile.text.replace("antlr '$antlrDependency'", "antlrTool '$antlrDependency'\n    api '$runtimeDependency'")
+
+        goodGrammar()
+        goodProgram()
+
         expect:
         succeeds("generateGrammarSource")
 

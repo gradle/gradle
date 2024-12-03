@@ -78,6 +78,8 @@ ANTLR grammar files for the given source set.
 [[sec:antlr_dependency_management]]
 == Dependency management
 
+TODO: Rewrite this section once it is decided whether the `antlr` configuration will be planned for removal
+
 The ANTLR plugin adds an `antlr` dependency configuration which provides the ANTLR implementation to use. The following example shows how to use ANTLR version 3.
 
 .Declare ANTLR version
