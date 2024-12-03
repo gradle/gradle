@@ -67,7 +67,7 @@ public class TestEventSerializer {
         registry.register(TestStartEvent.class, new TestStartEventSerializer());
         registry.register(TestCompleteEvent.class, new TestCompleteEventSerializer());
         registry.register(DefaultTestOutputEvent.class, new DefaultTestOutputEventSerializer());
-        registry.register(DefaultTestMetadataEvent.class, new DefaultTestMetadataEventSerializer());
+        // registry.register(DefaultTestMetadataEvent.class, new DefaultTestMetadataEventSerializer()); This isn't needed until we need to support sending test metadata from a worker
         Serializer<Throwable> throwableSerializer = factory.getSerializerFor(Throwable.class);
         registry.register(Throwable.class, throwableSerializer);
         registry.register(DefaultTestFailure.class, new DefaultTestFailureSerializer(throwableSerializer));
@@ -176,6 +176,8 @@ public class TestEventSerializer {
         }
     }
 
+    // Unnecessary until we need to support sending test metadata from a worker
+    @SuppressWarnings("unused")
     private static class DefaultTestMetadataEventSerializer implements Serializer<DefaultTestMetadataEvent> {
         @Override
         public DefaultTestMetadataEvent read(Decoder decoder) throws Exception {
