@@ -792,92 +792,90 @@ Found the following transformation chains:
         """
 
         file('lib/src/main/java/test/MyClass.java') << """
-package test;
+            package test;
 
-public class MyClass {
-    public static void main(String[] args) {
-        System.out.println("Hello world!");
-    }
-}
-"""
-
-        buildFile << """
-def artifactType = Attribute.of('artifactType', String)
-def extraAttribute = Attribute.of('extra', String)
-
-project(':lib') {
-    apply plugin: 'java-library'
-
-    repositories {
-        maven { url "${mavenRepo.uri}" }
-    }
-}
-
-project(':app') {
-    apply plugin: 'java'
-
-    repositories {
-        maven { url "${mavenRepo.uri}" }
-    }
-
-    dependencies {
-        implementation 'test:test:1.3'
-        implementation project(':lib')
-    }
-
-    def hasExtraAttributeA = providers.gradleProperty('extraAttributeA').isPresent()
-    def hasExtraAttributeB = providers.gradleProperty('extraAttributeB').isPresent()
-    def extraRequest = providers.gradleProperty('extraRequest')
-
-    dependencies {
-        registerTransform(TestTransform) { // A
-            from.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API))
-            from.attribute(artifactType, 'java-classes-directory')
-            to.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API))
-            to.attribute(artifactType, 'final')
-
-            if (hasExtraAttributeA) {
-                from.attribute(extraAttribute, 'whatever')
-                to.attribute(extraAttribute, 'value1')
-            }
-        }
-        registerTransform(TestTransform) { // B
-            from.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API))
-            from.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.JAR))
-            from.attribute(artifactType, 'jar')
-            to.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API))
-            to.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.CLASSES))
-            to.attribute(artifactType, 'final')
-
-            if (hasExtraAttributeB) {
-                from.attribute(extraAttribute, 'whatever')
-                to.attribute(extraAttribute, 'value2')
-            }
-        }
-    }
-
-    task resolve(type: Copy) {
-        def artifacts = configurations.compileClasspath.incoming.artifactView {
-            attributes {
-                attribute(artifactType, 'final')
-                if (extraRequest.isPresent()) {
-                    attributeProvider(extraAttribute, extraRequest)
+            public class MyClass {
+                public static void main(String[] args) {
+                    System.out.println("Hello world!");
                 }
             }
-        }.artifacts
-        from artifacts.artifactFiles
-        into "\${buildDir}/libs"
-        doLast {
-            println "files: " + artifacts.collect { it.file.name }
-            println "ids: " + artifacts.collect { it.id }
-            println "components: " + artifacts.collect { it.id.componentIdentifier }
-            println "variants: " + artifacts.collect { it.variant.attributes }
-        }
-    }
-}
+        """
 
-${artifactTransform("TestTransform")}
-"""
+        groovyFile('lib/build.gradle', """
+            plugins {
+                id 'java-library'
+            }
+        """)
+
+        groovyFile('app/build.gradle', """
+            plugins {
+                id 'java-library'
+            }
+
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+
+            dependencies {
+                implementation 'test:test:1.3'
+                implementation project(':lib')
+            }
+
+            def artifactType = Attribute.of('artifactType', String)
+            def extraAttribute = Attribute.of('extra', String)
+
+            def hasExtraAttributeA = providers.gradleProperty('extraAttributeA').isPresent()
+            def hasExtraAttributeB = providers.gradleProperty('extraAttributeB').isPresent()
+            def extraRequest = providers.gradleProperty('extraRequest')
+
+            dependencies {
+                registerTransform(TestTransform) { // A
+                    from.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API))
+                    from.attribute(artifactType, 'java-classes-directory')
+                    to.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API))
+                    to.attribute(artifactType, 'final')
+
+                    if (hasExtraAttributeA) {
+                        from.attribute(extraAttribute, 'whatever')
+                        to.attribute(extraAttribute, 'value1')
+                    }
+                }
+                registerTransform(TestTransform) { // B
+                    from.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API))
+                    from.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.JAR))
+                    from.attribute(artifactType, 'jar')
+                    to.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API))
+                    to.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.CLASSES))
+                    to.attribute(artifactType, 'final')
+
+                    if (hasExtraAttributeB) {
+                        from.attribute(extraAttribute, 'whatever')
+                        to.attribute(extraAttribute, 'value2')
+                    }
+                }
+            }
+
+            task resolve(type: Copy) {
+                def artifacts = configurations.compileClasspath.incoming.artifactView {
+                    attributes {
+                        attribute(artifactType, 'final')
+                        if (extraRequest.isPresent()) {
+                            attributeProvider(extraAttribute, extraRequest)
+                        }
+                    }
+                }.artifacts
+                from artifacts.artifactFiles
+                into "\${buildDir}/libs"
+                doLast {
+                    println "files: " + artifacts.collect { it.file.name }
+                    println "ids: " + artifacts.collect { it.id }
+                    println "components: " + artifacts.collect { it.id.componentIdentifier }
+                    println "variants: " + artifacts.collect { it.variant.attributes }
+                }
+            }
+
+            ${artifactTransform("TestTransform")}
+        """)
     }
 
     private String artifactTransform(String className, String extension = "txt", String message = "Transforming") {
