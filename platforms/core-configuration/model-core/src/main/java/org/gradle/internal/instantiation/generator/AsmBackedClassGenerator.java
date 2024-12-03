@@ -1672,6 +1672,8 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 return;
             }
 
+            boolean deprecated = method.getAnnotation(Deprecated.class) != null;
+
             Type returnType = getType(method.getReturnType());
 
             Type[] originalParameterTypes = collectArray(method.getParameterTypes(), Type.class, Type::getType);
@@ -1686,6 +1688,10 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
             // GENERATE public <return type> <method>(Closure v) { return <method>(…, ConfigureUtil.configureUsing(v)); }
             publicMethod(method.getName(), methodDescriptor, methodVisitor -> new MethodVisitorScope(methodVisitor) {{
+
+                if (deprecated) {
+                    visitAnnotation("Ljava/lang/Deprecated;", true).visitEnd();
+                }
 
                 // GENERATE <method>(…, ConfigureUtil.configureUsing(v));
                 _ALOAD(0);
