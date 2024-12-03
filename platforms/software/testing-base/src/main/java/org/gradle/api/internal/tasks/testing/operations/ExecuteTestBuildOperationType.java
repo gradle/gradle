@@ -52,7 +52,7 @@ public final class ExecuteTestBuildOperationType implements BuildOperationType<E
 
     }
 
-    @UsedByScanPlugin
+    // Will probably be @UsedByScanPlugin in the future, but not yet
     public interface Metadata {
 
         TestMetadataEvent getMetadata();
