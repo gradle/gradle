@@ -28,9 +28,9 @@ public interface ExternalModuleDependency extends ExternalDependency {
 
     /**
      * Sets whether Gradle may check for a change in the remote repository. If set to true, Gradle will
-     * check the remote repository if either --refresh--dependencies was passed or the local entry has expired.
-     * If set to false, Gradle will use the local entry even if there is a new artifact in the remote repository
-     * and --refresh-dependencies was passed. Defaults to false.
+     * check the remote repository if the local entry has expired.
+     * If set to false, Gradle will use the local entry even if there is a new artifact in the remote repository.
+     * Defaults to false.
      *
      * @param changing Gradle can check for a change in the remote repository, even if a local entry already exists
      * @return this
