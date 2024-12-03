@@ -30,7 +30,7 @@ For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility
 #### Ambiguous Artifact Transformation chains are detected and reported
 
 Previously, when two or more equal-length chains of <<artifact_transforms.adoc#sec,artifact transforms>> produced compatible variants to satisfy a resolution request, Gradle would arbitrarily and silently select one.
-Gradle now emits a deprecation warning for this case.
+Gradle now emits a warning for this case.
 
 This deprecation warning is the same failure message that now appears when multiple equal-length chains are available, producing incompatible variants that could each satisfy a resolution request.
 In this case, resolution fails with an ambiguity failure, and Gradle emits a message like this:
