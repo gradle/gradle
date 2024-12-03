@@ -101,11 +101,11 @@ public class SimpleTestEventLogger implements TestListenerInternal {
                 if (result.getSuccessfulTestCount() > 0) {
                     output.format(", %d succeeded", result.getSuccessfulTestCount());
                 }
-                if (result.getSkippedTestCount() > 0) {
-                    output.format(", %d skipped", result.getSkippedTestCount());
-                }
                 if (result.getFailedTestCount() > 0) {
                     output.format(", %d failed", result.getFailedTestCount());
+                }
+                if (result.getSkippedTestCount() > 0) {
+                    output.format(", %d skipped", result.getSkippedTestCount());
                 }
                 output.println();
             }
