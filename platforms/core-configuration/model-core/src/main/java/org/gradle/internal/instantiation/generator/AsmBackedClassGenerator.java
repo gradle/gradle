@@ -256,7 +256,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
     public static void logGroovySpaceAssignmentDeprecation(String propertyName) {
         DeprecationLogger
             .deprecate("Space-assignment syntax in Groovy DSL")
-            .withAdvice("Use assignment ('" + propertyName + " = <value>') or explicit setter instead.")
+            .withAdvice("Use assignment ('" + propertyName + " = <value>') instead.")
             .willBeRemovedInGradle10()
             .withUpgradeGuideSection(8, "groovy_space_assignment_syntax")
             .nagUser();

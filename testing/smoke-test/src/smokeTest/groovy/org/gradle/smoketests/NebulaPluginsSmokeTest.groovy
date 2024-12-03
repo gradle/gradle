@@ -76,11 +76,12 @@ class NebulaPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implement
 
         then:
         runner('groovydoc', '-s')
-            .expectLegacyDeprecationWarning(
+            .expectDeprecationWarning(
                 "Space-assignment syntax in Groovy DSL has been deprecated. " +
                     "This is scheduled to be removed in Gradle 10.0. " +
-                    "Use assignment ('url = <value>') or explicit setter instead. " +
-                    "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#groovy_space_assignment_syntax"
+                    "Use assignment ('url = <value>') instead. " +
+                    "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#groovy_space_assignment_syntax",
+                "https://github.com/nebula-plugins/nebula-plugin-plugin/pull/76"
             )
             .build()
     }
