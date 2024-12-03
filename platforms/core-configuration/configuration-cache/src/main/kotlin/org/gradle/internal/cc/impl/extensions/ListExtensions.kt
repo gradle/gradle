@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.cc.impl
+package org.gradle.internal.cc.impl.extensions
 
 
-internal sealed class ConfigurationCacheAction {
-    class LOAD(val entryId: String) : ConfigurationCacheAction()
-    class UPDATE(val entryId: String, val invalidProjects: CheckedFingerprint.InvalidProjects) : ConfigurationCacheAction()
-    object STORE : ConfigurationCacheAction()
+internal
+fun <T> List<T>.withMostRecentEntry(mostRecent: T, maxEntries: Int): List<T> = when {
+    isEmpty() -> listOf(mostRecent)
+    first() == mostRecent -> this
+    else -> buildList(maxEntries) {
+        add(mostRecent)
+        val remaining = maxEntries - 1
+        if (remaining > 0) {
+            addAll(
+                this@withMostRecentEntry.asSequence()
+                    .filter { it != mostRecent }
+                    .take(remaining))
+        }
+    }
 }

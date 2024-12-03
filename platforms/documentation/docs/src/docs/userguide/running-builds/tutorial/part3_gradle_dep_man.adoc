@@ -251,7 +251,7 @@ Let's change the `guava` version and look at how this affects the dependency tre
 
 Change the `guava` dependency in the version catalog to:
 
-.gradle/libs.version.toml
+.gradle/libs.versions.toml
 [source,text]
 ----
 [versions]

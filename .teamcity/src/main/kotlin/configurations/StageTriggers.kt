@@ -46,7 +46,7 @@ class StageTriggers(model: CIBuildModel, stage: Stage, prevStage: Stage?, stageP
 // Trigger ReadyForNightly and ReadyForRelease for provider-api-migration/public-api-changes branch
 // TODO: remove this after the branch is merged
 const val PROVIDER_API_MIGRATION_BRANCH = "provider-api-migration/public-api-changes"
-const val BOT_DAILY_UPGRADLE_WRAPPER_BRANCH = "bot/upgradle-to-latest-wrapper*"
+const val BOT_DAILY_UPGRADLE_WRAPPER_BRANCH = "bot/upgradle-to-latest-wrapper"
 
 fun determineBranchFilter(vararg branches: String): String {
     return branches.map { "+:$it" }.joinToString("\n")

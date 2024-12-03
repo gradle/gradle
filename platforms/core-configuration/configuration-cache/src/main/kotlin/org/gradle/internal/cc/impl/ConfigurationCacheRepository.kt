@@ -207,10 +207,10 @@ class ConfigurationCacheRepository(
         }
 
         override fun <T : Any> useForStateLoad(stateType: StateType, action: (ConfigurationCacheStateFile) -> T): ConfigurationCacheStateStore.StateAccessResult<T> {
-            return useForStateLoad { layout -> action(layout.fileFor(stateType)) }
+            return useForStateLoad { action(fileFor(stateType)) }
         }
 
-        override fun <T : Any> useForStateLoad(action: (Layout) -> T): ConfigurationCacheStateStore.StateAccessResult<T> {
+        override fun <T : Any> useForStateLoad(action: Layout.() -> T): ConfigurationCacheStateStore.StateAccessResult<T> {
             return withExclusiveAccessToCache(baseDir) { cacheDir ->
                 markAccessed(cacheDir)
                 // this needs to be thread-safe as we may have multiple adding threads
@@ -220,7 +220,7 @@ class ConfigurationCacheRepository(
             }
         }
 
-        override fun <T> useForStore(action: (Layout) -> T): ConfigurationCacheStateStore.StateAccessResult<T> =
+        override fun <T> useForStore(action: Layout.() -> T): ConfigurationCacheStateStore.StateAccessResult<T> =
             withExclusiveAccessToCache(baseDir) { cacheDir ->
                 // TODO GlobalCache require(!cacheDir.isDirectory)
                 Files.createDirectories(cacheDir.toPath())

@@ -24,9 +24,10 @@ import static org.junit.Assume.assumeFalse
 
 class ConfigurationCacheBuildSrcChangesIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
+    def configurationCache = newConfigurationCacheFixture()
+
     def "invalidates cache upon change to buildSrc #changeFixtureSpec"() {
         given:
-        def configurationCache = newConfigurationCacheFixture()
         def changeFixture = changeFixtureSpec.fixtureForProjectDir(file('buildSrc'))
         changeFixture.setup()
         buildFile << """
@@ -68,7 +69,6 @@ class ConfigurationCacheBuildSrcChangesIntegrationTest extends AbstractConfigura
         )
 
         given:
-        def configurationCache = newConfigurationCacheFixture()
         file("buildSrc/build.gradle.kts").text = """
 
             interface Params: $ValueSourceParameters.name {
@@ -135,5 +135,125 @@ class ConfigurationCacheBuildSrcChangesIntegrationTest extends AbstractConfigura
         'system property'     | 'providers.systemProperty("test_is_ci")' | '-Dtest_is_ci=true'
         'Gradle property'     | 'providers.gradleProperty("test_is_ci")' | '-Ptest_is_ci=true'
         'gradle.properties'   | 'providers.gradleProperty("test_is_ci")' | ''
+    }
+
+    def "invalidates cache upon change to presence of valid buildSrc by creating #buildSrcNewFile"() {
+        given:
+        def buildOperations = newBuildOperationsFixture()
+        settingsFile """
+            rootProject.name = "root"
+        """
+
+        when:
+        configurationCacheRun "help"
+        then:
+        configurationCache.assertStateStored()
+        buildOperations.none("Load build (:buildSrc)")
+
+        when:
+        file("buildSrc/$buildSrcNewFile").touch()
+        configurationCacheRun "help"
+        then:
+        configurationCache.assertStateStored()
+        outputContains("Calculating task graph as configuration cache cannot be reused because a buildSrc build at 'buildSrc' has been added.")
+        buildOperations.only("Load build (:buildSrc)")
+
+        when:
+        file("buildSrc").deleteDir()
+        configurationCacheRun "help"
+        then:
+        configurationCache.assertStateStored()
+        buildOperations.none("Load build (:buildSrc)")
+
+        where:
+        _ | buildSrcNewFile
+        _ | "settings.gradle"
+        _ | "build.gradle"
+        _ | "src/main/groovy/MyClass.groovy"
+    }
+
+    def "invalidates cache upon change to presence of valid buildSrc in #parentBuild build by creating #buildSrcNewFile"() {
+        given:
+        def buildOperations = newBuildOperationsFixture()
+        settingsFile """
+            rootProject.name = "root"
+            includeBuild("included")
+        """
+        settingsFile "included/settings.gradle", ""
+        settingsFile "$parentBuild/settings.gradle", """
+            rootProject.name = "parent-of-buildSrc"
+        """
+
+        def buildSrcBuildPath = ":$parentBuild:buildSrc"
+        def buildSrcDir = "$parentBuild/buildSrc"
+        def ccReasonPath = buildSrcDir.replace("/", File.separator)
+
+        when:
+        configurationCacheRun "help"
+        then:
+        configurationCache.assertStateStored()
+        buildOperations.none("Load build ($buildSrcBuildPath)")
+
+        when:
+        file("$buildSrcDir/$buildSrcNewFile").touch()
+        configurationCacheRun "help"
+        then:
+        configurationCache.assertStateStored()
+        outputContains("Calculating task graph as configuration cache cannot be reused because a buildSrc build at '$ccReasonPath' has been added.")
+        buildOperations.only("Load build ($buildSrcBuildPath)")
+
+        when:
+        file(buildSrcDir).deleteDir()
+        configurationCacheRun "help"
+        then:
+        configurationCache.assertStateStored()
+        buildOperations.none("Load build ($buildSrcBuildPath)")
+
+        where:
+        parentBuild | buildSrcNewFile
+        "included"  | "settings.gradle"
+        "included"  | "build.gradle"
+        "included"  | "src/main/groovy/MyClass.groovy"
+        "buildSrc"  | "settings.gradle"
+        "buildSrc"  | "build.gradle"
+        "buildSrc"  | "src/main/groovy/MyClass.groovy"
+    }
+
+    def "reuses cache upon changing invalid buildSrc by creating #description"() {
+        def changeFile = file(path)
+
+        when:
+        configurationCacheRun "help"
+
+        then:
+        configurationCache.assertStateStored()
+
+        when:
+        if (isDir) {
+            changeFile.createDir()
+        } else {
+            changeFile.touch()
+        }
+        configurationCacheRun "help"
+        then:
+        configurationCache.assertStateLoaded()
+
+        when:
+        if (isDir) {
+            changeFile.deleteDir()
+        } else {
+            changeFile.delete()
+        }
+        configurationCacheRun "help"
+
+        then:
+        configurationCache.assertStateLoaded()
+
+        where:
+        description          | isDir | path
+        "buildSrc dir"       | true  | "buildSrc"
+        "buildSrc file"      | false | "buildSrc"
+        "buildSrc with file" | false | "buildSrc/not-build.gradle"
+        "buildSrc with dir"  | false | "buildSrc/not-src/main/groovy/MyClass.groovy"
     }
 }

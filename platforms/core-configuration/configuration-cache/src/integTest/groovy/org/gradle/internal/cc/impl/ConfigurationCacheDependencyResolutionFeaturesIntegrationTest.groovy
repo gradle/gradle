@@ -781,8 +781,8 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
         verificationFile.replace('<sha256 value="12345"', "<sha256 value=\"$checkSum\"")
         configurationCacheRun("resolve1")
 
-        then:
-        configurationCache.assertStateStored()
+        then: // store failures don't invalidate existing cache entries
+        configurationCache.assertStateLoaded()
 
         when:
         configurationCacheRun("resolve1")

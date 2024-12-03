@@ -687,6 +687,9 @@ public class TestFile extends File {
         return Arrays.stream(paths).map(this::createDir).collect(Collectors.toList());
     }
 
+    /**
+     * Recursively delete this directory
+     */
     public TestFile deleteDir() {
         new TestFileHelper(this).delete(useNativeTools);
         return this;

@@ -34,7 +34,7 @@ interface ConfigurationCacheStateStore {
     /**
      * Loads some value from zero or more state files.
      */
-    fun <T : Any> useForStateLoad(action: (ConfigurationCacheRepository.Layout) -> T): StateAccessResult<T>
+    fun <T : Any> useForStateLoad(action: ConfigurationCacheRepository.Layout.() -> T): StateAccessResult<T>
 
     /**
      * Loads some value from a specific state file.
@@ -44,7 +44,7 @@ interface ConfigurationCacheStateStore {
     /**
      * Writes some value to zero or more state files.
      */
-    fun <T> useForStore(action: (ConfigurationCacheRepository.Layout) -> T): StateAccessResult<T>
+    fun <T> useForStore(action: ConfigurationCacheRepository.Layout.() -> T): StateAccessResult<T>
 
     /**
      * Creates a new [ValueStore] that can be used to load and store multiple values.

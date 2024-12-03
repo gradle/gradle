@@ -55,6 +55,11 @@ sealed class ConfigurationCacheFingerprint {
         val fingerprints: List<InputFile>
     ) : ConfigurationCacheFingerprint()
 
+    data class BuildSrcCandidate(
+        val buildSrcDir: File,
+        val valid: Boolean,
+    ) : ConfigurationCacheFingerprint()
+
     data class WorkInputs(
         val workDisplayName: String,
         val fileSystemInputs: FileCollectionInternal,
