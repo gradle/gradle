@@ -85,7 +85,7 @@ class TestTaskPropertiesServiceIntegrationTest extends AbstractIntegrationSpec {
                 testRuntimeOnly('org.junit.platform:junit-platform-launcher')
             }
             test {
-                forkEvery = 42
+                forkEvery = 42L
                 filter {
                     includeTestsMatching('*Class')
                     excludeTestsMatching('exclude-pattern')

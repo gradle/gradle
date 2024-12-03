@@ -276,7 +276,7 @@ abstract class AbstractJUnitTestExecutionIntegrationTest extends AbstractTesting
             }
             test {
                 ${configureTestFramework}
-                forkEvery = 1
+                forkEvery = 1L
             }
         """.stripIndent()
 

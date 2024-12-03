@@ -73,10 +73,10 @@ abstract class AbstractJUnitConsoleLoggingIntegrationTest extends AbstractTestin
                 testLogging {
                     quiet {
                         events "skipped", "failed"
-                        minGranularity 2
-                        maxGranularity -1
-                        displayGranularity 3
-                        exceptionFormat "full"
+                        minGranularity = 2
+                        maxGranularity = -1
+                        displayGranularity = 3
+                        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
                         stackTraceFilters "truncate", "groovy"
                     }
                 }

@@ -21,7 +21,7 @@ tasks.withType(Test).configureEach {
 // end::parallel-calculated[]
 
 // tag::fork-every[]
-    forkEvery = 100
+    forkEvery = 100L
 // end::fork-every[]
 
 // tag::disable-reports[]

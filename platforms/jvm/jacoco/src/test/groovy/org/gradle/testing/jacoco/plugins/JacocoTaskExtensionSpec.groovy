@@ -15,11 +15,10 @@
  */
 package org.gradle.testing.jacoco.plugins
 
-import org.gradle.api.Project
+
 import org.gradle.internal.jacoco.JacocoAgentJar
 import org.gradle.process.JavaForkOptions
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
@@ -27,8 +26,7 @@ import spock.lang.Specification
 class JacocoTaskExtensionSpec extends Specification {
     JacocoAgentJar agent = Mock()
     JavaForkOptions task = Mock()
-    Project project = ProjectBuilder.builder().build()
-    JacocoTaskExtension extension = TestUtil.newInstance(JacocoTaskExtension.class, project.objects, agent, task)
+    JacocoTaskExtension extension = TestUtil.newInstance(JacocoTaskExtension.class, agent, task)
     @Rule final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     def 'asJvmArg with default arguments assembles correct string'() {
@@ -38,7 +36,7 @@ class JacocoTaskExtensionSpec extends Specification {
         agent.jar >> temporaryFolder.file('fakeagent.jar')
         task.getWorkingDir() >> temporaryFolder.file(".")
         expect:
-        extension.asJvmArg == "-javaagent:${agent.jar.absolutePath}=append=true,inclnolocationclasses=false,dumponexit=true,output=file,jmx=false"
+        extension.asJvmArg.get() == "-javaagent:${agent.jar.absolutePath}=append=true,inclnolocationclasses=false,dumponexit=true,output=file,jmx=false"
     }
 
     def 'supports jacocoagent with no jmx support'() {
@@ -48,7 +46,7 @@ class JacocoTaskExtensionSpec extends Specification {
         task.getWorkingDir() >> temporaryFolder.file("workingDir")
 
         expect:
-        extension.asJvmArg == "-javaagent:${agent.jar.absolutePath}=append=true,dumponexit=true,output=file"
+        extension.asJvmArg.get() == "-javaagent:${agent.jar.absolutePath}=append=true,dumponexit=true,output=file"
     }
 
     def 'supports jacocoagent with no inclNoLocationClasses support'() {
@@ -58,7 +56,7 @@ class JacocoTaskExtensionSpec extends Specification {
         task.getWorkingDir() >> temporaryFolder.file("workingDir")
 
         expect:
-        extension.asJvmArg == "-javaagent:${agent.jar.absolutePath}=append=true,dumponexit=true,output=file"
+        extension.asJvmArg.get() == "-javaagent:${agent.jar.absolutePath}=append=true,dumponexit=true,output=file"
     }
 
     def 'asJvmArg with all arguments assembles correct string. includeNoLocationClasses: #includeNoLocationClassesValue'() {
@@ -101,7 +99,7 @@ class JacocoTaskExtensionSpec extends Specification {
             builder.toString()
         }
         expect:
-        extension.asJvmArg == expected
+        extension.asJvmArg.get() == expected
 
         where:
         includeNoLocationClassesValue << [true, false]
@@ -111,7 +109,7 @@ class JacocoTaskExtensionSpec extends Specification {
         given:
         agent.jar >> { throw new Exception() }
         when:
-        extension.asJvmArg
+        extension.asJvmArg.get()
         then:
         thrown Exception
     }

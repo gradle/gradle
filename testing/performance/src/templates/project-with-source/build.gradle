@@ -60,7 +60,7 @@ test {
 
 String compilerMemory = getProperty('compilerMemory')
 String testRunnerMemory = getProperty('testRunnerMemory')
-int testForkEvery = getProperty('testForkEvery') as Integer
+long testForkEvery = getProperty('testForkEvery') as Long
 
 tasks.withType(JavaCompile) {
     options.fork = true

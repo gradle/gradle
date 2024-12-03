@@ -1,0 +1,12 @@
+{
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions",
+            "member": "Class org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions",
+            "acceptation": "Changed class to abstract with Property upgrade",
+            "changes": [
+                "Class is now abstract"
+            ]
+        }
+    ]
+}

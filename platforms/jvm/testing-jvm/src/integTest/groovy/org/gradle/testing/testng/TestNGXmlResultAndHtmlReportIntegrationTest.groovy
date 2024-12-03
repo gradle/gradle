@@ -67,7 +67,7 @@ class TestNGXmlResultAndHtmlReportIntegrationTest extends
 
     def "produces JUnit xml results with aggressive forking - #mode.name"() {
         when:
-        runWithTestConfig("useTestNG(); forkEvery 1; $mode.config")
+        runWithTestConfig("useTestNG(); forkEvery 1L; $mode.config")
 
         then:
         verify(mode)

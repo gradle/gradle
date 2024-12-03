@@ -19,9 +19,9 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.file.Directory;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.ProjectLayout;
-import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
@@ -40,6 +40,7 @@ import java.io.File;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
 
@@ -85,12 +86,12 @@ public abstract class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
     @Override
     protected CodeQualityExtension createExtension() {
         extension = project.getExtensions().create("pmd", PmdExtension.class, project);
-        extension.setToolVersion(DEFAULT_PMD_VERSION);
+        extension.getToolVersion().convention(DEFAULT_PMD_VERSION);
         extension.getRulesMinimumPriority().convention(5);
         extension.getIncrementalAnalysis().convention(true);
         extension.getMaxFailures().convention(0);
         extension.getThreads().convention(1);
-        extension.setRuleSetFiles(project.getLayout().files());
+        extension.getRuleSetFiles().setFrom(project.getLayout().files());
         extension.ruleSetsConvention(project.getProviders().provider(() -> ruleSetsConvention(extension)));
         conventionMappingOf(extension).map("targetJdk", () ->
             getDefaultTargetJdk(getJavaPluginExtension().getSourceCompatibility()));
@@ -140,33 +141,33 @@ public abstract class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
 
     private void configureDefaultDependencies(Configuration configuration) {
         configuration.defaultDependencies(dependencies ->
-            calculateDefaultDependencyNotation(extension.getToolVersion())
+            dependencies.addAllLater(extension.getToolVersion().map(version -> calculateDefaultDependencyNotation(version)
                 .stream()
                 .map(project.getDependencies()::create)
-                .forEach(dependencies::add)
+                .collect(Collectors.toList()))
+            )
         );
     }
 
     private void configureTaskConventionMapping(Configuration configuration, final Pmd task) {
         ConventionMapping taskMapping = task.getConventionMapping();
-        taskMapping.map("pmdClasspath", () -> configuration);
-        taskMapping.map("ruleSets", () -> extension.getRuleSets());
         taskMapping.map("ruleSetConfig", () -> extension.getRuleSetConfig());
-        taskMapping.map("ruleSetFiles", () -> extension.getRuleSetFiles());
-        taskMapping.map("consoleOutput", () -> extension.isConsoleOutput());
-        taskMapping.map("targetJdk", () -> extension.getTargetJdk());
-
+        task.getPmdClasspath().convention(configuration);
+        task.getRuleSets().convention(extension.getRuleSets());
+        task.getRuleSetFiles().convention(extension.getRuleSetFiles());
+        task.getConsoleOutput().convention(extension.getConsoleOutput());
+        task.getTargetJdk().convention(extension.getTargetJdk());
         task.getRulesMinimumPriority().convention(extension.getRulesMinimumPriority());
         task.getMaxFailures().convention(extension.getMaxFailures());
         task.getIncrementalAnalysis().convention(extension.getIncrementalAnalysis());
         task.getThreads().convention(extension.getThreads());
-        task.getIgnoreFailuresProperty().convention(project.provider(() -> extension.isIgnoreFailures()));
+        task.getIgnoreFailuresProperty().convention(extension.getIgnoreFailures());
     }
 
     private void configureReportsConventionMapping(Pmd task, final String baseName) {
         ProjectLayout layout = project.getLayout();
         ProviderFactory providers = project.getProviders();
-        Provider<RegularFile> reportsDir = layout.file(providers.provider(() -> extension.getReportsDir()));
+        Provider<Directory> reportsDir = extension.getReportsDir();
         task.getReports().all(action(report -> {
             report.getRequired().convention(true);
             report.getOutputLocation().convention(

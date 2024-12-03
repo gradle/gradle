@@ -78,17 +78,7 @@ public abstract class DefaultMavenPom implements MavenPomInternal, MavenPomLicen
     public abstract Property<Boolean> getWriteGradleMetadataMarker();
 
     @Override
-    public String getPackaging() {
-        return getPackagingProperty().get();
-    }
-
-    @Override
-    public void setPackaging(String packaging) {
-        getPackagingProperty().set(packaging);
-    }
-
-    @Override
-    public abstract Property<String> getPackagingProperty();
+    public abstract Property<String> getPackaging();
 
     @Override
     public abstract Property<String> getName();

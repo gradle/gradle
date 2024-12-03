@@ -70,6 +70,7 @@ dependencies {
     api(projects.security)
     api(projects.snapshots)
     api(projects.buildProcessServices)
+    api(projects.internalInstrumentationApi)
 
     api(libs.bouncycastlePgp)
     api(libs.groovy)

@@ -16,14 +16,18 @@
 
 package gradlebuild.docs;
 
+import gradlebuild.basics.Gradle9PropertyUpgradeSupport;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.file.RegularFile;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.quality.Checkstyle;
 import org.gradle.api.plugins.quality.CheckstyleExtension;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
@@ -65,7 +69,7 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
             task.setGroup("documentation");
             task.setDescription("Generate Javadocs for all API classes");
 
-            task.setTitle("Gradle API " + version);
+            new JavadocSupport(task).setTitle("Gradle API " + version);
 
             Javadocs javadocs = extension.getJavadocs();
 
@@ -117,7 +121,7 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
 
             task.source(extension.getDocumentedSource().filter(f -> f.getName().endsWith(".java")));
 
-            task.setClasspath(extension.getClasspath());
+            new JavadocSupport(task).setClasspath(extension.getClasspath());
 
             // TODO: This should be in Javadoc task
             DirectoryProperty generatedJavadocDirectory = objects.directoryProperty();
@@ -125,7 +129,7 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
             task.getOutputs().dir(generatedJavadocDirectory);
             task.getExtensions().getExtraProperties().set("destinationDirectory", generatedJavadocDirectory);
             // TODO: This breaks the provider
-            task.setDestinationDir(generatedJavadocDirectory.get().getAsFile());
+            new JavadocSupport(task).setDestinationDir(generatedJavadocDirectory.get().getAsFile());
 
         });
 
@@ -141,8 +145,65 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
             task.source(extension.getDocumentedSource());
             // TODO: This is ugly
             task.setConfig(project.getResources().getText().fromFile(checkstyle.getConfigDirectory().file("checkstyle-api.xml")));
-            task.setClasspath(layout.files());
-            task.getReports().getXml().getOutputLocation().set(new File(checkstyle.getReportsDir(), "checkstyle-api.xml"));
+            new CheckstyleSupport(task).setClasspath(layout.files());
+            task.getReports().getXml().getOutputLocation().set(getCheckstyleOutputLocation(checkstyle, objects));
         });
+    }
+
+    /**
+     * TODO: Remove this workaround after Gradle 9
+     */
+    @SuppressWarnings({"ConstantValue", "CastCanBeRemovedNarrowingVariableType"})
+    private static Provider<RegularFile> getCheckstyleOutputLocation(CheckstyleExtension checkstyle, ObjectFactory objects) {
+        Object reportsDir = checkstyle.getReportsDir();
+        if (reportsDir instanceof File) {
+            return objects.fileProperty().fileValue(new File((File) reportsDir, "checkstyle-api.xml"));
+        } else {
+            return ((DirectoryProperty) reportsDir).file("checkstyle-api.xml");
+        }
+    }
+
+    /**
+     * Used to bridge Gradle 8 and Gradle 9 APIs for Gradleception.
+     *
+     * TODO: Remove this workaround after Gradle 9
+     */
+
+    @Deprecated
+    private static class JavadocSupport {
+
+        private final Javadoc javadoc;
+
+        public JavadocSupport(Javadoc javadoc) {
+            this.javadoc = javadoc;
+        }
+
+        public void setTitle(String title) {
+            Gradle9PropertyUpgradeSupport.setProperty(javadoc, "setTitle", title);
+        }
+
+        public void setClasspath(FileCollection classpath) {
+            Gradle9PropertyUpgradeSupport.setProperty(javadoc, "setClasspath", classpath);
+        }
+
+        public void setDestinationDir(File destinationDir) {
+            Gradle9PropertyUpgradeSupport.setProperty(javadoc, "setDestinationDir", destinationDir);
+        }
+    }
+
+    /**
+     * TODO: Remove this workaround after Gradle 9
+     */
+    @Deprecated
+    private static class CheckstyleSupport {
+        private final Checkstyle checkstyle;
+
+        public CheckstyleSupport(Checkstyle checkstyle) {
+            this.checkstyle = checkstyle;
+        }
+
+        public void setClasspath(FileCollection classpath) {
+            Gradle9PropertyUpgradeSupport.setProperty(checkstyle, "setClasspath", classpath);
+        }
     }
 }

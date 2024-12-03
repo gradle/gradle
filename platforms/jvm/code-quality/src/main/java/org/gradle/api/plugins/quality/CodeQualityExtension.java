@@ -15,10 +15,13 @@
  */
 package org.gradle.api.plugins.quality;
 
+import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.internal.provider.ProviderApiDeprecationLogger;
+import org.gradle.api.provider.ListProperty;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.SourceSet;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 
-import java.io.File;
 import java.util.Collection;
 
 /**
@@ -26,72 +29,39 @@ import java.util.Collection;
  */
 public abstract class CodeQualityExtension {
 
-    private String toolVersion;
-    private Collection<SourceSet> sourceSets;
-    private boolean ignoreFailures;
-    private File reportsDir;
-
-    /**
-     * The version of the code quality tool to be used.
-     */
-    @ToBeReplacedByLazyProperty
-    public String getToolVersion() {
-        return toolVersion;
+    public CodeQualityExtension() {
+        getIgnoreFailures().convention(false);
     }
 
     /**
      * The version of the code quality tool to be used.
      */
-    public void setToolVersion(String toolVersion) {
-        this.toolVersion = toolVersion;
-    }
+    @ReplacesEagerProperty
+    public abstract Property<String> getToolVersion();
 
     /**
      * The source sets to be analyzed as part of the <code>check</code> and <code>build</code> tasks.
      */
-    @ToBeReplacedByLazyProperty(comment = "Should this be lazy?")
-    public Collection<SourceSet> getSourceSets() {
-        return sourceSets;
-    }
-
-    /**
-     * The source sets to be analyzed as part of the <code>check</code> and <code>build</code> tasks.
-     */
-    public void setSourceSets(Collection<SourceSet> sourceSets) {
-        this.sourceSets = sourceSets;
-    }
+    @ReplacesEagerProperty(originalType = Collection.class)
+    public abstract ListProperty<SourceSet> getSourceSets();
 
     /**
      * Whether to allow the build to continue if there are warnings.
      *
      * Example: ignoreFailures = true
      */
-    @ToBeReplacedByLazyProperty
-    public boolean isIgnoreFailures() {
-        return ignoreFailures;
-    }
+    @ReplacesEagerProperty(originalType = boolean.class)
+    public abstract Property<Boolean> getIgnoreFailures();
 
-    /**
-     * Whether to allow the build to continue if there are warnings.
-     *
-     * Example: ignoreFailures = true
-     */
-    public void setIgnoreFailures(boolean ignoreFailures) {
-        this.ignoreFailures = ignoreFailures;
+    @Deprecated
+    public Property<Boolean> getIsIgnoreFailures() {
+        ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsIgnoreFailures()", "getIgnoreFailures()");
+        return getIgnoreFailures();
     }
 
     /**
      * The directory where reports will be generated.
      */
-    @ToBeReplacedByLazyProperty
-    public File getReportsDir() {
-        return reportsDir;
-    }
-
-    /**
-     * The directory where reports will be generated.
-     */
-    public void setReportsDir(File reportsDir) {
-        this.reportsDir = reportsDir;
-    }
+    @ReplacesEagerProperty
+    public abstract DirectoryProperty getReportsDir();
 }

@@ -17,23 +17,22 @@
 package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.Transformer;
-import org.gradle.api.tasks.compile.BaseForkOptions;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.internal.JavaForkOptionsFactory;
 
-public class BaseForkOptionsConverter implements Transformer<JavaForkOptions, BaseForkOptions> {
+public class MinimalCompilerDaemonForkOptionsConverter implements Transformer<JavaForkOptions, MinimalCompilerDaemonForkOptions> {
     private final JavaForkOptionsFactory forkOptionsFactory;
 
-    public BaseForkOptionsConverter(JavaForkOptionsFactory forkOptionsFactory) {
+    public MinimalCompilerDaemonForkOptionsConverter(JavaForkOptionsFactory forkOptionsFactory) {
         this.forkOptionsFactory = forkOptionsFactory;
     }
 
     @Override
-    public JavaForkOptions transform(BaseForkOptions baseForkOptions) {
+    public JavaForkOptions transform(MinimalCompilerDaemonForkOptions minimalCompilerDaemonForkOptions) {
         JavaForkOptions javaForkOptions = forkOptionsFactory.newJavaForkOptions();
-        javaForkOptions.setMinHeapSize(baseForkOptions.getMemoryInitialSize());
-        javaForkOptions.setMaxHeapSize(baseForkOptions.getMemoryMaximumSize());
-        javaForkOptions.setJvmArgs(baseForkOptions.getJvmArgs());
+        javaForkOptions.getMinHeapSize().set(minimalCompilerDaemonForkOptions.getMemoryInitialSize());
+        javaForkOptions.getMaxHeapSize().set(minimalCompilerDaemonForkOptions.getMemoryMaximumSize());
+        javaForkOptions.getJvmArgs().set(minimalCompilerDaemonForkOptions.getJvmArgs());
         return javaForkOptions;
     }
 }
