@@ -70,6 +70,7 @@
       </ignored-keys>
       <trusted-keys>
          <trusted-key id="015479E1055341431B4545AB72475FD306B9CAB7" group="com.googlecode.javaewah"/>
+         <trusted-key id="0181A4828FA27B6BE6F1F5A68611CD28F472E006" group="org.jline"/>
          <trusted-key id="019082BC00E0324E2AEF4CF00D3B328562A119A7" group="org.openjdk.jmh"/>
          <trusted-key id="04543577D6A9CC626239C50C7ECBD740FF06AEB5">
             <trusting group="com.sun.xml.bind"/>
@@ -1047,6 +1048,11 @@
             <pgp value="CB3808E03CD602A6DC5B882552931F4B72B4F54C"/>
          </artifact>
       </component>
+      <component group="net.openhft" name="zero-allocation-hashing" version="0.16">
+         <artifact name="zero-allocation-hashing-0.16.jar">
+            <pgp value="A7D8BE3D575D6C5040E889331B6E3BDDD4415872"/>
+         </artifact>
+      </component>
       <component group="net.rubygrapefruit" name="ansi-control-sequence-util" version="0.3">
          <artifact name="ansi-control-sequence-util-0.3.jar">
             <pgp value="5B131E826582CF79510DAA11CD3E539F208832D0"/>
@@ -1478,6 +1484,11 @@
             <pgp value="073F7A9345756F3B40CDB99E6C70A3B7599C5736"/>
          </artifact>
       </component>
+      <component group="org.jline" name="jline" version="3.26.3">
+         <artifact name="jline-3.26.3.jar">
+            <pgp value="073F7A9345756F3B40CDB99E6C70A3B7599C5736"/>
+         </artifact>
+      </component>
       <component group="org.jlleitschuh.gradle" name="ktlint-gradle" version="12.1.0">
          <artifact name="ktlint-gradle-12.1.0.jar">
             <sha256 value="4ac232e64efb1e73674b3153c78b5decd476540b27cf21974e7e4919bae54188" origin="Verified" reason="Artifact is not signed"/>
@@ -1575,6 +1586,11 @@
       <component group="org.scala-lang.modules" name="scala-xml_2.13" version="2.2.0">
          <artifact name="scala-xml_2.13-2.2.0.jar">
             <pgp value="600D21219963F228200A72375365A8A69292AF1A"/>
+         </artifact>
+      </component>
+      <component group="org.scala-lang.modules" name="scala-xml_2.13" version="2.3.0">
+         <artifact name="scala-xml_2.13-2.3.0.jar">
+            <pgp value="F3D9FF1EE50634CC57D1E380C2952540150670BE"/>
          </artifact>
       </component>
       <component group="org.scijava" name="native-lib-loader" version="2.0.2">
