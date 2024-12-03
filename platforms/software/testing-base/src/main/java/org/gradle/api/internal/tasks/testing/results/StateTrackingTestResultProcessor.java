@@ -22,7 +22,6 @@ import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
 import org.gradle.api.tasks.testing.TestFailure;
-import org.gradle.api.tasks.testing.TestMetadataEvent;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
 
@@ -112,11 +111,6 @@ public class StateTrackingTestResultProcessor implements TestResultProcessor {
     @Override
     public final void output(Object testId, TestOutputEvent event) {
         listener.output(findDescriptor(testId), event);
-    }
-
-    @Override
-    public void metadata(Object testId, TestMetadataEvent event) {
-        listener.metadata(findDescriptor(testId), event);
     }
 
     private TestDescriptorInternal findDescriptor(Object testId) {
