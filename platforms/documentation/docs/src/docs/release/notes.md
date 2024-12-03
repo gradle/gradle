@@ -54,7 +54,7 @@ Could not determine the dependencies of task ':forceResolution'.
                - shape 'square'
                - texture 'smooth'
            - Candidate transformation chains:
-               - Transformation chain: 'BrokenColorTransform' -> 'BrokenShapeTransform':
+               - Transformation chain: 'ColorTransform' -> 'ShapeTransform':
                    - 'BrokenColorTransform':
                        - Converts from attributes:
                            - color 'blue'
@@ -68,7 +68,7 @@ Could not determine the dependencies of task ':forceResolution'.
                            - texture 'bumpy'
                        - To attributes:
                            - shape 'round'
-               - Transformation chain: 'BrokenColorTransform' -> 'BrokenShapeTransform':
+               - Transformation chain: 'ColorTransform' -> 'ShapeTransform':
                    - 'BrokenColorTransform':
                        - Converts from attributes:
                            - color 'blue'

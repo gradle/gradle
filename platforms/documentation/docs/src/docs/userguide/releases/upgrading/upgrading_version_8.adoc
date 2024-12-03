@@ -75,14 +75,14 @@ Found the following transformation chains:
           - shape 'square'
           - texture 'smooth'
       - Candidate transformation chains:
-          - Transformation chain: 'BrokenColorTransform':
+          - Transformation chain: 'ColorTransform':
               - 'BrokenColorTransform':
                   - Converts from attributes:
                       - color 'blue'
                       - texture 'smooth'
                   - To attributes:
                       - color 'red'
-          - Transformation chain: 'BrokenColorTransform2':
+          - Transformation chain: 'ColorTransform2':
               - 'BrokenColorTransform2':
                   - Converts from attributes:
                       - color 'blue'
