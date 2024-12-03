@@ -36,10 +36,10 @@ import org.gradle.tooling.internal.protocol.events.InternalTestMetadataDescripto
  */
 @NonNullApi
 /* package */ class ClientForwardingTestMetadataOperationListener implements BuildOperationListener {
-    private final MetadataEventConsumer eventConsumer;
+    private final ProgressEventConsumer eventConsumer;
     private final BuildOperationIdFactory idFactory;
 
-    /* package */ ClientForwardingTestMetadataOperationListener(MetadataEventConsumer eventConsumer, BuildOperationIdFactory idFactory) {
+    /* package */ ClientForwardingTestMetadataOperationListener(ProgressEventConsumer eventConsumer, BuildOperationIdFactory idFactory) {
         this.eventConsumer = eventConsumer;
         this.idFactory = idFactory;
     }
@@ -56,7 +56,7 @@ import org.gradle.tooling.internal.protocol.events.InternalTestMetadataDescripto
             InternalTestMetadataDescriptor descriptor = new DefaultTestMetadataDescriptor(new OperationIdentifier(idFactory.nextId()), buildOperationId);
             TestMetadataEvent metadataMetadataEvent = metadata.getMetadata();
             DefaultTestMetadataResult result = new DefaultTestMetadataResult(progressEvent.getTime(), progressEvent.getTime(), metadataMetadataEvent.getKey(), metadataMetadataEvent.getValue());
-            eventConsumer.metadata(new DefaultTestMetadataEvent(progressEvent.getTime(), descriptor, result));
+            eventConsumer.progress(new DefaultTestMetadataEvent(progressEvent.getTime(), descriptor, result));
         }
     }
 

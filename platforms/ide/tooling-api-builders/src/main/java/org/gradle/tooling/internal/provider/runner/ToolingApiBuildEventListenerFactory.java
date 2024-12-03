@@ -52,7 +52,6 @@ public class ToolingApiBuildEventListenerFactory implements BuildEventListenerFa
         }
 
         ProgressEventConsumer progressEventConsumer = new ProgressEventConsumer(consumer, ancestryTracker);
-        MetadataEventConsumer metadataEventConsumer = new MetadataEventConsumer(consumer);
 
         ImmutableList.Builder<Object> listeners = ImmutableList.builder();
 
@@ -61,7 +60,7 @@ public class ToolingApiBuildEventListenerFactory implements BuildEventListenerFa
         }
 
         if (subscriptions.isRequested(OperationType.TEST) && subscriptions.isRequested(OperationType.TEST_METADATA)) {
-            listeners.add(new ClientForwardingTestMetadataOperationListener(metadataEventConsumer, idFactory));
+            listeners.add(new ClientForwardingTestMetadataOperationListener(progressEventConsumer, idFactory));
         }
 
         if (subscriptions.isRequested(OperationType.BUILD_PHASE)) {
