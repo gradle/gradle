@@ -21,6 +21,7 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
+import org.gradle.api.provider.SetProperty;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.testing.AbstractTestTask;
 import org.gradle.api.tasks.testing.Test;
@@ -88,7 +89,7 @@ class TestExecutionBuildConfigurationAction implements EntryTaskSelector {
     }
 
     private void configureTestTask(AbstractTestTask test) {
-        test.getFilter().setFailOnNoMatchingTests(false);
+        test.getFilter().getFailOnNoMatchingTests().set(false);
         test.getOutputs().upToDateWhen(Specs.SATISFIES_NONE);
         if (test instanceof Test) {
             InternalDebugOptions debugOptions = testExecutionRequest.getDebugOptions();
@@ -137,7 +138,7 @@ class TestExecutionBuildConfigurationAction implements EntryTaskSelector {
                             filter.includeCommandLineTest(cls, method);
                         }
                     }
-                    Set<String> commandLineIncludePatterns = filter.getCommandLineIncludePatterns();
+                    SetProperty<String> commandLineIncludePatterns = filter.getCommandLineIncludePatterns();
                     commandLineIncludePatterns.addAll(testSpec.getPatterns());
                     for (String pkg : testSpec.getPackages()) {
                         commandLineIncludePatterns.add(pkg + ".*");
