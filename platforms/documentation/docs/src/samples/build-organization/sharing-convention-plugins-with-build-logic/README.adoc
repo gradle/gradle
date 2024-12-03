@@ -1,4 +1,4 @@
-NOTE: You can open this sample in an <<gradle_ides.adoc#gradle_ides,IDE that supports Gradle>>.
+NOTE: You can open this sample in an link:{userManualPath}/gradle_ides.html#gradle_ides[IDE that supports Gradle].
 
 This sample shows how _convention plugins_ can be shared and applied to both the production code and the build logic code in _buildSrc_.
 

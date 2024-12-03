@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[[partr1_gradle_init]]
+[[part1_gradle_init]]
 = Part 1: Initializing the Project
 
 Learn the basics of authoring Gradle by first creating a Java app using Gradle init.
@@ -413,4 +413,4 @@ Click the link and explore which tasks were executed, which dependencies were do
 image::build-scan-3.png[]
 
 [.text-right]
-**Next Step:** <<partr2_build_lifecycle#partr2_build_lifecycle,The Build Lifecycle>> >>
+**Next Step:** <<part2_build_lifecycle#part2_build_lifecycle,The Build Lifecycle>> >>

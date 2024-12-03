@@ -1,4 +1,4 @@
-NOTE: You can open this sample in an <<gradle_ides.adoc#gradle_ides,IDE that supports Gradle>>.
+NOTE: You can open this sample in an link:{userManualPath}/gradle_ides.html#gradle_ides[IDE that supports Gradle].
 
 This sample shows how to structure a software product that consists of multiple components as a set of connected Gradle builds.
 As such, it shows how Gradle is used to model a project's architecture and reflect that in the physical structure of the files that make up the software.
