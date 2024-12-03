@@ -858,7 +858,7 @@ project(':app') {
             attributes {
                 attribute(artifactType, 'final')
                 if (extraRequest.isPresent()) {
-                    attribute(extraAttribute, extraRequest.get())
+                    attributeProvider(extraAttribute, extraRequest)
                 }
             }
         }.artifacts
