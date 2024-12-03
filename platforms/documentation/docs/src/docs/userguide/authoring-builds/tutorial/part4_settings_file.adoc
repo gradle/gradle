@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[[partr4_settings_file]]
+[[part4_settings_file]]
 = Part 4: Writing the Settings File
 
 Learn the basics of authoring Gradle by developing the Settings File.
@@ -28,9 +28,9 @@ Learn the basics of authoring Gradle by developing the Settings File.
 [[part4_begin]]
 == Step 0. Before you Begin
 
-1. You initialized your Java app in <<partr1_gradle_init.adoc#part1_begin,part 1>>.
-2. You understand the Gradle Build Lifecycle from <<partr2_build_lifecycle.adoc#part2_begin,part 2>>.
-3. You added a subproject and a separate Build in <<partr3_multi_project_builds#part3_begin, part3>>.
+1. You initialized your Java app in <<part1_gradle_init_project.adoc#part1_begin,part 1>>.
+2. You understand the Gradle Build Lifecycle from <<part2_build_lifecycle.adoc#part2_begin,part 2>>.
+3. You added a subproject and a separate Build in <<part3_multi_project_builds#part3_begin, part3>>.
 
 == Step 1. Gradle scripts
 
@@ -126,4 +126,4 @@ includeBuild('gradle/license-plugin')                                       // <
 =====
 
 [.text-right]
-**Next Step:** <<partr5_build_scripts#partr5_build_scripts,Writing a Build Script>> >>
+**Next Step:** <<part5_build_scripts#part5_build_scripts,Writing a Build Script>> >>
