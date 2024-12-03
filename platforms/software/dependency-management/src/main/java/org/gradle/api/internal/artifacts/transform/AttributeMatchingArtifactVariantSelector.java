@@ -81,7 +81,8 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
         AttributeMatcher matcher = attributeSchemaServices.getMatcher(consumerSchema, producer.getProducerSchema());
         ImmutableAttributes targetAttributes = attributesFactory.concat(requestAttributes, producer.getOverriddenAttributes());
 
-        // Check for matching variant without using artifact transforms.  If we found only one, return it.  If we found multiple matches, that's ambiguity.
+        // Check for matching variant without using artifact transforms.  If we found only one match, return it.
+        // If we found multiple matches, there is ambiguity.
         List<ResolvedVariant> matchingVariants = matcher.matchMultipleCandidates(producer.getCandidates(), targetAttributes);
         if (matchingVariants.size() == 1) {
             return matchingVariants.get(0).getArtifacts();
