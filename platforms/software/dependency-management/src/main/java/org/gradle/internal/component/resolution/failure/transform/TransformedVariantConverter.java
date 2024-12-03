@@ -22,7 +22,7 @@ import org.gradle.api.internal.artifacts.transform.Transform;
 import org.gradle.api.internal.artifacts.transform.TransformStep;
 import org.gradle.api.internal.artifacts.transform.TransformedVariant;
 
-import java.util.List;
+import java.util.Collection;
 
 /**
  * This type is responsible for converting from heavyweight {@link TransformedVariant} instances to
@@ -31,13 +31,13 @@ import java.util.List;
  * See the {@link org.gradle.internal.component.resolution.failure.transform package javadoc} for why.
  */
 public final class TransformedVariantConverter {
-    public ImmutableList<TransformationChainData> convert(List<TransformedVariant> transformedVariants) {
+    public ImmutableList<TransformationChainData> convert(Collection<TransformedVariant> transformedVariants) {
         ImmutableList.Builder<TransformationChainData> builder = ImmutableList.builder();
         transformedVariants.forEach(transformedVariant -> builder.add(convert(transformedVariant)));
         return builder.build();
     }
 
-    private TransformationChainData convert(TransformedVariant transformedVariant) {
+    public TransformationChainData convert(TransformedVariant transformedVariant) {
         TransformDataRecordingVisitor visitor = new TransformDataRecordingVisitor();
         transformedVariant.getTransformChain().visitTransformSteps(visitor);
         SourceVariantData source = new SourceVariantData(transformedVariant.getRoot().asDescribable().getDisplayName(), transformedVariant.getRoot().getAttributes());

@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.transform
 
 import com.google.common.collect.ImmutableList
+import org.gradle.api.artifacts.transform.TransformAction
 import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet
@@ -114,7 +115,7 @@ class DefaultArtifactVariantSelectorTest extends Specification {
 
         attributeMatcher.matchMultipleCandidates(ImmutableList.copyOf(variants), _) >> []
         attributeMatcher.matchMultipleCandidates(transformedVariants, _) >> transformedVariants
-        matchingCache.findTransformedVariants(_, _) >> transformedVariants
+        matchingCache.findCandidateTransformationChains(_, _) >> transformedVariants
 
         def selector = newSelector()
 
@@ -124,17 +125,27 @@ class DefaultArtifactVariantSelectorTest extends Specification {
 
         then:
         def e = thrown(ArtifactSelectionException)
-        e.message == toPlatformLineSeparators("""Found multiple transforms that can produce a variant of <component> with requested attributes:
+        e.message == toPlatformLineSeparators("""Found multiple transformation chains that produce a variant of '<component>' with requested attributes:
   - artifactType 'dll'
-Found the following transforms:
-  - From '<variant1>':
-      - With source attributes: artifactType 'jar'
-      - Candidate transform(s):
-          - Transform '' producing attributes: artifactType 'dll'
-  - From '<variant2>':
-      - With source attributes: artifactType 'classes'
-      - Candidate transform(s):
-          - Transform '' producing attributes: artifactType 'dll'""")
+Found the following transformation chains:
+  - From <variant1>:
+      - With source attributes:
+          - artifactType 'jar'
+      - Candidate transformation chains:
+          - Transformation chain: '':
+              - '':
+                  - Converts from attributes
+                  - To attributes:
+                      - artifactType 'dll'
+  - From <variant2>:
+      - With source attributes:
+          - artifactType 'classes'
+      - Candidate transformation chains:
+          - Transformation chain: '':
+              - '':
+                  - Converts from attributes
+                  - To attributes:
+                      - artifactType 'dll'""")
     }
 
     def "returns no matching variant artifact set when no variants match and ignore no matching enabled"() {
@@ -151,7 +162,7 @@ Found the following transforms:
 
         attributeMatcher.matchMultipleCandidates(_, _) >> []
 
-        matchingCache.findTransformedVariants(_, _) >> []
+        matchingCache.findCandidateTransformationChains(_, _) >> []
 
         expect:
         def result = newSelector().select(set, typeAttributes("dll"), true)
@@ -175,7 +186,7 @@ Found the following transforms:
 
         attributeMatcher.matchMultipleCandidates(_, _) >> []
 
-        matchingCache.findTransformedVariants(_, _) >> []
+        matchingCache.findCandidateTransformationChains(_, _) >> []
 
         when:
         def result = newSelector().select(set, typeAttributes("dll"), false)
@@ -230,6 +241,7 @@ Found the following transforms:
             getDisplayName() >> ""
             getFromAttributes() >> fromAttributes
             getToAttributes() >> toAttributes
+            getImplementationClass() >> TransformAction
         }
         TransformStep step = Mock(TransformStep) {
             getDisplayName() >> ""

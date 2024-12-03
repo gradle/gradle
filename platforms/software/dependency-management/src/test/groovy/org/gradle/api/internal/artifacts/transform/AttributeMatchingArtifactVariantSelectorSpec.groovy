@@ -106,7 +106,7 @@ class AttributeMatchingArtifactVariantSelectorSpec extends Specification {
         result == transformed
 
         1 * attributeMatcher.matchMultipleCandidates(_, _) >> Collections.emptyList()
-        1 * consumerProvidedVariantFinder.findTransformedVariants(variants, requestedAttributes) >> transformedVariants
+        1 * consumerProvidedVariantFinder.findCandidateTransformationChains(variants, requestedAttributes) >> transformedVariants
         1 * candidates.transformCandidate(variant, transformedVariants[0].getTransformedVariantDefinition()) >> transformed
         0 * attributeMatcher._
     }
@@ -126,7 +126,7 @@ class AttributeMatchingArtifactVariantSelectorSpec extends Specification {
         result == transformed
 
         1 * attributeMatcher.matchMultipleCandidates(_, _) >> Collections.emptyList()
-        1 * consumerProvidedVariantFinder.findTransformedVariants(variants, requestedAttributes) >> transformedVariants
+        1 * consumerProvidedVariantFinder.findCandidateTransformationChains(variants, requestedAttributes) >> transformedVariants
         1 * attributeMatcher.matchMultipleCandidates(_, _) >> [transformedVariants[resultNum]]
         1 * candidates.transformCandidate(variants[resultNum], transformedVariants[resultNum].getTransformedVariantDefinition()) >> transformed
 
@@ -148,7 +148,7 @@ class AttributeMatchingArtifactVariantSelectorSpec extends Specification {
         result.failure instanceof ArtifactSelectionException
 
         1 * attributeMatcher.matchMultipleCandidates(_, _) >> Collections.emptyList()
-        1 * consumerProvidedVariantFinder.findTransformedVariants(variants, requestedAttributes) >> transformedVariants
+        1 * consumerProvidedVariantFinder.findCandidateTransformationChains(variants, requestedAttributes) >> transformedVariants
         1 * attributeMatcher.matchMultipleCandidates(_, _) >> transformedVariants
     }
 

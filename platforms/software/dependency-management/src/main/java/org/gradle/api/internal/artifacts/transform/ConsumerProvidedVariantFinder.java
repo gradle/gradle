@@ -78,7 +78,7 @@ public class ConsumerProvidedVariantFinder {
      * @return A collection of variant chains which, if applied to the corresponding source variant, will produce a
      *      variant compatible with the requested attributes.
      */
-    public List<TransformedVariant> findTransformedVariants(List<ResolvedVariant> sources, ImmutableAttributes requested) {
+    public List<TransformedVariant> findCandidateTransformationChains(List<ResolvedVariant> sources, ImmutableAttributes requested) {
         return transformCache.query(sources, requested);
     }
 

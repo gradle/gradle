@@ -24,7 +24,7 @@ import javax.annotation.Nullable;
  * A series of {@link TransformStep}s.
  */
 public class TransformChain {
-
+    @Nullable
     private final TransformChain init;
     private final TransformStep last;
 
@@ -68,5 +68,9 @@ public class TransformChain {
             init.visitTransformSteps(action);
         }
         action.execute(last);
+    }
+
+    public int length() {
+        return (init == null ? 0 : init.length()) + 1;
     }
 }

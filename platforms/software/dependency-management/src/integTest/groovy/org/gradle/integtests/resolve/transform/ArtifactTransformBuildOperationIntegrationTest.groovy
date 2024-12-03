@@ -387,15 +387,6 @@ class ArtifactTransformBuildOperationIntegrationTest extends AbstractIntegration
         setupExternalDependency()
 
         buildFile << """
-            allprojects {
-                dependencies {
-                    registerTransform(MakeGreen) {
-                        from.attribute(color, 'blue')
-                        to.attribute(color, 'green')
-                    }
-                }
-            }
-
             project(":consumer") {
                 dependencies {
                     implementation project(":producer")
