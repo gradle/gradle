@@ -88,6 +88,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.WildcardType;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -1682,10 +1683,32 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             System.arraycopy(originalParameterTypes, 0, closurisedParameterTypes, 0, numParams);
             closurisedParameterTypes[numParams - 1] = CLOSURE_TYPE;
 
+            final String actionGenericTypeName;
+            java.lang.reflect.Type actionParameterType = method.getGenericParameterTypes()[numParams - 1];
+            if (actionParameterType instanceof ParameterizedType) {
+                ParameterizedType actionParameter = (ParameterizedType) actionParameterType;
+                java.lang.reflect.Type actionGenericType = actionParameter.getActualTypeArguments()[0];
+
+                if (actionGenericType instanceof WildcardType) {
+                    WildcardType wildcardType = (WildcardType) actionGenericType;
+                    java.lang.reflect.Type[] upperBounds = wildcardType.getLowerBounds();
+                    actionGenericTypeName = upperBounds[0].getTypeName();
+                } else {
+                    actionGenericTypeName = actionGenericType.getTypeName();
+                }
+            } else {
+                actionGenericTypeName = null;
+            }
+
             final String methodDescriptor = getMethodDescriptor(returnType, closurisedParameterTypes);
 
-            // GENERATE public <return type> <method>(Closure v) { return <method>(…, ConfigureUtil.configureUsing(v)); }
+            // GENERATE public <return actionParamter> <method>(Closure v) { return <method>(…, ConfigureUtil.configureUsing(v)); }
             publicMethod(method.getName(), methodDescriptor, methodVisitor -> new MethodVisitorScope(methodVisitor) {{
+                if (actionGenericTypeName != null) {
+                    AnnotationVisitor annotationVisitor = visitParameterAnnotation(numParams - 1, "Lgroovy/lang/DelegatesTo;", true);
+                    annotationVisitor.visitAnnotation("value", "L" + actionGenericTypeName.replace('.', '/') + ";");
+                    annotationVisitor.visitEnd();
+                }
 
                 // GENERATE <method>(…, ConfigureUtil.configureUsing(v));
                 _ALOAD(0);
