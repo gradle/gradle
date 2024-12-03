@@ -49,7 +49,7 @@ import java.util.Collections
 import java.util.function.Supplier
 
 
-@ServiceScope(Scope.BuildTree::class)
+@ServiceScope(Scope.BuildSession::class)
 internal
 class ConfigurationCacheRepository(
     cacheBuilderFactory: BuildTreeScopedCacheBuilderFactory,

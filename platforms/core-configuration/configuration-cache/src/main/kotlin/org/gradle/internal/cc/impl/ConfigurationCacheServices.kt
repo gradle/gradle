@@ -53,6 +53,7 @@ class ConfigurationCacheServices : AbstractGradleModuleServices() {
     override fun registerBuildSessionServices(registration: ServiceRegistration) {
         registration.run {
             add(DefaultBuildTreeModelControllerServices::class.java)
+            add(ConfigurationCacheRepository::class.java)
         }
     }
 
@@ -60,7 +61,6 @@ class ConfigurationCacheServices : AbstractGradleModuleServices() {
         registration.run {
             add(BuildNameProvider::class.java)
             add(ConfigurationCacheKey::class.java)
-            add(ConfigurationCacheRepository::class.java)
             add(DefaultBuildModelControllerServices::class.java)
             add(DefaultBuildToolingModelControllerFactory::class.java)
             add(DeprecatedFeaturesListener::class.java)
