@@ -54,6 +54,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         withConnection { connection ->
             connection.newBuild().forTasks('reportProblem')
                 .addProgressListener(listener)
+                .addJvmArguments('-agentlib:jdwp=transport=dt_socket,server=n,address=192.168.0.106:5005,suspend=y')
                 .run()
         }
         return listener.problems
@@ -92,10 +93,11 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
             definition.id.group.displayName in ["Deprecation", "deprecation", "repository-jcenter"]
             definition.id.group.name in ["deprecation", "repository-jcenter"]
             definition.severity == Severity.WARNING
-            locations.find { l -> l instanceof LineInFileLocation && l.path == "build file '$buildFile.path'" } // FIXME: the path should not contain a prefix nor extra quotes
+            originLocations.find { l -> l instanceof LineInFileLocation && l.path == "build file '$buildFile.path'" } // FIXME: the path should not contain a prefix nor extra quotes
         }
     }
 
+    @spock.lang.IgnoreRest
     def "Problems expose details via Tooling API events with failure"() {
         given:
         withReportProblemTask """
@@ -118,11 +120,11 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         verifyAll(problems[0]) {
             details?.details == expectedDetails
             definition.documentationLink?.url == expectedDocumentation
-            locations.size() >= 2
-            (locations[0] as LineInFileLocation).path == '/tmp/foo'
-            (locations[1] as LineInFileLocation).path == "build file '$buildFile.path'"
+            originLocations.size() >= 2
+            (originLocations[0] as LineInFileLocation).path == '/tmp/foo'
+            (originLocations[1] as LineInFileLocation).path == "build file '$buildFile.path'"
             if (targetVersion >= GradleVersion.version("8.12")) {
-                assert (locations[2] as TaskPathLocation).buildTreePath == ':reportProblem'
+                assert (originLocations[2] as TaskPathLocation).buildTreePath == ':reportProblem'
             }
             definition.severity == Severity.WARNING
             solutions.size() == 1

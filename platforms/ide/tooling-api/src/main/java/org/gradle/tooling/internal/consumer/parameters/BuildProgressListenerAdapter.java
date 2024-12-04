@@ -158,6 +158,7 @@ import org.gradle.tooling.internal.consumer.DefaultFileComparisonTestAssertionFa
 import org.gradle.tooling.internal.consumer.DefaultTestAssertionFailure;
 import org.gradle.tooling.internal.consumer.DefaultTestFrameworkFailure;
 import org.gradle.tooling.internal.protocol.InternalBasicProblemDetailsVersion3;
+import org.gradle.tooling.internal.protocol.InternalBasicProblemDetailsVersion4;
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener;
 import org.gradle.tooling.internal.protocol.InternalFailure;
 import org.gradle.tooling.internal.protocol.InternalFileComparisonTestAssertionFailure;
@@ -239,6 +240,7 @@ import org.gradle.tooling.internal.protocol.problem.InternalTaskPathLocation;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -895,6 +897,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
             toContextualLabel(basicProblemDetails.getLabel().getLabel()),
             toProblemDetails(basicProblemDetails.getDetails()),
             toLocations(basicProblemDetails.getLocations()),
+            Collections.<Location>emptyList(),
             toSolutions(basicProblemDetails.getSolutions()),
             toAdditionalData(basicProblemDetails.getAdditionalData()),
             toFailure(basicProblemDetails)
@@ -902,11 +905,22 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
     }
 
     private static Problem toProblem(InternalBasicProblemDetailsVersion3 basicProblemDetails) {
+        List<InternalLocation> originLocations;
+        List<InternalLocation> contextualLocations;
+        if (basicProblemDetails instanceof InternalBasicProblemDetailsVersion4) {
+            originLocations = ((InternalBasicProblemDetailsVersion4) basicProblemDetails).getOriginLocations();
+            contextualLocations = ((InternalBasicProblemDetailsVersion4) basicProblemDetails).getContextualLocations();
+
+        } else {
+            originLocations = basicProblemDetails.getLocations();
+            contextualLocations = Collections.emptyList();
+        }
         return new DefaultProblem(
             toProblemDefinition(basicProblemDetails.getDefinition()),
             toContextualLabel(basicProblemDetails.getContextualLabel()),
             toProblemDetails(basicProblemDetails.getDetails()),
-            toLocations(basicProblemDetails.getLocations()),
+            toLocations(originLocations),
+            toLocations(contextualLocations),
             toSolutions(basicProblemDetails.getSolutions()),
             toAdditionalData(basicProblemDetails.getAdditionalData()),
             toFailure(basicProblemDetails.getFailure())
@@ -1197,7 +1211,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
             if (problemDetail == null) { // Should not happen, but with some older snapshot versions we see this.
                 continue;
             }
-            clientProblems.add(createProblemReport(problemDetail));
+            clientProblems.add(toProblem(problemDetail));
         }
         if (origFailure instanceof InternalTestAssertionFailure) {
             if (origFailure instanceof InternalFileComparisonTestAssertionFailure) {
@@ -1238,18 +1252,6 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
             origFailure.getDescription(),
             toFailures(origFailure.getCauses()),
             clientProblems);
-    }
-
-    private static Problem createProblemReport(InternalBasicProblemDetailsVersion3 basicProblemDetails) {
-        return new DefaultProblem(
-            toProblemDefinition(basicProblemDetails.getDefinition()),
-            toContextualLabel(basicProblemDetails.getContextualLabel()),
-            toProblemDetails(basicProblemDetails.getDetails()),
-            toLocations(basicProblemDetails.getLocations()),
-            toSolutions(basicProblemDetails.getSolutions()),
-            toAdditionalData(basicProblemDetails.getAdditionalData()),
-            toFailure(basicProblemDetails.getFailure())
-        );
     }
 
     private static @Nullable List<AnnotationProcessorResult> toAnnotationProcessorResults(@Nullable List<InternalAnnotationProcessorResult> protocolResults) {

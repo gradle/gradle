@@ -16,6 +16,7 @@
 
 package org.gradle.api.problems
 
+
 import org.gradle.api.problems.internal.LineInFileLocation
 import org.gradle.api.problems.internal.OffsetInFileLocation
 import org.gradle.api.problems.internal.TaskPathLocation
@@ -24,7 +25,7 @@ import org.gradle.integtests.fixtures.GroovyBuildScriptLanguage
 
 import static org.gradle.api.problems.ReportingScript.getProblemReportingScript
 
-class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
+class   ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         enableProblemsApiCheck()
@@ -49,12 +50,16 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         verifyAll(receivedProblem) {
             definition.id.fqid == 'problems-api:missing-id'
             definition.id.displayName == 'Problem id must be specified'
-            originLocations.size() == 2
-            with(firstLocationOfType(LineInFileLocation)) {
+            originLocations.size() == 1
+            contextualLocations.size() == 1
+            with(oneLocation(LineInFileLocation)) {
                 length == -1
                 column == -1
                 line == 11
                 path == "build file '$buildFile.absolutePath'"
+            }
+            with(oneLocation(TaskPathLocation)) {
+                buildTreePath == ':reportProblem'
             }
         }
     }
@@ -74,11 +79,14 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         verifyAll(receivedProblem) {
             definition.id.fqid == 'generic:type'
             definition.id.displayName == 'label'
-            with(firstLocationOfType(LineInFileLocation)) {
+            with(oneLocation(LineInFileLocation)) {
                 length == -1
                 column == -1
                 line == 11
                 path == "build file '$buildFile.absolutePath'"
+            }
+            with(oneLocation(TaskPathLocation)) {
+                buildTreePath == ':reportProblem'
             }
         }
     }
@@ -100,7 +108,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         verifyAll(receivedProblem) {
             definition.id.fqid == 'generic:type'
             definition.id.displayName == 'label'
-            with(firstLocationOfType(LineInFileLocation)) {
+            with(oneLocation(LineInFileLocation)) {
                 length == -1
                 column == -1
                 line == 11
@@ -140,7 +148,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         verifyAll(receivedProblem.originLocations) {
-            size() == 3
+            size() == 2
             with(get(0) as OffsetInFileLocation) {
                 path == 'test-location'
                 offset == 1
@@ -151,9 +159,6 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
                 column == -1
                 line == 11
                 path == "build file '$buildFile.absolutePath'"
-            }
-            with(get(2) as TaskPathLocation) {
-                buildTreePath == ':reportProblem'
             }
         }
     }
@@ -172,7 +177,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         verifyAll(receivedProblem.originLocations) {
-            size() == 3
+            size() == 2
             with(get(0) as LineInFileLocation) {
                 length == -1
                 column == 2
@@ -298,7 +303,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         verifyAll(receivedProblem) {
             definition.id.fqid == 'problems-api:unsupported-additional-data'
             definition.id.displayName == 'Unsupported additional data type'
-            with(firstLocationOfType(LineInFileLocation)) {
+            with(oneLocation(LineInFileLocation)) {
                 length == -1
                 column == -1
                 line == 11
