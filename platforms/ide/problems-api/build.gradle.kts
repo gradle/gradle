@@ -39,6 +39,7 @@ dependencies {
     api(libs.jsr305)
 
     testImplementation(projects.logging)
+    testImplementation(testFixtures(projects.core))
     integTestImplementation(projects.internalTesting)
     integTestImplementation(testFixtures(projects.logging))
     integTestDistributionRuntimeOnly(projects.distributionsCore)

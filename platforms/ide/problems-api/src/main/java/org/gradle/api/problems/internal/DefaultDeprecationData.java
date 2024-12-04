@@ -55,6 +55,8 @@ public class DefaultDeprecationData implements DeprecationData {
             return this;
         }
 
+
+
         @Override
         public DeprecationData build() {
             return new DefaultDeprecationData(type);
