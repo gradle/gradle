@@ -1607,7 +1607,7 @@ public class GradleResolveVisitor extends ResolveVisitor {
             if (bounds != null) {
                 boolean nameAdded = false;
                 for (ClassNode upperBound : bounds) {
-                    if (!nameAdded && upperBound != null || !resolve(classNode)) {
+                    if ((!nameAdded && upperBound != null) || !resolve(classNode)) {
                         genericParameterNames.put(name, type);
                         type.setPlaceholder(true);
                         classNode.setRedirect(upperBound);

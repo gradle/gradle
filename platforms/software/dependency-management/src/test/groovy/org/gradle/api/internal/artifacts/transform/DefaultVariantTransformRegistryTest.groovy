@@ -35,12 +35,14 @@ import org.gradle.api.problems.internal.InternalProblems
 import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.TestHashCodes
+import org.gradle.internal.instantiation.InjectAnnotationHandler
 import org.gradle.internal.isolation.TestIsolatableFactory
 import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.internal.properties.bean.PropertyWalker
 import org.gradle.internal.service.ServiceLookup
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.testfixtures.internal.ProjectBuilderImpl
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.TestUtil
 import org.junit.Rule
@@ -52,7 +54,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
     @Rule
     final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
-    def instantiatorFactory = TestUtil.instantiatorFactory()
+    def instantiatorFactory = TestUtil.createInstantiatorFactory({ ProjectBuilderImpl.globalServices.getAll(InjectAnnotationHandler) })
     def transformInvocationFactory = Mock(TransformInvocationFactory)
     def inputFingerprinter = Mock(InputFingerprinter)
     def fileCollectionFactory = Mock(FileCollectionFactory)

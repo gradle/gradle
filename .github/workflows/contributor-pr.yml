@@ -37,7 +37,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: 11
+          java-version: 17
       - id: determine-sys-prop-args
         uses: actions/github-script@v7
         with:
@@ -48,10 +48,10 @@ jobs:
                 core.setOutput('sys-prop-args', '-DcacheNode=us')
             }
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v3
+        uses: gradle/actions/setup-gradle@v4
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/master' }}
-      - run: ./gradlew compileAll --no-configuration-cache -DdisableLocalCache=true ${{ steps.determine-sys-prop-args.outputs.sys-prop-args }}
+      - run: ./gradlew compileAll -DdisableLocalCache=true ${{ steps.determine-sys-prop-args.outputs.sys-prop-args }}
       - uses: actions/upload-artifact@v4
         with:
           name: build-receipt.properties
@@ -73,16 +73,16 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: 11
+          java-version: 17
       - uses: actions/download-artifact@v4
         with:
           name: build-receipt.properties
           path: incoming-distributions/build-receipt.properties
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v3
+        uses: gradle/actions/setup-gradle@v4
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/master' }}
-      - run: ./gradlew sanityCheck --no-configuration-cache -DdisableLocalCache=true ${{ needs.build.outputs.sys-prop-args }}
+      - run: ./gradlew sanityCheck -DdisableLocalCache=true ${{ needs.build.outputs.sys-prop-args }}
 
   unit-test:
     name: "${{ matrix.bucket.name }} (Unit Test)"
@@ -101,13 +101,13 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: 11
+          java-version: 17
       - uses: actions/download-artifact@v4
         with:
           name: build-receipt.properties
           path: incoming-distributions/build-receipt.properties
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v3
+        uses: gradle/actions/setup-gradle@v4
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/master' }}
-      - run: ./gradlew ${{ matrix.bucket.tasks }} --no-configuration-cache -DdisableLocalCache=true -PflakyTests=exclude ${{ needs.build.outputs.sys-prop-args }}
+      - run: ./gradlew ${{ matrix.bucket.tasks }} -DdisableLocalCache=true -PflakyTests=exclude ${{ needs.build.outputs.sys-prop-args }}

@@ -65,7 +65,7 @@ class MavenPublishJavaRetriesIntegTest extends AbstractMavenPublishIntegTest {
             publishing {
                 repositories {
                     maven {
-                        url '${mavenRemoteRepo.uri}'
+                        url = "${mavenRemoteRepo.uri}"
                     }
                 }
                 publications {

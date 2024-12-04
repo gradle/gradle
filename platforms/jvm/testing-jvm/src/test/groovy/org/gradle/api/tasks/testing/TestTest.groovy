@@ -31,8 +31,6 @@ import org.gradle.api.internal.tasks.testing.TestExecutionSpec
 import org.gradle.api.internal.tasks.testing.TestFramework
 import org.gradle.api.internal.tasks.testing.TestResultProcessor
 import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework
-import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider
-import org.gradle.api.internal.tasks.testing.report.TestReporter
 import org.gradle.api.tasks.AbstractConventionTaskTest
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.integtests.fixtures.AvailableJavaHomes
@@ -41,6 +39,7 @@ import org.gradle.jvm.toolchain.internal.DefaultToolchainJavaLauncher
 import org.gradle.jvm.toolchain.internal.JavaToolchain
 import org.gradle.jvm.toolchain.internal.JavaToolchainInput
 import org.gradle.process.CommandLineArgumentProvider
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.util.TestUtil
@@ -53,10 +52,10 @@ class TestTest extends AbstractConventionTaskTest {
     static final String TEST_PATTERN_2 = "pattern2"
     static final String TEST_PATTERN_3 = "pattern3"
 
-    private File classesDir
-    private File resultsDir
-    private File binResultsDir
-    private File reportDir
+    private TestFile classesDir
+    private TestFile resultsDir
+    private TestFile binResultsDir
+    private TestFile reportDir
 
     def testExecuterMock = Mock(TestExecuter)
     def testFrameworkMock = Mock(TestFramework)
@@ -106,14 +105,12 @@ class TestTest extends AbstractConventionTaskTest {
     def "generates report"() {
         given:
         configureTask()
-        final testReporter = Mock(TestReporter)
-        test.setTestReporter(testReporter)
 
         when:
         test.executeTests()
 
         then:
-        1 * testReporter.generateReport(_ as TestResultsProvider, reportDir)
+        reportDir.assertContainsDescendants("index.html")
         1 * testExecuterMock.execute(_ as TestExecutionSpec, _ as TestResultProcessor)
     }
 

@@ -145,14 +145,14 @@ abstract class MyFileSystemOperationsTask extends DefaultTask {
 
     @TaskAction
     void doTaskAction() {
-        fileSystemOperations.copy {
+        fileSystemOperations.sync {
             from 'src'
             into 'dest'
         }
     }
 }
 
-tasks.register("myInjectedFileSystemOperationsTask", MyFileSystemOperationsTask) {}
+tasks.register("myInjectedFileSystemOperationsTask", MyFileSystemOperationsTask)
 // end::file-system-inject[]
 
 // tag::file-system-adhoc[]
@@ -175,19 +175,26 @@ tasks.register('myAdHocFileSystemOperationsTask') {
 // tag::archive-op-inject[]
 abstract class MyArchiveOperationsTask extends DefaultTask {
     private ArchiveOperations archiveOperations
+    private ProjectLayout layout
+    private FileSystemOperations fs
 
-    @Inject //@javax.inject.Inject
-    MyArchiveOperationsTask(ArchiveOperations archiveOperations) {
+    @Inject
+    MyArchiveOperationsTask(ArchiveOperations archiveOperations, ProjectLayout layout, FileSystemOperations fs) {
         this.archiveOperations = archiveOperations
+        this.layout = layout
+        this.fs = fs
     }
 
     @TaskAction
     void doTaskAction() {
-        archiveOperations.zipTree("${projectDir}/sources.jar")
+        fs.sync {
+            from(archiveOperations.zipTree(layout.projectDirectory.file("sources.jar")))
+            into(layout.buildDirectory.dir("unpacked-sources"))
+        }
     }
 }
 
-tasks.register("myInjectedArchiveOperationsTask", MyArchiveOperationsTask) {}
+tasks.register("myInjectedArchiveOperationsTask", MyArchiveOperationsTask)
 // end::archive-op-inject[]
 
 // tag::archive-op-adhoc[]
@@ -223,7 +230,7 @@ abstract class MyExecOperationsTask extends DefaultTask {
     }
 }
 
-tasks.register("myInjectedExecOperationsTask", MyExecOperationsTask) {}
+tasks.register("myInjectedExecOperationsTask", MyExecOperationsTask)
 // end::exec-op-inject[]
 
 // tag::exec-op-adhoc[]

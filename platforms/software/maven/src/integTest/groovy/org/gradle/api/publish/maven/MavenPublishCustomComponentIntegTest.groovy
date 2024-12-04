@@ -104,7 +104,7 @@ class MavenPublishCustomComponentIntegTest extends AbstractMavenPublishIntegTest
         otherSettings << "rootProject.name = 'consumer'"
         otherBuild << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
 
             configurations {
@@ -152,7 +152,7 @@ class MavenPublishCustomComponentIntegTest extends AbstractMavenPublishIntegTest
             MyComponentWithUsages.publishedDependency = dependencies.add("foo", "group:module:1.0")
             publishing {
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = "${mavenRepo.uri}" }
                 }
             }
 
@@ -160,7 +160,7 @@ class MavenPublishCustomComponentIntegTest extends AbstractMavenPublishIntegTest
                 // shared mutable state for tests, don't do this at home!
                 static AttributeContainer INSTANCE
             }
-            TestAttributes.INSTANCE = project.services.get(org.gradle.api.internal.attributes.ImmutableAttributesFactory)
+            TestAttributes.INSTANCE = project.services.get(org.gradle.api.internal.attributes.AttributesFactory)
                .mutable()
                .attribute(Attribute.of("test.attribute", String), "value")
 

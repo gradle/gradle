@@ -21,7 +21,7 @@ class MavenLatestResolveIntegrationTest extends AbstractHttpDependencyResolution
     def setup() {
         buildFile << """
             repositories {
-                maven { url '${mavenRepo().uri}' }
+                maven { url = '${mavenRepo().uri}' }
             }
             configurations { compile }
 
@@ -76,7 +76,7 @@ class MavenLatestResolveIntegrationTest extends AbstractHttpDependencyResolution
 
         and:
         buildFile << """
-            repositories { maven { url "${mavenHttpRepo.uri}" } }
+            repositories { maven { url = "${mavenHttpRepo.uri}" } }
             dependencies { compile 'group:projectA:latest.${status}' }
         """
 

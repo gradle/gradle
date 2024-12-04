@@ -26,6 +26,7 @@ import org.gradle.testkit.runner.TaskOutcome
 import org.gradle.util.internal.VersionNumber
 
 import static org.gradle.api.problems.Severity.ERROR
+import static org.junit.Assume.assumeTrue
 
 /**
  * For these tests to run you need to set ANDROID_SDK_ROOT to your Android SDK directory
@@ -59,6 +60,10 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
     @UnsupportedWithConfigurationCache
     def "can use sourceSets task with android library and application build (agp=#agpVersion, ide=#ide)"() {
         given:
+        // SourceSetsTask has been deprecated in 8.8 and will be removed in AGP 9.0
+        assumeTrue(VersionNumber.parse(agpVersion).baseVersion < VersionNumber.parse("8.8.0"))
+
+        and:
         AGP_VERSIONS.assumeCurrentJavaVersionIsSupportedBy(agpVersion)
 
         and:
@@ -96,7 +101,6 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
             'connectedDebugAndroidTest',
             "-Pandroid.injected.invoked.from.ide=$ide"
         )
-
         when: 'first build'
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(runner.projectDir, IntegrationTestBuildContext.INSTANCE.gradleUserHomeDir)
         def result = runner.build()
@@ -341,23 +345,23 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
 
         """
             android {
-                compileSdkVersion 30
-                buildToolsVersion "${TestedVersions.androidTools}"
+                compileSdk = 30
+                buildToolsVersion = "${TestedVersions.androidTools}"
 
-                namespace "${appPackage}"
+                namespace = "${appPackage}"
                 defaultConfig {
-                    minSdkVersion 22
-                    targetSdkVersion 26
-                    versionCode 1
-                    versionName "1.0"
+                    minSdk = 22
+                    targetSdk = 26
+                    versionCode = 1
+                    versionName = "1.0"
                 }
                 compileOptions {
-                    sourceCompatibility JavaVersion.${targetJvm.name()}
-                    targetCompatibility JavaVersion.${targetJvm.name()}
+                    sourceCompatibility = JavaVersion.${targetJvm.name()}
+                    targetCompatibility = JavaVersion.${targetJvm.name()}
                 }
                 buildTypes {
                     release {
-                        minifyEnabled false
+                        minifyEnabled = false
                     }
                 }
             }
@@ -391,8 +395,8 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
             buildFile << """
                 android {
                     namespace = "org.gradle.android.example.app"
-                    compileSdkVersion 24
-                    buildToolsVersion '${TestedVersions.androidTools}'
+                    compileSdk = 24
+                    buildToolsVersion = '${TestedVersions.androidTools}'
                 }
             """
         }

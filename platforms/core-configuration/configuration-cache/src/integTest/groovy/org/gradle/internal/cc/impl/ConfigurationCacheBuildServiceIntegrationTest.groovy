@@ -213,7 +213,7 @@ class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfiguratio
             file('settings.gradle') << """
                 pluginManagement {
                     repositories {
-                        maven { url '$mavenRepo.uri' }
+                        maven { url = '$mavenRepo.uri' }
                     }
                 }
             """
@@ -244,7 +244,6 @@ class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfiguratio
             pluginManagement {
                 includeBuild 'counting-service-plugin'
             }
-            enableFeaturePreview 'STABLE_CONFIGURATION_CACHE'
         """
         file('build.gradle') << """
             plugins { id 'counting-service-plugin' version '1.0' }
@@ -441,7 +440,7 @@ class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfiguratio
                 version = "1.0"
                 publishing {
                     repositories {
-                        maven { url '$mavenRepo.uri' }
+                        maven { url = '$mavenRepo.uri' }
                     }
                 }
                 gradlePlugin {
@@ -831,7 +830,7 @@ class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfiguratio
             file('settings.gradle') << """
                 pluginManagement {
                     repositories {
-                        maven { url '$mavenRepo.uri' }
+                        maven { url = '$mavenRepo.uri' }
                     }
                 }
             """

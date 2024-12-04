@@ -25,7 +25,6 @@ import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.initialization.BuildCancellationToken
-import org.gradle.initialization.exception.ExceptionAnalyser
 import org.gradle.initialization.layout.BuildLayout
 import org.gradle.internal.Actions
 import org.gradle.internal.build.BuildAddedListener
@@ -41,6 +40,7 @@ import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.buildtree.BuildTreeLifecycleControllerFactory
 import org.gradle.internal.buildtree.BuildTreeState
 import org.gradle.internal.event.ListenerManager
+import org.gradle.internal.exception.ExceptionAnalyser
 import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.ServiceRegistry
@@ -134,7 +134,7 @@ class DefaultIncludedBuildRegistryTest extends Specification {
         includedBuildFactory.createBuild(buildIdentifier, buildDefinition, false, _ as BuildState) >> includedBuild
 
         when:
-        def result = registry.addIncludedBuild(buildDefinition)
+        def result = registry.addIncludedBuild(buildDefinition, Stub(BuildState))
         then:
         1 * buildAddedListener.buildAdded(includedBuild)
         0 * _
@@ -156,8 +156,8 @@ class DefaultIncludedBuildRegistryTest extends Specification {
         given:
         registry.attachRootBuild(rootBuild())
 
-        registry.addIncludedBuild(buildDefinition1)
-        registry.addIncludedBuild(buildDefinition2)
+        registry.addIncludedBuild(buildDefinition1, Stub(BuildState))
+        registry.addIncludedBuild(buildDefinition2, Stub(BuildState))
 
         expect:
         registry.includedBuilds as List == [includedBuild1, includedBuild2]
@@ -178,9 +178,9 @@ class DefaultIncludedBuildRegistryTest extends Specification {
         registry.attachRootBuild(rootBuild())
 
         expect:
-        registry.addIncludedBuild(buildDefinition1)
-        registry.addIncludedBuild(buildDefinition2)
-        registry.addIncludedBuild(buildDefinition3)
+        registry.addIncludedBuild(buildDefinition1, Stub(BuildState))
+        registry.addIncludedBuild(buildDefinition2, Stub(BuildState))
+        registry.addIncludedBuild(buildDefinition3, Stub(BuildState))
 
         registry.includedBuilds as List == [includedBuild1, includedBuild2, includedBuild3]
 
@@ -195,10 +195,10 @@ class DefaultIncludedBuildRegistryTest extends Specification {
 
         given:
         registry.attachRootBuild(rootBuild())
-        registry.addIncludedBuild(buildDefinition1)
+        registry.addIncludedBuild(buildDefinition1, Stub(BuildState))
 
         expect:
-        registry.addIncludedBuild(buildDefinition2) is includedBuild
+        registry.addIncludedBuild(buildDefinition2, Stub(BuildState)) is includedBuild
     }
 
     def "can add an implicit included build"() {
@@ -266,7 +266,7 @@ class DefaultIncludedBuildRegistryTest extends Specification {
         def parentDefinition = build(parentDir, "parent")
         def parent = expectIncludedBuildAdded("parent", parentDefinition)
 
-        registry.addIncludedBuild(parentDefinition)
+        registry.addIncludedBuild(parentDefinition, Stub(BuildState))
 
         expect:
         def nestedBuild1 = registry.getBuildSrcNestedBuild(rootBuild)

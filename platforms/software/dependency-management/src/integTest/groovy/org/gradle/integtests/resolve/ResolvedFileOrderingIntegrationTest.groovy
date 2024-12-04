@@ -57,7 +57,7 @@ include 'a', 'b', 'c'
 """
         buildFile << """
 allprojects {
-    repositories { maven { url '$mavenRepo.uri' } }
+    repositories { maven { url = '$mavenRepo.uri' } }
 }
 dependencies {
     compile files('test-lib.jar')

@@ -18,21 +18,21 @@ package org.gradle.integtests.fixtures
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.process.ExecResult
+import org.gradle.process.internal.ClientExecHandleBuilder
 import org.gradle.process.internal.ExecHandle
-import org.gradle.process.internal.ExecHandleBuilder
 
 class ScriptExecuter {
     @Delegate
-    ExecHandleBuilder builder = TestFiles.execHandleFactory().newExec()
+    ClientExecHandleBuilder builder = TestFiles.execHandleFactory().newExecHandleBuilder()
 
     @Override
     ExecHandle build() {
         if (OperatingSystem.current().isWindows()) {
             def theArgs = ['/d', '/c', executable.replace('/', File.separator)] + getArgs()
             setArgs(theArgs) //split purposefully to avoid weird windows CI issue
-            executable = 'cmd.exe'
+            builder.executable = 'cmd.exe'
         } else {
-            executable = "${workingDir}/${executable}"
+            builder.executable = "${workingDir}/${executable}"
         }
         builder.environment("JAVA_HOME", System.getProperty("java.home"))
         // // https://github.com/gradle/dotcom/issues/6071

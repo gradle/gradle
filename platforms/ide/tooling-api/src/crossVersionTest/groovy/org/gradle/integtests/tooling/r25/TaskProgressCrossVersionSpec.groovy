@@ -20,6 +20,7 @@ package org.gradle.integtests.tooling.r25
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.fixture.WithOldConfigurationsSupport
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.tooling.BuildException
@@ -307,7 +308,8 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification implements Wi
         """
     }
 
-    def "task operations have a build operation as parent iff build listener is attached"() {
+    @ToolingApiVersion("<8.12")
+    def "task operations have a build operation as parent iff build listener is attached  (Tooling API client < 8.12)"() {
         given:
         goodCode()
 
@@ -316,6 +318,33 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification implements Wi
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild().forTasks('assemble').addProgressListener(events, EnumSet.of(OperationType.GENERIC, OperationType.TASK)).run()
+        }
+
+        then: 'the parent of the task events is the root build operation'
+        def runTasks = events.operation("Run tasks")
+        events.tasks.every { it.descriptor.parent == runTasks.descriptor }
+
+        when: 'listening to task progress events when no build operation listener is attached'
+        events.clear()
+        withConnection {
+            ProjectConnection connection ->
+                connection.newBuild().withArguments('--rerun-tasks').forTasks('assemble').addProgressListener(events, EnumSet.of(OperationType.TASK)).run()
+        }
+
+        then: 'the parent of the task events is null'
+        events.tasks.every { it.descriptor.parent == null }
+    }
+
+    @ToolingApiVersion(">=8.12")
+    def "task operations have a build operation as parent iff build listener is attached (Tooling API client >= 8.12)"() {
+        given:
+        goodCode()
+
+        when: 'listening to task progress events and build operation listener is attached'
+        def events = ProgressEvents.create()
+        withConnection {
+            ProjectConnection connection ->
+                connection.newBuild().forTasks('assemble').addProgressListener(events, EnumSet.of(OperationType.GENERIC, OperationType.TASK, OperationType.ROOT)).run()
         }
 
         then: 'the parent of the task events is the root build operation'

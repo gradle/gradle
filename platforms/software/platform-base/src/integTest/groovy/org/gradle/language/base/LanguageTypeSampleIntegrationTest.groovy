@@ -17,6 +17,7 @@
 package org.gradle.language.base
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.StableConfigurationCacheDeprecations
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.test.precondition.Requires
@@ -25,7 +26,7 @@ import org.junit.Rule
 
 @Requires(UnitTestPreconditions.Online)
 @UnsupportedWithConfigurationCache(because = "software model")
-class LanguageTypeSampleIntegrationTest extends AbstractIntegrationSpec {
+class LanguageTypeSampleIntegrationTest extends AbstractIntegrationSpec implements StableConfigurationCacheDeprecations {
     @Rule
     Sample languageTypeSample = new Sample(temporaryFolder, "customModel/languageType/groovy")
 
@@ -39,6 +40,7 @@ class LanguageTypeSampleIntegrationTest extends AbstractIntegrationSpec {
         sample languageTypeSample
 
         when:
+        expectTaskGetProjectDeprecations()
         succeeds "components"
 
         then:

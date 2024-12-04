@@ -17,7 +17,6 @@
 package org.gradle.testing.base;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.Named;
 
 /**
  * Base test suite target.
@@ -27,5 +26,5 @@ import org.gradle.api.Named;
  * @since 7.3
  */
 @Incubating
-public interface TestSuiteTarget extends Named {
+public interface TestSuiteTarget {
 }

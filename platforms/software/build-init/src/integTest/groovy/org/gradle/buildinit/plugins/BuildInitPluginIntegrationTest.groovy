@@ -18,7 +18,6 @@ package org.gradle.buildinit.plugins
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.buildinit.plugins.internal.BuildScriptBuilder
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
-import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.hamcrest.Matcher
 
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.GROOVY
@@ -32,6 +31,31 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
 
     @Override
     String subprojectName() { 'app' }
+
+    @SuppressWarnings('GroovyAssignabilityCheck')
+    def "init must be only task requested #args"() {
+        expect:
+        executer.expectDocumentedDeprecationWarning("Executing other tasks along with the 'init' task has been deprecated. This will fail with an error in Gradle 9.0. The init task should be run by itself. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#init_must_run_alone")
+        succeeds(args)
+
+        where:
+        args << [
+            ["init", "tasks"],
+            ["help", "init"]
+        ]
+    }
+
+    @SuppressWarnings('GroovyAssignabilityCheck')
+    def "init can be run with arguments #args"() {
+        expect:
+        succeeds(args)
+
+        where:
+        args << [
+            ["init", "--type", "java-application"],
+            ["help", "--task", "init"]
+        ]
+    }
 
     def "init shows up on tasks overview "() {
         given:
@@ -402,21 +426,45 @@ Description""") // include the next header to make sure all options are listed
 
         then:
         fails "init"
-        failure.assertHasDescription("Task 'init' not found in project ':some-thing'.")
-        targetDir.assertHasDescendants("build.gradle")
+        failure.assertHasCause("Aborting build initialization due to existing files in the project directory: '${targetDir.path}'")
+        targetDir.assertContainsDescendants("build.gradle")
     }
 
-    def "fails when initializing in a project directory of another build that does not contain a build script"() {
+    def "fails when initializing in a directory that contains a working settings file"() {
         when:
-        containerDir.file("settings.gradle") << """
-            rootProject.name = 'root'
-            include('${targetDir.name}')
+        targetDir.file("settings.gradle") << """
+            // empty
         """
 
         then:
         fails "init"
-        failure.assertHasDescription("Task 'init' not found in project ':some-thing'.")
-        targetDir.listFiles().size() == 0 // Is still empty
+        failure.assertHasCause("Aborting build initialization due to existing files in the project directory: '${targetDir.path}'")
+        targetDir.assertContainsDescendants("settings.gradle")
+    }
+
+    def "fails when initializing in a directory that contains an invalid settings file"() {
+        when:
+        targetDir.file("settings.gradle") << """
+            nonsense
+        """
+
+        then:
+        fails "init"
+        failure.assertHasCause("Aborting build initialization due to existing files in the project directory: '${targetDir.path}'")
+        targetDir.assertContainsDescendants("settings.gradle")
+    }
+
+    def "fails when initializing plus help in a directory that contains a working settings file"() {
+        when:
+        targetDir.file("settings.gradle") << """
+            // empty
+        """
+
+        then:
+        executer.expectDocumentedDeprecationWarning("Executing other tasks along with the 'init' task has been deprecated. This will fail with an error in Gradle 9.0. The init task should be run by itself. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#init_must_run_alone")
+        fails "init", "help"
+        failure.assertHasCause("Aborting build initialization due to existing files in the project directory: '${targetDir.path}'")
+        targetDir.assertContainsDescendants("settings.gradle")
     }
 
     def "can create build in user home directory"() {
@@ -452,18 +500,6 @@ Description""") // include the next header to make sure all options are listed
         targetDir.file("gradlew").assertIsFile()
         targetDir.file("settings.gradle.kts").assertIsFile()
         targetDir.file("build.gradle.kts").assertIsFile()
-    }
-
-    private ExecutionResult runInitWith(BuildInitDsl dsl, String... initOptions) {
-        def tasks = ['init', '--dsl', dsl.id]
-        tasks.addAll(initOptions)
-        run tasks
-    }
-
-    private ExecutionResult initFailsWith(BuildInitDsl dsl, String... initOptions) {
-        def tasks = ['init', '--dsl', dsl.id]
-        tasks.addAll(initOptions)
-        fails(*tasks)
     }
 
     private static pomValuesUsed(ScriptDslFixture dslFixture) {

@@ -36,6 +36,7 @@ import org.gradle.internal.declarativedsl.analysis.FunctionSemanticsInternal
 import org.gradle.internal.declarativedsl.analysis.FunctionSemanticsInternal.DefaultAccessAndConfigure.DefaultReturnType.DefaultUnit
 import org.gradle.internal.declarativedsl.analysis.FunctionSemanticsInternal.DefaultConfigureBlockRequirement.DefaultRequired
 import org.gradle.internal.declarativedsl.analysis.ParameterSemanticsInternal
+import org.gradle.internal.declarativedsl.analysis.SchemaItemMetadataInternal.SchemaMemberOriginInternal.DefaultContainerElementFactory
 import org.gradle.internal.declarativedsl.analysis.ref
 import org.gradle.internal.declarativedsl.evaluationSchema.AnalysisSchemaComponent
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchemaBuilder
@@ -119,7 +120,7 @@ internal class ContainersSchemaComponent : AnalysisSchemaComponent, ObjectConver
 
     override fun typeDiscovery(): List<TypeDiscovery> = listOf(
         object : TypeDiscovery {
-            override fun getClassesToVisitFrom(kClass: KClass<*>): Iterable<KClass<*>> =
+            override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscovery.TypeDiscoveryServices, kClass: KClass<*>): Iterable<KClass<*>> =
                 containerProperties(kClass).flatMap { property ->
                     listOfNotNull(
                         property.elementType.classifier, // the element type
@@ -185,6 +186,8 @@ internal class ContainersSchemaComponent : AnalysisSchemaComponent, ObjectConver
 
         fun generateSyntheticContainerType(): DataClass = DefaultDataClass(
             syntheticTypeName(),
+            NamedDomainObjectContainer::class.java.name,
+            listOfNotNull((elementType.classifier as? KClass<*>)?.java?.name),
             emptySet(),
             emptyList(),
             listOf(newElementFactoryFunction(syntheticContainerTypeRef(), elementType, inContext = originDeclaration.callable)),
@@ -241,10 +244,15 @@ private fun elementFactoryFunction(
         receiverTypeRef,
         elementFactoryName,
         listOf(
-            DefaultDataParameter("name", DataTypeInternal.DefaultStringDataType.ref, false, ParameterSemanticsInternal.DefaultUnknown)
+            DefaultDataParameter("name", DataTypeInternal.DefaultStringDataType.ref, false, ParameterSemanticsInternal.DefaultIdentityKey(null))
         ),
         false,
-        FunctionSemanticsInternal.DefaultAddAndConfigure(elementTypeRef, DefaultRequired)
+        FunctionSemanticsInternal.DefaultAccessAndConfigure(
+            ConfigureAccessorInternal.DefaultConfiguringLambdaArgument(elementTypeRef),
+            FunctionSemanticsInternal.DefaultAccessAndConfigure.DefaultReturnType.DefaultConfiguredObject,
+            DefaultRequired
+        ),
+        metadata = listOf(DefaultContainerElementFactory(elementTypeRef))
     )
 }
 

@@ -28,7 +28,7 @@ class CacheReuseCrossVersionIntegrationTest extends AbstractCacheReuseCrossVersi
         server.sendSha1Header = false
         buildFile << """
 repositories {
-    maven { url '${mavenHttpRepo.uri}' }
+    maven { url = '${mavenHttpRepo.uri}' }
 }
 configurations { compile }
 dependencies {
@@ -74,7 +74,7 @@ task retrieve(type: Sync) {
         server.sendSha1Header = true
         buildFile << """
 repositories {
-    maven { url '${mavenHttpRepo.uri}' }
+    maven { url = '${mavenHttpRepo.uri}' }
 }
 configurations { compile }
 dependencies {
@@ -118,7 +118,7 @@ task retrieve(type: Sync) {
 
         buildFile << """
 repositories {
-    maven { url '${mavenHttpRepo.uri}' }
+    maven { url = '${mavenHttpRepo.uri}' }
 }
 configurations { compile }
 dependencies {

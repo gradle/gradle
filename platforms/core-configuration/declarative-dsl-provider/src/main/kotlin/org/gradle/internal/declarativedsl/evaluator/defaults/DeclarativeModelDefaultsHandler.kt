@@ -39,18 +39,19 @@ import org.gradle.internal.declarativedsl.language.SyntheticallyProduced
 import org.gradle.internal.declarativedsl.project.projectInterpretationSequenceStep
 import org.gradle.plugin.software.internal.ModelDefaultsHandler
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry
+import javax.inject.Inject
 
 
 /**
  * A {@link ConventionHandler} for applying declarative conventions.
  */
-class DeclarativeModelDefaultsHandler(softwareTypeRegistry: SoftwareTypeRegistry) : ModelDefaultsHandler {
+abstract class DeclarativeModelDefaultsHandler @Inject constructor(softwareTypeRegistry: SoftwareTypeRegistry) : ModelDefaultsHandler {
     private
     val step = projectInterpretationSequenceStep(softwareTypeRegistry)
     private
     val modelDefaultsRepository = softwareTypeRegistryBasedModelDefaultsRepository(softwareTypeRegistry)
 
-    override fun <T : Any> apply(target: T, softwareTypeName: String, plugin: Plugin<in T>) {
+    override fun <T : Any> apply(target: T, softwareTypeName: String, plugin: Plugin<*>) {
         val analysisStepRunner = ApplyDefaultsOnlyAnalysisStepRunner()
         val analysisStepContext = AnalysisStepContext(
             emptySet(),

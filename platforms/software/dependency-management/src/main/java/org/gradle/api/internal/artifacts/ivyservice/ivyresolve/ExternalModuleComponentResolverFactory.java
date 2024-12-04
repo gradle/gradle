@@ -36,7 +36,7 @@ import org.gradle.api.internal.artifacts.repositories.ContentFilteringRepository
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedArtifactResult;
 import org.gradle.api.internal.attributes.AttributeSchemaServices;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.logging.Logger;
@@ -82,7 +82,7 @@ public class ExternalModuleComponentResolverFactory {
     private final VersionParser versionParser;
     private final ModuleComponentGraphResolveStateFactory moduleResolveStateFactory;
     private final CalculatedValueFactory calculatedValueFactory;
-    private final ImmutableAttributesFactory attributesFactory;
+    private final AttributesFactory attributesFactory;
     private final AttributeSchemaServices attributeSchemaServices;
     private final ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor;
 
@@ -102,7 +102,7 @@ public class ExternalModuleComponentResolverFactory {
         ListenerManager listenerManager,
         ModuleComponentGraphResolveStateFactory moduleResolveStateFactory,
         CalculatedValueFactory calculatedValueFactory,
-        ImmutableAttributesFactory attributesFactory,
+        AttributesFactory attributesFactory,
         AttributeSchemaServices attributeSchemaServices,
         ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor
     ) {
@@ -218,7 +218,7 @@ public class ExternalModuleComponentResolverFactory {
             VersionParser versionParser,
             AttributeContainer consumerAttributes,
             ImmutableAttributesSchema attributesSchema,
-            ImmutableAttributesFactory attributesFactory,
+            AttributesFactory attributesFactory,
             AttributeSchemaServices attributeSchemaServices,
             ComponentMetadataProcessorFactory componentMetadataProcessorFactory,
             ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor,

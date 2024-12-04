@@ -136,8 +136,9 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
         val modelAsProjectDependency = isolatedProjects && options.getOption(modelProjectDependencies).get()
 
         return if (requirements.isCreatesModel) {
-            val configureOnDemand = isolatedProjects && !requiresTasks &&
-                options.getOption(isolatedProjectsToolingModelsConfigureOnDemand).get()
+            val configureOnDemand = isolatedProjects &&
+                options.getOption(isolatedProjectsToolingModelsConfigureOnDemand).get() &&
+                (!requiresTasks || options.getOption(isolatedProjectsTasksConfigureOnDemand).get())
             DefaultBuildModelParameters(
                 requiresToolingModels = true,
                 parallelProjectExecution = parallelProjectExecution,

@@ -16,8 +16,6 @@
 
 package org.gradle.util
 
-import com.sun.security.auth.module.NTSystem
-
 class WindowsSymbolicLinkUtil {
     static void createWindowsSymbolicLink(File link, File target) {
         def extraOptions = target.isDirectory() ? ["/d"] : []
@@ -38,6 +36,6 @@ class WindowsSymbolicLinkUtil {
     // See: https://support.microsoft.com/en-us/help/243330/well-known-security-identifiers-in-windows-operating-systems
     private static final String WELL_KNOWN_ADMINISTRATORS_GROUP_SID = "S-1-5-32-544"
     private static void assertAdministrator() {
-        assert new NTSystem().getGroupIDs().any { it == WELL_KNOWN_ADMINISTRATORS_GROUP_SID }
+        assert ["cmd.exe", "/d", "/c", "whoami", "/groups"].execute().text.contains(WELL_KNOWN_ADMINISTRATORS_GROUP_SID)
     }
 }

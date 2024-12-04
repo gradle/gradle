@@ -1,0 +1,55 @@
+name: Auto update performance test durations JSON
+
+on:
+  schedule:
+    - cron: '53 3 1 * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  id-token: write
+  pull-requests: write
+
+jobs:
+  update-perf-test-buckets:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: configure aws credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::992382829881:role/GHASecrets_gradle_all
+          aws-region: "eu-central-1"
+      - name: get secrets
+        uses: aws-actions/aws-secretsmanager-get-secrets@v2
+        with:
+          secret-ids: |
+            PERFORMANCE_DB_URL, gha/gradle/_all/PERFORMANCE_DB_URL
+            PERFORMANCE_DB_USERNAME, gha/gradle/_all/PERFORMANCE_DB_USERNAME
+            PERFORMANCE_DB_PASSWORD_TCAGENT, gha/gradle/_all/PERFORMANCE_DB_PASSWORD
+      - name: Setup java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+      - name: Update performance-test-durations.json
+        run: |
+          ./gradlew performance:writePerformanceTimes -Porg.gradle.performance.db.url=${{ env.PERFORMANCE_DB_URL }} -Porg.gradle.performance.db.username=${{ env.PERFORMANCE_DB_USERNAME }}
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v7
+        with:
+          commit-message: Update performance test durations
+          branch: bot-update-performance-test-durations
+          branch-suffix: timestamp
+          delete-branch: true
+          title: 'Update performance test durations'
+          signoff: true
+          sign-commits: true
+          labels: |
+            in:building-gradle
+            @dev-productivity
+          body: |
+            This PR updates the performance test durations.

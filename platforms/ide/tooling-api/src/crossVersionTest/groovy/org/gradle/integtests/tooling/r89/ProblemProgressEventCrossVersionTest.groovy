@@ -23,11 +23,14 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.r85.CustomModel
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.BuildException
+import org.gradle.tooling.Failure
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.problems.LineInFileLocation
+import org.gradle.tooling.events.problems.ProblemSummariesEvent
 import org.gradle.tooling.events.problems.Severity
 import org.gradle.tooling.events.problems.SingleProblemEvent
+import org.gradle.tooling.events.problems.TaskPathLocation
 import org.gradle.tooling.events.problems.internal.GeneralData
 import org.gradle.util.GradleVersion
 import org.junit.Assume
@@ -38,7 +41,7 @@ import static org.gradle.integtests.fixtures.AvailableJavaHomes.getJdk8
 import static org.gradle.integtests.tooling.r86.ProblemProgressEventCrossVersionTest.getProblemReportTaskString
 import static org.gradle.integtests.tooling.r86.ProblemsServiceModelBuilderCrossVersionTest.getBuildScriptSampleContent
 
-@ToolingApiVersion(">=8.9")
+@ToolingApiVersion(">=8.9 <8.12")
 @TargetGradleVersion(">=8.9")
 class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
 
@@ -116,18 +119,21 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         then:
         problems.size() == 1
         verifyAll(problems[0]) {
-            details.details == expectedDetails
-            definition.documentationLink.url == expecteDocumentation
-            locations.size() == 2
+            details?.details == expectedDetails
+            definition.documentationLink?.url == expectedDocumentation
+            locations.size() >= 2
             (locations[0] as LineInFileLocation).path == '/tmp/foo'
             (locations[1] as LineInFileLocation).path == "build file '$buildFile.path'"
+            if (targetVersion >= GradleVersion.version("8.12")) {
+                assert (locations[2] as TaskPathLocation).buildTreePath == ':reportProblem'
+            }
             definition.severity == Severity.WARNING
             solutions.size() == 1
             solutions[0].solution == 'try this instead'
         }
 
         where:
-        detailsConfig              | expectedDetails | documentationConfig                         | expecteDocumentation
+        detailsConfig              | expectedDetails | documentationConfig                         | expectedDocumentation
         '.details("long message")' | "long message"  | '.documentedAt("https://docs.example.org")' | 'https://docs.example.org'
         ''                         | null            | ''                                          | null
     }
@@ -159,8 +165,8 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
             definition.id.group.displayName == 'Generic'
             definition.id.group.parent == null
             definition.severity == Severity.WARNING
-            definition.documentationLink.url == expecteDocumentation
-            details.details == expectedDetails
+            definition.documentationLink?.url == expecteDocumentation
+            details?.details == expectedDetails
         }
 
         where:
@@ -188,16 +194,14 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         thrown(BuildException)
         def problems = listener.problems
         validateCompilationProblem(problems, buildFile)
-        problems[0].failure.failure.message == "Could not compile build file '$buildFile.absolutePath'."
+        failureMessage(problems[0].failure) == "Could not compile build file '$buildFile.absolutePath'."
     }
 
     def "Can use problems service in model builder and get failure objects"() {
         given:
         Assume.assumeTrue(javaHome != null)
         buildFile getBuildScriptSampleContent(false, false, targetVersion)
-        org.gradle.integtests.tooling.r87.ProblemProgressEventCrossVersionTest.ProblemProgressListener listener
-        listener = new org.gradle.integtests.tooling.r87.ProblemProgressEventCrossVersionTest.ProblemProgressListener()
-
+        ProblemProgressListener listener = new ProblemProgressListener()
 
         when:
         withConnection {
@@ -207,14 +211,16 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
                 .get()
         }
 
-        def problems = listener.problems
-            .collect { it as SingleProblemEvent }
 
         then:
+
+        def problems = listener.problems
+            .find { it instanceof SingleProblemEvent }
+            .collect { it as SingleProblemEvent }
         problems.size() == 1
         problems[0].definition.id.displayName == 'label'
         problems[0].definition.id.group.displayName == 'Generic'
-        problems[0].failure.failure.message == 'test'
+        failureMessage(problems[0].failure) == 'test'
 
         where:
         javaHome << [
@@ -288,12 +294,14 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         thrown(BuildException)
         def problems = listener.problems
         validateCompilationProblem(problems, buildFile)
-        problems[0].failure.failure == null
+        failureMessage(problems[0].failure) == null
     }
 
-    class ProblemProgressListener implements ProgressListener {
 
+    static class ProblemProgressListener implements ProgressListener {
         List<SingleProblemEvent> problems = []
+        ProblemSummariesEvent summariesEvent = null
+
 
         @Override
         void statusChanged(ProgressEvent event) {
@@ -307,7 +315,15 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
                 }
 
                 this.problems.add(event)
+            } else if (event instanceof ProblemSummariesEvent) {
+                assert summariesEvent == null, "already received a ProblemsSummariesEvent, there should only be one"
+                summariesEvent = event
             }
         }
+    }
+
+
+    static def failureMessage(failure) {
+        failure instanceof Failure ? failure?.message : failure?.failure?.message
     }
 }

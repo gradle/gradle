@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import org.gradle.api.Describable;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.internal.artifacts.transform.VariantDefinition;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 
@@ -31,27 +32,35 @@ import java.util.List;
 public interface ResolvedVariantSet {
     /**
      * Returns the component identifier for the component that this set of artifacts belongs to.
-     *
-     * @return component identifier as described
      */
     @Nullable
     ComponentIdentifier getComponentIdentifier();
 
     Describable asDescribable();
 
-    ImmutableAttributesSchema getSchema();
-
     /**
-     * The variants available for artifact selection.
+     * The attribute schema for the component that produced these artifacts.
      */
-    List<ResolvedVariant> getVariants();
+    ImmutableAttributesSchema getProducerSchema();
 
     /**
-     * The provider may have been selected thanks to a different attribute set than the one from
-     * the consuming configuration. This can happen whenever a dependency has additional attributes,
-     * in which case it may override attributes from the configuration itself.
+     * The artifact sets available for selection from this graph variant.
+     */
+    List<ResolvedVariant> getCandidates();
+
+    /**
+     * Additional attributes attached to the edge that selected the producing graph
+     * variant. These attributes should also be used to select artifacts from this set.
      *
      * @return attributes which will override the consumer attributes
      */
     ImmutableAttributes getOverriddenAttributes();
+
+    /**
+     * Transform a candidate artifact set sourced by this variant set.
+     */
+    ResolvedArtifactSet transformCandidate(
+        ResolvedVariant sourceVariant,
+        VariantDefinition variantDefinition
+    );
 }

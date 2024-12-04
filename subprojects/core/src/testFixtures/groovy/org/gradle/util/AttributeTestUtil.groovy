@@ -22,16 +22,16 @@ import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.AttributesSchema
 import org.gradle.api.internal.attributes.AttributeSchemaServices
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
+import org.gradle.api.internal.attributes.DefaultAttributesFactory
 import org.gradle.api.internal.attributes.DefaultAttributesSchema
-import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory
 import org.gradle.api.internal.attributes.ImmutableAttributes
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchemaFactory
+import org.gradle.api.internal.attributes.immutable.artifact.ImmutableArtifactTypeRegistryFactory
 
 class AttributeTestUtil {
-    static ImmutableAttributesFactory attributesFactory() {
-        return new DefaultImmutableAttributesFactory(SnapshotTestUtil.isolatableFactory(), TestUtil.objectInstantiator())
+    static DefaultAttributesFactory attributesFactory() {
+        return new DefaultAttributesFactory(SnapshotTestUtil.isolatableFactory(), TestUtil.objectInstantiator())
     }
 
     /**
@@ -97,6 +97,10 @@ class AttributeTestUtil {
      * Creates a service factory, used for creating attribute matchers and variant transformers.
      */
     static AttributeSchemaServices services() {
-        new AttributeSchemaServices(new ImmutableAttributesSchemaFactory())
+        new AttributeSchemaServices(
+            new ImmutableAttributesSchemaFactory(TestUtil.inMemoryCacheFactory()),
+            new ImmutableArtifactTypeRegistryFactory(TestUtil.inMemoryCacheFactory(), attributesFactory()),
+            TestUtil.inMemoryCacheFactory()
+        )
     }
 }

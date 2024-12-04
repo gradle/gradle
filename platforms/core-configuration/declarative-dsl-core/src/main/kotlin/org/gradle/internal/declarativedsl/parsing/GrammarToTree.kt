@@ -458,14 +458,14 @@ class GrammarToTree(
                             VALUE_ARGUMENT_LIST, LAMBDA_ARGUMENT -> {
                                 valueArguments += node
                             }
-                            else -> tree.parsingError(node, "Parsing failure, unexpected token type in call expression: $tokenType")
+                            else -> collectingFailure(tree.parsingError(node, "Parsing failure, unexpected token type in call expression: $tokenType"))
                         }
                     }
 
                     process(child)
                 }
 
-                if (name == null) tree.parsingError(node, "Name missing from function call!")
+                if (name == null) collectingFailure(tree.parsingError(node, "Name missing from function call!"))
 
                 val arguments = valueArguments.flatMap { valueArguments(tree, it) }.map { checkForFailure(it) }
                 elementIfNoFailures {
@@ -564,7 +564,7 @@ class GrammarToTree(
                         CALL_EXPRESSION -> expression = checkForFailure(callExpression(tree, it))
                         else ->
                             if (it.isExpression()) expression = checkForFailure(expression(tree, it))
-                            else tree.parsingError(it, "Parsing failure, unexpected token type in value argument: $tokenType")
+                            else collectingFailure(tree.parsingError(it, "Parsing failure, unexpected token type in value argument: $tokenType"))
                     }
                 }
 
@@ -641,7 +641,7 @@ class GrammarToTree(
 
             elementIfNoFailures {
                 var isLeftArgument = true
-                var operationTokenName: String? = null
+                var operation: LighterASTNode? = null
                 var leftArg: LighterASTNode? = null
                 var rightArg: LighterASTNode? = null
 
@@ -649,7 +649,7 @@ class GrammarToTree(
                     when (it.tokenType) {
                         OPERATION_REFERENCE -> {
                             isLeftArgument = false
-                            operationTokenName = it.asText
+                            operation = it
                         }
                         else -> if (it.isExpression()) {
                             if (isLeftArgument) {
@@ -662,12 +662,12 @@ class GrammarToTree(
                 }
 
                 elementIfNoFailures {
-                    if (operationTokenName == null) collectingFailure(tree.parsingError(node, "Missing operation token in binary expression"))
+                    if (operation == null) collectingFailure(tree.parsingError(node, "Missing operation token in binary expression"))
                     if (leftArg == null) collectingFailure(tree.parsingError(node, "Missing left hand side in binary expression"))
                     if (rightArg == null) collectingFailure(tree.parsingError(node, "Missing right hand side in binary expression"))
 
                     elementIfNoFailures {
-                        val operationToken = operationTokenName!!.getOperationSymbol()
+                        val operationToken = operation!!.asText.getOperationSymbol()
                         when (operationToken) {
                             EQ -> {
                                 val lhs = checkForFailure(propertyAccessStatement(tree, leftArg!!))
@@ -677,15 +677,9 @@ class GrammarToTree(
                                 }
                             }
 
-                            IDENTIFIER -> {
-                                val receiver = checkForFailure(expression(tree, leftArg!!))
-                                val argument = checkForFailure(valueArgument(tree, rightArg!!))
-                                elementIfNoFailures {
-                                    Element(FunctionCall(checked(receiver), operationTokenName!!, listOf(checked(argument)), tree.sourceData(node)))
-                                }
-                            }
+                            IDENTIFIER -> tree.unsupported(node, operation!!, UnsupportedLanguageFeature.InfixFunctionCall)
 
-                            else -> tree.unsupported(node, UnsupportedLanguageFeature.UnsupportedOperationInBinaryExpression)
+                            else -> tree.unsupported(node, operation!!, UnsupportedLanguageFeature.UnsupportedOperationInBinaryExpression)
                         }
                     }
                 }

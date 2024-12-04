@@ -8,6 +8,11 @@ import gradlebuild.buildutils.tasks.UpdateReleasedVersions
 import java.net.URI
 
 
+tasks.named<UpdateDaemonJvm>("updateDaemonJvm") {
+    jvmVersion = JavaLanguageVersion.of(17)
+    jvmVendor = "adoptium"
+}
+
 tasks.withType<UpdateReleasedVersions>().configureEach {
     releasedVersionsFile = releasedVersionsFile()
     group = "Versioning"

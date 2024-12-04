@@ -56,7 +56,6 @@ public class DefaultArtifactHandler implements ArtifactHandler, MethodMixIn {
 
     private PublishArtifact pushArtifact(Configuration configuration, Object notation, Action<? super ConfigurablePublishArtifact> configureAction) {
         warnIfConfigurationIsDeprecated((DeprecatableConfiguration) configuration);
-        assertConfigurationIsValidForArtifacts((DeprecatableConfiguration)configuration);
         ConfigurablePublishArtifact publishArtifact = publishArtifactFactory.parseNotation(notation);
         configuration.getArtifacts().add(publishArtifact);
         configureAction.execute(publishArtifact);
@@ -74,15 +73,6 @@ public class DefaultArtifactHandler implements ArtifactHandler, MethodMixIn {
                 .withUserManual("declaring_dependencies", "sec:deprecated-configurations")
                 .nagUser();
         }
-
-        // In Gradle 8.1, we'll update this check to only use the consumption deprecation, which is the only one
-        // that it should need to check here
-//        if (configuration.getConsumptionDeprecation() != null) {
-//            DeprecationLogger.deprecateConfiguration(configuration.getName()).forArtifactDeclaration()
-//                .willBecomeAnErrorInGradle9()
-//                .withUserManual("declaring_dependencies", "sec:deprecated-configurations")
-//                .nagUser();
-//        }
     }
 
     /**
@@ -92,13 +82,6 @@ public class DefaultArtifactHandler implements ArtifactHandler, MethodMixIn {
         return configuration.isDeprecatedForDeclarationAgainst() &&
             (!configuration.isCanBeConsumed() || configuration.isDeprecatedForConsumption()) &&
             (!configuration.isCanBeResolved() || configuration.isDeprecatedForResolution());
-    }
-
-    private void assertConfigurationIsValidForArtifacts(DeprecatableConfiguration configuration) {
-        // And then in Gradle 9.0, this can finally become an error
-//        if (!configuration.isCanBeConsumed()) {
-//            throw new GradleException("Archives can not be added to the `" + configuration.getName() + "` configuration.");
-//        }
     }
 
     @Override

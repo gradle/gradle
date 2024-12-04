@@ -49,7 +49,7 @@ class GradlePropertyApiAnalysisSchemaComponent : AnalysisSchemaComponent {
 
     override fun propertyExtractors(): List<PropertyExtractor> = listOf(propertyExtractor)
 
-    override fun typeDiscovery(): List<TypeDiscovery> = listOf(PropertyReturnTypeDiscovery(propertyExtractor))
+    override fun typeDiscovery(): List<TypeDiscovery> = listOf(PropertyReturnTypeDiscovery())
 }
 
 
@@ -106,11 +106,9 @@ class GradlePropertyApiPropertyExtractor(
 
 
 private
-class PropertyReturnTypeDiscovery(
-    private val propertyExtractor: PropertyExtractor
-) : TypeDiscovery {
-    override fun getClassesToVisitFrom(kClass: KClass<*>): Iterable<KClass<*>> =
-        propertyExtractor.extractProperties(kClass).mapNotNullTo(mutableSetOf()) {
+class PropertyReturnTypeDiscovery : TypeDiscovery {
+    override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscovery.TypeDiscoveryServices, kClass: KClass<*>): Iterable<KClass<*>> =
+        typeDiscoveryServices.propertyExtractor.extractProperties(kClass).mapNotNullTo(mutableSetOf()) {
             propertyValueType(it.originalReturnType).classifier as? KClass<*>
         }
 }
@@ -121,4 +119,7 @@ fun isGradlePropertyType(type: KType): Boolean = type.classifier == Property::cl
 
 
 private
-fun propertyValueType(type: KType): KType = type.arguments[0].type ?: error("expected a declared property type") // TODO: is this a user facing error?
+fun propertyValueType(type: KType): KType =
+    if (type.classifier == Property::class)
+        type.arguments[0].type ?: error("expected a declared property type") // TODO: is this a user facing error?
+    else type

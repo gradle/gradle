@@ -43,6 +43,8 @@ public interface ConfigurationInternal extends ResolveContext, DeprecatableConfi
 
     String getDisplayName();
 
+    DisplayName asDescribable();
+
     @Override
     AttributeContainerInternal getAttributes();
 
@@ -53,6 +55,17 @@ public interface ConfigurationInternal extends ResolveContext, DeprecatableConfi
      */
     void runDependencyActions();
 
+    /**
+     * Marks this configuration as observed, meaning its state has been seen by some external operation
+     * and further changes to this context that would change its public state are forbidden.
+     */
+    void markAsObserved();
+
+    /**
+     * Legacy observation mechanism, will be removed in Gradle 9.0.
+     * <p>
+     * Prefer {@link #markAsObserved()}
+     */
     void markAsObserved(InternalState requestedState);
 
     DomainObjectContext getDomainObjectContext();

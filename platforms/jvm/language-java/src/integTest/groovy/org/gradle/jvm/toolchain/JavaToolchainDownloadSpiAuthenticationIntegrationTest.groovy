@@ -92,8 +92,8 @@ class JavaToolchainDownloadSpiAuthenticationIntegrationTest extends AbstractInte
                                 repository('custom') {
                                     resolverClass = CustomToolchainResolver
                                     credentials {
-                                        username "user"
-                                        password "password"
+                                        username = "user"
+                                        password = "password"
                                     }
                                     authentication {
                                         digest(BasicAuthentication)

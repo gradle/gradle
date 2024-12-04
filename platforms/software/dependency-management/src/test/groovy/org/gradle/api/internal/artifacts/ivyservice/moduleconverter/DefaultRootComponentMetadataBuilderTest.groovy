@@ -23,12 +23,12 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.artifacts.configurations.ConfigurationsProvider
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
 import org.gradle.api.internal.artifacts.configurations.MutationValidator
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.LocalVariantMetadataBuilder
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.LocalVariantGraphResolveStateBuilder
 import org.gradle.api.internal.attributes.AttributeDesugaring
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory
-import org.gradle.internal.component.local.model.LocalVariantGraphResolveMetadata
+import org.gradle.internal.component.local.model.LocalVariantGraphResolveState
 import org.gradle.internal.component.model.ComponentIdGenerator
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.TestUtil
@@ -40,9 +40,9 @@ class DefaultRootComponentMetadataBuilderTest extends Specification {
         getModule() >> new AnonymousModule()
     }
     ImmutableModuleIdentifierFactory moduleIdentifierFactory = new DefaultImmutableModuleIdentifierFactory()
-    LocalVariantMetadataBuilder configurationMetadataBuilder = Mock(LocalVariantMetadataBuilder) {
+    LocalVariantGraphResolveStateBuilder configurationStateBuilder = Mock(LocalVariantGraphResolveStateBuilder) {
         create(_, _, _, _, _, _) >> { args ->
-            Mock(LocalVariantGraphResolveMetadata)
+            Mock(LocalVariantGraphResolveState)
         }
     }
 
@@ -53,8 +53,9 @@ class DefaultRootComponentMetadataBuilderTest extends Specification {
         new LocalComponentGraphResolveStateFactory(
             Stub(AttributeDesugaring),
             Stub(ComponentIdGenerator),
-            configurationMetadataBuilder,
-            TestUtil.calculatedValueContainerFactory()
+            configurationStateBuilder,
+            TestUtil.calculatedValueContainerFactory(),
+            TestUtil.inMemoryCacheFactory()
         ),
         AttributeTestUtil.services().getSchemaFactory()
     )

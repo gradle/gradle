@@ -92,7 +92,7 @@ class TaskParametersIntegrationTest extends AbstractIntegrationSpec implements V
                 @InputFiles FileCollection inputs1
                 @InputFiles FileCollection inputs2
 
-                @OutputDirectory File output = project.buildDir
+                @OutputDirectory File output
 
                 @TaskAction void action() {}
             }
@@ -102,6 +102,7 @@ class TaskParametersIntegrationTest extends AbstractIntegrationSpec implements V
             task test(type: TaskWithTwoFileCollectionInputs) {
                 inputs1 = files("input1.txt", "input2.txt")
                 inputs2 = files("input3.txt")
+                output = layout.buildDirectory.dir("out").get().asFile
             }
         """
 

@@ -17,42 +17,27 @@
 package org.gradle.internal.declarativedsl.evaluator
 
 import org.gradle.api.internal.SettingsInternal
-import org.gradle.api.internal.initialization.ClassLoaderScope
-import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.internal.declarativedsl.evaluator.schema.DeclarativeScriptContext
 import org.gradle.internal.declarativedsl.evaluator.schema.InterpretationSchemaBuilder
 import org.gradle.internal.declarativedsl.evaluator.schema.InterpretationSchemaBuildingResult
 import org.gradle.internal.declarativedsl.evaluator.schema.InterpretationSchemaBuildingResult.InterpretationSequenceAvailable
 import org.gradle.internal.declarativedsl.evaluator.schema.InterpretationSchemaBuildingResult.SchemaNotBuilt
-import org.gradle.internal.declarativedsl.evaluator.schema.DeclarativeScriptContext
 import org.gradle.internal.declarativedsl.project.projectInterpretationSequence
 import org.gradle.internal.declarativedsl.settings.settingsInterpretationSequence
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry
 
 
 class GradleProcessInterpretationSchemaBuilder(
-    private val softwareTypeRegistry: SoftwareTypeRegistry
+    /** Accessed lazily, as there is no valid [SettingsInternal] reference to be injected when this service is created. */
+    private val getSettings: () -> SettingsInternal,
+    private val softwareTypeRegistry: SoftwareTypeRegistry,
 ) : InterpretationSchemaBuilder {
     override fun getEvaluationSchemaForScript(scriptContext: DeclarativeScriptContext): InterpretationSchemaBuildingResult =
         when (scriptContext) {
             is DeclarativeScriptContext.UnknownScript -> SchemaNotBuilt
 
-            is DeclarativeScriptContext.SettingsScript -> {
-                require(scriptContext is LoadedSettingsScriptContext) { "A ${LoadedSettingsScriptContext::class.simpleName} is needed to build the settings schema" }
-                InterpretationSequenceAvailable(
-                    settingsInterpretationSequence(scriptContext.settings, scriptContext.targetScope, scriptContext.scriptSource, softwareTypeRegistry)
-                )
-            }
+            DeclarativeScriptContext.SettingsScript -> InterpretationSequenceAvailable(settingsInterpretationSequence(getSettings(), softwareTypeRegistry))
 
-            is DeclarativeScriptContext.ProjectScript -> InterpretationSequenceAvailable(projectInterpretationSequence)
+            DeclarativeScriptContext.ProjectScript -> InterpretationSequenceAvailable(projectInterpretationSequence(softwareTypeRegistry))
         }
-
-    private
-    val projectInterpretationSequence by lazy { projectInterpretationSequence(softwareTypeRegistry) }
 }
-
-
-data class LoadedSettingsScriptContext(
-    val settings: SettingsInternal,
-    val targetScope: ClassLoaderScope,
-    val scriptSource: ScriptSource
-) : DeclarativeScriptContext.SettingsScript

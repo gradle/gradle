@@ -147,6 +147,7 @@ public class DefaultAntBuilder extends BasicAntBuilder implements GroovyObject {
         for (String name : newAntTargets) {
             final Target target = getAntProject().getTargets().get(name);
             String taskName = taskNamer.transform(target.getName());
+            @SuppressWarnings("deprecation")
             final AntTarget task = gradleProject.getTasks().create(taskName, AntTarget.class);
             configureTask(target, task, baseDir, taskNamer);
         }

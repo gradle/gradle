@@ -77,7 +77,7 @@ Gradle supports importing https://maven.apache.org/guides/introduction/introduct
 In order to qualify as a BOM, a `.pom` file needs to have pom set.
 This means that the POM file should explicitly specify <packaging>pom</packaging> in its metadata.
 
-Gradle treats all entries in the block of a BOM similar to <<dependency_constraints.adoc#sec:adding-constraints-transitive-deps,Adding Constrains On Dependencies>>.
+Gradle treats all entries in the block of a BOM similar to <<dependency_constraints.adoc#sec:adding-constraints-transitive-deps,Adding Constraints On Dependencies>>.
 
 [[sec:regular-platform]]
 === Regular Platform
@@ -94,7 +94,7 @@ In this example, the Spring Boot BOM provides the versions for `gson` and `dom4j
 [[sec:enforced-platform]]
 === Enforced Platform
 
-The `enforcedPlatform` keyword can be used to override any versions found in the dependency graph, but should be used with caution as is effectively transitive and exports forced versions to all consumers of your project:
+The `enforcedPlatform` keyword can be used to override any versions found in the dependency graph, but should be used with caution as it is effectively transitive and exports forced versions to all consumers of your project:
 
 ====
 include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-enforcedConstraintsFromBOM/kotlin",files="build.gradle.kts[tags=dependency-on-bom]"]

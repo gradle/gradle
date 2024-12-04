@@ -6,7 +6,7 @@ plugins {
 def toolingApiVersion = gradle.gradleVersion
 
 repositories {
-    maven { url 'https://repo.gradle.org/gradle/libs-releases' }
+    maven { url = 'https://repo.gradle.org/gradle/libs-releases' }
 }
 
 dependencies {

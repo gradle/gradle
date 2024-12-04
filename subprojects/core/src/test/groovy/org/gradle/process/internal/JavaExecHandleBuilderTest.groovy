@@ -19,7 +19,6 @@ import org.gradle.api.internal.file.AbstractFileCollection
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.temp.TemporaryFileProvider
-import org.gradle.initialization.DefaultBuildCancellationToken
 import org.gradle.internal.jvm.JavaModuleDetector
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -29,34 +28,21 @@ import spock.lang.Issue
 import spock.lang.Specification
 
 import java.nio.charset.Charset
-import java.util.concurrent.Executor
-
-import static java.util.Arrays.asList
 
 class JavaExecHandleBuilderTest extends Specification {
     @Rule
     final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     final TemporaryFileProvider temporaryFileProvider = TestFiles.tmpDirTemporaryFileProvider(tmpDir.testDirectory)
     JavaExecHandleBuilder builder = new JavaExecHandleBuilder(
-        TestFiles.resolver(),
         TestFiles.fileCollectionFactory(),
         TestUtil.objectFactory(),
-        Mock(Executor),
-        new DefaultBuildCancellationToken(),
         temporaryFileProvider,
         null,
-        TestFiles.execFactory().newJavaForkOptions()
+        TestFiles.execFactory().newJavaForkOptions(),
+        TestFiles.execHandleFactory().newExecHandleBuilder()
     )
 
     FileCollectionFactory fileCollectionFactory = TestFiles.fileCollectionFactory()
-
-    def cannotSetAllJvmArgs() {
-        when:
-        builder.setAllJvmArgs(asList("arg"))
-
-        then:
-        thrown(UnsupportedOperationException)
-    }
 
     def "builds commandLine for Java process - input encoding #inputEncoding"() {
         File jar1 = new File("file1.jar").canonicalFile
@@ -183,14 +169,12 @@ class JavaExecHandleBuilderTest extends Specification {
             }
         }
         builder = new JavaExecHandleBuilder(
-            TestFiles.resolver(),
             TestFiles.fileCollectionFactory(),
             TestUtil.objectFactory(),
-            Mock(Executor),
-            new DefaultBuildCancellationToken(),
             temporaryFileProvider,
             moduleDetector,
-            TestFiles.execFactory().newJavaForkOptions()
+            TestFiles.execFactory().newJavaForkOptions(),
+            TestFiles.execHandleFactory().newExecHandleBuilder()
         )
 
         builder.mainModule.set("mainModule")

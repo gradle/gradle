@@ -58,6 +58,11 @@ public interface InternalBuildProgressListener {
     String TEST_OUTPUT = "TEST_OUTPUT";
 
     /**
+     * The constant for test metadata of the task execution operations.
+     */
+    String TEST_METADATA = "TEST_METADATA";
+
+    /**
      * The constant for file download operations.
      */
     String FILE_DOWNLOAD = "FILE_DOWNLOAD";
@@ -66,10 +71,16 @@ public interface InternalBuildProgressListener {
      * The constant for build phase operations.
      */
     String BUILD_PHASE = "BUILD_PHASE";
+
     /**
      * The constant for problems events.
      */
     String PROBLEMS = "PROBLEMS";
+
+    /**
+     * The constant for build finished events that may contain problems.
+     */
+    String ROOT = "ROOT";
 
     /**
      * Invoked when a progress event happens in the build being run, and one or more listeners for the given event type have been registered.

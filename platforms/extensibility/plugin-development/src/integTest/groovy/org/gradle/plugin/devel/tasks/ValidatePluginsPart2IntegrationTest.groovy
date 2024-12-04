@@ -23,7 +23,7 @@ import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.junit.Assume
 import spock.lang.Issue
 
-class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker, ValitdatePluginsTrait {
+class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker, ValidatePluginsTrait {
     @Issue("https://github.com/gradle/gradle/issues/24979")
     def "cannot annotate type 'java.net.URL' with @Input"() {
         given:

@@ -19,6 +19,7 @@ package org.gradle.jvm.internal.services;
 import net.rubygrapefruit.platform.SystemInfo;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.temp.GradleUserHomeTemporaryFileProvider;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
@@ -26,6 +27,7 @@ import org.gradle.cache.FileLockManager;
 import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
 import org.gradle.internal.jvm.inspection.DefaultJavaInstallationRegistry;
+import org.gradle.internal.jvm.inspection.DefaultJvmMetadataDetector;
 import org.gradle.internal.jvm.inspection.JavaInstallationRegistry;
 import org.gradle.internal.jvm.inspection.JvmInstallationProblemReporter;
 import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
@@ -58,6 +60,7 @@ import org.gradle.jvm.toolchain.internal.install.DefaultJavaToolchainProvisionin
 import org.gradle.jvm.toolchain.internal.install.DefaultJdkCacheDirectory;
 import org.gradle.jvm.toolchain.internal.install.SecureFileDownloader;
 import org.gradle.platform.internal.DefaultBuildPlatform;
+import org.gradle.process.internal.ClientExecHandleBuilderFactory;
 
 import java.util.List;
 
@@ -85,8 +88,8 @@ public class ToolchainsJvmServices extends AbstractGradleModuleServices {
         }
 
         @Provides
-        protected JdkCacheDirectory createJdkCacheDirectory(ObjectFactory objectFactory, GradleUserHomeDirProvider homeDirProvider, FileOperations operations, FileLockManager lockManager, JvmMetadataDetector detector) {
-            return objectFactory.newInstance(DefaultJdkCacheDirectory.class, homeDirProvider, operations, lockManager, detector);
+        protected JdkCacheDirectory createJdkCacheDirectory(ObjectFactory objectFactory, GradleUserHomeDirProvider homeDirProvider, FileOperations operations, FileLockManager lockManager, ClientExecHandleBuilderFactory execHandleFactory, GradleUserHomeTemporaryFileProvider temporaryFileProvider) {
+            return new DefaultJdkCacheDirectory(homeDirProvider, operations, lockManager, new DefaultJvmMetadataDetector(execHandleFactory, temporaryFileProvider), temporaryFileProvider);
         }
 
         @Provides

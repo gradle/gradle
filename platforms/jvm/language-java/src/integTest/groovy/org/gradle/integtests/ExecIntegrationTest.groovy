@@ -86,6 +86,7 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
         expect:
         if (task == 'javaexecProjectMethod') {
             expectExecMethodDeprecation("The Project.javaexec(Closure) method", "ExecOperations.javaexec(Action) or ProviderFactory.javaexec(Action)")
+            expectTaskProjectDeprecation()
         }
         succeeds task
 
@@ -144,6 +145,7 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
         expect:
         if (task == 'execProjectMethod') {
             expectExecMethodDeprecation("The Project.exec(Closure) method", "ExecOperations.exec(Action) or ProviderFactory.exec(Action)")
+            expectTaskProjectDeprecation()
         }
         succeeds task
 
@@ -387,8 +389,10 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
         expect:
         if (task == 'execProjectMethod') {
             expectExecMethodDeprecation("The Project.exec(Closure) method", "ExecOperations.exec(Action) or ProviderFactory.exec(Action)")
+            expectTaskProjectDeprecation()
         } else if (task == 'javaexecProjectMethod') {
             expectExecMethodDeprecation("The Project.javaexec(Closure) method", "ExecOperations.javaexec(Action) or ProviderFactory.javaexec(Action)")
+            expectTaskProjectDeprecation()
         }
         succeeds task
 
@@ -413,6 +417,9 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         expectExecMethodDeprecation(expectedDeprecatedMethod, replacements)
+        if (method.startsWith("project.")) {
+            expectTaskProjectDeprecation()
+        }
         succeeds("run")
 
         then:
@@ -552,6 +559,9 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         expectExecMethodDeprecation(expectedDeprecatedMethod, replacements)
+        if (method.startsWith("project.")) {
+            expectTaskProjectDeprecation()
+        }
         succeeds("run")
 
         then:
@@ -676,6 +686,7 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         expectExecMethodDeprecation(expectedDeprecatedMethod, replacements)
+        expectTaskProjectDeprecation()
         succeeds("run")
 
         then:
@@ -755,5 +766,11 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
             "This is scheduled to be removed in Gradle 9.0. " +
             "Use $replacements instead. " +
             "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_project_exec")
+    }
+
+    private void expectTaskProjectDeprecation() {
+        executer.expectDocumentedDeprecationWarning("Invocation of Task.project at execution time has been deprecated. "+
+            "This will fail with an error in Gradle 9.0. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#task_project")
     }
 }

@@ -33,6 +33,8 @@ import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.internal.reflect.PropertyAccessorType;
 import org.gradle.internal.reflect.annotations.AnnotationCategory;
+import org.gradle.internal.reflect.annotations.HasAnnotationMetadata;
+import org.gradle.internal.reflect.annotations.FunctionAnnotationMetadata;
 import org.gradle.internal.reflect.annotations.PropertyAnnotationMetadata;
 import org.gradle.internal.reflect.annotations.TypeAnnotationMetadata;
 import org.gradle.internal.reflect.annotations.TypeAnnotationMetadataStore;
@@ -49,6 +51,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -86,6 +89,11 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         }
 
         @Override
+        public ImmutableSortedSet<FunctionAnnotationMetadata> getFunctionAnnotationMetadata() {
+            return ImmutableSortedSet.of();
+        }
+
+        @Override
         public void visitValidationFailures(TypeValidationContext validationContext) {
         }
 
@@ -98,11 +106,13 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
     private final ImmutableSet<Class<? extends Annotation>> recordedTypeAnnotations;
     private final ImmutableSet<String> ignoredPackagePrefixes;
     private final ImmutableMap<Class<? extends Annotation>, AnnotationCategory> propertyAnnotationCategories;
+    private final ImmutableMap<Class<? extends Annotation>, AnnotationCategory> functionAnnotationCategories;
     private final CrossBuildInMemoryCache<Class<?>, TypeAnnotationMetadata> cache;
     private final ImmutableSet<String> potentiallyIgnoredMethodNames;
     private final ImmutableSet<Equivalence.Wrapper<Method>> globallyIgnoredMethods;
     private final ImmutableSet<Class<?>> mutableNonFinalClasses;
     private final ImmutableSet<Class<? extends Annotation>> ignoredMethodAnnotations;
+    private final ImmutableSet<Class<? extends Annotation>> ignoredMethodAnnotationsAllowedModifiers;
     private final Predicate<? super Method> generatedMethodDetector;
 
     /**
@@ -110,10 +120,12 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
      *
      * @param recordedTypeAnnotations Annotations on the type itself that should be gathered.
      * @param propertyAnnotationCategories Annotations on the properties that should be gathered. They are mapped to {@linkplain AnnotationCategory annotation categories}. The {@code ignoredMethodAnnotations} and the {@literal @}{@link Inject} annotations are automatically mapped to the {@link AnnotationCategory#TYPE TYPE} category.
+     * @param functionAnnotationCategories Annotations on the functions that should be gathered. They are mapped to {@linkplain AnnotationCategory annotation categories}. The {@code ignoredMethodAnnotations} and the {@literal @}{@link Inject} annotations are automatically mapped to the {@link AnnotationCategory#TYPE TYPE} category.
      * @param ignoredPackagePrefixes Packages to ignore. Types from ignored packages are considered having no type annotations nor any annotated properties.
      * @param ignoredSuperTypes Super-types to ignore. Ignored super-types are considered having no type annotations nor any annotated properties.
      * @param ignoreMethodsFromTypes Methods to ignore: any methods declared by these types are ignored even when overridden by a given type. This is to avoid detecting methods like {@code Object.equals()} or {@code GroovyObject.getMetaClass()}.
      * @param ignoredMethodAnnotations Annotations to use to explicitly ignore a method/property.
+     * @param ignoredMethodAnnotationsAllowedModifiers Annotations allowed to be used with the ignore annotations.
      * @param generatedMethodDetector Predicate to test if a method was generated (vs. being provided explicitly by the user).
      * @param mutableNonFinalClasses Mutable classes that shouldn't need explicit setters
      * @param cacheFactory A factory to create cross-build in-memory caches.
@@ -121,22 +133,26 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
     public DefaultTypeAnnotationMetadataStore(
         Collection<Class<? extends Annotation>> recordedTypeAnnotations,
         Map<Class<? extends Annotation>, ? extends AnnotationCategory> propertyAnnotationCategories,
+        Map<Class<? extends Annotation>, ? extends AnnotationCategory> functionAnnotationCategories,
         Collection<String> ignoredPackagePrefixes,
         Collection<Class<?>> ignoredSuperTypes,
         Collection<Class<?>> ignoreMethodsFromTypes,
         Collection<Class<?>> mutableNonFinalClasses,
         Collection<Class<? extends Annotation>> ignoredMethodAnnotations,
+        Collection<Class<? extends Annotation>> ignoredMethodAnnotationsAllowedModifiers,
         Predicate<? super Method> generatedMethodDetector,
         CrossBuildInMemoryCacheFactory cacheFactory
     ) {
         this.recordedTypeAnnotations = ImmutableSet.copyOf(recordedTypeAnnotations);
         this.ignoredPackagePrefixes = collectIgnoredPackagePrefixes(ignoredPackagePrefixes);
-        this.propertyAnnotationCategories = allAnnotationCategories(propertyAnnotationCategories, ignoredMethodAnnotations);
+        this.propertyAnnotationCategories = allAnnotationCategoriesForProperties(propertyAnnotationCategories, ignoredMethodAnnotations);
+        this.functionAnnotationCategories = allAnnotationCategories(functionAnnotationCategories, Collections.emptyList());
         this.cache = initCache(ignoredSuperTypes, cacheFactory);
         this.potentiallyIgnoredMethodNames = allMethodNamesOf(ignoreMethodsFromTypes);
         this.globallyIgnoredMethods = allMethodsOf(ignoreMethodsFromTypes);
         this.mutableNonFinalClasses = ImmutableSet.copyOf(mutableNonFinalClasses);
         this.ignoredMethodAnnotations = ImmutableSet.copyOf(ignoredMethodAnnotations);
+        this.ignoredMethodAnnotationsAllowedModifiers = ImmutableSet.copyOf(ignoredMethodAnnotationsAllowedModifiers);
         this.generatedMethodDetector = generatedMethodDetector;
     }
 
@@ -147,13 +163,22 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         );
     }
 
-    private static ImmutableMap<Class<? extends Annotation>, AnnotationCategory> allAnnotationCategories(
+    private static ImmutableMap<Class<? extends Annotation>, AnnotationCategory> allAnnotationCategoriesForProperties(
         Map<Class<? extends Annotation>, ? extends AnnotationCategory> propertyAnnotationCategories,
         Collection<Class<? extends Annotation>> ignoredMethodAnnotations
     ) {
         ImmutableMap.Builder<Class<? extends Annotation>, AnnotationCategory> builder = ImmutableMap.builder();
-        builder.putAll(propertyAnnotationCategories);
+        builder.putAll(allAnnotationCategories(propertyAnnotationCategories, ignoredMethodAnnotations));
         builder.put(Inject.class, TYPE);
+        return builder.build();
+    }
+
+    private static ImmutableMap<Class<? extends Annotation>, AnnotationCategory> allAnnotationCategories(
+        Map<Class<? extends Annotation>, ? extends AnnotationCategory> annotationCategories,
+        Collection<Class<? extends Annotation>> ignoredMethodAnnotations
+    ) {
+        ImmutableMap.Builder<Class<? extends Annotation>, AnnotationCategory> builder = ImmutableMap.builder();
+        builder.putAll(annotationCategories);
         for (Class<? extends Annotation> ignoredMethodAnnotation : ignoredMethodAnnotations) {
             builder.put(ignoredMethodAnnotation, TYPE);
         }
@@ -213,36 +238,59 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
             }
         }
 
-        Map<String, PropertyAnnotationMetadataBuilder> methodBuilders = new HashMap<>();
+        Map<String, PropertyAnnotationMetadataBuilder> propertyMethodBuilders = new HashMap<>();
+        Map<MethodSignature, FunctionAnnotationMetadataBuilder> functionMethodBuilders = new HashMap<>();
         ReplayingTypeValidationContext validationContext = new ReplayingTypeValidationContext();
 
-        inheritMethods(type, validationContext, methodBuilders);
+        inheritPropertyMethods(type, validationContext, propertyMethodBuilders);
+        inheritFunctionMethods(type, validationContext, functionMethodBuilders);
 
         ImmutableSortedSet<PropertyAnnotationMetadata> propertiesMetadata;
+        ImmutableSortedSet<FunctionAnnotationMetadata> functionMetadata;
         if (!type.isSynthetic()) {
-            propertiesMetadata = extractPropertiesFrom(type, methodBuilders, validationContext);
+            propertiesMetadata = extractPropertiesFrom(type, propertyMethodBuilders, validationContext);
+            functionMetadata = extractFunctionsFrom(type, functionMethodBuilders, validationContext);
         } else {
             ImmutableSortedSet.Builder<PropertyAnnotationMetadata> propertiesMetadataBuilder = ImmutableSortedSet.naturalOrder();
-            for (PropertyAnnotationMetadataBuilder propertyMetadataBuilder : methodBuilders.values()) {
+            for (PropertyAnnotationMetadataBuilder propertyMetadataBuilder : propertyMethodBuilders.values()) {
                 propertiesMetadataBuilder.add(propertyMetadataBuilder.build());
             }
             propertiesMetadata = propertiesMetadataBuilder.build();
+
+            ImmutableSortedSet.Builder<FunctionAnnotationMetadata> functionsMetadataBuilder = ImmutableSortedSet.naturalOrder();
+            for (FunctionAnnotationMetadataBuilder functionMetadataBuilder : functionMethodBuilders.values()) {
+                functionsMetadataBuilder.add(functionMetadataBuilder.build());
+            }
+            functionMetadata = functionsMetadataBuilder.build();
         }
 
-        return new DefaultTypeAnnotationMetadata(typeAnnotations.build(), propertiesMetadata, validationContext);
+        return new DefaultTypeAnnotationMetadata(typeAnnotations.build(), propertiesMetadata, functionMetadata, validationContext);
     }
 
-    private void inheritMethods(Class<?> type, TypeValidationContext validationContext, Map<String, PropertyAnnotationMetadataBuilder> methodBuilders) {
+    private void inheritPropertyMethods(Class<?> type, TypeValidationContext validationContext, Map<String, PropertyAnnotationMetadataBuilder> methodBuilders) {
         visitSuperTypes(type, (superType, metadata) -> {
             for (PropertyAnnotationMetadata property : metadata.getPropertiesAnnotationMetadata()) {
-                getOrCreateBuilder(property.getPropertyName(), property.getGetter(), validationContext, methodBuilders)
+                getOrCreatePropertyBuilder(property.getPropertyName(), property.getMethod(), validationContext, methodBuilders)
                     .inheritAnnotations(superType.isInterface(), property);
             }
         });
     }
 
-    private PropertyAnnotationMetadataBuilder getOrCreateBuilder(String propertyName, Method getter, TypeValidationContext validationContext, Map<String, PropertyAnnotationMetadataBuilder> propertyBuilders) {
+    private void inheritFunctionMethods(Class<?> type, TypeValidationContext validationContext, Map<MethodSignature, FunctionAnnotationMetadataBuilder> methodBuilders) {
+        visitSuperTypes(type, (superType, metadata) -> {
+            for (FunctionAnnotationMetadata method : metadata.getFunctionAnnotationMetadata()) {
+                getOrCreateFunctionBuilder(method.getMethod(), validationContext, methodBuilders)
+                    .inheritAnnotations(superType.isInterface(), method);
+            }
+        });
+    }
+
+    private PropertyAnnotationMetadataBuilder getOrCreatePropertyBuilder(String propertyName, Method getter, TypeValidationContext validationContext, Map<String, PropertyAnnotationMetadataBuilder> propertyBuilders) {
         return propertyBuilders.computeIfAbsent(getter.getName(), methodName -> new PropertyAnnotationMetadataBuilder(propertyName, getter, validationContext));
+    }
+
+    private FunctionAnnotationMetadataBuilder getOrCreateFunctionBuilder(Method method, TypeValidationContext validationContext, Map<MethodSignature, FunctionAnnotationMetadataBuilder> methodBuilders) {
+        return methodBuilders.computeIfAbsent(MethodSignature.of(method), methodName -> new FunctionAnnotationMetadataBuilder(method, validationContext));
     }
 
     private ImmutableSortedSet<PropertyAnnotationMetadata> extractPropertiesFrom(Class<?> type, Map<String, PropertyAnnotationMetadataBuilder> methodBuilders, TypeValidationContext validationContext) {
@@ -250,12 +298,25 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         // Make sure getters end up before the setters
         Arrays.sort(methods, comparing(Method::getName));
         for (Method method : methods) {
-            processMethodAnnotations(method, methodBuilders, validationContext);
+            processPropertyMethodAnnotations(method, methodBuilders, validationContext);
         }
 
         ImmutableList<PropertyAnnotationMetadataBuilder> propertyBuilders = convertMethodToPropertyBuilders(methodBuilders);
-        ImmutableMap<String, ImmutableMap<Class<? extends Annotation>, Annotation>> fieldAnnotationsByPropertyName = collectFieldAnnotations(type);
+        ImmutableMap<String, ImmutableMap<Class<? extends Annotation>, Annotation>> fieldAnnotationsByPropertyName = collectFieldAnnotations(type, validationContext);
         return mergePropertiesAndFieldMetadata(type, propertyBuilders, fieldAnnotationsByPropertyName, validationContext);
+    }
+
+    private ImmutableSortedSet<FunctionAnnotationMetadata> extractFunctionsFrom(Class<?> type, Map<MethodSignature, FunctionAnnotationMetadataBuilder> methodBuilders, TypeValidationContext validationContext) {
+        Method[] methods = type.getDeclaredMethods();
+        // Make sure getters end up before the setters
+        Arrays.sort(methods, comparing(Method::getName));
+        for (Method method : methods) {
+            processFunctionMethodAnnotations(method, methodBuilders, validationContext);
+        }
+
+        ImmutableSortedSet.Builder<FunctionAnnotationMetadata> methodsMetadataBuilder = ImmutableSortedSet.naturalOrder();
+        methodBuilders.values().forEach(metadataBuilder -> methodsMetadataBuilder.add(metadataBuilder.build()));
+        return methodsMetadataBuilder.build();
     }
 
     private static final String REDUNDANT_GETTERS = "REDUNDANT_GETTERS";
@@ -263,7 +324,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
     private ImmutableList<PropertyAnnotationMetadataBuilder> convertMethodToPropertyBuilders(Map<String, PropertyAnnotationMetadataBuilder> methodBuilders) {
         Map<String, PropertyAnnotationMetadataBuilder> propertyBuilders = new LinkedHashMap<>();
         List<PropertyAnnotationMetadataBuilder> metadataBuilders = Ordering.<PropertyAnnotationMetadataBuilder>from(
-                comparing(metadataBuilder -> metadataBuilder.getGetter().getName()))
+                comparing(metadataBuilder -> metadataBuilder.getMethod().getName()))
             .sortedCopy(methodBuilders.values());
         for (PropertyAnnotationMetadataBuilder metadataBuilder : metadataBuilders) {
             String propertyName = metadataBuilder.getPropertyName();
@@ -271,7 +332,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
             // Do we have an 'is'-getter as well as a 'get'-getter?
             if (previouslySeenBuilder != null) {
                 // It is okay to have redundant generated 'is'-getters
-                if (generatedMethodDetector.test(metadataBuilder.getter)) {
+                if (generatedMethodDetector.test(metadataBuilder.getMethod())) {
                     continue;
                 }
                 // The 'is'-getter is ignored, we can skip it in favor of the 'get'-getter
@@ -292,8 +353,8 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                         .contextualLabel(
                             String.format(
                                 "has redundant getters: '%s()' and '%s()'",
-                                previouslySeenBuilder.getter.getName(),
-                                metadataBuilder.getter.getName()
+                                previouslySeenBuilder.getMethod().getName(),
+                                metadataBuilder.getMethod().getName()
                             )
                         )
                         .documentedAt(userManual("validation_problems", REDUNDANT_GETTERS.toLowerCase(Locale.ROOT)))
@@ -307,13 +368,34 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         return ImmutableList.copyOf(propertyBuilders.values());
     }
 
-    private ImmutableMap<String, ImmutableMap<Class<? extends Annotation>, Annotation>> collectFieldAnnotations(Class<?> type) {
+    private ImmutableMap<String, ImmutableMap<Class<? extends Annotation>, Annotation>> collectFieldAnnotations(Class<?> type, TypeValidationContext validationContext) {
         ImmutableMap.Builder<String, ImmutableMap<Class<? extends Annotation>, Annotation>> fieldAnnotationsByPropertyName = ImmutableMap.builder();
         for (Field declaredField : type.getDeclaredFields()) {
             if (declaredField.isSynthetic()) {
                 continue;
             }
-            fieldAnnotationsByPropertyName.put(declaredField.getName(), collectRelevantAnnotations(declaredField));
+            fieldAnnotationsByPropertyName.put(declaredField.getName(), collectRelevantAnnotations(declaredField, propertyAnnotationCategories));
+            ImmutableMap<Class<? extends Annotation>, Annotation> nonPropertyAnnotations = collectRelevantAnnotations(declaredField, functionAnnotationCategories);
+            if (!nonPropertyAnnotations.isEmpty()) {
+                // Function method annotations should not be applicable to fields and should throw a compile time error, but in the
+                // event that they are marked applicable to fields, we report them as a problem.  If we add an annotation that is somehow
+                // valid in this context, we'll need to handle it in some way to avoid the problem being generated.
+                validationContext.visitTypeProblem(problem ->
+                    problem.withAnnotationType(declaredField.getDeclaringClass())
+                        .id(TextUtil.screamingSnakeToKebabCase(IGNORED_ANNOTATIONS_ON_PROPERTY), "Ignored annotations on property", GradleCoreProblemGroup.validation().type())
+                        .contextualLabel(
+                            String.format(
+                                "field '%s()' should not be annotated with: %s",
+                                declaredField.getName(),
+                                simpleAnnotationNames(nonPropertyAnnotations.keySet().stream())
+                            )
+                        )
+                        .documentedAt(userManual("validation_problems", IGNORED_ANNOTATIONS_ON_PROPERTY.toLowerCase(Locale.ROOT)))
+                        .severity(ERROR)
+                        .details("Function annotations are ignored if they are placed on a field")
+                        .solution("Remove the annotations")
+                );
+            }
         }
         return fieldAnnotationsByPropertyName.build();
     }
@@ -401,7 +483,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
 
     private static final String PRIVATE_GETTER_MUST_NOT_BE_ANNOTATED = "PRIVATE_GETTER_MUST_NOT_BE_ANNOTATED";
 
-    private void processMethodAnnotations(Method method, Map<String, PropertyAnnotationMetadataBuilder> methodBuilders, TypeValidationContext validationContext) {
+    private void processPropertyMethodAnnotations(Method method, Map<String, PropertyAnnotationMetadataBuilder> propertyBuilders, TypeValidationContext validationContext) {
         if (shouldIgnore(method)) {
             return;
         }
@@ -411,22 +493,22 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
             return;
         }
 
-        ImmutableMap<Class<? extends Annotation>, Annotation> annotations = collectRelevantAnnotations(method);
+        ImmutableMap<Class<? extends Annotation>, Annotation> annotations = collectRelevantAnnotations(method, propertyAnnotationCategories);
 
         if (Modifier.isStatic(method.getModifiers())) {
-            validateNotAnnotated(MethodKind.STATIC, method, annotations.keySet(), validationContext);
+            validateNotAnnotatedForProperty(MethodKind.STATIC, method, annotations.keySet(), validationContext);
             return;
         }
 
         PropertyAccessorType accessorType = PropertyAccessorType.of(method);
         if (accessorType == null) {
-            validateNotAnnotated(MethodKind.NON_PROPERTY, method, annotations.keySet(), validationContext);
+            validateNotAnnotatedForProperty(MethodKind.FUNCTION, method, annotations.keySet(), validationContext);
             return;
         }
 
         String propertyName = accessorType.propertyNameFor(method);
         if (accessorType == PropertyAccessorType.SETTER) {
-            validateNotAnnotated(MethodKind.SETTER, method, annotations.keySet(), validationContext);
+            validateNotAnnotatedForProperty(MethodKind.SETTER, method, annotations.keySet(), validationContext);
             validateSetterForMutableType(method, accessorType, validationContext, propertyName);
             return;
         }
@@ -439,7 +521,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
             return;
         }
 
-        PropertyAnnotationMetadataBuilder metadataBuilder = getOrCreateBuilder(propertyName, method, validationContext, methodBuilders);
+        PropertyAnnotationMetadataBuilder metadataBuilder = getOrCreatePropertyBuilder(propertyName, method, validationContext, propertyBuilders);
         metadataBuilder.overrideMethod(method);
 
         if (privateGetter) {
@@ -454,6 +536,60 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                     .details("Annotations on private getters are ignored")
                     .solution("Make the getter public")
                     .solution("Annotate the public version of the getter")
+            );
+        }
+
+        for (Annotation annotation : annotations.values()) {
+            metadataBuilder.declareAnnotation(annotation);
+        }
+    }
+
+    private static final String PRIVATE_METHOD_MUST_NOT_BE_ANNOTATED = "PRIVATE_METHOD_MUST_NOT_BE_ANNOTATED";
+
+    private void processFunctionMethodAnnotations(Method method, Map<MethodSignature, FunctionAnnotationMetadataBuilder> functionBuilders, TypeValidationContext validationContext) {
+        if (shouldIgnore(method)) {
+            return;
+        }
+        // As an optimization first check if the method name is among the candidates before we construct an equivalence wrapper
+        if (potentiallyIgnoredMethodNames.contains(method.getName())
+            && globallyIgnoredMethods.contains(SIGNATURE_EQUIVALENCE.wrap(method))) {
+            return;
+        }
+
+        ImmutableMap<Class<? extends Annotation>, Annotation> annotations = collectRelevantAnnotations(method, functionAnnotationCategories);
+
+        // If the function method is not annotated, we can ignore it
+        if (annotations.isEmpty()) {
+            return;
+        }
+
+        if (Modifier.isStatic(method.getModifiers())) {
+            validateNotAnnotatedForStaticFunction(method, annotations.keySet(), validationContext);
+            return;
+        }
+
+        PropertyAccessorType accessorType = PropertyAccessorType.of(method);
+        if (accessorType != null) {
+            validateNotAnnotatedForPropertyGetter(method, annotations.keySet(), validationContext);
+            return;
+        }
+
+        FunctionAnnotationMetadataBuilder metadataBuilder = getOrCreateFunctionBuilder(method, validationContext, functionBuilders);
+        metadataBuilder.overrideMethod(method);
+
+        boolean privateMethod = Modifier.isPrivate(method.getModifiers());
+        if (privateMethod) {
+            // At this point we must have annotations on this private getter
+            metadataBuilder.visitFunctionProblem(problem ->
+                problem
+                    .forFunction(method.getName())
+                    .id(TextUtil.screamingSnakeToKebabCase(PRIVATE_METHOD_MUST_NOT_BE_ANNOTATED), "Private method with wrong annotation", GradleCoreProblemGroup.validation().property())
+                    .contextualLabel(String.format("is private and annotated with %s", simpleAnnotationNames(annotations.keySet().stream())))
+                    .documentedAt(userManual("validation_problems", PRIVATE_METHOD_MUST_NOT_BE_ANNOTATED.toLowerCase(Locale.ROOT)))
+                    .severity(ERROR)
+                    .details("Annotations on private methods are ignored")
+                    .solution("Make the method public")
+                    .solution("Annotate the public version of the method")
             );
         }
 
@@ -501,7 +637,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
 
     private static final String IGNORED_ANNOTATIONS_ON_METHOD = "IGNORED_ANNOTATIONS_ON_METHOD";
 
-    private static void validateNotAnnotated(MethodKind methodKind, Method method, Set<Class<? extends Annotation>> annotationTypes, TypeValidationContext validationContext) {
+    private static void validateNotAnnotatedForProperty(MethodKind methodKind, Method method, Set<Class<? extends Annotation>> annotationTypes, TypeValidationContext validationContext) {
         if (!annotationTypes.isEmpty()) {
             validationContext.visitTypeProblem(problem ->
                 problem.withAnnotationType(method.getDeclaringClass())
@@ -522,13 +658,57 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         }
     }
 
+    private static final String IGNORED_ANNOTATIONS_ON_PROPERTY = "IGNORED_ANNOTATIONS_ON_PROPERTY";
+
+    private static void validateNotAnnotatedForPropertyGetter(Method method, Set<Class<? extends Annotation>> annotationTypes, TypeValidationContext validationContext) {
+        if (!annotationTypes.isEmpty()) {
+            validationContext.visitTypeProblem(problem ->
+                problem.withAnnotationType(method.getDeclaringClass())
+                    .id(TextUtil.screamingSnakeToKebabCase(IGNORED_ANNOTATIONS_ON_PROPERTY), "Ignored annotations on property", GradleCoreProblemGroup.validation().type())
+                    .contextualLabel(
+                        String.format(
+                            "%s '%s()' should not be annotated with: %s",
+                            MethodKind.PROPERTY.getDisplayName(), method.getName(),
+                            simpleAnnotationNames(annotationTypes.stream())
+                        )
+                    )
+                    .documentedAt(userManual("validation_problems", IGNORED_ANNOTATIONS_ON_PROPERTY.toLowerCase(Locale.ROOT)))
+                    .severity(ERROR)
+                    .details("Function annotations are ignored if they are placed on a property getter")
+                    .solution("Remove the annotations")
+                    .solution("Rename the method")
+            );
+        }
+    }
+
+    private static void validateNotAnnotatedForStaticFunction(Method method, Set<Class<? extends Annotation>> annotationTypes, TypeValidationContext validationContext) {
+        if (!annotationTypes.isEmpty()) {
+            validationContext.visitTypeProblem(problem ->
+                problem.withAnnotationType(method.getDeclaringClass())
+                    .id(TextUtil.screamingSnakeToKebabCase(IGNORED_ANNOTATIONS_ON_PROPERTY), "Ignored annotations on property", GradleCoreProblemGroup.validation().type())
+                    .contextualLabel(
+                        String.format(
+                            "%s '%s()' should not be annotated with: %s",
+                            MethodKind.STATIC.getDisplayName(), method.getName(),
+                            simpleAnnotationNames(annotationTypes.stream())
+                        )
+                    )
+                    .documentedAt(userManual("validation_problems", IGNORED_ANNOTATIONS_ON_PROPERTY.toLowerCase(Locale.ROOT)))
+                    .severity(ERROR)
+                    .details("Function annotations are ignored if they are placed on a static method")
+                    .solution("Remove the annotations")
+                    .solution("Make the method non-static")
+            );
+        }
+    }
+
     private static String simpleAnnotationNames(Stream<Class<? extends Annotation>> annotationTypes) {
         return annotationTypes
             .map(annotationType -> "@" + annotationType.getSimpleName())
             .collect(joining(", "));
     }
 
-    private ImmutableMap<Class<? extends Annotation>, Annotation> collectRelevantAnnotations(AnnotatedElement element) {
+    private static ImmutableMap<Class<? extends Annotation>, Annotation> collectRelevantAnnotations(AnnotatedElement element, ImmutableMap<Class<? extends Annotation>, AnnotationCategory> relevantCategories) {
         Annotation[] annotations = element.getDeclaredAnnotations();
         if (annotations.length == 0) {
             return ImmutableMap.of();
@@ -536,101 +716,79 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         ImmutableMap.Builder<Class<? extends Annotation>, Annotation> relevantAnnotations = ImmutableMap.builderWithExpectedSize(annotations.length);
         for (Annotation annotation : annotations) {
             Class<? extends Annotation> annotationType = annotation.annotationType();
-            if (propertyAnnotationCategories.containsKey(annotationType)) {
+            if (relevantCategories.containsKey(annotationType)) {
                 relevantAnnotations.put(annotationType, annotation);
             }
         }
         return relevantAnnotations.build();
     }
 
-    private class PropertyAnnotationMetadataBuilder implements Comparable<PropertyAnnotationMetadataBuilder> {
-        private final String propertyName;
-        private Method getter;
-        private final ListMultimap<AnnotationCategory, Annotation> declaredAnnotations = MultimapBuilder
+    private static abstract class HasAnnotationMetadataBuilder {
+        protected static final String IGNORED_PROPERTY_MUST_NOT_BE_ANNOTATED = "IGNORED_PROPERTY_MUST_NOT_BE_ANNOTATED";
+        protected static final String CONFLICTING_ANNOTATIONS = "CONFLICTING_ANNOTATIONS";
+        protected final ListMultimap<AnnotationCategory, Annotation> declaredAnnotations = MultimapBuilder
             .treeKeys(comparing(AnnotationCategory::getDisplayName))
             .arrayListValues()
             .build();
-        private final SetMultimap<AnnotationCategory, Annotation> inheritedInterfaceAnnotations = MultimapBuilder
+        protected final SetMultimap<AnnotationCategory, Annotation> inheritedInterfaceAnnotations = MultimapBuilder
             .treeKeys(comparing(AnnotationCategory::getDisplayName))
             .linkedHashSetValues()
             .build();
-        private final SetMultimap<AnnotationCategory, Annotation> inheritedSuperclassAnnotations = MultimapBuilder
+        protected final SetMultimap<AnnotationCategory, Annotation> inheritedSuperclassAnnotations = MultimapBuilder
             .treeKeys(comparing(AnnotationCategory::getDisplayName))
             .linkedHashSetValues()
             .build();
-        private final TypeValidationContext validationContext;
+        protected final TypeValidationContext validationContext;
+        protected Method method;
 
-        public PropertyAnnotationMetadataBuilder(String propertyName, Method getter, TypeValidationContext validationContext) {
-            this.propertyName = propertyName;
-            this.getter = getter;
+        private HasAnnotationMetadataBuilder(Method method, TypeValidationContext validationContext) {
+            overrideMethod(method);
             this.validationContext = validationContext;
         }
 
-        public String getPropertyName() {
-            return propertyName;
-        }
-
-        public Method getGetter() {
-            return getter;
+        public Method getMethod() {
+            return method;
         }
 
         public void overrideMethod(Method method) {
-            this.getter = method;
+            this.method = method;
         }
 
         public void declareAnnotation(Annotation annotation) {
-            AnnotationCategory category = propertyAnnotationCategories.get(annotation.annotationType());
+            AnnotationCategory category = geAnnotationCategories().get(annotation.annotationType());
             declaredAnnotations.put(category, annotation);
         }
 
-        public void inheritAnnotations(boolean fromInterface, PropertyAnnotationMetadata superProperty) {
-            superProperty.getAnnotations()
+        public void inheritAnnotations(boolean fromInterface, HasAnnotationMetadata superProperty) {
+            superProperty.getAnnotationsByCategory()
                 .forEach((fromInterface
                     ? inheritedInterfaceAnnotations
                     : inheritedSuperclassAnnotations)::put);
         }
 
-        void visitPropertyProblem(Action<? super TypeAwareProblemBuilder> problemSpec) {
-            validationContext.visitPropertyProblem(problemSpec);
+        protected ImmutableSet<AnnotationCategory> allAnnotationCategories() {
+            return ImmutableSet.<AnnotationCategory>builder()
+                .addAll(declaredAnnotations.keySet())
+                .addAll(inheritedInterfaceAnnotations.keySet())
+                .addAll(inheritedSuperclassAnnotations.keySet())
+                .build();
         }
 
-        public PropertyAnnotationMetadata build() {
-            return new DefaultPropertyAnnotationMetadata(propertyName, getter, resolveAnnotations());
-        }
-
-        private static final String IGNORED_PROPERTY_MUST_NOT_BE_ANNOTATED = "IGNORED_PROPERTY_MUST_NOT_BE_ANNOTATED";
-
-        private ImmutableMap<AnnotationCategory, Annotation> resolveAnnotations() {
-            // If method should be ignored, then ignore all other annotations
-            List<Annotation> declaredTypes = declaredAnnotations.get(TYPE);
-            for (Annotation declaredType : declaredTypes) {
-                Class<? extends Annotation> ignoredMethodAnnotation = declaredType.annotationType();
-                if (ignoredMethodAnnotations.contains(ignoredMethodAnnotation)) {
-                    if (declaredAnnotations.values().size() > 1) {
-                        visitPropertyProblem(problem ->
-                            problem
-                                .forProperty(propertyName)
-                                .id(TextUtil.screamingSnakeToKebabCase(IGNORED_PROPERTY_MUST_NOT_BE_ANNOTATED), "Has wrong combination of annotations", GradleCoreProblemGroup.validation().property())
-                                .contextualLabel(
-                                    String.format(
-                                        "annotated with @%s should not be also annotated with %s",
-                                        ignoredMethodAnnotation.getSimpleName(),
-                                        simpleAnnotationNames(declaredAnnotations.values().stream()
-                                            .<Class<? extends Annotation>>map(Annotation::annotationType)
-                                            .filter(annotationType -> !annotationType.equals(ignoredMethodAnnotation)))
-                                    )
-                                )
-                                .documentedAt(userManual("validation_problems", IGNORED_PROPERTY_MUST_NOT_BE_ANNOTATED.toLowerCase(Locale.ROOT)))
-                                .severity(ERROR)
-                                .details("A property is ignored but also has input annotations")
-                                .solution("Remove the input annotations")
-                                .solution("Remove the @" + ignoredMethodAnnotation.getSimpleName() + " annotation")
-                        );
-                    }
-                    return ImmutableMap.of(TYPE, declaredType);
+        public boolean hasAnnotation(Class<? extends Annotation> annotationType) {
+            Iterable<Annotation> allAnnotations = Iterables.concat(
+                declaredAnnotations.values(),
+                inheritedInterfaceAnnotations.values(),
+                inheritedSuperclassAnnotations.values()
+            );
+            for (Annotation annotation : allAnnotations) {
+                if (annotation.annotationType().equals(annotationType)) {
+                    return true;
                 }
             }
+            return false;
+        }
 
+        protected ImmutableMap<AnnotationCategory, Annotation> resolveAnnotations() {
             ImmutableMap.Builder<AnnotationCategory, Annotation> builder = ImmutableMap.builder();
             for (AnnotationCategory category : allAnnotationCategories()) {
                 Annotation resolvedAnnotation;
@@ -651,54 +809,108 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
             return builder.build();
         }
 
-        private ImmutableSet<AnnotationCategory> allAnnotationCategories() {
-            return ImmutableSet.<AnnotationCategory>builder()
-                .addAll(declaredAnnotations.keySet())
-                .addAll(inheritedInterfaceAnnotations.keySet())
-                .addAll(inheritedSuperclassAnnotations.keySet())
-                .build();
-        }
-
-        private static final String CONFLICTING_ANNOTATIONS = "CONFLICTING_ANNOTATIONS";
-
         private Annotation resolveAnnotation(String source, AnnotationCategory category, Collection<Annotation> annotationsForCategory) {
-            Iterator<Annotation> iDeclaredAnnotationForCategory = annotationsForCategory.iterator();
+            Iterator<Annotation> declaredAnnotationForCategoryIterator = annotationsForCategory.iterator();
             // Ignore all but the first recorded annotation
-            Annotation declaredAnnotationForCategory = iDeclaredAnnotationForCategory.next();
-            if (iDeclaredAnnotationForCategory.hasNext()) {
-                visitPropertyProblem(problem ->
-                    problem
-                        .forProperty(propertyName)
-                        .id(TextUtil.screamingSnakeToKebabCase(CONFLICTING_ANNOTATIONS), StringUtils.capitalize(category.getDisplayName()) + " has conflicting annotation", GradleCoreProblemGroup.validation().property())
-                        .contextualLabel(
-                            String.format(
-                                "has conflicting %s annotations %s: %s",
-                                category.getDisplayName(),
-                                source,
-                                simpleAnnotationNames(annotationsForCategory.stream().map(Annotation::annotationType))
-                            )
-                        )
-                        .documentedAt(userManual("validation_problems", CONFLICTING_ANNOTATIONS.toLowerCase(Locale.ROOT)))
-                        .severity(ERROR)
-                        .details("The different annotations have different semantics and Gradle cannot determine which one to pick")
-                        .solution("Choose between one of the conflicting annotations")
-                );
+            Annotation declaredAnnotationForCategory = declaredAnnotationForCategoryIterator.next();
+            if (declaredAnnotationForCategoryIterator.hasNext()) {
+                handleConflictingAnnotation(source, category, annotationsForCategory);
             }
             return declaredAnnotationForCategory;
         }
 
-        public boolean hasAnnotation(Class<? extends Annotation> annotationType) {
-            Iterable<Annotation> allAnnotations = Iterables.concat(
-                declaredAnnotations.values(),
-                inheritedInterfaceAnnotations.values(),
-                inheritedSuperclassAnnotations.values()
-            );
-            for (Annotation annotation : allAnnotations) {
-                if (annotation.annotationType().equals(annotationType)) {
-                    return true;
+        abstract protected ImmutableMap<Class<? extends Annotation>, AnnotationCategory> geAnnotationCategories();
+
+        abstract protected void handleConflictingAnnotation(String source, AnnotationCategory category, Collection<Annotation> annotationsForCategory);
+    }
+
+    private class PropertyAnnotationMetadataBuilder extends HasAnnotationMetadataBuilder implements Comparable<PropertyAnnotationMetadataBuilder> {
+        private final String propertyName;
+
+        public PropertyAnnotationMetadataBuilder(String propertyName, Method getter, TypeValidationContext validationContext) {
+            super(getter, validationContext);
+            this.propertyName = propertyName;
+        }
+
+        public String getPropertyName() {
+            return propertyName;
+        }
+
+        @Override
+        protected ImmutableMap<Class<? extends Annotation>, AnnotationCategory> geAnnotationCategories() {
+            return propertyAnnotationCategories;
+        }
+
+        public PropertyAnnotationMetadata build() {
+            return new DefaultPropertyAnnotationMetadata(propertyName, getMethod(), resolveAnnotations());
+        }
+
+        private void visitPropertyProblem(Action<? super TypeAwareProblemBuilder> problemSpec) {
+            validationContext.visitPropertyProblem(problemSpec);
+        }
+
+        @Override
+        protected ImmutableMap<AnnotationCategory, Annotation> resolveAnnotations() {
+            // If method should be ignored, then ignore all other annotations
+            List<Annotation> declaredTypes = declaredAnnotations.get(TYPE);
+            for (Annotation declaredType : declaredTypes) {
+                Class<? extends Annotation> ignoredMethodAnnotation = declaredType.annotationType();
+                if (ignoredMethodAnnotations.contains(ignoredMethodAnnotation)) {
+                    if (declaredAnnotations.values().size() > 1 && ignoreAnnotationDisallowedModifiers(declaredAnnotations.values()).count() > 1) {
+                        handleAnnotatedIgnoredMethod(ignoredMethodAnnotation);
+                    }
+                    return ImmutableMap.of(TYPE, declaredType);
                 }
             }
-            return false;
+
+            return super.resolveAnnotations();
+        }
+
+        private Stream<Annotation> ignoreAnnotationDisallowedModifiers(Collection<Annotation> annotations) {
+            return annotations.stream().filter(annotation -> !ignoredMethodAnnotationsAllowedModifiers.contains(annotation.annotationType()));
+        }
+
+        private void handleAnnotatedIgnoredMethod(Class<? extends Annotation> ignoredMethodAnnotation) {
+            visitPropertyProblem(problem ->
+                problem
+                    .forProperty(propertyName)
+                    .id(TextUtil.screamingSnakeToKebabCase(IGNORED_PROPERTY_MUST_NOT_BE_ANNOTATED), "Has wrong combination of annotations", GradleCoreProblemGroup.validation().property())
+                    .contextualLabel(
+                        String.format(
+                            "annotated with @%s should not be also annotated with %s",
+                            ignoredMethodAnnotation.getSimpleName(),
+                            simpleAnnotationNames(ignoreAnnotationDisallowedModifiers(declaredAnnotations.values())
+                                .<Class<? extends Annotation>>map(Annotation::annotationType)
+                                .filter(annotationType -> !annotationType.equals(ignoredMethodAnnotation)))
+                        )
+                    )
+                    .documentedAt(userManual("validation_problems", IGNORED_PROPERTY_MUST_NOT_BE_ANNOTATED.toLowerCase(Locale.ROOT)))
+                    .severity(ERROR)
+                    .details("A property is ignored but also has input annotations")
+                    .solution("Remove the input annotations")
+                    .solution("Remove the @" + ignoredMethodAnnotation.getSimpleName() + " annotation")
+            );
+        }
+
+        @Override
+        protected void handleConflictingAnnotation(String source, AnnotationCategory category, Collection<Annotation> annotationsForCategory) {
+            visitPropertyProblem(problem ->
+                problem
+                    .forProperty(propertyName)
+                    .id(TextUtil.screamingSnakeToKebabCase(CONFLICTING_ANNOTATIONS), StringUtils.capitalize(category.getDisplayName()) + " has conflicting annotation", GradleCoreProblemGroup.validation().property())
+                    .contextualLabel(
+                        String.format(
+                            "has conflicting %s annotations %s: %s",
+                            category.getDisplayName(),
+                            source,
+                            simpleAnnotationNames(annotationsForCategory.stream().map(Annotation::annotationType))
+                        )
+                    )
+                    .documentedAt(userManual("validation_problems", CONFLICTING_ANNOTATIONS.toLowerCase(Locale.ROOT)))
+                    .severity(ERROR)
+                    .details("The different annotations have different semantics and Gradle cannot determine which one to pick")
+                    .solution("Choose between one of the conflicting annotations")
+            );
         }
 
         @Override
@@ -707,9 +919,55 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         }
     }
 
+    private class FunctionAnnotationMetadataBuilder extends HasAnnotationMetadataBuilder implements Comparable<FunctionAnnotationMetadataBuilder> {
+        public FunctionAnnotationMetadataBuilder(Method method, TypeValidationContext validationContext) {
+            super(method, validationContext);
+        }
+
+        @Override
+        protected ImmutableMap<Class<? extends Annotation>, AnnotationCategory> geAnnotationCategories() {
+            return functionAnnotationCategories;
+        }
+
+        public FunctionAnnotationMetadata build() {
+            return new DefaultFunctionAnnotationMetadata(getMethod(), resolveAnnotations());
+        }
+
+        private void visitFunctionProblem(Action<? super TypeAwareProblemBuilder> problemSpec) {
+            validationContext.visitTypeProblem(problemSpec);
+        }
+
+        @Override
+        protected void handleConflictingAnnotation(String source, AnnotationCategory category, Collection<Annotation> annotationsForCategory) {
+            visitFunctionProblem(problem ->
+                problem
+                    .forFunction(getMethod().getName())
+                    .id(TextUtil.screamingSnakeToKebabCase(CONFLICTING_ANNOTATIONS), StringUtils.capitalize(category.getDisplayName()) + " has conflicting annotation", GradleCoreProblemGroup.validation().type())
+                    .contextualLabel(
+                        String.format(
+                            "has conflicting %s annotations %s: %s",
+                            category.getDisplayName(),
+                            source,
+                            simpleAnnotationNames(annotationsForCategory.stream().map(Annotation::annotationType))
+                        )
+                    )
+                    .documentedAt(userManual("validation_problems", CONFLICTING_ANNOTATIONS.toLowerCase(Locale.ROOT)))
+                    .severity(ERROR)
+                    .details("The different annotations have different semantics and Gradle cannot determine which one to pick")
+                    .solution("Choose between one of the conflicting annotations")
+            );
+        }
+
+        @Override
+        public int compareTo(FunctionAnnotationMetadataBuilder o) {
+            return getMethod().getName().compareTo(o.getMethod().getName());
+        }
+    }
+
     private enum MethodKind {
         STATIC("static method"),
-        NON_PROPERTY("method"),
+        PROPERTY("property"),
+        FUNCTION("function"),
         SETTER("setter");
 
         private final String displayName;
@@ -720,6 +978,40 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
 
         public String getDisplayName() {
             return displayName;
+        }
+    }
+
+    private static class MethodSignature {
+        private final String name;
+        private final Class<?>[] parameterTypes;
+
+        public MethodSignature(String name, Class<?>[] parameterTypes) {
+            this.name = name;
+            this.parameterTypes = parameterTypes;
+        }
+
+        public static MethodSignature of(Method method) {
+            return new MethodSignature(method.getName(), method.getParameterTypes());
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            MethodSignature that = (MethodSignature) o;
+            return name.equals(that.name) && Arrays.equals(parameterTypes, that.parameterTypes);
+        }
+
+        @Override
+        public int hashCode() {
+            int result = name.hashCode();
+            result = 31 * result + Arrays.hashCode(parameterTypes);
+            return result;
         }
     }
 }

@@ -18,6 +18,7 @@ package org.gradle.language.base
 
 import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.StableConfigurationCacheDeprecations
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.platform.base.ApplicationSpec
 import org.gradle.platform.base.ComponentSpec
@@ -25,7 +26,14 @@ import org.gradle.platform.base.GeneralComponentSpec
 import org.gradle.platform.base.LibrarySpec
 
 @UnsupportedWithConfigurationCache(because = "software model")
-class BaseModelIntegrationTest extends AbstractIntegrationSpec {
+class BaseModelIntegrationTest extends AbstractIntegrationSpec implements StableConfigurationCacheDeprecations {
+
+    @Override
+    protected void setupExecuter() {
+        super.setupExecuter()
+        expectTaskGetProjectDeprecations()
+    }
+
     def "empty containers are visible in model report"() {
         buildFile << """
 apply plugin: 'component-model-base'

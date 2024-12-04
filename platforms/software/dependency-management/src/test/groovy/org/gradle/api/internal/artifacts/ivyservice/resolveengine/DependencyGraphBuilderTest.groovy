@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine
 
 import com.google.common.collect.ImmutableList
+import com.google.common.collect.ImmutableSet
 import org.gradle.api.Action
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.ModuleVersionIdentifier
@@ -36,7 +37,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionP
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultExcludeRuleConverter
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultLocalVariantMetadataBuilder
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultLocalVariantGraphResolveStateBuilder
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyMetadataFactory
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode
@@ -54,11 +55,15 @@ import org.gradle.internal.component.external.descriptor.DefaultExclude
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.ImmutableCapabilities
 import org.gradle.internal.component.local.model.DefaultLocalVariantGraphResolveMetadata
+import org.gradle.internal.component.local.model.DefaultLocalVariantGraphResolveState
 import org.gradle.internal.component.local.model.DslOriginDependencyMetadataWrapper
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata
+import org.gradle.internal.component.local.model.LocalComponentGraphResolveMetadata
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory
+import org.gradle.internal.component.local.model.LocalVariantMetadata
 import org.gradle.internal.component.local.model.PublishArtifactLocalArtifactMetadata
+import org.gradle.internal.component.model.ComponentConfigurationIdentifier
 import org.gradle.internal.component.model.ComponentGraphResolveState
 import org.gradle.internal.component.model.ComponentGraphSpecificResolveState
 import org.gradle.internal.component.model.ComponentIdGenerator
@@ -110,7 +115,7 @@ class DependencyGraphBuilderTest extends Specification {
             args[0].execute(queue)
         }
     }
-    def dependencySubstitutionApplicator = new DefaultDependencySubstitutionApplicator(DependencyManagementTestUtil.componentSelectionDescriptorFactory(), Mock(Action), TestUtil.instantiatorFactory().decorateScheme().instantiator())
+    def dependencySubstitutionApplicator = new DefaultDependencySubstitutionApplicator(DependencyManagementTestUtil.componentSelectionDescriptorFactory(), Mock(Action), TestUtil.instantiatorFactory())
     def componentSelectorConverter = Mock(ComponentSelectorConverter) {
         getModule(_) >> { ComponentSelector selector ->
             DefaultModuleIdentifier.newId(selector.group, selector.module)
@@ -123,11 +128,13 @@ class DependencyGraphBuilderTest extends Specification {
     def resolveStateFactory = new LocalComponentGraphResolveStateFactory(
         desugaring,
         new ComponentIdGenerator(),
-        new DefaultLocalVariantMetadataBuilder(
+        new DefaultLocalVariantGraphResolveStateBuilder(
+            new ComponentIdGenerator(),
             Mock(DependencyMetadataFactory),
             new DefaultExcludeRuleConverter(new DefaultImmutableModuleIdentifierFactory())
         ),
-        TestUtil.calculatedValueContainerFactory()
+        TestUtil.calculatedValueContainerFactory(),
+        TestUtil.inMemoryCacheFactory()
     )
 
     def variantSelector = new GraphVariantSelector(AttributeTestUtil.services(), DependencyManagementTestUtil.newFailureHandler())
@@ -149,8 +156,6 @@ class DependencyGraphBuilderTest extends Specification {
     def rootComponent = Stub(RootComponentMetadataBuilder.RootComponentState) {
         getRootComponent() >> root
         getRootVariant() >> root.getConfigurationLegacy('root')
-        getComponentIdentifier() >> root.id
-        getModuleVersionIdentifier() >> root.moduleVersionId
         getAttributesSchema() >> attributesSchema
     }
 
@@ -1066,7 +1071,14 @@ class DependencyGraphBuilderTest extends Specification {
 
         def artifacts = [new PublishArtifactLocalArtifactMetadata(componentId, new DefaultPublishArtifact("art1", "zip", "art", null, new Date(), new File("art1.zip")))]
         def defaultVariant = createVariantMetadata("default", componentId, [], artifacts)
-        resolveStateFactory.realizedStateFor(componentId, id, "release", attributesSchema, [defaultVariant])
+        def metadata = new LocalComponentGraphResolveMetadata(
+            id,
+            componentId,
+            "release",
+            attributesSchema
+        )
+
+        resolveStateFactory.realizedStateFor(metadata, [defaultVariant])
     }
 
     LocalComponentGraphResolveState rootProject() {
@@ -1075,26 +1087,43 @@ class DependencyGraphBuilderTest extends Specification {
 
         def artifacts = [new PublishArtifactLocalArtifactMetadata(componentId, new DefaultPublishArtifact("art1", "zip", "art", null, new Date(), new File("art1.zip")))]
         def defaultVariant = createVariantMetadata("default", componentId, [], artifacts)
-
         def rootVariant = createVariantMetadata("root", componentId, defaultVariant.getDependencies(), [])
-        resolveStateFactory.realizedStateFor(componentId, newId("group", "root", "1.0"), "release", attributesSchema, [defaultVariant, rootVariant])
+
+        def metadata = new LocalComponentGraphResolveMetadata(
+            newId("group", "root", "1.0"),
+            componentId,
+            "release",
+            attributesSchema
+        )
+
+        resolveStateFactory.realizedStateFor(metadata, [defaultVariant, rootVariant])
     }
 
     def createVariantMetadata(String name, ComponentIdentifier componentId, List<LocalOriginDependencyMetadata> dependencies, List<LocalComponentArtifactMetadata> artifacts) {
-        CalculatedValue<DefaultLocalVariantGraphResolveMetadata.VariantDependencyMetadata> dependencyMetadata =
-            TestUtil.calculatedValueContainerFactory().create(Describables.of(name, "dependencies"),
-                new DefaultLocalVariantGraphResolveMetadata.VariantDependencyMetadata(dependencies, [] as Set, [])
-            )
+        def dependencyMetadata = new DefaultLocalVariantGraphResolveState.VariantDependencyMetadata(dependencies, [] as Set, [])
 
         CalculatedValue<ImmutableList<LocalComponentArtifactMetadata>> artifactMetadata =
             TestUtil.calculatedValueContainerFactory().create(Describables.of(name, "artifacts"),
                 ImmutableList.copyOf(artifacts)
             )
 
-        return new DefaultLocalVariantGraphResolveMetadata(
-            name, name, componentId, true, attributes, ImmutableCapabilities.EMPTY,
-            false, dependencyMetadata,
-            [] as Set, TestUtil.calculatedValueContainerFactory(), artifactMetadata
+        def artifactSets = ImmutableSet.of(
+            new LocalVariantMetadata(
+                name,
+                new ComponentConfigurationIdentifier(componentId, name),
+                Describables.of(name),
+                attributes,
+                ImmutableCapabilities.EMPTY,
+                artifactMetadata
+            )
+        )
+
+        def metadata = new DefaultLocalVariantGraphResolveMetadata(
+            name, true, attributes, ImmutableCapabilities.EMPTY, false
+        )
+
+        return resolveStateFactory.realizedVariantStateFor(
+            componentId, metadata, dependencyMetadata, artifactSets
         )
     }
 
@@ -1162,7 +1191,7 @@ class DependencyGraphBuilderTest extends Specification {
         dependencyMetaData = new DslOriginDependencyMetadataWrapper(dependencyMetaData, Stub(ModuleDependency) {
             getAttributes() >> ImmutableAttributes.EMPTY
         })
-        from.candidatesForGraphVariantSelection.getVariantByConfigurationName("default").metadata.dependencies.add(dependencyMetaData)
+        from.candidatesForGraphVariantSelection.getVariantByConfigurationName("default").dependencies.add(dependencyMetaData)
         return dependencyMetaData
     }
 

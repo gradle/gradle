@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,49 +15,27 @@
  */
 package org.gradle.process.internal;
 
-import org.apache.commons.lang.StringUtils;
-import org.gradle.initialization.BuildCancellationToken;
-import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.process.BaseExecSpec;
-import org.gradle.process.internal.streams.EmptyStdInStreamsHandler;
-import org.gradle.process.internal.streams.ForwardStdinStreamsHandler;
-import org.gradle.process.internal.streams.OutputStreamsForwarder;
-import org.gradle.process.internal.streams.SafeStreams;
 
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Executor;
 
-public abstract class AbstractExecHandleBuilder extends DefaultProcessForkOptions implements BaseExecSpec {
-    private static final EmptyStdInStreamsHandler DEFAULT_STDIN = new EmptyStdInStreamsHandler();
-    private final BuildCancellationToken buildCancellationToken;
-    private final List<ExecHandleListener> listeners = new ArrayList<>();
-    private final ProcessStreamsSpec streamsSpec = new ProcessStreamsSpec();
-    private StreamsHandler inputHandler = DEFAULT_STDIN;
-    private String displayName;
+/**
+ * Deprecated. Will be removed in Gradle 9.0. Kept for now it's subclass is used by the Kotlin plugin.
+ */
+@Deprecated
+public abstract class AbstractExecHandleBuilder implements BaseExecSpec {
+
+    protected final ClientExecHandleBuilder delegate;
     private boolean ignoreExitValue;
-    private boolean redirectErrorStream;
-    private StreamsHandler streamsHandler;
-    private int timeoutMillis = Integer.MAX_VALUE;
-    protected boolean daemon;
-    private final Executor executor;
 
-    AbstractExecHandleBuilder(PathToFileResolver fileResolver, Executor executor, BuildCancellationToken buildCancellationToken) {
-        super(fileResolver);
-        this.buildCancellationToken = buildCancellationToken;
-        this.executor = executor;
-        streamsSpec.setStandardOutput(SafeStreams.systemOut());
-        streamsSpec.setErrorOutput(SafeStreams.systemErr());
-        streamsSpec.setStandardInput(SafeStreams.emptyInput());
+    AbstractExecHandleBuilder(ClientExecHandleBuilder delegate) {
+        this.delegate = delegate;
     }
 
     public abstract List<String> getAllArguments();
-
-    protected List<String> getEffectiveArguments() {
-        return getAllArguments();
-    }
 
     @Override
     public List<String> getCommandLine() {
@@ -69,40 +47,35 @@ public abstract class AbstractExecHandleBuilder extends DefaultProcessForkOption
 
     @Override
     public AbstractExecHandleBuilder setStandardInput(InputStream inputStream) {
-        streamsSpec.setStandardInput(inputStream);
-        this.inputHandler = new ForwardStdinStreamsHandler(inputStream);
+        delegate.setStandardInput(inputStream);
         return this;
-    }
-
-    public StreamsHandler getInputHandler() {
-        return inputHandler;
     }
 
     @Override
     public InputStream getStandardInput() {
-        return streamsSpec.getStandardInput();
+        return delegate.getStandardInput();
     }
 
     @Override
     public AbstractExecHandleBuilder setStandardOutput(OutputStream outputStream) {
-        streamsSpec.setStandardOutput(outputStream);
+        delegate.setStandardOutput(outputStream);
         return this;
     }
 
     @Override
     public OutputStream getStandardOutput() {
-        return streamsSpec.getStandardOutput();
+        return delegate.getStandardOutput();
     }
 
     @Override
     public AbstractExecHandleBuilder setErrorOutput(OutputStream outputStream) {
-        streamsSpec.setErrorOutput(outputStream);
+        delegate.setErrorOutput(outputStream);
         return this;
     }
 
     @Override
     public OutputStream getErrorOutput() {
-        return streamsSpec.getErrorOutput();
+        return delegate.getErrorOutput();
     }
 
     @Override
@@ -116,44 +89,18 @@ public abstract class AbstractExecHandleBuilder extends DefaultProcessForkOption
         return this;
     }
 
-    public String getDisplayName() {
-        return displayName == null ? String.format("command '%s'", getExecutable()) : displayName;
-    }
-
     public AbstractExecHandleBuilder setDisplayName(String displayName) {
-        this.displayName = displayName;
+        delegate.setDisplayName(displayName);
         return this;
     }
 
     public AbstractExecHandleBuilder listener(ExecHandleListener listener) {
-        this.listeners.add(listener);
+        delegate.listener(listener);
         return this;
     }
 
-    public ExecHandle build() {
-        String executable = getExecutable();
-        if (StringUtils.isEmpty(executable)) {
-            throw new IllegalStateException("execCommand == null!");
-        }
-
-        StreamsHandler effectiveOutputHandler = getEffectiveStreamsHandler();
-        return new DefaultExecHandle(getDisplayName(), getWorkingDir(), executable, getEffectiveArguments(), getActualEnvironment(),
-            effectiveOutputHandler, inputHandler, listeners, redirectErrorStream, timeoutMillis, daemon, executor, buildCancellationToken);
-    }
-
-    private StreamsHandler getEffectiveStreamsHandler() {
-        StreamsHandler effectiveHandler;
-        if (this.streamsHandler != null) {
-            effectiveHandler = this.streamsHandler;
-        } else {
-            boolean shouldReadErrorStream = !redirectErrorStream;
-            effectiveHandler = new OutputStreamsForwarder(streamsSpec.getStandardOutput(), streamsSpec.getErrorOutput(), shouldReadErrorStream);
-        }
-        return effectiveHandler;
-    }
-
     public AbstractExecHandleBuilder streamsHandler(StreamsHandler streamsHandler) {
-        this.streamsHandler = streamsHandler;
+        delegate.streamsHandler(streamsHandler);
         return this;
     }
 
@@ -161,12 +108,16 @@ public abstract class AbstractExecHandleBuilder extends DefaultProcessForkOption
      * Merge the process' error stream into its output stream
      */
     public AbstractExecHandleBuilder redirectErrorStream() {
-        this.redirectErrorStream = true;
+        delegate.redirectErrorStream();
         return this;
     }
 
     public AbstractExecHandleBuilder setTimeout(int timeoutMillis) {
-        this.timeoutMillis = timeoutMillis;
+        delegate.setTimeout(timeoutMillis);
         return this;
+    }
+
+    public ExecHandle build() {
+        return delegate.build();
     }
 }

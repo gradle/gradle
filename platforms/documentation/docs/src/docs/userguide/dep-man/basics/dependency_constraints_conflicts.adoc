@@ -50,8 +50,8 @@ You can resolve conflicts manually by specifying which capability to use in the 
 
 [source,kotlin]
 ----
-configurations.all {
-    resolutionStrategy.capabilitiesResolution.withCapability("com.example.logging") {
+configurations.configureEach {
+    resolutionStrategy.capabilitiesResolution.withCapability("com.example:logging") {
         selectHighestVersion()
     }
 }

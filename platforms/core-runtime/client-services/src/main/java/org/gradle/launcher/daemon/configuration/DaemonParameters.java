@@ -27,7 +27,6 @@ import org.gradle.jvm.toolchain.internal.DefaultJavaLanguageVersion;
 import org.gradle.jvm.toolchain.internal.DefaultJvmVendorSpec;
 import org.gradle.jvm.toolchain.internal.DefaultToolchainConfiguration;
 import org.gradle.jvm.toolchain.internal.ToolchainConfiguration;
-import org.gradle.launcher.configuration.BuildLayoutResult;
 import org.gradle.launcher.daemon.context.DaemonRequestContext;
 import org.gradle.launcher.daemon.toolchain.DaemonJvmCriteria;
 import org.gradle.process.internal.JvmOptions;
@@ -67,19 +66,19 @@ public class DaemonParameters {
     private DaemonPriority priority = DaemonPriority.NORMAL;
     private DaemonJvmCriteria requestedJvmCriteria = new DaemonJvmCriteria.LauncherJvm();
 
-    public DaemonParameters(BuildLayoutResult layout, FileCollectionFactory fileCollectionFactory) {
-        this(layout, fileCollectionFactory, Collections.<String, String>emptyMap());
+    public DaemonParameters(File gradleUserHomeDir, FileCollectionFactory fileCollectionFactory) {
+        this(gradleUserHomeDir, fileCollectionFactory, Collections.<String, String>emptyMap());
     }
 
-    public DaemonParameters(BuildLayoutResult layout, FileCollectionFactory fileCollectionFactory, Map<String, String> extraSystemProperties) {
-        jvmOptions = new JvmOptions(fileCollectionFactory);
+    public DaemonParameters(File gradleUserHomeDir, FileCollectionFactory fileCollectionFactory, Map<String, String> extraSystemProperties) {
+        this.jvmOptions = new JvmOptions(fileCollectionFactory);
         if (!extraSystemProperties.isEmpty()) {
             jvmOptions.systemProperties(extraSystemProperties);
         }
         jvmOptions.jvmArgs(DEFAULT_JVM_ARGS);
-        baseDir = new File(layout.getGradleUserHomeDir(), "daemon");
-        gradleUserHomeDir = layout.getGradleUserHomeDir();
-        envVariables = new HashMap<>(System.getenv());
+        this.gradleUserHomeDir = gradleUserHomeDir;
+        this.baseDir = new File(gradleUserHomeDir, "daemon");
+        this.envVariables = new HashMap<>(System.getenv());
     }
 
     public DaemonRequestContext toRequestContext() {
@@ -196,19 +195,19 @@ public class DaemonParameters {
     }
 
     public void setDebugPort(int debug) {
-        jvmOptions.getDebugOptions().getPort().set(debug);
+        jvmOptions.getDebugSpec().setPort(debug);
     }
 
     public void setDebugHost(String host) {
-        jvmOptions.getDebugOptions().getHost().set(host);
+        jvmOptions.getDebugSpec().setHost(host);
     }
 
     public void setDebugSuspend(boolean suspend) {
-        jvmOptions.getDebugOptions().getSuspend().set(suspend);
+        jvmOptions.getDebugSpec().setSuspend(suspend);
     }
 
     public void setDebugServer(boolean server) {
-        jvmOptions.getDebugOptions().getServer().set(server);
+        jvmOptions.getDebugSpec().setServer(server);
     }
 
     public DaemonParameters setBaseDir(File baseDir) {

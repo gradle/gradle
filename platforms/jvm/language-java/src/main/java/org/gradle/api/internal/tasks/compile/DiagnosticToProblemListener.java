@@ -40,7 +40,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -53,13 +52,11 @@ import static javax.tools.Diagnostic.NOPOS;
 // We don't need this wrapping feature, hence the trusted annotation.
 @ClientCodeWrapper.Trusted
 public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileObject> {
-
     public static final String FORMATTER_FALLBACK_MESSAGE = "Failed to format diagnostic message, falling back to default message formatting";
-
     private static final Logger LOGGER = Logging.getLogger(DiagnosticToProblemListener.class);
 
+    private final Context context;
     private final InternalProblemReporter problemReporter;
-    private final Function<Diagnostic<? extends JavaFileObject>, String> messageFormatter;
     private final List<Problem> problemsReported = new ArrayList<>();
 
     private int errorCount = 0;
@@ -67,16 +64,7 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
 
     public DiagnosticToProblemListener(InternalProblemReporter problemReporter, Context context) {
         this.problemReporter = problemReporter;
-        this.messageFormatter = diagnostic -> {
-            try {
-                DiagnosticFormatter<JCDiagnostic> formatter = Log.instance(context).getDiagnosticFormatter();
-                return formatter.format((JCDiagnostic) diagnostic, JavacMessages.instance(context).getCurrentLocale());
-            } catch (Exception ex) {
-                // If for some reason the formatter fails, we can still get the message
-                LOGGER.info(FORMATTER_FALLBACK_MESSAGE);
-                return diagnostic.getMessage(Locale.getDefault());
-            }
-        };
+        this.context = context;
     }
 
     @Override
@@ -95,7 +83,6 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
 
         Problem reportedProblem = problemReporter.create(spec -> buildProblem(diagnostic, spec));
         problemsReported.add(reportedProblem);
-        problemReporter.report(reportedProblem);
     }
 
     /**
@@ -183,7 +170,7 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
     }
 
     private void addFormattedMessage(ProblemSpec spec, Diagnostic<? extends JavaFileObject> diagnostic) {
-        String formatted = messageFormatter.apply(diagnostic);
+        String formatted = toFormattedMessage(diagnostic);
         System.err.println(formatted);
         spec.details(formatted);
     }
@@ -233,6 +220,17 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
                     spec.fileLocation(resourceName);
                 }
 
+        }
+    }
+
+    private String toFormattedMessage(Diagnostic<? extends JavaFileObject> diagnostic) {
+        try {
+            DiagnosticFormatter<JCDiagnostic> formatter = Log.instance(context).getDiagnosticFormatter();
+            return formatter.format((JCDiagnostic) diagnostic, JavacMessages.instance(context).getCurrentLocale());
+        } catch (Exception ex) {
+            // If for some reason the formatter fails, we can still get the message
+            LOGGER.info(FORMATTER_FALLBACK_MESSAGE);
+            return diagnostic.getMessage(Locale.getDefault());
         }
     }
 

@@ -18,6 +18,7 @@ package org.gradle.api.internal.provider;
 
 import org.gradle.api.Transformer;
 import org.gradle.api.provider.Provider;
+import org.gradle.internal.evaluation.EvaluationScopeContext;
 
 import javax.annotation.Nullable;
 
@@ -38,14 +39,14 @@ public class FlatMapProvider<S, T> extends AbstractMinimalProvider<S> {
 
     @Override
     public boolean calculatePresence(ValueConsumer consumer) {
-        try (EvaluationContext.ScopeContext context = openScope()) {
+        try (EvaluationScopeContext context = openScope()) {
             return backingProvider(context, consumer).calculatePresence(consumer);
         }
     }
 
     @Override
     protected Value<? extends S> calculateOwnValue(ValueConsumer consumer) {
-        try (EvaluationContext.ScopeContext context = openScope()) {
+        try (EvaluationScopeContext context = openScope()) {
             Value<? extends T> value = provider.calculateValue(consumer);
             if (value.isMissing()) {
                 return value.asType();
@@ -54,7 +55,7 @@ public class FlatMapProvider<S, T> extends AbstractMinimalProvider<S> {
         }
     }
 
-    private ProviderInternal<? extends S> doMapValue(@SuppressWarnings("unused") EvaluationContext.ScopeContext context, Value<? extends T> value) {
+    private ProviderInternal<? extends S> doMapValue(@SuppressWarnings("unused") EvaluationScopeContext context, Value<? extends T> value) {
         T unpackedValue = value.getWithoutSideEffect();
         Provider<? extends S> transformedProvider = transformer.transform(unpackedValue);
         if (transformedProvider == null) {
@@ -68,7 +69,7 @@ public class FlatMapProvider<S, T> extends AbstractMinimalProvider<S> {
         return Providers.internal(transformedProvider).withSideEffect(SideEffect.fixedFrom(value));
     }
 
-    private ProviderInternal<? extends S> backingProvider(EvaluationContext.ScopeContext context, ValueConsumer consumer) {
+    private ProviderInternal<? extends S> backingProvider(EvaluationScopeContext context, ValueConsumer consumer) {
         Value<? extends T> value = provider.calculateValue(consumer);
         if (value.isMissing()) {
             return Providers.notDefined();
@@ -78,14 +79,14 @@ public class FlatMapProvider<S, T> extends AbstractMinimalProvider<S> {
 
     @Override
     public ValueProducer getProducer() {
-        try (EvaluationContext.ScopeContext context = openScope()) {
+        try (EvaluationScopeContext context = openScope()) {
             return backingProvider(context, ValueConsumer.IgnoreUnsafeRead).getProducer();
         }
     }
 
     @Override
     public ExecutionTimeValue<? extends S> calculateExecutionTimeValue() {
-        try (EvaluationContext.ScopeContext context = openScope()) {
+        try (EvaluationScopeContext context = openScope()) {
             return backingProvider(context, ValueConsumer.IgnoreUnsafeRead).calculateExecutionTimeValue();
         }
     }

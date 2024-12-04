@@ -17,9 +17,9 @@
 package org.gradle.internal.cc.impl
 
 import org.gradle.api.credentials.PasswordCredentials
-import org.gradle.internal.credentials.DefaultPasswordCredentials
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
+import org.gradle.util.TestCredentialUtil
 import org.gradle.util.internal.GUtil
 import org.junit.Rule
 import spock.lang.Ignore
@@ -70,7 +70,7 @@ class ConfigurationCacheMavenPublishIntegrationTest extends AbstractConfiguratio
                 configurations { implementation }
             }
 
-            def testAttributes = project.services.get(ImmutableAttributesFactory)
+            def testAttributes = project.services.get(AttributesFactory)
                  .mutable()
                  .attribute(Attribute.of('foo', String), 'value')
         """
@@ -87,7 +87,7 @@ class ConfigurationCacheMavenPublishIntegrationTest extends AbstractConfiguratio
         !GUtil.isSecureUrl(server.uri)
 
         when:
-        prepareMavenHttpRepository(projectConfig.remoteRepo, new DefaultPasswordCredentials(username, password))
+        prepareMavenHttpRepository(projectConfig.remoteRepo, TestCredentialUtil.defaultPasswordCredentials(username, password))
         configurationCacheRun(*(projectConfig.tasks))
         server.resetExpectations()
 
@@ -101,7 +101,7 @@ class ConfigurationCacheMavenPublishIntegrationTest extends AbstractConfiguratio
         metadataFile.delete()
         deleteDirectory(mavenRepo.rootDir)
 
-        prepareMavenHttpRepository(projectConfig.remoteRepo, new DefaultPasswordCredentials(username, password))
+        prepareMavenHttpRepository(projectConfig.remoteRepo, TestCredentialUtil.defaultPasswordCredentials(username, password))
         configurationCacheRun(*(projectConfig.tasks))
         server.resetExpectations()
 
@@ -126,9 +126,9 @@ class ConfigurationCacheMavenPublishIntegrationTest extends AbstractConfiguratio
         buildFile buildFileConfiguration("""
             repositories {
                 maven {
-                    name "${repositoryName}"
-                    url "${remoteRepo.uri}"
-                    allowInsecureProtocol true
+                    name = "${repositoryName}"
+                    url = "${remoteRepo.uri}"
+                    allowInsecureProtocol = true
                     // no credentials
                 }
             }
@@ -182,7 +182,7 @@ class ConfigurationCacheMavenPublishIntegrationTest extends AbstractConfiguratio
         def configurationCache = newConfigurationCacheFixture()
 
         when:
-        prepareMavenHttpRepository(projectConfig.remoteRepo, new DefaultPasswordCredentials(username, password))
+        prepareMavenHttpRepository(projectConfig.remoteRepo, TestCredentialUtil.defaultPasswordCredentials(username, password))
         configurationCacheFails(*(projectConfig.tasks))
         server.resetExpectations()
 
@@ -204,7 +204,7 @@ class ConfigurationCacheMavenPublishIntegrationTest extends AbstractConfiguratio
         def configurationCache = newConfigurationCacheFixture()
 
         when:
-        prepareMavenHttpRepository(projectConfig.remoteRepo, new DefaultPasswordCredentials(username, password))
+        prepareMavenHttpRepository(projectConfig.remoteRepo, TestCredentialUtil.defaultPasswordCredentials(username, password))
         configurationCacheFails(*(projectConfig.tasks))
         server.resetExpectations()
 
@@ -220,7 +220,7 @@ class ConfigurationCacheMavenPublishIntegrationTest extends AbstractConfiguratio
         settingsFile "rootProject.name = 'root'"
         buildFile buildFileConfiguration("""
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
         """)
         def configurationCache = newConfigurationCacheFixture()
@@ -310,8 +310,8 @@ class ConfigurationCacheMavenPublishIntegrationTest extends AbstractConfiguratio
         if (inlinedCredentials) {
             credentialsBlock = """
                 credentials {
-                    username '${username}'
-                    password '${password}'
+                    username = '${username}'
+                    password = '${password}'
                 }
             """
         } else {
@@ -321,9 +321,9 @@ class ConfigurationCacheMavenPublishIntegrationTest extends AbstractConfiguratio
         buildFile buildFileConfiguration("""
             repositories {
                 maven {
-                    name "${repositoryName}"
-                    url "${remoteRepo.uri}"
-                    allowInsecureProtocol true
+                    name = "${repositoryName}"
+                    url = "${remoteRepo.uri}"
+                    allowInsecureProtocol = true
                     ${credentialsBlock}
                 }
             }

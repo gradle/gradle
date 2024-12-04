@@ -21,6 +21,7 @@ import org.gradle.api.Describable
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentSelector
+import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.Expiry
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ChangingValueDependencyResolutionListener
 import org.gradle.api.internal.file.FileCollectionFactory
@@ -44,6 +45,8 @@ import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.groovy.scripts.internal.ScriptSourceListener
+import org.gradle.initialization.buildsrc.BuildSrcDetector
+import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildoption.FeatureFlag
 import org.gradle.internal.buildoption.FeatureFlagListener
 import org.gradle.internal.cc.base.services.ConfigurationCacheEnvironmentChangeTracker
@@ -95,6 +98,7 @@ class ConfigurationCacheFingerprintWriter(
     private val workExecutionTracker: WorkExecutionTracker,
     private val environmentChangeTracker: ConfigurationCacheEnvironmentChangeTracker,
     private val inputTrackingState: InputTrackingState,
+    private val buildStateRegistry: BuildStateRegistry,
 ) : ValueSourceProviderFactory.ValueListener,
     ValueSourceProviderFactory.ComputationListener,
     WorkInputListener,
@@ -119,7 +123,7 @@ class ConfigurationCacheFingerprintWriter(
         val buildStartTime: Long
         val cacheIntermediateModels: Boolean
         val modelAsProjectDependency: Boolean
-        val ignoreInputsInConfigurationCacheTaskGraphWriting: Boolean
+        val ignoreInputsDuringConfigurationCacheStore: Boolean
         val instrumentationAgentUsed: Boolean
         val ignoredFileSystemCheckInputs: String?
         fun fingerprintOf(fileCollection: FileCollectionInternal): HashCode
@@ -183,7 +187,7 @@ class ConfigurationCacheFingerprintWriter(
                 host.gradleUserHomeDir,
                 jvmFingerprint(),
                 host.startParameterProperties,
-                host.ignoreInputsInConfigurationCacheTaskGraphWriting,
+                host.ignoreInputsDuringConfigurationCacheStore,
                 host.instrumentationAgentUsed,
                 host.ignoredFileSystemCheckInputs
             )
@@ -197,11 +201,21 @@ class ConfigurationCacheFingerprintWriter(
      */
     fun close() {
         synchronized(this) {
+            captureBuildSrcPresence()
             closestChangingValue?.let {
                 buildScopedSink.write(it)
             }
         }
         CompositeStoppable.stoppable(buildScopedWriter, projectScopedWriter).stop()
+    }
+
+    private
+    fun captureBuildSrcPresence() {
+        buildStateRegistry.visitBuilds { buildState ->
+            val candidateBuildSrc = File(buildState.buildRootDir, SettingsInternal.BUILD_SRC)
+            val valid = BuildSrcDetector.isValidBuildSrcBuild(candidateBuildSrc)
+            buildScopedSink.write(ConfigurationCacheFingerprint.BuildSrcCandidate(candidateBuildSrc, valid))
+        }
     }
 
     override fun scriptSourceObserved(scriptSource: ScriptSource) {

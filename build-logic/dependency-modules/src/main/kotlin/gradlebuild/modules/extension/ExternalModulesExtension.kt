@@ -23,9 +23,9 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val groovyVersion = if (isBundleGroovy4) "4.0.22" else "3.0.22"
     val groovyGroup = if (isBundleGroovy4) "org.apache.groovy" else "org.codehaus.groovy"
 
-    val configurationCacheReportVersion = "1.22"
+    val configurationCacheReportVersion = "1.23"
     val gradleIdeStarterVersion = "0.3"
-    val kotlinVersion = "2.0.20"
+    val kotlinVersion = "2.0.21"
 
     fun futureKotlin(module: String) = "org.jetbrains.kotlin:kotlin-$module:$kotlinVersion"
 
@@ -66,6 +66,7 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val googleHttpClientApacheV2 = "com.google.http-client:google-http-client-apache-v2"
     val googleHttpClientGson = "com.google.http-client:google-http-client-gson"
     val googleOauthClient = "com.google.oauth-client:google-oauth-client"
+    val gradleFileEvents = "org.gradle.fileevents:gradle-fileevents"
     val gradleIdeStarter = "org.gradle.buildtool.internal:gradle-ide-starter:$gradleIdeStarterVersion"
     val gradleProfiler = "org.gradle.profiler:gradle-profiler"
     val groovy = "$groovyGroup:groovy"
@@ -92,6 +93,8 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val jacksonAnnotations = "com.fasterxml.jackson.core:jackson-annotations"
     val jacksonCore = "com.fasterxml.jackson.core:jackson-core"
     val jacksonDatabind = "com.fasterxml.jackson.core:jackson-databind"
+    val jacksonDatatypeJdk8 = "com.fasterxml.jackson.datatype:jackson-datatype-jdk8"
+    val jacksonDatatypeJsr310 = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
     val jakartaActivation = "com.sun.activation:jakarta.activation"
     val jakartaXmlBind = "jakarta.xml.bind:jakarta.xml.bind-api"
     val jansi = "org.fusesource.jansi:jansi"
@@ -139,7 +142,6 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val mavenResolverTransportHttp = "org.apache.maven.resolver:maven-resolver-transport-http"
     val minlog = "com.esotericsoftware.minlog:minlog"
     val nativePlatform = "net.rubygrapefruit:native-platform"
-    val nativePlatformFileEvents = "net.rubygrapefruit:file-events"
     val objenesis = "org.objenesis:objenesis"
     val plexusCipher = "org.sonatype.plexus:plexus-cipher"
     val plexusClassworlds = "org.codehaus.plexus:plexus-classworlds"
@@ -249,6 +251,7 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
         googleHttpClientGson to License.Apache2,
         googleHttpClientApacheV2 to License.Apache2,
         googleOauthClient to License.Apache2,
+        gradleFileEvents to License.Apache2,
         gradleIdeStarter to License.Apache2,
         gradleProfiler to License.Apache2,
         groovy to License.Apache2,
@@ -265,6 +268,8 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
         jacksonAnnotations to License.Apache2,
         jacksonCore to License.Apache2,
         jacksonDatabind to License.Apache2,
+        jacksonDatatypeJdk8 to License.Apache2,
+        jacksonDatatypeJsr310 to License.Apache2,
         jakartaActivation to License.EDL,
         jakartaXmlBind to License.EDL,
         jansi to License.Apache2,
@@ -303,7 +308,6 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
         mavenResolverTransportHttp to License.Apache2,
         minlog to License.BSD3,
         nativePlatform to License.Apache2,
-        nativePlatformFileEvents to License.Apache2,
         objenesis to License.Apache2,
         plexusCipher to License.Apache2,
         plexusInterpolation to License.Apache2,

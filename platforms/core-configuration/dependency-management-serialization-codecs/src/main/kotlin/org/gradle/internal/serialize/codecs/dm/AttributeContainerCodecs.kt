@@ -20,7 +20,7 @@ import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.AttributeContainer
 import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.api.internal.attributes.ImmutableAttributes
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory
+import org.gradle.api.internal.attributes.AttributesFactory
 import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.ReadContext
@@ -35,7 +35,7 @@ import org.gradle.internal.state.ManagedFactoryRegistry
 
 
 class AttributeContainerCodec(
-    private val attributesFactory: ImmutableAttributesFactory,
+    private val attributesFactory: AttributesFactory,
     private val managedFactories: ManagedFactoryRegistry
 ) : Codec<AttributeContainer> {
 
@@ -49,7 +49,7 @@ class AttributeContainerCodec(
 
 
 class ImmutableAttributesCodec(
-    private val attributesFactory: ImmutableAttributesFactory,
+    private val attributesFactory: AttributesFactory,
     private val managedFactories: ManagedFactoryRegistry
 ) : Codec<ImmutableAttributes> {
 
@@ -78,7 +78,7 @@ suspend fun WriteContext.writeAttributes(container: AttributeContainer) {
 
 private
 suspend fun ReadContext.readAttributesUsing(
-    attributesFactory: ImmutableAttributesFactory,
+    attributesFactory: AttributesFactory,
     managedFactories: ManagedFactoryRegistry
 ): AttributeContainerInternal =
     attributesFactory.mutable().apply {

@@ -27,15 +27,15 @@ class AliasedArtifactResolutionIntegrationTest extends AbstractHttpDependencyRes
         buildFile << """
             repositories {
                 if (project.hasProperty('mavenRepository1')) {
-                    maven { url '${mavenRepo1.uri}' }
+                    maven { url = '${mavenRepo1.uri}' }
                 } else if (project.hasProperty('mavenRepository2')) {
-                    maven { url '${mavenRepo2.uri}' }
+                    maven { url = '${mavenRepo2.uri}' }
                 } else if (project.hasProperty('ivyRepository1')) {
-                    ivy { url '${ivyRepo1.uri}' }
+                    ivy { url = "${ivyRepo1.uri}" }
                 } else if (project.hasProperty('ivyRepository2')) {
-                    ivy { url '${ivyRepo2.uri}' }
+                    ivy { url = "${ivyRepo2.uri}" }
                 } else if (project.hasProperty('fileRepository')) {
-                    maven { url '${mavenRepo.uri}' }
+                    maven { url = '${mavenRepo.uri}' }
                 }
             }
             configurations { compile }

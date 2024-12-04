@@ -19,6 +19,8 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Describable;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.internal.artifacts.transform.ResolvedVariantTransformer;
+import org.gradle.api.internal.artifacts.transform.VariantDefinition;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.internal.Describables;
@@ -32,11 +34,22 @@ public class DefaultResolvedVariantSet implements ResolvedVariantSet {
     private final ImmutableAttributes selectionAttributes;
     private final ImmutableList<ResolvedVariant> variants;
 
-    public DefaultResolvedVariantSet(ComponentIdentifier componentIdentifier, ImmutableAttributesSchema schema, ImmutableAttributes selectionAttributes, ImmutableList<ResolvedVariant> variants) {
+    // Services
+    private final ResolvedVariantTransformer transformer;
+
+    public DefaultResolvedVariantSet(
+        ComponentIdentifier componentIdentifier,
+        ImmutableAttributesSchema schema,
+        ImmutableAttributes selectionAttributes,
+        ImmutableList<ResolvedVariant> variants,
+        ResolvedVariantTransformer transformer
+    ) {
         this.componentIdentifier = componentIdentifier;
         this.schema = schema;
         this.selectionAttributes = selectionAttributes;
         this.variants = variants;
+
+        this.transformer = transformer;
     }
 
     @Override
@@ -60,12 +73,20 @@ public class DefaultResolvedVariantSet implements ResolvedVariantSet {
     }
 
     @Override
-    public ImmutableAttributesSchema getSchema() {
+    public ImmutableAttributesSchema getProducerSchema() {
         return schema;
     }
 
     @Override
-    public ImmutableList<ResolvedVariant> getVariants() {
+    public ImmutableList<ResolvedVariant> getCandidates() {
         return variants;
+    }
+
+    @Override
+    public ResolvedArtifactSet transformCandidate(
+        ResolvedVariant candidate,
+        VariantDefinition variantDefinition
+    ) {
+        return transformer.transform(componentIdentifier, candidate, variantDefinition);
     }
 }

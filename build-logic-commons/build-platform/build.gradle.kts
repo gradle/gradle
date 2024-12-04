@@ -23,8 +23,8 @@ val kotlinVersion = providers.gradleProperty("buildKotlinVersion")
 
 dependencies {
     constraints {
-        api("org.gradle.guides:gradle-guides-plugin:0.23")
-        api("org.apache.ant:ant:1.10.14") // Bump the version brought in transitively by gradle-guides-plugin
+        api("org.gradle.guides:gradle-guides-plugin:0.23.1")
+        api("org.apache.ant:ant:1.10.15") // Bump the version brought in transitively by gradle-guides-plugin
         api("com.gradle:develocity-gradle-plugin:3.18.2") // Run `java build-logic-settings/UpdateDevelocityPluginVersion.java <new-version>` to update
         api("com.gradle.publish:plugin-publish-plugin:1.2.1")
         api("gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:1.0.1")
@@ -55,7 +55,7 @@ dependencies {
             because("Flexmark 0.34.60 brings in a vulnerable version of pdfbox")
         }
         api("com.google.code.findbugs:jsr305:3.0.2")
-        api("commons-io:commons-io:2.8.0")
+        api("commons-io:commons-io:2.14.0")
         api("commons-lang:commons-lang:2.6")
         api("javax.activation:activation:1.1.1")
         api("javax.xml.bind:jaxb-api:2.3.1")
@@ -73,7 +73,7 @@ dependencies {
             because("CVE-2022-40152 on lower versions")
         }
         api("com.beust:jcommander:1.78")
-        api("org.codehaus.groovy:$groovyVersion")
+        api("org.codehaus.groovy:groovy:$groovyVersion")
         api("org.codehaus.groovy.modules.http-builder:http-builder:0.7.2") // TODO maybe change group name when upgrading to Groovy 4
         api("org.codenarc:CodeNarc:$codenarcVersion")
         api("org.eclipse.jgit:org.eclipse.jgit:5.13.3.202401111512-r")

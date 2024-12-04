@@ -16,11 +16,9 @@
 
 package org.gradle.internal.component.local.model;
 
-import org.gradle.api.Transformer;
 import org.gradle.internal.component.model.VariantGraphResolveMetadata;
 
 import javax.annotation.Nullable;
-import java.util.Set;
 
 /**
  * Graph metadata for local variants.
@@ -32,28 +30,5 @@ public interface LocalVariantGraphResolveMetadata extends VariantGraphResolveMet
      */
     @Nullable
     String getConfigurationName();
-
-    /**
-     * Returns the files attached to this variant, if any.
-     * These should be represented as dependencies, but are currently represented as files as a migration step.
-     */
-    Set<LocalFileDependencyMetadata> getFiles();
-
-    /**
-     * Calculates the set of artifacts for this variant.
-     *
-     * <p>Note that this may be expensive, and should be called only when required.</p>
-     */
-    // TODO: This should be part of a state object, not a metadata object
-    LocalVariantArtifactGraphResolveMetadata prepareToResolveArtifacts();
-
-    /**
-     * Returns a copy of this variant metadata, except with all artifacts transformed by the given transformer.
-     *
-     * @param artifactTransformer A transformer applied to all artifacts and sub-variant artifacts.
-     *
-     * @return A copy of this metadata, with the given transformer applied to all artifacts.
-     */
-    LocalVariantGraphResolveMetadata copyWithTransformedArtifacts(Transformer<LocalComponentArtifactMetadata, LocalComponentArtifactMetadata> artifactTransformer);
 
 }

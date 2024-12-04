@@ -90,6 +90,7 @@ public abstract class SwiftPackageManagerExportPlugin implements Plugin<Project>
 
     @Override
     public void apply(final Project project) {
+        @SuppressWarnings("deprecation")
         final GenerateSwiftPackageManagerManifest manifestTask = project.getTasks().create("generateSwiftPmManifest", GenerateSwiftPackageManagerManifest.class);
         manifestTask.getManifestFile().set(project.getLayout().getProjectDirectory().file("Package.swift"));
 

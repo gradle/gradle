@@ -86,7 +86,9 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
                 conventions = listOf(),
                 tasks = listOf(),
                 configurations = listOf(),
-                modelDefaults = listOf()
+                modelDefaults = listOf(),
+                softwareTypeEntries = emptyList(),
+                containerElementFactories = listOf()
             )
 
         val function0 = mock<() -> Unit>()
@@ -145,7 +147,9 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
                     ConfigurationEntry("implementation"),
                     ConfigurationEntry("compile", listOf("api", "implementation"))
                 ),
-                modelDefaults = listOf()
+                modelDefaults = listOf(),
+                softwareTypeEntries = emptyList(),
+                containerElementFactories = listOf()
             )
 
         val srcDir = newFolder("src")
@@ -210,7 +214,9 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
                         ProjectSchemaEntry(SchemaType.of<TaskContainer>(), "task", schemaTypeFor("CustomTask"))
                     ),
                     configurations = listOf(),
-                    modelDefaults = listOf()
+                    modelDefaults = listOf(),
+                    softwareTypeEntries = emptyList(),
+                    containerElementFactories = listOf()
                 )
 
             val srcDir = newFolder("src")
@@ -291,7 +297,9 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
                     entry<TaskContainer, Delete>("clean")
                 ),
                 configurations = listOf(ConfigurationEntry("api")),
-                modelDefaults = listOf()
+                modelDefaults = listOf(),
+                softwareTypeEntries = emptyList(),
+                containerElementFactories = listOf()
             )
 
         val apiConfiguration = mock<NamedDomainObjectProvider<Configuration>>()

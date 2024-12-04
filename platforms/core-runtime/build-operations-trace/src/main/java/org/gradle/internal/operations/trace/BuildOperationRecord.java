@@ -19,12 +19,14 @@ package org.gradle.internal.operations.trace;
 import com.google.common.base.Function;
 import com.google.common.collect.Ordering;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 import static com.google.common.collect.Lists.transform;
+import static org.gradle.internal.Cast.uncheckedCast;
 
 public final class BuildOperationRecord {
 
@@ -48,16 +50,16 @@ public final class BuildOperationRecord {
 
     BuildOperationRecord(
         Long id,
-        Long parentId,
+        @Nullable Long parentId,
         String displayName,
         long startTime,
         long endTime,
-        Map<String, ?> details,
-        String detailsClassName,
-        Map<String, ?> result,
-        String resultClassName,
-        String failure,
-        List<Progress> progress,
+        @Nullable Map<String, ?> details,
+        @Nullable String detailsClassName,
+        @Nullable Map<String, ?> result,
+        @Nullable String resultClassName,
+        @Nullable String failure,
+        List<SerializedOperationProgress> progress,
         List<BuildOperationRecord> children
     ) {
         this.id = id;
@@ -70,11 +72,25 @@ public final class BuildOperationRecord {
         this.result = result == null ? null : new StrictMap<String, Object>(result);
         this.resultClassName = resultClassName;
         this.failure = failure;
-        this.progress = progress;
         this.children = children;
+
+        this.progress = convertProgressEvents(progress);
     }
 
-    Map<String, ?> toSerializable() {
+    private static List<BuildOperationRecord.Progress> convertProgressEvents(List<SerializedOperationProgress> toConvert) {
+        List<BuildOperationRecord.Progress> progresses = new ArrayList<>();
+        for (SerializedOperationProgress progress : toConvert) {
+            Map<String, ?> progressDetailsMap = uncheckedCast(progress.details);
+            progresses.add(new BuildOperationRecord.Progress(
+                progress.time,
+                progressDetailsMap,
+                progress.detailsClassName
+            ));
+        }
+        return progresses;
+    }
+
+    /* package */ Map<String, ?> toSerializable() {
         Map<String, Object> map = new LinkedHashMap<>();
         map.put("displayName", displayName);
 
@@ -118,11 +134,11 @@ public final class BuildOperationRecord {
         return detailsType != null && clazz.isAssignableFrom(detailsType);
     }
 
-    public Class<?> getDetailsType() throws ClassNotFoundException {
+    public @Nullable Class<?> getDetailsType() throws ClassNotFoundException {
         return detailsClassName == null ? null : getClass().getClassLoader().loadClass(detailsClassName);
     }
 
-    public Class<?> getResultType() throws ClassNotFoundException {
+    public @Nullable Class<?> getResultType() throws ClassNotFoundException {
         return resultClassName == null ? null : getClass().getClassLoader().loadClass(resultClassName);
     }
 
@@ -151,8 +167,8 @@ public final class BuildOperationRecord {
 
         public Progress(
             long time,
-            Map<String, ?> details,
-            String detailsClassName
+            @Nullable Map<String, ?> details,
+            @Nullable String detailsClassName
         ) {
             this.time = time;
             this.details = details == null ? null : new StrictMap<String, Object>(details);
@@ -171,7 +187,7 @@ public final class BuildOperationRecord {
             return map;
         }
 
-        public Class<?> getDetailsType() throws ClassNotFoundException {
+        public @Nullable Class<?> getDetailsType() throws ClassNotFoundException {
             return detailsClassName == null ? null : getClass().getClassLoader().loadClass(detailsClassName);
         }
 

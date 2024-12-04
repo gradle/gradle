@@ -5,6 +5,10 @@ plugins {
 
 description = "Source for JavaCompile, JavaExec and Javadoc tasks, it also contains logic for incremental Java compilation"
 
+gradlebuildJava {
+    usesJdkInternals = true
+}
+
 errorprone {
     disabledChecks.addAll(
         "CheckReturnValue", // 2 occurrences
@@ -13,7 +17,6 @@ errorprone {
         "InvalidInlineTag", // 3 occurrences
         "MissingCasesInEnumSwitch", // 1 occurrences
         "MixedMutabilityReturnType", // 3 occurrences
-        "OperatorPrecedence", // 2 occurrences
     )
 }
 
@@ -62,7 +65,6 @@ dependencies {
     implementation(projects.logging)
     implementation(projects.modelCore)
     implementation(projects.toolingApi)
-    implementation(projects.problemsRendering)
 
     api(libs.slf4jApi)
     implementation(libs.commonsLang)
@@ -110,12 +112,6 @@ tasks.withType<Test>().configureEach {
     }
 }
 
-tasks.withType<JavaCompile>().configureEach {
-    options.release = null
-    sourceCompatibility = "8"
-    targetCompatibility = "8"
-}
-
 strictCompile {
     ignoreDeprecations() // this project currently uses many deprecated part from 'platform-jvm'
 }
@@ -129,15 +125,14 @@ packageCycles {
 integTest.usesJavadocCodeSnippets = true
 
 tasks.javadoc {
-    // This project accesses JDK internals.
-    // We would ideally add --add-exports flags for the required packages, however
-    // due to limitations in the javadoc modeling API, we cannot specify multiple
-    // flags for the same key.
-    // Instead, we disable failure on javadoc errors.
-    isFailOnError = false
     options {
         this as StandardJavadocDocletOptions
-        addBooleanOption("quiet", true)
+        // This project accesses JDK internals, which we need to open up so that javadoc can access them
+        addMultilineStringsOption("-add-exports").value = listOf(
+            "jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED",
+            "jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED",
+            "jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED"
+        )
     }
 }
 tasks.isolatedProjectsIntegTest {

@@ -18,24 +18,29 @@ package org.gradle.internal.execution.history.changes;
 
 import com.google.common.collect.ImmutableList;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 class MessageCollectingChangeVisitor implements ChangeVisitor {
     private final ImmutableList.Builder<String> messagesBuilder = ImmutableList.builder();
     private final int maxNumMessages;
     private int count;
 
     MessageCollectingChangeVisitor(int maxNumMessages) {
+        checkArgument(maxNumMessages > 0, "maxNumMessages must be positive");
         this.maxNumMessages = maxNumMessages;
     }
 
     @Override
     public boolean visitChange(Change change) {
         count++;
-        if (count > maxNumMessages) {
+        if (count <= maxNumMessages) {
+            messagesBuilder.add(change.getMessage());
+            return true;
+        } else if (count == maxNumMessages + 1) {
             messagesBuilder.add("and more...");
             return false;
         } else {
-            messagesBuilder.add(change.getMessage());
-            return true;
+            return false;
         }
     }
 

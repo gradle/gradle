@@ -1066,7 +1066,7 @@ Creating "uber" or "fat" JARs in Gradle involves packaging all dependencies into
 
 === Using the Shadow Plugin
 
-Gradle does not have full built-in support for creating uber JARs, but you can use third-party plugins like the https://github.com/johnrengelman/shadow[Shadow plugin] (`com.github.johnrengelman.shadow`) to achieve this.
+Gradle does not have full built-in support for creating uber JARs, but you can use third-party plugins like the https://github.com/GradleUp/shadow[Shadow plugin] (`com.gradleup.shadow`) to achieve this.
 This plugin packages your project classes and dependencies into a single JAR file.
 
 === Using `Project.zipTree()` and the `Jar` task

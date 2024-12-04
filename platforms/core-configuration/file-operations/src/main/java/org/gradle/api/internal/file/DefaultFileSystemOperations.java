@@ -21,6 +21,7 @@ import org.gradle.api.file.ConfigurableFilePermissions;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DeleteSpec;
 import org.gradle.api.file.FileSystemOperations;
+import org.gradle.api.file.SyncSpec;
 import org.gradle.api.internal.lambdas.SerializableLambdas;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
@@ -55,7 +56,7 @@ public class DefaultFileSystemOperations implements FileSystemOperations {
     }
 
     @Override
-    public WorkResult sync(Action<? super CopySpec> action) {
+    public WorkResult sync(Action<? super SyncSpec> action) {
         return fileOperations.sync(action);
     }
 

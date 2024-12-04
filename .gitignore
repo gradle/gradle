@@ -5,9 +5,9 @@
 /*/build
 /*/*/build
 /*/*/*/build
-/*/*/*/*/build
-/*/docs/src/samples/**/build
-/*/docs/src/snippets/**/build
+/*/*/*/*/*/build
+/**/docs/src/samples/**/build
+/**/docs/src/snippets/**/build
 /*/internal-android-performance-testing/build-android-libs
 test-splits/
 /gradle/verification-keyring.gpg
@@ -106,7 +106,7 @@ atlassian-ide-plugin.xml
 .gradletasknamecache
 
 # Added GE support maven support to the maven build in .teamcity, per the GE docs, this dir is NOT to be committed
-.teamcity/.mvn/.gradle-enterprise/
+.teamcity/.mvn/.develocity/
 /discoclient.properties
 
 # Ignore local configuration files for asdf, allowing the JDK to be configured for project (https://asdf-vm.com)

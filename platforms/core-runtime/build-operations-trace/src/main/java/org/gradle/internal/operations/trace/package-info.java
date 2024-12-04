@@ -16,4 +16,7 @@
 /**
  * Outputs trace files from build operations.
  */
+@NonNullApi
 package org.gradle.internal.operations.trace;
+
+import org.gradle.api.NonNullApi;

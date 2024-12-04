@@ -188,7 +188,7 @@ class CodeNarcPluginIntegrationTest extends WellBehavedPluginTest implements Cod
         where:
         method         | buildScriptSnippet
         'dependencies' | "dependencies { codenarc 'org.codenarc:CodeNarc:0.17' }"
-        'toolVersion'  | "codenarc { toolVersion '0.17' } "
+        'toolVersion' | "codenarc { toolVersion = '0.17' } "
     }
 
     def "codenarc runs successfully for a child project with isolated projects"() {

@@ -179,7 +179,7 @@ See <<worker_api.adoc#worker_api,the worker API>> for more details.
 [[filesystemoperations]]
 == 6. `FileSystemOperations`
 
-link:{javadocPath}/org/gradle/api/file/FileSystemOperations.html[`FileSystemOperations`] is a service that provides methods for performing file system operations such as copying, deleting, and creating directories.
+link:{javadocPath}/org/gradle/api/file/FileSystemOperations.html[`FileSystemOperations`] is a service that provides methods for performing file system operations such as copying, deleting, and syncing.
 It is part of the `org.gradle.api.file` package and is typically used in custom tasks or plugins to interact with the file system.
 
 Here is an example using `javax.inject.Inject`:
@@ -206,8 +206,8 @@ TIP: This is a good time to consider extracting the ad-hoc task into a proper cl
 [[archiveoperations]]
 == 7. `ArchiveOperations`
 
-link:{javadocPath}/org/gradle/api/file/ArchiveOperations.html[`ArchiveOperations`] is a service that provides methods for creating archives, such as ZIP and TAR files.
-It is part of the `org.gradle.api.tasks.bundling` package and is typically used in custom tasks or plugins to create archive files.
+link:{javadocPath}/org/gradle/api/file/ArchiveOperations.html[`ArchiveOperations`] is a service that provides methods for accessing the contents of archives, such as ZIP and TAR files.
+It is part of the `org.gradle.api.file` package and is typically used in custom tasks or plugins to unpack archive files.
 
 Here is an example using `javax.inject.Inject`:
 

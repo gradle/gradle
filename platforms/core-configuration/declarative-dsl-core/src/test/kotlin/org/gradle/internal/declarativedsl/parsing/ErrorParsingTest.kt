@@ -7,6 +7,193 @@ import org.junit.Test
 class ErrorParsingTest {
 
     @Test
+    fun `constructs we don't support, but our parsing does not fail on`() { // TODO: these should become later stage failures at some point
+        val code = """5
+            a = (1)
+            a = f(1).g(2)
+            a = "foo".bar(1)
+            a.b.c = 1
+            d = a.b.c
+            a.b {d = 1}
+            a.b.c {d = 1}
+            f(block{})
+            f(1).x
+            x.f(1).y
+            f(1).x.f(2)
+        """.trimIndent()
+
+        val expected = """
+            IntLiteral [indexes: 0..1, line/column: 1/1..1/2, file: test] (5)
+            Assignment [indexes: 14..21, line/column: 2/13..2/20, file: test] (
+                lhs = NamedReference [indexes: 14..15, line/column: 2/13..2/14, file: test] (
+                    name = a
+                )
+                rhs = IntLiteral [indexes: 19..20, line/column: 2/18..2/19, file: test] (1)
+            )
+            Assignment [indexes: 34..47, line/column: 3/13..3/26, file: test] (
+                lhs = NamedReference [indexes: 34..35, line/column: 3/13..3/14, file: test] (
+                    name = a
+                )
+                rhs = FunctionCall [indexes: 43..47, line/column: 3/22..3/26, file: test] (
+                    name = g
+                    receiver = FunctionCall [indexes: 38..42, line/column: 3/17..3/21, file: test] (
+                        name = f
+                        args = [
+                            FunctionArgument.Positional [indexes: 40..41, line/column: 3/19..3/20, file: test] (
+                                expr = IntLiteral [indexes: 40..41, line/column: 3/19..3/20, file: test] (1)
+                            )
+                        ]
+                    )
+                    args = [
+                        FunctionArgument.Positional [indexes: 45..46, line/column: 3/24..3/25, file: test] (
+                            expr = IntLiteral [indexes: 45..46, line/column: 3/24..3/25, file: test] (2)
+                        )
+                    ]
+                )
+            )
+            Assignment [indexes: 60..76, line/column: 4/13..4/29, file: test] (
+                lhs = NamedReference [indexes: 60..61, line/column: 4/13..4/14, file: test] (
+                    name = a
+                )
+                rhs = FunctionCall [indexes: 70..76, line/column: 4/23..4/29, file: test] (
+                    name = bar
+                    receiver = StringLiteral [indexes: 64..69, line/column: 4/17..4/22, file: test] (foo)
+                    args = [
+                        FunctionArgument.Positional [indexes: 74..75, line/column: 4/27..4/28, file: test] (
+                            expr = IntLiteral [indexes: 74..75, line/column: 4/27..4/28, file: test] (1)
+                        )
+                    ]
+                )
+            )
+            Assignment [indexes: 89..98, line/column: 5/13..5/22, file: test] (
+                lhs = NamedReference [indexes: 93..94, line/column: 5/17..5/18, file: test] (
+                    receiver = NamedReference [indexes: 91..92, line/column: 5/15..5/16, file: test] (
+                        receiver = NamedReference [indexes: 89..90, line/column: 5/13..5/14, file: test] (
+                            name = a
+                        )
+                        name = b
+                    )
+                    name = c
+                )
+                rhs = IntLiteral [indexes: 97..98, line/column: 5/21..5/22, file: test] (1)
+            )
+            Assignment [indexes: 111..120, line/column: 6/13..6/22, file: test] (
+                lhs = NamedReference [indexes: 111..112, line/column: 6/13..6/14, file: test] (
+                    name = d
+                )
+                rhs = NamedReference [indexes: 119..120, line/column: 6/21..6/22, file: test] (
+                    receiver = NamedReference [indexes: 117..118, line/column: 6/19..6/20, file: test] (
+                        receiver = NamedReference [indexes: 115..116, line/column: 6/17..6/18, file: test] (
+                            name = a
+                        )
+                        name = b
+                    )
+                    name = c
+                )
+            )
+            FunctionCall [indexes: 135..144, line/column: 7/15..7/24, file: test] (
+                name = b
+                receiver = NamedReference [indexes: 133..134, line/column: 7/13..7/14, file: test] (
+                    name = a
+                )
+                args = [
+                    FunctionArgument.Lambda [indexes: 137..144, line/column: 7/17..7/24, file: test] (
+                        block = Block [indexes: 138..143, line/column: 7/18..7/23, file: test] (
+                            Assignment [indexes: 138..143, line/column: 7/18..7/23, file: test] (
+                                lhs = NamedReference [indexes: 138..139, line/column: 7/18..7/19, file: test] (
+                                    name = d
+                                )
+                                rhs = IntLiteral [indexes: 142..143, line/column: 7/22..7/23, file: test] (1)
+                            )
+                        )
+                    )
+                ]
+            )
+            FunctionCall [indexes: 161..170, line/column: 8/17..8/26, file: test] (
+                name = c
+                receiver = NamedReference [indexes: 159..160, line/column: 8/15..8/16, file: test] (
+                    receiver = NamedReference [indexes: 157..158, line/column: 8/13..8/14, file: test] (
+                        name = a
+                    )
+                    name = b
+                )
+                args = [
+                    FunctionArgument.Lambda [indexes: 163..170, line/column: 8/19..8/26, file: test] (
+                        block = Block [indexes: 164..169, line/column: 8/20..8/25, file: test] (
+                            Assignment [indexes: 164..169, line/column: 8/20..8/25, file: test] (
+                                lhs = NamedReference [indexes: 164..165, line/column: 8/20..8/21, file: test] (
+                                    name = d
+                                )
+                                rhs = IntLiteral [indexes: 168..169, line/column: 8/24..8/25, file: test] (1)
+                            )
+                        )
+                    )
+                ]
+            )
+            FunctionCall [indexes: 183..193, line/column: 9/13..9/23, file: test] (
+                name = f
+                args = [
+                    FunctionArgument.Positional [indexes: 185..192, line/column: 9/15..9/22, file: test] (
+                        expr = FunctionCall [indexes: 185..192, line/column: 9/15..9/22, file: test] (
+                            name = block
+                            args = [
+                                FunctionArgument.Lambda [indexes: 190..192, line/column: 9/20..9/22, file: test] (
+                                    block = Block [indexes: 191..191, line/column: 9/21..9/21, file: test] (
+                                    )
+                                )
+                            ]
+                        )
+                    )
+                ]
+            )
+            NamedReference [indexes: 211..212, line/column: 10/18..10/19, file: test] (
+                receiver = FunctionCall [indexes: 206..210, line/column: 10/13..10/17, file: test] (
+                    name = f
+                    args = [
+                        FunctionArgument.Positional [indexes: 208..209, line/column: 10/15..10/16, file: test] (
+                            expr = IntLiteral [indexes: 208..209, line/column: 10/15..10/16, file: test] (1)
+                        )
+                    ]
+                )
+                name = x
+            )
+            NamedReference [indexes: 232..233, line/column: 11/20..11/21, file: test] (
+                receiver = FunctionCall [indexes: 227..231, line/column: 11/15..11/19, file: test] (
+                    name = f
+                    receiver = NamedReference [indexes: 225..226, line/column: 11/13..11/14, file: test] (
+                        name = x
+                    )
+                    args = [
+                        FunctionArgument.Positional [indexes: 229..230, line/column: 11/17..11/18, file: test] (
+                            expr = IntLiteral [indexes: 229..230, line/column: 11/17..11/18, file: test] (1)
+                        )
+                    ]
+                )
+                name = y
+            )
+            FunctionCall [indexes: 253..257, line/column: 12/20..12/24, file: test] (
+                name = f
+                receiver = NamedReference [indexes: 251..252, line/column: 12/18..12/19, file: test] (
+                    receiver = FunctionCall [indexes: 246..250, line/column: 12/13..12/17, file: test] (
+                        name = f
+                        args = [
+                            FunctionArgument.Positional [indexes: 248..249, line/column: 12/15..12/16, file: test] (
+                                expr = IntLiteral [indexes: 248..249, line/column: 12/15..12/16, file: test] (1)
+                            )
+                        ]
+                    )
+                    name = x
+                )
+                args = [
+                    FunctionArgument.Positional [indexes: 255..256, line/column: 12/22..12/23, file: test] (
+                        expr = IntLiteral [indexes: 255..256, line/column: 12/22..12/23, file: test] (2)
+                    )
+                ]
+            )""".trimIndent()
+        ParseTestUtil.parse(code).assert(expected)
+    }
+
+    @Test
     fun `reserved keywords are categorized as errors by the lexer`() {
         val keyword = "in" // hard keyword in Kotlin
         val code = """
@@ -169,6 +356,47 @@ class ErrorParsingTest {
     }
 
     @Test
+    fun `infix function calls`() {
+        val code = """
+            id("plugin") version "7.0"
+            id("plugin") version("8.0")
+            f(1) g "string" h true i 2L j 3.apply(4)
+            f("a") g("b")
+        """.trimIndent()
+
+        val expected = """
+            ErroneousStatement (
+                UnsupportedConstruct(
+                    languageFeature = InfixFunctionCall,
+                    potentialElementSource = indexes: 0..26, line/column: 1/1..1/27, file: test,
+                    erroneousSource = indexes: 13..20, line/column: 1/14..1/21, file: test
+                )
+            )
+            ErroneousStatement (
+                UnsupportedConstruct(
+                    languageFeature = InfixFunctionCall,
+                    potentialElementSource = indexes: 27..54, line/column: 2/1..2/28, file: test,
+                    erroneousSource = indexes: 40..47, line/column: 2/14..2/21, file: test
+                )
+            )
+            ErroneousStatement (
+                UnsupportedConstruct(
+                    languageFeature = InfixFunctionCall,
+                    potentialElementSource = indexes: 55..95, line/column: 3/1..3/41, file: test,
+                    erroneousSource = indexes: 83..84, line/column: 3/29..3/30, file: test
+                )
+            )
+            ErroneousStatement (
+                UnsupportedConstruct(
+                    languageFeature = InfixFunctionCall,
+                    potentialElementSource = indexes: 96..109, line/column: 4/1..4/14, file: test,
+                    erroneousSource = indexes: 103..104, line/column: 4/8..4/9, file: test
+                )
+            )""".trimIndent()
+        ParseTestUtil.parse(code).assert(expected)
+    }
+
+    @Test
     fun `missing parenthesis in one of a series of assignments`() {
         val code = """
             a = 1
@@ -324,6 +552,8 @@ class ErrorParsingTest {
     }
 
     @Test
+    //TODO: we might want to support backtick identifiers at parsing level, but not in our official grammar,
+    // so they should be rejected at some higher level
     fun `backtick identifiers`() {
         val results = ParseTestUtil.parse(
             """
@@ -342,6 +572,77 @@ class ErrorParsingTest {
                     name = `more conent with spaces`
                 )
                 rhs = IntLiteral [indexes: 57..58, line/column: 2/29..2/30, file: test] (1)
+            )""".trimIndent()
+        results.assert(expected)
+    }
+
+    @Test
+    fun `literals as function names`() {
+        val results = ParseTestUtil.parse(
+            """
+            "function"(1)
+            1(2)
+            true(3)
+            null(4)
+            """.trimIndent()
+        )
+
+        val expected = """
+            ErroneousStatement (
+                MultipleFailures(
+                    ParsingError(
+                        message = Parsing failure, unexpected token type in call expression: STRING_TEMPLATE,
+                        potentialElementSource = indexes: 0..10, line/column: 1/1..1/11, file: test,
+                        erroneousSource = indexes: 0..10, line/column: 1/1..1/11, file: test
+                    )
+                    ParsingError(
+                        message = Name missing from function call!,
+                        potentialElementSource = indexes: 0..13, line/column: 1/1..1/14, file: test,
+                        erroneousSource = indexes: 0..13, line/column: 1/1..1/14, file: test
+                    )
+                )
+            )
+            ErroneousStatement (
+                MultipleFailures(
+                    ParsingError(
+                        message = Parsing failure, unexpected token type in call expression: INTEGER_CONSTANT,
+                        potentialElementSource = indexes: 14..15, line/column: 2/1..2/2, file: test,
+                        erroneousSource = indexes: 14..15, line/column: 2/1..2/2, file: test
+                    )
+                    ParsingError(
+                        message = Name missing from function call!,
+                        potentialElementSource = indexes: 14..18, line/column: 2/1..2/5, file: test,
+                        erroneousSource = indexes: 14..18, line/column: 2/1..2/5, file: test
+                    )
+                )
+            )
+            ErroneousStatement (
+                MultipleFailures(
+                    ParsingError(
+                        message = Parsing failure, unexpected token type in call expression: BOOLEAN_CONSTANT,
+                        potentialElementSource = indexes: 19..23, line/column: 3/1..3/5, file: test,
+                        erroneousSource = indexes: 19..23, line/column: 3/1..3/5, file: test
+                    )
+                    ParsingError(
+                        message = Name missing from function call!,
+                        potentialElementSource = indexes: 19..26, line/column: 3/1..3/8, file: test,
+                        erroneousSource = indexes: 19..26, line/column: 3/1..3/8, file: test
+                    )
+                )
+            )
+            ErroneousStatement (
+                MultipleFailures(
+                    ParsingError(
+                        message = Parsing failure, unexpected token type in call expression: NULL,
+                        potentialElementSource = indexes: 27..31, line/column: 4/1..4/5, file: test,
+                        erroneousSource = indexes: 27..31, line/column: 4/1..4/5, file: test
+                    )
+                    ParsingError(
+                        message = Name missing from function call!,
+                        potentialElementSource = indexes: 27..34, line/column: 4/1..4/8, file: test,
+                        erroneousSource = indexes: 27..34, line/column: 4/1..4/8, file: test
+                    )
+                )
             )""".trimIndent()
         results.assert(expected)
     }
@@ -703,77 +1004,77 @@ class ErrorParsingTest {
                 UnsupportedConstruct(
                     languageFeature = UnsupportedOperationInBinaryExpression,
                     potentialElementSource = indexes: 8..21, line/column: 1/9..1/22, file: test,
-                    erroneousSource = indexes: 8..21, line/column: 1/9..1/22, file: test
+                    erroneousSource = indexes: 13..15, line/column: 1/14..1/16, file: test
                 )
             )
             ErroneousStatement (
                 UnsupportedConstruct(
                     languageFeature = UnsupportedOperationInBinaryExpression,
                     potentialElementSource = indexes: 34..47, line/column: 2/13..2/26, file: test,
-                    erroneousSource = indexes: 34..47, line/column: 2/13..2/26, file: test
+                    erroneousSource = indexes: 39..41, line/column: 2/18..2/20, file: test
                 )
             )
             ErroneousStatement (
                 UnsupportedConstruct(
                     languageFeature = UnsupportedOperationInBinaryExpression,
                     potentialElementSource = indexes: 59..65, line/column: 3/12..3/18, file: test,
-                    erroneousSource = indexes: 59..65, line/column: 3/12..3/18, file: test
+                    erroneousSource = indexes: 61..63, line/column: 3/14..3/16, file: test
                 )
             )
             ErroneousStatement (
                 UnsupportedConstruct(
                     languageFeature = UnsupportedOperationInBinaryExpression,
                     potentialElementSource = indexes: 79..85, line/column: 4/14..4/20, file: test,
-                    erroneousSource = indexes: 79..85, line/column: 4/14..4/20, file: test
+                    erroneousSource = indexes: 81..83, line/column: 4/16..4/18, file: test
                 )
             )
             ErroneousStatement (
                 UnsupportedConstruct(
                     languageFeature = UnsupportedOperationInBinaryExpression,
                     potentialElementSource = indexes: 101..108, line/column: 5/16..5/23, file: test,
-                    erroneousSource = indexes: 101..108, line/column: 5/16..5/23, file: test
+                    erroneousSource = indexes: 103..106, line/column: 5/18..5/21, file: test
                 )
             )
             ErroneousStatement (
                 UnsupportedConstruct(
                     languageFeature = UnsupportedOperationInBinaryExpression,
                     potentialElementSource = indexes: 126..133, line/column: 6/18..6/25, file: test,
-                    erroneousSource = indexes: 126..133, line/column: 6/18..6/25, file: test
+                    erroneousSource = indexes: 128..131, line/column: 6/20..6/23, file: test
                 )
             )
             ErroneousStatement (
                 UnsupportedConstruct(
                     languageFeature = UnsupportedOperationInBinaryExpression,
                     potentialElementSource = indexes: 144..149, line/column: 7/11..7/16, file: test,
-                    erroneousSource = indexes: 144..149, line/column: 7/11..7/16, file: test
+                    erroneousSource = indexes: 146..147, line/column: 7/13..7/14, file: test
                 )
             )
             ErroneousStatement (
                 UnsupportedConstruct(
                     languageFeature = UnsupportedOperationInBinaryExpression,
                     potentialElementSource = indexes: 159..164, line/column: 8/10..8/15, file: test,
-                    erroneousSource = indexes: 159..164, line/column: 8/10..8/15, file: test
+                    erroneousSource = indexes: 161..162, line/column: 8/12..8/13, file: test
                 )
             )
             ErroneousStatement (
                 UnsupportedConstruct(
                     languageFeature = UnsupportedOperationInBinaryExpression,
                     potentialElementSource = indexes: 184..190, line/column: 9/20..9/26, file: test,
-                    erroneousSource = indexes: 184..190, line/column: 9/20..9/26, file: test
+                    erroneousSource = indexes: 186..188, line/column: 9/22..9/24, file: test
                 )
             )
             ErroneousStatement (
                 UnsupportedConstruct(
                     languageFeature = UnsupportedOperationInBinaryExpression,
                     potentialElementSource = indexes: 209..215, line/column: 10/19..10/25, file: test,
-                    erroneousSource = indexes: 209..215, line/column: 10/19..10/25, file: test
+                    erroneousSource = indexes: 211..213, line/column: 10/21..10/23, file: test
                 )
             )
             ErroneousStatement (
                 UnsupportedConstruct(
                     languageFeature = UnsupportedOperationInBinaryExpression,
                     potentialElementSource = indexes: 224..250, line/column: 11/9..11/35, file: test,
-                    erroneousSource = indexes: 224..250, line/column: 11/9..11/35, file: test
+                    erroneousSource = indexes: 239..241, line/column: 11/24..11/26, file: test
                 )
             )""".trimIndent()
         results.assert(expected)

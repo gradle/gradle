@@ -18,6 +18,7 @@ package org.gradle.normalization
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.StableConfigurationCacheDeprecations
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
@@ -28,7 +29,7 @@ import spock.lang.Issue
 import java.util.jar.Attributes
 import java.util.jar.Manifest
 
-class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractIntegrationSpec {
+class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractIntegrationSpec implements StableConfigurationCacheDeprecations {
     def "can ignore files on runtime classpath in #tree (using runtime API: #api)"() {
         def project = new ProjectWithRuntimeClasspathNormalization(api).withFilesIgnored()
 
@@ -222,6 +223,7 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
         """.stripIndent()
 
         when:
+        expectTaskGetProjectDeprecations()
         fails 'configureNormalization'
 
         then:

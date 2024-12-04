@@ -50,7 +50,7 @@ class FunctionLambdaTypeDiscovery(
      * Collect everything that potentially looks like types configured by the lambdas.
      * TODO: this may be excessive
      */
-    override fun getClassesToVisitFrom(kClass: KClass<*>): Iterable<KClass<*>> =
+    override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscovery.TypeDiscoveryServices, kClass: KClass<*>): Iterable<KClass<*>> =
         kClass.memberFunctions
             .filter { memberFilter.shouldIncludeMember(it) }
             .mapNotNullTo(mutableSetOf()) { fn ->
@@ -68,7 +68,7 @@ class FunctionReturnTypeDiscovery(
     /**
      * Collects everything that restricted functions mention as return values.
      */
-    override fun getClassesToVisitFrom(kClass: KClass<*>): Iterable<KClass<*>> =
+    override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscovery.TypeDiscoveryServices, kClass: KClass<*>): Iterable<KClass<*>> =
         kClass.memberFunctions
             .filter { memberFilter.shouldIncludeMember(it) }
             .mapNotNullTo(mutableSetOf()) { fn ->

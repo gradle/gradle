@@ -186,7 +186,7 @@ repositories {
 
     // Ivy Repository with Custom Layout
     ivy {
-        url 'https://your.ivy.repo/url'
+        url = 'https://your.ivy.repo/url'
         layout 'pattern', {
             ivy '[organisation]/[module]/[revision]/[type]s/[artifact]-[revision].[ext]'
             artifact '[organisation]/[module]/[revision]/[type]s/[artifact]-[revision].[ext]'
@@ -195,7 +195,7 @@ repositories {
 
     // Authenticated HTTPS Maven Repository
     maven {
-        url 'https://your.secure.repo/url'
+        url = 'https://your.secure.repo/url'
         credentials {
             username = 'your-username'
             password = 'your-password'
@@ -204,7 +204,7 @@ repositories {
 
     // SFTP Repository
     maven {
-        url 'sftp://your.sftp.repo/url'
+        url = 'sftp://your.sftp.repo/url'
         credentials {
             username = 'your-username'
             password = 'your-password'
@@ -213,7 +213,7 @@ repositories {
 
     // AWS S3 Repository
     maven {
-        url "s3://your-bucket/repository-path"
+        url = "s3://your-bucket/repository-path"
         credentials(AwsCredentials) {
             accessKey = 'your-access-key'
             secretKey = 'your-secret-key'
@@ -222,7 +222,7 @@ repositories {
 
     // Google Cloud Storage Repository
     maven {
-        url "gcs://your-bucket/repository-path"
+        url = "gcs://your-bucket/repository-path"
     }
 }
 ----

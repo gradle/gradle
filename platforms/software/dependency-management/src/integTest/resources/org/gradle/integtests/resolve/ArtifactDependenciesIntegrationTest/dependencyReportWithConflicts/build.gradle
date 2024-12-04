@@ -8,8 +8,8 @@ allprojects {
     dependencies {
         repositories {
             ivy {
-                artifactPattern projectDir.absolutePath + '/[module]-[revision].jar'
-                ivyPattern projectDir.absolutePath + '/[module]-[revision]-ivy.xml'
+                artifactPattern(projectDir.absolutePath + '/[module]-[revision].jar')
+                ivyPattern(projectDir.absolutePath + '/[module]-[revision]-ivy.xml')
             }
         }
     }

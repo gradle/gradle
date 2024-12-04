@@ -1,11 +1,11 @@
 
-This project contains the Gradle performance test suite. For information about the test infrastructure, see [internal-performance-testing](../internal-performance-testing)
+This project contains the Gradle performance test suite. For information about the test infrastructure, see [internal-performance-testing](../internal-performance-testing/README.md)
 
 ## Performance test scenarios
 
 A performance test scenario is made up of 2 parts:
 
-1. A test build to use. The test builds are generated from templates and are defined in the [`build-logic/performance/src/main/groovy/performance-templates.gradle`](build-logic/performance/src/main/groovy/performance-templates.gradle) plugin.
+1. A test build to use. The test builds are generated from templates and are defined in the [performance-templates](../../build-logic/performance-testing/src/main/groovy/gradlebuild.performance-templates.gradle) plugin.
 2. Details for how to invoke Gradle (or Maven). This includes the tasks to run, the JVM args, whether the daemon or tooling API should be used to invoke Gradle, etc.
 
 A performance test configures various fixtures to describe each scenario. The fixtures will then run the scenario several times to warm up and then several more times, capturing metrics.
@@ -16,7 +16,7 @@ The metrics are collected in a database under `~/.gradle-performance-test-data` 
 The build templates live in [`src/templates`](src/templates). Each template build is parameterized to some degree. For example, it is possible to define how many projects, source
 or test files to generate for a performance test build.
 
-There is a task defined in [`build-logic/performance/src/main/groovy/performance-templates.gradle`](build-logic/performance/src/main/groovy/performance-templates.gradle) for each performance test build, that specifies which templates to use and the build parameters.
+There is a task defined in [performance-templates](../../build-logic/performance-testing/src/main/groovy/gradlebuild.performance-templates.gradle) for each performance test build, that specifies which templates to use and the build parameters.
 
 ### Metrics collected
 

@@ -51,7 +51,7 @@ class ResolvingWithPluginManagementSpec extends AbstractDependencyResolutionTest
             $resolutionStrategy
             repositories {
                 maven {
-                    url "${mavenRepo.uri}"
+                    url = "${mavenRepo.uri}"
                 }
             }
           }
@@ -328,7 +328,7 @@ class ResolvingWithPluginManagementSpec extends AbstractDependencyResolutionTest
               settings.pluginManagement {
                 repositories {
                     maven {
-                      url "${mavenRepo.uri}"
+                      url = "${mavenRepo.uri}"
                     }
                 }
               }
@@ -427,11 +427,11 @@ class ResolvingWithPluginManagementSpec extends AbstractDependencyResolutionTest
             pluginManagement {
                 repositories {
                     ivy {
-                        url "${repo.uri}"
+                        url = "${repo.uri}"
                         patternLayout {
-                            ivy '[organisation]/[module]/[revision]/[module]-[revision].ivy'
-                            artifact '[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]'
-                            m2compatible true
+                            ivy('[organisation]/[module]/[revision]/[module]-[revision].ivy')
+                            artifact('[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]')
+                            m2compatible = true
                         }
                     }
                 }

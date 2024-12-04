@@ -42,7 +42,7 @@ public class IvyPublishIssuesIntegTest extends AbstractIvyPublishIntegTest {
             publishing {
                 repositories {
                     ivy {
-                        url "${ivyRepo.uri}"
+                        url = "${ivyRepo.uri}"
                     }
                 }
                 publications {
@@ -80,7 +80,7 @@ public class IvyPublishIssuesIntegTest extends AbstractIvyPublishIntegTest {
 
             publishing {
                 repositories {
-                    ivy { url "\${buildDir}/repo" }
+                    ivy { url = layout.buildDirectory.dir("repo") }
                 }
                 publications {
                     ivy(IvyPublication) {
@@ -132,7 +132,7 @@ public class IvyPublishIssuesIntegTest extends AbstractIvyPublishIntegTest {
 
             publishing {
                 repositories {
-                    ivy { url "\${buildDir}/repo" }
+                    ivy { url = layout.buildDirectory.dir("repo") }
                 }
                 publications {
                     ivy(IvyPublication) {

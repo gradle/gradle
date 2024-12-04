@@ -16,13 +16,16 @@
 
 package org.gradle.internal.cc.impl.serialize
 
+import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.initialization.ClassLoaderScopeOrigin
-import org.gradle.internal.cc.base.exceptions.ConfigurationCacheError
 import org.gradle.internal.classpath.ClassPath
+import org.gradle.internal.configuration.problems.PropertyProblem
+import org.gradle.internal.configuration.problems.StructuredMessage
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.serialize.Encoder
 import org.gradle.internal.serialize.graph.ClassEncoder
 import org.gradle.internal.serialize.graph.ClassLoaderRole
+import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.internal.serialize.graph.WriteIdentities
 
 
@@ -31,11 +34,6 @@ interface ScopeLookup {
     fun scopeFor(classLoader: ClassLoader?): Pair<ClassLoaderScopeSpec, ClassLoaderRole>?
     val knownClassLoaders: Set<ClassLoader>
 }
-
-
-internal
-fun ScopeLookup.describeKnownClassLoaders() =
-    "These are the known class loaders:\n${knownClassLoaders.joinToString("\n") { "\t- $it" }}\n"
 
 
 internal
@@ -69,16 +67,19 @@ class DefaultClassEncoder(
     private
     val scopes = WriteIdentities()
 
-    override fun Encoder.encodeClass(type: Class<*>) {
+    override fun WriteContext.encodeClass(type: Class<*>) {
         val id = classes.getId(type)
         if (id != null) {
             writeSmallInt(id)
         } else {
             val newId = classes.putInstance(type)
             writeSmallInt(newId)
-            val className = type.name
+            // TODO:configuration-cache - should collect the details of the decoration (eg enabled annotations, etc), and also carry this information with the serialized class reference
+            val originalType = GeneratedSubclasses.unpack(type)
+            writeBoolean(originalType !== type)
+            val className = originalType.name
             writeString(className)
-            val classLoader = type.classLoader
+            val classLoader = originalType.classLoader
             if (!writeClassLoaderScopeOf(classLoader) && classLoader != null) {
                 // Ensure class can be found in the Gradle runtime classloader since its original classloader could not be encoded.
                 ensureClassCanBeFoundInGradleRuntimeClassLoader(className, classLoader)
@@ -86,7 +87,7 @@ class DefaultClassEncoder(
         }
     }
 
-    override fun Encoder.encodeClassLoader(classLoader: ClassLoader?) {
+    override fun WriteContext.encodeClassLoader(classLoader: ClassLoader?) {
         writeClassLoaderScopeOf(classLoader)
     }
 
@@ -134,16 +135,24 @@ class DefaultClassEncoder(
     }
 
     private
-    fun ensureClassCanBeFoundInGradleRuntimeClassLoader(className: String, originalClassLoader: ClassLoader) {
+    fun WriteContext.ensureClassCanBeFoundInGradleRuntimeClassLoader(className: String, originalClassLoader: ClassLoader) {
         try {
             classForName(className, gradleRuntimeClassLoader)
         } catch (e: ClassNotFoundException) {
-            throw ConfigurationCacheError(
-                "Class '${className}' cannot be encoded because ${describeClassLoader(originalClassLoader)} could not be encoded " +
-                    "and the class is not available through the default class loader.\n" +
-                    scopeLookup.describeKnownClassLoaders() +
-                    "Please report this error, run './gradlew --stop' and try again.",
-                e
+            onProblem(
+                PropertyProblem(
+                    trace,
+                    StructuredMessage.build {
+                        text("Class ")
+                        reference(className)
+                        text(" cannot be encoded because ")
+                        text(describeClassLoader(originalClassLoader))
+                        text(" could not be encoded and the class is not available through the default class loader.\n")
+                        text(scopeLookup.describeKnownClassLoaders())
+                        text("\nPlease report this error, run './gradlew --stop' and try again.")
+                    },
+                    exception = e
+                )
             )
         }
     }
@@ -157,4 +166,11 @@ class DefaultClassEncoder(
             writeBinary(hashCode.toByteArray())
         }
     }
+}
+
+
+internal
+fun ScopeLookup.describeKnownClassLoaders(): String = knownClassLoaders.let { classLoaders ->
+    if (classLoaders.isEmpty()) "No class loaders are currently known."
+    else "These are the known class loaders:\n${classLoaders.joinToString("\n") { "\t- $it" }}"
 }

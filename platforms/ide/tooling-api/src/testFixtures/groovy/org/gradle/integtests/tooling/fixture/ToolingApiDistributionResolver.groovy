@@ -59,7 +59,7 @@ class ToolingApiDistributionResolver {
         this.resolutionServices = project.services.get(DependencyResolutionServices)
         def localRepository = buildContext.localRepository
         if (localRepository) {
-            this.resolutionServices.resolveRepositoryHandler.maven { url = localRepository.toURI().toURL() }
+            this.resolutionServices.resolveRepositoryHandler.maven { url = localRepository.toURI() }
         }
     }
 

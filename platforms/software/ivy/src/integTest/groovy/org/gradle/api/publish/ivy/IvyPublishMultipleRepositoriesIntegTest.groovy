@@ -56,11 +56,11 @@ class IvyPublishMultipleRepositoriesIntegTest extends AbstractIvyPublishIntegTes
                 }
                 repositories {
                     ivy {
-                        url "${repo1.uri}"
+                        url = "${repo1.uri}"
                     }
                     ivy {
-                        name "repo2"
-                        url "${repo2.uri}"
+                        name = "repo2"
+                        url = "${repo2.uri}"
                     }
                 }
             }

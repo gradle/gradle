@@ -636,7 +636,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
                     confStarted(attributes);
                 } else if ("mapped".equals(qName)) {
                     dd.addDependencyConfiguration(conf, substitute(attributes.getValue("name")));
-                } else if (("conflict".equals(qName) && state == State.DEPS) || "manager".equals(qName) && state == State.CONFLICT) {
+                } else if (("conflict".equals(qName) && state == State.DEPS) || ("manager".equals(qName) && state == State.CONFLICT)) {
                     LOGGER.debug("Ivy.xml conflict managers are not supported by Gradle. Ignoring conflict manager declared in {}", getResource().getDisplayName());
                 } else if ("override".equals(qName) && state == State.DEPS) {
                     LOGGER.debug("Ivy.xml dependency overrides are not supported by Gradle. Ignoring override declared in {}", getResource().getDisplayName());

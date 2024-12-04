@@ -48,7 +48,7 @@ class VersionConflictResolutionIntegrationTest extends AbstractIntegrationSpec {
 allprojects {
 	apply plugin: 'java'
 	repositories {
-		maven { url "${mavenRepo.uri}" }
+		maven { url = "${mavenRepo.uri}" }
 	}
 }
 
@@ -96,7 +96,7 @@ project(':tool') {
 allprojects {
 	apply plugin: 'java'
 	repositories {
-		maven { url "${mavenRepo.uri}" }
+		maven { url = "${mavenRepo.uri}" }
 	}
 }
 
@@ -139,7 +139,7 @@ include 'api', 'impl', 'tool'
 allprojects {
 	apply plugin: 'java'
 	repositories {
-		maven { url "${mavenRepo.uri}" }
+		maven { url = "${mavenRepo.uri}" }
 	}
 }
 
@@ -195,7 +195,7 @@ apply plugin: 'java'
 group = 'org'
 version = '1.0'
 repositories {
-    maven { url "${mavenRepo.uri}" }
+    maven { url = "${mavenRepo.uri}" }
 }
 
 dependencies {
@@ -245,7 +245,7 @@ task resolve {
 
         buildFile << """
 repositories {
-    maven { url "${mavenRepo.uri}" }
+    maven { url = "${mavenRepo.uri}" }
 }
 
 configurations { compile }
@@ -290,7 +290,7 @@ dependencies {
 
         buildFile << """
 repositories {
-    maven { url "${mavenRepo.uri}" }
+    maven { url = "${mavenRepo.uri}" }
 }
 
 configurations { compile }
@@ -326,7 +326,7 @@ dependencies {
 
         buildFile << """
 repositories {
-    maven { url "${mavenRepo.uri}" }
+    maven { url = "${mavenRepo.uri}" }
 }
 configurations {
     compile
@@ -367,7 +367,7 @@ dependencies {
         def buildFile = file("build.gradle")
         buildFile << """
 repositories {
-    maven { url "${mavenRepo.uri}" }
+    maven { url = "${mavenRepo.uri}" }
 }
 
 configurations { compile }
@@ -401,7 +401,7 @@ dependencies {
 
         buildFile << """
 repositories {
-    maven { url "${mavenRepo.uri}" }
+    maven { url = "${mavenRepo.uri}" }
 }
 
 configurations { compile }
@@ -430,7 +430,7 @@ task checkDeps {
 
         buildFile << """
 repositories {
-    maven { url "${mavenRepo.uri}" }
+    maven { url = "${mavenRepo.uri}" }
 }
 
 configurations { compile }
@@ -474,7 +474,7 @@ dependencies {
 allprojects {
 	apply plugin: 'java'
 	repositories {
-		maven { url "${mavenRepo.uri}" }
+		maven { url = "${mavenRepo.uri}" }
 	}
 }
 
@@ -548,7 +548,7 @@ project(':tool') {
         buildFile << """
 apply plugin: 'java'
 repositories {
-    maven { url "${mavenRepo.uri}" }
+    maven { url = "${mavenRepo.uri}" }
 }
 
 dependencies {
@@ -599,7 +599,7 @@ configurations.all {
 
         buildFile << """
             repositories {
-                ivy { url "${ivyRepo.uri}" }
+                ivy { url = "${ivyRepo.uri}" }
             }
 
             configurations {
@@ -659,7 +659,7 @@ configurations.all {
         mavenRepo.module("org", "b", '1.0').dependsOn("org", "b-child", "1.0").publish()
 
         buildFile << """
-            repositories { maven { url "${mavenRepo.uri}" } }
+            repositories { maven { url = "${mavenRepo.uri}" } }
 
             configurations { compile }
 
@@ -721,7 +721,7 @@ configurations.all {
         mavenRepo.module("org", "f").dependsOn("org", "x", "2.0").publish()
 
         buildFile << """
-            repositories { maven { url "${mavenRepo.uri}" } }
+            repositories { maven { url = "${mavenRepo.uri}" } }
             configurations {
                 childFirst
                 parentFirst
@@ -770,11 +770,11 @@ parentFirst
         buildFile << """
 apply plugin: 'java'
 
-group "org"
-version "1.3"
+group = "org"
+version = "1.3"
 
 repositories {
-    maven { url "${mavenRepo.uri}" }
+    maven { url = "${mavenRepo.uri}" }
 }
 
 dependencies {
@@ -806,11 +806,11 @@ dependencies {
         buildFile << """
 apply plugin: 'java'
 
-group "org"
-version "1.3"
+group = "org"
+version = "1.3"
 
 repositories {
-    maven { url "${mavenRepo.uri}" }
+    maven { url = "${mavenRepo.uri}" }
 }
 
 dependencies {
@@ -848,7 +848,7 @@ dependencies {
 
         buildFile << """
 repositories {
-    maven { url "${mavenRepo.uri}" }
+    maven { url = "${mavenRepo.uri}" }
 }
 configurations {
     compile
@@ -896,7 +896,7 @@ dependencies {
         buildFile << """
             version = 12
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
             configurations {
                 conf
@@ -964,7 +964,7 @@ dependencies {
 
         buildFile << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
             configurations {
                 compile
@@ -1006,7 +1006,7 @@ dependencies {
 
         buildFile << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
             configurations {
                 compile
@@ -1045,7 +1045,7 @@ dependencies {
 
         buildFile << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
             configurations {
                 compile {
@@ -1089,7 +1089,7 @@ dependencies {
 
         buildFile << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
             configurations {
                 compile
@@ -1141,7 +1141,7 @@ dependencies {
 
         buildFile << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
             configurations {
                 compile
@@ -1191,7 +1191,7 @@ dependencies {
 
         buildFile << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
             configurations {
                 compile
@@ -1233,7 +1233,7 @@ dependencies {
 
         buildFile << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
             configurations {
                 conf
@@ -1266,7 +1266,7 @@ dependencies {
 
         buildFile << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
             configurations {
                 conf {
@@ -1302,7 +1302,7 @@ dependencies {
 
         buildFile << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
             configurations {
                 compile
@@ -1349,7 +1349,7 @@ dependencies {
 
         buildFile << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
             configurations {
                 conf {
@@ -1389,7 +1389,7 @@ dependencies {
 
         buildFile << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
             configurations {
                 compile
@@ -1439,7 +1439,7 @@ dependencies {
 
         buildFile << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
             configurations {
                 compile
@@ -1478,7 +1478,7 @@ dependencies {
 
         buildFile << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
             configurations {
                 compile
@@ -1520,7 +1520,7 @@ dependencies {
 
         buildFile << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
             configurations {
                 conf
@@ -1572,7 +1572,7 @@ dependencies {
 
         buildFile << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
             configurations {
                 compile
@@ -1625,7 +1625,7 @@ dependencies {
 
         buildFile << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
             configurations {
                 compile
@@ -1674,7 +1674,7 @@ dependencies {
 
         buildFile << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
             configurations {
                 compile
@@ -1721,7 +1721,7 @@ dependencies {
 
         buildFile << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
             configurations {
                 compile
@@ -1766,7 +1766,7 @@ dependencies {
 
         buildFile << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
             configurations {
                 compile
@@ -1810,7 +1810,7 @@ dependencies {
 
         buildFile << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
             configurations {
                 compile
@@ -1851,7 +1851,7 @@ dependencies {
 
         buildFile << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
             configurations {
                 compile
@@ -1896,7 +1896,7 @@ dependencies {
 
         buildFile << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
             configurations {
                 compile
@@ -1936,7 +1936,7 @@ dependencies {
 
         buildFile << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
             configurations {
                 compile
@@ -1975,7 +1975,7 @@ dependencies {
         ResolveTestFixture resolve = new ResolveTestFixture(buildFile, "conf").expectDefaultConfiguration("runtime")
         buildFile << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
             configurations {
                 conf
@@ -2055,7 +2055,7 @@ dependencies {
 
         buildFile << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
             configurations {
                 conf {
@@ -2100,8 +2100,8 @@ apply plugin: 'java'
 
 repositories {
     maven {
-        name 'repo'
-        url '${mavenRepo.uri}'
+        name = 'repo'
+        url = "${mavenRepo.uri}"
     }
 }
 
@@ -2157,8 +2157,8 @@ apply plugin: 'java'
 
 repositories {
     maven {
-        name 'repo'
-        url '${mavenRepo.uri}'
+        name = 'repo'
+        url = "${mavenRepo.uri}"
     }
 }
 
@@ -2212,7 +2212,7 @@ project(':sub') {
 
             repositories {
                 maven {
-                    url '${mavenRepo.uri}'
+                    url = "${mavenRepo.uri}"
                 }
             }
 
@@ -2243,7 +2243,7 @@ project(':sub') {
 
             repositories {
                 maven {
-                    url '${mavenRepo.uri}'
+                    url = "${mavenRepo.uri}"
                 }
             }
 
@@ -2277,7 +2277,7 @@ project(':sub') {
 
             repositories {
                 maven {
-                    url '${mavenRepo.uri}'
+                    url = "${mavenRepo.uri}"
                 }
             }
 
@@ -2316,7 +2316,7 @@ project(':sub') {
 
             repositories {
                 maven {
-                    url '${mavenRepo.uri}'
+                    url = "${mavenRepo.uri}"
                 }
             }
 
@@ -2338,8 +2338,8 @@ project(':sub') {
         buildFile << """
 repositories {
     maven {
-        name 'repo'
-        url '${mavenRepo.uri}'
+        name = 'repo'
+        url = "${mavenRepo.uri}"
     }
 }
 
@@ -2364,8 +2364,8 @@ dependencies {
         buildFile << """
             repositories {
                 maven {
-                    name 'repo'
-                    url '${mavenRepo.uri}'
+                    name = 'repo'
+                    url = "${mavenRepo.uri}"
                 }
             }
 
@@ -2411,8 +2411,8 @@ dependencies {
         buildFile << """
             repositories {
                 maven {
-                    name 'repo'
-                    url '${mavenRepo.uri}'
+                    name = 'repo'
+                    url = "${mavenRepo.uri}"
                 }
             }
 

@@ -17,6 +17,7 @@
 package org.gradle.tooling.events.problems;
 
 import org.gradle.api.Incubating;
+import org.gradle.tooling.Failure;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -42,12 +43,24 @@ public interface ProblemContext {
     Details getDetails();
 
     /**
-     * Returns the locations associated with this problem.
+     * Returns the locations where the problem originated.
+     * <p>
+     * Might be empty if the origin is not known.
      *
-     * @return the locations
-     * @since 8.8
+     * @return the origin locations
+     * @since 8.12
      */
-    List<Location> getLocations();
+    List<Location> getOriginLocations();
+
+    /**
+     * Returns additional locations, which can help to understand the problem further.
+     * <p>
+     * Might be empty if there is no meaningful contextual information.
+     *
+     * @return the contextual locations
+     * @since 8.12
+     */
+    List<Location> getContextualLocations();
 
     /**
      * Returns the list of solutions.
@@ -66,5 +79,5 @@ public interface ProblemContext {
      * @since 8.8
      */
     @Nullable
-    FailureContainer getFailure();
+    Failure getFailure();
 }

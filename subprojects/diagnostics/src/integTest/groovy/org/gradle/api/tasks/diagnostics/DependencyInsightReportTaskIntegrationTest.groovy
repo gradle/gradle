@@ -41,7 +41,7 @@ class DependencyInsightReportTaskIntegrationTest extends AbstractIntegrationSpec
         given:
         buildFile << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
             configurations {
                 conf
@@ -69,7 +69,7 @@ class DependencyInsightReportTaskIntegrationTest extends AbstractIntegrationSpec
             apply plugin: 'java'
 
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
             configurations {
                 conf
@@ -99,7 +99,7 @@ No dependencies matching given input were found in configuration ':compileClassp
             apply plugin: 'java'
 
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
             configurations {
                 conf
@@ -129,7 +129,7 @@ No dependencies matching given input were found in configuration ':conf'
 
         buildFile << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
             configurations {
                 conf
@@ -188,7 +188,7 @@ org:leaf2:1.0
 
         buildFile << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
 
             configurations {
@@ -245,7 +245,7 @@ org:leaf2:1.5 -> 2.5
         }
         buildFile << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
 
             configurations {
@@ -326,7 +326,7 @@ org:leaf:1.0
 
         buildFile << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
 
             configurations {
@@ -398,7 +398,7 @@ org:leaf2:1.5 -> 2.5
 
         buildFile << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
 
             configurations {
@@ -463,8 +463,8 @@ dependencyLocking {
 
 repositories {
     maven {
-        name 'repo'
-        url '${mavenRepo.uri}'
+        name = 'repo'
+        url = '${mavenRepo.uri}'
     }
 }
 configurations {
@@ -509,8 +509,8 @@ dependencyLocking {
 
 repositories {
     maven {
-        name 'repo'
-        url '${mavenRepo.uri}'
+        name = 'repo'
+        url = '${mavenRepo.uri}'
     }
 }
 configurations {
@@ -571,7 +571,7 @@ org:foo:1.+ FAILED
 
         buildFile << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
             configurations {
                 conf
@@ -654,7 +654,7 @@ org:leaf:2.0 -> 1.0
 
         buildFile << """
             repositories {
-                ivy { url "${ivyRepo.uri}" }
+                ivy { url = "${ivyRepo.uri}" }
             }
             configurations {
                 conf
@@ -705,7 +705,7 @@ org:leaf:latest.integration -> 1.0
 
         buildFile << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
             configurations {
                 conf {
@@ -769,7 +769,7 @@ org:foo:1.0 -> org:bar:2.0
 
         buildFile << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
             configurations {
                 conf {
@@ -855,7 +855,7 @@ org:foo:1.0 -> 2.0
 
         buildFile << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
             configurations {
                conf {
@@ -918,7 +918,7 @@ org:foo:1.0 -> org:bar:1.0
 
         buildFile << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
             configurations {
                 conf {
@@ -971,7 +971,7 @@ org:leaf:2.0 -> org:new-leaf:77
 
         buildFile << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
             configurations {
                 conf {
@@ -1036,7 +1036,7 @@ org:foo:1.0 -> 2.0
 
         buildFile << """
             repositories {
-                ivy { url "${ivyRepo.uri}" }
+                ivy { url = "${ivyRepo.uri}" }
             }
             configurations {
                 conf
@@ -1086,7 +1086,7 @@ org:leaf:latest.integration -> 1.6
 
         buildFile << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
             configurations {
                 conf
@@ -1137,7 +1137,7 @@ org:leaf:1.0 -> 2.0
 
         buildFile << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
             configurations {
                 conf
@@ -1184,7 +1184,7 @@ org:leaf:2.0 -> 1.5
 
         buildFile << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
             configurations {
                 conf
@@ -1271,7 +1271,7 @@ org:leaf:1.4 -> 2.0
 
         buildFile << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
             configurations {
                 conf
@@ -1299,7 +1299,7 @@ org:leaf:1.4 -> 2.0
 
         buildFile << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
             configurations {
                 conf
@@ -1333,7 +1333,7 @@ org:middle:1.0 FAILED
 
         buildFile << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
             configurations {
                 conf {
@@ -1376,7 +1376,7 @@ org:middle:1.0 -> 2.0 FAILED
 
         buildFile << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
             configurations {
                 conf
@@ -1413,7 +1413,7 @@ org:middle:1.0 -> 2.0 FAILED
 
         buildFile << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
             configurations {
                 conf {
@@ -1461,7 +1461,7 @@ org:middle:1.0 -> 2.0+ FAILED
 
         buildFile << """
             repositories {
-                ivy { url "${ivyRepo.uri}" }
+                ivy { url = "${ivyRepo.uri}" }
             }
             configurations {
                 conf
@@ -1572,7 +1572,7 @@ project :C FAILED
 
         buildFile << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
             configurations {
                 conf
@@ -1683,7 +1683,7 @@ root project :
                 group = 'org.foo'
                 version = '1.0-SNAPSHOT'
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = "${mavenRepo.uri}" }
                 }
             }
             dependencies {
@@ -1740,7 +1740,7 @@ org:leaf2:1.0
                 group = 'org.foo'
                 version = '1.0-SNAPSHOT'
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = "${mavenRepo.uri}" }
                 }
             }
             dependencies {
@@ -1795,7 +1795,7 @@ project :impl
                 group = 'org.foo'
                 version = '1.0-SNAPSHOT'
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = "${mavenRepo.uri}" }
                 }
             }
             dependencies {
@@ -1845,7 +1845,7 @@ org:leaf4:1.0
         buildFile << """
                 apply plugin: 'java-library'
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = "${mavenRepo.uri}" }
                 }
                 dependencies {
                     api 'org:leaf1:1.0'
@@ -1912,7 +1912,7 @@ org:leaf2:1.0
                 group = 'org.foo'
                 version = '1.0-SNAPSHOT'
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = "${mavenRepo.uri}" }
                 }
             }
             dependencies {
@@ -2014,7 +2014,7 @@ project :some:deeply:nested
                 group = 'org.foo'
                 version = '1.0-SNAPSHOT'
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = "${mavenRepo.uri}" }
                 }
             }
             dependencies {
@@ -2067,7 +2067,7 @@ org:leaf3:1.0
 
         buildFile << """
             repositories {
-               maven { url "${mavenRepo.uri}" }
+               maven { url = "${mavenRepo.uri}" }
             }
             configurations {
                 api.canBeConsumed = false
@@ -2130,7 +2130,7 @@ foo:foo:1.0
             apply plugin: 'java-library'
 
             repositories {
-               maven { url "${mavenRepo.uri}" }
+               maven { url = "${mavenRepo.uri}" }
             }
 
             dependencies {
@@ -2185,7 +2185,7 @@ org:foo -> $selected
             apply plugin: 'java-library'
 
             repositories {
-               maven { url "${mavenRepo.uri}" }
+               maven { url = "${mavenRepo.uri}" }
             }
 
             dependencies {
@@ -2241,7 +2241,7 @@ org:foo -> $selected
             apply plugin: 'java-library'
 
             repositories {
-               maven { url "${mavenRepo.uri}" }
+               maven { url = "${mavenRepo.uri}" }
             }
 
             dependencies {
@@ -2294,7 +2294,7 @@ org:foo:${displayVersion} -> $selected
             apply plugin: 'java-library'
 
             repositories {
-               maven { url "${mavenRepo.uri}" }
+               maven { url = "${mavenRepo.uri}" }
             }
 
             dependencies {
@@ -2341,7 +2341,7 @@ org:foo:[1.1,1.3] -> 1.3
             apply plugin: 'java-library'
 
             repositories {
-               maven { url "${mavenRepo.uri}" }
+               maven { url = "${mavenRepo.uri}" }
             }
 
             dependencies {
@@ -2413,7 +2413,7 @@ org:foo:{require [1.0,); reject 1.2} -> 1.1
             apply plugin: 'java-library'
 
             repositories {
-               maven { url "${mavenRepo.uri}" }
+               maven { url = "${mavenRepo.uri}" }
             }
 
             dependencies {
@@ -2491,7 +2491,7 @@ org:foo:{require [1.0,); reject 1.2} -> 1.1
             apply plugin: 'java-library'
 
             repositories {
-               maven { url "${mavenRepo.uri}" }
+               maven { url = "${mavenRepo.uri}" }
             }
 
             dependencies {
@@ -2545,7 +2545,7 @@ org:leaf -> 1.0
             apply plugin: 'java-library'
 
             repositories {
-               maven { url "${mavenRepo.uri}" }
+               maven { url = "${mavenRepo.uri}" }
             }
 
             dependencies {
@@ -2589,7 +2589,7 @@ org.test:leaf:1.0
 
         buildFile << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
             configurations {
                 conf
@@ -2644,7 +2644,7 @@ A web-based, searchable dependency report is available by adding the --scan opti
             apply plugin: 'java-library'
 
             repositories {
-               maven { url "${mavenRepo.uri}" }
+               maven { url = "${mavenRepo.uri}" }
             }
 
             dependencies {
@@ -2720,7 +2720,7 @@ org:foo:[1.0,) FAILED
             apply plugin: 'java-library'
 
             repositories {
-               maven { url "${mavenRepo.uri}" }
+               maven { url = "${mavenRepo.uri}" }
             }
 
             dependencies {
@@ -2787,7 +2787,7 @@ org:foo:{require [1.0,); reject 1.1} -> 1.0
             apply plugin: 'java-library'
 
             repositories {
-               maven { url "${mavenRepo.uri}" }
+               maven { url = "${mavenRepo.uri}" }
             }
 
             dependencies {
@@ -2841,7 +2841,7 @@ org.test:leaf:1.0
             def COLOR = Attribute.of('color', String)
 
             repositories {
-               maven { url "${mavenRepo.uri}" }
+               maven { url = "${mavenRepo.uri}" }
             }
 
             configurations {
@@ -2933,7 +2933,7 @@ org:foo:[1.0,) -> 1.0
             apply plugin: 'java-library'
 
             repositories {
-               maven { url "${mavenRepo.uri}" }
+               maven { url = "${mavenRepo.uri}" }
             }
 
             dependencies {
@@ -3046,7 +3046,7 @@ planet:pluto:1.0.0
             apply plugin: 'java-library'
 
             repositories {
-               maven { url "${mavenRepo.uri}" }
+               maven { url = "${mavenRepo.uri}" }
             }
 
             dependencies {

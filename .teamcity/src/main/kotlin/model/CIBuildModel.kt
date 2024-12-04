@@ -11,6 +11,7 @@ import common.VersionedSettingsBranch
 import common.toCapitalized
 import configurations.BuildDistributions
 import configurations.CheckLinks
+import configurations.CheckTeamCityKotlinDSL
 import configurations.CompileAll
 import configurations.DocsTestType
 import configurations.DocsTestType.CONFIG_CACHE_DISABLED
@@ -80,6 +81,7 @@ data class CIBuildModel(
                 SpecificBuild.Gradleception,
                 SpecificBuild.GradleceptionWithGroovy4,
                 SpecificBuild.CheckLinks,
+                SpecificBuild.CheckTeamCityKotlinDSL,
                 SpecificBuild.SmokeTestsMaxJavaVersion,
                 SpecificBuild.SantaTrackerSmokeTests,
                 SpecificBuild.ConfigCacheSantaTrackerSmokeTests,
@@ -136,8 +138,6 @@ data class CIBuildModel(
                 TestCoverage(33, TestType.allVersionsIntegMultiVersion, Os.LINUX, JvmCategory.MIN_VERSION, ALL_CROSS_VERSION_BUCKETS.size),
                 TestCoverage(34, TestType.allVersionsIntegMultiVersion, Os.WINDOWS, JvmCategory.MIN_VERSION_WINDOWS_MAC, ALL_CROSS_VERSION_BUCKETS.size),
                 TestCoverage(36, TestType.platform, Os.MACOS, JvmCategory.MAX_LTS_VERSION, expectedBucketNumber = DEFAULT_MACOS_FUNCTIONAL_TEST_BUCKET_SIZE, arch = Arch.AARCH64),
-                TestCoverage(37, TestType.configCache, Os.MACOS, JvmCategory.MAX_VERSION, expectedBucketNumber = DEFAULT_MACOS_FUNCTIONAL_TEST_BUCKET_SIZE, arch = Arch.AARCH64, failStage = false),
-                TestCoverage(38, TestType.configCache, Os.WINDOWS, JvmCategory.MAX_VERSION, failStage = false),
             ),
             docsTests = listOf(
                 DocsTestCoverage(Os.MACOS, JvmCategory.MAX_VERSION, listOf(CONFIG_CACHE_DISABLED)),
@@ -150,10 +150,13 @@ data class CIBuildModel(
             trigger = Trigger.weekly,
             runsIndependent = true,
             functionalTests = listOf(
+                TestCoverage(37, TestType.configCache, Os.MACOS, JvmCategory.MAX_VERSION, expectedBucketNumber = DEFAULT_MACOS_FUNCTIONAL_TEST_BUCKET_SIZE, arch = Arch.AARCH64),
+                TestCoverage(38, TestType.configCache, Os.WINDOWS, JvmCategory.MAX_VERSION),
                 TestCoverage(39, TestType.configCache, Os.LINUX, JvmCategory.MAX_VERSION, DEFAULT_LINUX_FUNCTIONAL_TEST_BUCKET_SIZE, arch = Arch.AARCH64),
                 TestCoverage(40, TestType.configCache, Os.LINUX, JvmCategory.MAX_VERSION, DEFAULT_LINUX_FUNCTIONAL_TEST_BUCKET_SIZE, arch = Arch.AMD64),
                 TestCoverage(41, TestType.configCache, Os.LINUX, JvmCategory.MAX_LTS_VERSION, DEFAULT_LINUX_FUNCTIONAL_TEST_BUCKET_SIZE, arch = Arch.AARCH64),
                 TestCoverage(42, TestType.configCache, Os.LINUX, JvmCategory.MAX_LTS_VERSION, DEFAULT_LINUX_FUNCTIONAL_TEST_BUCKET_SIZE, arch = Arch.AMD64),
+                TestCoverage(43, TestType.quick, Os.ALPINE, JvmCategory.MAX_VERSION, expectedBucketNumber = DEFAULT_LINUX_FUNCTIONAL_TEST_BUCKET_SIZE)
             ),
         ),
         Stage(
@@ -398,6 +401,11 @@ enum class SpecificBuild {
     CheckLinks {
         override fun create(model: CIBuildModel, stage: Stage): OsAwareBaseGradleBuildType {
             return CheckLinks(model, stage)
+        }
+    },
+    CheckTeamCityKotlinDSL {
+        override fun create(model: CIBuildModel, stage: Stage): OsAwareBaseGradleBuildType {
+            return CheckTeamCityKotlinDSL(model, stage)
         }
     },
     TestPerformanceTest {

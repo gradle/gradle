@@ -19,10 +19,12 @@ package org.gradle.integtests.tooling.r50
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.model.GradleProject
 
+@ToolingApiVersion("<8.12")
 @TargetGradleVersion('>=5.0')
 class ModelProgressEventsCrossVersionSpec extends ToolingApiSpecification {
     def "generates model progress events"() {

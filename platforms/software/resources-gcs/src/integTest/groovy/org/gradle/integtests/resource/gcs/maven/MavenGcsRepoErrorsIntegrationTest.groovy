@@ -74,10 +74,10 @@ task retrieve(type: Sync) {
         buildFile << """
 repositories {
     maven {
-        url "${mavenGcsRepo.uri}"
+        url = "${mavenGcsRepo.uri}"
         credentials {
-            username "someUserName"
-            password "someSecret"
+            username = "someUserName"
+            password = "someSecret"
         }
     }
 }
@@ -125,7 +125,7 @@ Required by:
         buildFile << """
             repositories {
                 maven {
-                    url "${mavenGcsRepo.uri}"
+                    url = "${mavenGcsRepo.uri}"
                     authentication {
                         auth(BasicAuthentication)
                     }

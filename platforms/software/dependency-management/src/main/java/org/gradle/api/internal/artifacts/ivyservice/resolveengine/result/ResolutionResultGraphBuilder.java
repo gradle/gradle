@@ -38,7 +38,6 @@ import org.gradle.api.internal.artifacts.result.ResolvedComponentResultInternal;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Describables;
-import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
@@ -67,6 +66,7 @@ public class ResolutionResultGraphBuilder implements ResolvedComponentVisitor {
         ModuleVersionIdentifier id,
         ComponentIdentifier componentIdentifier,
         ImmutableAttributes attributes,
+        ImmutableCapabilities capabilities,
         String rootVariantName,
         AttributeDesugaring attributeDesugaring
     ) {
@@ -78,7 +78,7 @@ public class ResolutionResultGraphBuilder implements ResolvedComponentVisitor {
             componentIdentifier,
             Describables.of(rootVariantName),
             attributeDesugaring.desugar(attributes),
-            ImmutableCapabilities.of(DefaultImmutableCapability.defaultCapabilityForComponent(id)),
+            capabilities,
             null
         );
 

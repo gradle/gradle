@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl.accessors
 
+import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.reflect.TypeOf
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
@@ -26,7 +27,7 @@ import java.io.Serializable
 @ServiceScope(Scope.UserHome::class)
 interface ProjectSchemaProvider {
 
-    fun schemaFor(scriptTarget: Any): TypedProjectSchema?
+    fun schemaFor(scriptTarget: Any, classLoaderScope: ClassLoaderScope): TypedProjectSchema?
 }
 
 
@@ -52,6 +53,8 @@ data class ProjectSchema<out T>(
     val containerElements: List<ProjectSchemaEntry<T>>,
     val configurations: List<ConfigurationEntry<String>>,
     val modelDefaults: List<ProjectSchemaEntry<T>>,
+    val containerElementFactories: List<ContainerElementFactoryEntry<T>>,
+    val softwareTypeEntries: List<SoftwareTypeEntry<T>>,
     val scriptTarget: Any? = null
 ) {
 
@@ -62,6 +65,8 @@ data class ProjectSchema<out T>(
         containerElements.map { it.map(f) },
         configurations,
         modelDefaults.map { it.map(f) },
+        containerElementFactories.map { it.map(f) },
+        softwareTypeEntries.map { it.map(f) },
         scriptTarget
     )
 
@@ -72,6 +77,7 @@ data class ProjectSchema<out T>(
             || containerElements.isNotEmpty()
             || configurations.isNotEmpty()
             || modelDefaults.isNotEmpty()
+            || containerElementFactories.isNotEmpty()
 }
 
 
@@ -95,4 +101,24 @@ data class ConfigurationEntry<T>(
 
     fun <U> map(f: (T) -> U) =
         ConfigurationEntry(f(target), dependencyDeclarationAlternatives)
+}
+
+
+data class ContainerElementFactoryEntry<out T>(
+    val factoryName: String,
+    val containerReceiverType: T,
+    val publicType: T
+) : Serializable {
+
+    fun <U> map(f: (T) -> U) =
+        ContainerElementFactoryEntry(factoryName, f(containerReceiverType), f(publicType))
+}
+
+data class SoftwareTypeEntry<out T>(
+    val softwareTypeName: String,
+    val modelType: T,
+) : Serializable {
+
+    fun <U> map(f: (T) -> U) =
+        SoftwareTypeEntry(softwareTypeName, f(modelType))
 }

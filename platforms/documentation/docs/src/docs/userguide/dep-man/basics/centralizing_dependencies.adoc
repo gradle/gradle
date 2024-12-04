@@ -73,4 +73,4 @@ include::sample[dir="snippets/dependencyManagement/catalogs-toml-simple/groovy",
 ====
 
 [.text-right]
-**Next Step:** <<dependency_constraints_conflicts.adoc#five-dependency-constraints-conflicts,Learn about Dependency Constrains and Conflict Resolution>> >>
+**Next Step:** <<dependency_constraints_conflicts.adoc#five-dependency-constraints-conflicts,Learn about Dependency Constraints and Conflict Resolution>> >>

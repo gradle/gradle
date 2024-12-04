@@ -29,7 +29,7 @@ enum class Os(
     val jprofilerHome: String,
     val perfTestWorkingDir: String = "%teamcity.build.checkoutDir%",
     val perfTestJavaVendor: JvmVendor = JvmVendor.openjdk,
-    val buildJavaVersion: JvmVersion = JvmVersion.java11,
+    val buildJavaVersion: JvmVersion = BuildToolBuildJvm.version,
     val perfTestJavaVersion: JvmVersion = JvmVersion.java17,
     val defaultArch: Arch = Arch.AMD64
 ) {
@@ -37,6 +37,11 @@ enum class Os(
         "Linux",
         androidHome = "/opt/android/sdk",
         jprofilerHome = "/opt/jprofiler/jprofiler11.1.4"
+    ),
+    ALPINE(
+        "Linux",
+        androidHome = "/not/supported",
+        jprofilerHome = "/not/supported"
     ),
     WINDOWS(
         "Windows",

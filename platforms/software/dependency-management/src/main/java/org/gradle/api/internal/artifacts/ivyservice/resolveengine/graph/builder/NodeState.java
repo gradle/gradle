@@ -43,7 +43,7 @@ import org.gradle.api.internal.capabilities.ShadowedCapability;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.external.model.VirtualComponentIdentifier;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
-import org.gradle.internal.component.local.model.LocalVariantGraphResolveMetadata;
+import org.gradle.internal.component.local.model.LocalVariantGraphResolveState;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.ComponentGraphSpecificResolveState;
 import org.gradle.internal.component.model.DelegatingDependencyMetadata;
@@ -198,8 +198,8 @@ public class NodeState implements DependencyGraphNode {
 
     @Override
     public Set<? extends LocalFileDependencyMetadata> getOutgoingFileEdges() {
-        if (metadata instanceof LocalVariantGraphResolveMetadata) {
-            return ((LocalVariantGraphResolveMetadata) metadata).getFiles();
+        if (variantState instanceof LocalVariantGraphResolveState) {
+            return ((LocalVariantGraphResolveState) variantState).getFiles();
         }
         return Collections.emptySet();
     }
@@ -471,7 +471,7 @@ public class NodeState implements DependencyGraphNode {
     }
 
     protected List<? extends DependencyMetadata> getAllDependencies() {
-        return metadata.getDependencies();
+        return variantState.getDependencies();
     }
 
     private static DependencyMetadata makeNonTransitive(DependencyMetadata dependencyMetadata) {
@@ -712,7 +712,7 @@ public class NodeState implements DependencyGraphNode {
 
     private ExcludeSpec computeNodeExclusions() {
         if (cachedNodeExclusions == null) {
-            cachedNodeExclusions = moduleExclusions.excludeAny(metadata.getExcludes());
+            cachedNodeExclusions = moduleExclusions.excludeAny(variantState.getExcludes());
         }
         return cachedNodeExclusions;
     }

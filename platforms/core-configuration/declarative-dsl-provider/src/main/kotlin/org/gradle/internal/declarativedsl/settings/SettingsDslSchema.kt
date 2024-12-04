@@ -18,23 +18,22 @@ package org.gradle.internal.declarativedsl.settings
 
 import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.SettingsInternal
-import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.declarative.dsl.evaluation.AnalysisStatementFilter
 import org.gradle.declarative.dsl.evaluation.InterpretationSequence
-import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilterUtils.isCallNamed
 import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilterUtils.isConfiguringCall
 import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilterUtils.isTopLevelElement
 import org.gradle.internal.declarativedsl.analysis.and
 import org.gradle.internal.declarativedsl.analysis.implies
 import org.gradle.internal.declarativedsl.analysis.not
+import org.gradle.internal.declarativedsl.common.UnsupportedSyntaxFeatureCheck
+import org.gradle.internal.declarativedsl.common.gradleDslGeneralSchema
+import org.gradle.internal.declarativedsl.defaults.defineModelDefaultsInterpretationSequenceStep
 import org.gradle.internal.declarativedsl.defaults.isDefaultsConfiguringCall
+import org.gradle.internal.declarativedsl.evaluationSchema.DefaultInterpretationSequence
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchemaBuilder
 import org.gradle.internal.declarativedsl.evaluationSchema.SimpleInterpretationSequenceStepWithConversion
 import org.gradle.internal.declarativedsl.evaluationSchema.buildEvaluationAndConversionSchema
-import org.gradle.internal.declarativedsl.common.gradleDslGeneralSchema
-import org.gradle.internal.declarativedsl.defaults.defineModelDefaultsInterpretationSequenceStep
-import org.gradle.internal.declarativedsl.evaluationSchema.DefaultInterpretationSequence
 import org.gradle.internal.declarativedsl.evaluator.conversion.EvaluationAndConversionSchema
 import org.gradle.internal.declarativedsl.project.thirdPartyExtensions
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry
@@ -43,17 +42,18 @@ import org.gradle.plugin.software.internal.SoftwareTypeRegistry
 internal
 fun settingsInterpretationSequence(
     settings: SettingsInternal,
-    targetScope: ClassLoaderScope,
-    scriptSource: ScriptSource,
     softwareTypeRegistry: SoftwareTypeRegistry
 ): InterpretationSequence =
     DefaultInterpretationSequence(
         listOf(
-            SimpleInterpretationSequenceStepWithConversion("settingsPluginManagement",
-                features = setOf(SettingsBlocksCheck.feature, UnsupportedSyntaxFeatureCheck.feature)) { pluginManagementEvaluationSchema() },
-            PluginsInterpretationSequenceStep("settingsPlugins", targetScope, scriptSource) { settings.services },
+            SimpleInterpretationSequenceStepWithConversion(
+                "settingsPluginManagement",
+                features = setOf(SettingsBlocksCheck.feature, UnsupportedSyntaxFeatureCheck.feature)
+            ) { pluginManagementEvaluationSchema() },
+
+            settingsPluginsInterpretationSequenceStep("settingsPlugins"),
             defineModelDefaultsInterpretationSequenceStep(softwareTypeRegistry),
-            SimpleInterpretationSequenceStepWithConversion("settings") { settingsEvaluationSchema(settings) }
+            SimpleInterpretationSequenceStepWithConversion("settings", features = setOf(UnsupportedSyntaxFeatureCheck.feature)) { settingsEvaluationSchema(settings) }
         )
     )
 
@@ -61,7 +61,7 @@ fun settingsInterpretationSequence(
 internal
 fun pluginManagementEvaluationSchema(): EvaluationAndConversionSchema =
     buildEvaluationAndConversionSchema(
-        Settings::class,
+        SettingsInternal::class,
         isTopLevelPluginManagementBlock,
         schemaComponents = EvaluationSchemaBuilder::gradleDslGeneralSchema
     )
@@ -71,7 +71,7 @@ fun pluginManagementEvaluationSchema(): EvaluationAndConversionSchema =
  *  missing single-arg [Settings.include] (or missing vararg support) prevents this from happening,
  *  and we use the [SettingsInternal.include] single-argument workaround for now. */
 internal
-fun settingsEvaluationSchema(settings: Settings): EvaluationAndConversionSchema =
+fun settingsEvaluationSchema(settings: SettingsInternal): EvaluationAndConversionSchema =
     buildEvaluationAndConversionSchema(
         SettingsInternal::class,
         ignoreTopLevelPluginsPluginManagementAndConventions

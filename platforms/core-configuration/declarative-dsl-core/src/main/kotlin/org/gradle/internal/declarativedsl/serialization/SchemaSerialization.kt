@@ -33,7 +33,9 @@ import org.gradle.declarative.dsl.schema.FqName
 import org.gradle.declarative.dsl.schema.FunctionSemantics
 import org.gradle.declarative.dsl.schema.ParameterSemantics
 import org.gradle.declarative.dsl.schema.SchemaFunction
+import org.gradle.declarative.dsl.schema.SchemaItemMetadata
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
+import org.gradle.declarative.dsl.schema.SchemaMemberOrigin
 import org.gradle.internal.declarativedsl.analysis.ConfigureAccessorInternal
 import org.gradle.internal.declarativedsl.analysis.DataTypeRefInternal
 import org.gradle.internal.declarativedsl.analysis.DefaultAnalysisSchema
@@ -48,6 +50,7 @@ import org.gradle.internal.declarativedsl.analysis.DefaultEnumClass
 import org.gradle.internal.declarativedsl.analysis.DefaultFqName
 import org.gradle.internal.declarativedsl.analysis.FunctionSemanticsInternal
 import org.gradle.internal.declarativedsl.analysis.ParameterSemanticsInternal
+import org.gradle.internal.declarativedsl.analysis.SchemaItemMetadataInternal
 import org.gradle.internal.declarativedsl.language.DataTypeInternal
 
 
@@ -119,6 +122,7 @@ object SchemaSerialization {
             }
             polymorphic(ParameterSemantics::class) {
                 subclass(ParameterSemanticsInternal.DefaultStoreValueInProperty::class)
+                subclass(ParameterSemanticsInternal.DefaultIdentityKey::class)
                 subclass(ParameterSemanticsInternal.DefaultUnknown::class)
             }
             polymorphic(SchemaFunction::class) {
@@ -128,6 +132,12 @@ object SchemaSerialization {
                 }
                 subclass(DefaultDataTopLevelFunction::class)
                 subclass(DefaultDataConstructor::class)
+            }
+            polymorphic(SchemaItemMetadata::class) {
+                subclass(SchemaItemMetadataInternal.SchemaMemberOriginInternal.DefaultContainerElementFactory::class)
+            }
+            polymorphic(SchemaMemberOrigin::class) {
+                subclass(SchemaItemMetadataInternal.SchemaMemberOriginInternal.DefaultContainerElementFactory::class)
             }
         }
         prettyPrint = true

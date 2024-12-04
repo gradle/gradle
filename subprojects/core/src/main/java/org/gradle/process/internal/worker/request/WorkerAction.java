@@ -16,10 +16,10 @@
 
 package org.gradle.process.internal.worker.request;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.internal.tasks.properties.annotations.OutputPropertyRoleAnnotationHandler;
 import org.gradle.api.problems.internal.DefaultProblems;
+import org.gradle.api.problems.internal.ExceptionProblemRegistry;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.cache.internal.DefaultCrossBuildInMemoryCacheFactory;
 import org.gradle.internal.Cast;
@@ -83,7 +83,14 @@ public class WorkerAction implements Action<WorkerProcessContext>, Serializable,
                     // Make the argument serializers available so work implementations can register their own serializers
                     registration.add(RequestArgumentSerializers.class, argumentSerializers);
                     registration.add(InstantiatorFactory.class, instantiatorFactory);
-                    registration.add(InternalProblems.class, new DefaultProblems(ImmutableList.of(new WorkerProblemEmitter(responder)), CurrentBuildOperationRef.instance()));
+                    // TODO we should inject a worker-api specific implementation of InternalProblems here
+                    registration.add(InternalProblems.class, new DefaultProblems(
+                        new WorkerProblemEmitter(responder),
+                        null,
+                        CurrentBuildOperationRef.instance(),
+                        new ExceptionProblemRegistry(),
+                        null
+                    ));
                 })
                 .build();
             Class<?> workerImplementation = Class.forName(workerImplementationName);

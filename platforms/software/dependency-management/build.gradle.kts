@@ -14,7 +14,6 @@ errorprone {
         "AmbiguousMethodReference", // 1 occurrences
         "ClassCanBeStatic",
         "DefaultCharset", // 3 occurrences
-        "EmptyBlockTag", // 2 occurrences
         "Finally", // 4 occurrences
         "HidingField", // 1 occurrences
         "IdentityHashMapUsage", // 2 occurrences
@@ -32,7 +31,6 @@ errorprone {
         "NonApiType", // 3 occurrences
         "NonCanonicalType", // 3 occurrences
         "ObjectEqualsForPrimitives", // 3 occurrences
-        "OperatorPrecedence", // 2 occurrences
         "ReferenceEquality", // 10 occurrences
         "SameNameButDifferent", // 4 occurrences
         "StringCharset", // 1 occurrences
@@ -40,8 +38,6 @@ errorprone {
         "TypeParameterUnusedInFormals", // 2 occurrences
         "UndefinedEquals", // 1 occurrences
         "UnusedMethod", // 34 occurrences
-        "UnusedTypeParameter", // 1 occurrences
-        "UnusedVariable", // 6 occurrences
     )
 }
 
@@ -127,7 +123,8 @@ dependencies {
     integTestImplementation(libs.socksProxy) {
         because("SOCKS proxy not part of internal-integ-testing api, since it has limited usefulness, so must be explicitly depended upon")
     }
-    integTestImplementation(testFixtures(projects.security))
+    integTestImplementation(testFixtures(projects.core))
+    integTestImplementation(testFixtures(projects.signing))
     integTestImplementation(testFixtures(projects.modelCore))
 
     testFixturesApi(projects.baseServices) {

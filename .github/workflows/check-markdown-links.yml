@@ -1,0 +1,32 @@
+name: "Check markdown links"
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  check-links:
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check links
+        uses: lycheeverse/lychee-action@v2.1.0
+        with:
+          # excluded:
+          # - notes.md and notes-templates.md - because they are a part of user guide
+          # - Kotlin's Module.md - because it's a part of the Kotlin DSL docs
+          args: >
+            --no-progress --offline '**/*.md' --include-fragments
+            --exclude-path 'platforms/documentation/docs/src/docs/release/notes.md'
+            --exclude-path 'platforms/documentation/docs/src/docs/release/notes-template.md'
+            --exclude-path 'platforms/documentation/docs/src/docs/kotlin/Module.md'
+          fail: true

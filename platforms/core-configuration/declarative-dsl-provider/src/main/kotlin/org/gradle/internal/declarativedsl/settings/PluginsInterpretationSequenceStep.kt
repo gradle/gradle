@@ -16,6 +16,7 @@
 
 package org.gradle.internal.declarativedsl.settings
 
+import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerFactory
 import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
@@ -29,6 +30,7 @@ import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilterUtils.
 import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilterUtils.isTopLevelElement
 import org.gradle.internal.declarativedsl.analysis.and
 import org.gradle.internal.declarativedsl.analysis.implies
+import org.gradle.internal.declarativedsl.common.UnsupportedSyntaxFeatureCheck
 import org.gradle.internal.declarativedsl.common.gradleDslGeneralSchema
 import org.gradle.internal.declarativedsl.evaluationSchema.DefaultStepIdentifier
 import org.gradle.internal.declarativedsl.evaluationSchema.buildEvaluationAndConversionSchema
@@ -43,13 +45,31 @@ import org.gradle.plugin.use.internal.DefaultPluginId
 import org.gradle.plugin.use.internal.PluginRequestApplicator
 
 
+internal fun settingsPluginsInterpretationSequenceStep(stepIdentifierString: String) =
+    PluginsInterpretationSequenceStep(
+        stepIdentifierString,
+        { target ->
+            target as SettingsInternal
+            PluginsInterpretationSequenceStep.Host(
+                targetScope = target.classLoaderScope,
+                targetServices = target.services,
+                scriptSource = target.settingsScript
+            )
+        }
+    )
+
+
 internal
 class PluginsInterpretationSequenceStep(
     stepIdentifierString: String = "plugins",
-    private val targetScope: ClassLoaderScope,
-    private val scriptSource: ScriptSource,
-    private val getTargetServices: () -> ServiceRegistry,
+    private val produceHost: (Any) -> Host,
 ) : InterpretationSequenceStepWithConversion<PluginsTopLevelReceiver> {
+
+    class Host(
+        val targetScope: ClassLoaderScope,
+        val targetServices: ServiceRegistry,
+        val scriptSource: ScriptSource
+    )
 
     override val stepIdentifier: StepIdentifier = DefaultStepIdentifier(stepIdentifierString)
 
@@ -63,17 +83,19 @@ class PluginsInterpretationSequenceStep(
     override val features: Set<InterpretationStepFeature>
         get() = setOf(SettingsBlocksCheck.feature, UnsupportedSyntaxFeatureCheck.feature)
 
-    override fun whenEvaluated(resultReceiver: PluginsTopLevelReceiver) {
-        val pluginRequests = resultReceiver.plugins.specs.map {
-            DefaultPluginRequest(DefaultPluginId.unvalidated(it.id), it.apply, PluginRequestInternal.Origin.OTHER, scriptSource.displayName, null, it.version, null, null, null)
+    override fun whenEvaluated(target: Any, resultReceiver: PluginsTopLevelReceiver) {
+        with(produceHost(target)) {
+            val pluginRequests = resultReceiver.plugins.specs.map {
+                DefaultPluginRequest(DefaultPluginId.unvalidated(it.id), it.apply, PluginRequestInternal.Origin.OTHER, scriptSource.displayName, null, it.version, null, null, null)
+            }
+            with(targetServices) {
+                val scriptHandler = get(ScriptHandlerFactory::class.java).create(scriptSource, targetScope, StandaloneDomainObjectContext.forScript(scriptSource))
+                val pluginManager = get(PluginManagerInternal::class.java)
+                val pluginApplicator = get(PluginRequestApplicator::class.java)
+                pluginApplicator.applyPlugins(PluginRequests.of(pluginRequests), scriptHandler, pluginManager, targetScope)
+            }
+            targetScope.lock()
         }
-        with(getTargetServices()) {
-            val scriptHandler = get(ScriptHandlerFactory::class.java).create(scriptSource, targetScope, StandaloneDomainObjectContext.forScript(scriptSource))
-            val pluginManager = get(PluginManagerInternal::class.java)
-            val pluginApplicator = get(PluginRequestApplicator::class.java)
-            pluginApplicator.applyPlugins(PluginRequests.of(pluginRequests), scriptHandler, pluginManager, targetScope)
-        }
-        targetScope.lock()
     }
 }
 

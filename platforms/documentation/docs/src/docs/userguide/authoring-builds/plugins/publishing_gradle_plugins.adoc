@@ -125,7 +125,7 @@ To enable it, all that's needed is to apply the <<signing_plugin.adoc#signing_pl
 === Shadow dependencies ===
 
 Starting from version 1.0.0 of Plugin Publish Plugin, shadowing your plugin's dependencies (ie, publishing it as a fat jar) has been made automatic.
-To enable it, all that's needed is to apply the https://github.com/johnrengelman/shadow[`com.github.johnrengelman.shadow`] plugin in your build.
+To enable it, all that's needed is to apply the https://github.com/GradleUp/shadow[`com.gradleup.shadow`] plugin in your build.
 
 [[sec:publishing_your_plugin]]
 == Publishing the plugin

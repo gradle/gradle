@@ -25,6 +25,9 @@ import org.gradle.tooling.internal.protocol.problem.InternalSeverity;
 import javax.annotation.Nullable;
 import java.util.List;
 
+/**
+ * <p>DO NOT CHANGE THIS INTERFACE - it is part of the cross-version protocol.
+ */
 @NonNullApi
 public interface InternalProblemAggregationDetailsV2 extends InternalProblemDetails {
 

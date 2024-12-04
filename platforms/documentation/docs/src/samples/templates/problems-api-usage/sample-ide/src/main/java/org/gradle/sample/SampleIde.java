@@ -31,7 +31,7 @@ public class SampleIde {
         File projectDir = projectPath.toFile();
 
         // Initialize the Tooling API
-        return GradleConnector.newConnector().useGradleVersion("8.9").forProjectDirectory(projectDir).connect();
+        return GradleConnector.newConnector().useGradleVersion("8.12").forProjectDirectory(projectDir).connect();
     }
 
     public void buildModel() {
@@ -86,12 +86,27 @@ public class SampleIde {
         // tag::problems-tapi-event[]
         @Override
         public void statusChanged(ProgressEvent progressEvent) {
-            if (progressEvent instanceof SingleProblemEvent)
+            if (progressEvent instanceof SingleProblemEvent) {
                 prettyPrint((SingleProblemEvent) progressEvent);
+            } else if (progressEvent instanceof ProblemSummariesEvent) {
+                prettyPrint((ProblemSummariesEvent) progressEvent);
+            }
         }
         // end::problems-tapi-event[]
 
-        static void prettyPrint(SingleProblemEvent problem) {
+        static void prettyPrint(ProblemSummariesEvent problemEvent) {
+            System.out.println("Problem Summaries:");
+            problemEvent.getProblemSummaries()
+                .forEach(summary -> {
+                    System.out.println(" - display name: " + summary.getProblemId().getDisplayName());
+                    System.out.println(" - id: " + fqId(summary.getProblemId()));
+                    System.out.println(" - count: " + summary.getCount());
+                    System.out.println();
+                });
+        }
+
+        static void prettyPrint(SingleProblemEvent problemEvent) {
+            Problem problem = problemEvent.getProblem();
             System.out.println("Problem:");
             System.out.println(" - id: " + fqId(problem.getDefinition()));
             System.out.println(" - display name: " + problem.getDefinition().getId().getDisplayName());
@@ -104,7 +119,7 @@ public class SampleIde {
                     System.out.println(" - location: " + location);
                 }
             }
-            Failure exception = problem.getFailure().getFailure();
+            Failure exception = problem.getFailure();
             if (exception != null) {
                 System.out.println(" - exception: " + exception.getMessage());
             }
@@ -123,7 +138,10 @@ public class SampleIde {
         }
 
         static String fqId(ProblemDefinition definition) {
-            ProblemId id = definition.getId();
+            return fqId(definition.getId());
+        }
+
+        static String fqId(ProblemId id) {
             return fqId(id.getGroup()) + ":" + id.getName();
         }
 
@@ -139,10 +157,14 @@ public class SampleIde {
         static String toString(Severity severity) {
             int code = severity.getSeverity();
             switch (code) {
-                case 0: return "ADVICE";
-                case 1: return "WARNING";
-                case 2: return "ERROR";
-                default: return "UNKNOWN";
+                case 0:
+                    return "ADVICE";
+                case 1:
+                    return "WARNING";
+                case 2:
+                    return "ERROR";
+                default:
+                    return "UNKNOWN";
             }
         }
     }

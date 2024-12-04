@@ -84,7 +84,7 @@ subprojects {
     apply plugin: 'eclipse'
 
     repositories {
-        maven { url "${mavenRepo.uri}" }
+        maven { url = "${mavenRepo.uri}" }
     }
 }
 

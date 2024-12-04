@@ -33,8 +33,6 @@ import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.RootClassLoaderScope
 import org.gradle.api.internal.initialization.loadercache.DummyClassLoaderCache
 import org.gradle.api.problems.Problems
-import org.gradle.api.problems.internal.DefaultProblems
-import org.gradle.api.problems.internal.ProblemEmitter
 import org.gradle.configuration.ImportsReader
 import org.gradle.groovy.scripts.ScriptCompilationException
 import org.gradle.groovy.scripts.ScriptSource
@@ -55,6 +53,7 @@ import org.gradle.internal.serialize.Serializer
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.SetSystemProperties
+import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Ignore
 import spock.lang.Issue
@@ -96,9 +95,6 @@ class DefaultScriptCompilationHandlerTest extends Specification {
     public SetSystemProperties systemProperties = new SetSystemProperties()
 
     def setup() {
-        def problemEmitter = Stub(ProblemEmitter)
-        def problems = new DefaultProblems([problemEmitter])
-
         File testProjectDir = tmpDir.createDir("projectDir")
         importsReader = Stub(ImportsReader.class)
         scriptCompilationHandler = new DefaultScriptCompilationHandler(
@@ -107,7 +103,7 @@ class DefaultScriptCompilationHandlerTest extends Specification {
         ) {
             @Override
             protected Problems getProblemsService() {
-                return problems
+                return TestUtil.problemsService()
             }
         }
 

@@ -22,6 +22,7 @@ import org.gradle.api.Named
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.internal.AbstractNamedDomainObjectContainer
 import org.gradle.api.internal.CollectionCallbackActionDecorator
+import org.gradle.api.tasks.Internal
 import org.gradle.declarative.dsl.model.annotations.Configuring
 import org.gradle.declarative.dsl.model.annotations.ElementFactoryName
 import org.gradle.declarative.dsl.model.annotations.Restricted
@@ -58,6 +59,11 @@ class ContainersSchemaComponentTest {
         listOf("one", "two", "customFactoryName").forEach { name ->
             assertTrue(schema.analysisSchema.findType { type: DataClass -> type.hasFunctionNamed(name) } != null)
         }
+    }
+
+    @Test
+    fun `ignores container members annotated as @Internal`() {
+        assertFalse(schema.analysisSchema.typeFor<TopLevel>().hasFunctionNamed("internalContainer"))
     }
 
     @Test
@@ -144,6 +150,10 @@ class ContainersSchemaComponentTest {
         fun getContainerTwo(): NamedDomainObjectContainer<Two> = containerTwo
 
         private val containerTwo = container(Two::class.java)
+
+        @Suppress("unused")
+        @get:Internal
+        val internalContainer: NamedDomainObjectContainer<One> = container(One::class.java)
     }
 
     class One(private val name: String) : Named {
@@ -172,7 +182,7 @@ class ContainersSchemaComponentTest {
         override fun getName(): String = name
     }
 
-    class NdocSubtype(container: NamedDomainObjectContainer<Three>): NamedDomainObjectContainer<Three> by container {
+    class NdocSubtype(container: NamedDomainObjectContainer<Three>) : NamedDomainObjectContainer<Three> by container {
         @get:Restricted
         var w: Int = 0
 

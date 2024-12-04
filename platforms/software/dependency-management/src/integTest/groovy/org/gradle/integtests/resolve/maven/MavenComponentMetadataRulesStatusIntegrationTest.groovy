@@ -27,7 +27,7 @@ class MavenComponentMetadataRulesStatusIntegrationTest extends ComponentMetadata
 """
 repositories {
     maven {
-        url "$repo.uri"
+        url = "$repo.uri"
     }
 }
 """

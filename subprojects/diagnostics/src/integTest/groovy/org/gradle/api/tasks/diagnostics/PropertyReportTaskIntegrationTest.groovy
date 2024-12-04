@@ -23,7 +23,7 @@ class PropertyReportTaskIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         buildFile << """
             group = 'org.gradle.api'
-            version '1.2.3'
+            version = '1.2.3'
         """
     }
 

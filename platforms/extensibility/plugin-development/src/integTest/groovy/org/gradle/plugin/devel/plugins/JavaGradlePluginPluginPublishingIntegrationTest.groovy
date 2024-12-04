@@ -328,7 +328,7 @@ class JavaGradlePluginPluginPublishingIntegrationTest extends AbstractIntegratio
             publishing {
                 repositories {
                     maven {
-                        url '${mavenRepo.uri}'
+                        url = "${mavenRepo.uri}"
                     }
                 }
             }
@@ -341,7 +341,7 @@ class JavaGradlePluginPluginPublishingIntegrationTest extends AbstractIntegratio
             publishing {
                 repositories {
                     ivy {
-                        url '${ivyRepo.uri}'
+                        url = "${ivyRepo.uri}"
                     }
                 }
             }

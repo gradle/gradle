@@ -40,7 +40,7 @@ publishing {
 publishing {
     repositories {
         maven {
-            url "${projectDir}/repo"
+            url = layout.projectDirectory.dir('repo')
         }
     }
 }

@@ -42,6 +42,10 @@ testing/soak/                           @gradle/bt-support
 architecture/                               @gradle/bt-architecture-council
 testing/architecture-test                   @gradle/bt-architecture-council
 
+# These files change frequently, and changes to them don't need to automatically alert the architecture council
+testing/architecture-test/src/changes/accepted-changes/accepted-public-api-changes.json     @gradle/bt-unassigned-maintainers
+testing/architecture-test/src/changes/archunit-store/internal-api-nullability.txt           @gradle/bt-unassigned-maintainers
+
 # Core automation platform (core/configuration)
 platforms/core-configuration/               @gradle/bt-configuration
 testing/smoke-ide-test/                     @gradle/bt-configuration
@@ -67,25 +71,25 @@ platforms/core-configuration/declarative-dsl-internal-utils/        @gradle/bt-d
 
 # Core automation platform (core/runtime)
 platforms/core-runtime/                                     @gradle/bt-core-runtime-maintainers
-platforms/core-runtime/build-operations/                    @gradle/bt-core-runtime-maintainers @gradle/bt-execution @gradle/bt-dv-build-cache
+platforms/core-runtime/build-operations/                    @gradle/bt-core-runtime-maintainers @gradle/bt-execution @gradle/dv-integrations-team
 platforms/core-runtime/functional/                          @gradle/bt-core-runtime-maintainers @gradle/bt-execution @bamboo
-platforms/core-runtime/files/                               @gradle/bt-core-runtime-maintainers @gradle/bt-execution @gradle/bt-dv-build-cache
+platforms/core-runtime/files/                               @gradle/bt-core-runtime-maintainers @gradle/bt-execution @gradle/dv-integrations-team
 platforms/core-runtime/service-*/                           @gradle/bt-core-runtime-maintainers @alllex
 
 # Core automation platform (core/execution)
 platforms/core-execution/                                   @gradle/bt-execution
-platforms/core-execution/build-cache/                       @gradle/bt-execution @gradle/bt-dv-build-cache
-platforms/core-execution/build-cache-base/                  @gradle/bt-execution @gradle/bt-dv-build-cache
-platforms/core-execution/build-cache-http/                  @gradle/bt-execution @gradle/bt-dv-build-cache
-platforms/core-execution/build-cache-packaging/             @gradle/bt-execution @gradle/bt-dv-build-cache
-platforms/core-execution/build-cache-spi/                   @gradle/bt-execution @gradle/bt-dv-build-cache
-platforms/core-execution/hashing/                           @gradle/bt-execution @gradle/bt-dv-build-cache
-platforms/core-execution/snapshots/                         @gradle/bt-execution @gradle/bt-dv-build-cache
+platforms/core-execution/build-cache/                       @gradle/bt-execution @gradle/dv-integrations-team
+platforms/core-execution/build-cache-base/                  @gradle/bt-execution @gradle/dv-integrations-team
+platforms/core-execution/build-cache-http/                  @gradle/bt-execution @gradle/dv-integrations-team
+platforms/core-execution/build-cache-packaging/             @gradle/bt-execution @gradle/dv-integrations-team
+platforms/core-execution/build-cache-spi/                   @gradle/bt-execution @gradle/dv-integrations-team
+platforms/core-execution/hashing/                           @gradle/bt-execution @gradle/dv-integrations-team
+platforms/core-execution/snapshots/                         @gradle/bt-execution @gradle/dv-integrations-team
 
 # Develocity integration
-platforms/enterprise/                                   @gradle/bt-build-scan @gradle/dv-build-insights-team
-platforms/enterprise/enterprise/                        @gradle/bt-build-scan @gradle/dv-testing-team @gradle/dv-build-insights-team @ldaley
-platforms/enterprise/enterprise-logging/                @gradle/bt-build-scan @gradle/dv-build-insights-team @gradle/dv-testing-team
+platforms/enterprise/                                   @gradle/bt-build-scan
+platforms/enterprise/enterprise/                        @gradle/bt-build-scan @gradle/dv-testing-team @ldaley
+platforms/enterprise/enterprise-logging/                @gradle/bt-build-scan @gradle/dv-testing-team
 platforms/enterprise/enterprise-operations/             @gradle/bt-build-scan
 platforms/enterprise/enterprise-plugin-performance/     @gradle/bt-build-scan
 
@@ -107,10 +111,6 @@ platforms/extensibility/        @gradle/bt-extensibility-maintainers
 
 # Native
 platforms/native/                   @gradle/bt-native-maintainers
-
-# gitStream files
-.cm/                                @tresat
-.github/workflows/gitstream.yml     @tresat
 
 # IDE Experience team
 platforms/ide/                    @gradle/bt-ide-experience

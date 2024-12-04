@@ -16,9 +16,9 @@
 
 package org.gradle.internal.watch.registry.impl;
 
-import net.rubygrapefruit.platform.file.FileWatchEvent;
-import net.rubygrapefruit.platform.file.FileWatcher;
-import net.rubygrapefruit.platform.internal.jni.AbstractNativeFileEventFunctions;
+import org.gradle.fileevents.FileWatchEvent;
+import org.gradle.fileevents.FileWatcher;
+import org.gradle.fileevents.internal.AbstractNativeFileEventFunctions;
 import org.gradle.internal.watch.registry.FileWatcherProbeRegistry;
 import org.gradle.internal.watch.registry.FileWatcherRegistry;
 import org.gradle.internal.watch.registry.FileWatcherRegistryFactory;
@@ -54,7 +54,6 @@ public abstract class AbstractFileWatcherRegistryFactory<T extends AbstractNativ
             WatchableHierarchies watchableHierarchies = new WatchableHierarchies(probeRegistry, immutableLocationsFilter);
             FileWatcherUpdater fileWatcherUpdater = createFileWatcherUpdater(watcher, probeRegistry, watchableHierarchies);
             return new DefaultFileWatcherRegistry(
-                fileEventFunctions,
                 watcher,
                 handler,
                 fileWatcherUpdater,

@@ -36,6 +36,7 @@ import org.gradle.internal.resource.transport.aws.s3.S3RegionalResource
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.util.TestCredentialUtil
 import org.junit.Rule
 import spock.lang.Ignore
 import spock.lang.Shared
@@ -52,7 +53,7 @@ class S3ClientIntegrationTest extends Specification {
     final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     @Shared
-    DefaultAwsCredentials awsCredentials = new DefaultAwsCredentials()
+    DefaultAwsCredentials awsCredentials = TestCredentialUtil.defaultAwsCredentials()
 
     @Rule
     public final S3Server server = new S3Server(temporaryFolder)
@@ -135,7 +136,7 @@ class S3ClientIntegrationTest extends Specification {
      */
     @Ignore
     def "should interact with real S3 using KEY/SECRET pair"() {
-        DefaultAwsCredentials credentials = new DefaultAwsCredentials()
+        DefaultAwsCredentials credentials = TestCredentialUtil.defaultAwsCredentials()
         String bucketName = System.getenv('G_S3_BUCKET')
         credentials.setAccessKey(System.getenv('G_AWS_ACCESS_KEY_ID'))
         credentials.setSecretKey(System.getenv('G_AWS_SECRET_ACCESS_KEY'))
@@ -154,7 +155,7 @@ class S3ClientIntegrationTest extends Specification {
 
     @Ignore
     def "should interact with real S3 using KEY/SECRET/TOKEN triplet"() {
-        DefaultAwsCredentials credentials = new DefaultAwsCredentials()
+        DefaultAwsCredentials credentials = TestCredentialUtil.defaultAwsCredentials()
         String bucketName = System.getenv('G_S3_BUCKET')
         credentials.setAccessKey(System.getenv('G_AWS_ACCESS_KEY_ID'))
         credentials.setSecretKey(System.getenv('G_AWS_SECRET_ACCESS_KEY'))
@@ -195,7 +196,7 @@ class S3ClientIntegrationTest extends Specification {
     def "should use region specific endpoints to interact with buckets in all regions"() {
         setup:
         String bucketPrefix = 'testv4signatures'
-        DefaultAwsCredentials credentials = new DefaultAwsCredentials()
+        DefaultAwsCredentials credentials = TestCredentialUtil.defaultAwsCredentials()
         credentials.setAccessKey(System.getenv('G_AWS_ACCESS_KEY_ID'))
         credentials.setSecretKey(System.getenv('G_AWS_SECRET_ACCESS_KEY'))
 

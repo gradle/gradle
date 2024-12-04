@@ -21,6 +21,8 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.internal.featurelifecycle.DeprecatedUsageProgressDetails
 
+import static org.gradle.problems.internal.services.DefaultProblemSummarizer.THRESHOLD_DEFAULT_VALUE
+
 class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
@@ -319,12 +321,17 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
         events[50].details['deprecation'].stackTrace.length() == 0
 
         and:
-        51.times {
+        THRESHOLD_DEFAULT_VALUE.times {
             verifyAll(receivedProblem(it)) {
                 fqid == 'deprecation:thing'
                 contextualLabel.contains(" has been deprecated.")
             }
         }
+
+        def summaries = problemSummaries
+        summaries.size() == 1
+
+        summaries[0][0].problemId.name == "thing"
 
         where:
         mode << [WarningMode.None, WarningMode.Summary]
@@ -357,7 +364,7 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
         events.every { it.details['deprecation'].stackTrace.length() > 0 }
 
         and:
-        100.times {
+        THRESHOLD_DEFAULT_VALUE.times {
             verifyAll(receivedProblem(it)) {
                 fqid == 'deprecation:thing'
                 contextualLabel.contains('has been deprecated.')

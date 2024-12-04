@@ -39,7 +39,7 @@ class MavenPublishPomCustomizationIntegTest extends AbstractMavenPublishIntegTes
 
             publishing {
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = "${mavenRepo.uri}" }
                 }
                 publications {
                     mavenCustom(MavenPublication) {
@@ -242,7 +242,7 @@ class MavenPublishPomCustomizationIntegTest extends AbstractMavenPublishIntegTes
 
             publishing {
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = "${mavenRepo.uri}" }
                 }
                 publications {
                     emptyMaven(MavenPublication) {
@@ -289,7 +289,7 @@ class MavenPublishPomCustomizationIntegTest extends AbstractMavenPublishIntegTes
 
             publishing {
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = "${mavenRepo.uri}" }
                 }
                 publications {
                     maven(MavenPublication) {
@@ -323,7 +323,7 @@ class MavenPublishPomCustomizationIntegTest extends AbstractMavenPublishIntegTes
 
             publishing {
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = "${mavenRepo.uri}" }
                 }
                 publications {
                     maven(MavenPublication) {
@@ -352,13 +352,13 @@ class MavenPublishPomCustomizationIntegTest extends AbstractMavenPublishIntegTes
 
             publishing {
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = "${mavenRepo.uri}" }
                 }
                 publications {
                     maven(MavenPublication) {
-                        groupId "group"
-                        artifactId "artifact"
-                        version "1.0"
+                        groupId = "group"
+                        artifactId = "artifact"
+                        version = "1.0"
 
                         pom.withXml {
                             asNode().version[0].value = "2.0"
@@ -388,7 +388,7 @@ class MavenPublishPomCustomizationIntegTest extends AbstractMavenPublishIntegTes
 
             publishing {
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = "${mavenRepo.uri}" }
                 }
                 publications {
                     mavenCustom(MavenPublication) {

@@ -16,7 +16,6 @@ jdks:
     version: "8u401"
     sha256: "19684fccd7ff32a8400e952a643f0049449a772ef63b8037d5b917cbd137d173"
   - params:
-      - "env.JAVA_HOME"
       - "linux.java11.openjdk.64bit"
     os: "linux"
     arch: "amd64"
@@ -24,6 +23,7 @@ jdks:
     version: "jdk-11.0.25+9"
     sha256: "191baa2e052627614022171400a917d28f0987dc54da48aaf07b06f552bb9884"
   - params:
+      - "env.JAVA_HOME"
       - "linux.java17.openjdk.64bit"
     os: "linux"
     arch: "amd64"
@@ -53,7 +53,6 @@ jdks:
     version: "jdk8u432-b06"
     sha256: "383caabc20428e9500f2e07965317ed4387a0e336104483e29a9e06eeffbf26b"
   - params:
-      - "env.JAVA_HOME"
       - "linux.java11.openjdk.aarch64"
     os: "linux"
     arch: "aarch64"
@@ -61,6 +60,7 @@ jdks:
     version: "jdk-11.0.25+9"
     sha256: "f2087cc3abdd509b74facf8e43e81e36244d14c70dec080b8f3a662695417ca7"
   - params:
+      - "env.JAVA_HOME"
       - "linux.java17.openjdk.aarch64"
     os: "linux"
     arch: "aarch64"
@@ -83,7 +83,6 @@ jdks:
     version: "jdk8u432-b06"
     sha256: "7780436b818b3bf8be7b56832f9e3f1ab74233736c4c0e34b3ae7c32c95e966e"
   - params:
-      - "env.JAVA_HOME"
       - "windows.java11.openjdk.64bit"
     os: "windows"
     arch: "amd64"
@@ -91,6 +90,7 @@ jdks:
     version: "jdk-11.0.25+9"
     sha256: "472d59e54f81e86c79192b7d9291d94f6e29d6d56ef7ed1d8aa74fcc7df548dc"
   - params:
+      - "env.JAVA_HOME"
       - "windows.java17.openjdk.64bit"
     os: "windows"
     arch: "amd64"
@@ -119,7 +119,6 @@ jdks:
     version: "jdk8u432-b06"
     sha256: "e5cc78b704cf96f7a6c4ad677048f79331f38cd37fbef6c86dce75e1bfe28895"
   - params:
-      - "env.JAVA_HOME"
       - "macos.java11.openjdk.64bit"
     os: "macos"
     arch: "amd64"
@@ -127,13 +126,15 @@ jdks:
     version: "jdk-11.0.25+9"
     sha256: "fa6f88ebd8c3d2b4f5146cd45e4ef875cb2d073b6e95b60de86a1ce0bfdb463a"
   - params:
+      - "env.JAVA_HOME"
       - "macos.java17.openjdk.64bit"
     os: "macos"
     arch: "amd64"
     vendor: "temurin"
     version: "jdk-17.0.13+11"
     sha256: "840535070200a944a6b582d258ee84608bd25c9f2b5d1cdddb58dfadb019675a"
-  - param: "macos.java21.openjdk.64bit"
+  - params:
+      - "macos.java21.openjdk.64bit"
     os: "macos"
     arch: "amd64"
     vendor: "temurin"
@@ -146,7 +147,6 @@ jdks:
     vendor: "zulu"
     version: "zulu8.78.0.19-ca-jdk8.0.412"
   - params:
-      - "env.JAVA_HOME"
       - "macos.java11.openjdk.aarch64"
     os: "macos"
     arch: "aarch64"
@@ -154,6 +154,7 @@ jdks:
     version: "jdk-11.0.25+9"
     sha256: "658f73050ab168109862d4e25eefeedb587063cc01128a78ea4081e8ec62edcf"
   - params:
+      - "env.JAVA_HOME"
       - "macos.java17.openjdk.aarch64"
     os: "macos"
     arch: "aarch64"

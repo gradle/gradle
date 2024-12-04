@@ -16,20 +16,15 @@
 
 package org.gradle.ide.sync.fixtures
 
-
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheProblemsFixture
 import org.gradle.internal.Pair
 import org.gradle.test.fixtures.file.TestFile
-import org.hamcrest.Matcher
 
-import javax.annotation.Nullable
 import java.nio.file.FileVisitResult
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.SimpleFileVisitor
 import java.nio.file.attribute.BasicFileAttributes
-
-import static org.hamcrest.CoreMatchers.startsWith
 
 class IsolatedProjectsIdeSyncFixture {
 
@@ -106,35 +101,5 @@ class IsolatedProjectsIdeSyncFixture {
 
         assert reportDirs.size() == 1
         return reportDirs[0]
-    }
-}
-
-class HasConfigurationCacheProblemsInReportSpec {
-
-    final List<Pair<Matcher<String>, String>> locationsWithProblems = []
-
-    @Nullable
-    Integer totalProblemsCount
-
-    void validateSpec() {
-        def totalCount = totalProblemsCount ?: locationsWithProblems.size()
-        if (totalCount < locationsWithProblems.size()) {
-            throw new IllegalArgumentException("Count of total problems can't be lesser than count of unique problems.")
-        }
-    }
-
-    HasConfigurationCacheProblemsInReportSpec withLocatedProblem(String location, String problem) {
-        withLocatedProblem(startsWith(location), problem)
-        return this
-    }
-
-    HasConfigurationCacheProblemsInReportSpec withLocatedProblem(Matcher<String> location, String problem) {
-        locationsWithProblems.add(Pair.of(location, problem))
-        return this
-    }
-
-    HasConfigurationCacheProblemsInReportSpec withTotalProblemsCount(int totalProblemsCount) {
-        this.totalProblemsCount = totalProblemsCount
-        return this
     }
 }

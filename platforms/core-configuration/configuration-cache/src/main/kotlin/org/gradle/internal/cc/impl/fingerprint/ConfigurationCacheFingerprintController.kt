@@ -24,9 +24,10 @@ import org.gradle.api.internal.properties.GradleProperties
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
+import org.gradle.initialization.buildsrc.BuildSrcDetector
+import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.cc.base.services.ConfigurationCacheEnvironmentChangeTracker
-import org.gradle.internal.cc.impl.CheckedFingerprint
 import org.gradle.internal.cc.impl.ConfigurationCacheStateFile
 import org.gradle.internal.cc.impl.ConfigurationCacheStateStore.StateFile
 import org.gradle.internal.cc.impl.InputTrackingState
@@ -98,11 +99,11 @@ class ConfigurationCacheFingerprintController internal constructor(
     private val agentStatus: AgentStatus,
     private val problems: ConfigurationCacheProblems,
     private val encryptionService: EncryptionService,
-    private val configurationTimeBarrier: ConfigurationTimeBarrier
+    private val configurationTimeBarrier: ConfigurationTimeBarrier,
+    private val buildStateRegistry: BuildStateRegistry,
 ) : Stoppable, ProjectScopedScriptResolution {
 
     interface Host {
-        val buildPath: Path
         val valueSourceProviderFactory: ValueSourceProviderFactory
         val gradleProperties: GradleProperties
     }
@@ -172,7 +173,8 @@ class ConfigurationCacheFingerprintController internal constructor(
                 directoryFileTreeFactory,
                 workExecutionTracker,
                 environmentChangeTracker,
-                inputTrackingState
+                inputTrackingState,
+                buildStateRegistry
             )
             addListener(fingerprintWriter)
             return Writing(fingerprintWriter, buildScopedSpoolFile, projectScopedSpoolFile)
@@ -348,12 +350,12 @@ class ConfigurationCacheFingerprintController internal constructor(
         writingState = writingState.dispose()
     }
 
-    suspend fun ReadContext.checkBuildScopedFingerprint(host: Host): CheckedFingerprint =
+    suspend fun ReadContext.checkBuildScopedFingerprint(host: Host) =
         ConfigurationCacheFingerprintChecker(CacheFingerprintCheckerHost(host)).run {
             checkBuildScopedFingerprint()
         }
 
-    suspend fun ReadContext.checkProjectScopedFingerprint(host: Host): CheckedFingerprint =
+    suspend fun ReadContext.checkProjectScopedFingerprint(host: Host) =
         ConfigurationCacheFingerprintChecker(CacheFingerprintCheckerHost(host)).run {
             checkProjectScopedFingerprint()
         }
@@ -410,8 +412,8 @@ class ConfigurationCacheFingerprintController internal constructor(
         override val modelAsProjectDependency: Boolean
             get() = modelParameters.isModelAsProjectDependency
 
-        override val ignoreInputsInConfigurationCacheTaskGraphWriting: Boolean
-            get() = startParameter.isIgnoreInputsInTaskGraphSerialization
+        override val ignoreInputsDuringConfigurationCacheStore: Boolean
+            get() = startParameter.isIgnoreInputsDuringStore
 
         override val instrumentationAgentUsed: Boolean
             get() = agentStatus.isAgentInstrumentationEnabled
@@ -459,9 +461,6 @@ class ConfigurationCacheFingerprintController internal constructor(
         private
         val gradleProperties by lazy(host::gradleProperties)
 
-        override val buildPath: Path
-            get() = host.buildPath
-
         override val isEncrypted: Boolean
             get() = encryptionService.isEncrypting
 
@@ -483,8 +482,8 @@ class ConfigurationCacheFingerprintController internal constructor(
         override val invalidateCoupledProjects: Boolean
             get() = modelParameters.isInvalidateCoupledProjects
 
-        override val ignoreInputsInConfigurationCacheTaskGraphWriting: Boolean
-            get() = startParameter.isIgnoreInputsInTaskGraphSerialization
+        override val ignoreInputsDuringConfigurationCacheStore: Boolean
+            get() = startParameter.isIgnoreInputsDuringStore
 
         override val instrumentationAgentUsed: Boolean
             get() = agentStatus.isAgentInstrumentationEnabled
@@ -519,6 +518,10 @@ class ConfigurationCacheFingerprintController internal constructor(
 
         override fun isRemoteScriptUpToDate(uri: URI): Boolean =
             remoteScriptUpToDateChecker.isUpToDate(uri)
+
+        override fun hasValidBuildSrc(candidateBuildSrc: File): Boolean {
+            return BuildSrcDetector.isValidBuildSrcBuild(candidateBuildSrc)
+        }
     }
 
     private

@@ -17,12 +17,9 @@ jobs:
     - uses: actions/setup-java@v4
       with:
         distribution: temurin
-        java-version: 11
+        java-version: 17
     - name: Setup Gradle
-      uses: gradle/actions/dependency-submission@v3
-      with:
-        # Action runs a custom dependencies task that fails with config-cache on Gradle 8.7 (works with 8.6)
-        additional-arguments: --no-configuration-cache
+      uses: gradle/actions/dependency-submission@v4
       env:
         # Exclude some projects and configurations that should not contribute to the dependency graph
         DEPENDENCY_GRAPH_EXCLUDE_PROJECTS: ':docs|:internal-performance-testing|:enterprise-plugin-performance|:performance|:internal-integ-testing'

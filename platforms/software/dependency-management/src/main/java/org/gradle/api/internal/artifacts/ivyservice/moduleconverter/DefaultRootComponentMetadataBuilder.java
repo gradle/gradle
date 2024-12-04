@@ -27,10 +27,10 @@ import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchemaFactory;
 import org.gradle.api.internal.project.HoldsProjectState;
+import org.gradle.internal.component.local.model.LocalComponentGraphResolveMetadata;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory;
 import org.gradle.internal.component.local.model.LocalVariantGraphResolveState;
-import org.gradle.internal.component.model.VariantGraphResolveState;
 import org.gradle.internal.model.ModelContainer;
 
 import javax.annotation.Nullable;
@@ -86,34 +86,37 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
         ModuleVersionIdentifier moduleVersionId = moduleIdentifierFactory.moduleWithVersion(module.getGroup(), module.getName(), module.getVersion());
         ImmutableAttributesSchema immutableSchema = attributesSchemaFactory.create(schema);
 
+        LocalComponentGraphResolveMetadata metadata = new LocalComponentGraphResolveMetadata(
+            moduleVersionId,
+            componentIdentifier,
+            status,
+            immutableSchema
+        );
+
+        LocalComponentGraphResolveState rootComponent = getComponentState(owner, metadata);
+
         return new RootComponentState() {
             @Override
             public LocalComponentGraphResolveState getRootComponent() {
-                return getComponentState(owner, componentIdentifier, moduleVersionId, status, immutableSchema);
+                return rootComponent;
             }
 
             @Override
-            public VariantGraphResolveState getRootVariant() {
+            public LocalVariantGraphResolveState getRootVariant() {
+                // TODO: It would be nice if we could calculate the rootVariant once, but it is possible
+                // that the root component changes between build dependency resolution and complete
+                // graph resolution. In 9.0, these changes will be forbidden.
+
                 // TODO: We should not ask the component for a resolvable configuration. Components should only
                 // expose variants -- which are by definition consumable only. Instead, we should create our own
                 // root variant and add it to a new one-off root component that holds only that root variant.
                 // The root variant should not live in a standard local component alongside other (consumable) variants.
                 @SuppressWarnings("deprecation")
-                LocalVariantGraphResolveState rootVariant = getRootComponent().getConfigurationLegacy(configurationName);
+                LocalVariantGraphResolveState rootVariant = rootComponent.getConfigurationLegacy(configurationName);
                 if (rootVariant == null) {
-                    throw new IllegalArgumentException(String.format("Expected root variant '%s' to be present in %s", configurationName, componentIdentifier));
+                    throw new IllegalStateException(String.format("Expected root variant '%s' to be present in %s", configurationName, componentIdentifier));
                 }
                 return rootVariant;
-            }
-
-            @Override
-            public ComponentIdentifier getComponentIdentifier() {
-                return componentIdentifier;
-            }
-
-            @Override
-            public ModuleVersionIdentifier getModuleVersionIdentifier() {
-                return moduleVersionId;
             }
         };
     }
@@ -125,12 +128,9 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
 
     private LocalComponentGraphResolveState getComponentState(
         DomainObjectContext domainObjectContext,
-        ComponentIdentifier componentIdentifier,
-        ModuleVersionIdentifier moduleVersionIdentifier,
-        String status,
-        ImmutableAttributesSchema schema
+        LocalComponentGraphResolveMetadata metadata
     ) {
-        LocalComponentGraphResolveState state = holder.tryCached(componentIdentifier);
+        LocalComponentGraphResolveState state = holder.tryCached(metadata.getId());
         if (state != null) {
             return state;
         }
@@ -139,11 +139,11 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
         ModelContainer<?> model = domainObjectContext.getModel();
 
         if (shouldCacheResolutionState()) {
-            result = localResolveStateFactory.stateFor(model, componentIdentifier, moduleVersionIdentifier, configurationsProvider, status, schema);
+            result = localResolveStateFactory.stateFor(model, metadata, configurationsProvider);
             holder.cache(result, true);
         } else {
             // Mark the state as 'ad hoc' and not cacheable
-            result = localResolveStateFactory.adHocStateFor(model, componentIdentifier, moduleVersionIdentifier, configurationsProvider, status, schema);
+            result = localResolveStateFactory.adHocStateFor(model, metadata, configurationsProvider);
             holder.cache(result, false);
         }
 

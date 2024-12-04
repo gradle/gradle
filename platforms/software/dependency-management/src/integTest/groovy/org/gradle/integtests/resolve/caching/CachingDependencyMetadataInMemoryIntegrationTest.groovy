@@ -33,7 +33,7 @@ class CachingDependencyMetadataInMemoryIntegrationTest extends AbstractHttpDepen
                 two
             }
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
             dependencies {
                 one 'org:lib:1.+'
@@ -76,7 +76,7 @@ class CachingDependencyMetadataInMemoryIntegrationTest extends AbstractHttpDepen
         file("build.gradle") << """
             allprojects {
                 configurations { conf }
-                repositories { ivy { url "${ivyHttpRepo.uri}" } }
+                repositories { ivy { url = "${ivyHttpRepo.uri}" } }
                 dependencies { conf 'org:lib:1.0' }
                 task resolveConf {
                     def files = configurations.conf
@@ -120,9 +120,9 @@ class CachingDependencyMetadataInMemoryIntegrationTest extends AbstractHttpDepen
                     doLast { files.files }
                 }
             }
-            repositories { ivy { url "${ivyRepo.uri}" } }
+            repositories { ivy { url = "${ivyRepo.uri}" } }
             project(":impl") {
-                repositories { ivy { url "${ivyRepo2.uri}" } }
+                repositories { ivy { url = "${ivyRepo2.uri}" } }
                 tasks.resolveConf.dependsOn(":resolveConf")
             }
         """
@@ -143,7 +143,7 @@ class CachingDependencyMetadataInMemoryIntegrationTest extends AbstractHttpDepen
 
         file("build.gradle") << """
             configurations { conf }
-            repositories { ivy { url "${ivyRepo.uri}" } }
+            repositories { ivy { url = "${ivyRepo.uri}" } }
             dependencies { conf 'org:lib:1.0' }
         """
 

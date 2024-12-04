@@ -305,16 +305,16 @@ Cannot publish module metadata because an artifact from the 'java' component has
             publications {
                 mavenCustom(MavenPublication) {
                     artifact("customFile.txt") {
-                        classifier "output"
+                        classifier = "output"
                     }
                     artifact(customFileTask.outputFile) {
-                        extension "htm"
-                        classifier "documentation"
+                        extension = "htm"
+                        classifier = "documentation"
                         builtBy customFileTask
                     }
                     artifact(regularFileTask.outputFile) {
-                        classifier "regular"
-                        extension "txt"
+                        classifier = "regular"
+                        extension = "txt"
                     }
                     artifact customJar {
                         archiveClassifier = null
@@ -549,7 +549,7 @@ Cannot publish module metadata because an artifact from the 'java' component has
 
             publishing {
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = "${mavenRepo.uri}" }
                 }
                 $publications
             }

@@ -65,7 +65,7 @@ task listJars {
         and:
         buildFile << """
 repositories {
-    maven { url "${repoServerUrl}" }
+    maven { url = "${repoServerUrl}" }
 }
 """
         when:
@@ -92,7 +92,7 @@ repositories {
         and:
         buildFile << """
 repositories {
-    maven { url "${repoServerUrl}" }
+    maven { url = "${repoServerUrl}" }
 }
 """
         when:
@@ -117,7 +117,7 @@ repositories {
         and:
         buildFile << """
 repositories {
-    maven { url "${repoServerUrl}" }
+    maven { url = "${repoServerUrl}" }
 }
 """
         when:
@@ -144,7 +144,7 @@ repositories {
         and:
         buildFile << """
 repositories {
-    maven { url "${repoServerUrl}" }
+    maven { url = "${repoServerUrl}" }
 }
 """
         when:
@@ -168,7 +168,7 @@ repositories {
         and:
         buildFile << """
 repositories {
-    maven { url "${repoServerUrl}" }
+    maven { url = "${repoServerUrl}" }
 }
 """
         when:
@@ -192,7 +192,7 @@ repositories {
         and:
         buildFile << """
 repositories {
-    maven { url "${repoServerUrl}" }
+    maven { url = "${repoServerUrl}" }
 }
 """
 
@@ -218,10 +218,10 @@ repositories {
         buildFile << """
 repositories {
     maven {
-        url "${repoServerUrl}"
+        url = "${repoServerUrl}"
         credentials {
-            username '$repoUserName'
-            password '$repoPassword'
+            username = '$repoUserName'
+            password = '$repoPassword'
         }
     }
 }

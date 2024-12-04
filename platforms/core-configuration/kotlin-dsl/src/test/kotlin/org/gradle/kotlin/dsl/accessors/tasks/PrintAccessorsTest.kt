@@ -65,7 +65,9 @@ class PrintAccessorsTest {
                         ),
                         modelDefaults = listOf(
                             entry<SharedModelDefaults, TestSoftwareType>("softwareType")
-                        )
+                        ),
+                        softwareTypeEntries = emptyList(),
+                        containerElementFactories = listOf()
                     )
                 )
             }.withoutTrailingWhitespace(),
@@ -90,7 +92,9 @@ class PrintAccessorsTest {
                         ConfigurationEntry("dots.not.allowed"),
                     ),
                     containerElements = listOf(),
-                    modelDefaults = listOf()
+                    modelDefaults = listOf(),
+                    softwareTypeEntries = emptyList(),
+                    containerElementFactories = listOf()
                 )
             )
         }.withoutTrailingWhitespace()

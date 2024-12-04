@@ -110,6 +110,7 @@ class FlowParametersInstantiator(
             listOf(
                 org.gradle.api.tasks.Optional::class.java
             ),
+            emptyList(),
             instantiatorFactory.decorateScheme()
         )
     }

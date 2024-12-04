@@ -35,6 +35,134 @@ The previous step will help you identify potential problems by issuing deprecati
 . Run `gradle wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
+[[changes_8.12]]
+== Upgrading from 8.11 and earlier
+
+=== Potential breaking changes
+
+==== Upgrade to Kotlin 2.0.21
+
+The embedded Kotlin has been updated from 2.0.20 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.0.21[Kotlin 2.0.21].
+
+==== Upgrade to Ant 1.10.15
+
+Ant has been updated to https://github.com/apache/ant/blob/rel/1.10.15/WHATSNEW[Ant 1.10.15].
+
+==== Upgrade to Zinc 1.10.4
+
+Zinc has been updated to https://github.com/sbt/zinc/releases/tag/v1.10.4[1.10.4].
+
+==== Swift SDK discovery
+
+To determine the location of the Mac OS X SDK for Swift, Gradle now passes the `--sdk macosx` arguments to `xcrun`.
+This is necessary because the SDK could be discovered inconsistently without this argument across different environments.
+
+=== Deprecations
+
+[[deprecated_ambiguous_transformation_chains]]
+==== Deprecated Ambiguous Transformation Chains
+
+Previously, when at least two equal-length chains of <<artifact_transforms.adoc#sec:implementing-artifact-transforms,artifact transforms>> were available that would produce compatible variants that would each satisfy a resolution request, Gradle would arbitrarily, and silently, pick one.
+
+Now, Gradle emits a deprecation warning that explains this situation:
+
+```text
+There are multiple distinct artifact transformation chains of the same length that would satisfy this request. This behavior has been deprecated. This will fail with an error in Gradle 9.0.
+Found multiple transformation chains that produce a variant of 'root project :' with requested attributes:
+  - color 'red'
+  - texture 'smooth'
+Found the following transformation chains:
+  - From configuration ':squareBlueSmoothElements':
+      - With source attributes:
+          - artifactType 'txt'
+          - color 'blue'
+          - shape 'square'
+          - texture 'smooth'
+      - Candidate transformation chains:
+          - Transformation chain: 'ColorTransform':
+              - 'BrokenColorTransform':
+                  - Converts from attributes:
+                      - color 'blue'
+                      - texture 'smooth'
+                  - To attributes:
+                      - color 'red'
+          - Transformation chain: 'ColorTransform2':
+              - 'BrokenColorTransform2':
+                  - Converts from attributes:
+                      - color 'blue'
+                      - texture 'smooth'
+                  - To attributes:
+                      - color 'red'
+ Remove one or more registered transforms, or add additional attributes to them to ensure only a single valid transformation chain exists.
+
+```
+
+In such a scenario, Gradle has no way to know which of the two (or more) possible transformation chains should be used.
+Picking an arbitrary chain can lead to inefficient performance or unexpected behavior changes when seemingly unrelated parts of the build are modified.
+This is potentially a very complex situation and the message now fully explains the situation by printing all the registered transforms in order, along with their source (input) variants for each candidate chain.
+
+When encountering this type of failure, build authors should either:
+
+1. Add additional, distinguishing attributes when registering transforms present in the chain, to ensure that only a single chain will be selectable to satisfy the request
+2. Request additional attributes to disambiguate which chain is selected (if they result in non-identical final attributes)
+3. Remove unnecessary registered transforms from the build
+
+This will become an error in Gradle 9.0.
+
+[[init_must_run_alone]]
+==== `init` must run alone
+The <<build_init_plugin.adoc#sec:build_init_tasks, `init` task>> must run by itself.
+This task should not be combined with other tasks in a single Gradle invocation.
+
+Running `init` in the same invocation as other tasks will become an error in Gradle 9.0.
+
+For instance, this wil *not* be allowed:
+
+[source]
+----
+> gradlew init tasks
+----
+
+[[task_project]]
+==== Calling `Task.getProject()` from a task action
+
+Calling link:{javadocPath}/org/gradle/api/Task.html#getProject--[Task.getProject()] from a task action at execution time is now deprecated and will be made an error in Gradle 9.0.
+This method can still be used during configuration time.
+
+The deprecation is only issued if the configuration cache is **not** enabled.
+When the configuration cache is enabled, calls to link:{javadocPath}/org/gradle/api/Task.html#getProject--[Task.getProject()] are reported as configuration cache problems instead.
+
+This deprecation was originally introduced in <<upgrading_version_7.adoc#task_project, Gradle 7.4>> but was only issued when the <<configuration_cache#config_cache:stable,`STABLE_CONFIGURATION_CACHE`>> feature flag was enabled. That feature flag no longer controls this deprecation.
+This is another step towards moving users away from idioms that are incompatible with the configuration cache, which will become the only mode supported by Gradle in a future release.
+
+Please refer to the <<configuration_cache#config_cache:requirements:use_project_during_execution, configuration cache documentation>> for alternatives to invoking `Task.getProject()` at execution time that are compatible with the configuration cache.
+
+[[groovy_space_assignment_syntax]]
+=== Groovy "space assignment" syntax
+
+Currently, there are multiple ways to set a property with Groovy DSL syntax:
+
+[source]
+---
+propertyName = value
+setPropertyName(value)
+setPropertyName value
+propertyName(value)
+propertyName value
+---
+
+The latter one, "space-assignment", is a Gradle-specific feature that is not part of the Groovy language.
+In regular Groovy, this is just a method call: `propertyName(value)`, and Gradle generates `propertyName` method in the runtime if this method hasn't been present already.
+This feature may be a source of confusion (especially for new users) and adds an extra layer of complexity for users and the Gradle codebase without providing any significant value.
+Sometimes, classes declare methods with the same name, and these may even have semantics that are different from a plain assignment.
+
+These generated methods are now deprecated and will be removed in Gradle 10.0, and both `propertyName value` and `propertyName(value)` will stop working unless the explicit method `propertyName` is defined.
+Use explicit assignment `propertyName = value` instead.
+While explicit methods can be used with space, like `propertyName value`, consider using the `propertyName(value)` syntax for clarity.
+For example, `jvmArgs "some", "arg"` can be replaced with `jvmArgs("some", "arg")` or with `jvmArgs = ["some", "arg"]` for `Test` tasks.
+
+[[deprecated_configuration_cache_options]]
+
 [[changes_8.11]]
 == Upgrading from 8.10 and earlier
 
@@ -311,7 +439,7 @@ These methods on link:{javadocPath}/org/gradle/api/tasks/javadoc/Javadoc.html[Ja
 
 - link:{javadocPath}/org/gradle/api/tasks/javadoc/Javadoc.html#isVerbose()[isVerbose()] is replaced by link:{javadocPath}/org/gradle/external/javadoc/MinimalJavadocOptions.html#isVerbose()[getOptions().isVerbose()]
 - Calling link:{javadocPath}/org/gradle/api/tasks/javadoc/Javadoc.html#setVerbose(boolean)[setVerbose(boolean)] with `true` is replaced by link:{javadocPath}/org/gradle/external/javadoc/MinimalJavadocOptions.html#verbose()[getOptions().verbose()]
-    - Calling `setVerbose(false)` did nothing.
+- Calling `setVerbose(false)` did nothing.
 
 [[changes_8.10]]
 == Upgrading from 8.9 and earlier
@@ -444,7 +572,7 @@ We added a check to automatically disable file-system watching on macOS 11 (Big 
 
 ==== Possible change to JDK8-based compiler output when annotation processors are used
 
-The Java compilation infrastructure has been updated to use the <<implementing_gradle_plugins_binary.adoc#reporting_problems,Problems API>>.
+The Java compilation infrastructure has been updated to use the <<implementing_gradle_plugins_binary.adoc#sec:reporting_problems,Problems API>>.
 This change will supply the Tooling API clients with structured, rich information about compilation issues.
 
 The feature should not have any visible impact on the usual build output, with JDK8 being an exception.
@@ -665,7 +793,7 @@ In Gradle 8.8, this mechanism was extended to permit the retention configuration
 - Specifying `Cleanup.DISABLED` or `Cleanup.ALWAYS` will now prevent or force the cleanup of the local build cache
 - Build cache entry retention is now configured via an `init-script`, link:directory_layout.html#dir:gradle_user_home:configure_cache_cleanup[in the same manner as other caches].
 
-If you want build-cache entries to be retained for 30 days, **remove** any calls to the deprecated method:
+If you want build cache entries to be retained for 30 days, **remove** any calls to the deprecated method:
 
 ```kotlin
 buildCache {
@@ -755,10 +883,10 @@ This can be fixed by adding the appropriate type to the cast, and the redundant 
 
 ```groovy
 // Before
-tasks.create("foo", { Task it -> it.description "Foo task" } as Action)
+tasks.create("foo", { Task it -> it.description = "Foo task" } as Action)
 
 // Fixed
-tasks.create("foo", { it.description "Foo task" } as Action<Task>)
+tasks.create("foo", { it.description = "Foo task" } as Action<Task>)
 ```
 
 ==== Upgrade to ASM 9.7
@@ -1273,6 +1401,9 @@ The embedded Kotlin has been updated to link:https://github.com/JetBrains/kotlin
 Gradle 8.4 now configures XML parsers with security features enabled.
 If your build logic depends on old XML parsers that don't support secure parsing, your build may fail.
 If you encounter a failure, check and update or remove any dependency on legacy XML parsers.
+
+If you are an Android user, please upgrade your AGP version to 8.3.0 or higher to fix the issue caused by AGP itself.
+See the link:https://issuetracker.google.com/u/0/issues/306301014[Update XML parser used in AGP for Gradle 8.4 compatibility] for more details.
 
 If you are unable to upgrade XML parsers coming from your build logic dependencies, you can force the use of the XML parsers built into the JVM.
 In OpenJDK, for example, this can be done by adding the following to `gradle.properties`:
@@ -1867,7 +1998,7 @@ Current usages of these methods should migrate to `link:{javadocPath}/org/gradle
 [[deprecated_configuration_usage]]
 ==== Using configurations incorrectly
 
-Gradle will now warn at runtime when methods of link:{javadocPath}/org/gradle/api/artifacts/Configuration.html--[Configuration] are called inconsistently with the configuration's intended usage.
+Gradle will now warn at runtime when methods of link:{javadocPath}/org/gradle/api/artifacts/Configuration.html[Configuration] are called inconsistently with the configuration's intended usage.
 
 This change is part of a larger ongoing effort to make the intended behavior of configurations more consistent and predictable and to unlock further speed and memory improvements.
 

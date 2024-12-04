@@ -387,6 +387,11 @@ Specify the project-specific cache directory. Defaults to `.gradle` in the root 
 +
 _Default is `.gradle`._
 
+`org.gradle.problems.report=(true|false)`::
+
+Enable (`true`) or disable (`false`) the generation of `build/reports/problems-report.html`. `true` is the default.
+The report is generated with problems provided to the <<implementing_gradle_plugins_binary.adoc#sec:reporting_problems,Problems API>>.
+
 `org.gradle.unsafe.isolated-projects=(true,false)`::
 Enables project isolation, which enables configuration caching.
 +

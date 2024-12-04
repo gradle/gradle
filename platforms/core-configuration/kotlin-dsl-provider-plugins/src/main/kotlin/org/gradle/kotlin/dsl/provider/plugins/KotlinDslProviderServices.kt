@@ -16,6 +16,8 @@
 
 package org.gradle.kotlin.dsl.provider.plugins
 
+import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory
+import org.gradle.internal.service.PrivateService
 import org.gradle.internal.service.Provides
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.ServiceRegistrationProvider
@@ -35,8 +37,8 @@ internal
 object GradleUserHomeServices : ServiceRegistrationProvider {
 
     @Provides
-    fun createProjectSchemaProvider() =
-        DefaultProjectSchemaProvider()
+    fun createProjectSchemaProvider(kotlinDslDclSchemaCollector: KotlinDslDclSchemaCollector) =
+        DefaultProjectSchemaProvider(kotlinDslDclSchemaCollector)
 
     @Provides
     fun createKotlinScriptBasePluginsApplicator() =
@@ -45,4 +47,12 @@ object GradleUserHomeServices : ServiceRegistrationProvider {
     @Provides
     fun createPrecompiledScriptPluginsSupport() =
         DefaultPrecompiledScriptPluginsSupport()
+
+    @Provides
+    @PrivateService
+    internal fun createKotlinDslDclSchemaCollector(cacheFactory: CrossBuildInMemoryCacheFactory): KotlinDslDclSchemaCollector =
+        CachedKotlinDslDclSchemaCollector(
+            CrossBuildInMemoryKotlinDslDclSchemaCache(cacheFactory),
+            DefaultKotlinDslDclSchemaCollector()
+        )
 }

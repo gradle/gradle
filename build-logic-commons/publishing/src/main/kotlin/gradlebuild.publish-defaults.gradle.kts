@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import gradle.kotlin.dsl.accessors._25bd7e7076749e7e243da5bad7112e92.moduleIdentity
 import gradlebuild.basics.gradleProperty
+import gradlebuild.identity.extension.ModuleIdentityExtension
 import org.gradle.api.publish.maven.MavenPublication
 
 plugins {
@@ -60,7 +60,7 @@ publishing {
     repositories {
         maven {
             name = "remote"
-            val libsType = moduleIdentity.snapshot.map { if (it) "snapshots" else "releases" }
+            val libsType = the<ModuleIdentityExtension>().snapshot.map { if (it) "snapshots" else "releases" }
             url = uri("$artifactoryUrl/libs-${libsType.get()}-local")
             credentials {
                 username = artifactoryUserName

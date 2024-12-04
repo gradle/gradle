@@ -39,7 +39,6 @@ import gradlebuild.integrationtests.addDependenciesAndConfigurations
 import gradlebuild.integrationtests.ide.AndroidStudioProvisioningExtension
 import gradlebuild.integrationtests.ide.AndroidStudioProvisioningPlugin
 import gradlebuild.performance.Config.performanceTestAndroidStudioJvmArgs
-import gradlebuild.performance.Config.performanceTestAndroidStudioVersion
 import gradlebuild.performance.generator.tasks.AbstractProjectGeneratorTask
 import gradlebuild.performance.generator.tasks.JvmProjectGeneratorTask
 import gradlebuild.performance.generator.tasks.ProjectGeneratorTask
@@ -49,6 +48,7 @@ import gradlebuild.performance.tasks.DefaultCommandExecutor
 import gradlebuild.performance.tasks.DetermineBaselines
 import gradlebuild.performance.tasks.PerformanceTest
 import gradlebuild.performance.tasks.PerformanceTestReport
+import gradlebuild.integrationtests.ide.DEFAULT_ANDROID_STUDIO_VERSION
 import org.gradle.api.Action
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -88,10 +88,6 @@ object Config {
     const val performanceTestResultsJsonName = "perf-results.json"
     const val performanceTestResultsJson = "performance-tests/$performanceTestResultsJsonName"
 
-    // Android Studio Jellyfish 2023.3.1
-    // Find all references here https://developer.android.com/studio/archive
-    // Update verification-metadata.xml
-    const val performanceTestAndroidStudioVersion = "2023.3.1.18"
     val performanceTestAndroidStudioJvmArgs = listOf("-Xms256m", "-Xmx4096m")
 }
 
@@ -115,7 +111,7 @@ class PerformanceTestPlugin : Plugin<Project> {
     fun Project.configureAndroidStudioProvisioning() {
         pluginManager.apply(AndroidStudioProvisioningPlugin::class)
         extensions.configure(AndroidStudioProvisioningExtension::class) {
-            androidStudioVersion.set(performanceTestAndroidStudioVersion)
+            androidStudioVersion.set(DEFAULT_ANDROID_STUDIO_VERSION)
         }
     }
 
@@ -239,7 +235,7 @@ class PerformanceTestPlugin : Plugin<Project> {
             inputs.files(performanceSourceSet.runtimeClasspath).withNormalizer(ClasspathNormalizer::class)
             inputs.file(performanceScenarioJson.absolutePath)
             inputs.file(tmpPerformanceScenarioJson.absolutePath)
-            project.toolchainInstallationPaths?.apply {
+            project.toolchainInstallationPaths.orNull?.apply {
                 systemProperty(JAVA_INSTALLATIONS_PATHS_PROPERTY, this)
             }
         }
@@ -254,7 +250,7 @@ class PerformanceTestPlugin : Plugin<Project> {
             systemProperty("org.gradle.performance.scenario.json", outputJson.absolutePath)
             systemProperty("org.gradle.performance.develocity.plugin.infoDir", projectDir.absolutePath)
 
-            project.toolchainInstallationPaths?.apply {
+            project.toolchainInstallationPaths.orNull?.apply {
                 systemProperty(JAVA_INSTALLATIONS_PATHS_PROPERTY, this)
             }
 

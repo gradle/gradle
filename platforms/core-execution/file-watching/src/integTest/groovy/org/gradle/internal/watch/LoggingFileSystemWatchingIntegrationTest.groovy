@@ -16,14 +16,11 @@
 
 package org.gradle.internal.watch
 
-import com.gradle.develocity.testing.annotations.LocalOnly
-import net.rubygrapefruit.platform.internal.jni.NativeLogger
+import org.gradle.testdistribution.LocalOnly
 import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.integtests.fixtures.daemon.DaemonFixture
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.test.fixtures.ConcurrentTestUtil
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
 
 @LocalOnly
 class LoggingFileSystemWatchingIntegrationTest extends AbstractFileSystemWatchingIntegrationTest {
@@ -71,76 +68,6 @@ class LoggingFileSystemWatchingIntegrationTest extends AbstractFileSystemWatchin
         !(result.output =~ /Virtual file system retained information about \d+ files, \d+ directories and \d+ missing files since last build/)
         !(result.output =~ /Received \d+ file system events during the current build while watching \d+ locations/)
         !(result.output =~ /Virtual file system retains information about \d+ files, \d+ directories and \d+ missing files until next build/)
-    }
-
-    def "debug logging can be enabled"() {
-        buildFile << """
-            tasks.register("change") {
-                def output = file("output.txt")
-                outputs.file(output)
-                outputs.upToDateWhen { false }
-                doLast {
-                    output.text = Math.random() as String
-                }
-            }
-        """
-
-        when:
-        withWatchFs().run("change", "--debug", "-D${StartParameterBuildOptions.WatchFileSystemDebugLoggingOption.GRADLE_PROPERTY}=true")
-        waitForChangesToBePickedUp()
-        then:
-        output.contains(NativeLogger.name)
-
-        when:
-        def logLineCountBeforeChange = daemon.logLineCount
-        file("output.txt").text = "Changed"
-        waitForChangesToBePickedUp()
-        then:
-        daemon.logContains(logLineCountBeforeChange, NativeLogger.name)
-    }
-
-    @Requires(
-        value = IntegTestPreconditions.NotConfigCached,
-        reason = """With cc it can happen on Mac that cc touches FS before we setup logger and some events
-            are logged as [DEBUG] before we manage to disable debug logging, see also https://github.com/gradle/gradle/issues/25462"""
-    )
-    def "debug logging can be enabled and then disabled again"() {
-        buildFile << """
-            tasks.register("change") {
-                def output = file("output.txt")
-                outputs.file(output)
-                outputs.upToDateWhen { false }
-                doLast {
-                    output.text = Math.random() as String
-                }
-            }
-        """
-
-        when:
-        withWatchFs().run("change", "--debug", "-D${StartParameterBuildOptions.WatchFileSystemDebugLoggingOption.GRADLE_PROPERTY}=true")
-        waitForChangesToBePickedUp()
-        then:
-        output.contains(NativeLogger.name)
-
-        when:
-        def logLineCountBeforeChange = daemon.logLineCount
-        file("output.txt").text = "Changed"
-        waitForChangesToBePickedUp()
-        then:
-        daemon.logContains(logLineCountBeforeChange, NativeLogger.name)
-
-        when:
-        withWatchFs().run("change", "--debug", "-D${StartParameterBuildOptions.WatchFileSystemDebugLoggingOption.GRADLE_PROPERTY}=false")
-        waitForChangesToBePickedUp()
-        then:
-        !output.contains(NativeLogger.name)
-
-        when:
-        logLineCountBeforeChange = daemon.logLineCount
-        file("output.txt").text = "Changed"
-        waitForChangesToBePickedUp()
-        then:
-        !daemon.logContains(logLineCountBeforeChange, NativeLogger.name)
     }
 
     def "logs handled events between builds only if something changed in the VFS"() {

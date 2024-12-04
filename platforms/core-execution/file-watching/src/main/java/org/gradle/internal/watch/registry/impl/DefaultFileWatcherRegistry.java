@@ -16,10 +16,8 @@
 
 package org.gradle.internal.watch.registry.impl;
 
-import net.rubygrapefruit.platform.file.FileWatchEvent;
-import net.rubygrapefruit.platform.file.FileWatcher;
-import net.rubygrapefruit.platform.internal.jni.AbstractNativeFileEventFunctions;
-import net.rubygrapefruit.platform.internal.jni.NativeLogger;
+import org.gradle.fileevents.FileWatchEvent;
+import org.gradle.fileevents.FileWatcher;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.watch.registry.FileWatcherRegistry;
@@ -39,7 +37,6 @@ import java.util.Optional;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.logging.Level;
 
 import static org.gradle.internal.watch.registry.FileWatcherRegistry.Type.CREATED;
 import static org.gradle.internal.watch.registry.FileWatcherRegistry.Type.INVALIDATED;
@@ -50,7 +47,6 @@ import static org.gradle.internal.watch.registry.FileWatcherRegistry.Type.REMOVE
 public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultFileWatcherRegistry.class);
 
-    private final AbstractNativeFileEventFunctions<?> fileEventFunctions;
     private final FileWatcher watcher;
     private final BlockingQueue<FileWatchEvent> fileEvents;
     private final Thread eventConsumerThread;
@@ -61,13 +57,11 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
     private volatile boolean stopping = false;
 
     public DefaultFileWatcherRegistry(
-        AbstractNativeFileEventFunctions<?> fileEventFunctions,
         FileWatcher watcher,
         ChangeHandler handler,
         FileWatcherUpdater fileWatcherUpdater,
         BlockingQueue<FileWatchEvent> fileEvents
     ) {
-        this.fileEventFunctions = fileEventFunctions;
         this.watcher = watcher;
         this.fileEvents = fileEvents;
         this.fileWatcherUpdater = fileWatcherUpdater;
@@ -210,15 +204,6 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
                 return numberOfWatchedHierarchies.get();
             }
         };
-    }
-
-    @Override
-    public void setDebugLoggingEnabled(boolean debugLoggingEnabled) {
-        java.util.logging.Logger.getLogger(NativeLogger.class.getName()).setLevel(debugLoggingEnabled
-            ? Level.FINEST
-            : Level.INFO
-        );
-        fileEventFunctions.invalidateLogLevelCache();
     }
 
     @Override

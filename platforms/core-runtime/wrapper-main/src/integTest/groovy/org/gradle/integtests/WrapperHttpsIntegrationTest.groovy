@@ -16,7 +16,7 @@
 
 package org.gradle.integtests
 
-import com.gradle.develocity.testing.annotations.LocalOnly
+import org.gradle.testdistribution.LocalOnly
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.test.fixtures.keystore.TestKeyStore

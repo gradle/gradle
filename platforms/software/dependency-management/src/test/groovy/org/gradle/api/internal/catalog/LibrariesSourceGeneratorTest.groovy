@@ -24,7 +24,7 @@ import org.gradle.api.internal.DefaultClassPathProvider
 import org.gradle.api.internal.DefaultClassPathRegistry
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParser
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory
+import org.gradle.api.internal.attributes.AttributesFactory
 import org.gradle.api.internal.catalog.problems.VersionCatalogErrorMessages
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemTestFor
@@ -34,9 +34,7 @@ import org.gradle.api.internal.properties.GradleProperties
 import org.gradle.api.internal.provider.DefaultProviderFactory
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory
 import org.gradle.api.model.ObjectFactory
-import org.gradle.api.problems.internal.DefaultProblems
 import org.gradle.api.problems.internal.InternalProblems
-import org.gradle.api.problems.internal.ProblemEmitter
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.event.DefaultListenerManager
@@ -66,7 +64,7 @@ class LibrariesSourceGeneratorTest extends AbstractVersionCatalogTest implements
 
     private GeneratedSource sources
     final ObjectFactory objects = TestUtil.objectFactory()
-    final ImmutableAttributesFactory attributesFactory = AttributeTestUtil.attributesFactory()
+    final AttributesFactory attributesFactory = AttributeTestUtil.attributesFactory()
     final CapabilityNotationParser capabilityNotationParser = new CapabilityNotationParserFactory(false).create()
     final ProviderFactory providerFactory = new DefaultProviderFactory(
         new DefaultValueSourceProviderFactory(
@@ -79,7 +77,8 @@ class LibrariesSourceGeneratorTest extends AbstractVersionCatalogTest implements
             TestUtil.services()
         ),
         null,
-        null
+        null,
+        TestUtil.objectFactory()
     )
 
     def "generates sources for empty model"() {
@@ -386,7 +385,7 @@ ${nameClash { noIntro().kind('dependency bundles').inConflict('one.cool', 'oneCo
     }
 
     private void generate(String className = 'Generated', @DelegatesTo(strategy = Closure.DELEGATE_FIRST, value = VersionCatalogBuilderInternal) Closure<Void> spec) {
-        def problems = new DefaultProblems([Stub(ProblemEmitter)])
+        def problems = TestUtil.problemsService()
         DefaultVersionCatalogBuilder builder = new DefaultVersionCatalogBuilder(
             "lib",
             Interners.newStrongInterner(),

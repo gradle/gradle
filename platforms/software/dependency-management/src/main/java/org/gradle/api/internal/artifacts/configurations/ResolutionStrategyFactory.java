@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.configurations;
 
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
@@ -26,11 +25,12 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvi
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DefaultDependencySubstitutions;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionsInternal;
+import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.ModuleSelectorNotationConverter;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.StartParameterResolutionOverride;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.CapabilitiesResolutionInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultCapabilitiesResolution;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultResolutionStrategy;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.notations.ComponentIdentifierParserFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.Factory;
@@ -50,11 +50,11 @@ public class ResolutionStrategyFactory implements Factory<ResolutionStrategyInte
     private final Instantiator instantiator;
     private final DependencySubstitutionRules globalDependencySubstitutionRules;
     private final VcsMappingsStore vcsMappingsStore;
-    private final ImmutableAttributesFactory attributesFactory;
+    private final AttributesFactory attributesFactory;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final ComponentSelectorConverter componentSelectorConverter;
     private final DependencyLockingProvider dependencyLockingProvider;
-    private final NotationParser<Object, ComponentSelector> moduleSelectorNotationParser;
+    private final ModuleSelectorNotationConverter moduleSelectorNotationParser;
     private final ObjectFactory objectFactory;
     private final StartParameterResolutionOverride startParameterResolutionOverride;
     private final NotationParser<Object, Capability> capabilityNotationParser;
@@ -66,11 +66,11 @@ public class ResolutionStrategyFactory implements Factory<ResolutionStrategyInte
         Instantiator instantiator,
         DependencySubstitutionRules globalDependencySubstitutionRules,
         VcsMappingsStore vcsMappingsStore,
-        ImmutableAttributesFactory attributesFactory,
+        AttributesFactory attributesFactory,
         ImmutableModuleIdentifierFactory moduleIdentifierFactory,
         ComponentSelectorConverter componentSelectorConverter,
         DependencyLockingProvider dependencyLockingProvider,
-        NotationParser<Object, ComponentSelector> moduleSelectorNotationParser,
+        ModuleSelectorNotationConverter moduleSelectorNotationParser,
         ObjectFactory objectFactory,
         StartParameterResolutionOverride startParameterResolutionOverride
     ) {

@@ -19,7 +19,7 @@ import org.gradle.api.internal.ClassPathRegistry
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDetector
 import org.gradle.api.problems.internal.InternalProblems
 import org.gradle.initialization.layout.ProjectCacheDir
-import org.gradle.process.internal.ExecHandleFactory
+import org.gradle.process.internal.ClientExecHandleBuilderFactory
 import org.gradle.process.internal.JavaForkOptionsFactory
 import org.gradle.workers.internal.ActionExecutionSpecFactory
 import org.gradle.workers.internal.WorkerDaemonFactory
@@ -32,7 +32,7 @@ class DefaultJavaCompilerFactoryTest extends Specification {
         },
         Mock(WorkerDaemonFactory),
         Mock(JavaForkOptionsFactory),
-        Mock(ExecHandleFactory),
+        Mock(ClientExecHandleBuilderFactory),
         Stub(AnnotationProcessorDetector),
         Stub(ClassPathRegistry),
         Stub(ActionExecutionSpecFactory),

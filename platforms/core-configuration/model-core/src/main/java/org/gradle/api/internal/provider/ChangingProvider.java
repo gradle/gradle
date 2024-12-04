@@ -27,7 +27,7 @@ import java.util.concurrent.Callable;
  *
  * Task dependencies attached to the computed value are ignored by this provider.
  *
- * <h3>Configuration Cache Behavior</h3>
+ * <h2>Configuration Cache Behavior</h2>
  * <b>Lazy</b>. The given {@link Callable} is stored to the cache so the value can be recomputed on each run.
  */
 class ChangingProvider<T> extends DefaultProvider<T> {

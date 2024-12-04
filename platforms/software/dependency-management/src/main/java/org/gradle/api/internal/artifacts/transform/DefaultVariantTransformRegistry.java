@@ -26,7 +26,7 @@ import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.TransformRegistration;
 import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.internal.Cast;
 import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.internal.instantiation.InstantiatorFactory;
@@ -40,7 +40,7 @@ import java.util.List;
 
 public class DefaultVariantTransformRegistry implements VariantTransformRegistry {
     private final List<TransformRegistration> registrations = new ArrayList<>();
-    private final ImmutableAttributesFactory immutableAttributesFactory;
+    private final AttributesFactory attributesFactory;
     private final ServiceRegistry services;
     private final InstantiatorFactory instantiatorFactory;
     private final InstantiationScheme parametersInstantiationScheme;
@@ -48,9 +48,9 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
     @SuppressWarnings("unchecked")
     private final IsolationScheme<TransformAction<?>, TransformParameters> isolationScheme = new IsolationScheme<TransformAction<?>, TransformParameters>((Class)TransformAction.class, TransformParameters.class, TransformParameters.None.class);
 
-    public DefaultVariantTransformRegistry(InstantiatorFactory instantiatorFactory, ImmutableAttributesFactory immutableAttributesFactory, ServiceRegistry services, TransformRegistrationFactory registrationFactory, InstantiationScheme parametersInstantiationScheme) {
+    public DefaultVariantTransformRegistry(InstantiatorFactory instantiatorFactory, AttributesFactory attributesFactory, ServiceRegistry services, TransformRegistrationFactory registrationFactory, InstantiationScheme parametersInstantiationScheme) {
         this.instantiatorFactory = instantiatorFactory;
-        this.immutableAttributesFactory = immutableAttributesFactory;
+        this.attributesFactory = attributesFactory;
         this.services = services;
         this.registrationFactory = registrationFactory;
         this.parametersInstantiationScheme = parametersInstantiationScheme;
@@ -62,7 +62,7 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
         try {
             Class<T> parameterType = isolationScheme.parameterTypeFor(actionType);
             T parameterObject = parameterType == null ? null : parametersInstantiationScheme.withServices(services).instantiator().newInstance(parameterType);
-            registration = Cast.uncheckedNonnullCast(instantiatorFactory.decorateLenient().newInstance(TypedRegistration.class, parameterObject, immutableAttributesFactory));
+            registration = Cast.uncheckedNonnullCast(instantiatorFactory.decorateLenient().newInstance(TypedRegistration.class, parameterObject, attributesFactory));
             registrationAction.execute(registration);
             register(registration, actionType, parameterObject);
         } catch (VariantTransformConfigurationException e) {
@@ -137,9 +137,9 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
         final AttributeContainerInternal from;
         final AttributeContainerInternal to;
 
-        public RecordingRegistration(ImmutableAttributesFactory immutableAttributesFactory) {
-            from = immutableAttributesFactory.mutable();
-            to = immutableAttributesFactory.mutable();
+        public RecordingRegistration(AttributesFactory attributesFactory) {
+            from = attributesFactory.mutable();
+            to = attributesFactory.mutable();
         }
 
         public AttributeContainer getFrom() {
@@ -155,8 +155,8 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
     public static class TypedRegistration<T extends TransformParameters> extends RecordingRegistration implements TransformSpec<T> {
         private final T parameterObject;
 
-        public TypedRegistration(@Nullable T parameterObject, ImmutableAttributesFactory immutableAttributesFactory) {
-            super(immutableAttributesFactory);
+        public TypedRegistration(@Nullable T parameterObject, AttributesFactory attributesFactory) {
+            super(attributesFactory);
             this.parameterObject = parameterObject;
         }
 

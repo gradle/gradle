@@ -20,7 +20,6 @@ import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.attributes.AttributeValue;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.internal.component.model.AttributeMatchingExplanationBuilder;
 
 import java.util.Collection;
 import java.util.List;
@@ -48,13 +47,12 @@ public interface AttributeMatcher {
 
     /**
      * Selects all matches from {@code candidates} that are compatible with the {@code requested}
-     * criteria attributes. Then, if there are more than one match, perform disambiguation to attempt
+     * criteria attributes. Then, if there is more than one match, performs disambiguation to attempt
      * to reduce the set of matches to a more preferred subset.
      */
     <T extends HasAttributes> List<T> matchMultipleCandidates(
         Collection<? extends T> candidates,
-        ImmutableAttributes requested,
-        AttributeMatchingExplanationBuilder builder
+        ImmutableAttributes requested
     );
 
     // TODO: Merge this with ResolutionCandidateAssessor

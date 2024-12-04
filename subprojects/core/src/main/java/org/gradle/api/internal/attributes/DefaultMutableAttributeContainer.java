@@ -23,6 +23,7 @@ import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
+import org.gradle.internal.isolation.Isolatable;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
@@ -34,30 +35,33 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
 
-class DefaultMutableAttributeContainer extends AbstractAttributeContainer implements AttributeContainerInternal {
-    private final ImmutableAttributesFactory immutableAttributesFactory;
-    private ImmutableAttributes state = ImmutableAttributes.EMPTY;
+final class DefaultMutableAttributeContainer extends AbstractAttributeContainer implements AttributeContainerInternal {
+    private final Map<Attribute<?>, Isolatable<?>> attributes = new LinkedHashMap<>(); // Need to maintain insertion order here, this is indirectly tested
     private Map<Attribute<?>, Provider<?>> lazyAttributes = Cast.uncheckedCast(Collections.EMPTY_MAP);
     private boolean realizingAttributes = false;
 
-    public DefaultMutableAttributeContainer(ImmutableAttributesFactory immutableAttributesFactory) {
-        this.immutableAttributesFactory = immutableAttributesFactory;
+    private final DefaultAttributesFactory attributesFactory;
+
+    private ImmutableAttributes immutableValue;
+
+    public DefaultMutableAttributeContainer(DefaultAttributesFactory attributesFactory) {
+        this.attributesFactory = attributesFactory;
     }
 
     @Override
     public String toString() {
         final Map<Attribute<?>, Object> sorted = new TreeMap<>(Comparator.comparing(Attribute::getName));
         lazyAttributes.keySet().forEach(key -> sorted.put(key, lazyAttributes.get(key).toString()));
-        state.keySet().forEach(key -> sorted.put(key, state.getAttribute(key)));
+        attributes.keySet().forEach(key -> sorted.put(key, attributes.get(key).toString()));
         return sorted.toString();
     }
 
     @Override
     public Set<Attribute<?>> keySet() {
         // Need to copy the result since if the user calls getAttribute() while iterating over the returned set,
-        // realizing a lazy attribute will add to `state` and remove from `lazyAttributes`.
+        // realizing a lazy attribute will add to the eager `attributes` map and remove from the `lazyAttributes`.
         // This avoids a ConcurrentModificationException.
-        return ImmutableSet.copyOf(Sets.union(state.keySet(), lazyAttributes.keySet()));
+        return ImmutableSet.copyOf(Sets.union(attributes.keySet(), lazyAttributes.keySet()));
     }
 
     @Override
@@ -70,14 +74,13 @@ class DefaultMutableAttributeContainer extends AbstractAttributeContainer implem
     private <T> void doInsertion(Attribute<T> key, T value) {
         assertAttributeValueIsNotNull(value);
         assertAttributeTypeIsValid(value.getClass(), key);
-        state = immutableAttributesFactory.concat(state, key, value);
+        immutableValue = null;
+        attributes.put(key, attributesFactory.isolate(value));
         removeLazyAttributeIfPresent(key);
     }
 
     private <T> void removeLazyAttributeIfPresent(Attribute<T> key) {
-        if (lazyAttributes.containsKey(key)) {
-            lazyAttributes.remove(key);
-        }
+        lazyAttributes.remove(key);
     }
 
     @Override
@@ -131,19 +134,26 @@ class DefaultMutableAttributeContainer extends AbstractAttributeContainer implem
 
     @Override
     public <T> T getAttribute(Attribute<T> key) {
-        T attribute = state.getAttribute(key);
-        if (attribute == null && lazyAttributes.containsKey(key)) {
-            attribute = realizeLazyAttribute(key);
+        Isolatable<?> value = attributes.get(key);
+        if (value == null) {
+            if (lazyAttributes.containsKey(key)) {
+                return realizeLazyAttribute(key);
+            } else {
+                return null;
+            }
+        } else {
+            return Cast.uncheckedCast(value.isolate());
         }
-        return attribute;
     }
 
     @Override
     public ImmutableAttributes asImmutable() {
         realizeAllLazyAttributes();
-        return state;
+        if (immutableValue == null) {
+            immutableValue = attributesFactory.fromMap(attributes);
+        }
+        return immutableValue;
     }
-
 
     @Override
     public boolean equals(Object o) {
@@ -173,16 +183,8 @@ class DefaultMutableAttributeContainer extends AbstractAttributeContainer implem
     }
 
     private <T> void removeAttributeIfPresent(Attribute<T> key) {
-        if (state.contains(key)) {
-            DefaultMutableAttributeContainer newState = new DefaultMutableAttributeContainer(immutableAttributesFactory);
-            state.keySet().stream()
-                    .filter(k -> !k.equals(key))
-                    .forEach(k -> {
-                        @SuppressWarnings("unchecked") Attribute<Object> objectKey = (Attribute<Object>) k;
-                        newState.attribute(objectKey, Objects.requireNonNull(state.getAttribute(k)));
-                    });
-            state = newState.asImmutable();
-        }
+        immutableValue = null;
+        attributes.remove(key);
     }
 
     private <T> T realizeLazyAttribute(Attribute<T> key) {

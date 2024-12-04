@@ -18,9 +18,7 @@ package org.gradle.ide.sync
 
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
-import spock.lang.Ignore
 
-@Ignore("https://github.com/gradle/gradle-private/issues/4438")
 class IsolatedProjectsParallelSyncTest extends AbstractIdeaSyncTest {
 
     @Rule
@@ -37,7 +35,7 @@ class IsolatedProjectsParallelSyncTest extends AbstractIdeaSyncTest {
         server.expectConcurrent("configure-a", "configure-b")
 
         expect:
-        ideaSync(IDEA_VERSION)
+        ideaSync(IDEA_COMMUNITY_VERSION)
     }
 
     private void simpleProject() {

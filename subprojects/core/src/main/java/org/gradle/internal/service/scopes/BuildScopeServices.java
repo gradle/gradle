@@ -40,7 +40,6 @@ import org.gradle.api.internal.file.DefaultFileSystemOperations;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
-import org.gradle.api.internal.initialization.ActionBasedModelDefaultsHandler;
 import org.gradle.api.internal.initialization.BuildLogicBuildQueue;
 import org.gradle.api.internal.initialization.BuildLogicBuilder;
 import org.gradle.api.internal.initialization.DefaultBuildLogicBuilder;
@@ -77,11 +76,11 @@ import org.gradle.api.internal.tasks.TaskStatistics;
 import org.gradle.api.invocation.BuildInvocationDetails;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.problems.internal.AdditionalDataBuilderFactory;
-import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.services.internal.BuildServiceProvider;
 import org.gradle.api.services.internal.BuildServiceProviderNagger;
 import org.gradle.api.services.internal.DefaultBuildServicesRegistry;
+import org.gradle.buildinit.specs.internal.BuildInitSpecRegistry;
 import org.gradle.cache.UnscopedCacheBuilderFactory;
 import org.gradle.cache.internal.BuildScopeCacheDir;
 import org.gradle.cache.internal.scopes.DefaultBuildScopedCacheBuilderFactory;
@@ -218,9 +217,7 @@ import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.snapshot.CaseSensitivity;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
-import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginHandler;
-import org.gradle.plugin.software.internal.ModelDefaultsHandler;
-import org.gradle.plugin.software.internal.PluginScheme;
+import org.gradle.plugin.management.internal.PluginHandler;
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry;
 import org.gradle.plugin.use.internal.PluginRequestApplicator;
 import org.gradle.process.internal.DefaultExecOperations;
@@ -454,9 +451,10 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         Instantiator instantiator,
         ValueSourceProviderFactory valueSourceProviderFactory,
         ProcessOutputProviderFactory processOutputProviderFactory,
-        ListenerManager listenerManager
+        ListenerManager listenerManager,
+        ObjectFactory objectFactory
     ) {
-        return instantiator.newInstance(DefaultProviderFactory.class, valueSourceProviderFactory, processOutputProviderFactory, listenerManager);
+        return instantiator.newInstance(DefaultProviderFactory.class, valueSourceProviderFactory, processOutputProviderFactory, listenerManager, objectFactory);
     }
 
     @Provides
@@ -487,7 +485,8 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         return new AnnotationProcessingTaskFactory(
             instantiator,
             taskClassInfoStore,
-            new TaskFactory());
+            new TaskFactory()
+        );
     }
 
     @Provides
@@ -536,7 +535,7 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         ServiceRegistry buildScopedServices,
         ScriptCompilerFactory scriptCompilerFactory,
         Factory<LoggingManagerInternal> loggingManagerFactory,
-        AutoAppliedPluginHandler autoAppliedPluginHandler,
+        PluginHandler pluginHandler,
         PluginRequestApplicator pluginRequestApplicator,
         CompileOperationFactory compileOperationFactory,
         BuildOperationRunner buildOperationRunner,
@@ -548,7 +547,7 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
             buildScopedServices,
             scriptCompilerFactory,
             loggingManagerFactory,
-            autoAppliedPluginHandler,
+            pluginHandler,
             pluginRequestApplicator,
             compileOperationFactory
         );
@@ -790,7 +789,7 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
             listenerManager,
             isolatableFactory,
             sharedResourceLeaseRegistry,
-            featureFlags.isEnabled(FeaturePreviews.Feature.STABLE_CONFIGURATION_CACHE)
+            featureFlags.isEnabled(FeaturePreviews.Feature.INTERNAL_BUILD_SERVICE_USAGE)
                 ? new BuildServiceProviderNagger(services.get(WorkExecutionTracker.class))
                 : BuildServiceProvider.Listener.EMPTY
         );
@@ -802,12 +801,12 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    protected ModelDefaultsHandler createActionDefaultsHandler(SoftwareTypeRegistry softwareTypeRegistry, PluginScheme pluginScheme, InternalProblems problems) {
-        return new ActionBasedModelDefaultsHandler(softwareTypeRegistry, pluginScheme.getInspectionScheme(), problems);
+    protected AdditionalDataBuilderFactory createAdditionalDataBuilderFactory() {
+        return new AdditionalDataBuilderFactory();
     }
 
     @Provides
-    protected AdditionalDataBuilderFactory createAdditionalDataBuilderFactory() {
-        return new AdditionalDataBuilderFactory();
+    protected BuildInitSpecRegistry createInitProjectSpecRegistry() {
+        return new BuildInitSpecRegistry();
     }
 }

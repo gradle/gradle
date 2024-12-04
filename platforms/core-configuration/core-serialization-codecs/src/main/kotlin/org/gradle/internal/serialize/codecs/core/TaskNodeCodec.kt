@@ -61,7 +61,7 @@ import org.gradle.internal.serialize.graph.withIsolate
 import org.gradle.internal.serialize.graph.withPropertyTrace
 import org.gradle.internal.serialize.graph.writeCollection
 import org.gradle.internal.serialize.graph.writeEnum
-import org.gradle.internal.serialize.graph.writeNextProperty
+import org.gradle.internal.serialize.graph.writePropertyValue
 import org.gradle.util.internal.DeferredUtil
 
 
@@ -276,7 +276,7 @@ suspend fun WriteContext.writeRegisteredPropertiesOf(task: Task) {
 
     suspend fun writeProperty(propertyName: String, propertyValue: Any?, kind: PropertyKind) {
         writeString(propertyName)
-        writeNextProperty(propertyName, propertyValue, kind)
+        writePropertyValue(kind, propertyName, propertyValue)
     }
 
     suspend fun writeInputProperty(propertyName: String, propertyValue: Any?) =

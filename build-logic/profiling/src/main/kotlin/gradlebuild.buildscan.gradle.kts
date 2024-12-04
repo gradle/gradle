@@ -20,7 +20,6 @@ import gradlebuild.basics.BuildEnvironment.isCiServer
 import gradlebuild.basics.BuildEnvironment.isCodeQl
 import gradlebuild.basics.BuildEnvironment.isGhActions
 import gradlebuild.basics.BuildEnvironment.isTeamCity
-import gradlebuild.basics.BuildEnvironment.isTravis
 import gradlebuild.basics.buildBranch
 import gradlebuild.basics.environmentVariable
 import gradlebuild.basics.isPromotionBuild
@@ -50,20 +49,17 @@ plugins {
     id("gradlebuild.module-identity")
 }
 
-val serverUrl = "https://ge.gradle.org"
-val gitCommitName = "gitCommitId"
-val tcBuildTypeName = "tcBuildType"
-
 // We can not use plugin {} because this is registered by a settings plugin.
 // We do 'findByType' to make this script compile in pre-compiled script compilation.
 // TODO to avoid the above, turn this into a settings plugin
-val buildScan = extensions.findByType<DevelocityConfiguration>()?.buildScan
+val develocity = extensions.findByType<DevelocityConfiguration>()
+val buildScan = develocity?.buildScan
 inline fun buildScan(configure: BuildScanConfiguration.() -> Unit) {
     buildScan?.apply(configure)
 }
 
-extractCiData()
-extractWatchFsData()
+develocity?.extractCiData()
+buildScan?.extractWatchFsData()
 
 buildScan {
     val testDistributionEnabled = project.testDistributionEnabled
@@ -89,9 +85,24 @@ if ((project.gradle as GradleInternal).services.get(BuildType::class.java) != Bu
     buildScan?.tag("SYNC")
 }
 
-fun isEc2Agent() = InetAddress.getLocalHost().hostName.startsWith("ip-")
+fun DevelocityConfiguration.extractCiData() {
+    fun isEc2Agent() = InetAddress.getLocalHost().hostName.startsWith("ip-")
 
-fun Project.extractCiData() {
+    fun String.urlEncode() = URLEncoder.encode(this, Charsets.UTF_8.name())
+
+    fun DevelocityConfiguration.customValueSearchUrl(search: Map<String, String>): String {
+        val query = search.map { (name, value) ->
+            "search.names=${name.urlEncode()}&search.values=${value.urlEncode()}"
+            // "search.names=${urlEncode(name)}&search.values=${urlEncode(value)}"
+        }.joinToString("&")
+
+        return "${server.get()}/scans?$query"
+    }
+
+    fun BuildScanConfiguration.setCompileAllScanSearch(commitId: String) {
+        link("CI CompileAll Scan", customValueSearchUrl(mapOf("gitCommitId" to commitId)) + "&search.tags=CompileAll")
+    }
+
     if (isCiServer) {
         buildScan {
             val execOps = serviceOf<ExecOperations>()
@@ -109,6 +120,7 @@ fun Project.extractCiData() {
                 tag("GH_ACTION")
             }
             whenEnvIsSet("BUILD_TYPE_ID") { buildType ->
+                val tcBuildTypeName = "tcBuildType"
                 value(tcBuildTypeName, buildType)
                 link("Build Type Scans", customValueSearchUrl(mapOf(tcBuildTypeName to buildType)))
             }
@@ -154,9 +166,9 @@ fun BuildScanConfiguration.whenEnvIsSet(envName: String, action: BuildScanConfig
     }
 }
 
-fun Project.extractWatchFsData() {
+fun BuildScanConfiguration.extractWatchFsData() {
     val listenerManager = gradle.serviceOf<BuildOperationListenerManager>()
-    buildScan?.background {
+    background {
         listenerManager.addListener(FileSystemWatchingBuildOperationListener(listenerManager, this))
     }
 }
@@ -186,19 +198,3 @@ open class FileSystemWatchingBuildOperationListener(private val buildOperationLi
         }
     }
 }
-
-fun BuildScanConfiguration.setCompileAllScanSearch(commitId: String) {
-    if (!isTravis) {
-        link("CI CompileAll Scan", customValueSearchUrl(mapOf(gitCommitName to commitId)) + "&search.tags=CompileAll")
-    }
-}
-
-fun customValueSearchUrl(search: Map<String, String>): String {
-    val query = search.map { (name, value) ->
-        "search.names=${name.urlEncode()}&search.values=${value.urlEncode()}"
-    }.joinToString("&")
-
-    return "$serverUrl/scans?$query"
-}
-
-fun String.urlEncode() = URLEncoder.encode(this, Charsets.UTF_8.name())

@@ -23,9 +23,9 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.attributes.AttributeSchemaServices;
+import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.api.internal.attributes.matching.AttributeMatcher;
 import org.gradle.api.model.ObjectFactory;
@@ -33,7 +33,6 @@ import org.gradle.api.publish.VariantVersionMappingStrategy;
 import org.gradle.api.publish.internal.versionmapping.DefaultVariantVersionMappingStrategy;
 import org.gradle.api.publish.internal.versionmapping.VariantVersionMappingStrategyInternal;
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
-import org.gradle.internal.component.model.AttributeMatchingExplanationBuilder;
 
 import javax.inject.Inject;
 import java.util.ArrayList;
@@ -47,7 +46,7 @@ public class DefaultVersionMappingStrategy implements VersionMappingStrategyInte
     private final ObjectFactory objectFactory;
     private final ConfigurationContainer configurations;
     private final AttributesSchemaInternal schema;
-    private final ImmutableAttributesFactory attributesFactory;
+    private final AttributesFactory attributesFactory;
     private final AttributeSchemaServices attributeSchemaServices;
 
     private final List<Action<? super VariantVersionMappingStrategy>> mappingsForAllVariants = new ArrayList<>(2);
@@ -61,7 +60,7 @@ public class DefaultVersionMappingStrategy implements VersionMappingStrategyInte
         ObjectFactory objectFactory,
         ConfigurationContainer configurations,
         AttributesSchemaInternal schema,
-        ImmutableAttributesFactory attributesFactory,
+        AttributesFactory attributesFactory,
         AttributeSchemaServices attributeSchemaServices
     ) {
         this.objectFactory = objectFactory;
@@ -102,7 +101,7 @@ public class DefaultVersionMappingStrategy implements VersionMappingStrategyInte
         // Then use attribute specific mapping
         if (!attributeBasedMappings.isEmpty()) {
             Set<ImmutableAttributes> candidates = attributeBasedMappings.keySet();
-            List<ImmutableAttributes> matches = getMatcher().matchMultipleCandidates(candidates, variantAttributes, AttributeMatchingExplanationBuilder.NO_OP);
+            List<ImmutableAttributes> matches = getMatcher().matchMultipleCandidates(candidates, variantAttributes);
             if (matches.size() == 1) {
                 Collection<Action<? super VariantVersionMappingStrategy>> actions = attributeBasedMappings.get(matches.get(0));
                 for (Action<? super VariantVersionMappingStrategy> action : actions) {
@@ -121,7 +120,7 @@ public class DefaultVersionMappingStrategy implements VersionMappingStrategyInte
             // First need to populate the default variant version mapping strategy with the default values
             // provided by plugins
             Set<ImmutableAttributes> candidates = defaultConfigurations.keySet();
-            List<ImmutableAttributes> matches = getMatcher().matchMultipleCandidates(candidates, variantAttributes, AttributeMatchingExplanationBuilder.NO_OP);
+            List<ImmutableAttributes> matches = getMatcher().matchMultipleCandidates(candidates, variantAttributes);
             for (ImmutableAttributes match : matches) {
                 strategy.setDefaultResolutionConfiguration(configurations.getByName(defaultConfigurations.get(match)));
             }

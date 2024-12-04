@@ -32,7 +32,7 @@ import org.gradle.util.GradleVersion
 import static org.gradle.integtests.fixtures.AvailableJavaHomes.getJdk17
 import static org.gradle.integtests.tooling.r86.ProblemProgressEventCrossVersionTest.getProblemReportTaskString
 
-@ToolingApiVersion(">=8.7")
+@ToolingApiVersion(">=8.7 <8.12")
 class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
 
     def withReportProblemTask(@GroovyBuildScriptLanguage String taskActionMethodBody) {
@@ -148,7 +148,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         when:
         withConnection {
             it.model(CustomModel)
-                .setJavaHome(jdk17.javaHome)
+                .setJavaHome(jdk21.javaHome)
                 .addProgressListener(listener)
                 .get()
         }
@@ -198,7 +198,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         @Override
         void statusChanged(ProgressEvent event) {
             if (event instanceof ProblemEvent) {
-                if (!(event instanceof SingleProblemEvent) || event.definition.id.name != "executing-gradle-on-jvm-versions-and-lower") {
+                if (!(event instanceof SingleProblemEvent) || event.problem.definition.id.name != "executing-gradle-on-jvm-versions-and-lower") {
                     this.problems.add(event)
                 }
             }

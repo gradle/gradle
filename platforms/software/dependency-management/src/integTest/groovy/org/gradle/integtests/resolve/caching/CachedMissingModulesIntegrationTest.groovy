@@ -32,8 +32,8 @@ class CachedMissingModulesIntegrationTest extends AbstractHttpDependencyResoluti
 
         buildFile << """
 repositories {
-    ivy { url "${repo1.uri}"}
-    ivy { url "${repo2.uri}"}
+    ivy { url = "${repo1.uri}"}
+    ivy { url = "${repo2.uri}"}
 }
 configurations { missing }
 dependencies {
@@ -69,8 +69,8 @@ task showMissing {
 
         buildFile << """
 repositories {
-    ivy { url "${repo1.uri}"}
-    ivy { url "${repo2.uri}"}
+    ivy { url = "${repo1.uri}"}
+    ivy { url = "${repo2.uri}"}
 }
 configurations {
     missing
@@ -113,8 +113,8 @@ task showMissing {
 
         buildFile << """
 repositories {
-    ivy { url "${repo1.uri}"}
-    ivy { url "${repo2.uri}"}
+    ivy { url = "${repo1.uri}"}
+    ivy { url = "${repo2.uri}"}
 }
 configurations { missing }
 dependencies {
@@ -159,12 +159,12 @@ task showMissing {
         buildFile << """
             repositories {
                 maven {
-                    name 'repo1'
-                    url '${repo1.uri}'
+                    name = 'repo1'
+                    url = "${repo1.uri}"
                 }
                 maven {
-                    name 'repo2'
-                    url '${repo2.uri}'
+                    name = 'repo2'
+                    url = "${repo2.uri}"
                     metadataSources {
                         mavenPom()
                         artifact()
@@ -249,12 +249,12 @@ Required by:
         buildFile << """
             repositories {
                 maven {
-                    name 'repo1'
-                    url '${repo1.uri}'
+                    name = 'repo1'
+                    url = "${repo1.uri}"
                 }
                 maven {
-                    name 'repo2'
-                    url '${repo2.uri}'
+                    name = 'repo2'
+                    url = "${repo2.uri}"
                 }
             }
             configurations {
@@ -306,12 +306,12 @@ Required by:
         buildFile << """
             repositories {
                 maven {
-                    name 'repo1'
-                    url '${repo1.uri}'
+                    name = 'repo1'
+                    url = "${repo1.uri}"
                 }
                 maven {
-                    name 'repo2'
-                    url '${repo2.uri}'
+                    name = 'repo2'
+                    url = "${repo2.uri}"
                 }
             }
             configurations {
@@ -383,12 +383,12 @@ Required by:
         buildFile << """
     repositories {
         maven {
-            name 'repo1'
-            url '${repo1.uri}'
+            name = 'repo1'
+            url = "${repo1.uri}"
         }
         maven {
-            name 'repo2'
-            url '${repo2.uri}'
+            name = 'repo2'
+            url = "${repo2.uri}"
         }
     }
     configurations { compile }
@@ -459,12 +459,12 @@ Required by:
         buildFile << """
     repositories {
         maven {
-            name 'repo1'
-            url '${repo1.uri}'
+            name = 'repo1'
+            url = "${repo1.uri}"
         }
         maven {
-            name 'repo2'
-            url '${repo2.uri}'
+            name = 'repo2'
+            url = "${repo2.uri}"
         }
     }
     configurations { conf1; conf2 }
@@ -558,12 +558,12 @@ Required by:
             allprojects{
                 repositories {
                     maven {
-                        name 'repo1'
-                        url '${repo1.uri}'
+                        name = 'repo1'
+                        url = "${repo1.uri}"
                     }
                     maven {
-                        name 'repo2'
-                        url '${repo2.uri}'
+                        name = 'repo2'
+                        url = "${repo2.uri}"
                     }
                 }
             }
@@ -624,12 +624,12 @@ Required by:
         buildFile << """
         repositories {
            maven {
-               name 'repo1'
-               url '${repo1.uri}'
+               name = 'repo1'
+               url = "${repo1.uri}"
            }
            maven {
-               name 'repo2'
-               url '${repo2.uri}'
+               name = 'repo2'
+               url = "${repo2.uri}"
            }
        }
        configurations { compile }

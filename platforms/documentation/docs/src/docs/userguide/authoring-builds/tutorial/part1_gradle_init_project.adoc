@@ -81,7 +81,7 @@ When you are done with Gradle `init`, the directory should look as follows:
 ----
 .
 ├── gradle                              // <1>
-    ├── libs.version.toml               // <2>
+    ├── libs.versions.toml              // <2>
 │   └── wrapper
 ├── gradlew                             // <3>
 ├── gradlew.bat                         // <3>
@@ -112,7 +112,7 @@ When you are done with Gradle `init`, the directory should look as follows:
 ----
 .
 ├── gradle                              // <1>
-    ├── libs.version.toml               // <2>
+    ├── libs.versions.toml              // <2>
 │   └── wrapper
 ├── gradlew                             // <3>
 ├── gradlew.bat                         // <3>

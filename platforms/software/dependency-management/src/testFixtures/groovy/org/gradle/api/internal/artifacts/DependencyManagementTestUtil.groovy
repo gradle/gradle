@@ -22,12 +22,11 @@ import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleM
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory
 import org.gradle.api.internal.attributes.AttributeDescriberRegistry
 import org.gradle.api.internal.attributes.AttributeDesugaring
-import org.gradle.api.problems.internal.DefaultProblems
-import org.gradle.api.problems.internal.NoOpProblemEmitter
 import org.gradle.internal.component.external.model.ModuleComponentGraphResolveStateFactory
 import org.gradle.internal.component.external.model.PreferJavaRuntimeVariant
 import org.gradle.internal.component.model.ComponentIdGenerator
 import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler
+import org.gradle.internal.component.resolution.failure.transform.TransformedVariantConverter
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.TestUtil
 
@@ -63,6 +62,11 @@ class DependencyManagementTestUtil {
         def services = TestUtil.createTestServices {
             it.add(AttributeDescriberRegistry)
         }
-        new ResolutionFailureHandler(TestUtil.instantiatorFactory().inject(services), new DefaultProblems([new NoOpProblemEmitter()]))
+
+        return new ResolutionFailureHandler(
+            TestUtil.instantiatorFactory().inject(services),
+            TestUtil.problemsService(),
+            new TransformedVariantConverter()
+        )
     }
 }

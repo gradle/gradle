@@ -22,13 +22,33 @@ import org.gradle.internal.scan.UsedByScanPlugin;
 @UsedByScanPlugin("test-distribution")
 public class DefaultTestOutputEvent implements TestOutputEvent {
 
+    private final long logTime;
     private final Destination destination;
     private final String message;
 
+    /**
+     * Creates a new test output event.
+     *
+     * @param destination the destination of the message
+     * @param message the message content
+     * @deprecated Please provide a log time with {@link #DefaultTestOutputEvent(long, Destination, String)}. It's recommended to use {@link org.gradle.internal.time.Clock} as well.
+     */
     @UsedByScanPlugin("test-distribution")
+    @Deprecated
+    @SuppressWarnings("InlineMeSuggester")
     public DefaultTestOutputEvent(Destination destination, String message) {
+        this(System.currentTimeMillis(), destination, message);
+    }
+
+    public DefaultTestOutputEvent(long logTime, Destination destination, String message) {
+        this.logTime = logTime;
         this.destination = destination;
         this.message = message;
+    }
+
+    @Override
+    public long getLogTime() {
+        return logTime;
     }
 
     @Override
@@ -52,6 +72,9 @@ public class DefaultTestOutputEvent implements TestOutputEvent {
 
         DefaultTestOutputEvent that = (DefaultTestOutputEvent) o;
 
+        if (logTime != that.logTime) {
+            return false;
+        }
         if (destination != that.destination) {
             return false;
         }
@@ -64,7 +87,8 @@ public class DefaultTestOutputEvent implements TestOutputEvent {
 
     @Override
     public int hashCode() {
-        int result = destination.hashCode();
+        int result = ((Long) logTime).hashCode();
+        result = 31 * result + destination.hashCode();
         result = 31 * result + message.hashCode();
         return result;
     }

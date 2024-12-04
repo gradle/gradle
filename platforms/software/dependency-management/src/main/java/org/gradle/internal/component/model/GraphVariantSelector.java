@@ -118,7 +118,7 @@ public class GraphVariantSelector {
         }
 
         // Perform attribute matching on the candidates satisfying our capability selectors
-        List<VariantGraphResolveState> matches = attributeMatcher.matchMultipleCandidates(variantsProvidingRequestedCapabilities, consumerAttributes, AttributeMatchingExplanationBuilder.logging());
+        List<VariantGraphResolveState> matches = attributeMatcher.matchMultipleCandidates(variantsProvidingRequestedCapabilities, consumerAttributes);
         if (matches.size() < 2) {
             return zeroOrSingleVariant(matches);
         }
@@ -132,7 +132,7 @@ public class GraphVariantSelector {
 
         // there are still more than one candidate, but this time we know only a subset strictly matches the required attributes
         // so we perform another round of selection on the remaining candidates
-        matches = attributeMatcher.matchMultipleCandidates(matches, consumerAttributes, AttributeMatchingExplanationBuilder.logging());
+        matches = attributeMatcher.matchMultipleCandidates(matches, consumerAttributes);
         if (matches.size() < 2) {
             return zeroOrSingleVariant(matches);
         }
@@ -214,22 +214,41 @@ public class GraphVariantSelector {
         List<VariantGraphResolveState> sameClassifier = Collections.emptyList();
         // let's see if we can find a single variant which has exactly the requested artifacts
         for (VariantGraphResolveState match : matches) {
-            List<? extends ComponentArtifactMetadata> artifacts = match.resolveArtifacts().getArtifacts();
-            if (artifacts.size() == 1) {
-                ComponentArtifactMetadata componentArtifactMetadata = artifacts.get(0);
-                if (componentArtifactMetadata instanceof ModuleComponentArtifactMetadata) {
-                    if (classifier.equals(componentArtifactMetadata.getName().getClassifier())) {
-                        if (sameClassifier == Collections.EMPTY_LIST) {
-                            sameClassifier = Collections.singletonList(match);
-                        } else {
-                            sameClassifier = Lists.newArrayList(sameClassifier);
-                            sameClassifier.add(match);
-                        }
-                    }
+            if (variantProvidesClassifier(match, classifier)) {
+                if (sameClassifier == Collections.EMPTY_LIST) {
+                    sameClassifier = Collections.singletonList(match);
+                } else {
+                    sameClassifier = Lists.newArrayList(sameClassifier);
+                    sameClassifier.add(match);
                 }
             }
         }
         return sameClassifier;
+    }
+
+    private static boolean variantProvidesClassifier(VariantGraphResolveState variant, String classifier) {
+        Set<? extends VariantResolveMetadata> artifactSets = variant.prepareForArtifactResolution().getArtifactVariants();
+        for (VariantResolveMetadata artifactSet : artifactSets) {
+            if (artifactSetStrictlyProvidesClassifier(artifactSet, classifier)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static boolean artifactSetStrictlyProvidesClassifier(VariantResolveMetadata artifactSet, String classifier) {
+        List<? extends ComponentArtifactMetadata> artifacts = artifactSet.getArtifacts();
+        if (artifacts.size() != 1) {
+            return false;
+        }
+
+        ComponentArtifactMetadata componentArtifactMetadata = artifacts.get(0);
+        if (!(componentArtifactMetadata instanceof ModuleComponentArtifactMetadata)) {
+            return false;
+        }
+
+        return classifier.equals(componentArtifactMetadata.getName().getClassifier());
     }
 
     @Nullable

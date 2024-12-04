@@ -17,9 +17,9 @@
 package org.gradle.tooling.events.problems.internal;
 
 import org.gradle.api.NonNullApi;
+import org.gradle.tooling.Failure;
 import org.gradle.tooling.events.problems.AdditionalData;
 import org.gradle.tooling.events.problems.Details;
-import org.gradle.tooling.events.problems.FailureContainer;
 import org.gradle.tooling.events.problems.Location;
 import org.gradle.tooling.events.problems.ProblemContext;
 import org.gradle.tooling.events.problems.Solution;
@@ -30,20 +30,23 @@ import java.util.List;
 @NonNullApi
 public class DefaultProblemsOperationContext implements ProblemContext {
     private final Details details;
-    private final List<Location> locations;
+    private final List<Location> originLocations;
+    private final List<Location> contextualLocations;
     private final List<Solution> solutions;
     private final AdditionalData additionalData;
-    private final FailureContainer failure;
+    private final Failure failure;
 
     public DefaultProblemsOperationContext(
         @Nullable Details details,
-        List<Location> locations,
+        List<Location> originLocations,
+        List<Location> contextualLocations,
         List<Solution> solutions,
         AdditionalData additionalData,
-        @Nullable FailureContainer failure
+        @Nullable Failure failure
     ) {
         this.details = details;
-        this.locations = locations;
+        this.originLocations = originLocations;
+        this.contextualLocations = contextualLocations;
         this.solutions = solutions;
         this.additionalData = additionalData;
         this.failure = failure;
@@ -57,8 +60,13 @@ public class DefaultProblemsOperationContext implements ProblemContext {
 
 
     @Override
-    public List<Location> getLocations() {
-        return locations;
+    public List<Location> getOriginLocations() {
+        return originLocations;
+    }
+
+    @Override
+    public List<Location> getContextualLocations() {
+        return contextualLocations;
     }
 
     @Override
@@ -72,7 +80,7 @@ public class DefaultProblemsOperationContext implements ProblemContext {
 
     @Nullable
     @Override
-    public FailureContainer getFailure() {
+    public Failure getFailure() {
         return failure;
     }
 }

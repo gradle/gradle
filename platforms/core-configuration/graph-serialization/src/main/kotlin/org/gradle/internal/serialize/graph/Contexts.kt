@@ -41,6 +41,18 @@ interface BeanStateReaderLookup {
 }
 
 
+data class SpecialEncoders(
+    val stringEncoder: StringEncoder = InlineStringEncoder,
+    val sharedObjectEncoder: SharedObjectEncoder = InlineSharedObjectEncoder
+)
+
+
+data class SpecialDecoders(
+    val stringDecoder: StringDecoder = InlineStringDecoder,
+    val sharedObjectDecoder: SharedObjectDecoder = InlineSharedObjectDecoder
+)
+
+
 class DefaultWriteContext(
     name: String? = null,
 
@@ -61,11 +73,13 @@ class DefaultWriteContext(
     private
     val classEncoder: ClassEncoder,
 
-    val stringEncoder: StringEncoder = InlineStringEncoder,
-
-    val sharedObjectEncoder: SharedObjectEncoder = InlineSharedObjectEncoder
+    specialEncoders: SpecialEncoders = SpecialEncoders()
 
 ) : AbstractIsolateContext<WriteIsolate>(codec, problemsListener, name), CloseableWriteContext, Encoder by encoder {
+
+    val stringEncoder = specialEncoders.stringEncoder
+
+    val sharedObjectEncoder = specialEncoders.sharedObjectEncoder
 
     override val sharedIdentities = WriteIdentities()
 
@@ -122,12 +136,12 @@ value class ClassLoaderRole(val local: Boolean)
 
 
 interface ClassEncoder {
-    fun Encoder.encodeClass(type: Class<*>)
+    fun WriteContext.encodeClass(type: Class<*>)
 
     /**
      * Tries to encode the given [classLoader].
      */
-    fun Encoder.encodeClassLoader(classLoader: ClassLoader?) = Unit
+    fun WriteContext.encodeClassLoader(classLoader: ClassLoader?) = Unit
 }
 
 
@@ -223,13 +237,14 @@ class DefaultReadContext(
     private
     val classDecoder: ClassDecoder,
 
-    val stringDecoder: StringDecoder = InlineStringDecoder,
-
-    val sharedObjectDecoder: SharedObjectDecoder = InlineSharedObjectDecoder
-
+    specialDecoders: SpecialDecoders = SpecialDecoders()
 ) : AbstractIsolateContext<ReadIsolate>(codec, problemsListener, name), CloseableReadContext, Decoder by decoder {
 
     override val sharedIdentities = ReadIdentities()
+
+    val stringDecoder = specialDecoders.stringDecoder
+
+    val sharedObjectDecoder = specialDecoders.sharedObjectDecoder
 
     private
     var singletonProperty: Any? = null

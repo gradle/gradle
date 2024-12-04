@@ -52,7 +52,7 @@ include 'a', 'b'
 """
         buildFile << """
 allprojects {
-    repositories { maven { url '$mavenRepo.uri' } }
+    repositories { maven { url = '$mavenRepo.uri' } }
 }
 dependencies {
     compile files('test-lib.jar')
@@ -347,7 +347,7 @@ dependencies {
 allprojects {
     dependencies.attributesSchema.attribute(flavor)
     repositories {
-        maven { url '${mavenRepo.uri}' }
+        maven { url = '${mavenRepo.uri}' }
     }
 }
 
@@ -416,7 +416,7 @@ task show {
     def "reports failure to resolve component when files are queried using #expression"() {
         buildFile << """
 allprojects {
-    repositories { maven { url '$mavenHttpRepo.uri' } }
+    repositories { maven { url = '$mavenHttpRepo.uri' } }
 }
 dependencies {
     compile 'org:test:1.0+'
@@ -462,7 +462,7 @@ task show {
     def "reports failure to download artifact when files are queried using #expression"() {
         buildFile << """
 allprojects {
-    repositories { maven { url '$mavenHttpRepo.uri' } }
+    repositories { maven { url = '$mavenHttpRepo.uri' } }
 }
 dependencies {
     compile 'org:test:1.0'
@@ -548,7 +548,7 @@ task show {
         settingsFile << "include 'a'"
         buildFile << """
 allprojects {
-    repositories { maven { url '$mavenHttpRepo.uri' } }
+    repositories { maven { url = '$mavenHttpRepo.uri' } }
 }
 dependencies {
     compile 'org:test:1.0'

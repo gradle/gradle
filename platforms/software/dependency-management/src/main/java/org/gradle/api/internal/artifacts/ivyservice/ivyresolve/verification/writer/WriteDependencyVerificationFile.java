@@ -613,7 +613,7 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
             }
             // Then write the ascii armored keyring
             try (FileOutputStream fos = new FileOutputStream(ascii, true);
-                 ArmoredOutputStream out = new ArmoredOutputStream(fos)) {
+                 ArmoredOutputStream out = ArmoredOutputStream.builder().build(fos)) {
                 keyRing.encode(out, true);
             }
             hasKey = true;

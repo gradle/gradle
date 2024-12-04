@@ -16,9 +16,9 @@
   -->
 
 <extensions>
-    <extension>
-        <groupId>com.gradle</groupId>
-        <artifactId>gradle-enterprise-maven-extension</artifactId>
-        <version>1.14.4</version>
-    </extension>
+  <extension>
+    <groupId>com.gradle</groupId>
+    <artifactId>develocity-maven-extension</artifactId>
+    <version>1.22.2</version>
+  </extension>
 </extensions>

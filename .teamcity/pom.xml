@@ -3,19 +3,21 @@
     <modelVersion>4.0.0</modelVersion>
     <name>Gradle_Check Config DSL Script</name>
     <properties>
-        <kotlin.version>1.8.22</kotlin.version>
-        <teamcity.dsl.version>2024.03</teamcity.dsl.version>
-        <mockk.version>1.9</mockk.version>
-        <bytebuddy.version>1.10.6</bytebuddy.version>
-        <junit.version>5.8.1</junit.version>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <mockk.version>1.13.13</mockk.version>
+        <bytebuddy.version>1.15.7</bytebuddy.version>
+        <junit.version>5.11.3</junit.version>
+        <fastjson.version>1.2.83</fastjson.version>
         <dslContextParameter.branch>master</dslContextParameter.branch>
     </properties>
     <groupId>Gradle_Check</groupId>
     <artifactId>Gradle_Check_dsl</artifactId>
     <version>1.0-SNAPSHOT</version>
+
+    <parent>
+        <groupId>org.jetbrains.teamcity</groupId>
+        <artifactId>configs-dsl-kotlin-parent</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
 
     <repositories>
         <repository>
@@ -31,6 +33,11 @@
             <snapshots>
                 <enabled>true</enabled>
             </snapshots>
+        </repository>
+        <repository>
+            <id>maven_central</id>
+            <name>Maven Central</name>
+            <url>https://repo.maven.apache.org/maven2/</url>
         </repository>
     </repositories>
 
@@ -79,26 +86,6 @@
                         <Branch>${dslContextParameter.branch}</Branch>
                     </contextParameters>
                 </configuration>
-                <dependencies>
-                    <dependency>
-                        <groupId>org.jetbrains.kotlin</groupId>
-                        <artifactId>kotlin-stdlib-jdk8</artifactId>
-                        <version>${kotlin.version}</version>
-                        <scope>compile</scope>
-                    </dependency>
-                    <dependency>
-                        <groupId>org.jetbrains.kotlin</groupId>
-                        <artifactId>kotlin-reflect</artifactId>
-                        <version>${kotlin.version}</version>
-                        <scope>compile</scope>
-                    </dependency>
-                    <dependency>
-                        <groupId>org.jetbrains.kotlin</groupId>
-                        <artifactId>kotlin-script-runtime</artifactId>
-                        <version>${kotlin.version}</version>
-                        <scope>compile</scope>
-                    </dependency>
-                </dependencies>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -142,7 +129,7 @@
         <dependency>
             <groupId>com.alibaba</groupId>
             <artifactId>fastjson</artifactId>
-            <version>1.2.83</version>
+            <version>${fastjson.version}</version>
         </dependency>
         <dependency>
             <groupId>org.jetbrains.teamcity</groupId>
@@ -155,13 +142,6 @@
             <artifactId>configs-dsl-kotlin-latest</artifactId>
             <version>${teamcity.dsl.version}</version>
             <scope>compile</scope>
-            <exclusions>
-                <exclusion>
-                    <!-- This is version 1.2.50 and conflicts with 1.3.0 -->
-                    <groupId>org.jetbrains.kotlin</groupId>
-                    <artifactId>kotlin-stdlib</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.jetbrains.teamcity</groupId>
@@ -170,29 +150,11 @@
             <type>pom</type>
             <scope>compile</scope>
         </dependency>
-        <dependency>
-            <groupId>org.jetbrains.kotlin</groupId>
-            <artifactId>kotlin-stdlib-jdk8</artifactId>
-            <version>${kotlin.version}</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.jetbrains.kotlin</groupId>
-            <artifactId>kotlin-reflect</artifactId>
-            <version>${kotlin.version}</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.jetbrains.kotlin</groupId>
-            <artifactId>kotlin-script-runtime</artifactId>
-            <version>${kotlin.version}</version>
-            <scope>compile</scope>
-        </dependency>
 
         <!-- For tests only. Must be in compile scope such that the Teamcity generate goal is able to compile the tests -->
         <dependency>
             <groupId>io.mockk</groupId>
-            <artifactId>mockk</artifactId>
+            <artifactId>mockk-jvm</artifactId>
             <version>${mockk.version}</version>
         </dependency>
         <dependency>

@@ -19,6 +19,8 @@ package org.gradle.kotlin.dsl.support.delegates
 import org.gradle.api.Action
 import org.gradle.api.artifacts.DependencyConstraint
 import org.gradle.api.artifacts.dsl.DependencyConstraintHandler
+import org.gradle.api.provider.Provider
+import org.gradle.api.provider.ProviderConvertible
 
 
 /**
@@ -29,11 +31,23 @@ abstract class DependencyConstraintHandlerDelegate : DependencyConstraintHandler
     internal
     abstract val delegate: DependencyConstraintHandler
 
-    override fun add(configurationName: String, dependencyConstraintNotation: Any): DependencyConstraint =
-        delegate.add(configurationName, dependencyConstraintNotation)
+    override fun add(configurationName: String, dependencyNotation: Any): DependencyConstraint =
+        delegate.add(configurationName, dependencyNotation)
 
     override fun add(configurationName: String, dependencyNotation: Any, configureAction: Action<in DependencyConstraint>): DependencyConstraint =
         delegate.add(configurationName, dependencyNotation, configureAction)
+
+    override fun <T : Any> addProvider(configurationName: String, dependencyNotation: Provider<T>) =
+        delegate.addProvider(configurationName, dependencyNotation)
+
+    override fun <T : Any> addProvider(configurationName: String, dependencyNotation: Provider<T>, configureAction: Action<in DependencyConstraint>) =
+        delegate.addProvider(configurationName, dependencyNotation, configureAction)
+
+    override fun <T : Any> addProviderConvertible(configurationName: String, dependencyNotation: ProviderConvertible<T>) =
+        delegate.addProviderConvertible(configurationName, dependencyNotation)
+
+    override fun <T : Any> addProviderConvertible(configurationName: String, dependencyNotation: ProviderConvertible<T>, configureAction: Action<in DependencyConstraint>) =
+        delegate.addProviderConvertible(configurationName, dependencyNotation, configureAction)
 
     override fun create(dependencyConstraintNotation: Any): DependencyConstraint =
         delegate.create(dependencyConstraintNotation)

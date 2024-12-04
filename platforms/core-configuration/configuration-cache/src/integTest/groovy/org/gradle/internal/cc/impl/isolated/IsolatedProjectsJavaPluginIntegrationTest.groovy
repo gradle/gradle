@@ -39,7 +39,7 @@ class IsolatedProjectsJavaPluginIntegrationTest extends AbstractIsolatedProjects
         runBuildAction(new FetchCustomModelForEachProjectInParallel())
 
         then:
-        fixture.assertStateStored {
+        fixture.assertModelStored {
             projectsConfigured(":buildSrc", ":", ":a", ":b")
             buildModelCreated()
             modelsCreated(":a", ":b")
@@ -87,7 +87,7 @@ class IsolatedProjectsJavaPluginIntegrationTest extends AbstractIsolatedProjects
         runBuildAction(new FetchCustomModelForEachProjectInParallel())
 
         then:
-        fixture.assertStateStored {
+        fixture.assertModelStored {
             projectsConfigured(":buildSrc", ":", ":a", ":b")
             buildModelCreated()
             modelsCreated(":a", ":b")

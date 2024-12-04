@@ -289,7 +289,6 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
 
     @Override
     public String toString() {
-        return "DefaultProjectDependency{" + "identityPath='" + getIdentityPath() + '\'' + ", configuration='"
-            + (getTargetConfiguration() == null ? Dependency.DEFAULT_CONFIGURATION : getTargetConfiguration()) + '\'' + '}';
+        return "project '" + dependencyProject.getBuildTreePath() + "'";
     }
 }

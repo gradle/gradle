@@ -39,7 +39,7 @@ abstract class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationS
 
             repositories {
                 ${mavenCentralRepository()}
-                maven { url '${buildContext.localRepository.toURI().toURL()}' }
+                maven { url = '${buildContext.localRepository.toURI()}' }
             }
 
             def requestedGradleVersion = project.findProperty("gradleVersion")

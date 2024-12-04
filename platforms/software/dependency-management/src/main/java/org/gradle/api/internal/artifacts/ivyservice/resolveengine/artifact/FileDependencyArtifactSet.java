@@ -16,17 +16,16 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
-import org.gradle.api.internal.artifacts.transform.ArtifactVariantSelector;
-import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
+import org.gradle.api.internal.attributes.immutable.artifact.ImmutableArtifactTypeRegistry;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 
 public class FileDependencyArtifactSet implements ArtifactSet {
     private final LocalFileDependencyMetadata fileDependency;
-    private final ArtifactTypeRegistry artifactTypeRegistry;
+    private final ImmutableArtifactTypeRegistry artifactTypeRegistry;
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
 
-    public FileDependencyArtifactSet(LocalFileDependencyMetadata fileDependency, ArtifactTypeRegistry artifactTypeRegistry, CalculatedValueContainerFactory calculatedValueContainerFactory) {
+    public FileDependencyArtifactSet(LocalFileDependencyMetadata fileDependency, ImmutableArtifactTypeRegistry artifactTypeRegistry, CalculatedValueContainerFactory calculatedValueContainerFactory) {
         this.fileDependency = fileDependency;
         this.artifactTypeRegistry = artifactTypeRegistry;
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
@@ -34,16 +33,17 @@ public class FileDependencyArtifactSet implements ArtifactSet {
 
     @Override
     public ResolvedArtifactSet select(
-        ArtifactVariantSelector variantSelector,
+        ArtifactSelectionServices consumerServices,
         ArtifactSelectionSpec spec
     ) {
         // Select the artifacts later, as this is a function of the file names and these may not be known yet because the producing tasks have not yet executed
         return new DefaultLocalFileDependencyBackedArtifactSet(
             fileDependency,
             spec.getComponentFilter(),
-            variantSelector,
+            consumerServices.getArtifactVariantSelector(),
             artifactTypeRegistry,
             calculatedValueContainerFactory,
+            consumerServices.getTransformRegistry(),
             spec.getRequestAttributes(),
             spec.getAllowNoMatchingVariants()
         );

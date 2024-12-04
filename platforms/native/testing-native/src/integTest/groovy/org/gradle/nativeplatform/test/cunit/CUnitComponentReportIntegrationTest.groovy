@@ -74,6 +74,7 @@ model {
 """
         when:
         executer.withArgument("--no-problems-report")
+        expectTaskGetProjectDeprecations()
         succeeds "components"
 
         then:

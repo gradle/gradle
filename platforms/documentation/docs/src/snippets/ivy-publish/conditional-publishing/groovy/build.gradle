@@ -25,12 +25,12 @@ publishing {
     repositories {
         // change URLs to point to your repos, e.g. http://my.org/repo
         ivy {
-            name "external"
-            url layout.buildDirectory.dir('repos/external')
+            name = "external"
+            url = layout.buildDirectory.dir('repos/external')
         }
         ivy {
-            name "internal"
-            url layout.buildDirectory.dir('repos/internal')
+            name = "internal"
+            url = layout.buildDirectory.dir('repos/internal')
         }
     }
 }
@@ -53,15 +53,15 @@ tasks.withType(PublishToIvyRepository) {
 
 // tag::shorthand-tasks[]
 tasks.register('publishToExternalRepository') {
-    group "publishing"
-    description "Publishes all Ivy publications to Ivy repository 'external'."
+    group = "publishing"
+    description = "Publishes all Ivy publications to Ivy repository 'external'."
     dependsOn tasks.withType(PublishToIvyRepository).matching {
         it.repository == publishing.repositories.external
     }
 }
 tasks.register('publishToInternalRepository') {
-    group "publishing"
-    description "Publishes all Ivy publications to Ivy repository 'internal'."
+    group = "publishing"
+    description = "Publishes all Ivy publications to Ivy repository 'internal'."
     dependsOn tasks.withType(PublishToIvyRepository).matching {
         it.repository == publishing.repositories.internal
     }

@@ -24,7 +24,7 @@ public class Conflict {
     private final List<? extends ModuleVersionIdentifier> versions;
     private final String message;
 
-    public <E> Conflict(List<? extends ModuleVersionIdentifier> versions, String message) {
+    public Conflict(List<? extends ModuleVersionIdentifier> versions, String message) {
         this.versions = versions;
         this.message = message;
     }

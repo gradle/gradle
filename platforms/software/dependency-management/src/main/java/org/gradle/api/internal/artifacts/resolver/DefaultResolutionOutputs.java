@@ -28,13 +28,14 @@ import org.gradle.api.internal.artifacts.configurations.ArtifactCollectionIntern
 import org.gradle.api.internal.artifacts.configurations.DefaultArtifactCollection;
 import org.gradle.api.internal.artifacts.configurations.ResolutionBackedFileCollection;
 import org.gradle.api.internal.artifacts.configurations.ResolutionResultProvider;
+import org.gradle.api.internal.artifacts.configurations.ResolutionResultProviderBackedSelectedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSelectionSpec;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults;
 import org.gradle.api.internal.artifacts.result.MinimalResolutionResult;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
@@ -64,14 +65,14 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
     private final ResolutionAccess resolutionAccess;
     private final TaskDependencyFactory taskDependencyFactory;
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
-    private final ImmutableAttributesFactory attributesFactory;
+    private final AttributesFactory attributesFactory;
     private final Instantiator instantiator;
 
     public DefaultResolutionOutputs(
         ResolutionAccess resolutionAccess,
         TaskDependencyFactory taskDependencyFactory,
         CalculatedValueContainerFactory calculatedValueContainerFactory,
-        ImmutableAttributesFactory attributesFactory,
+        AttributesFactory attributesFactory,
         Instantiator instantiator
     ) {
         this.resolutionAccess = resolutionAccess;
@@ -156,7 +157,7 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
         private final ResolutionAccess resolutionAccess;
         private final TaskDependencyFactory taskDependencyFactory;
         private final CalculatedValueContainerFactory calculatedValueContainerFactory;
-        private final ImmutableAttributesFactory attributesFactory;
+        private final AttributesFactory attributesFactory;
 
         public DefaultArtifactView(
             boolean lenient,
@@ -167,7 +168,7 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
             ResolutionAccess resolutionAccess,
             TaskDependencyFactory taskDependencyFactory,
             CalculatedValueContainerFactory calculatedValueContainerFactory,
-            ImmutableAttributesFactory attributesFactory
+            AttributesFactory attributesFactory
         ) {
             this.lenient = lenient;
             this.componentFilter = componentFilter;
@@ -193,7 +194,9 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
         @Override
         public ResolutionBackedFileCollection getFiles() {
             return new ResolutionBackedFileCollection(
-                resolutionAccess.getResults().map(this::selectArtifacts),
+                new ResolutionResultProviderBackedSelectedArtifactSet(
+                    resolutionAccess.getResults().map(this::selectArtifacts)
+                ),
                 lenient,
                 resolutionAccess.getHost(),
                 taskDependencyFactory
@@ -243,7 +246,7 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
         private boolean lenient;
         private boolean reselectVariants;
 
-        public DefaultArtifactViewConfiguration(ImmutableAttributesFactory attributesFactory) {
+        public DefaultArtifactViewConfiguration(AttributesFactory attributesFactory) {
             this.viewAttributes = attributesFactory.mutable();
         }
 

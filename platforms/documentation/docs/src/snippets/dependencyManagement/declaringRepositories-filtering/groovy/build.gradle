@@ -1,7 +1,7 @@
 // tag::repository-filter[]
 repositories {
     maven {
-        url "https://repo.mycompany.com/maven2"
+        url = "https://repo.mycompany.com/maven2"
         content {
             // this repository *only* contains artifacts with group "my.company"
             includeGroup "my.company"
@@ -24,7 +24,7 @@ repositories {
     exclusiveContent {
         forRepository {
             maven {
-                url "https://repo.mycompany.com/maven2"
+                url = "https://repo.mycompany.com/maven2"
             }
         }
         filter {
@@ -38,13 +38,13 @@ repositories {
 // tag::repository-snapshots[]
 repositories {
     maven {
-        url "https://repo.mycompany.com/releases"
+        url = "https://repo.mycompany.com/releases"
         mavenContent {
             releasesOnly()
         }
     }
     maven {
-        url "https://repo.mycompany.com/snapshots"
+        url = "https://repo.mycompany.com/snapshots"
         mavenContent {
             snapshotsOnly()
         }

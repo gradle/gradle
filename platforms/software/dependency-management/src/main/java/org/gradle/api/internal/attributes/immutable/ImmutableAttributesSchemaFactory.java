@@ -19,8 +19,6 @@ package org.gradle.api.internal.attributes.immutable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Interner;
-import com.google.common.collect.Interners;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.attributes.Attribute;
@@ -28,11 +26,13 @@ import org.gradle.api.attributes.CompatibilityCheckDetails;
 import org.gradle.api.attributes.MultipleCandidatesDetails;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.DefaultAttributeMatchingStrategy;
+import org.gradle.internal.model.InMemoryCacheFactory;
+import org.gradle.internal.model.InMemoryInterner;
+import org.gradle.internal.model.InMemoryLoadingCache;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Factory for creating and interning immutable attribute schemas.
@@ -40,12 +40,14 @@ import java.util.concurrent.ConcurrentHashMap;
 @ServiceScope(Scope.BuildSession.class)
 public class ImmutableAttributesSchemaFactory {
 
-    private final Interner<ImmutableAttributesSchema> schemas = Interners.newStrongInterner();
-    private final Map<SchemaPair, ImmutableAttributesSchema> mergedSchemas = new ConcurrentHashMap<>();
+    private final InMemoryInterner<ImmutableAttributesSchema> schemas;
+    private final InMemoryLoadingCache<SchemaPair, ImmutableAttributesSchema> mergedSchemas;
 
     @SuppressWarnings("CheckReturnValue")
-    public ImmutableAttributesSchemaFactory() {
-        schemas.intern(ImmutableAttributesSchema.EMPTY);
+    public ImmutableAttributesSchemaFactory(InMemoryCacheFactory cacheFactory) {
+        this.schemas = cacheFactory.createInterner();
+        this.schemas.intern(ImmutableAttributesSchema.EMPTY);
+        this.mergedSchemas = cacheFactory.create(this::doConcatSchemas);
     }
 
     /**
@@ -108,11 +110,13 @@ public class ImmutableAttributesSchemaFactory {
      * @return The merged schema.
      */
     public ImmutableAttributesSchema concat(ImmutableAttributesSchema consumer, ImmutableAttributesSchema producer) {
-        return mergedSchemas.computeIfAbsent(new SchemaPair(consumer, producer), pair ->
-            create(
-                mergeStrategies(consumer, producer),
-                mergePrecedence(consumer.precedence, producer.precedence)
-            )
+        return mergedSchemas.get(new SchemaPair(consumer, producer));
+    }
+
+    private ImmutableAttributesSchema doConcatSchemas(SchemaPair pair) {
+        return create(
+            mergeStrategies(pair.consumer, pair.producer),
+            mergePrecedence(pair.consumer.precedence, pair.producer.precedence)
         );
     }
 

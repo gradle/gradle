@@ -487,7 +487,7 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
                             suites {
                                 test {
                                     useJUnit()
-                                    jvmArgs '-XX:UnknownArgument'
+                                    jvmArgs('-XX:UnknownArgument')
                                 }
                             }
                         }

@@ -29,6 +29,7 @@ import org.gradle.api.internal.provider.Collectors.SingleElement;
 import org.gradle.api.provider.HasMultipleValues;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
+import org.gradle.internal.evaluation.EvaluationScopeContext;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -231,7 +232,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         if (value.isMissing()) {
             setSupplier(noValueSupplier());
         } else if (value.hasFixedValue()) {
-            setSupplier(new FixedSupplier<>(value.getFixedValue(), Cast.uncheckedCast(value.getSideEffect())));
+            setSupplier(new FixedSupplier(value.getFixedValue(), Cast.uncheckedCast(value.getSideEffect())));
         } else {
             CollectingProvider<T, C> asCollectingProvider = Cast.uncheckedNonnullCast(value.getChangingValue());
             setSupplier(new CollectingSupplier(new ElementsFromCollectionProvider<>(asCollectingProvider)));
@@ -302,15 +303,15 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     }
 
     @Override
-    protected Value<? extends C> calculateValueFrom(EvaluationContext.ScopeContext context, CollectionSupplier<T, C> value, ValueConsumer consumer) {
+    protected Value<? extends C> calculateValueFrom(EvaluationScopeContext context, CollectionSupplier<T, C> value, ValueConsumer consumer) {
         return value.calculateValue(consumer);
     }
 
     @Override
-    protected CollectionSupplier<T, C> finalValue(EvaluationContext.ScopeContext context, CollectionSupplier<T, C> value, ValueConsumer consumer) {
+    protected CollectionSupplier<T, C> finalValue(EvaluationScopeContext context, CollectionSupplier<T, C> value, ValueConsumer consumer) {
         Value<? extends C> result = value.calculateValue(consumer);
         if (!result.isMissing()) {
-            return new FixedSupplier<>(result.getWithoutSideEffect(), Cast.uncheckedCast(result.getSideEffect()));
+            return new FixedSupplier(result.getWithoutSideEffect(), Cast.uncheckedCast(result.getSideEffect()));
         } else if (result.getPathToOrigin().isEmpty()) {
             return noValueSupplier();
         } else {
@@ -319,7 +320,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     }
 
     @Override
-    protected ExecutionTimeValue<? extends C> calculateOwnExecutionTimeValue(EvaluationContext.ScopeContext context, CollectionSupplier<T, C> value) {
+    protected ExecutionTimeValue<? extends C> calculateOwnExecutionTimeValue(EvaluationScopeContext context, CollectionSupplier<T, C> value) {
         return value.calculateExecutionTimeValue();
     }
 
@@ -429,7 +430,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         }
     }
 
-    private static class FixedSupplier<T, C extends Collection<? extends T>> implements CollectionSupplier<T, C> {
+    private class FixedSupplier implements CollectionSupplier<T, C> {
         private final C value;
         private final SideEffect<? super C> sideEffect;
 
@@ -455,7 +456,9 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
         @Override
         public CollectionSupplier<T, C> plus(Collector<T> collector) {
-            throw new UnsupportedOperationException();
+            Collector<T> left = new FixedValueCollector<>(value, sideEffect);
+            PlusCollector<T> newCollector = new PlusCollector<>(left, collector);
+            return new CollectingSupplier(newCollector);
         }
 
         @Override
@@ -620,6 +623,59 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
             Value<? extends C> resultValue = Value.of(Cast.uncheckedNonnullCast(builder.build()));
             return resultValue.withSideEffect(sideEffectBuilder.build());
+        }
+    }
+
+    /**
+     * A fixed value collector, similar to {@link ElementsFromCollection} but with a side effect.
+     */
+    private static class FixedValueCollector<T, C extends Collection<T>> implements Collector<T> {
+        @Nullable
+        private final SideEffect<? super C> sideEffect;
+        private final C collection;
+
+        private FixedValueCollector(C collection, @Nullable SideEffect<? super C> sideEffect) {
+            this.collection = collection;
+            this.sideEffect = sideEffect;
+        }
+
+        @Override
+        public Value<Void> collectEntries(ValueConsumer consumer, ValueCollector<T> collector, ImmutableCollection.Builder<T> dest) {
+            collector.addAll(collection, dest);
+            return sideEffect != null
+                ? Value.present().withSideEffect(SideEffect.fixed(collection, sideEffect))
+                : Value.present();
+        }
+
+        @Override
+        public int size() {
+            return collection.size();
+        }
+
+        @Override
+        public void calculateExecutionTimeValue(Action<? super ExecutionTimeValue<? extends Iterable<? extends T>>> visitor) {
+            visitor.execute(ExecutionTimeValue.fixedValue(collection).withSideEffect(sideEffect));
+        }
+
+        @Override
+        public Collector<T> absentIgnoring() {
+            // always present
+            return this;
+        }
+
+        @Override
+        public ValueProducer getProducer() {
+            return ValueProducer.unknown();
+        }
+
+        @Override
+        public boolean calculatePresence(ValueConsumer consumer) {
+            return true;
+        }
+
+        @Override
+        public String toString() {
+            return collection.toString();
         }
     }
 

@@ -28,7 +28,7 @@ dependencies {
     implementation(projects.stdlibJavaExtensions)
     implementation(projects.serviceRegistryBuilder)
 
-    implementation(libs.nativePlatformFileEvents)
+    implementation(libs.gradleFileEvents)
     implementation(libs.slf4jApi)
     implementation(libs.guava)
     implementation(libs.commonsIo)

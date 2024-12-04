@@ -17,17 +17,17 @@
 package org.gradle.internal.cc.impl
 
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentCache
-import org.gradle.api.internal.project.ProjectState
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState
+import org.gradle.util.Path
 import java.util.function.Function
 
 
 class ConfigurationCacheAwareLocalComponentCache(
     private val cache: BuildTreeConfigurationCache
 ) : LocalComponentCache {
-    override fun computeIfAbsent(project: ProjectState, factory: Function<ProjectState, LocalComponentGraphResolveState>): LocalComponentGraphResolveState {
-        return cache.loadOrCreateProjectMetadata(project.identityPath) {
-            factory.apply(project)
+    override fun computeIfAbsent(projectIdentityPath: Path, factory: Function<Path, LocalComponentGraphResolveState>): LocalComponentGraphResolveState {
+        return cache.loadOrCreateProjectMetadata(projectIdentityPath) {
+            factory.apply(projectIdentityPath)
         }
     }
 }

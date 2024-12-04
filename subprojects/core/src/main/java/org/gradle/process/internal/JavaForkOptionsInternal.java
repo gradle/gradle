@@ -16,23 +16,25 @@
 
 package org.gradle.process.internal;
 
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.process.JavaForkOptions;
 
 public interface JavaForkOptionsInternal extends JavaForkOptions {
-
-    /**
-     * Returns true if the given options are compatible with this set of options.
-     */
-    boolean isCompatibleWith(JavaForkOptions options);
 
     /**
      * Sets extra JVM arguments to a Java process without checking debug configuration.
      */
     void setExtraJvmArgs(Iterable<?> jvmArgs);
 
+    Iterable<?> getExtraJvmArgs();
 
     /**
      * Checks supplied JVM arguments with purpose to ignore debug configuration in favor of the supplied arguments.
      */
     void checkDebugConfiguration(Iterable<?> arguments);
+
+    /**
+     * Creates EffectiveJavaForkOptions.
+     */
+    EffectiveJavaForkOptions toEffectiveJavaForkOptions(FileCollectionFactory fileCollectionFactory);
 }

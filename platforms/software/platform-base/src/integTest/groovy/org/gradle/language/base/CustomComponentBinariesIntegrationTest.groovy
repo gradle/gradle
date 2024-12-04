@@ -18,10 +18,11 @@ package org.gradle.language.base
 
 import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.StableConfigurationCacheDeprecations
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 
 @UnsupportedWithConfigurationCache(because = "software model")
-class CustomComponentBinariesIntegrationTest extends AbstractIntegrationSpec {
+class CustomComponentBinariesIntegrationTest extends AbstractIntegrationSpec implements StableConfigurationCacheDeprecations {
 
     def "setup"() {
         buildFile << """
@@ -67,6 +68,7 @@ class CustomComponentBinariesIntegrationTest extends AbstractIntegrationSpec {
         buildFile << withSimpleComponentBinaries()
 
         then:
+        expectTaskGetProjectDeprecations()
         succeeds "model"
 
         and:
@@ -129,6 +131,7 @@ class CustomComponentBinariesIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile << withSimpleComponentBinaries()
         when:
+        expectTaskGetProjectDeprecations()
         succeeds "components"
         then:
         output.contains("""
@@ -239,6 +242,7 @@ Binaries
         }"""
 
         when:
+        expectTaskGetProjectDeprecations()
         succeeds "components"
         then:
         output.contains("""
@@ -322,6 +326,7 @@ model {
 """
 
         when:
+        expectTaskGetProjectDeprecations()
         succeeds "model"
 
         then:
@@ -360,6 +365,7 @@ model {
         """
 
         when:
+        expectTaskGetProjectDeprecations()
         succeeds "components"
 
         then:

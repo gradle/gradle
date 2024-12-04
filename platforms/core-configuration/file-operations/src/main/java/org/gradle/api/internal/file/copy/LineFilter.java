@@ -84,7 +84,7 @@ public class LineFilter extends Reader {
     }
 
     private void ensureData() throws IOException {
-        while (state == State.SKIP_LINE || state == State.NORMAL && (transformedLine == null || transformedIndex >= transformedLine.length())) {
+        while (state == State.SKIP_LINE || (state == State.NORMAL && (transformedLine == null || transformedIndex >= transformedLine.length()))) {
             readTransformedLine();
             transformedIndex = 0;
         }

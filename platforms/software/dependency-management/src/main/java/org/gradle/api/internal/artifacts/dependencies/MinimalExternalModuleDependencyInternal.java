@@ -18,14 +18,14 @@ package org.gradle.api.internal.artifacts.dependencies;
 
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.api.capabilities.Capability;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.typeconversion.NotationParser;
 
 public interface MinimalExternalModuleDependencyInternal extends MinimalExternalModuleDependency {
     void copyTo(AbstractExternalModuleDependency target);
 
-    ImmutableAttributesFactory getAttributesFactory();
+    AttributesFactory getAttributesFactory();
 
     NotationParser<Object, Capability> getCapabilityNotationParser();
 

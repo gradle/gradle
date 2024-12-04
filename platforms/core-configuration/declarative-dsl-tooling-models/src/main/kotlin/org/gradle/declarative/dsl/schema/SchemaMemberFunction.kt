@@ -27,4 +27,5 @@ sealed interface SchemaMemberFunction : SchemaFunction {
     override val simpleName: String
     val receiver: DataTypeRef
     val isDirectAccessOnly: Boolean
+    val metadata: List<SchemaItemMetadata>
 }

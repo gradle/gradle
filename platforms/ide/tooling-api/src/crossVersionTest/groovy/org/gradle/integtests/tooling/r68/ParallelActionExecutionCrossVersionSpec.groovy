@@ -19,10 +19,12 @@ package org.gradle.integtests.tooling.r68
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.tooling.BuildActionFailureException
 import org.junit.Rule
 
+@Flaky(because = "https://github.com/gradle/gradle-private/issues/4534")
 class ParallelActionExecutionCrossVersionSpec extends ToolingApiSpecification {
     @Rule
     BlockingHttpServer server = new BlockingHttpServer()

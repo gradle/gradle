@@ -17,7 +17,6 @@ package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import org.gradle.test.fixtures.maven.MavenModule
 import org.gradle.test.fixtures.maven.MavenRepository
@@ -72,7 +71,7 @@ dependencies {
         given:
         buildFile << """
 repositories {
-    maven { url "${repo2.uri}" }
+    maven { url = "${repo2.uri}" }
 }
 
 dependencies {
@@ -132,7 +131,7 @@ task retrieve(type: Sync) {
 repositories.clear() // Do not use default repo
 repositories {
     maven {
-        url "${repo1.uri}"
+        url = "${repo1.uri}"
         artifactUrls "${repo2.uri}"
     }
 }
@@ -386,7 +385,6 @@ task retrieve(type: Sync) {
     }
 
     @Issue("gradle/gradle#3019")
-    @ToBeFixedForConfigurationCache
     def "should honour changing module cache expiry for subsequent snapshot resolutions in the same build"() {
         given:
         buildFile << """
@@ -402,13 +400,16 @@ dependencies {
 }
 
 task resolveStaleThenFresh {
+    def fs = services.get(FileSystemOperations)
+    def stale = configurations.stale
+    def fresh = configurations.fresh
     doFirst {
-        project.sync {
-            from configurations.stale
+        fs.sync {
+            from stale
             into 'stale'
         }
-        project.sync {
-            from configurations.fresh
+        fs.sync {
+            from fresh
             into 'fresh'
         }
     }
@@ -500,7 +501,7 @@ include 'a', 'b'
         buildFile << """
 subprojects {
     repositories {
-        maven { url "${mavenHttpRepo.uri}" }
+        maven { url = "${mavenHttpRepo.uri}" }
     }
 
     configurations { compile }
@@ -866,7 +867,7 @@ task retrieve(type: Sync) {
 repositories.clear() // Not using default repo
 repositories {
     maven {
-        url "${fileRepo.uri}"
+        url = "${fileRepo.uri}"
     }
 }
 
@@ -1030,7 +1031,7 @@ Required by:
 repositories.clear()
 repositories {
     maven {
-      url "${mavenHttpRepo.uri}"
+      url = "${mavenHttpRepo.uri}"
       metadataSources {
           ${metadataSources.code}
       }

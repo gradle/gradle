@@ -16,7 +16,7 @@
 
 package org.gradle.api.problems.internal
 
-import com.google.common.collect.HashMultimap
+
 import org.gradle.api.problems.Severity
 import org.gradle.api.problems.SharedProblemGroup
 import org.gradle.internal.deprecation.Documentation
@@ -38,7 +38,7 @@ class DefaultProblemTest extends Specification {
         newProblem.additionalData == problem.additionalData
         newProblem.details == problem.details
         newProblem.exception == problem.exception
-        newProblem.locations == problem.locations
+        newProblem.originLocations == problem.originLocations
 
         newProblem == problem
 
@@ -69,8 +69,8 @@ class DefaultProblemTest extends Specification {
 
     def "unbound builder result with a change and check report"() {
         given:
-        def emitter = Mock(ProblemEmitter)
-        def problemReporter = new DefaultProblemReporter([emitter], null, CurrentBuildOperationRef.instance(), HashMultimap.create(), new AdditionalDataBuilderFactory())
+        def emitter = Mock(ProblemSummarizer)
+        def problemReporter = new DefaultProblemReporter(emitter, null, CurrentBuildOperationRef.instance(), new AdditionalDataBuilderFactory(), new ExceptionProblemRegistry(), null)
         def problem = createTestProblem(Severity.WARNING)
         def builder = problem.toBuilder()
         def newProblem = builder
@@ -90,7 +90,7 @@ class DefaultProblemTest extends Specification {
         newProblem.additionalData == problem.additionalData
         newProblem.details == problem.details
         newProblem.exception == problem.exception
-        newProblem.locations == problem.locations
+        newProblem.originLocations == problem.originLocations
         newProblem.definition.severity == problem.definition.severity
         newProblem.solutions == ["solution"]
         newProblem.class == DefaultProblem
@@ -104,6 +104,7 @@ class DefaultProblemTest extends Specification {
                 Documentation.userManual('id'),
             ),
             null,
+            [],
             [],
             [],
             'description',
@@ -122,6 +123,7 @@ class DefaultProblemTest extends Specification {
             ),
             'contextual label',
             ['contextual solution'],
+            [],
             [],
             'description',
             new RuntimeException('cause'),

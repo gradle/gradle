@@ -17,8 +17,8 @@ toolchainManagement {
             repository('made_up') { // <3>
                 resolverClass = MadeUpResolver
                 credentials {
-                    username "user"
-                    password "password"
+                    username = "user"
+                    password = "password"
                 }
                 authentication {
                     digest(BasicAuthentication)

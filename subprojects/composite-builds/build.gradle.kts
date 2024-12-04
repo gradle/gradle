@@ -9,7 +9,6 @@ errorprone {
         "FutureReturnValueIgnored", // 1 occurrences
         "SameNameButDifferent", // 11 occurrences
         "ThreadLocalUsage", // 1 occurrences
-        "UnusedMethod", // 4 occurrences
     )
 }
 
@@ -36,7 +35,9 @@ dependencies {
     implementation(projects.enterpriseOperations)
     implementation(projects.daemonServices)
     implementation(projects.logging)
+    implementation(projects.problemsApi)
     implementation(projects.serviceLookup)
+    implementation(projects.functional)
 
     implementation(libs.slf4jApi)
     implementation(libs.guava)

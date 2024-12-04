@@ -404,18 +404,47 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
         }
     }
 
+    /**
+     * Key-value map of project properties. These are derived from the command-line arguments (-P) and do not reflect the final project properties available.
+     *
+     * Changing these properties may be too late to impact the build configuration.
+     *
+     * @return map of properties
+     */
     public Map<String, String> getProjectProperties() {
         return projectProperties;
     }
 
+    /**
+     * Sets the project properties. This completely replaces the map of project properties.
+     *
+     * Changing these properties may be too late to impact the build configuration.
+     *
+     * @param projectProperties new map of properties
+     */
     public void setProjectProperties(Map<String, String> projectProperties) {
         this.projectProperties = projectProperties;
     }
 
+
+    /**
+     * Key-value map of system properties. These are derived from the command-line arguments (-D) and do not reflect the final system properties available.
+     *
+     * Changing these properties may be too late to impact the build configuration.
+     *
+     * @return map of properties
+     */
     public Map<String, String> getSystemPropertiesArgs() {
         return systemPropertiesArgs;
     }
 
+    /**
+     * Sets the system properties. This completely replaces the map of system properties.
+     *
+     * Changing these properties may be too late to impact the build configuration.
+     *
+     * @param systemPropertiesArgs new map of properties
+     */
     public void setSystemPropertiesArgs(Map<String, String> systemPropertiesArgs) {
         this.systemPropertiesArgs = systemPropertiesArgs;
     }
@@ -455,10 +484,20 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
         return this;
     }
 
+    /**
+     * Is the build running as a dry-run? Dry-run means task actions do not execute for the root build.
+     *
+     * @return true if the build is running as a dry-run
+     */
     public boolean isDryRun() {
         return dryRun;
     }
 
+    /**
+     * Enables or disables dry-run.
+     *
+     * @param dryRun true if the build should run as a dry-run
+     */
     public void setDryRun(boolean dryRun) {
         this.dryRun = dryRun;
     }

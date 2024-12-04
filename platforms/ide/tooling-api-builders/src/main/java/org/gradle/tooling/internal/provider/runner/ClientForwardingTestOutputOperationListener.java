@@ -16,7 +16,7 @@
 package org.gradle.tooling.internal.provider.runner;
 
 import org.gradle.api.NonNullApi;
-import org.gradle.api.internal.tasks.testing.operations.TestListenerBuildOperationAdapter;
+import org.gradle.api.internal.tasks.testing.operations.ExecuteTestBuildOperationType;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.internal.build.event.types.DefaultTestOutputDescriptor;
 import org.gradle.internal.build.event.types.DefaultTestOutputEvent;
@@ -51,8 +51,8 @@ class ClientForwardingTestOutputOperationListener implements BuildOperationListe
     @Override
     public void progress(OperationIdentifier buildOperationId, OperationProgressEvent progressEvent) {
         Object details = progressEvent.getDetails();
-        if (details instanceof TestListenerBuildOperationAdapter.OutputProgress) {
-            TestListenerBuildOperationAdapter.OutputProgress progress = (TestListenerBuildOperationAdapter.OutputProgress) details;
+        if (details instanceof ExecuteTestBuildOperationType.Output) {
+            ExecuteTestBuildOperationType.Output progress = (ExecuteTestBuildOperationType.Output) details;
             InternalTestOutputDescriptor descriptor = new DefaultTestOutputDescriptor(new OperationIdentifier(idFactory.nextId()), buildOperationId);
             int destination = getDestination(progress.getOutput().getDestination());
             DefaultTestOutputResult result = new DefaultTestOutputResult(progressEvent.getTime(), progressEvent.getTime(), destination, progress.getOutput().getMessage());

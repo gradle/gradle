@@ -17,10 +17,11 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.StableConfigurationCacheDeprecations
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 
-class ClosureScopeIntegrationTest extends AbstractIntegrationSpec {
+class ClosureScopeIntegrationTest extends AbstractIntegrationSpec implements StableConfigurationCacheDeprecations {
 
     @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def "check scope when closure in ext"() {
@@ -48,6 +49,7 @@ rootProject.name = "rootProject"
 include 'sampleSub'
 """
         when:
+        expectTaskGetProjectDeprecations()
         succeeds(":sampleSub:someTask")
 
         then:

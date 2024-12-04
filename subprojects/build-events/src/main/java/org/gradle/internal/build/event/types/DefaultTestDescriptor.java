@@ -110,6 +110,12 @@ public class DefaultTestDescriptor implements Serializable, InternalJvmTestDescr
         return parentId;
     }
 
+    /**
+     * Only known for descriptors from test execution.
+     *
+     * @return the task path
+     */
+    @Nullable
     public String getTaskPath() {
         return taskPath;
     }

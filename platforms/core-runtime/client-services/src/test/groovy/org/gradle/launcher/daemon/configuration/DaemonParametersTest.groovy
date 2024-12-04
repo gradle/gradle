@@ -17,7 +17,6 @@ package org.gradle.launcher.daemon.configuration
 
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.jvm.toolchain.JavaLanguageVersion
-import org.gradle.launcher.configuration.BuildLayoutResult
 import org.gradle.launcher.daemon.toolchain.DaemonJvmCriteria
 import spock.lang.Specification
 
@@ -25,10 +24,7 @@ import static java.lang.Boolean.parseBoolean
 
 class DaemonParametersTest extends Specification {
     def userHomeDir = new File("gradle-user-home").absoluteFile
-    def buildLayoutResult = Stub(BuildLayoutResult) {
-        getGradleUserHomeDir() >> userHomeDir
-    }
-    def parameters = new DaemonParameters(buildLayoutResult, TestFiles.fileCollectionFactory())
+    def parameters = new DaemonParameters(userHomeDir, TestFiles.fileCollectionFactory())
 
     def "has reasonable default values"() {
         expect:

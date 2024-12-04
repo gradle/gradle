@@ -24,6 +24,9 @@ testing {
     suites {
         val test by getting(JvmTestSuite::class) {
             useSpock()
+            dependencies {
+                implementation(platform("gradlebuild:build-platform"))
+            }
         }
     }
 }

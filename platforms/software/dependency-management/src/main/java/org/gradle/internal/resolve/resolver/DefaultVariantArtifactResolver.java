@@ -21,10 +21,9 @@ import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactBackedResolvedVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantCache;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
-import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.attributes.immutable.artifact.ImmutableArtifactTypeRegistry;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.model.DefaultImmutableCapability;
@@ -37,11 +36,11 @@ import org.gradle.internal.component.model.VariantResolveMetadata;
 import javax.annotation.Nullable;
 
 public class DefaultVariantArtifactResolver implements VariantArtifactResolver {
-    private final ArtifactTypeRegistry artifactTypeRegistry;
+    private final ImmutableArtifactTypeRegistry artifactTypeRegistry;
     private final ArtifactResolver artifactResolver;
     private final ResolvedVariantCache resolvedVariantCache;
 
-    public DefaultVariantArtifactResolver(ArtifactResolver artifactResolver, ArtifactTypeRegistry artifactTypeRegistry, ResolvedVariantCache resolvedVariantCache) {
+    public DefaultVariantArtifactResolver(ArtifactResolver artifactResolver, ImmutableArtifactTypeRegistry artifactTypeRegistry, ResolvedVariantCache resolvedVariantCache) {
         this.artifactTypeRegistry = artifactTypeRegistry;
         this.artifactResolver = artifactResolver;
         this.resolvedVariantCache = resolvedVariantCache;
@@ -110,24 +109,53 @@ public class DefaultVariantArtifactResolver implements VariantArtifactResolver {
         @Nullable VariantResolveMetadata.Identifier identifier,
         ImmutableList<? extends ComponentArtifactMetadata> artifacts
     ) {
-        ImmutableAttributes attributes = artifactTypeRegistry.mapAttributesFor(artifactVariant.getAttributes(), artifacts);
-
         if (identifier == null || !artifactVariant.isEligibleForCaching()) {
-            DisplayName displayName = artifactVariant.asDescribable();
-            ImmutableCapabilities capabilities = withImplicitCapability(artifactVariant.getCapabilities(), component);
-            return new ArtifactBackedResolvedVariant(identifier, displayName, attributes, capabilities, artifacts, new DefaultComponentArtifactResolver(component, artifactResolver));
-        } else {
-            // This is a bit of a hack because we allow the artifactType registry to be different in every resolution scope.
-            // This means it's not safe to assume a variant resolved in one consumer can be reused in another consumer with the same key.
-            // Most of the time the artifactType registry has the same effect on the variant's attributes, but this isn't guaranteed.
-            // It might be better to tighten this up by either requiring a single artifactType registry for the entire build or eliminating this feature
-            // entirely.
-            return resolvedVariantCache.computeIfAbsent(new VariantWithOverloadAttributes(identifier, attributes), id -> {
-                DisplayName displayName = artifactVariant.asDescribable();
-                ImmutableCapabilities capabilities = withImplicitCapability(artifactVariant.getCapabilities(), component);
-                return new ArtifactBackedResolvedVariant(identifier, displayName, attributes, capabilities, artifacts, new DefaultComponentArtifactResolver(component, artifactResolver));
-            });
+            return createResolvedVariant(identifier, component, artifactVariant, artifacts, artifactTypeRegistry);
         }
+
+        // We use the artifact type registry as a key here, since for each consumer the registry may be different.
+        // The registry is interned and is safe to be used as a cache key. Ideally, we would do away with the concept of the
+        // artifact type registry entirely, as by design it means we need to look at the artifacts of a variant in order to perform
+        // artifact selection -- a process that occurs before artifact files are even created.
+        ResolvedVariantCache.CacheKey key = new ResolvedVariantCache.CacheKey(identifier, artifactTypeRegistry);
+
+        // Try first without locking
+        ResolvedVariant value = resolvedVariantCache.get(key);
+        if (value != null) {
+            return value;
+        }
+
+        // Calculate the value with locking
+        return resolvedVariantCache.computeIfAbsent(key, k ->
+            createResolvedVariant(k.variantIdentifier, component, artifactVariant, artifacts, k.artifactTypeRegistry)
+        );
+    }
+
+    private ResolvedVariant createResolvedVariant(
+        @Nullable VariantResolveMetadata.Identifier identifier,
+        ComponentArtifactResolveMetadata component,
+        VariantResolveMetadata artifactVariant,
+        ImmutableList<? extends ComponentArtifactMetadata> artifacts,
+        ImmutableArtifactTypeRegistry artifactTypeRegistry
+    ) {
+        DisplayName displayName = artifactVariant.asDescribable();
+        ImmutableAttributes attributes = artifactTypeRegistry.mapAttributesFor(artifactVariant.getAttributes(), artifacts);
+        ImmutableCapabilities capabilities = withImplicitCapability(artifactVariant.getCapabilities(), component);
+
+        // TODO: This value gets cached in a build-tree-scoped cache. It captures a project-scoped `artifactResolver`, which
+        // is bound to the repositories of the consumer. That means subsequent resolutions of this artifact from a different
+        // project will use the same resolver as the first resolution -- leading us to use repositories from another project
+        // when resolving artifacts in this project. We disallow caching of external artifacts above with `isEligibleForCaching`,
+        // but if we enable caching for external artifacts, we need to make sure that the `artifactResolver` is included as a
+        // cache key or is provided later on during artifact resolution.
+
+        // Better yet, the state required to resolve a variant (the `artifactResolver`) should be captured in the original
+        // component artifact metadata, meaning the variant identity is tied to where it is resolved from. This way, we do
+        // not need to track the resolver separately, and we can ensure the resolver that resolved a component's metadata is
+        // the same one that resolves its artifacts. This would benefit greatly from "repository deduplication", where we could
+        // consider repositories from multiple projects as equivalent as long as they are configured the same (same url, cache policy,
+        // component metadata rules, metadata sources, etc.). We should probably leverage ComponentArtifactResolveMetadata#getSources() for this.
+        return new ArtifactBackedResolvedVariant(identifier, displayName, attributes, capabilities, artifacts, new DefaultComponentArtifactResolver(component, artifactResolver));
     }
 
     private static ImmutableCapabilities withImplicitCapability(ImmutableCapabilities capabilities, ComponentArtifactResolveMetadata component) {
@@ -164,41 +192,6 @@ public class DefaultVariantArtifactResolver implements VariantArtifactResolver {
             }
             SingleArtifactVariantIdentifier other = (SingleArtifactVariantIdentifier) obj;
             return artifactIdentifier.equals(other.artifactIdentifier);
-        }
-    }
-
-    /**
-     * A cache key for the resolved variant cache that includes the attributes of the variant.
-     * The attributes are necessary here, as the artifact type registry in each consuming
-     * project may be different, resulting in a different computed attributes set for any
-     * given producer variant.
-     */
-    public static class VariantWithOverloadAttributes implements ResolvedVariantCache.CacheKey {
-        private final VariantResolveMetadata.Identifier variantIdentifier;
-        private final ImmutableAttributes targetVariant;
-        private final int hashCode;
-
-        public VariantWithOverloadAttributes(VariantResolveMetadata.Identifier variantIdentifier, ImmutableAttributes targetVariant) {
-            this.variantIdentifier = variantIdentifier;
-            this.targetVariant = targetVariant;
-            this.hashCode = 31 * variantIdentifier.hashCode() + targetVariant.hashCode();
-        }
-
-        @Override
-        public int hashCode() {
-            return hashCode;
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (obj == this) {
-                return true;
-            }
-            if (obj == null || obj.getClass() != getClass()) {
-                return false;
-            }
-            VariantWithOverloadAttributes other = (VariantWithOverloadAttributes) obj;
-            return variantIdentifier.equals(other.variantIdentifier) && targetVariant.equals(other.targetVariant);
         }
     }
 }

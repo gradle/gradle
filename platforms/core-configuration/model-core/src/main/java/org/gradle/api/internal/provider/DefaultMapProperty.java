@@ -30,6 +30,7 @@ import org.gradle.api.internal.provider.MapCollectors.SingleEntry;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
+import org.gradle.internal.evaluation.EvaluationScopeContext;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -161,7 +162,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         if (entries == null) {
             unsetValueAndDefault();
         } else {
-            setSupplier(new CollectingSupplier(new MapCollectors.EntriesFromMap<>(entries), false));
+            setSupplier(new CollectingSupplier(new EntriesFromMap<>(entries), false));
         }
     }
 
@@ -309,7 +310,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         if (value.isMissing()) {
             setSupplier(noValueSupplier());
         } else if (value.hasFixedValue()) {
-            setSupplier(new FixedSupplier<>(uncheckedNonnullCast(value.getFixedValue()), uncheckedCast(value.getSideEffect())));
+            setSupplier(new FixedSupplier(uncheckedNonnullCast(value.getFixedValue()), uncheckedCast(value.getSideEffect())));
         } else {
             CollectingProvider<K, V> asCollectingProvider = uncheckedNonnullCast(value.getChangingValue());
             setSupplier(new CollectingSupplier(new EntriesFromMapProvider<>(asCollectingProvider)));
@@ -336,15 +337,15 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
     }
 
     @Override
-    protected Value<? extends Map<K, V>> calculateValueFrom(EvaluationContext.ScopeContext context, MapSupplier<K, V> value, ValueConsumer consumer) {
+    protected Value<? extends Map<K, V>> calculateValueFrom(EvaluationScopeContext context, MapSupplier<K, V> value, ValueConsumer consumer) {
         return value.calculateValue(consumer);
     }
 
     @Override
-    protected MapSupplier<K, V> finalValue(EvaluationContext.ScopeContext context, MapSupplier<K, V> value, ValueConsumer consumer) {
+    protected MapSupplier<K, V> finalValue(EvaluationScopeContext context, MapSupplier<K, V> value, ValueConsumer consumer) {
         Value<? extends Map<K, V>> result = value.calculateValue(consumer);
         if (!result.isMissing()) {
-            return new FixedSupplier<>(result.getWithoutSideEffect(), uncheckedCast(result.getSideEffect()));
+            return new FixedSupplier(result.getWithoutSideEffect(), uncheckedCast(result.getSideEffect()));
         } else if (result.getPathToOrigin().isEmpty()) {
             return noValueSupplier();
         } else {
@@ -353,7 +354,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
     }
 
     @Override
-    protected ExecutionTimeValue<? extends Map<K, V>> calculateOwnExecutionTimeValue(EvaluationContext.ScopeContext context, MapSupplier<K, V> value) {
+    protected ExecutionTimeValue<? extends Map<K, V>> calculateOwnExecutionTimeValue(EvaluationScopeContext context, MapSupplier<K, V> value) {
         return value.calculateExecutionTimeValue();
     }
 
@@ -391,7 +392,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
 
         @Override
         protected Value<? extends Set<K>> calculateOwnValue(ValueConsumer consumer) {
-            try (EvaluationContext.ScopeContext context = DefaultMapProperty.this.openScope()) {
+            try (EvaluationScopeContext context = DefaultMapProperty.this.openScope()) {
                 beforeRead(context, consumer);
                 return getSupplier(context).calculateKeys(consumer);
             }
@@ -491,7 +492,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         }
     }
 
-    private static class FixedSupplier<K, V> implements MapSupplier<K, V> {
+    private class FixedSupplier implements MapSupplier<K, V> {
         private final Map<K, V> entries;
         private final SideEffect<? super Map<K, V>> sideEffect;
 
@@ -517,7 +518,9 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
 
         @Override
         public MapSupplier<K, V> plus(MapCollector<K, V> collector) {
-            throw new UnsupportedOperationException();
+            MapCollector<K, V> left = new FixedValueCollector<>(entries, sideEffect);
+            PlusCollector<K, V> newCollector = new PlusCollector<>(left, collector);
+            return new CollectingSupplier(newCollector);
         }
 
         @Override
@@ -733,6 +736,60 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
 
         public void putAll(Provider<? extends Map<? extends K, ? extends V>> provider) {
             addCollector(new EntriesFromMapProvider<>(checkMapProvider(provider)));
+        }
+    }
+
+    /**
+     * A fixed value collector, similar to {@link EntriesFromMap} but with a side effect.
+     */
+    private static class FixedValueCollector<K, V> implements MapCollector<K, V> {
+        @Nullable
+        private final SideEffect<? super Map<K, V>> sideEffect;
+        private final Map<K, V> entries;
+
+        private FixedValueCollector(Map<K, V> entries, @Nullable SideEffect<? super Map<K, V>> sideEffect) {
+            this.entries = entries;
+            this.sideEffect = sideEffect;
+        }
+
+        @Override
+        public Value<Void> collectEntries(ValueConsumer consumer, MapEntryCollector<K, V> collector, Map<K, V> dest) {
+            collector.addAll(entries.entrySet(), dest);
+            return sideEffect != null
+                ? Value.present().withSideEffect(SideEffect.fixed(entries, sideEffect))
+                : Value.present();
+        }
+
+        @Override
+        public Value<Void> collectKeys(ValueConsumer consumer, ValueCollector<K> collector, ImmutableCollection.Builder<K> dest) {
+            collector.addAll(entries.keySet(), dest);
+            return Value.present();
+        }
+
+        @Override
+        public void calculateExecutionTimeValue(Action<ExecutionTimeValue<? extends Map<? extends K, ? extends V>>> visitor) {
+            visitor.execute(ExecutionTimeValue.fixedValue(entries).withSideEffect(sideEffect));
+        }
+
+        @Override
+        public MapCollector<K, V> absentIgnoring() {
+            // always present
+            return this;
+        }
+
+        @Override
+        public ValueProducer getProducer() {
+            return ValueProducer.unknown();
+        }
+
+        @Override
+        public boolean calculatePresence(ValueConsumer consumer) {
+            return true;
+        }
+
+        @Override
+        public String toString() {
+            return entries.toString();
         }
     }
 

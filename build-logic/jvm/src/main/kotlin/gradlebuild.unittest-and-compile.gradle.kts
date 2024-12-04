@@ -20,6 +20,7 @@ import com.gradle.develocity.agent.gradle.test.DevelocityTestConfiguration
 import gradlebuild.basics.BuildEnvironment
 import gradlebuild.basics.FlakyTestStrategy
 import gradlebuild.basics.accessors.kotlinMainSourceSet
+import gradlebuild.basics.buildRunningOnCi
 import gradlebuild.basics.flakyTestStrategy
 import gradlebuild.basics.maxParallelForks
 import gradlebuild.basics.maxTestDistributionLocalExecutors
@@ -27,7 +28,6 @@ import gradlebuild.basics.maxTestDistributionPartitionSecond
 import gradlebuild.basics.maxTestDistributionRemoteExecutors
 import gradlebuild.basics.predictiveTestSelectionEnabled
 import gradlebuild.basics.rerunAllTests
-import gradlebuild.basics.buildRunningOnCi
 import gradlebuild.basics.testDistributionDogfoodingTag
 import gradlebuild.basics.testDistributionEnabled
 import gradlebuild.basics.testDistributionServerUrl
@@ -39,6 +39,9 @@ import gradlebuild.filterEnvironmentVariables
 import gradlebuild.jvm.argumentproviders.CiEnvironmentProvider
 import gradlebuild.jvm.extension.UnitTestAndCompileExtension
 import org.gradle.internal.os.OperatingSystem
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.dsl.jvm.JvmTargetValidationMode
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.time.Duration
 
 plugins {
@@ -48,33 +51,202 @@ plugins {
     id("gradlebuild.dependency-modules")
 }
 
-extensions.create<UnitTestAndCompileExtension>("gradlebuildJava", project, tasks)
+// Create an extension that allows projects to configure the way they are compiled and tested.
+// Particularly, we let them describe the "platform" they are targeting, like a Gradle worker, daemon, etc.
+// Furthermore, we let them describe whether they are using any "workarounds" like:
+// - Using JDK internal classes
+// - Using Java standard library APIs that were introduced after the JVM version they are targeting
+// - Using dependencies that target a higher JVM version than the project's target JVM version
+//
+// All of these workarounds should be generally avoided, but, with this data we can configure the
+// compile tasks to permit some of these requirements.
+// TODO: Rename this. It controls more than just java compilation.
+val gradlebuildJava = extensions.create<UnitTestAndCompileExtension>("gradlebuildJava").apply {
+    usesFutureStdlib.convention(targetVersion.map {
+        // Assume most of our projects targeting workers use Java standard libraries
+        // that were introduced in version later than the version they target.
+
+        // It is by chance that these future libraries are not loaded on test workers during runtime.
+        // TODO: In Gradle 9.0, tooling API and workers will target JVM 8 and we can set this value to false by default.
+        it < 8
+    })
+    usesIncompatibleDependencies.convention(targetVersion.map {
+        // Assume most of our projects targeting workers use dependencies like guava
+        // which require Java 8. (base-services for example uses guava).
+
+        // It is by chance that these incompatible dependencies are not loaded on test workers during runtime.
+        // TODO: In Gradle 9.0, tooling API and workers will target JVM 8 and we can set this value to false by default.
+        it < 8
+    })
+
+    // Assume by default, a library targets the daemon and does not reference JDK internal classes.
+    usedInDaemon()
+    usesJdkInternals.convention(false)
+}
+
+// Use the Java 17 compiler, when possible, to perform compilation.
+// This does not mean we target Java 17 bytecode. The target bytecode
+// is controlled by the `gradlebuildJava.targetVersion` property.
+configureDefaultToolchain(17)
+enforceCompatibility(gradlebuildJava)
 
 removeTeamcityTempProperty()
 addDependencies()
-configureCompile()
+configureCompileDefaults()
+addCompileAllTasks()
 configureSourcesVariant()
 configureTests()
 
 tasks.registerCITestDistributionLifecycleTasks()
 
-fun configureCompile() {
-    java.toolchain {
-        languageVersion = JavaLanguageVersion.of(11)
-        vendor = JvmVendorSpec.ADOPTIUM
-    }
-
+fun configureCompileDefaults() {
     tasks.withType<JavaCompile>().configureEach {
-        configureCompileTask(options)
         options.compilerArgs.add("-parameters")
+        configureCompileTask(options)
     }
     tasks.withType<GroovyCompile>().configureEach {
         groovyOptions.encoding = "utf-8"
-        sourceCompatibility = "1.8"
-        targetCompatibility = "1.8"
         configureCompileTask(options)
     }
-    addCompileAllTask()
+}
+
+/**
+ * When possible, use a Java compiler with the given version when
+ * performing compilation. This does not necessarily mean we are
+ * emitting bytecode for the given version.
+ * <p>
+ * In some cases, the toolchain used here may be overridden, for
+ * example when compiling Groovy code, as it does not support
+ * the --release flag, or when targeting much older bytecode versions.
+ */
+fun configureDefaultToolchain(toolchainVersion: Int) {
+    java.toolchain {
+        languageVersion = JavaLanguageVersion.of(toolchainVersion)
+        vendor = JvmVendorSpec.ADOPTIUM
+    }
+}
+
+/**
+ * Given the user-configured values in the extension, configure the compilation tasks
+ * to enforce compatibility with the target JVM version.
+ *
+ * We try to use the toolchain configured in [configureDefaultToolchain] as much as possible,
+ * but in some cases, we need to use another toolchain.
+ *
+ * In some cases, we need to set the source and target compatibility flags instead of using
+ * the release flag. This is because the release flag limits us from using internal APIs or
+ * APIs defined by a Java version higher than the target version.
+ *
+ * Finally, Groovy does not support the release flag at all. We manually set a toolchain
+ * for Groovy to ensure it compiles against the correct classes.
+ */
+private
+fun enforceCompatibility(gradlebuildJava: UnitTestAndCompileExtension) {
+    // When using the release flag, compiled code cannot access JDK internal classes or standard library
+    // APIs defined in future versions of Java. If either of these cases are true, we do not use the
+    // release flag, but instead set the source and target compatibility flags.
+    val useRelease = this.gradlebuildJava.usesJdkInternals.zip(this.gradlebuildJava.usesFutureStdlib) { internals, futureApis -> !internals && !futureApis }
+
+    val targetVersion = gradlebuildJava.targetVersion
+    enforceJavaCompatibility(targetVersion, useRelease)
+    enforceGroovyCompatibility(targetVersion)
+    enforceKotlinCompatibility(targetVersion, useRelease)
+
+    project.afterEvaluate {
+        if (targetVersion.get() < 8) {
+            // Apply ParameterNamesIndex since 6 and 7 bytecode doesn't support -parameters
+            project.apply(plugin = "gradlebuild.api-parameter-names-index")
+        }
+
+        if (gradlebuildJava.usesIncompatibleDependencies.get()) {
+            // Some projects use dependencies that target higher JVM versions
+            // than the projects target. Disable dependency management checks
+            // that verify these dependencies have compatible java versions.
+            java.disableAutoTargetJvm()
+        }
+    }
+}
+
+fun enforceJavaCompatibility(targetVersion: Provider<Int>, useRelease: Provider<Boolean>) {
+    tasks.withType<JavaCompile>().configureEach {
+        // Set the release flag is requested.
+        // Otherwise, we set the source and target compatibility in the afterEvaluate below.
+        options.release = useRelease.flatMap { doUseRelease -> targetVersion.filter { doUseRelease } }
+
+        // If we are targeting Java < 8, we need to use a different compiler,
+        // since compilers will only cross-compile down to a certain version.
+        javaCompiler = javaToolchains.compilerFor {
+            languageVersion = targetVersion.flatMap {
+                if (it >= 8) {
+                    // The toolchain on the project is able to target JDK >= 8
+                    java.toolchain.languageVersion
+                } else {
+                    // To compile Java 6 and 7 sources, we need an older compiler
+                    // We choose 11 since it supports both of these versions.
+                    provider { JavaLanguageVersion.of(11) }
+                }
+            }
+            vendor = JvmVendorSpec.ADOPTIUM
+        }
+    }
+
+    // Need to use afterEvaluate since source/target compatibility are not lazy
+    project.afterEvaluate {
+        tasks.withType<JavaCompile>().configureEach {
+            if (!useRelease.get()) {
+                val version = targetVersion.get().toString()
+                sourceCompatibility = version
+                targetCompatibility = version
+            }
+        }
+    }
+}
+
+fun enforceGroovyCompatibility(targetVersion: Provider<Int>) {
+    tasks.withType<GroovyCompile>().configureEach {
+        // Groovy does not support the release flag. We must compile with the same
+        // JDK we are targeting in order to see the correct standard lib classes
+        // during compilation
+        javaLauncher = javaToolchains.launcherFor {
+            languageVersion = targetVersion.map {
+                // Use the target version's toolchain if it is 8 or higher.
+                // We do not expect dev machines to have Java 6 or 7 installed,
+                // so when compiling this code, we accept the risk of seeing
+                // higher standard library classes.
+                JavaLanguageVersion.of(maxOf(it, 8))
+            }
+            // TODO: Use a stable vendor. CI currently specifies different vendors for Java 8 depending on the OS
+        }
+    }
+
+    // Need to use afterEvaluate since source/target Compatibility are not lazy
+    project.afterEvaluate {
+        tasks.withType<GroovyCompile>().configureEach {
+            val version = targetVersion.get().toString()
+            sourceCompatibility = version
+            targetCompatibility = version
+        }
+    }
+}
+
+fun enforceKotlinCompatibility(targetVersion: Provider<Int>, useRelease: Provider<Boolean>) {
+    tasks.withType<KotlinCompile>().configureEach {
+        jvmTargetValidationMode.set(JvmTargetValidationMode.ERROR)
+        compilerOptions {
+            jvmTarget = targetVersion.map {
+                JvmTarget.fromTarget(if (it < 9) "1.${it}" else it.toString())
+            }
+
+            // TODO KT-49746: Use the DSL to set the release version
+            freeCompilerArgs.addAll(useRelease.zip(jvmTarget) { doUseRelease, targetVersion ->
+                if (doUseRelease) {
+                    listOf("-Xjdk-release=${targetVersion.target}")
+                } else {
+                    listOf()
+                }
+            })
+        }
+    }
 }
 
 fun configureSourcesVariant() {
@@ -111,7 +283,6 @@ fun configureSourcesVariant() {
 }
 
 fun configureCompileTask(options: CompileOptions) {
-    options.release = 8
     options.encoding = "utf-8"
     options.isIncremental = true
     options.isFork = true
@@ -149,7 +320,7 @@ fun addDependencies() {
     }
 }
 
-fun addCompileAllTask() {
+fun addCompileAllTasks() {
     tasks.register("compileAll") {
         description = "Compile all source code, including main, test, integTest, crossVersionTest, testFixtures, etc."
         val compileTasks = project.tasks.matching {
@@ -197,7 +368,7 @@ fun Test.configureJvmForTest() {
     jvmArgumentProviders.add(CiEnvironmentProvider(this))
     val launcher = project.javaToolchains.launcherFor {
         languageVersion = jvmVersionForTest()
-        vendor = project.testJavaVendor.orNull
+        vendor = project.testJavaVendor.orElse(JvmVendorSpec.ADOPTIUM)
     }
     javaLauncher = launcher
     if (jvmVersionForTest().canCompileOrRun(9)) {
@@ -278,6 +449,12 @@ fun configureTests() {
                 }
                 maxRemoteExecutors = if (project.isPerformanceProject()) 0 else project.maxTestDistributionRemoteExecutors
                 maxLocalExecutors = project.maxTestDistributionLocalExecutors
+
+                if (maxLocalExecutors.orNull != 0) {
+                    localOnly {
+                        includeAnnotationClasses.addAll("org.gradle.testdistribution.LocalOnly")
+                    }
+                }
 
                 val dogfoodingTag = testDistributionDogfoodingTag.getOrElse("gbt-dogfooding")
                 if (BuildEnvironment.isCiServer) {
