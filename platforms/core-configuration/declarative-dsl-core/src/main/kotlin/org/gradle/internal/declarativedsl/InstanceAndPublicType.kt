@@ -16,7 +16,6 @@
 
 package org.gradle.internal.declarativedsl
 
-import org.gradle.api.internal.plugins.DslObject
 import kotlin.reflect.KClass
 
 data class InstanceAndPublicType(val instance: Any?, val publicType: KClass<*>?) {
@@ -25,6 +24,8 @@ data class InstanceAndPublicType(val instance: Any?, val publicType: KClass<*>?)
         val UNIT = of(Unit, Unit::class)
 
         fun of(instance: Any?, publicType: KClass<*>?) = InstanceAndPublicType(instance, publicType)
+
+        fun unknownPublicType(instance: Any) = InstanceAndPublicType(instance, instance::class)
     }
 
     fun validate(errorMessageOnInstanceNull: () -> String): Pair<Any, KClass<*>> {
@@ -33,6 +34,3 @@ data class InstanceAndPublicType(val instance: Any?, val publicType: KClass<*>?)
         return instance to publicType
     }
 }
-
-fun withFallbackPublicType(instance: Any): InstanceAndPublicType =
-    InstanceAndPublicType.of(instance, DslObject(instance).publicType.concreteClass.kotlin)
