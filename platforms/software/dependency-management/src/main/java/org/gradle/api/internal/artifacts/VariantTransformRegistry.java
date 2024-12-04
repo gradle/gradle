@@ -21,16 +21,25 @@ import org.gradle.api.artifacts.transform.TransformAction;
 import org.gradle.api.artifacts.transform.TransformParameters;
 import org.gradle.api.artifacts.transform.TransformSpec;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 public interface VariantTransformRegistry {
-
     /**
      * Register an artifact transform.
      *
      * @see TransformAction
      */
-    <T extends TransformParameters> void registerTransform(Class<? extends TransformAction<T>> actionType, Action<? super TransformSpec<T>> registrationAction);
+    default <T extends TransformParameters> void registerTransform(Class<? extends TransformAction<T>> actionType, Action<? super TransformSpec<T>> registrationAction) {
+        registerTransform(null, actionType, registrationAction);
+    }
+
+    /**
+     * Register an artifact transform with a name for error identification and reporting.
+     *
+     * @see TransformAction
+     */
+    <T extends TransformParameters> void registerTransform(@Nullable String name, Class<? extends TransformAction<T>> actionType, Action<? super TransformSpec<T>> registrationAction);
 
     List<TransformRegistration> getRegistrations();
 }

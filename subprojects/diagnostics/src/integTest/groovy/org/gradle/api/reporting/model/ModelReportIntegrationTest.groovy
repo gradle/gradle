@@ -41,6 +41,7 @@ class ModelReportIntegrationTest extends AbstractIntegrationSpec implements Stab
         modelReportOutput.hasNodeStructure({
             model() {
                 tasks {
+                    artifactTransforms()
                     buildEnvironment()
                     components(nodeValue: "task ':components'", type: 'org.gradle.api.reporting.components.ComponentReport')
                     dependencies()
@@ -305,6 +306,12 @@ model {
 + tasks
       | Type:   \torg.gradle.model.ModelMap<org.gradle.api.Task>
       | Creator: \tProject.<init>.tasks()
+    + artifactTransforms
+          | Type:   \torg.gradle.api.tasks.diagnostics.ArtifactTransformsReportTask
+          | Value:  \ttask ':artifactTransforms\'
+          | Creator: \tProject.<init>.tasks.artifactTransforms()
+          | Rules:
+             ⤷ copyToTaskContainer
     + buildEnvironment
           | Type:   \torg.gradle.api.tasks.diagnostics.BuildEnvironmentReportTask
           | Value:  \ttask ':buildEnvironment\'

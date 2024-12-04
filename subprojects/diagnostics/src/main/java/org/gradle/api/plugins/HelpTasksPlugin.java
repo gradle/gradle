@@ -22,6 +22,7 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.TaskContainer;
+import org.gradle.api.tasks.diagnostics.ArtifactTransformsReportTask;
 import org.gradle.api.tasks.diagnostics.BuildEnvironmentReportTask;
 import org.gradle.api.tasks.diagnostics.DependencyInsightReportTask;
 import org.gradle.api.tasks.diagnostics.DependencyReportTask;
@@ -60,6 +61,15 @@ public abstract class HelpTasksPlugin implements Plugin<Project> {
      */
     @Incubating
     public static final String RESOLVABLE_CONFIGURATIONS_TASK = "resolvableConfigurations";
+
+    /**
+     * The name of the Artifact Transforms report task.
+     *
+     * @since 8.12
+     */
+    @Incubating
+    public static final String ARTIFACT_TRANSFORMS_TASK = "artifactTransforms";
+
     public static final String MODEL_TASK = "model";
     public static final String DEPENDENT_COMPONENTS_TASK = "dependentComponents";
 
@@ -89,6 +99,11 @@ public abstract class HelpTasksPlugin implements Plugin<Project> {
             task.setImpliesSubProjects(true);
             task.getShowAll().convention(false);
             task.getRecursive().convention(false);
+        });
+        tasks.register(ARTIFACT_TRANSFORMS_TASK, ArtifactTransformsReportTask.class, task -> {
+            task.setDescription("Displays the Artifact Transforms that can be resolved in " + projectName + ".");
+            task.setGroup(HELP_GROUP);
+            task.setImpliesSubProjects(true);
         });
         tasks.withType(TaskReportTask.class).configureEach(task -> {
             task.getShowTypes().convention(false);

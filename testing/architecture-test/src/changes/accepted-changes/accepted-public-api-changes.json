@@ -33,6 +33,22 @@
             ]
         },
         {
+            "type": "org.gradle.api.artifacts.dsl.DependencyHandler",
+            "member": "Method org.gradle.api.artifacts.dsl.DependencyHandler.registerTransform(java.lang.Class,org.gradle.api.Action)",
+            "acceptation": "Allowing names for ArtifactTransforms",
+            "changes": [
+                "Abstract method is now default method"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.DependencyHandlerScope",
+            "member": "Class org.gradle.kotlin.dsl.DependencyHandlerScope",
+            "acceptation": "Allowing names for ArtifactTransforms",
+            "changes": [
+                "org.gradle.kotlin.dsl.support.delegates.DependencyHandlerDelegate.registerTransform(java.lang.Class,org.gradle.api.Action)"
+            ]
+        },
+        {
             "type": "org.gradle.kotlin.dsl.TaskContainerExtensionsKt",
             "member": "Method org.gradle.kotlin.dsl.TaskContainerExtensionsKt.create(org.gradle.api.tasks.TaskContainer,java.lang.String,kotlin.jvm.functions.Function1)",
             "acceptation": "Pulled down method to deprecate it",
