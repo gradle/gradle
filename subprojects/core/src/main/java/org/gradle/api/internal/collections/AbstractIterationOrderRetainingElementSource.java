@@ -17,8 +17,6 @@
 package org.gradle.api.internal.collections;
 
 import com.google.common.base.Objects;
-import com.google.common.collect.ImmutableCollection;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterators;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
@@ -27,6 +25,7 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.DefaultMutationGuard;
 import org.gradle.api.internal.MutationGuard;
 import org.gradle.api.internal.provider.ChangingValue;
+import org.gradle.api.internal.provider.CollectionBuilder;
 import org.gradle.api.internal.provider.CollectionProviderInternal;
 import org.gradle.api.internal.provider.Collector;
 import org.gradle.api.internal.provider.Collectors.ElementFromProvider;
@@ -348,10 +347,9 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
 
         public void realize() {
             if (cache == null) {
-                ImmutableList.Builder<T> builder = ImmutableList.builderWithExpectedSize(delegate.size());
                 // Collect elements discarding potential side effects aggregated in the returned value
-                super.collectInto(builder);
-                cache = new ArrayList<>(builder.build());
+                cache = new ArrayList<>(delegate.size());
+                super.collectInto(CollectionBuilder.of(cache));
                 if (removedValues != null) {
                     cache.removeAll(removedValues);
                 }
@@ -369,7 +367,7 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
         }
 
         @Override
-        public void collectInto(ImmutableCollection.Builder<T> builder) {
+        public void collectInto(CollectionBuilder<T, ?> builder) {
             if (!realized) {
                 realize();
             }

@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.provider;
 
-import com.google.common.collect.ImmutableCollection;
 import groovy.lang.GString;
 import org.gradle.internal.Cast;
 
@@ -43,23 +42,23 @@ public class ValueSanitizers {
     };
     private static final ValueCollector<Object> IDENTITY_VALUE_COLLECTOR = new ValueCollector<Object>() {
         @Override
-        public void add(@Nullable Object value, ImmutableCollection.Builder<Object> dest) {
+        public void add(@Nullable Object value, CollectionBuilder<Object, ?> dest) {
             dest.add(value);
         }
 
         @Override
-        public void addAll(Iterable<?> values, ImmutableCollection.Builder<Object> dest) {
+        public void addAll(Iterable<?> values, CollectionBuilder<Object, ?> dest) {
             dest.addAll(values);
         }
     };
     private static final ValueCollector<Object> STRING_VALUE_COLLECTOR = new ValueCollector<Object>() {
         @Override
-        public void add(@Nullable Object value, ImmutableCollection.Builder<Object> dest) {
+        public void add(@Nullable Object value, CollectionBuilder<Object, ?> dest) {
             dest.add(STRING_VALUE_SANITIZER.sanitize(value));
         }
 
         @Override
-        public void addAll(Iterable<?> values, ImmutableCollection.Builder<Object> dest) {
+        public void addAll(Iterable<?> values, CollectionBuilder<Object, ?> dest) {
             for (Object value : values) {
                 add(value, dest);
             }

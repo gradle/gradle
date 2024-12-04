@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.provider;
 
-import com.google.common.collect.ImmutableCollection;
-
 
 /**
  * A collector is a value supplier of zero or more values of type {@link T}.
@@ -26,9 +24,10 @@ import com.google.common.collect.ImmutableCollection;
  * </p>
  */
 public interface Collector<T> extends ValueSupplier {
-    Value<Void> collectEntries(ValueConsumer consumer, ValueCollector<T> collector, ImmutableCollection.Builder<T> dest);
+    Value<Void> collectEntries(ValueConsumer consumer, ValueCollector<T> collector, CollectionBuilder<T, ?> dest);
 
     int size();
 
     ExecutionTimeValue<? extends Iterable<? extends T>> calculateExecutionTimeValue();
+
 }

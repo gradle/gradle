@@ -16,12 +16,12 @@
 
 package org.gradle.api.internal.collections;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.internal.DefaultMutationGuard;
 import org.gradle.api.internal.MutationGuard;
 import org.gradle.api.internal.provider.ChangingValue;
+import org.gradle.api.internal.provider.CollectionBuilder;
 import org.gradle.api.internal.provider.CollectionProviderInternal;
 import org.gradle.api.internal.provider.Collectors;
 import org.gradle.api.internal.provider.ProviderInternal;
@@ -139,11 +139,10 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
     private void realize(Iterable<Collectors.TypedCollector<T>> collectors) {
         for (Collectors.TypedCollector<T> collector : collectors) {
             pending.remove(collector);
-            ImmutableList.Builder<T> builder = ImmutableList.builder();
+            CollectionBuilder<T, ArrayList<T>> realized = CollectionBuilder.of(new ArrayList<>());
             // Collect elements discarding potential side effects aggregated in the returned value
-            collector.collectInto(builder);
-            List<T> realized = builder.build();
-            for (T element : realized) {
+            collector.collectInto(realized);
+            for (T element : realized.build()) {
                 doAddRealized(element);
             }
         }

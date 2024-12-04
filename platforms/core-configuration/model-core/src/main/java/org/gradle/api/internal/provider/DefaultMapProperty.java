@@ -17,7 +17,6 @@
 package org.gradle.api.internal.provider;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -572,7 +571,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         public Value<? extends Set<K>> calculateKeys(ValueConsumer consumer) {
             // TODO - don't make a copy when the collector already produces an immutable collection
             ImmutableSet.Builder<K> builder = ImmutableSet.builder();
-            Value<Void> result = collector.collectKeys(consumer, keyCollector, builder);
+            Value<Void> result = collector.collectKeys(consumer, keyCollector, CollectionBuilder.of(builder));
             if (result.isMissing()) {
                 return result.asType();
             }
@@ -761,7 +760,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         }
 
         @Override
-        public Value<Void> collectKeys(ValueConsumer consumer, ValueCollector<K> collector, ImmutableCollection.Builder<K> dest) {
+        public Value<Void> collectKeys(ValueConsumer consumer, ValueCollector<K> collector, CollectionBuilder<K, ?> dest) {
             collector.addAll(entries.keySet(), dest);
             return Value.present();
         }
@@ -847,7 +846,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         }
 
         @Override
-        public Value<Void> collectKeys(ValueConsumer consumer, ValueCollector<K> collector, ImmutableCollection.Builder<K> dest) {
+        public Value<Void> collectKeys(ValueConsumer consumer, ValueCollector<K> collector, CollectionBuilder<K, ?> dest) {
             Value<Void> result = left.collectKeys(consumer, collector, dest);
             if (result.isMissing()) {
                 return result;
@@ -901,8 +900,8 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         }
 
         @Override
-        public Value<Void> collectKeys(ValueConsumer consumer, ValueCollector<K> collector, ImmutableCollection.Builder<K> dest) {
-            ImmutableSet.Builder<K> candidateKeys = ImmutableSet.builder();
+        public Value<Void> collectKeys(ValueConsumer consumer, ValueCollector<K> collector, CollectionBuilder<K, ?> dest) {
+            CollectionBuilder<K, ImmutableSet<K>> candidateKeys = CollectionBuilder.of(ImmutableSet.builder());
             Value<Void> leftResult = left.collectKeys(consumer, collector, candidateKeys);
             if (leftResult.isMissing()) {
                 return Value.present();

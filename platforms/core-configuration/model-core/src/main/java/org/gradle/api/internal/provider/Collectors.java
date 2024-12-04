@@ -17,7 +17,6 @@
 package org.gradle.api.internal.provider;
 
 import com.google.common.base.Objects;
-import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import org.gradle.api.provider.Provider;
@@ -45,7 +44,7 @@ public class Collectors {
         }
 
         @Override
-        public Value<Void> collectEntries(ValueConsumer consumer, ValueCollector<T> collector, ImmutableCollection.Builder<T> collection) {
+        public Value<Void> collectEntries(ValueConsumer consumer, ValueCollector<T> collector, CollectionBuilder<T, ?> collection) {
             collector.add(element, collection);
             return Value.present();
         }
@@ -101,7 +100,7 @@ public class Collectors {
         }
 
         @Override
-        public Value<Void> collectEntries(ValueConsumer consumer, ValueCollector<T> collector, ImmutableCollection.Builder<T> collection) {
+        public Value<Void> collectEntries(ValueConsumer consumer, ValueCollector<T> collector, CollectionBuilder<T, ?> collection) {
             Value<? extends T> value = provider.calculateValue(consumer);
             if (value.isMissing()) {
                 return value.asType();
@@ -179,7 +178,7 @@ public class Collectors {
         }
 
         @Override
-        public Value<Void> collectEntries(ValueConsumer consumer, ValueCollector<T> collector, ImmutableCollection.Builder<T> collection) {
+        public Value<Void> collectEntries(ValueConsumer consumer, ValueCollector<T> collector, CollectionBuilder<T, ?> collection) {
             collector.addAll(value, collection);
             return Value.present();
         }
@@ -239,12 +238,12 @@ public class Collectors {
         }
 
         @Override
-        public Value<Void> collectEntries(ValueConsumer consumer, ValueCollector<T> collector, ImmutableCollection.Builder<T> collection) {
+        public Value<Void> collectEntries(ValueConsumer consumer, ValueCollector<T> collector, CollectionBuilder<T, ?> collection) {
             Value<? extends Iterable<? extends T>> value = provider.calculateValue(consumer);
             return collectEntriesFromValue(collector, collection, value);
         }
 
-        private ValueSupplier.Value<Void> collectEntriesFromValue(ValueCollector<T> collector, ImmutableCollection.Builder<T> collection, ValueSupplier.Value<? extends Iterable<? extends T>> value) {
+        private ValueSupplier.Value<Void> collectEntriesFromValue(ValueCollector<T> collector, CollectionBuilder<T, ?> collection, ValueSupplier.Value<? extends Iterable<? extends T>> value) {
             if (value.isMissing()) {
                 return value.asType();
             }
@@ -313,7 +312,7 @@ public class Collectors {
         }
 
         @Override
-        public Value<Void> collectEntries(ValueConsumer consumer, ValueCollector<T> collector, ImmutableCollection.Builder<T> dest) {
+        public Value<Void> collectEntries(ValueConsumer consumer, ValueCollector<T> collector, CollectionBuilder<T, ?> dest) {
             for (T t : value) {
                 collector.add(t, dest);
             }
@@ -362,12 +361,12 @@ public class Collectors {
             return delegate.calculatePresence(consumer);
         }
 
-        public void collectInto(ImmutableCollection.Builder<T> builder) {
+        public void collectInto(CollectionBuilder<T, ?> builder) {
             collectEntries(ValueConsumer.IgnoreUnsafeRead, valueCollector, builder);
         }
 
         @Override
-        public Value<Void> collectEntries(ValueConsumer consumer, ValueCollector<T> collector, ImmutableCollection.Builder<T> dest) {
+        public Value<Void> collectEntries(ValueConsumer consumer, ValueCollector<T> collector, CollectionBuilder<T, ?> dest) {
             return delegate.collectEntries(consumer, collector, dest);
         }
 

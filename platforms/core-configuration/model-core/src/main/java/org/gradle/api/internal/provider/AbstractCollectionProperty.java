@@ -532,7 +532,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         @Override
         public Value<C> calculateValue(ValueConsumer consumer) {
             // TODO - don't make a copy when the collector already produces an immutable collection
-            ImmutableCollection.Builder<T> builder = collectionFactory.get();
+            CollectionBuilder<T, List<T>> builder = CollectionBuilder.of(new ArrayList<>());
             Value<Void> compositeResult = Value.present();
             for (Collector<T> collector : getCollectors()) {
                 if (compositeResult.isMissing() && !isAbsentIgnoring(collector)) {
@@ -544,7 +544,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
                 if (result.isMissing()) {
                     // This is the argument of add/addAll and it is missing. It "poisons" the property (it becomes missing).
                     // We discard all values and side effects gathered so far.
-                    builder = collectionFactory.get();
+                    builder.build().clear();
                     compositeResult = result;
                 } else if (compositeResult.isMissing()) {
                     assert isAbsentIgnoring(collector);
@@ -561,7 +561,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
             if (compositeResult.isMissing()) {
                 return compositeResult.asType();
             }
-            return Value.of(Cast.<C>uncheckedNonnullCast(builder.build())).withSideEffect(SideEffect.fixedFrom(compositeResult));
+            return Value.of(Cast.<C>uncheckedNonnullCast(collectionFactory.get().addAll(builder.build()).build())).withSideEffect(SideEffect.fixedFrom(compositeResult));
         }
 
         @Override
@@ -723,7 +723,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         }
 
         @Override
-        public Value<Void> collectEntries(ValueConsumer consumer, ValueCollector<T> collector, ImmutableCollection.Builder<T> dest) {
+        public Value<Void> collectEntries(ValueConsumer consumer, ValueCollector<T> collector, CollectionBuilder<T, ?> dest) {
             collector.addAll(collection, dest);
             return sideEffect != null
                 ? Value.present().withSideEffect(SideEffect.fixed(collection, sideEffect))
@@ -768,13 +768,13 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         }
 
         @Override
-        public Value<Void> collectEntries(ValueConsumer consumer, ValueCollector<T> collector, ImmutableCollection.Builder<T> dest) {
-            ImmutableList.Builder<T> candidateEntries = ImmutableList.builder();
-            Value<Void> value = delegate.collectEntries(consumer, collector, candidateEntries);
+        public Value<Void> collectEntries(ValueConsumer consumer, ValueCollector<T> collector, CollectionBuilder<T, ?> dest) {
+            List<T> candidateEntries = new ArrayList<>();
+            Value<Void> value = delegate.collectEntries(consumer, collector, CollectionBuilder.of(candidateEntries));
             if (value.isMissing()) {
                 return Value.present();
             }
-            dest.addAll(candidateEntries.build());
+            dest.addAll(candidateEntries);
             return Value.present().withSideEffect(SideEffect.fixedFrom(value));
         }
 

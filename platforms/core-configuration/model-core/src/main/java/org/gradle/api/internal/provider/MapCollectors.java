@@ -17,7 +17,6 @@
 package org.gradle.api.internal.provider;
 
 import com.google.common.base.Objects;
-import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.Action;
 import org.gradle.api.internal.lambdas.SerializableLambdas;
@@ -56,7 +55,7 @@ public class MapCollectors {
         }
 
         @Override
-        public Value<Void> collectKeys(ValueConsumer consumer, ValueCollector<K> collector, ImmutableCollection.Builder<K> dest) {
+        public Value<Void> collectKeys(ValueConsumer consumer, ValueCollector<K> collector, CollectionBuilder<K, ?> dest) {
             collector.add(key, dest);
             return Value.present();
         }
@@ -124,7 +123,7 @@ public class MapCollectors {
         }
 
         @Override
-        public Value<Void> collectKeys(ValueConsumer consumer, ValueCollector<K> collector, ImmutableCollection.Builder<K> dest) {
+        public Value<Void> collectKeys(ValueConsumer consumer, ValueCollector<K> collector, CollectionBuilder<K, ?> dest) {
             if (providerOfValue.calculatePresence(consumer)) {
                 collector.add(key, dest);
                 return Value.present();
@@ -184,7 +183,7 @@ public class MapCollectors {
         }
 
         @Override
-        public Value<Void> collectKeys(ValueConsumer consumer, ValueCollector<K> collector, ImmutableCollection.Builder<K> dest) {
+        public Value<Void> collectKeys(ValueConsumer consumer, ValueCollector<K> collector, CollectionBuilder<K, ?> dest) {
             collector.addAll(entries.keySet(), dest);
             return Value.present();
         }
@@ -245,7 +244,7 @@ public class MapCollectors {
         }
 
         @Override
-        public Value<Void> collectKeys(ValueConsumer consumer, ValueCollector<K> collector, ImmutableCollection.Builder<K> dest) {
+        public Value<Void> collectKeys(ValueConsumer consumer, ValueCollector<K> collector, CollectionBuilder<K, ?> dest) {
             Value<? extends Map<? extends K, ? extends V>> value = providerOfEntries.calculateValue(consumer);
             if (value.isMissing()) {
                 return value.asType();
