@@ -47,7 +47,6 @@ import org.gradle.internal.declarativedsl.mappingToJvm.DeclarativeRuntimeFunctio
 import org.gradle.internal.declarativedsl.InstanceAndPublicType
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeCustomAccessors
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeFunctionResolver
-import org.gradle.internal.declarativedsl.withFallbackPublicType
 import org.gradle.internal.declarativedsl.schemaBuilder.DataSchemaBuilder
 import org.gradle.internal.declarativedsl.schemaBuilder.FunctionExtractor
 import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery
@@ -83,6 +82,7 @@ internal fun EvaluationSchemaBuilder.namedDomainObjectContainers() {
 internal class ContainersSchemaComponent : AnalysisSchemaComponent, ObjectConversionComponent {
     private val containerByAccessorId = mutableMapOf<String, ContainerProperty>()
     private val elementFactoryFunctions = hashSetOf<SchemaMemberFunction>()
+    private val elementPublicTypes = mutableMapOf<SchemaMemberFunction, KClass<*>>()
 
     override fun functionExtractors(): List<FunctionExtractor> = listOf(
         // For subtypes of NDOC<T>, generate the element factory function as a member:
@@ -150,7 +150,7 @@ internal class ContainersSchemaComponent : AnalysisSchemaComponent, ObjectConver
                     RuntimeFunctionResolver.Resolution.Resolved(object : DeclarativeRuntimeFunction {
                         override fun callBy(receiver: Any, binding: Map<DataParameter, Any?>, hasLambda: Boolean): DeclarativeRuntimeFunction.InvocationResult {
                             val result = (receiver as NamedDomainObjectContainer<*>).maybeCreate(binding.values.single() as String)
-                            val resultInstanceAndPublicType = withFallbackPublicType(result)
+                            val resultInstanceAndPublicType = InstanceAndPublicType.of(result, elementPublicTypes[schemaFunction])
                             return DeclarativeRuntimeFunction.InvocationResult(resultInstanceAndPublicType, resultInstanceAndPublicType)
                         }
                     })
@@ -158,8 +158,12 @@ internal class ContainersSchemaComponent : AnalysisSchemaComponent, ObjectConver
         }
     )
 
-    private fun newElementFactoryFunction(receiverTypeRef: DataTypeRef, elementKType: KType, inContext: Any) =
-        elementFactoryFunction(receiverTypeRef, elementKType, inContext).also(elementFactoryFunctions::add)
+    private fun newElementFactoryFunction(receiverTypeRef: DataTypeRef, elementKType: KType, inContext: Any): DataMemberFunction {
+        val elementFactoryFunction = elementFactoryFunction(receiverTypeRef, elementKType, inContext)
+        elementFactoryFunctions.add(elementFactoryFunction)
+        elementPublicTypes[elementFactoryFunction] = elementKType.jvmErasure
+        return elementFactoryFunction
+    }
 
     private inner class ContainerProperty(
         val ownerType: KClass<*>,

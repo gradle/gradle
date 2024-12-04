@@ -36,7 +36,6 @@ import org.gradle.internal.declarativedsl.schemaBuilder.plus
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
 import org.gradle.internal.declarativedsl.schemaBuilder.toDataTypeRef
 import org.gradle.internal.declarativedsl.schemaBuilder.treatInterfaceAsConfigureLambda
-import org.gradle.internal.declarativedsl.withFallbackPublicType
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.Test
@@ -85,7 +84,7 @@ class AccessorTest {
     val runtimeCustomAccessors = object : RuntimeCustomAccessors {
         override fun getObjectFromCustomAccessor(receiverObject: Any, accessor: ConfigureAccessor.Custom): InstanceAndPublicType =
             if (receiverObject is MyReceiver && accessor.customAccessorIdentifier == "test")
-                withFallbackPublicType(receiverObject.myHiddenInstance.value) // TODO: doesn't seem to be exercised in tests
+                InstanceAndPublicType.unknownPublicType(receiverObject.myHiddenInstance.value) // TODO: doesn't seem to be exercised in tests
             else InstanceAndPublicType.NULL
     }
 
