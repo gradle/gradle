@@ -19,10 +19,18 @@ package org.gradle.api.internal.artifacts;
 import org.gradle.api.internal.artifacts.transform.TransformStep;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 
+import javax.annotation.Nullable;
+
 /**
  * Registration of an artifact transform.
  */
 public interface TransformRegistration {
+    /**
+     * Name of the transform.
+     */
+    @Nullable
+    String getName();
+
     /**
      * Attributes that match the variant that is consumed.
      */

@@ -24,5 +24,5 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import javax.annotation.Nullable;
 
 public interface TransformRegistrationFactory {
-    TransformRegistration create(ImmutableAttributes from, ImmutableAttributes to, Class<? extends TransformAction<?>> implementation, @Nullable TransformParameters parameterObject);
+    TransformRegistration create(@Nullable String name, ImmutableAttributes from, ImmutableAttributes to, Class<? extends TransformAction<?>> implementation, @Nullable TransformParameters parameterObject);
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,25 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.diagnostics.internal.configurations;
+package org.gradle.api.tasks.diagnostics.internal.artifacttransforms;
 
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.reporting.ConfigurableReport;
 import org.gradle.api.reporting.internal.DefaultReportContainer;
 import org.gradle.api.reporting.internal.DelegatingReportContainer;
-import org.gradle.api.tasks.diagnostics.configurations.ConfigurationReports;
+import org.gradle.api.tasks.diagnostics.artifacttransforms.ArtifactTransformReports;
 
 import javax.inject.Inject;
 import java.util.Collections;
 
 /**
- * Default implementation of {@link ConfigurationReports} which allows for adding and configuring reports.
+ * Default implementation of {@link ArtifactTransformReports} which allows for adding and configuring reports.
  *
  * Class must be non-{@code final}.
  */
-public class ConfigurationReportsImpl extends DelegatingReportContainer<ConfigurableReport> implements ConfigurationReports {
+public class ArtifactTransformReportsImpl extends DelegatingReportContainer<ConfigurableReport> implements ArtifactTransformReports {
     @Inject
-    public ConfigurationReportsImpl(ObjectFactory objectFactory) {
+    public ArtifactTransformReportsImpl(ObjectFactory objectFactory) {
         super(DefaultReportContainer.create(objectFactory, ConfigurableReport.class, factory -> Collections.emptyList()));
     }
 }

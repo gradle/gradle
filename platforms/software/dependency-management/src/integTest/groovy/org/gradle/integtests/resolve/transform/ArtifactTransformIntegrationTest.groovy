@@ -2572,6 +2572,68 @@ Found the following transformation chains:
         output.count("Transforming") == 1
     }
 
+    def "transforms can reuse the same name across multiple projects"() {
+        given:
+        createDirs("app")
+        settingsFile << """
+            include 'app'
+        """
+        buildFile << """
+            project(':lib') {
+                ${declareTransform('test', 'FileSizer')}
+            }
+
+            project(':app') {
+                ${declareTransform('test', 'FileSizer')}
+            }
+        """
+
+        when:
+        run ":app:artifactTransforms"
+
+        then:
+        result.groupedOutput.task(":app:artifactTransforms").assertOutputContains("""--------------------------------------------------
+Transform test
+--------------------------------------------------
+Type: FileSizer
+From Attributes:
+    - artifactType = jar
+To Attributes:
+    - artifactType = size
+""")
+
+        when:
+        run ":lib:artifactTransforms"
+
+        then:
+        result.groupedOutput.task(":lib:artifactTransforms").assertOutputContains("""--------------------------------------------------
+Transform test
+--------------------------------------------------
+Type: FileSizer
+From Attributes:
+    - artifactType = jar
+To Attributes:
+    - artifactType = size
+""")
+    }
+
+    def "transforms can't reuse the same name inside a single project"() {
+        given:
+        buildFile << """
+            project(':lib') {
+                ${declareTransform('test', 'FileSizer')}
+                ${declareTransform('test', 'FileSizer')}
+            }
+        """
+
+        when:
+        fails "tasks"
+
+        then:
+        failure.assertHasCause("Could not register artifact transform 'test' (from {artifactType=jar} to {artifactType=size}).")
+        failure.assertHasCause("There is already a transform registered with the name 'test' in this project.")
+    }
+
     def "can resolve transformed variant during configuration time"() {
         given:
         buildFile << """
@@ -2808,9 +2870,13 @@ Found the following transformation chains:
     }
 
     def declareTransform(String transformImplementation) {
+        declareTransform(null, transformImplementation)
+    }
+
+    def declareTransform(String name, String transformImplementation) {
         """
             dependencies {
-                registerTransform(${transformImplementation}) {
+                registerTransform(${name != null ? '"' + name + '",' : ''}${transformImplementation}) {
                     from.attribute(artifactType, 'jar')
                     to.attribute(artifactType, 'size')
                 }
