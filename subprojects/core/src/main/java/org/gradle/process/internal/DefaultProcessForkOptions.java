@@ -26,6 +26,7 @@ import org.gradle.api.provider.Provider;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.process.ProcessForkOptions;
 
+import javax.inject.Inject;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -35,6 +36,7 @@ public class DefaultProcessForkOptions implements ProcessForkOptions {
     private final DirectoryProperty workingDir;
     private final MapProperty<String, Object> environment;
 
+    @Inject
     public DefaultProcessForkOptions(ObjectFactory objectFactory, PathToFileResolver resolver) {
         this.resolver = resolver;
         this.executable = objectFactory.property(String.class);
