@@ -273,6 +273,7 @@ public abstract class NativeComponentModelPlugin implements Plugin<Project> {
             });
         }
 
+        @SuppressWarnings("deprecation")
         @Mutate
         void configurePrefixHeaderGenerationTasks(final TaskContainer tasks, ComponentSpecContainer components) {
             for (final SourceComponentSpec nativeComponentSpec : components.withType(SourceComponentSpec.class).values()) {
@@ -303,6 +304,7 @@ public abstract class NativeComponentModelPlugin implements Plugin<Project> {
                                 nativeBinarySpec.addPreCompiledHeaderFor(dependentSourceSet);
                                 final SourceTransformTaskConfig pchTransformTaskConfig = transform.getPchTransformTask();
                                 String pchTaskName = pchTransformTaskConfig.getTaskPrefix() + StringUtils.capitalize(nativeBinarySpec.getProjectScopedName()) + StringUtils.capitalize(dependentSourceSet.getName()) + "PreCompiledHeader";
+                                @SuppressWarnings("deprecation")
                                 Task pchTask = tasks.create(pchTaskName, pchTransformTaskConfig.getTaskType(), new Action<DefaultTask>() {
                                     @Override
                                     public void execute(DefaultTask task) {

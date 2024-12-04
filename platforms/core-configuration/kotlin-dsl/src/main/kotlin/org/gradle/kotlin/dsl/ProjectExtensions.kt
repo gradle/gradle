@@ -197,11 +197,11 @@ inline fun <reified type : Task> Project.task(name: String, noinline configurati
  * @see [Project.getTasks]
  * @see [TaskContainer.create]
  */
-@Suppress("extension_shadowed_by_member")
+@Suppress("extension_shadowed_by_member", "DEPRECATION")
 inline fun <reified type : Task> Project.task(name: String) =
     tasks.create(name, type::class.java)
 
-
+@Suppress("DEPRECATION")
 fun <T : Task> Project.task(name: String, type: KClass<T>, configuration: T.() -> Unit) =
     tasks.create(name, type.java, configuration)
 

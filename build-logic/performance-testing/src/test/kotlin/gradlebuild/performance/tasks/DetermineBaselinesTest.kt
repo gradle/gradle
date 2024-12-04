@@ -107,7 +107,7 @@ class DetermineBaselinesTest {
 
     private
     fun createDetermineBaselinesTask(isDistributed: Boolean) =
-        project.tasks.create("determineBaselines", DetermineBaselines::class.java, isDistributed, commandExecutor)
+        project.tasks.register("determineBaselines", DetermineBaselines::class.java, isDistributed, commandExecutor).get()
 
     private
     fun mockGitOperation(args: List<String>, expectedOutput: String) =

@@ -1387,23 +1387,27 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         ConfigureUtil.configure(configureClosure, getBuildscript());
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public Task task(String task) {
         onMutableStateAccess();
         return taskContainer.create(task);
     }
 
+    @SuppressWarnings("deprecation")
     public Task task(Object task) {
         onMutableStateAccess();
         return taskContainer.create(task.toString());
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public Task task(String task, Action<? super Task> configureAction) {
         onMutableStateAccess();
         return taskContainer.create(task, configureAction);
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public Task task(String task, Closure configureClosure) {
         onMutableStateAccess();
@@ -1415,6 +1419,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         return task(task.toString(), configureClosure);
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public Task task(Map options, String task) {
         onMutableStateAccess();
@@ -1426,6 +1431,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         return task(options, task.toString());
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public Task task(Map options, String task, Closure configureClosure) {
         onMutableStateAccess();

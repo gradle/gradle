@@ -33,6 +33,62 @@
             ]
         },
         {
+            "type": "org.gradle.kotlin.dsl.TaskContainerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.TaskContainerExtensionsKt.create(org.gradle.api.tasks.TaskContainer,java.lang.String,kotlin.jvm.functions.Function1)",
+            "acceptation": "Pulled down method to deprecate it",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.TaskContainerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.TaskContainerExtensionsKt.creating(org.gradle.api.tasks.TaskContainer,java.lang.Class,kotlin.jvm.functions.Function1)",
+            "acceptation": "Pulled down method to deprecate it",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.TaskContainerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.TaskContainerExtensionsKt.creating(org.gradle.api.tasks.TaskContainer,kotlin.jvm.functions.Function1)",
+            "acceptation": "Pulled down method to deprecate it",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.TaskContainerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.TaskContainerExtensionsKt.creating(org.gradle.api.tasks.TaskContainer,kotlin.reflect.KClass)",
+            "acceptation": "Pulled down method to deprecate it",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.TaskContainerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.TaskContainerExtensionsKt.creating(org.gradle.api.tasks.TaskContainer,kotlin.reflect.KClass,kotlin.jvm.functions.Function1)",
+            "acceptation": "Pulled down method to deprecate it",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.TaskContainerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.TaskContainerExtensionsKt.getCreating$annotations(org.gradle.api.tasks.TaskContainer)",
+            "acceptation": "Pulled down method to deprecate it",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.TaskContainerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.TaskContainerExtensionsKt.getCreating(org.gradle.api.tasks.TaskContainer)",
+            "acceptation": "Pulled down method to deprecate it",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
             "type": "org.gradle.language.swift.SwiftVersion",
             "member": "Field SWIFT6",
             "acceptation": "No need to incubate",
