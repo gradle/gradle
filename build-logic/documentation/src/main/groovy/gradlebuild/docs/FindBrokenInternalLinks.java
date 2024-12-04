@@ -24,6 +24,7 @@ import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.InputDirectory;
+import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
@@ -61,11 +62,15 @@ public abstract class FindBrokenInternalLinks extends DefaultTask {
     @PathSensitive(PathSensitivity.RELATIVE)
     public abstract DirectoryProperty getDocumentationRoot();
 
+    @Optional @InputDirectory
+    @PathSensitive(PathSensitivity.RELATIVE)
+    public abstract DirectoryProperty getSamplesRoot();
+
     @InputDirectory
     @PathSensitive(PathSensitivity.RELATIVE)
     public abstract DirectoryProperty getJavadocRoot();
 
-    @InputFile
+    @Optional @InputFile
     @PathSensitive(PathSensitivity.NONE)
     public abstract RegularFileProperty getReleaseNotesFile();
 
@@ -76,11 +81,21 @@ public abstract class FindBrokenInternalLinks extends DefaultTask {
     public void checkDeadLinks() {
         Map<File, List<Error>> errors = new TreeMap<>();
 
-        gatherDeadLinksInFileReleaseNotes(errors);
+        if (getReleaseNotesFile().isPresent()) {
+            gatherDeadLinksInFileReleaseNotes(errors);
+        }
+
+        if (getSamplesRoot().isPresent()) {
+            getSamplesRoot().getAsFileTree().matching(pattern -> pattern.include("**/*.adoc")).forEach(file -> {
+                gatherDeadLinksInFile(file, errors);
+            });
+        }
 
         getDocumentationRoot().getAsFileTree().matching(pattern -> pattern.include("**/*.adoc")).forEach(file -> {
+            System.out.println(file);
             gatherDeadLinksInFile(file, errors);
         });
+
         reportErrors(errors, getReportFile().get().getAsFile());
     }
 
