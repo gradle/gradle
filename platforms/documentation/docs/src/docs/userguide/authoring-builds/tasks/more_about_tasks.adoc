@@ -1,4 +1,4 @@
-// Copyright (C) 2023 Gradle, Inc.
+// Copyright (C) 2024 Gradle, Inc.
 //
 // Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
 // you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ A task represents some *independent unit of work* that a build performs, such as
 
 image::writing-tasks-1.png[]
 
-Before reading this chapter, it's recommended that you first read the <<gradle_directories.adoc#gradle_directories,Learning The Basics>> and complete the <<partr1_gradle_init.adoc#partr1_gradle_init,Tutorial>>.
+Before reading this chapter, it's recommended that you first read the <<gradle_directories.adoc#gradle_directories,Learning The Basics>> and complete the <<part1_gradle_init_project.adoc#part1_gradle_init,Tutorial>>.
 
 [[sec:more_listing_tasks]]
 == Listing tasks

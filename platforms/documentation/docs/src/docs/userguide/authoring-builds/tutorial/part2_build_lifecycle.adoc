@@ -1,4 +1,4 @@
-// Copyright (C) 2023 Gradle, Inc.
+// Copyright (C) 2024 Gradle, Inc.
 //
 // Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
 // you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[[partr2_build_lifecycle]]
+[[part2_build_lifecycle]]
 = Part 2: The Build Lifecycle
 
 Learn about the Gradle build lifecycle and what each phase represents.
@@ -28,7 +28,7 @@ Learn about the Gradle build lifecycle and what each phase represents.
 [[part2_begin]]
 == Step 0. Before you Begin
 
-1. You initialized your Java app in <<partr1_gradle_init.adoc#part1_begin,part 1>>.
+1. You initialized your Java app in <<part1_gradle_init_project.adoc#part1_begin,part 1>>.
 
 == Step 1. Understanding the Build Lifecycle
 
@@ -174,4 +174,4 @@ This is called _task configuration avoidance_ and prevents unnecessary work.
 Task configuration avoidance is when Gradle avoids configuring `task2` when `task1` was called and `task1` does NOT depend. on `task2`.
 
 [.text-right]
-**Next Step:** <<partr3_multi_project_builds#partr3_multi_project_builds,Multi-Project Builds>> >>
+**Next Step:** <<part3_multi_project_builds#part3_multi_project_builds,Multi-Project Builds>> >>

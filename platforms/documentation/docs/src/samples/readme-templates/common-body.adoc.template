@@ -1,4 +1,4 @@
-NOTE: You can open this sample in an <<gradle_ides.adoc#gradle_ides,IDE that supports Gradle>>.
+NOTE: You can open this sample in an link:{userManualPath}/gradle_ides.html#gradle_ides[IDE that supports Gradle].
 
 This guide demonstrates how to create a ${language.raw} ${componentType.raw} with Gradle using `gradle init`.
 You can follow the guide step-by-step to create a new project from scratch or download the complete sample project using the links above.

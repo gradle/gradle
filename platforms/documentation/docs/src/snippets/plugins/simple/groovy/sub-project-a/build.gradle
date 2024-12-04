@@ -30,6 +30,13 @@ tasks.named('test', Test) { // <5>
 }
 // end::test[]
 
+// tag::doc[]
+tasks.named('javadoc', Javadoc).configure {
+    exclude 'app/Internal*.java'
+    exclude 'app/internal/*'
+}
+// end::doc[]
+
 // tag::task[]
 tasks.register('zip-reports', Zip) {
     from 'Reports/'
