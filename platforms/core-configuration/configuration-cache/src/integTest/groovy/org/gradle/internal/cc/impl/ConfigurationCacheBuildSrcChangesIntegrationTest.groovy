@@ -163,13 +163,14 @@ class ConfigurationCacheBuildSrcChangesIntegrationTest extends AbstractConfigura
         configurationCacheRun "help"
         then:
         configurationCache.assertStateStored()
+        outputContains("Calculating task graph as configuration cache cannot be reused because ${withPlatformPath(removalMessage)}")
         buildOperations.none("Load build (:buildSrc)")
 
         where:
-        _ | buildSrcNewFile
-        _ | "settings.gradle"
-        _ | "build.gradle"
-        _ | "src/main/groovy/MyClass.groovy"
+        _ | buildSrcNewFile                     | removalMessage
+        _ | "settings.gradle"                   | "file 'buildSrc/settings.gradle' has been removed."
+        _ | "build.gradle"                      | "an input to task ':buildSrc:jar' has changed"
+        _ | "src/main/groovy/MyClass.groovy"    | "an input to task ':buildSrc:compileGroovy' has changed."
     }
 
     def "invalidates cache upon change to presence of valid buildSrc in #parentBuild build by creating #buildSrcNewFile"() {
@@ -186,7 +187,7 @@ class ConfigurationCacheBuildSrcChangesIntegrationTest extends AbstractConfigura
 
         def buildSrcBuildPath = ":$parentBuild:buildSrc"
         def buildSrcDir = "$parentBuild/buildSrc"
-        def ccReasonPath = buildSrcDir.replace("/", File.separator)
+        def ccReasonPath = withPlatformPath(buildSrcDir)
 
         when:
         configurationCacheRun "help"
@@ -207,16 +208,17 @@ class ConfigurationCacheBuildSrcChangesIntegrationTest extends AbstractConfigura
         configurationCacheRun "help"
         then:
         configurationCache.assertStateStored()
+        outputContains("Calculating task graph as configuration cache cannot be reused because ${withPlatformPath(removalMessage)}")
         buildOperations.none("Load build ($buildSrcBuildPath)")
 
         where:
-        parentBuild | buildSrcNewFile
-        "included"  | "settings.gradle"
-        "included"  | "build.gradle"
-        "included"  | "src/main/groovy/MyClass.groovy"
-        "buildSrc"  | "settings.gradle"
-        "buildSrc"  | "build.gradle"
-        "buildSrc"  | "src/main/groovy/MyClass.groovy"
+        parentBuild | buildSrcNewFile                   | removalMessage
+        "included"  | "settings.gradle"                 | "file 'included/buildSrc/settings.gradle' has been removed."
+        "included"  | "build.gradle"                    | "an input to task ':included:buildSrc:jar' has changed."
+        "included"  | "src/main/groovy/MyClass.groovy"  | "an input to task ':included:buildSrc:compileGroovy' has changed."
+        "buildSrc"  | "settings.gradle"                 | "file 'buildSrc/buildSrc/settings.gradle' has been removed."
+        "buildSrc"  | "build.gradle"                    | "an input to task ':buildSrc:buildSrc:jar' has changed."
+        "buildSrc"  | "src/main/groovy/MyClass.groovy"  | "an input to task ':buildSrc:buildSrc:compileGroovy' has changed."
     }
 
     def "reuses cache upon changing invalid buildSrc by creating #description"() {
@@ -255,5 +257,9 @@ class ConfigurationCacheBuildSrcChangesIntegrationTest extends AbstractConfigura
         "buildSrc file"      | false | "buildSrc"
         "buildSrc with file" | false | "buildSrc/not-build.gradle"
         "buildSrc with dir"  | false | "buildSrc/not-src/main/groovy/MyClass.groovy"
+    }
+
+    private static String withPlatformPath(CharSequence buildSrcDir) {
+        return buildSrcDir.replace("/", File.separator)
     }
 }
