@@ -29,8 +29,8 @@ public class BuildLayout extends SettingsLocation {
 
     // Note: `null` for `settingsFile` means explicitly no settings
     //       A non null value can be a non existent file, which is semantically equivalent to an empty file
-    public BuildLayout(File rootDirectory, File settingsDir, @Nullable File settingsFile, ScriptFileResolver scriptFileResolver) {
-        super(settingsDir, settingsFile);
+    public BuildLayout(File rootDirectory, @Nullable File settingsFile, ScriptFileResolver scriptFileResolver) {
+        super(rootDirectory, settingsFile);
         this.rootDirectory = rootDirectory;
         this.scriptFileResolver = scriptFileResolver;
     }
