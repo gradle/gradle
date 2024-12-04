@@ -16,6 +16,7 @@
 
 package org.gradle.api.problems.internal;
 
+import org.gradle.api.problems.IdFactory;
 import org.gradle.api.problems.ProblemReporter;
 import org.gradle.internal.exception.ExceptionAnalyser;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
@@ -35,6 +36,7 @@ public class DefaultProblems implements InternalProblems {
     private final AdditionalDataBuilderFactory additionalDataBuilderFactory = new AdditionalDataBuilderFactory();
     private final ExceptionProblemRegistry exceptionProblemRegistry;
     private final ExceptionAnalyser exceptionAnalyser;
+    private final IdFactory idFactory;
 
     public DefaultProblems(ProblemSummarizer problemSummarizer, ProblemStream problemStream, CurrentBuildOperationRef currentBuildOperationRef, ExceptionProblemRegistry exceptionProblemRegistry, ExceptionAnalyser exceptionAnalyser) {
         this.problemSummarizer = problemSummarizer;
@@ -43,11 +45,17 @@ public class DefaultProblems implements InternalProblems {
         this.exceptionProblemRegistry = exceptionProblemRegistry;
         this.exceptionAnalyser = exceptionAnalyser;
         this.internalReporter = createReporter();
+        this.idFactory = new DefaultIdFactory();
     }
 
     @Override
     public ProblemReporter getReporter() {
         return createReporter();
+    }
+
+    @Override
+    public IdFactory getIdFactory() {
+        return idFactory;
     }
 
     @Nonnull
