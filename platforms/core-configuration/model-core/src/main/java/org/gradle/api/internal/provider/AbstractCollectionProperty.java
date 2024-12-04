@@ -39,6 +39,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.function.Supplier;
@@ -532,36 +533,55 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         @Override
         public Value<C> calculateValue(ValueConsumer consumer) {
             // TODO - don't make a copy when the collector already produces an immutable collection
-            CollectionBuilder<T, List<T>> builder = CollectionBuilder.of(new ArrayList<>());
-            Value<Void> compositeResult = Value.present();
-            for (Collector<T> collector : getCollectors()) {
-                if (compositeResult.isMissing() && !isAbsentIgnoring(collector)) {
-                    // The property is missing so far and the argument is of add/addAll.
-                    // The property is going to be missing regardless of its value.
-                    continue;
-                }
+            ArrayList<T> buffer = new ArrayList<>();
+            CollectionBuilder<T, List<T>> builder = CollectionBuilder.of(buffer);
+            // We cannot use 0 because we need to distinguish between "an empty list is definitely present" and "nothing is definitely present".
+            // All collectors may produce empty lists.
+            int lastDefinitelyPresentPosition = -1;
+            int lastDefinitelyPresentSideEffect = 0;
+            List<SideEffect<C>> sideEffects = new ArrayList<>(collectors.size());
+
+            for (Collector<T> collector : Lists.reverse(getCollectors())) {
+                int sizeBefore = builder.build().size();
                 Value<Void> result = collector.collectEntries(consumer, valueCollector, builder);
                 if (result.isMissing()) {
-                    // This is the argument of add/addAll and it is missing. It "poisons" the property (it becomes missing).
-                    // We discard all values and side effects gathered so far.
-                    builder.build().clear();
-                    compositeResult = result;
-                } else if (compositeResult.isMissing()) {
-                    assert isAbsentIgnoring(collector);
-                    // This is an argument of append/appendAll. It "recovers" the property from the "poisoned" state.
-                    // Entries are already in the builder.
-                    compositeResult = result;
+                    // This is the argument of add/addAll and it is missing. It discards everything added before it (which we haven't processed yet), and
+                    // everything that was added before the append/appendAll.
+                    if (lastDefinitelyPresentPosition >= 0) {
+                        // There was at least one append after this. Discard everything that happened in between.
+                        buffer.subList(lastDefinitelyPresentPosition, buffer.size()).clear();
+                        sideEffects.subList(lastDefinitelyPresentSideEffect, sideEffects.size()).clear();
+                    } else {
+                        // No append to recover. The property's value is missing.
+                        return result.asType();
+                    }
+                    break;
                 } else {
-                    assert !compositeResult.isMissing();
-                    // Both the property so far and the current argument are present, just continue building the value.
-                    // Entries are already in the builder.
-                    compositeResult = compositeResult.withSideEffect(SideEffect.fixedFrom(result));
+                    SideEffect<C> effect = SideEffect.fixedFrom(result);
+                    if (effect != null) {
+                        sideEffects.add(effect);
+                    }
+
+                    if (isAbsentIgnoring(collector)) {
+                        // This is an argument of append/appendAll. Everything that was added after it is already present.
+                        // Entries are already in the builder.
+                        lastDefinitelyPresentPosition = buffer.size();
+                        lastDefinitelyPresentSideEffect = sideEffects.size();
+                    }
+                    if (sizeBefore < buffer.size()) {
+                        // This is a relatively well-known trick of reversing the order of substrings, described e.g. in "Programming Pearls" by Bentley, J., 1986
+                        // For example, if we have two collectors [a, b] and [1, 2, 3], in that order. We process them in reverse:
+                        // 1. [1, 2, 3] - contribute individual output
+                        // 2. [3, 2, 1] - reverse individual output
+                        // 3. [3, 2, 1, a, b] - contribute individual output of another one
+                        // 4. [3, 2, 1, b, a] - reverse individual output of another one
+                        // 5. [a, b, 1, 2, 3] - reverse the result.
+                        Collections.reverse(buffer.subList(sizeBefore, buffer.size()));
+                    }
                 }
             }
-            if (compositeResult.isMissing()) {
-                return compositeResult.asType();
-            }
-            return Value.of(Cast.<C>uncheckedNonnullCast(collectionFactory.get().addAll(builder.build()).build())).withSideEffect(SideEffect.fixedFrom(compositeResult));
+            Collections.reverse(sideEffects);
+            return Value.of(Cast.<C>uncheckedNonnullCast(collectionFactory.get().addAll(Lists.reverse(buffer)).build())).withSideEffect(SideEffect.composite(sideEffects));
         }
 
         @Override
@@ -621,36 +641,34 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
         // Returns an empty list when the overall value is missing.
         private List<Pair<Collector<T>, ExecutionTimeValue<? extends Iterable<? extends T>>>> collectExecutionTimeValues() {
-            // These are the values that are certainly part of the result, e.g. because of absent-ignoring append/appendAll argument.
             List<Pair<Collector<T>, ExecutionTimeValue<? extends Iterable<? extends T>>>> executionTimeValues = new ArrayList<>();
-            // These are the values that may become part of the result if there is no missing value somewhere.
-            List<Pair<Collector<T>, ExecutionTimeValue<? extends Iterable<? extends T>>>> candidates = new ArrayList<>();
 
             // We traverse the collectors backwards (in reverse addition order) to simplify the logic and avoid processing things that are going to be discarded.
             // Because of that, values are collected in reverse order too.
-            // Se also #calculatePresence.
+            // See also #calculatePresence.
+            // The values before that are certainly part of the result, e.g. because of absent-ignoring append/appendAll argument.
+            int lastDefinitelyPresentValue = 0;
             for (Collector<T> collector : Lists.reverse(getCollectors())) {
                 ExecutionTimeValue<? extends Iterable<? extends T>> result = collector.calculateExecutionTimeValue();
                 if (result.isMissing()) {
                     // This is an add/addAll argument, but it is a missing provider.
                     // Everything that was added before it isn't going to affect the result, so we stop the iteration.
                     // All add/addAll that happened after it (thus already processed) but before any append/appendAll - the contents of candidates - are also discarded.
-                    return Lists.reverse(executionTimeValues);
+                    executionTimeValues.subList(lastDefinitelyPresentValue, executionTimeValues.size()).clear();
+                    break;
                 }
                 if (isAbsentIgnoring(collector)) {
                     // This is an argument of append/appendAll. With it the property is going to be present (though maybe empty).
                     // As all add/addAll arguments we've processed (thus added after this one) so far weren't missing, we're sure they'll be part of the final property's value.
                     // Move them to the executionTimeValues.
-                    executionTimeValues.addAll(candidates);
                     executionTimeValues.add(Pair.of(collector, result));
-                    candidates.clear();
+                    lastDefinitelyPresentValue = executionTimeValues.size();
                 } else {
                     // This is an argument of add/addAll that isn't definitely missing. It might be part of the final value.
-                    candidates.add(Pair.of(collector, result));
+                    executionTimeValues.add(Pair.of(collector, result));
                 }
             }
             // No missing values found, so all the candidates are part of the final value.
-            executionTimeValues.addAll(candidates);
             return Lists.reverse(executionTimeValues);
         }
 
