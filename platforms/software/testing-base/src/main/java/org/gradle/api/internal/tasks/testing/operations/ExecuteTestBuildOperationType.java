@@ -32,6 +32,11 @@ public final class ExecuteTestBuildOperationType implements BuildOperationType<E
     @UsedByScanPlugin
     public interface Details {
 
+        /**
+         * This is the time the _test_ reported itself as started.
+         *
+         * This may not line up with local time.
+         */
         long getStartTime();
 
         TestDescriptor getTestDescriptor();

@@ -34,6 +34,7 @@ import org.gradle.internal.operations.OperationProgressEvent;
 import org.gradle.internal.operations.OperationStartEvent;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.gradle.internal.time.Clock;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -49,30 +50,29 @@ import java.util.Map;
 public class TestListenerBuildOperationAdapter implements TestListenerInternal {
 
     private final Map<TestDescriptor, InProgressExecuteTestBuildOperation> runningTests = new HashMap<>();
+    private final Clock clock;
     private final BuildOperationListener listener;
     private final BuildOperationIdFactory buildOperationIdFactory;
 
-    public TestListenerBuildOperationAdapter(BuildOperationListener listener, BuildOperationIdFactory buildOperationIdFactory) {
+    public TestListenerBuildOperationAdapter(Clock clock, BuildOperationListener listener, BuildOperationIdFactory buildOperationIdFactory) {
+        this.clock = clock;
         this.listener = listener;
         this.buildOperationIdFactory = buildOperationIdFactory;
     }
 
     @Override
     public void started(final TestDescriptorInternal testDescriptor, TestStartEvent startEvent) {
+        long currentTime = clock.getCurrentTime();
+
         BuildOperationDescriptor testBuildOperationDescriptor = createTestBuildOperationDescriptor(testDescriptor, startEvent);
-        runningTests.put(testDescriptor, new InProgressExecuteTestBuildOperation(testBuildOperationDescriptor, startEvent.getStartTime()));
-        listener.started(testBuildOperationDescriptor, new OperationStartEvent(startEvent.getStartTime()));
+        runningTests.put(testDescriptor, new InProgressExecuteTestBuildOperation(testBuildOperationDescriptor, currentTime));
+        listener.started(testBuildOperationDescriptor, new OperationStartEvent(currentTime));
     }
 
     @Override
     public void completed(TestDescriptorInternal testDescriptor, TestResult testResult, TestCompleteEvent completeEvent) {
         InProgressExecuteTestBuildOperation runningOp = runningTests.remove(testDescriptor);
-        // Adjusted to not use current time, as that may be wrong in the context of remote test execution. The time given by the test result is more reliable.
-        long endTime = completeEvent.getEndTime();
-        if (runningOp.startTime > endTime) {
-            endTime = runningOp.startTime;
-        }
-        listener.finished(runningOp.descriptor, new OperationFinishEvent(runningOp.startTime, endTime, testResult.getException(), new Result(testResult)));
+        listener.finished(runningOp.descriptor, new OperationFinishEvent(runningOp.startTime, clock.getCurrentTime(), testResult.getException(), new Result(testResult)));
     }
 
     @Override
@@ -81,7 +81,7 @@ public class TestListenerBuildOperationAdapter implements TestListenerInternal {
         if (runningOp == null) {
             throw new IllegalStateException("Received output for test that is not running: " + testDescriptor);
         }
-        listener.progress(runningOp.descriptor.getId(), new OperationProgressEvent(event.getLogTime(), new OutputProgress(event)));
+        listener.progress(runningOp.descriptor.getId(), new OperationProgressEvent(clock.getCurrentTime(), new OutputProgress(event)));
     }
 
     @Override
@@ -90,7 +90,7 @@ public class TestListenerBuildOperationAdapter implements TestListenerInternal {
         if (runningOp == null) {
             throw new IllegalStateException("Received metadata for test that is not running: " + testDescriptor);
         }
-        listener.progress(runningOp.descriptor.getId(), new OperationProgressEvent(event.getLogTime(), new Metadata(event)));
+        listener.progress(runningOp.descriptor.getId(), new OperationProgressEvent(clock.getCurrentTime(), new Metadata(event)));
     }
 
     private BuildOperationDescriptor createTestBuildOperationDescriptor(TestDescriptor testDescriptor, TestStartEvent testStartEvent) {
