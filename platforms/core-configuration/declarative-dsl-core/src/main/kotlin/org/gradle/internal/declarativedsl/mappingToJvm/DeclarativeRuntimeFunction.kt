@@ -17,6 +17,7 @@
 package org.gradle.internal.declarativedsl.mappingToJvm
 
 import org.gradle.declarative.dsl.schema.DataParameter
+import org.gradle.internal.declarativedsl.InstanceAndPublicType
 import org.gradle.internal.declarativedsl.schemaBuilder.ConfigureLambdaHandler
 import java.lang.reflect.InvocationTargetException
 import kotlin.reflect.KFunction
@@ -46,7 +47,7 @@ class ReflectionFunction(private val kFunction: KFunction<*>, private val config
         val captor = params.valueCaptor
         val returnedValue = kFunction.callBy(params.map)
         val returnedPublicType = kFunction.returnType.jvmErasure
-        val capturedValue = captor?.value ?: nullInstanceAndPublicType
-        return DeclarativeRuntimeFunction.InvocationResult(returnedValue to returnedPublicType, capturedValue)
+        val capturedValue = captor?.value ?: InstanceAndPublicType.NULL
+        return DeclarativeRuntimeFunction.InvocationResult(InstanceAndPublicType.of(returnedValue, returnedPublicType), capturedValue)
     }
 }

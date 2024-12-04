@@ -24,6 +24,7 @@ import org.gradle.internal.declarativedsl.analysis.DefaultFqName
 import org.gradle.internal.declarativedsl.evaluationSchema.AnalysisSchemaComponent
 import org.gradle.internal.declarativedsl.evaluationSchema.FixedTypeDiscovery
 import org.gradle.internal.declarativedsl.evaluationSchema.ObjectConversionComponent
+import org.gradle.internal.declarativedsl.InstanceAndPublicType
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimePropertyResolver
 import org.gradle.internal.declarativedsl.schemaBuilder.CollectedPropertyInformation
 import org.gradle.internal.declarativedsl.schemaBuilder.DefaultPropertyExtractor
@@ -92,7 +93,7 @@ class ProjectPropertyAccessorRuntimeResolver : RuntimePropertyResolver {
         if (receiverClass.isSubclassOf(Project::class) && name == "projects") {
             RuntimePropertyResolver.ReadResolution.ResolvedRead { receiver ->
                 val value = (receiver as Project).extensions.getByName("projects")
-                value to value::class }
+                InstanceAndPublicType.of(value, value::class) }
         } else RuntimePropertyResolver.ReadResolution.UnresolvedRead
 
     override fun resolvePropertyWrite(receiverClass: KClass<*>, name: String) = RuntimePropertyResolver.WriteResolution.UnresolvedWrite

@@ -17,7 +17,7 @@
 package org.gradle.internal.declarativedsl.schemaBuilder
 
 import org.gradle.internal.declarativedsl.analysis.interpretationCheck
-import org.gradle.internal.declarativedsl.mappingToJvm.InstanceAndPublicType
+import org.gradle.internal.declarativedsl.InstanceAndPublicType
 import java.lang.reflect.Proxy
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
@@ -65,7 +65,7 @@ val kotlinFunctionAsConfigureLambda: ConfigureLambdaHandler = object : Configure
     override fun produceValueCaptor(lambdaType: KType): ConfigureLambdaHandler.ValueCaptor {
         lateinit var value: Any
         val lambda: Function1<Any, Unit> = { value = it }
-        return ConfigureLambdaHandler.ValueCaptor(lambda, lazy { value to getTypeConfiguredByLambda(lambdaType)?.jvmErasure })
+        return ConfigureLambdaHandler.ValueCaptor(lambda, lazy { InstanceAndPublicType.of(value, getTypeConfiguredByLambda(lambdaType)?.jvmErasure) })
     }
 
     private
@@ -145,6 +145,6 @@ fun treatInterfaceAsConfigureLambda(functionalInterface: KClass<*>): ConfigureLa
             value = args[0]
             return@newProxyInstance null
         }
-        return ConfigureLambdaHandler.ValueCaptor(lambda, lazy { value to typeConfiguredByLambda?.jvmErasure})
+        return ConfigureLambdaHandler.ValueCaptor(lambda, lazy { InstanceAndPublicType.of(value, typeConfiguredByLambda?.jvmErasure) })
     }
 }

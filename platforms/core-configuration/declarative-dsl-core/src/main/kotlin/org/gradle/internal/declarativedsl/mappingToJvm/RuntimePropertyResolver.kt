@@ -16,6 +16,7 @@
 
 package org.gradle.internal.declarativedsl.mappingToJvm
 
+import org.gradle.internal.declarativedsl.InstanceAndPublicType
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimePropertyResolver.ReadResolution
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimePropertyResolver.ReadResolution.ResolvedRead
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimePropertyResolver.ReadResolution.UnresolvedRead
@@ -72,7 +73,7 @@ object ReflectionRuntimePropertyResolver : RuntimePropertyResolver {
     private
     fun kotlinPropertyGetter(property: KProperty<*>) =
         DeclarativeRuntimePropertyGetter {
-            property.call(it) to property.returnType.jvmErasure
+            InstanceAndPublicType.of(property.call(it), property.returnType.jvmErasure)
         }
 
     private
@@ -83,7 +84,7 @@ object ReflectionRuntimePropertyResolver : RuntimePropertyResolver {
     fun findKotlinFunctionGetter(receiverClass: KClass<*>, name: String) =
         receiverClass.memberFunctions.find { function -> function.name == getterName(name) && function.parameters.size == 1 && function.visibility == KVisibility.PUBLIC }
             ?.let { function -> DeclarativeRuntimePropertyGetter {
-                function.call(it) to function.returnType.jvmErasure
+                InstanceAndPublicType.of(function.call(it), function.returnType.jvmErasure)
             } }
 
     private
@@ -95,7 +96,7 @@ object ReflectionRuntimePropertyResolver : RuntimePropertyResolver {
     fun findJavaGetter(receiverClass: KClass<*>, name: String) =
         receiverClass.java.methods.find { it.name == getterName(name) && it.parameters.isEmpty() && it.modifiers.and(Modifier.PUBLIC) != 0 }
             ?.let { method -> DeclarativeRuntimePropertyGetter {
-                method.invoke(it) to method.returnType.kotlin
+                InstanceAndPublicType.of(method.invoke(it), method.returnType.kotlin)
             } }
 
     private

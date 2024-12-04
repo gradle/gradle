@@ -1,17 +1,18 @@
 package org.gradle.internal.declarativedsl.mappingToJvm
 
-import org.gradle.api.internal.plugins.DslObject
 import org.gradle.declarative.dsl.schema.DataBuilderFunction
 import org.gradle.declarative.dsl.schema.DataProperty
 import org.gradle.declarative.dsl.schema.ExternalObjectProviderKey
 import org.gradle.declarative.dsl.schema.ParameterSemantics
 import org.gradle.declarative.dsl.schema.SchemaFunction
+import org.gradle.internal.declarativedsl.InstanceAndPublicType
 import org.gradle.internal.declarativedsl.analysis.AssignmentMethod
 import org.gradle.internal.declarativedsl.analysis.ObjectOrigin
 import org.gradle.internal.declarativedsl.analysis.OperationId
 import org.gradle.internal.declarativedsl.analysis.ParameterValueBinding
 import org.gradle.internal.declarativedsl.objectGraph.ObjectReflection
 import org.gradle.internal.declarativedsl.objectGraph.PropertyValueReflection
+import org.gradle.internal.declarativedsl.withFallbackPublicType
 import kotlin.reflect.KClass
 
 
@@ -64,18 +65,18 @@ class DeclarativeReflectionToObjectConverter(
         // Also, it does not check for the value being null, because null values are potentially allowed
         if (key !in reflectionIdentityObjects) {
             val instanceAndPublicType = newInstanceAndPublicType()
-            reflectionIdentityObjects[key] = instanceAndPublicType.first
-            reflectionIdentityPublicTypes[key] = instanceAndPublicType.second
+            reflectionIdentityObjects[key] = instanceAndPublicType.instance
+            reflectionIdentityPublicTypes[key] = instanceAndPublicType.publicType
             return instanceAndPublicType
         } else {
-            return reflectionIdentityObjects[key] to reflectionIdentityPublicTypes[key]
+            return InstanceAndPublicType.of(reflectionIdentityObjects[key],  reflectionIdentityPublicTypes[key])
         }
     }
 
     private
     fun applyPropertyValue(receiver: ObjectOrigin, property: DataProperty, assigned: PropertyValueReflection) {
         when (assigned.assignmentMethod) {
-            is AssignmentMethod.Property -> setPropertyValue(receiver, property, getObjectByResolvedOrigin(assigned.value.objectOrigin).first)
+            is AssignmentMethod.Property -> setPropertyValue(receiver, property, getObjectByResolvedOrigin(assigned.value.objectOrigin).instance)
             is AssignmentMethod.BuilderFunction -> invokeBuilderFunction(receiver, assigned.assignmentMethod.function, assigned.value.objectOrigin)
             is AssignmentMethod.AsConstructed -> Unit // the value should have already been passed to the constructor or the factory function
         }
@@ -85,15 +86,15 @@ class DeclarativeReflectionToObjectConverter(
     fun getObjectByResolvedOrigin(objectOrigin: ObjectOrigin): InstanceAndPublicType {
         return when (objectOrigin) {
             is ObjectOrigin.DelegatingObjectOrigin -> getObjectByResolvedOrigin(objectOrigin.delegate)
-            is ObjectOrigin.ConstantOrigin -> objectOrigin.literal.value to objectOrigin.literal.type.constantType.kotlin
-            is ObjectOrigin.EnumConstantOrigin -> getEnumConstant(objectOrigin) to Class.forName(objectOrigin.javaTypeName).kotlin
+            is ObjectOrigin.ConstantOrigin -> InstanceAndPublicType.of(objectOrigin.literal.value, objectOrigin.literal.type.constantType.kotlin)
+            is ObjectOrigin.EnumConstantOrigin -> InstanceAndPublicType.of(getEnumConstant(objectOrigin), Class.forName(objectOrigin.javaTypeName).kotlin)
             is ObjectOrigin.External -> withFallbackPublicType(externalObjectsMap[objectOrigin.key] ?: error("no external object provided for external object key of ${objectOrigin.key}"))
             is ObjectOrigin.NewObjectFromMemberFunction -> objectByIdentity(ObjectAccessKey.Identity(objectOrigin.invocationId)) { objectFromMemberFunction(objectOrigin) }
             is ObjectOrigin.NewObjectFromTopLevelFunction -> objectByIdentity(ObjectAccessKey.Identity(objectOrigin.invocationId)) { objectFromTopLevelFunction() }
-            is ObjectOrigin.NullObjectOrigin -> nullInstanceAndPublicType
+            is ObjectOrigin.NullObjectOrigin -> InstanceAndPublicType.NULL
             is ObjectOrigin.PropertyDefaultValue -> getPropertyValue(objectOrigin.receiver, objectOrigin.property)
             is ObjectOrigin.PropertyReference -> getPropertyValue(objectOrigin.receiver, objectOrigin.property)
-            is ObjectOrigin.TopLevelReceiver -> topLevelObject to topLevelObject::class
+            is ObjectOrigin.TopLevelReceiver -> InstanceAndPublicType.of(topLevelObject, topLevelObject::class)
             is ObjectOrigin.ConfiguringLambdaReceiver -> objectFromConfiguringLambda(objectOrigin)
             is ObjectOrigin.CustomConfigureAccessor -> objectFromCustomAccessor(objectOrigin)
         }
@@ -129,7 +130,7 @@ class DeclarativeReflectionToObjectConverter(
         val receiverKClass = receiverInstanceAndPublicType.second
         return when (val runtimeFunction = functionResolver.resolve(receiverKClass, dataFun)) {
             is RuntimeFunctionResolver.Resolution.Resolved -> {
-                val bindingWithValues = origin.parameterBindings.bindingMap.mapValues { getObjectByResolvedOrigin(it.value).first }
+                val bindingWithValues = origin.parameterBindings.bindingMap.mapValues { getObjectByResolvedOrigin(it.value).instance }
                 runtimeFunction.function.callByWithErrorHandling(receiverInstance, bindingWithValues, origin.parameterBindings.providesConfigureBlock)
             }
 
@@ -171,8 +172,11 @@ class DeclarativeReflectionToObjectConverter(
         val parameterBinding = ParameterValueBinding(mapOf(function.dataParameter to valueOrigin), false)
 
         when (val runtimeFunction = functionResolver.resolve(receiverKClass, function)) {
-            is RuntimeFunctionResolver.Resolution.Resolved ->
-                runtimeFunction.function.callByWithErrorHandling(receiverInstance, parameterBinding.bindingMap.mapValues { getObjectByResolvedOrigin(it.value).first }, parameterBinding.providesConfigureBlock).result
+            is RuntimeFunctionResolver.Resolution.Resolved -> {
+                val binding = parameterBinding.bindingMap.mapValues { getObjectByResolvedOrigin(it.value).instance }
+                val hasLambda = parameterBinding.providesConfigureBlock
+                runtimeFunction.function.callByWithErrorHandling(receiverInstance, binding, hasLambda).result
+            }
             RuntimeFunctionResolver.Resolution.Unresolved -> error("could not resolve a member function $function call in the owner class $receiverKClass")
         }
     }
@@ -222,16 +226,3 @@ class DeclarativeReflectionToObjectConverter(
         }
     }
 }
-
-typealias InstanceAndPublicType = Pair<Any?, KClass<*>?>
-
-val nullInstanceAndPublicType: InstanceAndPublicType = null to null
-
-fun InstanceAndPublicType.validate(errorMessageOnInstanceNull: () -> String): Pair<Any, KClass<*>> {
-    checkNotNull(first, errorMessageOnInstanceNull)
-    checkNotNull(second) { "public type for ${first!!::class.qualifiedName} unknown" }
-    return first!! to second!!
-}
-
-fun withFallbackPublicType(instance: Any): InstanceAndPublicType =
-    instance to DslObject(instance).publicType.concreteClass.kotlin
