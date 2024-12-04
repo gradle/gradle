@@ -163,7 +163,7 @@ For example, `jvmArgs "some", "arg"` can be replaced with `jvmArgs("some", "arg"
 
 [[dependency-insight-report-task-get-dependency-spec]]
 ==== DependencyInsightReportTask.getDependencySpec
-The method was deprecated since it's not intended to be public and used by build scripts.
+The method was deprecated because it was not intended for public use in build scripts.
 
 [[changes_8.11]]
 == Upgrading from 8.10 and earlier
