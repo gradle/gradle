@@ -338,8 +338,8 @@ public abstract class DefaultDependencyHandler implements DependencyHandlerInter
     }
 
     @Override
-    public <T extends TransformParameters> void registerTransform(Class<? extends TransformAction<T>> actionType, Action<? super TransformSpec<T>> registrationAction) {
-        transforms.registerTransform(actionType, registrationAction);
+    public <T extends TransformParameters> void registerTransform(@Nullable String name, Class<? extends TransformAction<T>> actionType, Action<? super TransformSpec<T>> registrationAction) {
+        transforms.registerTransform(name, actionType, registrationAction);
     }
 
     @Override

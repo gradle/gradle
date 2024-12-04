@@ -97,7 +97,7 @@ public class DefaultTransformRegistrationFactory implements TransformRegistratio
     }
 
     @Override
-    public TransformRegistration create(ImmutableAttributes from, ImmutableAttributes to, Class<? extends TransformAction<?>> implementation, @Nullable TransformParameters parameterObject) {
+    public TransformRegistration create(@Nullable String name, ImmutableAttributes from, ImmutableAttributes to, Class<? extends TransformAction<?>> implementation, @Nullable TransformParameters parameterObject) {
         TypeMetadata actionMetadata = actionMetadataStore.getTypeMetadata(implementation);
         boolean cacheable = implementation.isAnnotationPresent(CacheableTransform.class);
         InternalProblems problems = (InternalProblems) internalServices.get(InternalProblems.class);
@@ -154,15 +154,18 @@ public class DefaultTransformRegistrationFactory implements TransformRegistratio
             internalServices
         );
 
-        return new DefaultTransformRegistration(from, to, new TransformStep(transform, transformInvocationFactory, owner, inputFingerprinter));
+        return new DefaultTransformRegistration(name, from, to, new TransformStep(transform, transformInvocationFactory, owner, inputFingerprinter));
     }
 
     private static class DefaultTransformRegistration implements TransformRegistration {
+        @Nullable
+        private final String name;
         private final ImmutableAttributes from;
         private final ImmutableAttributes to;
         private final TransformStep transformStep;
 
-        public DefaultTransformRegistration(ImmutableAttributes from, ImmutableAttributes to, TransformStep transformStep) {
+        public DefaultTransformRegistration(@Nullable String name, ImmutableAttributes from, ImmutableAttributes to, TransformStep transformStep) {
+            this.name = name;
             this.from = from;
             this.to = to;
             this.transformStep = transformStep;
@@ -185,7 +188,13 @@ public class DefaultTransformRegistrationFactory implements TransformRegistratio
 
         @Override
         public String toString() {
-            return transformStep + " transform from " + from + " to " + to;
+            return transformStep + (name != null ? " " + name : " transform") + " from " + from + " to " + to;
+        }
+
+        @Nullable
+        @Override
+        public String getName() {
+            return name;
         }
     }
 

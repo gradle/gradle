@@ -307,6 +307,42 @@ class DefaultVariantTransformRegistryTest extends Specification {
         e.cause.message == "Each 'to' attribute must be included as a 'from' attribute."
     }
 
+    def "fails when using duplicate name when registering transform"() {
+        when:
+        registry.registerTransform("test", TestTransform) {
+            it.from.attribute(TEST_ATTRIBUTE, "from")
+            it.to.attribute(TEST_ATTRIBUTE, "to")
+        }
+
+        registry.registerTransform("test", TestTransform) {
+            it.from.attribute(TEST_ATTRIBUTE, "from2")
+            it.to.attribute(TEST_ATTRIBUTE, "to2")
+        }
+
+        then:
+        def e = thrown(VariantTransformConfigurationException)
+        e.message == "Could not register artifact transform 'test' (from {TEST=from2} to {TEST=to2})."
+        e.cause.message == "There is already a transform registered with the name 'test' in this project."
+    }
+
+    def "fails when using duplicate name when registering transform even if using separate types"() {
+        when:
+        registry.registerTransform("test", TestTransform) {
+            it.from.attribute(TEST_ATTRIBUTE, "from")
+            it.to.attribute(TEST_ATTRIBUTE, "to")
+        }
+
+        registry.registerTransform("test", ParameterlessTestTransform) {
+            it.from.attribute(TEST_ATTRIBUTE, "from2")
+            it.to.attribute(TEST_ATTRIBUTE, "to2")
+        }
+
+        then:
+        def e = thrown(VariantTransformConfigurationException)
+        e.message == "Could not register artifact transform 'test' (from {TEST=from2} to {TEST=to2})."
+        e.cause.message == "There is already a transform registered with the name 'test' in this project."
+    }
+
     static abstract class TestTransform implements TransformAction<Parameters> {
         static class Parameters implements TransformParameters {
             String value
