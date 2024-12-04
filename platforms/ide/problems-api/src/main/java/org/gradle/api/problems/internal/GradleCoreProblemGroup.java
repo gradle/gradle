@@ -16,17 +16,18 @@
 
 package org.gradle.api.problems.internal;
 
+import org.gradle.api.problems.IdFactory;
 import org.gradle.api.problems.ProblemGroup;
 
 public abstract class GradleCoreProblemGroup implements ProblemGroup {
 
-    private static final DefaultCompilationProblemGroup COMPILATION_PROBLEM_GROUP = new DefaultCompilationProblemGroup("compilation", "Compilation");
-    private static final DefaultProblemGroup DEPRECATION_PROBLEM_GROUP = new DefaultProblemGroup("deprecation", "Deprecation");
-    private static final DefaultValidationProblemGroup VALIDATION_PROBLEM_GROUP = new DefaultValidationProblemGroup("validation", "Validation");
-    private static final DefaultProblemGroup PLUGIN_APPLICATION_PROBLEM_GROUP = new DefaultProblemGroup("plugin-application", "Plugin application");
-    private static final DefaultProblemGroup TASK_SELECTION_PROBLEM_GROUP = new DefaultProblemGroup("task-selection", "Task selection");
-    private static final DefaultProblemGroup VERSION_CATALOG_PROBLEM_GROUP = new DefaultProblemGroup("dependency-version-catalog", "Version catalog");
-    private static final DefaultProblemGroup VARIANT_RESOLUTION_PROBLEM_GROUP = new DefaultProblemGroup("dependency-variant-resolution", "Variant resolution");
+    private static final DefaultCompilationProblemGroup COMPILATION_PROBLEM_GROUP = new DefaultCompilationProblemGroup();
+    private static final ProblemGroup DEPRECATION_PROBLEM_GROUP = IdFactory.instance().createRootProblemGroup("deprecation", "Deprecation");
+    private static final DefaultValidationProblemGroup VALIDATION_PROBLEM_GROUP = new DefaultValidationProblemGroup();
+    private static final ProblemGroup PLUGIN_APPLICATION_PROBLEM_GROUP = IdFactory.instance().createRootProblemGroup("plugin-application", "Plugin application");
+    private static final ProblemGroup TASK_SELECTION_PROBLEM_GROUP = IdFactory.instance().createRootProblemGroup("task-selection", "Task selection");
+    private static final ProblemGroup VERSION_CATALOG_PROBLEM_GROUP = IdFactory.instance().createRootProblemGroup("dependency-version-catalog", "Version catalog");
+    private static final ProblemGroup VARIANT_RESOLUTION_PROBLEM_GROUP = IdFactory.instance().createRootProblemGroup("dependency-variant-resolution", "Variant resolution");
 
     public static CompilationProblemGroup compilation() {
         return COMPILATION_PROBLEM_GROUP;
@@ -56,28 +57,32 @@ public abstract class GradleCoreProblemGroup implements ProblemGroup {
         return VARIANT_RESOLUTION_PROBLEM_GROUP;
     }
 
-    public interface CompilationProblemGroup extends ProblemGroup {
+    public interface CompilationProblemGroup {
+        ProblemGroup thisGroup();
         ProblemGroup java();
-
         ProblemGroup groovy();
-
         ProblemGroup groovyDsl();
     }
 
-    public interface ValidationProblemGroup extends ProblemGroup {
+    public interface ValidationProblemGroup {
+        ProblemGroup thisGroup();
         ProblemGroup property();
-
         ProblemGroup type();
     }
 
-    private static class DefaultCompilationProblemGroup extends DefaultProblemGroup implements CompilationProblemGroup {
+    private static class DefaultCompilationProblemGroup implements CompilationProblemGroup {
 
-        private final ProblemGroup java = new DefaultProblemGroup("java", "Java compilation", this);
-        private final ProblemGroup groovy = new DefaultProblemGroup("groovy", "Groovy compilation", this);
-        public ProblemGroup groovyDsl = new DefaultProblemGroup("groovy-dsl", "Groovy DSL script compilation", this);
+        private final ProblemGroup thisGroup = IdFactory.instance().createRootProblemGroup("compilation", "Compilation");
+        private final ProblemGroup java = IdFactory.instance().createProblemGroup("java", "Java compilation", thisGroup);
+        private final ProblemGroup groovy = IdFactory.instance().createProblemGroup("groovy", "Groovy compilation", thisGroup);
+        public ProblemGroup groovyDsl = IdFactory.instance().createProblemGroup("groovy-dsl", "Groovy DSL script compilation", thisGroup);
 
-        private DefaultCompilationProblemGroup(String id, String displayName) {
-            super(id, displayName);
+        private DefaultCompilationProblemGroup() {
+        }
+
+        @Override
+        public ProblemGroup thisGroup() {
+            return thisGroup;
         }
 
         @Override
@@ -96,14 +101,18 @@ public abstract class GradleCoreProblemGroup implements ProblemGroup {
         }
     }
 
-    private static class DefaultValidationProblemGroup extends DefaultProblemGroup implements ValidationProblemGroup {
+    private static class DefaultValidationProblemGroup implements ValidationProblemGroup {
 
-        private final ProblemGroup property = new DefaultProblemGroup("property-validation", "Gradle property validation", this);
+        private final ProblemGroup thisGroup = IdFactory.instance().createRootProblemGroup("validation", "Validation");
+        private final ProblemGroup property = IdFactory.instance().createProblemGroup("property-validation", "Gradle property validation", thisGroup);
+        private final ProblemGroup type = IdFactory.instance().createProblemGroup("type-validation", "Gradle type validation", thisGroup);
 
-        private final ProblemGroup type = new DefaultProblemGroup("type-validation", "Gradle type validation", this);
+        private DefaultValidationProblemGroup() {
+        }
 
-        private DefaultValidationProblemGroup(String id, String displayName) {
-            super(id, displayName);
+        @Override
+        public ProblemGroup thisGroup() {
+            return thisGroup;
         }
 
         @Override

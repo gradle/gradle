@@ -18,10 +18,10 @@ package org.gradle.internal.cc.impl.problems
 
 import com.google.common.collect.Sets.newConcurrentHashSet
 import org.gradle.api.logging.Logging
+import org.gradle.api.problems.IdFactory
 import org.gradle.api.problems.ProblemGroup
 import org.gradle.api.problems.ProblemSpec
 import org.gradle.api.problems.Severity
-import org.gradle.api.problems.internal.DefaultProblemGroup
 import org.gradle.api.problems.internal.GradleCoreProblemGroup
 import org.gradle.api.problems.internal.InternalProblems
 import org.gradle.api.problems.internal.PropertyTraceDataSpec
@@ -192,7 +192,7 @@ class ConfigurationCacheProblems(
     }
 
     private
-    val configCacheValidation: ProblemGroup = DefaultProblemGroup("configuration-cache", "configuration cache validation", GradleCoreProblemGroup.validation())
+    val configCacheValidation: ProblemGroup = IdFactory.instance().createProblemGroup("configuration-cache", "configuration cache validation", GradleCoreProblemGroup.validation().thisGroup())
 
     private
     fun InternalProblems.onProblem(problem: PropertyProblem, severity: ProblemSeverity) {

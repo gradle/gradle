@@ -31,6 +31,7 @@ import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
+import org.gradle.api.problems.IdFactory;
 import org.gradle.api.problems.ProblemGroup;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.internal.AdditionalData;
@@ -42,8 +43,6 @@ import org.gradle.api.problems.internal.DefaultOffsetInFileLocation;
 import org.gradle.api.problems.internal.DefaultPluginIdLocation;
 import org.gradle.api.problems.internal.DefaultProblem;
 import org.gradle.api.problems.internal.DefaultProblemCategory;
-import org.gradle.api.problems.internal.DefaultProblemGroup;
-import org.gradle.api.problems.internal.DefaultProblemId;
 import org.gradle.api.problems.internal.DefaultPropertyTraceData;
 import org.gradle.api.problems.internal.DefaultTaskPathLocation;
 import org.gradle.api.problems.internal.DefaultTypeValidationData;
@@ -561,7 +560,7 @@ public class ValidationProblemSerialization {
             String name = problemObject.get("name").getAsString();
             String displayName = problemObject.get("displayName").getAsString();
             ProblemGroup group = deserializeGroup(problemObject.get("group"));
-            return new DefaultProblemId(name, displayName, group);
+            return IdFactory.instance().createProblemId(name, displayName, group);
         }
 
         private static ProblemGroup deserializeGroup(JsonElement groupObject) {
@@ -570,9 +569,9 @@ public class ValidationProblemSerialization {
             String displayName = group.get("displayName").getAsString();
             JsonElement parent = group.get("parent");
             if (parent == null) {
-                return new DefaultProblemGroup(name, displayName);
+                return IdFactory.instance().createRootProblemGroup(name, displayName);
             }
-            return new DefaultProblemGroup(name, displayName, deserializeGroup(parent));
+            return IdFactory.instance().createProblemGroup(name, displayName, deserializeGroup(parent));
         }
 
         @Override

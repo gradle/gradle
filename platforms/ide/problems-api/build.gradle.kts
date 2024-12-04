@@ -50,3 +50,7 @@ dependencies {
 tasks.isolatedProjectsIntegTest {
     enabled = false
 }
+
+packageCycles {
+    excludePatterns.add("org/gradle/api/problems/**") // IdFactory.instance() returns DefaultIdFactory
+}

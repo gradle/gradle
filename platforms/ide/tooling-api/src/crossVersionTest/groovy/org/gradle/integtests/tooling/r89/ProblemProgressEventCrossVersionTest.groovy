@@ -141,8 +141,10 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
     def "Problems expose details via Tooling API events with problem definition"() {
         given:
         withReportProblemTask """
+            ${targetVersion >= GradleVersion.version("8.13") ? "def problemGroup = org.gradle.api.problems.IdFactory.instance().createRootProblemGroup('generic', 'group label')" : '' }
+            ${targetVersion >= GradleVersion.version("8.13") ? "def problemId = org.gradle.api.problems.IdFactory.instance().createProblemId('id', 'shortProblemMessage')" : '' }
             getProblems().${targetVersion >= GradleVersion.version("8.11") ? 'getReporter()' : 'forNamespace("org.example.plugin")'}.reporting {
-                it.id("id", "shortProblemMessage")
+                ${targetVersion >= GradleVersion.version("8.13") ? "it.id(problemId)" : 'it.id("id", "shortProblemMessage")' }
                 $documentationConfig
                 .lineInFileLocation("/tmp/foo", 1, 2, 3)
                 $detailsConfig

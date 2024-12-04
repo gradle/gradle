@@ -18,8 +18,8 @@ package org.gradle.internal.reflect;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.problems.IdFactory;
 import org.gradle.api.problems.ProblemId;
-import org.gradle.api.problems.internal.DefaultProblemId;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.problems.internal.Problem;
@@ -50,7 +50,7 @@ public class DefaultTypeValidationContext extends ProblemRecordingTypeValidation
         this.reportCacheabilityProblems = reportCacheabilityProblems;
     }
 
-    public static final ProblemId MISSING_NORMALIZATION_ID = new DefaultProblemId("missing-normalization-annotation", "Missing normalization", GradleCoreProblemGroup.validation().property());
+    public static final ProblemId MISSING_NORMALIZATION_ID = IdFactory.instance().createProblemId("missing-normalization-annotation", "Missing normalization", GradleCoreProblemGroup.validation().property());
 
     public static boolean onlyAffectsCacheableWork(ProblemId id) {
         return MISSING_NORMALIZATION_ID.equals(id);
