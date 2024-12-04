@@ -160,7 +160,21 @@ class ProgressEvents implements ProgressListener {
                 assert event.result.startTime == startEvent.eventTime
                 assert event.result.endTime == event.eventTime
             } else if (event instanceof TestOutputEvent || event instanceof TestMetadataEvent) {
-                // Do nothing - these are treated differently, their contents are stored separately from the events
+                def descriptor = event.descriptor
+                assert seen.add(descriptor)
+                assert !running.containsKey(descriptor)
+
+                // These are progress events and should have a parent
+                assert descriptor.parent != null
+                // parent should also be running
+                assert running.containsKey(descriptor.parent)
+                def parent = operations.find { it.descriptor == descriptor.parent }
+
+                Operation operation = newOperation(event, parent, descriptor)
+                operations.add(operation)
+
+                assert descriptor.displayName == descriptor.toString()
+                assert event.displayName.matches("\\Q${descriptor.displayName}\\E[ \\w-]+")
             } else {
                 def descriptor = event.descriptor
                 // operation should still be running
@@ -177,7 +191,7 @@ class ProgressEvents implements ProgressListener {
         dirty = false
     }
 
-    protected Operation newOperation(StartEvent startEvent, Operation parent, OperationDescriptor descriptor) {
+    protected Operation newOperation(ProgressEvent startEvent, Operation parent, OperationDescriptor descriptor) {
         new Operation(startEvent, parent, descriptor)
     }
 
@@ -365,7 +379,7 @@ class ProgressEvents implements ProgressListener {
     }
 
     static class Operation {
-        final StartEvent startEvent
+        final ProgressEvent startEvent
         final OperationDescriptor descriptor
         final Operation parent
         final List<Operation> children = []
@@ -373,7 +387,7 @@ class ProgressEvents implements ProgressListener {
         FinishEvent finishEvent
         OperationResult result
 
-        protected Operation(StartEvent startEvent, Operation parent, OperationDescriptor descriptor) {
+        protected Operation(ProgressEvent startEvent, Operation parent, OperationDescriptor descriptor) {
             this.startEvent = startEvent
             this.descriptor = descriptor
             this.parent = parent

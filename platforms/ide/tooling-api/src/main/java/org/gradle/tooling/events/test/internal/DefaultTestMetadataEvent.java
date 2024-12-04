@@ -44,7 +44,7 @@ public class DefaultTestMetadataEvent implements TestMetadataEvent {
 
     @Override
     public String getDisplayName() {
-        return descriptor.getDisplayName();
+        return descriptor.getDisplayName() + " " + key;
     }
 
     @Override
