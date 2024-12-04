@@ -73,7 +73,7 @@ dependencies {
             root(":", ":depLock:") {
                 edge("org:foo:1.+", "org:foo:1.0")
                 constraint("org:foo:$constraintVersion", "org:foo:1.0") {
-                    byConstraint("dependency was locked to version '1.0'$extraReason")
+                    byConstraint("Dependency version enforced by Dependency Locking$extraReason")
                 }
             }
         }

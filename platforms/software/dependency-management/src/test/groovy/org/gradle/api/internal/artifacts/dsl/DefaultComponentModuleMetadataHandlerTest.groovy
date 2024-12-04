@@ -20,24 +20,24 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import spock.lang.Specification
-import spock.lang.Subject
 
 import static org.gradle.api.internal.artifacts.DefaultModuleIdentifier.newId
 
-class ComponentModuleMetadataContainerTest extends Specification {
+class DefaultComponentModuleMetadataHandlerTest extends Specification {
     final ImmutableModuleIdentifierFactory moduleIdentifierFactory = Mock() {
         module(_, _) >> { args ->
             DefaultModuleIdentifier.newId(*args)
         }
     }
 
-    @Subject replacements = new ComponentModuleMetadataContainer(moduleIdentifierFactory)
+    def handler = new DefaultComponentModuleMetadataHandler(moduleIdentifierFactory)
 
     def "keeps track of replacements"() {
-        replacements.module("com.google.collections:google-collections").replacedBy("com.google.guava:guava");
-        replacements.module(newId("foo", "bar")).replacedBy(newId("foo", "xxx"), 'custom');
+        handler.module("com.google.collections:google-collections").replacedBy("com.google.guava:guava");
+        handler.module(newId("foo", "bar")).replacedBy(newId("foo", "xxx"), 'custom');
 
         expect:
+        def replacements = handler.moduleReplacements
         replacements.getReplacementFor(newId("com.google.collections", "google-collections")).target == newId("com.google.guava", "guava")
         replacements.getReplacementFor(newId("foo", "bar")).target == newId("foo", "xxx")
         replacements.getReplacementFor(newId("foo", "bar")).reason == 'custom'
@@ -47,15 +47,20 @@ class ComponentModuleMetadataContainerTest extends Specification {
     }
 
     def "does not allow replacing with the same module"() {
-        when: replacements.module("o:o").replacedBy("o:o")
+        when:
+        handler.module("o:o").replacedBy("o:o")
+
         then:
         def ex = thrown(InvalidUserDataException)
         ex.message == "Cannot declare module replacement that replaces self: o:o->o:o"
     }
 
     def "detects cycles early"() {
-        replacements.module("o:a").replacedBy("o:b")
-        when: replacements.module("o:b").replacedBy("o:a")
+        given:
+        handler.module("o:a").replacedBy("o:b")
+
+        when:
+        handler.module("o:b").replacedBy("o:a")
 
         then:
         def ex = thrown(InvalidUserDataException)
@@ -63,11 +68,14 @@ class ComponentModuleMetadataContainerTest extends Specification {
     }
 
     def "detects transitive cycles early"() {
-        replacements.module("o:o").replacedBy("o:x")
+        given:
+        handler.module("o:o").replacedBy("o:x")
         //a->b->c->a
-        replacements.module("o:a").replacedBy("o:b")
-        replacements.module("o:b").replacedBy("o:c")
-        when: replacements.module("o:c").replacedBy("o:a")
+        handler.module("o:a").replacedBy("o:b")
+        handler.module("o:b").replacedBy("o:c")
+
+        when:
+        handler.module("o:c").replacedBy("o:a")
 
         then:
         def ex = thrown(InvalidUserDataException)
@@ -75,13 +83,17 @@ class ComponentModuleMetadataContainerTest extends Specification {
     }
 
     def "provides module metadata information"() {
-        def module = replacements.module("com.google.collections:google-collections")
+        given:
+        def module = handler.module("com.google.collections:google-collections")
 
         expect:
         module.id == newId("com.google.collections", "google-collections")
         module.replacedBy == null
 
-        when: module.replacedBy("a:b")
-        then: module.replacedBy == newId("a", "b")
+        when:
+        module.replacedBy("a:b")
+
+        then:
+        module.replacedBy == newId("a", "b")
     }
 }
