@@ -23,7 +23,7 @@ import javax.annotation.Nullable;
 import java.io.Serializable;
 
 @Incubating
-public class DefaultProblemGroup implements ProblemGroup, Serializable {
+public class DefaultProblemGroup extends ProblemGroup implements Serializable {
 
     private final String name;
     private final String displayName;

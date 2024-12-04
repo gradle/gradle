@@ -42,8 +42,6 @@ import org.gradle.api.problems.internal.DefaultOffsetInFileLocation;
 import org.gradle.api.problems.internal.DefaultPluginIdLocation;
 import org.gradle.api.problems.internal.DefaultProblem;
 import org.gradle.api.problems.internal.DefaultProblemCategory;
-import org.gradle.api.problems.internal.DefaultProblemGroup;
-import org.gradle.api.problems.internal.DefaultProblemId;
 import org.gradle.api.problems.internal.DefaultPropertyTraceData;
 import org.gradle.api.problems.internal.DefaultTaskPathLocation;
 import org.gradle.api.problems.internal.DefaultTypeValidationData;
@@ -561,7 +559,7 @@ public class ValidationProblemSerialization {
             String name = problemObject.get("name").getAsString();
             String displayName = problemObject.get("displayName").getAsString();
             ProblemGroup group = deserializeGroup(problemObject.get("group"));
-            return new DefaultProblemId(name, displayName, group);
+            return ProblemId.create(name, displayName, group);
         }
 
         private static ProblemGroup deserializeGroup(JsonElement groupObject) {
@@ -570,9 +568,9 @@ public class ValidationProblemSerialization {
             String displayName = group.get("displayName").getAsString();
             JsonElement parent = group.get("parent");
             if (parent == null) {
-                return new DefaultProblemGroup(name, displayName);
+                return ProblemGroup.create(name, displayName);
             }
-            return new DefaultProblemGroup(name, displayName, deserializeGroup(parent));
+            return ProblemGroup.create(name, displayName, deserializeGroup(parent));
         }
 
         @Override

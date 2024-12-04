@@ -16,7 +16,7 @@
 package org.gradle.integtests.fixtures.validation;
 
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.problems.internal.DefaultProblemGroup;
+import org.gradle.api.problems.ProblemGroup;
 import org.gradle.api.problems.Severity;
 import org.gradle.internal.deprecation.Documentation;
 import org.gradle.internal.properties.PropertyValue;
@@ -45,7 +45,7 @@ class ValidationProblemPropertyAnnotationHandler extends AbstractPropertyAnnotat
         validationContext.visitPropertyProblem(problem ->
             problem
                 .forProperty(propertyMetadata.getPropertyName())
-                .id("test-problem", "test problem", new DefaultProblemGroup("root", "root"))
+                .id("test-problem", "test problem", ProblemGroup.create("root", "root"))
                 .documentedAt(Documentation.userManual("id", "section"))
                 .severity(annotationValue(propertyMetadata))
                 .details("this is a test")

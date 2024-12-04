@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.compile
 
+import org.gradle.api.problems.ProblemId
 import org.gradle.api.problems.internal.GradleCoreProblemGroup
 import org.gradle.api.problems.internal.InternalProblemSpec
 import spock.lang.Specification
@@ -44,7 +45,7 @@ class DiagnosticToProblemListenerTest extends Specification {
         diagnosticToProblemListener.buildProblem(diagnostic, spec)
 
         then:
-        1 * spec.id("dummy-code", "Java compilation error", GradleCoreProblemGroup.compilation().java())
+        1 * spec.id({ (it as ProblemId).group.equals(GradleCoreProblemGroup.compilation().java()) && (it as ProblemId).name == 'dummy-code' })
         1 * spec.details(_)
     }
 

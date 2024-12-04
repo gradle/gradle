@@ -18,6 +18,8 @@ package org.gradle.api.problems.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.problems.ProblemGroup;
+import org.gradle.api.problems.ProblemId;
+import org.gradle.api.problems.ProblemReporter;
 import org.gradle.api.problems.ProblemSpec;
 import org.gradle.api.problems.Severity;
 
@@ -55,9 +57,19 @@ public interface InternalProblemSpec extends ProblemSpec {
     InternalProblemSpec documentedAt(@Nullable DocLink doc);
 
     @Override
-    InternalProblemSpec id(String name, String displayName);
+    InternalProblemSpec id(ProblemId problemId);
 
-    @Override
+    /**
+     * Defines simple identification for this problem.
+     * <p>
+     * It is a mandatory property to configure when emitting a problem with {@link ProblemReporter}.
+     *
+     * @param name the name of the problem. As a convention kebab-case-formatting should be used.
+     * @param displayName a human-readable representation of the problem, free of any contextual information.
+     * @param parent the container problem group.
+     * @return this
+     * @since 8.8
+     */
     InternalProblemSpec id(String name, String displayName, ProblemGroup parent);
 
     @Override

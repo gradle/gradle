@@ -16,6 +16,7 @@
 
 package org.gradle.api.problems.internal
 
+
 import org.gradle.api.problems.ProblemGroup
 import org.gradle.api.problems.ProblemId
 import spock.lang.Specification
@@ -24,9 +25,9 @@ class DefaultProblemIdTest extends Specification {
 
     def "string representation is correct"() {
         given:
-        ProblemGroup g1 = new DefaultProblemGroup("g-1", "d/g-1")
-        ProblemGroup g2 = new DefaultProblemGroup("g-2", "d/g-2", g1)
-        ProblemId id = new DefaultProblemId("id", "d/id", g2)
+        ProblemGroup g1 = ProblemGroup.create("g-1", "d/g-1")
+        ProblemGroup g2 = ProblemGroup.create("g-2", "d/g-2", g1)
+        ProblemId id = ProblemId.create("id", "d/id", g2)
 
         expect:
         id.toString() == "g-1:g-2:id"
