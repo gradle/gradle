@@ -1,4 +1,4 @@
-// Copyright (C) 2023 Gradle, Inc.
+// Copyright (C) 2024 Gradle, Inc.
 //
 // Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
 // you may not use this file except in compliance with the License.
@@ -71,7 +71,7 @@ _Reading time_: **35 minutes** +
 _Description_: *Initialize a Gradle project and create a basic plugin.* +
 _Training level_: **Intermediate** +
 _Training time_: **55 minutes** +
-<<partr1_gradle_init#part1_begin,-> Start the Tutorial >>
+<<part1_gradle_init_project#part1_begin,-> Start the Tutorial >>
 
 [[reference]]
 === 3. API Reference

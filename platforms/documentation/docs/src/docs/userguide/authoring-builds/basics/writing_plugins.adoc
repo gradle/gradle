@@ -1,4 +1,4 @@
-// Copyright (C) 2023 Gradle, Inc.
+// Copyright (C) 2024 Gradle, Inc.
 //
 // Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
 // you may not use this file except in compliance with the License.
@@ -15,33 +15,34 @@
 [[writing_plugins]]
 = Writing Plugins
 
-If Gradle or the Gradle community does not offer the specific capabilities your project needs, creating your own plugin could be a solution.
+If Gradle or the Gradle community does not offer the specific capabilities your project needs, creating your own custom plugin could be a solution.
 
-Additionally, if you find yourself duplicating build logic across subprojects and need a better way to organize it, custom plugins can help.
+Additionally, if you find yourself duplicating build logic across subprojects and need a better way to organize it, convention plugins can help.
 
 == Script plugin
 
 A plugin is any class that implements the link:{javadocPath}/org/gradle/api/Plugin.html[`Plugin`] interface.
-
-To create a "hello world" *plugin*:
+For example, this is a "hello world" *plugin*:
 
 ====
-include::sample[dir="snippets/plugins/simple/kotlin", files="build.gradle.kts[tags=plugin-1]"]
-include::sample[dir="snippets/plugins/simple/groovy", files="build.gradle[tags=plugin-1]"]
+include::sample[dir="snippets/plugins/simple/kotlin", files="build.gradle.kts[tags=plugin]"]
+include::sample[dir="snippets/plugins/simple/groovy", files="build.gradle[tags=plugin]"]
 ====
 <1> Extend the `org.gradle.api.Plugin` interface.
 <2> Override the `apply` method.
+<3> `apply` the plugin to the project.
 
 === 1. Extend the `org.gradle.api.Plugin` interface
-Create a class that extends the `Plugin` interface.
+
+Create a class that extends the `Plugin` interface:
 
 ====
+[.multi-language-sample]
 =====
 .build.gradle.kts
 [source, kotlin]
 ----
-abstract class MyCreateFilePlugin : Plugin<Project> {
-    override fun apply() {}
+abstract class SamplePlugin : Plugin<Project> {
 }
 ----
 =====
@@ -51,31 +52,67 @@ abstract class MyCreateFilePlugin : Plugin<Project> {
 [source,groovy]
 ----
 class SamplePlugin implements Plugin<Project> {
-    void apply(Project project) {}
 }
 ----
 =====
 ====
 
 === 2. Override the `apply` method
-Add tasks and other logic in the `apply()` method.
+
+Add tasks and other logic in the `apply()` method:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source, kotlin]
+----
+override fun apply() {
+
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+void apply(Project project) {
+
+}
+----
+=====
+====
+
+=== 3. `apply` the plugin to your project
 
 When `SamplePlugin` is applied in your project, Gradle calls the `fun apply() {}` method defined.
-This adds the `SampleTask` to your project.
-
-You can then apply the plugin in your build script:
+This adds the `ScriptPlugin` task to your project:
 
 ====
-include::sample[dir="snippets/plugins/simple/kotlin", files="build.gradle.kts[tags=plugin-1]"]
-include::sample[dir="snippets/plugins/simple/groovy", files="build.gradle[tags=plugin-1]"]
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source, kotlin]
+----
+apply<SamplePlugin>()
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+apply plugin: SamplePlugin
+----
+=====
 ====
-<1> Apply the `SamplePlugin`.
 
-Note that this is a simple hello-world example and does not reflect best practices.
+Note that this is a simple `hello-world` example and does *not* reflect best practices.
 
-IMPORTANT: Script plugins are *not* recommended. Plugin code should *not* be in your `build.gradle(.kts)` file.
+IMPORTANT: Script plugins are *not* recommended.
 
-Plugins should always be written as _pre-compiled script plugins_, _convention plugins_ or _binary plugins_.
+The best practice for developing plugins is to create _convention plugins_ or _binary plugins_.
 
 == Pre-compiled script plugin
 
@@ -90,6 +127,7 @@ Let's take a look at an example with the following structure:
 
 [source,text]
 ----
+.
 └── buildSrc
     ├── build.gradle.kts
     └── src
@@ -105,51 +143,14 @@ include::sample[dir="snippets/plugins/simple/kotlin", files="buildSrc/src/main/k
 include::sample[dir="snippets/plugins/simple/groovy", files="buildSrc/src/main/groovy/my-create-file-plugin.gradle[]"]
 ====
 
-And the `buildSrc` build file contains the following:
-
-====
-include::sample[dir="snippets/plugins/simple/kotlin", files="buildSrc/build.gradle.kts[]"]
-include::sample[dir="snippets/plugins/simple/groovy", files="buildSrc/build.gradle[]"]
-====
-
 The pre-compiled script can now be applied in the `build.gradle(.kts`) file of any subproject:
 
 ====
-include::sample[dir="snippets/plugins/simple/kotlin", files="build.gradle.kts[tags=apply]"]
-include::sample[dir="snippets/plugins/simple/groovy", files="build.gradle[tags=apply]"]
+include::sample[dir="snippets/plugins/simple/kotlin", files="build.gradle.kts[tags=apply-conv]"]
+include::sample[dir="snippets/plugins/simple/groovy", files="build.gradle[tags=apply-conv]"]
 ====
 
 The `createFileTask` task from the plugin is now available in your subproject.
-
-== Convention Plugins
-
-Convention plugins are a way to encapsulate and reuse common build logic in Gradle.
-They allow you to define a set of conventions for a project, and then apply those conventions to other projects or modules.
-
-The example above has been re-written as a convention plugin as a Kotlin script called `MyConventionPlugin.kt` and stored in `buildSrc`:
-
-====
-include::sample[dir="snippets/plugins/simple/kotlin", files="buildSrc/src/main/kotlin/MyCreateFileBinaryPlugin.kt[]"]
-====
-
-The plugin can be given an `id` using a `gradlePlugin{}` block so that it can be referenced in the root:
-
-====
-include::sample[dir="snippets/plugins/simple/kotlin", files="buildSrc/build.gradle.kts[tags=plugin-3]"]
-include::sample[dir="snippets/plugins/simple/groovy", files="buildSrc/build.gradle[tags=plugin-3]"]
-====
-
-The `gradlePlugin{}` block defines the plugins being built by the project.
-With the newly created `id`, the plugin can be applied in other build scripts accordingly:
-
-.build.gradle.kts
-[source,kotlin]
-----
-plugins {
-    application
-    id("my-convention-plugin") // Apply the plugin
-}
-----
 
 == Binary Plugins
 
@@ -175,8 +176,30 @@ includeBuild("my-plugin")
 [source,kotlin]
 ----
 plugins {
-    id("com.gradle.plugin.myconventionplugin") version "1.0.0"
+    id("com.gradle.plugin.my-plugin") version "1.0.0"
 }
 ----
+
+Let's go with the second solution.
+This plugin has been re-written in Kotlin and is called `MyCreateFileBinaryPlugin.kt`.
+It is still stored in `buildSrc`:
+
+====
+include::sample[dir="snippets/plugins/simple/kotlin", files="buildSrc/src/main/kotlin/MyCreateFileBinaryPlugin.kt[]"]
+====
+
+The plugin can be published and given an `id` using a `gradlePlugin{}` block so that it can be referenced in the root:
+
+====
+include::sample[dir="snippets/plugins/simple/kotlin", files="buildSrc/build.gradle.kts[tags=plugin-3]"]
+include::sample[dir="snippets/plugins/simple/groovy", files="buildSrc/build.gradle[tags=plugin-3]"]
+====
+
+Then, the plugin can be applied in the build file:
+
+====
+include::sample[dir="snippets/plugins/simple/kotlin", files="build.gradle.kts[tags=apply]"]
+include::sample[dir="snippets/plugins/simple/groovy", files="build.gradle[tags=apply]"]
+====
 
 Consult the <<custom_plugins.adoc#custom_plugins,Developing Plugins chapter>> to learn more.

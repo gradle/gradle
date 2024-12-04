@@ -20,12 +20,30 @@ tasks.register("encode") {
 // end::code[]
 
 // tag::apply[]
+// tag::apply-conv[]
 plugins {
-    id("my-create-file-plugin")  // Apply the convention plugin
+    id("my-create-file-plugin")  // Apply the pre-compiled convention plugin
+// end::apply-conv[]
     id("com.example.my-binary-plugin") // Apply the binary plugin
+// tag::apply-conv[]
     `kotlin-dsl`
 }
+// end::apply-conv[]
 // end::apply[]
+
+// tag::plugin[]
+abstract class SamplePlugin : Plugin<Project> { // <1>
+    override fun apply(project: Project) {  // <2>
+        project.tasks.register("ScriptPlugin") {
+            doLast {
+                println("Hello world from the build file!")
+            }
+        }
+    }
+}
+
+apply<SamplePlugin>() // <3>
+// end::plugin[]
 
 // tag::plugin-1[]
 abstract class SamplePlugin1 : Plugin<Project> { // <1>
