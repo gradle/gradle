@@ -25,7 +25,7 @@ abstract class AbstractIvyDescriptorExcludeResolveIntegrationTest extends Abstra
         buildFile << """
 repositories {
     ivy {
-        url '${ivyRepo.uri}'
+        url = "${ivyRepo.uri}"
     }
 }
 

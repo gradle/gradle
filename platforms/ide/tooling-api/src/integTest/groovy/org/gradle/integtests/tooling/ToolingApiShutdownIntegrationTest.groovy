@@ -35,7 +35,7 @@ class ToolingApiShutdownIntegrationTest extends AbstractIntegrationSpec {
 
             repositories {
                 ${mavenCentralRepository()}
-                maven { url '${buildContext.localRepository.toURI().toURL()}' }
+                maven { url = '${buildContext.localRepository.toURI()}' }
             }
 
             tasks.register('runGradleBuildWithUnstableDaemon', JavaExec) {

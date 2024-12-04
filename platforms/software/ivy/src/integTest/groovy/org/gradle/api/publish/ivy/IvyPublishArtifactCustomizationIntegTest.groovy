@@ -88,23 +88,23 @@ class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTe
                         }
                     }
                     artifact("customFile.txt") {
-                        name "customFile"
-                        classifier "classified"
-                        conf "foo,bar"
+                        name = "customFile"
+                        classifier = "classified"
+                        conf = "foo,bar"
                     }
                     artifact(customDocsTask.outputFile) {
-                        name "docs"
-                        extension "htm"
+                        name = "docs"
+                        extension = "htm"
                         builtBy customDocsTask
                     }
                     artifact(regularFileTask.outputFile) {
-                        name "regular"
-                        extension "txt"
+                        name = "regular"
+                        extension = "txt"
                     }
                     artifact(customJar) {
-                        extension "war"
-                        type "web-archive"
-                        conf "*"
+                        extension = "war"
+                        type = "web-archive"
+                        conf = "*"
                     }
                 }
             }
@@ -479,7 +479,7 @@ The following types/formats are supported:
 
             publishing {
                 repositories {
-                    ivy { url "${ivyRepo.uri}" }
+                    ivy { url = "${ivyRepo.uri}" }
                 }
                 $publications
             }
@@ -516,7 +516,7 @@ The following types/formats are supported:
 
             publishing {
                 repositories {
-                    ivy { url "${ivyRepo.uri}" }
+                    ivy { url = "${ivyRepo.uri}" }
                 }
                 publications {
                     maven(IvyPublication) {

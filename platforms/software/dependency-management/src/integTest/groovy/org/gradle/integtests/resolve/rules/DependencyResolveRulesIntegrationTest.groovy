@@ -867,7 +867,7 @@ Required by:
 
         file("build.gradle") << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
             configurations {
                 conf {
@@ -919,7 +919,7 @@ Required by:
     String getCommon() {
         """configurations { conf }
         repositories {
-            maven { url "${mavenRepo.uri}" }
+            maven { url = "${mavenRepo.uri}" }
         }
         task resolveConf {
             def files = configurations.conf

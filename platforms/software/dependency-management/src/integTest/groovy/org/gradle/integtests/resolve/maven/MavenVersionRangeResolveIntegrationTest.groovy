@@ -33,7 +33,7 @@ class MavenVersionRangeResolveIntegrationTest extends AbstractDependencyResoluti
         buildFile << """
 repositories {
     maven {
-        url "${mavenRepo.uri}"
+        url = "${mavenRepo.uri}"
     }
 }
 
@@ -71,7 +71,7 @@ dependencies {
         buildFile << """
 repositories {
     maven {
-        url "${mavenRepo.uri}"
+        url = "${mavenRepo.uri}"
     }
 }
 
@@ -113,7 +113,7 @@ dependencies {
         buildFile << """
 repositories {
     maven {
-        url "${mavenRepo.uri}"
+        url = "${mavenRepo.uri}"
     }
 }
 
@@ -160,7 +160,7 @@ dependencies {
         buildFile << """
 repositories {
     maven {
-        url "${mavenRepo.uri}"
+        url = "${mavenRepo.uri}"
     }
 }
 
@@ -193,7 +193,7 @@ rootProject.name = "testrange"
         buildFile << """
 repositories {
     maven {
-        url "${mavenRepo.uri}"
+        url = "${mavenRepo.uri}"
     }
 }
 

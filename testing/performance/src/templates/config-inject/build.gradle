@@ -7,7 +7,7 @@ apply plugin: 'idea'
 repositories {
 <% if (repository) { %>
     maven {
-        url rootProject.file("${repository.rootDir.name}").toURI().toURL()
+        url = rootProject.file("${repository.rootDir.name}")
     }
 <% } %>
     mavenCentral()
@@ -31,9 +31,9 @@ dependencies {
 
 test {
     if (!JavaVersion.current().java8Compatible) {
-        jvmArgs '-XX:MaxPermSize=512m'
+        jvmArgs('-XX:MaxPermSize=512m')
     }
-    jvmArgs '-XX:+HeapDumpOnOutOfMemoryError'
+    jvmArgs('-XX:+HeapDumpOnOutOfMemoryError')
 }
 
 <% if (groovyProject) { %>

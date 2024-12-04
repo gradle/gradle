@@ -81,7 +81,7 @@ For example,
 =====
 [source,groovy]
 ----
-group 'com.acme'
+group = 'com.acme'
 dependencies {
     implementation 'com.acme:example:1.0'
 }

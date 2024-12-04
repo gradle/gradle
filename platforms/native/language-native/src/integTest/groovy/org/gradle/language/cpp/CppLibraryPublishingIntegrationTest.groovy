@@ -54,7 +54,7 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppPublishingIntegrati
                 baseName = 'test'
             }
             publishing {
-                repositories { maven { url 'repo' } }
+                repositories { maven { url = file('repo') } }
             }
 """
         lib.writeToProject(testDirectory)
@@ -162,7 +162,7 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppPublishingIntegrati
                 group = 'some.group'
                 version = '1.2'
                 publishing {
-                    repositories { maven { url '${repoDir.toURI()}' } }
+                    repositories { maven { url = '${repoDir.toURI()}' } }
                 }
             }
             project(':deck') {
@@ -251,7 +251,7 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppPublishingIntegrati
         consumer.file('settings.gradle') << ''
         consumer.file("build.gradle") << """
             apply plugin: 'cpp-application'
-            repositories { maven { url '${repoDir.toURI()}' } }
+            repositories { maven { url = '${repoDir.toURI()}' } }
             dependencies { implementation 'some.group:deck:1.2' }
 """
         app.main.writeToProject(consumer)
@@ -283,7 +283,7 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppPublishingIntegrati
                 group = 'some.group'
                 version = '1.2'
                 publishing {
-                    repositories { maven { url '${repoDir.toURI()}' } }
+                    repositories { maven { url = '${repoDir.toURI()}' } }
                 }
             }
 """
@@ -297,12 +297,12 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppPublishingIntegrati
             apply plugin: 'cpp-library'
             apply plugin: 'maven-publish'
 
-            repositories { maven { url '${repoDir.toURI()}' } }
+            repositories { maven { url = '${repoDir.toURI()}' } }
 
             group = 'some.group'
             version = '1.2'
             publishing {
-                repositories { maven { url '${repoDir.toURI()}' } }
+                repositories { maven { url = '${repoDir.toURI()}' } }
             }
 
             dependencies {
@@ -365,7 +365,7 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppPublishingIntegrati
         consumer.file('settings.gradle') << ''
         consumer.file("build.gradle") << """
             apply plugin: 'cpp-application'
-            repositories { maven { url '${repoDir.toURI()}' } }
+            repositories { maven { url = '${repoDir.toURI()}' } }
             dependencies { implementation 'some.group:deck:1.2' }
 """
         app.main.writeToProject(consumer)
@@ -397,7 +397,7 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppPublishingIntegrati
                 version = '1.2'
 
                 publishing {
-                    repositories { maven { url '${repoDir.toURI()}' } }
+                    repositories { maven { url = '${repoDir.toURI()}' } }
                 }
             }
             project(':deck') {
@@ -478,7 +478,7 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppPublishingIntegrati
         consumer.file('settings.gradle') << ''
         consumer.file("build.gradle") << """
             apply plugin: 'cpp-application'
-            repositories { maven { url '${repoDir.toURI()}' } }
+            repositories { maven { url = '${repoDir.toURI()}' } }
             dependencies { implementation 'some.group:card_deck:1.2' }
 """
         app.main.writeToProject(consumer)
@@ -508,7 +508,7 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppPublishingIntegrati
                 baseName = 'test'
             }
             publishing {
-                repositories { maven { url 'repo' } }
+                repositories { maven { url = file('repo') } }
                 publications.main {
                     artifactId = "\${artifactId}-adjusted"
                 }
@@ -539,7 +539,7 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppPublishingIntegrati
             group = 'some.group'
             version = '1.2'
             publishing {
-                repositories { maven { url '${repoDir.toURI()}' } }
+                repositories { maven { url = '${repoDir.toURI()}' } }
             }
 """
         lib.writeToProject(testDirectory)
@@ -553,7 +553,7 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppPublishingIntegrati
 """
         consumer.file("build.gradle") << """
 apply plugin: 'cpp-library'
-repositories { maven { url '${repoDir.toURI()}' } }
+repositories { maven { url = '${repoDir.toURI()}' } }
 dependencies { implementation 'some.group:testlib:1.2' }
 """
 
@@ -591,7 +591,7 @@ library.publicHeaders.from 'src/main/public', 'src/main/headers'
                 group = 'some.group'
                 version = '1.2'
                 publishing {
-                    repositories { maven { url '${repoDir.toURI()}' } }
+                    repositories { maven { url = '${repoDir.toURI()}' } }
                 }
             }
             project(':greeter') {
@@ -610,7 +610,7 @@ library.publicHeaders.from 'src/main/public', 'src/main/headers'
 """
         consumer.file("build.gradle") << """
 apply plugin: 'cpp-library'
-repositories { maven { url '${repoDir.toURI()}' } }
+repositories { maven { url = '${repoDir.toURI()}' } }
 dependencies { implementation 'some.group:greeter:1.2' }
 """
 
@@ -643,11 +643,11 @@ dependencies { implementation 'some.group:greeter:1.2' }
             group = 'some.group'
             version = '1.2'
             publishing {
-                repositories { maven { url '${repoDir.toURI()}' } }
+                repositories { maven { url = '${repoDir.toURI()}' } }
             }
 
             library.binaries.get { it.optimized }.configure {
-                compileTask.get().macros(WITH_FEATURE: "true")
+                compileTask.get().setMacros(WITH_FEATURE: "true")
             }
 
         """
@@ -660,10 +660,10 @@ dependencies { implementation 'some.group:greeter:1.2' }
         consumer.file("settings.gradle") << ""
         consumer.file("build.gradle") << """
             apply plugin: 'cpp-application'
-            repositories { maven { url '${repoDir.toURI()}' } }
+            repositories { maven { url = '${repoDir.toURI()}' } }
             dependencies { implementation 'some.group:greeting:1.2' }
             application.binaries.get { it.optimized }.configure {
-                compileTask.get().macros(WITH_FEATURE: "true")
+                compileTask.get().setMacros(WITH_FEATURE: "true")
             }
         """
         app.main.writeToProject(consumer)
@@ -707,7 +707,7 @@ dependencies { implementation 'some.group:greeter:1.2' }
                 group = 'some.group'
                 version = '1.2'
                 publishing {
-                    repositories { maven { url '${mavenRepo.uri}' } }
+                    repositories { maven { url = '${mavenRepo.uri}' } }
                 }
             }
             project(':deck') {
@@ -759,7 +759,7 @@ dependencies { implementation 'some.group:greeter:1.2' }
                 group = 'some.group'
                 version = '1.2'
                 publishing {
-                    repositories { maven { url '${mavenRepo.uri}' } }
+                    repositories { maven { url = '${mavenRepo.uri}' } }
                 }
 
                 components.withType(CppComponent) {
@@ -797,7 +797,7 @@ dependencies { implementation 'some.group:greeter:1.2' }
         consumer.file('settings.gradle') << ''
         consumer.file("build.gradle") << """
             apply plugin: 'cpp-application'
-            repositories { maven { url '${mavenRepo.uri}' } }
+            repositories { maven { url = '${mavenRepo.uri}' } }
             dependencies { implementation 'some.group:deck:1.2' }
         """
         app.main.writeToProject(consumer)
@@ -829,7 +829,7 @@ dependencies { implementation 'some.group:greeter:1.2' }
                 group = 'some.group'
                 version = '1.2'
                 publishing {
-                    repositories { maven { url '${mavenRepo.uri}' } }
+                    repositories { maven { url = '${mavenRepo.uri}' } }
                 }
 
                 components.withType(CppComponent) {
@@ -867,7 +867,7 @@ dependencies { implementation 'some.group:greeter:1.2' }
         consumer.file('settings.gradle') << ''
         consumer.file("build.gradle") << """
             apply plugin: 'cpp-application'
-            repositories { maven { url '${mavenRepo.uri}' } }
+            repositories { maven { url = '${mavenRepo.uri}' } }
             dependencies { implementation 'some.group:deck:1.2' }
         """
         app.main.writeToProject(consumer)
@@ -898,7 +898,7 @@ dependencies { implementation 'some.group:greeter:1.2' }
                 group = 'some.group'
                 version = '1.2'
                 publishing {
-                    repositories { maven { url '${mavenRepo.uri}' } }
+                    repositories { maven { url = '${mavenRepo.uri}' } }
                 }
 
                 components.withType(CppComponent) {
@@ -927,7 +927,7 @@ dependencies { implementation 'some.group:greeter:1.2' }
         consumer.file('settings.gradle') << ''
         consumer.file("build.gradle") << """
             apply plugin: 'cpp-application'
-            repositories { maven { url '${mavenRepo.uri}' } }
+            repositories { maven { url = '${mavenRepo.uri}' } }
             dependencies { implementation 'some.group:deck:1.2' }
             application { targetMachines = [machines.host().x86] }
         """

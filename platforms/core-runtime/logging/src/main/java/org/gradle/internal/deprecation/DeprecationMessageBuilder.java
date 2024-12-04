@@ -29,6 +29,7 @@ import java.util.List;
 public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
 
     private static final GradleVersion GRADLE9 = GradleVersion.version("9.0");
+    private static final GradleVersion GRADLE10 = GradleVersion.version("10.0");
 
     protected String summary;
     private DeprecationTimeline deprecationTimeline;
@@ -85,6 +86,14 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
      */
     public WithDeprecationTimeline willBeRemovedInGradle9() {
         this.deprecationTimeline = DeprecationTimeline.willBeRemovedInVersion(GRADLE9);
+        return new WithDeprecationTimeline(this);
+    }
+
+    /**
+     * Output: This is scheduled to be removed in Gradle 10.0.
+     */
+    public WithDeprecationTimeline willBeRemovedInGradle10() {
+        this.deprecationTimeline = DeprecationTimeline.willBeRemovedInVersion(GRADLE10);
         return new WithDeprecationTimeline(this);
     }
 

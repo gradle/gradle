@@ -34,7 +34,7 @@ import java.util.concurrent.Callable;
  * Example usage:
  * <pre>
  * reporting {
- *     baseDir "$buildDir/our-reports"
+ *     baseDir = "$buildDir/our-reports"
  * }
  * </pre>
  * <p>

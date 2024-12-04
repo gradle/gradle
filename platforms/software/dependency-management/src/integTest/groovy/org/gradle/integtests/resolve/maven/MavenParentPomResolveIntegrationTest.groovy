@@ -38,7 +38,7 @@ class MavenParentPomResolveIntegrationTest extends AbstractHttpDependencyResolut
 
         buildFile << """
 repositories {
-    maven { url '${mavenHttpRepo.uri}' }
+    maven { url = '${mavenHttpRepo.uri}' }
 }
 configurations { compile }
 dependencies { compile 'org:child:1.0' }
@@ -115,7 +115,7 @@ task retrieve(type: Sync) {
 
         buildFile << """
 repositories {
-    maven { url '${mavenRepo.uri}' }
+    maven { url = '${mavenRepo.uri}' }
 }
 configurations { compile }
 dependencies { compile 'org:child:1.0' }
@@ -140,7 +140,7 @@ task libs { doLast { assert configurations.compile.files*.name == ['child-1.0.ja
 
         buildFile << """
 repositories {
-    maven { url '${mavenHttpRepo.uri}' }
+    maven { url = '${mavenHttpRepo.uri}' }
 }
 configurations { compile }
 dependencies { compile 'org:child:1.0' }
@@ -181,8 +181,8 @@ task retrieve(type: Sync) {
 
         buildFile << """
 repositories {
-    maven { url '${repo1.uri}' }
-    maven { url '${repo2.uri}' }
+    maven { url = '${repo1.uri}' }
+    maven { url = '${repo2.uri}' }
 }
 configurations { compile }
 dependencies { compile 'org:child:1.0' }
@@ -218,8 +218,8 @@ task retrieve(type: Sync) {
 
         buildFile << """
 repositories {
-    ivy { url '${ivyHttpRepo.uri}' }
-    maven { url '${mavenHttpRepo.uri}' }
+    ivy { url = '${ivyHttpRepo.uri}' }
+    maven { url = '${mavenHttpRepo.uri}' }
 }
 configurations { compile }
 dependencies { compile 'org:child:1.0' }
@@ -263,8 +263,8 @@ task retrieve(type: Sync) {
 
         buildFile << """
 repositories {
-    maven { url '${repo1.uri}' }
-    maven { url '${repo2.uri}' }
+    maven { url = '${repo1.uri}' }
+    maven { url = '${repo2.uri}' }
 }
 configurations {
     child1
@@ -329,7 +329,7 @@ task retrieveChild2(type: Sync) {
 
         buildFile << """
 repositories {
-    maven { url '${mavenHttpRepo.uri}' }
+    maven { url = '${mavenHttpRepo.uri}' }
 }
 configurations { compile }
 dependencies {
@@ -375,7 +375,7 @@ task retrieve(type: Sync) {
 
         buildFile << """
 repositories {
-    maven { url '${mavenHttpRepo.uri}' }
+    maven { url = '${mavenHttpRepo.uri}' }
 }
 configurations { compile }
 dependencies {
@@ -427,7 +427,7 @@ task retrieve(type: Sync) {
         and:
         buildFile << """
             repositories {
-                maven { url "${mavenHttpRepo.uri}" }
+                maven { url = "${mavenHttpRepo.uri}" }
             }
             configurations { compile }
             dependencies {
@@ -460,7 +460,7 @@ task retrieve(type: Sync) {
         and:
         buildFile << """
             repositories {
-                maven { url "${mavenHttpRepo.uri}" }
+                maven { url = "${mavenHttpRepo.uri}" }
             }
             configurations { compile }
             dependencies {

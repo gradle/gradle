@@ -27,7 +27,7 @@ class MavenDynamicResolveIntegrationTest extends AbstractHttpDependencyResolutio
         buildFile << """
 repositories {
     maven {
-        url "${mavenHttpRepo.uri}"
+        url = "${mavenHttpRepo.uri}"
     }
 }
 
@@ -92,7 +92,7 @@ task retrieve(type: Sync) {
 
         buildFile << """
     repositories {
-        maven { url '${mavenHttpRepo.uri}' }
+        maven { url = '${mavenHttpRepo.uri}' }
     }
     configurations { compile }
     dependencies {
@@ -468,7 +468,7 @@ Searched in the following locations:
     static String createBuildFile(URI... repoUris) {
         """
          repositories {
-             ${repoUris.collect { "maven { url '${it.toString()}' }" }.join("\n")}
+             ${repoUris.collect { "maven { url = uri('${it.toString()}') }" }.join("\n")}
          }
          configurations { compile }
          dependencies {

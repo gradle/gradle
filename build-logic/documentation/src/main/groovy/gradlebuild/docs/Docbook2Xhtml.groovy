@@ -125,11 +125,11 @@ abstract class Docbook2Xhtml extends SourceTask {
 
                 execOps.javaexec {
                     mainClass.set(XslTransformer.name)
-                    args stylesheetFile.absolutePath
-                    args fvd.file.absolutePath
-                    args outFile.absolutePath
-                    args destDir.absolutePath
-                    jvmArgs '-Xmx1024m'
+                    args(stylesheetFile.absolutePath)
+                    args(fvd.file.absolutePath)
+                    args(outFile.absolutePath)
+                    args(destDir.absolutePath)
+                    jvmArgs('-Xmx1024m')
                     classpath = xslClasspath
                     systemProperty 'xslthl.config', xslthlConfigFile
                     systemProperty 'org.apache.xerces.xni.parser.XMLParserConfiguration', 'org.apache.xerces.parsers.XIncludeParserConfiguration'

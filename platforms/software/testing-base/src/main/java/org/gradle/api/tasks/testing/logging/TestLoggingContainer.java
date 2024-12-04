@@ -32,13 +32,13 @@ import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyPro
  * test {
  *     testLogging {
  *         // set options for log level LIFECYCLE
- *         events "failed"
- *         exceptionFormat "short"
+ *         events("failed")
+ *         exceptionFormat = "short"
  *
  *         // set options for log level DEBUG
  *         debug {
- *             events "started", "skipped", "failed"
- *             exceptionFormat "full"
+ *             events("started", "skipped", "failed")
+ *             exceptionFormat = "full"
  *         }
  *
  *         // remove standard output/error logging from --info builds

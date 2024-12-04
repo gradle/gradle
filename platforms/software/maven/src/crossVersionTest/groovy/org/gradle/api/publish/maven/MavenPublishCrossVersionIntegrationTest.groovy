@@ -61,14 +61,14 @@ group = 'org.gradle.crossversion'
 version = '1.9'
 
 repositories {
-    maven { url "${repo.uri}" }
+    maven { url = "${repo.uri}" }
 }
 dependencies {
     implementation "org.gradle:test-project:1.2"
 }
 publishing {
     repositories {
-        maven { url "${repo.uri}" }
+        maven { url = "${repo.uri}" }
     }
     publications {
         maven(MavenPublication) {
@@ -90,7 +90,7 @@ configurations {
 }
 repositories {
     if (repositories.metaClass.respondsTo(repositories, 'maven')) {
-        maven { url "${repo.uri}" }
+        maven { url = "${repo.uri}" }
     } else {
         mavenRepo urls: ["${repo.uri}"]
     }

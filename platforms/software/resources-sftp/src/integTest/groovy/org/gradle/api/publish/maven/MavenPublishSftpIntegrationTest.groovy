@@ -54,7 +54,7 @@ class MavenPublishSftpIntegrationTest extends AbstractMavenPublishIntegTest {
             publishing {
                 repositories {
                     maven {
-                        url "${mavenSftpRepo.uri}"
+                        url = "${mavenSftpRepo.uri}"
                         credentials(PasswordCredentials)
                     }
                 }

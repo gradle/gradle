@@ -8,7 +8,7 @@ apply plugin: com.acme.InstrumentedJarsPlugin
 publishing {
     repositories {
         maven {
-            url "${buildDir}/repo"
+            url = layout.buildDirectory.dir("repo")
         }
     }
     publications {
@@ -30,7 +30,7 @@ if (project.hasProperty("customRepository")) {
     // tag::gradle_metadata_source[]
     repositories {
         maven {
-            url "http://repo.mycompany.com/repo"
+            url = "http://repo.mycompany.com/repo"
             metadataSources {
                 gradleMetadata()
             }

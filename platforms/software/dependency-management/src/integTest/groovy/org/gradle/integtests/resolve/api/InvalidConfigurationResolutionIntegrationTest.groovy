@@ -33,7 +33,7 @@ class InvalidConfigurationResolutionIntegrationTest extends AbstractIntegrationS
 
         buildFile << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
             allprojects {
                 configurations {

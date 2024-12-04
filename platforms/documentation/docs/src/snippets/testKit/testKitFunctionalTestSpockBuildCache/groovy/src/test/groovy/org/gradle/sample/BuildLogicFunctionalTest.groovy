@@ -18,7 +18,7 @@ class BuildLogicFunctionalTest extends Specification {
         buildFile = new File(testProjectDir,'settings.gradle') << """
             buildCache {
                 local {
-                    directory '${localBuildCacheDirectory.toURI()}'
+                    directory = '${localBuildCacheDirectory.toURI()}'
                 }
             }
         """

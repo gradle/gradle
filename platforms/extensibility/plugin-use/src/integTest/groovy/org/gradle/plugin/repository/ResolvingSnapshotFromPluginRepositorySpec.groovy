@@ -38,7 +38,7 @@ class ResolvingSnapshotFromPluginRepositorySpec extends AbstractDependencyResolu
             $resolutionStrategy
             repositories {
                 maven {
-                    url "${mavenRepo.uri}"
+                    url = "${mavenRepo.uri}"
                 }
             }
           }

@@ -6,7 +6,7 @@ plugins {
 android {
     // ...
 // end::android[]
-    compileSdkVersion(27)
+    compileSdk = 27
 // tag::android[]
 }
 // end::android[]

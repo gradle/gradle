@@ -37,7 +37,7 @@ class MavenHttpRepoResolveIntegrationTest extends AbstractHttpDependencyResoluti
 
         buildFile << """
 repositories {
-    maven { url '${mavenHttpRepo.uri}' }
+    maven { url = '${mavenHttpRepo.uri}' }
 }
 configurations {
     compile {
@@ -91,7 +91,7 @@ task retrieve(type: Sync) {
 
         buildFile << """
 repositories {
-    maven { url '${mavenHttpRepo.uri}' }
+    maven { url = '${mavenHttpRepo.uri}' }
 }
 configurations {
     compile {
@@ -143,7 +143,7 @@ task retrieve(type: Sync) {
         and:
         buildFile << """
 repositories {
-    maven { url "${mavenHttpRepo.uri}" }
+    maven { url = "${mavenHttpRepo.uri}" }
 }
 configurations {
     compile {
@@ -191,7 +191,7 @@ task retrieve(type: Sync) {
         and:
         buildFile << """
 repositories {
-    maven { url "${mavenHttpRepo.uri}" }
+    maven { url = "${mavenHttpRepo.uri}" }
 }
 configurations {
     compile {
@@ -233,8 +233,8 @@ task retrieve(type: Sync) {
 
         buildFile << """
 repositories {
-    maven { url '${repo1.uri}' }
-    maven { url '${repo2.uri}' }
+    maven { url = '${repo1.uri}' }
+    maven { url = '${repo2.uri}' }
 }
 configurations {
     compile {
@@ -283,7 +283,7 @@ task retrieve(type: Sync) {
         buildFile << """
 repositories {
     maven {
-        url '${repo1.uri}'
+        url = "${repo1.uri}"
         artifactUrls '${repo2.uri}'
     }
 }
@@ -321,7 +321,7 @@ task retrieve(type: Sync) {
 
         buildFile << """
     repositories {
-        maven { url '${mavenHttpRepo.uri}' }
+        maven { url = '${mavenHttpRepo.uri}' }
     }
     configurations {
         compile {
@@ -373,10 +373,10 @@ task retrieve(type: Sync) {
         buildFile << """
             repositories {
                 maven {
-                    url '${mavenHttpRepo.uri}'
+                    url = "${mavenHttpRepo.uri}"
                     credentials(AwsCredentials) {
-                        accessKey "someKey"
-                        secretKey "someSecret"
+                        accessKey = "someKey"
+                        secretKey = "someSecret"
                     }
                 }
             }
@@ -403,7 +403,7 @@ task retrieve(type: Sync) {
         buildFile << """
             repositories {
                 maven {
-                    url '${mavenHttpRepo.uri}'
+                    url = "${mavenHttpRepo.uri}"
                 }
             }
             configurations { compile }
@@ -432,7 +432,7 @@ task retrieve(type: Sync) {
         buildFile << """
             repositories {
                 maven {
-                    url '${mavenHttpRepo.uri}'
+                    url = "${mavenHttpRepo.uri}"
                 }
             }
             configurations { compile }

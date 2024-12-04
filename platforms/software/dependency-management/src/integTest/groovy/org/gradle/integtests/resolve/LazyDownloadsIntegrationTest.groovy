@@ -28,7 +28,7 @@ class LazyDownloadsIntegrationTest extends AbstractHttpDependencyResolutionTest 
         buildFile << """
             allprojects {
                 repositories {
-                    maven { url '$mavenHttpRepo.uri' }
+                    maven { url = '$mavenHttpRepo.uri' }
                 }
                 configurations {
                     compile

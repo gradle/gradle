@@ -104,7 +104,7 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
 
         buildFile << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
             dependencies {
                 compile 'test:test:1.3'
@@ -236,7 +236,7 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
             c.text = '1236'
 
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
             dependencies {
                 compile files([a, b])
@@ -285,7 +285,7 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
             c.text = '123'
 
             repositories {
-                maven { url "${server.uri}" }
+                maven { url = "${server.uri}" }
             }
             dependencies {
                 compile files([a, b])
@@ -435,7 +435,7 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
                 toBeTransformed.text = '1234'
                 buildFile << """
                     repositories {
-                        maven { url '${mavenRepo.uri}' }
+                        maven { url = '${mavenRepo.uri}' }
                     }
 
                     dependencies {

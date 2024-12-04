@@ -252,6 +252,16 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         return new ClassInspectionVisitorImpl(type, decorate, suffix, factoryId);
     }
 
+    @SuppressWarnings("unused")
+    public static void logGroovySpaceAssignmentDeprecation(String propertyName) {
+        DeprecationLogger
+            .deprecate("Space-assignment syntax in Groovy DSL")
+            .withAdvice("Use assignment ('" + propertyName + " = <value>') instead.")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(8, "groovy_space_assignment_syntax")
+            .nagUser();
+    }
+
     private static class AttachedProperty {
 
         public static AttachedProperty of(PropertyMetadata property, boolean applyRole) {
@@ -523,6 +533,8 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private static final Type RETURN_VOID_METHOD_TYPE = Type.getMethodType(RETURN_VOID);
         private static final Type RETURN_OBJECT_METHOD_TYPE = Type.getMethodType(RETURN_OBJECT);
         private static final Type RETURN_CONVENTION_METHOD_TYPE = Type.getMethodType(RETURN_CONVENTION);
+        private static final Type DEPRECATION_HOLDER_TYPE = Type.getType(AsmBackedClassGenerator.class);
+        private static final Type DEPRECATED_ANNOTATION_TYPE = getType(Deprecated.class);
 
         private static final String[] EMPTY_STRINGS = new String[0];
         private static final Type[] EMPTY_TYPES = new Type[0];
@@ -1618,6 +1630,13 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
             // GENERATE public void <propName>(<type> v) { <setter>(v) }
             addSetter(property.getName(), getMethodDescriptor(VOID_TYPE, paramType), methodVisitor -> new MethodVisitorScope(methodVisitor) {{
+                //DEPRECATION
+                visitAnnotation(DEPRECATED_ANNOTATION_TYPE.getDescriptor(), true).visitEnd();
+
+                // PRINT DEPRECATION WARNING
+                _LDC(property.getName());
+                _INVOKESTATIC(DEPRECATION_HOLDER_TYPE, "logGroovySpaceAssignmentDeprecation", RETURN_VOID_FROM_STRING);
+
                 // GENERATE <setter>(v)
                 _ALOAD(0);
                 _ILOAD_OF(paramType, 1);

@@ -32,8 +32,8 @@ class ClientModuleDependenciesResolveIntegrationTest extends AbstractHttpDepende
         and:
         buildFile << """
 repositories {
-    ivy { url "${repo1.uri}" }
-    maven { url "${repo2.uri}" }
+    ivy { url = "${repo1.uri}" }
+    maven { url = "${repo2.uri}" }
 }
 configurations { compile }
 dependencies {
@@ -79,7 +79,7 @@ task listJars {
         and:
         buildFile << """
 repositories {
-    maven { url "${repo.uri}" }
+    maven { url = "${repo.uri}" }
 }
 configurations { compile }
 dependencies {
@@ -126,7 +126,7 @@ task listJars {
 
         buildFile << """
 repositories {
-    ivy { url "${ivyHttpRepo.uri}" }
+    ivy { url = "${ivyHttpRepo.uri}" }
 }
 configurations {
     regular
@@ -182,7 +182,7 @@ task listClientModuleJars {
 
         buildFile << """
 repositories {
-    ivy { url "${ivyHttpRepo.uri}" }
+    ivy { url = "${ivyHttpRepo.uri}" }
 }
 configurations {
     regular
@@ -214,7 +214,7 @@ task listClientModuleJars {
         when:
         buildFile.text = """
 repositories {
-    ivy { url "${ivyHttpRepo.uri}" }
+    ivy { url = "${ivyHttpRepo.uri}" }
 }
 configurations {
     regular
@@ -255,7 +255,7 @@ task listClientModuleJars {
 
         buildFile << """
 repositories {
-    ivy { url "${ivyHttpRepo.uri}" }
+    ivy { url = "${ivyHttpRepo.uri}" }
 }
 configurations {
     regular
@@ -289,7 +289,7 @@ task listClientModuleJars {
         when:
         buildFile.text = """
 repositories {
-    ivy { url "${ivyHttpRepo.uri}" }
+    ivy { url = "${ivyHttpRepo.uri}" }
 }
 configurations {
     regular
@@ -326,7 +326,7 @@ task listClientModuleJars {
 
         buildFile << """
 repositories {
-    ivy { url "${ivyHttpRepo.uri}" }
+    ivy { url = "${ivyHttpRepo.uri}" }
 }
 configurations {
     clientModule {
@@ -358,7 +358,7 @@ task listClientModuleJars {
         when:
         buildFile.text = """
 repositories {
-    ivy { url "${ivyHttpRepo.uri}" }
+    ivy { url = "${ivyHttpRepo.uri}" }
 }
 configurations {
     clientModule {
@@ -402,7 +402,7 @@ task listClientModuleJars {
 
         buildFile << """
 repositories {
-    ivy { url "${ivyHttpRepo.uri}" }
+    ivy { url = "${ivyHttpRepo.uri}" }
 }
 configurations {
     regular
@@ -437,7 +437,7 @@ task listClientModuleJars {
         when:
         buildFile.text = """
 repositories {
-    ivy { url "${ivyHttpRepo.uri}" }
+    ivy { url = "${ivyHttpRepo.uri}" }
 }
 configurations {
     regular

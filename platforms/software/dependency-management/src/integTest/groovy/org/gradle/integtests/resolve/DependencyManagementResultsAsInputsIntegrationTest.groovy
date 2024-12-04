@@ -90,7 +90,7 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
                 ${unselectedVariantDeclaration('projectUnselectedLibAttrValue')}
             }
             apply plugin: 'java-library'
-            repositories { maven { url "${mavenHttpRepo.uri}" } }
+            repositories { maven { url = "${mavenHttpRepo.uri}" } }
             dependencies {
                 implementation('org.external:external-lib:1.0') {
                     because(System.getProperty('selectionReason', 'original'))

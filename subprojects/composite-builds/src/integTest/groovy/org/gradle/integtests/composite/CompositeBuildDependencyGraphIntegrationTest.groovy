@@ -44,10 +44,10 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
             buildFile << """
                 allprojects {
                     apply plugin: 'java-library'
-                    version "2.0"
+                    version = "2.0"
 
                     repositories {
-                        maven { url "${mavenRepo.uri}" }
+                        maven { url = "${mavenRepo.uri}" }
                     }
                 }
             """
@@ -717,7 +717,7 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
         """
         buildC.buildFile << """
             repositories {
-                maven { url '$mavenRepo.uri' }
+                maven { url = '$mavenRepo.uri' }
             }
 
             configurations {

@@ -19,7 +19,7 @@ rootProject.name = 'consumer'
 dependencyResolutionManagement {
     repositories {
         maven {
-            url "${file('../catalog/repo')}"
+            url = file('../catalog/repo')
         }
         mavenCentral()
     }

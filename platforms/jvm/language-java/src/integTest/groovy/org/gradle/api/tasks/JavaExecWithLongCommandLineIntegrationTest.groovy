@@ -115,7 +115,7 @@ class JavaExecWithLongCommandLineIntegrationTest extends AbstractIntegrationSpec
     def "does not suggest long command line failures when execution fails with #method"() {
         buildFile << """
             extraClasspath.from('${veryLongFileNames.join("','")}')
-            run.executable 'does-not-exist'
+            run.executable = 'does-not-exist'
         """
 
         when:
@@ -146,7 +146,7 @@ class JavaExecWithLongCommandLineIntegrationTest extends AbstractIntegrationSpec
     @UnsupportedWithConfigurationCache(iterationMatchers = ".* project.javaexec")
     def "does not suggest long command line failures when execution fails for short command line with #method"() {
         buildFile << """
-            run.executable 'does-not-exist'
+            run.executable = 'does-not-exist'
         """
 
         when:

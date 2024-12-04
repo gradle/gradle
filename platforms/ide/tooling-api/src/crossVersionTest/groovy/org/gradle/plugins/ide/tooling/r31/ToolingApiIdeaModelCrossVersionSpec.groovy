@@ -71,7 +71,7 @@ project(':impl') {
     apply plugin: 'idea'
 
     repositories {
-        maven { url "${fakeRepo.uri}" }
+        maven { url = "${fakeRepo.uri}" }
     }
 
     dependencies {

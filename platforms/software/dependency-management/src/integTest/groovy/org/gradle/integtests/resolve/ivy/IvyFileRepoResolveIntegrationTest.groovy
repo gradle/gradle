@@ -30,7 +30,7 @@ class IvyFileRepoResolveIntegrationTest extends AbstractDependencyResolutionTest
         buildFile << """
 repositories {
     ivy {
-        artifactPattern "${repo.uri}/[organisation]/[module]/[revision]/[artifact]-[revision].[ext]"
+        artifactPattern("${repo.uri}/[organisation]/[module]/[revision]/[artifact]-[revision].[ext]")
     }
 }
 configurations { compile }
@@ -68,7 +68,7 @@ task retrieve(type: Sync) {
         buildFile << """
 repositories {
     ivy {
-        artifactPattern "${repo.uri}/[organisation]/[module]/[revision]/[artifact]-[revision].[ext]"
+        artifactPattern("${repo.uri}/[organisation]/[module]/[revision]/[artifact]-[revision].[ext]")
     }
 }
 
@@ -132,7 +132,7 @@ task retrieve(type: Sync) {
         buildFile << """
 repositories {
     ivy {
-        url "${ivyRepo().uri}"
+        url = "${ivyRepo().uri}"
         authentication {
             auth(BasicAuthentication)
         }

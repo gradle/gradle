@@ -155,7 +155,7 @@ class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractConfigura
                 vcsMappings {
                     withModule("org.test:buildB") {
                         from(GitVersionControlSpec) {
-                            url = uri("some-repo")
+                            url = "some-repo"
                         }
                     }
                 }

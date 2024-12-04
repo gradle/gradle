@@ -250,7 +250,7 @@ task execStartScript(type: Exec) {
         and:
         buildFile << """
 repositories {
-    maven { url '$mavenRepo.uri' }
+    maven { url = '$mavenRepo.uri' }
 }
 
 dependencies {
@@ -310,7 +310,7 @@ application.executableDir = 'foo/bar'
         buildFile << """
             allprojects {
                 repositories {
-                    maven { url '$mavenRepo.uri' }
+                    maven { url = '$mavenRepo.uri' }
                 }
             }
         """
@@ -356,7 +356,7 @@ application.executableDir = 'foo/bar'
         buildFile << """
         allprojects {
             repositories {
-                maven { url '$mavenRepo.uri' }
+                maven { url = '$mavenRepo.uri' }
             }
             apply plugin: 'java'
         }
@@ -410,7 +410,7 @@ dependencies {
         buildFile << """
         allprojects {
             repositories {
-                maven { url '$mavenRepo.uri' }
+                maven { url = '$mavenRepo.uri' }
             }
             apply plugin: 'java'
         }

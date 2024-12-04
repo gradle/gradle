@@ -66,7 +66,7 @@ dependencies {
 }
 
 ear {
-    libDirName 'CUSTOM/lib'
+    libDirName = 'CUSTOM/lib'
 
     deploymentDescriptor {
         applicationName = "cool ear"

@@ -40,7 +40,7 @@ class DependencyReplacingSampleModifierSpec extends Specification {
                 implementation 'org.gradle:gradle-tooling-api:7.6'
             }
             repositories {
-                maven { url 'libs-releases' }
+                maven { url = 'libs-releases' }
             }
         """
 
@@ -57,7 +57,7 @@ class DependencyReplacingSampleModifierSpec extends Specification {
                 implementation 'org.gradle:gradle-tooling-api:8.0-nightly'
             }
             repositories {
-                maven { url 'libs-snapshots' }
+                maven { url = 'libs-snapshots' }
             }
         """
     }

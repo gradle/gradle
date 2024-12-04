@@ -116,7 +116,7 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
             task runInDaemon(type: WorkerTask) {
                 isolationMode = 'processIsolation'
                 additionalForkOptions = {
-                    it.jvmArgs "-foo"
+                    it.jvmArgs("-foo")
                 }
             }
         """.stripIndent()

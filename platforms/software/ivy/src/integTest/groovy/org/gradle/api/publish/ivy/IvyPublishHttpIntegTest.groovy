@@ -206,7 +206,7 @@ class IvyPublishHttpIntegTest extends AbstractIvyPublishIntegTest {
                 repositories {
                     ivy {
                         $credentialsBlock
-                        url "${ivyHttpRepo.uri}"
+                        url = "${ivyHttpRepo.uri}"
                     }
                 }
                 publications {
@@ -278,8 +278,8 @@ class IvyPublishHttpIntegTest extends AbstractIvyPublishIntegTest {
             publishing {
                 repositories {
                     ivy {
-                        artifactPattern "${ivyHttpRepo.artifactPattern}"
-                        artifactPattern "http://localhost:${server.port}/alternative/[module]/[artifact]-[revision].[ext]"
+                        artifactPattern("${ivyHttpRepo.artifactPattern}")
+                        artifactPattern("http://localhost:${server.port}/alternative/[module]/[artifact]-[revision].[ext]")
                         ivyPattern "${ivyHttpRepo.ivyPattern}"
                         ivyPattern "http://localhost:${server.port}/secondary-ivy/[module]/ivy-[revision].xml"
                     }
@@ -331,7 +331,7 @@ class IvyPublishHttpIntegTest extends AbstractIvyPublishIntegTest {
                 repositories {
                     ivy {
                         credentials(PasswordCredentials)
-                        url "${ivyHttpRepo.uri}"
+                        url = "${ivyHttpRepo.uri}"
                     }
                 }
                 publications {
@@ -339,7 +339,7 @@ class IvyPublishHttpIntegTest extends AbstractIvyPublishIntegTest {
                         configurations {
                             runtime {
                                 artifact('${largeJar.toURI()}') {
-                                    name 'publish'
+                                    name = 'publish'
                                 }
                             }
                         }
@@ -379,7 +379,7 @@ class IvyPublishHttpIntegTest extends AbstractIvyPublishIntegTest {
             publishing {
                 repositories {
                     ivy {
-                        url "${ivyHttpRepo.uri}"
+                        url = "${ivyHttpRepo.uri}"
                     }
                 }
                 publications {
@@ -412,7 +412,7 @@ class IvyPublishHttpIntegTest extends AbstractIvyPublishIntegTest {
 
             publishing {
                 repositories {
-                    ivy { url "${ivyHttpRepo.uri}" }
+                    ivy { url = "${ivyHttpRepo.uri}" }
                 }
                 publications {
                     ivy(IvyPublication) {
@@ -460,7 +460,7 @@ class IvyPublishHttpIntegTest extends AbstractIvyPublishIntegTest {
             publishing {
                 repositories {
                     ivy {
-                        url "${ivyRepo.uri}"
+                        url = "${ivyRepo.uri}"
                         patternLayout {
                            $layout
                         }
@@ -503,7 +503,7 @@ class IvyPublishHttpIntegTest extends AbstractIvyPublishIntegTest {
             publishing {
                 repositories {
                     ivy {
-                        url "${ivyRepo.uri}"
+                        url = "${ivyRepo.uri}"
                         patternLayout {
                             artifact "[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier])(.[ext])"
                             ivy "[organisation]/[module]/[revision]/[module]-[revision].ivy"
@@ -603,8 +603,8 @@ class IvyPublishHttpIntegTest extends AbstractIvyPublishIntegTest {
             publishing {
                 repositories {
                     ivy {
-                        name "$repoName"
-                        url "$uri"
+                        name = "$repoName"
+                        url = "$uri"
                         $credentialsBlock
                     }
                 }

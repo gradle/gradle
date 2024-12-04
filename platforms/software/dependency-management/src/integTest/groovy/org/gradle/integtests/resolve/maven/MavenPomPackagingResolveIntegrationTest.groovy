@@ -36,8 +36,8 @@ class MavenPomPackagingResolveIntegrationTest extends AbstractHttpDependencyReso
     private void buildWithDependencies(def dependencies) {
         buildFile << """
 repositories {
-    maven { url '${repo1.uri}' }
-    maven { url '${repo2.uri}' }
+    maven { url = '${repo1.uri}' }
+    maven { url = '${repo2.uri}' }
 }
 configurations { compile }
 dependencies {

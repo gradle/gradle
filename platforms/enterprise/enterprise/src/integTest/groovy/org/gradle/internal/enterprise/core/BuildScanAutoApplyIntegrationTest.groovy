@@ -145,7 +145,7 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
         settingsFile.text = """
             buildscript {
                 repositories {
-                    maven { url '${mavenRepo.uri}' }
+                    maven { url = '${mavenRepo.uri}' }
                 }
                 dependencies {
                     classpath '${"com.gradle:develocity-gradle-plugin:$version"}'
@@ -179,7 +179,7 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
         file('init.gradle') << """
             initscript {
                 repositories {
-                    maven { url '${mavenRepo.uri}' }
+                    maven { url = '${mavenRepo.uri}' }
                 }
 
                 dependencies {
@@ -342,7 +342,7 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
         settingsFile.text = """
             buildscript {
                 repositories {
-                    maven { url '${mavenRepo.uri}' }
+                    maven { url = '${mavenRepo.uri}' }
                 }
                 dependencies {
                     classpath '${"com.gradle:gradle-enterprise-gradle-plugin:${gradleEnterpriseFixture.runtimeVersion}"}'
@@ -380,7 +380,7 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
         file('init.gradle') << """
             initscript {
                 repositories {
-                    maven { url '${mavenRepo.uri}' }
+                    maven { url = '${mavenRepo.uri}' }
                 }
 
                 dependencies {

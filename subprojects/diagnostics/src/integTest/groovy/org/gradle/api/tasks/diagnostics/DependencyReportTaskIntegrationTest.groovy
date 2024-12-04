@@ -105,7 +105,7 @@ conf
 
         file("build.gradle") << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
             configurations { foo }
             dependencies {
@@ -132,7 +132,7 @@ foo
         given:
         file("build.gradle") << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
             configurations { foo }
             dependencies {
@@ -168,7 +168,7 @@ foo
 
         file("build.gradle") << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
             configurations { config }
             dependencies {
@@ -198,7 +198,7 @@ config
 
         file("build.gradle") << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
             configurations {
               config {
@@ -233,7 +233,7 @@ config
 
         file("build.gradle") << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
             configurations { foo }
             dependencies {
@@ -275,7 +275,7 @@ rootProject.name = 'root'
                 apply plugin: 'java-library'
                 version = '1.0'
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = "${mavenRepo.uri}" }
                 }
             }
 
@@ -348,7 +348,7 @@ compileClasspath - Compile classpath for source set 'main'.
 
         file("build.gradle") << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
 
             configurations {
@@ -386,7 +386,7 @@ conf
 
         file("build.gradle") << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
             configurations {
                 conf
@@ -417,7 +417,7 @@ A web-based, searchable dependency report is available by adding the --scan opti
 
         file("build.gradle") << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
 
             configurations {
@@ -456,7 +456,7 @@ conf
 
         file("build.gradle") << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
 
             configurations {
@@ -494,7 +494,7 @@ conf
 
         file("build.gradle") << """
             repositories {
-                ivy { url "${ivyRepo.uri}" }
+                ivy { url = "${ivyRepo.uri}" }
             }
             configurations {
                 conf
@@ -531,7 +531,7 @@ conf
 
         file("build.gradle") << """
             repositories {
-                ivy { url "${ivyRepo.uri}" }
+                ivy { url = "${ivyRepo.uri}" }
             }
 
             configurations {
@@ -614,7 +614,7 @@ No dependencies
 
         file("build.gradle") << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
 
             configurations {
@@ -647,7 +647,7 @@ conf2
 
         buildFile << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
 
             configurations { conf }
@@ -688,7 +688,7 @@ rootProject.name = 'root'
                 apply plugin: 'java-library'
                 version = '1.0'
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = "${mavenRepo.uri}" }
                 }
             }
 
@@ -755,14 +755,14 @@ compileClasspath - Compile classpath for source set 'main'.
             allprojects {
                 version = '1.0'
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = "${mavenRepo.uri}" }
                 }
 
                 configurations {
                     compile
                 }
 
-                group "org.somethingelse"
+                group = "org.somethingelse"
             }
 
             project(":api2") {
@@ -800,14 +800,14 @@ compile
             allprojects {
                 version = '1.0'
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = "${mavenRepo.uri}" }
                 }
 
                 configurations {
                     compile
                 }
 
-                group "org.utils"
+                group = "org.utils"
             }
 
             project(":impl") {
@@ -844,14 +844,14 @@ compile
             allprojects {
                 version = '1.0'
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = "${mavenRepo.uri}" }
                 }
 
                 configurations {
                     compile
                 }
 
-                group "org.utils"
+                group = "org.utils"
             }
 
             project(":impl") {
@@ -884,7 +884,7 @@ compile
 
         file("build.gradle") << """
             repositories {
-               maven { url "${mavenRepo.uri}" }
+               maven { url = "${mavenRepo.uri}" }
             }
             configurations {
                 api.canBeConsumed = false
@@ -931,7 +931,7 @@ api (n)
 
         buildFile << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
             configurations { conf }
             dependencies {
@@ -965,7 +965,7 @@ conf
 
         buildFile << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
             configurations { conf }
             dependencies {
@@ -1017,7 +1017,7 @@ conf
         buildFile << """
             apply plugin: 'java' // Java plugin required for BOM import
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
             dependencies {
                 implementation platform('group:bom:1.0')
@@ -1096,7 +1096,7 @@ compileClasspath - Compile classpath for source set 'main'.
 
         file("build.gradle") << """
             repositories {
-               maven { url "${mavenRepo.uri}" }
+               maven { url = "${mavenRepo.uri}" }
             }
             configurations {
                 migratingUnlocked('variant', org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration.LEGACY_TO_CONSUMABLE)

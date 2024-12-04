@@ -28,7 +28,7 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
                 apply plugin: "java"
             }
             repositories {
-                maven { url '${mavenHttpRepo.uri}' }
+                maven { url = '${mavenHttpRepo.uri}' }
             }
         """
     }

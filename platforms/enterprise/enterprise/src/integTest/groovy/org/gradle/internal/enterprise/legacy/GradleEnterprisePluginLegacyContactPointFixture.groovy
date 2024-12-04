@@ -61,7 +61,7 @@ class GradleEnterprisePluginLegacyContactPointFixture {
         """
             pluginManagement {
                 repositories {
-                    maven { url '${mavenRepo.uri}' }
+                    maven { url = '${mavenRepo.uri}' }
                 }
             }
         """

@@ -130,7 +130,7 @@ Ideally, you should use Maven or Ivy repository with a local URL:
 ----
 repositories {
     maven {
-        url 'file:///path/to/local/files' // Replace with your actual path
+        url = 'file:///path/to/local/files' // Replace with your actual path
     }
 }
 ----

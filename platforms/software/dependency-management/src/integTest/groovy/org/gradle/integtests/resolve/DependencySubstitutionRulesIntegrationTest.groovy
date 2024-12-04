@@ -848,12 +848,12 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
             $common
 
             project(":dep1") {
-                group "org.utils"
+                group = "org.utils"
                 version = '1.6'
             }
 
             project(":dep2") {
-                group "org.utils"
+                group = "org.utils"
                 version = '3.0'
 
                 jar.archiveVersion = '3.0'
@@ -1397,7 +1397,7 @@ Required by:
             configurations.create("default").extendsFrom(configurations.conf)
 
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
 
             task jar(type: Jar) {
@@ -1544,7 +1544,7 @@ configurations.all {
         buildFile << """
 
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
 
             configurations {
@@ -1617,7 +1617,7 @@ configurations.all {
         buildFile << """
 
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
 
             configurations {

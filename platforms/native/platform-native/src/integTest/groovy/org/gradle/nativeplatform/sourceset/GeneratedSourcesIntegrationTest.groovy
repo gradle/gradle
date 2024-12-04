@@ -51,9 +51,9 @@ class GenerateSources extends DefaultTask {
     }
 }
 task generateCSources(type: GenerateSources) {
-    inputDir project.file("src/input")
-    headerDir project.file("build/src/generated/headers")
-    sourceDir project.file("build/src/generated/c")
+    inputDir = project.file("src/input")
+    headerDir = project.file("build/src/generated/headers")
+    sourceDir = project.file("build/src/generated/c")
 }
 """
     }
@@ -243,9 +243,9 @@ model {
 apply plugin: 'cpp'
 
 task generateCppSources(type: GenerateSources) {
-    inputDir project.file("src/input")
-    headerDir project.file("build/src/generated/headers")
-    sourceDir project.file("build/src/generated/cpp")
+    inputDir = project.file("src/input")
+    headerDir = project.file("build/src/generated/headers")
+    sourceDir = project.file("build/src/generated/cpp")
 }
 
 model {
@@ -281,8 +281,8 @@ model {
         buildFile << app.extraConfiguration
         buildFile << """
 task generateAsmSources(type: GenerateSources) {
-    inputDir project.file("src/input")
-    sourceDir project.file("build/src/generated/asm")
+    inputDir = project.file("src/input")
+    sourceDir = project.file("build/src/generated/asm")
 }
 
 model {
@@ -317,8 +317,8 @@ model {
         buildFile << app.extraConfiguration
         buildFile << """
 task generateRcSources(type: GenerateSources) {
-    inputDir project.file("src/input")
-    sourceDir project.file("build/src/generated/rc")
+    inputDir = project.file("src/input")
+    sourceDir = project.file("build/src/generated/rc")
 }
 
 model {
@@ -423,9 +423,9 @@ model {
 }
 
 lateConfiguredGenerator {
-    inputDir project.file("src/input")
-    headerDir project.file("build/src/generated/headers")
-    sourceDir project.file("build/src/generated/c")
+    inputDir = project.file("src/input")
+    headerDir = project.file("build/src/generated/headers")
+    sourceDir = project.file("build/src/generated/c")
 }
 """
 

@@ -33,7 +33,7 @@ class ToolingApiEclipseModelLifeCycleCrossVersionSpec extends ToolingApiSpecific
         MavenFileRepository mavenRepo = new MavenFileRepository(file('maven-repo'))
         MavenFileModule libApi = mavenRepo.module('org.example', 'lib-api', '1.0').publish()
         mavenRepo.module('org.example', 'lib-impl', '1.0').dependsOn(libApi).publish()
-        String localMaven = "maven { url '${mavenRepo.uri}' }"
+        String localMaven = "maven { url = '${mavenRepo.uri}' }"
 
         settingsFile << 'rootProject.name = "root"'
         buildFile << """

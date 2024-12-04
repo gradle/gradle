@@ -47,7 +47,7 @@ class BuildEnvironmentReportTaskIntegrationTest extends AbstractIntegrationSpec 
         buildFile << """
             buildscript {
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = "${mavenRepo.uri}" }
                 }
                 dependencies {
                     classpath 'org:toplevel1:1.0'
@@ -57,7 +57,7 @@ class BuildEnvironmentReportTaskIntegrationTest extends AbstractIntegrationSpec 
             project(":impl") {
                 buildscript {
                     repositories {
-                        maven { url "${mavenRepo.uri}" }
+                        maven { url = "${mavenRepo.uri}" }
                     }
                     dependencies {
                         classpath 'org:toplevel2:1.0'
@@ -68,7 +68,7 @@ class BuildEnvironmentReportTaskIntegrationTest extends AbstractIntegrationSpec 
                     config1
                 }
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = "${mavenRepo.uri}" }
                 }
                 dependencies {
                     config1 'org:leaf1:1.0'

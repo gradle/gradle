@@ -820,11 +820,11 @@ Reason: Some reason.
     def "displays plugin id when available"() {
         when:
         render dummyValidationProblem {
-            inPlugin 'com.foo.bar'
-            type 'Foo'
-            property 'bar'
-            description 'with some description'
-            reason 'some reason'
+            inPlugin('com.foo.bar')
+            type('Foo')
+            property('bar')
+            description('with some description')
+            reason('some reason')
         }
 
         then:
