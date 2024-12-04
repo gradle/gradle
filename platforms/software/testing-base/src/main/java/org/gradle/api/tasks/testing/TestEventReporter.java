@@ -47,6 +47,22 @@ public interface TestEventReporter extends AutoCloseable {
     void output(Instant logTime, TestOutputEvent.Destination destination, String output);
 
     /**
+     * Emit an event containing metadata about the test or test group currently being run.
+     * <p>
+     * Producers can supply the same value as the test start time to indicate that the metadata is "timeless", such
+     * as environment information that isn't tied to a specific point during test execution.  Otherwise, the time
+     * should be between the start and end times of the test (inclusive), but this is not enforced.
+     * <p>
+     * Keys should usually be unique within the scope of a single test, but this is not enforced.
+     *
+     * @param logTime the time the metadata was logged, should be between the start and end times of the test (inclusive)
+     * @param key a key to identify the metadata
+     * @param value the metadata value, which must be serializable by the Tooling API
+     * @since 8.12
+     */
+    void metadata(Instant logTime, String key, Object value);
+
+    /**
      * Emit a successful completion event for the test. May not be called before {@link #started(Instant)}.
      *
      * @param endTime the time the test completed

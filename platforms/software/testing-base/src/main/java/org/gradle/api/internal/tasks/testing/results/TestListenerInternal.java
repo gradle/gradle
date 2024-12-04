@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks.testing.results;
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
+import org.gradle.api.tasks.testing.TestMetadataEvent;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.scan.UsedByScanPlugin;
@@ -33,4 +34,6 @@ public interface TestListenerInternal {
     void completed(TestDescriptorInternal testDescriptor, TestResult testResult, TestCompleteEvent completeEvent);
 
     void output(TestDescriptorInternal testDescriptor, TestOutputEvent event);
+
+    void metadata(TestDescriptorInternal testDescriptor, TestMetadataEvent event);
 }
