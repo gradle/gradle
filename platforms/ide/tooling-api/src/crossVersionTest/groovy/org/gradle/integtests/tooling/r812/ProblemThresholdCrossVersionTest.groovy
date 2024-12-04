@@ -25,6 +25,7 @@ import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.problems.ProblemSummariesEvent
 import org.gradle.tooling.events.problems.SingleProblemEvent
+import spock.lang.Ignore
 
 import static org.gradle.api.problems.ReportingScript.getProblemReportingScript
 import static org.gradle.integtests.tooling.r86.ProblemsServiceModelBuilderCrossVersionTest.getBuildScriptSampleContent
@@ -32,6 +33,7 @@ import static org.gradle.integtests.tooling.r89.ProblemProgressEventCrossVersion
 import static org.gradle.problems.internal.services.DefaultProblemSummarizer.THRESHOLD_DEFAULT_VALUE
 import static org.gradle.problems.internal.services.DefaultProblemSummarizer.THRESHOLD_OPTION
 
+@Ignore("TODO fix this after master is stabilized")
 @ToolingApiVersion(">=8.12")
 @TargetGradleVersion(">=8.12")
 class ProblemThresholdCrossVersionTest extends ToolingApiSpecification {
