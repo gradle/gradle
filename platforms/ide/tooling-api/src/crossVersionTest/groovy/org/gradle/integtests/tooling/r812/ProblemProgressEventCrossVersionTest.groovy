@@ -133,31 +133,26 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         ''                         | null            | ''                                          | null
     }
 
-
-    interface SomeData {
-        String getTypeName()
-    }
-
     @TargetGradleVersion(">=8.12")
     def "daaa"() {
         given:
         buildFile """
             import org.gradle.api.problems.Severity
 
-            class SomeData implements AdditionalData {
+            class SomeData implements AdditionalData, Serializable {
                 String typeName
 
                 SomeData(String typeName) {
                     this.typeName = typeName
                 }
-                Map<String, String> getAsMap(){
-                    [typeName: typeName]
-                }
-                 @Override
-                 Object get(){
-                 return this
-                }
-static AdditionalDataBuilder<SomeData> builder(SomeData from) {
+//                Map<String, String> getAsMap(){
+//                    [typeName: typeName]
+//                }
+//                 @Override
+//                 Object get(){
+//                 return this
+//                }
+                static AdditionalDataBuilder<SomeData> builder(SomeData from) {
                     if(from == null) {
                         return new SomeDataBuilder();
                     }
@@ -226,6 +221,7 @@ static AdditionalDataBuilder<SomeData> builder(SomeData from) {
         def listener = new ProblemProgressListener()
         withConnection { connection ->
             connection.newBuild().forTasks('reportProblem')
+                .addJvmArguments("-agentlib:jdwp=transport=dt_socket,server=n,suspend=y,address=5006")
                 .addProgressListener(listener)
                 .run()
         }

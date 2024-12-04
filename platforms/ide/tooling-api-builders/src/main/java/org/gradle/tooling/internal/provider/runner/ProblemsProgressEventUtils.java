@@ -218,8 +218,8 @@ public class ProblemsProgressEventUtils {
             DeprecationData data = (DeprecationData) additionalData;
             return new DefaultAdditionalData(ImmutableMap.of("type", data.getType().name()), data);
         } else if (additionalData instanceof TypeValidationData) {
-            TypeValidationData data = (TypeValidationData) additionalData;
-            return new DefaultAdditionalData(data.getAsMap(), data);
+//            TypeValidationData data = (TypeValidationData) additionalData;
+            return new DefaultAdditionalData(ImmutableMap.of(), additionalData);
         } else if (additionalData instanceof GeneralData) {
             GeneralData data = (GeneralData) additionalData;
             return new DefaultAdditionalData(
@@ -229,7 +229,7 @@ public class ProblemsProgressEventUtils {
                 data
             );
         } else {
-            return new DefaultAdditionalData(Collections.emptyMap(), additionalData == null ? null : additionalData.get());
+            return new DefaultAdditionalData(Collections.emptyMap(), additionalData);
         }
     }
 

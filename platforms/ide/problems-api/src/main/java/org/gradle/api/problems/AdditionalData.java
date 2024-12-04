@@ -21,9 +21,6 @@ import org.gradle.api.Incubating;
 import org.gradle.api.problems.internal.InternalProblemSpec;
 import org.gradle.api.problems.internal.Problem;
 
-import javax.annotation.Nullable;
-import java.util.Map;
-
 /**
  * Marker interface for additional data that can be attached to a {@link Problem}.
  * <p>
@@ -41,19 +38,4 @@ import java.util.Map;
  */
 @Incubating
 public interface AdditionalData {
-
-    /**
-     * Data as Map for compatibility.
-     *
-     * @since 8.12
-     */
-    Map<String, Object> getAsMap();
-
-    /**
-     * Returns additional data instance.
-     *
-     * @since 8.12
-     */
-    @Nullable
-    Object get();
 }

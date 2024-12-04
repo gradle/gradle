@@ -16,11 +16,9 @@
 
 package org.gradle.api.problems.internal;
 
-import com.google.common.collect.ImmutableMap;
 import org.gradle.api.problems.AdditionalDataBuilder;
 
 import javax.annotation.Nullable;
-import java.util.Map;
 
 public class DefaultPropertyTraceData implements PropertyTraceData {
     private final String trace;
@@ -41,16 +39,16 @@ public class DefaultPropertyTraceData implements PropertyTraceData {
         return trace;
     }
 
-    @Override
-    public Map<String, Object> getAsMap() {
-        return ImmutableMap.<String, Object>of("trace", trace);
-    }
-
-    @Nullable
-    @Override
-    public Object get() {
-        return this;
-    }
+//    @Override
+//    public Map<String, Object> getAsMap() {
+//        return ImmutableMap.<String, Object>of("trace", trace);
+//    }
+//
+//    @Nullable
+//    @Override
+//    public Object get() {
+//        return this;
+//    }
 
     private static class DefaultPropertyTraceDataBuilder implements PropertyTraceDataSpec, AdditionalDataBuilder<PropertyTraceData> {
         private String trace;

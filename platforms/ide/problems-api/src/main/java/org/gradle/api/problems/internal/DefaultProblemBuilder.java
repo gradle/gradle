@@ -17,7 +17,6 @@
 package org.gradle.api.problems.internal;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import org.gradle.api.Action;
 import org.gradle.api.problems.AdditionalData;
 import org.gradle.api.problems.AdditionalDataBuilder;
@@ -34,7 +33,6 @@ import org.gradle.problems.buildtree.ProblemStream;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 public class DefaultProblemBuilder implements InternalProblemBuilder {
     @Nullable
@@ -304,17 +302,6 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
 
         public Class<?> getType() {
             return type;
-        }
-
-        @Override
-        public Map<String, Object> getAsMap() {
-            return ImmutableMap.<String, Object>of("type", type.getName());
-        }
-
-        @Nullable
-        @Override
-        public Object get() {
-            return null;
         }
     }
 }

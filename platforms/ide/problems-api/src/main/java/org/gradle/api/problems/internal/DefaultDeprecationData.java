@@ -16,11 +16,9 @@
 
 package org.gradle.api.problems.internal;
 
-import com.google.common.collect.ImmutableMap;
 import org.gradle.api.problems.AdditionalDataBuilder;
 
 import javax.annotation.Nullable;
-import java.util.Map;
 
 public class DefaultDeprecationData implements DeprecationData {
 
@@ -40,17 +38,6 @@ public class DefaultDeprecationData implements DeprecationData {
             return new DefaultDeprecationDataBuilder();
         }
         return new DefaultDeprecationDataBuilder(from);
-    }
-
-    @Override
-    public Map<String, Object> getAsMap() {
-        return ImmutableMap.<String, Object>of("type", type.name());
-    }
-
-    @Nullable
-    @Override
-    public Object get() {
-        return this;
     }
 
     private static class DefaultDeprecationDataBuilder implements DeprecationDataSpec, AdditionalDataBuilder<DeprecationData> {

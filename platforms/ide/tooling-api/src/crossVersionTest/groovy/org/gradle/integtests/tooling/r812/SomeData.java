@@ -14,20 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.internal;
+package org.gradle.integtests.tooling.r812;
 
-import org.gradle.api.problems.AdditionalData;
-
-import java.util.Map;
-
-/**
- * General additional data type that can be used to attach arbitrary data to a problem with a string map.
- */
-public interface GeneralData extends AdditionalData {
-
-    /**
-     * Returns the data as a map.
-     */
-    Map<String, String> getAsMap();
-
+public interface SomeData {
+    String getTypeName();
 }

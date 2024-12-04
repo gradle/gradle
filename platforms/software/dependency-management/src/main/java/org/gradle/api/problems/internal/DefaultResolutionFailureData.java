@@ -43,12 +43,6 @@ public class DefaultResolutionFailureData implements ResolutionFailureData {
         return resolutionFailure;
     }
 
-    @Nullable
-    @Override
-    public Object get() {
-        return this;
-    }
-
     private static class DefaultResolutionFailureDataBuilder implements ResolutionFailureDataSpec, AdditionalDataBuilder<ResolutionFailureData> {
         private ResolutionFailure failure;
 
