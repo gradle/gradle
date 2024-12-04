@@ -170,6 +170,10 @@ Custom test root > My Suite > another failing test FAILED
 
         Instant.ofEpochMilli(rootTestOp.endTime).isAfter(startTime)
         Instant.ofEpochMilli(rootTestOp.endTime).isBefore(Instant.now())
+
+        // The result of the test execution has the reported timestamps
+        rootTestOp.result.result.startTime == 1000
+        rootTestOp.result.result.endTime == 1050
     }
 
     def "captures String metadata for custom test"() {
