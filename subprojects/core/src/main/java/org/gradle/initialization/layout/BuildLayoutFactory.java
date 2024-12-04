@@ -70,7 +70,7 @@ public class BuildLayoutFactory {
     }
 
     private BuildLayout buildLayoutFrom(BuildLayoutConfiguration configuration, File settingsFile) {
-        return new BuildLayout(configuration.getCurrentDir(), settingsFile, scriptFileResolver);
+        return new BuildLayout(configuration.getCurrentDir(), configuration.getCurrentDir(), settingsFile, scriptFileResolver);
     }
 
     @Nullable
@@ -93,6 +93,6 @@ public class BuildLayoutFactory {
     }
 
     private BuildLayout layout(File rootDir, File settingsFile) {
-        return new BuildLayout(rootDir, FileUtils.canonicalize(settingsFile), scriptFileResolver);
+        return new BuildLayout(rootDir, settingsFile.getParentFile(), FileUtils.canonicalize(settingsFile), scriptFileResolver);
     }
 }

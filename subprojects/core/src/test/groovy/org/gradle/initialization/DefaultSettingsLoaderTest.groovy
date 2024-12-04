@@ -34,7 +34,7 @@ import spock.lang.Specification
 
 class DefaultSettingsLoaderTest extends Specification {
     private projectRootDir = FileUtils.canonicalize(new File("someDir"))
-    private mockBuildLayout = new BuildLayout(projectRootDir, null, Stub(ScriptFileResolver))
+    private mockBuildLayout = new BuildLayout(null, projectRootDir, null, Stub(ScriptFileResolver))
     @SuppressWarnings('GroovyAssignabilityCheck')
     private mockBuildLayoutFactory = Mock(BuildLayoutFactory) {
         getLayoutFor(_) >> mockBuildLayout
