@@ -21,6 +21,7 @@ import org.gradle.api.problems.internal.ProblemLookup;
 import org.gradle.internal.exceptions.MultiCauseException;
 import org.gradle.tooling.internal.protocol.InternalBasicProblemDetailsVersion3;
 import org.gradle.tooling.internal.protocol.InternalFailure;
+import org.gradle.tooling.internal.protocol.InternalJvmFailure;
 
 import java.io.PrintWriter;
 import java.io.Serializable;
@@ -32,22 +33,29 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-public class DefaultFailure implements Serializable, InternalFailure {
+public class DefaultFailure implements Serializable, InternalJvmFailure {
 
+    private final Class<? extends Throwable> exceptionType;
     private final String message;
     private final String description;
     private final List<? extends InternalFailure> causes;
     private final List<InternalBasicProblemDetailsVersion3> problems;
 
-    DefaultFailure(String message, String description, List<? extends InternalFailure> causes) {
-        this(message, description, causes, Collections.emptyList());
+    DefaultFailure(Class<? extends Throwable> exceptionType, String message, String description, List<? extends InternalFailure> causes) {
+        this(exceptionType, message, description, causes, Collections.emptyList());
     }
 
-    DefaultFailure(String message, String description, List<? extends InternalFailure> causes, List<InternalBasicProblemDetailsVersion3> problems) {
+    DefaultFailure(Class<? extends Throwable> exceptionType, String message, String description, List<? extends InternalFailure> causes, List<InternalBasicProblemDetailsVersion3> problems) {
+        this.exceptionType = exceptionType;
         this.message = message;
         this.description = description;
         this.causes = causes;
         this.problems = problems;
+    }
+
+    @Override
+    public Class<? extends Throwable> getExceptionType() {
+        return exceptionType;
     }
 
     @Override
@@ -98,9 +106,9 @@ public class DefaultFailure implements Serializable, InternalFailure {
             problems.addAll(problemMapping);
         }
         if (problems.isEmpty()) {
-            return new DefaultFailure(t.getMessage(), out.toString(), causeFailures);
+            return new DefaultFailure(t.getClass(), t.getMessage(), out.toString(), causeFailures);
         } else {
-            return new DefaultFailure(t.getMessage(), out.toString(), causeFailures, problems.stream().map(mapper).collect(Collectors.toList()));
+            return new DefaultFailure(t.getClass(), t.getMessage(), out.toString(), causeFailures, problems.stream().map(mapper).collect(Collectors.toList()));
         }
     }
 }
