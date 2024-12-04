@@ -29,7 +29,7 @@ import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchemaBuild
 import org.gradle.internal.declarativedsl.evaluationSchema.FixedTypeDiscovery
 import org.gradle.internal.declarativedsl.evaluationSchema.ObjectConversionComponent
 import org.gradle.internal.declarativedsl.evaluationSchema.ifConversionSupported
-import org.gradle.internal.declarativedsl.mappingToJvm.InstanceAndPublicType
+import org.gradle.internal.declarativedsl.InstanceAndPublicType
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeCustomAccessors
 import org.gradle.internal.declarativedsl.schemaBuilder.DataSchemaBuilder
 import org.gradle.internal.declarativedsl.schemaBuilder.FunctionExtractor
@@ -129,7 +129,7 @@ class RuntimeExtensionAccessors(info: List<ExtensionInfo>) : RuntimeCustomAccess
     val typesByIdentifier = info.associate { it.customAccessorId to it.type }
 
     override fun getObjectFromCustomAccessor(receiverObject: Any, accessor: ConfigureAccessor.Custom): InstanceAndPublicType =
-        providersByIdentifier[accessor.customAccessorIdentifier] to typesByIdentifier[accessor.customAccessorIdentifier]
+        InstanceAndPublicType.of(providersByIdentifier[accessor.customAccessorIdentifier], typesByIdentifier[accessor.customAccessorIdentifier])
 }
 
 

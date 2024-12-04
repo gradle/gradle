@@ -44,11 +44,10 @@ import org.gradle.internal.declarativedsl.evaluationSchema.ObjectConversionCompo
 import org.gradle.internal.declarativedsl.evaluationSchema.ifConversionSupported
 import org.gradle.internal.declarativedsl.language.DataTypeInternal
 import org.gradle.internal.declarativedsl.mappingToJvm.DeclarativeRuntimeFunction
-import org.gradle.internal.declarativedsl.mappingToJvm.InstanceAndPublicType
+import org.gradle.internal.declarativedsl.InstanceAndPublicType
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeCustomAccessors
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeFunctionResolver
-import org.gradle.internal.declarativedsl.mappingToJvm.nullInstanceAndPublicType
-import org.gradle.internal.declarativedsl.mappingToJvm.withFallbackPublicType
+import org.gradle.internal.declarativedsl.withFallbackPublicType
 import org.gradle.internal.declarativedsl.schemaBuilder.DataSchemaBuilder
 import org.gradle.internal.declarativedsl.schemaBuilder.FunctionExtractor
 import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery
@@ -137,8 +136,8 @@ internal class ContainersSchemaComponent : AnalysisSchemaComponent, ObjectConver
     override fun runtimeCustomAccessors(): List<RuntimeCustomAccessors> = listOf(
         object : RuntimeCustomAccessors {
             override fun getObjectFromCustomAccessor(receiverObject: Any, accessor: ConfigureAccessor.Custom): InstanceAndPublicType {
-                val callable = containerByAccessorId[accessor.customAccessorIdentifier]?.originDeclaration?.callable ?: return nullInstanceAndPublicType
-                return callable.call(receiverObject) to callable.returnType.jvmErasure
+                val callable = containerByAccessorId[accessor.customAccessorIdentifier]?.originDeclaration?.callable ?: return InstanceAndPublicType.NULL
+                return InstanceAndPublicType.of(callable.call(receiverObject),  callable.returnType.jvmErasure)
             }
         }
     )

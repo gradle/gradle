@@ -22,6 +22,7 @@ import org.gradle.declarative.dsl.schema.ConfigureAccessor
 import org.gradle.declarative.dsl.schema.DataConstructor
 import org.gradle.declarative.dsl.schema.DataTopLevelFunction
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
+import org.gradle.internal.declarativedsl.InstanceAndPublicType
 import org.gradle.internal.declarativedsl.analysis.ConfigureAccessorInternal
 import org.gradle.internal.declarativedsl.analysis.DefaultDataMemberFunction
 import org.gradle.internal.declarativedsl.analysis.FunctionSemanticsInternal
@@ -35,6 +36,7 @@ import org.gradle.internal.declarativedsl.schemaBuilder.plus
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
 import org.gradle.internal.declarativedsl.schemaBuilder.toDataTypeRef
 import org.gradle.internal.declarativedsl.schemaBuilder.treatInterfaceAsConfigureLambda
+import org.gradle.internal.declarativedsl.withFallbackPublicType
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.Test
@@ -84,7 +86,7 @@ class AccessorTest {
         override fun getObjectFromCustomAccessor(receiverObject: Any, accessor: ConfigureAccessor.Custom): InstanceAndPublicType =
             if (receiverObject is MyReceiver && accessor.customAccessorIdentifier == "test")
                 withFallbackPublicType(receiverObject.myHiddenInstance.value) // TODO: doesn't seem to be exercised in tests
-            else nullInstanceAndPublicType
+            else InstanceAndPublicType.NULL
     }
 
     // don't make this private, will produce failures on Java 8 (due to https://youtrack.jetbrains.com/issue/KT-37660)
