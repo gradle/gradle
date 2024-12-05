@@ -145,8 +145,6 @@ public class DefaultExecActionFactory implements ExecFactory {
     }
 
     public JavaExecAction newDecoratedJavaExecAction() {
-        final JavaForkOptionsInternal forkOptions = newDecoratedJavaForkOptions();
-        forkOptions.getExecutable().set(Jvm.current().getJavaExecutable().getAbsolutePath());
         DefaultJavaExecAction javaExecAction = instantiator.newInstance(DefaultJavaExecAction.class, newExecAction(), newJavaExec());
         ExecHandleListener listener = getExecHandleListener();
         if (listener != null) {
