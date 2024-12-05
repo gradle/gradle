@@ -42,6 +42,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
 
@@ -667,28 +668,31 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
             return mergedValue.withSideEffect(sideEffectBuilder.build());
         }
 
+        private Stream<ValueProducer> getProducers() {
+            return collectors.stream().map(ValueSupplier::getProducer);
+        }
+
         @Override
         public ValueProducer getProducer() {
-            List<ValueProducer> producers = getCollectors().stream().map(ValueSupplier::getProducer).collect(toList());
             return new ValueProducer() {
                 @Override
                 public void visitProducerTasks(Action<? super Task> visitor) {
-                    producers.forEach(c -> c.visitProducerTasks(visitor));
+                    getProducers().forEach(c -> c.visitProducerTasks(visitor));
                 }
 
                 @Override
                 public boolean isKnown() {
-                    return producers.stream().anyMatch(ValueProducer::isKnown);
+                    return getProducers().anyMatch(ValueProducer::isKnown);
                 }
 
                 @Override
                 public void visitDependencies(TaskDependencyResolveContext context) {
-                    producers.forEach(c -> c.visitDependencies(context));
+                    getProducers().forEach(c -> c.visitDependencies(context));
                 }
 
                 @Override
                 public void visitContentProducerTasks(Action<? super Task> visitor) {
-                    producers.forEach(c -> c.visitContentProducerTasks(visitor));
+                    getProducers().forEach(c -> c.visitContentProducerTasks(visitor));
                 }
             };
         }
