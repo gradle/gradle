@@ -43,7 +43,8 @@ public class DefaultTestMetadataEvent implements TestMetadataEvent {
 
     @Override
     public String getDisplayName() {
-        return descriptor.getDisplayName() + " " + metadata.getDisplayName();
+        // TODO: What to show as a display name for this?
+        return descriptor.getDisplayName() + " " + metadata.getClass().getSimpleName();
     }
 
     @Override

@@ -17,26 +17,18 @@
 package org.gradle.tooling.events.internal;
 
 import org.gradle.tooling.events.EventData;
+import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 
 public class DefaultEventData implements EventData {
     private final Object data;
-    private final String displayName;
 
-    public DefaultEventData(Object data, String displayName) {
+    public DefaultEventData(Object data) {
         this.data = data;
-        this.displayName = displayName;
     }
 
     @Override
     public <T> T get(Class<T> type) {
-        if (type.isInstance(data)) {
-            return type.cast(data);
-        }
-        throw new UnsupportedOperationException(getDisplayName() + " cannot be represented as a " + type);
-    }
-
-    @Override
-    public String getDisplayName() {
-        return displayName;
+        // TODO: Where do we get this?
+        return new ProtocolToModelAdapter().adapt(type, data);
     }
 }

@@ -17,7 +17,9 @@
 package org.gradle.integtests.tooling
 
 import groovy.transform.CompileStatic
+import org.gradle.api.specs.Spec
 import org.gradle.integtests.tooling.fixture.ProgressEvents
+import org.gradle.tooling.events.EventData
 import org.gradle.tooling.events.task.TaskOperationDescriptor
 import org.gradle.tooling.events.test.TestMetadataEvent
 import org.gradle.tooling.events.test.TestOperationDescriptor
@@ -49,6 +51,7 @@ trait TestEventsFixture {
         void testDisplayName(String displayName)
         void output(String msg)
         void metadata(String key, Object value)
+        void metadata(Spec<EventData> spec)
     }
 
     static interface CompositeTestEventSpec extends TestEventSpec {
@@ -86,7 +89,7 @@ class DefaultTestEventSpec implements TestEventsFixture.CompositeTestEventSpec {
     private final ProgressEvents.Operation parent
     private String testDisplayName
     private final List<String> expectedOutput = []
-    private final Map<String, Object> expectedMetadata = [:]
+    private final List<Spec> metadataAssertions = []
 
     static void assertSpec(
         ProgressEvents.Operation parentOperation,
@@ -121,7 +124,16 @@ class DefaultTestEventSpec implements TestEventsFixture.CompositeTestEventSpec {
 
     @Override
     void metadata(String key, Object value) {
-        expectedMetadata[key] = value
+        metadataAssertions << new Spec<EventData>() {
+            @Override
+            boolean isSatisfiedBy(EventData data) {
+                return data.get(Map) == [(key): value]
+            }
+        }
+    }
+
+    void metadata(Spec<EventData> spec) {
+        metadataAssertions << spec
     }
 
     private static String normalizeExecutor(String name) {
@@ -173,8 +185,12 @@ class DefaultTestEventSpec implements TestEventsFixture.CompositeTestEventSpec {
 
         def actualMetadata = parent.children.findAll { it.startEvent instanceof TestMetadataEvent }
             .collect { ((TestMetadataEvent)it.startEvent).metadata }
-            .collectEntries { it.get(Map) }
-        assert actualMetadata == expectedMetadata
+        assert actualMetadata.size() == metadataAssertions.size()
+        [actualMetadata, metadataAssertions].transpose().each { e ->
+            EventData data = (e as List<EventData>)[0]
+            Spec<EventData> spec = (e as List<Spec<EventData>>)[1]
+            assert spec.isSatisfiedBy(data)
+        }
 
         if (testDisplayName != null && parent.descriptor.respondsTo("getTestDisplayName")) {
             assert testDisplayName == ((TestOperationDescriptor) parent.descriptor).testDisplayName

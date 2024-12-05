@@ -28,6 +28,4 @@ public interface EventData {
      * @param <T> type of the data
      */
     <T> T get(Class<T> type);
-
-    String getDisplayName();
 }

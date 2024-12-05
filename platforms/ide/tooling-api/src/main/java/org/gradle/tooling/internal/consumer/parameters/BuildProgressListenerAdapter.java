@@ -623,9 +623,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
 
     private TestMetadataEvent transformTestMetadata(InternalTestMetadataEvent event, InternalTestMetadataDescriptor descriptor) {
         OperationDescriptor clientDescriptor = addDescriptor(event.getDescriptor(), toDescriptor(descriptor));
-        // TODO: display name
-        // Decorate with proxy here?
-        EventData metadata = new DefaultEventData(event.getMetadata(), "Test Metadata");
+        EventData metadata = new DefaultEventData(event.getMetadata());
         return new DefaultTestMetadataEvent(event.getEventTime(), clientDescriptor, metadata);
     }
 

@@ -34,6 +34,69 @@ class CustomTestMetadataEventsCrossVersionSpec extends ToolingApiSpecification i
         return events
     }
 
+    static interface MyDataConsumer {
+        String getName()
+        int getValue()
+    }
+
+    def "reports custom test events with custom object metadata"() {
+        given:
+        buildFile("""
+            import java.time.Instant
+
+            @groovy.transform.Immutable
+            class MyData {
+                String name
+                int value
+            }
+
+            abstract class CustomTestTask extends DefaultTask {
+                @Inject
+                abstract TestEventReporterFactory getTestEventReporterFactory()
+
+                @TaskAction
+                void runTests() {
+                    try (def reporter = getTestEventReporterFactory().createTestEventReporter("Custom test root")) {
+                        reporter.started(Instant.now())
+                        try (def myTest = reporter.reportTest("MyTestInternal", "My test!")) {
+                            myTest.started(Instant.now())
+                            def data = new MyData(name: "my value", value: 10)
+                            myTest.metadata(Instant.now(), data)
+                            myTest.succeeded(Instant.now())
+                        }
+                        reporter.succeeded(Instant.now())
+                    }
+                }
+            }
+
+            tasks.register("customTest", CustomTestTask)
+        """)
+
+        when:
+        withConnection {
+            ProjectConnection connection ->
+                connection.newBuild()
+                    .addProgressListener(events, OperationType.TASK, OperationType.TEST, OperationType.TEST_OUTPUT, OperationType.TEST_METADATA)
+                    .forTasks('customTest')
+                    .run()
+        }
+
+        then:
+         testEvents {
+            task(":customTest") {
+                composite("Custom test root") {
+                    test("MyTestInternal") {
+                        testDisplayName "My test!"
+                        metadata {
+                            def mydata = it.get(MyDataConsumer.class)
+                            return mydata.name == "my value" && mydata.value == 10
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     def "reports custom test events with metadata"() {
         given:
         buildFile("""
