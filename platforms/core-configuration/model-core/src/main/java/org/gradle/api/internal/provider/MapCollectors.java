@@ -19,7 +19,6 @@ package org.gradle.api.internal.provider;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableMap;
-import org.gradle.api.Action;
 import org.gradle.api.internal.lambdas.SerializableLambdas;
 import org.gradle.internal.Cast;
 
@@ -44,12 +43,6 @@ public class MapCollectors {
         }
 
         @Override
-        public MapCollector<K, V> absentIgnoring() {
-            // always present
-            return this;
-        }
-
-        @Override
         public Value<Void> collectEntries(ValueConsumer consumer, MapEntryCollector<K, V> collector, Map<K, V> dest) {
             collector.add(key, value, dest);
             return Value.present();
@@ -62,8 +55,8 @@ public class MapCollectors {
         }
 
         @Override
-        public void calculateExecutionTimeValue(Action<ExecutionTimeValue<? extends Map<? extends K, ? extends V>>> visitor) {
-            visitor.execute(ExecutionTimeValue.fixedValue(ImmutableMap.of(key, value)));
+        public ExecutionTimeValue<? extends Map<? extends K, ? extends V>> calculateExecutionTimeValue() {
+            return ExecutionTimeValue.fixedValue(ImmutableMap.of(key, value));
         }
 
         @Override
@@ -104,11 +97,6 @@ public class MapCollectors {
         }
 
         @Override
-        public MapCollector<K, V> absentIgnoring() {
-            return new EntriesFromMapProvider<>(providerOfValue.map(value -> ImmutableMap.of(key, value)), true);
-        }
-
-        @Override
         public boolean calculatePresence(ValueConsumer consumer) {
             return providerOfValue.calculatePresence(consumer);
         }
@@ -134,16 +122,16 @@ public class MapCollectors {
         }
 
         @Override
-        public void calculateExecutionTimeValue(Action<ExecutionTimeValue<? extends Map<? extends K, ? extends V>>> visitor) {
+        public ExecutionTimeValue<? extends Map<? extends K, ? extends V>> calculateExecutionTimeValue() {
             ExecutionTimeValue<? extends V> value = providerOfValue.calculateExecutionTimeValue();
             if (value.isMissing()) {
-                visitor.execute(ExecutionTimeValue.missing());
+                return ExecutionTimeValue.missing();
             } else if (value.hasFixedValue()) {
                 // transform preserving side effects
-                visitor.execute(ExecutionTimeValue.value(value.toValue().transform(v -> ImmutableMap.of(key, v))));
+                return ExecutionTimeValue.value(value.toValue().transform(v -> ImmutableMap.of(key, v)));
             } else {
-                visitor.execute(ExecutionTimeValue.changingValue(
-                    value.getChangingValue().map(SerializableLambdas.transformer(v -> ImmutableMap.of(key, v)))));
+                return ExecutionTimeValue.changingValue(
+                    value.getChangingValue().map(SerializableLambdas.transformer(v -> ImmutableMap.of(key, v))));
             }
         }
 
@@ -172,12 +160,6 @@ public class MapCollectors {
         }
 
         @Override
-        public MapCollector<K, V> absentIgnoring() {
-            // always present
-            return this;
-        }
-
-        @Override
         public Value<Void> collectEntries(ValueConsumer consumer, MapEntryCollector<K, V> collector, Map<K, V> dest) {
             collector.addAll(entries.entrySet(), dest);
             return Value.present();
@@ -190,8 +172,8 @@ public class MapCollectors {
         }
 
         @Override
-        public void calculateExecutionTimeValue(Action<ExecutionTimeValue<? extends Map<? extends K, ? extends V>>> sources) {
-            sources.execute(ExecutionTimeValue.fixedValue(entries));
+        public ExecutionTimeValue<? extends Map<? extends K, ? extends V>> calculateExecutionTimeValue() {
+            return ExecutionTimeValue.fixedValue(entries);
         }
 
         @Override
@@ -217,11 +199,6 @@ public class MapCollectors {
         private EntriesFromMapProvider(ProviderInternal<? extends Map<? extends K, ? extends V>> providerOfEntries, boolean ignoreAbsent) {
             this.providerOfEntries = ignoreAbsent ? neverMissing(Cast.uncheckedNonnullCast(providerOfEntries)) : providerOfEntries;
             this.ignoreAbsent = ignoreAbsent;
-        }
-
-        @Override
-        public MapCollector<K, V> absentIgnoring() {
-            return ignoreAbsent ? this : new EntriesFromMapProvider<>(providerOfEntries, true);
         }
 
         @Nonnull
@@ -255,8 +232,8 @@ public class MapCollectors {
         }
 
         @Override
-        public void calculateExecutionTimeValue(Action<ExecutionTimeValue<? extends Map<? extends K, ? extends V>>> visitor) {
-            visitor.execute(providerOfEntries.calculateExecutionTimeValue());
+        public ExecutionTimeValue<? extends Map<? extends K, ? extends V>> calculateExecutionTimeValue() {
+            return providerOfEntries.calculateExecutionTimeValue();
         }
 
         @Override
