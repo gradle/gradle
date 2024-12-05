@@ -18,7 +18,7 @@ package org.gradle.internal.enterprise
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-import static org.gradle.api.problems.ReportingScript.getProblemReportingScript
+import static org.gradle.api.problems.fixtures.ReportingScript.getProblemReportingScript
 
 class DevelocityPluginEndOfBuildCallbackIntegrationTest extends AbstractIntegrationSpec {
 
