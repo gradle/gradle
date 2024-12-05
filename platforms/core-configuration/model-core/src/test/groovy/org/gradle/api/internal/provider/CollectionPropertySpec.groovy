@@ -29,6 +29,7 @@ import org.spockframework.lang.Wildcard
 import java.util.function.Consumer
 
 import static org.gradle.api.internal.provider.CircularEvaluationSpec.ProviderConsumer.GET_PRODUCER
+import static org.gradle.api.internal.provider.CircularEvaluationSpec.ProviderConsumer.TO_STRING
 import static org.gradle.api.internal.provider.Providers.notDefined
 
 abstract class CollectionPropertySpec<C extends Collection<String>> extends PropertySpec<C> {
@@ -1164,6 +1165,11 @@ The value of this property is derived from: <source>""")
     }
 
     static abstract class CollectionPropertyCircularChainEvaluationTest<T, C extends Collection<T>> extends PropertySpec.PropertyCircularChainEvaluationSpec<C> {
+        @Override
+        List<Consumer<ProviderInternal<?>>> safeConsumers() {
+            return [TO_STRING, GET_PRODUCER]
+        }
+
         @Override
         abstract AbstractCollectionProperty<T, C> property()
 
