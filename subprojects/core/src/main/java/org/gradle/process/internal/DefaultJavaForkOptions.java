@@ -19,6 +19,7 @@ package org.gradle.process.internal;
 import org.gradle.api.Action;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.lambdas.SerializableLambdas;
 import org.gradle.api.internal.provider.MapPropertyInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
@@ -55,7 +56,7 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
         PathToFileResolver resolver,
         FileCollectionFactory fileCollectionFactory
     ) {
-        super(objectFactory, resolver);
+        super(objectFactory, resolver, getInheritableEnvironment());
         this.fileCollectionFactory = fileCollectionFactory;
         this.jvmArgs = objectFactory.listProperty(String.class);
         this.jvmArgumentProviders = objectFactory.listProperty(CommandLineArgumentProvider.class);
@@ -66,6 +67,11 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
         this.debugOptions = objectFactory.newInstance(DefaultJavaDebugOptions.class, objectFactory);
         this.defaultCharacterEncoding = objectFactory.property(String.class);
         this.enableAssertions = objectFactory.property(Boolean.class);
+    }
+
+    private static Provider<Map<String, String>> getInheritableEnvironment() {
+        // Filter out any environment variables that should not be inherited.
+        return CURRENT_ENVIRONMENT.map(SerializableLambdas.transformer(Jvm::getInheritableEnvironmentVariables));
     }
 
     @Override
@@ -171,17 +177,6 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
     @Override
     public void debugOptions(Action<JavaDebugOptions> action) {
         action.execute(getDebugOptions());
-    }
-
-    @Override
-    protected Map<String, ?> getInheritableEnvironment() {
-        // Filter out any environment variables that should not be inherited.
-        return Jvm.getInheritableEnvironmentVariables(super.getInheritableEnvironment());
-    }
-
-    @Override
-    public Map<String, ?> getDefaultEnvironment() {
-        return this.getInheritableEnvironment();
     }
 
     @Override

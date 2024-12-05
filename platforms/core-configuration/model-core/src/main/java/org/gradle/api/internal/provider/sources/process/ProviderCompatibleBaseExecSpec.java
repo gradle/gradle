@@ -17,18 +17,11 @@
 package org.gradle.api.internal.provider.sources.process;
 
 import org.gradle.api.provider.Property;
-import org.gradle.process.ProcessForkOptions;
 
-import javax.annotation.Nullable;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.HashMap;
-import java.util.Map;
 
 abstract class ProviderCompatibleBaseExecSpec implements DelegatingBaseExecSpec {
-    private final Map<String, Object> additionalEnvVars = new HashMap<>();
-    @Nullable
-    private Map<String, Object> fullEnvironment;
 
     @Override
     public Property<InputStream> getStandardInput() {
@@ -45,39 +38,9 @@ abstract class ProviderCompatibleBaseExecSpec implements DelegatingBaseExecSpec 
         throw new UnsupportedOperationException("Standard streams cannot be configured for exec output provider");
     }
 
-    @Override
-    public ProcessForkOptions environment(Map<String, ?> environmentVariables) {
-        getMapForAppends().putAll(environmentVariables);
-        // Keep the delegate's view of environment consistent to make sure getEnvironment and
-        // copyTo work properly.
-        DelegatingBaseExecSpec.super.environment(environmentVariables);
-        return this;
-    }
-
-    @Override
-    public ProcessForkOptions environment(String name, Object value) {
-        getMapForAppends().put(name, value);
-        // Keep the delegate's view of environment consistent to make sure getEnvironment and
-        // copyTo work properly.
-        DelegatingBaseExecSpec.super.environment(name, value);
-        return this;
-    }
-
-    private Map<String, Object> getMapForAppends() {
-        // If the full environment is specified then additionalEnvVars isn't used, all
-        // additions go into the full map directly.
-        return (fullEnvironment != null) ? fullEnvironment : additionalEnvVars;
-    }
-
-    @Override
-    public ProcessForkOptions copyTo(ProcessForkOptions options) {
-        return DelegatingBaseExecSpec.super.copyTo(options);
-    }
-
     public void copyToParameters(ProcessOutputValueSource.Parameters parameters) {
         parameters.getCommandLine().set(getCommandLine());
-        parameters.getFullEnvironment().set(fullEnvironment);
-        parameters.getAdditionalEnvironmentVariables().set(additionalEnvVars.isEmpty() ? null : additionalEnvVars);
+        parameters.getEnvironment().set(getEnvironment());
         parameters.getWorkingDirectory().set(getWorkingDir());
         parameters.getIgnoreExitValue().set(getIgnoreExitValue());
     }

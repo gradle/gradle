@@ -43,6 +43,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class DefaultProcessForkOptions implements ProcessForkOptions {
+    // TODO(mlopatkin) this provider is a good candidate for CC deduplication
+    protected static final Provider<Map<String, String>> CURRENT_ENVIRONMENT = Providers.changing(System::getenv);
+
     protected final PathToFileResolver resolver;
     private final Property<String> executable;
     private final DirectoryProperty workingDir;
@@ -58,18 +61,24 @@ public class DefaultProcessForkOptions implements ProcessForkOptions {
             SimplePropertyFactory.property(String.class),
             SimplePropertyFactory.directoryProperty((FileResolver) resolver),
             SimplePropertyFactory.directoryProperty((FileResolver) resolver),
-            SimplePropertyFactory.mapProperty(String.class, Object.class)
+            SimplePropertyFactory.mapProperty(String.class, Object.class),
+            CURRENT_ENVIRONMENT
         );
     }
 
     @Inject
     public DefaultProcessForkOptions(ObjectFactory objectFactory, PathToFileResolver resolver) {
+        this(objectFactory, resolver, CURRENT_ENVIRONMENT);
+    }
+
+    protected DefaultProcessForkOptions(ObjectFactory objectFactory, PathToFileResolver resolver, Provider<Map<String, String>> inheritableEnvironment) {
         this(
             resolver,
             objectFactory.property(String.class),
             objectFactory.directoryProperty(),
             objectFactory.directoryProperty(),
-            objectFactory.mapProperty(String.class, Object.class)
+            objectFactory.mapProperty(String.class, Object.class),
+            inheritableEnvironment
         );
     }
 
@@ -78,12 +87,13 @@ public class DefaultProcessForkOptions implements ProcessForkOptions {
         Property<String> executable,
         DirectoryProperty defaultWorkingDir,
         DirectoryProperty workingDir,
-        MapProperty<String, Object> environment
+        MapProperty<String, Object> environment,
+        Provider<Map<String, String>> inheritableEnvironment
     ) {
         this.resolver = resolver;
         this.executable = executable;
         this.workingDir = workingDir.convention(defaultWorkingDir.fileProvider(Providers.changing(() -> resolver.resolve("."))));
-        this.environment = environment.value(Providers.changing(this::getInheritableEnvironment));
+        this.environment = environment.value(inheritableEnvironment);
     }
 
     @Override
@@ -119,10 +129,6 @@ public class DefaultProcessForkOptions implements ProcessForkOptions {
     @Override
     public MapProperty<String, Object> getEnvironment() {
         return environment;
-    }
-
-    protected Map<String, ?> getInheritableEnvironment() {
-        return System.getenv();
     }
 
     @Override

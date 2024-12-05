@@ -19,8 +19,6 @@ package org.gradle.process.internal;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.process.JavaForkOptions;
 
-import java.util.Map;
-
 public interface JavaForkOptionsInternal extends JavaForkOptions {
 
     /**
@@ -29,8 +27,6 @@ public interface JavaForkOptionsInternal extends JavaForkOptions {
     void setExtraJvmArgs(Iterable<?> jvmArgs);
 
     Iterable<?> getExtraJvmArgs();
-
-    Map<String, ?> getDefaultEnvironment();
 
     /**
      * Checks supplied JVM arguments with purpose to ignore debug configuration in favor of the supplied arguments.

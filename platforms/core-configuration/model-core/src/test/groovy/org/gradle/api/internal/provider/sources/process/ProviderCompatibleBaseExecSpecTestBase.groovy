@@ -57,7 +57,7 @@ abstract class ProviderCompatibleBaseExecSpecTestBase extends Specification {
         specUnderTest.getEnvironment().get() == [OTHERVAR: "otherval", SOMEVAR: "someval", ADDEDVAR: "addedval"]
     }
 
-    def "spec without environment doesn't set environment properties on parameters"() {
+    def "spec copies environment properties to parameters"() {
         given:
         def parameters = newParameters()
 
@@ -65,51 +65,8 @@ abstract class ProviderCompatibleBaseExecSpecTestBase extends Specification {
         specUnderTest.copyToParameters(parameters)
 
         then:
-        !parameters.fullEnvironment.isPresent()
-        !parameters.additionalEnvironmentVariables.isPresent()
-    }
-
-    def "spec with additional environment sets only additionalEnvironmentVariables on parameters"() {
-        given:
-        def parameters = newParameters()
-
-        when:
-        specUnderTest.environment("FOO", "bar")
-        specUnderTest.copyToParameters(parameters)
-
-        then:
-        !parameters.fullEnvironment.isPresent()
-        parameters.additionalEnvironmentVariables.isPresent()
-        parameters.additionalEnvironmentVariables.get() == [FOO: "bar"]
-    }
-
-    def "spec with full environment sets only fullEnvironment on parameters"() {
-        given:
-        def parameters = newParameters()
-
-        when:
-        specUnderTest.environment = [FOO: "bar"]
-        specUnderTest.copyToParameters(parameters)
-
-        then:
-        parameters.fullEnvironment.isPresent()
-        !parameters.additionalEnvironmentVariables.isPresent()
-        parameters.fullEnvironment.get() == [FOO: "bar"]
-    }
-
-    def "spec with full environment sets only fullEnvironment on parameters even after appends"() {
-        given:
-        def parameters = newParameters()
-
-        when:
-        specUnderTest.environment = [FOO: "bar"]
-        specUnderTest.environment("OTHER", "value")
-        specUnderTest.copyToParameters(parameters)
-
-        then:
-        parameters.fullEnvironment.isPresent()
-        !parameters.additionalEnvironmentVariables.isPresent()
-        parameters.fullEnvironment.get() == [FOO: "bar", OTHER: "value"]
+        parameters.environment.isPresent()
+        specUnderTest.getEnvironment().get() == parameters.environment.get()
     }
 
     def "spec sets ignoreExitValue on parameters"(boolean ignoreExitValue) {
