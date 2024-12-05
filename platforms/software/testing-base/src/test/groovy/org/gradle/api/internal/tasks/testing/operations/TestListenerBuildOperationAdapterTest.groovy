@@ -25,6 +25,8 @@ import org.gradle.api.tasks.testing.TestResult
 import org.gradle.internal.operations.BuildOperationDescriptor
 import org.gradle.internal.operations.BuildOperationIdFactory
 import org.gradle.internal.operations.BuildOperationListener
+import org.gradle.internal.operations.OperationFinishEvent
+import org.gradle.internal.time.Time
 import spock.lang.Specification
 
 class TestListenerBuildOperationAdapterTest extends Specification {
@@ -34,7 +36,7 @@ class TestListenerBuildOperationAdapterTest extends Specification {
 
     BuildOperationListener listener = Mock()
     BuildOperationIdFactory buildOperationIdFactory = Mock()
-    TestListenerBuildOperationAdapter adapter = new TestListenerBuildOperationAdapter(listener, buildOperationIdFactory)
+    TestListenerBuildOperationAdapter adapter = new TestListenerBuildOperationAdapter(Time.clock(), listener, buildOperationIdFactory)
     TestDescriptorInternal parentTestDescriptorInternal = Mock()
     TestDescriptorInternal testDescriptorInternal = Mock()
     TestStartEvent testStartEvent = Mock()
@@ -65,10 +67,11 @@ class TestListenerBuildOperationAdapterTest extends Specification {
         then:
         1 * listener.finished(_, _) >> {
             assert generatedDescriptor == it[0] // started and finished descriptors are the same
-            assert it[1].startTime == TEST_START_TIMESTAMP
-            assert it[1].endTime == TEST_COMPLETE_TIMESTAMP
-            assert it[1].failure == null // not exposing test failures as operation failures
-            assert it[1].result.result == testResult
+            OperationFinishEvent finishEvent = it[1]
+            assert finishEvent.startTime != TEST_START_TIMESTAMP
+            assert finishEvent.endTime != TEST_COMPLETE_TIMESTAMP
+            assert finishEvent.failure == null // not exposing test failures as operation failures
+            assert finishEvent.result.result == testResult
         }
         0 * buildOperationIdFactory.nextId()
     }
