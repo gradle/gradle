@@ -1527,7 +1527,7 @@ The value of this property is derived from: <source>""")
 
         where:
         value       | result
-//        [b: "2"]    | [a: "1", b: "2", c: "3"]
+        [b: "2"]    | [a: "1", b: "2", c: "3"]
         null        | [a: "1", c: "3"]
     }
 

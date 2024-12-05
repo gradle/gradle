@@ -20,9 +20,7 @@ import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.internal.lambdas.SerializableLambdas;
-import org.gradle.internal.Cast;
 
-import javax.annotation.Nonnull;
 import java.util.Map;
 
 public class MapCollectors {
@@ -190,32 +188,21 @@ public class MapCollectors {
     public static class EntriesFromMapProvider<K, V> implements MapCollector<K, V> {
 
         private final ProviderInternal<? extends Map<? extends K, ? extends V>> providerOfEntries;
-        private final boolean ignoreAbsent;
 
         public EntriesFromMapProvider(ProviderInternal<? extends Map<? extends K, ? extends V>> providerOfEntries) {
-            this(providerOfEntries, false);
-        }
-
-        private EntriesFromMapProvider(ProviderInternal<? extends Map<? extends K, ? extends V>> providerOfEntries, boolean ignoreAbsent) {
-            this.providerOfEntries = ignoreAbsent ? neverMissing(Cast.uncheckedNonnullCast(providerOfEntries)) : providerOfEntries;
-            this.ignoreAbsent = ignoreAbsent;
-        }
-
-        @Nonnull
-        private static <K, V> ProviderInternal<? extends Map<? extends K, ? extends V>> neverMissing(ProviderInternal<Map<? extends K, ? extends V>> provider) {
-            return Cast.uncheckedNonnullCast(provider.orElse(ImmutableMap.of()));
+            this.providerOfEntries = providerOfEntries;
         }
 
         @Override
         public boolean calculatePresence(ValueConsumer consumer) {
-            return ignoreAbsent || providerOfEntries.calculatePresence(consumer);
+            return providerOfEntries.calculatePresence(consumer);
         }
 
         @Override
         public Value<Void> collectEntries(ValueConsumer consumer, MapEntryCollector<K, V> collector, Map<K, V> dest) {
             Value<? extends Map<? extends K, ? extends V>> value = providerOfEntries.calculateValue(consumer);
             if (value.isMissing()) {
-                return ignoreAbsent ? Value.present() : value.asType();
+                return value.asType();
             }
             collector.addAll(value.getWithoutSideEffect().entrySet(), dest);
             return Value.present().withSideEffect(SideEffect.fixedFrom(value));
