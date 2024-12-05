@@ -17,10 +17,9 @@
 package org.gradle.api.tasks.testing;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.file.Directory;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import java.nio.file.Path;
 
 /**
  * A service that provides access to the test event reporting API.
@@ -47,7 +46,7 @@ public interface TestEventReporterFactory {
      */
     GroupTestEventReporter createTestEventReporter(
         String rootName,
-        Path binaryResultsDirectory,
-        Path htmlReportDirectory
+        Directory binaryResultsDirectory,
+        Directory htmlReportDirectory
     );
 }

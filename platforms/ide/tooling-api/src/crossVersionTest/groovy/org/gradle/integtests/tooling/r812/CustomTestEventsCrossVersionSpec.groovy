@@ -26,7 +26,7 @@ import org.gradle.tooling.events.OperationType
 
 // Proper test display names were implemented in Gradle 8.8
 @ToolingApiVersion(">=8.8")
-@TargetGradleVersion(">=8.12")
+@TargetGradleVersion(">=8.13")
 class CustomTestEventsCrossVersionSpec extends ToolingApiSpecification implements TestEventsFixture {
     ProgressEvents events = ProgressEvents.create()
 
@@ -51,8 +51,8 @@ class CustomTestEventsCrossVersionSpec extends ToolingApiSpecification implement
                 void runTests() {
                     try (def reporter = testEventReporterFactory.createTestEventReporter(
                         "Custom test root",
-                        getLayout().getBuildDirectory().get().getAsFile().toPath().resolve("test-results/Custom test root"),
-                        getLayout().getBuildDirectory().get().getAsFile().toPath().resolve("reports/tests/Custom test root")
+                        getLayout().getBuildDirectory().dir("test-results/Custom test root").get(),
+                        getLayout().getBuildDirectory().dir("reports/tests/Custom test root").get()
                     )) {
                         reporter.started(Instant.now())
                         try (def myTest = reporter.reportTest("MyTestInternal", "My test!")) {
@@ -106,8 +106,8 @@ class CustomTestEventsCrossVersionSpec extends ToolingApiSpecification implement
                 void runTests() {
                     try (def reporter = testEventReporterFactory.createTestEventReporter(
                         "Custom test root",
-                        getLayout().getBuildDirectory().get().getAsFile().toPath().resolve("test-results/Custom test root"),
-                        getLayout().getBuildDirectory().get().getAsFile().toPath().resolve("reports/tests/Custom test root")
+                        getLayout().getBuildDirectory().dir("test-results/Custom test root").get(),
+                        getLayout().getBuildDirectory().dir("reports/tests/Custom test root").get()
                     )) {
                         reporter.started(Instant.now())
                         try (def mySuite = reporter.reportTestGroup("My Suite")) {
@@ -167,8 +167,8 @@ class CustomTestEventsCrossVersionSpec extends ToolingApiSpecification implement
                 void runTests() {
                     try (def reporter = testEventReporterFactory.createTestEventReporter(
                         "Custom test root",
-                        getLayout().getBuildDirectory().get().getAsFile().toPath().resolve("test-results/Custom test root"),
-                        getLayout().getBuildDirectory().get().getAsFile().toPath().resolve("reports/tests/Custom test root")
+                        getLayout().getBuildDirectory().dir("test-results/Custom test root").get(),
+                        getLayout().getBuildDirectory().dir("reports/tests/Custom test root").get()
                     )) {
                         reporter.started(Instant.now())
                         try (def mySuite = reporter.reportTestGroup("My Suite")) {

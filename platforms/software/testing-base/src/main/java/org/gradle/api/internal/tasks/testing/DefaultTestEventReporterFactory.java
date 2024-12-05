@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.testing;
 
 import org.gradle.api.NonNullApi;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.file.Directory;
 import org.gradle.api.internal.tasks.testing.junit.result.TestClassResult;
 import org.gradle.api.internal.tasks.testing.junit.result.TestOutputStore;
 import org.gradle.api.internal.tasks.testing.junit.result.TestReportDataCollector;
@@ -68,8 +69,8 @@ public final class DefaultTestEventReporterFactory implements TestEventReporterF
     @Override
     public GroupTestEventReporter createTestEventReporter(
         String rootName,
-        Path binaryResultsDirectory,
-        Path htmlReportDirectory
+        Directory binaryResultsDirectory,
+        Directory htmlReportDirectory
     ) {
         ListenerBroadcast<TestListenerInternal> testListenerInternalBroadcaster = listenerManager.createAnonymousBroadcaster(TestListenerInternal.class);
 
@@ -80,14 +81,14 @@ public final class DefaultTestEventReporterFactory implements TestEventReporterF
         testListenerInternalBroadcaster.add(new TestEventProgressListener(progressLoggerFactory));
 
         // Record all emitted results to disk
-        ClosableTestReportDataCollector testReportDataCollector = new ClosableTestReportDataCollector(binaryResultsDirectory);
+        ClosableTestReportDataCollector testReportDataCollector = new ClosableTestReportDataCollector(binaryResultsDirectory.getAsFile().toPath());
         testListenerInternalBroadcaster.add(new TestListenerAdapter(testReportDataCollector.getDelegate(), testReportDataCollector.getDelegate()));
 
         return new LifecycleTrackingGroupTestEventReporter(new DefaultRootTestEventReporter(
             rootName,
             testListenerInternalBroadcaster.getSource(),
             new LongIdGenerator(),
-            htmlReportDirectory,
+            htmlReportDirectory.getAsFile().toPath(),
             testReportDataCollector,
             htmlTestReportGenerator,
             listenerManager.getBroadcaster(TestExecutionResultsListener.class)
@@ -99,6 +100,7 @@ public final class DefaultTestEventReporterFactory implements TestEventReporterF
      *
      * This should eventually be merged with TestReportDataCollector.
      */
+    @NonNullApi
     public static class ClosableTestReportDataCollector implements Closeable {
 
         private final Path resultsDirectory;
@@ -110,18 +112,18 @@ public final class DefaultTestEventReporterFactory implements TestEventReporterF
         public ClosableTestReportDataCollector(Path resultsDirectory) {
             this.resultsDirectory = resultsDirectory;
 
-            TestOutputStore testOutputStore = new TestOutputStore(resultsDirectory.toFile());
-            this.outputWriter = testOutputStore.writer();
-            this.results = new HashMap<>();
-
             try {
                 Files.createDirectories(resultsDirectory);
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
             }
 
+            TestOutputStore testOutputStore = new TestOutputStore(resultsDirectory.toFile());
+            this.outputWriter = testOutputStore.writer();
+            this.results = new HashMap<>();
+
             this.delegate = new TestReportDataCollector(
-                new HashMap<>(),
+                results,
                 outputWriter
             );
         }
