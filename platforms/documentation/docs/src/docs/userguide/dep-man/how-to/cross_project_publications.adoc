@@ -1,0 +1,201 @@
+// Copyright (C) 2024 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[cross_project_publications]]
+= How to share outputs between projects
+
+A common pattern, in multi-project builds, is that one project consumes the artifacts of another project.
+
+In general, the simplest consumption form in the Java ecosystem is that when `A` depends on `B`, then `A` would depend on the `jar` produced by project `B`.
+
+== Considerations and possible solutions
+
+A frequent anti-pattern to declare cross-project dependencies is:
+
+[source,groovy]
+----
+dependencies {
+   // this is unsafe!
+   implementation project(":other").tasks.someOtherJar
+}
+----
+
+This publication model is _unsafe_ and can lead to non-reproducible and hard to parallelize builds.
+
+WARNING: Don't reference other project tasks directly!
+
+You could define a configuration on the producer side which serves as an exchange of artifacts between the producer and the consumer.
+
+====
+include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-simple/groovy",files="consumer/build.gradle[tags=explicit-configuration-dependency]"]
+include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-simple/kotlin",files="consumer/build.gradle.kts[tags=explicit-configuration-dependency]"]
+====
+
+However, the consumer has to explicitly tell which configuration it depends on and this is _not recommended_.
+If you plan to publish the component which has this dependency, it will likely lead to broken metadata.
+
+This section explains how to _properly create cross-project boundaries_ by defining "exchanges" between projects by using _variants_.
+
+[[sec:variant-aware-sharing]]
+== Variant-aware sharing of artifacts
+
+Gradle's <<variant_model.adoc#sec:understanding-variant-selection, variant model>> allows consumers to specify requirements using _attributes_, while producers provide appropriate outgoing variants using attributes as well.
+
+For example, a single dependency declaration like `project(":myLib")` can select either the `arm64` or `i386` version of `myLib`, based on the architecture.
+
+To achieve this, attributes must be defined on both the consumer and producer configurations.
+
+[WARNING]
+====
+When configurations have attributes, they participate in _variant-aware resolution_.
+This means they become candidates for resolution whenever any dependency declaration, such as `project(":myLib")`, is used.
+
+Attributes on producer configurations _must be consistent with other variants provided by the same project_.
+Introducing inconsistent or ambiguous attributes can lead to resolution failures.
+
+In practice, the attributes you define will often depend on the _ecosystem_ (e.g., Java, C++) because ecosystem-specific plugins typically apply different attribute conventions.
+====
+
+Consider an example of a Java Library project.
+Java libraries typically expose two variants to consumers: `apiElements` and `runtimeElements`.
+In this case, we are adding a third variant, `instrumentedJars`.
+
+To correctly configure this new variant, we need to understand its purpose and set appropriate attributes.
+Here are the attributes on the `runtimeElements` configuration of the producer:
+
+[source,bash]
+----
+$ .gradle outgoingVariants --variant runtimeElements
+
+Attributes
+    - org.gradle.category            = library
+    - org.gradle.dependency.bundling = external
+    - org.gradle.jvm.version         = 11
+    - org.gradle.libraryelements     = jar
+    - org.gradle.usage               = java-runtime
+----
+
+This tells us that the `runtimeElements` configuration includes 5 attributes:
+
+1. `org.gradle.category` indicates that this variant represents a _library_.
+2. `org.gradle.dependency.bundling` specifies that dependencies are external jars (not repackaged inside the jar).
+3. `org.gradle.jvm.version` denotes the minimum Java version supported, which is Java 11.
+4. `org.gradle.libraryelements` shows that this variant contains all elements typically found in a jar (classes and resources).
+5. `org.gradle.usage` defines the variant as a Java runtime, suitable for both compilation and runtime.
+
+To ensure that the `instrumentedJars` variant is used in place of `runtimeElements` when executing tests, we must attach similar attributes to this new variant.
+
+The key attribute for this configuration is `org.gradle.libraryelements`, as it describes _what the variant contains_.
+We can set up the `instrumentedJars` variant accordingly:
+
+====
+include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-advanced/groovy",files="producer/build.gradle[tags=declare-outgoing-configuration]"]
+include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-advanced/kotlin",files="producer/build.gradle.kts[tags=declare-outgoing-configuration]"]
+====
+
+This ensures that the `instrumentedJars` variant is correctly identified as containing elements similar to a jar, allowing it to be selected appropriately.
+
+[NOTE]
+====
+Selecting the right attributes is the most challenging part of this process, as they define the semantics of the variant.
+Before introducing _new attributes_, always consider whether an existing attribute already conveys the required semantics.
+If no suitable attribute exists, you can create a new one.
+However, be cautious—adding a new attribute may introduce ambiguity during variant selection.
+In many cases, adding an attribute requires applying it consistently across _all_ existing variants.
+====
+
+We’ve introduced a _new_ variant for _runtime_ that provides instrumented classes instead of the normal ones.
+As a result, consumers now face a choice between two runtime variants:
+
+1. `runtimeElements` - the default runtime variant provided by the `java-library` plugin.
+2. `instrumentedJars` - the custom variant we’ve added.
+
+If we want the instrumented classes to be included on the test runtime classpath, we can now declare the dependency on the consumer as a regular project dependency:
+
+====
+include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-advanced/groovy",files="consumer/build.gradle[tags=test_dependency]"]
+include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-advanced/kotlin",files="consumer/build.gradle.kts[tags=test_dependency]"]
+====
+
+If we stop here, Gradle will still resolve the `runtimeElements` variant instead of the `instrumentedJars` variant.
+
+This happens because the `testRuntimeClasspath` configuration requests a variant with the `libraryelements` attribute set to `jar`, and our `instrumented-jars` value does not match.
+
+To fix this, we need to update the requested attributes to specifically target instrumented jars:
+
+====
+include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-advanced/groovy",files="consumer/build.gradle[tags=ask-for-instrumented-classes]"]
+include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-advanced/kotlin",files="consumer/build.gradle.kts[tags=ask-for-instrumented-classes]"]
+====
+
+We can look at another report _on the consumer side_ to view exactly what attributes of each dependency will be requested:
+
+[source,bash]
+----
+$ .gradle resolvableConfigurations --configuration testRuntimeClasspath
+
+Attributes
+    - org.gradle.category            = library
+    - org.gradle.dependency.bundling = external
+    - org.gradle.jvm.version         = 11
+    - org.gradle.libraryelements     = instrumented-jar
+    - org.gradle.usage               = java-runtime
+----
+
+The `resolvableConfigurations` report is the complement of the `outgoingVariants` report we ran previously.
+
+By running both of these reports on the consumer and producer sides of a relationship, respectively, you can see exactly what attributes are involved in matching during dependency resolution and better predict the outcome when configurations are resolved.
+
+At this point, we’re specifying that the test runtime classpath should resolve variants with _instrumented classes_.
+
+However, there’s an issue: some dependencies, like `JUnit`, don’t provide instrumented classes.
+If we stop here, Gradle will fail, stating that no compatible variant of `JUnit` exists.
+
+This happens because we haven’t told Gradle that it’s acceptable to fall back to the regular jar when an instrumented variant isn’t available.
+To resolve this, we need to define a _compatibility rule_:
+
+====
+include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-advanced/groovy",files="consumer/build.gradle[tags=compatibility-rule]"]
+include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-advanced/kotlin",files="consumer/build.gradle.kts[tags=compatibility-rule]"]
+====
+
+We then declare this rule on the attributes schema:
+
+====
+include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-advanced/groovy",files="consumer/build.gradle[tags=compatibility-rule-use]"]
+include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-advanced/kotlin",files="consumer/build.gradle.kts[tags=compatibility-rule-use]"]
+====
+
+And that's it! Now we have:
+
+- Added a variant which provides instrumented jars.
+- Specified that this variant is a substitute for the runtime.
+- Defined that the consumer needs this variant only for _test runtime_.
+
+Gradle provides a powerful mechanism for selecting the right variants based on preferences and compatibility.
+For more details, check out the <<variant_attributes.adoc#variant-attributes, variant aware plugins section>> of the documentation.
+
+[WARNING]
+====
+By adding a value to an existing attribute or defining new attributes, we are extending the model.
+This means that _all consumers_ must be aware of this extended model.
+
+For local consumers, this is usually not a problem because all projects share the same schema.
+However, if you need to publish this new variant to an external repository, external consumers must also add the same rules to their builds for them to work.
+
+This is generally not an issue for _ecosystem plugins_ (e.g., the Kotlin plugin), where consumption is not possible without applying the plugin.
+However, it becomes problematic if you add custom values or attributes.
+
+Therefore, **avoid publishing custom variants** if they are intended for internal use only.
+====
