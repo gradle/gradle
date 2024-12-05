@@ -92,7 +92,7 @@ public class DefaultVariantArtifactResolver implements VariantArtifactResolver {
         VariantResolveMetadata artifactVariant,
         ImmutableArtifactTypeRegistry artifactTypeRegistry
     ) {
-        // TODO: In order to apply the artifact type registry, we need to realize the artifacts now, earlier than we should.
+        // TODO #31538: In order to apply the artifact type registry, we need to realize the artifacts now, earlier than we should.
         // Since the artifact type registry must be applied before artifact selection, which occurs before task dependencies
         // execute, and since the artifact type registry is a function of the artifacts themselves, which are only known after task
         // dependencies execute, the artifact type registry is inherently flawed. It must be deprecated and removed.
