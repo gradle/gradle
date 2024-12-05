@@ -1488,6 +1488,26 @@ The value of this property is derived from: <source>""")
         numProviders << [1, 2]
     }
 
+    def "#opName to empty property is undefined-safe"() {
+        given:
+        property.set(null as Iterable)
+
+        when:
+        op(property)
+
+        then:
+        assertValueIs(toImmutable(expected), property)
+
+        where:
+        opName                      | op                                         | expected
+        "append(1)"                 | { it.append("1") }                         | ["1"]
+        "appendAll(1, 2)"           | { it.appendAll(["1", "2"]) }               | ["1", "2"]
+        "append(provider(1))"       | { it.append(Providers.of("1")) }           | ["1"]
+        "appendAll(provider(1, 2))" | { it.appendAll(Providers.of(["1", "2"])) } | ["1", "2"]
+        "append(notDefined())"      | { it.append(notDefined()) }                | []
+        "appendAll(notDefined())"   | { it.appendAll(notDefined()) }             | []
+    }
+
     def "property remains undefined-safe after restored"() {
         given:
         property.append(notDefined())
