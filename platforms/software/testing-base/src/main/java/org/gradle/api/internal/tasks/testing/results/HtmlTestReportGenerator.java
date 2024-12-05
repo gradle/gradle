@@ -16,11 +16,14 @@
 
 package org.gradle.api.internal.tasks.testing.results;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.tasks.testing.junit.result.BinaryResultBackedTestResultsProvider;
 import org.gradle.api.internal.tasks.testing.report.HtmlTestReport;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRunner;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.inject.Inject;
 import java.io.IOException;
@@ -30,6 +33,8 @@ import java.nio.file.Path;
 /**
  * Generates HTML test reports given binary test results.
  */
+@NonNullApi
+@ServiceScope(Scope.BuildSession.class)
 public class HtmlTestReportGenerator {
 
     private final BuildOperationRunner buildOperationRunner;

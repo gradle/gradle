@@ -20,6 +20,8 @@ import org.gradle.api.Incubating;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
+import java.nio.file.Path;
+
 /**
  * A service that provides access to the test event reporting API.
  *
@@ -36,8 +38,16 @@ public interface TestEventReporterFactory {
      * </p>
      *
      * @param rootName the name for the root node of the test tree
+     * @param binaryResultsDirectory the directory to write binary test results to
+     * @param htmlReportDirectory the directory to write HTML test reports to
+     *
      * @return the test event reporter
+     *
      * @since 8.12
      */
-    GroupTestEventReporter createTestEventReporter(String rootName);
+    GroupTestEventReporter createTestEventReporter(
+        String rootName,
+        Path binaryResultsDirectory,
+        Path htmlReportDirectory
+    );
 }

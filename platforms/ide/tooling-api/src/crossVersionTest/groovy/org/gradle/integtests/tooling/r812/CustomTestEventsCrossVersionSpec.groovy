@@ -44,9 +44,16 @@ class CustomTestEventsCrossVersionSpec extends ToolingApiSpecification implement
                 @Inject
                 abstract TestEventReporterFactory getTestEventReporterFactory()
 
+                @Inject
+                abstract ProjectLayout getLayout()
+
                 @TaskAction
                 void runTests() {
-                    try (def reporter = getTestEventReporterFactory().createTestEventReporter("Custom test root")) {
+                    try (def reporter = testEventReporterFactory.createTestEventReporter(
+                        "Custom test root",
+                        getLayout().getBuildDirectory().get().getAsFile().toPath().resolve("test-results/Custom test root"),
+                        getLayout().getBuildDirectory().get().getAsFile().toPath().resolve("reports/tests/Custom test root")
+                    )) {
                         reporter.started(Instant.now())
                         try (def myTest = reporter.reportTest("MyTestInternal", "My test!")) {
                             myTest.started(Instant.now())
@@ -92,9 +99,16 @@ class CustomTestEventsCrossVersionSpec extends ToolingApiSpecification implement
                 @Inject
                 abstract TestEventReporterFactory getTestEventReporterFactory()
 
+                @Inject
+                abstract ProjectLayout getLayout()
+
                 @TaskAction
                 void runTests() {
-                    try (def reporter = getTestEventReporterFactory().createTestEventReporter("Custom test root")) {
+                    try (def reporter = testEventReporterFactory.createTestEventReporter(
+                        "Custom test root",
+                        getLayout().getBuildDirectory().get().getAsFile().toPath().resolve("test-results/Custom test root"),
+                        getLayout().getBuildDirectory().get().getAsFile().toPath().resolve("reports/tests/Custom test root")
+                    )) {
                         reporter.started(Instant.now())
                         try (def mySuite = reporter.reportTestGroup("My Suite")) {
                             mySuite.started(Instant.now())
@@ -146,9 +160,16 @@ class CustomTestEventsCrossVersionSpec extends ToolingApiSpecification implement
                 @Inject
                 abstract TestEventReporterFactory getTestEventReporterFactory()
 
+                @Inject
+                abstract ProjectLayout getLayout()
+
                 @TaskAction
                 void runTests() {
-                    try (def reporter = getTestEventReporterFactory().createTestEventReporter("Custom test root")) {
+                    try (def reporter = testEventReporterFactory.createTestEventReporter(
+                        "Custom test root",
+                        getLayout().getBuildDirectory().get().getAsFile().toPath().resolve("test-results/Custom test root"),
+                        getLayout().getBuildDirectory().get().getAsFile().toPath().resolve("reports/tests/Custom test root")
+                    )) {
                         reporter.started(Instant.now())
                         try (def mySuite = reporter.reportTestGroup("My Suite")) {
                             mySuite.started(Instant.now())

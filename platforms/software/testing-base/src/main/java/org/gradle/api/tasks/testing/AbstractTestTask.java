@@ -37,6 +37,7 @@ import org.gradle.api.internal.tasks.testing.junit.result.JUnitXmlResultOptions;
 import org.gradle.api.internal.tasks.testing.junit.result.TestClassResult;
 import org.gradle.api.internal.tasks.testing.junit.result.TestOutputStore;
 import org.gradle.api.internal.tasks.testing.junit.result.TestReportDataCollector;
+import org.gradle.api.internal.tasks.testing.junit.result.TestResultSerializer;
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider;
 import org.gradle.api.internal.tasks.testing.logging.DefaultTestLoggingContainer;
 import org.gradle.api.internal.tasks.testing.logging.FullExceptionFormatter;
@@ -83,9 +84,9 @@ import org.gradle.util.internal.ConfigureUtil;
 import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -472,19 +473,21 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
 
         TestExecutionSpec executionSpec = createTestExecutionSpec();
 
-        Path binaryResultsDir = getBinaryResultsDirectory().get().getAsFile().toPath();
+        final File binaryResultsDir = getBinaryResultsDirectory().getAsFile().get();
         FileSystemOperations fs = getFileSystemOperations();
         fs.delete(spec -> spec.delete(binaryResultsDir));
 
         try {
-            Files.createDirectories(binaryResultsDir);
+            Files.createDirectories(binaryResultsDir.toPath());
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
 
         // Record test events to `results`, and test outputs to `testOutputStore`
         Map<String, TestClassResult> results = new HashMap<>();
-        TestReportDataCollector testReportDataCollector = new TestReportDataCollector(binaryResultsDir, results);
+        TestOutputStore testOutputStore = new TestOutputStore(binaryResultsDir);
+        TestOutputStore.Writer outputWriter = testOutputStore.writer();
+        TestReportDataCollector testReportDataCollector = new TestReportDataCollector(results, outputWriter);
         addTestListener(testReportDataCollector);
         addTestOutputListener(testReportDataCollector);
 
@@ -519,11 +522,14 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
             testListenerSubscriptions.removeAllListeners();
             testOutputListenerSubscriptions.removeAllListeners();
             testListenerInternalBroadcaster.removeAll();
-            testReportDataCollector.close();
+            outputWriter.close();
         }
 
+        // Write binary results to disk
+        new TestResultSerializer(binaryResultsDir).write(results.values());
+
         // Generate HTML and XML reports
-        createReporting(results, binaryResultsDir);
+        createReporting(results, testOutputStore);
 
         handleCollectedResults(testCountLogger);
     }
@@ -584,8 +590,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         return reasons;
     }
 
-    private void createReporting(Map<String, TestClassResult> results, Path binaryResultsDir) {
-        TestOutputStore testOutputStore = new TestOutputStore(binaryResultsDir.toFile());
+    private void createReporting(Map<String, TestClassResult> results, TestOutputStore testOutputStore) {
         TestResultsProvider testResultsProvider = new InMemoryTestResultsProvider(results.values(), testOutputStore);
 
         try {

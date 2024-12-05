@@ -17,11 +17,16 @@
 package org.gradle.api.internal.tasks.testing;
 
 import org.gradle.api.NonNullApi;
-import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.UncheckedIOException;
+import org.gradle.api.internal.tasks.testing.junit.result.TestClassResult;
+import org.gradle.api.internal.tasks.testing.junit.result.TestOutputStore;
+import org.gradle.api.internal.tasks.testing.junit.result.TestReportDataCollector;
+import org.gradle.api.internal.tasks.testing.junit.result.TestResultSerializer;
 import org.gradle.api.internal.tasks.testing.logging.SimpleTestEventLogger;
 import org.gradle.api.internal.tasks.testing.logging.TestEventProgressListener;
 import org.gradle.api.internal.tasks.testing.results.HtmlTestReportGenerator;
 import org.gradle.api.internal.tasks.testing.results.TestExecutionResultsListener;
+import org.gradle.api.internal.tasks.testing.results.TestListenerAdapter;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
 import org.gradle.api.tasks.testing.GroupTestEventReporter;
 import org.gradle.api.tasks.testing.TestEventReporterFactory;
@@ -32,7 +37,12 @@ import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 
 import javax.inject.Inject;
+import java.io.Closeable;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
 
 @NonNullApi
 public final class DefaultTestEventReporterFactory implements TestEventReporterFactory {
@@ -40,7 +50,6 @@ public final class DefaultTestEventReporterFactory implements TestEventReporterF
     private final ListenerManager listenerManager;
     private final StyledTextOutputFactory textOutputFactory;
     private final ProgressLoggerFactory progressLoggerFactory;
-    private final ProjectLayout projectLayout;
     private final HtmlTestReportGenerator htmlTestReportGenerator;
 
     @Inject
@@ -48,18 +57,20 @@ public final class DefaultTestEventReporterFactory implements TestEventReporterF
         ListenerManager listenerManager,
         StyledTextOutputFactory textOutputFactory,
         ProgressLoggerFactory progressLoggerFactory,
-        ProjectLayout projectLayout,
         HtmlTestReportGenerator htmlTestReportGenerator
     ) {
         this.listenerManager = listenerManager;
         this.textOutputFactory = textOutputFactory;
         this.progressLoggerFactory = progressLoggerFactory;
-        this.projectLayout = projectLayout;
         this.htmlTestReportGenerator = htmlTestReportGenerator;
     }
 
     @Override
-    public GroupTestEventReporter createTestEventReporter(String rootName) {
+    public GroupTestEventReporter createTestEventReporter(
+        String rootName,
+        Path binaryResultsDirectory,
+        Path htmlReportDirectory
+    ) {
         ListenerBroadcast<TestListenerInternal> testListenerInternalBroadcaster = listenerManager.createAnonymousBroadcaster(TestListenerInternal.class);
 
         // Renders console output for the task
@@ -69,22 +80,65 @@ public final class DefaultTestEventReporterFactory implements TestEventReporterF
         testListenerInternalBroadcaster.add(new TestEventProgressListener(progressLoggerFactory));
 
         // Record all emitted results to disk
-        Path resultsDir = projectLayout.getBuildDirectory().get().dir("test-results").dir(rootName).getAsFile().toPath();
-        RootTestEventRecorder binaryResultsRecorder = new RootTestEventRecorder(resultsDir);
-        testListenerInternalBroadcaster.add(binaryResultsRecorder);
-
-        // TODO: Use dir from reporting extension?
-        Path reportDir = projectLayout.getBuildDirectory().get().dir("reports").dir("tests").dir(rootName).getAsFile().toPath();
+        ClosableTestReportDataCollector testReportDataCollector = new ClosableTestReportDataCollector(binaryResultsDirectory);
+        testListenerInternalBroadcaster.add(new TestListenerAdapter(testReportDataCollector.getDelegate(), testReportDataCollector.getDelegate()));
 
         return new LifecycleTrackingGroupTestEventReporter(new DefaultRootTestEventReporter(
             rootName,
             testListenerInternalBroadcaster.getSource(),
             new LongIdGenerator(),
-            reportDir,
-            binaryResultsRecorder,
+            htmlReportDirectory,
+            testReportDataCollector,
             htmlTestReportGenerator,
             listenerManager.getBroadcaster(TestExecutionResultsListener.class)
         ));
+    }
+
+    /**
+     * Wrapper for {@link TestReportDataCollector} that track extra state, ensuring it is properly closable.
+     *
+     * This should eventually be merged with TestReportDataCollector.
+     */
+    public static class ClosableTestReportDataCollector implements Closeable {
+
+        private final Path resultsDirectory;
+
+        private final Map<String, TestClassResult> results;
+        private final TestOutputStore.Writer outputWriter;
+        private final TestReportDataCollector delegate;
+
+        public ClosableTestReportDataCollector(Path resultsDirectory) {
+            this.resultsDirectory = resultsDirectory;
+
+            TestOutputStore testOutputStore = new TestOutputStore(resultsDirectory.toFile());
+            this.outputWriter = testOutputStore.writer();
+            this.results = new HashMap<>();
+
+            try {
+                Files.createDirectories(resultsDirectory);
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+
+            this.delegate = new TestReportDataCollector(
+                new HashMap<>(),
+                outputWriter
+            );
+        }
+
+        public TestReportDataCollector getDelegate() {
+            return delegate;
+        }
+
+        public Path getBinaryResultsDirectory() {
+            return resultsDirectory;
+        }
+
+        @Override
+        public void close() {
+            outputWriter.close();
+            new TestResultSerializer(resultsDirectory.toFile()).write(results.values());
+        }
     }
 
 }
