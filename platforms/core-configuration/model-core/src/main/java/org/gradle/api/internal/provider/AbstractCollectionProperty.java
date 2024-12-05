@@ -33,6 +33,7 @@ import org.gradle.api.provider.HasMultipleValues;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Pair;
+import org.gradle.internal.collect.PersistentList;
 import org.gradle.internal.evaluation.EvaluationScopeContext;
 
 import javax.annotation.Nonnull;
@@ -478,22 +479,18 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         private final Class<C> type;
         private final Supplier<ImmutableCollection.Builder<T>> collectionFactory;
         private final ValueCollector<T> valueCollector;
-        // This list is shared by the collectors produced by `plus`, so we don't have to copy the collectors every time.
-        // However, this also means that you can only call plus on a given collector once.
-        private final List<Collector<T>> collectors; // TODO - Replace with PersistentList? This may make value calculation inefficient because the PersistentList can only prepend to head.
-        private final int size;
+        private final PersistentList<Collector<T>> reversedCollectors;
 
         public CollectingSupplier(Class<C> type, Supplier<ImmutableCollection.Builder<T>> collectionFactory, ValueCollector<T> valueCollector, Collector<T> value) {
-            this(type, collectionFactory, valueCollector, Lists.newArrayList(value), 1);
+            this(type, collectionFactory, valueCollector, PersistentList.of(value));
         }
 
         // A constructor for sharing.
-        private CollectingSupplier(Class<C> type, Supplier<ImmutableCollection.Builder<T>> collectionFactory, ValueCollector<T> valueCollector, List<Collector<T>> collectors, int size) {
+        private CollectingSupplier(Class<C> type, Supplier<ImmutableCollection.Builder<T>> collectionFactory, ValueCollector<T> valueCollector, PersistentList<Collector<T>> reversedCollectors) {
             this.type = type;
             this.collectionFactory = collectionFactory;
             this.valueCollector = valueCollector;
-            this.collectors = collectors;
-            this.size = size;
+            this.reversedCollectors = reversedCollectors;
         }
 
         @Override
@@ -512,7 +509,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
             // We're traversing the elements in reverse addition order.
             // When determining the presence of the value, the last argument wins.
             // See also #collectExecutionTimeValues().
-            for (Collector<T> collector : Lists.reverse(getCollectors())) {
+            for (Collector<T> collector : reversedCollectors) {
                 if (!collector.calculatePresence(consumer)) {
                     // We've found an argument of add/addAll that is missing.
                     // It makes the property missing regardless of what has been added before.
@@ -526,7 +523,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
                 }
             }
             // Nothing caused the property to become missing. There is at least one element by design, so the property is present.
-            assert size > 0;
+            assert !reversedCollectors.isEmpty();
             return true;
         }
 
@@ -539,9 +536,9 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
             // All collectors may produce empty lists.
             int lastDefinitelyPresentPosition = -1;
             int lastDefinitelyPresentSideEffect = 0;
-            List<SideEffect<C>> sideEffects = new ArrayList<>(collectors.size());
+            List<SideEffect<C>> sideEffects = new ArrayList<>();
 
-            for (Collector<T> collector : Lists.reverse(getCollectors())) {
+            for (Collector<T> collector : reversedCollectors) {
                 int sizeBefore = builder.build().size();
                 Value<Void> result = collector.collectEntries(consumer, valueCollector, builder);
                 if (result.isMissing()) {
@@ -586,9 +583,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
         @Override
         public CollectionSupplier<T, C> plus(Collector<T> addedCollector) {
-            Preconditions.checkState(collectors.size() == size, "Something has been appended to this collector already");
-            collectors.add(addedCollector);
-            return new CollectingSupplier<>(type, collectionFactory, valueCollector, collectors, size + 1);
+            return new CollectingSupplier<>(type, collectionFactory, valueCollector, reversedCollectors.plus(addedCollector));
         }
 
         @Override
@@ -616,15 +611,16 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
                 return getFixedExecutionTimeValue(values, changingContent);
             }
 
+            PersistentList<Collector<T>> shrinkedReversedCollectors = PersistentList.of();
+            for (Pair<Collector<T>, ExecutionTimeValue<? extends Iterable<? extends T>>> pair : collectorsWithValues) {
+                Collector<T> elements = toCollector(pair.getRight());
+                shrinkedReversedCollectors = shrinkedReversedCollectors.plus(isAbsentIgnoring(pair.getLeft())
+                    ? new AbsentIgnoringCollector<>(elements)
+                    : elements);
+            }
+
             // At least one of the values is a changing value. Simplify the provider.
-            return ExecutionTimeValue.changingValue(new CollectingSupplier<>(type, collectionFactory, valueCollector,
-                collectorsWithValues.stream().map(pair -> {
-                    Collector<T> elements = toCollector(pair.getRight());
-                    return isAbsentIgnoring(pair.getLeft())
-                        ? new AbsentIgnoringCollector<>(elements)
-                        : elements;
-                }).collect(toList()),
-                collectorsWithValues.size()));
+            return ExecutionTimeValue.changingValue(new CollectingSupplier<>(type, collectionFactory, valueCollector, shrinkedReversedCollectors));
         }
 
         private Collector<T> toCollector(ExecutionTimeValue<? extends Iterable<? extends T>> value) {
@@ -635,20 +631,16 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
             return new ElementsFromCollection<>(value.getFixedValue());
         }
 
-        private List<Collector<T>> getCollectors() {
-            return collectors.subList(0, size);
-        }
-
         // Returns an empty list when the overall value is missing.
         private List<Pair<Collector<T>, ExecutionTimeValue<? extends Iterable<? extends T>>>> collectExecutionTimeValues() {
-            List<Pair<Collector<T>, ExecutionTimeValue<? extends Iterable<? extends T>>>> executionTimeValues = new ArrayList<>();
+            List<Pair<Collector<T>, ExecutionTimeValue<? extends Iterable<? extends T>>>> executionTimeValues = new ArrayList<>(reversedCollectors.size());
 
             // We traverse the collectors backwards (in reverse addition order) to simplify the logic and avoid processing things that are going to be discarded.
             // Because of that, values are collected in reverse order too.
             // See also #calculatePresence.
             // The values before that are certainly part of the result, e.g. because of absent-ignoring append/appendAll argument.
             int lastDefinitelyPresentValue = 0;
-            for (Collector<T> collector : Lists.reverse(getCollectors())) {
+            for (Collector<T> collector : reversedCollectors) {
                 ExecutionTimeValue<? extends Iterable<? extends T>> result = collector.calculateExecutionTimeValue();
                 if (result.isMissing()) {
                     // This is an add/addAll argument, but it is a missing provider.
@@ -690,7 +682,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
         @Override
         public ValueProducer getProducer() {
-            List<ValueProducer> producers = getCollectors().stream().map(ValueSupplier::getProducer).collect(toList());
+            List<ValueProducer> producers = reversedCollectors.stream().map(ValueSupplier::getProducer).collect(ImmutableList.toImmutableList()).reverse();
             return new ValueProducer() {
                 @Override
                 public void visitProducerTasks(Action<? super Task> visitor) {
@@ -717,13 +709,13 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         @Override
         protected String toStringNoReentrance() {
             StringBuilder sb = new StringBuilder();
-            getCollectors().forEach(collector -> {
+            reversedCollectors.forEach(collector -> {
                 if (sb.length() > 0) {
                     sb.append(" + ");
                 }
-                sb.append(collector.toString());
+                sb.append(new StringBuilder(collector.toString()).reverse());
             });
-            return sb.toString();
+            return sb.reverse().toString();
         }
     }
 

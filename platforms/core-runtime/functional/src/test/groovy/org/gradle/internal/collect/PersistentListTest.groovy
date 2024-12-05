@@ -19,6 +19,8 @@ package org.gradle.internal.collect
 import com.google.common.collect.ImmutableList
 import spock.lang.Specification
 
+import java.util.stream.Collectors
+
 class PersistentListTest extends Specification {
 
     def "empty lists are the same"() {
@@ -41,6 +43,31 @@ class PersistentListTest extends Specification {
         PersistentList.of("a", "b").toString() == "a : b"
         PersistentList.of("a", "b", "c").toString() == "a : b : c"
         PersistentList.of("a", "b", "c", "d").toString() == "a : b : c : d"
+    }
+
+    def "size method works"() {
+        expect:
+        PersistentList.of().size() == 0
+        PersistentList.of("a").size() == 1
+        PersistentList.of("a", "b").size() == 2
+        PersistentList.of("a", "b", "c", "d").size() == 4
+
+        PersistentList.of().plus("a").size() == 1
+        PersistentList.of("a").plus("b").size() == 2
+    }
+
+    def "can stream"() {
+        expect:
+        listOf(elements).stream().collect(Collectors.toList()) == elements
+
+        where:
+        elements << [
+            [],
+            ["a"],
+            ["a", "b"],
+            ["a", "b", "c"],
+            ["a", "b", "c", "d"]
+        ]
     }
 
     def "forEach iterates the elements #elements"() {

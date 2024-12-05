@@ -23,7 +23,11 @@ import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Objects;
+import java.util.Spliterator;
+import java.util.Spliterators;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 /**
  * A simple persistent List implementation.
@@ -63,6 +67,12 @@ public abstract class PersistentList<T> implements Iterable<T> {
 
     public abstract boolean isEmpty();
 
+    public abstract int size();
+
+    public Stream<T> stream() {
+        return StreamSupport.stream(Spliterators.spliterator(iterator(), size(), Spliterator.IMMUTABLE), false);
+    }
+
     private PersistentList() {}
 
     private static final PersistentList<Object> NIL = new PersistentList<Object>() {
@@ -81,6 +91,11 @@ public abstract class PersistentList<T> implements Iterable<T> {
         }
 
         @Override
+        public int size() {
+            return 0;
+        }
+
+        @Override
         public String toString() {
             return "Nil";
         }
@@ -94,10 +109,12 @@ public abstract class PersistentList<T> implements Iterable<T> {
     private static class Cons<T> extends PersistentList<T> {
         private final T head;
         private final PersistentList<T> tail;
+        private final int size;
 
         public Cons(T head, PersistentList<T> tail) {
             this.head = head;
             this.tail = tail;
+            this.size = tail.size() + 1;
         }
 
         @Override
@@ -114,6 +131,11 @@ public abstract class PersistentList<T> implements Iterable<T> {
         @Override
         public boolean isEmpty() {
             return false;
+        }
+
+        @Override
+        public int size() {
+            return size;
         }
 
         @Override
