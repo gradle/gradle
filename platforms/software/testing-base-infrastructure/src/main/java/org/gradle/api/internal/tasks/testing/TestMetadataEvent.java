@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.testing;
+package org.gradle.api.internal.tasks.testing;
 
 import org.gradle.api.Incubating;
 
@@ -35,14 +35,6 @@ public interface TestMetadataEvent {
      * @since 8.12
      */
     long getLogTime();
-
-    /**
-     * Retrieves the key used to identify the metadata for this event.
-     *
-     * @return the event metadata key
-     * @since 8.12
-     */
-    String getKey();
 
     /**
      * Retrieves the recorded metadata for this event.

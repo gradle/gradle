@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks.testing;
 
 import org.gradle.api.NonNullApi;
-import org.gradle.api.tasks.testing.TestMetadataEvent;
 
 /**
  * Default implementation of the {@code TestMetadataEvent} interface.
@@ -26,23 +25,16 @@ import org.gradle.api.tasks.testing.TestMetadataEvent;
 public final class DefaultTestMetadataEvent implements TestMetadataEvent {
     private final long logTime;
 
-    private final String key;
     private final Object value;
 
-    public DefaultTestMetadataEvent(long logTime, String key, Object metadata) {
+    public DefaultTestMetadataEvent(long logTime, Object metadata) {
         this.logTime = logTime;
-        this.key = key;
         this.value = metadata;
     }
 
     @Override
     public long getLogTime() {
         return logTime;
-    }
-
-    @Override
-    public String getKey() {
-        return key;
     }
 
     @Override

@@ -25,27 +25,20 @@ import org.gradle.tooling.internal.protocol.events.InternalTestMetadataEvent;
  * This is created by the provider side of the tooling API.
  */
 public final class DefaultTestMetadataEvent extends AbstractProgressEvent<InternalTestMetadataDescriptor> implements InternalTestMetadataEvent {
-    private final String key;
-    private final Object value;
+    private final Object metadata;
 
-    public DefaultTestMetadataEvent(long startTime, InternalTestMetadataDescriptor descriptor, String key, Object value) {
+    public DefaultTestMetadataEvent(long startTime, InternalTestMetadataDescriptor descriptor, Object metadata) {
         super(startTime, descriptor);
-        this.key = key;
-        this.value = value;
+        this.metadata = metadata;
     }
 
     @Override
     public String getDisplayName() {
-        return getDescriptor().getDisplayName() + " for " + key;
+        return getDescriptor().getDisplayName() + " " + metadata;
     }
 
     @Override
-    public String getKey() {
-        return key;
-    }
-
-    @Override
-    public Object getValue() {
-        return value;
+    public Object getMetadata() {
+        return metadata;
     }
 }

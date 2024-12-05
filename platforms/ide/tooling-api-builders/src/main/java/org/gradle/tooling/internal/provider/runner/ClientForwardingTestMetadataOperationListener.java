@@ -17,8 +17,8 @@
 package org.gradle.tooling.internal.provider.runner;
 
 import org.gradle.api.NonNullApi;
+import org.gradle.api.internal.tasks.testing.TestMetadataEvent;
 import org.gradle.api.internal.tasks.testing.operations.ExecuteTestBuildOperationType;
-import org.gradle.api.tasks.testing.TestMetadataEvent;
 import org.gradle.internal.build.event.types.DefaultTestMetadataDescriptor;
 import org.gradle.internal.build.event.types.DefaultTestMetadataEvent;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -56,7 +56,7 @@ import org.gradle.tooling.internal.protocol.events.InternalTestMetadataDescripto
             ExecuteTestBuildOperationType.Metadata metadata = (ExecuteTestBuildOperationType.Metadata) details;
             InternalTestMetadataDescriptor descriptor = new DefaultTestMetadataDescriptor(new OperationIdentifier(idFactory.nextId()), buildOperationId);
             TestMetadataEvent metadataMetadataEvent = metadata.getMetadata();
-            eventConsumer.progress(new DefaultTestMetadataEvent(progressEvent.getTime(), descriptor, metadataMetadataEvent.getKey(), metadataMetadataEvent.getValue()));
+            eventConsumer.progress(new DefaultTestMetadataEvent(progressEvent.getTime(), descriptor, metadataMetadataEvent.getValue()));
         }
     }
 

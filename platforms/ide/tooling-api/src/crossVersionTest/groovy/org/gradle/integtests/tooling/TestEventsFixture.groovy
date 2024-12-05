@@ -172,8 +172,8 @@ class DefaultTestEventSpec implements TestEventsFixture.CompositeTestEventSpec {
         assert actualOutputs == expectedOutput
 
         def actualMetadata = parent.children.findAll { it.startEvent instanceof TestMetadataEvent }
-            .collect { ((TestMetadataEvent)it.startEvent) }
-            .collectEntries { [it.key, it.value] }
+            .collect { ((TestMetadataEvent)it.startEvent).metadata }
+            .collectEntries { it.get(Map) }
         assert actualMetadata == expectedMetadata
 
         if (testDisplayName != null && parent.descriptor.respondsTo("getTestDisplayName")) {

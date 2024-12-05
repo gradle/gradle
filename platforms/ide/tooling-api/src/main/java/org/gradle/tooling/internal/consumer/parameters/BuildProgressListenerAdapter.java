@@ -19,6 +19,7 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.internal.Cast;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.tooling.Failure;
+import org.gradle.tooling.events.EventData;
 import org.gradle.tooling.events.FinishEvent;
 import org.gradle.tooling.events.OperationDescriptor;
 import org.gradle.tooling.events.OperationResult;
@@ -51,6 +52,7 @@ import org.gradle.tooling.events.download.internal.DefaultFileDownloadStartEvent
 import org.gradle.tooling.events.download.internal.DefaultFileDownloadSuccessResult;
 import org.gradle.tooling.events.download.internal.NotFoundFileDownloadSuccessResult;
 import org.gradle.tooling.events.internal.DefaultBinaryPluginIdentifier;
+import org.gradle.tooling.events.internal.DefaultEventData;
 import org.gradle.tooling.events.internal.DefaultFinishEvent;
 import org.gradle.tooling.events.internal.DefaultOperationDescriptor;
 import org.gradle.tooling.events.internal.DefaultOperationFailureResult;
@@ -621,7 +623,10 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
 
     private TestMetadataEvent transformTestMetadata(InternalTestMetadataEvent event, InternalTestMetadataDescriptor descriptor) {
         OperationDescriptor clientDescriptor = addDescriptor(event.getDescriptor(), toDescriptor(descriptor));
-        return new DefaultTestMetadataEvent(event.getEventTime(), clientDescriptor, event.getKey(), event.getValue());
+        // TODO: display name
+        // Decorate with proxy here?
+        EventData metadata = new DefaultEventData(event.getMetadata(), "Test Metadata");
+        return new DefaultTestMetadataEvent(event.getEventTime(), clientDescriptor, metadata);
     }
 
     private @Nullable ProblemEvent toProblemEvent(InternalProgressEvent progressEvent, InternalProblemDescriptor descriptor) {

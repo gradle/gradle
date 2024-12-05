@@ -14,16 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.protocol.events;
+package org.gradle.tooling.events;
 
 /**
- * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
- *
- * @since 8.12
+ * Represents the data associated with an event.
  */
-public interface InternalTestMetadataEvent extends InternalProgressEvent {
-    @Override
-    InternalTestMetadataDescriptor getDescriptor();
+public interface EventData {
+    /**
+     * Returns the data associated with this event represented by the given type.
+     *
+     * @param type Representation of the data
+     * @return data associated with this event
+     * @param <T> type of the data
+     */
+    <T> T get(Class<T> type);
 
-    Object getMetadata();
+    String getDisplayName();
 }

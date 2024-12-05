@@ -14,20 +14,29 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.events.test;
+package org.gradle.tooling.events.internal;
 
-import org.gradle.api.Incubating;
 import org.gradle.tooling.events.EventData;
-import org.gradle.tooling.events.ProgressEvent;
 
-/**
- * An event that informs about a test capturing metadata while running.
- * <p>
- * A new test metadata event instance is created for each piece of metadata reported.
- *
- * @since 8.12
- */
-@Incubating
-public interface TestMetadataEvent extends ProgressEvent {
-    EventData getMetadata();
+public class DefaultEventData implements EventData {
+    private final Object data;
+    private final String displayName;
+
+    public DefaultEventData(Object data, String displayName) {
+        this.data = data;
+        this.displayName = displayName;
+    }
+
+    @Override
+    public <T> T get(Class<T> type) {
+        if (type.isInstance(data)) {
+            return type.cast(data);
+        }
+        throw new UnsupportedOperationException(getDisplayName() + " cannot be represented as a " + type);
+    }
+
+    @Override
+    public String getDisplayName() {
+        return displayName;
+    }
 }
