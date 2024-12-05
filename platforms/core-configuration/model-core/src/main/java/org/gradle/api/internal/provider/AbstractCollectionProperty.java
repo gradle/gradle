@@ -262,7 +262,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         if (elements == null) {
             unsetValueAndDefault();
         } else {
-            setSupplier(new CollectingSupplier<>(getType(), collectionFactory, valueCollector, new ElementsFromCollection<>(elements)));
+            setSupplier(newSupplierOf(new ElementsFromCollection<>(elements)));
         }
     }
 
@@ -281,7 +281,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
                 throw new IllegalArgumentException(String.format("Cannot set the value of a property of type %s with element type %s using a provider with element type %s.", collectionType.getName(), elementType.getName(), collectionProp.getElementType().getName()));
             }
         }
-        setSupplier(new CollectingSupplier<>(getType(), collectionFactory, valueCollector, new ElementsFromCollectionProvider<>(p)));
+        setSupplier(newSupplierOf(new ElementsFromCollectionProvider<>(p)));
     }
 
     private void unsetValueAndDefault() {
@@ -335,14 +335,14 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         if (elements == null) {
             unsetConvention();
         } else {
-            setConvention(new CollectingSupplier<>(getType(), collectionFactory, valueCollector, new ElementsFromCollection<>(elements)));
+            setConvention(newSupplierOf(new ElementsFromCollection<>(elements)));
         }
         return this;
     }
 
     @Override
     public HasMultipleValues<T> convention(Provider<? extends Iterable<? extends T>> provider) {
-        setConvention(new CollectingSupplier<>(getType(), collectionFactory, valueCollector, new ElementsFromCollectionProvider<>(Providers.internal(provider))));
+        setConvention(newSupplierOf(new ElementsFromCollectionProvider<>(Providers.internal(provider))));
         return this;
     }
 
@@ -412,7 +412,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         @Override
         public CollectionSupplier<T, C> plus(Collector<T> collector) {
             // empty + something = something
-            return new CollectingSupplier<>(getType(), collectionFactory, valueCollector, collector);
+            return newSupplierOf(collector);
         }
 
         @Override
@@ -462,7 +462,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
         @Override
         public CollectionSupplier<T, C> plus(Collector<T> collector) {
-            return new CollectingSupplier<>(getType(), collectionFactory, valueCollector, new FixedValueCollector<>(value, sideEffect)).plus(collector);
+            return newSupplierOf(new FixedValueCollector<>(value, sideEffect)).plus(collector);
         }
 
         @Override
@@ -479,6 +479,10 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         public String toString() {
             return value.toString();
         }
+    }
+
+    private CollectingSupplier<T, C> newSupplierOf(Collector<T> value) {
+        return new CollectingSupplier<>(getType(), collectionFactory, valueCollector, value);
     }
 
     private static class CollectingSupplier<T, C extends Collection<T>> extends AbstractMinimalProvider<C> implements CollectionSupplier<T, C> {
