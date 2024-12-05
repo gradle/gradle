@@ -53,7 +53,7 @@ In cases where the consumer resolves to different artifacts in different context
 == Simple sharing of artifacts between projects
 
 First, a producer needs to declare a configuration which is going to be _exposed_ to consumers.
-As explained in the <<declaring_dependencies.adoc#sec:resolvable-consumable-configs, configurations chapter>>, this corresponds to a _consumable configuration_.
+As explained in the <<declaring_configurations.adoc#sec:resolvable-consumable-configs, configurations chapter>>, this corresponds to a _consumable configuration_.
 
 Let's imagine that the consumer requires _instrumented classes_ from the producer, but that this artifact is _not_ the main one.
 The producer can expose its instrumented classes by creating a configuration that will "carry" this artifact:
@@ -100,7 +100,7 @@ If you need to publish the component on a remote repository, follow the instruct
 ====
 
 In this case, we're adding the dependency to the _instrumentedClasspath_ configuration, which is a _consumer specific configuration_.
-In Gradle terminology, this is called a <<declaring_dependencies.adoc#sec:resolvable-consumable-configs,resolvable configuration>>, which is defined this way:
+In Gradle terminology, this is called a <<declaring_configurations.adoc#sec:resolvable-consumable-configs,resolvable configuration>>, which is defined this way:
 
 .Declaring a resolvable configuration on the consumer
 ====
@@ -113,7 +113,7 @@ include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProject
 
 In the <<#sec:simple-sharing-artifacts-between-projects, simple sharing solution>>, we defined a configuration on the producer side which serves as an exchange of artifacts between the producer and the consumer.
 However, the consumer has to explicitly tell which configuration it depends on, which is something we want to avoid in _variant aware resolution_.
-In fact, we also <<variant_model.adoc#understanding-variant-selection, have explained>> that it is possible for a consumer to express requirements using _attributes_ and that the producer should provide the appropriate outgoing variants using attributes too.
+In fact, we also <<variant_model.adoc#sec:understanding-variant-selection, have explained>> that it is possible for a consumer to express requirements using _attributes_ and that the producer should provide the appropriate outgoing variants using attributes too.
 This allows for smarter selection, because using a single dependency declaration, without any explicit target configuration, the consumer may resolve different things.
 The typical example is that using a single dependency declaration `project(":myLib")`, we would either choose the `arm64` or `i386` version of `myLib` depending on the architecture.
 
@@ -238,7 +238,7 @@ And that's it! Now we have:
 - explained that the consumer needs this variant _only for test runtime_
 
 Gradle therefore offers a powerful mechanism to select the right variants based on preferences and compatibility.
-More details can be found in the <<variant_attributes.adoc#variant_attributes, variant aware plugins section of the documentation>>.
+More details can be found in the <<variant_attributes.adoc#variant-attributes, variant aware plugins section of the documentation>>.
 
 [WARNING]
 ====
