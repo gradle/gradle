@@ -16,6 +16,7 @@
 package org.gradle.process.internal;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.file.DefaultFileCollectionFactory;
 import org.gradle.api.internal.file.DefaultFilePropertyFactory;
@@ -159,6 +160,7 @@ public class DefaultProcessForkOptions implements ProcessForkOptions {
     /**
      * Do not use it, used only for KGP binary compatibility.
      */
+    @NonNullApi
     @Deprecated
     private static class SimplePropertyFactory {
 

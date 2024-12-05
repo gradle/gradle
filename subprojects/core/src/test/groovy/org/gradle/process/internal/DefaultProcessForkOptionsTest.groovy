@@ -16,7 +16,6 @@
 package org.gradle.process.internal
 
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.process.ProcessForkOptions
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
