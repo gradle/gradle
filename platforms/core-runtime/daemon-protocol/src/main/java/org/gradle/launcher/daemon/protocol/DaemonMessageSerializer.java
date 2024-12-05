@@ -16,9 +16,7 @@
 
 package org.gradle.launcher.daemon.protocol;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.api.logging.LogLevel;
-import org.gradle.api.problems.AdditionalData;
 import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
@@ -95,7 +93,7 @@ public class DaemonMessageSerializer {
         registry.register(Finished.class, new FinishedSerializer());
 
         // Build events
-        registry.register(AdditionalData.class, new AddtionalDataSerializer());
+//        registry.register(AdditionalData.class, new AddtionalDataSerializer());
         registry.register(BuildEvent.class, new BuildEventSerializer(pls));
 
         // Input events
@@ -211,38 +209,29 @@ public class DaemonMessageSerializer {
 
     private static class BuildEventSerializer implements Serializer<BuildEvent> {
 
-        private final Serializer<Object> serializer = new DefaultSerializer<>();
+        private final Serializer<Object> serializer;
+        @SuppressWarnings("unused")
         private final PayloadSerializer pls;
 
         public BuildEventSerializer(PayloadSerializer pls) {
             this.pls = pls;
+            serializer = new DefaultSerializer<>(
+                outputStream -> new AdditionalDataReplacingObjectOutputStream(outputStream, pls),
+                inputStream -> new AdditionalDataReplacingObjectInputStream(inputStream, pls));
         }
 
         @Override
         public void write(Encoder encoder, BuildEvent buildEvent) throws Exception {
-            SerializedPayload serializedPayload = pls.serialize(buildEvent.getPayload());
-            serializer.write(encoder, serializedPayload);
+//            SerializedPayload serializedPayload = pls.serialize(buildEvent.getPayload());
+//            serializer.write(encoder, serializedPayload);
+            serializer.write(encoder, buildEvent.getPayload());
         }
 
         @Override
         public BuildEvent read(Decoder decoder) throws Exception {
-            SerializedPayload read = (SerializedPayload) serializer.read(decoder);
-            return new BuildEvent(pls.deserialize(read));
-        }
-    }
-
-    @NonNullApi
-    private static class AddtionalDataSerializer implements Serializer<AdditionalData> {
-        private final Serializer<Object> serializer = new DefaultSerializer<>();
-
-        @Override
-        public void write(Encoder encoder, AdditionalData buildEvent) throws Exception {
-            serializer.write(encoder, buildEvent);
-        }
-
-        @Override
-        public AdditionalData read(Decoder decoder) throws Exception {
-            return (AdditionalData) serializer.read(decoder);
+//            SerializedPayload read = (SerializedPayload) serializer.read(decoder);
+//            return new BuildEvent(pls.deserialize(read));
+            return new BuildEvent(serializer.read(decoder));
         }
     }
 

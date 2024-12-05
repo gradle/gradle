@@ -19,17 +19,46 @@ import com.google.common.base.Objects;
 import org.gradle.internal.Cast;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.OutputStream;
 import java.io.StreamCorruptedException;
 
 public class DefaultSerializer<T> extends AbstractSerializer<T> {
-    private ClassLoader classLoader;
+    public interface StreamFactory<T, U> {
+        U create(T t) throws IOException;
+    }
 
-    public DefaultSerializer() {
+    private ClassLoader classLoader;
+    private StreamFactory<OutputStream, ObjectOutputStream> objectOutputStreamFactory;
+    private StreamFactory<InputStream, ObjectInputStream> inputStreamStreamFactory;
+
+    public DefaultSerializer(StreamFactory<OutputStream, ObjectOutputStream> objectOutputStreamFactory, StreamFactory<InputStream, ObjectInputStream> inputStreamStreamFactory) {
+        this.objectOutputStreamFactory = objectOutputStreamFactory;
+        this.inputStreamStreamFactory = inputStreamStreamFactory;
         classLoader = getClass().getClassLoader();
     }
 
+    public DefaultSerializer() {
+        this(new StreamFactory<OutputStream, ObjectOutputStream>() {
+                 @Override
+                 public ObjectOutputStream create(OutputStream outputStream) throws IOException {
+                     return new ObjectOutputStream(outputStream);
+                 }
+             },
+            new StreamFactory<InputStream, ObjectInputStream>() {
+                @Override
+                public ObjectInputStream create(InputStream inputStream) throws IOException {
+                    return new ClassLoaderObjectInputStream(inputStream, getClass().getClassLoader());
+                }
+            }
+        );
+    }
+
+
     public DefaultSerializer(ClassLoader classLoader) {
+        this();
         this.classLoader = classLoader != null ? classLoader : getClass().getClassLoader();
     }
 
@@ -44,7 +73,7 @@ public class DefaultSerializer<T> extends AbstractSerializer<T> {
     @Override
     public T read(Decoder decoder) throws Exception {
         try {
-            return Cast.uncheckedNonnullCast(new ClassLoaderObjectInputStream(decoder.getInputStream(), classLoader).readObject());
+            return Cast.uncheckedNonnullCast(inputStreamStreamFactory.create(decoder.getInputStream()).readObject());
         } catch (StreamCorruptedException e) {
             return null;
         }
@@ -52,7 +81,7 @@ public class DefaultSerializer<T> extends AbstractSerializer<T> {
 
     @Override
     public void write(Encoder encoder, T value) throws IOException {
-        ObjectOutputStream objectStr = new ObjectOutputStream(encoder.getOutputStream());
+        ObjectOutputStream objectStr = objectOutputStreamFactory.create(encoder.getOutputStream());
         objectStr.writeObject(value);
         objectStr.flush();
     }
