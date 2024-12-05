@@ -22,7 +22,6 @@ import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
-import org.gradle.api.tasks.testing.TestMetadataEvent;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.logging.progress.ProgressLogger;
@@ -85,12 +84,6 @@ public class TestWorkerProgressListener implements TestListenerInternal {
 
     @Override
     public void output(TestDescriptorInternal testDescriptor, TestOutputEvent event) {
-    }
-
-
-    @Override
-    public void metadata(TestDescriptorInternal testDescriptor, TestMetadataEvent event) {
-        // Ignore
     }
 
     /**
