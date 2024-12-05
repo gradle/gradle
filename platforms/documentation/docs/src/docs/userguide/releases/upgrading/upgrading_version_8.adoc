@@ -165,6 +165,11 @@ For example, `jvmArgs "some", "arg"` can be replaced with `jvmArgs("some", "arg"
 ==== DependencyInsightReportTask.getDependencySpec
 The method was deprecated because it was not intended for public use in build scripts.
 
+[[reporting-base-dir]]
+==== ReportingExtension.baseDir
+`ReportingExtension.getBaseDir()`, ``ReportingExtension.setBaseDir(File)`, and `ReportingExtension.setBaseDir(Object)` were deprecated.
+They should be replaced with `ReportingExtension.getBaseDirectory()` property.
+
 [[changes_8.11]]
 == Upgrading from 8.10 and earlier
 
