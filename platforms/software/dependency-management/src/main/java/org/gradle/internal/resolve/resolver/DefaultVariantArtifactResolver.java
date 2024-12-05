@@ -62,17 +62,17 @@ public class DefaultVariantArtifactResolver implements VariantArtifactResolver {
     }
 
     @Override
-    public ResolvedVariant resolveVariantArtifactSet(ComponentArtifactResolveMetadata component, VariantResolveMetadata artifactSet) {
-        VariantResolveMetadata.Identifier identifier = artifactSet.getIdentifier();
-        if (identifier == null || !artifactSet.isEligibleForCaching()) {
-            return createResolvedVariant(identifier, component, artifactSet, artifactTypeRegistry);
+    public ResolvedVariant resolveVariantArtifactSet(ComponentArtifactResolveMetadata component, VariantResolveMetadata variantArtifacts) {
+        VariantResolveMetadata.Identifier artifactSetId = variantArtifacts.getIdentifier();
+        if (artifactSetId == null || !variantArtifacts.isEligibleForCaching()) {
+            return createResolvedVariant(artifactSetId, component, variantArtifacts, artifactTypeRegistry);
         }
 
         // We use the artifact type registry as a key here, since for each consumer the registry may be different.
         // The registry is interned and is safe to be used as a cache key. Ideally, we would do away with the concept of the
         // artifact type registry entirely, as by design it means we need to look at the artifacts of a variant in order to perform
         // artifact selection -- a process that occurs before artifact files are even created.
-        ResolvedVariantCache.CacheKey key = new ResolvedVariantCache.CacheKey(identifier, artifactTypeRegistry);
+        ResolvedVariantCache.CacheKey key = new ResolvedVariantCache.CacheKey(artifactSetId, artifactTypeRegistry);
 
         // Try first without locking
         ResolvedVariant value = resolvedVariantCache.get(key);
@@ -82,7 +82,7 @@ public class DefaultVariantArtifactResolver implements VariantArtifactResolver {
 
         // Calculate the value with locking
         return resolvedVariantCache.computeIfAbsent(key, k ->
-            createResolvedVariant(k.variantIdentifier, component, artifactSet, k.artifactTypeRegistry)
+            createResolvedVariant(k.variantIdentifier, component, variantArtifacts, k.artifactTypeRegistry)
         );
     }
 
