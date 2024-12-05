@@ -138,7 +138,7 @@ This is another step towards moving users away from idioms that are incompatible
 Please refer to the <<configuration_cache#config_cache:requirements:use_project_during_execution, configuration cache documentation>> for alternatives to invoking `Task.getProject()` at execution time that are compatible with the configuration cache.
 
 [[groovy_space_assignment_syntax]]
-=== Groovy "space assignment" syntax
+==== Groovy "space assignment" syntax
 
 Currently, there are multiple ways to set a property with Groovy DSL syntax:
 
@@ -161,7 +161,9 @@ Use explicit assignment `propertyName = value` instead.
 While explicit methods can be used with space, like `propertyName value`, consider using the `propertyName(value)` syntax for clarity.
 For example, `jvmArgs "some", "arg"` can be replaced with `jvmArgs("some", "arg")` or with `jvmArgs = ["some", "arg"]` for `Test` tasks.
 
-[[deprecated_configuration_cache_options]]
+[[dependency-insight-report-task-get-dependency-spec]]
+==== DependencyInsightReportTask.getDependencySpec
+The method was deprecated because it was not intended for public use in build scripts.
 
 [[changes_8.11]]
 == Upgrading from 8.10 and earlier
