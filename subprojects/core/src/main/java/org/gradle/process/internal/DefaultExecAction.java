@@ -17,14 +17,11 @@
 package org.gradle.process.internal;
 
 import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.provider.Providers;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
-import org.gradle.api.provider.Provider;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.ExecResult;
+import org.gradle.process.ExecSpec;
 import org.gradle.process.ProcessForkOptions;
 
 import javax.inject.Inject;
@@ -40,27 +37,16 @@ import java.util.Map;
  */
 public class DefaultExecAction implements ExecAction {
 
+    private final ExecSpec execSpec;
     private final ClientExecHandleBuilder execHandleBuilder;
-    private final Property<Boolean> ignoreExitValue;
-    private final Property<InputStream> standardInput;
-    private final Property<OutputStream> standardOutput;
-    private final Property<OutputStream> errorOutput;
-    private final Property<String> executable;
-    private final DirectoryProperty workingDir;
-    private final MapProperty<String, Object> environment;
-    private final FileResolver fileResolver;
 
     @Inject
-    public DefaultExecAction(ObjectFactory objectFactory, FileResolver fileResolver, ClientExecHandleBuilder execHandleBuilder) {
-        this.fileResolver = fileResolver;
+    public DefaultExecAction(
+        ExecSpec execSpec,
+        ClientExecHandleBuilder execHandleBuilder
+    ) {
+        this.execSpec = execSpec;
         this.execHandleBuilder = execHandleBuilder;
-        this.ignoreExitValue = objectFactory.property(Boolean.class).convention(false);
-        this.standardInput = objectFactory.property(InputStream.class);
-        this.standardOutput = objectFactory.property(OutputStream.class);
-        this.errorOutput = objectFactory.property(OutputStream.class);
-        this.executable = objectFactory.property(String.class);
-        this.workingDir = objectFactory.directoryProperty();
-        this.environment = objectFactory.mapProperty(String.class, Object.class).value(Providers.changing(execHandleBuilder::getDefaultEnvironment));
     }
 
     @Override
@@ -97,31 +83,23 @@ public class DefaultExecAction implements ExecAction {
 
     @Override
     public Property<String> getExecutable() {
-        return executable;
+        return execSpec.getExecutable();
     }
 
     @Override
     public ProcessForkOptions executable(Object executable) {
-        if (executable instanceof Provider) {
-            getExecutable().set(((Provider<?>) executable).map(Object::toString));
-        } else {
-            getExecutable().set(Providers.changing((Providers.SerializableCallable<String>) executable::toString));
-        }
+        execSpec.executable(executable);
         return this;
     }
 
     @Override
     public DirectoryProperty getWorkingDir() {
-        return workingDir;
+        return execSpec.getWorkingDir();
     }
 
     @Override
     public ExecAction workingDir(Object dir) {
-        if (dir instanceof Provider) {
-            getWorkingDir().fileProvider(((Provider<?>) dir).map(fileResolver::resolve));
-        } else {
-            getWorkingDir().set(fileResolver.resolve(dir));
-        }
+        execSpec.workingDir(dir);
         return this;
     }
 
@@ -188,39 +166,39 @@ public class DefaultExecAction implements ExecAction {
 
     @Override
     public MapProperty<String, Object> getEnvironment() {
-        return environment;
+        return execSpec.getEnvironment();
     }
 
     @Override
     public ExecAction environment(Map<String, ?> environmentVariables) {
-        environment.putAll(environmentVariables);
+        execSpec.environment(environmentVariables);
         return this;
     }
 
     @Override
     public ExecAction environment(String name, Object value) {
-        environment.put(name, value);
+        execSpec.environment(name, value);
         return this;
     }
 
     @Override
     public Property<Boolean> getIgnoreExitValue() {
-        return ignoreExitValue;
+        return execSpec.getIgnoreExitValue();
     }
 
     @Override
     public Property<InputStream> getStandardInput() {
-        return standardInput;
+        return execSpec.getStandardInput();
     }
 
     @Override
     public Property<OutputStream> getStandardOutput() {
-        return standardOutput;
+        return execSpec.getStandardOutput();
     }
 
     @Override
     public Property<OutputStream> getErrorOutput() {
-        return errorOutput;
+        return execSpec.getErrorOutput();
     }
 
     @Override
