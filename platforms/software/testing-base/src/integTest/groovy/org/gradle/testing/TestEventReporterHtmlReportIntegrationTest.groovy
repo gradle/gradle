@@ -36,7 +36,7 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
 
         // Aggregate results are still emitted even if we don't print the URL to console
         aggregateResults()
-            .testClass("no-class")
+            .testClass("passing test")
             .assertTestCount(1, 0, 0)
     }
 
@@ -51,13 +51,13 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
         failure.assertHasCause("Test(s) failed.")
         failure.assertHasErrorOutput("See the test results for more details: " + resultsUrlFor("failing"))
         resultsFor("failing")
-            .testClass("no-class")
+            .testClass("failing test")
             .assertTestCount(1, 1, 0)
 
         // Aggregate results are still emitted even if we don't print the URL to console
         outputDoesNotContain("Aggregate test results")
         aggregateResults()
-            .testClass("no-class")
+            .testClass("failing test")
             .assertTestCount(1, 1, 0)
     }
 
@@ -67,16 +67,18 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
         buildFile << failingTask("failing")
 
         when:
-        fails("passing", "failing")
+        fails("passing", "failing", "--continue")
 
         then:
         failure.assertHasErrorOutput("See the test results for more details: " + resultsUrlFor("failing"))
 
         // Aggregate results are still emitted even if we don't print the URL to console
         outputDoesNotContain("Aggregate test results")
-        aggregateResults()
-            .testClass("no-class")
-            .assertTestCount(2, 1, 0)
+        def aggregateResults = aggregateResults()
+        aggregateResults.testClass("passing test")
+            .assertTestCount(1, 0, 0)
+        aggregateResults.testClass("failing test")
+            .assertTestCount(1, 1, 0)
     }
 
     def "emits aggregate test results if multiple test tasks fail"() {
@@ -91,21 +93,23 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
         failure.assertHasDescription("Execution failed for task ':failing1'.")
         failure.assertHasErrorOutput("See the test results for more details: " + resultsUrlFor("failing1"))
         resultsFor("failing1")
-            .testClass("no-class")
+            .testClass("failing1 suite")
             .assertTestCount(1, 1, 0)
 
         failure.assertHasDescription("Execution failed for task ':failing2'.")
         failure.assertHasErrorOutput("See the test results for more details: " + resultsUrlFor("failing2"))
         resultsFor("failing2")
-            .testClass("no-class")
+            .testClass("failing2 suite")
             .assertTestCount(1, 1, 0)
 
         def aggregateReportFile = file("build/reports/aggregate-test-results/index.html")
         def renderedUrl = new ConsoleRenderer().asClickableFileUrl(aggregateReportFile);
         outputContains("Aggregate test results: " + renderedUrl)
-        aggregateResults()
-            .testClass("no-class")
-            .assertTestCount(2, 2, 0)
+        def aggregateResults = aggregateResults()
+        aggregateResults.testClass("failing1 suite")
+            .assertTestCount(1, 1, 0)
+        aggregateResults.testClass("failing2 suite")
+            .assertTestCount(1, 1, 0)
     }
 
     private String resultsUrlFor(String name) {
@@ -130,9 +134,16 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
                 @Inject
                 abstract TestEventReporterFactory getTestEventReporterFactory()
 
+                @Inject
+                abstract ProjectLayout getLayout()
+
                 @TaskAction
                 void runTests() {
-                   try (def reporter = testEventReporterFactory.createTestEventReporter("${name}")) {
+                    try (def reporter = testEventReporterFactory.createTestEventReporter(
+                        "${name}",
+                        getLayout().getBuildDirectory().get().getAsFile().toPath().resolve("test-results/${name}"),
+                        getLayout().getBuildDirectory().get().getAsFile().toPath().resolve("reports/tests/${name}")
+                    )) {
                        reporter.started(java.time.Instant.now())
                        try (def mySuite = reporter.reportTestGroup("${name} suite")) {
                             mySuite.started(java.time.Instant.now())
@@ -159,9 +170,16 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
                 @Inject
                 abstract TestEventReporterFactory getTestEventReporterFactory()
 
+                @Inject
+                abstract ProjectLayout getLayout()
+
                 @TaskAction
                 void runTests() {
-                   try (def reporter = testEventReporterFactory.createTestEventReporter("${name}")) {
+                    try (def reporter = testEventReporterFactory.createTestEventReporter(
+                        "${name}",
+                        getLayout().getBuildDirectory().get().getAsFile().toPath().resolve("test-results/${name}"),
+                        getLayout().getBuildDirectory().get().getAsFile().toPath().resolve("reports/tests/${name}")
+                    )) {
                        reporter.started(java.time.Instant.now())
                        try (def mySuite = reporter.reportTestGroup("${name} suite")) {
                             mySuite.started(java.time.Instant.now())

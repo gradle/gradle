@@ -28,6 +28,7 @@ dependencies {
     api(projects.loggingApi)
     api(projects.messaging)
     api(projects.native)
+    api(projects.problemsApi)
     api(projects.reportRendering)
     api(projects.reporting)
     api(projects.serviceProvider)

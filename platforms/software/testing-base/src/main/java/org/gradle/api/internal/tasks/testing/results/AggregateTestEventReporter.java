@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.results;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.junit.result.AggregateTestResultsProvider;
 import org.gradle.api.internal.tasks.testing.junit.result.BinaryResultBackedTestResultsProvider;
@@ -40,6 +41,7 @@ import java.util.stream.Collectors;
 /**
  * Aggregates test results from multiple test executions and generates a report at the end of the build.
  */
+@NonNullApi
 public class AggregateTestEventReporter implements ProblemReporter, TestExecutionResultsListener {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AggregateTestEventReporter.class);

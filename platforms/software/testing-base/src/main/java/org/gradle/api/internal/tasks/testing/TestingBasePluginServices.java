@@ -37,8 +37,8 @@ public class TestingBasePluginServices extends AbstractGradleModuleServices {
     }
 
     @Override
-    public void registerProjectServices(ServiceRegistration registration) {
-        registration.addProvider(new TestingProjectScopeServices());
+    public void registerBuildServices(ServiceRegistration registration) {
+        registration.addProvider(new TestingBuildScopeServices());
     }
 
     @NonNullApi
@@ -57,7 +57,7 @@ public class TestingBasePluginServices extends AbstractGradleModuleServices {
     }
 
     @NonNullApi
-    public static class TestingProjectScopeServices implements ServiceRegistrationProvider {
+    public static class TestingBuildScopeServices implements ServiceRegistrationProvider {
         void configure(ServiceRegistration serviceRegistration) {
             serviceRegistration.add(DefaultTestEventReporterFactory.class);
         }

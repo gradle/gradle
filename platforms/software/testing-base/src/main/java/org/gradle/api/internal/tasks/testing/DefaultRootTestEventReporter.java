@@ -32,7 +32,7 @@ import java.time.Instant;
 class DefaultRootTestEventReporter extends DefaultGroupTestEventReporter {
 
     private final Path testReportDirectory;
-    private final RootTestEventRecorder binaryResultsRecorder;
+    private final DefaultTestEventReporterFactory.ClosableTestReportDataCollector testReportDataCollector;
     private final HtmlTestReportGenerator htmlTestReportGenerator;
     private final TestExecutionResultsListener executionResultsListener;
 
@@ -44,7 +44,7 @@ class DefaultRootTestEventReporter extends DefaultGroupTestEventReporter {
         TestListenerInternal listener,
         IdGenerator<?> idGenerator,
         Path testReportDirectory,
-        RootTestEventRecorder binaryResultsRecorder,
+        DefaultTestEventReporterFactory.ClosableTestReportDataCollector testReportDataCollector,
         HtmlTestReportGenerator htmlTestReportGenerator,
         TestExecutionResultsListener executionResultsListener
     ) {
@@ -56,7 +56,7 @@ class DefaultRootTestEventReporter extends DefaultGroupTestEventReporter {
         );
 
         this.testReportDirectory = testReportDirectory;
-        this.binaryResultsRecorder = binaryResultsRecorder;
+        this.testReportDataCollector = testReportDataCollector;
         this.htmlTestReportGenerator = htmlTestReportGenerator;
         this.executionResultsListener = executionResultsListener;
     }
@@ -66,17 +66,19 @@ class DefaultRootTestEventReporter extends DefaultGroupTestEventReporter {
         super.close();
 
         // Ensure binary results are written to disk.
-        binaryResultsRecorder.close();
-        Path binaryResultsDir = binaryResultsRecorder.getBinaryResultsDirectory();
+        testReportDataCollector.close();
+        Path binaryResultsDir = testReportDataCollector.getBinaryResultsDirectory();
 
         boolean rootTestFailed = failureMessage != null;
 
         // Notify aggregate listener of final results
         executionResultsListener.executionResultsAvailable(testDescriptor, binaryResultsDir, rootTestFailed);
 
+        // Generate HTML report
+        Path reportIndexFile = htmlTestReportGenerator.generateHtmlReport(testReportDirectory, binaryResultsDir);
+
         // Throw an exception with rendered test results, if necessary
         if (rootTestFailed) {
-            Path reportIndexFile = htmlTestReportGenerator.generateHtmlReport(testReportDirectory, binaryResultsDir);
             String testResultsUrl = new ConsoleRenderer().asClickableFileUrl(reportIndexFile.toFile());
             throw new VerificationException(failureMessage + " See the test results for more details: " + testResultsUrl);
         }

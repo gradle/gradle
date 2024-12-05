@@ -38,9 +38,16 @@ class TestEventReporterIntegrationTest extends AbstractIntegrationSpec {
                 @Inject
                 abstract TestEventReporterFactory getTestEventReporterFactory()
 
+                @Inject
+                abstract ProjectLayout getLayout()
+
                 @TaskAction
                 void runTests() {
-                   try (def reporter = testEventReporterFactory.createTestEventReporter("Custom test root")) {
+                    try (def reporter = testEventReporterFactory.createTestEventReporter(
+                        "Custom test root",
+                        getLayout().getBuildDirectory().get().getAsFile().toPath().resolve("test-results/Custom test root"),
+                        getLayout().getBuildDirectory().get().getAsFile().toPath().resolve("reports/tests/Custom test root")
+                    )) {
                        reporter.started(Instant.now())
                        try (def mySuite = reporter.reportTestGroup("My Suite")) {
                             mySuite.started(Instant.now())
@@ -104,7 +111,7 @@ Custom test root > My Suite > another failing test FAILED
         def firstLevelTestOpDetails = firstLevelTestOps*.details as List<Map<String, Map<String, ?>>>
         firstLevelTestOpDetails*.testDescriptor.name == ["myTestInternal", "myTestInternal2", "myTestInternal3"]
         firstLevelTestOpDetails*.testDescriptor.displayName == ["My test!", "My failing test :(", "another failing test"]
-        firstLevelTestOpDetails*.testDescriptor.className == [null, null, null]
+        firstLevelTestOpDetails*.testDescriptor.className == ["myTestInternal", "myTestInternal2", "myTestInternal3"]
         firstLevelTestOpDetails*.testDescriptor.composite == [false, false, false]
 
         def firstTestOutputProgress = firstLevelTestOps[0].progress
@@ -233,9 +240,16 @@ Custom test root > My Suite > another failing test FAILED
                 @Inject
                 abstract TestEventReporterFactory getTestEventReporterFactory()
 
+                @Inject
+                abstract ProjectLayout getLayout()
+
                 @TaskAction
                 void runTests() {
-                   try (def reporter = getTestEventReporterFactory().createTestEventReporter("Custom test root")) {
+                    try (def reporter = testEventReporterFactory.createTestEventReporter(
+                        "Custom test root",
+                        getLayout().getBuildDirectory().get().getAsFile().toPath().resolve("test-results/Custom test root"),
+                        getLayout().getBuildDirectory().get().getAsFile().toPath().resolve("reports/tests/Custom test root")
+                    )) {
                        reporter.started(Instant.now())
                        try (def mySuite = reporter.reportTestGroup("My Suite")) {
                             mySuite.started(Instant.now())
@@ -277,9 +291,16 @@ Custom test root > My Suite > another failing test FAILED
                 @Inject
                 abstract TestEventReporterFactory getTestEventReporterFactory()
 
+                @Inject
+                abstract ProjectLayout getLayout()
+
                 @TaskAction
                 void runTests() {
-                   try (def reporter = getTestEventReporterFactory().createTestEventReporter("Custom test root")) {
+                    try (def reporter = testEventReporterFactory.createTestEventReporter(
+                        "Custom test root",
+                        getLayout().getBuildDirectory().get().getAsFile().toPath().resolve("test-results/Custom test root"),
+                        getLayout().getBuildDirectory().get().getAsFile().toPath().resolve("reports/tests/Custom test root")
+                    )) {
                        reporter.started(Instant.now())
                        try (def mySuite = reporter.reportTestGroup("My Suite")) {
                             mySuite.started(Instant.now())
@@ -349,9 +370,16 @@ Custom test root > My Suite > another failing test FAILED
                 @Inject
                 abstract TestEventReporterFactory getTestEventReporterFactory()
 
+                @Inject
+                abstract ProjectLayout getLayout()
+
                 @TaskAction
                 void runTests() {
-                   try (def reporter = getTestEventReporterFactory().createTestEventReporter("Custom test root")) {
+                    try (def reporter = testEventReporterFactory.createTestEventReporter(
+                        "Custom test root",
+                        getLayout().getBuildDirectory().get().getAsFile().toPath().resolve("test-results/Custom test root"),
+                        getLayout().getBuildDirectory().get().getAsFile().toPath().resolve("reports/tests/Custom test root")
+                    )) {
                        reporter.started(Instant.now())
                        try (def mySuite = reporter.reportTestGroup("My Suite")) {
                             mySuite.started(Instant.now())
@@ -393,9 +421,16 @@ Custom test root > My Suite > another failing test FAILED
                 @Inject
                 abstract TestEventReporterFactory getTestEventReporterFactory()
 
+                @Inject
+                abstract ProjectLayout getLayout()
+
                 @TaskAction
                 void runTests() {
-                   try (def reporter = getTestEventReporterFactory().createTestEventReporter("Custom test root")) {
+                    try (def reporter = testEventReporterFactory.createTestEventReporter(
+                        "Custom test root",
+                        getLayout().getBuildDirectory().get().getAsFile().toPath().resolve("test-results/Custom test root"),
+                        getLayout().getBuildDirectory().get().getAsFile().toPath().resolve("reports/tests/Custom test root")
+                    )) {
                        reporter.started(Instant.now())
                        try (def mySuite = reporter.reportTestGroup("My Suite")) {
                             mySuite.started(Instant.now())
@@ -469,9 +504,16 @@ Custom test root > My Suite > another failing test FAILED
                 @Inject
                 abstract TestEventReporterFactory getTestEventReporterFactory()
 
+                @Inject
+                abstract ProjectLayout getLayout()
+
                 @TaskAction
                 void runTests() {
-                   try (def reporter = getTestEventReporterFactory().createTestEventReporter("Custom test root")) {
+                    try (def reporter = testEventReporterFactory.createTestEventReporter(
+                        "Custom test root",
+                        getLayout().getBuildDirectory().get().getAsFile().toPath().resolve("test-results/Custom test root"),
+                        getLayout().getBuildDirectory().get().getAsFile().toPath().resolve("reports/tests/Custom test root")
+                    )) {
                        reporter.started(Instant.now())
                        try (def mySuite = reporter.reportTestGroup("My Suite")) {
                             mySuite.started(Instant.now())
@@ -506,9 +548,16 @@ Custom test root > My Suite > another failing test FAILED
                 @Inject
                 abstract TestEventReporterFactory getTestEventReporterFactory()
 
+                @Inject
+                abstract ProjectLayout getLayout()
+
                 @TaskAction
                 void runTests() {
-                   try (def reporter = getTestEventReporterFactory().createTestEventReporter("Custom test root")) {
+                    try (def reporter = testEventReporterFactory.createTestEventReporter(
+                        "Custom test root",
+                        getLayout().getBuildDirectory().get().getAsFile().toPath().resolve("test-results/Custom test root"),
+                        getLayout().getBuildDirectory().get().getAsFile().toPath().resolve("reports/tests/Custom test root")
+                    )) {
                        reporter.started(Instant.now())
                        try (def mySuite = reporter.reportTestGroup("My Suite")) {
                             mySuite.started(Instant.now())
@@ -554,9 +603,16 @@ Custom test root > My Suite > another failing test FAILED
                 @Inject
                 abstract TestEventReporterFactory getTestEventReporterFactory()
 
+                @Inject
+                abstract ProjectLayout getLayout()
+
                 @TaskAction
                 void runTests() {
-                   try (def reporter = getTestEventReporterFactory().createTestEventReporter("Custom test root")) {
+                    try (def reporter = testEventReporterFactory.createTestEventReporter(
+                        "Custom test root",
+                        getLayout().getBuildDirectory().get().getAsFile().toPath().resolve("test-results/Custom test root"),
+                        getLayout().getBuildDirectory().get().getAsFile().toPath().resolve("reports/tests/Custom test root")
+                    )) {
                        reporter.started(Instant.now())
                        try (def mySuite = reporter.reportTestGroup("My Suite")) {
                             mySuite.started(Instant.now())
@@ -588,9 +644,16 @@ Custom test root > My Suite > another failing test FAILED
                 @Inject
                 abstract TestEventReporterFactory getTestEventReporterFactory()
 
+                @Inject
+                abstract ProjectLayout getLayout()
+
                 @TaskAction
                 void runTests() {
-                   try (def reporter = getTestEventReporterFactory().createTestEventReporter("Custom test root")) {
+                    try (def reporter = testEventReporterFactory.createTestEventReporter(
+                        "Custom test root",
+                        getLayout().getBuildDirectory().get().getAsFile().toPath().resolve("test-results/Custom test root"),
+                        getLayout().getBuildDirectory().get().getAsFile().toPath().resolve("reports/tests/Custom test root")
+                    )) {
                        reporter.started(Instant.now())
                        try (def mySuite = reporter.reportTestGroup("My Suite")) {
                             mySuite.started(Instant.now())
@@ -624,9 +687,16 @@ Custom test root > My Suite > another failing test FAILED
                 @Inject
                 abstract TestEventReporterFactory getTestEventReporterFactory()
 
+                @Inject
+                abstract ProjectLayout getLayout()
+
                 @TaskAction
                 void runTests() {
-                   try (def reporter = getTestEventReporterFactory().createTestEventReporter("Custom test root")) {
+                    try (def reporter = testEventReporterFactory.createTestEventReporter(
+                        "Custom test root",
+                        getLayout().getBuildDirectory().get().getAsFile().toPath().resolve("test-results/Custom test root"),
+                        getLayout().getBuildDirectory().get().getAsFile().toPath().resolve("reports/tests/Custom test root")
+                    )) {
                        reporter.started(Instant.now())
                        try (def mySuite = reporter.reportTestGroup("My Suite")) {
                             mySuite.started(Instant.now())
@@ -667,9 +737,16 @@ Custom test root > My Suite > another failing test FAILED
                 @Inject
                 abstract TestEventReporterFactory getTestEventReporterFactory()
 
+                @Inject
+                abstract ProjectLayout getLayout()
+
                 @TaskAction
                 void runTests() {
-                   try (def reporter = getTestEventReporterFactory().createTestEventReporter("Custom test root")) {
+                    try (def reporter = testEventReporterFactory.createTestEventReporter(
+                        "Custom test root",
+                        getLayout().getBuildDirectory().get().getAsFile().toPath().resolve("test-results/Custom test root"),
+                        getLayout().getBuildDirectory().get().getAsFile().toPath().resolve("reports/tests/Custom test root")
+                    )) {
                        reporter.started(Instant.now())
                        try (def mySuite = reporter.reportTestGroup("My Suite")) {
                             mySuite.started(Instant.now())
@@ -711,7 +788,7 @@ Custom test root > My Suite > another failing test FAILED
         def firstLevelTestOpDetails = firstLevelTestOps*.details as List<Map<String, Map<String, ?>>>
         assert firstLevelTestOpDetails*.testDescriptor.name == ["MyTestInternal"]
         assert firstLevelTestOpDetails*.testDescriptor.displayName == ["My test!"]
-        assert firstLevelTestOpDetails*.testDescriptor.className == [null]
+        assert firstLevelTestOpDetails*.testDescriptor.className == ["MyTestInternal"]
         assert firstLevelTestOpDetails*.testDescriptor.composite == [false]
 
         return firstLevelTestOps[0].progress(ExecuteTestBuildOperationType.Metadata)
