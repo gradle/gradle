@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.testing.junit.result;
 
-import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.UncheckedException;
@@ -26,131 +25,114 @@ import org.gradle.internal.serialize.FlushableEncoder;
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
 
+import javax.annotation.Nullable;
 import java.io.*;
-import java.util.Collection;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 
 public class TestResultSerializer {
-    private static final int RESULT_VERSION = 3;
+    private static final int RESULT_VERSION = 4;
 
-    private final File resultsFile;
-
-    public TestResultSerializer(File resultsDir) {
-        this.resultsFile = new File(resultsDir, "results.bin");
+    public enum VersionMismatchAction {
+        THROW_EXCEPTION,
+        RETURN_NULL,
     }
 
-    public void write(Collection<TestClassResult> results) {
-        try {
-            OutputStream outputStream = new FileOutputStream(resultsFile);
-            try {
-                if (!results.isEmpty()) { // only write if we have results, otherwise truncate
-                    FlushableEncoder encoder = new KryoBackedEncoder(outputStream);
-                    encoder.writeSmallInt(RESULT_VERSION);
-                    write(results, encoder);
-                    encoder.flush();
-                }
-            } finally {
-                outputStream.close();
+    private final Path resultsFile;
+
+    public TestResultSerializer(File resultsDir) {
+        this.resultsFile = resultsDir.toPath().resolve("results.bin");
+    }
+
+    public void write(PersistentTestResult rootResult) {
+        try (OutputStream outputStream = Files.newOutputStream(resultsFile)) {
+            if (!rootResult.getChildren().isEmpty()) { // only write if we have results, otherwise truncate
+                FlushableEncoder encoder = new KryoBackedEncoder(outputStream);
+                encoder.writeSmallInt(RESULT_VERSION);
+                write(rootResult, encoder);
+                encoder.flush();
             }
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
     }
 
-    private void write(Collection<TestClassResult> results, Encoder encoder) throws IOException {
-        encoder.writeSmallInt(results.size());
-        for (TestClassResult result : results) {
-            write(result, encoder);
-        }
-    }
+    private static void write(PersistentTestResult result, Encoder encoder) throws IOException {
+        encoder.writeSmallLong(result.getId());
+        encoder.writeString(result.getName());
+        encoder.writeString(result.getDisplayName());
+        encoder.writeSmallInt(result.getResultType().ordinal());
+        encoder.writeLong(result.getStartTime());
+        encoder.writeLong(result.getEndTime());
 
-    private void write(TestClassResult classResult, Encoder encoder) throws IOException {
-        encoder.writeSmallLong(classResult.getId());
-        encoder.writeString(classResult.getClassName());
-        encoder.writeString(classResult.getClassDisplayName());
-        encoder.writeLong(classResult.getStartTime());
-        encoder.writeSmallInt(classResult.getResults().size());
-        for (TestMethodResult methodResult : classResult.getResults()) {
-            write(methodResult, encoder);
-        }
-    }
-
-    private void write(TestMethodResult methodResult, Encoder encoder) throws IOException {
-        encoder.writeSmallLong(methodResult.getId());
-        encoder.writeString(methodResult.getName());
-        encoder.writeString(methodResult.getDisplayName());
-        encoder.writeSmallInt(methodResult.getResultType().ordinal());
-        encoder.writeSmallLong(methodResult.getDuration());
-        encoder.writeLong(methodResult.getEndTime());
-        encoder.writeSmallInt(methodResult.getFailures().size());
-        for (TestFailure testFailure : methodResult.getFailures()) {
+        encoder.writeSmallInt(result.getFailures().size());
+        for (PersistentTestFailure testFailure : result.getFailures()) {
             encoder.writeString(testFailure.getExceptionType());
             encoder.writeString(testFailure.getMessage());
             encoder.writeString(testFailure.getStackTrace());
         }
+
+        encoder.writeSmallInt(result.getChildren().size());
+        for (PersistentTestResult methodResult : result.getChildren()) {
+            write(methodResult, encoder);
+        }
     }
 
-    public void read(Action<? super TestClassResult> visitor) {
+    @Nullable
+    public PersistentTestResult read(VersionMismatchAction versionMismatchAction) {
         if (!isHasResults()) {
-            return;
+            return null;
         }
-        try {
-            InputStream inputStream = new FileInputStream(resultsFile);
-            try {
-                Decoder decoder = new KryoBackedDecoder(inputStream);
-                int version = decoder.readSmallInt();
-                if (version != RESULT_VERSION) {
+        try (InputStream inputStream = Files.newInputStream(resultsFile)) {
+            Decoder decoder = new KryoBackedDecoder(inputStream);
+            int version = decoder.readSmallInt();
+            if (version != RESULT_VERSION) {
+                if (versionMismatchAction == VersionMismatchAction.RETURN_NULL) {
+                    return null;
+                } else if (versionMismatchAction == VersionMismatchAction.THROW_EXCEPTION) {
                     throw new IllegalArgumentException(String.format("Unexpected result file version %d found in %s.", version, resultsFile));
                 }
-                readResults(decoder, visitor);
-            } finally {
-                inputStream.close();
+                throw new AssertionError("Unexpected version mismatch action: " + versionMismatchAction);
             }
+            return read(decoder);
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
     public boolean isHasResults() {
-        return resultsFile.exists() && resultsFile.length() > 0;
-    }
-
-    private void readResults(Decoder decoder, Action<? super TestClassResult> visitor) throws ClassNotFoundException, IOException {
-        int classCount = decoder.readSmallInt();
-        for (int i = 0; i < classCount; i++) {
-            TestClassResult classResult = readClassResult(decoder);
-            visitor.execute(classResult);
+        try {
+            return Files.size(resultsFile) > 0;
+        } catch (IOException e) {
+            return false;
         }
     }
 
-    private TestClassResult readClassResult(Decoder decoder) throws IOException, ClassNotFoundException {
-        long id = decoder.readSmallLong();
-        String className = decoder.readString();
-        String classDisplayName = decoder.readString();
-        long startTime = decoder.readLong();
-        TestClassResult result = new TestClassResult(id, className, classDisplayName, startTime);
-        int testMethodCount = decoder.readSmallInt();
-        for (int i = 0; i < testMethodCount; i++) {
-            TestMethodResult methodResult = readMethodResult(decoder);
-            result.add(methodResult);
-        }
-        return result;
-    }
-
-    private TestMethodResult readMethodResult(Decoder decoder) throws ClassNotFoundException, IOException {
+    private static PersistentTestResult read(Decoder decoder) throws IOException {
         long id = decoder.readSmallLong();
         String name = decoder.readString();
         String displayName = decoder.readString();
         TestResult.ResultType resultType = TestResult.ResultType.values()[decoder.readSmallInt()];
-        long duration = decoder.readSmallLong();
+        long startTime = decoder.readLong();
         long endTime = decoder.readLong();
-        TestMethodResult methodResult = new TestMethodResult(id, name, displayName, resultType, duration, endTime);
-        int failures = decoder.readSmallInt();
-        for (int i = 0; i < failures; i++) {
+
+        int failureCount = decoder.readSmallInt();
+        List<PersistentTestFailure> failures = new ArrayList<>(failureCount);
+        for (int i = 0; i < failureCount; i++) {
             String exceptionType = decoder.readString();
             String message = decoder.readString();
             String stackTrace = decoder.readString();
-            methodResult.addFailure(message, stackTrace, exceptionType);
+            failures.add(new PersistentTestFailure(message, stackTrace, exceptionType));
         }
-        return methodResult;
+
+        int childCount = decoder.readSmallInt();
+        List<PersistentTestResult> children = new ArrayList<>(childCount);
+        for (int i = 0; i < childCount; i++) {
+            children.add(read(decoder));
+        }
+
+        return new PersistentTestResult(id, name, displayName, resultType, startTime, endTime, failures, children);
     }
 }

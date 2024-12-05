@@ -37,6 +37,9 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 
+/**
+ * This class assumes that the results given to it have a root with children of classes, and then uses the leaves of each class as methods.
+ */
 public class Binary2JUnitXmlReportGenerator {
 
     private final File testResultsDir;
@@ -52,7 +55,7 @@ public class Binary2JUnitXmlReportGenerator {
     public Binary2JUnitXmlReportGenerator(File testResultsDir, TestResultsProvider testResultsProvider, JUnitXmlResultOptions options, BuildOperationRunner buildOperationRunner, BuildOperationExecutor buildOperationExecutor, String hostName) {
         this.testResultsDir = testResultsDir;
         this.testResultsProvider = testResultsProvider;
-        this.xmlWriter = new JUnitXmlResultWriter(hostName, testResultsProvider, options);
+        this.xmlWriter = new JUnitXmlResultWriter(hostName, options);
         this.buildOperationRunner = buildOperationRunner;
         this.buildOperationExecutor = buildOperationExecutor;
     }
@@ -81,40 +84,32 @@ public class Binary2JUnitXmlReportGenerator {
             }
         });
 
-        buildOperationExecutor.runAll(new Action<BuildOperationQueue<JUnitXmlReportFileGenerator>>() {
-            @Override
-            public void execute(final BuildOperationQueue<JUnitXmlReportFileGenerator> queue) {
-                testResultsProvider.visitClasses(new Action<TestClassResult>() {
-                    @Override
-                    public void execute(final TestClassResult result) {
-                        final File reportFile = new File(testResultsDir, getReportFileName(result));
-                        queue.add(new JUnitXmlReportFileGenerator(result, reportFile, xmlWriter));
-                    }
-                });
-            }
-        });
+        buildOperationExecutor.runAll((Action<BuildOperationQueue<JUnitXmlReportFileGenerator>>) queue -> testResultsProvider.visitChildren(provider -> {
+            final File reportFile = new File(testResultsDir, getReportFileName(provider.getResult()));
+            queue.add(new JUnitXmlReportFileGenerator(provider, reportFile, xmlWriter));
+        }));
 
         LOG.info("Finished generating test XML results ({}) into: {}", clock.getElapsed(), testResultsDir);
     }
 
-    private String getReportFileName(TestClassResult result) {
-        return "TEST-" + FileUtils.toSafeFileName(result.getClassName()) + ".xml";
+    private String getReportFileName(PersistentTestResult result) {
+        return "TEST-" + FileUtils.toSafeFileName(result.getName()) + ".xml";
     }
 
     private static class JUnitXmlReportFileGenerator implements RunnableBuildOperation {
-        private final TestClassResult result;
+        private final TestResultsProvider provider;
         private final File reportFile;
         private final JUnitXmlResultWriter xmlWriter;
 
-        public JUnitXmlReportFileGenerator(TestClassResult result, File reportFile, JUnitXmlResultWriter xmlWriter) {
-            this.result = result;
+        public JUnitXmlReportFileGenerator(TestResultsProvider provider, File reportFile, JUnitXmlResultWriter xmlWriter) {
+            this.provider = provider;
             this.reportFile = reportFile;
             this.xmlWriter = xmlWriter;
         }
 
         @Override
         public BuildOperationDescriptor.Builder description() {
-            return BuildOperationDescriptor.displayName("Generate junit XML test report for ".concat(result.getClassName()));
+            return BuildOperationDescriptor.displayName("Generate junit XML test report for ".concat(provider.getResult().getName()));
         }
 
         @Override
@@ -122,10 +117,10 @@ public class Binary2JUnitXmlReportGenerator {
             FileOutputStream output = null;
             try {
                 output = new FileOutputStream(reportFile);
-                xmlWriter.write(result, output);
+                xmlWriter.write(provider, output);
                 output.close();
             } catch (Exception e) {
-                throw new GradleException(String.format("Could not write XML test results for %s to file %s.", result.getClassName(), reportFile), e);
+                throw new GradleException(String.format("Could not write XML test results for %s to file %s.", provider.getResult().getName(), reportFile), e);
             } finally {
                 IoActions.closeQuietly(output);
             }

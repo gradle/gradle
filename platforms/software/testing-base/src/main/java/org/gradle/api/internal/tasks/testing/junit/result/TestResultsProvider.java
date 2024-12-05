@@ -24,29 +24,57 @@ import java.io.Writer;
 
 public interface TestResultsProvider extends Closeable {
     /**
-     * Writes the output of the given test to the given writer. This method must be called only after {@link #visitClasses(org.gradle.api.Action)}.
+     * Get the inner result information.
      *
-     * Writes all output for the test class.
+     * @return the result information
      */
-    void writeAllOutput(long classId, TestOutputEvent.Destination destination, Writer writer);
-
-    void writeNonTestOutput(long classId, TestOutputEvent.Destination destination, Writer writer);
+    PersistentTestResult getResult();
 
     /**
-     * Writes the output of the given test to the given writer. This method must be called only after {@link #visitClasses(org.gradle.api.Action)}.
+     * Copies the output of just this result.
      *
-     * Write all output for the given test case name of the test class.
+     * @param destination the original destination of the output
+     * @param writer the writer to copy the output to
      */
-    void writeTestOutput(long classId, long testId, TestOutputEvent.Destination destination, Writer writer);
+    void copyOutput(TestOutputEvent.Destination destination, Writer writer);
 
     /**
-     * Visits the results of each test class, in no specific order. Each class is visited exactly once.
+     * Copies the output of this result and all its children.
+     *
+     * @param destination the original destination of the output
+     * @param writer the writer to copy the output to
      */
-    void visitClasses(Action<? super TestClassResult> visitor);
+    default void copyAllOutput(TestOutputEvent.Destination destination, Writer writer) {
+        copyOutput(destination, writer);
+        visitChildren(provider -> provider.copyAllOutput(destination, writer));
+    }
 
-    boolean hasOutput(long classId, TestOutputEvent.Destination destination);
+    /**
+     * Returns true if this result has output for the given destination.
+     *
+     * <p>
+     * Note that {@code false} does not imply that {@link #copyAllOutput(TestOutputEvent.Destination, Writer)} will not produce any output.
+     * This only checks for output from this result, not any children.
+     * </p>
+     *
+     * @param destination the destination to check for output
+     * @return true if this result has output for the given destination
+     */
+    boolean hasOutput(TestOutputEvent.Destination destination);
 
-    boolean hasOutput(long classId, long testId, TestOutputEvent.Destination destination);
+    /**
+     * Returns true if this result has children. Visit them with {@link #visitChildren(org.gradle.api.Action)}.
+     *
+     * <p>
+     * This is equivalent to checking if {@code getResult() instanceof PersistentCompositeTestResult}.
+     * </p>
+     *
+     * @return true if this result has children
+     */
+    boolean hasChildren();
 
-    boolean isHasResults();
+    /**
+     * Visits the children of this result provider, in no specific order. Each child is visited exactly once.
+     */
+    void visitChildren(Action<? super TestResultsProvider> visitor);
 }

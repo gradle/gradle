@@ -15,9 +15,9 @@
  */
 package org.gradle.api.internal.tasks.testing.report;
 
+import org.gradle.api.internal.tasks.testing.junit.result.PersistentTestFailure;
 import org.gradle.internal.ErroringAction;
 import org.gradle.internal.html.SimpleHtmlWriter;
-import org.gradle.api.internal.tasks.testing.junit.result.TestFailure;
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.internal.SystemProperties;
@@ -31,11 +31,6 @@ import java.util.List;
 
 class ClassPageRenderer extends PageRenderer<ClassTestResults> {
     private final CodePanelRenderer codePanelRenderer = new CodePanelRenderer();
-    private final TestResultsProvider resultsProvider;
-
-    public ClassPageRenderer(TestResultsProvider provider) {
-        this.resultsProvider = provider;
-    }
 
     @Override
     protected void renderBreadcrumbs(SimpleHtmlWriter htmlWriter) throws IOException {
@@ -100,7 +95,7 @@ class ClassPageRenderer extends PageRenderer<ClassTestResults> {
             htmlWriter.startElement("div").attribute("class", "test")
                 .startElement("a").attribute("name", test.getId().toString()).characters("").endElement() //browsers dont understand <a name="..."/>
                 .startElement("h3").attribute("class", test.getStatusClass()).characters(test.getDisplayName()).endElement();
-            for (TestFailure failure : test.getFailures()) {
+            for (PersistentTestFailure failure : test.getFailures()) {
                 String message;
                 if (GUtil.isTrue(failure.getMessage()) && !failure.getStackTrace().contains(failure.getMessage())) {
                     message = failure.getMessage() + SystemProperties.getInstance().getLineSeparator() + SystemProperties.getInstance().getLineSeparator() + failure.getStackTrace();
@@ -122,28 +117,28 @@ class ClassPageRenderer extends PageRenderer<ClassTestResults> {
                 renderTests(writer);
             }
         });
-        final long classId = getModel().getId();
-        if (resultsProvider.hasOutput(classId, TestOutputEvent.Destination.StdOut)) {
+        final TestResultsProvider provider = getModel().getProvider();
+        if (provider.hasOutput(TestOutputEvent.Destination.StdOut)) {
             addTab("Standard output", new ErroringAction<SimpleHtmlWriter>() {
                 @Override
                 protected void doExecute(SimpleHtmlWriter htmlWriter) throws IOException {
                     htmlWriter.startElement("span").attribute("class", "code")
                         .startElement("pre")
                         .characters("");
-                    resultsProvider.writeAllOutput(classId, TestOutputEvent.Destination.StdOut, htmlWriter);
+                    provider.copyOutput(TestOutputEvent.Destination.StdOut, htmlWriter);
                         htmlWriter.endElement()
                     .endElement();
                 }
             });
         }
-        if (resultsProvider.hasOutput(classId, TestOutputEvent.Destination.StdErr)) {
+        if (provider.hasOutput(TestOutputEvent.Destination.StdErr)) {
             addTab("Standard error", new ErroringAction<SimpleHtmlWriter>() {
                 @Override
                 protected void doExecute(SimpleHtmlWriter element) throws Exception {
                     element.startElement("span").attribute("class", "code")
                     .startElement("pre")
                         .characters("");
-                    resultsProvider.writeAllOutput(classId, TestOutputEvent.Destination.StdErr, element);
+                    provider.copyOutput(TestOutputEvent.Destination.StdErr, element);
                     element.endElement()
                     .endElement();
                 }

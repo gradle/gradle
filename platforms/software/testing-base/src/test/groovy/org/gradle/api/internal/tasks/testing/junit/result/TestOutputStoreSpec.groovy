@@ -183,7 +183,7 @@ class TestOutputStoreSpec extends WorkspaceTest {
 
     String collectOutput(TestOutputStore.Reader reader, long classId, TestOutputEvent.Destination destination) {
         def writer = new StringWriter()
-        reader.writeNonTestOutput(classId, destination, writer)
+        reader.copyTestOutput(classId, destination, writer)
         return writer.toString()
     }
 }

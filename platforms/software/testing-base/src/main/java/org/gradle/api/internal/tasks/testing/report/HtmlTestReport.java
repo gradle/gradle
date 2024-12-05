@@ -15,18 +15,16 @@
  */
 package org.gradle.api.internal.tasks.testing.report;
 
-import org.gradle.api.Action;
 import org.gradle.api.GradleException;
-import org.gradle.api.internal.tasks.testing.junit.result.TestClassResult;
-import org.gradle.api.internal.tasks.testing.junit.result.TestFailure;
-import org.gradle.api.internal.tasks.testing.junit.result.TestMethodResult;
+import org.gradle.api.internal.tasks.testing.junit.result.PersistentTestFailure;
+import org.gradle.api.internal.tasks.testing.junit.result.PersistentTestResult;
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider;
+import org.gradle.api.internal.tasks.testing.junit.result.TestVisitingResultsProviderAction;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.time.Time;
@@ -38,6 +36,7 @@ import org.gradle.util.internal.GFileUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.gradle.api.tasks.testing.TestResult.ResultType.SKIPPED;
@@ -46,6 +45,16 @@ import static org.gradle.api.tasks.testing.TestResult.ResultType.SKIPPED;
  * Generates an HTML report based on test class results from a {@link TestResultsProvider}.
  */
 public class HtmlTestReport {
+
+    private static final class TestCollector extends TestVisitingResultsProviderAction {
+        private final List<PersistentTestResult> results = new ArrayList<>();
+
+        @Override
+        protected void visitTest(TestResultsProvider provider) {
+            results.add(provider.getResult());
+        }
+    }
+
     private final BuildOperationRunner buildOperationRunner;
     private final BuildOperationExecutor buildOperationExecutor;
     private final static Logger LOG = Logging.getLogger(HtmlTestReport.class);
@@ -60,26 +69,24 @@ public class HtmlTestReport {
 
         Timer clock = Time.startTimer();
         AllTestResults model = loadModelFromProvider(resultsProvider);
-        generateFiles(model, resultsProvider, reportDir);
+        generateFiles(model, reportDir);
         LOG.info("Finished generating test html results ({}) into: {}", clock.getElapsed(), reportDir);
     }
 
     private AllTestResults loadModelFromProvider(TestResultsProvider resultsProvider) {
         final AllTestResults model = new AllTestResults();
-        resultsProvider.visitClasses(new Action<TestClassResult>() {
-            @Override
-            public void execute(TestClassResult classResult) {
-                model.addTestClass(classResult.getId(), classResult.getClassName(), classResult.getClassDisplayName());
-                List<TestMethodResult> collectedResults = classResult.getResults();
-                for (TestMethodResult collectedResult : collectedResults) {
-                    final TestResult testResult = model.addTest(classResult.getId(), classResult.getClassName(), classResult.getClassDisplayName(), collectedResult.getName(), collectedResult.getDisplayName(), collectedResult.getDuration());
-                    if (collectedResult.getResultType() == SKIPPED) {
-                        testResult.setIgnored();
-                    } else {
-                        List<TestFailure> failures = collectedResult.getFailures();
-                        for (TestFailure failure : failures) {
-                            testResult.addFailure(failure);
-                        }
+        resultsProvider.visitChildren(provider -> {
+            model.addTestClass(provider);
+            TestCollector tests = new TestCollector();
+            provider.visitChildren(tests);
+            for (PersistentTestResult collectedResult : tests.results) {
+                final TestResult testResult = model.addTest(provider, collectedResult.getName(), collectedResult.getDisplayName(), collectedResult.getDuration());
+                if (collectedResult.getResultType() == SKIPPED) {
+                    testResult.setIgnored();
+                } else {
+                    List<PersistentTestFailure> failures = collectedResult.getFailures();
+                    for (PersistentTestFailure failure : failures) {
+                        testResult.addFailure(failure);
                     }
                 }
             }
@@ -87,7 +94,7 @@ public class HtmlTestReport {
         return model;
     }
 
-    private void generateFiles(AllTestResults model, final TestResultsProvider resultsProvider, final File reportDir) {
+    private void generateFiles(AllTestResults model, final File reportDir) {
         try {
             HtmlReportRenderer htmlRenderer = new HtmlReportRenderer();
             buildOperationRunner.run(new RunnableBuildOperation() {
@@ -107,15 +114,12 @@ public class HtmlTestReport {
             htmlRenderer.render(model, new ReportRenderer<AllTestResults, HtmlReportBuilder>() {
                 @Override
                 public void render(final AllTestResults model, final HtmlReportBuilder output) throws IOException {
-                    buildOperationExecutor.runAll(new Action<BuildOperationQueue<HtmlReportFileGenerator<? extends CompositeTestResults>>>() {
-                        @Override
-                        public void execute(BuildOperationQueue<HtmlReportFileGenerator<? extends CompositeTestResults>> queue) {
-                            queue.add(generator("index.html", model, new OverviewPageRenderer(), output));
-                            for (PackageTestResults packageResults : model.getPackages()) {
-                                queue.add(generator(packageResults.getBaseUrl(), packageResults, new PackagePageRenderer(), output));
-                                for (ClassTestResults classResults : packageResults.getClasses()) {
-                                    queue.add(generator(classResults.getBaseUrl(), classResults, new ClassPageRenderer(resultsProvider), output));
-                                }
+                    buildOperationExecutor.runAll(queue -> {
+                        queue.add(generator("index.html", model, new OverviewPageRenderer(), output));
+                        for (PackageTestResults packageResults : model.getPackages()) {
+                            queue.add(generator(packageResults.getBaseUrl(), packageResults, new PackagePageRenderer(), output));
+                            for (ClassTestResults classResults : packageResults.getClasses()) {
+                                queue.add(generator(classResults.getBaseUrl(), classResults, new ClassPageRenderer(), output));
                             }
                         }
                     });
@@ -126,8 +130,8 @@ public class HtmlTestReport {
         }
     }
 
-    public static <T extends CompositeTestResults> HtmlReportFileGenerator<T> generator(String fileUrl, T results, PageRenderer<T> renderer, HtmlReportBuilder output) {
-        return new HtmlReportFileGenerator<T>(fileUrl, results, renderer, output);
+    private static <T extends CompositeTestResults> HtmlReportFileGenerator<T> generator(String fileUrl, T results, PageRenderer<T> renderer, HtmlReportBuilder output) {
+        return new HtmlReportFileGenerator<>(fileUrl, results, renderer, output);
     }
 
     private static class HtmlReportFileGenerator<T extends CompositeTestResults> implements RunnableBuildOperation {

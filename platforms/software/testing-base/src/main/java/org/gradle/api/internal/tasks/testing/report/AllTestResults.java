@@ -16,6 +16,7 @@
 package org.gradle.api.internal.tasks.testing.report;
 
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider;
 
 import java.util.*;
 
@@ -43,21 +44,17 @@ public class AllTestResults extends CompositeTestResults {
         return packages.values();
     }
 
-    public TestResult addTest(long classId, String className, String testName, long duration) {
-        return addTest(classId, className, className, testName, testName, duration);
+    public TestResult addTest(TestResultsProvider classProvider, String testName, long duration) {
+        return addTest(classProvider, testName, testName, duration);
     }
 
-    public TestResult addTest(long classId, String className, String classDisplayName, String testName, String testDisplayName, long duration) {
-        PackageTestResults packageResults = addPackageForClass(className);
-        return addTest(packageResults.addTest(classId, className, classDisplayName, testName, testDisplayName, duration));
+    public TestResult addTest(TestResultsProvider classProvider, String testName, String testDisplayName, long duration) {
+        PackageTestResults packageResults = addPackageForClass(classProvider.getResult().getName());
+        return addTest(packageResults.addTest(classProvider, testName, testDisplayName, duration));
     }
 
-    public ClassTestResults addTestClass(long classId, String className) {
-        return addTestClass(classId, className, className);
-    }
-
-    public ClassTestResults addTestClass(long classId, String className, String classDisplayName) {
-        return addPackageForClass(className).addClass(classId, className, classDisplayName);
+    public ClassTestResults addTestClass(TestResultsProvider classProvider) {
+        return addPackageForClass(classProvider.getResult().getName()).addClass(classProvider);
     }
 
     private PackageTestResults addPackageForClass(String className) {

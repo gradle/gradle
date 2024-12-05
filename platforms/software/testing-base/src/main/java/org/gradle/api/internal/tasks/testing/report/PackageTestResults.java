@@ -15,6 +15,8 @@
  */
 package org.gradle.api.internal.tasks.testing.report;
 
+import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider;
+
 import java.util.Collection;
 import java.util.Map;
 import java.util.TreeMap;
@@ -29,7 +31,7 @@ public class PackageTestResults extends CompositeTestResults {
 
     public PackageTestResults(String name, AllTestResults model) {
         super(model);
-        this.name = name.length() == 0 ? DEFAULT_PACKAGE : name;
+        this.name = name.isEmpty() ? DEFAULT_PACKAGE : name;
     }
 
     @Override
@@ -50,25 +52,17 @@ public class PackageTestResults extends CompositeTestResults {
         return classes.values();
     }
 
-    public TestResult addTest(long classId, String className, String testName, long duration) {
-        return addTest(classId, className, className, testName, testName, duration);
+    public TestResult addTest(TestResultsProvider classProvider, String testName, long duration) {
+        return addTest(classProvider, testName, testName, duration);
     }
 
-    public TestResult addTest(long classId, String className, String classDisplayName, String testName, String testDisplayName, long duration) {
-        ClassTestResults classResults = addClass(classId, className, classDisplayName);
+    public TestResult addTest(TestResultsProvider classProvider, String testName, String testDisplayName, long duration) {
+        ClassTestResults classResults = addClass(classProvider);
         return addTest(classResults.addTest(testName, testDisplayName, duration));
     }
 
-    public ClassTestResults addClass(long classId, String className) {
-        return addClass(classId, className, className);
-    }
-
-    public ClassTestResults addClass(long classId, String className, String classDisplayName) {
-        ClassTestResults classResults = classes.get(className);
-        if (classResults == null) {
-            classResults = new ClassTestResults(classId, className, classDisplayName, this);
-            classes.put(className, classResults);
-        }
-        return classResults;
+    public ClassTestResults addClass(TestResultsProvider provider) {
+        String className = provider.getResult().getName();
+        return classes.computeIfAbsent(className, k -> new ClassTestResults(provider, this));
     }
 }

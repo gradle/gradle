@@ -28,7 +28,7 @@ public class TestMethodResult {
     private TestResult.ResultType resultType;
     private long duration;
     private long endTime;
-    private final List<TestFailure> failures = new ArrayList<TestFailure>();
+    private final List<PersistentTestFailure> failures = new ArrayList<PersistentTestFailure>();
 
     public TestMethodResult(long id, String name) {
         this(id, name, name);
@@ -64,7 +64,7 @@ public class TestMethodResult {
     }
 
     public TestMethodResult addFailure(String message, String stackTrace, String exceptionType) {
-        this.failures.add(new TestFailure(message, stackTrace, exceptionType));
+        this.failures.add(new PersistentTestFailure(message, stackTrace, exceptionType));
         return this;
     }
 
@@ -80,7 +80,7 @@ public class TestMethodResult {
         return displayName;
     }
 
-    public List<TestFailure> getFailures() {
+    public List<PersistentTestFailure> getFailures() {
         return failures;
     }
 
