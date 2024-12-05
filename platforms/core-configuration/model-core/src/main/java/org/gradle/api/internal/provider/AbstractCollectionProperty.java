@@ -218,7 +218,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     private void addExplicitCollector(Collector<T> collector, boolean ignoreAbsent) {
         assertCanMutate();
         CollectionSupplier<T, C> explicitValue = getExplicitValue(defaultValue);
-        setSupplier(explicitValue.plus(ignoreAbsent ? new AbsentIgnoringCollector<>(collector) : collector, ignoreAbsent));
+        setSupplier(explicitValue.plus(collector, ignoreAbsent));
     }
 
     @Override
@@ -595,14 +595,18 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
             }
 
             // At least one of the values is a changing value. Simplify the provider.
-            return ExecutionTimeValue.changingValue(new CollectingSupplier<>(type, collectionFactory, valueCollector,
-                collectorsWithValues.stream().map(pair -> {
-                    Collector<T> elements = toCollector(pair.getRight());
-                    return isAbsentIgnoring(pair.getLeft())
-                        ? new AbsentIgnoringCollector<>(elements)
-                        : elements;
-                }).collect(toList()),
-                collectorsWithValues.size()));
+            return ExecutionTimeValue.changingValue(
+                new CollectingSupplier<>(
+                    type,
+                    collectionFactory,
+                    valueCollector,
+                    collectorsWithValues.stream().map(pair -> {
+                        Collector<T> elements = toCollector(pair.getRight());
+                        return ignoreAbsentIfNeeded(elements, isAbsentIgnoring(pair.getLeft()));
+                    }).collect(toList()),
+                    collectorsWithValues.size()
+                )
+            );
         }
 
         private Collector<T> toCollector(ExecutionTimeValue<? extends Iterable<? extends T>> value) {
