@@ -214,7 +214,9 @@ class ConfigurationCacheFingerprintWriter(
         buildStateRegistry.visitBuilds { buildState ->
             val candidateBuildSrc = File(buildState.buildRootDir, SettingsInternal.BUILD_SRC)
             val valid = BuildSrcDetector.isValidBuildSrcBuild(candidateBuildSrc)
-            buildScopedSink.write(ConfigurationCacheFingerprint.BuildSrcCandidate(candidateBuildSrc, valid))
+            if (!valid) {
+                buildScopedSink.write(ConfigurationCacheFingerprint.MissingBuildSrcDir(candidateBuildSrc))
+            }
         }
     }
 
