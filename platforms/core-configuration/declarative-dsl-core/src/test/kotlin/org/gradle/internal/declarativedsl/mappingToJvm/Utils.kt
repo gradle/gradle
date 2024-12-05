@@ -40,6 +40,6 @@ fun <T : Any> runtimeInstanceFromResult(
     return createInstance().also {
         DeclarativeReflectionToObjectConverter(
             emptyMap(), it, MemberFunctionResolver(configureLambdas), ReflectionRuntimePropertyResolver, customAccessors
-        ).apply(topLevel)
+        ) { object {}.javaClass.classLoader }.apply(topLevel)
     }
 }

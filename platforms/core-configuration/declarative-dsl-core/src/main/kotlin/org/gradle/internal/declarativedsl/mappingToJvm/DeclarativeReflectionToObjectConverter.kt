@@ -20,7 +20,8 @@ class DeclarativeReflectionToObjectConverter(
     private val topLevelObject: Any,
     private val functionResolver: RuntimeFunctionResolver,
     private val propertyResolver: RuntimePropertyResolver,
-    private val customAccessors: RuntimeCustomAccessors
+    private val customAccessors: RuntimeCustomAccessors,
+    private val getScopeClassLoader: () -> ClassLoader
 ) : ReflectionToObjectConverter {
 
     override fun apply(objectReflection: ObjectReflection, conversionFilter: ReflectionToObjectConverter.ConversionFilter) {
@@ -86,7 +87,7 @@ class DeclarativeReflectionToObjectConverter(
         return when (objectOrigin) {
             is ObjectOrigin.DelegatingObjectOrigin -> getObjectByResolvedOrigin(objectOrigin.delegate)
             is ObjectOrigin.ConstantOrigin -> InstanceAndPublicType.of(objectOrigin.literal.value, objectOrigin.literal.type.constantType.kotlin)
-            is ObjectOrigin.EnumConstantOrigin -> InstanceAndPublicType.of(getEnumConstant(objectOrigin), topLevelObject.javaClass.classLoader.loadClass(objectOrigin.javaTypeName).kotlin)
+            is ObjectOrigin.EnumConstantOrigin -> InstanceAndPublicType.of(getEnumConstant(objectOrigin), getScopeClassLoader().loadClass(objectOrigin.javaTypeName).kotlin)
             is ObjectOrigin.External -> InstanceAndPublicType.unknownPublicType(externalObjectsMap[objectOrigin.key] ?: error("no external object provided for external object key of ${objectOrigin.key}"))
             is ObjectOrigin.NewObjectFromMemberFunction -> objectByIdentity(ObjectAccessKey.Identity(objectOrigin.invocationId)) { objectFromMemberFunction(objectOrigin) }
             is ObjectOrigin.NewObjectFromTopLevelFunction -> objectByIdentity(ObjectAccessKey.Identity(objectOrigin.invocationId)) { objectFromTopLevelFunction() }
@@ -201,9 +202,8 @@ class DeclarativeReflectionToObjectConverter(
     private
     fun getEnumConstant(objectOrigin: ObjectOrigin.EnumConstantOrigin): Enum<*>? {
         val typeName = objectOrigin.javaTypeName
-        val classLoader = topLevelObject.javaClass.classLoader
         try {
-            val enumClass = classLoader.loadClass(typeName) as Class<*>
+            val enumClass = getScopeClassLoader().loadClass(typeName) as Class<*>
             if (enumClass.isEnum) {
                 @Suppress("UNCHECKED_CAST")
                 return (enumClass as Class<Enum<*>>).enumConstants.find { it.name == objectOrigin.entryName }

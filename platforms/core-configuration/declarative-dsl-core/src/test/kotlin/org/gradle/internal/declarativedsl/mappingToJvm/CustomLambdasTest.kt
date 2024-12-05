@@ -63,7 +63,7 @@ class CustomLambdasTest {
 
         val outer = Outer()
         val converter = DeclarativeReflectionToObjectConverter(
-            emptyMap(), outer, MemberFunctionResolver(functionalLambdaHandler), ReflectionRuntimePropertyResolver, RuntimeCustomAccessors.none
+            emptyMap(), outer, MemberFunctionResolver(functionalLambdaHandler), ReflectionRuntimePropertyResolver, RuntimeCustomAccessors.none, javaClass.classLoader
         )
         converter.apply(reflection)
 
