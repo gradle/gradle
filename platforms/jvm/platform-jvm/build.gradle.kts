@@ -25,7 +25,6 @@ dependencies {
     api(libs.groovy)
     api(libs.inject)
     api(libs.jsr305)
-    api(libs.nativePlatform)
 
     implementation(projects.dependencyManagement)
     implementation(projects.execution)
