@@ -117,8 +117,6 @@ include::sample[dir="snippets/dependencyManagement/declaringDependencies-basic/k
 
 To add the link:https://mvnrepository.com/artifact/com.google.guava/guava[Guava] library to your Gradle project as a dependency, you must add the following line to your build file:
 
-/build.gradle.kts
-
 ====
 include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-disableForConfiguration/kotlin",files="build.gradle.kts[tags=dependency-config]"]
 include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-disableForConfiguration/groovy",files="build.gradle[tags=dependency-config]"]
