@@ -45,8 +45,8 @@ class TestEventReporterIntegrationTest extends AbstractIntegrationSpec {
                 void runTests() {
                     try (def reporter = testEventReporterFactory.createTestEventReporter(
                         "Custom test root",
-                        getLayout().getBuildDirectory().get().getAsFile().toPath().resolve("test-results/Custom test root"),
-                        getLayout().getBuildDirectory().get().getAsFile().toPath().resolve("reports/tests/Custom test root")
+                        getLayout().getBuildDirectory().dir("test-results/Custom test root").get(),
+                        getLayout().getBuildDirectory().dir("reports/tests/Custom test root").get()
                     )) {
                        reporter.started(Instant.now())
                        try (def mySuite = reporter.reportTestGroup("My Suite")) {
@@ -247,8 +247,8 @@ Custom test root > My Suite > another failing test FAILED
                 void runTests() {
                     try (def reporter = testEventReporterFactory.createTestEventReporter(
                         "Custom test root",
-                        getLayout().getBuildDirectory().get().getAsFile().toPath().resolve("test-results/Custom test root"),
-                        getLayout().getBuildDirectory().get().getAsFile().toPath().resolve("reports/tests/Custom test root")
+                        getLayout().getBuildDirectory().dir("test-results/Custom test root").get(),
+                        getLayout().getBuildDirectory().dir("reports/tests/Custom test root").get()
                     )) {
                        reporter.started(Instant.now())
                        try (def mySuite = reporter.reportTestGroup("My Suite")) {
@@ -298,8 +298,8 @@ Custom test root > My Suite > another failing test FAILED
                 void runTests() {
                     try (def reporter = testEventReporterFactory.createTestEventReporter(
                         "Custom test root",
-                        getLayout().getBuildDirectory().get().getAsFile().toPath().resolve("test-results/Custom test root"),
-                        getLayout().getBuildDirectory().get().getAsFile().toPath().resolve("reports/tests/Custom test root")
+                        getLayout().getBuildDirectory().dir("test-results/Custom test root").get(),
+                        getLayout().getBuildDirectory().dir("reports/tests/Custom test root").get()
                     )) {
                        reporter.started(Instant.now())
                        try (def mySuite = reporter.reportTestGroup("My Suite")) {
@@ -377,8 +377,8 @@ Custom test root > My Suite > another failing test FAILED
                 void runTests() {
                     try (def reporter = testEventReporterFactory.createTestEventReporter(
                         "Custom test root",
-                        getLayout().getBuildDirectory().get().getAsFile().toPath().resolve("test-results/Custom test root"),
-                        getLayout().getBuildDirectory().get().getAsFile().toPath().resolve("reports/tests/Custom test root")
+                        getLayout().getBuildDirectory().dir("test-results/Custom test root").get(),
+                        getLayout().getBuildDirectory().dir("reports/tests/Custom test root").get()
                     )) {
                        reporter.started(Instant.now())
                        try (def mySuite = reporter.reportTestGroup("My Suite")) {
@@ -428,8 +428,8 @@ Custom test root > My Suite > another failing test FAILED
                 void runTests() {
                     try (def reporter = testEventReporterFactory.createTestEventReporter(
                         "Custom test root",
-                        getLayout().getBuildDirectory().get().getAsFile().toPath().resolve("test-results/Custom test root"),
-                        getLayout().getBuildDirectory().get().getAsFile().toPath().resolve("reports/tests/Custom test root")
+                        getLayout().getBuildDirectory().dir("test-results/Custom test root").get(),
+                        getLayout().getBuildDirectory().dir("reports/tests/Custom test root").get()
                     )) {
                        reporter.started(Instant.now())
                        try (def mySuite = reporter.reportTestGroup("My Suite")) {
@@ -511,8 +511,8 @@ Custom test root > My Suite > another failing test FAILED
                 void runTests() {
                     try (def reporter = testEventReporterFactory.createTestEventReporter(
                         "Custom test root",
-                        getLayout().getBuildDirectory().get().getAsFile().toPath().resolve("test-results/Custom test root"),
-                        getLayout().getBuildDirectory().get().getAsFile().toPath().resolve("reports/tests/Custom test root")
+                        getLayout().getBuildDirectory().dir("test-results/Custom test root").get(),
+                        getLayout().getBuildDirectory().dir("reports/tests/Custom test root").get()
                     )) {
                        reporter.started(Instant.now())
                        try (def mySuite = reporter.reportTestGroup("My Suite")) {
@@ -555,8 +555,8 @@ Custom test root > My Suite > another failing test FAILED
                 void runTests() {
                     try (def reporter = testEventReporterFactory.createTestEventReporter(
                         "Custom test root",
-                        getLayout().getBuildDirectory().get().getAsFile().toPath().resolve("test-results/Custom test root"),
-                        getLayout().getBuildDirectory().get().getAsFile().toPath().resolve("reports/tests/Custom test root")
+                        getLayout().getBuildDirectory().dir("test-results/Custom test root").get(),
+                        getLayout().getBuildDirectory().dir("reports/tests/Custom test root").get()
                     )) {
                        reporter.started(Instant.now())
                        try (def mySuite = reporter.reportTestGroup("My Suite")) {
@@ -610,8 +610,8 @@ Custom test root > My Suite > another failing test FAILED
                 void runTests() {
                     try (def reporter = testEventReporterFactory.createTestEventReporter(
                         "Custom test root",
-                        getLayout().getBuildDirectory().get().getAsFile().toPath().resolve("test-results/Custom test root"),
-                        getLayout().getBuildDirectory().get().getAsFile().toPath().resolve("reports/tests/Custom test root")
+                        getLayout().getBuildDirectory().dir("test-results/Custom test root").get(),
+                        getLayout().getBuildDirectory().dir("reports/tests/Custom test root").get()
                     )) {
                        reporter.started(Instant.now())
                        try (def mySuite = reporter.reportTestGroup("My Suite")) {
@@ -651,8 +651,8 @@ Custom test root > My Suite > another failing test FAILED
                 void runTests() {
                     try (def reporter = testEventReporterFactory.createTestEventReporter(
                         "Custom test root",
-                        getLayout().getBuildDirectory().get().getAsFile().toPath().resolve("test-results/Custom test root"),
-                        getLayout().getBuildDirectory().get().getAsFile().toPath().resolve("reports/tests/Custom test root")
+                        getLayout().getBuildDirectory().dir("test-results/Custom test root").get(),
+                        getLayout().getBuildDirectory().dir("reports/tests/Custom test root").get()
                     )) {
                        reporter.started(Instant.now())
                        try (def mySuite = reporter.reportTestGroup("My Suite")) {
@@ -694,8 +694,8 @@ Custom test root > My Suite > another failing test FAILED
                 void runTests() {
                     try (def reporter = testEventReporterFactory.createTestEventReporter(
                         "Custom test root",
-                        getLayout().getBuildDirectory().get().getAsFile().toPath().resolve("test-results/Custom test root"),
-                        getLayout().getBuildDirectory().get().getAsFile().toPath().resolve("reports/tests/Custom test root")
+                        getLayout().getBuildDirectory().dir("test-results/Custom test root").get(),
+                        getLayout().getBuildDirectory().dir("reports/tests/Custom test root").get()
                     )) {
                        reporter.started(Instant.now())
                        try (def mySuite = reporter.reportTestGroup("My Suite")) {
@@ -744,8 +744,8 @@ Custom test root > My Suite > another failing test FAILED
                 void runTests() {
                     try (def reporter = testEventReporterFactory.createTestEventReporter(
                         "Custom test root",
-                        getLayout().getBuildDirectory().get().getAsFile().toPath().resolve("test-results/Custom test root"),
-                        getLayout().getBuildDirectory().get().getAsFile().toPath().resolve("reports/tests/Custom test root")
+                        getLayout().getBuildDirectory().dir("test-results/Custom test root").get(),
+                        getLayout().getBuildDirectory().dir("reports/tests/Custom test root").get()
                     )) {
                        reporter.started(Instant.now())
                        try (def mySuite = reporter.reportTestGroup("My Suite")) {

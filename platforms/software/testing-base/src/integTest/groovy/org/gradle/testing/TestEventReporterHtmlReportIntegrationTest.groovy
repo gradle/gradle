@@ -141,8 +141,8 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
                 void runTests() {
                     try (def reporter = testEventReporterFactory.createTestEventReporter(
                         "${name}",
-                        getLayout().getBuildDirectory().get().getAsFile().toPath().resolve("test-results/${name}"),
-                        getLayout().getBuildDirectory().get().getAsFile().toPath().resolve("reports/tests/${name}")
+                        getLayout().getBuildDirectory().dir("test-results/${name}").get(),
+                        getLayout().getBuildDirectory().dir("reports/tests/${name}").get()
                     )) {
                        reporter.started(java.time.Instant.now())
                        try (def mySuite = reporter.reportTestGroup("${name} suite")) {
@@ -177,8 +177,8 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
                 void runTests() {
                     try (def reporter = testEventReporterFactory.createTestEventReporter(
                         "${name}",
-                        getLayout().getBuildDirectory().get().getAsFile().toPath().resolve("test-results/${name}"),
-                        getLayout().getBuildDirectory().get().getAsFile().toPath().resolve("reports/tests/${name}")
+                        getLayout().getBuildDirectory().dir("test-results/${name}").get(),
+                        getLayout().getBuildDirectory().dir("reports/tests/${name}").get()
                     )) {
                        reporter.started(java.time.Instant.now())
                        try (def mySuite = reporter.reportTestGroup("${name} suite")) {
