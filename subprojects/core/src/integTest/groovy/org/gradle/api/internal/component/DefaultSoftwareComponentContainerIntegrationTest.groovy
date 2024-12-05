@@ -288,7 +288,8 @@ class DefaultSoftwareComponentContainerIntegrationTest extends AbstractIntegrati
             interface ${name} : SoftwareComponent {
                 val value: Property<Int>
             }
-            abstract class Default${name} @Inject constructor(val name: String) : ${name} {
+            abstract class Default${name} @Inject constructor(private val name: String) : ${name} {
+                override fun getName(): String = name
             }
         """
     }
