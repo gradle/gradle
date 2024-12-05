@@ -37,22 +37,22 @@ public class DefaultSerializer<T> extends AbstractSerializer<T> {
     private StreamFactory<InputStream, ObjectInputStream> inputStreamStreamFactory;
 
     public DefaultSerializer(StreamFactory<OutputStream, ObjectOutputStream> objectOutputStreamFactory, StreamFactory<InputStream, ObjectInputStream> inputStreamStreamFactory) {
+        this.classLoader = getClass().getClassLoader();
         this.objectOutputStreamFactory = objectOutputStreamFactory;
         this.inputStreamStreamFactory = inputStreamStreamFactory;
-        classLoader = getClass().getClassLoader();
     }
 
     public DefaultSerializer() {
-        this(
-            new OutputStreamObjectOutputStreamStreamFactory(),
-            new InputStreamObjectInputStreamStreamFactory(DefaultSerializer.class.getClassLoader())
-        );
+        this.classLoader = getClass().getClassLoader();
+        this.objectOutputStreamFactory = new OutputStreamObjectOutputStreamStreamFactory();
+        this.inputStreamStreamFactory = new InputStreamObjectInputStreamStreamFactory(classLoader);
     }
 
 
     public DefaultSerializer(ClassLoader classLoader) {
-        this();
         this.classLoader = classLoader != null ? classLoader : getClass().getClassLoader();
+        this.objectOutputStreamFactory = new OutputStreamObjectOutputStreamStreamFactory();
+        this.inputStreamStreamFactory = new InputStreamObjectInputStreamStreamFactory(this.classLoader);
     }
 
     public ClassLoader getClassLoader() {
