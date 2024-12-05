@@ -34,7 +34,7 @@ public class DefaultTestOutputEvent extends AbstractProgressEvent<InternalOperat
 
     @Override
     public String getDisplayName() {
-        return "output";
+        return descriptor.getDisplayName();
     }
 
     @Override
