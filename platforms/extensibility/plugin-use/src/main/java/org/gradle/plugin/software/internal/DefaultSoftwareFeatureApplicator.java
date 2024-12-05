@@ -20,6 +20,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.plugins.software.SoftwareType;
@@ -54,12 +55,14 @@ public class DefaultSoftwareFeatureApplicator implements SoftwareFeatureApplicat
     private final InternalProblems problems;
     private final PluginManagerInternal pluginManager;
     private final Set<AppliedFeature> applied = new HashSet<>();
+    private final ClassLoaderScope classLoaderScope;
 
-    public DefaultSoftwareFeatureApplicator(ModelDefaultsApplicator modelDefaultsApplicator, InspectionScheme inspectionScheme, InternalProblems problems, PluginManagerInternal pluginManager) {
+    public DefaultSoftwareFeatureApplicator(ModelDefaultsApplicator modelDefaultsApplicator, InspectionScheme inspectionScheme, InternalProblems problems, PluginManagerInternal pluginManager, ClassLoaderScope classLoaderScope) {
         this.modelDefaultsApplicator = modelDefaultsApplicator;
         this.inspectionScheme = inspectionScheme;
         this.problems = problems;
         this.pluginManager = pluginManager;
+        this.classLoaderScope = classLoaderScope;
     }
 
     @Override
@@ -70,7 +73,7 @@ public class DefaultSoftwareFeatureApplicator implements SoftwareFeatureApplicat
             Plugin<Project> plugin = pluginManager.getPluginContainer().getPlugin(softwareFeature.getPluginClass());
             applyAndMaybeRegisterExtension(target, softwareFeature, plugin);
             applied.add(appliedFeature);
-            modelDefaultsApplicator.applyDefaultsTo(target, plugin, softwareFeature);
+            modelDefaultsApplicator.applyDefaultsTo(target, classLoaderScope, plugin, softwareFeature);
         }
         return Cast.uncheckedCast(target.getExtensions().getByName(softwareFeature.getSoftwareType()));
     }
