@@ -22,6 +22,7 @@ import org.gradle.buildconfiguration.tasks.UpdateDaemonJvm
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
+import org.gradle.internal.buildconfiguration.DaemonJvmPropertiesDefaults
 import org.gradle.internal.buildconfiguration.fixture.DaemonJvmPropertiesFixture
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.precondition.Requires
@@ -191,5 +192,16 @@ class UpdateDaemonJvmIntegrationTest extends AbstractIntegrationSpec implements 
         withInstallations(otherJvm).succeeds("updateDaemonJvm", "--jvm-version=20", "--jvm-vendor=AZUL")
         assertJvmCriteria(JavaVersion.VERSION_20, "AZUL")
         assertDaemonUsedJvm(otherJvm)
+    }
+
+    def "Given defined invalid criteria When execute updateDaemonJvm with different criteria Then criteria get modified using java home"() {
+        given:
+        daemonJvmPropertiesFile.writeProperties((DaemonJvmPropertiesDefaults.TOOLCHAIN_VERSION_PROPERTY): "invalidVersion")
+        captureJavaHome()
+
+        expect:
+        run "help", "updateDaemonJvm", "--jvm-version=20", "--jvm-vendor=ibm", "-S"
+        assertJvmCriteria(JavaVersion.VERSION_20, "IBM")
+        assertDaemonUsedJvm(Jvm.current())
     }
 }

@@ -100,6 +100,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static java.util.Collections.emptySet;
+import static org.gradle.launcher.cli.utils.CommandLineParametersUtil.isExecutingUpdateDaemonJvmTask;
 
 @ServiceScope(Scope.Global.class)
 public class ProviderConnection {
@@ -352,7 +353,7 @@ public class ProviderConnection {
             daemonParams.setJvmArgs(jvmArguments);
         }
 
-        daemonParams.setRequestedJvmCriteriaFromMap(properties.getDaemonJvmProperties());
+        daemonParams.setRequestedJvmCriteriaFromMap(properties.getDaemonJvmProperties(), isExecutingUpdateDaemonJvmTask(parsedCommandLine));
 
         // Include the system properties that are defined in the daemon JVM args
         properties = properties.merge(daemonParams.getSystemProperties());
