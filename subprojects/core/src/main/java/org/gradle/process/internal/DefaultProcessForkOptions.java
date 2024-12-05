@@ -16,14 +16,24 @@
 package org.gradle.process.internal;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.internal.file.DefaultFileCollectionFactory;
+import org.gradle.api.internal.file.DefaultFilePropertyFactory;
+import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory;
+import org.gradle.api.internal.provider.DefaultMapProperty;
+import org.gradle.api.internal.provider.DefaultProperty;
+import org.gradle.api.internal.provider.PropertyHost;
 import org.gradle.api.internal.provider.Providers;
+import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.tasks.util.internal.PatternSets;
 import org.gradle.internal.file.PathToFileResolver;
+import org.gradle.internal.nativeintegration.services.FileSystems;
 import org.gradle.process.ProcessForkOptions;
 
 import javax.inject.Inject;
@@ -36,15 +46,42 @@ public class DefaultProcessForkOptions implements ProcessForkOptions {
     private final DirectoryProperty workingDir;
     private final MapProperty<String, Object> environment;
 
+    /**
+     * Don't use! Kept for KGP binary compatibility, will be removed in Gradle 9.
+     */
+    @Deprecated
+    public DefaultProcessForkOptions(PathToFileResolver resolver) {
+        this(
+            resolver,
+            SimplePropertyFactory.property(String.class),
+            SimplePropertyFactory.directoryProperty((FileResolver) resolver),
+            SimplePropertyFactory.directoryProperty((FileResolver) resolver),
+            SimplePropertyFactory.mapProperty(String.class, Object.class)
+        );
+    }
+
     @Inject
     public DefaultProcessForkOptions(ObjectFactory objectFactory, PathToFileResolver resolver) {
+        this(
+            resolver,
+            objectFactory.property(String.class),
+            objectFactory.directoryProperty(),
+            objectFactory.directoryProperty(),
+            objectFactory.mapProperty(String.class, Object.class)
+        );
+    }
+
+    private DefaultProcessForkOptions(
+        PathToFileResolver resolver,
+        Property<String> executable,
+        DirectoryProperty defaultWorkingDir,
+        DirectoryProperty workingDir,
+        MapProperty<String, Object> environment
+    ) {
         this.resolver = resolver;
-        this.executable = objectFactory.property(String.class);
-        Provider<Directory> defaultWorkingDir = objectFactory.directoryProperty()
-            .fileProvider(Providers.changing(() -> resolver.resolve(".")));
-        this.workingDir = objectFactory.directoryProperty().convention(defaultWorkingDir);
-        this.environment = objectFactory.mapProperty(String.class, Object.class)
-            .value(Providers.changing(this::getInheritableEnvironment));
+        this.executable = executable;
+        this.workingDir = workingDir.convention(defaultWorkingDir.fileProvider(Providers.changing(() -> resolver.resolve("."))));
+        this.environment = environment.value(Providers.changing(this::getInheritableEnvironment));
     }
 
     @Override
@@ -117,5 +154,36 @@ public class DefaultProcessForkOptions implements ProcessForkOptions {
             actual.put(entry.getKey(), String.valueOf(entry.getValue()));
         }
         return actual;
+    }
+
+    /**
+     * Do not use it, used only for KGP binary compatibility.
+     */
+    @Deprecated
+    private static class SimplePropertyFactory {
+
+        public static Property<String> property(Class<String> type) {
+            return new DefaultProperty<>(PropertyHost.NO_OP, type);
+        }
+
+        public static DirectoryProperty directoryProperty(FileResolver fileResolver) {
+            FileCollectionFactory fileCollectionFactory = new DefaultFileCollectionFactory(
+                fileResolver,
+                DefaultTaskDependencyFactory.withNoAssociatedProject(),
+                new DefaultDirectoryFileTreeFactory(),
+                PatternSets.getNonCachingPatternSetFactory(),
+                PropertyHost.NO_OP,
+                FileSystems.getDefault()
+            );
+            return new DefaultFilePropertyFactory(
+                PropertyHost.NO_OP,
+                fileResolver,
+                fileCollectionFactory
+            ).newDirectoryProperty();
+        }
+
+        public static MapProperty<String, Object> mapProperty(Class<String> keyType, Class<Object> valueType) {
+            return new DefaultMapProperty<>(PropertyHost.NO_OP, keyType, valueType);
+        }
     }
 }
