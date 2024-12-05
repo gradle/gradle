@@ -21,6 +21,7 @@ import org.gradle.api.tasks.testing.TestEventReporter;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 
 import java.time.Instant;
+import java.util.Map;
 
 @NonNullApi
 class LifecycleTrackingTestEventReporter<T extends TestEventReporter> implements TestEventReporter {
@@ -52,9 +53,9 @@ class LifecycleTrackingTestEventReporter<T extends TestEventReporter> implements
     }
 
     @Override
-    public void metadata(Instant logTime, String key, Object value) {
+    public void metadata(Instant logTime, Map<String, Object> metadata) {
         requireRunning();
-        delegate.metadata(logTime, key, value);
+        delegate.metadata(logTime, metadata);
     }
 
     @Override

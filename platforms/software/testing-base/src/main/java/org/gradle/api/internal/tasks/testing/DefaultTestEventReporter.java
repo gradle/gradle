@@ -25,9 +25,15 @@ import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestFailureDetails;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
+import org.gradle.model.internal.manage.schema.extract.ScalarTypes;
+import org.gradle.model.internal.type.ModelType;
 
+import javax.annotation.Nullable;
+import java.io.Serializable;
 import java.time.Instant;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.Map;
 
 @NonNullApi
 class DefaultTestEventReporter implements TestEventReporter {
@@ -67,11 +73,41 @@ class DefaultTestEventReporter implements TestEventReporter {
     }
 
     @Override
-    public void metadata(Instant logTime, String key, Object value) {
+    public void metadata(Instant logTime, Map<String, Object> metadata) {
         Preconditions.checkNotNull(logTime, "logTime can not be null!");
-        Preconditions.checkNotNull(key, "Metadata key can not be null!");
-        Preconditions.checkNotNull(value, "Metadata value can not be null!");
-        listener.metadata(testDescriptor, new DefaultTestMetadataEvent(logTime.toEpochMilli(), Collections.singletonMap(key, value)));
+        Preconditions.checkNotNull(metadata, "Metadata can not be null!");
+        checkAllowableTypes(metadata);
+
+        listener.metadata(testDescriptor, new DefaultTestMetadataEvent(logTime.toEpochMilli(), metadata));
+    }
+
+    private static void checkAllowableTypes(Map<String, Object> metadata) {
+        if (metadata.entrySet().stream().anyMatch(entry -> entry.getKey() == null)) {
+            throw new IllegalArgumentException("Metadata key cannot be null");
+        }
+        metadata.entrySet().stream().filter(entry -> !isAllowedType(entry.getValue())).findFirst().ifPresent(entry -> {
+            if (entry.getValue() == null) {
+                throw new IllegalArgumentException(String.format("Metadata '%s' has null value", entry.getKey()));
+            } else {
+                throw new IllegalArgumentException(String.format("Metadata '%s' has unsupported value type '%s'", entry.getKey(), entry.getValue().getClass().getName()));
+            }
+        });
+    }
+
+    private static boolean isAllowedType(@Nullable Object value) {
+        if (value == null) {
+            return false;
+        }
+
+        if (ScalarTypes.isScalarType(ModelType.of(value.getClass()))) {
+            return true;
+        }
+
+        if (value instanceof Collection && value instanceof Serializable) {
+            return ((Collection<?>) value).stream().allMatch(DefaultTestEventReporter::isAllowedType);
+        }
+
+        return false;
     }
 
     @Override

@@ -16,9 +16,12 @@
 
 package org.gradle.api.tasks.testing;
 
+import com.google.common.base.Preconditions;
 import org.gradle.api.Incubating;
 
 import java.time.Instant;
+import java.util.Collections;
+import java.util.Map;
 
 /**
  * Reports test events.
@@ -60,7 +63,18 @@ public interface TestEventReporter extends AutoCloseable {
      * @param value the metadata value, which must be serializable by the Tooling API
      * @since 8.12
      */
-    void metadata(Instant logTime, String key, Object value);
+    default void metadata(Instant logTime, String key, Object value) {
+        Preconditions.checkNotNull(key, "Metadata key can not be null!");
+        Preconditions.checkNotNull(value, "Metadata value can not be null!");
+        metadata(logTime, Collections.singletonMap(key, value));
+    }
+
+    /**
+     * blah blah
+     * @param logTime blah
+     * @param metadata blah
+     */
+    void metadata(Instant logTime, Map<String, Object> metadata);
 
     /**
      * Emit a successful completion event for the test. May not be called before {@link #started(Instant)}.

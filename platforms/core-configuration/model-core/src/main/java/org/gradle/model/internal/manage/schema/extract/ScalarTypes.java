@@ -21,6 +21,7 @@ import org.gradle.model.internal.type.ModelType;
 import java.io.File;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.net.URI;
 import java.util.List;
 
 public abstract class ScalarTypes {
@@ -37,7 +38,8 @@ public abstract class ScalarTypes {
         ModelType.of(Double.class),
         ModelType.of(BigInteger.class),
         ModelType.of(BigDecimal.class),
-        ModelType.of(File.class)
+        ModelType.of(File.class),
+        ModelType.of(URI.class)
     );
 
     public static boolean isScalarType(ModelType<?> modelType) {
