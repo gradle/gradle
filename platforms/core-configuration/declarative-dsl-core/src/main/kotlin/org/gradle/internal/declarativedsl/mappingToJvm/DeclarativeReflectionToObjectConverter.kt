@@ -86,7 +86,7 @@ class DeclarativeReflectionToObjectConverter(
         return when (objectOrigin) {
             is ObjectOrigin.DelegatingObjectOrigin -> getObjectByResolvedOrigin(objectOrigin.delegate)
             is ObjectOrigin.ConstantOrigin -> InstanceAndPublicType.of(objectOrigin.literal.value, objectOrigin.literal.type.constantType.kotlin)
-            is ObjectOrigin.EnumConstantOrigin -> InstanceAndPublicType.of(getEnumConstant(objectOrigin), Class.forName(objectOrigin.javaTypeName).kotlin)
+            is ObjectOrigin.EnumConstantOrigin -> InstanceAndPublicType.of(getEnumConstant(objectOrigin), topLevelObject.javaClass.classLoader.loadClass(objectOrigin.javaTypeName).kotlin)
             is ObjectOrigin.External -> InstanceAndPublicType.unknownPublicType(externalObjectsMap[objectOrigin.key] ?: error("no external object provided for external object key of ${objectOrigin.key}"))
             is ObjectOrigin.NewObjectFromMemberFunction -> objectByIdentity(ObjectAccessKey.Identity(objectOrigin.invocationId)) { objectFromMemberFunction(objectOrigin) }
             is ObjectOrigin.NewObjectFromTopLevelFunction -> objectByIdentity(ObjectAccessKey.Identity(objectOrigin.invocationId)) { objectFromTopLevelFunction() }
