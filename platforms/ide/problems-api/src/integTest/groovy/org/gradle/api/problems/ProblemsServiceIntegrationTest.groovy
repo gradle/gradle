@@ -22,7 +22,7 @@ import org.gradle.api.problems.internal.TaskPathLocation
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.GroovyBuildScriptLanguage
 
-import static org.gradle.api.problems.ReportingScript.getProblemReportingScript
+import static org.gradle.api.problems.fixtures.ReportingScript.getProblemReportingScript
 
 class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
