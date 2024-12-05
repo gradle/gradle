@@ -51,12 +51,21 @@ import java.util.regex.Pattern;
 @CacheableTask
 public abstract class FindBrokenInternalLinks extends DefaultTask {
 
+    // <<groovy_plugin.adoc#groovy_plugin,Groovy>>
     private final Pattern linkPattern = Pattern.compile("<<([^,>]+)[^>]*>>");
+    // groovy_plugin.adoc#groovy_plugin,Groovy
     private final Pattern linkWithHashPattern = Pattern.compile("([a-zA-Z_0-9-.]*)#(.*)");
+    // link:{javadocPath}/org/gradle/api/java/archives/ManifestMergeDetails.html[ManifestMergeDetails]
     private final Pattern javadocLinkPattern = Pattern.compile("link:\\{javadocPath\\}/(.*?\\.html)");
+    // link:https://kotlinlang.org/docs/reference/using-gradle.html#targeting-the-jvm[Kotlin]
     private final Pattern markdownLinkPattern = Pattern.compile("\\[[^]]+]\\([^)^\\\\]+\\)");
+
+    // <a href="javadoc/org/gradle/api/artifacts/dsl/DependencyHandler.html">
     private final Pattern releaseNotesJavadocPattern = Pattern.compile("javadoc/(.*?\\.html)");
+    // <a href="userguide/upgrading_version_8.html#changes_@baseVersion@">
     private final Pattern releaseNotesUserGuidePattern = Pattern.compile("userguide/(.*?)(?=\\.html)");
+    // <a href="samples/sample_problems_api_usage.html">
+    private final Pattern releaseNotesSamplesPattern = Pattern.compile("samples/(.*?)(?=\\.html)");
 
     @InputDirectory
     @PathSensitive(PathSensitivity.RELATIVE)
@@ -71,7 +80,7 @@ public abstract class FindBrokenInternalLinks extends DefaultTask {
     public abstract DirectoryProperty getJavadocRoot();
 
     @Optional @InputFile
-    @PathSensitive(PathSensitivity.NONE)
+    @PathSensitive(PathSensitivity.RELATIVE)
     public abstract RegularFileProperty getReleaseNotesFile();
 
     @OutputFile
@@ -85,16 +94,16 @@ public abstract class FindBrokenInternalLinks extends DefaultTask {
             gatherDeadLinksInFileReleaseNotes(errors);
         }
 
-        if (getSamplesRoot().isPresent()) {
-            getSamplesRoot().getAsFileTree().matching(pattern -> pattern.include("**/*.adoc")).forEach(file -> {
-                gatherDeadLinksInFile(file, errors);
-            });
-        }
+        //if (getSamplesRoot().isPresent()) {
+        //    getSamplesRoot().getAsFileTree().matching(pattern -> pattern.include("**/*.adoc")).forEach(file -> {
+        //        gatherDeadLinksInFile(file, errors);
+        //    });
+        //}
 
-        getDocumentationRoot().getAsFileTree().matching(pattern -> pattern.include("**/*.adoc")).forEach(file -> {
-            System.out.println(file);
-            gatherDeadLinksInFile(file, errors);
-        });
+        //getDocumentationRoot().getAsFileTree().matching(pattern -> pattern.include("**/*.adoc")).forEach(file -> {
+        //    System.out.println(file);
+        //    gatherDeadLinksInFile(file, errors);
+        //});
 
         reportErrors(errors, getReportFile().get().getAsFile());
     }
@@ -144,8 +153,9 @@ public abstract class FindBrokenInternalLinks extends DefaultTask {
             String line = br.readLine();
             while (line != null) {
                 lineNumber++;
-                gatherDeadLinksInLineReleaseNotes(sourceFile, line, lineNumber, errorsForFile);
-                gatherDeadJavadocLinksInLineReleaseNotes(sourceFile, line, lineNumber, errorsForFile);
+                //gatherDeadUserGuideLinksInLineReleaseNotes(sourceFile, line, lineNumber, errorsForFile);
+                gatherDeadSamplesLinksInLineReleaseNotes(sourceFile, line, lineNumber, errorsForFile);
+                //gatherDeadJavadocLinksInLineReleaseNotes(sourceFile, line, lineNumber, errorsForFile);
 
                 line = br.readLine();
             }
@@ -158,7 +168,7 @@ public abstract class FindBrokenInternalLinks extends DefaultTask {
         }
     }
 
-    private void gatherDeadLinksInLineReleaseNotes(File sourceFile, String line, int lineNumber, List<Error> errorsForFile) {
+    private void gatherDeadUserGuideLinksInLineReleaseNotes(File sourceFile, String line, int lineNumber, List<Error> errorsForFile) {
         Matcher matcher = releaseNotesUserGuidePattern.matcher(line);
         while (matcher.find()) {
             MatchResult xrefMatcher = matcher.toMatchResult();
@@ -167,6 +177,19 @@ public abstract class FindBrokenInternalLinks extends DefaultTask {
             File referencedFile = new File(getDocumentationRoot().get().getAsFile(), fileName);
             if (!referencedFile.exists()) {
                     errorsForFile.add(new Error(lineNumber, line, "Looking for file named " + fileName));
+            }
+        }
+    }
+
+    private void gatherDeadSamplesLinksInLineReleaseNotes(File sourceFile, String line, int lineNumber, List<Error> errorsForFile) {
+        Matcher matcher = releaseNotesSamplesPattern.matcher(line);
+        while (matcher.find()) {
+            MatchResult xrefMatcher = matcher.toMatchResult();
+            String link = xrefMatcher.group(1);
+            String fileName = getFileName(link, sourceFile);
+            File referencedFile = new File(getSamplesRoot().get().getAsFile(), fileName);
+            if (!referencedFile.exists()) {
+                errorsForFile.add(new Error(lineNumber, line, "Looking for file named " + fileName));
             }
         }
     }
@@ -224,11 +247,13 @@ public abstract class FindBrokenInternalLinks extends DefaultTask {
         while (matcher.find()) {
             MatchResult xrefMatcher = matcher.toMatchResult();
             String link = xrefMatcher.group(1);
+            System.out.println(link);
             if (link.contains("#")) {
                 Matcher linkMatcher = linkWithHashPattern.matcher(link);
                 if (linkMatcher.matches()) {
                     MatchResult result = linkMatcher.toMatchResult();
                     String fileName = getFileName(result.group(1), sourceFile);
+                    System.out.println(fileName);
                     File referencedFile = new File(getDocumentationRoot().get().getAsFile(), fileName);
                     if (!referencedFile.exists() || referencedFile.isDirectory()) {
                         errorsForFile.add(new Error(lineNumber, line, "Looking for file named " + fileName));
