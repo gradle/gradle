@@ -16,8 +16,10 @@
 
 package org.gradle.launcher.daemon.protocol;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 
+@NonNullApi
 public class AdditionalDataPlaceHolder {
     private final SerializedPayload data;
 

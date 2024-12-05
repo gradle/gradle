@@ -16,29 +16,17 @@
 
 package org.gradle.launcher.daemon.protocol;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.api.problems.AdditionalData;
-import org.gradle.internal.InternalTransformer;
-import org.gradle.internal.UncheckedException;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 
+@NonNullApi
 public class AdditionalDataReplacingObjectOutputStream extends ObjectOutputStream {
-    //private final Class<?> classToBeReplaced;
     private final PayloadSerializer payloadSerializer;
-    //    private final InternalTransformer<Object, Object> transformer;
-    private InternalTransformer<Object, Object> objectTransformer = new InternalTransformer<Object, Object>() {
-        @Override
-        public Object transform(Object obj) {
-            try {
-                return doReplaceObject(obj);
-            } catch (IOException e) {
-                throw UncheckedException.throwAsUncheckedException(e);
-            }
-        }
-    };
 
     public AdditionalDataReplacingObjectOutputStream(OutputStream outputStream, PayloadSerializer payloadSerializer) throws IOException {
         super(outputStream);
@@ -46,44 +34,11 @@ public class AdditionalDataReplacingObjectOutputStream extends ObjectOutputStrea
         enableReplaceObject(true);
     }
 
-//    public final InternalTransformer<ObjectReplacingObjectOutputStream, OutputStream> getObjectOutputStreamCreator() {
-//        return new InternalTransformer<ObjectReplacingObjectOutputStream, OutputStream>() {
-//            @Override
-//            public ObjectReplacingObjectOutputStream transform(OutputStream outputStream) {
-//                try {
-//                    return createNewInstance(outputStream);
-//                } catch (IOException e) {
-//                    throw UncheckedException.throwAsUncheckedException(e);
-//                }
-//            }
-//        };
-//    }
-//
-//    protected ObjectReplacingObjectOutputStream createNewInstance(OutputStream outputStream) throws IOException {
-//        return new ObjectReplacingObjectOutputStream(outputStream, classToBeReplaced, transformer);
-//    }
-
     @Override
     protected final Object replaceObject(Object obj) throws IOException {
         if (obj instanceof AdditionalData) {
             return new AdditionalDataPlaceHolder(payloadSerializer.serialize(obj));
         }
         return obj;
-        //return getObjectTransformer().transform(obj);
-    }
-
-    protected Object doReplaceObject(Object obj) throws IOException {
-        if (obj instanceof AdditionalDataPlaceHolder) {
-            return objectTransformer.transform(obj);
-        }
-        return obj;
-    }
-
-    public InternalTransformer<Object, Object> getObjectTransformer() {
-        return objectTransformer;
-    }
-
-    public void setObjectTransformer(InternalTransformer<Object, Object> objectTransformer) {
-        this.objectTransformer = objectTransformer;
     }
 }

@@ -16,12 +16,15 @@
 
 package org.gradle.launcher.daemon.protocol;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 
+@NonNullApi
 public class AdditionalDataReplacingObjectInputStream extends ObjectInputStream {
     private final PayloadSerializer payloadSerializer;
 
@@ -32,6 +35,7 @@ public class AdditionalDataReplacingObjectInputStream extends ObjectInputStream 
     }
 
     @Override
+    @Nullable
     protected final Object resolveObject(Object obj) {
         if (obj instanceof AdditionalDataPlaceHolder) {
             return payloadSerializer.deserialize(((AdditionalDataPlaceHolder) obj).getData());

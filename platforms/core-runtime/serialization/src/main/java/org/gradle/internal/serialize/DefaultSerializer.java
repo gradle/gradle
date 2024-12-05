@@ -16,6 +16,7 @@
 package org.gradle.internal.serialize;
 
 import com.google.common.base.Objects;
+import org.gradle.api.NonNullApi;
 import org.gradle.internal.Cast;
 
 import java.io.IOException;
@@ -26,6 +27,7 @@ import java.io.OutputStream;
 import java.io.StreamCorruptedException;
 
 public class DefaultSerializer<T> extends AbstractSerializer<T> {
+    @NonNullApi
     public interface StreamFactory<T, U> {
         U create(T t) throws IOException;
     }
@@ -41,18 +43,9 @@ public class DefaultSerializer<T> extends AbstractSerializer<T> {
     }
 
     public DefaultSerializer() {
-        this(new StreamFactory<OutputStream, ObjectOutputStream>() {
-                 @Override
-                 public ObjectOutputStream create(OutputStream outputStream) throws IOException {
-                     return new ObjectOutputStream(outputStream);
-                 }
-             },
-            new StreamFactory<InputStream, ObjectInputStream>() {
-                @Override
-                public ObjectInputStream create(InputStream inputStream) throws IOException {
-                    return new ClassLoaderObjectInputStream(inputStream, getClass().getClassLoader());
-                }
-            }
+        this(
+            new OutputStreamObjectOutputStreamStreamFactory(),
+            new InputStreamObjectInputStreamStreamFactory(DefaultSerializer.class.getClassLoader())
         );
     }
 
@@ -99,5 +92,27 @@ public class DefaultSerializer<T> extends AbstractSerializer<T> {
     @Override
     public int hashCode() {
         return Objects.hashCode(super.hashCode(), classLoader);
+    }
+
+    @NonNullApi
+    private static class OutputStreamObjectOutputStreamStreamFactory implements StreamFactory<OutputStream, ObjectOutputStream> {
+        @Override
+        public ObjectOutputStream create(OutputStream outputStream) throws IOException {
+            return new ObjectOutputStream(outputStream);
+        }
+    }
+
+    @NonNullApi
+    private static class InputStreamObjectInputStreamStreamFactory implements StreamFactory<InputStream, ObjectInputStream> {
+        private final ClassLoader classLoader;
+
+        InputStreamObjectInputStreamStreamFactory(ClassLoader classLoader) {
+            this.classLoader = classLoader;
+        }
+
+        @Override
+        public ObjectInputStream create(InputStream inputStream) throws IOException {
+            return new ClassLoaderObjectInputStream(inputStream, classLoader);
+        }
     }
 }
