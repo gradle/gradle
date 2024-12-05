@@ -33,9 +33,19 @@ public class DefaultBuildPlatform implements BuildPlatform {
     private Supplier<OperatingSystem> operatingSystem;
 
     @Inject
-    public DefaultBuildPlatform(SystemInfo systemInfo, org.gradle.internal.os.OperatingSystem operatingSystem) {
-        this.architecture = Suppliers.memoize(() -> getArchitecture(systemInfo));
-        this.operatingSystem = Suppliers.memoize(() -> getOperatingSystem(operatingSystem));
+    public DefaultBuildPlatform(final SystemInfo systemInfo, final org.gradle.internal.os.OperatingSystem operatingSystem) {
+        this.architecture = Suppliers.memoize(new Supplier<Architecture>() {
+            @Override
+            public Architecture get() {
+                return getArchitecture(systemInfo);
+            }
+        });
+        this.operatingSystem = Suppliers.memoize(new Supplier<OperatingSystem>() {
+            @Override
+            public OperatingSystem get() {
+                return getOperatingSystem(operatingSystem);
+            }
+        });
     }
 
     @Override
