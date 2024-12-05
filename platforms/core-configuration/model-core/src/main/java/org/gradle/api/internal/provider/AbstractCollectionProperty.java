@@ -44,6 +44,7 @@ import java.util.Locale;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
+import static java.util.stream.Collectors.toCollection;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -477,7 +478,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         private final ValueCollector<T> valueCollector;
         // This list is shared by the collectors produced by `plus`, so we don't have to copy the collectors every time.
         // However, this also means that you can only call plus on a given collector once.
-        private final List<Collector<T>> collectors; // TODO - Replace with PersistentList? This may make value calculation inefficient because the PersistentList can only prepend to head.
+        private final ArrayList<Collector<T>> collectors; // TODO - Replace with PersistentList? This may make value calculation inefficient because the PersistentList can only prepend to head.
         private final int size;
 
         public CollectingSupplier(Class<C> type, Supplier<ImmutableCollection.Builder<T>> collectionFactory, ValueCollector<T> valueCollector, Collector<T> value) {
@@ -485,7 +486,13 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         }
 
         // A constructor for sharing.
-        private CollectingSupplier(Class<C> type, Supplier<ImmutableCollection.Builder<T>> collectionFactory, ValueCollector<T> valueCollector, List<Collector<T>> collectors, int size) {
+        private CollectingSupplier(
+            Class<C> type,
+            Supplier<ImmutableCollection.Builder<T>> collectionFactory,
+            ValueCollector<T> valueCollector,
+            @SuppressWarnings("NonApiType") ArrayList<Collector<T>> collectors,
+            int size
+        ) {
             this.type = type;
             this.collectionFactory = collectionFactory;
             this.valueCollector = valueCollector;
@@ -603,7 +610,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
                     collectorsWithValues.stream().map(pair -> {
                         Collector<T> elements = toCollector(pair.getRight());
                         return ignoreAbsentIfNeeded(elements, isAbsentIgnoring(pair.getLeft()));
-                    }).collect(toList()),
+                    }).collect(toCollection(ArrayList::new)),
                     collectorsWithValues.size()
                 )
             );
