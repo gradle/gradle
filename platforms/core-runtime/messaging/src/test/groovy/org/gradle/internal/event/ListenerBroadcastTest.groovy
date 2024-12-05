@@ -19,9 +19,12 @@ package org.gradle.internal.event
 import org.gradle.api.Action
 import org.gradle.internal.dispatch.Dispatch
 import org.gradle.internal.dispatch.MethodInvocation
-import spock.lang.Specification
+import org.gradle.test.fixtures.concurrent.ConcurrentSpec
+import spock.lang.Issue
 
-class ListenerBroadcastTest extends Specification {
+import java.util.concurrent.CyclicBarrier
+
+class ListenerBroadcastTest extends ConcurrentSpec {
     private final ListenerBroadcast<TestListener> broadcast = new ListenerBroadcast<TestListener>(TestListener.class)
 
     def 'creates source object'() {
@@ -371,6 +374,55 @@ class ListenerBroadcastTest extends Specification {
         then:
         broadcast.empty
         broadcast.size() == 0
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/31537")
+    def 'listeners may be added or removed by multiple threads'() {
+        def threads = 10
+        def listenerCount = 200
+        List<TestListener> listeners = (1..listenerCount)
+            .collect {
+                // stubbing will do, and mocks are too expensive
+                Stub(TestListener)
+            }
+
+        when:
+        def barrier = new CyclicBarrier(threads)
+        async {
+            (0..<threads).each {threadIndex ->
+                def listenersToAdd = listeners.toList().tap(List::shuffle)
+                start {
+                    barrier.await()
+                    listenersToAdd.each { listener ->
+                        broadcast.removeAll([listener])
+                        Thread.sleep(1)
+                        broadcast.addAll([listener])
+                        Thread.sleep(1)
+                        broadcast.remove(listener)
+                        Thread.sleep(1)
+                        broadcast.add(listener)
+                        Thread.sleep(1)
+                    }
+               }
+            }
+        }
+
+        then:
+        broadcast.size() == listenerCount
+
+        when:
+        def found = 0
+        broadcast.visitListeners {
+            assert listeners.remove(it)
+            found++
+        }
+
+        then:
+        found == listenerCount
+        listeners.empty
+
+        where:
+        n << (1..4)
     }
 
     interface TestListener {
