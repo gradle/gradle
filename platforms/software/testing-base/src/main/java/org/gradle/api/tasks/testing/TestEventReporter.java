@@ -23,6 +23,8 @@ import java.time.Instant;
 import java.util.Collections;
 import java.util.Map;
 
+import static org.gradle.api.internal.tasks.testing.TestMetadataValidation.checkAllowableTypes;
+
 /**
  * Reports test events.
  *
@@ -74,7 +76,19 @@ public interface TestEventReporter extends AutoCloseable {
      * @param logTime blah
      * @param metadata blah
      */
-    void metadata(Instant logTime, Map<String, Object> metadata);
+    default void metadata(Instant logTime, Map<String, Object> metadata) {
+        Preconditions.checkNotNull(logTime, "logTime can not be null!");
+        Preconditions.checkNotNull(metadata, "Metadata can not be null!");
+        checkAllowableTypes(metadata);
+        metadata(logTime, (Object)metadata);
+    }
+
+    /**
+     * blah
+     * @param logTime blah
+     * @param metadata blah
+     */
+    void metadata(Instant logTime, Object metadata);
 
     /**
      * Emit a successful completion event for the test. May not be called before {@link #started(Instant)}.
