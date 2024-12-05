@@ -216,7 +216,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
      */
     private void addExplicitCollector(Collector<T> collector, boolean ignoreAbsent) {
         assertCanMutate();
-        CollectionSupplier<T, C> explicitValue = getExplicitValue(defaultValue);
+        CollectionSupplier<T, C> explicitValue = getExplicitValue(defaultValue).absentIgnoringIfNeeded(ignoreAbsent);
         setSupplier(explicitValue.plus(ignoreAbsent ? new AbsentIgnoringCollector<>(collector) : collector));
     }
 
@@ -361,6 +361,11 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         }
 
         @Override
+        public CollectionSupplier<T, C> absentIgnoring() {
+            return Cast.uncheckedCast(emptySupplier());
+        }
+
+        @Override
         public boolean calculatePresence(ValueConsumer consumer) {
             return false;
         }
@@ -411,6 +416,11 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         }
 
         @Override
+        public CollectionSupplier<T, C> absentIgnoring() {
+            return this;
+        }
+
+        @Override
         public ExecutionTimeValue<? extends C> calculateExecutionTimeValue() {
             return ExecutionTimeValue.fixedValue(emptyCollection());
         }
@@ -433,6 +443,11 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         public FixedSupplier(C value, @Nullable SideEffect<? super C> sideEffect) {
             this.value = value;
             this.sideEffect = sideEffect;
+        }
+
+        @Override
+        public CollectionSupplier<T, C> absentIgnoring() {
+            return this;
         }
 
         @Override
@@ -497,6 +512,11 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         @Override
         public Class<C> getType() {
             return type;
+        }
+
+        @Override
+        public CollectionSupplier<T, C> absentIgnoring() {
+            return this;
         }
 
         @Override

@@ -1620,6 +1620,15 @@ The value of this property is derived from: <source>""")
         !property.explicit
     }
 
+    def "append to an undefined property is undefined-safe"() {
+        given:
+        property.set((Iterable) null)
+        property.append('foo')
+
+        expect:
+        assertValueIs(['foo'])
+    }
+
     def "can add a lot of providers"() {
         given:
         (0..<100000).each {
