@@ -24,6 +24,8 @@ import org.gradle.integtests.fixtures.GroovyBuildScriptLanguage
 import org.gradle.internal.operations.trace.BuildOperationRecord
 import org.gradle.test.fixtures.file.TestFile
 
+import java.time.Instant
+
 class TestEventReporterIntegrationTest extends AbstractIntegrationSpec {
     def operations = new BuildOperationsFixture(executer, temporaryFolder)
 
@@ -118,6 +120,60 @@ Custom test root > My Suite > another failing test FAILED
         def secondTestOutputs = secondTestOutputProgress[0].details.output as Map<String, ?>
         secondTestOutputs.destination == "StdErr"
         secondTestOutputs.message == "Some text on stderr"
+    }
+
+
+    def "use current time in start/finish events when tests emit ancient timestamps"() {
+        given:
+        def startTime = Instant.now()
+        buildFile("""
+            import java.time.Instant
+            import javax.inject.Inject
+            import java.time.temporal.ChronoUnit
+            import java.time.temporal.TemporalUnit
+
+            abstract class CustomTestTask extends DefaultTask {
+                @Inject
+                abstract TestEventReporterFactory getTestEventReporterFactory()
+
+                @TaskAction
+                void runTests() {
+                   def ancientTime = Instant.ofEpochMilli(1000)
+
+                   try (def reporter = getTestEventReporterFactory().createTestEventReporter("Custom test root")) {
+                       reporter.started(ancientTime)
+                       try (def mySuite = reporter.reportTestGroup("My Suite")) {
+                            mySuite.started(ancientTime.plusMillis(10))
+                            try (def myTest = mySuite.reportTest("MyTestInternal", "My test!")) {
+                                 myTest.started(ancientTime.plusMillis((20)))
+                                 myTest.succeeded(ancientTime.plusMillis(30))
+                            }
+                            mySuite.succeeded(ancientTime.plusMillis(40))
+                       }
+                       reporter.succeeded(ancientTime.plusMillis(50))
+                   }
+                }
+            }
+
+            tasks.register("customTest", CustomTestTask)
+        """)
+
+        when:
+        succeeds "customTest"
+
+        then:
+        def rootTestOp = operations.first(ExecuteTestBuildOperationType)
+
+        // just check that the timestamps are within our testing window
+        Instant.ofEpochMilli(rootTestOp.startTime).isAfter(startTime)
+        Instant.ofEpochMilli(rootTestOp.startTime).isBefore(Instant.now())
+
+        Instant.ofEpochMilli(rootTestOp.endTime).isAfter(startTime)
+        Instant.ofEpochMilli(rootTestOp.endTime).isBefore(Instant.now())
+
+        // The result of the test execution has the reported timestamps
+        rootTestOp.result.result.startTime == 1000
+        rootTestOp.result.result.endTime == 1050
     }
 
     def "captures String metadata for custom test"() {
