@@ -39,10 +39,14 @@ public class ExcludingVariantArtifactSet implements ResolvedVariant, VariantReso
     private final ModuleIdentifier moduleId;
     private final ExcludeSpec exclusions;
 
+    private final VariantResolveMetadata.Identifier id;
+
     public ExcludingVariantArtifactSet(ResolvedVariant delegate, ModuleIdentifier moduleId, ExcludeSpec exclusions) {
         this.delegate = delegate;
         this.moduleId = moduleId;
         this.exclusions = exclusions;
+
+        this.id = new ExcludingIdentifier(delegate.getIdentifier(), moduleId, exclusions);
     }
 
     @Override
@@ -53,8 +57,7 @@ public class ExcludingVariantArtifactSet implements ResolvedVariant, VariantReso
     @Nullable
     @Override
     public VariantResolveMetadata.Identifier getIdentifier() {
-        // Since we use ourselves as the identifier, we must implement equals and hashCode
-        return this;
+        return id;
     }
 
     @Override
@@ -77,38 +80,54 @@ public class ExcludingVariantArtifactSet implements ResolvedVariant, VariantReso
         return !exclusions.excludesArtifact(moduleId, artifact.getArtifactName());
     }
 
-    @Override
-    public int hashCode() {
-        int result = Objects.hashCode(delegate.getIdentifier());
-        result = 31 * result + moduleId.hashCode();
-        result = 31 * result + exclusions.hashCode();
-        return result;
-    }
+    private static class ExcludingIdentifier implements VariantResolveMetadata.Identifier {
+        private final VariantResolveMetadata.Identifier identifier;
+        private final ModuleIdentifier moduleId;
+        private final ExcludeSpec exclusions;
 
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == this) {
-            return true;
-        }
-        if (obj == null || obj.getClass() != getClass()) {
-            return false;
-        }
-        ExcludingVariantArtifactSet other = (ExcludingVariantArtifactSet) obj;
-        return equalId(delegate.getIdentifier(), other.delegate.getIdentifier()) &&
-            moduleId.equals(other.moduleId) &&
-            exclusions.equals(other.exclusions);
-    }
-
-    private static boolean equalId(
-        @Nullable VariantResolveMetadata.Identifier id1,
-        @Nullable VariantResolveMetadata.Identifier id2
-    ) {
-        // Artifact sets without ID are adhoc.
-        // We cannot compare them by ID so assume they are not equal.
-        if (id1 == null || id2 == null) {
-            return false;
+        public ExcludingIdentifier(
+            @Nullable VariantResolveMetadata.Identifier identifier,
+            ModuleIdentifier moduleId,
+            ExcludeSpec exclusions
+        ) {
+            this.identifier = identifier;
+            this.moduleId = moduleId;
+            this.exclusions = exclusions;
         }
 
-        return id1.equals(id2);
+        @Override
+        public int hashCode() {
+            int result = Objects.hashCode(identifier);
+            result = 31 * result + moduleId.hashCode();
+            result = 31 * result + exclusions.hashCode();
+            return result;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj == this) {
+                return true;
+            }
+            if (obj == null || obj.getClass() != getClass()) {
+                return false;
+            }
+            ExcludingIdentifier other = (ExcludingIdentifier) obj;
+            return areIdsEqual(identifier, other.identifier) &&
+                moduleId.equals(other.moduleId) &&
+                exclusions.equals(other.exclusions);
+        }
+
+        private static boolean areIdsEqual(
+            @Nullable VariantResolveMetadata.Identifier id1,
+            @Nullable VariantResolveMetadata.Identifier id2
+        ) {
+            // Artifact sets without ID are adhoc.
+            // We cannot compare them by ID so assume they are not equal.
+            if (id1 == null || id2 == null) {
+                return false;
+            }
+
+            return id1.equals(id2);
+        }
     }
 }

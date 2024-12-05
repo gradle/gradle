@@ -30,8 +30,8 @@ public interface VariantArtifactResolver {
     ResolvedVariant resolveAdhocVariant(ComponentArtifactResolveMetadata component, ImmutableList<? extends ComponentArtifactMetadata> artifacts);
 
     /**
-     * Resolve the variant artifact set, owned by the given component.
+     * Resolve the artifacts described by the given variant artifact metadata, owned by the given component.
      */
-    ResolvedVariant resolveVariantArtifactSet(ComponentArtifactResolveMetadata component, VariantResolveMetadata artifactSet);
+    ResolvedVariant resolveVariantArtifactSet(ComponentArtifactResolveMetadata component, VariantResolveMetadata variantArtifacts);
 
 }

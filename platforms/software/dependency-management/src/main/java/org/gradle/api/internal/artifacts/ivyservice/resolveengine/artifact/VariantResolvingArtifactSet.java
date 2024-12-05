@@ -48,7 +48,10 @@ public class VariantResolvingArtifactSet implements ArtifactSet {
     private final ComponentGraphResolveState component;
     private final VariantGraphResolveState variant;
     private final ImmutableAttributes overriddenAttributes;
+
+    // TODO: Create a separate implementation of ArtifactSet for when !requestedArtifacts.isEmpty()
     private final List<IvyArtifactName> requestedArtifacts;
+
     private final ExcludeSpec exclusions;
     private final Set<CapabilitySelector> capabilitySelectors;
 
@@ -163,17 +166,17 @@ public class VariantResolvingArtifactSet implements ArtifactSet {
         VariantGraphResolveState graphVariant,
         VariantArtifactResolver variantArtifactResolver
     ) {
-        ComponentArtifactResolveMetadata componentMetadata = component.prepareForArtifactResolution().getArtifactMetadata();
-        ImmutableList<ResolvedVariant> artifactSets = resolveVariantArtifactSets(graphVariant, componentMetadata, variantArtifactResolver);
+        ComponentArtifactResolveMetadata componentArtifacts = component.prepareForArtifactResolution().getArtifactMetadata();
+        ImmutableList<ResolvedVariant> variantArtifactSets = resolveVariantArtifactSets(graphVariant, componentArtifacts, variantArtifactResolver);
 
         // Only apply exclusions to the resolved variant artifact sets if necessary.
         if (!exclusions.mayExcludeArtifacts()) {
-            return artifactSets;
+            return variantArtifactSets;
         }
 
-        ImmutableList.Builder<ResolvedVariant> excluded = ImmutableList.builderWithExpectedSize(artifactSets.size());
-        ModuleIdentifier moduleId = componentMetadata.getModuleVersionId().getModule();
-        for (ResolvedVariant artifactSet : artifactSets) {
+        ImmutableList.Builder<ResolvedVariant> excluded = ImmutableList.builderWithExpectedSize(variantArtifactSets.size());
+        ModuleIdentifier moduleId = componentArtifacts.getModuleVersionId().getModule();
+        for (ResolvedVariant artifactSet : variantArtifactSets) {
             excluded.add(new ExcludingVariantArtifactSet(artifactSet, moduleId, exclusions));
         }
         return excluded.build();

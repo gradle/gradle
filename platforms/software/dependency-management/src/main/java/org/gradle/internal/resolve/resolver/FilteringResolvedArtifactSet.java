@@ -39,7 +39,7 @@ import java.util.function.Predicate;
  * applied to build dependencies. This is because the filter may be a function of the resolved artifact files,
  * which are not known until after build dependencies are executed.
  */
-class FilteringResolvedArtifactSet implements ResolvedArtifactSet {
+public final class FilteringResolvedArtifactSet implements ResolvedArtifactSet {
 
     private final ResolvedArtifactSet artifacts;
     private final Predicate<ResolvableArtifact> filter;
@@ -51,87 +51,17 @@ class FilteringResolvedArtifactSet implements ResolvedArtifactSet {
 
     @Override
     public void visit(Visitor visitor) {
-        artifacts.visit(new Visitor() {
-            @Override
-            public FileCollectionStructureVisitor.VisitType prepareForVisit(FileCollectionInternal.Source source) {
-                return visitor.prepareForVisit(source);
-            }
-
-            @Override
-            public void visitArtifacts(Artifacts artifacts) {
-                visitor.visitArtifacts(new Artifacts() {
-                    @Override
-                    public void prepareForVisitingIfNotAlready() {
-                        artifacts.prepareForVisitingIfNotAlready();
-                    }
-
-                    @Override
-                    public void startFinalization(BuildOperationQueue<RunnableBuildOperation> actions, boolean requireFiles) {
-                        artifacts.startFinalization(actions, requireFiles);
-                    }
-
-                    @Override
-                    public void visit(ArtifactVisitor visitor) {
-                        artifacts.visit(new ArtifactVisitor() {
-                            @Override
-                            public FileCollectionStructureVisitor.VisitType prepareForVisit(FileCollectionInternal.Source source) {
-                                return visitor.prepareForVisit(source);
-                            }
-
-                            @Override
-                            public void visitArtifact(DisplayName variantName, AttributeContainer variantAttributes, ImmutableCapabilities capabilities, ResolvableArtifact artifact) {
-                                if (filter.test(artifact)) {
-                                    visitor.visitArtifact(variantName, variantAttributes, capabilities, artifact);
-                                }
-                            }
-
-                            @Override
-                            public boolean requireArtifactFiles() {
-                                return visitor.requireArtifactFiles();
-                            }
-
-                            @Override
-                            public void visitFailure(Throwable failure) {
-                                visitor.visitFailure(failure);
-                            }
-
-                            @Override
-                            public void endVisitCollection(FileCollectionInternal.Source source) {
-                                visitor.endVisitCollection(source);
-                            }
-                        });
-                    }
-                });
-            }
-        });
+        artifacts.visit(new FilteringVisitor(filter, visitor));
     }
 
     @Override
     public void visitTransformSources(TransformSourceVisitor visitor) {
-        artifacts.visitTransformSources(new TransformSourceVisitor() {
-            @Override
-            public void visitArtifact(ResolvableArtifact artifact) {
-                if (filter.test(artifact)) {
-                    visitor.visitArtifact(artifact);
-                }
-            }
-
-            @Override
-            public void visitTransform(TransformStepNode source) {
-                if (filter.test(source.getInputArtifact())) {
-                    visitor.visitTransform(source);
-                }
-            }
-        });
+        artifacts.visitTransformSources(new FilteringTransformSourceVisitor(filter, visitor));
     }
 
     @Override
     public void visitExternalArtifacts(Action<ResolvableArtifact> visitor) {
-        artifacts.visitExternalArtifacts(artifact -> {
-            if (filter.test(artifact)) {
-                visitor.execute(artifact);
-            }
-        });
+        artifacts.visitExternalArtifacts(new FilteringArtifactAction(filter, visitor));
     }
 
     @Override
@@ -140,5 +70,134 @@ class FilteringResolvedArtifactSet implements ResolvedArtifactSet {
         // a function of the artifact files.
         // This means that we might build some filtered artifacts, but we filter those later.
         artifacts.visitDependencies(context);
+    }
+
+    private static class FilteringArtifactVisitor implements ArtifactVisitor {
+
+        private final ArtifactVisitor visitor;
+        private final Predicate<ResolvableArtifact> filter;
+
+        public FilteringArtifactVisitor(Predicate<ResolvableArtifact> filter, ArtifactVisitor visitor) {
+            this.visitor = visitor;
+            this.filter = filter;
+        }
+
+        @Override
+        public FileCollectionStructureVisitor.VisitType prepareForVisit(FileCollectionInternal.Source source) {
+            return visitor.prepareForVisit(source);
+        }
+
+        @Override
+        public void visitArtifact(DisplayName variantName, AttributeContainer variantAttributes, ImmutableCapabilities capabilities, ResolvableArtifact artifact) {
+            if (filter.test(artifact)) {
+                visitor.visitArtifact(variantName, variantAttributes, capabilities, artifact);
+            }
+        }
+
+        @Override
+        public boolean requireArtifactFiles() {
+            return visitor.requireArtifactFiles();
+        }
+
+        @Override
+        public void visitFailure(Throwable failure) {
+            visitor.visitFailure(failure);
+        }
+
+        @Override
+        public void endVisitCollection(FileCollectionInternal.Source source) {
+            visitor.endVisitCollection(source);
+        }
+    }
+
+    private static class FilteringArtifacts implements Artifacts {
+
+        private final Artifacts artifacts;
+        private final Predicate<ResolvableArtifact> filter;
+
+        public FilteringArtifacts(Predicate<ResolvableArtifact> filter, Artifacts artifacts) {
+            this.artifacts = artifacts;
+            this.filter = filter;
+        }
+
+        @Override
+        public void prepareForVisitingIfNotAlready() {
+            artifacts.prepareForVisitingIfNotAlready();
+        }
+
+        @Override
+        public void startFinalization(BuildOperationQueue<RunnableBuildOperation> actions, boolean requireFiles) {
+            artifacts.startFinalization(actions, requireFiles);
+        }
+
+        @Override
+        public void visit(ArtifactVisitor visitor) {
+            artifacts.visit(new FilteringArtifactVisitor(filter, visitor));
+        }
+    }
+
+    private static class FilteringVisitor implements Visitor {
+
+        private final Visitor visitor;
+        private final Predicate<ResolvableArtifact> filter;
+
+        public FilteringVisitor(Predicate<ResolvableArtifact> filter, Visitor visitor) {
+            this.visitor = visitor;
+            this.filter = filter;
+        }
+
+        @Override
+        public FileCollectionStructureVisitor.VisitType prepareForVisit(FileCollectionInternal.Source source) {
+            return visitor.prepareForVisit(source);
+        }
+
+        @Override
+        public void visitArtifacts(Artifacts artifacts) {
+            visitor.visitArtifacts(new FilteringArtifacts(filter, artifacts));
+        }
+    }
+
+    private static class FilteringTransformSourceVisitor implements TransformSourceVisitor {
+
+        private final TransformSourceVisitor visitor;
+        private final Predicate<ResolvableArtifact> filter;
+
+        public FilteringTransformSourceVisitor(Predicate<ResolvableArtifact> filter, TransformSourceVisitor visitor) {
+            this.visitor = visitor;
+            this.filter = filter;
+        }
+
+        @Override
+        public void visitArtifact(ResolvableArtifact artifact) {
+            if (filter.test(artifact)) {
+                visitor.visitArtifact(artifact);
+            }
+        }
+
+        @Override
+        public void visitTransform(TransformStepNode source) {
+            if (filter.test(source.getInputArtifact())) {
+                visitor.visitTransform(source);
+            }
+        }
+    }
+
+    private static class FilteringArtifactAction implements Action<ResolvableArtifact> {
+
+        private final Action<ResolvableArtifact> visitor;
+        private final Predicate<ResolvableArtifact> filter;
+
+        public FilteringArtifactAction(Predicate<ResolvableArtifact> filter, Action<ResolvableArtifact> visitor) {
+            this.visitor = visitor;
+            this.filter = filter;
+        }
+
+        @Override
+        public void execute(ResolvableArtifact artifact) {
+            if (filter.test(artifact)) {
+                visitor.execute(artifact);
+            }
+        }
+
     }
 }
