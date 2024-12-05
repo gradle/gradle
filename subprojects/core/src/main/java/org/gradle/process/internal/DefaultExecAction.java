@@ -32,8 +32,6 @@ import java.util.Map;
 
 /**
  * Use {@link ExecActionFactory} (for core code) or {@link org.gradle.process.ExecOperations} (for plugin code) instead.
- *
- * TODO: We should remove setters and have abstract getters in Gradle 9.0 and configure builder in execute() method.
  */
 public class DefaultExecAction implements ExecAction {
 
@@ -50,30 +48,10 @@ public class DefaultExecAction implements ExecAction {
     }
 
     @Override
-    public ExecAction configure(BaseExecHandleBuilder builder) {
-        if (getStandardInput().isPresent()) {
-            builder.setStandardInput(getStandardInput().get());
-        }
-        if (getStandardOutput().isPresent()) {
-            builder.setStandardOutput(getStandardOutput().get());
-        }
-        if (getErrorOutput().isPresent()) {
-            builder.setErrorOutput(getErrorOutput().get());
-        }
-        if (getExecutable().isPresent()) {
-            builder.setExecutable(getExecutable().get());
-        }
-        if (getWorkingDir().isPresent()) {
-            builder.setWorkingDir(getWorkingDir().get().getAsFile());
-        }
-        builder.setEnvironment(getEnvironment().get());
-        return this;
-    }
-
-    @Override
     public ExecResult execute() {
-        configure(execHandleBuilder);
-        ExecHandle execHandle = execHandleBuilder.build();
+        ExecHandle execHandle = execHandleBuilder
+            .configureFrom(execSpec)
+            .build();
         ExecResult execResult = execHandle.start().waitForFinish();
         if (!getIgnoreExitValue().get()) {
             execResult.assertNormalExitValue();

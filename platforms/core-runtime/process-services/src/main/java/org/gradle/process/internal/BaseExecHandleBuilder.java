@@ -17,6 +17,7 @@
 package org.gradle.process.internal;
 
 import org.gradle.api.NonNullApi;
+import org.gradle.process.BaseExecSpec;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -34,6 +35,26 @@ public interface BaseExecHandleBuilder {
     BaseExecHandleBuilder setExecutable(String s);
     BaseExecHandleBuilder setWorkingDir(File asFile);
     BaseExecHandleBuilder setEnvironment(Map<String, Object> stringObjectMap);
+
+    default BaseExecHandleBuilder configureFrom(BaseExecSpec spec) {
+        if (spec.getStandardInput().isPresent()) {
+            setStandardInput(spec.getStandardInput().get());
+        }
+        if (spec.getStandardOutput().isPresent()) {
+            setStandardOutput(spec.getStandardOutput().get());
+        }
+        if (spec.getErrorOutput().isPresent()) {
+            setErrorOutput(spec.getErrorOutput().get());
+        }
+        if (spec.getExecutable().isPresent()) {
+            setExecutable(spec.getExecutable().get());
+        }
+        if (spec.getWorkingDir().isPresent()) {
+            setWorkingDir(spec.getWorkingDir().get().getAsFile());
+        }
+        setEnvironment(spec.getEnvironment().get());
+        return this;
+    }
 
     /**
      * Adds a listener to the list of ExecHandle listeners..

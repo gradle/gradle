@@ -41,27 +41,27 @@ import java.util.Map;
 
 /**
  * Use {@link ExecActionFactory} (for core code) or {@link org.gradle.process.ExecOperations} (for plugin code) instead.
- *
- * TODO: We should have just abstract getters in Gradle 9.0 and configure builder in execute() method, but this class is not decorated in all cases yet.
  */
 public class DefaultJavaExecAction implements JavaExecAction {
 
+    private final JavaExecSpec javaExecSpec;
     private final JavaExecHandleBuilder javaExecHandleBuilder;
-    private final ExecAction execAction;
 
     @Inject
-    public DefaultJavaExecAction(ExecAction execAction, JavaExecHandleBuilder javaExecHandleBuilder) {
+    public DefaultJavaExecAction(JavaExecSpec javaExecSpec, JavaExecHandleBuilder javaExecHandleBuilder) {
+        this.javaExecSpec = javaExecSpec;
         this.javaExecHandleBuilder = javaExecHandleBuilder;
-        this.execAction = execAction;
     }
 
     @Override
     public ExecResult execute() {
-        execAction.getExecutable().set(javaExecHandleBuilder.getJavaOptions().getExecutable().get());
-        execAction.getWorkingDir().set(javaExecHandleBuilder.getJavaOptions().getWorkingDir().get());
-        execAction.getEnvironment().set(javaExecHandleBuilder.getJavaOptions().getEnvironment().get());
-        execAction.configure(javaExecHandleBuilder);
-        ExecHandle execHandle = javaExecHandleBuilder.build();
+        // Jvm properties are delegated to JavaExecHandleBuilder so getAllJvmArgs() can return the correct values
+        // and properties from BaseExecSpec are delegated to JavaExecSpec, so here we have to copy them to JavaExecHandleBuilder
+        // TODO: We should probably delegate all properties just to JavaExecSpec and
+        //  build new JavaExecHandleBuilder here and make JavaExecHandleBuilder Provider API agnostic
+        ExecHandle execHandle = javaExecHandleBuilder
+            .configureFrom(javaExecSpec)
+            .build();
         ExecResult execResult = execHandle.start().waitForFinish();
         if (!getIgnoreExitValue().get()) {
             execResult.assertNormalExitValue();
@@ -246,60 +246,60 @@ public class DefaultJavaExecAction implements JavaExecAction {
 
     @Override
     public Property<Boolean> getIgnoreExitValue() {
-        return execAction.getIgnoreExitValue();
+        return javaExecSpec.getIgnoreExitValue();
     }
 
     @Override
     public Property<InputStream> getStandardInput() {
-        return execAction.getStandardInput();
+        return javaExecSpec.getStandardInput();
     }
 
     @Override
     public Property<OutputStream> getStandardOutput() {
-        return execAction.getStandardOutput();
+        return javaExecSpec.getStandardOutput();
     }
 
     @Override
     public Property<OutputStream> getErrorOutput() {
-        return execAction.getErrorOutput();
+        return javaExecSpec.getErrorOutput();
     }
 
     @Override
     public Property<String> getExecutable() {
-        return javaExecHandleBuilder.getJavaOptions().getExecutable();
+        return javaExecSpec.getExecutable();
     }
 
     @Override
     public ProcessForkOptions executable(Object executable) {
-        javaExecHandleBuilder.getJavaOptions().executable(executable);
+        javaExecSpec.executable(executable);
         return this;
     }
 
     @Override
     public DirectoryProperty getWorkingDir() {
-        return javaExecHandleBuilder.getJavaOptions().getWorkingDir();
+        return javaExecSpec.getWorkingDir();
     }
 
     @Override
     public ProcessForkOptions workingDir(Object dir) {
-        javaExecHandleBuilder.getJavaOptions().workingDir(dir);
+        javaExecSpec.workingDir(dir);
         return this;
     }
 
     @Override
     public MapProperty<String, Object> getEnvironment() {
-        return javaExecHandleBuilder.getJavaOptions().getEnvironment();
+        return javaExecSpec.getEnvironment();
     }
 
     @Override
     public ProcessForkOptions environment(Map<String, ?> environmentVariables) {
-        javaExecHandleBuilder.getJavaOptions().environment(environmentVariables);
+        javaExecSpec.environment(environmentVariables);
         return this;
     }
 
     @Override
     public ProcessForkOptions environment(String name, Object value) {
-        javaExecHandleBuilder.getJavaOptions().environment(name, value);
+        javaExecSpec.environment(name, value);
         return this;
     }
 

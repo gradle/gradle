@@ -105,11 +105,7 @@ public class DefaultExecActionFactory implements ExecFactory {
     }
 
     public ExecAction newDecoratedExecAction() {
-        DefaultExecAction execAction = instantiator.newInstance(
-            DefaultExecAction.class,
-            objectFactory.newInstance(DefaultExecSpec.class, objectFactory, fileResolver),
-            execHandleFactory.newExecHandleBuilder()
-        );
+        DefaultExecAction execAction = instantiator.newInstance(DefaultExecAction.class, newExecSpec(), execHandleFactory.newExecHandleBuilder());
         ExecHandleListener listener = getExecHandleListener();
         if (listener != null) {
             execAction.listener(listener);
@@ -119,11 +115,12 @@ public class DefaultExecActionFactory implements ExecFactory {
 
     @Override
     public ExecAction newExecAction() {
-        return objectFactory.newInstance(
-            DefaultExecAction.class,
-            objectFactory.newInstance(DefaultExecSpec.class, objectFactory, fileResolver),
-            execHandleFactory.newExecHandleBuilder()
-        );
+        return objectFactory.newInstance(DefaultExecAction.class, newExecSpec(), execHandleFactory.newExecHandleBuilder());
+    }
+
+    private ExecSpec newExecSpec() {
+        // In some scopes injection doesn't work, so we inject parameters manually
+        return objectFactory.newInstance(DefaultExecSpec.class, objectFactory, fileResolver);
     }
 
     @Override
@@ -153,12 +150,16 @@ public class DefaultExecActionFactory implements ExecFactory {
     }
 
     public JavaExecAction newDecoratedJavaExecAction() {
-        DefaultJavaExecAction javaExecAction = instantiator.newInstance(DefaultJavaExecAction.class, newExecAction(), newJavaExec());
+        DefaultJavaExecAction javaExecAction = instantiator.newInstance(DefaultJavaExecAction.class, newJavaExecSpec(), newJavaExec());
         ExecHandleListener listener = getExecHandleListener();
         if (listener != null) {
             javaExecAction.listener(listener);
         }
         return javaExecAction;
+    }
+
+    private JavaExecSpec newJavaExecSpec() {
+        return objectFactory.newInstance(DefaultJavaExecSpec.class, objectFactory, fileResolver, fileCollectionFactory);
     }
 
     @Nullable
@@ -189,7 +190,11 @@ public class DefaultExecActionFactory implements ExecFactory {
 
     @Override
     public JavaExecAction newJavaExecAction() {
-        return objectFactory.newInstance(DefaultJavaExecAction.class, newExecAction(), newJavaExec());
+        return objectFactory.newInstance(
+            DefaultJavaExecAction.class,
+            newJavaExecSpec(),
+            newJavaExec()
+        );
     }
 
     @Override

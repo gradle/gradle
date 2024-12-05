@@ -25,6 +25,7 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory;
 import org.gradle.api.internal.provider.DefaultMapProperty;
 import org.gradle.api.internal.provider.DefaultProperty;
+import org.gradle.api.internal.provider.MapPropertyInternal;
 import org.gradle.api.internal.provider.PropertyHost;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
@@ -125,14 +126,21 @@ public class DefaultProcessForkOptions implements ProcessForkOptions {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public ProcessForkOptions environment(String name, Object value) {
-        getEnvironment().put(name, value);
+        if (value instanceof Provider) {
+            ((MapPropertyInternal<String, Object>) getEnvironment()).insert(name, (Provider<?>) value);
+        } else {
+            getEnvironment().put(name, value == null ? "null" : value);
+        }
         return this;
     }
 
     @Override
     public ProcessForkOptions environment(Map<String, ?> environmentVariables) {
-        getEnvironment().putAll(environmentVariables);
+        for (Map.Entry<String, ?> entry : environmentVariables.entrySet()) {
+            environment(entry.getKey(), entry.getValue());
+        }
         return this;
     }
 

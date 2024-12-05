@@ -58,6 +58,8 @@ import static org.gradle.process.internal.util.LongCommandLineDetectionUtil.hasC
 
 /**
  * Use {@link JavaExecHandleFactory} instead.
+ *
+ * TODO: Make this class Provider API agnostic in the same way as {@link DefaultClientExecHandleBuilder} is.
  */
 @NonNullApi
 public class JavaExecHandleBuilder implements BaseExecHandleBuilder {
