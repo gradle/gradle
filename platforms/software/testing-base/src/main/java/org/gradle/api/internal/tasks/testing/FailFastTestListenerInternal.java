@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks.testing;
 
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
-import org.gradle.api.tasks.testing.TestMetadataEvent;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
 
@@ -52,10 +51,5 @@ public class FailFastTestListenerInternal implements TestListenerInternal {
     @Override
     public void output(TestDescriptorInternal testDescriptor, TestOutputEvent event) {
         delegate.output(testDescriptor, event);
-    }
-
-    @Override
-    public void metadata(TestDescriptorInternal testDescriptor, TestMetadataEvent event) {
-        delegate.metadata(testDescriptor, event);
     }
 }
