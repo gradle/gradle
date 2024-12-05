@@ -17,6 +17,7 @@
 package org.gradle.internal.cc.impl.isolated
 
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
+import org.gradle.util.internal.ToBeImplemented
 import org.junit.Rule
 
 class IsolatedProjectsParallelConfigurationIntegrationTest extends AbstractIsolatedProjectsIntegrationTest {
@@ -26,6 +27,9 @@ class IsolatedProjectsParallelConfigurationIntegrationTest extends AbstractIsola
 
     def setup() {
         server.start()
+    }
+
+    def withTwoWaitingProjects() {
         settingsFile """
             include(":a")
             include(":b")
@@ -46,6 +50,8 @@ class IsolatedProjectsParallelConfigurationIntegrationTest extends AbstractIsola
 
     def 'all projects are configured in parallel for #invocation'() {
         given:
+        withTwoWaitingProjects()
+
         server.expect("configure-root")
         server.expectConcurrent("configure-a", "configure-b")
 
@@ -67,10 +73,12 @@ class IsolatedProjectsParallelConfigurationIntegrationTest extends AbstractIsola
 
     def 'parallel configuration can be disabled in favor of configure-on-demand'() {
         given:
+        withTwoWaitingProjects()
+
         server.expect("configure-root")
         server.expect("configure-a")
 
-        buildFile("b/build.gradle","""
+        buildFile("b/build.gradle", """
             println "Configure :b"
         """)
 
@@ -80,6 +88,53 @@ class IsolatedProjectsParallelConfigurationIntegrationTest extends AbstractIsola
         then:
         result.assertTaskExecuted(":a:build")
         outputDoesNotContain("Configure :b")
+    }
+
+    @ToBeImplemented
+    def "task-graph listeners registered in parallel are all executed"() {
+        given:
+        def n = 10
+        def k = 10
+        def projects = (1..n).collect { "sub$it" }
+
+        projects.each {
+            settingsFile """
+                include("$it")
+            """
+
+            buildFile "$it/build.gradle", """
+                ${server.callFromBuildUsingExpression("'configure-' + project.name")}
+
+                ${k}.times { index ->
+                    gradle.taskGraph.whenReady {
+                        println("On taskGraph.whenReady for '$it' (\$index)")
+                    }
+                }
+            """
+        }
+
+        server.expectConcurrent(projects.collect { "configure-$it".toString() })
+
+        when:
+        isolatedProjectsRun("help")
+
+        then:
+        def messages = projects.collect { project ->
+            (0..k - 1).collect { index ->
+                "On taskGraph.whenReady for '$project' ($index)"
+            }
+        }.flatten()
+
+        messages.size() == n * k
+
+        def missing = messages.findAll {
+            !output.contains(it)
+        }
+
+        // TODO: there should be no missing messages
+//         missing.size() == 0
+
+        missing.size() > 0
     }
 
     // TODO Test -x behavior
