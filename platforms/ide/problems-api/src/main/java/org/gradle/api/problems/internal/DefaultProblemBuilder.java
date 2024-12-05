@@ -226,6 +226,16 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     }
 
     @Override
+    public InternalProblemBuilder id(ProblemId problemId) {
+        if (problemId instanceof DefaultProblemId) {
+            this.id = problemId;
+        } else {
+           this.id = cloneId(problemId);
+        }
+        return this;
+    }
+
+    @Override
     public InternalProblemBuilder id(String name, String displayName) {
         // TODO (donat) revisit id methods
         this.id = IdFactory.instance().createProblemId(name, displayName, cloneGroup(SharedProblemGroup.generic()));
@@ -236,6 +246,10 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     public InternalProblemBuilder id(String name, String displayName, ProblemGroup parent) {
         this.id = IdFactory.instance().createProblemId(name, displayName, cloneGroup(parent));
         return this;
+    }
+
+    private static ProblemId cloneId(ProblemId original) {
+        return IdFactory.instance().createProblemId(original.getName(), original.getDisplayName(), cloneGroup(original.getGroup()));
     }
 
     private static ProblemGroup cloneGroup(ProblemGroup original) {

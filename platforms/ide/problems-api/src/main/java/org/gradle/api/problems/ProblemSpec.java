@@ -28,6 +28,17 @@ import org.gradle.api.Incubating;
 public interface ProblemSpec {
 
     /**
+     * Defines the context-independent identifier for this problem.
+     * <p>
+     * It is a mandatory property to configure when emitting a problem with {@link ProblemReporter} and can be defined by using {@link IdFactory}.
+     *
+     * @param problemId the problem id
+     * @return this
+     * @since 8.12
+     */
+    ProblemSpec id(ProblemId problemId);
+
+    /**
      * Defines simple identification for this problem.
      * <p>
      * It is a mandatory property to configure when emitting a problem with {@link ProblemReporter}..
