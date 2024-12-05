@@ -48,11 +48,6 @@ class DelegatingProblemBuilder implements InternalProblemBuilder {
     }
 
     @Override
-    public InternalProblemBuilder id(String name, String displayName) {
-        return validateDelegate(delegate).id(name, displayName);
-    }
-
-    @Override
     public InternalProblemBuilder id(String name, String displayName, ProblemGroup parent) {
         return validateDelegate(delegate).id(name, displayName, parent);
     }

@@ -27,16 +27,14 @@ import org.gradle.api.problems.internal.DefaultIdFactory;
 @Incubating
 public abstract class IdFactory {
 
-    private static final DefaultIdFactory INSTANCE = new DefaultIdFactory();
-
     /**
      * Returns the default instance of the factory.
      *
      * @return the instance
      * @since 8.12
      */
-    public static DefaultIdFactory instance() {
-        return INSTANCE;
+    public static IdFactory instance() {
+        return DefaultIdFactory.INSTANCE;
     }
 
     /**

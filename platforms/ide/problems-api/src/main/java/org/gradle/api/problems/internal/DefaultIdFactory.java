@@ -22,6 +22,7 @@ import org.gradle.api.problems.ProblemId;
 
 public final class DefaultIdFactory extends IdFactory {
 
+    public static final DefaultIdFactory INSTANCE = new DefaultIdFactory();
 
     @Override
     public ProblemGroup createRootProblemGroup(String name, String displayName) {

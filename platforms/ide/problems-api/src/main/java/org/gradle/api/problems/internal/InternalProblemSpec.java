@@ -59,9 +59,6 @@ public interface InternalProblemSpec extends ProblemSpec {
     InternalProblemSpec id(ProblemId problemId);
 
     @Override
-    InternalProblemSpec id(String name, String displayName);
-
-    @Override
     InternalProblemSpec id(String name, String displayName, ProblemGroup parent);
 
     @Override

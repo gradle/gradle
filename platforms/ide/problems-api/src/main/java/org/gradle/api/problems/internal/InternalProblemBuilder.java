@@ -34,9 +34,6 @@ public interface InternalProblemBuilder extends InternalProblemSpec {
     InternalProblemBuilder id(ProblemId problemId);
 
     @Override
-    InternalProblemBuilder id(String name, String displayName);
-
-    @Override
     InternalProblemBuilder id(String name, String displayName, ProblemGroup parent);
 
     @Override

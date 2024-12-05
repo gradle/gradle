@@ -26,6 +26,7 @@ import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.problems.ProblemEvent
 import org.gradle.tooling.events.problems.SingleProblemEvent
 import org.gradle.tooling.events.problems.internal.GeneralData
+import org.gradle.util.GradleVersion
 
 /**
  * Tests that the tooling API can receive and process a problem containing additional {@link ResolutionFailureData}
@@ -66,8 +67,10 @@ class ResolutionFailureDataCrossVersionIntegrationTest extends ToolingApiSpecifi
         withReportProblemTask """
             TestResolutionFailure failure = new TestResolutionFailure()
 
+            ${targetVersion >= GradleVersion.version("8.13") ? "def problemGroup = org.gradle.api.problems.IdFactory.instance().createRootProblemGroup('generic', 'group label')" : '' }
+            ${targetVersion >= GradleVersion.version("8.13") ? "def problemId = org.gradle.api.problems.IdFactory.instance().createProblemId('id', 'shortProblemMessage')" : '' }
             getProblems().getReporter().reporting {
-                it.id("id", "shortProblemMessage")
+                ${targetVersion >= GradleVersion.version("8.13") ? "it.id(problemId)" : 'it.id("id", "shortProblemMessage")' }
                 .additionalData(ResolutionFailureDataSpec.class, data -> data.from(failure))
             }
         """

@@ -22,7 +22,6 @@ import org.gradle.api.problems.IdFactory;
 import org.gradle.api.problems.ProblemGroup;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.Severity;
-import org.gradle.api.problems.SharedProblemGroup;
 import org.gradle.problems.Location;
 import org.gradle.problems.ProblemDiagnostics;
 import org.gradle.problems.buildtree.ProblemStream;
@@ -232,13 +231,6 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
         } else {
            this.id = cloneId(problemId);
         }
-        return this;
-    }
-
-    @Override
-    public InternalProblemBuilder id(String name, String displayName) {
-        // TODO (donat) revisit id methods
-        this.id = IdFactory.instance().createProblemId(name, displayName, cloneGroup(SharedProblemGroup.generic()));
         return this;
     }
 
