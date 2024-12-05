@@ -39,6 +39,7 @@ import org.gradle.internal.nativeintegration.services.FileSystems;
 import org.gradle.process.ProcessForkOptions;
 
 import javax.inject.Inject;
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -92,7 +93,7 @@ public class DefaultProcessForkOptions implements ProcessForkOptions {
     ) {
         this.resolver = resolver;
         this.executable = executable;
-        this.workingDir = workingDir.convention(defaultWorkingDir.fileProvider(Providers.changing(() -> resolver.resolve("."))));
+        this.workingDir = workingDir.convention(defaultWorkingDir.fileProvider(Providers.of(new File("."))));
         this.environment = environment.value(inheritableEnvironment);
     }
 

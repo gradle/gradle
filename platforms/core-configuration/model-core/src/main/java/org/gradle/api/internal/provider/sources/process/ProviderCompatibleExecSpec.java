@@ -20,16 +20,9 @@ import org.gradle.process.ExecSpec;
 
 import javax.inject.Inject;
 
-class ProviderCompatibleExecSpec extends ProviderCompatibleBaseExecSpec implements DelegatingExecSpec {
-    private final ExecSpec execSpec;
-
+class ProviderCompatibleExecSpec extends ProviderCompatibleBaseExecSpec<ExecSpec> implements DelegatingExecSpec {
     @Inject
     public ProviderCompatibleExecSpec(ExecSpec execSpec) {
-        this.execSpec = execSpec;
-    }
-
-    @Override
-    public ExecSpec getDelegate() {
-        return execSpec;
+        super(execSpec);
     }
 }
