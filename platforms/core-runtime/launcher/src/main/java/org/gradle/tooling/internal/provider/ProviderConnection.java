@@ -437,6 +437,7 @@ public class ProviderConnection {
             .put(InternalBuildProgressListener.TRANSFORM_EXECUTION, OperationType.TRANSFORM)
             .put(InternalBuildProgressListener.BUILD_EXECUTION, OperationType.GENERIC)
             .put(InternalBuildProgressListener.TEST_OUTPUT, OperationType.TEST_OUTPUT)
+            .put(InternalBuildProgressListener.TEST_METADATA, OperationType.TEST_METADATA)
             .put(InternalBuildProgressListener.FILE_DOWNLOAD, OperationType.FILE_DOWNLOAD)
             .put(InternalBuildProgressListener.BUILD_PHASE, OperationType.BUILD_PHASE)
             .put(InternalBuildProgressListener.PROBLEMS, OperationType.PROBLEMS)
