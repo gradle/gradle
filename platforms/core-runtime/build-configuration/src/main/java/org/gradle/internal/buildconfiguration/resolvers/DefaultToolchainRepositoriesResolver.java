@@ -91,7 +91,7 @@ public class DefaultToolchainRepositoriesResolver implements ToolchainRepositori
         DefaultToolchainSpec toolchainSpec = objectFactory.newInstance(DefaultToolchainSpec.class);
         toolchainSpec.getLanguageVersion().set(toolchainVersion);
         if (toolchainVendor != null) {
-            toolchainSpec.getVendor().set(JvmVendorSpec.matching(toolchainVendor));
+            toolchainSpec.getVendor().set(JvmVendorSpec.of(toolchainVendor));
         }
         if (toolchainImplementation != null) {
             toolchainSpec.getImplementation().set(toolchainImplementation);
