@@ -17,7 +17,6 @@
 package org.gradle.internal.buildconfiguration.tasks;
 
 import org.gradle.internal.buildconfiguration.DaemonJvmPropertiesDefaults;
-import org.gradle.internal.jvm.inspection.JvmVendor;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.jvm.toolchain.JvmVendorSpec;
 import org.gradle.jvm.toolchain.internal.DefaultJavaLanguageVersion;
@@ -25,10 +24,8 @@ import org.gradle.jvm.toolchain.internal.DefaultJvmVendorSpec;
 import org.gradle.platform.BuildPlatform;
 
 import javax.annotation.Nullable;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 import static org.gradle.internal.buildconfiguration.tasks.DaemonJvmPropertiesUtils.getToolchainUrlPropertyForPlatform;
 import static org.gradle.internal.buildconfiguration.resolvers.ToolchainSupportedPlatformsMatrix.getToolchainSupportedBuildPlatforms;
@@ -57,12 +54,7 @@ public class DaemonJvmPropertiesAccessor {
     public JvmVendorSpec getVendor() {
         String requestedVendor = properties.get(DaemonJvmPropertiesDefaults.TOOLCHAIN_VENDOR_PROPERTY);
         if (requestedVendor != null) {
-            Optional<JvmVendor.KnownJvmVendor> knownVendor = Arrays.stream(JvmVendor.KnownJvmVendor.values()).filter(e -> e.name().equals(requestedVendor)).findFirst();
-            if (knownVendor.isPresent() && knownVendor.get()!=JvmVendor.KnownJvmVendor.UNKNOWN) {
-                return DefaultJvmVendorSpec.of(knownVendor.get());
-            } else {
-                return DefaultJvmVendorSpec.matching(requestedVendor);
-            }
+            return JvmVendorSpec.of(requestedVendor);
         } else {
             // match any vendor
             return DefaultJvmVendorSpec.any();

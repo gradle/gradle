@@ -18,7 +18,6 @@ package org.gradle.launcher.daemon.configuration;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.internal.buildconfiguration.DaemonJvmPropertiesDefaults;
-import org.gradle.internal.jvm.inspection.JvmVendor;
 import org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.jvm.toolchain.JvmImplementation;
@@ -34,12 +33,10 @@ import org.gradle.util.internal.GUtil;
 
 import javax.annotation.Nullable;
 import java.io.File;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 public class DaemonParameters {
     static final int DEFAULT_IDLE_TIMEOUT = 3 * 60 * 60 * 1000;
@@ -144,14 +141,7 @@ public class DaemonParameters {
             String requestedVendor = buildProperties.get(DaemonJvmPropertiesDefaults.TOOLCHAIN_VENDOR_PROPERTY);
 
             if (requestedVendor != null) {
-                Optional<JvmVendor.KnownJvmVendor> knownVendor =
-                    Arrays.stream(JvmVendor.KnownJvmVendor.values()).filter(e -> e.name().equals(requestedVendor)).findFirst();
-
-                if (knownVendor.isPresent() && knownVendor.get()!=JvmVendor.KnownJvmVendor.UNKNOWN) {
-                    javaVendor = DefaultJvmVendorSpec.of(knownVendor.get());
-                } else {
-                    javaVendor = DefaultJvmVendorSpec.matching(requestedVendor);
-                }
+                javaVendor = JvmVendorSpec.of(requestedVendor);
             } else {
                 // match any vendor
                 javaVendor = DefaultJvmVendorSpec.any();
