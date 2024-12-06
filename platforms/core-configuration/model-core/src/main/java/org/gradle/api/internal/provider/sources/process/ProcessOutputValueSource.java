@@ -44,13 +44,6 @@ public abstract class ProcessOutputValueSource implements ValueSource<ProcessOut
          */
         ListProperty<String> getCommandLine();
 
-        // The ExecSpec's environment can be configured in two ways. First is to append some
-        // variables to the current environment. We don't want to freeze the whole environment as an
-        // input in this case to mimic the behavior with configuration cache being disabled. Thus,
-        // there are two properties on these Parameters: full environment is used when the caller
-        // sets the complete environment explicitly (with setEnvironment) and additional environment
-        // variables are used when the caller specifies additions only.
-
         /**
          * The full environment to use when running a process.
          *
@@ -100,7 +93,9 @@ public abstract class ProcessOutputValueSource implements ValueSource<ProcessOut
             if (getParameters().getWorkingDirectory().isPresent()) {
                 spec.getWorkingDir().set(getParameters().getWorkingDirectory());
             }
-            spec.getEnvironment().set(getParameters().getEnvironment().get());
+            // TODO(mlopatkin): Check if this logic ok for Gradle 9.0
+            // For some reason getParameters().getEnvironment() is MapProperty<Object, Object> at runtime so we need to map it
+            spec.getEnvironment().set(getParameters().getEnvironment().map(map -> map));
             spec.getStandardOutput().set(stdout);
             spec.getErrorOutput().set(stderr);
         });
