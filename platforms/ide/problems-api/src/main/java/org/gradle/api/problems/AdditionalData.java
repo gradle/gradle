@@ -34,7 +34,7 @@ import org.gradle.api.problems.internal.Problem;
  * </ul>
  *
  * @see InternalProblemSpec#additionalData(Class, Action)
- * @since 8.12
+ * @since 8.13
  */
 @Incubating
 public interface AdditionalData {

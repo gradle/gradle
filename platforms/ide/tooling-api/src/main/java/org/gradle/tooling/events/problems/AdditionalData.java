@@ -45,14 +45,14 @@ public interface AdditionalData {
     /**
      * Returns custom object
      *
-     * @since 8.12
+     * @since 8.13
      */
     Object get();
 
     /**
      * Returns custom object with provided type or null if not available.
      *
-     * @since 8.12
+     * @since 8.13
      */
     @Nullable
     <T> T get(Class<T> type);

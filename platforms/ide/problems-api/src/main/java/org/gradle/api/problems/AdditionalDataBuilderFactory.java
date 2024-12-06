@@ -23,7 +23,7 @@ import javax.annotation.Nullable;
 /**
  * A factory class for creating additional data builders for various types of additional data.
  *
- * @since 8.12
+ * @since 8.13
  */
 @Incubating
 public interface AdditionalDataBuilderFactory {
@@ -33,7 +33,7 @@ public interface AdditionalDataBuilderFactory {
      *
      * @param dataType The type of additional data to provide
      * @param provider The builder function, which will be called to create a builder for the given additional data type
-     * @since 8.12
+     * @since 8.13
      */
     void registerAdditionalDataProvider(Class<?> dataType, AdditionalDataBuilderProvider provider);
 
@@ -41,7 +41,7 @@ public interface AdditionalDataBuilderFactory {
      * Returns a comma-separated string of the supported additional data types.
      *
      * @return a comma-separated list of supported types
-     * @since 8.12
+     * @since 8.13
      */
     String getSupportedTypes();
 
@@ -51,7 +51,7 @@ public interface AdditionalDataBuilderFactory {
      * @param specType The type of additional data spec
      * @param additionalData The additional data instance (nullable)
      * @return the additional data builder
-     * @since 8.12
+     * @since 8.13
      */
     <U extends AdditionalDataSpec> AdditionalDataBuilder<? extends AdditionalData> createAdditionalDataBuilder(Class<? extends U> specType, @Nullable AdditionalData additionalData);
 
@@ -60,7 +60,7 @@ public interface AdditionalDataBuilderFactory {
      *
      * @param specType The spec type
      * @return true if a provider exists, false otherwise
-     * @since 8.12
+     * @since 8.13
      */
     <U extends AdditionalDataSpec> boolean hasProviderForSpec(Class<? extends U> specType);
 }

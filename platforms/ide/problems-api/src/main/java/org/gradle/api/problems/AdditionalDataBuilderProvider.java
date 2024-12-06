@@ -24,7 +24,7 @@ import javax.annotation.Nullable;
 /**
  * A provider for creating instances of {@link AdditionalDataBuilder}.
  *
- * @since 8.12
+ * @since 8.13
  */
 @Incubating
 public
@@ -34,7 +34,7 @@ interface AdditionalDataBuilderProvider {
      *
      * @param additionalData the additional data to be provided to the builder
      * @return an instance of {@link AdditionalDataBuilder}
-     * @since 8.12
+     * @since 8.13
      */
     @Incubating
     AdditionalDataBuilder<? extends AdditionalData> provide(@Nullable AdditionalData additionalData);

@@ -22,7 +22,7 @@ import org.gradle.api.Incubating;
  * A builder interface for creating instances of {@link AdditionalData}.
  *
  * @param <T> the type of {@link AdditionalData} to be built
- * @since 8.12
+ * @since 8.13
  */
 @Incubating
 public interface AdditionalDataBuilder<T extends AdditionalData> {
@@ -31,7 +31,7 @@ public interface AdditionalDataBuilder<T extends AdditionalData> {
      * Builds and returns an instance of the {@link AdditionalData}.
      *
      * @return an instance of the {@link AdditionalData}
-     * @since 8.12
+     * @since 8.13
      */
     T build();
 }

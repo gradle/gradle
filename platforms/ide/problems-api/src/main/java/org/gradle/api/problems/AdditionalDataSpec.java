@@ -22,7 +22,7 @@ import org.gradle.api.problems.internal.Problem;
 /**
  * Marker interface for additional data that can be attached to a {@link Problem}.
  *
- * @since 8.12
+ * @since 8.13
  */
 @Incubating
 public interface AdditionalDataSpec {
