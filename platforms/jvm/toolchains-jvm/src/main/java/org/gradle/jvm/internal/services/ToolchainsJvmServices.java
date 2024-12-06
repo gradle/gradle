@@ -42,6 +42,7 @@ import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 import org.gradle.jvm.toolchain.JavaToolchainResolverRegistry;
 import org.gradle.jvm.toolchain.internal.AsdfInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainResolverRegistry;
+import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainResolverService;
 import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainService;
 import org.gradle.jvm.toolchain.internal.DefaultJvmToolchainManagement;
 import org.gradle.jvm.toolchain.internal.DefaultOsXJavaHomeCommand;
@@ -126,6 +127,7 @@ public class ToolchainsJvmServices extends AbstractGradleModuleServices {
 
     @Override
     public void registerProjectServices(ServiceRegistration registration) {
+        registration.add(DefaultJavaToolchainResolverService.class);
         registration.add(DefaultJavaToolchainService.class);
         registration.add(DefaultJavaToolchainProvisioningService.class);
         registration.add(SecureFileDownloader.class);

@@ -19,8 +19,12 @@ package org.gradle.buildconfiguration.tasks;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.SetProperty;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
@@ -30,10 +34,13 @@ import org.gradle.internal.buildconfiguration.DaemonJvmPropertiesDefaults;
 import org.gradle.internal.buildconfiguration.tasks.DaemonJvmPropertiesModifier;
 import org.gradle.internal.jvm.inspection.JvmVendor;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
+import org.gradle.jvm.toolchain.JvmVendorSpec;
+import org.gradle.platform.BuildPlatform;
 import org.gradle.util.internal.IncubationLogger;
 import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
+import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -66,7 +73,9 @@ public abstract class UpdateDaemonJvm extends DefaultTask {
         IncubationLogger.incubatingFeatureUsed("Daemon JVM criteria");
 
         final String jvmVendor;
-        if (getJvmVendor().isPresent()) {
+        Provider<JvmVendorSpec> vendorSpec = getJvmVendor().map(JvmVendorSpec::of);
+        if (vendorSpec.isPresent()) {
+            // TODO change this to something else, we should serialize the spec, not just the vendor string
             jvmVendor = getJvmVendor().get();
         } else {
             jvmVendor = null; // any vendor is acceptable
@@ -75,7 +84,7 @@ public abstract class UpdateDaemonJvm extends DefaultTask {
             getPropertiesFile().get().getAsFile(),
             getJvmVersion().get(),
             jvmVendor,
-            null
+            getToolchainDownloadUrls().get()
         );
     }
 
@@ -92,6 +101,8 @@ public abstract class UpdateDaemonJvm extends DefaultTask {
 
     /**
      * The version of the JVM required to run the Gradle Daemon.
+     * <p>
+     * By convention, for the task created on the root project, Gradle will use the JVM version of the current JVM.
      *
      * @since 8.8
      */
@@ -125,4 +136,30 @@ public abstract class UpdateDaemonJvm extends DefaultTask {
     public List<String> getAvailableVendors() {
         return Arrays.stream(JvmVendor.KnownJvmVendor.values()).filter(e -> e!=JvmVendor.KnownJvmVendor.UNKNOWN).map(Enum::name).collect(Collectors.toList());
     }
+
+    /**
+     * The set of {@link BuildPlatform} for which download links should be generated.
+     * <p>
+     * By convention, for the task created on the root project, Gradle sources those from the combination of all supported {@link org.gradle.platform.OperatingSystem}
+     * and the following architectures: {@link org.gradle.platform.Architecture#X86_64} and {@link org.gradle.platform.Architecture#AARCH64}.
+     *
+     * @since 8.12
+     */
+    @Internal
+    @Incubating
+    public abstract SetProperty<BuildPlatform> getToolchainPlatforms();
+
+    /**
+     * The download URLs for the toolchains for the given platforms.
+     * <p>
+     * By convention, for the task created on the root project, Gradle will combine the {@link #getToolchainPlatforms() build platforms}, {@link #getJvmVersion() JVM version} and {@link #getJvmVendor()}
+     * to resolve download URLs using the configured {@link org.gradle.jvm.toolchain.JavaToolchainRepository Java toolchain repositories}.
+     * <p>
+     * If the convention applies and no toolchain repositories are defined, an exception will be thrown.
+     *
+     * @since 8.12
+     */
+    @Input
+    @Incubating
+    public abstract MapProperty<BuildPlatform, URI> getToolchainDownloadUrls();
 }

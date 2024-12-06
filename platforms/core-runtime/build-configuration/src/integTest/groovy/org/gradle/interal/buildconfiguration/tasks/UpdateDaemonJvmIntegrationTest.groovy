@@ -270,18 +270,18 @@ class UpdateDaemonJvmIntegrationTest extends AbstractIntegrationSpec implements 
         then:
         assertJvmCriteria(JavaVersion.VERSION_20, "FOO")
         assertToolchainDownloadUrlsProperties([
-            ["FreeBsd", "X8664"]: "https://server?platform=FREE_BSD.X86_64&toolchain=20.FOO",
-            ["FreeBsd", "Aarch64"]: "https://server?platform=FREE_BSD.AARCH64&toolchain=20.FOO",
-            ["Linux", "X8664"]: "https://server?platform=LINUX.X86_64&toolchain=20.FOO",
-            ["Linux", "Aarch64"]: "https://server?platform=LINUX.AARCH64&toolchain=20.FOO",
-            ["MacOs", "X8664"]: "https://server?platform=MAC_OS.X86_64&toolchain=20.FOO",
-            ["MacOs", "Aarch64"]: "https://server?platform=MAC_OS.AARCH64&toolchain=20.FOO",
-            ["Solaris", "X8664"]: "https://server?platform=SOLARIS.X86_64&toolchain=20.FOO",
-            ["Solaris", "Aarch64"]: "https://server?platform=SOLARIS.AARCH64&toolchain=20.FOO",
-            ["Unix", "X8664"]: "https://server?platform=UNIX.X86_64&toolchain=20.FOO",
-            ["Unix", "Aarch64"]: "https://server?platform=UNIX.AARCH64&toolchain=20.FOO",
-            ["Windows", "X8664"]: "https://server?platform=WINDOWS.X86_64&toolchain=20.FOO",
-            ["Windows", "Aarch64"]: "https://server?platform=WINDOWS.AARCH64&toolchain=20.FOO",
+            ["FREE_BSD", "X86_64"]: "https://server?platform=FREE_BSD.X86_64&toolchain=20.FOO",
+            ["FREE_BSD", "AARCH64"]: "https://server?platform=FREE_BSD.AARCH64&toolchain=20.FOO",
+            ["LINUX", "X86_64"]: "https://server?platform=LINUX.X86_64&toolchain=20.FOO",
+            ["LINUX", "AARCH64"]: "https://server?platform=LINUX.AARCH64&toolchain=20.FOO",
+            ["MAC_OS", "X86_64"]: "https://server?platform=MAC_OS.X86_64&toolchain=20.FOO",
+            ["MAC_OS", "AARCH64"]: "https://server?platform=MAC_OS.AARCH64&toolchain=20.FOO",
+            ["SOLARIS", "X86_64"]: "https://server?platform=SOLARIS.X86_64&toolchain=20.FOO",
+            ["SOLARIS", "AARCH64"]: "https://server?platform=SOLARIS.AARCH64&toolchain=20.FOO",
+            ["UNIX", "X86_64"]: "https://server?platform=UNIX.X86_64&toolchain=20.FOO",
+            ["UNIX", "AARCH64"]: "https://server?platform=UNIX.AARCH64&toolchain=20.FOO",
+            ["WINDOWS", "X86_64"]: "https://server?platform=WINDOWS.X86_64&toolchain=20.FOO",
+            ["WINDOWS", "AARCH64"]: "https://server?platform=WINDOWS.AARCH64&toolchain=20.FOO",
         ])
     }
 }
