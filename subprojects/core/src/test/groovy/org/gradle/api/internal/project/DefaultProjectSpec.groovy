@@ -279,7 +279,16 @@ class DefaultProjectSpec extends Specification {
             @Provides
             DefaultProjectLayout createProjectLayout(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory) {
                 def filePropertyFactory = new DefaultFilePropertyFactory(PropertyHost.NO_OP, fileResolver, fileCollectionFactory)
-                return new DefaultProjectLayout(fileResolver.resolve("."), fileResolver, DefaultTaskDependencyFactory.withNoAssociatedProject(), PatternSets.getNonCachingPatternSetFactory(), PropertyHost.NO_OP, fileCollectionFactory, filePropertyFactory, filePropertyFactory)
+                return new DefaultProjectLayout(
+                    fileResolver.resolve("."),
+                    fileResolver.resolve("."),
+                    fileResolver,
+                    DefaultTaskDependencyFactory.withNoAssociatedProject(),
+                    PatternSets.getNonCachingPatternSetFactory(),
+                    PropertyHost.NO_OP,
+                    fileCollectionFactory,
+                    filePropertyFactory,
+                    filePropertyFactory)
             }
         })
 

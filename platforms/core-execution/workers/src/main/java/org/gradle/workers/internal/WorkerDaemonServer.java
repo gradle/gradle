@@ -213,7 +213,7 @@ public class WorkerDaemonServer implements RequestHandler<TransportableActionExe
                 .displayName("worker request services for " + baseDir.getAbsolutePath())
                 .parent(parent)
                 .provider(new WorkerProjectServices())
-                .provider(new WorkerSharedProjectScopeServices(baseDir))
+                .provider(new WorkerSharedProjectScopeServices(baseDir, baseDir)) // TODO: needs proper settings dir
                 .provider(new WorkerBuildSessionScopeWorkaroundServices(projectCacheDir))
                 .build();
         }

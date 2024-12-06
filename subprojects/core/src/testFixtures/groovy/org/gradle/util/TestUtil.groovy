@@ -196,7 +196,16 @@ class TestUtil {
                 @Provides
                 ProjectLayout createProjectLayout() {
                     def filePropertyFactory = new DefaultFilePropertyFactory(PropertyHost.NO_OP, fileResolver, fileCollectionFactory)
-                    return new DefaultProjectLayout(fileResolver.resolve("."), fileResolver, DefaultTaskDependencyFactory.withNoAssociatedProject(), PatternSets.getNonCachingPatternSetFactory(), PropertyHost.NO_OP, fileCollectionFactory, filePropertyFactory, filePropertyFactory)
+                    return new DefaultProjectLayout(
+                        fileResolver.resolve("."),
+                        fileResolver.resolve("."),
+                        fileResolver,
+                        DefaultTaskDependencyFactory.withNoAssociatedProject(),
+                        PatternSets.getNonCachingPatternSetFactory(),
+                        PropertyHost.NO_OP,
+                        fileCollectionFactory,
+                        filePropertyFactory,
+                        filePropertyFactory)
                 }
 
                 @Provides

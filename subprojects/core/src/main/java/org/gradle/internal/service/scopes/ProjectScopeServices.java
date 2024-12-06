@@ -72,6 +72,7 @@ import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.configuration.project.DefaultProjectConfigurationActionContainer;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
+import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.internal.Factory;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.event.ListenerManager;
@@ -115,16 +116,17 @@ import java.util.List;
 public class ProjectScopeServices implements ServiceRegistrationProvider {
 
     public static CloseableServiceRegistry create(
-        ServiceRegistry parent,
+        ServiceRegistry buildServices,
         ProjectInternal project,
         Factory<LoggingManagerInternal> loggingManagerInternalFactory
     ) {
+        BuildLayout buildLayout = buildServices.get(BuildLayout.class);
         return ServiceRegistryBuilder.builder()
             .scope(Scope.Project.class)
             .displayName("project services")
-            .parent(parent)
+            .parent(buildServices)
             .provider(new ProjectScopeServices(project, loggingManagerInternalFactory))
-            .provider(new WorkerSharedProjectScopeServices(project.getProjectDir()))
+            .provider(new WorkerSharedProjectScopeServices(buildLayout.getSettingsDir(), project.getProjectDir()))
             .build();
     }
 
