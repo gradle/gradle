@@ -15,9 +15,13 @@
  */
 package org.gradle.api.internal.tasks.compile;
 
+import org.gradle.api.problems.internal.Problem;
 import org.gradle.internal.exceptions.CompilationFailedIndicator;
+import org.gradle.problems.internal.rendering.ProblemRenderer;
 
 import javax.annotation.Nullable;
+import java.io.StringWriter;
+import java.util.List;
 import java.util.Optional;
 
 public class CompilationFailedException extends RuntimeException implements CompilationFailedIndicator {
@@ -28,6 +32,7 @@ public class CompilationFailedException extends RuntimeException implements Comp
 
     private final ApiCompilerResult compilerPartialResult;
     private final String diagnosticCounts;
+    private final String shortMessage;
 
     public CompilationFailedException() {
         this((ApiCompilerResult) null);
@@ -37,24 +42,40 @@ public class CompilationFailedException extends RuntimeException implements Comp
         super(String.format("Compilation failed with exit code %d; see the compiler error output for details.", exitCode));
         this.compilerPartialResult = null;
         this.diagnosticCounts = null;
+        shortMessage = getMessage();
     }
 
     public CompilationFailedException(Throwable cause) {
         super(cause);
         this.compilerPartialResult = null;
         this.diagnosticCounts = null;
+        shortMessage = getMessage();
     }
 
     public CompilationFailedException(@Nullable ApiCompilerResult result) {
         super(COMPILATION_FAILED_DETAILS_ABOVE);
         this.compilerPartialResult = result;
         this.diagnosticCounts = null;
+        this.shortMessage = getMessage();
     }
 
-    public CompilationFailedException(ApiCompilerResult result, String diagnosticCounts) {
-        super(COMPILATION_FAILED_DETAILS_BELOW);
+    CompilationFailedException(ApiCompilerResult result, List<Problem> reportedProblems, String diagnosticCounts) {
+        super(exceptionMessage(COMPILATION_FAILED_DETAILS_BELOW + System.lineSeparator(), reportedProblems, diagnosticCounts));
         this.compilerPartialResult = result;
         this.diagnosticCounts = diagnosticCounts;
+        this.shortMessage = COMPILATION_FAILED_DETAILS_BELOW;
+    }
+
+    /*
+     * Build Scans do not consume Problems API reports to render compilation errors yet. To keep the error message in scans consistent with the console, we need to render the problems in the exception message.
+     */
+    private static String exceptionMessage(String prefix, List<Problem> problems, String diagnosticCounts) {
+        StringWriter result = new StringWriter();
+        result.append(prefix);
+        new ProblemRenderer(result).render(problems);
+        result.append(System.lineSeparator());
+        result.append(diagnosticCounts);
+        return result.toString();
     }
 
     public Optional<ApiCompilerResult> getCompilerPartialResult() {
@@ -65,5 +86,10 @@ public class CompilationFailedException extends RuntimeException implements Comp
     @Nullable
     public String getDiagnosticCounts() {
         return diagnosticCounts;
+    }
+
+    @Override
+    public String getShortMessage() {
+        return shortMessage;
     }
 }

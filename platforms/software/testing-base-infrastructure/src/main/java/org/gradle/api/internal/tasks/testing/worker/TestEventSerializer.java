@@ -169,7 +169,6 @@ public class TestEventSerializer {
         }
     }
 
-    @NonNullApi
     private static class DefaultTestFailureSerializer implements Serializer<DefaultTestFailure> {
         private final Serializer<Throwable> throwableSerializer;
 

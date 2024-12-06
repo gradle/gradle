@@ -23,6 +23,9 @@
 :meta-name-twitter_url: {docsUrl}/{gradleVersion}/userguide/{docname}.html
 :meta-name-twitter_image: {website}/images/gradle-256x256.png
 
+// The ToC defined below does not have an effect to the navigation sidebar of the Gradle User Manual webpage (ie docs.gradle.org/<version>>/userguide).
+// The sidebar can be adjusted in platforms/documentation/docs/src/main/resources/header.html.
+
 toc::[leveloffset=+2]
 
 [[part:about_gradle]]
@@ -105,6 +108,7 @@ include::implementing_gradle_plugins_precompiled.adoc[leveloffset=+2]
 include::implementing_gradle_plugins_binary.adoc[leveloffset=+2]
 include::testing_gradle_plugins.adoc[leveloffset=+2]
 include::publishing_gradle_plugins.adoc[leveloffset=+2]
+include::reporting_problems.adoc[leveloffset=+2]
 
 == GRADLE TYPES
 

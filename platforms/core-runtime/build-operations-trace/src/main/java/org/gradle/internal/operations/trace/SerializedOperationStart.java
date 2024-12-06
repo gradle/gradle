@@ -46,11 +46,11 @@ class SerializedOperationStart implements SerializedOperation {
     }
 
     SerializedOperationStart(Map<String, ?> map) {
-        this.id = ((Integer) map.get("id")).longValue();
-        Integer parentId = (Integer) map.get("parentId");
+        this.id = ((Number) map.get("id")).longValue();
+        Number parentId = (Number) map.get("parentId");
         this.parentId = parentId == null ? null : parentId.longValue();
         this.displayName = (String) map.get("displayName");
-        this.startTime = (Long) map.get("startTime");
+        this.startTime = ((Number) map.get("startTime")).longValue();
         this.details = map.get("details");
         this.detailsClassName = (String) map.get("detailsClassName");
     }
