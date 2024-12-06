@@ -14,7 +14,10 @@
             </tr>
             <tr>
                 <td>reportsDir</td>
-                <td><literal><replaceable>${project.reporting.baseDir}</replaceable>/codenarc</literal></td>
+                <td>
+                    <literal><replaceable>${project.reporting.baseDirectory}</replaceable>/codenarc
+                    </literal>
+                </td>
             </tr>
             <tr>
                 <td>config</td>

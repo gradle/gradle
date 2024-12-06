@@ -46,7 +46,10 @@
             </tr>
             <tr>
                 <td>testReportDir</td>
-                <td><literal><replaceable>${project.reporting.baseDir}</replaceable>/tests</literal></td>
+                <td>
+                    <literal><replaceable>${project.reporting.baseDirectory}</replaceable>/tests
+                    </literal>
+                </td>
             </tr>
             <tr>
                 <td>sourceSets</td>

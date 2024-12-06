@@ -34,13 +34,13 @@ class CheckstyleTest extends Specification {
             configProperties.get() == [:]
             !reports.xml.required.get()
             !reports.xml.outputLocation.isPresent()
-            reports.xml.outputType == Report.OutputType.FILE
+            reports.xml.outputType.get() == Report.OutputType.FILE
             !reports.html.required.get()
             !reports.html.outputLocation.isPresent()
-            reports.html.outputType == Report.OutputType.FILE
+            reports.html.outputType.get() == Report.OutputType.FILE
             !reports.sarif.required.get()
             !reports.sarif.outputLocation.isPresent()
-            reports.sarif.outputType == Report.OutputType.FILE
+            reports.sarif.outputType.get() == Report.OutputType.FILE
             !ignoreFailures
             showViolations
             maxErrors.get() == 0
