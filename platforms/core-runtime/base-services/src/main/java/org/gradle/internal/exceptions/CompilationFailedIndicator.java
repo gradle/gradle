@@ -22,4 +22,6 @@ public interface CompilationFailedIndicator extends NonGradleCause {
 
     @Nullable
     String getDiagnosticCounts();
+
+    String getShortMessage();
 }

@@ -28,6 +28,7 @@ import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
+import org.gradle.internal.time.Clock;
 
 @NonNullApi
 public class TestingBasePluginServices extends AbstractGradleModuleServices {
@@ -44,8 +45,8 @@ public class TestingBasePluginServices extends AbstractGradleModuleServices {
     @NonNullApi
     public static class TestingBuildSessionScopeServices implements ServiceRegistrationProvider {
         @Provides
-        TestListenerBuildOperationAdapter createTestListenerBuildOperationAdapter(BuildOperationListenerManager listener, BuildOperationIdFactory buildOperationIdFactory) {
-            return new TestListenerBuildOperationAdapter(listener.getBroadcaster(), buildOperationIdFactory);
+        TestListenerBuildOperationAdapter createTestListenerBuildOperationAdapter(Clock clock, BuildOperationListenerManager listener, BuildOperationIdFactory buildOperationIdFactory) {
+            return new TestListenerBuildOperationAdapter(clock, listener.getBroadcaster(), buildOperationIdFactory);
         }
 
         void configure(ServiceRegistration serviceRegistration, ListenerManager listenerManager, TestListenerBuildOperationAdapter testListenerBuildOperationAdapter) {

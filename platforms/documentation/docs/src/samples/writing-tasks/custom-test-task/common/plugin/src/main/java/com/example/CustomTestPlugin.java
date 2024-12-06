@@ -12,6 +12,8 @@ public abstract class CustomTestPlugin implements Plugin<Project> {
         project.getTasks().register("test", CustomTest.class, task -> {
             task.setGroup("verification");
             task.setDescription("Runs the tests.");
+            // Enables Test UI in IntelliJ
+            task.getExtensions().getExtraProperties().set("idea.internal.test", true);
             task.getFail().convention(false);
         });
     }

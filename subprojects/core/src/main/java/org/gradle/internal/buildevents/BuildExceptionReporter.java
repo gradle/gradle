@@ -420,7 +420,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
 
     private static String getMessage(Throwable throwable, ProblemLookup problemLookup) {
         try {
-            String msg = throwable.getMessage();
+            String msg = throwable instanceof CompilationFailedIndicator ? ((CompilationFailedIndicator) throwable).getShortMessage() : throwable.getMessage();
             StringBuilder builder = new StringBuilder(msg == null ? "" : msg);
             Collection<Problem> problems = problemLookup.findAll(throwable);
             if (!problems.isEmpty()) {

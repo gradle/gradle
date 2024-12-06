@@ -23,7 +23,8 @@ dependencies {
 tasks.run.configure {
     args = listOf(
         project.gradle.rootBuild().rootProject.projectDir.absolutePath, // The path of the project (this project's root)
-        ":sample-project:assemble"  // The executed task
+        ":sample-project:assemble",  // The executed task
+        ":sample-project:myFailingTask"  // The executed failing task
     )
 }
 
