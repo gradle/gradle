@@ -41,6 +41,9 @@ public class BuildOperationState implements BuildOperationRef {
         this.running.set(running);
     }
 
+    /**
+     * @return the time when the operation started.
+     */
     public long getStartTime() {
         return startTime;
     }

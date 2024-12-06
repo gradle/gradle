@@ -20,7 +20,8 @@ public class StandardPlugin implements Plugin<Project> {
     }
 
     @Override
-    public void apply(Project target) {
+    public void apply(Project project) {
+        project.getTasks().register("myFailingTask", FailingTask.class);
         // tag::problems-api-report[]
         problems.getReporter().reporting(problem -> problem
                 .id("adhoc-plugin-deprecation", "Plugin is deprecated")

@@ -395,7 +395,7 @@ public class BuildOperationTrace implements Stoppable {
                             resultMap == null ? null : Collections.unmodifiableMap(resultMap),
                             finish.resultClassName,
                             finish.failureMsg,
-                            pending.progress,
+                            convertProgressEvents(pending.progress),
                             BuildOperationRecord.ORDERING.immutableSortedCopy(children)
                         );
 
@@ -427,8 +427,8 @@ public class BuildOperationTrace implements Stoppable {
                 roots.add(new BuildOperationRecord(
                     -1L, null,
                     "Dangling pending operations",
-                    0L, 0L, null, null, null, null, null,
-                    danglingProgress,
+                    0, 0, null, null, null, null, null,
+                    convertProgressEvents(danglingProgress),
                     Collections.emptyList()
                 ));
             }
@@ -438,6 +438,19 @@ public class BuildOperationTrace implements Stoppable {
             throw UncheckedException.throwAsUncheckedException(e);
         }
 
+    }
+
+    private static List<BuildOperationRecord.Progress> convertProgressEvents(List<SerializedOperationProgress> toConvert) {
+        List<BuildOperationRecord.Progress> progresses = new ArrayList<>();
+        for (SerializedOperationProgress progress : toConvert) {
+            Map<String, ?> progressDetailsMap = uncheckedCast(progress.details);
+            progresses.add(new BuildOperationRecord.Progress(
+                progress.time,
+                progressDetailsMap,
+                progress.detailsClassName
+            ));
+        }
+        return progresses;
     }
 
     private static File logFile(String basePath) {
