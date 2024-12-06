@@ -168,13 +168,13 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         if (entries == null) {
             unsetValueAndDefault();
         } else {
-            setSupplier(new CollectingSupplier<>(keyCollector, entryCollector, new EntriesFromMap<>(entries)));
+            setSupplier(newCollectingSupplierOf(new EntriesFromMap<>(entries)));
         }
     }
 
     @Override
     public void set(Provider<? extends Map<? extends K, ? extends V>> provider) {
-        setSupplier(new CollectingSupplier<>(keyCollector, entryCollector, new MapCollectors.EntriesFromMapProvider<>(checkMapProvider(provider))));
+        setSupplier(newCollectingSupplierOf(new MapCollectors.EntriesFromMapProvider<>(checkMapProvider(provider))));
     }
 
     @Override
@@ -231,8 +231,8 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
 
     private void addExplicitCollector(MapCollector<K, V> collector, boolean ignoreAbsent) {
         assertCanMutate();
-        MapSupplier<K, V> explicitValue = getExplicitValue(defaultValue).absentIgnoringIfNeeded(ignoreAbsent);
-        setSupplier(explicitValue.plus(ignoreAbsent ? new AbsentIgnoringCollector<>(collector) : collector));
+        MapSupplier<K, V> explicitValue = getExplicitValue(defaultValue);
+        setSupplier(explicitValue.plus(collector, ignoreAbsent));
     }
 
     private Configurer getConfigurer() {
@@ -284,14 +284,14 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         if (value == null) {
             setConvention(noValueSupplier());
         } else {
-            setConvention(new CollectingSupplier<>(keyCollector, entryCollector, new EntriesFromMap<>(value)));
+            setConvention(newCollectingSupplierOf(new EntriesFromMap<>(value)));
         }
         return this;
     }
 
     @Override
     public MapProperty<K, V> convention(Provider<? extends Map<? extends K, ? extends V>> valueProvider) {
-        setConvention(new CollectingSupplier<>(keyCollector, entryCollector, new EntriesFromMapProvider<>(Providers.internal(valueProvider))));
+        setConvention(newCollectingSupplierOf(new EntriesFromMapProvider<>(Providers.internal(valueProvider))));
         return this;
     }
 
@@ -414,11 +414,6 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         }
 
         @Override
-        public MapSupplier<K, V> absentIgnoring() {
-            return emptySupplier();
-        }
-
-        @Override
         public boolean calculatePresence(ValueConsumer consumer) {
             return false;
         }
@@ -434,9 +429,9 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         }
 
         @Override
-        public MapSupplier<K, V> plus(MapCollector<K, V> collector) {
-            // nothing + something = nothing
-            return this;
+        public MapSupplier<K, V> plus(MapCollector<K, V> collector, boolean ignoreAbsent) {
+            // nothing + something = nothing, unless we ignoreAbsent.
+            return ignoreAbsent ? newCollectingSupplierOf(ignoreAbsentIfNeeded(collector, ignoreAbsent)) : this;
         }
 
         @Override
@@ -457,11 +452,6 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
 
     private class EmptySupplier implements MapSupplier<K, V> {
         @Override
-        public MapSupplier<K, V> absentIgnoring() {
-            return this;
-        }
-
-        @Override
         public boolean calculatePresence(ValueConsumer consumer) {
             return true;
         }
@@ -477,9 +467,9 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         }
 
         @Override
-        public MapSupplier<K, V> plus(MapCollector<K, V> collector) {
+        public MapSupplier<K, V> plus(MapCollector<K, V> collector, boolean ignoreAbsent) {
             // empty + something = something
-            return new CollectingSupplier<>(keyCollector, entryCollector, collector);
+            return newCollectingSupplierOf(ignoreAbsentIfNeeded(collector, ignoreAbsent));
         }
 
         @Override
@@ -523,14 +513,8 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         }
 
         @Override
-        public MapSupplier<K, V> plus(MapCollector<K, V> collector) {
-            MapCollector<K, V> left = new FixedValueCollector<>(entries, sideEffect);
-            return new CollectingSupplier<>(keyCollector, entryCollector, left).plus(collector);
-        }
-
-        @Override
-        public MapSupplier<K, V> absentIgnoring() {
-            return this;
+        public MapSupplier<K, V> plus(MapCollector<K, V> collector, boolean ignoreAbsent) {
+            return newCollectingSupplierOf(new FixedValueCollector<>(entries, sideEffect)).plus(collector, ignoreAbsent);
         }
 
         @Override
@@ -547,6 +531,10 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         public String toString() {
             return entries.toString();
         }
+    }
+
+    private CollectingSupplier<K, V> newCollectingSupplierOf(MapCollector<K, V> collector) {
+        return new CollectingSupplier<>(keyCollector, entryCollector, collector);
     }
 
     private static class CollectingSupplier<K, V> extends AbstractMinimalProvider<Map<K, V>> implements MapSupplier<K, V> {
@@ -647,15 +635,10 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         }
 
         @Override
-        public MapSupplier<K, V> plus(MapCollector<K, V> addedCollector) {
+        public MapSupplier<K, V> plus(MapCollector<K, V> addedCollector, boolean ignoreAbsent) {
             Preconditions.checkState(collectors.size() == size);
-            collectors.add(addedCollector);
+            collectors.add(ignoreAbsentIfNeeded(addedCollector, ignoreAbsent));
             return new CollectingSupplier<>(keyCollector, entryCollector, collectors, size + 1);
-        }
-
-        @Override
-        public MapSupplier<K, V> absentIgnoring() {
-            return this;
         }
 
         @Override
@@ -752,10 +735,6 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
             return collectors.subList(0, size);
         }
 
-        private boolean isAbsentIgnoring(MapCollector<K, V> collector) {
-            return collector instanceof AbsentIgnoringCollector<?, ?>;
-        }
-
         private ExecutionTimeValue<Map<K, V>> maybeChangingContent(ExecutionTimeValue<Map<K, V>> value, boolean changingContent) {
             return changingContent ? value.withChangingContent() : value;
         }
@@ -797,6 +776,17 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
             });
             return sb.toString();
         }
+    }
+
+    private static boolean isAbsentIgnoring(MapCollector<?, ?> collector) {
+        return collector instanceof AbsentIgnoringCollector<?, ?>;
+    }
+
+    private static <K, V> MapCollector<K, V> ignoreAbsentIfNeeded(MapCollector<K, V> collector, boolean ignoreAbsent) {
+        if (ignoreAbsent && !isAbsentIgnoring(collector)) {
+            return new AbsentIgnoringCollector<>(collector);
+        }
+        return collector;
     }
 
     private static class AbsentIgnoringCollector<K, V> implements MapCollector<K, V> {
