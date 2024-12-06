@@ -121,6 +121,10 @@ However, if the build is configured to fail on warnings during Kotlin script or 
 
 A standard Gradle deprecation warning will be printed upon use when these methods are fully deprecated in a future version.
 
+==== Upgrade to Kotlin 2.1.0
+
+The embedded Kotlin has been updated from 2.0.21 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.1.0[Kotlin 2.1.0].
+
 === Deprecations
 
 ==== Recursively querying `AttributeContainer` in lazy provider
