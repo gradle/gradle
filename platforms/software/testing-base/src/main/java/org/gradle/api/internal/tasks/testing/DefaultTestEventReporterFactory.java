@@ -96,7 +96,7 @@ public final class DefaultTestEventReporterFactory implements TestEventReporterF
     }
 
     /**
-     * Wrapper for {@link TestReportDataCollector} that track extra state, ensuring it is properly closable.
+     * Wrapper for {@link TestReportDataCollector} that tracks extra state, ensuring it is properly closable.
      *
      * This should eventually be merged with TestReportDataCollector.
      */
