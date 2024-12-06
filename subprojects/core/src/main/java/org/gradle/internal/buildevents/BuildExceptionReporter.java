@@ -328,7 +328,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
                 context.appendResolution(output ->
                     output.text(join("\n " + LINE_PREFIX_LENGTH_SPACES, resolution.split("\n"))))
             );
-        boolean shouldDisplayGenericResolutions = !hasCauseAncestry(details.failure, NonGradleCause.class) && !hasProblemReportsWithSolutions(details.failure, problemLookup);
+        boolean shouldDisplayGenericResolutions = !hasCauseAncestry(details.failure, NonGradleCause.class) && !hasProblemReportsWithSolutions(details.failure, problemLocator);
         if (details.exceptionStyle == ExceptionStyle.NONE && shouldDisplayGenericResolutions) {
             context.appendResolution(output ->
                 runWithOption(output, STACKTRACE_LONG_OPTION, " option to get the stack trace.")
@@ -358,7 +358,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
         }
     }
 
-    private static boolean hasProblemReportsWithSolutions(Throwable throwable, ProblemLookup problemLookup) {
+    private static boolean hasProblemReportsWithSolutions(Throwable throwable, ProblemLocator problemLookup) {
         Optional<String> solution = problemLookup.findAll(throwable).stream().flatMap(p -> p.getSolutions().stream()).findFirst();
         if (solution.isPresent()) {
             return true;
@@ -367,7 +367,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
         }
     }
 
-    private static boolean hasProblemReportsWithSolutions(List<? extends Throwable> throwables, ProblemLookup problemLookup) {
+    private static boolean hasProblemReportsWithSolutions(List<? extends Throwable> throwables, ProblemLocator problemLookup) {
         return throwables.stream().anyMatch(t -> hasProblemReportsWithSolutions(t, problemLookup));
     }
 
