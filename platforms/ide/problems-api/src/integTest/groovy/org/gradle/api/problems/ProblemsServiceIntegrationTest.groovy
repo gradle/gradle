@@ -25,7 +25,7 @@ import org.gradle.integtests.fixtures.GroovyBuildScriptLanguage
 
 import static org.gradle.api.problems.ReportingScript.getProblemReportingScript
 
-class   ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
+class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         enableProblemsApiCheck()
