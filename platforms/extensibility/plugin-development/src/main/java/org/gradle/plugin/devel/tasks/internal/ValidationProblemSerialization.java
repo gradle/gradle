@@ -634,22 +634,21 @@ public class ValidationProblemSerialization {
                 out.name(ADDITIONAL_DATA_TYPE).value(GENERAL_DATA);
                 out.name(GENERAL_DATA_DATA);
                 out.beginObject();
-//                Map<String, Object> map = value.getAsMap();
-//                for (String key : map.keySet()) {
-//                    out.name(key);
-//                    Object v = map.get(key);
-//                    if (v instanceof String) {
-//                        out.value((String) v);
-//                    } else if (v instanceof Number) {
-//                        out.value((Number) v);
-//                    } else if (v instanceof Boolean) {
-//                        out.value((Boolean) v);
-//                    } else if (v == null) {
-//                        out.nullValue();
-//                    } else {
-//                        throw new IllegalArgumentException("Unsupported value type: " + v.getClass().getName());
-//                    }
-//                }
+                for (Map.Entry<String, Object> entry : ((GeneralData) value).getAsMap().entrySet()) {
+                    out.name(entry.getKey());
+                    Object v = entry.getValue();
+                    if (v instanceof String) {
+                        out.value((String) v);
+                    } else if (v instanceof Number) {
+                        out.value((Number) v);
+                    } else if (v instanceof Boolean) {
+                        out.value((Boolean) v);
+                    } else if (v == null) {
+                        out.nullValue();
+                    } else {
+                        throw new IllegalArgumentException("Unsupported value type: " + v.getClass().getName());
+                    }
+                }
                 out.endObject();
             } else if (value instanceof PropertyTraceData) {
                 out.name(ADDITIONAL_DATA_TYPE).value(PROPERTY_TRACE_DATA);
@@ -673,7 +672,7 @@ public class ValidationProblemSerialization {
                 String parentPropertyName = null;
                 String typeName = null;
                 String name;
-                Map<String, String> generalData = null;
+                Map<String, Object> generalData = null;
                 String propertyTrace = null;
 
                 while (in.hasNext()) {
@@ -746,7 +745,7 @@ public class ValidationProblemSerialization {
             String methodName,
             String parentPropertyName,
             String typeName,
-            Map<String, String> generalData,
+            Map<String, Object> generalData,
             String propertyTrace
         ) {
             switch (type) {

@@ -28,6 +28,6 @@ public interface GeneralData extends AdditionalData {
     /**
      * Returns the data as a map.
      */
-    Map<String, String> getAsMap();
+    Map<String, Object> getAsMap();
 
 }

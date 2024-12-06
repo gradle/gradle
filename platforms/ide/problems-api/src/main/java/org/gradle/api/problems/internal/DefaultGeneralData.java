@@ -25,9 +25,9 @@ import java.util.Map;
 
 public class DefaultGeneralData implements GeneralData, Serializable {
 
-    private final Map<String, String> map;
+    private final Map<String, Object> map;
 
-    public DefaultGeneralData(Map<String, String> map) {
+    public DefaultGeneralData(Map<String, Object> map) {
         this.map = ImmutableMap.copyOf(map);
     }
 
@@ -39,12 +39,12 @@ public class DefaultGeneralData implements GeneralData, Serializable {
     }
 
     @Override
-    public Map<String, String> getAsMap() {
+    public Map<String, Object> getAsMap() {
         return map;
     }
 
     private static class DefaultGeneralDataBuilder implements GeneralDataSpec, AdditionalDataBuilder<GeneralData> {
-        private final ImmutableMap.Builder<String, String> mapBuilder = ImmutableMap.builder();
+        private final ImmutableMap.Builder<String, Object> mapBuilder = ImmutableMap.builder();
 
         private DefaultGeneralDataBuilder() {
         }
