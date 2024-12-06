@@ -19,6 +19,7 @@ dependencies {
     implementation(projects.baseServices)
     implementation(projects.daemonProtocol)
     implementation(projects.logging)
+    implementation(projects.serviceLookup)
 
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.toolchainsJvmShared))

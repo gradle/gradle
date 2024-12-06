@@ -17,20 +17,24 @@
 package org.gradle.internal.buildconfiguration.tasks;
 
 import org.gradle.internal.buildconfiguration.DaemonJvmPropertiesDefaults;
+import org.gradle.platform.Architecture;
 import org.gradle.platform.BuildPlatform;
-import org.gradle.util.internal.GUtil;
-
-import java.util.Locale;
+import org.gradle.platform.BuildPlatformFactory;
+import org.gradle.platform.OperatingSystem;
 
 public class DaemonJvmPropertiesUtils {
 
     public static String getToolchainUrlPropertyForPlatform(BuildPlatform buildPlatform) {
-        String operatingSystemName = toCamelCaseName(buildPlatform.getOperatingSystem().name());
-        String architectureName = toCamelCaseName(buildPlatform.getArchitecture().name());
+        String operatingSystemName = buildPlatform.getOperatingSystem().name();
+        String architectureName = buildPlatform.getArchitecture().name();
         return String.format(DaemonJvmPropertiesDefaults.TOOLCHAIN_URL_PROPERTY_FORMAT, operatingSystemName, architectureName);
     }
 
-    private static String toCamelCaseName(String text) {
-        return GUtil.toCamelCase(text.replace("_", " ").toLowerCase(Locale.ROOT));
+    public static BuildPlatform getPlatformFromToolchainProperty(String toolchainUrlProperty) {
+        String[] parts = toolchainUrlProperty.split("\\.");
+        if (parts.length != 3) {
+            throw new IllegalArgumentException(String.format("Invalid toolchain URL property name: %s", toolchainUrlProperty));
+        }
+        return BuildPlatformFactory.of(Architecture.valueOf(parts[2]), OperatingSystem.valueOf(parts[1]));
     }
 }

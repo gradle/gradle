@@ -25,9 +25,13 @@ import org.gradle.platform.BuildPlatform;
 import org.gradle.platform.OperatingSystem;
 
 import javax.inject.Inject;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.util.Objects;
 
-public class DefaultBuildPlatform implements BuildPlatform {
+public class DefaultBuildPlatform implements BuildPlatform, Serializable {
 
     private Supplier<Architecture> architecture;
 
@@ -120,5 +124,27 @@ public class DefaultBuildPlatform implements BuildPlatform {
         } else {
             throw new GradleException("Unhandled operating system: " + operatingSystem.getName());
         }
+    }
+
+    private void writeObject(ObjectOutputStream out) throws IOException {
+        out.writeObject(architecture.get());
+        out.writeObject(operatingSystem.get());
+    }
+
+    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+        final Architecture architecture = (Architecture) in.readObject();
+        final OperatingSystem operatingSystem = (OperatingSystem) in.readObject();
+        this.architecture = Suppliers.memoize(new Supplier<Architecture>() {
+            @Override
+            public Architecture get() {
+                return architecture;
+            }
+        });
+        this.operatingSystem = Suppliers.memoize(new Supplier<OperatingSystem>() {
+            @Override
+            public OperatingSystem get() {
+                return operatingSystem;
+            }
+        });
     }
 }

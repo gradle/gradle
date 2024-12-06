@@ -51,3 +51,8 @@ jmh {
 tasks.isolatedProjectsIntegTest {
     enabled = false
 }
+
+packageCycles {
+    // Cycle between public interface, Factory and implementation class in internal package
+    excludePatterns.add("org/gradle//platform/internal/**")
+}

@@ -16,27 +16,18 @@
 
 package org.gradle.internal.buildconfiguration.services;
 
-import org.gradle.api.model.ObjectFactory;
-import org.gradle.internal.buildconfiguration.resolvers.DefaultToolchainRepositoriesResolver;
-import org.gradle.internal.buildconfiguration.resolvers.ToolchainRepositoriesResolver;
 import org.gradle.internal.buildconfiguration.tasks.DaemonJvmPropertiesModifier;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
-import org.gradle.jvm.toolchain.JavaToolchainResolverRegistry;
 
 public class BuildConfigurationServices extends AbstractGradleModuleServices {
 
     protected static class ProjectScopeServices implements ServiceRegistrationProvider {
         @Provides
-        DaemonJvmPropertiesModifier createDaemonJvmPropertiesModifier(ToolchainRepositoriesResolver toolchainRepositoriesResolver) {
-            return new DaemonJvmPropertiesModifier(toolchainRepositoriesResolver);
-        }
-
-        @Provides
-        ToolchainRepositoriesResolver createToolchainRepositoriesResolver(JavaToolchainResolverRegistry javaToolchainResolverRegistry, ObjectFactory objectFactory) {
-            return new DefaultToolchainRepositoriesResolver(javaToolchainResolverRegistry, objectFactory);
+        DaemonJvmPropertiesModifier createDaemonJvmPropertiesModifier() {
+            return new DaemonJvmPropertiesModifier();
         }
     }
 
