@@ -80,6 +80,10 @@ reporting {
 Similarly, the `testType` property was removed from link:{javadocPath}/org/gradle/api/plugins/jvm/JvmTestSuite.html[JvmTestSuite] and both the `TestSuiteTargetName` and `TestSuiteType` attributes have been removed.
 Test reports and Jacoco reports can now be aggregated between projects by specifying the name of the test suite in the target project to aggregate.
 
+==== Upgrade to Kotlin 2.1.0
+
+The embedded Kotlin has been updated from 2.0.21 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.1.0[Kotlin 2.1.0].
+
 === Deprecations
 
 ==== Recursively querying `AttributeContainer` in lazy provider
