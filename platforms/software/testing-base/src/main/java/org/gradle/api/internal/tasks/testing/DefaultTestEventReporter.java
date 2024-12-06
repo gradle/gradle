@@ -28,6 +28,8 @@ import org.gradle.api.tasks.testing.TestResult;
 
 import java.time.Instant;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 @NonNullApi
 class DefaultTestEventReporter implements TestEventReporter {
@@ -71,8 +73,18 @@ class DefaultTestEventReporter implements TestEventReporter {
         Preconditions.checkNotNull(logTime, "logTime can not be null!");
         Preconditions.checkNotNull(key, "Metadata key can not be null!");
         Preconditions.checkNotNull(value, "Metadata value can not be null!");
-        listener.metadata(testDescriptor, new DefaultTestMetadataEvent(logTime.toEpochMilli(), key, value));
+        Map<String, Object> values = new HashMap<>();
+        values.put(key, value);
+        listener.metadata(testDescriptor, new DefaultTestMetadataEvent(logTime.toEpochMilli(), values));
     }
+
+    @Override
+    public void metadata(Instant logTime, Map<String, Object> values) {
+        Preconditions.checkNotNull(logTime, "logTime can not be null!");
+        Preconditions.checkNotNull(values, "Metadata can not be null!");
+        Preconditions.checkArgument(!values.isEmpty(), "Metadata can not be empty!");
+        listener.metadata(testDescriptor, new DefaultTestMetadataEvent(logTime.toEpochMilli(), values));
+}
 
     @Override
     public void succeeded(Instant endTime) {

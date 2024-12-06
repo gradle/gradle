@@ -16,6 +16,8 @@
 
 package org.gradle.tooling.internal.protocol.events;
 
+import java.util.Map;
+
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
  *
@@ -25,7 +27,5 @@ public interface InternalTestMetadataEvent extends InternalProgressEvent {
     @Override
     InternalTestMetadataDescriptor getDescriptor();
 
-    String getKey();
-
-    Object getValue();
+    Map<String, Object> getValues();
 }

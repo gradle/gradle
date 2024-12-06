@@ -19,33 +19,37 @@ package org.gradle.internal.build.event.types;
 import org.gradle.tooling.internal.protocol.events.InternalTestMetadataDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalTestMetadataEvent;
 
+import javax.annotation.Nonnull;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 /**
  * Default implementation of the {@code InternalTestMetadataEvent} interface.
  *
  * This is created by the provider side of the tooling API.
  */
 public final class DefaultTestMetadataEvent extends AbstractProgressEvent<InternalTestMetadataDescriptor> implements InternalTestMetadataEvent {
-    private final String key;
-    private final Object value;
+    private static final int KEYS_TO_SUMMARIZE = 3;
 
-    public DefaultTestMetadataEvent(long startTime, InternalTestMetadataDescriptor descriptor, String key, Object value) {
+    private final Map<String, Object> values;
+
+    public DefaultTestMetadataEvent(long startTime, InternalTestMetadataDescriptor descriptor, Map<String, Object> values) {
         super(startTime, descriptor);
-        this.key = key;
-        this.value = value;
+        this.values = values;
     }
 
     @Override
     public String getDisplayName() {
-        return getDescriptor().getDisplayName() + " for " + key;
+        return getDescriptor().getDisplayName() + " containing: " + summarizeKeys();
+    }
+
+    @Nonnull
+    private String summarizeKeys() {
+        return values.keySet().stream().limit(KEYS_TO_SUMMARIZE).collect(Collectors.joining(", "));
     }
 
     @Override
-    public String getKey() {
-        return key;
-    }
-
-    @Override
-    public Object getValue() {
-        return value;
+    public Map<String, Object> getValues() {
+        return values;
     }
 }

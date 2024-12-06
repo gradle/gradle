@@ -56,7 +56,7 @@ import org.gradle.tooling.internal.protocol.events.InternalTestMetadataDescripto
             ExecuteTestBuildOperationType.Metadata metadata = (ExecuteTestBuildOperationType.Metadata) details;
             InternalTestMetadataDescriptor descriptor = new DefaultTestMetadataDescriptor(new OperationIdentifier(idFactory.nextId()), buildOperationId);
             TestMetadataEvent metadataMetadataEvent = metadata.getMetadata();
-            eventConsumer.progress(new DefaultTestMetadataEvent(progressEvent.getTime(), descriptor, metadataMetadataEvent.getKey(), metadataMetadataEvent.getValue()));
+            eventConsumer.progress(new DefaultTestMetadataEvent(progressEvent.getTime(), descriptor, metadataMetadataEvent.getValues()));
         }
     }
 

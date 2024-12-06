@@ -19,26 +19,22 @@ package org.gradle.tooling.events.test;
 import org.gradle.api.Incubating;
 import org.gradle.tooling.events.ProgressEvent;
 
+import java.util.Map;
+
 /**
  * An event that informs about a test capturing metadata while running.
  * <p>
- * A new test metadata event instance is created for each piece of metadata reported.
+ * A new test metadata event instance is created for each metadata reporting event, which
+ * might involve multiple values.
  *
  * @since 8.13
  */
 @Incubating
 public interface TestMetadataEvent extends ProgressEvent {
     /**
-     * Describes the key used to identify the metadata.
+     * Returns the metadata itself.
      *
      * @since 8.13
      */
-    String getKey();
-
-    /**
-     * The metadata itself.
-     *
-     * @since 8.13
-     */
-    Object getValue();
+    Map<String, Object> getValues();
 }

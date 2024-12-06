@@ -63,7 +63,7 @@ class DefaultTestEventsSpec implements TestEventsFixture.TestEventsSpec {
     final List<TestOperationDescriptor> testEvents
     final Set<OperationDescriptor> verifiedEvents = []
     final Map<TestOperationDescriptor, List<String>> outputByDescriptor
-    final Map<TestOperationDescriptor, Map<String, Object>> metadataByDescriptor
+    final Map<TestOperationDescriptor, Map<String, Object>> metadataByDescriptor = [:]
 
     DefaultTestEventsSpec(ProgressEvents events) {
         testEvents = events.tests.collect {(TestOperationDescriptor) it.descriptor }
@@ -75,12 +75,10 @@ class DefaultTestEventsSpec implements TestEventsFixture.TestEventsSpec {
             .collectEntries { entry ->
                 [(entry.key): entry.value*.descriptor.message]
             }
-        metadataByDescriptor = events.getAll()
+        events.getAll()
             .findAll { it instanceof TestMetadataEvent }
-            .collect { (TestMetadataEvent) it }
-            .groupBy {it.descriptor.parent }
-            .collectEntries { entry ->
-                [(entry.key): entry.value.collectEntries {[(it.key): it.value] }]
+            .collect { (TestMetadataEvent) it }.each {
+                metadataByDescriptor.computeIfAbsent((TestOperationDescriptor)it.descriptor.parent) { [:] }.putAll(it.values)
             }
     }
 

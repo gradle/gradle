@@ -188,9 +188,7 @@ Custom test root > My Suite > another failing test FAILED
         testMetadata.size() == 1
         def firstTestMetadataDetails = testMetadata*.details.metadata as List<Map<String, ?>>
         firstTestMetadataDetails.size() == 1
-        firstTestMetadataDetails[0]["key"] == "my key"
-        firstTestMetadataDetails[0]["value"].class == String.class
-        firstTestMetadataDetails[0]["value"] == "my value"
+        firstTestMetadataDetails[0]["values"]["my key"] == "my value"
     }
 
     def "captures List metadata for custom test"() {
@@ -205,9 +203,7 @@ Custom test root > My Suite > another failing test FAILED
         testMetadata.size() == 1
         def firstTestMetadataDetails = testMetadata*.details.metadata as List<Map<String, ?>>
         firstTestMetadataDetails.size() == 1
-        firstTestMetadataDetails[0]["key"] == "my key"
-        firstTestMetadataDetails[0]["value"].class == ArrayList.class
-        firstTestMetadataDetails[0]["value"] == [1, 2, 3]
+        firstTestMetadataDetails[0]["values"]["my key"] == [1, 2, 3]
     }
 
     def "captures calendar metadata for custom test"() {
@@ -222,9 +218,7 @@ Custom test root > My Suite > another failing test FAILED
         testMetadata.size() == 1
         def firstTestMetadataDetails = testMetadata*.details.metadata as List<Map<String, ?>>
         firstTestMetadataDetails.size() == 1
-        firstTestMetadataDetails[0]["key"] == "my key"
-        firstTestMetadataDetails[0]["value"].class == Long.class
-        firstTestMetadataDetails[0]["value"] == new GregorianCalendar(2024, 11, 27).toInstant().toEpochMilli()
+        firstTestMetadataDetails[0]["values"]["my key"] == new GregorianCalendar(2024, 11, 27).toInstant().toEpochMilli()
     }
 
     def "captures File metadata for custom test"() {
@@ -268,9 +262,7 @@ Custom test root > My Suite > another failing test FAILED
         testMetadata.size() == 1
         def firstTestMetadataDetails = testMetadata*.details.metadata as List<Map<String, ?>>
         firstTestMetadataDetails.size() == 1
-        firstTestMetadataDetails[0]["key"] == "my key"
-        firstTestMetadataDetails[0]["value"].class == String.class
-        firstTestMetadataDetails[0]["value"] == new File(testDirectory.file("build", "somefile.txt").absolutePath).absolutePath
+        firstTestMetadataDetails[0]["values"]["my key"] == new File(testDirectory.file("build", "somefile.txt").absolutePath).absolutePath
     }
 
     def "captures URL metadata for custom test"() {
@@ -314,8 +306,7 @@ Custom test root > My Suite > another failing test FAILED
         testMetadata.size() == 1
         def firstTestMetadataDetails = testMetadata*.details.metadata as List<Map<String, ?>>
         firstTestMetadataDetails.size() == 1
-        firstTestMetadataDetails[0]["key"] == "my key"
-        firstTestMetadataDetails[0]["value"] == new File(testDirectory.file("build", "somefile.txt").absolutePath).toURI().toURL().toString()
+        firstTestMetadataDetails[0]["values"]["my key"] == new File(testDirectory.file("build", "somefile.txt").absolutePath).toURI().toURL().toString()
     }
 
     @SuppressWarnings(['UnnecessaryQualifiedReference', 'GroovyResultOfObjectAllocationIgnored'])
@@ -346,8 +337,7 @@ Custom test root > My Suite > another failing test FAILED
         testMetadata.size() == 1
         def firstTestMetadataDetails = testMetadata*.details.metadata as List<Map<String, ?>>
         firstTestMetadataDetails.size() == 1
-        firstTestMetadataDetails[0]["key"] == "my key"
-        firstTestMetadataDetails[0]["value"]["customOperationTraceSerializableModel"] == ["my custom serializable type", "with some values", "in a list", 2024]
+        firstTestMetadataDetails[0]["values"]["my key"]["customOperationTraceSerializableModel"] == ["my custom serializable type", "with some values", "in a list", 2024]
     }
 
     def "captures multiple metadata values for custom test"() {
@@ -390,10 +380,8 @@ Custom test root > My Suite > another failing test FAILED
         testMetadata.size() == 2
         def firstTestMetadataDetails = testMetadata*.details.metadata as List<Map<String, ?>>
         firstTestMetadataDetails.size() == 2
-        firstTestMetadataDetails[0]["key"] == "key1"
-        firstTestMetadataDetails[0]["value"] == "value1"
-        firstTestMetadataDetails[1]["key"] == "key2"
-        firstTestMetadataDetails[1]["value"] == 2
+        firstTestMetadataDetails[0]["values"]["key1"] == "value1"
+        firstTestMetadataDetails[1]["values"]["key2"] == 2
     }
 
     def "captures multiple metadata values for multiple custom tests and correctly associates them"() {
@@ -462,17 +450,14 @@ Custom test root > My Suite > another failing test FAILED
         testMetadata1.size() == 2
         def firstTestMetadataDetails = testMetadata1*.details.metadata as List<Map<String, ?>>
         firstTestMetadataDetails.size() == 2
-        firstTestMetadataDetails[0]["key"] == "key1"
-        firstTestMetadataDetails[0]["value"] == "value1"
-        firstTestMetadataDetails[1]["key"] == "key2"
-        firstTestMetadataDetails[1]["value"] == 2
+        firstTestMetadataDetails[0]["values"]["key1"] == "value1"
+        firstTestMetadataDetails[1]["values"]["key2"] == 2
 
         List<BuildOperationRecord.Progress> testMetadata2 = firstLevelTestOps[1].progress(ExecuteTestBuildOperationType.Metadata)
         testMetadata2.size() == 1
         def secondTestMetadataDetails = testMetadata2*.details.metadata as List<Map<String, ?>>
         secondTestMetadataDetails.size() == 1
-        secondTestMetadataDetails[0]["key"] == "key3"
-        secondTestMetadataDetails[0]["value"] == "value4"
+        secondTestMetadataDetails[0]["values"]["key3"] == "value4"
     }
 
     def "null metadata timestamps aren't allowed"() {
@@ -669,10 +654,8 @@ Custom test root > My Suite > another failing test FAILED
         testMetadata.size() == 2
         def firstTestMetadataDetails = testMetadata*.details.metadata as List<Map<String, ?>>
         firstTestMetadataDetails.size() == 2
-        firstTestMetadataDetails[0]["key"] == "mykey"
-        firstTestMetadataDetails[0]["value"] == "myvalue"
-        firstTestMetadataDetails[1]["key"] == "mykey"
-        firstTestMetadataDetails[1]["value"] == "updated"
+        firstTestMetadataDetails[0]["values"]["mykey"] == "myvalue"
+        firstTestMetadataDetails[1]["values"]["mykey"] == "updated"
     }
 
     private TestFile singleCustomTestRecordingMetadata(String key, @GroovyBuildScriptLanguage String valueExpression) {
