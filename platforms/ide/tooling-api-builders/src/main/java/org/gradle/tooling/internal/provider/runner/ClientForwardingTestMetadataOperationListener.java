@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.tooling.internal.provider.runner;
 
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.tasks.testing.operations.ExecuteTestBuildOperationType;
-import org.gradle.api.tasks.testing.TestOutputEvent;
-import org.gradle.internal.build.event.types.DefaultTestOutputDescriptor;
-import org.gradle.internal.build.event.types.DefaultTestOutputEvent;
-import org.gradle.internal.build.event.types.DefaultTestOutputResult;
+import org.gradle.api.tasks.testing.TestMetadataEvent;
+import org.gradle.internal.build.event.types.DefaultTestMetadataDescriptor;
+import org.gradle.internal.build.event.types.DefaultTestMetadataEvent;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationIdFactory;
 import org.gradle.internal.operations.BuildOperationListener;
@@ -28,18 +28,19 @@ import org.gradle.internal.operations.OperationFinishEvent;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.OperationProgressEvent;
 import org.gradle.internal.operations.OperationStartEvent;
-import org.gradle.tooling.events.test.Destination;
-import org.gradle.tooling.internal.protocol.events.InternalTestOutputDescriptor;
+import org.gradle.tooling.internal.protocol.events.InternalTestMetadataDescriptor;
 
 /**
- * Test listener that forwards the test output events.
+ * Test listener that forwards the test metadata events.
+ *
+ * This listener adapts build operation test events sent from the build into internal test events shared with the consumer.
  */
 @NonNullApi
-class ClientForwardingTestOutputOperationListener implements BuildOperationListener {
+/* package */ class ClientForwardingTestMetadataOperationListener implements BuildOperationListener {
     private final ProgressEventConsumer eventConsumer;
     private final BuildOperationIdFactory idFactory;
 
-    ClientForwardingTestOutputOperationListener(ProgressEventConsumer eventConsumer, BuildOperationIdFactory idFactory) {
+    /* package */ ClientForwardingTestMetadataOperationListener(ProgressEventConsumer eventConsumer, BuildOperationIdFactory idFactory) {
         this.eventConsumer = eventConsumer;
         this.idFactory = idFactory;
     }
@@ -51,20 +52,11 @@ class ClientForwardingTestOutputOperationListener implements BuildOperationListe
     @Override
     public void progress(OperationIdentifier buildOperationId, OperationProgressEvent progressEvent) {
         Object details = progressEvent.getDetails();
-        if (details instanceof ExecuteTestBuildOperationType.Output) {
-            ExecuteTestBuildOperationType.Output progress = (ExecuteTestBuildOperationType.Output) details;
-            InternalTestOutputDescriptor descriptor = new DefaultTestOutputDescriptor(new OperationIdentifier(idFactory.nextId()), buildOperationId);
-            int destination = getDestination(progress.getOutput().getDestination());
-            DefaultTestOutputResult result = new DefaultTestOutputResult(progressEvent.getTime(), progressEvent.getTime(), destination, progress.getOutput().getMessage());
-            eventConsumer.progress(new DefaultTestOutputEvent(progressEvent.getTime(), descriptor, result));
-        }
-    }
-
-    private static int getDestination(TestOutputEvent.Destination destination) {
-        switch (destination) {
-            case StdOut: return Destination.StdOut.getCode();
-            case StdErr: return Destination.StdErr.getCode();
-            default: throw new IllegalStateException("Unknown output destination type: " + destination);
+        if (details instanceof ExecuteTestBuildOperationType.Metadata) {
+            ExecuteTestBuildOperationType.Metadata metadata = (ExecuteTestBuildOperationType.Metadata) details;
+            InternalTestMetadataDescriptor descriptor = new DefaultTestMetadataDescriptor(new OperationIdentifier(idFactory.nextId()), buildOperationId);
+            TestMetadataEvent metadataMetadataEvent = metadata.getMetadata();
+            eventConsumer.progress(new DefaultTestMetadataEvent(progressEvent.getTime(), descriptor, metadataMetadataEvent.getKey(), metadataMetadataEvent.getValue()));
         }
     }
 
