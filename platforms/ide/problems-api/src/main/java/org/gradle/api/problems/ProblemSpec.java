@@ -34,22 +34,9 @@ public interface ProblemSpec {
      *
      * @param problemId the problem id
      * @return this
-     * @since 8.12
+     * @since 8.13
      */
     ProblemSpec id(ProblemId problemId);
-
-    /**
-     * Defines simple identification for this problem.
-     * <p>
-     * It is a mandatory property to configure when emitting a problem with {@link ProblemReporter}.
-     *
-     * @param name the name of the problem. As a convention kebab-case-formatting should be used.
-     * @param displayName a human-readable representation of the problem, free of any contextual information.
-     * @param parent the container problem group.
-     * @return this
-     * @since 8.8
-     */
-    ProblemSpec id(String name, String displayName, ProblemGroup parent);
 
     /**
      * Declares a short, but context-dependent message for this problem.

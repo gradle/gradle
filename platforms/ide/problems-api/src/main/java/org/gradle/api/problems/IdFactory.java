@@ -21,17 +21,29 @@ import org.gradle.api.problems.internal.DefaultIdFactory;
 
 /**
  * A factory for creating problem ids and problem groups.
+ * <p>
+ * Clients should use the {@link #instance()} method to obtain an instance of this factory.
+ * <p>
+ * Custom implementation for this class is not supported.
  *
- * @since 8.12
+ * @since 8.13
  */
 @Incubating
 public abstract class IdFactory {
 
     /**
+     * Constructor.
+     *
+     * @since 8.13
+     */
+    protected IdFactory() {
+    }
+
+    /**
      * Returns the default instance of the factory.
      *
      * @return the instance
-     * @since 8.12
+     * @since 8.13
      */
     public static IdFactory instance() {
         return DefaultIdFactory.INSTANCE;
@@ -43,7 +55,7 @@ public abstract class IdFactory {
      * @param name the name of the group
      * @param displayName the user-friendly display name of the group
      * @return the new group
-     * @since 8.12
+     * @since 8.13
      */
     public abstract ProblemGroup createRootProblemGroup(String name, String displayName);
 
@@ -54,7 +66,7 @@ public abstract class IdFactory {
      * @param displayName the user-friendly display name of the group
      * @param parent the parent group
      * @return the new group
-     * @since 8.12
+     * @since 8.13
      */
     public abstract ProblemGroup createProblemGroup(String name, String displayName, ProblemGroup parent);
 
@@ -65,7 +77,7 @@ public abstract class IdFactory {
      * @param displayName the user-friendly display name of the problem
      * @param group the group to which the problem belongs
      * @return the new problem id
-     * @since 8.12
+     * @since 8.13
      */
     public abstract ProblemId createProblemId(String name, String displayName, ProblemGroup group);
 }
