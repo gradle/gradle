@@ -39,13 +39,12 @@ import org.gradle.internal.nativeintegration.services.FileSystems;
 import org.gradle.process.ProcessForkOptions;
 
 import javax.inject.Inject;
-import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
 public class DefaultProcessForkOptions implements ProcessForkOptions {
     // TODO(mlopatkin) this provider is a good candidate for CC deduplication
-    protected static final Provider<Map<String, String>> CURRENT_ENVIRONMENT = Providers.changing(System::getenv);
+    protected static final Provider<Map<String, String>> CURRENT_ENVIRONMENT = Providers.changing(DefaultClientExecHandleBuilder::getCurrentEnvironment);
 
     protected final PathToFileResolver resolver;
     private final Property<String> executable;
@@ -93,7 +92,9 @@ public class DefaultProcessForkOptions implements ProcessForkOptions {
     ) {
         this.resolver = resolver;
         this.executable = executable;
-        this.workingDir = workingDir.convention(defaultWorkingDir.fileProvider(Providers.of(new File("."))));
+        // TODO: Gradle 9.0 we should just use defaultWorkingDir.fileProvider(Providers.of(new File("."))) here,
+        //  but it seems ObjectFactory.directoryProperty() doesn't have the right fileResolver set up in some cases
+        this.workingDir = workingDir.convention(defaultWorkingDir.fileProvider(Providers.changing(() -> resolver.resolve("."))));
         this.environment = environment.value(inheritableEnvironment);
     }
 

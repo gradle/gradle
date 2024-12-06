@@ -204,16 +204,15 @@ public class DefaultClientExecHandleBuilder implements ClientExecHandleBuilder, 
 
     @Override
     @SuppressWarnings("unchecked")
-    public Map<String, Object> getDefaultEnvironment() {
-        return (Map<String, Object>) (Map<String, ?>) System.getenv();
-    }
-
-    @Override
     public Map<String, Object> getEnvironment() {
         if (environment == null) {
-            setEnvironment(getDefaultEnvironment());
+            setEnvironment((Map<String, Object>) (Map<String, ?>) getCurrentEnvironment());
         }
         return environment;
+    }
+
+    static Map<String, String> getCurrentEnvironment() {
+        return System.getenv();
     }
 
     @Override
