@@ -25,6 +25,7 @@ import org.gradle.internal.Describables
 import org.gradle.internal.evaluation.CircularEvaluationException
 import org.gradle.util.internal.TextUtil
 import org.spockframework.lang.Wildcard
+import spock.lang.Ignore
 
 import java.util.function.Consumer
 
@@ -1282,6 +1283,7 @@ The value of this property is derived from: <source>""")
         }
     }
 
+    @Ignore('absence ignoring operations are no longer supported')
     def "can add to convention value"() {
         given:
         property.convention(Providers.of(["1"]))
@@ -1302,6 +1304,7 @@ The value of this property is derived from: <source>""")
         !property.explicit
     }
 
+    @Ignore('absence ignoring operations are no longer supported')
     def "can add to convention value with append"() {
         given:
         property.convention(Providers.of(["1"]))
@@ -1320,6 +1323,7 @@ The value of this property is derived from: <source>""")
         !property.explicit
     }
 
+    @Ignore('absence ignoring operations are no longer supported')
     def "can add to explicit value"() {
         given:
         property.set([])
@@ -1333,6 +1337,7 @@ The value of this property is derived from: <source>""")
         property.explicit
     }
 
+    @Ignore('absence ignoring operations are no longer supported')
     def "can add to explicit value with append"() {
         given:
         property.set([])
@@ -1344,6 +1349,7 @@ The value of this property is derived from: <source>""")
         property.explicit
     }
 
+    @Ignore('absence ignoring operations are no longer supported')
     def "can add to actual value without previous configuration"() {
         given:
         property.withActualValue {
@@ -1363,6 +1369,7 @@ The value of this property is derived from: <source>""")
         property.explicit
     }
 
+    @Ignore('absence ignoring operations are no longer supported')
     def "can add to actual value without previous configuration with append"() {
         given:
         property.appendAll(Providers.of(["1", "2"]))
@@ -1373,6 +1380,7 @@ The value of this property is derived from: <source>""")
         property.explicit
     }
 
+    @Ignore('absence ignoring operations are no longer supported')
     def "test '#label' vs undefined-safety"(String label) {
         given:
         if (!(convention instanceof Wildcard)) {
@@ -1435,6 +1443,7 @@ The value of this property is derived from: <source>""")
         ["0", "1"] | _            | _          | "add, then append missing, then add"               | { it.add("0"); it.append(notDefined()); it.add("1") }
     }
 
+    @Ignore('absence ignoring operations are no longer supported')
     def "execution time value is present if only undefined-safe operations are performed"() {
         given:
         property.set(notDefined())
@@ -1454,6 +1463,7 @@ The value of this property is derived from: <source>""")
         assertCollectionIs(execTimeValue.toValue().get(), toImmutable(['2', '3', '4']),)
     }
 
+    @Ignore('absence ignoring operations are no longer supported')
     def "property restores undefined-safe items"() {
         given:
         property.add("1")
@@ -1474,6 +1484,7 @@ The value of this property is derived from: <source>""")
         null  | ["1", "3"]
     }
 
+    @Ignore('absence ignoring operations are no longer supported')
     def "property restores undefined-safe items that have #numProviders changing providers without values in front"() {
         given:
         numProviders.times {
@@ -1494,6 +1505,7 @@ The value of this property is derived from: <source>""")
         numProviders << [1, 2]
     }
 
+    @Ignore('absence ignoring operations are no longer supported')
     def "#opName to empty property is undefined-safe"() {
         given:
         property.set(null as Iterable)
@@ -1514,6 +1526,7 @@ The value of this property is derived from: <source>""")
         "appendAll(notDefined())"   | { it.appendAll(notDefined()) }             | []
     }
 
+    @Ignore('absence ignoring operations are no longer supported')
     def "property remains undefined-safe after restored"() {
         given:
         property.append(notDefined())
@@ -1549,6 +1562,7 @@ The value of this property is derived from: <source>""")
         assertValueIs(['2', '3c', '4', '5', '6'], property3)
     }
 
+    @Ignore('absence ignoring operations are no longer supported')
     def "can alternate append and add"() {
         when:
         property.append("1")
@@ -1559,6 +1573,7 @@ The value of this property is derived from: <source>""")
         assertValueIs toImmutable(["1", "2", "3"])
     }
 
+    @Ignore('absence ignoring operations are no longer supported')
     def "can alternate add and append"() {
         when:
         property.add("1")
