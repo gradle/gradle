@@ -27,6 +27,8 @@ class KotlinCompilerTest {
 
     @Test
     fun `Gradle JavaVersion to Kotlin JvmTarget direct conversion`() {
+        assertThat(JavaVersion.VERSION_23.toKotlinJvmTarget(), equalTo(JvmTarget.JVM_23))
+        assertThat(JavaVersion.VERSION_22.toKotlinJvmTarget(), equalTo(JvmTarget.JVM_22))
         assertThat(JavaVersion.VERSION_21.toKotlinJvmTarget(), equalTo(JvmTarget.JVM_21))
         assertThat(JavaVersion.VERSION_20.toKotlinJvmTarget(), equalTo(JvmTarget.JVM_20))
         assertThat(JavaVersion.VERSION_19.toKotlinJvmTarget(), equalTo(JvmTarget.JVM_19))
@@ -51,9 +53,9 @@ class KotlinCompilerTest {
     }
 
     @Test
-    fun `Gradle JavaVersion greater than 22 to Kotlin JvmTarget conversion`() {
-        JavaVersion.values().filter { it > JavaVersion.VERSION_22 }.forEach { javaVersion ->
-            assertThat(javaVersion.toKotlinJvmTarget(), equalTo(JvmTarget.JVM_22))
+    fun `Gradle JavaVersion greater than 23 to Kotlin JvmTarget conversion`() {
+        JavaVersion.values().filter { it > JavaVersion.VERSION_23 }.forEach { javaVersion ->
+            assertThat(javaVersion.toKotlinJvmTarget(), equalTo(JvmTarget.JVM_23))
         }
     }
 }
