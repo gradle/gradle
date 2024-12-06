@@ -39,6 +39,13 @@ public interface ProjectLayout {
     Directory getProjectDirectory();
 
     /**
+     * Returns the settings directory.
+     * <p>
+     * The settings directory is the directory containing the settings file.
+     */
+    Directory getSettingsDirectory();
+
+    /**
      * Returns the build directory for the project.
      */
     DirectoryProperty getBuildDirectory();

@@ -744,7 +744,7 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
             getServices() >> services
         }
 
-        registry.registerProjects(build, descriptors)
+        registry.registerProjects(build, settings)
 
         return build
     }
