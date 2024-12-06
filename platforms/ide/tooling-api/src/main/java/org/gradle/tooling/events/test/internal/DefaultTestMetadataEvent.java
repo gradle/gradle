@@ -20,6 +20,8 @@ import org.gradle.api.NonNullApi;
 import org.gradle.tooling.events.OperationDescriptor;
 import org.gradle.tooling.events.test.TestMetadataEvent;
 
+import java.util.Map;
+
 /**
  * Implementation of the {@code TestMetadataEvent} interface.
  */
@@ -27,14 +29,12 @@ import org.gradle.tooling.events.test.TestMetadataEvent;
 public class DefaultTestMetadataEvent implements TestMetadataEvent {
     private final long eventTime;
     private final OperationDescriptor descriptor;
-    private final String key;
-    private final Object value;
+    private final Map<String, Object> values;
 
-    public DefaultTestMetadataEvent(long eventTime, OperationDescriptor descriptor, String key, Object value) {
+    public DefaultTestMetadataEvent(long eventTime, OperationDescriptor descriptor, Map<String, Object> values) {
         this.eventTime = eventTime;
         this.descriptor = descriptor;
-        this.key = key;
-        this.value = value;
+        this.values = values;
     }
 
     @Override
@@ -58,12 +58,7 @@ public class DefaultTestMetadataEvent implements TestMetadataEvent {
     }
 
     @Override
-    public String getKey() {
-        return key;
-    }
-
-    @Override
-    public Object getValue() {
-        return value;
+    public Map<String, Object> getValues() {
+        return values;
     }
 }

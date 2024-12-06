@@ -621,7 +621,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
 
     private TestMetadataEvent transformTestMetadata(InternalTestMetadataEvent event, InternalTestMetadataDescriptor descriptor) {
         OperationDescriptor clientDescriptor = addDescriptor(event.getDescriptor(), toDescriptor(descriptor));
-        return new DefaultTestMetadataEvent(event.getEventTime(), clientDescriptor, event.getKey(), event.getValue());
+        return new DefaultTestMetadataEvent(event.getEventTime(), clientDescriptor, event.getValues());
     }
 
     private @Nullable ProblemEvent toProblemEvent(InternalProgressEvent progressEvent, InternalProblemDescriptor descriptor) {

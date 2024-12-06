@@ -18,6 +18,8 @@ package org.gradle.api.tasks.testing;
 
 import org.gradle.api.Incubating;
 
+import java.util.Map;
+
 /**
  * Metadata captured during the execution of a test.
  *
@@ -37,18 +39,10 @@ public interface TestMetadataEvent {
     long getLogTime();
 
     /**
-     * Retrieves the key used to identify the metadata for this event.
+     * Retrieves the recorded metadata values for this event.
      *
-     * @return the event metadata key
+     * @return the event metadata values
      * @since 8.13
      */
-    String getKey();
-
-    /**
-     * Retrieves the recorded metadata for this event.
-     *
-     * @return the event metadata
-     * @since 8.13
-     */
-    Object getValue();
+    Map<String, Object> getValues();
 }

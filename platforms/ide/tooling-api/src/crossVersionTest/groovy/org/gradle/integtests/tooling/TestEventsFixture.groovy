@@ -78,10 +78,7 @@ class DefaultTestEventsSpec implements TestEventsFixture.TestEventsSpec {
         metadataByDescriptor = events.getAll()
             .findAll { it instanceof TestMetadataEvent }
             .collect { (TestMetadataEvent) it }
-            .groupBy {it.descriptor.parent }
-            .collectEntries { entry ->
-                [(entry.key): entry.value.collectEntries {[(it.key): it.value] }]
-            }
+            .collectEntries {[it.descriptor.parent, it.values] }
     }
 
     @Override
