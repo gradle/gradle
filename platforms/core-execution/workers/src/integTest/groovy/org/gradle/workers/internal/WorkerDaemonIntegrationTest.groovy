@@ -161,7 +161,7 @@ class WorkerDaemonIntegrationTest extends AbstractWorkerExecutorIntegrationTest 
                 isolationMode = 'processIsolation'
                 workActionClass = ${workAction.name}.class
                 additionalForkOptions = { options ->
-                    options.executable = new File('${differentJavacExecutablePath}')
+                    options.executable = new File('${differentJavacExecutablePath}').absolutePath
                 }
             }
         """

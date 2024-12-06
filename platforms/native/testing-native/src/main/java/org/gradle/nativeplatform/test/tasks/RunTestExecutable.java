@@ -50,8 +50,8 @@ public abstract class RunTestExecutable extends AbstractExecTask<RunTestExecutab
     protected void exec() {
         // Make convention mapping work
         getOutputDir().mkdirs();
-        setExecutable(getExecutable());
-        setWorkingDir(getOutputDir());
+        // TODO: We should find a way to do that differently with Gradle 9.0
+        getWorkingDir().set(getOutputDir());
 
         try {
             super.exec();

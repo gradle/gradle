@@ -5,4 +5,5 @@ Method <org.gradle.buildinit.tasks.InitBuild.getAvailableBuildTypes()> is annota
 Method <org.gradle.buildinit.tasks.InitBuild.getAvailableDSLs()> is annotated with @ToBeReplacedByLazyProperty in (InitBuild.java:0)
 Method <org.gradle.buildinit.tasks.InitBuild.getAvailableTestFrameworks()> is annotated with @ToBeReplacedByLazyProperty in (InitBuild.java:0)
 Method <org.gradle.jvm.application.tasks.CreateStartScripts.getRelativeClasspath()> is annotated with @ToBeReplacedByLazyProperty in (CreateStartScripts.java:0)
+Method <org.gradle.process.BaseExecSpec.getCommandLine()> is annotated with @ToBeReplacedByLazyProperty in (BaseExecSpec.java:0)
 Method <org.gradle.testing.jacoco.plugins.JacocoTaskExtension.getAgentClasspath()> is annotated with @NotToBeReplacedByLazyProperty in (JacocoTaskExtension.java:0)

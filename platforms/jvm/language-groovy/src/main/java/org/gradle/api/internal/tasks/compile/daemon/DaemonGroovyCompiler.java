@@ -105,13 +105,14 @@ public class DaemonGroovyCompiler extends AbstractDaemonCompiler<GroovyJavaJoint
         }
 
         JavaForkOptions javaForkOptions = new MinimalCompilerDaemonForkOptionsConverter(forkOptionsFactory).transform(mergeForkOptions(javaOptions, groovyOptions));
-        javaForkOptions.setWorkingDir(daemonWorkingDir);
-        javaForkOptions.setExecutable(javaOptions.getExecutable());
-        if (jvmVersionDetector.getJavaVersionMajor(javaForkOptions.getExecutable()) >= 9) {
+        javaForkOptions.getWorkingDir().set(daemonWorkingDir);
+        javaForkOptions.getExecutable().set(javaOptions.getExecutable());
+        String executable = javaOptions.getExecutable();
+        if (jvmVersionDetector.getJavaVersionMajor(executable) >= 9) {
             javaForkOptions.jvmArgs(JpmsConfiguration.GROOVY_JPMS_ARGS);
         } else {
             // In JDK 8 and below, we need to attach the 'tools.jar' to the classpath.
-            File javaExecutable = new File(javaForkOptions.getExecutable());
+            File javaExecutable = new File(executable);
             JavaInfo jvm = Jvm.forHome(javaExecutable.getParentFile().getParentFile());
             File toolsJar = jvm.getToolsJar();
             if (toolsJar == null) {

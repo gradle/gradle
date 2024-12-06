@@ -20,8 +20,8 @@ import com.google.common.base.Joiner;
 import org.gradle.api.NonNullApi;
 import org.gradle.internal.io.StreamByteBuffer;
 import org.gradle.internal.operations.BuildOperationContext;
-import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.os.OperatingSystem;
 import org.gradle.process.internal.ExecAction;
 import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.process.internal.ExecException;
@@ -29,7 +29,9 @@ import org.gradle.util.internal.GFileUtils;
 
 import java.io.File;
 import java.nio.charset.Charset;
+import java.util.LinkedHashMap;
 import java.util.Locale;
+import java.util.Map;
 
 @NonNullApi
 public class DefaultCommandLineToolInvocationWorker implements CommandLineToolInvocationWorker {
@@ -71,9 +73,12 @@ public class DefaultCommandLineToolInvocationWorker implements CommandLineToolIn
             String toolPath = Joiner.on(File.pathSeparator).join(invocation.getPath());
             toolPath = toolPath + File.pathSeparator + System.getenv(pathVar);
             toolExec.environment(pathVar, toolPath);
-            if (OperatingSystem.current().isWindows() && toolExec.getEnvironment().containsKey(pathVar.toUpperCase(Locale.ROOT))) {
-                toolExec.getEnvironment().remove(pathVar.toUpperCase(Locale.ROOT));
+
+            Map<String, Object> environment = new LinkedHashMap<>(toolExec.getEnvironment().get());
+            if (OperatingSystem.current().isWindows()) {
+                environment.remove(pathVar.toUpperCase(Locale.ROOT));
             }
+            toolExec.getEnvironment().set(environment);
         }
 
         toolExec.environment(invocation.getEnvironment());

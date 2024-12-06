@@ -42,7 +42,7 @@ public class DefaultProcessWorkerSpec extends DefaultClassLoaderWorkerSpec imple
     public DefaultProcessWorkerSpec(JavaForkOptions forkOptions, ObjectFactory objectFactory) {
         super(objectFactory);
         this.forkOptions = forkOptions;
-        this.forkOptions.setEnvironment(sanitizeEnvironment(forkOptions));
+        this.forkOptions.getEnvironment().set(sanitizeEnvironment(forkOptions));
     }
 
     /**
@@ -55,7 +55,7 @@ public class DefaultProcessWorkerSpec extends DefaultClassLoaderWorkerSpec imple
         if (!OperatingSystem.current().isUnix()) {
             return ImmutableMap.of();
         }
-        return forkOptions.getEnvironment().entrySet().stream()
+        return forkOptions.getEnvironment().get().entrySet().stream()
             .filter(entry -> INHERITED_UNIX_ENVIRONMENT.matcher(entry.getKey()).matches())
             .collect(ImmutableMap.toImmutableMap(Map.Entry::getKey, Map.Entry::getValue));
     }

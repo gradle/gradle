@@ -58,9 +58,11 @@ import static org.gradle.process.internal.util.LongCommandLineDetectionUtil.hasC
 
 /**
  * Use {@link JavaExecHandleFactory} instead.
+ *
+ * TODO: Make this class Provider API agnostic in the same way as {@link DefaultClientExecHandleBuilder} is.
  */
 @NonNullApi
-public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgumentsSpec.HasExecutable {
+public class JavaExecHandleBuilder implements BaseExecHandleBuilder {
 
     private static final Logger LOGGER = Logging.getLogger(JavaExecHandleBuilder.class);
 
@@ -93,7 +95,6 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
         this.javaOptions = javaOptions;
         this.modularity = new DefaultModularitySpec(objectFactory);
         this.execHandleBuilder = execHandleBuilder;
-        setExecutable(javaOptions.getExecutable());
     }
 
     public Provider<List<String>> getAllJvmArgs() {
@@ -257,39 +258,33 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
         javaOptions.debugOptions(action);
     }
 
-    @Override
     public String getExecutable() {
-        return javaOptions.getExecutable();
+        return javaOptions.getExecutable().get();
+    }
+
+    public void setExecutable(File executable) {
+        setExecutable(executable.getAbsolutePath());
     }
 
     @Override
-    public void setExecutable(Object executable) {
-        javaOptions.setExecutable(executable);
+    public JavaExecHandleBuilder setExecutable(String executable) {
+        javaOptions.getExecutable().set(executable);
+        return this;
     }
 
-    public void setExecutable(String executable) {
-        javaOptions.setExecutable(executable);
+    @Override
+    public JavaExecHandleBuilder setWorkingDir(@Nullable File dir) {
+        javaOptions.getWorkingDir().set(dir);
+        return this;
     }
 
-    @Nullable
-    public File getWorkingDir() {
-        return javaOptions.getWorkingDir();
+    JavaForkOptionsInternal getJavaOptions() {
+        return javaOptions;
     }
 
-    public void setWorkingDir(@Nullable Object dir) {
-        javaOptions.setWorkingDir(dir);
-    }
-
-    public void setWorkingDir(@Nullable File dir) {
-        javaOptions.setWorkingDir(dir);
-    }
-
-    public Map<String, Object> getEnvironment() {
-        return javaOptions.getEnvironment();
-    }
-
-    public JavaExecHandleBuilder setEnvironment(Map<String, ?> environmentVariables) {
-        javaOptions.setEnvironment(environmentVariables);
+    @Override
+    public JavaExecHandleBuilder setEnvironment(Map<String, Object> environmentVariables) {
+        javaOptions.getEnvironment().set(environmentVariables);
         return this;
     }
 
@@ -375,8 +370,10 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
         return javaOptions.getJvmArgumentProviders();
     }
 
-    public void setStandardInput(InputStream inputStream) {
+    @Override
+    public JavaExecHandleBuilder setStandardInput(InputStream inputStream) {
         execHandleBuilder.setStandardInput(inputStream);
+        return this;
     }
 
     public InputStream getStandardInput() {
@@ -484,9 +481,9 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
     public ExecHandle build() {
         // We delegate properties that are also on ProcessForkOptions interface to JavaForkOptions
         // to support copy from JavaOptions, and thus we have to copy them to execHandleBuilder here
-        execHandleBuilder.setExecutable(getExecutable());
-        execHandleBuilder.setWorkingDir(getWorkingDir());
-        execHandleBuilder.setEnvironment(getEnvironment());
+        execHandleBuilder.setExecutable(javaOptions.getExecutable().get());
+        execHandleBuilder.setWorkingDir(javaOptions.getWorkingDir().getAsFile().get());
+        execHandleBuilder.setEnvironment(javaOptions.getEnvironment().get());
         return execHandleBuilder.buildWithEffectiveArguments(getEffectiveArguments());
     }
 }

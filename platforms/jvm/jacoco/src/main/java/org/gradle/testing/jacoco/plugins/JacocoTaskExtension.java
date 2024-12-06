@@ -270,7 +270,7 @@ public abstract class JacocoTaskExtension {
     public Provider<String> getAsJvmArg() {
         return providers.provider(() -> {
             StringBuilder builder = new StringBuilder();
-            ArgumentAppender argument = new ArgumentAppender(builder, task.getWorkingDir());
+            ArgumentAppender argument = new ArgumentAppender(builder, task.getWorkingDir().getAsFile().get());
             builder.append("-javaagent:");
             builder.append(agent.getJar().getAbsolutePath());
             builder.append('=');

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.tasks.util
+package org.gradle.process.internal
 
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.process.ProcessForkOptions
-import org.gradle.process.internal.DefaultProcessForkOptions
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class DefaultProcessForkOptionsTest extends Specification {
@@ -25,26 +24,17 @@ class DefaultProcessForkOptionsTest extends Specification {
     def resolver = Mock(FileResolver.class) {
         resolve(".") >> baseDir
     }
-    def options = new DefaultProcessForkOptions(resolver)
+    def options = TestUtil.newInstance(DefaultProcessForkOptions, TestUtil.objectFactory(), resolver)
 
     def defaultValues() {
         expect:
-        options.executable == null
-        !options.environment.empty
-    }
-
-    def resolvesWorkingDirectoryOnGet() {
-        when:
-        options.workingDir = 12
-
-        then:
-        1 * resolver.resolve(12) >> baseDir
-        options.workingDir == baseDir
+        options.executable.getOrNull() == null
+        !options.environment.get().empty
     }
 
     def convertsEnvironmentToString() {
         when:
-        options.environment = [key1: 12, key2: "${1+2}", key3: null]
+        options.environment = [key1: 12, key2: "${1+2}", key3: "null"]
 
         then:
         options.actualEnvironment == [key1: '12', key2: '3', key3: 'null']
@@ -55,34 +45,34 @@ class DefaultProcessForkOptionsTest extends Specification {
         options.environment = [:]
 
         then:
-        options.environment == [:]
+        options.environment.get() == [:]
 
         when:
         options.environment('key', 12)
 
         then:
-        options.environment == [key: 12]
+        options.environment.get() == [key: 12]
         options.actualEnvironment == [key: '12']
 
         when:
         options.environment(key2: "value")
 
         then:
-        options.environment == [key: 12, key2: "value"]
+        options.environment.get() == [key: 12, key2: "value"]
     }
 
     def canCopyToTargetOptions() {
         given:
-        def target = Mock(ProcessForkOptions)
+        def target = TestUtil.newInstance(DefaultProcessForkOptions, TestUtil.objectFactory(), resolver)
 
         when:
         options.executable('executable')
-        options.environment('key', 12)
+        options.environment = ['key': "12"]
         options.copyTo(target)
 
         then:
-        1 * target.setWorkingDir(baseDir)
-        1 * target.setExecutable('executable')
-        1 * target.setEnvironment({ !it.empty })
+        target.getWorkingDir().asFile.get() == baseDir.absoluteFile
+        target.getExecutable().get() == 'executable'
+        target.getEnvironment().get() == [key: '12']
     }
 }

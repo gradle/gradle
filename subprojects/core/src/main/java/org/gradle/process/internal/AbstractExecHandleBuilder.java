@@ -15,8 +15,12 @@
  */
 package org.gradle.process.internal;
 
+import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.process.BaseExecSpec;
 
 import java.io.InputStream;
@@ -35,6 +39,9 @@ public abstract class AbstractExecHandleBuilder implements BaseExecSpec {
     private final Property<OutputStream> standardOutput;
     private final Property<OutputStream> errorOutput;
     private final Property<Boolean> ignoreExitValue;
+    private final Property<String> executable;
+    protected final DirectoryProperty workingDir;
+    protected final MapProperty<String, Object> environment;
 
     AbstractExecHandleBuilder(ObjectFactory objectFactory, ClientExecHandleBuilder delegate) {
         this.delegate = delegate;
@@ -42,14 +49,37 @@ public abstract class AbstractExecHandleBuilder implements BaseExecSpec {
         this.standardInput = objectFactory.property(InputStream.class);
         this.standardOutput = objectFactory.property(OutputStream.class);
         this.errorOutput = objectFactory.property(OutputStream.class);
+        this.executable = objectFactory.property(String.class);
+        this.workingDir = objectFactory.directoryProperty();
+        this.environment = objectFactory.mapProperty(String.class, Object.class).value(Providers.changing(delegate::getEnvironment));
     }
 
     public abstract List<String> getAllArguments();
 
     @Override
+    public Property<String> getExecutable() {
+        return executable;
+    }
+
+    @Override
+    public AbstractExecHandleBuilder executable(Object executable) {
+        if (executable instanceof Provider) {
+            getExecutable().set(((Provider<?>) executable).map(Object::toString));
+        } else {
+            getExecutable().set(Providers.changing((Providers.SerializableCallable<String>) executable::toString));
+        }
+        return this;
+    }
+
+    @Override
+    public MapProperty<String, Object> getEnvironment() {
+        return environment;
+    }
+
+    @Override
     public List<String> getCommandLine() {
         List<String> commandLine = new ArrayList<>();
-        commandLine.add(getExecutable());
+        commandLine.add(getExecutable().get());
         commandLine.addAll(getAllArguments());
         return commandLine;
     }
@@ -112,6 +142,11 @@ public abstract class AbstractExecHandleBuilder implements BaseExecSpec {
         if (errorOutput.isPresent()) {
             delegate.setErrorOutput(errorOutput.get());
         }
+        if (executable.isPresent()) {
+            delegate.setExecutable(executable.get());
+        }
+        delegate.setWorkingDir(workingDir.getAsFile().getOrNull());
+        delegate.setEnvironment(environment.get());
         return delegate.build();
     }
 }
