@@ -409,6 +409,7 @@ public abstract class DefaultDependencyHandler implements DependencyHandlerInter
         return dependencyProvider.map(dep -> {
             DefaultExternalModuleDependencyVariantSpec spec = objects.newInstance(DefaultExternalModuleDependencyVariantSpec.class, objects, dep);
             variantSpec.execute(spec);
+            // TODO: We "lose" endorsingStrictVersions here. We should copy that over to the returned variant.
             return new DefaultMinimalDependencyVariant(dep, spec.attributesAction, spec.capabilitiesMutator, spec.classifier, spec.artifactType);
         });
     }
