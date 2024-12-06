@@ -22,22 +22,29 @@ import org.spockframework.runtime.model.FeatureInfo
 import org.spockframework.runtime.model.SpecElementInfo
 import org.spockframework.runtime.model.SpecInfo
 
+import static org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects.Skip.DO_NOT_SKIP
+
 class ToBeFixedForIsolatedProjectsExtension implements IAnnotationDrivenExtension<ToBeFixedForIsolatedProjects> {
 
     private final ToBeFixedSpecInterceptor toBeFixedSpecInterceptor = new ToBeFixedSpecInterceptor("Isolated Projects")
 
     @Override
     void visitSpecAnnotation(ToBeFixedForIsolatedProjects annotation, SpecInfo spec) {
-        visitAnnotation(spec)
+        visitAnnotation(annotation, spec)
     }
 
     @Override
     void visitFeatureAnnotation(ToBeFixedForIsolatedProjects annotation, FeatureInfo feature) {
-        visitAnnotation(feature)
+        visitAnnotation(annotation, feature)
     }
 
-    private void visitAnnotation(SpecElementInfo specElementInfo) {
+    private void visitAnnotation(ToBeFixedForIsolatedProjects annotation, SpecElementInfo specElementInfo) {
         if (GradleContextualExecuter.isNotIsolatedProjects()) {
+            return
+        }
+
+        if (annotation.skip() != DO_NOT_SKIP) {
+            specElementInfo.skip(annotation.skip().reason)
             return
         }
 

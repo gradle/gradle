@@ -17,7 +17,6 @@
 package org.gradle.api.internal.provider;
 
 import com.google.common.collect.ImmutableCollection;
-import org.gradle.api.Action;
 
 import java.util.Map;
 
@@ -25,7 +24,7 @@ import java.util.Map;
  * A supplier of zero or more mappings from value of type {@link K} to value of type {@link V}.
  *
  * <p>
- *     A <code>MapCollector</code> is for {@link DefaultMapProperty} and {@link MapSupplier} what {@link Collector} is for {@link AbstractCollectionProperty} and {@link CollectionSupplier}.
+ * A <code>MapCollector</code> is for {@link DefaultMapProperty} and {@link MapSupplier} what {@link Collector} is for {@link AbstractCollectionProperty} and {@link CollectionSupplier}.
  * </p>
  */
 public interface MapCollector<K, V> extends ValueSupplier {
@@ -34,14 +33,5 @@ public interface MapCollector<K, V> extends ValueSupplier {
 
     Value<Void> collectKeys(ValueConsumer consumer, ValueCollector<K> collector, ImmutableCollection.Builder<K> dest);
 
-    void calculateExecutionTimeValue(Action<ExecutionTimeValue<? extends Map<? extends K, ? extends V>>> visitor);
-
-    MapCollector<K, V> absentIgnoring();
-
-    /**
-     * Returns a collector that may never return a missing value.
-     */
-    default MapCollector<K, V> absentIgnoringIfNeeded(boolean ignoreAbsent) {
-        return ignoreAbsent ? absentIgnoring() : this;
-    }
+    ExecutionTimeValue<? extends Map<? extends K, ? extends V>> calculateExecutionTimeValue();
 }
