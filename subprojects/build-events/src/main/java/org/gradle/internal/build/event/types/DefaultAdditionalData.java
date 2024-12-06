@@ -18,14 +18,14 @@ package org.gradle.internal.build.event.types;
 
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.NonNullApi;
-import org.gradle.tooling.internal.protocol.problem.InternalAdditionalData;
+import org.gradle.tooling.internal.protocol.problem.InternalAdditionalDataV2;
 
 import javax.annotation.Nullable;
 import java.io.Serializable;
 import java.util.Map;
 
 @NonNullApi
-public class DefaultAdditionalData implements InternalAdditionalData, Serializable {
+public class DefaultAdditionalData implements InternalAdditionalDataV2, Serializable {
 
     private final Map<String, Object> additionalData;
     private final Object additionalDataCustomInstance;

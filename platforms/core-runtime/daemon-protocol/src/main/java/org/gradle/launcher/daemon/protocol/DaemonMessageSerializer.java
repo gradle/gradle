@@ -93,7 +93,6 @@ public class DaemonMessageSerializer {
         registry.register(Finished.class, new FinishedSerializer());
 
         // Build events
-//        registry.register(AdditionalData.class, new AddtionalDataSerializer());
         registry.register(BuildEvent.class, new BuildEventSerializer(pls));
 
         // Input events
@@ -231,7 +230,8 @@ public class DaemonMessageSerializer {
         public BuildEvent read(Decoder decoder) throws Exception {
 //            SerializedPayload read = (SerializedPayload) serializer.read(decoder);
 //            return new BuildEvent(pls.deserialize(read));
-            return new BuildEvent(serializer.read(decoder));
+            Object read = serializer.read(decoder);
+            return new BuildEvent(read);
         }
     }
 

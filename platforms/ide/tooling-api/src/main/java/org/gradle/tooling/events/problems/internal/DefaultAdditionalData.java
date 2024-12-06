@@ -29,7 +29,7 @@ public class DefaultAdditionalData implements AdditionalData, Serializable {
     private final Map<String, Object> additionalData;
     private final Object additionalDataCustomInstance;
 
-    public DefaultAdditionalData(Map<String, Object> additionalData, Object additionalDataCustomInstance) {
+    public DefaultAdditionalData(Map<String, Object> additionalData, @Nullable Object additionalDataCustomInstance) {
         this.additionalData = ImmutableMap.copyOf(additionalData);
         this.additionalDataCustomInstance = additionalDataCustomInstance;
     }

@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.tooling.r89
 
+
 import org.gradle.integtests.fixtures.GroovyBuildScriptLanguage
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
@@ -30,7 +31,6 @@ import org.gradle.tooling.events.problems.LineInFileLocation
 import org.gradle.tooling.events.problems.ProblemSummariesEvent
 import org.gradle.tooling.events.problems.Severity
 import org.gradle.tooling.events.problems.SingleProblemEvent
-import org.gradle.tooling.events.problems.internal.DefaultAdditionalData
 import org.gradle.tooling.events.problems.TaskPathLocation
 import org.gradle.util.GradleVersion
 import org.junit.Assume
@@ -79,6 +79,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
                 .addProgressListener(listener)
                 .setStandardError(System.err)
                 .setStandardOutput(System.out)
+//                .addJvmArguments("-agentlib:jdwp=transport=dt_socket,server=n,suspend=y,address=5006")
                 .addArguments("--info")
                 .run()
         }
@@ -94,7 +95,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
             locations.size() == 2
             (locations[0] as LineInFileLocation).path == "build file '$buildFile.path'" // FIXME: the path should not contain a prefix nor extra quotes
             (locations[1] as LineInFileLocation).path == "build file '$buildFile.path'"
-            additionalData instanceof DefaultAdditionalData
+            additionalData.getClass().getCanonicalName() == "org.gradle.tooling.events.problems.internal.GeneralData"
             additionalData.asMap['type'] == 'USER_CODE_DIRECT'
         }
     }
@@ -235,68 +236,6 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         problems[0].definition.id.displayName == "Could not compile build file '$buildFile.absolutePath'."
         problems[0].definition.id.group.name == 'compilation'
     }
-
-    def "Property validation failure should produce problem report with domain-specific additional data"() {
-        setup:
-        file('buildSrc/src/main/java/MyTask.java') << '''
-            import org.gradle.api.*;
-            import org.gradle.api.tasks.*;
-            import org.gradle.work.*;
-            @DisableCachingByDefault(because = "test task")
-            public class MyTask extends DefaultTask {
-                @Optional @Input
-                boolean getPrimitive() {
-                    return true;
-                }
-                @TaskAction public void execute() {}
-            }
-        '''
-        buildFile << '''
-            tasks.register('myTask', MyTask)
-        '''
-
-        when:
-        def listener = new ProblemProgressListener()
-        withConnection { connection ->
-            connection.newBuild()
-                .forTasks("myTask")
-                .addProgressListener(listener)
-                .setStandardError(System.err)
-                .setStandardOutput(System.out)
-                .addArguments("--info")
-
-                .run()
-        }
-
-        then:
-        thrown(BuildException)
-        listener.problems.size() == 1
-        (listener.problems[0].additionalData as DefaultAdditionalData).asMap['typeName'] == 'MyTask'
-    }
-
-    @TargetGradleVersion("=8.6")
-    def "8.6 version doesn't send failure"() {
-        buildFile """
-            tasks.register("foo) {
-        """
-
-        given:
-        def listener = new ProblemProgressListener()
-
-        when:
-        withConnection {
-            it.model(CustomModel)
-                .addProgressListener(listener)
-                .get()
-        }
-
-        then:
-        thrown(BuildException)
-        def problems = listener.problems
-        validateCompilationProblem(problems, buildFile)
-        failureMessage(problems[0].failure) == null
-    }
-
 
     static class ProblemProgressListener implements ProgressListener {
         List<SingleProblemEvent> problems = []

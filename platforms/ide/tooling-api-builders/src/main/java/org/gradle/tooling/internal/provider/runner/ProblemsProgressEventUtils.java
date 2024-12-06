@@ -216,7 +216,7 @@ public class ProblemsProgressEventUtils {
         if (additionalData instanceof DeprecationData) {
             // For now, we only expose deprecation data to the tooling API with generic additional data
             DeprecationData data = (DeprecationData) additionalData;
-            return new DefaultAdditionalData(ImmutableMap.of("type", data.getType().name()), data);
+            return new DefaultAdditionalData(ImmutableMap.of("type", data.getType().name()), null);
         } else if (additionalData instanceof TypeValidationData) {
 //            TypeValidationData data = (TypeValidationData) additionalData;
             return new DefaultAdditionalData(ImmutableMap.of(), additionalData);

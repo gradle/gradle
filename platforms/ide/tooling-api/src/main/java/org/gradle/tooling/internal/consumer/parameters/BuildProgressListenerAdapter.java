@@ -219,6 +219,7 @@ import org.gradle.tooling.internal.protocol.events.InternalTestSuccessResult;
 import org.gradle.tooling.internal.protocol.events.InternalTransformDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalWorkItemDescriptor;
 import org.gradle.tooling.internal.protocol.problem.InternalAdditionalData;
+import org.gradle.tooling.internal.protocol.problem.InternalAdditionalDataV2;
 import org.gradle.tooling.internal.protocol.problem.InternalBasicProblemDetails;
 import org.gradle.tooling.internal.protocol.problem.InternalBasicProblemDetailsVersion2;
 import org.gradle.tooling.internal.protocol.problem.InternalContextualLabel;
@@ -955,7 +956,10 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
     }
 
     private static AdditionalData toAdditionalData(InternalAdditionalData additionalData) {
-        return new DefaultAdditionalData(additionalData.getAsMap(), additionalData.get());
+        if (additionalData instanceof InternalAdditionalDataV2) {
+            return new DefaultAdditionalData(additionalData.getAsMap(), ((InternalAdditionalDataV2) additionalData).get());
+        }
+        return new DefaultAdditionalData(additionalData.getAsMap(), null);
     }
 
     @Nullable
