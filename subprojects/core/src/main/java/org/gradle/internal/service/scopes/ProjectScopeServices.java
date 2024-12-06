@@ -67,6 +67,7 @@ import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyUsageTracker;
 import org.gradle.api.internal.tasks.TaskStatistics;
 import org.gradle.api.internal.tasks.properties.TaskScheme;
+import org.gradle.api.isolated.models.IsolatedModelRouter;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
@@ -77,6 +78,9 @@ import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.instantiation.InstantiatorFactory;
+import org.gradle.internal.isolated.models.DefaultProjectIsolatedModelRouter;
+import org.gradle.internal.isolated.models.legacy.BuildIsolatedModelProjectLookup;
+import org.gradle.internal.isolated.models.legacy.BuildIsolatedModelStore;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
@@ -143,6 +147,7 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
         DependencyManagementServices dependencyManagementServices
     ) {
         registration.add(ProjectInternal.class, project);
+        registration.add(IsolatedModelRouter.class, DefaultProjectIsolatedModelRouter.class);
         dependencyManagementServices.addDslServices(registration, project);
         for (GradleModuleServices services : gradleModuleServiceProviders) {
             services.registerProjectServices(registration);
@@ -376,5 +381,10 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
     @Provides
     protected ModelDefaultsHandler createActionBasedModelDefaultsHandler(SoftwareTypeRegistry softwareTypeRegistry, PluginScheme pluginScheme, InternalProblems problems) {
         return new ActionBasedModelDefaultsHandler(softwareTypeRegistry, pluginScheme.getInspectionScheme(), problems);
+    }
+
+    @Provides
+    BuildIsolatedModelProjectLookup create(BuildIsolatedModelStore store) {
+        return new BuildIsolatedModelProjectLookup(project, store);
     }
 }

@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.project;
 
+import org.gradle.api.isolated.models.IsolatedModelRouter;
 import org.gradle.api.project.IsolatedProject;
 import org.gradle.api.file.Directory;
 
@@ -54,6 +55,11 @@ public final class DefaultIsolatedProject implements IsolatedProject {
         return project.equals(rootProject)
             ? this
             : rootProject.getIsolated();
+    }
+
+    @Override
+    public IsolatedModelRouter getModels() {
+        return project.getIsolatedModelRouter();
     }
 
     @Override
