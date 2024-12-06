@@ -18,8 +18,8 @@ public abstract class CustomTestPlugin implements Plugin<Project> {
         project.getTasks().register("test", CustomTest.class, task -> {
             task.setGroup("verification");
             task.setDescription("Runs the tests.");
-            task.getBinaryResultsDirectory().set(project.getLayout().getBuildDirectory().dir("test-results/test"));
-            task.getHtmlReportDirectory().set(reporting.getBaseDirectory().dir("tests/test"));
+            task.getBinaryResultsDirectory().convention(project.getLayout().getBuildDirectory().dir("test-results/test"));
+            task.getHtmlReportDirectory().convention(reporting.getBaseDirectory().dir("tests/test"));
             // Enables Test UI in IntelliJ
             task.getExtensions().getExtraProperties().set("idea.internal.test", true);
             task.getFail().convention(false);
