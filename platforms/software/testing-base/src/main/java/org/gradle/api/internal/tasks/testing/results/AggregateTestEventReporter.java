@@ -75,12 +75,16 @@ public class AggregateTestEventReporter implements ProblemReporter, TestExecutio
     @Override
     public void report(File reportDir, ProblemConsumer validationFailures) {
         Path reportLocation = reportDir.toPath().resolve("reports").resolve("aggregate-test-results");
-        Path reportIndexFile = generateTestReport(reportLocation);
 
-        // Print report to console only if there are failures and if we have multiple results to aggregate.
-        if (numFailedResults.get() > 1) {
-            emitReport(reportIndexFile);
+        if (!results.isEmpty()) {
+            Path reportIndexFile = generateTestReport(reportLocation);
+
+            // Print report to console only if there are failures and if we have multiple results to aggregate.
+            if (numFailedResults.get() > 1) {
+                emitReport(reportIndexFile);
+            }
         }
+
     }
 
     /**
