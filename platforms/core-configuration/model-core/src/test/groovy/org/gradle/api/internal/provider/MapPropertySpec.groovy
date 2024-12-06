@@ -28,6 +28,7 @@ import org.gradle.internal.state.ManagedFactory
 import org.gradle.util.TestUtil
 import org.gradle.util.internal.TextUtil
 import org.spockframework.util.Assert
+import spock.lang.Ignore
 import spock.lang.Issue
 
 import java.util.function.Consumer
@@ -1223,6 +1224,7 @@ The value of this property is derived from: <source>""")
         "getOrElse" | _
     }
 
+    @Ignore('absence ignoring operations are no longer supported')
     def "may configure incrementally based on convention value"() {
         given:
         property.convention(['k0': '1'])
@@ -1243,6 +1245,7 @@ The value of this property is derived from: <source>""")
         !property.explicit
     }
 
+    @Ignore('absence ignoring operations are no longer supported')
     def "may configure incrementally based on convention value using insert"() {
         given:
         property.convention(['k0': '1'])
@@ -1261,6 +1264,7 @@ The value of this property is derived from: <source>""")
         !property.explicit
     }
 
+    @Ignore('absence ignoring operations are no longer supported')
     def "may configure explicit value incrementally"() {
         given:
         property.set([:])
@@ -1274,6 +1278,7 @@ The value of this property is derived from: <source>""")
         assert property.explicit
     }
 
+    @Ignore('absence ignoring operations are no longer supported')
     def "may configure explicit value incrementally using insert"() {
         given:
         property.set([:])
@@ -1286,6 +1291,7 @@ The value of this property is derived from: <source>""")
         assert property.explicit
     }
 
+    @Ignore('absence ignoring operations are no longer supported')
     def "may configure actual value incrementally"() {
         given:
         property.withActualValue {
@@ -1298,6 +1304,7 @@ The value of this property is derived from: <source>""")
         assert property.explicit
     }
 
+    @Ignore('absence ignoring operations are no longer supported')
     def "may configure actual value incrementally using insert"() {
         given:
         property.insert('k0', '1')
@@ -1308,6 +1315,7 @@ The value of this property is derived from: <source>""")
         assert property.explicit
     }
 
+    @Ignore('absence ignoring operations are no longer supported')
     def "may replace values originally set via convention"() {
         given:
         property.convention(['k0': '1', 'k1': '2', 'k2': '3'])
@@ -1319,6 +1327,7 @@ The value of this property is derived from: <source>""")
         property.explicit
     }
 
+    @Ignore('absence ignoring operations are no longer supported')
     def "may replace values originally set via convention using insert"() {
         given:
         property.convention(['k0': '1', 'k1': '2', 'k2': '3'])
@@ -1328,6 +1337,7 @@ The value of this property is derived from: <source>""")
         property.explicit
     }
 
+    @Ignore('absence ignoring operations are no longer supported')
     def "'#label' vs undefined-safety"() {
         given:
         initial.each { operation ->
@@ -1335,30 +1345,31 @@ The value of this property is derived from: <source>""")
         }
 
         when:
-        operations.each {operation -> operation.call(property) }
+        operations.each { operation -> operation.call(property) }
 
         then:
         expected == null || property.getOrNull() == ImmutableMap.copyOf(expected)
         expected != null || !property.present
 
         where:
-        expected            | initial                   | operations                                            | label
-        [k1: "1"]           | { }                       | { it.put("k1", "1") }                                 | "put"
-        [k1: "1"]           | { }                       | { it.insert("k1", "1") }                              | "insert"
-        null                | { it.set(notDefined()) }  | { it.put("k1", "1") }                                 | "put to missing"
-        [k1: "1"]           | { it.set(notDefined()) }  | { it.insert("k1", "1") }                              | "insert to missing"
-        null                | { }                       | { it.put("k1", notDefined()) }                        | "put missing"
-        []                  | { }                       | { it.insert("k1", notDefined()) }                     | "insert missing"
-        [k1: "1"]           | { it.empty() }            | { it.put("k1", "1") }                                 | "put after emptying"
-        [k1: "1"]           | { it.empty() }            | { it.insert("k1", "1") }                              | "insert after emptying"
-        [k1: "1"]           | { it.set([:]) }           | { it.put("k1", "1") }                                 | "put to empty"
-        [k1: "1"]           | { it.set([:]) }           | { it.insert("k1", "1") }                              | "insert to empty"
-        [k2: "2"]           | { }                       | { it.put("k1", notDefined()) ; it.insert("k2", "2") } | "put missing then append"
-        [k2: "2"]           | { }                       | { it.insert("k1", notDefined()) ; it.put("k2", "2") } | "insert missing then add"
-        [k2: "2"]           | { it.set([k0: "0"]) }     | { it.put("k1", notDefined()) ; it.insert("k2", "2") } | "put missing to non-empty then append"
-        [k0: "0", k2: "2"]  | { it.set([k0: "0"]) }     | { it.insert("k1", notDefined()) ; it.put("k2", "2") } | "insert missing to non-empty then add"
+        expected           | initial                  | operations                                           | label
+        [k1: "1"]          | {}                       | { it.put("k1", "1") }                                | "put"
+        [k1: "1"]          | {}                       | { it.insert("k1", "1") }                             | "insert"
+        null               | { it.set(notDefined()) } | { it.put("k1", "1") }                                | "put to missing"
+        [k1: "1"]          | { it.set(notDefined()) } | { it.insert("k1", "1") }                             | "insert to missing"
+        null               | {}                       | { it.put("k1", notDefined()) }                       | "put missing"
+        []                 | {}                       | { it.insert("k1", notDefined()) }                    | "insert missing"
+        [k1: "1"]          | { it.empty() }           | { it.put("k1", "1") }                                | "put after emptying"
+        [k1: "1"]          | { it.empty() }           | { it.insert("k1", "1") }                             | "insert after emptying"
+        [k1: "1"]          | { it.set([:]) }          | { it.put("k1", "1") }                                | "put to empty"
+        [k1: "1"]          | { it.set([:]) }          | { it.insert("k1", "1") }                             | "insert to empty"
+        [k2: "2"]          | {}                       | { it.put("k1", notDefined()); it.insert("k2", "2") } | "put missing then append"
+        [k2: "2"]          | {}                       | { it.insert("k1", notDefined()); it.put("k2", "2") } | "insert missing then add"
+        [k2: "2"]          | { it.set([k0: "0"]) }    | { it.put("k1", notDefined()); it.insert("k2", "2") } | "put missing to non-empty then append"
+        [k0: "0", k2: "2"] | { it.set([k0: "0"]) }    | { it.insert("k1", notDefined()); it.put("k2", "2") } | "insert missing to non-empty then add"
     }
 
+    @Ignore('absence ignoring operations are no longer supported')
     def "inserting into an undefined property is undefined-safe"() {
         given:
         property.set((Map) null)
@@ -1368,6 +1379,7 @@ The value of this property is derived from: <source>""")
         assertValueIs(['k4': '4'])
     }
 
+    @Ignore('absence ignoring operations are no longer supported')
     def "inserting after putting an undefined element provider is undefined-safe"() {
         given:
         property.putAll(Providers.of([k1: '1', k2: '2']))
@@ -1378,6 +1390,7 @@ The value of this property is derived from: <source>""")
         assertValueIs([k4: '4'])
     }
 
+    @Ignore('absence ignoring operations are no longer supported')
     def "inserting after putting an undefined map provider is undefined-safe"() {
         given:
         property.putAll(Providers.of([k1: '1', k2: '2']))
@@ -1388,6 +1401,7 @@ The value of this property is derived from: <source>""")
         assertValueIs([k4: '4'])
     }
 
+    @Ignore('absence ignoring operations are no longer supported')
     def "inserting an undefined value provider is undefined-safe"() {
         given:
         property.insert("k1", notDefined())
@@ -1396,6 +1410,7 @@ The value of this property is derived from: <source>""")
         assertValueIs([:])
     }
 
+    @Ignore('absence ignoring operations are no longer supported')
     def "inserting an undefined map provider is undefined-safe"() {
         given:
         property.insertAll(notDefined())
@@ -1404,6 +1419,7 @@ The value of this property is derived from: <source>""")
         assertValueIs([:])
     }
 
+    @Ignore('absence ignoring operations are no longer supported')
     def "putting after inserting an undefined map provider into an empty map is left-side undefined-safe"() {
         given:
         property.insertAll(notDefined())
@@ -1413,6 +1429,7 @@ The value of this property is derived from: <source>""")
         assertValueIs([k1: '1'])
     }
 
+    @Ignore('absence ignoring operations are no longer supported')
     def "putting after inserting an undefined value provider into an empty map is left-side undefined-safe"() {
         given:
         property.insert("k1", notDefined())
@@ -1422,6 +1439,7 @@ The value of this property is derived from: <source>""")
         assertValueIs([k2: '2'])
     }
 
+    @Ignore('absence ignoring operations are no longer supported')
     def "putting after inserting an undefined map provider into a non-empty map is left-side undefined-safe"() {
         given:
         property.set(["k0": "0"])
@@ -1432,6 +1450,7 @@ The value of this property is derived from: <source>""")
         assertValueIs([k0: '0', k1: '1'])
     }
 
+    @Ignore('absence ignoring operations are no longer supported')
     def "putting after inserting an undefined value provider into a non-emoty map is left-side undefined-safe"() {
         given:
         property.put("k0", "0")
@@ -1442,6 +1461,7 @@ The value of this property is derived from: <source>""")
         assertValueIs([k0: '0', k2: '2'])
     }
 
+    @Ignore('absence ignoring operations are no longer supported')
     def "putting an undefined value provider after inserting is not right-side undefined-safe"() {
         given:
         property.insertAll(Providers.of(["k1": "1", "k2": "2"]))
@@ -1452,6 +1472,7 @@ The value of this property is derived from: <source>""")
         property.getOrNull() == null
     }
 
+    @Ignore('absence ignoring operations are no longer supported')
     def "putting an undefined map provider after inserting is not right-side undefined-safe"() {
         given:
         property.insertAll(Providers.of(["k1": "1", "k2": "2"]))
@@ -1462,6 +1483,7 @@ The value of this property is derived from: <source>""")
         property.getOrNull() == null
     }
 
+    @Ignore('absence ignoring operations are no longer supported')
     def "putting after inserting an undefined value provider is undefined-safe"() {
         given:
         property.put("k0", "0")
@@ -1472,6 +1494,7 @@ The value of this property is derived from: <source>""")
         assertValueIs([k0: '0', k2: '2'])
     }
 
+    @Ignore('absence ignoring operations are no longer supported')
     def "execution time value is present if only undefined-safe operations are performed"() {
         given:
         property.set(notDefined())
@@ -1491,6 +1514,7 @@ The value of this property is derived from: <source>""")
         assertEqualValues([b: '2', c: '3', d: '4'], execTimeValue.toValue().get())
     }
 
+    @Ignore('absence ignoring operations are no longer supported')
     def "execution time value is missing if any undefined-safe operations are performed in the tail"() {
         given:
         property.set(notDefined())
@@ -1511,6 +1535,7 @@ The value of this property is derived from: <source>""")
         execTimeValue.toValue().isMissing()
     }
 
+    @Ignore('absence ignoring operations are no longer supported')
     def "property restores undefined-safe items"() {
         given:
         property.put("a", "1")
@@ -1526,11 +1551,12 @@ The value of this property is derived from: <source>""")
         assertValueIs(result, property2)
 
         where:
-        value       | result
-        [b: "2"]    | [a: "1", b: "2", c: "3"]
-        null        | [a: "1", c: "3"]
+        value    | result
+        [b: "2"] | [a: "1", b: "2", c: "3"]
+        null     | [a: "1", c: "3"]
     }
 
+    @Ignore('absence ignoring operations are no longer supported')
     def "property remains undefined-safe after restored"() {
         given:
         property.put("a", notDefined())
@@ -1565,6 +1591,7 @@ The value of this property is derived from: <source>""")
         assertValueIs([b: '2', c: '3c', d: '4', f: '6', g: '7'], property3)
     }
 
+    @Ignore('absence ignoring operations are no longer supported')
     def "keySet provider has some values when property with no value is added via insert"() {
         given:
         property.set((Map) null)
@@ -1579,6 +1606,7 @@ The value of this property is derived from: <source>""")
         keySetProvider.get() == ["k3", "k4"] as Set
     }
 
+    @Ignore('absence ignoring operations are no longer supported')
     def "keySet provider has no value when property with no value is added via insert"() {
         given:
         property.set((Map) null)
@@ -1754,6 +1782,7 @@ The value of this property is derived from: <source>""")
         1 * transform.transform(_)
     }
 
+    @Ignore('absence ignoring operations are no longer supported')
     def "can alternate insert and put"() {
         when:
         property.insert("k1", "1")
@@ -1765,6 +1794,7 @@ The value of this property is derived from: <source>""")
         assertValueIs(['k1': '1', 'k2': '4', 'k3': '3'])
     }
 
+    @Ignore('absence ignoring operations are no longer supported')
     def "can alternate put and insert"() {
         when:
         property.put("k1", "1")
