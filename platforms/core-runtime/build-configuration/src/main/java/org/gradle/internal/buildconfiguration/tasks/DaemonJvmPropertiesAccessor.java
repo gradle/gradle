@@ -24,11 +24,10 @@ import org.gradle.jvm.toolchain.internal.DefaultJvmVendorSpec;
 import org.gradle.platform.BuildPlatform;
 
 import javax.annotation.Nullable;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
-import static org.gradle.internal.buildconfiguration.tasks.DaemonJvmPropertiesUtils.getToolchainUrlPropertyForPlatform;
-import static org.gradle.internal.buildconfiguration.resolvers.ToolchainSupportedPlatformsMatrix.getToolchainSupportedBuildPlatforms;
+import static org.gradle.internal.buildconfiguration.tasks.DaemonJvmPropertiesUtils.getPlatformFromToolchainProperty;
 
 public class DaemonJvmPropertiesAccessor {
 
@@ -62,13 +61,8 @@ public class DaemonJvmPropertiesAccessor {
     }
 
     public Map<BuildPlatform, String> getToolchainDownloadUrls() {
-        Map<BuildPlatform, String> toolchainDownloadUrls = new HashMap<>();
-        getToolchainSupportedBuildPlatforms().forEach(buildPlatform -> {
-            String toolchainDownloadUrl = properties.get(getToolchainUrlPropertyForPlatform(buildPlatform));
-            if (toolchainDownloadUrl != null) {
-                toolchainDownloadUrls.put(buildPlatform, toolchainDownloadUrl);
-            }
-        });
-        return toolchainDownloadUrls;
+        return properties.entrySet().stream()
+            .filter(entry -> entry.getKey().startsWith(DaemonJvmPropertiesDefaults.TOOLCHAIN_URL_PROPERTY_PREFIX))
+                .collect(Collectors.toMap(entry -> getPlatformFromToolchainProperty(entry.getKey()), Map.Entry::getValue));
     }
 }

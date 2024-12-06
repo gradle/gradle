@@ -16,11 +16,16 @@
 
 package org.gradle.internal.buildconfiguration
 
-import org.gradle.internal.buildconfiguration.resolvers.ToolchainSupportedPlatformsMatrix
 import org.gradle.internal.buildconfiguration.tasks.DaemonJvmPropertiesAccessor
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.jvm.toolchain.JvmVendorSpec
+import org.gradle.platform.Architecture
+import org.gradle.platform.BuildPlatformFactory
+import org.gradle.platform.OperatingSystem
 import spock.lang.Specification
+
+import java.util.stream.Collectors
+import java.util.stream.Stream
 
 class DaemonJvmPropertiesAccessorTest extends Specification {
 
@@ -29,20 +34,18 @@ class DaemonJvmPropertiesAccessorTest extends Specification {
         def properties = [
             "toolchainVersion": "12",
             "toolchainVendor": "BELLSOFT",
-            "toolchainFreeBsdX8664Url": "https://server?os=FREE_BSD&architecture=X86_64",
-            "toolchainFreeBsdAarch64Url": "https://server?os=FREE_BSD&architecture=AARCH64",
-            "toolchainLinuxX8664Url": "https://server?os=LINUX&architecture=X86_64",
-            "toolchainLinuxAarch64Url": "https://server?os=LINUX&architecture=AARCH64",
-            "toolchainMacOsX8664Url": "https://server?os=MAC_OS&architecture=X86_64",
-            "toolchainMacOsAarch64Url": "https://server?os=MAC_OS&architecture=AARCH64",
-            "toolchainSolarisX8664Url": "https://server?os=SOLARIS&architecture=X86_64",
-            "toolchainSolarisAarch64Url": "https://server?os=SOLARIS&architecture=AARCH64",
-            "toolchainUnixX8664Url": "https://server?os=UNIX&architecture=X86_64",
-            "toolchainUnixAarch64Url": "https://server?os=UNIX&architecture=AARCH64",
-            "toolchainWindowsX8664Url": "https://server?os=WINDOWS&architecture=X86_64",
-            "toolchainWindowsAarch64Url": "https://server?os=WINDOWS&architecture=AARCH64",
-            "toolchainAixX8664Url": "https://server?os=AIX&architecture=X86_64",
-            "toolchainAixAarch64Url": "https://server?os=AIX&architecture=AARCH64",
+            "toolchainUrl.FREE_BSD.X86_64": "https://server?os=FREE_BSD&architecture=X86_64",
+            "toolchainUrl.FREE_BSD.AARCH64": "https://server?os=FREE_BSD&architecture=AARCH64",
+            "toolchainUrl.LINUX.X86_64": "https://server?os=LINUX&architecture=X86_64",
+            "toolchainUrl.LINUX.AARCH64": "https://server?os=LINUX&architecture=AARCH64",
+            "toolchainUrl.MAC_OS.X86_64": "https://server?os=MAC_OS&architecture=X86_64",
+            "toolchainUrl.MAC_OS.AARCH64": "https://server?os=MAC_OS&architecture=AARCH64",
+            "toolchainUrl.SOLARIS.X86_64": "https://server?os=SOLARIS&architecture=X86_64",
+            "toolchainUrl.SOLARIS.AARCH64": "https://server?os=SOLARIS&architecture=AARCH64",
+            "toolchainUrl.UNIX.X86_64": "https://server?os=UNIX&architecture=X86_64",
+            "toolchainUrl.UNIX.AARCH64": "https://server?os=UNIX&architecture=AARCH64",
+            "toolchainUrl.WINDOWS.X86_64": "https://server?os=WINDOWS&architecture=X86_64",
+            "toolchainUrl.WINDOWS.AARCH64": "https://server?os=WINDOWS&architecture=AARCH64",
         ]
 
         when:
@@ -51,7 +54,9 @@ class DaemonJvmPropertiesAccessorTest extends Specification {
         then:
         propertiesAccessor.version == JavaLanguageVersion.of(12)
         propertiesAccessor.vendor == JvmVendorSpec.BELLSOFT
-        def expectedDownloadUrlsBySupportedBuildPlatform = ToolchainSupportedPlatformsMatrix.getToolchainSupportedBuildPlatforms().collectEntries { buildPlatform ->
+        def expectedDownloadUrlsBySupportedBuildPlatform = Stream.of(Architecture.X86_64, Architecture.AARCH64).flatMap(arch ->
+            Stream.of(OperatingSystem.values()).map(os -> BuildPlatformFactory.of(arch, os)))
+            .collect(Collectors.toSet()).collectEntries { buildPlatform ->
             [buildPlatform, "https://server?os=${buildPlatform.operatingSystem}&architecture=${buildPlatform.architecture}"]
         }
         propertiesAccessor.toolchainDownloadUrls == expectedDownloadUrlsBySupportedBuildPlatform
@@ -71,20 +76,19 @@ class DaemonJvmPropertiesAccessorTest extends Specification {
         e.cause == null
     }
 
-    def "Given invalid download urls properties When parse properties Then empty list is returned"() {
+    def "Given invalid download urls properties When parse properties Then fails with exception"() {
         given:
         def properties = [
-            "toolchainInvalidBsdX8664Url": "https://server",
-            "toolchainFreeBsdInvalidUrl": "https://server",
-            "toolchainLinuxX86Url": "https://server",
-            "toolchainLinuxUrl": "https://server",
-            "toolchainX8664Url": "https://server",
+            "toolchainUrl.InvalidBsdX86_64": "https://server"
         ]
 
         when:
         def propertiesAccessor = new DaemonJvmPropertiesAccessor(properties)
+        propertiesAccessor.toolchainDownloadUrls
 
         then:
-        propertiesAccessor.toolchainDownloadUrls.isEmpty()
+        def e = thrown(IllegalArgumentException)
+        e.message == "Invalid toolchain URL property name: toolchainUrl.InvalidBsdX86_64"
+        e.cause == null
     }
 }

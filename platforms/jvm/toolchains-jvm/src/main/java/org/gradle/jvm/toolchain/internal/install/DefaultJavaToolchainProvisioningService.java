@@ -118,6 +118,8 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
                 "Learn more about toolchain repositories at " + Documentation.userManual("toolchains", "sub:download_repositories").getUrl() + ".");
         }
 
+        // TODO: This should be refactored to leverage the new JavaToolchainResolverService but the current error handling makes it hard
+        // However, this exception handling is wrong as it may cause unreproducible behaviors since we can query a later resolver when a previous one fails.
         ToolchainDownloadFailureTracker downloadFailureTracker = new ToolchainDownloadFailureTracker();
         File successfulProvisioning = null;
         for (RealizedJavaToolchainRepository repository : repositories) {
