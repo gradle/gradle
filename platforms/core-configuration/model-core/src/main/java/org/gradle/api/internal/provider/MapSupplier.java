@@ -30,16 +30,7 @@ interface MapSupplier<K, V> extends ValueSupplier {
 
     Value<? extends Set<K>> calculateKeys(ValueConsumer consumer);
 
-    MapSupplier<K, V> plus(MapCollector<K, V> collector);
-
-    /**
-     * Returns a view of this supplier that may calculate its value as empty if it would be missing.
-     */
-    MapSupplier<K, V> absentIgnoring();
-
-    default MapSupplier<K, V> absentIgnoringIfNeeded(boolean required) {
-        return required ? absentIgnoring() : this;
-    }
+    MapSupplier<K, V> plus(MapCollector<K, V> collector, boolean ignoreAbsent);
 
     ExecutionTimeValue<? extends Map<K, V>> calculateExecutionTimeValue();
 }
