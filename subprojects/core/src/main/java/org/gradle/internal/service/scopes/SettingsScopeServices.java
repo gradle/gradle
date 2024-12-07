@@ -38,6 +38,7 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.cache.internal.LegacyCacheCleanupEnablement;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
+import org.gradle.configuration.ConfigurationTargetIdentifiers;
 import org.gradle.initialization.DefaultProjectDescriptorRegistry;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.instantiation.InstantiatorFactory;
@@ -119,7 +120,7 @@ public class SettingsScopeServices implements ServiceRegistrationProvider {
 
     @Provides
     protected ConfigurationTargetIdentifier createConfigurationTargetIdentifier() {
-        return ConfigurationTargetIdentifier.of(settings);
+        return ConfigurationTargetIdentifiers.of(settings);
     }
 
     @Provides
