@@ -14,10 +14,7 @@
  * limitations under the License.
  */
 
-/**
- * The Gradle build configuration tasks internals.
- */
 @NonNullApi
-package org.gradle.internal.buildconfiguration.tasks;
+package org.gradle.platform.internal;
 
 import org.gradle.api.NonNullApi;
