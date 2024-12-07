@@ -18,10 +18,10 @@ package org.gradle.api.problems.internal;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
+import org.gradle.api.problems.IdFactory;
 import org.gradle.api.problems.ProblemGroup;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.Severity;
-import org.gradle.api.problems.SharedProblemGroup;
 import org.gradle.problems.Location;
 import org.gradle.problems.ProblemDiagnostics;
 import org.gradle.problems.buildtree.ProblemStream;
@@ -130,7 +130,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     }
 
     private Problem invalidProblem(String id, String displayName, @Nullable String contextualLabel) {
-        id(id, displayName, new DefaultProblemGroup(
+        id(id, displayName, IdFactory.instance().createRootProblemGroup(
             "problems-api",
             "Problems API")
         ).stackLocation();
@@ -225,19 +225,27 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     }
 
     @Override
-    public InternalProblemBuilder id(String name, String displayName) {
-        this.id = new DefaultProblemId(name, displayName, cloneGroup(SharedProblemGroup.generic()));
+    public InternalProblemBuilder id(ProblemId problemId) {
+        if (problemId instanceof DefaultProblemId) {
+            this.id = problemId;
+        } else {
+           this.id = cloneId(problemId);
+        }
         return this;
     }
 
     @Override
     public InternalProblemBuilder id(String name, String displayName, ProblemGroup parent) {
-        this.id = new DefaultProblemId(name, displayName, cloneGroup(parent));
+        this.id = IdFactory.instance().createProblemId(name, displayName, cloneGroup(parent));
         return this;
     }
 
+    private static ProblemId cloneId(ProblemId original) {
+        return IdFactory.instance().createProblemId(original.getName(), original.getDisplayName(), cloneGroup(original.getGroup()));
+    }
+
     private static ProblemGroup cloneGroup(ProblemGroup original) {
-        return new DefaultProblemGroup(original.getName(), original.getDisplayName(), original.getParent() == null ? null : cloneGroup(original.getParent()));
+        return IdFactory.instance().createProblemGroup(original.getName(), original.getDisplayName(), original.getParent() == null ? null : cloneGroup(original.getParent()));
     }
 
     @Override

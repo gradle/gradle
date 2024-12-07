@@ -17,6 +17,7 @@
 package org.gradle.plugin.devel.tasks.internal
 
 import com.google.gson.Gson
+import org.gradle.api.problems.IdFactory
 import org.gradle.api.problems.Severity
 import org.gradle.api.problems.internal.AdditionalDataBuilderFactory
 import org.gradle.api.problems.internal.DefaultProblemReporter
@@ -37,6 +38,8 @@ import spock.lang.Specification
 
 class ValidationProblemSerializationTest extends Specification {
 
+    def problemId = IdFactory.instance().createProblemId("id", "label", GradleCoreProblemGroup.validation())
+
     Gson gson = ValidationProblemSerialization.createGsonBuilder().create()
     InternalProblemReporter problemReporter = new DefaultProblemReporter(
             Stub(ProblemSummarizer),
@@ -50,7 +53,7 @@ class ValidationProblemSerializationTest extends Specification {
     def "can serialize and deserialize a validation problem"() {
         given:
         def problem = problemReporter.create {
-            it.id("id", "label", GradleCoreProblemGroup.validation())
+            it.id(problemId)
         }
 
         when:
@@ -72,7 +75,7 @@ class ValidationProblemSerializationTest extends Specification {
     def "can serialize and deserialize a validation problem with a location"() {
         given:
         def problem = problemReporter.create {
-            it.id("type", "label", GradleCoreProblemGroup.validation())
+            it.id(problemId)
                 .lineInFileLocation("location", 1, 2, 3)
         }
 
@@ -94,7 +97,7 @@ class ValidationProblemSerializationTest extends Specification {
     def "can serialize and deserialize a validation problem with a documentation link"() {
         given:
         def problem = problemReporter.create {
-            it.id("id", "label", GradleCoreProblemGroup.validation())
+            it.id(problemId)
                 .documentedAt(new TestDocLink())
                 .lineInFileLocation("location", 1, 1)
         }
@@ -134,7 +137,7 @@ class ValidationProblemSerializationTest extends Specification {
     def "can serialize and deserialize a validation problem with a cause"() {
         given:
         def problem = problemReporter.create {
-            it.id("id", "label", GradleCoreProblemGroup.validation())
+            it.id(problemId)
                 .withException(new RuntimeException("cause"))
         }
 
@@ -154,7 +157,7 @@ class ValidationProblemSerializationTest extends Specification {
     def "can serialize and deserialize a validation problem with a severity"(Severity severity) {
         given:
         def problem = problemReporter.create {
-            it.id("id", "label", GradleCoreProblemGroup.validation())
+            it.id(problemId)
                 .severity(severity)
         }
 
@@ -177,7 +180,7 @@ class ValidationProblemSerializationTest extends Specification {
     def "can serialize and deserialize a validation problem with a solution"() {
         given:
         def problem = problemReporter.create {
-            it.id("id", "label", GradleCoreProblemGroup.validation())
+            it.id(problemId)
                 .solution("solution 0")
                 .solution("solution 1")
         }
@@ -199,7 +202,7 @@ class ValidationProblemSerializationTest extends Specification {
     def "can serialize and deserialize a validation problem with additional data"() {
         given:
         def problem = problemReporter.create {
-            it.id("id", "label", GradleCoreProblemGroup.validation())
+            it.id(problemId)
                 .additionalData(TypeValidationDataSpec.class) {
                     it.propertyName("property")
                     it.typeName("type")
@@ -227,7 +230,7 @@ class ValidationProblemSerializationTest extends Specification {
     def "can serialize generic additional data"() {
         given:
         def problem = problemReporter.create {
-            it.id("id", "label")
+            it.id(problemId)
                 .additionalData(GeneralDataSpec) {
                     it.put('foo', 'bar')
                 }
@@ -248,7 +251,7 @@ class ValidationProblemSerializationTest extends Specification {
     def "can serialize deprecation additional data"() {
         given:
         def problem = problemReporter.create {
-            it.id("id", "label")
+            it.id(problemId)
                 .additionalData(DeprecationDataSpec) {
                     it.type(DeprecationData.Type.BUILD_INVOCATION)
                 }
