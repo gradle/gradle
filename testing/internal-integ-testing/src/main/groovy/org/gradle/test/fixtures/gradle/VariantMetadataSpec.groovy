@@ -52,8 +52,8 @@ class VariantMetadataSpec {
         attributes[name] = value
     }
 
-    void dependsOn(String group, String module, String version, String reason = null, Map<String, ?> attributes = [:]) {
-        dependencies << new DependencySpec(group, module, version, reason, attributes)
+    void dependsOn(String group, String module, String version, Map<String, ?> attributes = [:]) {
+        dependencies << new DependencySpec(group, module, version, null, attributes)
     }
 
     void dependsOn(String group, String module, String version, @DelegatesTo(value=DependencySpec, strategy=Closure.DELEGATE_FIRST) Closure<?> config) {

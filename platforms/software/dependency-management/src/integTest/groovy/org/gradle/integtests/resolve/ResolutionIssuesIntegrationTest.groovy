@@ -81,181 +81,6 @@ class ResolutionIssuesIntegrationTest extends AbstractIntegrationSpec {
         succeeds("resolve")
     }
 
-    @Ignore("Original reproducer. Minified version below")
-    @Requires(UnitTestPreconditions.Jdk17OrLater)
-    @Issue("https://github.com/gradle/gradle/issues/26145#issuecomment-1957776331")
-    def "original reproducer -- android project causes corrupt serialized resolution result"() {
-        settingsFile << """
-            pluginManagement {
-                ${mavenCentralRepository()}
-                repositories {
-                    google()
-                }
-            }
-
-            dependencyResolutionManagement {
-                ${mavenCentralRepository()}
-                repositories {
-                    google()
-                }
-            }
-
-
-            rootProject.name = "androidx"
-
-            include(":compose:ui:ui")
-            include(":lifecycle:lifecycle-livedata-core")
-            include(":lifecycle:lifecycle-runtime")
-            include(":lifecycle:lifecycle-viewmodel")
-            include(":lifecycle:lifecycle-viewmodel-savedstate")
-        """
-
-        propertiesFile << "android.useAndroidX=true"
-
-        buildFile << """
-            plugins {
-                id("com.android.library") version "8.2.2" apply false
-                id("org.jetbrains.kotlin.multiplatform") version "1.9.20" apply false
-            }
-        """
-
-        file("lifecycle/lifecycle-livedata-core/build.gradle") << """
-            plugins {
-                id("com.android.library")
-            }
-
-            version = "2.8.0-alpha02"
-            group = "androidx.lifecycle"
-
-            android {
-                namespace "androidx.lifecycle.livedata.core"
-                compileSdkVersion "android-34"
-            }
-        """
-
-        file("lifecycle/lifecycle-runtime/build.gradle") << """
-            plugins {
-                id("com.android.library")
-                id("org.jetbrains.kotlin.multiplatform")
-            }
-
-            group = "lifecycle"
-
-            kotlin {
-                android()
-            }
-            android {
-                namespace "androidx.lifecycle.runtime"
-                compileSdkVersion "android-34"
-            }
-
-            configurations {
-                groupConstraints
-            }
-
-            project.configurations.configureEach { conf ->
-                if (conf != configurations.groupConstraints) {
-                    conf.extendsFrom(configurations.groupConstraints)
-                }
-            }
-
-            dependencies {
-                constraints {
-                    groupConstraints project(":lifecycle:lifecycle-livedata-core")
-                    groupConstraints project(":lifecycle:lifecycle-viewmodel")
-                    groupConstraints project(":lifecycle:lifecycle-viewmodel-savedstate")
-                }
-            }
-        """
-
-        file("lifecycle/lifecycle-viewmodel-savedstate/build.gradle") << """
-            plugins {
-                id("com.android.library")
-            }
-
-            android {
-                namespace "androidx.lifecycle.viewmodel.savedstate"
-                compileSdkVersion "android-34"
-            }
-        """
-
-        file("lifecycle/lifecycle-viewmodel/build.gradle") << """
-            plugins {
-                id("com.android.library")
-                id("org.jetbrains.kotlin.multiplatform")
-            }
-
-            version = "2.8.0-alpha02"
-            group = "androidx.lifecycle"
-
-            kotlin {
-                android()
-            }
-
-            android {
-                namespace "androidx.lifecycle.viewmodel"
-                compileSdkVersion "android-34"
-            }
-
-            configurations {
-                groupConstraints
-            }
-
-            project.configurations.configureEach { conf ->
-                if (conf != configurations.groupConstraints) {
-                    conf.extendsFrom(configurations.groupConstraints)
-                }
-            }
-
-            dependencies {
-                constraints {
-                    groupConstraints project(":lifecycle:lifecycle-livedata-core")
-                }
-            }
-        """
-
-        file("compose/ui/ui/build.gradle") << """
-            plugins {
-                id("com.android.library")
-                id("org.jetbrains.kotlin.multiplatform")
-            }
-
-            kotlin {
-                android()
-                jvm("desktop")
-                sourceSets {
-                    commonMain {
-                        dependencies {
-                            implementation(project(":lifecycle:lifecycle-runtime"))
-                        }
-                    }
-                    androidInstrumentedTest {
-                        dependencies {
-                            implementation("androidx.appcompat:appcompat:1.3.0")
-                            implementation("androidx.fragment:fragment-testing:1.4.1")
-                        }
-                    }
-                }
-            }
-
-            android {
-                namespace "androidx.compose.ui"
-                compileSdkVersion "android-34"
-            }
-
-            tasks.register("resolve") {
-                def root = configurations.commonMainResolvableDependenciesMetadata.incoming.resolutionResult.rootComponent
-                doLast {
-                    println root.get()
-                }
-            }
-        """
-
-        expect:
-        succeeds(":compose:ui:ui:resolve", "--stacktrace")
-    }
-
-    @NotYetImplemented
     @Issue("https://github.com/gradle/gradle/issues/26145#issuecomment-1957776331")
     def "partially minimized reproducer -- android project causes corrupt serialized resolution result"() {
         settingsFile << """
@@ -351,7 +176,7 @@ class ResolutionIssuesIntegrationTest extends AbstractIntegrationSpec {
                 // This plugin is needed in order to get the proper AttributeSchema compatibility/disambiguation
                 // rules. Once we understand this reproducer better, we can likely construct a graph that does not
                 // need these resolution rules.
-                id("org.jetbrains.kotlin.jvm") version "1.9.20"
+                id("org.jetbrains.kotlin.jvm") version "2.0.0"
             }
 
             configurations {
@@ -386,8 +211,7 @@ class ResolutionIssuesIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        succeeds(":resolve", "--stacktrace")
-//        succeeds(":compose:ui:ui:dependencies", "--configuration", "commonMainResolvableDependenciesMetadata", "--stacktrace")
+        succeeds(":resolve")
     }
 
     @NotYetImplemented
@@ -751,5 +575,286 @@ class ResolutionIssuesIntegrationTest extends AbstractIntegrationSpec {
         expect:
         succeeds(":resolve")
         outputContains("[producer2-bar, producer1-foo]")
+    }
+
+    def "graphs causes unattached constraint edge to exist when module goes back to pending"() {
+
+        //region repo
+
+        mavenRepo.module("org.foo", "uber-bom", "1.0")
+            .withModuleMetadata()
+            .adhocVariants()
+            .variant("apiElements", [
+                "org.gradle.category": "platform",
+                "org.gradle.usage": "java-api"
+            ])
+            .publish()
+
+        mavenRepo.module("org.bar", "client", "1.1")
+            .withModuleMetadata()
+            .withVariant("api") {
+                dependsOn("org.foo", "uber-bom", "1.0", [
+                    "org.gradle.category": "platform"
+                ])
+                dependsOn("org.bar", "common", "1.1")
+                dependsOn("org.baz", "main", null)
+                dependsOn("org.baz", "actions", null)
+                dependsOn("org.baz", "feature", null)
+                dependsOn("org.baz", "feature", null) {
+                    requestedCapability("org.baz", "feature-test-fixtures", null)
+                }
+            }
+            .publish()
+
+        mavenRepo.module("org.bar", "client-testing", "1.1")
+            .withModuleMetadata()
+            .withVariant("api") {
+                dependsOn("org.bar", "client", "1.1")
+            }
+            .publish()
+
+        mavenRepo.module("org.bar", "common", "1.1")
+            .withModuleMetadata()
+            .withVariant("api") {
+                dependsOn("org.foo", "uber-bom", "1.0", [
+                    "org.gradle.category": "platform"
+                ])
+            }
+            .publish()
+
+        mavenRepo.module("org.baz", "actions", "1.2")
+            .withModuleMetadata()
+            .publish()
+
+        mavenRepo.module("org.baz", "bom", "1.2")
+            .withModuleMetadata()
+            .adhocVariants()
+            .variant("apiElements", [
+                "org.gradle.category": "platform",
+                "org.gradle.usage": "java-api"
+            ]) {
+                constraint("org.baz", "actions", "1.2")
+            }
+            .publish()
+
+        mavenRepo.module("org.baz", "feature", "1.2")
+            .withModuleMetadata()
+            .publish()
+
+        mavenRepo.module("org.junit", "junit-bom", "5.10.2")
+            .withModuleMetadata()
+            .adhocVariants()
+            .variant("apiElements", [
+                "org.gradle.category": "platform",
+                "org.gradle.usage": "java-api"
+            ])
+            .publish()
+
+        mavenRepo.module("org.junit", "junit-bom", "5.11.3")
+            .withModuleMetadata()
+            .adhocVariants()
+            .variant("apiElements", [
+                "org.gradle.category": "platform",
+                "org.gradle.usage": "java-api"
+            ])
+            .publish()
+
+        mavenRepo.module("org.junit.jupiter", "junit-jupiter-params", "5.11.3")
+            .withModuleMetadata()
+            .withVariant("api") {
+                dependsOn("org.junit", "junit-bom", "5.11.3") {
+                    attribute("org.gradle.category", "platform")
+                    endorseStrictVersions = true
+                }
+            }
+            .publish()
+
+        //endregion
+
+        //region main
+
+        file("main/main/build.gradle.kts") << """
+            plugins {
+              id("java-library")
+            }
+
+            dependencies {
+              api(enforcedPlatform(project(":bom")))
+            }
+        """
+
+        file("main/actions/build.gradle.kts") << """
+            plugins {
+              id("java-library")
+            }
+
+            group = "org.baz"
+        """
+
+        file("main/external/build.gradle.kts") << """
+            plugins {
+              id("java-library")
+            }
+
+            dependencies {
+              api(enforcedPlatform(project(":bom")))
+            }
+        """
+
+        file("main/bom/build.gradle.kts") << """
+            plugins {
+              id("java-platform")
+            }
+
+            group = "org.baz"
+
+            dependencies {
+              constraints {
+                api(project(":actions"))
+                api(project(":feature"))
+              }
+            }
+        """
+
+        file("main/feature/build.gradle.kts") << """
+            plugins {
+              id("java-library")
+              id("java-test-fixtures")
+            }
+
+            group = "org.baz"
+
+            dependencies {
+              api(enforcedPlatform(project(":bom")))
+            }
+        """
+
+        file("main/settings.gradle.kts") << """
+            include(":main")
+            include(":actions")
+            include(":external")
+            include(":bom")
+            include(":feature")
+        """
+
+        //endregion
+
+        file("settings.gradle.kts") << """
+            includeBuild(".")
+
+            dependencyResolutionManagement {
+              repositories {
+                maven(url = "${mavenRepo.uri.toString()}") {
+                  metadataSources {
+                    gradleMetadata()
+                  }
+                }
+              }
+            }
+
+            includeBuild("main") {
+              dependencySubstitution {
+                substitute(module("org.baz:main")).using(project(":main"))
+                substitute(module("org.baz:external")).using(project(":external"))
+              }
+            }
+
+            include(":uber-bom")
+            include(":base")
+        """
+
+        file("uber-bom/build.gradle.kts") << """
+            plugins {
+              id("java-platform")
+            }
+
+            group = "org.foo"
+
+            javaPlatform {
+              allowDependencies()
+            }
+
+            dependencies {
+              api(platform("org.baz:bom:1.2")) {
+                (this as ModuleDependency).doNotEndorseStrictVersions()
+              }
+            }
+        """
+
+        file("base/build.gradle.kts") << """
+            plugins {
+              id("java-library")
+            }
+
+            configurations.all {
+              resolutionStrategy {
+                preferProjectModules()
+              }
+            }
+
+            dependencies {
+                implementation(platform(project(":uber-bom")))
+                implementation(platform("org.junit:junit-bom:5.10.2"))
+                implementation("org.bar:client:1.1")
+                implementation("org.baz:external")
+                implementation("org.bar:client-testing:1.1")
+                implementation("org.junit.jupiter:junit-jupiter-params:5.11.3")
+            }
+        """
+
+        expect:
+        succeeds(":base:dependencies", "--configuration", "compileClasspath")
+    }
+
+    def "depending on a bom of one version and another dependency that upgrades that bom causes unstable graph"() {
+
+        // This code triggers a situation where we reselect the root node of the graph.
+        // This would lead to an unstable graph if it weren't for some suspicious code that
+        // detects certain unstable scenarios.
+        // See SelectorState#markForReuse()
+
+        mavenRepo.module("org.junit", "junit-bom", "5.10.2")
+            .withModuleMetadata()
+            .adhocVariants()
+            .variant("apiElements", [
+                "org.gradle.category": "platform",
+                "org.gradle.usage": "java-api"
+            ])
+            .publish()
+
+        mavenRepo.module("org.junit", "junit-bom", "5.11.3")
+            .withModuleMetadata()
+            .adhocVariants()
+            .variant("apiElements", [
+                "org.gradle.category": "platform",
+                "org.gradle.usage": "java-api"
+            ])
+            .publish()
+
+        mavenRepo.module("org.junit.jupiter", "junit-jupiter-params", "5.11.3")
+            .withModuleMetadata()
+            .withVariant("api") {
+                dependsOn("org.junit", "junit-bom", "5.11.3") {
+                    attribute("org.gradle.category", "platform")
+                    endorseStrictVersions = true
+                }
+            }
+            .publish()
+
+        buildFile << """
+            plugins {
+              id("java-library")
+            }
+
+            ${mavenTestRepository()}
+
+            dependencies {
+                implementation(platform("org.junit:junit-bom:5.10.2"))
+                implementation("org.junit.jupiter:junit-jupiter-params:5.11.3")
+            }
+        """
+
+        expect:
+        succeeds(":dependencies", "--configuration", "compileClasspath")
     }
 }
