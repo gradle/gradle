@@ -154,13 +154,6 @@ class EdgeState implements DependencyGraphEdge {
         }
     }
 
-    void cleanUpOnSourceChange(NodeState source) {
-        removeFromTargetConfigurations();
-        maybeDecreaseHardEdgeCount(source);
-        selector.getTargetModule().removeUnattachedEdge(this);
-        selector.release();
-    }
-
     void removeFromTargetConfigurations() {
         if (!targetNodes.isEmpty()) {
             for (NodeState targetConfiguration : targetNodes) {
@@ -236,7 +229,7 @@ class EdgeState implements DependencyGraphEdge {
                 List<EdgeState> unattachedEdges = targetComponent.getModule().getUnattachedEdges();
                 if (!unattachedEdges.isEmpty()) {
                     for (EdgeState otherEdge : unattachedEdges) {
-                        if (otherEdge != this && !otherEdge.isConstraint()) {
+                        if (!otherEdge.isConstraint()) {
                             otherEdge.attachToTargetConfigurations();
                             if (otherEdge.targetNodeSelectionFailure != null) {
                                 // Copy selection failure
@@ -398,7 +391,10 @@ class EdgeState implements DependencyGraphEdge {
     private List<NodeState> findTargetNodes() {
         List<NodeState> targetNodes = this.targetNodes;
         if (targetNodes.isEmpty()) {
-            // happens for substituted dependencies
+            // TODO: This code is not correct. At the end of graph traversal,
+            // all edges that are part of the graph should have target nodes.
+            // Going to the target component and grabbing all of its nodes
+            // is certainly not the right thing to do here.
             ComponentState targetComponent = getTargetComponent();
             if (targetComponent != null) {
                 targetNodes = targetComponent.getNodes();
@@ -433,12 +429,6 @@ class EdgeState implements DependencyGraphEdge {
             return ((DslOriginDependencyMetadata) dependencyMetadata).getSource();
         }
         return null;
-    }
-
-    void maybeDecreaseHardEdgeCount(NodeState removalSource) {
-        if (!isConstraint) {
-            selector.getTargetModule().decreaseHardEdgeCount(removalSource);
-        }
     }
 
     @Override
