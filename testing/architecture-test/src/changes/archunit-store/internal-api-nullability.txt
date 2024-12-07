@@ -689,7 +689,6 @@ Class <org.gradle.api.internal.tasks.scala.AnalysisStoreProvider> is not annotat
 Class <org.gradle.api.internal.tasks.scala.DaemonScalaCompiler$ScalaCompilerParameters> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DaemonScalaCompiler.java:0)
 Class <org.gradle.api.internal.tasks.scala.DaemonScalaCompiler> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DaemonScalaCompiler.java:0)
 Class <org.gradle.api.internal.tasks.scala.DefaultScalaJavaJointCompileSpec> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultScalaJavaJointCompileSpec.java:0)
-Class <org.gradle.api.internal.tasks.scala.DefaultScalaPluginExtension> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultScalaPluginExtension.java:0)
 Class <org.gradle.api.internal.tasks.scala.GuavaBackedClassLoaderCache$1> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (GuavaBackedClassLoaderCache.java:0)
 Class <org.gradle.api.internal.tasks.scala.GuavaBackedClassLoaderCache> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (GuavaBackedClassLoaderCache.java:0)
 Class <org.gradle.api.internal.tasks.scala.HashedClasspath> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (HashedClasspath.java:0)
