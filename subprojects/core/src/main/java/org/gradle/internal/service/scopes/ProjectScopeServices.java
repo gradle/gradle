@@ -20,6 +20,7 @@ import org.gradle.api.AntBuilder;
 import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.ExternalProcessStartedListener;
+import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.collections.DefaultDomainObjectCollectionFactory;
@@ -116,6 +117,7 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
 
     public static CloseableServiceRegistry create(
         ServiceRegistry parent,
+        SettingsInternal settings,
         ProjectInternal project,
         Factory<LoggingManagerInternal> loggingManagerInternalFactory
     ) {
@@ -124,7 +126,7 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
             .displayName("project services")
             .parent(parent)
             .provider(new ProjectScopeServices(project, loggingManagerInternalFactory))
-            .provider(new WorkerSharedProjectScopeServices(project.getProjectDir()))
+            .provider(new WorkerSharedProjectScopeServices(settings.getSettingsDir(), project.getProjectDir()))
             .build();
     }
 

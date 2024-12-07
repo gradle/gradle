@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.project;
 
+import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.initialization.DefaultProjectDescriptor;
 import org.gradle.internal.DisplayName;
@@ -39,6 +40,8 @@ import java.io.Closeable;
 @ServiceScope(Scope.Project.class)
 public class ProjectLifecycleController implements Closeable {
     private final ServiceRegistry buildServices;
+
+    private final SettingsInternal settingsInternal;
     private final StateTransitionController<State> controller;
     private ProjectInternal project;
     private CloseableServiceRegistry projectScopeServices;
@@ -47,7 +50,8 @@ public class ProjectLifecycleController implements Closeable {
         NotCreated, Created, Configured
     }
 
-    public ProjectLifecycleController(DisplayName displayName, StateTransitionControllerFactory factory, ServiceRegistry buildServices) {
+    public ProjectLifecycleController(DisplayName displayName, StateTransitionControllerFactory factory, SettingsInternal settingsInternal, ServiceRegistry buildServices) {
+        this.settingsInternal = settingsInternal;
         this.buildServices = buildServices;
         controller = factory.newController(displayName, State.NotCreated);
     }
@@ -69,7 +73,7 @@ public class ProjectLifecycleController implements Closeable {
             ProjectInternal parentModel = parent == null ? null : parent.getMutableModel();
             ServiceRegistryFactory serviceRegistryFactory = domainObject -> {
                 final Factory<LoggingManagerInternal> loggingManagerFactory = buildServices.getFactory(LoggingManagerInternal.class);
-                projectScopeServices = ProjectScopeServices.create(buildServices, (ProjectInternal) domainObject, loggingManagerFactory);
+                projectScopeServices = ProjectScopeServices.create(buildServices, settingsInternal, (ProjectInternal) domainObject, loggingManagerFactory);
                 return projectScopeServices;
             };
             project = projectFactory.createProject(build.getMutableModel(), descriptor, owner, parentModel, serviceRegistryFactory, selfClassLoaderScope, baseClassLoaderScope);

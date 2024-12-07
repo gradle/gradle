@@ -127,7 +127,7 @@ class DefaultConfigurationCacheHost internal constructor(
                 getProjectDescriptor(projectPath.parent),
                 name,
                 dir,
-                projectDescriptorRegistry,
+                settings.projectDescriptorRegistry,
                 fileResolver
             )
             buildDirs[projectPath] = buildDir
@@ -136,7 +136,7 @@ class DefaultConfigurationCacheHost internal constructor(
         override fun createProjects() {
             // Ensure projects are registered for look up e.g. by dependency resolution
             val projectRegistry = service<ProjectStateRegistry>()
-            projectRegistry.registerProjects(state, projectDescriptorRegistry)
+            projectRegistry.registerProjects(state, settings)
             createRootProject()
         }
 
@@ -148,7 +148,7 @@ class DefaultConfigurationCacheHost internal constructor(
         }
 
         private
-        fun rootProjectDescriptor() = projectDescriptorRegistry.rootProject!!
+        fun rootProjectDescriptor() = settings.projectDescriptorRegistry.rootProject!!
 
         private
         fun createProject(descriptor: DefaultProjectDescriptor): ProjectInternal {
@@ -205,11 +205,11 @@ class DefaultConfigurationCacheHost internal constructor(
 
         private
         fun getProjectDescriptor(parentPath: Path?): DefaultProjectDescriptor? =
-            parentPath?.let { projectDescriptorRegistry.getProject(it.path) }
+            parentPath?.let { settings.projectDescriptorRegistry.getProject(it.path) }
 
         private
-        val projectDescriptorRegistry
-            get() = (gradle.settings as DefaultSettings).projectDescriptorRegistry
+        val settings
+            get() = gradle.settings as DefaultSettings
     }
 
     private

@@ -101,7 +101,7 @@ public class ProjectBuilderImpl {
         // Descriptor is added to registry as a side effect
         DefaultProjectDescriptor projectDescriptor = new DefaultProjectDescriptor(parentDescriptor, name, projectDir, descriptorRegistry, parentProject.getServices().get(FileResolver.class));
 
-        ProjectState projectState = parentProject.getServices().get(ProjectStateRegistry.class).registerProject(parentProject.getServices().get(BuildState.class), projectDescriptor);
+        ProjectState projectState = parentProject.getServices().get(ProjectStateRegistry.class).registerProject(parentProject.getServices().get(BuildState.class), parentProject.getGradle().getSettings(), projectDescriptor);
         projectState.createMutableModel(parentProject.getClassLoaderScope().createChild("project-" + name, null), parentProject.getBaseClassLoaderScope());
         ProjectInternal project = projectState.getMutableModel();
 
@@ -171,7 +171,7 @@ public class ProjectBuilderImpl {
         ClassLoaderScope rootProjectScope = baseScope.createChild("root-project", null);
 
         ProjectStateRegistry projectStateRegistry = buildServices.get(ProjectStateRegistry.class);
-        ProjectState projectState = projectStateRegistry.registerProject(build, projectDescriptor);
+        ProjectState projectState = projectStateRegistry.registerProject(build, gradle.getSettings(), projectDescriptor);
         projectState.createMutableModel(rootProjectScope, baseScope);
         ProjectInternal project = projectState.getMutableModel();
 

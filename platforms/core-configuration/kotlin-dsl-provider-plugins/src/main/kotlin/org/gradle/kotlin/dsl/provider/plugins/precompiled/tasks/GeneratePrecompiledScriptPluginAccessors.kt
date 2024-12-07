@@ -377,7 +377,7 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
                     }
                     val rootProjectScope = baseScope.createChild("accessors-root-project", null)
                     settings.rootProject.name = "gradle-kotlin-dsl-accessors"
-                    val projectState = gradle.serviceOf<ProjectStateRegistry>().registerProject(gradle.owner, settings.rootProject as DefaultProjectDescriptor)
+                    val projectState = gradle.serviceOf<ProjectStateRegistry>().registerProject(gradle.owner, settings, settings.rootProject as DefaultProjectDescriptor)
                     projectState.createMutableModel(rootProjectScope, baseScope)
                     val rootProject = projectState.mutableModel
                     gradle.rootProject = rootProject
