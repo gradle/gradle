@@ -31,7 +31,7 @@ import org.gradle.tooling.events.problems.Problem
 import org.gradle.tooling.events.problems.Severity
 import org.gradle.tooling.events.problems.SingleProblemEvent
 import org.gradle.tooling.events.problems.TaskPathLocation
-import org.gradle.tooling.events.problems.internal.GeneralData
+import org.gradle.tooling.events.problems.internal.DefaultAdditionalData
 import org.gradle.util.GradleVersion
 import org.junit.Assume
 
@@ -44,6 +44,7 @@ import static org.gradle.integtests.tooling.r86.ProblemsServiceModelBuilderCross
 @ToolingApiVersion(">=8.12")
 @TargetGradleVersion(">=8.9")
 class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
+
 
     def withReportProblemTask(@GroovyBuildScriptLanguage String taskActionMethodBody) {
         buildFile getProblemReportTaskString(taskActionMethodBody)
@@ -118,12 +119,9 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         verifyAll(problems[0]) {
             details?.details == expectedDetails
             definition.documentationLink?.url == expectedDocumentation
-            locations.size() >= 2
+            locations.size() == 2
             (locations[0] as LineInFileLocation).path == '/tmp/foo'
             (locations[1] as LineInFileLocation).path == "build file '$buildFile.path'"
-            if (targetVersion >= GradleVersion.version("8.12")) {
-                assert (locations[2] as TaskPathLocation).buildTreePath == ':reportProblem'
-            }
             definition.severity == Severity.WARNING
             solutions.size() == 1
             solutions[0].solution == 'try this instead'
@@ -132,6 +130,121 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         where:
         detailsConfig              | expectedDetails | documentationConfig                         | expectedDocumentation
         '.details("long message")' | "long message"  | '.documentedAt("https://docs.example.org")' | 'https://docs.example.org'
+        ''                         | null            | ''                                          | null
+    }
+
+    @TargetGradleVersion(">=8.12")
+    def "daaa"() {
+        given:
+        buildFile """
+            import org.gradle.api.problems.Severity
+
+            class SomeData implements AdditionalData, Serializable {
+                String typeName
+
+                SomeData(String typeName) {
+                    this.typeName = typeName
+                }
+//                Map<String, String> getAsMap(){
+//                    [typeName: typeName]
+//                }
+//                 @Override
+//                 Object get(){
+//                 return this
+//                }
+                static AdditionalDataBuilder<SomeData> builder(SomeData from) {
+                    if(from == null) {
+                        return new SomeDataBuilder();
+                    }
+                    return new SomeDataBuilder(from);
+                }
+
+                private static class SomeDataBuilder implements SomeDataSpec, AdditionalDataBuilder<SomeData> {
+                    private String typeName;
+
+                    SomeDataBuilder(SomeData from) {
+                        this.typeName = from.getTypeName();
+                    }
+
+                    SomeDataBuilder() {
+                    }
+
+                    @Override
+                    SomeDataSpec typeName(String typeName){
+                        this.typeName = typeName;
+                        return this;
+                    }
+
+                    @Override
+                    SomeData build() {
+                        return new SomeData(typeName);
+                    }
+                }
+            }
+
+            interface SomeDataSpec extends AdditionalDataSpec {
+                SomeDataSpec typeName(String typeName);
+            }
+
+            abstract class ProblemReportingTask extends DefaultTask {
+                @Inject
+                protected abstract Problems getProblems();
+
+                @TaskAction
+                void run() {
+                    getProblems().getReporter().reporting {
+                        it.id("id", "shortProblemMessage")
+                        .lineInFileLocation("/tmp/foo", 1, 2, 3)
+                        .additionalData(SomeDataSpec, data -> data.typeName("typeName"))
+                        .severity(Severity.WARNING)
+                        .solution("try this instead")
+                    }
+                }
+            }
+
+            abstract class MyPlugin implements Plugin<Project> {
+                @Inject
+                protected abstract Problems getProblems();
+
+                void apply(Project project) {
+                    getProblems().getAdditionalDataBuilderFactory().registerAdditionalDataProvider(SomeDataSpec, data -> {
+                        return SomeData.builder(data)
+                    })
+                    project.tasks.register("reportProblem", ProblemReportingTask)
+                }
+            }
+
+            apply(plugin: MyPlugin)
+       """
+        when:
+
+        def listener = new ProblemProgressListener()
+        withConnection { connection ->
+            connection.newBuild().forTasks('reportProblem')
+                .addJvmArguments("-agentlib:jdwp=transport=dt_socket,server=n,suspend=y,address=5006")
+                .addProgressListener(listener)
+                .run()
+        }
+        def problems = listener.problems
+
+        then:
+        problems.size() == 1
+        verifyAll(problems[0]) {
+            additionalData.get(SomeData).typeName == 'typeName'
+            details?.details == expectedDetails
+            definition.documentationLink?.url == expectedDocumentation
+            locations.size() >= 2
+            (locations[0] as LineInFileLocation).path == '/tmp/foo'
+            (locations[1] as LineInFileLocation).path == "build file '$buildFile.path'"
+            assert (locations[2] as TaskPathLocation).buildTreePath == ':reportProblem'
+            definition.severity == Severity.WARNING
+            solutions.size() == 1
+            solutions[0].solution == 'try this instead'
+        }
+
+        where:
+        detailsConfig              | expectedDetails | documentationConfig                         | expectedDocumentation
+//        '.details("long message")' | "long message"  | '.documentedAt("https://docs.example.org")' | 'https://docs.example.org'
         ''                         | null            | ''                                          | null
     }
 
@@ -266,7 +379,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         then:
         thrown(BuildException)
         listener.problems.size() == 1
-        (listener.problems[0].additionalData as GeneralData).asMap['typeName']== 'MyTask'
+        (listener.problems[0].additionalData as DefaultAdditionalData).asMap['typeName'] == 'MyTask'
     }
 
     @TargetGradleVersion("=8.6")

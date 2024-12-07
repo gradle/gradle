@@ -21,6 +21,7 @@ import org.gradle.integtests.tooling.fixture.ActionQueriesModelThatRequiresConfi
 import org.gradle.integtests.tooling.fixture.ActionShouldNotBeCalled
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.BuildActionExecuter
 import org.gradle.tooling.BuildActionFailureException
 import org.gradle.tooling.BuildException
@@ -113,6 +114,8 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
         """
     }
 
+    @TargetGradleVersion(">=8.12")
+    @ToolingApiVersion(">=8.12")
     def "can run phased action"() {
         IntermediateResultHandlerCollector projectsLoadedHandler = new IntermediateResultHandlerCollector()
         IntermediateResultHandlerCollector buildFinishedHandler = new IntermediateResultHandlerCollector()
@@ -122,6 +125,7 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
             connection.action().projectsLoaded(new CustomProjectsLoadedAction(null), projectsLoadedHandler)
                 .buildFinished(new CustomBuildFinishedAction(), buildFinishedHandler)
                 .build()
+//                .addJvmArguments("-agentlib:jdwp=transport=dt_socket,server=n,suspend=y,address=5006")
                 .run()
         }
 

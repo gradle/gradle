@@ -26,6 +26,7 @@ import org.gradle.internal.classloader.VisitableURLClassLoader;
 
 import java.util.List;
 
+//TODO (Reinhold) rename to something more generic that covers AdditionalData as well
 public class ModelClassLoaderFactory implements PayloadClassLoaderFactory {
     private final ClassLoader rootClassLoader;
 

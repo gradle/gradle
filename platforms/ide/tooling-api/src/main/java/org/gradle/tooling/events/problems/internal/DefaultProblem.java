@@ -41,8 +41,8 @@ public class DefaultProblem implements Problem {
 
     public DefaultProblem(
         ProblemDefinition problemDefinition,
-        ContextualLabel contextualLabel,
-        Details details,
+        @Nullable ContextualLabel contextualLabel,
+        @Nullable Details details,
         List<Location> locations,
         List<Solution> solutions,
         AdditionalData additionalData,
@@ -62,11 +62,13 @@ public class DefaultProblem implements Problem {
     }
 
     @Override
+    @Nullable
     public ContextualLabel getContextualLabel() {
         return contextualLabel;
     }
 
     @Override
+    @Nullable
     public Details getDetails() {
         return details;
     }

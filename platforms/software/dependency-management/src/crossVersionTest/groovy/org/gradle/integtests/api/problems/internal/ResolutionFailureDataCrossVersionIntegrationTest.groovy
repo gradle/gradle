@@ -25,7 +25,7 @@ import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.problems.ProblemEvent
 import org.gradle.tooling.events.problems.SingleProblemEvent
-import org.gradle.tooling.events.problems.internal.GeneralData
+import org.gradle.tooling.events.problems.internal.DefaultAdditionalData
 
 /**
  * Tests that the tooling API can receive and process a problem containing additional {@link ResolutionFailureData}
@@ -47,9 +47,9 @@ class ResolutionFailureDataCrossVersionIntegrationTest extends ToolingApiSpecifi
         """
 
         when:
-        List<GeneralData> failureData = runAndGetProblems()
+        List<DefaultAdditionalData> failureData = runAndGetProblems()
             .findAll { it instanceof SingleProblemEvent }
-            .collect { ProblemEvent problem -> problem.additionalData as GeneralData }
+            .collect { ProblemEvent problem -> problem.additionalData as DefaultAdditionalData }
 
         then:
         failureData.size() >= 1 // Depending on Java version, we might get a Java version test execution failure first, so just check the last one
@@ -73,8 +73,8 @@ class ResolutionFailureDataCrossVersionIntegrationTest extends ToolingApiSpecifi
         """
 
         when:
-        List<GeneralData> failureData = runAndGetProblems().collect { ProblemEvent event ->
-            event.problem.additionalData as GeneralData
+        List<DefaultAdditionalData> failureData = runAndGetProblems().collect { ProblemEvent event ->
+            event.problem.additionalData as DefaultAdditionalData
         }
 
         then:

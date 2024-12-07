@@ -16,6 +16,8 @@
 
 package org.gradle.api.problems.internal;
 
+import org.gradle.api.problems.AdditionalData;
+
 import java.util.Map;
 
 /**
@@ -23,5 +25,9 @@ import java.util.Map;
  */
 public interface GeneralData extends AdditionalData {
 
-    Map<String, String> getAsMap();
+    /**
+     * Returns the data as a map.
+     */
+    Map<String, Object> getAsMap();
+
 }

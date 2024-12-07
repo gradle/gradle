@@ -16,6 +16,8 @@
 
 package org.gradle.api.problems.internal;
 
+import org.gradle.api.problems.AdditionalData;
+
 /**
  * Additional data type that can be used to attach deprecation information to a problem.
  */
