@@ -16,6 +16,7 @@
 
 package org.gradle.api.problems.internal
 
+
 import org.gradle.internal.problems.NoOpProblemDiagnosticsFactory
 import spock.lang.Specification
 
@@ -109,5 +110,22 @@ class DefaultProblemBuilderTest extends Specification {
 
         then:
         data == null
+    }
+
+    def "can define contextual locations"() {
+        given:
+        def problemBuilder = new DefaultProblemBuilder(EMPTY_STREAM, new AdditionalDataBuilderFactory())
+
+        when:
+        //noinspection GroovyAssignabilityCheck
+        def problem = problemBuilder
+            .id("id", "displayName")
+            .taskPathLocation(":taskPath")
+            .build()
+
+
+        then:
+        problem.contextualLocations.every { it instanceof TaskPathLocation }
+        problem.contextualLocations.collect {(it as TaskPathLocation).buildTreePath } == [':taskPath']
     }
 }
