@@ -27,7 +27,7 @@ public interface ExternalModuleDependency extends ExternalDependency {
     boolean isChanging();
 
     /**
-     * Sets whether Gradle may check for a change in the remote repository. If set to true, Gradle will
+     * Sets the dependency as "changing" or "not changing".
      * check the remote repository if the local entry has expired.
      * If set to false, Gradle will use the local entry even if there is a new artifact in the remote repository.
      * Defaults to false.
