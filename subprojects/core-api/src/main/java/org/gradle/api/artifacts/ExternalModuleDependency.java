@@ -20,7 +20,7 @@ package org.gradle.api.artifacts;
  */
 public interface ExternalModuleDependency extends ExternalDependency {
     /**
-     * Returns whether Gradle may check for a change in the remote repository
+     * Indicates that the given dependency can have different content for the same identifier.
      *
      * @see #setChanging(boolean)
      */
