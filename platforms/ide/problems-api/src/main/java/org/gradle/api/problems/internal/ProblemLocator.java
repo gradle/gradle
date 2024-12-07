@@ -18,6 +18,6 @@ package org.gradle.api.problems.internal;
 
 import java.util.Collection;
 
-public interface ProblemLookup {
+public interface ProblemLocator {
     Collection<Problem> findAll(Throwable t);
 }

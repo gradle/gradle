@@ -22,8 +22,8 @@ import javax.annotation.Nullable;
 
 class TestCompilationFailureException extends Exception implements CompilationFailedIndicator {
 
-    @Nullable
     @Override
+    @Nullable
     public String getDiagnosticCounts() {
         return null;
     }

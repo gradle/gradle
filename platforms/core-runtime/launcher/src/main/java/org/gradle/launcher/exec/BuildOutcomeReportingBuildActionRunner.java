@@ -70,7 +70,7 @@ public class BuildOutcomeReportingBuildActionRunner implements BuildActionRunner
 
         Result result = delegate.run(action, buildController);
 
-        buildLogger.logResult(result.getBuildFailure(), registry.getProblemLookup());
+        buildLogger.logResult(result.getBuildFailure(), registry.getProblemLocator());
         new TaskExecutionStatisticsReporter(styledTextOutputFactory).buildFinished(taskStatisticsCollector.getStatistics());
         return result;
     }
