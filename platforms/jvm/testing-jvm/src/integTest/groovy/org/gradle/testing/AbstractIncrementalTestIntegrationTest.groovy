@@ -155,7 +155,7 @@ abstract class AbstractIncrementalTestIntegrationTest extends AbstractTestingMul
         then:
         succeeds('test').assertTasksNotSkipped(':test')
 
-        result.assertTestClassesExecuted('TestNGTest') //previous result still present in the dir
+        result.assertTestClassesExecuted('TestNGTest')
 
         succeeds('test').assertTasksNotSkipped()
     }

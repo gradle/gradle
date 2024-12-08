@@ -16,9 +16,8 @@
 
 package org.gradle.api.internal.tasks.testing.junit.result
 
-import org.gradle.api.Action
+
 import org.gradle.api.internal.tasks.testing.BuildableTestResultsProvider
-import org.gradle.api.tasks.testing.TestOutputEvent
 import org.gradle.api.tasks.testing.TestResult
 import spock.lang.Specification
 
@@ -80,10 +79,10 @@ class AggregateTestResultsProviderTest extends Specification {
         }
 
         then:
-        results*.name == ['class-1', 'test-a', 'test-b']
+        results*.name == ['class-1', 'test-a', 'class-1', 'test-b']
     }
 
-    def "merge methods in duplicate classes"() {
+    def "does not merge duplicates"() {
         final long startTimeSooner = 122000
         final long startTimeLater = 123000
         final long endTimeSooner = 123456
@@ -132,24 +131,11 @@ class AggregateTestResultsProviderTest extends Specification {
         }
 
         then:
-        results*.name == ['class-1', 'test-a']
-        results*.startTime == [startTimeSooner, startTimeSooner]
-        results[0].endTime == endTimeLater
-        results[1].endTime == startTimeLater + 100
-        // TODO what to do here? classes must be merged, but methods are actually not merged and are reported as separate results?
-        1 * provider1.visitClasses(_) >> { Action a -> a.execute(class1) }
-        1 * provider2.visitClasses(_) >> { Action a -> a.execute(class2) }
-        1 * action.execute(_) >> { TestClassResult r ->
-            assert r.id == 1
-            assert r.className == 'class-1'
-            assert r.startTime == startTimeSooner
-            assert r.results.any { TestMethodResult m ->
-                m.name == 'methodFoo' && m.resultType == TestResult.ResultType.SUCCESS
-            }
-            assert r.results.any { TestMethodResult m ->
-                m.name == 'methodFoo' && m.resultType == TestResult.ResultType.FAILURE
-            }
-        }
-        0 * action._
+        results*.name == ['class-1', 'test-a', 'class-1', 'test-a']
+        results*.startTime == [startTimeSooner, startTimeSooner, startTimeLater, startTimeLater]
+        results[0].endTime == endTimeSooner
+        results[1].endTime == startTimeSooner + 10
+        results[2].endTime == endTimeLater
+        results[3].endTime == startTimeLater + 100
     }
 }

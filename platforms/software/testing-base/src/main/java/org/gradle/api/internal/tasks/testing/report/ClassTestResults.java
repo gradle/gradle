@@ -19,28 +19,39 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider;
 import org.gradle.internal.FileUtils;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
-import java.util.TreeSet;
 
 /**
  * Test results for a given class.
  */
 public class ClassTestResults extends CompositeTestResults {
-    private final TestResultsProvider provider;
+    private final Set<TestResultsProvider> providers;
+    private final String className;
+    private final String classDisplayName;
     private final PackageTestResults packageResults;
-    private final Set<TestResult> results = new TreeSet<>();
+    private final List<TestResult> results = new ArrayList<>();
     private final String baseUrl;
 
-    public ClassTestResults(TestResultsProvider provider, PackageTestResults packageResults) {
+    public ClassTestResults(TestResultsProvider provider, String className, String classDisplayName, PackageTestResults packageResults) {
         super(packageResults);
-        this.provider = provider;
+        this.className = className;
+        this.classDisplayName = classDisplayName;
+        this.providers = new LinkedHashSet<>();
+        this.providers.add(provider);
         this.packageResults = packageResults;
-        baseUrl = "classes/" + FileUtils.toSafeFileName(provider.getResult().getName()) + ".html";
+        baseUrl = "classes/" + FileUtils.toSafeFileName(className) + ".html";
     }
 
-    public TestResultsProvider getProvider() {
-        return provider;
+    public void addProvider(TestResultsProvider provider) {
+        providers.add(provider);
+    }
+
+    public Collection<TestResultsProvider> getProviders() {
+        return providers;
     }
 
     @Override
@@ -54,11 +65,11 @@ public class ClassTestResults extends CompositeTestResults {
     }
 
     public String getName() {
-        return provider.getResult().getName();
+        return className;
     }
 
     public String getDisplayName() {
-        return provider.getResult().getDisplayName();
+        return classDisplayName;
     }
 
     public String getReportName() {
@@ -80,12 +91,12 @@ public class ClassTestResults extends CompositeTestResults {
         return packageResults;
     }
 
-    public Collection<TestResult> getTestResults() {
+    public List<TestResult> getTestResults() {
         return results;
     }
 
-    public TestResult addTest(String testName, String testDisplayName, long duration) {
-        TestResult test = new TestResult(testName, testDisplayName, duration, this);
+    public TestResult addTest(TestResultsProvider provider, String testName, String testDisplayName, long duration) {
+        TestResult test = new TestResult(provider, testName, testDisplayName, duration, this);
         results.add(test);
         return addTest(test);
     }

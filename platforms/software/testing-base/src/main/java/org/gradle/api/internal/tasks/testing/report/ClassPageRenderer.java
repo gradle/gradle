@@ -26,8 +26,12 @@ import org.gradle.reporting.CodePanelRenderer;
 import org.gradle.util.internal.GUtil;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 class ClassPageRenderer extends PageRenderer<ClassTestResults> {
     private final CodePanelRenderer codePanelRenderer = new CodePanelRenderer();
@@ -48,7 +52,10 @@ class ClassPageRenderer extends PageRenderer<ClassTestResults> {
 
         boolean methodNameColumnExists = methodNameColumnExists();
 
-        for (TestResult test : getResults().getTestResults()) {
+        List<TestResult> resultsSorted = new ArrayList<>(getResults().getTestResults());
+        resultsSorted.sort(Comparator.naturalOrder());
+
+        for (TestResult test : resultsSorted) {
             renderTableRow(writer, test, determineTableRow(test, methodNameColumnExists));
         }
         htmlWriter.endElement();
@@ -117,30 +124,36 @@ class ClassPageRenderer extends PageRenderer<ClassTestResults> {
                 renderTests(writer);
             }
         });
-        final TestResultsProvider provider = getModel().getProvider();
-        if (provider.hasOutput(TestOutputEvent.Destination.StdOut)) {
+        final Collection<TestResultsProvider> providers = getModel().getProviders();
+        final List<TestResultsProvider> providersWithStdOut = providers.stream().filter(it -> it.hasAllOutput(TestOutputEvent.Destination.StdOut)).collect(Collectors.toList());
+        if (!providersWithStdOut.isEmpty()) {
             addTab("Standard output", new ErroringAction<SimpleHtmlWriter>() {
                 @Override
                 protected void doExecute(SimpleHtmlWriter htmlWriter) throws IOException {
                     htmlWriter.startElement("span").attribute("class", "code")
                         .startElement("pre")
                         .characters("");
-                    provider.copyOutput(TestOutputEvent.Destination.StdOut, htmlWriter);
-                        htmlWriter.endElement()
-                    .endElement();
+                    for (TestResultsProvider testResultsProvider : providersWithStdOut) {
+                        testResultsProvider.copyAllOutput(TestOutputEvent.Destination.StdOut, htmlWriter);
+                    }
+                    htmlWriter.endElement()
+                        .endElement();
                 }
             });
         }
-        if (provider.hasOutput(TestOutputEvent.Destination.StdErr)) {
+        final List<TestResultsProvider> providersWithStdErr = providers.stream().filter(it -> it.hasAllOutput(TestOutputEvent.Destination.StdErr)).collect(Collectors.toList());
+        if (!providersWithStdErr.isEmpty()) {
             addTab("Standard error", new ErroringAction<SimpleHtmlWriter>() {
                 @Override
                 protected void doExecute(SimpleHtmlWriter element) throws Exception {
                     element.startElement("span").attribute("class", "code")
-                    .startElement("pre")
+                        .startElement("pre")
                         .characters("");
-                    provider.copyOutput(TestOutputEvent.Destination.StdErr, element);
+                    for (TestResultsProvider testResultsProvider : providersWithStdErr) {
+                        testResultsProvider.copyAllOutput(TestOutputEvent.Destination.StdErr, element);
+                    }
                     element.endElement()
-                    .endElement();
+                        .endElement();
                 }
             });
         }

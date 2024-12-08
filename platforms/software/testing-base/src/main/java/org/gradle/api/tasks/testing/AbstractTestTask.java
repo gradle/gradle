@@ -34,7 +34,6 @@ import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.internal.tasks.testing.junit.result.Binary2JUnitXmlReportGenerator;
 import org.gradle.api.internal.tasks.testing.junit.result.InMemoryTestResultsProvider;
 import org.gradle.api.internal.tasks.testing.junit.result.JUnitXmlResultOptions;
-import org.gradle.api.internal.tasks.testing.junit.result.PersistentTestResult;
 import org.gradle.api.internal.tasks.testing.junit.result.PersistentTestResultTree;
 import org.gradle.api.internal.tasks.testing.junit.result.TestOutputStore;
 import org.gradle.api.internal.tasks.testing.junit.result.TestReportDataCollector;
@@ -89,7 +88,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -529,18 +527,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
             throw new UncheckedIOException(e);
         }
 
-        List<PersistentTestResultTree> children = testReportDataCollector.removeRootChildTrees();
-        // It might be nice to fill in more details here, such as the name of the test task
-        PersistentTestResultTree rootResult = new PersistentTestResultTree(
-            -1L,
-            new PersistentTestResult(
-                "root", "root", TestResult.ResultType.SUCCESS,
-                children.stream().mapToLong(t -> t.getResult().getStartTime()).min().orElse(0L),
-                children.stream().mapToLong(t -> t.getResult().getEndTime()).max().orElse(0L),
-                Collections.emptyList()
-            ),
-            children
-        );
+        PersistentTestResultTree rootResult = testReportDataCollector.getRootTree();
 
         // Write binary results to disk
         new TestResultSerializer(binaryResultsDir).write(rootResult);

@@ -45,6 +45,11 @@ public class DefaultTestClassDescriptor extends DefaultTestSuiteDescriptor {
     }
 
     @Override
+    public boolean isClass() {
+        return true;
+    }
+
+    @Override
     public String getClassDisplayName() {
         return classDisplayName;
     }

@@ -54,6 +54,11 @@ public class UnknownTestDescriptor implements TestDescriptorInternal {
     }
 
     @Override
+    public boolean isClass() {
+        return false;
+    }
+
+    @Override
     @Nullable
     public String getClassDisplayName() {
         return getClassName();

@@ -17,47 +17,64 @@
 package org.gradle.api.internal.tasks.testing.junit.result
 
 import org.gradle.api.internal.tasks.testing.BuildableTestResultsProvider
+import org.gradle.api.internal.tasks.testing.report.AllTestResults
+import org.gradle.api.internal.tasks.testing.report.ClassTestResults
+import org.gradle.api.tasks.testing.TestResult
 import org.gradle.internal.SystemProperties
 import spock.lang.Specification
 
 class JUnitXmlResultWriterMergeRerunSpec extends Specification {
 
-    def provider = new BuildableTestResultsProvider()
     def outputPerTestCase = true
 
     protected JUnitXmlResultWriter getGenerator() {
-        new JUnitXmlResultWriter("localhost", provider, new JUnitXmlResultOptions(outputPerTestCase, true, true, true))
+        new JUnitXmlResultWriter("localhost", new JUnitXmlResultOptions(outputPerTestCase, true, true, true))
     }
 
     def "merges for simple case - output per testcase"() {
         when:
-        def testClass = provider.testClassResult("com.Flaky") {
-            stdout "class-out"
-            stderr "class-err"
-            testcase("m1") {
-                stderr "m1-err-1"
-                stdout "m1-out-1"
-                failure "m1-message-1", "m1-stackTrace-1"
-            }
-            testcase("m1") {
-                stdout "m1-out-2"
-                stderr "m1-err-2"
-            }
-            testcase("m2") {
-                stderr "m2-err-1"
-                stdout "m2-out-1"
-                failure "m2-message-1", "m2-stackTrace-1"
-            }
-            testcase("m2") {
-                stderr "m2-err-2"
-                stdout "m2-out-2"
-                failure "m2-message-2", "m2-stackTrace-2"
+        def testClass = new BuildableTestResultsProvider().tap {
+            child {
+                resultForClass("com.Flaky")
+                stdout "class-out"
+                stderr "class-err"
+                child {
+                    result("m1") {
+                        addFailure(new PersistentTestFailure("m1-message-1", "m1-stackTrace-1", "ExceptionType"))
+                        resultType(TestResult.ResultType.FAILURE)
+                    }
+                    stdout "m1-out-1"
+                    stderr "m1-err-1"
+                }
+                child {
+                    result("m1") {
+                        endTime(2000)
+                    }
+                    stdout "m1-out-2"
+                    stderr "m1-err-2"
+                }
+                child {
+                    result("m2") {
+                        addFailure(new PersistentTestFailure("m2-message-1", "m2-stackTrace-1", "ExceptionType"))
+                        resultType(TestResult.ResultType.FAILURE)
+                    }
+                    stdout "m2-out-1"
+                    stderr "m2-err-1"
+                }
+                child {
+                    result("m2") {
+                        addFailure(new PersistentTestFailure("m2-message-2", "m2-stackTrace-2", "ExceptionType"))
+                        resultType(TestResult.ResultType.FAILURE)
+                    }
+                    stdout "m2-out-2"
+                    stderr "m2-err-2"
+                }
             }
         }
 
         then:
         getXml(testClass) == """<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.Flaky" tests="4" skipped="0" failures="0" errors="0" timestamp="1970-01-01T00:00:00" hostname="localhost" time="1.0">
+<testsuite name="com.Flaky" tests="4" skipped="0" failures="3" errors="0" timestamp="1970-01-01T00:00:00" hostname="localhost" time="1.0">
   <properties/>
   <testcase name="m1" classname="com.Flaky" time="2.0">
     <flakyFailure message="m1-message-1" type="ExceptionType">
@@ -87,33 +104,48 @@ class JUnitXmlResultWriterMergeRerunSpec extends Specification {
     def "merges for simple case - output at suite"() {
         when:
         outputPerTestCase = false
-        def testClass = provider.testClassResult("com.Flaky") {
-            stdout "class-out"
-            stderr "class-err"
-            testcase("m1") {
-                stderr "m1-err-1"
-                stdout "m1-out-1"
-                failure "m1-message-1", "m1-stackTrace-1"
-            }
-            testcase("m1") {
-                stdout "m1-out-2"
-                stderr "m1-err-2"
-            }
-            testcase("m2") {
-                stderr "m2-err-1"
-                stdout "m2-out-1"
-                failure "m2-message-1", "m2-stackTrace-1"
-            }
-            testcase("m2") {
-                stderr "m2-err-2"
-                stdout "m2-out-2"
-                failure "m2-message-2", "m2-stackTrace-2"
+        def testClass = new BuildableTestResultsProvider().tap {
+            child {
+                resultForClass("com.Flaky")
+                stdout "class-out"
+                stderr "class-err"
+                child {
+                    result("m1") {
+                        addFailure(new PersistentTestFailure("m1-message-1", "m1-stackTrace-1", "ExceptionType"))
+                        resultType(TestResult.ResultType.FAILURE)
+                    }
+                    stdout "m1-out-1"
+                    stderr "m1-err-1"
+                }
+                child {
+                    result("m1") {
+                        endTime(2000)
+                    }
+                    stdout "m1-out-2"
+                    stderr "m1-err-2"
+                }
+                child {
+                    result("m2") {
+                        addFailure(new PersistentTestFailure("m2-message-1", "m2-stackTrace-1", "ExceptionType"))
+                        resultType(TestResult.ResultType.FAILURE)
+                    }
+                    stdout "m2-out-1"
+                    stderr "m2-err-1"
+                }
+                child {
+                    result("m2") {
+                        addFailure(new PersistentTestFailure("m2-message-2", "m2-stackTrace-2", "ExceptionType"))
+                        resultType(TestResult.ResultType.FAILURE)
+                    }
+                    stdout "m2-out-2"
+                    stderr "m2-err-2"
+                }
             }
         }
 
         then:
         getXml(testClass) == """<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.Flaky" tests="4" skipped="0" failures="0" errors="0" timestamp="1970-01-01T00:00:00" hostname="localhost" time="1.0">
+<testsuite name="com.Flaky" tests="4" skipped="0" failures="3" errors="0" timestamp="1970-01-01T00:00:00" hostname="localhost" time="1.0">
   <properties/>
   <testcase name="m1" classname="com.Flaky" time="2.0">
     <flakyFailure message="m1-message-1" type="ExceptionType">
@@ -134,43 +166,64 @@ class JUnitXmlResultWriterMergeRerunSpec extends Specification {
 
     def "can have many failing executions"() {
         when:
-        def testClass = provider.testClassResult("com.Flaky") {
-            stdout "class-out"
-            stderr "class-err"
-            testcase("m1") {
-                stderr "m1-err-1"
-                stdout "m1-out-1"
-                failure "m1-message-1", "m1-stackTrace-1"
-            }
-            testcase("m2") {
-                stderr "m2-err-1"
-                stdout "m2-out-1"
-                failure "m2-message-1", "m2-stackTrace-1"
-            }
-            testcase("m1") {
-                stderr "m1-err-2"
-                stdout "m1-out-2"
-                failure "m1-message-2", "m1-stackTrace-2"
-            }
-            testcase("m2") {
-                stderr "m2-err-2"
-                stdout "m2-out-2"
-                failure "m2-message-2", "m2-stackTrace-2"
-            }
-            testcase("m1") {
-                stdout "m1-out-3"
-                stderr "m1-err-3"
-            }
-            testcase("m2") {
-                stderr "m2-err-3"
-                stdout "m2-out-3"
-                failure "m2-message-3", "m2-stackTrace-3"
+        def testClass = new BuildableTestResultsProvider().tap {
+            child {
+                resultForClass("com.Flaky")
+                stdout "class-out"
+                stderr "class-err"
+                child {
+                    result("m1") {
+                        addFailure(new PersistentTestFailure("m1-message-1", "m1-stackTrace-1", "ExceptionType"))
+                        resultType(TestResult.ResultType.FAILURE)
+                    }
+                    stdout "m1-out-1"
+                    stderr "m1-err-1"
+                }
+                child {
+                    result("m2") {
+                        addFailure(new PersistentTestFailure("m2-message-1", "m2-stackTrace-1", "ExceptionType"))
+                        resultType(TestResult.ResultType.FAILURE)
+                    }
+                    stdout "m2-out-1"
+                    stderr "m2-err-1"
+                }
+                child {
+                    result("m1") {
+                        addFailure(new PersistentTestFailure("m1-message-2", "m1-stackTrace-2", "ExceptionType"))
+                        resultType(TestResult.ResultType.FAILURE)
+                    }
+                    stdout "m1-out-2"
+                    stderr "m1-err-2"
+                }
+                child {
+                    result("m2") {
+                        addFailure(new PersistentTestFailure("m2-message-2", "m2-stackTrace-2", "ExceptionType"))
+                        resultType(TestResult.ResultType.FAILURE)
+                    }
+                    stdout "m2-out-2"
+                    stderr "m2-err-2"
+                }
+                child {
+                    result("m1") {
+                        endTime(3000)
+                    }
+                    stdout "m1-out-3"
+                    stderr "m1-err-3"
+                }
+                child {
+                    result("m2") {
+                        addFailure(new PersistentTestFailure("m2-message-3", "m2-stackTrace-3", "ExceptionType"))
+                        resultType(TestResult.ResultType.FAILURE)
+                    }
+                    stdout "m2-out-3"
+                    stderr "m2-err-3"
+                }
             }
         }
 
         then:
         getXml(testClass) == """<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.Flaky" tests="6" skipped="0" failures="0" errors="0" timestamp="1970-01-01T00:00:00" hostname="localhost" time="1.0">
+<testsuite name="com.Flaky" tests="6" skipped="0" failures="5" errors="0" timestamp="1970-01-01T00:00:00" hostname="localhost" time="1.0">
   <properties/>
   <testcase name="m1" classname="com.Flaky" time="3.0">
     <flakyFailure message="m1-message-1" type="ExceptionType">
@@ -209,33 +262,57 @@ class JUnitXmlResultWriterMergeRerunSpec extends Specification {
 
     def "breaks up into testcases terminated by non failed results"() {
         when:
-        def testClass = provider.testClassResult("com.Flaky") {
-            testcase("m1") {
-                failure "m1-message-1", "m1-stackTrace-1"
-            }
-            testcase("m1") {
-                failure "m1-message-2", "m1-stackTrace-2"
-            }
-            testcase("m1") {
-
-            }
-            testcase("m1") {
-                failure "m1-message-3", "m1-stackTrace-3"
-            }
-            testcase("m1") {
-                ignore()
-            }
-            testcase("m1") {
-                failure "m1-message-4", "m1-stackTrace-4"
-            }
-            testcase("m1") {
-                failure "m1-message-5", "m1-stackTrace-5"
+        def testClass = new BuildableTestResultsProvider().tap {
+            child {
+                resultForClass("com.Flaky")
+                child {
+                    result("m1") {
+                        addFailure(new PersistentTestFailure("m1-message-1", "m1-stackTrace-1", "ExceptionType"))
+                        resultType(TestResult.ResultType.FAILURE)
+                    }
+                }
+                child {
+                    result("m1") {
+                        addFailure(new PersistentTestFailure("m1-message-2", "m1-stackTrace-2", "ExceptionType"))
+                        resultType(TestResult.ResultType.FAILURE)
+                    }
+                }
+                child {
+                    result("m1") {
+                        endTime(3000)
+                    }
+                }
+                child {
+                    result("m1") {
+                        addFailure(new PersistentTestFailure("m1-message-3", "m1-stackTrace-3", "ExceptionType"))
+                        resultType(TestResult.ResultType.FAILURE)
+                    }
+                }
+                child {
+                    result("m1") {
+                        endTime(5000)
+                        resultType(TestResult.ResultType.SKIPPED)
+                    }
+                }
+                child {
+                    result("m1") {
+                        endTime(6000)
+                        addFailure(new PersistentTestFailure("m1-message-4", "m1-stackTrace-4", "ExceptionType"))
+                        resultType(TestResult.ResultType.FAILURE)
+                    }
+                }
+                child {
+                    result("m1") {
+                        addFailure(new PersistentTestFailure("m1-message-5", "m1-stackTrace-5", "ExceptionType"))
+                        resultType(TestResult.ResultType.FAILURE)
+                    }
+                }
             }
         }
 
         then:
         getXml(testClass) == """<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.Flaky" tests="7" skipped="0" failures="0" errors="0" timestamp="1970-01-01T00:00:00" hostname="localhost" time="1.0">
+<testsuite name="com.Flaky" tests="7" skipped="1" failures="5" errors="0" timestamp="1970-01-01T00:00:00" hostname="localhost" time="1.0">
   <properties/>
   <testcase name="m1" classname="com.Flaky" time="3.0">
     <flakyFailure message="m1-message-1" type="ExceptionType">
@@ -265,36 +342,51 @@ class JUnitXmlResultWriterMergeRerunSpec extends Specification {
 
     def "unpacks multiple failures"() {
         when:
-        def testClass = provider.testClassResult("com.Flaky") {
-            stdout "class-out"
-            stderr "class-err"
-            testcase("m1") {
-                stderr "m1-err-1"
-                stdout "m1-out-1"
-                failure "m1-message-1.1", "m1-stackTrace-1.1"
-                failure "m1-message-1.2", "m1-stackTrace-1.2"
-            }
-            testcase("m1") {
-                stdout "m1-out-2"
-                stderr "m1-err-2"
-            }
-            testcase("m2") {
-                stderr "m2-err-1"
-                stdout "m2-out-1"
-                failure "m2-message-1.1", "m2-stackTrace-1.1"
-                failure "m2-message-1.2", "m2-stackTrace-1.2"
-            }
-            testcase("m2") {
-                stderr "m2-err-2"
-                stdout "m2-out-2"
-                failure "m2-message-2.1", "m2-stackTrace-2.1"
-                failure "m2-message-2.2", "m2-stackTrace-2.2"
+        def testClass = new BuildableTestResultsProvider().tap {
+            child {
+                resultForClass("com.Flaky")
+                stdout "class-out"
+                stderr "class-err"
+                child {
+                    result("m1") {
+                        addFailure(new PersistentTestFailure("m1-message-1.1", "m1-stackTrace-1.1", "ExceptionType"))
+                        addFailure(new PersistentTestFailure("m1-message-1.2", "m1-stackTrace-1.2", "ExceptionType"))
+                        resultType(TestResult.ResultType.FAILURE)
+                    }
+                    stdout "m1-out-1"
+                    stderr "m1-err-1"
+                }
+                child {
+                    result("m1") {
+                        endTime(2000)
+                    }
+                    stdout "m1-out-2"
+                    stderr "m1-err-2"
+                }
+                child {
+                    result("m2") {
+                        addFailure(new PersistentTestFailure("m2-message-1.1", "m2-stackTrace-1.1", "ExceptionType"))
+                        addFailure(new PersistentTestFailure("m2-message-1.2", "m2-stackTrace-1.2", "ExceptionType"))
+                        resultType(TestResult.ResultType.FAILURE)
+                    }
+                    stdout "m2-out-1"
+                    stderr "m2-err-1"
+                }
+                child {
+                    result("m2") {
+                        addFailure(new PersistentTestFailure("m2-message-2.1", "m2-stackTrace-2.1", "ExceptionType"))
+                        addFailure(new PersistentTestFailure("m2-message-2.2", "m2-stackTrace-2.2", "ExceptionType"))
+                        resultType(TestResult.ResultType.FAILURE)
+                    }
+                    stdout "m2-out-2"
+                    stderr "m2-err-2"
+                }
             }
         }
 
         then:
         getXml(testClass) == """<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.Flaky" tests="4" skipped="0" failures="0" errors="0" timestamp="1970-01-01T00:00:00" hostname="localhost" time="1.0">
+<testsuite name="com.Flaky" tests="4" skipped="0" failures="3" errors="0" timestamp="1970-01-01T00:00:00" hostname="localhost" time="1.0">
   <properties/>
   <testcase name="m1" classname="com.Flaky" time="2.0">
     <flakyFailure message="m1-message-1.1" type="ExceptionType">
@@ -328,9 +420,13 @@ class JUnitXmlResultWriterMergeRerunSpec extends Specification {
 """
     }
 
-    def getXml(TestClassResult result) {
+    def getXml(TestResultsProvider result) {
         def text = new ByteArrayOutputStream()
-        generator.write(result, text)
+        AllTestResults allResults = AllTestResults.loadModelFromProvider(result)
+        assert allResults.packages.size() == 1
+        assert allResults.packages[0].classes.size() == 1
+        ClassTestResults classResults = allResults.packages[0].classes[0]
+        generator.write(classResults, text)
         return text.toString("UTF-8").replace(SystemProperties.instance.lineSeparator, "\n")
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.tasks.testing.report;
+package org.gradle.api.internal.tasks.testing.report.generic;
 
 import org.gradle.api.GradleException;
-import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider;
+import org.gradle.api.internal.tasks.testing.report.HtmlTestReport;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.time.Time;
@@ -35,57 +36,67 @@ import java.io.File;
 import java.io.IOException;
 
 /**
- * Generates an HTML report based on test class results from a {@link TestResultsProvider}.
+ * Generates an HTML report based on test results from an {@link AllGenericTestResults}.
+ *
+ * <p>
+ * Unlike {@link HtmlTestReport}, this report does not assume that the test results are from JUnit tests. They may even be non-JVM tests.
+ * </p>
  */
-public class HtmlTestReport {
+public class GenericHtmlTestReport {
 
     private final BuildOperationRunner buildOperationRunner;
     private final BuildOperationExecutor buildOperationExecutor;
-    private final static Logger LOG = Logging.getLogger(HtmlTestReport.class);
+    private final static Logger LOG = Logging.getLogger(GenericHtmlTestReport.class);
 
-    public HtmlTestReport(BuildOperationRunner buildOperationRunner, BuildOperationExecutor buildOperationExecutor) {
+    public GenericHtmlTestReport(BuildOperationRunner buildOperationRunner, BuildOperationExecutor buildOperationExecutor) {
         this.buildOperationRunner = buildOperationRunner;
         this.buildOperationExecutor = buildOperationExecutor;
     }
 
-    public void generateReport(TestResultsProvider resultsProvider, File reportDir) {
+    public void generateReport(AllGenericTestResults resultsProvider, File reportDir) {
         LOG.info("Generating HTML test report...");
 
         Timer clock = Time.startTimer();
-        AllTestResults model = AllTestResults.loadModelFromProvider(resultsProvider);
-        generateFiles(model, reportDir);
+        generateFiles(resultsProvider, reportDir);
         LOG.info("Finished generating test html results ({}) into: {}", clock.getElapsed(), reportDir);
     }
 
-    private void generateFiles(AllTestResults model, final File reportDir) {
+    private void generateFiles(AllGenericTestResults model, final File reportDir) {
         try {
             HtmlReportRenderer htmlRenderer = new HtmlReportRenderer();
             buildOperationRunner.run(new RunnableBuildOperation() {
                 @Override
                 public void run(BuildOperationContext context) {
                     // Clean-up old HTML report directories
-                    GFileUtils.deleteQuietly(new File(reportDir, "packages"));
-                    GFileUtils.deleteQuietly(new File(reportDir, "classes"));
+                    GFileUtils.deleteQuietly(new File(reportDir, "children"));
                 }
 
                 @Override
                 public BuildOperationDescriptor.Builder description() {
-                    return BuildOperationDescriptor.displayName("Delete old HTML results");
+                    return BuildOperationDescriptor.displayName("Delete old generic HTML results");
                 }
             });
 
-            htmlRenderer.render(model, new ReportRenderer<AllTestResults, HtmlReportBuilder>() {
+            htmlRenderer.render(model, new ReportRenderer<AllGenericTestResults, HtmlReportBuilder>() {
                 @Override
-                public void render(final AllTestResults model, final HtmlReportBuilder output) throws IOException {
+                public void render(final AllGenericTestResults model, final HtmlReportBuilder output) throws IOException {
                     buildOperationExecutor.runAll(queue -> {
-                        queue.add(generator("index.html", model, new OverviewPageRenderer(), output));
-                        for (PackageTestResults packageResults : model.getPackages()) {
-                            queue.add(generator(packageResults.getBaseUrl(), packageResults, new PackagePageRenderer(), output));
-                            for (ClassTestResults classResults : packageResults.getClasses()) {
-                                queue.add(generator(classResults.getBaseUrl(), classResults, new ClassPageRenderer(), output));
+                        queue.add(generator("index.html", model, new GenericOverviewPageRenderer(), output));
+                        for (GenericTestResultModel child : model.getChildren()) {
+                            if (child instanceof GenericCompositeTestResults) {
+                                queueTree(queue, (GenericCompositeTestResults) child, output);
                             }
                         }
                     });
+                }
+
+                private void queueTree(BuildOperationQueue<RunnableBuildOperation> queue, GenericCompositeTestResults group, HtmlReportBuilder output) {
+                    queue.add(generator(group.getBaseUrl(), group, null, output));
+                    for (GenericTestResultModel child : model.getChildren()) {
+                        if (child instanceof GenericCompositeTestResults) {
+                            queueTree(queue, (GenericCompositeTestResults) child, output);
+                        }
+                    }
                 }
             }, reportDir);
         } catch (Exception e) {
@@ -93,17 +104,17 @@ public class HtmlTestReport {
         }
     }
 
-    private static <T extends CompositeTestResults> HtmlReportFileGenerator<T> generator(String fileUrl, T results, PageRenderer<T> renderer, HtmlReportBuilder output) {
+    private static <T extends GenericCompositeTestResults> HtmlReportFileGenerator<T> generator(String fileUrl, T results, GenericPageRenderer<T> renderer, HtmlReportBuilder output) {
         return new HtmlReportFileGenerator<>(fileUrl, results, renderer, output);
     }
 
-    private static class HtmlReportFileGenerator<T extends CompositeTestResults> implements RunnableBuildOperation {
+    private static class HtmlReportFileGenerator<T extends GenericCompositeTestResults> implements RunnableBuildOperation {
         private final String fileUrl;
         private final T results;
-        private final PageRenderer<T> renderer;
+        private final GenericPageRenderer<T> renderer;
         private final HtmlReportBuilder output;
 
-        HtmlReportFileGenerator(String fileUrl, T results, PageRenderer<T> renderer, HtmlReportBuilder output) {
+        HtmlReportFileGenerator(String fileUrl, T results, GenericPageRenderer<T> renderer, HtmlReportBuilder output) {
             this.fileUrl = fileUrl;
             this.results = results;
             this.renderer = renderer;
@@ -112,7 +123,7 @@ public class HtmlTestReport {
 
         @Override
         public BuildOperationDescriptor.Builder description() {
-            return BuildOperationDescriptor.displayName("Generate HTML test report for ".concat(results.getTitle()));
+            return BuildOperationDescriptor.displayName("Generate generic HTML test report for ".concat(results.getTitle()));
         }
 
         @Override

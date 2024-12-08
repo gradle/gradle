@@ -75,6 +75,11 @@ public abstract class AbstractTestDescriptor implements TestDescriptorInternal {
     }
 
     @Override
+    public boolean isClass() {
+        return false;
+    }
+
+    @Override
     public String getClassDisplayName() {
         return getClassName();
     }

@@ -17,20 +17,55 @@
 package org.gradle.api.internal.tasks.testing.junit.result;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ListMultimap;
-import com.google.common.collect.Multimaps;
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.tasks.testing.TestOutputEvent;
+import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.concurrent.CompositeStoppable;
 
 import java.io.IOException;
 import java.io.Writer;
-import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
+import java.util.Objects;
 
 public class AggregateTestResultsProvider implements TestResultsProvider {
+
+    private static TestResult.ResultType mergeResultTypes(TestResult.ResultType ours, TestResult.ResultType theirs) {
+        // Equivalent types give the same result.
+        if (ours == theirs) {
+            return ours;
+        }
+        if ((ours == TestResult.ResultType.SKIPPED && theirs == TestResult.ResultType.SUCCESS) ||
+            (ours == TestResult.ResultType.SUCCESS && theirs == TestResult.ResultType.SKIPPED)) {
+            return TestResult.ResultType.SUCCESS;
+        }
+        if (ours != TestResult.ResultType.FAILURE && theirs != TestResult.ResultType.FAILURE) {
+            // This is unreachable. At least one of the remaining must be a FAILURE.
+            // SUCCESS + SKIPPED is handled above.
+            // SUCCESS + SUCCESS is handled above.
+            // SUCCESS + FAILURE is the only remaining case with SUCCESS.
+            // SKIPPED + SKIPPED is handled above.
+            // SKIPPED + FAILURE is the only remaining case with SKIPPED.
+            // FAILURE + FAILURE is handled above.
+            throw new AssertionError("At least one of the results must be a FAILURE");
+        }
+        // When there is at least one FAILURE, the result is a FAILURE.
+        return TestResult.ResultType.FAILURE;
+    }
+
+    private static PersistentTestResult mergeUsingFirstResultNames(PersistentTestResult first, PersistentTestResult other) {
+        TestResult.ResultType resultType = mergeResultTypes(first.getResultType(), other.getResultType());
+        long startTime = Math.min(first.getStartTime(), other.getStartTime());
+        long endTime = Math.max(first.getEndTime(), other.getEndTime());
+        ImmutableList.Builder<PersistentTestFailure> failures = ImmutableList.builderWithExpectedSize(first.getFailures().size() + other.getFailures().size());
+        failures.addAll(first.getFailures());
+        failures.addAll(other.getFailures());
+        if (!Objects.equals(first.getLegacyProperties(), other.getLegacyProperties())) {
+            throw new IllegalArgumentException("Results have differing legacy properties");
+        }
+        return new PersistentTestResult(first.getName(), first.getDisplayName(), resultType, startTime, endTime, failures.build(), first.getLegacyProperties());
+    }
+
     private final Iterable<TestResultsProvider> delegates;
     private final PersistentTestResult result;
 
@@ -51,37 +86,16 @@ public class AggregateTestResultsProvider implements TestResultsProvider {
         this.delegates = delegates;
         PersistentTestResult result = iterator.next().getResult().toBuilder().name(newRootName).displayName(newRootDisplayName).build();
         while (iterator.hasNext()) {
-            PersistentTestResult nextResult = iterator.next().getResult().toBuilder().name(newRootName).displayName(newRootDisplayName).build();
-            result = result.merge(nextResult);
+            PersistentTestResult nextResult = iterator.next().getResult();
+            result = mergeUsingFirstResultNames(result, nextResult);
         }
         this.result = result;
     }
 
     @Override
     public void visitChildren(Action<? super TestResultsProvider> visitor) {
-        ListMultimap<String, TestResultsProvider> childProvidersByName = Multimaps.newListMultimap(new LinkedHashMap<>(), ArrayList::new);
-        for (final TestResultsProvider provider : delegates) {
-            provider.visitChildren(childProvider -> {
-                String name = childProvider.getResult().getName();
-                List<TestResultsProvider> providers = childProvidersByName.get(name);
-                if (!providers.isEmpty()) {
-                    PersistentTestResult existingResult = providers.get(0).getResult();
-                    if (!existingResult.getDisplayName().equals(childProvider.getResult().getDisplayName())) {
-                        // If we want to support this, a behavior needs to be defined
-                        throw new IllegalStateException(String.format("Multiple children with the same name '%s' but different display names: '%s' and '%s'", name, existingResult.getDisplayName(), childProvider.getResult().getDisplayName()));
-                    }
-                }
-                providers.add(childProvider);
-            });
-        }
-        for (List<TestResultsProvider> providers : Multimaps.asMap(childProvidersByName).values()) {
-            // Optimize by dropping the wrapper if there is only one provider
-            if (providers.size() == 1) {
-                visitor.execute(providers.get(0));
-            } else {
-                PersistentTestResult result = providers.get(0).getResult();
-                visitor.execute(new AggregateTestResultsProvider(result.getName(), result.getDisplayName(), providers));
-            }
+        for (TestResultsProvider delegate : delegates) {
+            delegate.visitChildren(visitor);
         }
     }
 
@@ -101,6 +115,16 @@ public class AggregateTestResultsProvider implements TestResultsProvider {
     public boolean hasOutput(TestOutputEvent.Destination destination) {
         for (TestResultsProvider delegate : delegates) {
             if (delegate.hasOutput(destination)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public boolean hasAllOutput(TestOutputEvent.Destination destination) {
+        for (TestResultsProvider delegate : delegates) {
+            if (delegate.hasAllOutput(destination)) {
                 return true;
             }
         }

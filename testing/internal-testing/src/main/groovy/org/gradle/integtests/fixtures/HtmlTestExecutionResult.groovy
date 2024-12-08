@@ -89,9 +89,9 @@ class HtmlTestExecutionResult implements TestExecutionResult {
         return getExecutedTestClasses().size()
     }
 
-    private static class HtmlTestClassExecutionResult implements TestClassExecutionResult {
+     static class HtmlTestClassExecutionResult implements TestClassExecutionResult {
         private String classDisplayName
-        private File htmlFile
+        File htmlFile
         private List<TestCase> testsExecuted = []
         private List<TestCase> testsSucceeded = []
         private List<TestCase> testsFailures = []

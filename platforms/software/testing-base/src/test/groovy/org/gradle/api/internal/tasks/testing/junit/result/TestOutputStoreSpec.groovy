@@ -27,112 +27,48 @@ class TestOutputStoreSpec extends WorkspaceTest {
 
     private output = new TestOutputStore(testDirectory)
 
-    TestDescriptorInternal descriptor(String className, Object testId) {
-        Stub(TestDescriptorInternal) {
-            getClassName() >> className
-            getId() >> testId
-        }
-    }
-
-    def "output for class includes all events with the given class id"() {
+    def "output for class includes all events with the given test id"() {
         when:
         def writer = output.writer()
         writer.onOutput(1, output(StdOut, "[out-1]"))
-        writer.onOutput(1, 1, output(StdOut, "[out-2]"))
-        writer.onOutput(2, 1, output(StdErr, "[out-3]"))
-        writer.onOutput(1, 1, output(StdErr, "[out-4]"))
-        writer.onOutput(1, 1, output(StdOut, "[out-5]"))
-        writer.onOutput(1, 2, output(StdOut, "[out-6]"))
-        writer.close()
-        def reader = output.reader()
-
-        then:
-        collectAllOutput(reader, 1, StdOut) == "[out-1][out-2][out-5][out-6]"
-        collectAllOutput(reader, 1, StdErr) == "[out-4]"
-        collectAllOutput(reader, 2, StdErr) == "[out-3]"
-
-        cleanup:
-        reader.close()
-    }
-
-    def "output for test includes all events with the given class and method ids"() {
-        when:
-        def writer = output.writer()
-        writer.onOutput(1, output(StdOut, "[out-1]"))
-        writer.onOutput(1, 1, output(StdOut, "[out-2]"))
-        writer.onOutput(2, 1, output(StdErr, "[out-3]"))
-        writer.onOutput(1, 1, output(StdErr, "[out-4]"))
-        writer.onOutput(1, 1, output(StdOut, "[out-5]"))
-        writer.onOutput(1, 2, output(StdOut, "[out-6]"))
-        writer.close()
-        def reader = output.reader()
-
-        then:
-        collectOutput(reader, 1, 1, StdOut) == "[out-2][out-5]"
-        collectOutput(reader, 1, 1, StdErr) == "[out-4]"
-        collectOutput(reader, 1, 2, StdOut) == "[out-6]"
-
-        cleanup:
-        reader.close()
-    }
-
-    def "non-test output includes all events with the given class id and no method id"() {
-        when:
-        def writer = output.writer()
-        writer.onOutput(1, output(StdOut, "[out-1]"))
-        writer.onOutput(1, 1, output(StdOut, "[out-2]"))
-        writer.onOutput(1, output(StdErr, "[out-3]"))
+        writer.onOutput(1, output(StdOut, "[out-2]"))
+        writer.onOutput(2, output(StdErr, "[out-3]"))
         writer.onOutput(1, output(StdErr, "[out-4]"))
         writer.onOutput(1, output(StdOut, "[out-5]"))
-        writer.onOutput(1, 2, output(StdOut, "[out-6]"))
-        writer.onOutput(2, output(StdOut, "[out-6]"))
+        writer.onOutput(1, output(StdOut, "[out-6]"))
         writer.close()
         def reader = output.reader()
 
         then:
-        collectOutput(reader, 1, StdOut) == "[out-1][out-5]"
-        collectOutput(reader, 1, StdErr) == "[out-3][out-4]"
-        collectOutput(reader, 2, StdOut) == "[out-6]"
+        collectOutput(reader, 1, StdOut) == "[out-1][out-2][out-5][out-6]"
+        collectOutput(reader, 1, StdErr) == "[out-4]"
+        collectOutput(reader, 2, StdErr) == "[out-3]"
 
         cleanup:
         reader.close()
     }
 
-    def DefaultTestOutputEvent output(TestOutputEvent.Destination destination, String msg) {
-        new DefaultTestOutputEvent(destination, msg)
+    DefaultTestOutputEvent output(TestOutputEvent.Destination destination, String msg) {
+        new DefaultTestOutputEvent(System.currentTimeMillis(), destination, msg)
     }
 
-    def "writes nothing for unknown test class"() {
+    def "writes nothing for unknown test"() {
         when:
         def writer = output.writer()
         writer.close()
         def reader = output.reader()
 
         then:
-        collectAllOutput(reader, 20, StdErr) == ""
+        collectOutput(reader, 20, StdErr) == ""
 
         cleanup:
         reader.close()
     }
 
-    def "writes nothing for unknown test method"() {
+    def "can query whether output is available for a test"() {
         when:
         def writer = output.writer()
-        writer.onOutput(1, 1, output(StdOut, "[out]"))
-        writer.close()
-        def reader = output.reader()
-
-        then:
-        collectOutput(reader, 1, 10, StdOut) == ""
-
-        cleanup:
-        reader.close()
-    }
-
-    def "can query whether output is available for a test class"() {
-        when:
-        def writer = output.writer()
-        writer.onOutput(1, 1, output(StdOut, "[out]"))
+        writer.onOutput(1, output(StdOut, "[out]"))
         writer.close()
         def reader = output.reader()
 
@@ -151,39 +87,9 @@ class TestOutputStoreSpec extends WorkspaceTest {
         output.reader().close() // no exception
     }
 
-    def "exception if no output file"() {
-        when:
-        output.indexFile.createNewFile()
-        output.reader()
-
-        then:
-        thrown(IllegalStateException)
-    }
-
-    def "exception if no index file, but index"() {
-        when:
-        output.outputsFile.createNewFile()
-        output.reader()
-
-        then:
-        thrown(IllegalStateException)
-    }
-
-    String collectAllOutput(TestOutputStore.Reader reader, long classId, TestOutputEvent.Destination destination) {
+    String collectOutput(TestOutputStore.Reader reader, long testId, TestOutputEvent.Destination destination) {
         def writer = new StringWriter()
-        reader.writeAllOutput(classId, destination, writer)
-        return writer.toString()
-    }
-
-    String collectOutput(TestOutputStore.Reader reader, long classId, long testId, TestOutputEvent.Destination destination) {
-        def writer = new StringWriter()
-        reader.writeTestOutput(classId, testId, destination, writer)
-        return writer.toString()
-    }
-
-    String collectOutput(TestOutputStore.Reader reader, long classId, TestOutputEvent.Destination destination) {
-        def writer = new StringWriter()
-        reader.copyTestOutput(classId, destination, writer)
+        reader.copyOutput(testId, destination, writer)
         return writer.toString()
     }
 }

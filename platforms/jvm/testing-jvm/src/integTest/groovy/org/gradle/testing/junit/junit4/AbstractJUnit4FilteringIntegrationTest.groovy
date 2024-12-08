@@ -135,11 +135,12 @@ abstract class AbstractJUnit4FilteringIntegrationTest extends AbstractTestFilter
         then:
         def result = new DefaultTestExecutionResult(testDirectory)
 
-        result.assertTestClassesExecuted("FooTest", "FooServerTest")
+        result.assertTestClassesExecuted("FooTest", "FooServerTest", "AllFooTests")
         result.testClass("FooTest").assertTestCount(1, 0, 0);
         result.testClass("FooTest").assertTestOutcomes(passedTestOutcome, "testFoo")
         result.testClass("FooServerTest").assertTestCount(1, 0, 0);
         result.testClass("FooServerTest").assertTestOutcomes(passedTestOutcome, "testFooServer")
+        result.testClass("AllFooTests").assertTestCount(0, 0, 0)
     }
 
     @Issue("GRADLE-3112")
@@ -162,10 +163,11 @@ abstract class AbstractJUnit4FilteringIntegrationTest extends AbstractTestFilter
         then:
         def result = new DefaultTestExecutionResult(testDirectory)
 
-        result.assertTestClassesExecuted("FooTest", "FooServerTest")
+        result.assertTestClassesExecuted("FooTest", "FooServerTest", "AllFooTests")
         result.testClass("FooTest").assertTestCount(1, 0, 0);
         result.testClass("FooTest").assertTestOutcomes(passedTestOutcome, "testFoo")
         result.testClass("FooServerTest").assertTestCount(1, 0, 0);
         result.testClass("FooServerTest").assertTestOutcomes(passedTestOutcome, "testFooServer")
+        result.testClass("AllFooTests").assertTestCount(0, 0, 0)
     }
 }

@@ -16,14 +16,48 @@
 package org.gradle.api.internal.tasks.testing.report;
 
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.internal.tasks.testing.junit.result.LegacyResultsHelper;
+import org.gradle.api.internal.tasks.testing.junit.result.PersistentTestFailure;
+import org.gradle.api.internal.tasks.testing.junit.result.PersistentTestResult;
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider;
 
 import java.util.*;
+
+import static org.gradle.api.tasks.testing.TestResult.ResultType.FAILURE;
+import static org.gradle.api.tasks.testing.TestResult.ResultType.SKIPPED;
 
 /**
  * The model for the test report.
  */
 public class AllTestResults extends CompositeTestResults {
+    public static AllTestResults loadModelFromProvider(TestResultsProvider resultsProvider) {
+        final AllTestResults model = new AllTestResults();
+        LegacyResultsHelper.visitClasses(resultsProvider, provider -> {
+            model.addTestClass(provider, provider.getResult().getName(), provider.getResult().getDisplayName());
+            provider.visitChildren(childProvider -> {
+                PersistentTestResult collectedResult = childProvider.getResult();
+                String className = provider.getResult().getName();
+                String classDisplayName = provider.getResult().getDisplayName();
+                if (collectedResult.getLegacyProperties() != null) {
+                    className = collectedResult.getLegacyProperties().getClassName();
+                    classDisplayName = collectedResult.getLegacyProperties().getClassDisplayName();
+                }
+                final TestResult testResult = model.addTest(provider, className, classDisplayName, childProvider, collectedResult.getName(), collectedResult.getDisplayName(), collectedResult.getDuration());
+                if (collectedResult.getResultType() == SKIPPED) {
+                    testResult.setIgnored();
+                } else if (collectedResult.getResultType() == FAILURE) {
+                    testResult.setFailed();
+                }
+                // Always add failures even if not failed, may be used in SKIPPED tests
+                List<PersistentTestFailure> failures = collectedResult.getFailures();
+                for (PersistentTestFailure failure : failures) {
+                    testResult.addFailure(failure);
+                }
+            });
+        });
+        return model;
+    }
+
     private final Map<String, PackageTestResults> packages = new TreeMap<String, PackageTestResults>();
 
     public AllTestResults() {
@@ -44,17 +78,13 @@ public class AllTestResults extends CompositeTestResults {
         return packages.values();
     }
 
-    public TestResult addTest(TestResultsProvider classProvider, String testName, long duration) {
-        return addTest(classProvider, testName, testName, duration);
+    public TestResult addTest(TestResultsProvider classProvider, String className, String classDisplayName, TestResultsProvider provider, String testName, String testDisplayName, long duration) {
+        PackageTestResults packageResults = addPackageForClass(className);
+        return addTest(packageResults.addTest(classProvider, className, classDisplayName, provider, testName, testDisplayName, duration));
     }
 
-    public TestResult addTest(TestResultsProvider classProvider, String testName, String testDisplayName, long duration) {
-        PackageTestResults packageResults = addPackageForClass(classProvider.getResult().getName());
-        return addTest(packageResults.addTest(classProvider, testName, testDisplayName, duration));
-    }
-
-    public ClassTestResults addTestClass(TestResultsProvider classProvider) {
-        return addPackageForClass(classProvider.getResult().getName()).addClass(classProvider);
+    public ClassTestResults addTestClass(TestResultsProvider classProvider, String className, String classDisplayName) {
+        return addPackageForClass(classProvider.getResult().getName()).addClass(classProvider, className, classDisplayName);
     }
 
     private PackageTestResults addPackageForClass(String className) {

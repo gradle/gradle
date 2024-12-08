@@ -19,6 +19,9 @@ package org.gradle.api.internal.tasks.testing.junit.result;
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
+import org.gradle.api.internal.tasks.testing.report.AllTestResults;
+import org.gradle.api.internal.tasks.testing.report.ClassTestResults;
+import org.gradle.api.internal.tasks.testing.report.PackageTestResults;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.FileUtils;
@@ -84,32 +87,38 @@ public class Binary2JUnitXmlReportGenerator {
             }
         });
 
-        buildOperationExecutor.runAll((Action<BuildOperationQueue<JUnitXmlReportFileGenerator>>) queue -> testResultsProvider.visitChildren(provider -> {
-            final File reportFile = new File(testResultsDir, getReportFileName(provider.getResult()));
-            queue.add(new JUnitXmlReportFileGenerator(provider, reportFile, xmlWriter));
-        }));
+        AllTestResults model = AllTestResults.loadModelFromProvider(testResultsProvider);
+
+        buildOperationExecutor.runAll((Action<BuildOperationQueue<JUnitXmlReportFileGenerator>>) queue -> {
+            for (PackageTestResults packageResults : model.getPackages()) {
+                for (ClassTestResults classResults : packageResults.getClasses()) {
+                    final File reportFile = new File(testResultsDir, getReportFileName(classResults));
+                    queue.add(new JUnitXmlReportFileGenerator(classResults, reportFile, xmlWriter));
+                }
+            }
+        });
 
         LOG.info("Finished generating test XML results ({}) into: {}", clock.getElapsed(), testResultsDir);
     }
 
-    private String getReportFileName(PersistentTestResult result) {
+    private String getReportFileName(ClassTestResults result) {
         return "TEST-" + FileUtils.toSafeFileName(result.getName()) + ".xml";
     }
 
     private static class JUnitXmlReportFileGenerator implements RunnableBuildOperation {
-        private final TestResultsProvider provider;
+        private final ClassTestResults results;
         private final File reportFile;
         private final JUnitXmlResultWriter xmlWriter;
 
-        public JUnitXmlReportFileGenerator(TestResultsProvider provider, File reportFile, JUnitXmlResultWriter xmlWriter) {
-            this.provider = provider;
+        public JUnitXmlReportFileGenerator(ClassTestResults results, File reportFile, JUnitXmlResultWriter xmlWriter) {
+            this.results = results;
             this.reportFile = reportFile;
             this.xmlWriter = xmlWriter;
         }
 
         @Override
         public BuildOperationDescriptor.Builder description() {
-            return BuildOperationDescriptor.displayName("Generate junit XML test report for ".concat(provider.getResult().getName()));
+            return BuildOperationDescriptor.displayName("Generate junit XML test report for ".concat(results.getName()));
         }
 
         @Override
@@ -117,10 +126,10 @@ public class Binary2JUnitXmlReportGenerator {
             FileOutputStream output = null;
             try {
                 output = new FileOutputStream(reportFile);
-                xmlWriter.write(provider, output);
+                xmlWriter.write(results, output);
                 output.close();
             } catch (Exception e) {
-                throw new GradleException(String.format("Could not write XML test results for %s to file %s.", provider.getResult().getName(), reportFile), e);
+                throw new GradleException(String.format("Could not write XML test results for %s to file %s.", results.getName(), reportFile), e);
             } finally {
                 IoActions.closeQuietly(output);
             }

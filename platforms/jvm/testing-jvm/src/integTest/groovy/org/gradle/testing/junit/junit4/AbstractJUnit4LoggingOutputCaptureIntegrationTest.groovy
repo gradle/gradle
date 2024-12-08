@@ -134,6 +134,7 @@ abstract class AbstractJUnit4LoggingOutputCaptureIntegrationTest extends Abstrac
 
         def htmlReport = new HtmlTestExecutionResult(testDirectory)
         def classReport = htmlReport.testClass("OkTest")
+        println((classReport as HtmlTestExecutionResult.HtmlTestClassExecutionResult).htmlFile.text)
         classReport.assertStdout(is(
             "class loaded\n" +
             "before class out\n" +

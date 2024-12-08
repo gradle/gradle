@@ -40,12 +40,23 @@ class BuildableTestResultsProvider implements TestResultsProvider {
     }
 
     void result(String name, @DelegatesTo(value = PersistentTestResult.Builder, strategy = Closure.DELEGATE_FIRST) Closure<?> action = {}) {
+        resultShared(name, false, action)
+    }
+
+    void resultForClass(String name, @DelegatesTo(value = PersistentTestResult.Builder, strategy = Closure.DELEGATE_FIRST) Closure<?> action = {}) {
+        resultShared(name, true, action)
+    }
+
+    private resultShared(String name, boolean isClass, Closure<?> action) {
         PersistentTestResult.Builder result = PersistentTestResult.builder()
             .name(name)
             .displayName(name)
-            .startTime(System.currentTimeMillis())
-            .endTime(System.currentTimeMillis())
+            .startTime(0)
+            .endTime(1000)
             .resultType(TestResult.ResultType.SUCCESS)
+        if (isClass) {
+            result.legacyProperties(new PersistentTestResult.LegacyProperties(isClass, name, name))
+        }
         action.delegate = result
         action.resolveStrategy = Closure.DELEGATE_FIRST
         action()
@@ -81,6 +92,15 @@ class BuildableTestResultsProvider implements TestResultsProvider {
     @Override
     boolean hasOutput(TestOutputEvent.Destination destination) {
         return outputEvents.any { it.destination == destination }
+    }
+
+    @Override
+    boolean hasAllOutput(TestOutputEvent.Destination destination) {
+        if (hasOutput(destination)) {
+            return true
+        }
+
+        return children.any { it.hasAllOutput(destination) }
     }
 
     @Override

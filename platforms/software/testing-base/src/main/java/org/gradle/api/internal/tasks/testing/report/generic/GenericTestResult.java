@@ -13,45 +13,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.tasks.testing.report;
+package org.gradle.api.internal.tasks.testing.report.generic;
 
 import org.gradle.api.internal.tasks.testing.junit.result.PersistentTestFailure;
-import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.gradle.api.tasks.testing.TestResult.ResultType;
 
-public class TestResult extends TestResultModel implements Comparable<TestResult> {
-    private final TestResultsProvider provider;
+public class GenericTestResult extends GenericTestResultModel {
     private final long duration;
-    final ClassTestResults classResults;
-    final List<PersistentTestFailure> failures = new ArrayList<PersistentTestFailure>();
+    final GenericCompositeTestResults parentResults;
+    final List<PersistentTestFailure> failures = new ArrayList<>();
     final String name;
     final String displayName;
     boolean ignored;
 
-    public TestResult(TestResultsProvider provider, String name, long duration, ClassTestResults classResults) {
-        this(provider, name, name, duration, classResults);
+    public GenericTestResult(String name, long duration, GenericCompositeTestResults parentResults) {
+        this(name, name, duration, parentResults);
     }
 
-    public TestResult(TestResultsProvider provider, String name, String displayName, long duration, ClassTestResults classResults) {
-        this.provider = provider;
+    public GenericTestResult(String name, String displayName, long duration, GenericCompositeTestResults parentResults) {
         this.name = name;
         this.duration = duration;
         this.displayName = displayName;
-        this.classResults = classResults;
-    }
-
-    public TestResultsProvider getProvider() {
-        return provider;
+        this.parentResults = parentResults;
     }
 
     public Object getId() {
         return name;
     }
 
+    @Override
     public String getName() {
         return name;
     }
@@ -83,8 +77,8 @@ public class TestResult extends TestResultModel implements Comparable<TestResult
         return ignored ? "-" : super.getFormattedDuration();
     }
 
-    public ClassTestResults getClassResults() {
-        return classResults;
+    public GenericCompositeTestResults getParentResults() {
+        return parentResults;
     }
 
     public List<PersistentTestFailure> getFailures() {
@@ -96,32 +90,12 @@ public class TestResult extends TestResultModel implements Comparable<TestResult
     }
 
     public void addFailure(PersistentTestFailure failure) {
+        parentResults.failed(this);
         failures.add(failure);
     }
 
-    public void setFailed() {
-        classResults.failed(this);
-    }
-
     public void setIgnored() {
-        classResults.ignored(this);
+        parentResults.ignored(this);
         ignored = true;
-    }
-
-    @Override
-    public int compareTo(TestResult testResult) {
-        int diff = classResults.getName().compareTo(testResult.classResults.getName());
-        if (diff != 0) {
-            return diff;
-        }
-
-        diff = name.compareTo(testResult.name);
-        if (diff != 0) {
-            return diff;
-        }
-
-        Integer thisIdentity = System.identityHashCode(this);
-        int otherIdentity = System.identityHashCode(testResult);
-        return thisIdentity.compareTo(otherIdentity);
     }
 }

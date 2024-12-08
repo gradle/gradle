@@ -15,9 +15,13 @@
  */
 package org.gradle.api.internal.tasks.testing.report
 
+
+import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider
 import spock.lang.Specification
 
-import static org.gradle.api.tasks.testing.TestResult.ResultType.*
+import static org.gradle.api.tasks.testing.TestResult.ResultType.FAILURE
+import static org.gradle.api.tasks.testing.TestResult.ResultType.SKIPPED
+import static org.gradle.api.tasks.testing.TestResult.ResultType.SUCCESS
 
 class CompositeTestResultsTest extends Specification {
     final CompositeTestResults results = new CompositeTestResults(null) {
@@ -145,6 +149,6 @@ class CompositeTestResultsTest extends Specification {
     }
 
     private TestResult test() {
-        return new TestResult('test', 45, new ClassTestResults(1, 'test', null))
+        return new TestResult(Mock(TestResultsProvider), 'test', 45, new ClassTestResults(Mock(TestResultsProvider), 'test', 'test', null))
     }
 }

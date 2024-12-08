@@ -70,12 +70,26 @@ public class InMemoryTestResultsProvider implements TestResultsProvider {
 
     @Override
     public void copyOutput(TestOutputEvent.Destination destination, Writer writer) {
-        reader.copyTestOutput(tree.getId(), destination, writer);
+        reader.copyOutput(tree.getId(), destination, writer);
     }
 
     @Override
     public boolean hasOutput(TestOutputEvent.Destination destination) {
         return reader.hasOutput(tree.getId(), destination);
+    }
+
+    @Override
+    public boolean hasAllOutput(TestOutputEvent.Destination destination) {
+        if (hasOutput(destination)) {
+            return true;
+        }
+
+        for (PersistentTestResultTree child : tree.getChildren()) {
+            if (new InMemoryTestResultsProvider(child, reader).hasAllOutput(destination)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override

@@ -25,6 +25,13 @@ class SimpleTestDescriptor implements TestDescriptorInternal {
     String classDisplayName = "ClassName"
     boolean composite = false
     TestDescriptorInternal parent = null
+    boolean isClass = false
+
+    @Override
+    boolean isClass() {
+        return isClass
+    }
+
     Object getId() {
         "${parent?.id}$className$name" as String
     }

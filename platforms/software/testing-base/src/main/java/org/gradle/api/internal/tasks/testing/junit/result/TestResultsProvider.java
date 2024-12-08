@@ -63,6 +63,14 @@ public interface TestResultsProvider extends Closeable {
     boolean hasOutput(TestOutputEvent.Destination destination);
 
     /**
+     * Returns true if this result or any of its children have output for the given destination.
+     *
+     * @param destination the destination to check for output
+     * @return true if this result or any of its children have output for the given destination
+     */
+    boolean hasAllOutput(TestOutputEvent.Destination destination);
+
+    /**
      * Returns true if this result has children. Visit them with {@link #visitChildren(org.gradle.api.Action)}.
      *
      * <p>
@@ -74,7 +82,7 @@ public interface TestResultsProvider extends Closeable {
     boolean hasChildren();
 
     /**
-     * Visits the children of this result provider, in no specific order. Each child is visited exactly once.
+     * Visits the children of this result provider, in no specific order. Each child is visited exactly once, however multiple children with the same name may be visited.
      */
     void visitChildren(Action<? super TestResultsProvider> visitor);
 }

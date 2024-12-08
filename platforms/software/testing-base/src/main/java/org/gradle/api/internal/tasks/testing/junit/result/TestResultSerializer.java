@@ -78,10 +78,23 @@ public class TestResultSerializer {
             encoder.writeString(testFailure.getStackTrace());
         }
 
+        writeLegacyProperties(result.getLegacyProperties(), encoder);
+
         encoder.writeSmallInt(tree.getChildren().size());
         for (PersistentTestResultTree childTree : tree.getChildren()) {
             write(childTree, encoder);
         }
+    }
+
+    private static void writeLegacyProperties(PersistentTestResult.LegacyProperties legacyProperties, Encoder encoder) throws IOException {
+        if (legacyProperties == null) {
+            encoder.writeBoolean(false);
+            return;
+        }
+        encoder.writeBoolean(true);
+        encoder.writeBoolean(legacyProperties.isClass());
+        encoder.writeNullableString(legacyProperties.getClassName());
+        encoder.writeNullableString(legacyProperties.getClassDisplayName());
     }
 
     @Nullable
@@ -131,12 +144,25 @@ public class TestResultSerializer {
             failures.add(new PersistentTestFailure(message, stackTrace, exceptionType));
         }
 
+        PersistentTestResult.LegacyProperties legacyProperties = readLegacyProperties(decoder);
+
         int childCount = decoder.readSmallInt();
         List<PersistentTestResultTree> children = new ArrayList<>(childCount);
         for (int i = 0; i < childCount; i++) {
             children.add(read(decoder));
         }
 
-        return new PersistentTestResultTree(id, new PersistentTestResult(name, displayName, resultType, startTime, endTime, failures), children);
+        return new PersistentTestResultTree(id, new PersistentTestResult(name, displayName, resultType, startTime, endTime, failures, legacyProperties), children);
+    }
+
+    private static PersistentTestResult.LegacyProperties readLegacyProperties(Decoder decoder) throws IOException {
+        boolean exists = decoder.readBoolean();
+        if (!exists) {
+            return null;
+        }
+        boolean isClass = decoder.readBoolean();
+        String className = decoder.readNullableString();
+        String classDisplayName = decoder.readNullableString();
+        return new PersistentTestResult.LegacyProperties(isClass, className, classDisplayName);
     }
 }

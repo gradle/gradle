@@ -34,25 +34,28 @@ import java.util.Map;
 
 /**
  * Collects the test results into memory and spools the test output to file during execution (to avoid holding it all in memory).
+ *
+ * <p>
+ * It assumes a single top-level suite will be started, which will be used as the "root" of the test results.
+ * </p>
  */
 public class TestReportDataCollector implements TestListener, TestOutputListener {
 
-    /**
-     * Object used in {@link #childTreesById} to represent the root node, to avoid using {@code null} as a key.
-     */
-    private static final Object ROOT_ID = new Object();
-    private final Map<Object, PersistentTestResult.Builder> inProgressResultsById = new HashMap<>();
     private final Map<Object, Long> assignedIds = new HashMap<>();
     private final ListMultimap<Object, PersistentTestResultTree> childTreesById = ArrayListMultimap.create();
     private final TestOutputStore.Writer outputWriter;
+    private PersistentTestResultTree rootTree;
     private long internalIdCounter = 0L;
 
     public TestReportDataCollector(TestOutputStore.Writer outputWriter) {
         this.outputWriter = outputWriter;
     }
 
-    public List<PersistentTestResultTree> removeRootChildTrees() {
-        return childTreesById.removeAll(ROOT_ID);
+    public PersistentTestResultTree getRootTree() {
+        if (rootTree == null) {
+            throw new IllegalStateException("No root suite has been finished");
+        }
+        return rootTree;
     }
 
     @Override
@@ -75,19 +78,21 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
         finishResult((TestDescriptorInternal) testDescriptor, result);
     }
 
-    private void startResultCapturing(TestDescriptorInternal suite) {
-        PersistentTestResult.Builder testNodeBuilder = PersistentTestResult.builder()
-            .name(suite.getName())
-            .displayName(suite.getDisplayName());
-        inProgressResultsById.put(suite.getId(), testNodeBuilder);
-
+    private void startResultCapturing(TestDescriptorInternal descriptor) {
         // Assign ID for use in output capturing
         long id = internalIdCounter++;
-        assignedIds.put(suite.getId(), id);
+        assignedIds.put(descriptor.getId(), id);
     }
 
-    private void finishResult(TestDescriptorInternal testDescriptor, TestResult result) {
-        PersistentTestResult.Builder testNodeBuilder = inProgressResultsById.remove(testDescriptor.getId())
+    private void finishResult(TestDescriptorInternal descriptor, TestResult result) {
+        PersistentTestResult.Builder testNodeBuilder = PersistentTestResult.builder()
+            .name(descriptor.getName())
+            .displayName(descriptor.getDisplayName())
+            .legacyProperties(new PersistentTestResult.LegacyProperties(
+                descriptor.isClass(),
+                descriptor.getClassName(),
+                descriptor.getClassDisplayName()
+            ))
             .startTime(result.getStartTime())
             .endTime(result.getEndTime())
             .resultType(result.getResultType());
@@ -96,13 +101,19 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
             testNodeBuilder.addFailure(new PersistentTestFailure(failureMessage(throwable), stackTrace(throwable), exceptionClassName(throwable)));
         }
 
-        long id = assignedIds.get(testDescriptor.getId());
-        List<PersistentTestResultTree> childTrees = this.childTreesById.removeAll(testDescriptor.getId());
+        long id = assignedIds.get(descriptor.getId());
+        List<PersistentTestResultTree> childTrees = this.childTreesById.removeAll(descriptor.getId());
 
         PersistentTestResultTree tree = new PersistentTestResultTree(id, testNodeBuilder.build(), childTrees);
 
-        Object parentId = testDescriptor.getParent() == null ? ROOT_ID : testDescriptor.getParent().getId();
-        this.childTreesById.put(parentId, tree);
+        if (descriptor.getParent() == null) {
+            if (rootTree != null) {
+                throw new IllegalStateException("Root suite has already been finished");
+            }
+            rootTree = tree;
+        } else {
+            this.childTreesById.put(descriptor.getParent().getId(), tree);
+        }
     }
 
     private String failureMessage(Throwable throwable) {

@@ -17,6 +17,8 @@
 package org.gradle.api.internal.tasks.testing.junit.result
 
 import org.gradle.api.internal.tasks.testing.BuildableTestResultsProvider
+import org.gradle.api.internal.tasks.testing.report.AllTestResults
+import org.gradle.api.internal.tasks.testing.report.ClassTestResults
 import org.gradle.integtests.fixtures.JUnitTestClassExecutionResult
 import org.gradle.integtests.fixtures.TestResultOutputAssociation
 import org.gradle.internal.SystemProperties
@@ -36,8 +38,8 @@ class JUnitXmlResultWriterSpec extends Specification {
 
         and:
         def provider = new BuildableTestResultsProvider()
-        provider.with {
-            result("com.foo.FooTest") {
+        provider.child {
+            resultForClass("com.foo.FooTest") {
                 startTime(this.startTime)
                 endTime(this.startTime + 45)
             }
@@ -112,8 +114,8 @@ class JUnitXmlResultWriterSpec extends Specification {
 
         and:
         def provider = new BuildableTestResultsProvider()
-        provider.with {
-            result("com.foo.FooTest") {
+        provider.child {
+            resultForClass("com.foo.FooTest") {
                 startTime(this.startTime)
                 endTime(this.startTime + 300)
             }
@@ -145,8 +147,8 @@ class JUnitXmlResultWriterSpec extends Specification {
 
         and:
         def provider = new BuildableTestResultsProvider()
-        provider.with {
-            result("com.foo.FooTest") {
+        provider.child {
+            resultForClass("com.foo.FooTest") {
                 startTime(this.startTime)
                 endTime(this.startTime + 300)
             }
@@ -173,32 +175,6 @@ class JUnitXmlResultWriterSpec extends Specification {
         xml.contains('<system-err><![CDATA[with ]]>&#x44e31;<![CDATA[CDATA end token: ]]]]><![CDATA[> some ascii: ż]]></system-err>')
     }
 
-    def "writes results with no tests"() {
-        given:
-        def options = new JUnitXmlResultOptions(false, false, true, true)
-
-        and:
-        def provider = new BuildableTestResultsProvider()
-        provider.with {
-            result("com.foo.IgnoredTest") {
-                startTime(this.startTime)
-                endTime(this.startTime)
-            }
-        }
-
-        when:
-        def xml = getXml(provider, options)
-
-        then:
-        xml == """<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.foo.IgnoredTest" tests="0" skipped="0" failures="0" errors="0" timestamp="2012-11-19T17:09:28" hostname="localhost" time="0.0">
-  <properties/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>
-"""
-    }
-
     def "can generate with output per test"() {
         given:
         def options = new JUnitXmlResultOptions(true, false, true, true)
@@ -207,8 +183,8 @@ class JUnitXmlResultWriterSpec extends Specification {
         def provider = new BuildableTestResultsProvider()
 
         when:
-        provider.with {
-            result("com.Foo") {
+        provider.child {
+            resultForClass("com.Foo") {
                 startTime(0)
                 endTime(1000)
             }
@@ -260,8 +236,8 @@ class JUnitXmlResultWriterSpec extends Specification {
 
         and:
         def provider = new BuildableTestResultsProvider()
-        provider.with {
-            result("com.foo.FooTest") {
+        provider.child {
+            resultForClass("com.foo.FooTest") {
                 startTime(this.startTime)
             }
             child {
@@ -289,8 +265,8 @@ class JUnitXmlResultWriterSpec extends Specification {
 
         and:
         def provider = new BuildableTestResultsProvider()
-        provider.with {
-            result("com.foo.FooTest") {
+        provider.child {
+            resultForClass("com.foo.FooTest") {
                 delegate.displayName(displayName)
                 startTime(this.startTime)
                 endTime(this.startTime + 45)
@@ -457,8 +433,12 @@ class JUnitXmlResultWriterSpec extends Specification {
     }
 
     private static String getXml(BuildableTestResultsProvider result, JUnitXmlResultOptions options) {
+        AllTestResults allResults = AllTestResults.loadModelFromProvider(result)
+        assert allResults.packages.size() == 1
+        assert allResults.packages[0].classes.size() == 1
+        ClassTestResults classResults = allResults.packages[0].classes[0]
         def text = new ByteArrayOutputStream()
-        getGenerator(options).write(result, text)
+        getGenerator(options).write(classResults, text)
         return text.toString("UTF-8").replace(SystemProperties.instance.lineSeparator, "\n")
     }
 
@@ -467,8 +447,8 @@ class JUnitXmlResultWriterSpec extends Specification {
     }
 
     private static void generateTestClassWithOutput(BuildableTestResultsProvider provider) {
-        provider.with {
-            result("com.foo.FooTest") {
+        provider.child {
+            resultForClass("com.foo.FooTest") {
                 startTime(0)
                 endTime(1000)
             }

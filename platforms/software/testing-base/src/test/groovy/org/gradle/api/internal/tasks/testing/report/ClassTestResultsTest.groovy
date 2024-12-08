@@ -15,14 +15,16 @@
  */
 package org.gradle.api.internal.tasks.testing.report
 
+
+import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider
 import spock.lang.Specification
 
 class ClassTestResultsTest extends Specification {
     def determinesSimpleName() {
         expect:
-        new ClassTestResults(1, 'org.gradle.Test', null).reportName == 'Test'
-        new ClassTestResults(2, 'Test', null).reportName == 'Test'
-        new ClassTestResults(1, 'org.gradle.Test', 'TestDisplay', null).reportName == 'TestDisplay'
-        new ClassTestResults(2, 'Test', 'TestDisplay', null).reportName == 'TestDisplay'
+        new ClassTestResults(Mock(TestResultsProvider), 'org.gradle.Test', 'org.gradle.Test', null).reportName == 'Test'
+        new ClassTestResults(Mock(TestResultsProvider), 'Test', 'Test', null).reportName == 'Test'
+        new ClassTestResults(Mock(TestResultsProvider), 'org.gradle.Test', 'TestDisplay', null).reportName == 'TestDisplay'
+        new ClassTestResults(Mock(TestResultsProvider), 'Test', 'TestDisplay', null).reportName == 'TestDisplay'
     }
 }

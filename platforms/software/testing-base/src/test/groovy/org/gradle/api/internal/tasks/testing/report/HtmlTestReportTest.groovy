@@ -17,6 +17,7 @@ package org.gradle.api.internal.tasks.testing.report
 
 import org.gradle.api.internal.tasks.testing.BuildableTestResultsProvider
 import org.gradle.api.internal.tasks.testing.junit.result.AggregateTestResultsProvider
+import org.gradle.api.internal.tasks.testing.junit.result.PersistentTestFailure
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.BuildOperationExecutorSupport
@@ -381,7 +382,7 @@ class HtmlTestReportTest extends Specification {
         def secondTestResults = aggregatedBuildResultsRun2()
 
         when:
-        report.generateReport(new AggregateTestResultsProvider([firstTestResults, secondTestResults]), reportDir)
+        report.generateReport(new AggregateTestResultsProvider("Aggregate", "Aggregate", [firstTestResults, secondTestResults]), reportDir)
 
         then:
         def passedClassFile = results(reportDir.file('classes/org.gradle.aggregation.FooTest.html'))
@@ -420,7 +421,7 @@ class HtmlTestReportTest extends Specification {
         def secondTestResults = aggregatedBuildResultsRun2('Alternative')
 
         when:
-        report.generateReport(new AggregateTestResultsProvider([firstTestResults, secondTestResults]), reportDir)
+        report.generateReport(new AggregateTestResultsProvider("Aggregate", "Aggregate", [firstTestResults, secondTestResults]), reportDir)
 
         then:
         def passedClassFile = results(reportDir.file('classes/org.gradle.aggregation.FooTest.html'))
@@ -458,9 +459,12 @@ class HtmlTestReportTest extends Specification {
         given:
         report = reportWithMaxThreads(1)
         def testTestResults = buildResults {
-            testClassResult("Test") {
-                testcase("test1") {
-                    duration = 0
+            child {
+                resultForClass("Test")
+                child {
+                    result("test1") {
+                        endTime(0)
+                    }
                 }
             }
         }
@@ -480,10 +484,13 @@ class HtmlTestReportTest extends Specification {
         given:
         report = reportWithMaxThreads(1)
         def testTestResults = buildResults {
-            testClassResult("org.gradle.Test") {
-                testcase("test1 < test2") {
-                    failure("<a failure>", "<a failure>")
-
+            child {
+                resultForClass("org.gradle.Test")
+                child {
+                    result("test1 < test2") {
+                        resultType(org.gradle.api.tasks.testing.TestResult.ResultType.FAILURE)
+                        addFailure(new PersistentTestFailure("<a failure>", "<a failure>", "ExceptionType"))
+                    }
                     stdout "</html> & "
                     stderr "</div> & "
                 }
@@ -504,9 +511,12 @@ class HtmlTestReportTest extends Specification {
         given:
         report = reportWithMaxThreads(1)
         def testTestResults = buildResults {
-            testClassResult("org.gradle.Test") {
-                testcase('\u0107') {
-                    duration = 0
+            child {
+                resultForClass("org.gradle.Test")
+                child {
+                    result("\u0107") {
+                        endTime(0)
+                    }
                     stdout "out:\u0256"
                     stderr "err:\u0102"
                 }
@@ -522,20 +532,22 @@ class HtmlTestReportTest extends Specification {
         testClassFile.assertHasStandardError('err:\u0102')
     }
 
-    TestResultsProvider buildResults(Closure closure) {
+    TestResultsProvider buildResults(@DelegatesTo(value = BuildableTestResultsProvider, strategy = Closure.DELEGATE_FIRST) Closure closure) {
         ConfigureUtil.configure(closure, new BuildableTestResultsProvider())
     }
 
     TestResultsProvider passingBuildResults() {
         buildResults {
-            testClassResult("org.gradle.passing.Passed") {
-                testcase("passed") {
-                    duration = 1000;
+            child {
+                resultForClass("org.gradle.passing.Passed")
+                child {
+                    result("passed")
                 }
             }
-            testClassResult("org.gradle.passing.subpackage.AlsoPassed") {
-                testcase("passedToo") {
-                    duration = 1000;
+            child {
+                resultForClass("org.gradle.passing.subpackage.AlsoPassed")
+                child {
+                    result("passedToo")
                     stdout "this is\nstandard output"
                     stderr "this is\nstandard error"
                 }
@@ -545,38 +557,46 @@ class HtmlTestReportTest extends Specification {
 
     TestResultsProvider failingBuildResults() {
         buildResults {
-            testClassResult("org.gradle.passing.Passed") {
-                testcase("passed") {
-                    duration = 1000;
+            child {
+                resultForClass("org.gradle.passing.Passed")
+                child {
+                    result("passed")
                 }
             }
-            testClassResult("org.gradle.passing.AlsoPassed") {
-                testcase("passedToo") {
-                    duration = 1000;
+            child {
+                resultForClass("org.gradle.passing.AlsoPassed")
+                child {
+                    result("passedToo")
                     stdout "this is\nstandard output"
                     stderr "this is\nstandard error"
                 }
             }
-            testClassResult("org.gradle.ignoring.SomeIgnoredSomePassed") {
-                testcase("passed") {
-                    duration = 1000;
+            child {
+                resultForClass("org.gradle.ignoring.SomeIgnoredSomePassed")
+                child {
+                    result("passed")
                 }
-                testcase("ignored") {
-                    duration = 1000;
-                    ignore()
+                child {
+                    result("ignored") {
+                        resultType(org.gradle.api.tasks.testing.TestResult.ResultType.SKIPPED)
+                    }
                 }
             }
-            testClassResult("org.gradle.failing.SomeIgnoredSomePassedSomeFailed") {
-                testcase("passed") {
-                    duration = 1000;
+            child {
+                resultForClass("org.gradle.failing.SomeIgnoredSomePassedSomeFailed")
+                child {
+                    result("passed")
                 }
-                testcase("ignored") {
-                    duration = 1000;
-                    ignore()
+                child {
+                    result("ignored") {
+                        resultType(org.gradle.api.tasks.testing.TestResult.ResultType.SKIPPED)
+                    }
                 }
-                testcase("failed") {
-                    duration = 1000;
-                    failure("something failed", "this is the failure\nat someClass")
+                child {
+                    result("failed") {
+                        resultType(org.gradle.api.tasks.testing.TestResult.ResultType.FAILURE)
+                        addFailure(new PersistentTestFailure("something failed", "this is the failure\nat someClass", "ExceptionType"))
+                    }
                 }
             }
         }
@@ -584,14 +604,17 @@ class HtmlTestReportTest extends Specification {
 
     TestResultsProvider aggregatedBuildResultsRun1() {
         buildResults {
-            testClassResult("org.gradle.aggregation.FooTest") {
-                testcase("first") {
-                    duration = 1000;
+            result("Aggregate Root 1")
+            child {
+                resultForClass("org.gradle.aggregation.FooTest")
+                child {
+                    result("first")
                 }
             }
-            testClassResult("org.gradle.aggregation.BarTest") {
-                testcase("second") {
-                    duration = 1000;
+            child {
+                resultForClass("org.gradle.aggregation.BarTest")
+                child {
+                    result("second")
                     stdout "this is\nstandard output"
                     stderr "this is\nstandard error"
                 }
@@ -599,19 +622,23 @@ class HtmlTestReportTest extends Specification {
         }
     }
 
-    TestResultsProvider aggregatedBuildResultsRun2(methodNameSuffix = "") {
+    TestResultsProvider aggregatedBuildResultsRun2(Object methodNameSuffix = "") {
         buildResults {
-            testClassResult("org.gradle.aggregation.FooTest") {
-                testcase("first" + methodNameSuffix) {
-                    duration = 1000;
+            result("Aggregate Root 2")
+            child {
+                resultForClass("org.gradle.aggregation.FooTest")
+                child {
+                    result("first" + methodNameSuffix)
                 }
             }
-            testClassResult("org.gradle.aggregation.BarTest") {
-                testcase("second" + methodNameSuffix) {
-                    duration = 1100;
-                    stdout "failed on second run\nstandard output"
-                    stderr "failed on second run\nstandard error"
-                    failure("something failed", "this is the failure\nat someClass")
+            child {
+                resultForClass("org.gradle.aggregation.BarTest")
+                child {
+                    result("second" + methodNameSuffix) {
+                        endTime(1100)
+                        resultType(org.gradle.api.tasks.testing.TestResult.ResultType.FAILURE)
+                        addFailure(new PersistentTestFailure("something failed", "this is the failure\nat someClass", "ExceptionType"))
+                    }
                 }
             }
         }
@@ -622,6 +649,6 @@ class HtmlTestReportTest extends Specification {
     }
 
     def emptyResultSet() {
-        _ * testResultProvider.visitClasses(_)
+        _ * testResultProvider.visitChildren(_)
     }
 }

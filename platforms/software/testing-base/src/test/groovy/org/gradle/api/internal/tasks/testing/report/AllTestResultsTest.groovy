@@ -15,6 +15,8 @@
  */
 package org.gradle.api.internal.tasks.testing.report
 
+
+import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider
 import spock.lang.Specification
 
 class AllTestResultsTest extends Specification {
@@ -22,7 +24,8 @@ class AllTestResultsTest extends Specification {
 
     def addsTest() {
         when:
-        def test = results.addTest(1, 'org.gradle.Test', 'test', 90)
+
+        def test = results.addTest(Mock(TestResultsProvider), 'org.gradle.Test', 'org.gradle.Test', Mock(TestResultsProvider), 'test', 'test', 90)
 
         then:
         test.name == 'test'
@@ -33,7 +36,8 @@ class AllTestResultsTest extends Specification {
 
     def addsTestInDefaultPackage() {
         when:
-        def test = results.addTest(1, 'Test', 'test', 90)
+
+        def test = results.addTest(Mock(TestResultsProvider), 'Test', 'Test', Mock(TestResultsProvider), 'test', 'test', 90)
 
         then:
         test.name == 'test'

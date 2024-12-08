@@ -1,0 +1,191 @@
+/*
+ * Copyright 2011 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.gradle.api.internal.tasks.testing.report.generic;
+
+import org.apache.commons.lang.StringUtils;
+import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider;
+
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.Set;
+import java.util.TreeSet;
+
+import static org.gradle.api.tasks.testing.TestResult.ResultType;
+
+public abstract class GenericCompositeTestResults extends GenericTestResultModel {
+    private final TestResultsProvider provider;
+    private final GenericCompositeTestResults parent;
+    private int tests;
+    private final Set<GenericTestResult> failures = new TreeSet<>();
+    private final Set<GenericTestResult> ignored = new TreeSet<>();
+    private long duration;
+
+    protected GenericCompositeTestResults(TestResultsProvider provider, GenericCompositeTestResults parent) {
+        this.provider = provider;
+        this.parent = parent;
+    }
+
+    public TestResultsProvider getProvider() {
+        return provider;
+    }
+
+    public GenericCompositeTestResults getParent() {
+        return parent;
+    }
+
+    public abstract String getBaseUrl();
+
+    public String getUrlTo(GenericCompositeTestResults model) {
+        String otherUrl = model.getBaseUrl();
+        String thisUrl = getBaseUrl();
+
+        int maxPos = Math.min(thisUrl.length(), otherUrl.length());
+        int endPrefix = 0;
+        while (endPrefix < maxPos) {
+            int endA = thisUrl.indexOf('/', endPrefix);
+            int endB = otherUrl.indexOf('/', endPrefix);
+            if (endA != endB || endA < 0) {
+                break;
+            }
+            if (!thisUrl.regionMatches(endPrefix, otherUrl, endPrefix, endA - endPrefix)) {
+                break;
+            }
+            endPrefix = endA + 1;
+        }
+
+        StringBuilder result = new StringBuilder();
+        int endA = endPrefix;
+        while (endA < thisUrl.length()) {
+            int pos = thisUrl.indexOf('/', endA);
+            if (pos < 0) {
+                break;
+            }
+            result.append("../");
+            endA = pos + 1;
+        }
+        result.append(otherUrl.substring(endPrefix));
+
+        return result.toString();
+    }
+
+    @Override
+    public String getName() {
+        return provider.getResult().getName();
+    }
+
+    public String getDisplayName() {
+        return provider.getResult().getDisplayName();
+    }
+
+    public String getReportName() {
+        if (getDisplayName() != null && !getDisplayName().equals(getName())) {
+            return getDisplayName();
+        }
+        return getSimpleName();
+    }
+
+    public String getSimpleName() {
+        String simpleName = StringUtils.substringAfterLast(getName(), ".");
+        if (simpleName.isEmpty()) {
+            return getName();
+        }
+        return simpleName;
+    }
+
+    public int getTestCount() {
+        return tests;
+    }
+
+    public int getFailureCount() {
+        return failures.size();
+    }
+
+    public int getIgnoredCount() {
+        return ignored.size();
+    }
+
+    public int getRunTestCount() {
+        return tests - getIgnoredCount();
+    }
+
+    @Override
+    public long getDuration() {
+        return duration;
+    }
+
+    @Override
+    public String getFormattedDuration() {
+        return getTestCount() == 0 ? "-" : super.getFormattedDuration();
+    }
+
+    public Set<GenericTestResult> getFailures() {
+        return failures;
+    }
+
+    public Set<GenericTestResult> getIgnored() {
+        return ignored;
+    }
+
+    @Override
+    public ResultType getResultType() {
+        if (!failures.isEmpty()) {
+            return ResultType.FAILURE;
+        }
+        if (getIgnoredCount() > 0) {
+            return ResultType.SKIPPED;
+        }
+        return ResultType.SUCCESS;
+    }
+
+    public String getFormattedSuccessRate() {
+        Number successRate = getSuccessRate();
+        if (successRate == null) {
+            return "-";
+        }
+        return successRate + "%";
+    }
+
+    public Number getSuccessRate() {
+        if (getRunTestCount() == 0) {
+            return null;
+        }
+
+        BigDecimal runTests = BigDecimal.valueOf(getRunTestCount());
+        BigDecimal successful = BigDecimal.valueOf(getRunTestCount() - getFailureCount());
+
+        return successful.divide(runTests, 2, RoundingMode.DOWN).multiply(BigDecimal.valueOf(100)).intValue();
+    }
+
+    protected void failed(GenericTestResult failedTest) {
+        failures.add(failedTest);
+        if (parent != null) {
+            parent.failed(failedTest);
+        }
+    }
+
+    protected void ignored(GenericTestResult ignoredTest) {
+        ignored.add(ignoredTest);
+        if (parent != null) {
+            parent.ignored(ignoredTest);
+        }
+    }
+
+    protected GenericTestResultModel addChild(GenericTestResultModel test) {
+        tests++;
+        duration += test.getDuration();
+        return test;
+    }
+}

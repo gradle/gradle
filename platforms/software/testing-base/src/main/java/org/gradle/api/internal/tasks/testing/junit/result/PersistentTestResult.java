@@ -19,7 +19,9 @@ package org.gradle.api.internal.tasks.testing.junit.result;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.tasks.testing.TestResult;
 
+import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Represents a test result that can be stored for a long time (potentially across process invocations).
@@ -30,6 +32,84 @@ import java.util.List;
  * </p>
  */
 public final class PersistentTestResult {
+    /**
+     * Legacy properties used for compatibility with existing JVM test reporting behavior.
+     *
+     * <p>
+     * These should be migrated to metadata when that is added.
+     * </p>
+     */
+    public static final class LegacyProperties {
+        private final boolean isClass;
+        private final String className;
+        private final String classDisplayName;
+
+        public LegacyProperties(boolean isClass, String className, String classDisplayName) {
+            this.isClass = isClass;
+            this.className = className;
+            this.classDisplayName = classDisplayName;
+        }
+
+        /**
+         * Returns true if this test result represents a test class, rather than something else.
+         *
+         * <p>
+         * This was added to allow reports to distinguish between test classes and other test results. In the future, this should likely be replaced with a more general mechanism for distinguishing
+         * different types of test results, to allow better reporting outside of a JVM context.
+         * </p>
+         *
+         * @return true if this test result represents a test class
+         */
+        public boolean isClass() {
+            return isClass;
+        }
+
+        /**
+         * The class name associated with this result. This may be the enclosing class of the test method, or just the same as the name if this {@link #isClass()}.
+         *
+         * <p>
+         * This value may not represent a parent node or an existing class. It must be considered different from inspecting any parent nodes to determine the class name.
+         * For example, see {@link org.gradle.testing.cucumberjvm.CucumberJVMReportIntegrationTest}.
+         * </p>
+         *
+         * @return the class name
+         */
+        public String getClassName() {
+            return className;
+        }
+
+        /**
+         * The class display name associated with this result. This may be the enclosing class of the test method, or just the same as the display name if this {@link #isClass()}.
+         *
+         * <p>
+         * This value may not represent a parent node or an existing class. It must be considered different from inspecting any parent nodes to determine the class display name.
+         * For example, see {@link org.gradle.testing.cucumberjvm.CucumberJVMReportIntegrationTest}.
+         * </p>
+         *
+         * @return the class display name
+         */
+        public String getClassDisplayName() {
+            return classDisplayName;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            LegacyProperties that = (LegacyProperties) o;
+            return isClass == that.isClass && Objects.equals(className, that.className) && Objects.equals(classDisplayName, that.classDisplayName);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(isClass, className, classDisplayName);
+        }
+    }
+
     public static Builder builder() {
         return new Builder();
     }
@@ -41,6 +121,8 @@ public final class PersistentTestResult {
         private Long startTime;
         private Long endTime;
         private final ImmutableList.Builder<PersistentTestFailure> failures = ImmutableList.builder();
+        @Nullable
+        private LegacyProperties legacyProperties;
 
         public Builder name(String name) {
             this.name = name;
@@ -72,6 +154,11 @@ public final class PersistentTestResult {
             return this;
         }
 
+        public Builder legacyProperties(LegacyProperties legacyProperties) {
+            this.legacyProperties = legacyProperties;
+            return this;
+        }
+
         public PersistentTestResult build() {
             if (name == null) {
                 throw new IllegalStateException("name is required");
@@ -88,32 +175,8 @@ public final class PersistentTestResult {
             if (endTime == null) {
                 throw new IllegalStateException("endTime is required");
             }
-            return new PersistentTestResult(name, displayName, resultType, startTime, endTime, failures.build());
+            return new PersistentTestResult(name, displayName, resultType, startTime, endTime, failures.build(), legacyProperties);
         }
-    }
-
-    private static TestResult.ResultType mergeResultTypes(TestResult.ResultType ours, TestResult.ResultType theirs) {
-        // Equivalent types give the same result.
-        if (ours == theirs) {
-            return ours;
-        }
-        if ((ours == TestResult.ResultType.SKIPPED && theirs == TestResult.ResultType.SUCCESS) ||
-            (ours == TestResult.ResultType.SUCCESS && theirs == TestResult.ResultType.SKIPPED)) {
-            // I'm not sure exactly what the semantics here would be.
-            throw new IllegalArgumentException("Cannot merge a skipped result with a successful result");
-        }
-        if (ours != TestResult.ResultType.FAILURE && theirs != TestResult.ResultType.FAILURE) {
-            // This is unreachable. At least one of the remaining must be a FAILURE.
-            // SUCCESS + SKIPPED is an error.
-            // SUCCESS + SUCCESS is handled above.
-            // SUCCESS + FAILURE is the only remaining case with SUCCESS.
-            // SKIPPED + SKIPPED is handled above.
-            // SKIPPED + FAILURE is the only remaining case with SKIPPED.
-            // FAILURE + FAILURE is handled above.
-            throw new AssertionError("At least one of the results must be a FAILURE");
-        }
-        // When there is at least one FAILURE, the result is a FAILURE.
-        return TestResult.ResultType.FAILURE;
     }
 
     private final String name;
@@ -122,14 +185,17 @@ public final class PersistentTestResult {
     private final long startTime;
     private final long endTime;
     private final List<PersistentTestFailure> failures;
+    @Nullable
+    private final LegacyProperties legacyProperties;
 
-    public PersistentTestResult(String name, String displayName, TestResult.ResultType resultType, long startTime, long endTime, List<PersistentTestFailure> failures) {
+    public PersistentTestResult(String name, String displayName, TestResult.ResultType resultType, long startTime, long endTime, List<PersistentTestFailure> failures, @Nullable LegacyProperties legacyProperties) {
         this.name = name;
         this.displayName = displayName;
         this.resultType = resultType;
         this.startTime = startTime;
         this.endTime = endTime;
         this.failures = failures;
+        this.legacyProperties = legacyProperties;
     }
 
     public String getName() {
@@ -160,6 +226,11 @@ public final class PersistentTestResult {
         return failures;
     }
 
+    @Nullable
+    public LegacyProperties getLegacyProperties() {
+        return legacyProperties;
+    }
+
     public Builder toBuilder() {
         Builder builder = new Builder();
         builder.name(name);
@@ -168,22 +239,7 @@ public final class PersistentTestResult {
         builder.startTime(startTime);
         builder.endTime(endTime);
         builder.failures.addAll(failures);
+        builder.legacyProperties(legacyProperties);
         return builder;
-    }
-
-    public PersistentTestResult merge(PersistentTestResult other) {
-        if (!name.equals(other.name)) {
-            throw new IllegalArgumentException("Cannot merge results with different names");
-        }
-        if (!displayName.equals(other.displayName)) {
-            throw new IllegalArgumentException("Cannot merge results with different display names");
-        }
-        TestResult.ResultType resultType = mergeResultTypes(this.resultType, other.resultType);
-        long startTime = Math.min(this.startTime, other.startTime);
-        long endTime = Math.max(this.endTime, other.endTime);
-        ImmutableList.Builder<PersistentTestFailure> failures = ImmutableList.builderWithExpectedSize(this.failures.size() + other.failures.size());
-        failures.addAll(this.failures);
-        failures.addAll(other.failures);
-        return new PersistentTestResult(name, displayName, resultType, startTime, endTime, failures.build());
     }
 }

@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.junit.result
 
-import org.gradle.api.Action
+import org.gradle.api.internal.tasks.testing.BuildableTestResultsProvider
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.BuildOperationExecutorSupport
 import org.gradle.internal.operations.BuildOperationRunner
@@ -30,7 +30,7 @@ class Binary2JUnitXmlReportGeneratorSpec extends Specification {
 
     @Rule
     private TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider(getClass())
-    private resultsProvider = Mock(TestResultsProvider)
+    private TestResultsProvider resultsProvider
     BuildOperationRunner buildOperationRunner = new TestBuildOperationRunner()
     BuildOperationExecutor buildOperationExecutor
     Binary2JUnitXmlReportGenerator generator
@@ -46,47 +46,52 @@ class Binary2JUnitXmlReportGeneratorSpec extends Specification {
             buildOperationRunner,
             buildOperationExecutor,
             "localhost")
-        reportGenerator.xmlWriter = Mock(JUnitXmlResultWriter)
         return reportGenerator
     }
 
     def "writes results - #numThreads parallel thread(s)"() {
-        generator = generatorWithMaxThreads(numThreads)
-
-        def fooTest = new TestClassResult(1, 'FooTest', 100)
-            .add(new TestMethodResult(1, "foo"))
-
-        def barTest = new TestClassResult(2, 'BarTest', 100)
-            .add(new TestMethodResult(2, "bar"))
-            .add(new TestMethodResult(3, "bar2"))
-
-        resultsProvider.visitClasses(_) >> { Action action ->
-            action.execute(fooTest)
-            action.execute(barTest)
+        resultsProvider = new BuildableTestResultsProvider().tap {
+            result("root-1")
+            child {
+                resultForClass("FooTest")
+                child {
+                    result("test-a")
+                }
+            }
+            child {
+                resultForClass("BarTest")
+                child {
+                    result("test-a")
+                }
+            }
         }
+        generator = generatorWithMaxThreads(numThreads)
 
         when:
         generator.generate()
 
         then:
-        1 * generator.xmlWriter.write(fooTest, _)
-        1 * generator.xmlWriter.write(barTest, _)
-        0 * generator.xmlWriter._
+        temp.testDirectory.file("TEST-FooTest.xml").assertExists()
+        temp.testDirectory.file("TEST-BarTest.xml").assertExists()
 
         where:
         numThreads << [1, 4]
     }
 
     def "adds context information to the failure if something goes wrong"() {
+        resultsProvider = new BuildableTestResultsProvider().tap {
+            result("root-1")
+            child {
+                resultForClass("FooTest")
+                child {
+                    result("test-a")
+                }
+            }
+        }
         generator = generatorWithMaxThreads(1)
 
-        def fooTest = new TestClassResult(1, 'FooTest', 100)
-            .add(new TestMethodResult(1, "foo"))
-
-        resultsProvider.visitClasses(_) >> { Action action ->
-            action.execute(fooTest)
-        }
-        generator.xmlWriter.write(fooTest, _) >> { throw new IOException("Boo!") }
+        generator.xmlWriter = Mock(JUnitXmlResultWriter)
+        generator.xmlWriter.write(_, _) >> { throw new IOException("Boo!") }
 
         when:
         generator.generate()
