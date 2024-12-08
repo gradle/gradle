@@ -247,7 +247,8 @@ public abstract class HashCode implements Serializable, Comparable<HashCode> {
         }
     }
 
-    private static class ByteArrayBackedHashCode extends HashCode {
+    @VisibleForTesting
+    static class ByteArrayBackedHashCode extends HashCode {
         private final byte[] bytes;
 
         public ByteArrayBackedHashCode(byte[] bytes) {

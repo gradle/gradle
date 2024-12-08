@@ -12,6 +12,7 @@ dependencies {
     implementation(projects.cleanup)
     implementation(projects.dependencyModules)
     implementation(projects.jvm)
+    implementation(projects.packaging)
     implementation(projects.profiling)
 
     implementation(kotlin("gradle-plugin"))

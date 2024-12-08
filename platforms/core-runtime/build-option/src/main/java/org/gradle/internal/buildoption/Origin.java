@@ -16,6 +16,7 @@
 
 package org.gradle.internal.buildoption;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.util.internal.TextUtil;
 
@@ -47,7 +48,8 @@ public abstract class Origin {
         return String.format(" (%s)", hint);
     }
 
-    private static class GradlePropertyOrigin extends Origin {
+    @VisibleForTesting
+    static class GradlePropertyOrigin extends Origin {
         public GradlePropertyOrigin(String value) {
             super(value);
         }
@@ -59,7 +61,8 @@ public abstract class Origin {
         }
     }
 
-    private static class CommandLineOrigin extends Origin {
+    @VisibleForTesting
+    static class CommandLineOrigin extends Origin {
         public CommandLineOrigin(String value) {
             super(value);
         }

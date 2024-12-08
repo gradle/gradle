@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableSet;
 import groovy.lang.Closure;
@@ -801,7 +802,8 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         }
     }
 
-    private static class TaskActionWrapper implements InputChangesAwareTaskAction {
+    @VisibleForTesting
+    static class TaskActionWrapper implements InputChangesAwareTaskAction {
         private final Action<? super Task> action;
         private final String maybeActionName;
 
