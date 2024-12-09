@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.testing.junit.result;
+package org.gradle.api.internal.tasks.testing.results;
 
-public class TestFailure {
+import org.gradle.api.NonNullApi;
+
+/**
+ * {@link org.gradle.api.tasks.testing.TestFailure} that can be safely serialized, since it does not contain any references to exception objects.
+ */
+@NonNullApi
+public class SerializableTestFailure {
     private final String message;
     private final String stackTrace;
     private final String exceptionType;
 
-    public TestFailure(String message, String stackTrace, String exceptionType) {
+    public SerializableTestFailure(String message, String stackTrace, String exceptionType) {
         this.message = message;
         this.stackTrace = stackTrace;
         this.exceptionType = exceptionType;

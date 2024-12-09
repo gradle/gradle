@@ -21,6 +21,7 @@ import org.gradle.api.tasks.testing.GroupTestEventReporter;
 import org.gradle.api.tasks.testing.TestEventReporter;
 import org.gradle.internal.concurrent.CompositeStoppable;
 
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -43,7 +44,7 @@ class LifecycleTrackingGroupTestEventReporter extends LifecycleTrackingTestEvent
     }
 
     @Override
-    public void close() {
+    public void close() throws IOException {
         super.close();
         // Now that it's safe, stop all children
         CompositeStoppable.stoppable(children).stop();

@@ -20,10 +20,10 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.tasks.testing.junit.result.AggregateTestResultsProvider;
-import org.gradle.api.internal.tasks.testing.junit.result.BinaryResultBackedTestResultsProvider;
-import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider;
-import org.gradle.api.internal.tasks.testing.report.HtmlTestReport;
+import org.gradle.api.internal.tasks.testing.ClassAndMethodTestReportImplementation;
+import org.gradle.api.internal.tasks.testing.GenericTestReportImplementation;
+import org.gradle.api.internal.tasks.testing.TestReportImplementation;
+import org.gradle.api.internal.tasks.testing.results.SerializableTestResultStore;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.tasks.IgnoreEmptyDirectories;
@@ -42,16 +42,13 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.work.DisableCachingByDefault;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
-import java.util.LinkedList;
-import java.util.List;
 
-import static org.gradle.internal.concurrent.CompositeStoppable.stoppable;
 import static org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType.GETTER;
 import static org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType.SETTER;
 import static org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.BinaryCompatibility.ACCESSORS_KEPT;
-import static org.gradle.util.internal.CollectionUtils.collect;
 
 /**
  * Generates an HTML test report from the results of one or more {@link Test} tasks.
@@ -186,32 +183,36 @@ public abstract class TestReport extends DefaultTask {
 
     @TaskAction
     void generateReport() {
-        TestResultsProvider resultsProvider = createAggregateProvider();
-        try {
-            if (resultsProvider.isHasResults()) {
-                HtmlTestReport testReport = new HtmlTestReport(getBuildOperationRunner(), getBuildOperationExecutor());
-                testReport.generateReport(resultsProvider, getDestinationDirectory().get().getAsFile());
+        try (TestReportImplementation impl = detectAndCreateImplementation()) {
+            if (impl != null && impl.hasResults()) {
+                impl.generateReport(getBuildOperationRunner(), getBuildOperationExecutor(), getDestinationDirectory().get().getAsFile());
             } else {
                 getLogger().info("{} - no binary test results found in dirs: {}.", getPath(), getTestResults().getFiles());
                 setDidWork(false);
             }
-        } finally {
-            stoppable(resultsProvider).stop();
+        } catch (Exception e) {
+            throw new RuntimeException("Could not write test report for results in " + getTestResults().getFiles(), e);
         }
     }
 
-    private TestResultsProvider createAggregateProvider() {
-        List<TestResultsProvider> resultsProviders = new LinkedList<TestResultsProvider>();
-        try {
-            FileCollection resultDirs = getTestResults();
-            if (resultDirs.getFiles().size() == 1) {
-                return new BinaryResultBackedTestResultsProvider(resultDirs.getSingleFile());
-            } else {
-                return new AggregateTestResultsProvider(collect(resultDirs, resultsProviders, BinaryResultBackedTestResultsProvider::new));
+    @Nullable
+    private TestReportImplementation detectAndCreateImplementation() {
+        FileCollection resultDirs = getTestResults();
+        Boolean isGenericImplementation = null;
+        for (File resultDir : resultDirs.getFiles()) {
+            boolean resultDirIsGenericImplementation = SerializableTestResultStore.isGenericTestResults(resultDir);
+            if (isGenericImplementation == null) {
+                isGenericImplementation = resultDirIsGenericImplementation;
+            } else if (isGenericImplementation != resultDirIsGenericImplementation) {
+                throw new IllegalStateException("Cannot mix generic and non-generic test results in the same report.");
             }
-        } catch (RuntimeException e) {
-            stoppable(resultsProviders).stop();
-            throw e;
+        }
+        if (isGenericImplementation == null) {
+            return null;
+        } else if (isGenericImplementation) {
+            return new GenericTestReportImplementation(resultDirs);
+        } else {
+            return new ClassAndMethodTestReportImplementation(resultDirs);
         }
     }
 }

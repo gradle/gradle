@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks.testing.junit.result;
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import org.apache.tools.ant.util.DateUtils;
+import org.gradle.api.internal.tasks.testing.results.SerializableTestFailure;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.UncheckedException;
@@ -322,10 +323,10 @@ public class JUnitXmlResultWriter {
     }
 
     private static class TestCaseExecutionFailure extends TestCaseExecution {
-        private final TestFailure failure;
+        private final SerializableTestFailure failure;
         private final FailureType type;
 
-        TestCaseExecutionFailure(OutputProvider outputProvider, JUnitXmlResultOptions options, FailureType type, TestFailure failure) {
+        TestCaseExecutionFailure(OutputProvider outputProvider, JUnitXmlResultOptions options, FailureType type, SerializableTestFailure failure) {
             super(outputProvider, options);
             this.failure = failure;
             this.type = type;
@@ -360,15 +361,15 @@ public class JUnitXmlResultWriter {
     }
 
     private Iterable<TestCaseExecution> failures(final long classId, final TestMethodResult methodResult, final FailureType failureType) {
-        List<TestFailure> failures = methodResult.getFailures();
+        List<SerializableTestFailure> failures = methodResult.getFailures();
         if (failures.isEmpty()) {
             // This can happen with a failing engine. For now, we just ignore this.
             return Collections.emptyList();
         }
-        final TestFailure firstFailure = failures.get(0);
-        return Iterables.transform(failures, new Function<TestFailure, TestCaseExecution>() {
+        final SerializableTestFailure firstFailure = failures.get(0);
+        return Iterables.transform(failures, new Function<SerializableTestFailure, TestCaseExecution>() {
             @Override
-            public TestCaseExecution apply(final TestFailure failure) {
+            public TestCaseExecution apply(final SerializableTestFailure failure) {
                 boolean isFirst = failure == firstFailure;
                 OutputProvider outputProvider = isFirst ? outputProvider(classId, methodResult.getId()) : NullOutputProvider.INSTANCE;
                 return new TestCaseExecutionFailure(outputProvider, options, failureType, failure);

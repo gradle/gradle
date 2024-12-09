@@ -18,8 +18,8 @@ package org.gradle.api.internal.tasks.testing.results;
 
 import org.gradle.api.NonNullApi;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.internal.tasks.testing.junit.result.BinaryResultBackedTestResultsProvider;
-import org.gradle.api.internal.tasks.testing.report.HtmlTestReport;
+import org.gradle.api.internal.tasks.testing.report.generic.GenericHtmlTestReport;
+import org.gradle.api.internal.tasks.testing.report.generic.TestTreeModel;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.service.scopes.Scope;
@@ -29,6 +29,7 @@ import javax.inject.Inject;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collections;
 
 /**
  * Generates HTML test reports given binary test results.
@@ -56,19 +57,18 @@ public class HtmlTestReportGenerator {
      *
      * @return The path to the index file of the generated report.
      */
-    public Path generateHtmlReport(Path reportsDirectory, Path resultsDirectory) {
+    public Path generateHtmlReport(Path reportsDirectory, Path resultsDirectory) throws IOException {
         try {
             Files.createDirectories(reportsDirectory);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
 
-        HtmlTestReport htmlReport = new HtmlTestReport(buildOperationRunner, buildOperationExecutor);
-        try (BinaryResultBackedTestResultsProvider resultsProvider = new BinaryResultBackedTestResultsProvider(resultsDirectory.toFile())) {
-            htmlReport.generateReport(resultsProvider, reportsDirectory.toFile());
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+        SerializableTestResultStore store = new SerializableTestResultStore(resultsDirectory);
+        TestTreeModel model = TestTreeModel.loadModelFromStores(Collections.singletonList(store));
+        String rootName = model.getPerRootInfo().keySet().iterator().next();
+        GenericHtmlTestReport htmlReport = new GenericHtmlTestReport(buildOperationRunner, buildOperationExecutor, Collections.singletonMap(rootName, store.openOutputReader()));
+        htmlReport.generateReport(model, reportsDirectory);
 
         return reportsDirectory.resolve("index.html");
     }

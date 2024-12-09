@@ -18,7 +18,7 @@ package org.gradle.api.internal.tasks.testing
 
 import org.gradle.api.Action
 import org.gradle.api.internal.tasks.testing.junit.result.TestClassResult
-import org.gradle.api.internal.tasks.testing.junit.result.TestFailure
+import org.gradle.api.internal.tasks.testing.results.SerializableTestFailure
 import org.gradle.api.internal.tasks.testing.junit.result.TestMethodResult
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider
 import org.gradle.api.tasks.testing.TestOutputEvent
@@ -129,7 +129,7 @@ class BuildableTestResultsProvider implements TestResultsProvider {
     static class BuildableTestMethodResult extends TestMethodResult {
 
         long duration
-        List<TestFailure> failures = []
+        List<SerializableTestFailure> failures = []
 
         TestResult.ResultType resultType = TestResult.ResultType.SUCCESS
 
@@ -143,7 +143,7 @@ class BuildableTestResultsProvider implements TestResultsProvider {
         }
 
         void failure(String message, String stackTrace) {
-            failures.add(new TestFailure(message, stackTrace, "ExceptionType"))
+            failures.add(new SerializableTestFailure(message, stackTrace, "ExceptionType"))
             resultType = TestResult.ResultType.FAILURE
         }
 

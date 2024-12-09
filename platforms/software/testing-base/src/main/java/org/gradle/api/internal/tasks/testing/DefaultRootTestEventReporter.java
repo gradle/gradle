@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.testing;
 
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.tasks.testing.results.HtmlTestReportGenerator;
+import org.gradle.api.internal.tasks.testing.results.SerializableTestResultStore;
 import org.gradle.api.internal.tasks.testing.results.TestExecutionResultsListener;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
 import org.gradle.api.tasks.VerificationException;
@@ -25,6 +26,7 @@ import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.logging.ConsoleRenderer;
 import org.gradle.util.internal.TextUtil;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.time.Instant;
 
@@ -32,7 +34,8 @@ import java.time.Instant;
 class DefaultRootTestEventReporter extends DefaultGroupTestEventReporter {
 
     private final Path testReportDirectory;
-    private final DefaultTestEventReporterFactory.ClosableTestReportDataCollector testReportDataCollector;
+    private final Path binaryResultsDir;
+    private final SerializableTestResultStore.Writer testResultWriter;
     private final HtmlTestReportGenerator htmlTestReportGenerator;
     private final TestExecutionResultsListener executionResultsListener;
 
@@ -44,7 +47,8 @@ class DefaultRootTestEventReporter extends DefaultGroupTestEventReporter {
         TestListenerInternal listener,
         IdGenerator<?> idGenerator,
         Path testReportDirectory,
-        DefaultTestEventReporterFactory.ClosableTestReportDataCollector testReportDataCollector,
+        Path binaryResultsDir,
+        SerializableTestResultStore.Writer testResultWriter,
         HtmlTestReportGenerator htmlTestReportGenerator,
         TestExecutionResultsListener executionResultsListener
     ) {
@@ -56,18 +60,18 @@ class DefaultRootTestEventReporter extends DefaultGroupTestEventReporter {
         );
 
         this.testReportDirectory = testReportDirectory;
-        this.testReportDataCollector = testReportDataCollector;
+        this.binaryResultsDir = binaryResultsDir;
+        this.testResultWriter = testResultWriter;
         this.htmlTestReportGenerator = htmlTestReportGenerator;
         this.executionResultsListener = executionResultsListener;
     }
 
     @Override
-    public void close() {
+    public void close() throws IOException {
         super.close();
 
         // Ensure binary results are written to disk.
-        testReportDataCollector.close();
-        Path binaryResultsDir = testReportDataCollector.getBinaryResultsDirectory();
+        testResultWriter.close();
 
         boolean rootTestFailed = failureMessage != null;
 
