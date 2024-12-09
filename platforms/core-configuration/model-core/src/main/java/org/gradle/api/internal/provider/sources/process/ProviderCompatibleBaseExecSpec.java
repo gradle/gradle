@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.provider.sources.process;
 
-import org.gradle.process.BaseExecSpec;
+import org.gradle.api.provider.Property;
 import org.gradle.process.ProcessForkOptions;
 
 import javax.annotation.Nullable;
@@ -35,32 +35,17 @@ abstract class ProviderCompatibleBaseExecSpec implements DelegatingBaseExecSpec 
     private File workingDirectory;
 
     @Override
-    public BaseExecSpec setStandardInput(InputStream inputStream) {
+    public Property<InputStream> getStandardInput() {
         throw new UnsupportedOperationException("Standard streams cannot be configured for exec output provider");
     }
 
     @Override
-    public InputStream getStandardInput() {
+    public Property<OutputStream> getStandardOutput() {
         throw new UnsupportedOperationException("Standard streams cannot be configured for exec output provider");
     }
 
     @Override
-    public BaseExecSpec setStandardOutput(OutputStream outputStream) {
-        throw new UnsupportedOperationException("Standard streams cannot be configured for exec output provider");
-    }
-
-    @Override
-    public OutputStream getStandardOutput() {
-        throw new UnsupportedOperationException("Standard streams cannot be configured for exec output provider");
-    }
-
-    @Override
-    public BaseExecSpec setErrorOutput(OutputStream outputStream) {
-        throw new UnsupportedOperationException("Standard streams cannot be configured for exec output provider");
-    }
-
-    @Override
-    public OutputStream getErrorOutput() {
+    public Property<OutputStream> getErrorOutput() {
         throw new UnsupportedOperationException("Standard streams cannot be configured for exec output provider");
     }
 
@@ -127,6 +112,6 @@ abstract class ProviderCompatibleBaseExecSpec implements DelegatingBaseExecSpec 
         parameters.getFullEnvironment().set(fullEnvironment);
         parameters.getAdditionalEnvironmentVariables().set(additionalEnvVars.isEmpty() ? null : additionalEnvVars);
         parameters.getWorkingDirectory().set(workingDirectory);
-        parameters.getIgnoreExitValue().set(isIgnoreExitValue());
+        parameters.getIgnoreExitValue().set(getIgnoreExitValue());
     }
 }
