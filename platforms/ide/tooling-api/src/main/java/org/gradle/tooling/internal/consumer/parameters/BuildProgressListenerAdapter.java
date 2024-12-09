@@ -118,7 +118,6 @@ import org.gradle.tooling.events.task.java.JavaCompileTaskOperationResult.Annota
 import org.gradle.tooling.events.test.Destination;
 import org.gradle.tooling.events.test.JvmTestKind;
 import org.gradle.tooling.events.test.TestFinishEvent;
-import org.gradle.tooling.events.test.TestMetadataEvent;
 import org.gradle.tooling.events.test.TestOperationDescriptor;
 import org.gradle.tooling.events.test.TestOperationResult;
 import org.gradle.tooling.events.test.TestOutputDescriptor;
@@ -128,7 +127,6 @@ import org.gradle.tooling.events.test.TestStartEvent;
 import org.gradle.tooling.events.test.internal.DefaultJvmTestOperationDescriptor;
 import org.gradle.tooling.events.test.internal.DefaultTestFailureResult;
 import org.gradle.tooling.events.test.internal.DefaultTestFinishEvent;
-import org.gradle.tooling.events.test.internal.DefaultTestMetadataEvent;
 import org.gradle.tooling.events.test.internal.DefaultTestOperationDescriptor;
 import org.gradle.tooling.events.test.internal.DefaultTestOutputEvent;
 import org.gradle.tooling.events.test.internal.DefaultTestOutputOperationDescriptor;
@@ -211,8 +209,6 @@ import org.gradle.tooling.internal.protocol.events.InternalTaskWithExtraInfoDesc
 import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalTestFailureResult;
 import org.gradle.tooling.internal.protocol.events.InternalTestFinishedProgressEvent;
-import org.gradle.tooling.internal.protocol.events.InternalTestMetadataDescriptor;
-import org.gradle.tooling.internal.protocol.events.InternalTestMetadataEvent;
 import org.gradle.tooling.internal.protocol.events.InternalTestOutputDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalTestOutputEvent;
 import org.gradle.tooling.internal.protocol.events.InternalTestProgressEvent;
@@ -255,8 +251,6 @@ import static java.util.Collections.emptyList;
 /**
  * Converts progress events sent from the tooling provider to the tooling client to the corresponding event types available on the public Tooling API, and broadcasts the converted events to the
  * matching progress listeners. This adapter handles all the different incoming progress event types (except the original logging-derived progress listener).
- *
- * This adapts tooling provider internal types into the public types on the consumer.
  */
 public class BuildProgressListenerAdapter implements InternalBuildProgressListener {
 
@@ -267,7 +261,6 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
     private final ListenerBroadcast<ProgressListener> projectConfigurationProgressListeners = new ListenerBroadcast<>(ProgressListener.class);
     private final ListenerBroadcast<ProgressListener> transformProgressListeners = new ListenerBroadcast<>(ProgressListener.class);
     private final ListenerBroadcast<ProgressListener> testOutputProgressListeners = new ListenerBroadcast<>(ProgressListener.class);
-    private final ListenerBroadcast<ProgressListener> testMetadataProgressListeners = new ListenerBroadcast<>(ProgressListener.class);
     private final ListenerBroadcast<ProgressListener> fileDownloadListeners = new ListenerBroadcast<>(ProgressListener.class);
     private final ListenerBroadcast<ProgressListener> buildPhaseListeners = new ListenerBroadcast<>(ProgressListener.class);
     private final ListenerBroadcast<ProgressListener> problemListeners = new ListenerBroadcast<>(ProgressListener.class);
@@ -284,7 +277,6 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         projectConfigurationProgressListeners.addAll(getOrDefault(listeners, OperationType.PROJECT_CONFIGURATION));
         transformProgressListeners.addAll(getOrDefault(listeners, OperationType.TRANSFORM));
         testOutputProgressListeners.addAll(getOrDefault(listeners, OperationType.TEST_OUTPUT));
-        testMetadataProgressListeners.addAll(getOrDefault(listeners, OperationType.TEST_METADATA));
         fileDownloadListeners.addAll(getOrDefault(listeners, OperationType.FILE_DOWNLOAD));
         buildPhaseListeners.addAll(getOrDefault(listeners, OperationType.BUILD_PHASE));
         problemListeners.addAll(getOrDefault(listeners, OperationType.PROBLEMS));
@@ -323,9 +315,6 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         }
         if (!testOutputProgressListeners.isEmpty()) {
             operations.add(InternalBuildProgressListener.TEST_OUTPUT);
-        }
-        if (!testMetadataProgressListeners.isEmpty()) {
-            operations.add(InternalBuildProgressListener.TEST_METADATA);
         }
         if (!fileDownloadListeners.isEmpty()) {
             operations.add(InternalBuildProgressListener.FILE_DOWNLOAD);
@@ -369,8 +358,6 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
             transformProgressListeners.getSource().statusChanged(event);
         } else if (event instanceof TestOutputEvent) {
             testOutputProgressListeners.getSource().statusChanged(event);
-        } else if (event instanceof TestMetadataEvent) {
-            testMetadataProgressListeners.getSource().statusChanged(event);
         } else if (event instanceof BuildPhaseProgressEvent) {
             buildPhaseListeners.getSource().statusChanged(event);
         } else if (event instanceof ProblemEvent) {
@@ -400,9 +387,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
             broadcastTransformProgressEvent(progressEvent, (InternalTransformDescriptor) descriptor);
         } else if (descriptor instanceof InternalTestOutputDescriptor) {
             broadcastTestOutputEvent(progressEvent, (InternalTestOutputDescriptor) descriptor);
-        } else if (descriptor instanceof InternalTestMetadataDescriptor) {
-            broadcastTestMetadataEvent(progressEvent, (InternalTestMetadataDescriptor) descriptor);
-        }else if (progressEvent instanceof InternalStatusEvent) {
+        } else if (progressEvent instanceof InternalStatusEvent) {
             broadcastStatusEvent((InternalStatusEvent) progressEvent);
         } else if (descriptor instanceof InternalFileDownloadDescriptor) {
             broadcastFileDownloadEvent(progressEvent, (InternalFileDownloadDescriptor) descriptor);
@@ -462,13 +447,6 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         TestOutputEvent outputEvent = toTestOutputEvent(event, descriptor);
         if (outputEvent != null) {
             testOutputProgressListeners.getSource().statusChanged(outputEvent);
-        }
-    }
-
-    private void broadcastTestMetadataEvent(InternalProgressEvent event, InternalTestMetadataDescriptor descriptor) {
-        TestMetadataEvent metadataEvent = toTestMetadataEvent(event, descriptor);
-        if (metadataEvent != null) {
-            testMetadataProgressListeners.getSource().statusChanged(metadataEvent);
         }
     }
 
@@ -609,19 +587,6 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
     private TestOutputEvent transformTestOutput(InternalTestOutputEvent event, InternalTestOutputDescriptor descriptor) {
         TestOutputDescriptor clientDescriptor = addDescriptor(event.getDescriptor(), toTestOutputDescriptor(event, descriptor));
         return new DefaultTestOutputEvent(event.getEventTime(), clientDescriptor);
-    }
-
-    private @Nullable TestMetadataEvent toTestMetadataEvent(InternalProgressEvent event, InternalTestMetadataDescriptor descriptor) {
-        if (event instanceof InternalTestMetadataEvent) {
-            return transformTestMetadata((InternalTestMetadataEvent) event, descriptor);
-        } else {
-            return null;
-        }
-    }
-
-    private TestMetadataEvent transformTestMetadata(InternalTestMetadataEvent event, InternalTestMetadataDescriptor descriptor) {
-        OperationDescriptor clientDescriptor = addDescriptor(event.getDescriptor(), toDescriptor(descriptor));
-        return new DefaultTestMetadataEvent(event.getEventTime(), clientDescriptor, event.getKey(), event.getValue());
     }
 
     private @Nullable ProblemEvent toProblemEvent(InternalProgressEvent progressEvent, InternalProblemDescriptor descriptor) {

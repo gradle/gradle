@@ -27,4 +27,9 @@ class TestCompilationFailureException extends Exception implements CompilationFa
     public String getDiagnosticCounts() {
         return null;
     }
+
+    @Override
+    public String getShortMessage() {
+        return getMessage();
+    }
 }

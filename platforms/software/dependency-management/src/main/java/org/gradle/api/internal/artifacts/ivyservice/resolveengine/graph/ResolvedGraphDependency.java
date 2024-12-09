@@ -54,6 +54,9 @@ public interface ResolvedGraphDependency {
 
     /**
      * Returns the simple id of the selected variant, as per {@link ResolvedGraphVariant#getNodeId()}.
+     * <p>
+     * If at the end of graph traversal this method returns null, <strong>the graph is broken and a bug
+     * in the dependency resolution has been encountered.</strong>
      */
     @Nullable
     Long getSelectedVariant();

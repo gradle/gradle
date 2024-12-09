@@ -31,4 +31,9 @@ public class CompilationFatalException extends RuntimeException implements Compi
     public String getDiagnosticCounts() {
         return null;
     }
+
+    @Override
+    public String getShortMessage() {
+        return getMessage();
+    }
 }

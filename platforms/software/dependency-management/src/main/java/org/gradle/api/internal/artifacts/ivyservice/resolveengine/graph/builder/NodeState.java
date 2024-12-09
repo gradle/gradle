@@ -754,7 +754,7 @@ public class NodeState implements DependencyGraphNode {
                         excludedByBoth = null;
                     }
                 }
-            } else if (isConstraint(dependencyEdge)) {
+            } else if (dependencyEdge.isConstraint()) {
                 excludedByEither = collectEdgeConstraint(nodeExclusions, excludedByEither, dependencyEdge, nothing, incomingEdgeCount);
             }
         }
@@ -767,17 +767,13 @@ public class NodeState implements DependencyGraphNode {
         ExcludeSpec exclusions = null;
         if (dependencyEdge.isTransitive()) {
             exclusions = dependencyEdge.getExclusions();
-        } else if (isConstraint(dependencyEdge)) {
+        } else if (dependencyEdge.isConstraint()) {
             exclusions = dependencyEdge.getEdgeExclusions();
         }
         if (exclusions == null) {
             exclusions = moduleExclusions.nothing();
         }
         return joinEdgeAndNodeExclusionsThenCacheResult(nodeExclusions, exclusions, 1);
-    }
-
-    private static boolean isConstraint(EdgeState dependencyEdge) {
-        return dependencyEdge.getDependencyMetadata().isConstraint();
     }
 
     private ExcludeSpec joinEdgeAndNodeExclusionsThenCacheResult(ExcludeSpec nodeExclusions, ExcludeSpec edgeExclusions, int incomingEdgeCount) {
@@ -1029,22 +1025,28 @@ public class NodeState implements DependencyGraphNode {
                     // don't requeue something which is already changing selection
                     continue;
                 }
-                outgoingEdge.cleanUpOnSourceChange(this);
+
+                disconnectOutgoingEdge(outgoingEdge);
             }
             outgoingEdges.clear();
         }
         if (virtualEdges != null /*&& !removingOutgoing*/) {
-            for (EdgeState outgoingDependency : virtualEdges) {
-                outgoingDependency.markUnused();
-                outgoingDependency.removeFromTargetConfigurations();
-                outgoingDependency.getSelector().release();
+            for (EdgeState virtualEdge : virtualEdges) {
+                virtualEdge.markUnused();
+                disconnectOutgoingEdge(virtualEdge);
             }
+            virtualEdges = null;
         }
-        virtualEdges = null;
         previousTraversalExclusions = null;
         cachedFilteredDependencyStates = null;
         virtualPlatformNeedsRefresh = false;
         removingOutgoingEdges = alreadyRemoving;
+    }
+
+    private void disconnectOutgoingEdge(EdgeState outgoingEdge) {
+        outgoingEdge.removeFromTargetConfigurations();
+        outgoingEdge.getSelector().getTargetModule().disconnectIncomingEdge(this, outgoingEdge);
+        outgoingEdge.getSelector().release();
     }
 
     public void restart(ComponentState selected) {
@@ -1127,7 +1129,7 @@ public class NodeState implements DependencyGraphNode {
      * Invoked when this node is back to being a pending dependency.
      * There may be some incoming edges left at that point, but they must all be coming from constraints.
      */
-    public void clearConstraintEdges(PendingDependencies pendingDependencies, NodeState backToPendingSource) {
+    public void clearIncomingConstraints(PendingDependencies pendingDependencies, NodeState backToPendingSource) {
         if (incomingEdges.isEmpty()) {
             return;
         }
@@ -1135,29 +1137,26 @@ public class NodeState implements DependencyGraphNode {
         List<EdgeState> remainingIncomingEdges = ImmutableList.copyOf(incomingEdges);
         clearIncomingEdges();
         for (EdgeState incomingEdge : remainingIncomingEdges) {
-            assert isConstraint(incomingEdge);
+            assert incomingEdge.isConstraint();
             NodeState from = incomingEdge.getFrom();
             if (from != backToPendingSource) {
                 // Only remove edges that come from a different node than the source of the dependency going back to pending
                 // The edges from the "From" will be removed first
-                if (from.removeOutgoingEdge(incomingEdge)) {
-                    incomingEdge.getSelector().release();
-                }
+                from.removeOutgoingEdge(incomingEdge);
             }
             pendingDependencies.registerConstraintProvider(from);
         }
     }
 
-    private boolean removeOutgoingEdge(EdgeState edge) {
+    void removeOutgoingEdge(EdgeState edge) {
         if (!removingOutgoingEdges) {
             // don't try to remove an outgoing edge if we're already doing it
             // because removeOutgoingEdges() will clear all of them so it's not required to do it twice
             // and it can cause a concurrent modification exception
             outgoingEdges.remove(edge);
             edge.markUnused();
-            return true;
+            edge.getSelector().release();
         }
-        return false;
     }
 
     void forEachCapability(CapabilitiesConflictHandler capabilitiesConflictHandler, Action<? super CapabilityInternal> action) {

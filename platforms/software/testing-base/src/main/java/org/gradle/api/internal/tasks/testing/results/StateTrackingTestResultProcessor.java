@@ -33,10 +33,10 @@ import java.util.Map;
 public class StateTrackingTestResultProcessor implements TestResultProcessor {
     private final Map<Object, TestState> executing = new HashMap<Object, TestState>();
     private TestDescriptorInternal currentParent;
-    private final TestListenerInternal listener;
+    private final TestListenerInternal delegate;
 
     public StateTrackingTestResultProcessor(TestListenerInternal delegate) {
-        this.listener = delegate;
+        this.delegate = delegate;
     }
 
     @Override
@@ -52,7 +52,7 @@ public class StateTrackingTestResultProcessor implements TestResultProcessor {
                     test, test.getId()));
         }
 
-        listener.started(state.test, event);
+        delegate.started(state.test, event);
     }
 
     private void ensureChildrenCompleted(Object testId, long endTime) {
@@ -94,7 +94,7 @@ public class StateTrackingTestResultProcessor implements TestResultProcessor {
         currentParent = testState.test.getParent();
 
         testState.completed(event);
-        listener.completed(testState.test, new DefaultTestResult(testState), event);
+        delegate.completed(testState.test, new DefaultTestResult(testState), event);
     }
 
     @Override
@@ -110,7 +110,7 @@ public class StateTrackingTestResultProcessor implements TestResultProcessor {
 
     @Override
     public final void output(Object testId, TestOutputEvent event) {
-        listener.output(findDescriptor(testId), event);
+        delegate.output(findDescriptor(testId), event);
     }
 
     private TestDescriptorInternal findDescriptor(Object testId) {
