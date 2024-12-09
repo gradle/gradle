@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.provider.collecting;
+package org.gradle.api.internal.provider;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
-import org.gradle.api.internal.provider.AbstractMinimalProvider;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.Pair;
 
@@ -35,16 +34,16 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @NonNullApi
-public abstract class AbstractCollectingSupplier<CollectorType, Type> extends AbstractMinimalProvider<Type> {
-    private final Predicate<CollectorType> checkAbsentIgnoring;
+public abstract class AbstractCollectingSupplier<COLLECTOR, TYPE> extends AbstractMinimalProvider<TYPE> {
+    private final Predicate<COLLECTOR> checkAbsentIgnoring;
     // This list is shared by the collectors produced by `plus`, so we don't have to copy the collectors every time.
     // However, this also means that you can only call plus on a given collector once.
-    protected final List<CollectorType> collectors; // TODO - Replace with PersistentList? This may make value calculation inefficient because the PersistentList can only prepend to head.
+    protected final List<COLLECTOR> collectors; // TODO - Replace with PersistentList? This may make value calculation inefficient because the PersistentList can only prepend to head.
     protected final int size;
 
     public AbstractCollectingSupplier(
-        Predicate<CollectorType> checkAbsentIgnoring,
-        List<CollectorType> collectors,
+        Predicate<COLLECTOR> checkAbsentIgnoring,
+        List<COLLECTOR> collectors,
         int size
     ) {
         this.collectors = collectors;
@@ -52,15 +51,15 @@ public abstract class AbstractCollectingSupplier<CollectorType, Type> extends Ab
         this.checkAbsentIgnoring = checkAbsentIgnoring;
     }
 
-    protected List<CollectorType> getCollectors() {
+    protected List<COLLECTOR> getCollectors() {
         return collectors.subList(0, size);
     }
 
-    protected boolean calculatePresence(Predicate<CollectorType> calculatePresenceForCollector) {
+    protected boolean calculatePresence(Predicate<COLLECTOR> calculatePresenceForCollector) {
         // We're traversing the elements in reverse addition order.
         // When determining the presence of the value, the last argument wins.
         // See also #collectExecutionTimeValues().
-        for (CollectorType collector : Lists.reverse(getCollectors())) {
+        for (COLLECTOR collector : Lists.reverse(getCollectors())) {
             if (!calculatePresenceForCollector.test(collector)) {
                 // We've found an argument of add/addAll that is missing.
                 // It makes the property missing regardless of what has been added before.
@@ -79,15 +78,14 @@ public abstract class AbstractCollectingSupplier<CollectorType, Type> extends Ab
         return true;
     }
 
-    protected <Entries, EntriesBuilder> Value<Entries> calculateValue(
-        BiFunction<EntriesBuilder, CollectorType, Value<Void>> collectEntriesForCollector,
-        Supplier<EntriesBuilder> builderSupplier,
-        Function<EntriesBuilder, Entries> buildEntries
+    protected <ENTRIES, BUILDER> Value<ENTRIES> calculateValue(
+        BiFunction<BUILDER, COLLECTOR, Value<Void>> collectEntriesForCollector,
+        Supplier<BUILDER> builderSupplier,
+        Function<BUILDER, ENTRIES> buildEntries
     ) {
-        // TODO - don't make a copy when the collector already produces an immutable collection
-        EntriesBuilder builder = builderSupplier.get();
+        BUILDER builder = builderSupplier.get();
         Value<Void> compositeResult = Value.present();
-        for (CollectorType collector : getCollectors()) {
+        for (COLLECTOR collector : getCollectors()) {
             if (compositeResult.isMissing() && !checkAbsentIgnoring.test(collector)) {
                 // The property is missing so far and the argument is of add/addAll.
                 // The property is going to be missing regardless of its value.
@@ -117,36 +115,36 @@ public abstract class AbstractCollectingSupplier<CollectorType, Type> extends Ab
         return Value.of(buildEntries.apply(builder)).withSideEffect(SideEffect.fixedFrom(compositeResult));
     }
 
-    protected ExecutionTimeValue<? extends Type> calculateExecutionTimeValue(
-        Function<CollectorType, ExecutionTimeValue<? extends Type>> calculateExecutionTimeValueForCollector,
-        BiFunction<List<ExecutionTimeValue<? extends Type>>, SideEffectBuilder<? extends Type>, ExecutionTimeValue<? extends Type>> calculateFixedValue,
-        Function<List<Pair<CollectorType, ExecutionTimeValue<? extends Type>>>, ExecutionTimeValue<? extends Type>> calculateChangingValue
+    protected ExecutionTimeValue<? extends TYPE> calculateExecutionTimeValue(
+        Function<COLLECTOR, ExecutionTimeValue<? extends TYPE>> calculateExecutionTimeValueForCollector,
+        BiFunction<List<ExecutionTimeValue<? extends TYPE>>, SideEffectBuilder<TYPE>, ExecutionTimeValue<? extends TYPE>> calculateFixedExecutionTimeValue,
+        Function<List<Pair<COLLECTOR, ExecutionTimeValue<? extends TYPE>>>, ExecutionTimeValue<? extends TYPE>> calculateChangingExecutionTimeValue
     ) {
-        List<Pair<CollectorType, ExecutionTimeValue<? extends Type>>> collectorsWithValues =
+        List<Pair<COLLECTOR, ExecutionTimeValue<? extends TYPE>>> collectorsWithValues =
             collectExecutionTimeValues(calculateExecutionTimeValueForCollector);
         if (collectorsWithValues.isEmpty()) {
             return ExecutionTimeValue.missing();
         }
-        List<ExecutionTimeValue<? extends Type>> executionTimeValues = collectorsWithValues.stream().map(Pair::getRight).collect(Collectors.toList());
-        ExecutionTimeValue<? extends Type> fixedOrMissing = fixedOrMissingValueOf(executionTimeValues, calculateFixedValue);
+        List<ExecutionTimeValue<? extends TYPE>> executionTimeValues = collectorsWithValues.stream().map(Pair::getRight).collect(Collectors.toList());
+        ExecutionTimeValue<? extends TYPE> fixedOrMissing = fixedOrMissingValueOf(executionTimeValues, calculateFixedExecutionTimeValue);
         if (fixedOrMissing != null) {
             return fixedOrMissing;
         }
-        return calculateChangingValue.apply(collectorsWithValues);
+        return calculateChangingExecutionTimeValue.apply(collectorsWithValues);
     }
 
     // Returns an empty list when the overall value is missing.
-    protected List<Pair<CollectorType, ExecutionTimeValue<? extends Type>>> collectExecutionTimeValues(Function<CollectorType, ExecutionTimeValue<? extends Type>> calculateExecutionTimeValueForCollector) {
+    protected List<Pair<COLLECTOR, ExecutionTimeValue<? extends TYPE>>> collectExecutionTimeValues(Function<COLLECTOR, ExecutionTimeValue<? extends TYPE>> calculateExecutionTimeValueForCollector) {
         // These are the values that are certainly part of the result, e.g. because of absent-ignoring append/appendAll argument.
-        List<Pair<CollectorType, ExecutionTimeValue<? extends Type>>> executionTimeValues = new ArrayList<>();
+        List<Pair<COLLECTOR, ExecutionTimeValue<? extends TYPE>>> executionTimeValues = new ArrayList<>();
         // These are the values that may become part of the result if there is no missing value somewhere.
-        List<Pair<CollectorType, ExecutionTimeValue<? extends Type>>> candidates = new ArrayList<>();
+        List<Pair<COLLECTOR, ExecutionTimeValue<? extends TYPE>>> candidates = new ArrayList<>();
 
         // We traverse the collectors backwards (in reverse addition order) to simplify the logic and avoid processing things that are going to be discarded.
         // Because of that, values are collected in reverse order too.
         // Se also #calculatePresence.
-        for (CollectorType collector : Lists.reverse(getCollectors())) {
-            ExecutionTimeValue<? extends Type> result = calculateExecutionTimeValueForCollector.apply(collector);
+        for (COLLECTOR collector : Lists.reverse(getCollectors())) {
+            ExecutionTimeValue<? extends TYPE> result = calculateExecutionTimeValueForCollector.apply(collector);
             if (result.isMissing()) {
                 // This is an add/addAll argument, but it is a missing provider.
                 // Everything that was added before it isn't going to affect the result, so we stop the iteration.
@@ -182,7 +180,7 @@ public abstract class AbstractCollectingSupplier<CollectorType, Type> extends Ab
         return sb.toString();
     }
 
-    protected ValueProducer getProducer(Function<CollectorType, ValueProducer> getProducerForCollector) {
+    protected ValueProducer getProducer(Function<COLLECTOR, ValueProducer> getProducerForCollector) {
         return new ValueProducer() {
             @Override
             public void visitProducerTasks(Action<? super Task> visitor) {
@@ -210,13 +208,13 @@ public abstract class AbstractCollectingSupplier<CollectorType, Type> extends Ab
      * Try to simplify the set of execution values to either a missing value or a fixed value.
      */
     @Nullable
-    private ExecutionTimeValue<? extends Type> fixedOrMissingValueOf(
-        List<ExecutionTimeValue<? extends Type>> values,
-        BiFunction<List<ExecutionTimeValue<? extends Type>>, SideEffectBuilder<? extends Type>, ExecutionTimeValue<? extends Type>> calculateFixedExecutionTimeValue
+    private ExecutionTimeValue<? extends TYPE> fixedOrMissingValueOf(
+        List<ExecutionTimeValue<? extends TYPE>> values,
+        BiFunction<List<ExecutionTimeValue<? extends TYPE>>, SideEffectBuilder<TYPE>, ExecutionTimeValue<? extends TYPE>> calculateFixedExecutionTimeValue
     ) {
         boolean fixed = true;
         boolean changingContent = false;
-        for (ExecutionTimeValue<? extends Type> value : values) {
+        for (ExecutionTimeValue<? extends TYPE> value : values) {
             if (value.isMissing()) {
                 return ExecutionTimeValue.missing();
             }
@@ -227,15 +225,15 @@ public abstract class AbstractCollectingSupplier<CollectorType, Type> extends Ab
             }
         }
         if (fixed) {
-            SideEffectBuilder<Type> sideEffectBuilder = SideEffect.builder();
-            ExecutionTimeValue<? extends Type> fixedValue = calculateFixedExecutionTimeValue.apply(values, sideEffectBuilder);
+            SideEffectBuilder<TYPE> sideEffectBuilder = SideEffect.builder();
+            ExecutionTimeValue<? extends TYPE> fixedValue = calculateFixedExecutionTimeValue.apply(values, sideEffectBuilder);
             fixedValue = changingContent ? fixedValue.withChangingContent() : fixedValue;
             return fixedValue.withSideEffect(sideEffectBuilder.build());
         }
         return null;
     }
 
-    private Stream<ValueProducer> getProducers(Function<CollectorType, ValueProducer> getProducerForCollector) {
+    private Stream<ValueProducer> getProducers(Function<COLLECTOR, ValueProducer> getProducerForCollector) {
         return getCollectors().stream().map(getProducerForCollector);
     }
 }

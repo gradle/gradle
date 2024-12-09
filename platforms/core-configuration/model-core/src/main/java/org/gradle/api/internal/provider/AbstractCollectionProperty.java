@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.provider;
 
-import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
@@ -28,7 +27,6 @@ import org.gradle.api.internal.provider.Collectors.ElementsFromArray;
 import org.gradle.api.internal.provider.Collectors.ElementsFromCollection;
 import org.gradle.api.internal.provider.Collectors.ElementsFromCollectionProvider;
 import org.gradle.api.internal.provider.Collectors.SingleElement;
-import org.gradle.api.internal.provider.collecting.AbstractCollectingSupplier;
 import org.gradle.api.provider.HasMultipleValues;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
@@ -37,13 +35,12 @@ import org.gradle.internal.evaluation.EvaluationScopeContext;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.function.Supplier;
 
-import static java.util.stream.Collectors.toCollection;
+import static java.util.stream.Collectors.toList;
 
 /**
  * The base class for collection properties.
@@ -511,6 +508,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
         @Override
         public Value<C> calculateValue(ValueConsumer consumer) {
+            // TODO - don't make a copy when the collector already produces an immutable collection
             return calculateValue(
                 (builder, collector) -> collector.collectEntries(consumer, valueCollector, builder),
                 collectionFactory,
@@ -525,17 +523,19 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
             return new CollectingSupplier<>(type, collectionFactory, valueCollector, collectors, size + 1);
         }
 
-        @SuppressWarnings("unchecked")
         @Override
+        @SuppressWarnings("unchecked")
         public ExecutionTimeValue<? extends C> calculateExecutionTimeValue() {
             return calculateExecutionTimeValue(
-                (Function<Collector<T>, ExecutionTimeValue<? extends C>>) input -> (ExecutionTimeValue<? extends C>) input.calculateExecutionTimeValue(),
-                this::calculateFixedValue,
-                this::calculateChangingValue
+                collector -> (ExecutionTimeValue<? extends C>) collector.calculateExecutionTimeValue(),
+                this::calculateFixedExecutionTimeValue,
+                this::calculateChangingExecutionTimeValue
             );
         }
 
-        private ExecutionTimeValue<? extends C> calculateChangingValue(List<Pair<Collector<T>, ExecutionTimeValue<? extends C>>> collectorsWithValues) {
+        private ExecutionTimeValue<? extends C> calculateChangingExecutionTimeValue(
+            List<Pair<Collector<T>, ExecutionTimeValue<? extends C>>> collectorsWithValues
+        ) {
             return ExecutionTimeValue.changingValue(
                 new CollectingSupplier<>(
                     type,
@@ -544,23 +544,21 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
                     collectorsWithValues.stream().map(pair -> {
                         Collector<T> elements = toCollector(pair.getRight());
                         return ignoreAbsentIfNeeded(elements, isAbsentIgnoring(pair.getLeft()));
-                    }).collect(toCollection(ArrayList::new)),
+                    }).collect(toList()),
                     collectorsWithValues.size()
                 )
             );
         }
 
-        private ExecutionTimeValue<? extends C> calculateFixedValue(List<ExecutionTimeValue<? extends C>> executionTimeValues, SideEffectBuilder<? extends C> sideEffectBuilder) {
-            return ExecutionTimeValue.fixedValue(collectEntries(executionTimeValues, sideEffectBuilder));
-        }
-
-        private C collectEntries(List<ExecutionTimeValue<? extends C>> values, SideEffectBuilder<? extends C> sideEffectBuilder) {
+        private ExecutionTimeValue<? extends C> calculateFixedExecutionTimeValue(
+            List<ExecutionTimeValue<? extends C>> executionTimeValues, SideEffectBuilder<C> sideEffectBuilder
+        ) {
             ImmutableCollection.Builder<T> entries = collectionFactory.get();
-            for (ExecutionTimeValue<? extends C> value : values) {
+            for (ExecutionTimeValue<? extends C> value : executionTimeValues) {
                 entries.addAll(value.getFixedValue());
                 sideEffectBuilder.add(SideEffect.fixedFrom(value));
             }
-            return Cast.uncheckedNonnullCast(entries.build());
+            return ExecutionTimeValue.fixedValue(Cast.uncheckedNonnullCast(entries.build()));
         }
 
         private Collector<T> toCollector(ExecutionTimeValue<? extends Iterable<? extends T>> value) {

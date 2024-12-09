@@ -27,7 +27,6 @@ import org.gradle.api.internal.provider.MapCollectors.EntriesFromMap;
 import org.gradle.api.internal.provider.MapCollectors.EntriesFromMapProvider;
 import org.gradle.api.internal.provider.MapCollectors.EntryWithValueFromProvider;
 import org.gradle.api.internal.provider.MapCollectors.SingleEntry;
-import org.gradle.api.internal.provider.collecting.AbstractCollectingSupplier;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
@@ -600,8 +599,8 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         public ExecutionTimeValue<? extends Map<K, V>> calculateExecutionTimeValue() {
             return calculateExecutionTimeValue(
                 collector -> (ExecutionTimeValue<? extends Map<K, V>>) collector.calculateExecutionTimeValue(),
-                this::calculateFixedValue,
-                this::calculateChangingValue
+                this::calculateFixedExecutionTimeValue,
+                this::calculateChangingExecutionTimeValue
             );
         }
 
@@ -610,14 +609,19 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
             return getProducer(ValueSupplier::getProducer);
         }
 
-        private ExecutionTimeValue<? extends Map<K, V>> calculateFixedValue(
+        private ExecutionTimeValue<? extends Map<K, V>> calculateFixedExecutionTimeValue(
             List<ExecutionTimeValue<? extends Map<K, V>>> values,
-            SideEffectBuilder<? extends Map<K, V>> sideEffectBuilder
+            SideEffectBuilder<Map<K, V>> sideEffectBuilder
         ) {
-            return ExecutionTimeValue.fixedValue(collectEntries(values, sideEffectBuilder));
+            Map<K, V> entries = new LinkedHashMap<>();
+            for (ExecutionTimeValue<? extends Map<K, V>> value : values) {
+                entryCollector.addAll(value.getFixedValue().entrySet(), entries);
+                sideEffectBuilder.add(SideEffect.fixedFrom(value));
+            }
+            return ExecutionTimeValue.fixedValue(ImmutableMap.copyOf(entries));
         }
 
-        private ExecutionTimeValue<? extends Map<K, V>> calculateChangingValue(
+        private ExecutionTimeValue<? extends Map<K, V>> calculateChangingExecutionTimeValue(
             List<Pair<MapCollector<K, V>, ExecutionTimeValue<? extends Map<K, V>>>> collectorsWithValues
         ) {
             return ExecutionTimeValue.changingValue(new CollectingSupplier<>(
@@ -625,9 +629,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
                 entryCollector,
                 collectorsWithValues.stream().map(pair -> {
                     MapCollector<K, V> elements = toCollector(pair.getRight());
-                    return isAbsentIgnoring(pair.getLeft())
-                        ? new AbsentIgnoringCollector<>(elements)
-                        : elements;
+                    return ignoreAbsentIfNeeded(elements, isAbsentIgnoring(pair.getLeft()));
                 }).collect(toList()),
                 collectorsWithValues.size())
             );
@@ -639,15 +641,6 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
                 return new EntriesFromMapProvider<>(value.toProvider());
             }
             return new EntriesFromMap<>(value.getFixedValue());
-        }
-
-        private ImmutableMap<K, V> collectEntries(List<ExecutionTimeValue<? extends Map<K, V>>> values, SideEffectBuilder<? extends Map<K, V>> sideEffectBuilder) {
-            Map<K, V> entries = new LinkedHashMap<>();
-            for (ExecutionTimeValue<? extends Map<K, V>> value : values) {
-                entryCollector.addAll(value.getFixedValue().entrySet(), entries);
-                sideEffectBuilder.add(SideEffect.fixedFrom(value));
-            }
-            return ImmutableMap.copyOf(entries);
         }
     }
 
