@@ -14,28 +14,28 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.internal;
+package org.gradle.api.problems;
 
-import org.gradle.api.problems.AdditionalData;
+import org.gradle.api.Incubating;
 
 import javax.annotation.Nullable;
 
+
 /**
- * Additional data type that can be used to attach type validation information to a problem.
+ * A provider for creating instances of {@link AdditionalDataBuilder}.
+ *
+ * @since 8.13
  */
-public interface TypeValidationData extends AdditionalData {
-    @Nullable
-    String getPluginId();
-
-    @Nullable
-    String getPropertyName();
-
-    @Nullable
-    String getFunctionName();
-
-    @Nullable
-    String getParentPropertyName();
-
-    @Nullable
-    String getTypeName();
+@Incubating
+public
+interface AdditionalDataBuilderProvider {
+    /**
+     * Provides an instance of {@link AdditionalDataBuilder} for creating instances of {@link AdditionalData}.
+     *
+     * @param additionalData the additional data to be provided to the builder
+     * @return an instance of {@link AdditionalDataBuilder}
+     * @since 8.13
+     */
+    @Incubating
+    AdditionalDataBuilder<? extends AdditionalData> provide(@Nullable AdditionalData additionalData);
 }

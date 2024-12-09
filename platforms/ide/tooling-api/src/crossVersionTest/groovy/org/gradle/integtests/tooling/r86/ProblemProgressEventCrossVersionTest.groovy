@@ -35,7 +35,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         //  issue https://github.com/gradle/gradle/issues/27484
     }
 
-    static String getProblemReportTaskString(String taskActionMethodBody) {
+    static String getProblemReportTaskString(@GroovyBuildScriptLanguage String taskActionMethodBody) {
         """
             import org.gradle.api.problems.Severity
 
@@ -49,8 +49,17 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
                 }
             }
 
-            tasks.register("reportProblem", ProblemReportingTask)
-        """
+            abstract class MyPlugin implements Plugin<Project> {
+                @Inject
+                protected abstract Problems getProblems();
+
+                void apply(Project project) {
+                    project.tasks.register("reportProblem", ProblemReportingTask)
+                }
+            }
+
+            apply(plugin: MyPlugin)
+       """
     }
 
     def runTask() {

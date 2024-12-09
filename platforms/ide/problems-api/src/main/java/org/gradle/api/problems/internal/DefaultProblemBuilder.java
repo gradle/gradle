@@ -18,6 +18,10 @@ package org.gradle.api.problems.internal;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
+import org.gradle.api.problems.AdditionalData;
+import org.gradle.api.problems.AdditionalDataBuilder;
+import org.gradle.api.problems.AdditionalDataBuilderFactory;
+import org.gradle.api.problems.AdditionalDataSpec;
 import org.gradle.api.problems.ProblemGroup;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.Severity;
@@ -82,9 +86,9 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
             return invalidProblem("missing-parent", "Problem id must have a parent", null);
         }
 
-        if (additionalData instanceof UnsupportedAdditionalDataSpec) {
+        if (additionalData instanceof UnsupportedAdditionalData) {
             return invalidProblem("unsupported-additional-data", "Unsupported additional data type",
-                "Unsupported additional data type: " + ((UnsupportedAdditionalDataSpec) additionalData).getType().getName() +
+                "Unsupported additional data type: " + ((UnsupportedAdditionalData) additionalData).getType().getName() +
                     ". Supported types are: " + additionalDataBuilderFactory.getSupportedTypes());
         }
 
@@ -264,7 +268,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
             config.execute((U) additionalDataBuilder);
             additionalData = additionalDataBuilder.build();
         } else {
-            additionalData = new UnsupportedAdditionalDataSpec(specType);
+            additionalData = new UnsupportedAdditionalData(specType);
         }
         return this;
     }
@@ -288,11 +292,11 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
         return id;
     }
 
-    private static class UnsupportedAdditionalDataSpec implements AdditionalData {
+    private static class UnsupportedAdditionalData implements AdditionalData {
 
         private final Class<?> type;
 
-        UnsupportedAdditionalDataSpec(Class<?> type) {
+        UnsupportedAdditionalData(Class<?> type) {
             this.type = type;
         }
 

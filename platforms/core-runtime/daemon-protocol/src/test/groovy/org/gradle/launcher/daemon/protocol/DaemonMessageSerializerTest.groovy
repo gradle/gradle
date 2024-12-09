@@ -38,10 +38,11 @@ import org.gradle.internal.serialize.SerializerSpec
 import org.gradle.launcher.daemon.diagnostics.DaemonDiagnostics
 import org.gradle.launcher.exec.BuildActionResult
 import org.gradle.launcher.exec.DefaultBuildActionParameters
+import org.gradle.tooling.internal.provider.serialization.PayloadSerializerTest
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload
 
 class DaemonMessageSerializerTest extends SerializerSpec {
-    def serializer = DaemonMessageSerializer.create(new DefaultSerializer<BuildAction>())
+    def serializer = DaemonMessageSerializer.create(new DefaultSerializer<BuildAction>(), PayloadSerializerTest.createPayloadSerializer())
 
     def "can serialize BuildEvent messages"() {
         expect:

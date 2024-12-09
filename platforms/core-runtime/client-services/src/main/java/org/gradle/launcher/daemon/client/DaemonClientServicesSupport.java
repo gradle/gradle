@@ -25,6 +25,9 @@ import org.gradle.cache.internal.scopes.DefaultGlobalScopedCacheBuilderFactory;
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.initialization.layout.GlobalCacheDir;
 import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.daemon.client.serialization.ClasspathInferer;
+import org.gradle.internal.daemon.client.serialization.ClientSidePayloadClassLoaderFactory;
+import org.gradle.internal.daemon.client.serialization.ClientSidePayloadClassLoaderRegistry;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.id.UUIDGenerator;
@@ -55,6 +58,11 @@ import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.toolchain.DaemonJavaToolchainQueryService;
 import org.gradle.process.internal.ClientExecHandleBuilderFactory;
+import org.gradle.tooling.internal.provider.serialization.ClassLoaderCache;
+import org.gradle.tooling.internal.provider.serialization.DefaultPayloadClassLoaderRegistry;
+import org.gradle.tooling.internal.provider.serialization.ModelClassLoaderFactory;
+import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
+import org.gradle.tooling.internal.provider.serialization.WellKnownClassLoaderRegistry;
 
 import java.io.InputStream;
 import java.util.UUID;
@@ -135,8 +143,34 @@ public abstract class DaemonClientServicesSupport implements ServiceRegistration
     }
 
     @Provides
-    DaemonConnector createDaemonConnector(DaemonDir daemonDir, DaemonRegistry daemonRegistry, OutgoingConnector outgoingConnector, DaemonStarter daemonStarter, ListenerManager listenerManager, ProgressLoggerFactory progressLoggerFactory, Serializer<BuildAction> buildActionSerializer) {
-        return new DefaultDaemonConnector(daemonDir, daemonRegistry, outgoingConnector, daemonStarter, listenerManager.getBroadcaster(DaemonStartListener.class), progressLoggerFactory, DaemonMessageSerializer.create(buildActionSerializer));
+    DaemonConnector createDaemonConnector(
+        DaemonDir daemonDir,
+        DaemonRegistry daemonRegistry,
+        OutgoingConnector outgoingConnector,
+        DaemonStarter daemonStarter,
+        ListenerManager listenerManager,
+        ProgressLoggerFactory progressLoggerFactory,
+        Serializer<BuildAction> buildActionSerializer
+    ) {
+        ClassLoaderCache classLoaderCache = new ClassLoaderCache();
+        PayloadSerializer pls = new PayloadSerializer(
+            new WellKnownClassLoaderRegistry(
+                new ClientSidePayloadClassLoaderRegistry(
+                    new DefaultPayloadClassLoaderRegistry(
+                        classLoaderCache,
+                        new ClientSidePayloadClassLoaderFactory(
+                            new ModelClassLoaderFactory())),
+                    new ClasspathInferer(),
+                    classLoaderCache)));
+
+        return new DefaultDaemonConnector(
+            daemonDir,
+            daemonRegistry,
+            outgoingConnector,
+            daemonStarter,
+            listenerManager.getBroadcaster(DaemonStartListener.class),
+            progressLoggerFactory,
+            DaemonMessageSerializer.create(buildActionSerializer, pls));
     }
 
     @Provides

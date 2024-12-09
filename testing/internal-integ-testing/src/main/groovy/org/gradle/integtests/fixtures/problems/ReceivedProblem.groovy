@@ -17,11 +17,11 @@
 package org.gradle.integtests.fixtures.problems
 
 import groovy.transform.CompileStatic
+import org.gradle.api.problems.AdditionalData
+import org.gradle.api.problems.AdditionalDataBuilderFactory
 import org.gradle.api.problems.ProblemGroup
 import org.gradle.api.problems.ProblemId
 import org.gradle.api.problems.Severity
-import org.gradle.api.problems.internal.AdditionalData
-import org.gradle.api.problems.internal.AdditionalDataBuilderFactory
 import org.gradle.api.problems.internal.DocLink
 import org.gradle.api.problems.internal.FileLocation
 import org.gradle.api.problems.internal.InternalProblemBuilder
@@ -64,7 +64,7 @@ class ReceivedProblem implements Problem {
         List<ProblemLocation> result = []
         locations.each { location ->
             if (location['pluginId'] != null) {
-                result += new ReceivedPluginIdLocation(location as Map<String, Object>)
+                result += new ReceivedPluginIdLocation(location as Map<String, String>)
             } else if (location['line'] != null) {
                 result += new ReceivedLineInFileLocation(location as Map<String, Object>)
             } else if (location['offset'] != null) {
@@ -362,7 +362,7 @@ class ReceivedProblem implements Problem {
     static class ReceivedPluginIdLocation implements PluginIdLocation {
         private final String pluginId
 
-        ReceivedPluginIdLocation(Map<String, Object> location) {
+        ReceivedPluginIdLocation(Map<String, String> location) {
             this.pluginId = location['pluginId'] as String
         }
 
@@ -405,6 +405,11 @@ class ReceivedProblem implements Problem {
         Map<String, Object> getAsMap() {
             data
         }
+//
+//        @Override
+//        Object get() {
+//            return this
+//        }
 
         boolean containsAll(Map<String, Object> properties) {
             data.entrySet().containsAll(properties.entrySet())

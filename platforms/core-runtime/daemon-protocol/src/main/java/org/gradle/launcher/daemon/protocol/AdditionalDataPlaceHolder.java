@@ -14,10 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.internal;
+package org.gradle.launcher.daemon.protocol;
 
-/**
- * Marker interface for additional data that can be attached to a {@link Problem}.
- */
-public interface AdditionalDataSpec {
+import org.gradle.api.NonNullApi;
+import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
+
+import java.io.Serializable;
+
+@NonNullApi
+public class AdditionalDataPlaceHolder implements Serializable {
+    private final SerializedPayload data;
+
+    public AdditionalDataPlaceHolder(SerializedPayload data) {
+        this.data = data;
+    }
+
+    public SerializedPayload getData() {
+        return data;
+    }
 }

@@ -57,7 +57,7 @@ class CustomPlugin implements Plugin<Project> {
 
         when:
         def model = withConnection { connection ->
-            connection.model(CustomModel).get()
+            connection.model(CustomModel).addJvmArguments("-agentlib:jdwp=transport=dt_socket,server=n,address=localhost:5006,suspend=y").get()
         }
 
         then:
