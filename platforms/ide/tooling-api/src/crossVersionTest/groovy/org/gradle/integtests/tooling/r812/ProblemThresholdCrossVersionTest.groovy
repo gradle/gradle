@@ -25,6 +25,7 @@ import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.problems.ProblemSummariesEvent
 import org.gradle.tooling.events.problems.SingleProblemEvent
+import org.gradle.util.GradleVersion
 import spock.lang.Ignore
 
 import static org.gradle.api.problems.ReportingScript.getProblemReportingScript
@@ -229,9 +230,12 @@ class ProblemThresholdCrossVersionTest extends ToolingApiSpecification {
         }
     }
     String getProblemReportingBody(int threshold, String category = "testcategory", String label = "label") {
-        """($threshold).times {
+
+        """${targetVersion >= GradleVersion.version("8.13") ? "def problemGroup = org.gradle.api.problems.IdFactory.instance().createRootProblemGroup('generic', 'group label')" : '' }
+           ${targetVersion >= GradleVersion.version("8.13") ? "def problemId = org.gradle.api.problems.IdFactory.instance().createProblemId('$category', '$label')" : '' }
+           ($threshold).times {
                  problems.getReporter().reporting {
-                    it.id("$category", "$label")
+                    ${targetVersion >= GradleVersion.version("8.13") ? "it.id(problemId)" : "it.id('$category', '$label')" }
                       .details('Wrong API usage, will not show up anywhere')
                  }
              }

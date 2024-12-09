@@ -17,6 +17,7 @@ package org.gradle.util.internal;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.function.TriConsumer;
+import org.gradle.api.problems.IdFactory;
 import org.gradle.api.problems.ProblemSpec;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 
@@ -225,11 +226,11 @@ public class NameMatcher {
 
     public void configureProblemId(ProblemSpec spec) {
         if (!getMatches().isEmpty()) {
-            spec.id("ambiguous-matches", "Ambiguous matches", GradleCoreProblemGroup.taskSelection());
+            spec.id(IdFactory.instance().createProblemId("ambiguous-matches", "Ambiguous matches", GradleCoreProblemGroup.taskSelection()));
         } else if (!getCandidates().isEmpty()) {
-            spec.id("no-matches", "No matches", GradleCoreProblemGroup.taskSelection());
+            spec.id(IdFactory.instance().createProblemId("no-matches", "No matches", GradleCoreProblemGroup.taskSelection()));
         } else {
-            spec.id("selection-failed", "Selection failed", GradleCoreProblemGroup.taskSelection());
+            spec.id(IdFactory.instance().createProblemId("selection-failed", "Selection failed", GradleCoreProblemGroup.taskSelection()));
         }
     }
 }
