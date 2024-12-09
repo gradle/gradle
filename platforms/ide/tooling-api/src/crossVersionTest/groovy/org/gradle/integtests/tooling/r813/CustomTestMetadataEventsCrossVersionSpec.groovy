@@ -43,9 +43,16 @@ class CustomTestMetadataEventsCrossVersionSpec extends ToolingApiSpecification i
                 @Inject
                 abstract TestEventReporterFactory getTestEventReporterFactory()
 
+                @Inject
+                abstract ProjectLayout getLayout()
+
                 @TaskAction
                 void runTests() {
-                    try (def reporter = getTestEventReporterFactory().createTestEventReporter("Custom test root")) {
+                    try (def reporter = testEventReporterFactory.createTestEventReporter(
+                        "Custom test root",
+                        getLayout().getBuildDirectory().dir("test-results/Custom test root").get(),
+                        getLayout().getBuildDirectory().dir("reports/tests/Custom test root").get()
+                    )) {
                         reporter.started(Instant.now())
                         try (def myTest = reporter.reportTest("MyTestInternal", "My test!")) {
                             myTest.started(Instant.now())
@@ -91,9 +98,16 @@ class CustomTestMetadataEventsCrossVersionSpec extends ToolingApiSpecification i
                 @Inject
                 abstract TestEventReporterFactory getTestEventReporterFactory()
 
+                @Inject
+                abstract ProjectLayout getLayout()
+
                 @TaskAction
                 void runTests() {
-                    try (def reporter = getTestEventReporterFactory().createTestEventReporter("Custom test root")) {
+                    try (def reporter = testEventReporterFactory.createTestEventReporter(
+                        "Custom test root",
+                        getLayout().getBuildDirectory().dir("test-results/Custom test root").get(),
+                        getLayout().getBuildDirectory().dir("reports/tests/Custom test root").get()
+                    )) {
                         reporter.started(Instant.now())
                         try (def myTest = reporter.reportTest("MyTestInternal", "My test!")) {
                             def start = Instant.now()
@@ -140,9 +154,16 @@ class CustomTestMetadataEventsCrossVersionSpec extends ToolingApiSpecification i
                 @Inject
                 abstract TestEventReporterFactory getTestEventReporterFactory()
 
+                @Inject
+                abstract ProjectLayout getLayout()
+
                 @TaskAction
                 void runTests() {
-                    try (def reporter = getTestEventReporterFactory().createTestEventReporter("Custom test root")) {
+                    try (def reporter = testEventReporterFactory.createTestEventReporter(
+                        "Custom test root",
+                        getLayout().getBuildDirectory().dir("test-results/Custom test root").get(),
+                        getLayout().getBuildDirectory().dir("reports/tests/Custom test root").get()
+                    )) {
                         reporter.started(Instant.now())
                         try (def myTest = reporter.reportTest("MyTestInternal", "My test!")) {
                             myTest.started(Instant.now())
@@ -196,9 +217,16 @@ class CustomTestMetadataEventsCrossVersionSpec extends ToolingApiSpecification i
                 @Inject
                 abstract TestEventReporterFactory getTestEventReporterFactory()
 
+                @Inject
+                abstract ProjectLayout getLayout()
+
                 @TaskAction
                 void runTests() {
-                    try (def root = getTestEventReporterFactory().createTestEventReporter("Custom test root")) {
+                    try (def root = testEventReporterFactory.createTestEventReporter(
+                        "Custom test root",
+                        getLayout().getBuildDirectory().dir("test-results/Custom test root").get(),
+                        getLayout().getBuildDirectory().dir("reports/tests/Custom test root").get()
+                    )) {
                         root.started(Instant.now())
                         root.metadata(Instant.now(), "myroot", "my root value")
                         try (def myGroup = root.reportTestGroup("My Group")) {
@@ -262,9 +290,16 @@ class CustomTestMetadataEventsCrossVersionSpec extends ToolingApiSpecification i
                 @Inject
                 abstract TestEventReporterFactory getTestEventReporterFactory()
 
+                @Inject
+                abstract ProjectLayout getLayout()
+
                 @TaskAction
                 void runTests() {
-                    try (def reporter = getTestEventReporterFactory().createTestEventReporter("Custom test root")) {
+                    try (def reporter = testEventReporterFactory.createTestEventReporter(
+                        "Custom test root",
+                        getLayout().getBuildDirectory().dir("test-results/Custom test root").get(),
+                        getLayout().getBuildDirectory().dir("reports/tests/Custom test root").get()
+                    )) {
                         reporter.started(Instant.now())
                         try (def myTest = reporter.reportTest("MyTestInternal", "My test!")) {
                             myTest.started(Instant.now())

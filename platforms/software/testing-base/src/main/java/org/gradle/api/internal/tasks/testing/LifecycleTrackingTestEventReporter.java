@@ -88,12 +88,13 @@ class LifecycleTrackingTestEventReporter<T extends TestEventReporter> implements
         if (state == State.CLOSED) {
             return;
         }
+
+        delegate.close();
+
         if (state == State.STARTED) {
             throw new IllegalStateException("completed(...) must be called before close() if started(...) was called");
         }
         state = State.CLOSED;
-
-        delegate.close();
     }
 
     protected boolean isCompleted() {
