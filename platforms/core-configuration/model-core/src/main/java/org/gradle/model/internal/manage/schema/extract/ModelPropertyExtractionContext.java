@@ -16,9 +16,7 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
-import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableSortedSet;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;
 import org.gradle.internal.reflect.PropertyAccessorType;
@@ -27,7 +25,6 @@ import org.gradle.model.internal.type.ModelType;
 import javax.annotation.Nullable;
 import java.lang.reflect.Method;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
@@ -74,13 +71,6 @@ public class ModelPropertyExtractionContext {
         return accessors.values();
     }
 
-    public void dropInvalidAccessor(PropertyAccessorType type, ImmutableCollection.Builder<Method> droppedMethods) {
-        PropertyAccessorExtractionContext removedAccessor = accessors.remove(type);
-        if (removedAccessor != null) {
-            droppedMethods.add(removedAccessor.getMostSpecificDeclaration());
-        }
-    }
-
     public Set<ModelType<?>> getDeclaredBy() {
         ImmutableSortedSet.Builder<ModelType<?>> declaredBy = new ImmutableSortedSet.Builder<ModelType<?>>(Ordering.usingToString());
         for (PropertyAccessorExtractionContext accessor : accessors.values()) {
@@ -91,15 +81,4 @@ public class ModelPropertyExtractionContext {
         return declaredBy.build();
     }
 
-    @Nullable
-    public PropertyAccessorExtractionContext mergeGetters() {
-        PropertyAccessorExtractionContext getGetter = getAccessor(PropertyAccessorType.GET_GETTER);
-        PropertyAccessorExtractionContext isGetter = getAccessor(PropertyAccessorType.IS_GETTER);
-        if (getGetter == null && isGetter == null) {
-            return null;
-        }
-        Iterable<Method> getMethods = getGetter != null ? getGetter.getDeclaringMethods() : Collections.<Method>emptyList();
-        Iterable<Method> isMethods = isGetter != null ? isGetter.getDeclaringMethods() : Collections.<Method>emptyList();
-        return new PropertyAccessorExtractionContext(PropertyAccessorType.GET_GETTER, Iterables.concat(getMethods, isMethods));
-    }
 }
