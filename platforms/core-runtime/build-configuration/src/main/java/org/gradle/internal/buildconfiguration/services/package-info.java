@@ -15,9 +15,9 @@
  */
 
 /**
- * The Gradle build configuration tasks internals.
+ * The Gradle build configuration services internals.
  */
 @NonNullApi
-package org.gradle.internal.buildconfiguration.tasks;
+package org.gradle.internal.buildconfiguration.services;
 
 import org.gradle.api.NonNullApi;
