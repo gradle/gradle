@@ -42,9 +42,7 @@ public interface ProblemSpec {
     ProblemSpec id(String name, String displayName);
 
     /**
-     * Defines simple identification for this problem.
-     * <p>
-     * It is a mandatory property to configure when emitting a problem with {@link ProblemReporter}.
+     * Optional property
      *
      * @param name the name of the problem. As a convention kebab-case-formatting should be used.
      * @param displayName a human-readable representation of the problem, free of any contextual information.

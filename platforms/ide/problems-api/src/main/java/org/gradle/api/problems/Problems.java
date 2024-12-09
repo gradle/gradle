@@ -17,6 +17,7 @@
 package org.gradle.api.problems;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.problems.deprecation.DeprecationReporter;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -42,4 +43,6 @@ public interface Problems {
      * @since 8.11
      */
     ProblemReporter getReporter();
+
+    DeprecationReporter getDeprecationReporter();
 }
