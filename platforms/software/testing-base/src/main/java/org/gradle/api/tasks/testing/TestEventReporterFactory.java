@@ -42,7 +42,7 @@ public interface TestEventReporterFactory {
      *
      * @return the test event reporter
      *
-     * @since 8.12
+     * @since 8.13
      */
     GroupTestEventReporter createTestEventReporter(
         String rootName,
