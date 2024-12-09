@@ -21,7 +21,7 @@ import org.gradle.performance.annotations.RunFor
 import org.gradle.performance.annotations.Scenario
 import org.gradle.performance.fixture.GradleBuildExperimentSpec
 import org.gradle.profiler.InvocationSettings
-import org.gradle.profiler.mutations.AbstractCleanupMutator
+import org.gradle.profiler.mutations.AbstractScheduledMutator
 import org.gradle.profiler.mutations.ClearBuildCacheMutator
 
 import static org.gradle.integtests.tooling.fixture.TextUtil.escapeString
@@ -46,7 +46,7 @@ class LocalTaskOutputCacheCrossBuildPerformanceTest extends AbstractCrossBuildPe
 
         given:
         runner.addBuildMutator { invocationSettings ->
-            new ClearBuildCacheMutator(invocationSettings.gradleUserHome, AbstractCleanupMutator.CleanupSchedule.SCENARIO)
+            new ClearBuildCacheMutator(invocationSettings.gradleUserHome, AbstractScheduledMutator.Schedule.SCENARIO)
         }
         runner.testGroup = "task output cache"
         runner.buildSpec {
@@ -71,7 +71,7 @@ class LocalTaskOutputCacheCrossBuildPerformanceTest extends AbstractCrossBuildPe
         runner.buildSpec {
             displayName("push-only")
             addBuildMutator { InvocationSettings invocationSettings ->
-                new ClearBuildCacheMutator(invocationSettings.gradleUserHome, AbstractCleanupMutator.CleanupSchedule.BUILD)
+                new ClearBuildCacheMutator(invocationSettings.gradleUserHome, AbstractScheduledMutator.CleanupSchedule.BUILD)
             }
             invocation {
                 cleanTasks("clean")
