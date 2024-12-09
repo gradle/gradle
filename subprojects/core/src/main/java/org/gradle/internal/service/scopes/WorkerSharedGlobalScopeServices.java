@@ -208,7 +208,7 @@ public class WorkerSharedGlobalScopeServices extends BasicGlobalScopeServices {
         BuildOperationListener listener = buildOperationListenerManager.getBroadcaster();
         return new DefaultBuildOperationRunner(
             currentBuildOperationRef,
-            clock::getCurrentTime,
+            clock,
             buildOperationIdFactory,
             () -> new BuildOperationProgressEventListenerAdapter(listener, progressLoggerFactory, clock)
         );
