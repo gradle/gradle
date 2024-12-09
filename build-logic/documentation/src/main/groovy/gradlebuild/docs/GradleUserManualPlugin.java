@@ -334,22 +334,12 @@ public class GradleUserManualPlugin implements Plugin<Project> {
     private void checkXrefLinksInUserManualAreValid(ProjectLayout layout, TaskContainer tasks, GradleDocumentationExtension extension) {
         TaskProvider<FindBrokenInternalLinks> checkDeadInternalLinks = tasks.register("checkDeadInternalLinks", FindBrokenInternalLinks.class, task -> {
             task.getReportFile().convention(layout.getBuildDirectory().file("reports/dead-internal-links.txt"));
-            // Doc Root: working/usermanual/raw/
-            task.getDocumentationRoot().convention(extension.getUserManual().getStagedDocumentation());
+            task.getDocumentationRoot().convention(extension.getUserManual().getStagedDocumentation()); // working/usermanual/raw/
             task.getJavadocRoot().convention(layout.getBuildDirectory().dir("javadoc"));
-
-            File releaseNotesFile = layout.getBuildDirectory().file("working/release-notes/raw.html").get().getAsFile();
-            if (releaseNotesFile.exists()) {
-                task.getReleaseNotesFile().convention(layout.getBuildDirectory().file("working/release-notes/raw.html"));
-            }
-
-            Directory samplesRoot = layout.getBuildDirectory().dir("working/samples/docs").get();
-            File samplesRootFile = samplesRoot.getAsFile();
-            if (samplesRootFile.exists() && samplesRootFile.isDirectory()) {
-                task.getSamplesRoot().convention(layout.getBuildDirectory().dir("working/samples/docs"));
-            }
-
+            task.getReleaseNotesFile().convention(layout.getProjectDirectory().file("src/docs/release/notes.md"));
+            task.getSamplesRoot().convention(layout.getBuildDirectory().dir("working/samples/docs"));
             task.dependsOn(tasks.named("javadocAll"));
+            task.dependsOn(tasks.named("assembleSamples"));
         });
 
         tasks.named(LifecycleBasePlugin.CHECK_TASK_NAME, task -> task.dependsOn(checkDeadInternalLinks));

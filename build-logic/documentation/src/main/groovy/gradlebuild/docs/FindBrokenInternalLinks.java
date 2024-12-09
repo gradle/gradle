@@ -57,6 +57,8 @@ public abstract class FindBrokenInternalLinks extends DefaultTask {
     private final Pattern linkWithHashPattern = Pattern.compile("([a-zA-Z_0-9-.]*)#(.*)");
     // link:{javadocPath}/org/gradle/api/java/archives/ManifestMergeDetails.html[ManifestMergeDetails]
     private final Pattern javadocLinkPattern = Pattern.compile("link:\\{javadocPath\\}/(.*?\\.html)");
+    // link:../samples/sample_problems_api_usage.html[end-to-end sample]
+    private final Pattern samplesLinkPattern = Pattern.compile("link:../samples/(.*?\\.html)");
     // link:https://kotlinlang.org/docs/reference/using-gradle.html#targeting-the-jvm[Kotlin]
     private final Pattern markdownLinkPattern = Pattern.compile("\\[[^]]+]\\([^)^\\\\]+\\)");
 
@@ -66,6 +68,8 @@ public abstract class FindBrokenInternalLinks extends DefaultTask {
     private final Pattern releaseNotesUserGuidePattern = Pattern.compile("userguide/(.*?)(?=\\.html)");
     // <a href="samples/sample_problems_api_usage.html">
     private final Pattern releaseNotesSamplesPattern = Pattern.compile("samples/(.*?)(?=\\.html)");
+
+    private final Pattern samplesUserGuidePattern = Pattern.compile("link:\\{userManualPath\\}/(.*?\\.html)");
 
     @InputDirectory
     @PathSensitive(PathSensitivity.RELATIVE)
@@ -90,20 +94,19 @@ public abstract class FindBrokenInternalLinks extends DefaultTask {
     public void checkDeadLinks() {
         Map<File, List<Error>> errors = new TreeMap<>();
 
-        if (getReleaseNotesFile().isPresent()) {
-            gatherDeadLinksInFileReleaseNotes(errors);
-        }
+        gatherDeadLinksInFileReleaseNotes(errors);
 
-        //if (getSamplesRoot().isPresent()) {
-        //    getSamplesRoot().getAsFileTree().matching(pattern -> pattern.include("**/*.adoc")).forEach(file -> {
-        //        gatherDeadLinksInFile(file, errors);
-        //    });
-        //}
+        getSamplesRoot()
+            .getAsFileTree()
+            .matching(pattern -> {
+                pattern.include("**/*.adoc");
+                pattern.exclude("**/index.adoc"); // Exclude index.adoc files
+            })
+            .forEach(file -> gatherDeadLinksInFileSamples(file, errors));
 
-        //getDocumentationRoot().getAsFileTree().matching(pattern -> pattern.include("**/*.adoc")).forEach(file -> {
-        //    System.out.println(file);
-        //    gatherDeadLinksInFile(file, errors);
-        //});
+        getDocumentationRoot().getAsFileTree().matching(pattern -> pattern.include("**/*.adoc")).forEach(file -> {
+            gatherDeadLinksInFile(file, errors);
+        });
 
         reportErrors(errors, getReportFile().get().getAsFile());
     }
@@ -153,9 +156,9 @@ public abstract class FindBrokenInternalLinks extends DefaultTask {
             String line = br.readLine();
             while (line != null) {
                 lineNumber++;
-                //gatherDeadUserGuideLinksInLineReleaseNotes(sourceFile, line, lineNumber, errorsForFile);
+                gatherDeadUserGuideLinksInLineReleaseNotes(sourceFile, line, lineNumber, errorsForFile);
                 gatherDeadSamplesLinksInLineReleaseNotes(sourceFile, line, lineNumber, errorsForFile);
-                //gatherDeadJavadocLinksInLineReleaseNotes(sourceFile, line, lineNumber, errorsForFile);
+                gatherDeadJavadocLinksInLineReleaseNotes(sourceFile, line, lineNumber, errorsForFile);
 
                 line = br.readLine();
             }
@@ -211,6 +214,42 @@ public abstract class FindBrokenInternalLinks extends DefaultTask {
         }
     }
 
+    private void gatherDeadLinksInFileSamples(File sourceFile, Map<File, List<Error>> errors) {
+        int lineNumber = 0;
+        List<Error> errorsForFile = new ArrayList<>();
+
+        try (BufferedReader br = new BufferedReader(new FileReader(sourceFile))) {
+            String line = br.readLine();
+            while (line != null) {
+                lineNumber++;
+                gatherDeadLinksInLineSamples(sourceFile, line, lineNumber, errorsForFile);
+                gatherDeadJavadocLinksInLine(sourceFile, line, lineNumber, errorsForFile);
+                gatherMarkdownLinksInLine(sourceFile, line, lineNumber, errorsForFile);
+                // TO DO - Check samples links in samples
+
+                line = br.readLine();
+            }
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+
+        if (!errorsForFile.isEmpty()) {
+            errors.put(sourceFile, errorsForFile);
+        }
+    }
+
+    private void gatherDeadLinksInLineSamples(File sourceFile, String line, int lineNumber, List<Error> errorsForFile) {
+        Matcher matcher = samplesUserGuidePattern.matcher(line);
+        while (matcher.find()) {
+            MatchResult xrefMatcher = matcher.toMatchResult();
+            String link = xrefMatcher.group(1).replace(".html", ".adoc");
+            File referencedFile = new File(getDocumentationRoot().get().getAsFile(), link);
+            if (!referencedFile.exists() || referencedFile.isDirectory()) {
+                errorsForFile.add(new Error(lineNumber, line, "Looking for file named " + link));
+            }
+        }
+    }
+
     private void gatherDeadLinksInFile(File sourceFile, Map<File, List<Error>> errors) {
         int lineNumber = 0;
         List<Error> errorsForFile = new ArrayList<>();
@@ -220,6 +259,7 @@ public abstract class FindBrokenInternalLinks extends DefaultTask {
             while (line != null) {
                 lineNumber++;
                 gatherDeadLinksInLine(sourceFile, line, lineNumber, errorsForFile);
+                gatherDeadSamplesLinksInLine(sourceFile, line, lineNumber, errorsForFile);
                 gatherDeadJavadocLinksInLine(sourceFile, line, lineNumber, errorsForFile);
                 gatherMarkdownLinksInLine(sourceFile, line, lineNumber, errorsForFile);
 
@@ -247,13 +287,11 @@ public abstract class FindBrokenInternalLinks extends DefaultTask {
         while (matcher.find()) {
             MatchResult xrefMatcher = matcher.toMatchResult();
             String link = xrefMatcher.group(1);
-            System.out.println(link);
             if (link.contains("#")) {
                 Matcher linkMatcher = linkWithHashPattern.matcher(link);
                 if (linkMatcher.matches()) {
                     MatchResult result = linkMatcher.toMatchResult();
                     String fileName = getFileName(result.group(1), sourceFile);
-                    System.out.println(fileName);
                     File referencedFile = new File(getDocumentationRoot().get().getAsFile(), fileName);
                     if (!referencedFile.exists() || referencedFile.isDirectory()) {
                         errorsForFile.add(new Error(lineNumber, line, "Looking for file named " + fileName));
@@ -273,6 +311,20 @@ public abstract class FindBrokenInternalLinks extends DefaultTask {
                     errorsForFile.add(new Error(lineNumber, line, "Looking for section named " + link + " in " + sourceFile.getName()));
                 }
             }
+        }
+    }
+
+    private void gatherDeadSamplesLinksInLine(File sourceFile, String line, int lineNumber, List<Error> errorsForFile) {
+        Matcher matcher = samplesLinkPattern.matcher(line);
+        while (matcher.find()) {
+            MatchResult linkMatcher = matcher.toMatchResult();
+            String link = linkMatcher.group(1).replace(".html", ".adoc");
+            File referencedFile = new File(getSamplesRoot().get().getAsFile(), link);
+            if (!referencedFile.exists() || referencedFile.isDirectory()) {
+                String errMsg = "Missing Samples file for " + link + " in " + sourceFile.getName();
+                errorsForFile.add(new Error(lineNumber, line, errMsg));
+            }
+            // TODO: Also parse the HTML in the javadoc file to check if the specific method is present
         }
     }
 
