@@ -19,6 +19,7 @@ package org.gradle.internal.cc.impl
 import org.gradle.StartParameter
 import org.gradle.composite.internal.BuildTreeWorkGraphController
 import org.gradle.internal.build.BuildLifecycleController
+import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.buildtree.BuildTreeFinishExecutor
 import org.gradle.internal.buildtree.BuildTreeLifecycleController
@@ -30,6 +31,8 @@ import org.gradle.internal.buildtree.DefaultBuildTreeWorkPreparer
 import org.gradle.internal.buildtree.IntermediateBuildActionRunner
 import org.gradle.internal.model.StateTransitionControllerFactory
 import org.gradle.internal.operations.BuildOperationExecutor
+import org.gradle.internal.operations.BuildOperationRunner
+import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier
 
 
 class VintageBuildTreeLifecycleControllerFactory(
@@ -38,6 +41,9 @@ class VintageBuildTreeLifecycleControllerFactory(
     private val buildOperationExecutor: BuildOperationExecutor,
     private val stateTransitionControllerFactory: StateTransitionControllerFactory,
     private val startParameter: StartParameter,
+    private val parameterCarrierFactory: ToolingModelParameterCarrier.Factory,
+    private val buildStateRegistry: BuildStateRegistry,
+    private val buildOperationRunner: BuildOperationRunner
 ) : BuildTreeLifecycleControllerFactory {
     // Used when CC is not enabled
     override fun createRootBuildController(targetBuild: BuildLifecycleController, workExecutor: BuildTreeWorkExecutor, finishExecutor: BuildTreeFinishExecutor): BuildTreeLifecycleController {
@@ -54,7 +60,7 @@ class VintageBuildTreeLifecycleControllerFactory(
 
     internal
     fun createModelCreator(targetBuild: BuildLifecycleController) =
-        DefaultBuildTreeModelCreator(targetBuild.gradle.owner, createIntermediateActionRunner())
+        DefaultBuildTreeModelCreator(targetBuild.gradle.owner, createIntermediateActionRunner(), parameterCarrierFactory, buildStateRegistry, buildOperationRunner)
 
     internal
     fun createWorkPreparer(targetBuild: BuildLifecycleController) =
