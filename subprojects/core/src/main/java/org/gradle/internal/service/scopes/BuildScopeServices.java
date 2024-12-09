@@ -74,6 +74,7 @@ import org.gradle.api.internal.resources.DefaultResourceHandler;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskStatistics;
 import org.gradle.api.invocation.BuildInvocationDetails;
+import org.gradle.api.isolated.models.IsolatedModelRouter;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.problems.internal.AdditionalDataBuilderFactory;
 import org.gradle.api.provider.ProviderFactory;
@@ -194,6 +195,7 @@ import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.instrumentation.reporting.PropertyUpgradeReportConfig;
 import org.gradle.internal.invocation.DefaultBuildInvocationDetails;
+import org.gradle.internal.isolated.models.DefaultSettingsIsolatedModelRouter;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.internal.logging.LoggingManagerInternal;
@@ -261,6 +263,7 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         registration.add(DefaultScriptClassPathResolver.class);
         registration.add(DefaultScriptHandlerFactory.class);
         registration.add(DefaultBuildOutputCleanupRegistry.class);
+        registration.add(IsolatedModelRouter.class, DefaultSettingsIsolatedModelRouter.class);
 
         supplier.applyServicesTo(registration, buildScopeServices);
 
