@@ -22,5 +22,5 @@ enum class JvmVersion(val major: Int) {
     java11(11),
     java17(17),
     java21(21),
-    java23(23),
+    java24(24),
 }
