@@ -14,9 +14,15 @@
  * limitations under the License.
  */
 
-plugins {
-    id("gradlebuild.distribution.uninstrumented.api-java")
-    id("gradlebuild.instrumented-java-project")
-}
+package gradlebuild.basics
 
-description = "Used for Gradle API projects that apply instrumentation"
+import org.gradle.api.attributes.Attribute
+
+// TODO: Find a better name
+enum class ImplementationCompletenessAttribute {
+    STUBS, FULL;
+
+    companion object {
+        val attribute = Attribute.of(ImplementationCompletenessAttribute::class.java)
+    }
+}
