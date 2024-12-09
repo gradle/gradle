@@ -28,7 +28,7 @@ public interface ExternalModuleDependency extends ExternalDependency {
 
     /**
      * Sets the dependency as "changing" or "not changing".
-     * check the remote repository if the local entry has expired.
+     * If set to true, the dependency is marked as "changing." Gradle will periodically check the remote repository for updates, even if the local cache entry has not yet expired.
      * Defaults to false.
      *
      * @param changing if true, the dependency is considered changing and Gradle should
