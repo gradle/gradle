@@ -18,7 +18,7 @@ package org.gradle.launcher.exec;
 
 import org.gradle.api.NonNullApi;
 import org.gradle.api.problems.internal.ExceptionProblemRegistry;
-import org.gradle.api.problems.internal.ProblemLookup;
+import org.gradle.api.problems.internal.ProblemLocator;
 import org.gradle.internal.buildtree.BuildActionRunner;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.operations.BuildOperationContext;
@@ -41,19 +41,19 @@ public class RunAsBuildOperationBuildActionExecutor implements BuildSessionActio
     private final BuildOperationRunner buildOperationRunner;
     private final LoggingBuildOperationProgressBroadcaster loggingBuildOperationProgressBroadcaster;
     private final BuildOperationNotificationValve buildOperationNotificationValve;
-    private final ExceptionProblemRegistry problemContainer;
+    private final ExceptionProblemRegistry exceptionProblemRegistry;
 
     public RunAsBuildOperationBuildActionExecutor(BuildSessionActionExecutor delegate,
                                                   BuildOperationRunner buildOperationRunner,
                                                   LoggingBuildOperationProgressBroadcaster loggingBuildOperationProgressBroadcaster,
                                                   BuildOperationNotificationValve buildOperationNotificationValve,
-                                                  ExceptionProblemRegistry problemContainer
+                                                  ExceptionProblemRegistry exceptionProblemRegistry
     ) {
         this.delegate = delegate;
         this.buildOperationRunner = buildOperationRunner;
         this.loggingBuildOperationProgressBroadcaster = loggingBuildOperationProgressBroadcaster;
         this.buildOperationNotificationValve = buildOperationNotificationValve;
-        this.problemContainer = problemContainer;
+        this.exceptionProblemRegistry = exceptionProblemRegistry;
     }
 
     @Override
@@ -76,8 +76,8 @@ public class RunAsBuildOperationBuildActionExecutor implements BuildSessionActio
                 public BuildOperationDescriptor.Builder description() {
                     return BuildOperationDescriptor.displayName("Run build").details(new RunBuildBuildOperationType.Details() {
                         @Override
-                        public ProblemLookup getProblemLookup() {
-                            return problemContainer.getProblemLookup();
+                        public ProblemLocator getProblemLookup() {
+                            return exceptionProblemRegistry.getProblemLocator();
                         }
                     });
                 }
