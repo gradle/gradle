@@ -64,8 +64,11 @@ public class HtmlTestReportGenerator {
         }
 
         HtmlTestReport htmlReport = new HtmlTestReport(buildOperationRunner, buildOperationExecutor);
-        BinaryResultBackedTestResultsProvider resultsProvider = new BinaryResultBackedTestResultsProvider(resultsDirectory.toFile());
-        htmlReport.generateReport(resultsProvider, reportsDirectory.toFile());
+        try (BinaryResultBackedTestResultsProvider resultsProvider = new BinaryResultBackedTestResultsProvider(resultsDirectory.toFile())) {
+            htmlReport.generateReport(resultsProvider, reportsDirectory.toFile());
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
 
         return reportsDirectory.resolve("index.html");
     }
