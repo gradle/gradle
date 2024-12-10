@@ -71,6 +71,8 @@ public abstract class FindBrokenInternalLinks extends DefaultTask {
 
     // link:{userManualPath}/gradle_ides.html#gradle_ides[IDE that supports Gradle]
     private final Pattern samplesUserGuidePattern = Pattern.compile("link:\\{userManualPath\\}/(.*?\\.html)");
+    // <<sample_build_android_apps.adoc,Sample>>
+    private final Pattern samplesLinkWithHashPattern = Pattern.compile("([a-zA-Z_0-9-.]*)(#(.*))?");
 
     @InputDirectory
     @PathSensitive(PathSensitivity.RELATIVE)
@@ -256,28 +258,13 @@ public abstract class FindBrokenInternalLinks extends DefaultTask {
         while (matcher.find()) {
             MatchResult xrefMatcher = matcher.toMatchResult();
             String link = xrefMatcher.group(1);
-            if (link.contains("#")) {
-                Matcher linkMatcher = linkWithHashPattern.matcher(link);
-                if (linkMatcher.matches()) {
-                    MatchResult result = linkMatcher.toMatchResult();
-                    String fileName = getFileName(result.group(1), sourceFile);
-                    File referencedFile = new File(getSamplesRoot().get().getAsFile(), fileName);
-                    if (!referencedFile.exists() || referencedFile.isDirectory()) {
-                        errorsForFile.add(new Error(lineNumber, line, "Looking for file named " + fileName));
-                    } else {
-                        String idName = result.group(2);
-                        if (idName.isEmpty()) {
-                            errorsForFile.add(new Error(lineNumber, line, "Missing section reference for link to " + fileName));
-                        } else {
-                            if (!fileContainsText(referencedFile, "[[" + idName + "]]")) {
-                                errorsForFile.add(new Error(lineNumber, line, "Looking for section named " + idName + " in " + fileName));
-                            }
-                        }
-                    }
-                }
-            } else {
-                if (!fileContainsText(sourceFile, "[[" + link + "]]")) {
-                    errorsForFile.add(new Error(lineNumber, line, "Looking for section named " + link + " in " + sourceFile.getName()));
+            Matcher linkMatcher = samplesLinkWithHashPattern.matcher(link);
+            if (linkMatcher.matches()) {
+                MatchResult result = linkMatcher.toMatchResult();
+                String fileName = getFileName(result.group(1), sourceFile);
+                File referencedFile = new File(getSamplesRoot().get().getAsFile(), fileName);
+                if (!referencedFile.exists() || referencedFile.isDirectory()) {
+                    errorsForFile.add(new Error(lineNumber, line, "Looking for file named " + fileName));
                 }
             }
         }

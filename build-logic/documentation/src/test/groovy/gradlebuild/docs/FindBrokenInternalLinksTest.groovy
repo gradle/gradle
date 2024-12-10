@@ -26,16 +26,21 @@ class FindBrokenInternalLinksTest extends Specification {
     private File docsRoot
     private File samplesRoot
     private File sampleDoc
+    private File sampleSampleDoc
     private File releaseNotes
     private File linkErrors
 
     private setup() {
         docsRoot = new File(projectDir, "docsRoot")
         new File(docsRoot, 'javadoc').mkdirs()
-        samplesRoot = docsRoot
-        sampleDoc = new File(samplesRoot, "sample.adoc")
+        sampleDoc = new File(docsRoot, "sample.adoc")
+
+        new File(projectDir,"build/working/samples/docs").mkdirs()
+        sampleSampleDoc = new File(projectDir, "build/working/samples/docs/sample_sample.adoc")
+
         new File(projectDir,"build/working/release-notes").mkdirs()
         releaseNotes = new File(projectDir, "build/working/release-notes/raw.html")
+
         linkErrors = new File(projectDir, "build/reports/dead-internal-links.txt")
 
 
@@ -63,7 +68,7 @@ class FindBrokenInternalLinksTest extends Specification {
                 documentationRoot = project.layout.projectDirectory.dir('docsRoot')
                 javadocRoot = documentationRoot.dir('javadoc')
                 releaseNotesFile = project.layout.buildDirectory.file('working/release-notes/raw.html')
-                samplesRoot = documentationRoot;
+                samplesRoot = project.layout.buildDirectory.dir('working/samples/docs');
             }
         """
     }
@@ -81,11 +86,39 @@ Also see this one, which is another dead link: <<other_missing_section>>
 Nothing to write about
         """
 
+        and:
+        sampleSampleDoc << """
+Nothing to write about
+        """
+
         when:
         run('checkDeadInternalLinks').buildAndFail()
 
         then:
         assertFoundDeadSectionLinks(sampleDoc, "missing_section", "other_missing_section")
+    }
+
+    def "finds broken sample links"() {
+        given:
+        sampleDoc << """
+Nothing to write about
+        """
+
+        and:
+        releaseNotes << """
+Nothing to write about
+        """
+
+        and:
+        sampleSampleDoc << """
+This doesn't exist either link:{userManualPath}/no_sample.html.
+        """
+
+        when:
+        run('checkDeadInternalLinks').buildAndFail()
+
+        then:
+        assertFoundDeadLinks()
     }
 
     def "validates present section links"() {
@@ -105,6 +138,11 @@ More text
         and:
         releaseNotes << """
 Nothing to write about
+        """
+
+        and:
+        sampleSampleDoc << """
+This sample does exist <<sample_sample.adoc,sample>>.
         """
 
         when:
