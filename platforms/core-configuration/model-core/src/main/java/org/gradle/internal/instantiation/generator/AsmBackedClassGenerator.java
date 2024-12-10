@@ -1010,7 +1010,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 return;
             }
 
-            // TODO: fix/remove in 9.0
+            // TODO: fix/remove in Gradle 9.0
             if (isLazyUriPropertyWithSetObject(property, getter)) {
                 // For Property<URI> we allow keeping set<Name>(Object) if exists for now
                 return;
