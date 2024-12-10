@@ -17,6 +17,7 @@
 package org.gradle.kotlin.dsl.execution
 
 import com.google.common.annotations.VisibleForTesting
+import org.gradle.api.GradleException
 import org.gradle.api.GradleScriptException
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
@@ -264,6 +265,14 @@ class Interpreter(val host: Host) {
         }
 
         val scriptPath = scriptHost.fileName
+
+        val parentCompileClasspath: ClassPath
+        try {
+             parentCompileClasspath = host.compilationClassPathOf(targetScope.parent)
+        } catch (e: Exception) {
+            throw GradleException("Failed to compute compilation classpath for script $scriptPath", e)
+        }
+
         val classesDir = compile(
             scriptHost,
             programId,
@@ -271,7 +280,7 @@ class Interpreter(val host: Host) {
             scriptSource,
             programKind,
             programTarget,
-            host.compilationClassPathOf(targetScope.parent),
+            parentCompileClasspath,
             stage1BlocksAccessorsClassPath,
             scriptHost.temporaryFileProvider
         )
