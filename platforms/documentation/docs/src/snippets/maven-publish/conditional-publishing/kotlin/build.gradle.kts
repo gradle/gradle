@@ -6,7 +6,7 @@ plugins {
 group = "org.gradle.sample"
 version = "1.0"
 
-task<Jar>("sourcesJar") {
+tasks.register<Jar>("sourcesJar") {
     archiveClassifier = "sources"
     from(sourceSets.main.get().allJava)
 }
