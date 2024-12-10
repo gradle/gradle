@@ -20,10 +20,10 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.tasks.testing.ClassAndMethodTestReportImplementation;
-import org.gradle.api.internal.tasks.testing.GenericTestReportImplementation;
-import org.gradle.api.internal.tasks.testing.TestReportImplementation;
-import org.gradle.api.internal.tasks.testing.results.SerializableTestResultStore;
+import org.gradle.api.internal.tasks.testing.LegacyTestReportGenerator;
+import org.gradle.api.internal.tasks.testing.GenericTestReportGenerator;
+import org.gradle.api.internal.tasks.testing.TestReportGenerator;
+import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResultStore;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.tasks.IgnoreEmptyDirectories;
@@ -59,19 +59,13 @@ public abstract class TestReport extends DefaultTask {
     private final ConfigurableFileCollection resultDirs = getObjectFactory().fileCollection();
 
     @Inject
-    protected BuildOperationRunner getBuildOperationRunner() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract BuildOperationRunner getBuildOperationRunner();
 
     @Inject
-    protected BuildOperationExecutor getBuildOperationExecutor() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract BuildOperationExecutor getBuildOperationExecutor();
 
     @Inject
-    protected ObjectFactory getObjectFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ObjectFactory getObjectFactory();
 
     /**
      * Returns the directory to write the HTML report to.
@@ -183,7 +177,8 @@ public abstract class TestReport extends DefaultTask {
 
     @TaskAction
     void generateReport() {
-        try (TestReportImplementation impl = detectAndCreateImplementation()) {
+        try {
+            TestReportGenerator impl = detectAndCreateImplementation(getTestResults());
             if (impl != null && impl.hasResults()) {
                 impl.generateReport(getBuildOperationRunner(), getBuildOperationExecutor(), getDestinationDirectory().get().getAsFile());
             } else {
@@ -196,8 +191,7 @@ public abstract class TestReport extends DefaultTask {
     }
 
     @Nullable
-    private TestReportImplementation detectAndCreateImplementation() {
-        FileCollection resultDirs = getTestResults();
+    static TestReportGenerator detectAndCreateImplementation(FileCollection resultDirs) {
         Boolean isGenericImplementation = null;
         for (File resultDir : resultDirs.getFiles()) {
             boolean resultDirIsGenericImplementation = SerializableTestResultStore.isGenericTestResults(resultDir);
@@ -210,9 +204,9 @@ public abstract class TestReport extends DefaultTask {
         if (isGenericImplementation == null) {
             return null;
         } else if (isGenericImplementation) {
-            return new GenericTestReportImplementation(resultDirs);
+            return new GenericTestReportGenerator(resultDirs);
         } else {
-            return new ClassAndMethodTestReportImplementation(resultDirs);
+            return new LegacyTestReportGenerator(resultDirs);
         }
     }
 }

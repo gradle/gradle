@@ -24,11 +24,8 @@ import java.io.File;
 import java.io.IOException;
 
 @NonNullApi
-public interface TestReportImplementation extends AutoCloseable {
+public interface TestReportGenerator {
     boolean hasResults();
 
-    void generateReport(BuildOperationRunner operationRunner, BuildOperationExecutor operationExecutor, File outputDir);
-
-    @Override
-    void close() throws IOException;
+    void generateReport(BuildOperationRunner operationRunner, BuildOperationExecutor operationExecutor, File outputDir) throws IOException;
 }

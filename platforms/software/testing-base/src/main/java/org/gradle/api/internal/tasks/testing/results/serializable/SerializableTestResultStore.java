@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.testing.results;
+package org.gradle.api.internal.tasks.testing.results.serializable;
 
 import org.apache.commons.io.input.NullReader;
 import org.gradle.api.NonNullApi;
@@ -22,6 +22,7 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
+import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
 import org.gradle.api.tasks.testing.TestMetadataEvent;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
@@ -47,6 +48,7 @@ import java.nio.file.StandardOpenOption;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.zip.ZipEntry;
@@ -130,7 +132,7 @@ public final class SerializableTestResultStore {
                 .resultType(testResult.getResultType());
 
             for (Throwable throwable : testResult.getExceptions()) {
-                testNodeBuilder.addFailure(new SerializableTestFailure(failureMessage(throwable), stackTrace(throwable), exceptionClassName(throwable)));
+                testNodeBuilder.addFailure(new SerializableFailure(failureMessage(throwable), stackTrace(throwable), exceptionClassName(throwable)));
             }
 
             // We remove the id here since no further events should come for this test, and it won't be needed as a parent id anymore
@@ -251,16 +253,12 @@ public final class SerializableTestResultStore {
         if (!hasResults()) {
             throw new IllegalStateException("No results");
         }
-        StoredResult root = findInResults(result -> {
+        return findInResults(result -> {
             if (result.getParentId() == null) {
                 return result;
             }
             return null;
-        });
-        if (root == null) {
-            throw new IllegalStateException("No root result");
-        }
-        return root;
+        }).orElseThrow(() -> new IllegalStateException("No root result"));
     }
 
     /**
@@ -277,8 +275,7 @@ public final class SerializableTestResultStore {
         });
     }
 
-    @Nullable
-    private <T> T findInResults(Function<? super StoredResult, T> action) throws IOException {
+    private <T> Optional<T> findInResults(Function<? super StoredResult, T> action) throws IOException {
         try (KryoBackedDecoder resultsDecoder = openAndInitializeDecoder()) {
             while (true) {
                 long id = resultsDecoder.readSmallLong();
@@ -295,11 +292,11 @@ public final class SerializableTestResultStore {
                 }
                 T result = action.apply(new StoredResult(id, testResult, parentId));
                 if (result != null) {
-                    return result;
+                    return Optional.of(result);
                 }
             }
         }
-        return null;
+        return Optional.empty();
     }
 
     private KryoBackedDecoder openAndInitializeDecoder() throws IOException {

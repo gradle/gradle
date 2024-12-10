@@ -17,7 +17,7 @@ package org.gradle.api.internal.tasks.testing.report.generic;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
-import org.gradle.api.internal.tasks.testing.results.SerializableTestResultStore;
+import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResultStore;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.util.Path;
 

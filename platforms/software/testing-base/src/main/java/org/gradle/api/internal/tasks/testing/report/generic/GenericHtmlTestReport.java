@@ -17,7 +17,7 @@ package org.gradle.api.internal.tasks.testing.report.generic;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.tasks.testing.report.HtmlTestReport;
-import org.gradle.api.internal.tasks.testing.results.SerializableTestResultStore;
+import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResultStore;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.operations.BuildOperationContext;

@@ -18,7 +18,7 @@ package org.gradle.api.internal.tasks.testing;
 
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.tasks.testing.results.HtmlTestReportGenerator;
-import org.gradle.api.internal.tasks.testing.results.SerializableTestResultStore;
+import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResultStore;
 import org.gradle.api.internal.tasks.testing.results.TestExecutionResultsListener;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
 import org.gradle.api.tasks.VerificationException;

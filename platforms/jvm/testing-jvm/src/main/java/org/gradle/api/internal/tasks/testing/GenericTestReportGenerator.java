@@ -17,38 +17,31 @@
 package org.gradle.api.internal.tasks.testing;
 
 import org.gradle.api.NonNullApi;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.tasks.testing.report.generic.GenericHtmlTestReport;
 import org.gradle.api.internal.tasks.testing.report.generic.TestTreeModel;
-import org.gradle.api.internal.tasks.testing.results.SerializableTestResultStore;
+import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResultStore;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRunner;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.stream.Collectors;
 
 @NonNullApi
-public class GenericTestReportImplementation implements TestReportImplementation {
+public class GenericTestReportGenerator implements TestReportGenerator {
     private final List<SerializableTestResultStore> stores;
 
-    public GenericTestReportImplementation(FileCollection resultDirs) {
-        Set<File> dirs = resultDirs.getFiles();
-        List<SerializableTestResultStore> stores = new ArrayList<>(dirs.size());
-        for (File dir : dirs) {
-            SerializableTestResultStore store = new SerializableTestResultStore(dir.toPath());
-            if (!store.hasResults()) {
-                continue;
-            }
-            stores.add(store);
-        }
-        this.stores = stores;
+    public GenericTestReportGenerator(FileCollection resultDirs) {
+        this.stores = resultDirs.getFiles().stream()
+            .map(File::toPath)
+            .map(SerializableTestResultStore::new)
+            .filter(SerializableTestResultStore::hasResults)
+            .collect(Collectors.toList());
     }
 
     @Override
@@ -58,7 +51,7 @@ public class GenericTestReportImplementation implements TestReportImplementation
     }
 
     @Override
-    public void generateReport(BuildOperationRunner operationRunner, BuildOperationExecutor operationExecutor, File asFile) {
+    public void generateReport(BuildOperationRunner operationRunner, BuildOperationExecutor operationExecutor, File asFile) throws IOException {
         Map<String, SerializableTestResultStore.OutputReader> outputReaders = new HashMap<>(stores.size());
         try {
             for (SerializableTestResultStore store : stores) {
@@ -67,15 +60,8 @@ public class GenericTestReportImplementation implements TestReportImplementation
 
             TestTreeModel root = TestTreeModel.loadModelFromStores(stores);
             new GenericHtmlTestReport(operationRunner, operationExecutor, outputReaders).generateReport(root, asFile.toPath());
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
         } finally {
             CompositeStoppable.stoppable(outputReaders.values()).stop();
         }
-    }
-
-    @Override
-    public void close() {
-        // Nothing to close, we only open things during the report generation
     }
 }

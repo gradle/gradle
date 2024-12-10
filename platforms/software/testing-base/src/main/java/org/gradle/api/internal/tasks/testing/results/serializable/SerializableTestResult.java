@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.testing.results;
+package org.gradle.api.internal.tasks.testing.results.serializable;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.NonNullApi;
@@ -46,7 +46,7 @@ public final class SerializableTestResult {
         private TestResult.ResultType resultType;
         private Long startTime;
         private Long endTime;
-        private final ImmutableList.Builder<SerializableTestFailure> failures = ImmutableList.builder();
+        private final ImmutableList.Builder<SerializableFailure> failures = ImmutableList.builder();
 
         public Builder name(String name) {
             this.name = name;
@@ -73,7 +73,7 @@ public final class SerializableTestResult {
             return this;
         }
 
-        public Builder addFailure(SerializableTestFailure failure) {
+        public Builder addFailure(SerializableFailure failure) {
             failures.add(failure);
             return this;
         }
@@ -107,7 +107,7 @@ public final class SerializableTestResult {
             encoder.writeLong(result.startTime);
             encoder.writeLong(result.endTime);
             encoder.writeSmallInt(result.failures.size());
-            for (SerializableTestFailure failure : result.failures) {
+            for (SerializableFailure failure : result.failures) {
                 encoder.writeString(failure.getMessage());
                 encoder.writeString(failure.getStackTrace());
                 encoder.writeString(failure.getExceptionType());
@@ -120,13 +120,13 @@ public final class SerializableTestResult {
             TestResult.ResultType resultType = TestResult.ResultType.values()[decoder.readSmallInt()];
             long startTime = decoder.readLong();
             long endTime = decoder.readLong();
-            ImmutableList.Builder<SerializableTestFailure> failures = ImmutableList.builder();
+            ImmutableList.Builder<SerializableFailure> failures = ImmutableList.builder();
             int failureCount = decoder.readSmallInt();
             for (int i = 0; i < failureCount; i++) {
                 String message = decoder.readString();
                 String stackTrace = decoder.readString();
                 String exceptionType = decoder.readString();
-                failures.add(new SerializableTestFailure(message, stackTrace, exceptionType));
+                failures.add(new SerializableFailure(message, stackTrace, exceptionType));
             }
             return new SerializableTestResult(name, displayName, resultType, startTime, endTime, failures.build());
         }
@@ -140,9 +140,9 @@ public final class SerializableTestResult {
     private final TestResult.ResultType resultType;
     private final long startTime;
     private final long endTime;
-    private final List<SerializableTestFailure> failures;
+    private final List<SerializableFailure> failures;
 
-    public SerializableTestResult(String name, String displayName, TestResult.ResultType resultType, long startTime, long endTime, List<SerializableTestFailure> failures) {
+    public SerializableTestResult(String name, String displayName, TestResult.ResultType resultType, long startTime, long endTime, List<SerializableFailure> failures) {
         this.name = name;
         this.displayName = displayName;
         this.resultType = resultType;
@@ -175,7 +175,7 @@ public final class SerializableTestResult {
         return endTime - startTime;
     }
 
-    public List<SerializableTestFailure> getFailures() {
+    public List<SerializableFailure> getFailures() {
         return failures;
     }
 }

@@ -17,7 +17,7 @@ package org.gradle.api.internal.tasks.testing.report.generic;
 
 import com.google.common.io.Resources;
 import com.google.common.net.UrlEscapers;
-import org.gradle.api.internal.tasks.testing.results.SerializableTestResultStore;
+import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResultStore;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.internal.html.SimpleHtmlWriter;
 import org.gradle.reporting.ReportRenderer;

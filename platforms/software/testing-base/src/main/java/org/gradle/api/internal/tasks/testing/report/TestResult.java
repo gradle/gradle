@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.tasks.testing.report;
 
-import org.gradle.api.internal.tasks.testing.results.SerializableTestFailure;
+import org.gradle.api.internal.tasks.testing.results.serializable.SerializableFailure;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,7 +25,7 @@ import static org.gradle.api.tasks.testing.TestResult.ResultType;
 public class TestResult extends TestResultModel implements Comparable<TestResult> {
     private final long duration;
     final ClassTestResults classResults;
-    final List<SerializableTestFailure> failures = new ArrayList<SerializableTestFailure>();
+    final List<SerializableFailure> failures = new ArrayList<SerializableFailure>();
     final String name;
     final String displayName;
     boolean ignored;
@@ -80,7 +80,7 @@ public class TestResult extends TestResultModel implements Comparable<TestResult
         return classResults;
     }
 
-    public List<SerializableTestFailure> getFailures() {
+    public List<SerializableFailure> getFailures() {
         return failures;
     }
 
@@ -88,7 +88,7 @@ public class TestResult extends TestResultModel implements Comparable<TestResult
         return ignored;
     }
 
-    public void addFailure(SerializableTestFailure failure) {
+    public void addFailure(SerializableFailure failure) {
         classResults.failed(this);
         failures.add(failure);
     }

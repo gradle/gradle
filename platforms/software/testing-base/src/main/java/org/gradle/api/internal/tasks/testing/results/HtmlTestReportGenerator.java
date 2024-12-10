@@ -20,6 +20,7 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.tasks.testing.report.generic.GenericHtmlTestReport;
 import org.gradle.api.internal.tasks.testing.report.generic.TestTreeModel;
+import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResultStore;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.service.scopes.Scope;

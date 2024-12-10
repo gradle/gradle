@@ -21,7 +21,7 @@ import org.gradle.api.file.Directory;
 import org.gradle.api.internal.tasks.testing.logging.SimpleTestEventLogger;
 import org.gradle.api.internal.tasks.testing.logging.TestEventProgressListener;
 import org.gradle.api.internal.tasks.testing.results.HtmlTestReportGenerator;
-import org.gradle.api.internal.tasks.testing.results.SerializableTestResultStore;
+import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResultStore;
 import org.gradle.api.internal.tasks.testing.results.TestExecutionResultsListener;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
 import org.gradle.api.tasks.testing.GroupTestEventReporter;

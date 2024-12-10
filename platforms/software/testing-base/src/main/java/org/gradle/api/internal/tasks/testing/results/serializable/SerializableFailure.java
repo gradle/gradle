@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.testing.results;
+package org.gradle.api.internal.tasks.testing.results.serializable;
 
 import org.gradle.api.NonNullApi;
 
 /**
- * {@link org.gradle.api.tasks.testing.TestFailure} that can be safely serialized, since it does not contain any references to exception objects.
+ * Represents a {@link Throwable} that can be safely serialized to disk, since it does not contain any references to exception objects.
  */
 @NonNullApi
-public class SerializableTestFailure {
+public class SerializableFailure {
     private final String message;
     private final String stackTrace;
     private final String exceptionType;
 
-    public SerializableTestFailure(String message, String stackTrace, String exceptionType) {
+    public SerializableFailure(String message, String stackTrace, String exceptionType) {
         this.message = message;
         this.stackTrace = stackTrace;
         this.exceptionType = exceptionType;
