@@ -15,6 +15,8 @@
  */
 package org.gradle.process.internal;
 
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.process.BaseExecSpec;
 
 import java.io.InputStream;
@@ -29,10 +31,17 @@ import java.util.List;
 public abstract class AbstractExecHandleBuilder implements BaseExecSpec {
 
     protected final ClientExecHandleBuilder delegate;
-    private boolean ignoreExitValue;
+    private final Property<InputStream> standardInput;
+    private final Property<OutputStream> standardOutput;
+    private final Property<OutputStream> errorOutput;
+    private final Property<Boolean> ignoreExitValue;
 
-    AbstractExecHandleBuilder(ClientExecHandleBuilder delegate) {
+    AbstractExecHandleBuilder(ObjectFactory objectFactory, ClientExecHandleBuilder delegate) {
         this.delegate = delegate;
+        this.ignoreExitValue = objectFactory.property(Boolean.class).convention(false);
+        this.standardInput = objectFactory.property(InputStream.class);
+        this.standardOutput = objectFactory.property(OutputStream.class);
+        this.errorOutput = objectFactory.property(OutputStream.class);
     }
 
     public abstract List<String> getAllArguments();
@@ -46,47 +55,23 @@ public abstract class AbstractExecHandleBuilder implements BaseExecSpec {
     }
 
     @Override
-    public AbstractExecHandleBuilder setStandardInput(InputStream inputStream) {
-        delegate.setStandardInput(inputStream);
-        return this;
+    public Property<InputStream> getStandardInput() {
+        return standardInput;
     }
 
     @Override
-    public InputStream getStandardInput() {
-        return delegate.getStandardInput();
+    public Property<OutputStream> getStandardOutput() {
+        return standardOutput;
     }
 
     @Override
-    public AbstractExecHandleBuilder setStandardOutput(OutputStream outputStream) {
-        delegate.setStandardOutput(outputStream);
-        return this;
+    public Property<OutputStream> getErrorOutput() {
+        return errorOutput;
     }
 
     @Override
-    public OutputStream getStandardOutput() {
-        return delegate.getStandardOutput();
-    }
-
-    @Override
-    public AbstractExecHandleBuilder setErrorOutput(OutputStream outputStream) {
-        delegate.setErrorOutput(outputStream);
-        return this;
-    }
-
-    @Override
-    public OutputStream getErrorOutput() {
-        return delegate.getErrorOutput();
-    }
-
-    @Override
-    public boolean isIgnoreExitValue() {
+    public Property<Boolean> getIgnoreExitValue() {
         return ignoreExitValue;
-    }
-
-    @Override
-    public AbstractExecHandleBuilder setIgnoreExitValue(boolean ignoreExitValue) {
-        this.ignoreExitValue = ignoreExitValue;
-        return this;
     }
 
     public AbstractExecHandleBuilder setDisplayName(String displayName) {
@@ -118,6 +103,15 @@ public abstract class AbstractExecHandleBuilder implements BaseExecSpec {
     }
 
     public ExecHandle build() {
+        if (standardInput.isPresent()) {
+            delegate.setStandardInput(standardInput.get());
+        }
+        if (standardOutput.isPresent()) {
+            delegate.setStandardOutput(standardOutput.get());
+        }
+        if (errorOutput.isPresent()) {
+            delegate.setErrorOutput(errorOutput.get());
+        }
         return delegate.build();
     }
 }
