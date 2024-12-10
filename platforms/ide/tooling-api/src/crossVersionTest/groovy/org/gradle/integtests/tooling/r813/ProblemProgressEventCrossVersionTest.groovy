@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling.r812
+package org.gradle.integtests.tooling.r813
 
 import org.gradle.integtests.fixtures.GroovyBuildScriptLanguage
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
@@ -30,6 +30,7 @@ import org.gradle.tooling.events.problems.LineInFileLocation
 import org.gradle.tooling.events.problems.Problem
 import org.gradle.tooling.events.problems.Severity
 import org.gradle.tooling.events.problems.SingleProblemEvent
+import org.gradle.tooling.events.problems.TaskPathLocation
 import org.gradle.tooling.events.problems.internal.GeneralData
 import org.gradle.util.GradleVersion
 import org.junit.Assume
@@ -40,7 +41,7 @@ import static org.gradle.integtests.fixtures.AvailableJavaHomes.getJdk8
 import static org.gradle.integtests.tooling.r86.ProblemProgressEventCrossVersionTest.getProblemReportTaskString
 import static org.gradle.integtests.tooling.r86.ProblemsServiceModelBuilderCrossVersionTest.getBuildScriptSampleContent
 
-@ToolingApiVersion(">=8.12 <8.13")
+@ToolingApiVersion(">=8.13")
 @TargetGradleVersion(">=8.9")
 class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
 
@@ -56,43 +57,6 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
                 .run()
         }
         return listener.problems
-    }
-
-    @TargetGradleVersion(">=8.6")
-    def "Failing executions produce problems"() {
-        setup:
-        buildFile """
-            plugins {
-              id 'java-library'
-            }
-            repositories.jcenter()
-            task bar {}
-            task baz {}
-        """
-
-
-        when:
-        def listener = new ProblemProgressListener()
-        withConnection { connection ->
-            connection.newBuild()
-                .forTasks(":ba")
-                .addProgressListener(listener)
-                .setStandardError(System.err)
-                .setStandardOutput(System.out)
-                .addArguments("--info")
-                .run()
-        }
-
-        then:
-        thrown(BuildException)
-        listener.problems.size() == 2
-        verifyAll(listener.problems[0]) {
-            definition.id.displayName.contains("The RepositoryHandler.jcenter() method has been deprecated.")
-            definition.id.group.displayName in ["Deprecation", "deprecation", "repository-jcenter"]
-            definition.id.group.name in ["deprecation", "repository-jcenter"]
-            definition.severity == Severity.WARNING
-            locations.find { l -> l instanceof LineInFileLocation && l.path == "build file '$buildFile.path'" } // FIXME: the path should not contain a prefix nor extra quotes
-        }
     }
 
     def "Problems expose details via Tooling API events with failure"() {
@@ -117,9 +81,11 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         verifyAll(problems[0]) {
             details?.details == expectedDetails
             definition.documentationLink?.url == expectedDocumentation
-            locations.size() >= 2
-            (locations[0] as LineInFileLocation).path == '/tmp/foo'
-            (locations[1] as LineInFileLocation).path == "build file '$buildFile.path'"
+            (originLocations[0] as LineInFileLocation).path == '/tmp/foo'
+            (originLocations[1] as LineInFileLocation).path == "build file '$buildFile.path'"
+            if (targetVersion >= GradleVersion.version("8.13")) {
+                assert (contextualLocations[0] as TaskPathLocation).buildTreePath == ':reportProblem'
+            }
             definition.severity == Severity.WARNING
             solutions.size() == 1
             solutions[0].solution == 'try this instead'

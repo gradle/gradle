@@ -84,19 +84,18 @@ class ReceivedProblem implements Problem {
         operationId
     }
 
-    <T> T firstLocationOfType(Class<T> type) {
-        def locations = getOriginLocations()
-        def location = locations.find { type.isInstance(it) } as T
-        assert location != null
-        assert type.isInstance(location)
-        location
+    <T> T oneLocation(Class<T> type) {
+        def result = allLocations(type)
+        assert result.size() == 1
+        result.first()
     }
 
-    <T> T oneLocation(Class<T> type) {
-        def locations = getOriginLocations()
-        assert locations.size() == 1
-        assert type.isInstance(locations[0])
-        locations[0] as T
+    private <T> List<T> allLocations(Class<T> type) {
+        allLocations.findAll { type.isInstance(it) } as List<T>
+    }
+
+    private List<?> getAllLocations() {
+        getOriginLocations() + getContextualLocations()
     }
 
     @Override

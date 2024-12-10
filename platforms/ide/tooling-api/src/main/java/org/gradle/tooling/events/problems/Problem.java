@@ -56,12 +56,24 @@ public interface Problem {
     Details getDetails();
 
     /**
-     * Returns the locations associated with this problem.
+     * Returns the locations where the problem originated.
      *
      * @return the locations
-     * @since 8.12
+     * @since 8.13
      */
-    List<Location> getLocations();
+    List<Location> getOriginLocations();
+
+    /**
+     * Returns additional locations, which can help to understand the problem further.
+     * <p>
+     * For example, if a problem was emitted during task execution, the task path will be available in this list.
+     * <p>
+     * Might be empty if there is no meaningful contextual information.
+     *
+     * @return the locations
+     * @since 8.13
+     */
+    List<Location> getContextualLocations();
 
     /**
      * Returns the list of solutions.
