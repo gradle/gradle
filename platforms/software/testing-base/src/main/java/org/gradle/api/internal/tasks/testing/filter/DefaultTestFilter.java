@@ -16,55 +16,43 @@
 package org.gradle.api.internal.tasks.testing.filter;
 
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.provider.Property;
+import org.gradle.api.provider.SetProperty;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.testing.TestFilter;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
-
 @UsedByScanPlugin("test-retry")
-public class DefaultTestFilter implements TestFilter {
+public abstract class DefaultTestFilter implements TestFilter {
 
-    private final Set<String> includeTestNames = new HashSet<String>();
-    private final Set<String> excludeTestNames = new HashSet<String>();
-    private final Set<String> commandLineIncludeTestNames = new HashSet<String>();
-    private boolean failOnNoMatching = true;
-
-    private void validateName(String name) {
-        if (name == null || name.length() == 0) {
-            throw new InvalidUserDataException("Selected test name cannot be null or empty.");
-        }
+    public DefaultTestFilter() {
+        getFailOnNoMatchingTests().set(true);
     }
 
     @Override
     public TestFilter includeTestsMatching(String testNamePattern) {
         validateName(testNamePattern);
-        includeTestNames.add(testNamePattern);
+        getIncludePatterns().add(testNamePattern);
         return this;
     }
 
     @Override
     public TestFilter excludeTestsMatching(String testNamePattern) {
-        validateName(testNamePattern);
-        excludeTestNames.add(testNamePattern);
+        getIncludePatterns().add(testNamePattern);
         return this;
     }
 
     @Override
     public TestFilter includeTest(String className, String methodName) {
-        return addToFilteringSet(includeTestNames, className, methodName);
+        return addToFilteringSet(getIncludePatterns(), className, methodName);
     }
 
     @Override
     public TestFilter excludeTest(String className, String methodName) {
-        return addToFilteringSet(excludeTestNames, className, methodName);
+        return addToFilteringSet(getExcludePatterns(), className, methodName);
     }
 
-    private TestFilter addToFilteringSet(Set<String> filter, String className, String methodName) {
-        validateName(className);
+    private TestFilter addToFilteringSet(SetProperty<String> filter, String className, String methodName) {
         if (methodName == null || methodName.trim().isEmpty()) {
             filter.add(className + ".*");
         } else {
@@ -74,64 +62,41 @@ public class DefaultTestFilter implements TestFilter {
     }
 
     @Override
-    public void setFailOnNoMatchingTests(boolean failOnNoMatchingTests) {
-        this.failOnNoMatching = failOnNoMatchingTests;
-    }
-
-    @Override
-    public boolean isFailOnNoMatchingTests() {
-        return failOnNoMatching;
-    }
+    public abstract Property<Boolean> getFailOnNoMatchingTests();
 
     @Override
     @Input
-    public Set<String> getIncludePatterns() {
-        return includeTestNames;
-    }
+    public abstract SetProperty<String> getIncludePatterns();
 
     @Override
-    public Set<String> getExcludePatterns() {
-        return excludeTestNames;
-    }
-
-    @Override
-    public TestFilter setIncludePatterns(String... testNamePatterns) {
-        return setFilteringPatterns(includeTestNames, testNamePatterns);
-    }
-
-    @Override
-    public TestFilter setExcludePatterns(String... testNamePatterns) {
-        return setFilteringPatterns(excludeTestNames, testNamePatterns);
-    }
-
-    private TestFilter setFilteringPatterns(Set<String> filter, String... testNamePatterns) {
-        for (String name : testNamePatterns) {
-            validateName(name);
-        }
-        filter.clear();
-        filter.addAll(Arrays.asList(testNamePatterns));
-        return this;
-    }
+    public abstract SetProperty<String> getExcludePatterns();
 
     @Input
-    public Set<String> getCommandLineIncludePatterns() {
-        return commandLineIncludeTestNames;
-    }
-
-    public TestFilter setCommandLineIncludePatterns(Collection<String> testNamePatterns) {
-        for (String name : testNamePatterns) {
-            validateName(name);
-        }
-        this.commandLineIncludeTestNames.clear();
-        this.commandLineIncludeTestNames.addAll(testNamePatterns);
-        return this;
-    }
+    public abstract SetProperty<String> getCommandLineIncludePatterns();
 
     public TestFilter includeCommandLineTest(String className, String methodName) {
-        return addToFilteringSet(commandLineIncludeTestNames, className, methodName);
+        return addToFilteringSet(getCommandLineIncludePatterns(), className, methodName);
     }
 
     public TestFilterSpec toSpec() {
-        return new TestFilterSpec(getIncludePatterns(), getExcludePatterns(), getCommandLineIncludePatterns());
+        return new TestFilterSpec(getIncludePatterns().get(), getExcludePatterns().get(), getCommandLineIncludePatterns().get());
+    }
+
+    public void validate() {
+        for (String name : getIncludePatterns().get()) {
+            validateName(name);
+        }
+        for (String name : getExcludePatterns().get()) {
+            validateName(name);
+        }
+        for (String name : getCommandLineIncludePatterns().get()) {
+            validateName(name);
+        }
+    }
+
+    private static void validateName(String name) {
+        if (name == null || name.isEmpty()) {
+            throw new InvalidUserDataException("Selected test name cannot be null or empty.");
+        }
     }
 }
