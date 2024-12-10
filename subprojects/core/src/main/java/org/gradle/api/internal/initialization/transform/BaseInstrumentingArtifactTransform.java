@@ -27,6 +27,7 @@ import org.gradle.api.internal.initialization.transform.services.InjectedInstrum
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.services.ServiceReference;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.PathSensitive;
@@ -58,7 +59,7 @@ import static org.gradle.internal.classpath.TransformedClassPath.ORIGINAL_DIR_NA
 public abstract class BaseInstrumentingArtifactTransform<T extends Parameters> implements TransformAction<T> {
 
     public interface Parameters extends TransformParameters {
-        @Internal
+        @ServiceReference
         Property<CacheInstrumentationDataBuildService> getBuildService();
         @Internal
         Property<Long> getContextId();
