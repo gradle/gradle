@@ -32,7 +32,7 @@ BUILD SUCCESSFUL
 3 actionable tasks: 3 executed
 ----
 
-For more information, we suggest reading link:{userManualPath}/getting_started.html[Getting Started with Gradle].
+For more information, we suggest reading link:{userManualPath}/getting_started_dev.html[Getting Started with Gradle].
 You can also find https://spring.io/guides[Spring Boot related information inside the guides provided by the Spring team].
 
 // TODO:Finalize Upload Removal - Issue #21439
