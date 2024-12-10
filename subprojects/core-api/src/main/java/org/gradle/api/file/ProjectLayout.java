@@ -16,6 +16,7 @@
 
 package org.gradle.api.file;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.service.scopes.Scope;
@@ -42,7 +43,10 @@ public interface ProjectLayout {
      * Returns the settings directory.
      * <p>
      * The settings directory is the directory containing the settings file.
+     *
+     * @since 8.13
      */
+    @Incubating
     Directory getSettingsDirectory();
 
     /**
