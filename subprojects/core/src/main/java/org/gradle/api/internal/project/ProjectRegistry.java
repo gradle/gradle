@@ -24,11 +24,14 @@ import java.util.Set;
 public interface ProjectRegistry<T extends ProjectIdentifier> {
     void addProject(T project);
 
-    @Nullable T getRootProject();
+    @Nullable
+    T getRootProject();
 
-    @Nullable T getProject(String path);
+    @Nullable
+    T getProject(String path);
 
-    @Nullable T getProject(File projectDir);
+    @Nullable
+    T getProject(File projectDir);
 
     int size();
 
