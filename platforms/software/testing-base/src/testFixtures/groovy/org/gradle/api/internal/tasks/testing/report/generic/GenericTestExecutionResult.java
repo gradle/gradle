@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.tasks.testing.report.generic;
 
-import org.gradle.integtests.fixtures.TestClassExecutionResult;
-
 public interface GenericTestExecutionResult {
     String EXECUTION_FAILURE = "failed to execute tests";
 
@@ -46,8 +44,7 @@ public interface GenericTestExecutionResult {
      * These are paths in the style of {@link org.gradle.util.Path}, e.g. `:TestClass:testMethod:subTest`.
      * </p>
      */
-    // For now, I think this works enough. It will need to be rewritten to account for different root tabs.
-    TestClassExecutionResult testPath(String testPath);
+    TestPathExecutionResult testPath(String testPath);
 
     /**
      * Checks if the given test path exists.

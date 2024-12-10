@@ -105,15 +105,6 @@ final class GenericPageRenderer extends TabbedPageRenderer<TestTreeModel> {
 
     @Override
     protected ReportRenderer<TestTreeModel, SimpleHtmlWriter> getContentRenderer() {
-        // Special case -- if there's only one root, and it has no output, don't show tabs.
-        if (getModel().getPerRootInfo().size() == 1) {
-            String rootName = getModel().getPerRootInfo().keySet().iterator().next();
-            long outputId = getModel().getPerRootInfo().get(rootName).getOutputId();
-            if (!outputReaders.get(rootName).hasOutput(outputId, TestOutputEvent.Destination.StdOut) &&
-                !outputReaders.get(rootName).hasOutput(outputId, TestOutputEvent.Destination.StdErr)) {
-                return new PerRootTabRenderer.ForSummary(rootName);
-            }
-        }
         final TabsRenderer<TestTreeModel> tabsRenderer = new TabsRenderer<>();
         getModel().getPerRootInfo().forEach((rootName, info) -> {
             // If there is only one root, don't show the root name in the tab title, since it's just confusing.

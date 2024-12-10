@@ -16,7 +16,7 @@
 package org.gradle.api.internal.tasks.testing.report.generic
 
 import com.google.common.collect.Iterables
-import org.gradle.integtests.fixtures.TestClassExecutionResult
+import org.gradle.api.tasks.testing.TestResult
 import org.gradle.util.Path
 import org.gradle.util.internal.TextUtil
 import org.hamcrest.Matcher
@@ -27,7 +27,6 @@ import java.nio.file.Files
 import java.util.stream.Collectors
 import java.util.stream.Stream
 
-import static org.gradle.integtests.fixtures.DefaultTestExecutionResult.testCase
 import static org.hamcrest.CoreMatchers.equalTo
 import static org.hamcrest.CoreMatchers.hasItems
 import static org.hamcrest.CoreMatchers.not
@@ -83,8 +82,8 @@ class GenericHtmlTestExecutionResult implements GenericTestExecutionResult {
     }
 
     @Override
-    TestClassExecutionResult testPath(String testPath) {
-        return new HtmlTestClassExecutionResult(diskPathForTestPath(testPath).toFile())
+    TestPathExecutionResult testPath(String testPath) {
+        return new HtmlTestPathExecutionResult(diskPathForTestPath(testPath).toFile())
     }
 
     @Override
@@ -92,29 +91,27 @@ class GenericHtmlTestExecutionResult implements GenericTestExecutionResult {
         return Files.exists(diskPathForTestPath(testPath))
     }
 
-    private static class HtmlTestClassExecutionResult implements TestClassExecutionResult {
+    private static class HtmlTestPathExecutionResult implements TestPathExecutionResult {
         private String classDisplayName
         private File htmlFile
-        private List<TestCase> testsExecuted = []
-        private List<TestCase> testsSucceeded = []
-        private List<TestCase> testsFailures = []
-        private Set<TestCase> testsSkipped = []
+        private Set<String> testsExecuted = new LinkedHashSet<>()
+        private Set<String> testsSucceeded = new LinkedHashSet<>()
+        private Set<String> testsFailures = new LinkedHashSet<>()
+        private Set<String> testsSkipped = new LinkedHashSet<>()
         private Document html
 
-        HtmlTestClassExecutionResult(File htmlFile) {
+        HtmlTestPathExecutionResult(File htmlFile) {
             this.htmlFile = htmlFile;
             this.html = Jsoup.parse(htmlFile, null)
-            parseTestClassFile()
+            parseFile()
         }
 
-        private extractTestCaseTo(String cssSelector, Collection<TestCase> target) {
+        private extractTestCaseTo(String cssSelector, Collection<String> target) {
             html.select(cssSelector).each {
                 def testDisplayName = it.textNodes().first().wholeText.trim()
                 def testName = hasMethodNameColumn() ? it.nextElementSibling().text() : testDisplayName
-                def failureMessage = getFailureMessages(testName)
-                def testCase = testCase(testName, testDisplayName, failureMessage)
-                testsExecuted << testCase
-                target << testCase
+                testsExecuted << testName
+                target << testName
             }
         }
 
@@ -122,7 +119,7 @@ class GenericHtmlTestExecutionResult implements GenericTestExecutionResult {
             return html.select('tr > th').size() == 4
         }
 
-        private void parseTestClassFile() {
+        private void parseFile() {
             // " > TestClass" -> "TestClass"
             classDisplayName = html.select('div.breadcrumbs').first().textNodes().last().wholeText.trim().substring(3)
             extractTestCaseTo("tr > td.success:eq(0)", testsSucceeded)
@@ -130,158 +127,61 @@ class GenericHtmlTestExecutionResult implements GenericTestExecutionResult {
             extractTestCaseTo("tr > td.skipped:eq(0)", testsSkipped)
         }
 
-        List<String> getFailureMessages(String testmethod) {
-            html.select("div.test:has(a[name='$testmethod']) > span > pre").collect { it.text() }
-        }
-
-        TestClassExecutionResult assertTestsExecuted(String... testNames) {
-            return assertTestsExecuted(testNames.collect { testCase(it) } as TestCase[])
-        }
-
         @Override
-        TestClassExecutionResult assertTestsExecuted(TestCase... testCases) {
+        TestPathExecutionResult assertChildrenExecuted(String... testNames) {
             def executedAndNotSkipped = testsExecuted - testsSkipped
-            assert executedAndNotSkipped.containsAll(testCases)
-            assert executedAndNotSkipped.size() == testCases.size()
+            assertThat(executedAndNotSkipped, equalTo(testNames as Set))
             return this
         }
 
-        TestClassExecutionResult assertTestCount(int tests, int failures, int errors) {
+        @Override
+        TestPathExecutionResult assertChildCount(int tests, int failures, int errors) {
             assert tests == testsExecuted.size()
             assert failures == testsFailures.size()
             return this
         }
 
-        int getTestCount() {
-            return testsExecuted.size()
-        }
-
-        TestClassExecutionResult assertTestsSkipped(String... testNames) {
-            assert testsSkipped == testNames.collect { testCase(it) } as Set
-            return this
+        @Override
+        TestPathExecutionResult assertStdout(Matcher<? super String> matcher) {
+            return assertOutput('standard output', matcher)
         }
 
         @Override
-        TestClassExecutionResult assertTestPassed(String name, String displayName) {
-            assert testsSucceeded.contains(testCase(name, displayName))
-            return this
+        TestPathExecutionResult assertStderr(Matcher<? super String> matcher) {
+            return assertOutput('error output', matcher)
         }
 
-        int getTestSkippedCount() {
-            return testsSkipped.size()
-        }
-
-        TestClassExecutionResult assertTestPassed(String name) {
-            assert testsSucceeded.contains(testCase(name))
-            return this
-        }
-
-        @Override
-        TestClassExecutionResult assertTestFailed(String name, String displayName, Matcher<? super String>... messageMatchers) {
-            assert testFailed(name, displayName, messageMatchers)
-            return this
-        }
-
-        @Override
-        TestClassExecutionResult assertTestFailedIgnoreMessages(String name) {
-            def fullMessages = collectTestFailFullMessages(name, name)
-            assert !fullMessages.isEmpty()
-            return this
-        }
-
-        TestClassExecutionResult assertTestFailed(String name, Matcher<? super String>... messageMatchers) {
-            assert testFailed(name, messageMatchers)
-            return this
-        }
-
-        boolean testFailed(String name, Matcher<? super String>... messageMatchers) {
-            return testFailed(name, name, messageMatchers)
-        }
-
-        boolean testFailed(String name, String displayName, Matcher<? super String>... messageMatchers) {
-            def fullMessages = collectTestFailFullMessages(name, displayName)
-            if (fullMessages.isEmpty()) {
-                return false
-            }
-            def messages = fullMessages.collect { it.readLines().first() }
-            if (messages.size() != messageMatchers.length) {
-                return false
-            }
-            for (int i = 0; i < messageMatchers.length; i++) {
-                if (!messageMatchers[i].matches(messages[i]) && !messageMatchers[i].matches(fullMessages[i])) {
-                    return false
-                }
-            }
-            return true
-        }
-
-        private List<String> collectTestFailFullMessages(String name, String displayName) {
-            def testCase = testsFailures.grep { it.name == name && it.displayName == displayName }
-            if (testCase.isEmpty()) {
-                return Collections.emptyList()
-            }
-
-            return testCase.first().messages
-        }
-
-        @Override
-        TestClassExecutionResult assertTestSkipped(String name, String displayName) {
-            assert testsSkipped.contains(testCase(name, displayName))
-            return this
-        }
-
-        TestClassExecutionResult assertExecutionFailedWithCause(Matcher<? super String> causeMatcher) {
-            String failureMethodName = EXECUTION_FAILURE
-            def testCase = testsFailures.find { it.name == failureMethodName }
-            assert testCase
-
-            String causeLinePrefix = "Caused by: "
-            def cause = testCase.messages.first().readLines().find { it.startsWith causeLinePrefix }?.substring(causeLinePrefix.length())
-
-            assertThat(cause, causeMatcher)
-            this
-        }
-
-        @Override
-        TestClassExecutionResult assertDisplayName(String classDisplayName) {
-            assert classDisplayName == classDisplayName
-            this
-        }
-
-        TestClassExecutionResult assertTestSkipped(String name) {
-            assert testsSkipped.contains(testCase(name))
-            return this
-        }
-
-        TestClassExecutionResult assertConfigMethodPassed(String name) {
-            return null
-        }
-
-        TestClassExecutionResult assertConfigMethodFailed(String name) {
-            return null
-        }
-
-        TestClassExecutionResult assertStdout(Matcher<? super String> matcher) {
-            return assertOutput('Standard output', matcher)
-        }
-
-        TestClassExecutionResult assertTestCaseStdout(String testCaseName, Matcher<? super String> matcher) {
-            throw new UnsupportedOperationException()
-        }
-
-        TestClassExecutionResult assertStderr(Matcher<? super String> matcher) {
-            return assertOutput('Standard error', matcher)
-        }
-
-        private HtmlTestClassExecutionResult assertOutput(heading, Matcher<? super String> matcher) {
+        private TestPathExecutionResult assertOutput(heading, Matcher<? super String> matcher) {
             def tabs = html.select("div.tab")
             def tab = tabs.find { it.select("h2").text() == heading }
             assert matcher.matches(tab ? TextUtil.normaliseLineSeparators(tab.select("span > pre").first().textNodes().first().wholeText) : "")
             return this
         }
 
-        TestClassExecutionResult assertTestCaseStderr(String testCaseName, Matcher<? super String> matcher) {
-            throw new UnsupportedOperationException()
+        @Override
+        TestPathExecutionResult assertHasResult(TestResult.ResultType expectedResultType) {
+            assert getResultType() == expectedResultType
+            return this
+        }
+
+        private getResultType() {
+            // Currently the report only contains leaf results
+            assertChildCount(0, 0, 0)
+            def successRateElement = html.selectFirst('.summary .successRate')
+            if (successRateElement.hasClass("failures")) {
+                return TestResult.ResultType.FAILURE
+            } else if (successRateElement.hasClass("skipped")) {
+                return TestResult.ResultType.SKIPPED
+            } else {
+                return TestResult.ResultType.SUCCESS
+            }
+        }
+
+        @Override
+        TestPathExecutionResult assertFailureMessages(Matcher<? super String> matcher) {
+            def detailsElem = html.selectFirst('.result-details pre')
+            assertThat(detailsElem == null ? '' : detailsElem.text(), matcher)
+            return this
         }
     }
 }

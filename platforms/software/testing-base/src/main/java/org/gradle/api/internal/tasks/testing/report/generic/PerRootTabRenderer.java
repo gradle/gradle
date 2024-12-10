@@ -17,21 +17,19 @@
 package org.gradle.api.internal.tasks.testing.report.generic;
 
 import com.google.common.io.CharStreams;
+import org.gradle.api.internal.tasks.testing.results.serializable.SerializableFailure;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResult;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResultStore;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.html.SimpleHtmlWriter;
 import org.gradle.internal.time.TimeFormatting;
-import org.gradle.internal.xml.SimpleMarkupWriter;
 import org.gradle.reporting.ReportRenderer;
 
 import java.io.IOException;
 import java.io.Reader;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.Arrays;
-import java.util.List;
 
 public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, SimpleHtmlWriter> {
     protected final String rootName;
@@ -66,7 +64,11 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
         protected void render(TestTreeModel.PerRootInfo info, SimpleHtmlWriter htmlWriter) throws IOException {
             htmlWriter.startElement("div");
             renderSummary(info, htmlWriter, info.getResult());
-            renderChildren(info, htmlWriter);
+            if (info.getChildren().isEmpty()) {
+                renderLeafDetails(info, htmlWriter);
+            } else {
+                renderChildren(htmlWriter);
+            }
             htmlWriter.endElement();
         }
 
@@ -135,72 +137,60 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
             return TimeFormatting.formatDurationVeryTerse(testResult.getDuration());
         }
 
-        private void renderChildren(TestTreeModel.PerRootInfo info, SimpleHtmlWriter htmlWriter) throws IOException {
-            if (info.getChildren().isEmpty()) {
-                return;
+        private void renderLeafDetails(TestTreeModel.PerRootInfo info, SimpleHtmlWriter htmlWriter) throws IOException {
+            if (info.getResult().getResultType() != TestResult.ResultType.SUCCESS && !info.getResult().getFailures().isEmpty()) {
+                htmlWriter.startElement("div").attribute("class", "result-details");
+
+                htmlWriter.startElement("h3").characters(
+                    info.getResult().getResultType() == TestResult.ResultType.FAILURE ? "Failure details" : "Skip details"
+                ).endElement();
+
+                htmlWriter.startElement("span").attribute("class", "code")
+                    .startElement("pre")
+                    .characters("");
+                for (SerializableFailure failure : info.getResult().getFailures()) {
+                    htmlWriter.characters(failure.getStackTrace() + "\n");
+                }
+                htmlWriter.endElement()
+                    .endElement();
+
+                htmlWriter.endElement();
             }
+        }
 
-            SimpleMarkupWriter writer = htmlWriter.startElement("table");
-            boolean methodNameColumnExists = methodNameColumnExists();
+        private void renderChildren(SimpleHtmlWriter htmlWriter) throws IOException {
+            htmlWriter.startElement("table");
+            htmlWriter.startElement("thead");
+            htmlWriter.startElement("tr");
 
-            renderTableHead(writer, determineTableHeaders(methodNameColumnExists));
+            htmlWriter.startElement("th").characters("Child").endElement();
+            htmlWriter.startElement("th").characters("Tests").endElement();
+            htmlWriter.startElement("th").characters("Failures").endElement();
+            htmlWriter.startElement("th").characters("Skipped").endElement();
+            htmlWriter.startElement("th").characters("Duration").endElement();
+            htmlWriter.startElement("th").characters("Success rate").endElement();
 
-            for (TestTreeModel model : getCurrentModel().getChildrenOf(rootName)) {
-                renderTableRow(writer, model, determineTableRow(model, methodNameColumnExists));
+            htmlWriter.endElement();
+            htmlWriter.endElement();
+
+            for (TestTreeModel child : getCurrentModel().getChildrenOf(rootName)) {
+                TestTreeModel.PerRootInfo perRootInfo = child.getPerRootInfo().get(rootName);
+                SerializableTestResult result = perRootInfo.getResult();
+                String statusClass = getStatusClass(result.getResultType());
+                htmlWriter.startElement("tr");
+                htmlWriter.startElement("td").attribute("class", statusClass);
+                htmlWriter.startElement("a")
+                    .attribute("href", GenericPageRenderer.getUrlTo(getCurrentModel().getPath(), child.getPath()))
+                    .characters(result.getDisplayName()).endElement();
+                htmlWriter.endElement();
+                htmlWriter.startElement("td").characters(Integer.toString(perRootInfo.getTotalLeafCount())).endElement();
+                htmlWriter.startElement("td").characters(Integer.toString(perRootInfo.getFailedLeafCount())).endElement();
+                htmlWriter.startElement("td").characters(Integer.toString(perRootInfo.getSkippedLeafCount())).endElement();
+                htmlWriter.startElement("td").characters(getFormattedDuration(result)).endElement();
+                htmlWriter.startElement("td").attribute("class", statusClass).characters(getFormattedSuccessRate(perRootInfo)).endElement();
+                htmlWriter.endElement();
             }
             htmlWriter.endElement();
-        }
-
-        private List<String> determineTableRow(TestTreeModel test, boolean methodNameColumnExists) {
-            SerializableTestResult result = test.getPerRootInfo().get(rootName).getResult();
-            return methodNameColumnExists
-                ? Arrays.asList(result.getDisplayName(), result.getName(), getFormattedDuration(result), getFormattedResultType(result.getResultType()))
-                : Arrays.asList(result.getDisplayName(), getFormattedDuration(result), getFormattedResultType(result.getResultType()));
-        }
-
-        private static List<String> determineTableHeaders(boolean methodNameColumnExists) {
-            return methodNameColumnExists ? Arrays.asList("Test", "Method name", "Duration", "Result") : Arrays.asList("Test", "Duration", "Result");
-        }
-
-        private static void renderTableHead(SimpleMarkupWriter writer, List<String> headers) throws IOException {
-            writer.startElement("thead").startElement("tr");
-            for (String header : headers) {
-                writer.startElement("th").characters(header).endElement();
-            }
-            writer.endElement().endElement();
-        }
-
-        private void renderTableRow(SimpleMarkupWriter writer, TestTreeModel test, List<String> rowCells) throws IOException {
-            SerializableTestResult result = test.getPerRootInfo().get(rootName).getResult();
-            String statusClass = getStatusClass(result.getResultType());
-            writer.startElement("tr");
-            for (String cell : rowCells) {
-                writer.startElement("td").attribute("class", statusClass).characters(cell).endElement();
-            }
-            writer.endElement();
-        }
-
-        private boolean methodNameColumnExists() {
-            for (TestTreeModel child : getCurrentModel().getChildrenOf(rootName)) {
-                SerializableTestResult result = child.getPerRootInfo().get(rootName).getResult();
-                if (!result.getName().equals(result.getDisplayName())) {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        private static String getFormattedResultType(TestResult.ResultType resultType) {
-            switch (resultType) {
-                case SUCCESS:
-                    return "passed";
-                case FAILURE:
-                    return "failed";
-                case SKIPPED:
-                    return "skipped";
-                default:
-                    throw new IllegalStateException();
-            }
         }
 
         private static String getStatusClass(TestResult.ResultType resultType) {
