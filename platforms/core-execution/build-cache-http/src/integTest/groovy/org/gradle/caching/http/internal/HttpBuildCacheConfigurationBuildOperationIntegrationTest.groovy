@@ -169,7 +169,7 @@ class HttpBuildCacheConfigurationBuildOperationIntegrationTest extends AbstractI
             buildCache {
                 local {
                     enabled = false
-                    directory = 'directory'
+                    directory = file('directory')
                     push = false
                 }
             }
