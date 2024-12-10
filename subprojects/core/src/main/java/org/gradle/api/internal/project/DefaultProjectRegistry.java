@@ -20,6 +20,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.util.Path;
 import org.gradle.util.internal.GUtil;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -27,8 +28,8 @@ import java.util.Map;
 import java.util.Set;
 
 public class DefaultProjectRegistry<T extends ProjectIdentifier> implements ProjectRegistry<T>, HoldsProjectState {
-    private final Map<String, T> projects = new HashMap<String, T>();
-    private final Map<String, Set<T>> subProjects = new HashMap<String, Set<T>>();
+    private final Map<String, T> projects = new HashMap<>();
+    private final Map<String, Set<T>> subProjects = new HashMap<>();
 
     @Override
     public void addProject(T project) {
@@ -36,7 +37,7 @@ public class DefaultProjectRegistry<T extends ProjectIdentifier> implements Proj
         if (previous != null) {
             throw new IllegalArgumentException(String.format("Multiple projects registered for path '%s'.", project.getPath()));
         }
-        subProjects.put(project.getPath(), new HashSet<T>());
+        subProjects.put(project.getPath(), new HashSet<>());
         addProjectToParentSubProjects(project);
     }
 
@@ -81,24 +82,23 @@ public class DefaultProjectRegistry<T extends ProjectIdentifier> implements Proj
         return getProject(Path.ROOT.getPath());
     }
 
+    @Nullable
     @Override
     public T getProject(String path) {
         return projects.get(path);
     }
 
+    @Nullable
     @Override
     public T getProject(final File projectDir) {
-        Set<T> projects = findAll(new Spec<T>() {
-            @Override
-            public boolean isSatisfiedBy(T element) {
-                return element.getProjectDir().equals(projectDir);
-            }
-        });
+        Set<T> projects = findAll(project -> project.getProjectDir().equals(projectDir));
         if (projects.size() > 1) {
             throw new InvalidUserDataException(String.format("Found multiple projects with project directory '%s': %s",
                 projectDir, projects));
         }
-        return projects.size() == 1 ? projects.iterator().next() : null;
+        return projects.size() == 1
+            ? projects.iterator().next()
+            : null;
     }
 
     @Override
@@ -117,7 +117,7 @@ public class DefaultProjectRegistry<T extends ProjectIdentifier> implements Proj
 
     @Override
     public Set<T> findAll(Spec<? super T> constraint) {
-        Set<T> matches = new HashSet<T>();
+        Set<T> matches = new HashSet<>();
         for (T project : projects.values()) {
             if (constraint.isSatisfiedBy(project)) {
                 matches.add(project);
