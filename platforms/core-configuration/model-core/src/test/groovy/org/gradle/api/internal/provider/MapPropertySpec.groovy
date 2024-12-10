@@ -1536,7 +1536,7 @@ The value of this property is derived from: <source>""")
         property.put("a", notDefined())
         property.insert("b", "2")
         // changing execution time values or else we would end up with fixed values
-        property.putAll(supplierWithChangingExecutionTimeValues([c: '3'], [c: '3a'], [c: '3b'], [c: '3c'], [c: '3d'], [c: '3e']))
+        property.putAll(supplierWithChangingExecutionTimeValues([c: '3a'], [c: '3b'], [c: '3c'], [c: '3d'], [c: '3e']))
         property.putAll(supplierWithValues([d: '4']))
         property.insert("e", notDefined())
 
@@ -1562,7 +1562,7 @@ The value of this property is derived from: <source>""")
         property3.fromState(execTimeValue2)
 
         then:
-        assertValueIs([b: '2', c: '3d', d: '4', f: '6', g: '7'], property3)
+        assertValueIs([b: '2', c: '3c', d: '4', f: '6', g: '7'], property3)
     }
 
     def "keySet provider has some values when property with no value is added via insert"() {
@@ -1974,5 +1974,16 @@ The value of this property is derived from: <source>""")
 
         // The following case abuses Groovy lax type-checking to put an invalid value into the property.
         "[k: (Object) provider {v}]" | { property().value(k: Providers.of("v")) }              || "Map(String->String, {k=fixed(class ${String.name}, v)})"
+    }
+
+    def "can add a lot of providers"() {
+        given:
+        (0..<100000).each {
+            property.putAll(supplierWithProducer(Mock(Task), ImmutableMap.of(it.toString(), it.toString())))
+        }
+
+        expect:
+        property.get().size() == 100000
+        property.getProducer().visitProducerTasks {}
     }
 }
