@@ -21,6 +21,8 @@ import org.gradle.api.file.Directory;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
+import java.io.IOException;
+
 /**
  * A service that provides access to the test event reporting API.
  *
@@ -48,5 +50,5 @@ public interface TestEventReporterFactory {
         String rootName,
         Directory binaryResultsDirectory,
         Directory htmlReportDirectory
-    );
+    ) throws IOException;
 }

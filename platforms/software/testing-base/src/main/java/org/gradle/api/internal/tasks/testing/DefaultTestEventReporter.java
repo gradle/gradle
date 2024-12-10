@@ -26,6 +26,7 @@ import org.gradle.api.tasks.testing.TestFailureDetails;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
 
+import java.io.IOException;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.HashMap;
@@ -110,7 +111,7 @@ class DefaultTestEventReporter implements TestEventReporter {
     }
 
     @Override
-    public void close() {
+    public void close() throws IOException {
         // do nothing
     }
 
