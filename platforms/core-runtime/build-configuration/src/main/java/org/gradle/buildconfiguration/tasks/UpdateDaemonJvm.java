@@ -143,7 +143,7 @@ public abstract class UpdateDaemonJvm extends DefaultTask {
      * By convention, for the task created on the root project, Gradle sources those from the combination of all supported {@link org.gradle.platform.OperatingSystem}
      * and the following architectures: {@link org.gradle.platform.Architecture#X86_64} and {@link org.gradle.platform.Architecture#AARCH64}.
      *
-     * @since 8.12
+     * @since 8.13
      */
     @Internal
     @Incubating
@@ -157,7 +157,7 @@ public abstract class UpdateDaemonJvm extends DefaultTask {
      * <p>
      * If the convention applies and no toolchain repositories are defined, an exception will be thrown.
      *
-     * @since 8.12
+     * @since 8.13
      */
     @Input
     @Incubating
