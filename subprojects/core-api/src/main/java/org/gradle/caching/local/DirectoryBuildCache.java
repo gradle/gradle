@@ -16,10 +16,16 @@
 
 package org.gradle.caching.local;
 
+import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.tasks.Optional;
 import org.gradle.caching.configuration.AbstractBuildCache;
 import org.gradle.internal.deprecation.DeprecationLogger;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.internal.file.PathToFileResolver;
+import org.gradle.internal.instrumentation.api.annotations.BytecodeUpgrade;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.jspecify.annotations.Nullable;
+
+import javax.inject.Inject;
 
 
 /**
@@ -28,26 +34,14 @@ import org.jspecify.annotations.Nullable;
  * @since 3.5
  */
 public abstract class DirectoryBuildCache extends AbstractBuildCache {
-    private Object directory;
     private int removeUnusedEntriesAfterDays = 7;
 
     /**
-     * Returns the directory to use to store the build cache.
+     * The directory to use to store the build cache.
      */
-    @Nullable
-    @ToBeReplacedByLazyProperty
-    public Object getDirectory() {
-        return directory;
-    }
-
-    /**
-     * Sets the directory to use to store the build cache.
-     *
-     * The directory is evaluated as per {@code Project.file(Object)}.
-     */
-    public void setDirectory(@Nullable Object directory) {
-        this.directory = directory;
-    }
+    @Optional
+    @ReplacesEagerProperty(adapter = DirectoryAdapter.class)
+    public abstract DirectoryProperty getDirectory();
 
     /**
      * Returns the number of days after unused entries are garbage collected. Defaults to 7 days.
@@ -79,5 +73,24 @@ public abstract class DirectoryBuildCache extends AbstractBuildCache {
             .nagUser();
 
         this.removeUnusedEntriesAfterDays = removeUnusedEntriesAfterDays;
+    }
+
+    @Inject
+    @Deprecated
+    @SuppressWarnings("DeprecatedIsStillUsed") // used only for adapter and backward compatibility
+    protected abstract PathToFileResolver getFileResolver();
+
+    static class DirectoryAdapter {
+        @BytecodeUpgrade
+        @Nullable
+        static Object getDirectory(DirectoryBuildCache buildCache) {
+            return buildCache.getDirectory().getAsFile().getOrNull();
+        }
+
+        @SuppressWarnings("DataFlowIssue") // directory can be null and resolver handles null
+        @BytecodeUpgrade
+        static void setDirectory(DirectoryBuildCache buildCache, @Nullable Object directory) {
+            buildCache.getDirectory().set(buildCache.getFileResolver().resolve(directory));
+        }
     }
 }
