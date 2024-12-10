@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.configurations;
 
+import org.gradle.api.Describable;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.PublishArtifact;
@@ -58,13 +59,15 @@ public interface ConfigurationInternal extends ResolveContext, DeprecatableConfi
     /**
      * Marks this configuration as observed, meaning its state has been seen by some external operation
      * and further changes to this context that would change its public state are forbidden.
+     *
+     * @param reason Describes the external operation that observed this configuration
      */
-    void markAsObserved();
+    void markAsObserved(Describable reason);
 
     /**
      * Legacy observation mechanism, will be removed in Gradle 9.0.
      * <p>
-     * Prefer {@link #markAsObserved()}
+     * Prefer {@link #markAsObserved(Describable)}
      */
     void markAsObserved(InternalState requestedState);
 

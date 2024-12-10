@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencie
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.Describable;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ExcludeRule;
@@ -78,7 +79,7 @@ public class DefaultLocalVariantGraphResolveStateBuilder implements LocalVariant
     }
 
     @Override
-    public LocalVariantGraphResolveState create(
+    public LocalVariantGraphResolveState createRootVariantState(
         ConfigurationInternal configuration,
         ConfigurationsProvider configurationsProvider,
         ComponentIdentifier componentId,
@@ -86,14 +87,56 @@ public class DefaultLocalVariantGraphResolveStateBuilder implements LocalVariant
         ModelContainer<?> model,
         CalculatedValueContainerFactory calculatedValueContainerFactory
     ) {
+        // Starting in Gradle 9.0, the logic for creating the root variant and for creating a
+        // consumable variant will differ, as the root variant should not have artifacts.
+        // However, until then, since the root variant can still be consumed, it must have artifacts.
+        return doCreateVariantState(
+            configuration,
+            configurationsProvider,
+            componentId,
+            dependencyCache,
+            model,
+            calculatedValueContainerFactory,
+            () -> "Resolved " + configuration.getDisplayName()
+        );
+    }
+
+    @Override
+    public LocalVariantGraphResolveState createConsumableVariantState(
+        ConfigurationInternal configuration,
+        ConfigurationsProvider configurationsProvider,
+        ComponentIdentifier componentId,
+        DependencyCache dependencyCache,
+        ModelContainer<?> model,
+        CalculatedValueContainerFactory calculatedValueContainerFactory
+    ) {
+        return doCreateVariantState(
+            configuration,
+            configurationsProvider,
+            componentId,
+            dependencyCache,
+            model,
+            calculatedValueContainerFactory,
+            () -> "Consumed " + configuration.getDisplayName() + " as a variant"
+        );
+    }
+
+    private DefaultLocalVariantGraphResolveState doCreateVariantState(
+        ConfigurationInternal configuration,
+        ConfigurationsProvider configurationsProvider,
+        ComponentIdentifier componentId,
+        DependencyCache dependencyCache,
+        ModelContainer<?> model,
+        CalculatedValueContainerFactory calculatedValueContainerFactory,
+        Describable observationReason
+    ) {
         // Perform any final mutating actions for this configuration and its parents.
         // Then, lock this configuration and its parents from mutation.
         // After we observe a configuration (by building its metadata), its state should not change.
         configuration.runDependencyActions();
-        configuration.markAsObserved();
+        configuration.markAsObserved(observationReason);
 
         String configurationName = configuration.getName();
-        DisplayName description = configuration.asDescribable();
         ComponentConfigurationIdentifier configurationIdentifier = new ComponentConfigurationIdentifier(componentId, configurationName);
 
         ImmutableAttributes attributes = configuration.getAttributes().asImmutable();
@@ -121,7 +164,7 @@ public class DefaultLocalVariantGraphResolveStateBuilder implements LocalVariant
         // will no longer be mutated.
         ImmutableSet<String> hierarchy = Configurations.getNames(configuration.getHierarchy());
         CalculatedValue<DefaultLocalVariantGraphResolveState.VariantDependencyMetadata> dependencies =
-            getConfigurationDependencyState(description, hierarchy, attributes, configurationsProvider, dependencyCache, model, calculatedValueContainerFactory);
+            getConfigurationDependencyState(configuration.asDescribable(), hierarchy, attributes, configurationsProvider, dependencyCache, model, calculatedValueContainerFactory);
 
         LocalVariantGraphResolveMetadata metadata = new DefaultLocalVariantGraphResolveMetadata(
             configurationName,
