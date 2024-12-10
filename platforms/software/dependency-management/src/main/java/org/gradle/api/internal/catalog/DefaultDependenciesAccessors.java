@@ -483,8 +483,8 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         }
 
         private String buildProjectTree() {
-            Set<? extends ProjectDescriptor> allprojects = projectRegistry.getAllProjects();
-            return allprojects.stream()
+            return projectRegistry.getAllProjects()
+                .stream()
                 .map(ProjectDescriptor::getPath)
                 .sorted()
                 .collect(Collectors.joining(","));
