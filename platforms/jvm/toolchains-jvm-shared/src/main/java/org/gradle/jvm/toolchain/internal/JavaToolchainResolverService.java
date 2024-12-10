@@ -26,7 +26,7 @@ import java.util.Optional;
 /**
  * Resolves Java toolchains based on a request.
  *
- * @since 8.12
+ * @since 8.13
  */
 @Incubating
 public interface JavaToolchainResolverService {
@@ -37,7 +37,7 @@ public interface JavaToolchainResolverService {
      * @param request the java toolchain request
      * @return A JavaToolchainDownload if the toolchain was resolved, or an empty Optional if the toolchain could not be resolved.
      *
-     * @since 8.12
+     * @since 8.13
      */
     Optional<JavaToolchainDownload> tryResolve(JavaToolchainRequest request);
 
@@ -46,7 +46,7 @@ public interface JavaToolchainResolverService {
      *
      * @return {@code true} if there are any configured toolchain repositories, {@code false} otherwise.
      *
-     * @since 8.12
+     * @since 8.13
      */
     boolean hasConfiguredToolchainRepositories();
 }

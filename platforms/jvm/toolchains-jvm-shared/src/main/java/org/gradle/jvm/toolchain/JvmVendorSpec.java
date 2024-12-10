@@ -125,7 +125,7 @@ public abstract class JvmVendorSpec {
      * @return a {@code JvmVendorSpec} that matches the given vendor
      * @see JvmVendorSpec#ADOPTIUM ADOPTIUM and others known vendor specs
      *
-     * @since 8.12
+     * @since 8.13
      */
     @Incubating
     public static JvmVendorSpec of(String vendor) {
