@@ -18,14 +18,16 @@ package org.gradle.api.internal.project;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.specs.Spec;
 import org.gradle.util.Path;
-import org.gradle.util.internal.GUtil;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+
+import static java.util.Collections.emptySet;
 
 public class DefaultProjectRegistry<T extends ProjectIdentifier> implements ProjectRegistry<T>, HoldsProjectState {
     private final Map<String, T> projects = new HashMap<>();
@@ -73,8 +75,8 @@ public class DefaultProjectRegistry<T extends ProjectIdentifier> implements Proj
     }
 
     @Override
-    public Set<T> getAllProjects() {
-        return new HashSet<T>(projects.values());
+    public Collection<T> getAllProjects() {
+        return projects.values();
     }
 
     @Override
@@ -103,16 +105,20 @@ public class DefaultProjectRegistry<T extends ProjectIdentifier> implements Proj
 
     @Override
     public Set<T> getAllProjects(String path) {
-        Set<T> result = new HashSet<T>(getSubProjects(path));
-        if (projects.get(path) != null) {
-            result.add(projects.get(path));
+        T project = projects.get(path);
+        if (project == null) {
+            return emptySet();
         }
+        Set<T> subProjects = getSubProjects(path);
+        Set<T> result = new HashSet<>(subProjects.size() + 1);
+        result.addAll(subProjects);
+        result.add(project);
         return result;
     }
 
     @Override
     public Set<T> getSubProjects(String path) {
-        return GUtil.getOrDefault(subProjects.get(path), HashSet::new);
+        return subProjects.getOrDefault(path, emptySet());
     }
 
     @Override

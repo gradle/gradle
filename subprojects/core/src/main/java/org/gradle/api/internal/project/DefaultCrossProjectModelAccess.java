@@ -56,12 +56,16 @@ public class DefaultCrossProjectModelAccess implements CrossProjectModelAccess {
 
     @Override
     public Set<? extends ProjectInternal> getSubprojects(ProjectInternal referrer, ProjectInternal relativeTo) {
-        return new TreeSet<>(projectRegistry.getSubProjects(relativeTo.getPath()));
+        return treeSetIfNotEmpty(projectRegistry.getSubProjects(relativeTo.getPath()));
     }
 
     @Override
     public Set<? extends ProjectInternal> getAllprojects(ProjectInternal referrer, ProjectInternal relativeTo) {
         return new TreeSet<>(projectRegistry.getAllProjects(relativeTo.getPath()));
+    }
+
+    private static Set<? extends ProjectInternal> treeSetIfNotEmpty(Set<ProjectInternal> projects) {
+        return projects.isEmpty() ? projects : new TreeSet<>(projects);
     }
 
     @Override

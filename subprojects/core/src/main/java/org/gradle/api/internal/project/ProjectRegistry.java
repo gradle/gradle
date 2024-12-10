@@ -19,6 +19,7 @@ import org.gradle.api.specs.Spec;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.util.Collection;
 import java.util.Set;
 
 public interface ProjectRegistry<T extends ProjectIdentifier> {
@@ -35,7 +36,7 @@ public interface ProjectRegistry<T extends ProjectIdentifier> {
 
     int size();
 
-    Set<T> getAllProjects();
+    Collection<T> getAllProjects();
 
     Set<T> getAllProjects(String path);
 

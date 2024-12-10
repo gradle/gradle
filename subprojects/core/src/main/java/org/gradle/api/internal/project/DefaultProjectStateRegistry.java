@@ -66,13 +66,12 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
 
     @Override
     public void registerProjects(BuildState owner, ProjectRegistry<DefaultProjectDescriptor> projectRegistry) {
-        Set<DefaultProjectDescriptor> allProjects = projectRegistry.getAllProjects();
         synchronized (lock) {
             DefaultBuildProjectRegistry buildProjectRegistry = getBuildProjectRegistry(owner);
             if (!buildProjectRegistry.projectsByPath.isEmpty()) {
                 throw new IllegalStateException("Projects for " + owner.getDisplayName() + " have already been registered.");
             }
-            for (DefaultProjectDescriptor descriptor : allProjects) {
+            for (DefaultProjectDescriptor descriptor : projectRegistry.getAllProjects()) {
                 addProject(owner, buildProjectRegistry, descriptor);
             }
         }
