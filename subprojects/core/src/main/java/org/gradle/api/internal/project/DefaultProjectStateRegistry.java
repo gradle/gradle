@@ -18,6 +18,7 @@ package org.gradle.api.internal.project;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.initialization.DefaultProjectDescriptor;
@@ -65,15 +66,15 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
     }
 
     @Override
-    public void registerProjects(BuildState owner, ProjectRegistry<DefaultProjectDescriptor> projectRegistry) {
-        Set<DefaultProjectDescriptor> allProjects = projectRegistry.getAllProjects();
+    public void registerProjects(BuildState owner, SettingsInternal settingsInternal) {
+        Set<DefaultProjectDescriptor> allProjects = settingsInternal.getProjectRegistry().getAllProjects();
         synchronized (lock) {
             DefaultBuildProjectRegistry buildProjectRegistry = getBuildProjectRegistry(owner);
             if (!buildProjectRegistry.projectsByPath.isEmpty()) {
                 throw new IllegalStateException("Projects for " + owner.getDisplayName() + " have already been registered.");
             }
             for (DefaultProjectDescriptor descriptor : allProjects) {
-                addProject(owner, buildProjectRegistry, descriptor);
+                addProject(owner, settingsInternal, buildProjectRegistry, descriptor);
             }
         }
     }
@@ -88,10 +89,10 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
     }
 
     @Override
-    public ProjectState registerProject(BuildState owner, DefaultProjectDescriptor projectDescriptor) {
+    public ProjectState registerProject(BuildState owner, SettingsInternal settingsInternal, DefaultProjectDescriptor projectDescriptor) {
         synchronized (lock) {
             DefaultBuildProjectRegistry buildProjectRegistry = getBuildProjectRegistry(owner);
-            return addProject(owner, buildProjectRegistry, projectDescriptor);
+            return addProject(owner, settingsInternal, buildProjectRegistry, projectDescriptor);
         }
     }
 
@@ -108,13 +109,13 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
         }
     }
 
-    private ProjectState addProject(BuildState owner, DefaultBuildProjectRegistry projectRegistry, DefaultProjectDescriptor descriptor) {
+    private ProjectState addProject(BuildState owner, SettingsInternal settingsInternal, DefaultBuildProjectRegistry projectRegistry, DefaultProjectDescriptor descriptor) {
         Path projectPath = descriptor.path();
         Path identityPath = owner.calculateIdentityPathForProject(projectPath);
         ServiceRegistry buildServices = owner.getMutableModel().getServices();
         IProjectFactory projectFactory = buildServices.get(IProjectFactory.class);
         StateTransitionControllerFactory stateTransitionControllerFactory = buildServices.get(StateTransitionControllerFactory.class);
-        ProjectStateImpl projectState = new ProjectStateImpl(owner, identityPath, projectPath, descriptor.getName(), descriptor, projectFactory, stateTransitionControllerFactory, buildServices);
+        ProjectStateImpl projectState = new ProjectStateImpl(owner, settingsInternal, identityPath, projectPath, descriptor.getName(), descriptor, projectFactory, stateTransitionControllerFactory, buildServices);
         projectsByPath.put(identityPath, projectState);
         projectsById.put(projectState.getComponentIdentifier(), projectState);
         projectRegistry.add(projectPath, projectState);
@@ -257,6 +258,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
 
         ProjectStateImpl(
             BuildState owner,
+            SettingsInternal settingsInternal,
             Path identityPath,
             Path projectPath,
             String projectName,
@@ -276,7 +278,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
             this.allProjectsLock = workerLeaseService.getAllProjectsLock(owner.getIdentityPath());
             this.projectLock = workerLeaseService.getProjectLock(owner.getIdentityPath(), identityPath);
             this.taskLock = workerLeaseService.getTaskExecutionLock(owner.getIdentityPath(), identityPath);
-            this.controller = new ProjectLifecycleController(getDisplayName(), stateTransitionControllerFactory, buildServices);
+            this.controller = new ProjectLifecycleController(getDisplayName(), stateTransitionControllerFactory, settingsInternal, buildServices);
         }
 
         @Override

@@ -32,7 +32,7 @@ class SettingsAttachingSettingsLoader implements SettingsLoader {
     public SettingsState findAndLoadSettings(GradleInternal gradle) {
         SettingsState state = delegate.findAndLoadSettings(gradle);
         gradle.attachSettings(state);
-        projectRegistry.registerProjects(gradle.getOwner(), state.getSettings().getProjectRegistry());
+        projectRegistry.registerProjects(gradle.getOwner(), state.getSettings());
         return state;
     }
 }
