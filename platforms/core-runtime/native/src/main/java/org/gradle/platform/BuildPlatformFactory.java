@@ -22,7 +22,7 @@ import org.gradle.platform.internal.DefaultBuildPlatform;
 /**
  * Factory for creating {@link BuildPlatform} instances.
  *
- * @since 8.12
+ * @since 8.13
  */
 @Incubating
 public class BuildPlatformFactory {
@@ -34,7 +34,7 @@ public class BuildPlatformFactory {
      * @param os the operating system of the platform
      * @return the new {@link BuildPlatform} instance
      *
-     * @since 8.12
+     * @since 8.13
      */
     public static BuildPlatform of(Architecture architecture, OperatingSystem os) {
         return new DefaultBuildPlatform(architecture, os);
