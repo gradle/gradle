@@ -18,7 +18,6 @@ package org.gradle.api.internal.provider;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableCollection;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
@@ -131,13 +130,12 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
      */
     protected abstract C emptyCollection();
 
-    protected Configurer getConfigurer(boolean ignoreAbsent) {
-        return new Configurer(ignoreAbsent);
+    protected Configurer getConfigurer() {
+        return new Configurer();
     }
 
-    protected void withActualValue(Action<Configurer> action) {
-        setToConventionIfUnset();
-        action.execute(getConfigurer(true));
+    protected void withActualValue(@SuppressWarnings("unused") Action<Configurer> action) {
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -153,29 +151,29 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
     @Override
     public void add(final T element) {
-        getConfigurer(false).add(element);
+        getConfigurer().add(element);
     }
 
     @Override
     public void add(final Provider<? extends T> providerOfElement) {
-        getConfigurer(false).add(providerOfElement);
+        getConfigurer().add(providerOfElement);
     }
 
     @Override
     @SafeVarargs
     @SuppressWarnings("varargs")
     public final void addAll(T... elements) {
-        getConfigurer(false).addAll(elements);
+        getConfigurer().addAll(elements);
     }
 
     @Override
     public void addAll(Iterable<? extends T> elements) {
-        getConfigurer(false).addAll(elements);
+        getConfigurer().addAll(elements);
     }
 
     @Override
     public void addAll(Provider<? extends Iterable<? extends T>> provider) {
-        getConfigurer(false).addAll(provider);
+        getConfigurer().addAll(provider);
     }
 
     @Override
@@ -214,12 +212,11 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
      * Adds the given supplier as the new root supplier for this collection.
      *
      * @param collector the collector to add
-     * @param ignoreAbsent whether elements that are missing values should be ignored
      */
-    private void addExplicitCollector(Collector<T> collector, boolean ignoreAbsent) {
+    private void addExplicitCollector(Collector<T> collector) {
         assertCanMutate();
         CollectionSupplier<T, C> explicitValue = getExplicitValue(defaultValue);
-        setSupplier(explicitValue.plus(collector, ignoreAbsent));
+        setSupplier(explicitValue.plus(collector));
     }
 
     @Override
@@ -373,9 +370,9 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         }
 
         @Override
-        public CollectionSupplier<T, C> plus(Collector<T> collector, boolean ignoreAbsent) {
-            // No value + something = no value, unless we ignoreAbsent.
-            return ignoreAbsent ? newSupplierOf(ignoreAbsentIfNeeded(collector, ignoreAbsent)) : this;
+        public CollectionSupplier<T, C> plus(Collector<T> collector) {
+            // No value + something = no value
+            return this;
         }
 
         @Override
@@ -407,9 +404,9 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         }
 
         @Override
-        public CollectionSupplier<T, C> plus(Collector<T> collector, boolean ignoreAbsent) {
+        public CollectionSupplier<T, C> plus(Collector<T> collector) {
             // empty + something = something
-            return newSupplierOf(ignoreAbsentIfNeeded(collector, ignoreAbsent));
+            return newSupplierOf(collector);
         }
 
         @Override
@@ -448,8 +445,8 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         }
 
         @Override
-        public CollectionSupplier<T, C> plus(Collector<T> collector, boolean ignoreAbsent) {
-            return newSupplierOf(new FixedValueCollector<>(value, sideEffect)).plus(collector, ignoreAbsent);
+        public CollectionSupplier<T, C> plus(Collector<T> collector) {
+            return newSupplierOf(new FixedValueCollector<>(value, sideEffect)).plus(collector);
         }
 
         @Override
@@ -523,11 +520,6 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
                     // Because of the reverse processing order, anything that was added after it was just add/addAll that do not change the presence.
                     return false;
                 }
-                if (isAbsentIgnoring(collector)) {
-                    // We've found an argument of append/appendAll, and everything added before it was present.
-                    // append/appendAll recovers the value of a missing property, so the property is also definitely present.
-                    return true;
-                }
             }
             // Nothing caused the property to become missing. There is at least one element by design, so the property is present.
             assert size > 0;
@@ -540,22 +532,13 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
             ImmutableCollection.Builder<T> builder = collectionFactory.get();
             Value<Void> compositeResult = Value.present();
             for (Collector<T> collector : getCollectors()) {
-                if (compositeResult.isMissing() && !isAbsentIgnoring(collector)) {
-                    // The property is missing so far and the argument is of add/addAll.
-                    // The property is going to be missing regardless of its value.
-                    continue;
-                }
                 Value<Void> result = collector.collectEntries(consumer, valueCollector, builder);
                 if (result.isMissing()) {
                     // This is the argument of add/addAll and it is missing. It "poisons" the property (it becomes missing).
                     // We discard all values and side effects gathered so far.
                     builder = collectionFactory.get();
                     compositeResult = result;
-                } else if (compositeResult.isMissing()) {
-                    assert isAbsentIgnoring(collector);
-                    // This is an argument of append/appendAll. It "recovers" the property from the "poisoned" state.
-                    // Entries are already in the builder.
-                    compositeResult = result;
+                    break;
                 } else {
                     assert !compositeResult.isMissing();
                     // Both the property so far and the current argument are present, just continue building the value.
@@ -570,9 +553,9 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         }
 
         @Override
-        public CollectionSupplier<T, C> plus(Collector<T> addedCollector, boolean ignoreAbsent) {
+        public CollectionSupplier<T, C> plus(Collector<T> addedCollector) {
             Preconditions.checkState(collectors.size() == size, "Something has been appended to this collector already");
-            collectors.add(ignoreAbsentIfNeeded(addedCollector, ignoreAbsent));
+            collectors.add(addedCollector);
             return new CollectingSupplier<>(type, collectionFactory, valueCollector, collectors, size + 1);
         }
 
@@ -609,7 +592,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
                     valueCollector,
                     collectorsWithValues.stream().map(pair -> {
                         Collector<T> elements = toCollector(pair.getRight());
-                        return ignoreAbsentIfNeeded(elements, isAbsentIgnoring(pair.getLeft()));
+                        return elements;
                     }).collect(toCollection(ArrayList::new)),
                     collectorsWithValues.size()
                 )
@@ -646,17 +629,8 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
                     // All add/addAll that happened after it (thus already processed) but before any append/appendAll - the contents of candidates - are also discarded.
                     return Lists.reverse(executionTimeValues);
                 }
-                if (isAbsentIgnoring(collector)) {
-                    // This is an argument of append/appendAll. With it the property is going to be present (though maybe empty).
-                    // As all add/addAll arguments we've processed (thus added after this one) so far weren't missing, we're sure they'll be part of the final property's value.
-                    // Move them to the executionTimeValues.
-                    executionTimeValues.addAll(candidates);
-                    executionTimeValues.add(Pair.of(collector, result));
-                    candidates.clear();
-                } else {
-                    // This is an argument of add/addAll that isn't definitely missing. It might be part of the final value.
-                    candidates.add(Pair.of(collector, result));
-                }
+                // This is an argument of add/addAll that isn't definitely missing. It might be part of the final value.
+                candidates.add(Pair.of(collector, result));
             }
             // No missing values found, so all the candidates are part of the final value.
             executionTimeValues.addAll(candidates);
@@ -768,57 +742,6 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         }
     }
 
-    private static boolean isAbsentIgnoring(Collector<?> collector) {
-        return collector instanceof AbsentIgnoringCollector<?>;
-    }
-
-    private static <T> Collector<T> ignoreAbsentIfNeeded(Collector<T> collector, boolean ignoreAbsent) {
-        if (ignoreAbsent && !isAbsentIgnoring(collector)) {
-            return new AbsentIgnoringCollector<>(collector);
-        }
-        return collector;
-    }
-
-    private static class AbsentIgnoringCollector<T> implements Collector<T> {
-        private final Collector<T> delegate;
-
-        private AbsentIgnoringCollector(Collector<T> delegate) {
-            this.delegate = delegate;
-        }
-
-        @Override
-        public Value<Void> collectEntries(ValueConsumer consumer, ValueCollector<T> collector, ImmutableCollection.Builder<T> dest) {
-            ImmutableList.Builder<T> candidateEntries = ImmutableList.builder();
-            Value<Void> value = delegate.collectEntries(consumer, collector, candidateEntries);
-            if (value.isMissing()) {
-                return Value.present();
-            }
-            dest.addAll(candidateEntries.build());
-            return Value.present().withSideEffect(SideEffect.fixedFrom(value));
-        }
-
-        @Override
-        public int size() {
-            return delegate.size();
-        }
-
-        @Override
-        public ExecutionTimeValue<? extends Iterable<? extends T>> calculateExecutionTimeValue() {
-            ExecutionTimeValue<? extends Iterable<? extends T>> executionTimeValue = delegate.calculateExecutionTimeValue();
-            return executionTimeValue.isMissing() ? ExecutionTimeValue.fixedValue(ImmutableList.of()) : executionTimeValue;
-        }
-
-        @Override
-        public boolean calculatePresence(ValueConsumer consumer) {
-            return true;
-        }
-
-        @Override
-        public ValueProducer getProducer() {
-            return delegate.getProducer();
-        }
-    }
-
     public void replace(Transformer<? extends @org.jetbrains.annotations.Nullable Provider<? extends Iterable<? extends T>>, ? super Provider<C>> transformation) {
         Provider<? extends Iterable<? extends T>> newValue = transformation.transform(shallowCopy());
         if (newValue != null) {
@@ -829,14 +752,12 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     }
 
     private class Configurer {
-        private final boolean ignoreAbsent;
 
-        public Configurer(boolean ignoreAbsent) {
-            this.ignoreAbsent = ignoreAbsent;
+        public Configurer() {
         }
 
         protected void addCollector(Collector<T> collector) {
-            addExplicitCollector(collector, ignoreAbsent);
+            addExplicitCollector(collector);
         }
 
         public void add(final T element) {
