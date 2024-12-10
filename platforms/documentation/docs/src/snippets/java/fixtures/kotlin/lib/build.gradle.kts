@@ -35,7 +35,7 @@ dependencies {
 // tag::publishing_test_fixtures[]
 publishing {
     publications {
-        register<MavenPublication>("mavenJava") {
+        create<MavenPublication>("mavenJava") {
             from(components["java"])
         }
     }
