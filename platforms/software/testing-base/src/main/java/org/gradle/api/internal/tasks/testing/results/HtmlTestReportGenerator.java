@@ -18,9 +18,7 @@ package org.gradle.api.internal.tasks.testing.results;
 
 import org.gradle.api.NonNullApi;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.internal.tasks.testing.report.generic.GenericHtmlTestReport;
-import org.gradle.api.internal.tasks.testing.report.generic.TestTreeModel;
-import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResultStore;
+import org.gradle.api.internal.tasks.testing.GenericTestReportGenerator;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.service.scopes.Scope;
@@ -58,19 +56,14 @@ public class HtmlTestReportGenerator {
      *
      * @return The path to the index file of the generated report.
      */
-    public Path generateHtmlReport(Path reportsDirectory, Path resultsDirectory) throws IOException {
+    public Path generateHtmlReport(Path reportsDirectory, Path resultsDirectory) {
         try {
             Files.createDirectories(reportsDirectory);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
 
-        SerializableTestResultStore store = new SerializableTestResultStore(resultsDirectory);
-        TestTreeModel model = TestTreeModel.loadModelFromStores(Collections.singletonList(store));
-        String rootName = model.getPerRootInfo().keySet().iterator().next();
-        GenericHtmlTestReport htmlReport = new GenericHtmlTestReport(buildOperationRunner, buildOperationExecutor, Collections.singletonMap(rootName, store.openOutputReader()));
-        htmlReport.generateReport(model, reportsDirectory);
-
+        new GenericTestReportGenerator(Collections.singletonList(resultsDirectory)).generateReport(buildOperationRunner, buildOperationExecutor, reportsDirectory);
         return reportsDirectory.resolve("index.html");
     }
 

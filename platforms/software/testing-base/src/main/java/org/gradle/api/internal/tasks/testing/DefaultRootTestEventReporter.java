@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.testing;
 
 import org.gradle.api.NonNullApi;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.tasks.testing.results.HtmlTestReportGenerator;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResultStore;
 import org.gradle.api.internal.tasks.testing.results.TestExecutionResultsListener;
@@ -67,11 +68,15 @@ class DefaultRootTestEventReporter extends DefaultGroupTestEventReporter {
     }
 
     @Override
-    public void close() throws IOException {
+    public void close() {
         super.close();
 
         // Ensure binary results are written to disk.
-        testResultWriter.close();
+        try {
+            testResultWriter.close();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
 
         boolean rootTestFailed = failureMessage != null;
 

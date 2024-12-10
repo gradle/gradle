@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.testing;
 
 import org.gradle.api.NonNullApi;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.Directory;
 import org.gradle.api.internal.tasks.testing.logging.SimpleTestEventLogger;
 import org.gradle.api.internal.tasks.testing.logging.TestEventProgressListener;
@@ -62,7 +63,7 @@ public final class DefaultTestEventReporterFactory implements TestEventReporterF
         String rootName,
         Directory binaryResultsDirectory,
         Directory htmlReportDirectory
-    ) throws IOException {
+    ) {
         ListenerBroadcast<TestListenerInternal> testListenerInternalBroadcaster = listenerManager.createAnonymousBroadcaster(TestListenerInternal.class);
 
         // Renders console output for the task
@@ -73,7 +74,12 @@ public final class DefaultTestEventReporterFactory implements TestEventReporterF
 
         // Record all emitted results to disk
         Path binaryResultsDir = binaryResultsDirectory.getAsFile().toPath();
-        SerializableTestResultStore.Writer testResultWriter = new SerializableTestResultStore(binaryResultsDir).openWriter();
+        SerializableTestResultStore.Writer testResultWriter;
+        try {
+            testResultWriter = new SerializableTestResultStore(binaryResultsDir).openWriter();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
         testListenerInternalBroadcaster.add(testResultWriter);
 
         return new LifecycleTrackingGroupTestEventReporter(new DefaultRootTestEventReporter(

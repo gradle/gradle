@@ -44,13 +44,13 @@ import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
+import java.util.OptionalLong;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
@@ -69,11 +69,6 @@ public final class SerializableTestResultStore {
      * </p>
      */
     private static final int STORE_VERSION = 1;
-
-    /*
-     * Results are encoded as an id, followed by the result, followed by its parent id, or 0 if it has no parent.
-     * A 0 id terminates the file.
-     */
 
     private final Path serializedResultsFile;
     private final Path outputZipFile;
@@ -94,12 +89,18 @@ public final class SerializableTestResultStore {
     @NonNullApi
     public static final class Writer implements Closeable, TestListenerInternal {
         private final Map<Object, Long> assignedIds = new HashMap<>();
+        private final Path serializedResultsFile;
+        private final Path temporaryResultsFile;
         private final KryoBackedEncoder resultsEncoder;
         private final FileSystem outputZipFileSystem;
+        private boolean writtenRootName = false;
         private long nextId = 1;
 
         private Writer(Path serializedResultsFile, Path outputZipFile) throws IOException {
-            resultsEncoder = new KryoBackedEncoder(Files.newOutputStream(serializedResultsFile));
+            this.serializedResultsFile = serializedResultsFile;
+            Files.createDirectories(serializedResultsFile.getParent());
+            temporaryResultsFile = Files.createTempFile(serializedResultsFile.getParent(), "in-progress-results-generic", ".bin");
+            resultsEncoder = new KryoBackedEncoder(Files.newOutputStream(temporaryResultsFile));
             resultsEncoder.writeSmallInt(STORE_VERSION);
             try {
                 // Truncate existing output zip file
@@ -120,6 +121,13 @@ public final class SerializableTestResultStore {
         public void started(TestDescriptorInternal testDescriptor, TestStartEvent startEvent) {
             long id = nextId++;
             assignedIds.put(testDescriptor.getId(), id);
+            if (testDescriptor.getParent() == null) {
+                if (writtenRootName) {
+                    throw new IllegalStateException("Multiple roots");
+                }
+                writtenRootName = true;
+                resultsEncoder.writeString(testDescriptor.getName());
+            }
         }
 
         @Override
@@ -133,6 +141,11 @@ public final class SerializableTestResultStore {
 
             for (Throwable throwable : testResult.getExceptions()) {
                 testNodeBuilder.addFailure(new SerializableFailure(failureMessage(throwable), stackTrace(throwable), exceptionClassName(throwable)));
+            }
+
+            // Sanity check so we don't write invalid data to disk
+            if (!writtenRootName) {
+                throw new IllegalStateException("Root was not started before a test was completed");
             }
 
             // We remove the id here since no further events should come for this test, and it won't be needed as a parent id anymore
@@ -201,6 +214,8 @@ public final class SerializableTestResultStore {
             // Write a 0 id to terminate the file
             resultsEncoder.writeSmallLong(0);
             CompositeStoppable.stoppable(resultsEncoder, outputZipFileSystem).stop();
+            // Move the temporary results file to the final location
+            Files.move(temporaryResultsFile, serializedResultsFile, StandardCopyOption.REPLACE_EXISTING);
         }
     }
 
@@ -208,6 +223,8 @@ public final class SerializableTestResultStore {
         if (Files.exists(serializedResultsFile) && Files.exists(outputZipFile)) {
             // Inspect the results file, read first ID to see if there are any results
             try (KryoBackedDecoder decoder = openAndInitializeDecoder()) {
+                // Read and discard root name
+                decoder.readString();
                 return decoder.readSmallLong() != 0;
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
@@ -218,47 +235,43 @@ public final class SerializableTestResultStore {
     }
 
     @NonNullApi
-    public static final class StoredResult {
+    public static final class OutputTrackedResult {
         private final long id;
         private final SerializableTestResult testResult;
         private final long parentId;
 
-        private StoredResult(long id, SerializableTestResult testResult, long parentId) {
+        private OutputTrackedResult(long id, SerializableTestResult testResult, long parentId) {
             this.id = id;
             this.testResult = testResult;
             this.parentId = parentId;
         }
 
-        public SerializableTestResult getTestResult() {
+        public SerializableTestResult getInnerResult() {
             return testResult;
         }
 
-        public Object getId() {
+        public long getOutputId() {
             return id;
         }
 
-        @Nullable
-        public Object getParentId() {
-            return parentId == 0 ? null : parentId;
+        public OptionalLong getParentOutputId() {
+            return parentId == 0 ? OptionalLong.empty() : OptionalLong.of(parentId);
         }
     }
 
     /**
-     * Get the root result of the test results.
+     * Get the root name of the test results.
      *
-     * @return the root result
+     * @return the root name
      * @throws IllegalStateException if there are no results
      */
-    public StoredResult getRootResult() throws IOException {
+    public String getRootName() throws IOException {
         if (!hasResults()) {
             throw new IllegalStateException("No results");
         }
-        return findInResults(result -> {
-            if (result.getParentId() == null) {
-                return result;
-            }
-            return null;
-        }).orElseThrow(() -> new IllegalStateException("No root result"));
+        try (KryoBackedDecoder resultsDecoder = openAndInitializeDecoder()) {
+            return resultsDecoder.readString();
+        }
     }
 
     /**
@@ -268,15 +281,10 @@ public final class SerializableTestResultStore {
      * @param action the action to perform on each result
      * @throws IOException if an error occurs while reading the results
      */
-    public void forEachResult(Consumer<? super StoredResult> action) throws IOException {
-        findInResults(result -> {
-            action.accept(result);
-            return null;
-        });
-    }
-
-    private <T> Optional<T> findInResults(Function<? super StoredResult, T> action) throws IOException {
+    public void forEachResult(Consumer<? super OutputTrackedResult> action) throws IOException {
         try (KryoBackedDecoder resultsDecoder = openAndInitializeDecoder()) {
+            // Read and discard root name
+            resultsDecoder.readString();
             while (true) {
                 long id = resultsDecoder.readSmallLong();
                 if (id == 0) {
@@ -290,13 +298,9 @@ public final class SerializableTestResultStore {
                 if (parentId < 0) {
                     throw new IllegalStateException("Invalid parent id: " + parentId);
                 }
-                T result = action.apply(new StoredResult(id, testResult, parentId));
-                if (result != null) {
-                    return Optional.of(result);
-                }
+                action.accept(new OutputTrackedResult(id, testResult, parentId));
             }
         }
-        return Optional.empty();
     }
 
     private KryoBackedDecoder openAndInitializeDecoder() throws IOException {
@@ -331,16 +335,16 @@ public final class SerializableTestResultStore {
         }
 
         @Nullable
-        private ZipEntry getEntry(StoredResult result, TestOutputEvent.Destination destination) {
-            return outputZipFile.getEntry(result.id + "/" + destination.name());
+        private ZipEntry getEntry(long id, TestOutputEvent.Destination destination) {
+            return outputZipFile.getEntry(id + "/" + destination.name());
         }
 
-        public boolean hasOutput(StoredResult result, TestOutputEvent.Destination destination) {
-            return getEntry(result, destination) != null;
+        public boolean hasOutput(long id, TestOutputEvent.Destination destination) {
+            return getEntry(id, destination) != null;
         }
 
-        public java.io.Reader getOutput(StoredResult result, TestOutputEvent.Destination destination) {
-            ZipEntry entry = getEntry(result, destination);
+        public java.io.Reader getOutput(long id, TestOutputEvent.Destination destination) {
+            ZipEntry entry = getEntry(id, destination);
             if (entry == null) {
                 // Map no entry to no output
                 return new NullReader();

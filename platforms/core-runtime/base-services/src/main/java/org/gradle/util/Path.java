@@ -318,6 +318,11 @@ public class Path implements Comparable<Path> {
     /**
      * Iterate over all ancestors of this path, starting with the root path (if absolute) or the first segment (if relative) and not including this path.
      *
+     * <p>
+     * For example, the path {@code :a:b:c} has the ancestors {@code :}, {@code :a}, and {@code :a:b}.
+     * The path {@code a:b:c} has the ancestors {@code a}, and {@code a:b}.
+     * </p>
+     *
      * @since 8.13
      */
     @Incubating

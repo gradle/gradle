@@ -108,9 +108,9 @@ final class GenericPageRenderer extends TabbedPageRenderer<TestTreeModel> {
         // Special case -- if there's only one root, and it has no output, don't show tabs.
         if (getModel().getPerRootInfo().size() == 1) {
             String rootName = getModel().getPerRootInfo().keySet().iterator().next();
-            SerializableTestResultStore.StoredResult result = getModel().getPerRootInfo().get(rootName).getResult();
-            if (!outputReaders.get(rootName).hasOutput(result, TestOutputEvent.Destination.StdOut) &&
-                !outputReaders.get(rootName).hasOutput(result, TestOutputEvent.Destination.StdErr)) {
+            long outputId = getModel().getPerRootInfo().get(rootName).getOutputId();
+            if (!outputReaders.get(rootName).hasOutput(outputId, TestOutputEvent.Destination.StdOut) &&
+                !outputReaders.get(rootName).hasOutput(outputId, TestOutputEvent.Destination.StdErr)) {
                 return new PerRootTabRenderer.ForSummary(rootName);
             }
         }
@@ -120,10 +120,10 @@ final class GenericPageRenderer extends TabbedPageRenderer<TestTreeModel> {
             String tabPrefix = rootDisplayNames.size() == 1 ? "" : ("'" + rootDisplayNames.get(rootName) + "' ");
             tabsRenderer.add(tabPrefix + "summary", new PerRootTabRenderer.ForSummary(rootName));
             SerializableTestResultStore.OutputReader outputReader = outputReaders.get(rootName);
-            if (outputReader.hasOutput(info.getResult(), TestOutputEvent.Destination.StdOut)) {
+            if (outputReader.hasOutput(info.getOutputId(), TestOutputEvent.Destination.StdOut)) {
                 tabsRenderer.add(tabPrefix + "standard output", new PerRootTabRenderer.ForOutput(rootName, outputReader, TestOutputEvent.Destination.StdOut));
             }
-            if (outputReader.hasOutput(info.getResult(), TestOutputEvent.Destination.StdErr)) {
+            if (outputReader.hasOutput(info.getOutputId(), TestOutputEvent.Destination.StdErr)) {
                 tabsRenderer.add(tabPrefix + "error output", new PerRootTabRenderer.ForOutput(rootName, outputReader, TestOutputEvent.Destination.StdErr));
             }
         });

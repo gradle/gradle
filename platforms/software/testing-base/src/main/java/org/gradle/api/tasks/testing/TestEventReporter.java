@@ -18,7 +18,6 @@ package org.gradle.api.tasks.testing;
 
 import org.gradle.api.Incubating;
 
-import java.io.IOException;
 import java.time.Instant;
 import java.util.Map;
 
@@ -133,5 +132,5 @@ public interface TestEventReporter extends AutoCloseable {
      * @since 8.12
      */
     @Override
-    void close() throws IOException;
+    void close();
 }

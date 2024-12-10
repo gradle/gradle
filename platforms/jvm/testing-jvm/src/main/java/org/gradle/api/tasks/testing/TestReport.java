@@ -20,8 +20,8 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.tasks.testing.LegacyTestReportGenerator;
 import org.gradle.api.internal.tasks.testing.GenericTestReportGenerator;
+import org.gradle.api.internal.tasks.testing.LegacyTestReportGenerator;
 import org.gradle.api.internal.tasks.testing.TestReportGenerator;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResultStore;
 import org.gradle.api.model.ObjectFactory;
@@ -42,9 +42,9 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.work.DisableCachingByDefault;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
+import java.util.stream.Collectors;
 
 import static org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType.GETTER;
 import static org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType.SETTER;
@@ -179,8 +179,8 @@ public abstract class TestReport extends DefaultTask {
     void generateReport() {
         try {
             TestReportGenerator impl = detectAndCreateImplementation(getTestResults());
-            if (impl != null && impl.hasResults()) {
-                impl.generateReport(getBuildOperationRunner(), getBuildOperationExecutor(), getDestinationDirectory().get().getAsFile());
+            if (impl.hasResults()) {
+                impl.generateReport(getBuildOperationRunner(), getBuildOperationExecutor(), getDestinationDirectory().get().getAsFile().toPath());
             } else {
                 getLogger().info("{} - no binary test results found in dirs: {}.", getPath(), getTestResults().getFiles());
                 setDidWork(false);
@@ -190,7 +190,6 @@ public abstract class TestReport extends DefaultTask {
         }
     }
 
-    @Nullable
     static TestReportGenerator detectAndCreateImplementation(FileCollection resultDirs) {
         Boolean isGenericImplementation = null;
         for (File resultDir : resultDirs.getFiles()) {
@@ -201,10 +200,9 @@ public abstract class TestReport extends DefaultTask {
                 throw new IllegalStateException("Cannot mix generic and non-generic test results in the same report.");
             }
         }
-        if (isGenericImplementation == null) {
-            return null;
-        } else if (isGenericImplementation) {
-            return new GenericTestReportGenerator(resultDirs);
+        assert isGenericImplementation != null : "@SkipWhenEmpty should prevent this from being called with an empty collection";
+        if (isGenericImplementation) {
+            return new GenericTestReportGenerator(resultDirs.getFiles().stream().map(File::toPath).collect(Collectors.toSet()));
         } else {
             return new LegacyTestReportGenerator(resultDirs);
         }

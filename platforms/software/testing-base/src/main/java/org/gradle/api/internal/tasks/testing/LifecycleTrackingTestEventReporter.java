@@ -20,7 +20,6 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.tasks.testing.TestEventReporter;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 
-import java.io.IOException;
 import java.time.Instant;
 import java.util.Map;
 
@@ -85,7 +84,7 @@ class LifecycleTrackingTestEventReporter<T extends TestEventReporter> implements
     }
 
     @Override
-    public void close() throws IOException {
+    public void close() {
         if (state == State.CLOSED) {
             return;
         }

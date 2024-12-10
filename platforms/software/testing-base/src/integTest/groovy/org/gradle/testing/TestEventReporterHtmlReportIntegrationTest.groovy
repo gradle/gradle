@@ -17,8 +17,8 @@
 package org.gradle.testing
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.HtmlTestExecutionResult
-import org.gradle.integtests.fixtures.TestExecutionResult
+import org.gradle.api.internal.tasks.testing.report.generic.GenericHtmlTestExecutionResult
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.internal.logging.ConsoleRenderer
 
 class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec {
@@ -36,7 +36,7 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
 
         // Aggregate results are still emitted even if we don't print the URL to console
         aggregateResults()
-            .testClass("passing test")
+            .testPath(":passing suite")
             .assertTestCount(1, 0, 0)
     }
 
@@ -51,13 +51,13 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
         failure.assertHasCause("Test(s) failed.")
         failure.assertHasErrorOutput("See the test results for more details: " + resultsUrlFor("failing"))
         resultsFor("failing")
-            .testClass("failing test")
+            .testPath(":failing suite")
             .assertTestCount(1, 1, 0)
 
         // Aggregate results are still emitted even if we don't print the URL to console
         outputDoesNotContain("Aggregate test results")
         aggregateResults()
-            .testClass("failing test")
+            .testPath(":failing suite")
             .assertTestCount(1, 1, 0)
     }
 
@@ -75,9 +75,9 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
         // Aggregate results are still emitted even if we don't print the URL to console
         outputDoesNotContain("Aggregate test results")
         def aggregateResults = aggregateResults()
-        aggregateResults.testClass("passing test")
+        aggregateResults.testPath(":passing suite")
             .assertTestCount(1, 0, 0)
-        aggregateResults.testClass("failing test")
+        aggregateResults.testPath(":failing suite")
             .assertTestCount(1, 1, 0)
     }
 
@@ -93,22 +93,22 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
         failure.assertHasDescription("Execution failed for task ':failing1'.")
         failure.assertHasErrorOutput("See the test results for more details: " + resultsUrlFor("failing1"))
         resultsFor("failing1")
-            .testClass("failing1 suite")
+            .testPath("failing1 suite")
             .assertTestCount(1, 1, 0)
 
         failure.assertHasDescription("Execution failed for task ':failing2'.")
         failure.assertHasErrorOutput("See the test results for more details: " + resultsUrlFor("failing2"))
         resultsFor("failing2")
-            .testClass("failing2 suite")
+            .testPath("failing2 suite")
             .assertTestCount(1, 1, 0)
 
         def aggregateReportFile = file("build/reports/aggregate-test-results/index.html")
         def renderedUrl = new ConsoleRenderer().asClickableFileUrl(aggregateReportFile);
         outputContains("Aggregate test results: " + renderedUrl)
         def aggregateResults = aggregateResults()
-        aggregateResults.testClass("failing1 suite")
+        aggregateResults.testPath("failing1 suite")
             .assertTestCount(1, 1, 0)
-        aggregateResults.testClass("failing2 suite")
+        aggregateResults.testPath("failing2 suite")
             .assertTestCount(1, 1, 0)
     }
 
@@ -118,12 +118,12 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
         renderedUrl
     }
 
-    private TestExecutionResult resultsFor(String name) {
-        return new HtmlTestExecutionResult(testDirectory, "build/reports/tests/${name}")
+    private GenericTestExecutionResult resultsFor(String name) {
+        return new GenericHtmlTestExecutionResult(testDirectory, "build/reports/tests/${name}")
     }
 
-    private TestExecutionResult aggregateResults() {
-        return new HtmlTestExecutionResult(testDirectory, "build/reports/aggregate-test-results")
+    private GenericTestExecutionResult aggregateResults() {
+        return new GenericHtmlTestExecutionResult(testDirectory, "build/reports/aggregate-test-results")
     }
 
     def passingTask(String name) {

@@ -20,12 +20,11 @@ import org.gradle.api.NonNullApi;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRunner;
 
-import java.io.File;
-import java.io.IOException;
+import java.nio.file.Path;
 
 @NonNullApi
 public interface TestReportGenerator {
     boolean hasResults();
 
-    void generateReport(BuildOperationRunner operationRunner, BuildOperationExecutor operationExecutor, File outputDir) throws IOException;
+    void generateReport(BuildOperationRunner operationRunner, BuildOperationExecutor operationExecutor, Path outputDir);
 }

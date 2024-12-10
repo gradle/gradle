@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.testing;
 
 import org.gradle.api.NonNullApi;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.tasks.testing.junit.result.AggregateTestResultsProvider;
 import org.gradle.api.internal.tasks.testing.junit.result.BinaryResultBackedTestResultsProvider;
@@ -27,6 +28,7 @@ import org.gradle.internal.operations.BuildOperationRunner;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -74,10 +76,12 @@ public class LegacyTestReportGenerator implements TestReportGenerator {
     }
 
     @Override
-    public void generateReport(BuildOperationRunner operationRunner, BuildOperationExecutor operationExecutor, File outputDir) throws IOException {
+    public void generateReport(BuildOperationRunner operationRunner, BuildOperationExecutor operationExecutor, Path outputDir) {
         HtmlTestReport testReport = new HtmlTestReport(operationRunner, operationExecutor);
         try (TestResultsProvider provider = this.provider.get()) {
-            testReport.generateReport(provider, outputDir);
+            testReport.generateReport(provider, outputDir.toFile());
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
         }
     }
 }

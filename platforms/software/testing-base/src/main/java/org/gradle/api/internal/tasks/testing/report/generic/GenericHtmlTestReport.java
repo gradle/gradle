@@ -35,7 +35,9 @@ import org.gradle.util.Path;
 import org.gradle.util.internal.GFileUtils;
 
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Generates an HTML report based on test results from an {@link TestTreeModel}.
@@ -97,7 +99,7 @@ public class GenericHtmlTestReport {
 
             Map<String, String> rootDisplayNames = new HashMap<>(model.getPerRootInfo().size());
             for (Map.Entry<String, TestTreeModel.PerRootInfo> entry : model.getPerRootInfo().entrySet()) {
-                rootDisplayNames.put(entry.getKey(), entry.getValue().getResult().getTestResult().getDisplayName());
+                rootDisplayNames.put(entry.getKey(), entry.getValue().getResult().getDisplayName());
             }
 
             htmlRenderer.render(model, new ReportRenderer<TestTreeModel, HtmlReportBuilder>() {
@@ -117,10 +119,12 @@ public class GenericHtmlTestReport {
                         outputReaders,
                         rootDisplayNames
                     ));
-                    for (TestTreeModel.PerRootInfo child : tree.getPerRootInfo().values()) {
-                        for (String childName : child.getChildren()) {
-                            queueTree(queue, tree.getChildren().get(childName), output);
-                        }
+                    Set<String> allChildren = new LinkedHashSet<>();
+                    for (TestTreeModel.PerRootInfo perRootInfo : tree.getPerRootInfo().values()) {
+                        allChildren.addAll(perRootInfo.getChildren());
+                    }
+                    for (String child : allChildren) {
+                        queueTree(queue, tree.getChildren().get(child), output);
                     }
                 }
             }, reportDir.toFile());
