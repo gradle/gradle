@@ -83,8 +83,8 @@ class VariantResolvingArtifactSetTest extends Specification {
         artifactSet.select(services, spec)
 
         then:
-        1 * variantResolver.resolveVariant(_, subvariant1) >> Mock(ResolvedVariant)
-        1 * variantResolver.resolveVariant(_, subvariant2) >> Mock(ResolvedVariant)
+        1 * variantResolver.resolveVariantArtifactSet(_, subvariant1) >> Mock(ResolvedVariant)
+        1 * variantResolver.resolveVariantArtifactSet(_, subvariant2) >> Mock(ResolvedVariant)
         0 * variantResolver._
     }
 
@@ -106,7 +106,7 @@ class VariantResolvingArtifactSetTest extends Specification {
 
         then:
         1 * selector.select(_, _, _) >> artifacts
-        _ * variantResolver.resolveVariant(_, _) >> Mock(ResolvedVariant)
+        _ * variantResolver.resolveVariantArtifactSet(_, _) >> Mock(ResolvedVariant)
         selected == artifacts
 
         where:
