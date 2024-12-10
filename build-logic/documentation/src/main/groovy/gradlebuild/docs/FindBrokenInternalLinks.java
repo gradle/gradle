@@ -226,7 +226,7 @@ public abstract class FindBrokenInternalLinks extends DefaultTask {
                 gatherDeadLinksInLineSamples(sourceFile, line, lineNumber, errorsForFile);
                 gatherDeadJavadocLinksInLine(sourceFile, line, lineNumber, errorsForFile);
                 gatherMarkdownLinksInLine(sourceFile, line, lineNumber, errorsForFile);
-                // TO DO - Check samples links in samples
+                gatherDeadSamplesLinksInLineSamples(sourceFile, line, lineNumber, errorsForFile);
 
                 line = br.readLine();
             }
@@ -247,6 +247,38 @@ public abstract class FindBrokenInternalLinks extends DefaultTask {
             File referencedFile = new File(getDocumentationRoot().get().getAsFile(), link);
             if (!referencedFile.exists() || referencedFile.isDirectory()) {
                 errorsForFile.add(new Error(lineNumber, line, "Looking for file named " + link));
+            }
+        }
+    }
+
+    private void gatherDeadSamplesLinksInLineSamples(File sourceFile, String line, int lineNumber, List<Error> errorsForFile) {
+        Matcher matcher = linkPattern.matcher(line);
+        while (matcher.find()) {
+            MatchResult xrefMatcher = matcher.toMatchResult();
+            String link = xrefMatcher.group(1);
+            if (link.contains("#")) {
+                Matcher linkMatcher = linkWithHashPattern.matcher(link);
+                if (linkMatcher.matches()) {
+                    MatchResult result = linkMatcher.toMatchResult();
+                    String fileName = getFileName(result.group(1), sourceFile);
+                    File referencedFile = new File(getSamplesRoot().get().getAsFile(), fileName);
+                    if (!referencedFile.exists() || referencedFile.isDirectory()) {
+                        errorsForFile.add(new Error(lineNumber, line, "Looking for file named " + fileName));
+                    } else {
+                        String idName = result.group(2);
+                        if (idName.isEmpty()) {
+                            errorsForFile.add(new Error(lineNumber, line, "Missing section reference for link to " + fileName));
+                        } else {
+                            if (!fileContainsText(referencedFile, "[[" + idName + "]]")) {
+                                errorsForFile.add(new Error(lineNumber, line, "Looking for section named " + idName + " in " + fileName));
+                            }
+                        }
+                    }
+                }
+            } else {
+                if (!fileContainsText(sourceFile, "[[" + link + "]]")) {
+                    errorsForFile.add(new Error(lineNumber, line, "Looking for section named " + link + " in " + sourceFile.getName()));
+                }
             }
         }
     }
