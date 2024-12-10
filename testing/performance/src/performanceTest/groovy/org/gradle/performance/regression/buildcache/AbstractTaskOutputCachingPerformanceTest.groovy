@@ -88,7 +88,7 @@ class AbstractTaskOutputCachingPerformanceTest extends AbstractCrossVersionPerfo
             def httpCacheClass = Class.forName('org.gradle.caching.http.HttpBuildCache')
             buildCache {
                 local {
-                    directory = '${cacheDir.absoluteFile.toURI()}'
+                    directory = file('${cacheDir.absoluteFile.toURI()}')
                 }
                 remote(httpCacheClass) {
                     url = '${buildCacheServer.uri}/'

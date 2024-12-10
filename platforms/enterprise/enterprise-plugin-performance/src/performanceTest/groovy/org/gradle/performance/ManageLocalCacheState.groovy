@@ -35,7 +35,7 @@ class ManageLocalCacheState implements BuildMutator {
         settingsFile << """
                 buildCache {
                     local {
-                        directory = '${cacheDir.absoluteFile.toURI()}'
+                        directory = file('${cacheDir.absoluteFile.toURI()}')
                     }
                 }
             """.stripIndent()

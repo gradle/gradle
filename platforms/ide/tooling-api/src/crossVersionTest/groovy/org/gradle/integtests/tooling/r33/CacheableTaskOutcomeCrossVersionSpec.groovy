@@ -44,7 +44,7 @@ class CacheableTaskOutcomeCrossVersionSpec extends ToolingApiSpecification {
         settingsFile << """
             buildCache {
                 local {
-                    directory = "${TextUtil.escapeString(cacheDir.absolutePath)}"
+                    directory = file("${TextUtil.escapeString(cacheDir.absolutePath)}")
                 }
             }
         """
