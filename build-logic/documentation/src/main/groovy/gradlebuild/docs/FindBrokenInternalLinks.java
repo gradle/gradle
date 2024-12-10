@@ -69,6 +69,7 @@ public abstract class FindBrokenInternalLinks extends DefaultTask {
     // <a href="samples/sample_problems_api_usage.html">
     private final Pattern releaseNotesSamplesPattern = Pattern.compile("samples/(.*?)(?=\\.html)");
 
+    // link:{userManualPath}/gradle_ides.html#gradle_ides[IDE that supports Gradle]
     private final Pattern samplesUserGuidePattern = Pattern.compile("link:\\{userManualPath\\}/(.*?\\.html)");
 
     @InputDirectory

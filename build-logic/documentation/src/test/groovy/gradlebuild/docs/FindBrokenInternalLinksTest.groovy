@@ -23,8 +23,8 @@ import spock.lang.TempDir
 class FindBrokenInternalLinksTest extends Specification {
     @TempDir
     private File projectDir
-
     private File docsRoot
+    private File samplesRoot
     private File sampleDoc
     private File releaseNotes
     private File linkErrors
@@ -32,7 +32,8 @@ class FindBrokenInternalLinksTest extends Specification {
     private setup() {
         docsRoot = new File(projectDir, "docsRoot")
         new File(docsRoot, 'javadoc').mkdirs()
-        sampleDoc = new File(docsRoot, "sample.adoc")
+        samplesRoot = docsRoot
+        sampleDoc = new File(samplesRoot, "sample.adoc")
         new File(projectDir,"build/working/release-notes").mkdirs()
         releaseNotes = new File(projectDir, "build/working/release-notes/raw.html")
         linkErrors = new File(projectDir, "build/reports/dead-internal-links.txt")
@@ -52,6 +53,8 @@ class FindBrokenInternalLinksTest extends Specification {
                 }
             }
 
+            tasks.register('assembleSamples')
+
             javadocAll {
                 enabled = false
             }
@@ -60,6 +63,7 @@ class FindBrokenInternalLinksTest extends Specification {
                 documentationRoot = project.layout.projectDirectory.dir('docsRoot')
                 javadocRoot = documentationRoot.dir('javadoc')
                 releaseNotesFile = project.layout.buildDirectory.file('working/release-notes/raw.html')
+                samplesRoot = documentationRoot;
             }
         """
     }
