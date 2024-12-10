@@ -11,7 +11,7 @@ buildCache {
 buildCache {
     remote<HttpBuildCache> {
         url = uri("https://example.com:8123/cache/")
-        isAllowUntrustedServer = true
+        allowUntrustedServer = true
     }
 }
 // end::allow-untrusted-server[]
@@ -20,7 +20,7 @@ buildCache {
 buildCache {
     remote<HttpBuildCache> {
         url = uri("https://example.com:8123/cache/")
-        isUseExpectContinue = true
+        useExpectContinue = true
     }
 }
 // end::use-expect-continue[]

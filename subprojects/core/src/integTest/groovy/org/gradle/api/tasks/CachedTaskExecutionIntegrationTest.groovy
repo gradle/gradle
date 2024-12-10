@@ -239,7 +239,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         remoteProjectDir.file("settings.gradle") << """
             buildCache {
                 local {
-                    directory = '${cacheDir.absoluteFile.toURI()}'
+                    directory = file('${cacheDir.absoluteFile.toURI()}')
                 }
             }
         """
@@ -267,7 +267,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         remoteProjectDir.file("settings.gradle") << """
             buildCache {
                 local {
-                    directory = '${cacheDir.absoluteFile.toURI()}'
+                    directory = file('${cacheDir.absoluteFile.toURI()}')
                 }
             }
         """
