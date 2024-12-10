@@ -37,24 +37,12 @@ interface CollectionSupplier<T, C extends Collection<? extends T>> extends Value
      * elements supplied by the given collector.
      *
      * @param added a collector that represents an addition to the collection to be returned by this supplier
+     * @param ignoreAbsent if the resulting supplier should ignore absent value of this supplier or added one and fallback to empty collection
+     *
      * @return a new supplier that produces a collection that contains the
      * same elements as this supplier, plus the elements obtained via the given <code>added</code> collector
      */
-    CollectionSupplier<T, C> plus(Collector<T> added);
+    CollectionSupplier<T, C> plus(Collector<T> added, boolean ignoreAbsent);
 
     ExecutionTimeValue<? extends C> calculateExecutionTimeValue();
-
-    /**
-     * Returns a view of this supplier that will calculate its value as empty if it would be missing.
-     * If this supplier already ignores absent results, returns this supplier.
-     */
-    CollectionSupplier<T, C> absentIgnoring();
-
-    /**
-     * Returns a view of this supplier that will calculate its value as empty if it would be missing,
-     * if required. If not required, or this supplier already ignores absent results, returns this supplier.
-     */
-    default CollectionSupplier<T, C> absentIgnoringIfNeeded(boolean required) {
-        return required ? absentIgnoring() : this;
-    }
 }

@@ -99,6 +99,14 @@ public class NativeServices implements ServiceRegistrationProvider {
             @Override
             public boolean initialize(File nativeBaseDir, boolean useNativeIntegrations) {
                 if (useNativeIntegrations) {
+                    OperatingSystem operatingSystem = OperatingSystem.current();
+                    if (operatingSystem.isMacOsX()) {
+                        String version = operatingSystem.getVersion();
+                        if (VersionNumber.parse(version).getMajor() < 12) {
+                            LOGGER.info("Disabling file system watching on macOS {}, as it is only supported for macOS 12+", version);
+                            return false;
+                        }
+                    }
                     try {
                         FileEvents.init(nativeBaseDir);
                         LOGGER.info("Initialized file system watching services in: {}", nativeBaseDir);
@@ -475,14 +483,6 @@ public class NativeServices implements ServiceRegistrationProvider {
 
             @Override
             public boolean useFileSystemWatching() {
-                OperatingSystem operatingSystem = OperatingSystem.current();
-                if (operatingSystem.isMacOsX()) {
-                    String version = operatingSystem.getVersion();
-                    if (VersionNumber.parse(version).getMajor() < 12) {
-                        LOGGER.info("Disabling file system watching on macOS {}, as it is only supported for macOS 12+", version);
-                        return false;
-                    }
-                }
                 return isFeatureEnabled(NativeFeatures.FILE_SYSTEM_WATCHING);
             }
         };

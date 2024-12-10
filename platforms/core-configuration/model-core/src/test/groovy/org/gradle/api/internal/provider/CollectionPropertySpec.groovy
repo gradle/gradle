@@ -29,6 +29,7 @@ import org.spockframework.lang.Wildcard
 import java.util.function.Consumer
 
 import static org.gradle.api.internal.provider.CircularEvaluationSpec.ProviderConsumer.GET_PRODUCER
+import static org.gradle.api.internal.provider.CircularEvaluationSpec.ProviderConsumer.TO_STRING
 import static org.gradle.api.internal.provider.Providers.notDefined
 
 abstract class CollectionPropertySpec<C extends Collection<String>> extends PropertySpec<C> {
@@ -1165,6 +1166,11 @@ The value of this property is derived from: <source>""")
 
     static abstract class CollectionPropertyCircularChainEvaluationTest<T, C extends Collection<T>> extends PropertySpec.PropertyCircularChainEvaluationSpec<C> {
         @Override
+        List<Consumer<ProviderInternal<?>>> safeConsumers() {
+            return [TO_STRING, GET_PRODUCER]
+        }
+
+        @Override
         abstract AbstractCollectionProperty<T, C> property()
 
         def "calling #consumer throws exception if added item provider references the property"(
@@ -1385,48 +1391,48 @@ The value of this property is derived from: <source>""")
         }
 
         when:
-        operations.each {operation -> operation.call(property) }
+        operations.each { operation -> operation.call(property) }
 
         then:
         expected == null || property.getOrNull() == toImmutable(expected)
         expected != null || !property.present
 
         where:
-        expected    | explicit      | convention    | label                                             | operations
-        ["1"]       | _             | _             | "add"                                             | { it.add("1") }
-        ["1"]       | _             | _             | "append"                                          | { it.append("1") }
-        ["1"]       | []            | _             | "add to empty"                                    | { it.add("1") }
-        ["1"]       | []            | _             | "append to empty"                                 | { it.append("1") }
-        ["1"]       | _             | []            | "add to empty convention"                         | { it.add("1") }
-        ["1"]       | _             | []            | "append to empty convention"                      | { it.append("1") }
-        null        | null          | []            | "add to unset value w/ empty convention"          | { it.add("1") }
-        ["1"]       | null          | []            | "append to unset value w/ empty convention"       | { it.append("1") }
-        ["1"]       | _             | ["0"]         | "add to non-empty convention"                     | { it.add("1") }
-        ["0", "1"]  | _             | ["0"]         | "append to non-empty convention"                  | { it.append("1") }
-        null        | null          | ["0"]         | "add to unset value w/ non-empty convention"      | { it.add("1") }
-        ["0", "1"]  | null          | ["0"]         | "append to unset value w/ non-empty convention"   | { it.append("1") }
-        null        | notDefined()  | _             | "add to missing"                                  | { it.add("1") }
-        ["1"]       | notDefined()  | _             | "append to missing"                               | { it.append("1") }
-        null        | notDefined()  | ["0"]         | "add to missing w/ non-empty convention"          | { it.add("1") }
-        ["1"]       | notDefined()  | ["0"]         | "append to missing w/ non-empty convention"       | { it.append("1") }
-        null        | []            | _             | "add missing to empty value"                      | { it.add(notDefined()) }
-        []          | []            | _             | "append missing to empty value"                   | { it.append(notDefined()) }
-        null        | _             | _             | "add missing"                                     | { it.add(notDefined()) }
-        []          | _             | _             | "append missing"                                  | { it.append(notDefined()) }
-        ["1"]       | _             | _             | "add missing, then append"                        | { it.add(notDefined()) ; it.append("1") }
-        ["1"]       | _             | _             | "append missing, then add"                        | { it.append(notDefined()) ; it.add("1") }
-        ["1"]       | ["0"]         | _             | "add missing to non-empty value, then append"     | { it.add(notDefined()) ; it.append("1") }
-        ["0", "1"]  | ["0"]         | _             | "append missing to non-empty value, then add"     | { it.append(notDefined()) ; it.add("1") }
-        ["1"]       | _             | ["0"]         | "add missing to non-empty convention, then append"| { it.add(notDefined()) ; it.append("1") }
-        ["0", "1"]  | _             | ["0"]         | "append missing to non-empty convention, then add"| { it.append(notDefined()) ; it.add("1") }
-        ["1"]       | _             | _             | "add, then append missing"                        | { it.add("1") ; it.append(notDefined()) }
-        null        | _             | _             | "append, then add missing"                        | { it.append("1") ; it.add(notDefined()) }
-        ["0", "1"]  | ["0"]         | _             | "add to non-empty value, then append missing"     | { it.add("1") ; it.append(notDefined()) }
-        null        | ["0"]         | _             | "append to non-empty value, then add missing"     | { it.append("1") ; it.add(notDefined()) }
-        ["1"]       | _             | ["0"]         | "add to non-empty convention, then append missing"| { it.add("1") ; it.append(notDefined()) }
-        null        | _             | ["0"]         | "append to non-empty conventio, then add missing" | { it.append("1") ; it.add(notDefined()) }
-        ["1"]       | _             | _             | "add, then add missing, then append"              | { it.add("0") ; it.add(notDefined()) ; it.append("1") }
-        ["0", "1"]  | _             | _             | "add, then append missing, then add"              | { it.add("0") ; it.append(notDefined()) ; it.add("1") }
+        expected   | explicit     | convention | label                                              | operations
+        ["1"]      | _            | _          | "add"                                              | { it.add("1") }
+        ["1"]      | _            | _          | "append"                                           | { it.append("1") }
+        ["1"]      | []           | _          | "add to empty"                                     | { it.add("1") }
+        ["1"]      | []           | _          | "append to empty"                                  | { it.append("1") }
+        ["1"]      | _            | []         | "add to empty convention"                          | { it.add("1") }
+        ["1"]      | _            | []         | "append to empty convention"                       | { it.append("1") }
+        null       | null         | []         | "add to unset value w/ empty convention"           | { it.add("1") }
+        ["1"]      | null         | []         | "append to unset value w/ empty convention"        | { it.append("1") }
+        ["1"]      | _            | ["0"]      | "add to non-empty convention"                      | { it.add("1") }
+        ["0", "1"] | _            | ["0"]      | "append to non-empty convention"                   | { it.append("1") }
+        null       | null         | ["0"]      | "add to unset value w/ non-empty convention"       | { it.add("1") }
+        ["0", "1"] | null         | ["0"]      | "append to unset value w/ non-empty convention"    | { it.append("1") }
+        null       | notDefined() | _          | "add to missing"                                   | { it.add("1") }
+        ["1"]      | notDefined() | _          | "append to missing"                                | { it.append("1") }
+        null       | notDefined() | ["0"]      | "add to missing w/ non-empty convention"           | { it.add("1") }
+        ["1"]      | notDefined() | ["0"]      | "append to missing w/ non-empty convention"        | { it.append("1") }
+        null       | []           | _          | "add missing to empty value"                       | { it.add(notDefined()) }
+        []         | []           | _          | "append missing to empty value"                    | { it.append(notDefined()) }
+        null       | _            | _          | "add missing"                                      | { it.add(notDefined()) }
+        []         | _            | _          | "append missing"                                   | { it.append(notDefined()) }
+        ["1"]      | _            | _          | "add missing, then append"                         | { it.add(notDefined()); it.append("1") }
+        ["1"]      | _            | _          | "append missing, then add"                         | { it.append(notDefined()); it.add("1") }
+        ["1"]      | ["0"]        | _          | "add missing to non-empty value, then append"      | { it.add(notDefined()); it.append("1") }
+        ["0", "1"] | ["0"]        | _          | "append missing to non-empty value, then add"      | { it.append(notDefined()); it.add("1") }
+        ["1"]      | _            | ["0"]      | "add missing to non-empty convention, then append" | { it.add(notDefined()); it.append("1") }
+        ["0", "1"] | _            | ["0"]      | "append missing to non-empty convention, then add" | { it.append(notDefined()); it.add("1") }
+        ["1"]      | _            | _          | "add, then append missing"                         | { it.add("1"); it.append(notDefined()) }
+        null       | _            | _          | "append, then add missing"                         | { it.append("1"); it.add(notDefined()) }
+        ["0", "1"] | ["0"]        | _          | "add to non-empty value, then append missing"      | { it.add("1"); it.append(notDefined()) }
+        null       | ["0"]        | _          | "append to non-empty value, then add missing"      | { it.append("1"); it.add(notDefined()) }
+        ["1"]      | _            | ["0"]      | "add to non-empty convention, then append missing" | { it.add("1"); it.append(notDefined()) }
+        null       | _            | ["0"]      | "append to non-empty convention, then add missing" | { it.append("1"); it.add(notDefined()) }
+        ["1"]      | _            | _          | "add, then add missing, then append"               | { it.add("0"); it.add(notDefined()); it.append("1") }
+        ["0", "1"] | _            | _          | "add, then append missing, then add"               | { it.add("0"); it.append(notDefined()); it.add("1") }
     }
 
     def "execution time value is present if only undefined-safe operations are performed"() {
@@ -1445,7 +1451,7 @@ The value of this property is derived from: <source>""")
         def execTimeValue = property.calculateExecutionTimeValue()
 
         then:
-        assertCollectionIs(toImmutable(['2', '3', '4']), execTimeValue.toValue().get())
+        assertCollectionIs(execTimeValue.toValue().get(), toImmutable(['2', '3', '4']),)
     }
 
     def "property restores undefined-safe items"() {
@@ -1468,13 +1474,53 @@ The value of this property is derived from: <source>""")
         null  | ["1", "3"]
     }
 
+    def "property restores undefined-safe items that have #numProviders changing providers without values in front"() {
+        given:
+        numProviders.times {
+            property.add(Providers.changing { null as String })
+        }
+        property.append(Providers.changing { "1" })
+        property.add("2")
+
+        when:
+        def property2 = property()
+        property2.fromState(property.calculateExecutionTimeValue())
+
+        then:
+        assertValueIs(toImmutable(["1", "2"]), property2)
+
+        where:
+        // TODO(mlopatkin): Original implementation works only with numProviders == 1
+        numProviders << [1, 2]
+    }
+
+    def "#opName to empty property is undefined-safe"() {
+        given:
+        property.set(null as Iterable)
+
+        when:
+        op(property)
+
+        then:
+        assertValueIs(toImmutable(expected), property)
+
+        where:
+        opName                      | op                                         | expected
+        "append(1)"                 | { it.append("1") }                         | ["1"]
+        "appendAll(1, 2)"           | { it.appendAll(["1", "2"]) }               | ["1", "2"]
+        "append(provider(1))"       | { it.append(Providers.of("1")) }           | ["1"]
+        "appendAll(provider(1, 2))" | { it.appendAll(Providers.of(["1", "2"])) } | ["1", "2"]
+        "append(notDefined())"      | { it.append(notDefined()) }                | []
+        "appendAll(notDefined())"   | { it.appendAll(notDefined()) }             | []
+    }
+
     def "property remains undefined-safe after restored"() {
         given:
         property.append(notDefined())
         property.add("2")
         property.append(notDefined())
         property.append(notDefined())
-        property.addAll(supplierWithChangingExecutionTimeValues(['3'], ['3a'], ['3b'], ['3c'], ['3d']))
+        property.addAll(supplierWithChangingExecutionTimeValues(['3a'], ['3b'], ['3c'], ['3d']))
         property.addAll(supplierWithValues(['4']))
         property.append(notDefined())
 
@@ -1500,7 +1546,7 @@ The value of this property is derived from: <source>""")
         property3.fromState(execTimeValue2)
 
         then:
-        assertValueIs(['2', '3d', '4', '5', '6'], property3)
+        assertValueIs(['2', '3c', '4', '5', '6'], property3)
     }
 
     def "can alternate append and add"() {
@@ -1598,5 +1644,16 @@ The value of this property is derived from: <source>""")
         then:
         assertValueIs([])
         !property.explicit
+    }
+
+    def "can add a lot of providers"() {
+        given:
+        (0..<100000).each {
+            property.addAll(supplierWithProducer(Mock(Task), toImmutable([it.toString()])))
+        }
+
+        expect:
+        property.get().size() == 100000
+        property.getProducer().visitProducerTasks {}
     }
 }
