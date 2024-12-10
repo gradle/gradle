@@ -61,7 +61,7 @@ public class DefaultHttpBuildCacheServiceFactory implements BuildCacheServiceFac
 
     @Override
     public BuildCacheService createBuildCacheService(HttpBuildCache configuration, Describer describer) {
-        URI url = configuration.getUrl();
+        URI url = configuration.getUrl().getOrNull();
         if (url == null) {
             throw new IllegalStateException("HTTP build cache has no URL configured");
         }
@@ -81,9 +81,9 @@ public class DefaultHttpBuildCacheServiceFactory implements BuildCacheServiceFac
         }
 
         boolean authenticated = !authentications.isEmpty();
-        boolean allowUntrustedServer = configuration.isAllowUntrustedServer();
-        boolean allowInsecureProtocol = configuration.isAllowInsecureProtocol();
-        boolean useExpectContinue = configuration.isUseExpectContinue();
+        boolean allowUntrustedServer = configuration.getAllowUntrustedServer().get();
+        boolean allowInsecureProtocol = configuration.getAllowInsecureProtocol().get();
+        boolean useExpectContinue = configuration.getUseExpectContinue().get();
 
         HttpRedirectVerifier redirectVerifier =
             createRedirectVerifier(noUserInfoUrl, allowInsecureProtocol);
