@@ -301,7 +301,7 @@ class DefaultProjectSpec extends Specification {
         }
 
         def scriptResolution = Stub(ProjectScopedScriptResolution) {
-            resolveScriptsForProject(_, _, _, _) >> { identityPath, buildPath, projectPath, action -> action.get() }
+            resolveScriptsForProject(_, _) >> { project, action -> action.get() }
         }
 
         def instantiator = TestUtil.instantiatorFactory().decorateLenient(serviceRegistry)
