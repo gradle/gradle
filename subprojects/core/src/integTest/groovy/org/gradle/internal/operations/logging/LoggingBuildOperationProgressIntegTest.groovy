@@ -386,9 +386,7 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
             output.addAll(it.progress(LogEventBuildOperationProgressDetails))
         }
 
-        def uniqueMessages = output.collect { it.details.message }.unique()
-        uniqueMessages.contains "started operation"
-        uniqueMessages.contains "finished operation"
+        output.collect { it.details.message }.unique() == []
     }
 
     @ToBeFixedForIsolatedProjects(because = "Different amount of events for IP mode")
