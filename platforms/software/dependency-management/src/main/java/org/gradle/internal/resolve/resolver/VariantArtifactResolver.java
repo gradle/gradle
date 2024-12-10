@@ -18,24 +18,20 @@ package org.gradle.internal.resolve.resolver;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentArtifactResolveMetadata;
 import org.gradle.internal.component.model.VariantResolveMetadata;
 
 public interface VariantArtifactResolver {
+
     /**
      * Creates an adhoc resolved variant which resolves the provided artifacts of the component.
      */
     ResolvedVariant resolveAdhocVariant(ComponentArtifactResolveMetadata component, ImmutableList<? extends ComponentArtifactMetadata> artifacts);
 
     /**
-     * Resolves the given variant metadata to its artifacts.
+     * Resolve the artifacts described by the given variant artifact metadata, owned by the given component.
      */
-    ResolvedVariant resolveVariant(ComponentArtifactResolveMetadata component, VariantResolveMetadata artifactVariant);
+    ResolvedVariant resolveVariantArtifactSet(ComponentArtifactResolveMetadata component, VariantResolveMetadata variantArtifacts);
 
-    /**
-     * Applies the provided exclusions and resolves the given variant metadata to its artifacts.
-     */
-    ResolvedVariant resolveVariant(ComponentArtifactResolveMetadata component, VariantResolveMetadata artifactVariant, ExcludeSpec exclusions);
 }
