@@ -146,10 +146,10 @@ class DispatchingBuildCacheIntegrationTest extends AbstractIntegrationSpec {
         settingsFile.text = """
             buildCache {
                 local {
-                    directory = '${localCache.cacheDir.toURI()}'
+                    directory = file('${localCache.cacheDir.toURI()}')
                 }
                 remote(DirectoryBuildCache) {
-                    directory = '${remoteCache.cacheDir.toURI()}'
+                    directory = file('${remoteCache.cacheDir.toURI()}')
                 }
             }
         """.stripIndent()
