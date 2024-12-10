@@ -32,7 +32,7 @@ class TestBuildCache {
         """
             buildCache {
                 local {
-                    directory = '${cacheDir.absoluteFile.toURI()}'
+                    directory = file('${cacheDir.absoluteFile.toURI()}')
                     push = $push
                 }
             }
@@ -43,7 +43,7 @@ class TestBuildCache {
         """
             buildCache {
                 remote(DirectoryBuildCache) {
-                    directory = '${cacheDir.absoluteFile.toURI()}'
+                    directory = file('${cacheDir.absoluteFile.toURI()}')
                     push = $push
                 }
             }
