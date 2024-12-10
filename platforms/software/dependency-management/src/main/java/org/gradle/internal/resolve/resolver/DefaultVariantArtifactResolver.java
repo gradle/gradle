@@ -63,9 +63,16 @@ public class DefaultVariantArtifactResolver implements VariantArtifactResolver {
 
     @Override
     public ResolvedVariant resolveVariantArtifactSet(ComponentArtifactResolveMetadata component, VariantResolveMetadata variantArtifacts) {
+
+        // TODO #31538: In order to apply the artifact type registry, we need to realize the artifacts now, earlier than we should.
+        // Since the artifact type registry must be applied before artifact selection, which occurs before task dependencies
+        // execute, and since the artifact type registry is a function of the artifacts themselves, which are only known after task
+        // dependencies execute, the artifact type registry is inherently flawed. It must be deprecated and removed.
+        ImmutableList<? extends ComponentArtifactMetadata> artifacts = variantArtifacts.getArtifacts();
+
         VariantResolveMetadata.Identifier artifactSetId = variantArtifacts.getIdentifier();
         if (artifactSetId == null || !variantArtifacts.isEligibleForCaching()) {
-            return createResolvedVariant(artifactSetId, component, variantArtifacts, artifactTypeRegistry);
+            return createResolvedVariant(artifactSetId, component, variantArtifacts, artifactTypeRegistry, artifacts);
         }
 
         // We use the artifact type registry as a key here, since for each consumer the registry may be different.
@@ -82,7 +89,7 @@ public class DefaultVariantArtifactResolver implements VariantArtifactResolver {
 
         // Calculate the value with locking
         return resolvedVariantCache.computeIfAbsent(key, k ->
-            createResolvedVariant(k.variantIdentifier, component, variantArtifacts, k.artifactTypeRegistry)
+            createResolvedVariant(k.variantIdentifier, component, variantArtifacts, k.artifactTypeRegistry, artifacts)
         );
     }
 
@@ -90,13 +97,9 @@ public class DefaultVariantArtifactResolver implements VariantArtifactResolver {
         @Nullable VariantResolveMetadata.Identifier identifier,
         ComponentArtifactResolveMetadata component,
         VariantResolveMetadata artifactVariant,
-        ImmutableArtifactTypeRegistry artifactTypeRegistry
+        ImmutableArtifactTypeRegistry artifactTypeRegistry,
+        ImmutableList<? extends ComponentArtifactMetadata> artifacts
     ) {
-        // TODO #31538: In order to apply the artifact type registry, we need to realize the artifacts now, earlier than we should.
-        // Since the artifact type registry must be applied before artifact selection, which occurs before task dependencies
-        // execute, and since the artifact type registry is a function of the artifacts themselves, which are only known after task
-        // dependencies execute, the artifact type registry is inherently flawed. It must be deprecated and removed.
-        ImmutableList<? extends ComponentArtifactMetadata> artifacts = artifactVariant.getArtifacts();
         ImmutableAttributes attributes = artifactTypeRegistry.mapAttributesFor(artifactVariant.getAttributes(), artifacts);
 
         ImmutableCapabilities capabilities = withImplicitCapability(artifactVariant.getCapabilities(), component);
