@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.internal;
+package org.gradle.tooling.internal.protocol.events;
 
-import java.util.Collection;
-
-public interface ProblemLookup {
-    Collection<Problem> findAll(Throwable t);
+/**
+ * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
+ *
+ * @since 8.12
+ */
+public interface InternalTestMetadataDescriptor extends InternalOperationDescriptor {
 }

@@ -27,8 +27,7 @@ val QUICK_CROSS_VERSION_BUCKETS = listOf(
 )
 
 val ALL_CROSS_VERSION_BUCKETS = listOf(
-    listOf("0.0", "3.3"), // 0.0 <= version < 3.3
-    listOf("3.3", "4.1"), // 3.3 <= version < 4.1
+    listOf("0.0", "4.1"), // 0.0 <= version < 4.1
     listOf("4.1", "4.5"), // 4.1 <=version < 4.5
     listOf("4.5", "4.8"), // 4.5 <=version < 4.8
     listOf("4.8", "5.0"), // 4.8 <=version < 5.0
@@ -41,7 +40,8 @@ val ALL_CROSS_VERSION_BUCKETS = listOf(
     listOf("7.3", "7.6"), // 7.3 <=version < 7.6
     listOf("7.6", "8.2"), // 7.6 <=version < 8.2
     listOf("8.2", "8.6"), // 8.2 <=version < 8.6
-    listOf("8.6", "99.0") // 8.6 <=version < 99.0
+    listOf("8.6", "8.10"), // 8.6 <=version < 8.10
+    listOf("8.10", "99.0") // 8.10 <=version < 99.0
 )
 
 typealias BuildProjectToSubprojectTestClassTimes = Map<String, Map<String, List<TestClassTime>>>

@@ -1,8 +1,11 @@
 package com.example;
 
 import org.gradle.api.DefaultTask;
+import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.api.tasks.testing.GroupTestEventReporter;
@@ -29,6 +32,12 @@ public abstract class CustomTest extends DefaultTask {
     @Inject
     protected abstract TestEventReporterFactory getTestEventReporterFactory();
 
+    @OutputDirectory
+    protected abstract DirectoryProperty getBinaryResultsDirectory();
+
+    @OutputDirectory
+    protected abstract DirectoryProperty getHtmlReportDirectory();
+
     @TaskAction
     void runTests() {
         // This task is a demonstration of generating the proper test events.
@@ -37,7 +46,11 @@ public abstract class CustomTest extends DefaultTask {
         // The API uses try-with-resources and AutoCloseable to enforce lifecycle checks
         // You can manually call close() on a reporter. Once closed or completed, a test/group cannot generate
         // more events
-        try (GroupTestEventReporter root = getTestEventReporterFactory().createTestEventReporter("all tests")) {
+        try (GroupTestEventReporter root = getTestEventReporterFactory().createTestEventReporter(
+            "all tests",
+            getBinaryResultsDirectory().get(),
+            getHtmlReportDirectory().get()
+        )) {
             root.started(Instant.now());
 
             // Demonstrate parallel execution
