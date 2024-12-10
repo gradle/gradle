@@ -35,4 +35,15 @@ public interface BridgeMethodBuilder {
      * @param methodVisitor the visitor
      */
     void buildBridgeMethod(MethodVisitor methodVisitor);
+
+    /**
+     * Adjusts the bridge method signature to accept a subtype of the owner type.
+     * This is only possible for bridges of the instance or interface methods.
+     * No subtype check is performed.
+     *
+     * @param targetType the target type
+     * @return a new bridge method builder
+     * @throws UnsupportedOperationException if this bridge method is not an instance method and doesn't support receiver refining
+     */
+    BridgeMethodBuilder adjustReceiverType(String targetType);
 }
