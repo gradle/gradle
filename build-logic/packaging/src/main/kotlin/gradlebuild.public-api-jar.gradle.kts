@@ -15,7 +15,6 @@
  */
 
 import gradlebuild.basics.ImplementationCompletenessAttribute
-import gradlebuild.configureAsCompileJarClasspath
 import gradlebuild.configureAsRuntimeElements
 import gradlebuild.configureAsRuntimeJarClasspath
 
@@ -52,7 +51,6 @@ val distribution = configurations.dependencyScope("distribution") {
 }
 val distributionClasspath = configurations.resolvable("distributionClasspath") {
     extendsFrom(distribution.get())
-    configureAsCompileJarClasspath(objects)
     attributes {
         attribute(ImplementationCompletenessAttribute.attribute, ImplementationCompletenessAttribute.STUBS)
     }
@@ -63,7 +61,9 @@ val task = tasks.register<Jar>("jarGradleApi") {
         configuration.incoming.artifactView {
             componentFilter { componentId -> componentId is ProjectComponentIdentifier }
         }.files
-    })
+    }) {
+        exclude("**/*.jar")
+    }
     destinationDirectory = layout.buildDirectory.dir("public-api/gradle-api")
     // This is needed because of the duplicate package-info.class files
     duplicatesStrategy = DuplicatesStrategy.WARN
