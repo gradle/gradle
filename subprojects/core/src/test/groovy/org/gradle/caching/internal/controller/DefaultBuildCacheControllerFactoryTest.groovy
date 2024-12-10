@@ -205,8 +205,8 @@ class DefaultBuildCacheControllerFactoryTest extends Specification {
         @Override
         BuildCacheService createBuildCacheService(DirectoryBuildCache configuration, Describer describer) {
             def chain = describer.type("directory")
-            if (configuration.directory != null) {
-                chain.config("location", configuration.directory.toString())
+            if (configuration.directory.isPresent()) {
+                chain.config("location", configuration.directory.getAsFile().get().absolutePath)
             }
 
             new TestLocalBuildCacheService()
