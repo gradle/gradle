@@ -137,6 +137,30 @@ abstract class WellBehavedPluginTest extends AbstractIntegrationSpec {
         }
     }
 
+    def "does not realize all possible configurations"() {
+        applyPlugin()
+
+        buildFile """
+            // Most of our plugins create configurations eagerly.
+            // Just test that we don't realize registered configurations.
+            configurations.register("foo") {
+                assert false
+            }
+            configurations.resolvable("res") {
+                assert false
+            }
+            configurations.consumable("con") {
+                assert false
+            }
+            configurations.dependencyScope("deps") {
+                assert false
+            }
+        """
+
+        expect:
+        succeeds("help")
+    }
+
     def "does not realize all possible tasks if the build is included"() {
         Assume.assumeFalse(pluginName in ['xctest', 'visual-studio', 'xcode', 'play-application'])
 

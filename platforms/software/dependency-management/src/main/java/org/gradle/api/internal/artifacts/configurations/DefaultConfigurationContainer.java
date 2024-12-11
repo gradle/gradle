@@ -29,6 +29,8 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencyScopeConfiguration;
 import org.gradle.api.artifacts.ResolvableConfiguration;
 import org.gradle.api.artifacts.UnknownConfigurationException;
+import org.gradle.api.artifacts.UnlockedConfiguration;
+import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
 import org.gradle.api.internal.AbstractValidatingNamedDomainObjectContainer;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DomainObjectContext;
@@ -103,6 +105,21 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     }
 
     @Override
+    protected NamedDomainObjectProvider<Configuration> createDomainObjectProvider(String name, @Nullable Action<? super Configuration> configurationAction) {
+        // Called by `register` for registering legacy configurations.
+        // We override to set the public type to `UnlockedConfiguration`,
+        // allowing us to filter for unlocked configurations using `withType`
+
+        assertElementNotPresent(name);
+        NamedDomainObjectProvider<Configuration> provider = Cast.uncheckedCast(
+            getInstantiator().newInstance(AbstractNamedDomainObjectContainer.NamedDomainObjectCreatingProvider.class, DefaultConfigurationContainer.this, name, UnlockedConfiguration.class, configurationAction)
+        );
+        doAddLater(provider);
+
+        return provider;
+    }
+
+    @Override
     public boolean isFixedSize() {
         return false;
     }
@@ -114,10 +131,20 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     }
 
     @Override
-    public void visitAll(Consumer<ConfigurationInternal> visitor) {
-        for (Configuration configuration : this) {
-            visitor.accept((ConfigurationInternal) configuration);
-        }
+    public void visitConsumable(Consumer<ConfigurationInternal> visitor) {
+
+        // Visit all configurations which are known to be consumable
+        withType(ConsumableConfiguration.class).forEach(configuration ->
+            visitor.accept((ConfigurationInternal) configuration)
+        );
+
+        // Then, visit any configuration with unknown role, checking if it is consumable
+        withType(UnlockedConfiguration.class).forEach(configuration -> {
+            if (configuration.isCanBeConsumed()) {
+                visitor.accept((ConfigurationInternal) configuration);
+            }
+        });
+
     }
 
     @Override
