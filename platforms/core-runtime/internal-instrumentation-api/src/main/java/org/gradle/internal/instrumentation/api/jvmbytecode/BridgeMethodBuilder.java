@@ -18,6 +18,8 @@ package org.gradle.internal.instrumentation.api.jvmbytecode;
 
 import org.objectweb.asm.MethodVisitor;
 
+import javax.annotation.CheckReturnValue;
+
 /**
  * A generator for a static method that replaces an intercepted method reference.
  */
@@ -35,4 +37,16 @@ public interface BridgeMethodBuilder {
      * @param methodVisitor the visitor
      */
     void buildBridgeMethod(MethodVisitor methodVisitor);
+
+    /**
+     * Adjusts the bridge method signature to accept a subtype of the owner type.
+     * This is only possible for bridges of the instance or interface methods.
+     * No subtype check is performed.
+     *
+     * @param targetType the target type
+     * @return a new bridge method builder
+     * @throws UnsupportedOperationException if this bridge method is not for an instance/interface method
+     */
+    @CheckReturnValue
+    BridgeMethodBuilder withReceiverType(String targetType);
 }
