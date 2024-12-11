@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,12 @@
 
 package org.gradle.api.problems.internal;
 
+import java.io.Serializable;
 
-/**
- * A link to a documentation page.
- * <p>
- * Subtypes can represent different parts of the gradle documentation, e.g. the DSL reference, the user guide, etc.
- */
-public interface DocLink {
-
+public interface InternalDocLink extends DocLink, Serializable  {
     /**
-     * The URL to the documentation page.
+     * A message that tells the user to consult the documentation.
+     * There are currently 2 different messages used for this, hence this method.
      */
-    String getUrl();
+    String getConsultDocumentationMessage();
 }

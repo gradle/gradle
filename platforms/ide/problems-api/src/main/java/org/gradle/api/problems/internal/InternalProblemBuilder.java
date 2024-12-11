@@ -28,7 +28,7 @@ public interface InternalProblemBuilder extends InternalProblemSpec {
      *
      * @return the new problem
      */
-    Problem build();
+    InternalProblem build();
 
     @Override
     InternalProblemBuilder id(ProblemId problemId);

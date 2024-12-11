@@ -22,13 +22,13 @@ import org.gradle.api.problems.ProblemId
 import org.gradle.api.problems.Severity
 import org.gradle.api.problems.internal.AdditionalData
 import org.gradle.api.problems.internal.AdditionalDataBuilderFactory
-import org.gradle.api.problems.internal.DocLink
 import org.gradle.api.problems.internal.FileLocation
+import org.gradle.api.problems.internal.InternalDocLink
+import org.gradle.api.problems.internal.InternalProblem
 import org.gradle.api.problems.internal.InternalProblemBuilder
 import org.gradle.api.problems.internal.LineInFileLocation
 import org.gradle.api.problems.internal.OffsetInFileLocation
 import org.gradle.api.problems.internal.PluginIdLocation
-import org.gradle.api.problems.internal.Problem
 import org.gradle.api.problems.internal.ProblemDefinition
 import org.gradle.api.problems.internal.ProblemLocation
 import org.gradle.api.problems.internal.TaskPathLocation
@@ -37,7 +37,7 @@ import org.gradle.api.problems.internal.TaskPathLocation
  * A deserialized representation of a problem received from the build operation trace.
  */
 @CompileStatic
-class ReceivedProblem implements Problem {
+class ReceivedProblem implements InternalProblem {
     private final long operationId
     private final ReceivedProblemDefinition definition
     private final String contextualLabel
@@ -257,7 +257,7 @@ class ReceivedProblem implements Problem {
         }
     }
 
-    static class ReceivedDocumentationLink implements DocLink {
+    static class ReceivedDocumentationLink implements InternalDocLink {
         private final String url
         private final String consultDocumentationMessage
 
