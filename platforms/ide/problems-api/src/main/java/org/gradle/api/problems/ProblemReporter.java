@@ -47,7 +47,7 @@ public interface ProblemReporter {
      * @param spec the problem configuration
      * @since 8.13
      */
-    void report(Action<ProblemSpec> spec);
+    void report(Action<? super ProblemSpec> spec);
 
     /**
      * Reports the target problem.
@@ -73,9 +73,9 @@ public interface ProblemReporter {
      * The spec must specify the exception, the problem label, and the category. Any additional configuration is optional.
      *
      * @return never returns by throwing the exception, but using {@code throw} statement at the call site is encouraged to indicate the intent and benefit from local control flow.
-     * @since 8.6
+     * @since 8.13
      */
-    RuntimeException throwing(Action<ProblemSpec> spec);
+    RuntimeException throwing(Throwable exception, Action<? super ProblemSpec> spec);
 
     /**
      * Configures a new problem, reports it, and uses it to throw a new exception.
@@ -87,7 +87,7 @@ public interface ProblemReporter {
      * @return never returns by throwing the exception, but using {@code throw} statement at the call site is encouraged to indicate the intent and benefit from local control flow.
      * @since 8.13
      */
-    RuntimeException throwing(Problem problem);
+    RuntimeException throwing(Throwable exception, Problem problem);
 
     /**
      * Reports the target problems and throws a runtime exception. When this method is used, all reported problems will be associated with the thrown exception.

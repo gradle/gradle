@@ -108,9 +108,9 @@ class ResolutionFailureDataCrossVersionIntegrationTest extends ToolingApiSpecifi
         if (targetVersion < GradleVersion.version("8.12")) {
             'getProblems().forNamespace("org.example.plugin").reporting '
         } else if (targetVersion < GradleVersion.version("8.13")) {
-            'getProblems().reporting '
+            'getProblems().getReporter().reporting '
         } else {
-            'getProblems().report '
+            'getProblems().getReporter().report '
         }
     }
 
