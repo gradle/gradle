@@ -306,10 +306,10 @@ public class DefaultLocalVariantGraphResolveStateBuilder implements LocalVariant
     /**
      * Default implementation of {@link LocalFileDependencyMetadata}.
      */
-    private static class DefaultLocalFileDependencyMetadata implements LocalFileDependencyMetadata {
+    public static class DefaultLocalFileDependencyMetadata implements LocalFileDependencyMetadata {
         private final FileCollectionDependency fileDependency;
 
-        DefaultLocalFileDependencyMetadata(FileCollectionDependency fileDependency) {
+        public DefaultLocalFileDependencyMetadata(FileCollectionDependency fileDependency) {
             this.fileDependency = fileDependency;
         }
 
