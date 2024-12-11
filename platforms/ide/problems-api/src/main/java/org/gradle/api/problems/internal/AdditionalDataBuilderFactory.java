@@ -19,7 +19,9 @@ package org.gradle.api.problems.internal;
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import org.gradle.api.problems.AdditionalData;
+import org.gradle.api.problems.AdditionalDataSpec;
 import org.gradle.api.problems.GeneralData;
+import org.gradle.api.problems.GeneralDataSpec;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 

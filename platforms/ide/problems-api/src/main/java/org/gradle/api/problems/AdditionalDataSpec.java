@@ -14,11 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.internal;
+package org.gradle.api.problems;
+
+import org.gradle.api.Incubating;
 
 /**
- * Specifies configuration options when creating a new GeneralData instance.
+ * Marker interface for additional data that can be attached to a {@link Problem}.
+ *
+ * @since 8.13
  */
-public interface GeneralDataSpec extends AdditionalDataSpec {
-    GeneralDataSpec put(String key, String value);
+@Incubating
+public interface AdditionalDataSpec {
 }

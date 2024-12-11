@@ -19,6 +19,7 @@ package org.gradle.api.problems.internal;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.problems.AdditionalData;
+import org.gradle.api.problems.AdditionalDataSpec;
 import org.gradle.api.problems.DocLink;
 import org.gradle.api.problems.FileLocation;
 import org.gradle.api.problems.IdFactory;

@@ -16,6 +16,7 @@
 
 package org.gradle.api.problems.internal;
 
+import org.gradle.api.problems.AdditionalDataSpec;
 import org.gradle.internal.component.resolution.failure.interfaces.ResolutionFailure;
 
 /**
