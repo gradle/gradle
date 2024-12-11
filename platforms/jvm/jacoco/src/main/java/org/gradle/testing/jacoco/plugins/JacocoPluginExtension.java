@@ -31,7 +31,6 @@ import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
@@ -58,7 +57,6 @@ public abstract class JacocoPluginExtension {
     private static final Logger LOGGER = Logging.getLogger(JacocoPluginExtension.class);
 
     private final ObjectFactory objects;
-    private final ProviderFactory providers;
     private final ProjectLayout layout;
     private final FileSystemOperations fs;
     private final JacocoAgentJar agent;
@@ -75,7 +73,6 @@ public abstract class JacocoPluginExtension {
     public JacocoPluginExtension(Project project, JacocoAgentJar agent) {
         this.agent = agent;
         this.objects = project.getObjects();
-        this.providers = project.getProviders();
         this.layout = project.getLayout();
         this.fs = ((ProjectInternal) project).getServices().get(FileSystemOperations.class);
         reportsDirectory = project.getObjects().directoryProperty();
@@ -107,7 +104,7 @@ public abstract class JacocoPluginExtension {
     public <T extends Task & JavaForkOptions> void applyTo(final T task) {
         final String taskName = task.getName();
         LOGGER.debug("Applying Jacoco to " + taskName);
-        JacocoTaskExtension extension = objects.newInstance(JacocoTaskExtension.class, providers, agent, task);
+        JacocoTaskExtension extension = objects.newInstance(JacocoTaskExtension.class, agent, task);
         extension.getDestinationFile().set(layout.getBuildDirectory().file("jacoco/" + taskName + ".exec"));
         task.getExtensions().add(TASK_EXTENSION_NAME, extension);
 

@@ -19,7 +19,6 @@ package org.gradle.api.internal.provider.sources.process
 import org.gradle.api.Action
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.provider.ValueSourceBasedSpec
-import org.gradle.api.reflect.ObjectInstantiationException
 import org.gradle.process.ExecResult
 import org.gradle.process.ExecSpec
 
@@ -36,17 +35,15 @@ class ProcessOutputValueSourceTest extends ValueSourceBasedSpec {
         createProviderOf(ProcessOutputValueSource.class) {
             it.parameters {
                 it.commandLine = ["echo", "hello"]
-                withDefaultEnvironment(it)
             }
         }.get()
 
         then:
         1 * execOperations.exec(_) >> { Action<? super ExecSpec> action -> action.execute(spec) }
         spec.getCommandLine() == ["echo", "hello"]
-        spec.environment == System.getenv()
     }
 
-    def "full environment is propagated to execOperations"() {
+    def "environment is propagated to execOperations"() {
         given:
         def spec = specFactory.newExecAction()
 
@@ -54,49 +51,13 @@ class ProcessOutputValueSourceTest extends ValueSourceBasedSpec {
         createProviderOf(ProcessOutputValueSource.class) {
             it.parameters {
                 it.commandLine = ["echo", "hello"]
-                withFullEnvironment(it, [FOO: "BAR"])
+                it.environment = [FOO: "BAR"]
             }
         }.get()
 
         then:
         1 * execOperations.exec(_) >> { Action<? super ExecSpec> action -> action.execute(spec) }
-        spec.environment == [FOO: "BAR"]
-    }
-
-    def "additional environment is propagated to execOperations"() {
-        given:
-        def spec = specFactory.newExecAction()
-
-        when:
-        createProviderOf(ProcessOutputValueSource.class) {
-            it.parameters {
-                it.commandLine = ["echo", "hello"]
-                withAdditionalEnvironment(it, [FOO: "BAR"])
-            }
-        }.get()
-
-        then:
-        1 * execOperations.exec(_) >> { Action<? super ExecSpec> action -> action.execute(spec) }
-        spec.environment == System.getenv() + [FOO: "BAR"]
-    }
-
-    def "specifying both full and additional environment is an error"() {
-        given:
-        def spec = specFactory.newExecAction()
-        execOperations.exec(_ as Action<? super ExecSpec>) >> { Action<? super ExecSpec> action -> action.execute(spec) }
-
-        when:
-        createProviderOf(ProcessOutputValueSource.class) {
-            it.parameters {
-                it.commandLine = ["echo", "hello"]
-                it.fullEnvironment = [FOO: "BAR"]
-                it.additionalEnvironmentVariables = [BAR: "BAZ"]
-            }
-        }.get()
-
-        then:
-        def e = thrown ObjectInstantiationException
-        e.getCause() instanceof IllegalArgumentException
+        spec.environment.get() == [FOO: "BAR"]
     }
 
     def "ignoreReturnValue is false by default"() {
@@ -107,7 +68,6 @@ class ProcessOutputValueSourceTest extends ValueSourceBasedSpec {
         createProviderOf(ProcessOutputValueSource.class) {
             it.parameters {
                 it.commandLine = ["echo", "hello"]
-                withDefaultEnvironment(it)
             }
         }.get()
 
@@ -125,7 +85,6 @@ class ProcessOutputValueSourceTest extends ValueSourceBasedSpec {
             it.parameters {
                 it.commandLine = ["echo", "hello"]
                 it.ignoreExitValue = true
-                withDefaultEnvironment(it)
             }
         }.get()
 
@@ -152,7 +111,6 @@ class ProcessOutputValueSourceTest extends ValueSourceBasedSpec {
         def provider = createProviderOf(ProcessOutputValueSource.class) {
             it.parameters {
                 it.commandLine = ["echo", "hello"]
-                withDefaultEnvironment(it)
             }
         }
         def result = provider.get()
@@ -168,28 +126,10 @@ class ProcessOutputValueSourceTest extends ValueSourceBasedSpec {
         createProviderOf(ProcessOutputValueSource.class) {
             it.parameters {
                 it.commandLine = ["echo", "hello"]
-                withDefaultEnvironment(it)
             }
         }
 
         then:
         0 * execOperations._
-    }
-
-    private static void withDefaultEnvironment(ProcessOutputValueSource.Parameters parameters) {
-        // Properties of parameters of the ValueSource are already present at the moment of creation,
-        // so we have to unset them explicitly here.
-        parameters.fullEnvironment = null
-        parameters.additionalEnvironmentVariables = null
-    }
-
-    private static void withFullEnvironment(ProcessOutputValueSource.Parameters parameters, Map<String, Object> environment) {
-        parameters.fullEnvironment = environment
-        parameters.additionalEnvironmentVariables = null
-    }
-
-    private static void withAdditionalEnvironment(ProcessOutputValueSource.Parameters parameters, Map<String, Object> environment) {
-        parameters.fullEnvironment = null
-        parameters.additionalEnvironmentVariables = environment
     }
 }

@@ -161,8 +161,7 @@ public abstract class ApplicationPlugin implements Plugin<Project> {
             JavaPluginExtension javaPluginExtension = project.getExtensions().getByType(JavaPluginExtension.class);
             run.getModularity().getInferModulePath().convention(javaPluginExtension.getModularity().getInferModulePath());
             ObjectFactory objectFactory = project.getObjects();
-            Provider<JavaToolchainSpec> toolchainOverrideSpec = project.provider(() ->
-                JavaExecExecutableUtils.getExecutableOverrideToolchainSpec(run, objectFactory));
+            Provider<JavaToolchainSpec> toolchainOverrideSpec = JavaExecExecutableUtils.getExecutableOverrideToolchainSpec(run, objectFactory);
             run.getJavaLauncher().convention(getToolchainTool(project, JavaToolchainService::launcherFor, toolchainOverrideSpec));
         });
     }

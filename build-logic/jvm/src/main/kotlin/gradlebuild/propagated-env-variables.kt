@@ -14,10 +14,18 @@
  * limitations under the License.
  */
 
+@file:Suppress("UnusedImport", "UnusedImports")
+
 package gradlebuild
 
+import org.gradle.api.provider.MapProperty
 import org.gradle.api.tasks.testing.Test
 import org.gradle.internal.os.OperatingSystem
+
+/**
+ * TODO: Remove Suppress("UnusedImport") with Gradle 9.0
+ */
+import org.gradle.kotlin.dsl.assign
 
 
 val propagatedEnvironmentVariables = listOf(
@@ -109,8 +117,17 @@ val credentialsKeywords = listOf(
 
 
 fun Test.filterEnvironmentVariables() {
+    /**
+     * TODO: Remove with Gradle 9.0
+     */
+    @Suppress("UNCHECKED_CAST")
+    fun Any.unwrap(): Map<String, Any> = when (this) {
+        is Map<*, *> -> this as Map<String, Any>
+        is MapProperty<*, *> -> this.get() as Map<String, Any>
+        else -> throw IllegalArgumentException("Can't unwrap: $this")
+    }
     environment = makePropagatedEnvironment()
-    environment.forEach { (key, _) ->
+    environment.unwrap().forEach { (key, _) ->
         require(credentialsKeywords.none { key.contains(it, true) }) { "Found sensitive data in filtered environment variables: $key" }
     }
 }

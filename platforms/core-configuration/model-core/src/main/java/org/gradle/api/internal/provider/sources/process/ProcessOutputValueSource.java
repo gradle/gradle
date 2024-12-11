@@ -23,6 +23,7 @@ import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.ValueSource;
 import org.gradle.api.provider.ValueSourceParameters;
+import org.gradle.process.BaseExecSpec;
 import org.gradle.process.ExecOperations;
 import org.gradle.process.ExecResult;
 
@@ -31,7 +32,6 @@ import javax.inject.Inject;
 import java.io.ByteArrayOutputStream;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 public abstract class ProcessOutputValueSource implements ValueSource<ProcessOutputValueSource.ExecOutputData, ProcessOutputValueSource.Parameters>, Describable {
@@ -44,34 +44,13 @@ public abstract class ProcessOutputValueSource implements ValueSource<ProcessOut
          */
         ListProperty<String> getCommandLine();
 
-        // The ExecSpec's environment can be configured in two ways. First is to append some
-        // variables to the current environment. We don't want to freeze the whole environment as an
-        // input in this case to mimic the behavior with configuration cache being disabled. Thus,
-        // there are two properties on these Parameters: full environment is used when the caller
-        // sets the complete environment explicitly (with setEnvironment) and additional environment
-        // variables are used when the caller specifies additions only.
-
         /**
-         * The full environment to use when running a process. If not set then a current environment
-         * of the Gradle process is used as a base and variables from the
-         * {@link #getAdditionalEnvironmentVariables()} are added to it. It is an error to specify
-         * both full environment and additional variables.
+         * The full environment to use when running a process.
          *
          * @return the full environment property, can be not set
-         * @see org.gradle.process.BaseExecSpec#setEnvironment(Map)
+         * @see BaseExecSpec#getEnvironment()
          */
-        MapProperty<String, Object> getFullEnvironment();
-
-        /**
-         * The additional environment variables to be applied on top of the current environment when
-         * running the process. Use {@link #getFullEnvironment()} to completely replace the
-         * environment.
-         *
-         * @return the additional environment variables property, can be not set
-         * @see org.gradle.process.BaseExecSpec#environment(String, Object)
-         * @see org.gradle.process.BaseExecSpec#environment(Map)
-         */
-        MapProperty<String, Object> getAdditionalEnvironmentVariables();
+        MapProperty<String, Object> getEnvironment();
 
         /**
          * The working directory of the process. The current directory is used if unset.
@@ -99,19 +78,6 @@ public abstract class ProcessOutputValueSource implements ValueSource<ProcessOut
     @Inject
     public ProcessOutputValueSource(ExecOperations execOperations) {
         this.execOperations = execOperations;
-
-        if (hasFullEnvironment() && hasAdditionalEnvVars()) {
-            throw new IllegalArgumentException(
-                "Providing both full environment and additional environment variables isn't supported");
-        }
-    }
-
-    private boolean hasAdditionalEnvVars() {
-        return getParameters().getAdditionalEnvironmentVariables().isPresent();
-    }
-
-    private boolean hasFullEnvironment() {
-        return getParameters().getFullEnvironment().isPresent();
     }
 
     @Nullable
@@ -125,13 +91,11 @@ public abstract class ProcessOutputValueSource implements ValueSource<ProcessOut
             spec.getIgnoreExitValue().set(getParameters().getIgnoreExitValue().orElse(false));
 
             if (getParameters().getWorkingDirectory().isPresent()) {
-                spec.setWorkingDir(getParameters().getWorkingDirectory().get().getAsFile());
+                spec.getWorkingDir().set(getParameters().getWorkingDirectory());
             }
-            if (hasFullEnvironment()) {
-                spec.setEnvironment(getParameters().getFullEnvironment().get());
-            } else if (hasAdditionalEnvVars()) {
-                spec.environment(getParameters().getAdditionalEnvironmentVariables().get());
-            }
+            // TODO(mlopatkin): Check if this logic ok for Gradle 9.0
+            // For some reason getParameters().getEnvironment() is MapProperty<Object, Object> at runtime so we need to map it
+            spec.getEnvironment().set(getParameters().getEnvironment().map(map -> map));
             spec.getStandardOutput().set(stdout);
             spec.getErrorOutput().set(stderr);
         });

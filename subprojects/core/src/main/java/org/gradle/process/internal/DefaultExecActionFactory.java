@@ -105,7 +105,7 @@ public class DefaultExecActionFactory implements ExecFactory {
     }
 
     public ExecAction newDecoratedExecAction() {
-        DefaultExecAction execAction = instantiator.newInstance(DefaultExecAction.class, objectFactory, execHandleFactory.newExecHandleBuilder());
+        DefaultExecAction execAction = instantiator.newInstance(DefaultExecAction.class, newExecSpec(), execHandleFactory.newExecHandleBuilder());
         ExecHandleListener listener = getExecHandleListener();
         if (listener != null) {
             execAction.listener(listener);
@@ -115,21 +115,26 @@ public class DefaultExecActionFactory implements ExecFactory {
 
     @Override
     public ExecAction newExecAction() {
-        return objectFactory.newInstance(DefaultExecAction.class, objectFactory, execHandleFactory.newExecHandleBuilder());
+        return objectFactory.newInstance(DefaultExecAction.class, newExecSpec(), execHandleFactory.newExecHandleBuilder());
+    }
+
+    private ExecSpec newExecSpec() {
+        // In some scopes injection doesn't work, so we inject parameters manually
+        return objectFactory.newInstance(DefaultExecSpec.class, objectFactory, fileResolver);
     }
 
     @Override
     public JavaForkOptionsInternal newDecoratedJavaForkOptions() {
         final DefaultJavaForkOptions forkOptions = instantiator.newInstance(DefaultJavaForkOptions.class, objectFactory, fileResolver, fileCollectionFactory);
-        forkOptions.setExecutable(Jvm.current().getJavaExecutable());
+        forkOptions.getExecutable().set(Jvm.current().getJavaExecutable().getAbsolutePath());
         return forkOptions;
     }
 
     @Override
     public JavaForkOptionsInternal newJavaForkOptions() {
         final DefaultJavaForkOptions forkOptions = objectFactory.newInstance(DefaultJavaForkOptions.class, objectFactory, fileResolver, fileCollectionFactory);
-        if (forkOptions.getExecutable() == null) {
-            forkOptions.setExecutable(Jvm.current().getJavaExecutable());
+        if (!forkOptions.getExecutable().isPresent()) {
+            forkOptions.getExecutable().set(Jvm.current().getJavaExecutable().getAbsolutePath());
         }
         return forkOptions;
     }
@@ -145,14 +150,16 @@ public class DefaultExecActionFactory implements ExecFactory {
     }
 
     public JavaExecAction newDecoratedJavaExecAction() {
-        final JavaForkOptionsInternal forkOptions = newDecoratedJavaForkOptions();
-        forkOptions.setExecutable(Jvm.current().getJavaExecutable());
-        DefaultJavaExecAction javaExecAction = instantiator.newInstance(DefaultJavaExecAction.class, objectFactory, newJavaExec());
+        DefaultJavaExecAction javaExecAction = instantiator.newInstance(DefaultJavaExecAction.class, newJavaExecSpec(), newJavaExec());
         ExecHandleListener listener = getExecHandleListener();
         if (listener != null) {
             javaExecAction.listener(listener);
         }
         return javaExecAction;
+    }
+
+    private JavaExecSpec newJavaExecSpec() {
+        return objectFactory.newInstance(DefaultJavaExecSpec.class, objectFactory, fileResolver, fileCollectionFactory);
     }
 
     @Nullable
@@ -183,13 +190,17 @@ public class DefaultExecActionFactory implements ExecFactory {
 
     @Override
     public JavaExecAction newJavaExecAction() {
-        return objectFactory.newInstance(DefaultJavaExecAction.class, objectFactory, newJavaExec());
+        return objectFactory.newInstance(
+            DefaultJavaExecAction.class,
+            newJavaExecSpec(),
+            newJavaExec()
+        );
     }
 
     @Override
     @SuppressWarnings("deprecation")
     public ExecHandleBuilder newExec() {
-        return new DefaultExecHandleBuilder(objectFactory, execHandleFactory.newExecHandleBuilder());
+        return new DefaultExecHandleBuilder(objectFactory, fileResolver, execHandleFactory.newExecHandleBuilder());
     }
 
     @Override
