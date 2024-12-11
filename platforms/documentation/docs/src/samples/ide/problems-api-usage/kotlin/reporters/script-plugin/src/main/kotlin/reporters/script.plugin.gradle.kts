@@ -31,11 +31,10 @@ tasks {
 
     val failingTask by registering {
         doLast {
-            problems.getReporter().throwing {
+            problems.getReporter().throwing(RuntimeException("The 'failingTask' should not be called")) {
                 id(ProblemId.create("broken-task", "Task should not be called", problemGroup))
                     .contextualLabel("Task 'failingTask' should not be called")
                     .severity(Severity.ERROR)
-                    .withException(RuntimeException("The 'failingTask' should not be called"))
                     .solution("Please use 'successfulTask' instead of this task")
             }
         }

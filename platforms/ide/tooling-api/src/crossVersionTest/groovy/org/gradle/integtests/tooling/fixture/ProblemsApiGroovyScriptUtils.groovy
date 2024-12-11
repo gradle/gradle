@@ -23,7 +23,7 @@ class ProblemsApiGroovyScriptUtils {
     static String report(GradleVersion targetVersion) {
         if (targetVersion < GradleVersion.version("8.6")) {
             'create'
-        } else if (targetVersion < GradleVersion.version("8.12")) {
+        } else if (targetVersion < GradleVersion.version("8.11")) {
             'forNamespace("org.example.plugin").reporting '
         } else if (targetVersion < GradleVersion.version("8.13")) {
             'getReporter().reporting '
