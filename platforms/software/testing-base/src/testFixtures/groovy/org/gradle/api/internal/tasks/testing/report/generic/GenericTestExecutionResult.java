@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.tasks.testing.report.generic;
 
+import java.util.List;
+
 public interface GenericTestExecutionResult {
     String EXECUTION_FAILURE = "failed to execute tests";
 
@@ -56,4 +58,12 @@ public interface GenericTestExecutionResult {
      * @return {@code true} if the test path exists, {@code false} otherwise.
      */
     boolean testPathExists(String testPath);
+
+    /**
+     * Asserts that the given metadata keys are present in the suite summary.
+     *
+     * @param keys the keys to verify, in the order they were recorded
+     * @return {@code this}
+     */
+    GenericTestExecutionResult assertMetadata(List<String> keys);
 }

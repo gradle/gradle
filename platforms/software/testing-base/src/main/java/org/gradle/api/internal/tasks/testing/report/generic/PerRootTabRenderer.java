@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks.testing.report.generic;
 import com.google.common.collect.Iterables;
 import com.google.common.io.CharStreams;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableFailure;
+import org.gradle.api.internal.tasks.testing.results.serializable.SerializableMetadata;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResult;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResultStore;
 import org.gradle.api.tasks.testing.TestOutputEvent;
@@ -256,4 +257,33 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
         }
     }
 
+    public static final class ForMetadata extends PerRootTabRenderer {
+        public ForMetadata(String rootName) {
+            super(rootName);
+        }
+
+        @Override
+        protected void render(TestTreeModel.PerRootInfo info, SimpleHtmlWriter htmlWriter) throws IOException {
+            htmlWriter.startElement("div").attribute("class", "metadata")
+                .startElement("table")
+                .startElement("thead")
+                .startElement("tr")
+                .startElement("th")
+                .write("Key");
+            htmlWriter.endElement()
+                .endElement();
+            for (SerializableMetadata metadata : info.getResult().getMetadatas()) {
+                for (SerializableMetadata.SerializableMetadataEntry entry : metadata.getEntries()) {
+                    htmlWriter.startElement("tr");
+                    htmlWriter.startElement("td").attribute("class", "key")
+                        .write(entry.getKey());
+                    htmlWriter.endElement()
+                        .endElement();
+                }
+            }
+            htmlWriter.endElement()
+                .endElement()
+                .endElement();
+        }
+    }
 }
