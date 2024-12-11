@@ -48,7 +48,7 @@ class GenericHtmlTestExecutionResult implements GenericTestExecutionResult {
             Path.path(it)
         }.collect {
             Iterables.concat([it], it.ancestors())
-        }.flatten() as Set
+        }.flatten() as Set<Path>
         assertThat(executedTestPaths, equalTo(extendedTestPaths))
         return this
     }
@@ -89,6 +89,13 @@ class GenericHtmlTestExecutionResult implements GenericTestExecutionResult {
     @Override
     boolean testPathExists(String testPath) {
         return Files.exists(diskPathForTestPath(testPath))
+    }
+
+    @Override
+    GenericTestExecutionResult assertMetadata(List<String> keys) {
+        def metadataElems = Jsoup.parse(htmlReportDirectory.toPath().resolve("index.html").toFile(), null).select('.key')
+        assertThat(metadataElems.collect() { it.text() }, equalTo(keys))
+        return this
     }
 
     private static class HtmlTestPathExecutionResult implements TestPathExecutionResult {
@@ -181,6 +188,13 @@ class GenericHtmlTestExecutionResult implements GenericTestExecutionResult {
         TestPathExecutionResult assertFailureMessages(Matcher<? super String> matcher) {
             def detailsElem = html.selectFirst('.result-details pre')
             assertThat(detailsElem == null ? '' : detailsElem.text(), matcher)
+            return this
+        }
+
+        @Override
+        TestPathExecutionResult assertMetadata(List<String> keys) {
+            def metadataElems = html.select('.key')
+            assertThat(metadataElems.collect() { it.text() }, equalTo(keys))
             return this
         }
     }

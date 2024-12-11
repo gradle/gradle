@@ -19,6 +19,8 @@ package org.gradle.api.internal.tasks.testing.report.generic;
 import org.gradle.api.tasks.testing.TestResult;
 import org.hamcrest.Matcher;
 
+import java.util.List;
+
 // For now, I think this works enough. It will need to be rewritten to account for different root tabs.
 public interface TestPathExecutionResult {
     /**
@@ -44,4 +46,12 @@ public interface TestPathExecutionResult {
     TestPathExecutionResult assertHasResult(TestResult.ResultType resultType);
 
     TestPathExecutionResult assertFailureMessages(Matcher<? super String> matcher);
+
+    /**
+     * Asserts that the given metadata keys are present in the test result.
+     *
+     * @param keys the keys to verify, in the order they were recorded
+     * @return {@code this}
+     */
+    TestPathExecutionResult assertMetadata(List<String> keys);
 }
