@@ -19,7 +19,7 @@ The initialization phase in the Gradle Build lifecycle finds the root project an
 
 image::author-gradle-6.png[]
 
-Then, for each project included in the settings file, Gradle creates a link:{javadocPath}org/gradle/api/Project.html[`Project`] instance.
+Then, for each project included in the settings file, Gradle creates a link:{javadocPath}/org/gradle/api/Project.html[`Project`] instance.
 
 Gradle then looks for a corresponding build script file, which is used in the configuration phase.
 

@@ -319,7 +319,7 @@ It validates that the Java sources are not using language features introduced in
 The bytecode produced by the compiler also corresponds to the requested Java version, meaning that the compiled code cannot be executed on older JVMs.
 
 The `release` option of the Java compiler was introduced in Java 9.
-However, using this option with Gradle is only possible starting with Java 10, due to a https://bugs.openjdk.java.net/browse/JDK-8139607[bug in Java 9].
+However, using this option with Gradle is only possible starting with Java 10, due to a https://bugs.openjdk.org/browse/JDK-8139607[bug in Java 9].
 
 ==== Using Java compatibility options
 
