@@ -38,7 +38,7 @@ Gradle provides a rich set of [error and warning messages](userguide/logging.htm
 
 The [Problems API](userguide/reporting_problems.html) provides structured feedback on build issues, helping developers and tools like IDEs identify and resolve warnings, errors, or deprecations during configuration or runtime.
 
-This release introduces a new problem summarization mechanism that reduces redundancy in the generated HTML Problems Report.
+This release introduces a new problem summarization mechanism that reduces redundancy in the generated [HTML Problems Report](userguide/reporting_problems.html#sec:generated_html_report).
 
 The feature limits the number of identical problems reported and provides a summarized count of additional occurrences in the summary report:
 
