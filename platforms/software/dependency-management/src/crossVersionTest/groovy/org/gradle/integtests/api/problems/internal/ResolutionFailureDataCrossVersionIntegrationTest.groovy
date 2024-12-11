@@ -66,7 +66,7 @@ class ResolutionFailureDataCrossVersionIntegrationTest extends ToolingApiSpecifi
         withReportProblemTask """
             TestResolutionFailure failure = new TestResolutionFailure()
 
-            getProblems().getReporter().reporting {
+            getProblems().${report(targetVersion)} {
                it.${id(targetVersion)}
                 .additionalData(ResolutionFailureDataSpec.class, data -> data.from(failure))
             }
@@ -101,6 +101,18 @@ class ResolutionFailureDataCrossVersionIntegrationTest extends ToolingApiSpecifi
             'id("type", "label")'
         } else {
             'id(org.gradle.api.problems.ProblemId.create("type", "label", org.gradle.api.problems.ProblemGroup.create("generic", "Generic")))'
+        }
+    }
+
+    static String report(GradleVersion targetVersion) {
+        if (targetVersion < GradleVersion.version("8.6")) {
+            'create'
+        } else if (targetVersion < GradleVersion.version("8.12")) {
+            'forNamespace("org.example.plugin").reporting '
+        } else if (targetVersion < GradleVersion.version("8.13")) {
+            'getReporter().reporting '
+        } else {
+            'getReporter().report '
         }
     }
 
