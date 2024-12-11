@@ -24,7 +24,7 @@ import java.io.RandomAccessFile;
  *
  * <p>Closing this stream does not close the underlying file.
  */
-// TODO Replace this with Channels.newInputStream(SeekableByteChannel)
+// TODO Replace this with Channels.newInputStream(SeekableByteChannel) or PositionTrackingFileChannelInputStream
 public class RandomAccessFileInputStream extends InputStream {
     private final RandomAccessFile file;
 
