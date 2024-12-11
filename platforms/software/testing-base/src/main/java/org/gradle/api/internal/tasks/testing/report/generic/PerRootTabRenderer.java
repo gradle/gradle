@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.report.generic;
 
+import com.google.common.collect.Iterables;
 import com.google.common.io.CharStreams;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableFailure;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResult;
@@ -137,7 +138,7 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
             return TimeFormatting.formatDurationVeryTerse(testResult.getDuration());
         }
 
-        private void renderLeafDetails(TestTreeModel.PerRootInfo info, SimpleHtmlWriter htmlWriter) throws IOException {
+        private static void renderLeafDetails(TestTreeModel.PerRootInfo info, SimpleHtmlWriter htmlWriter) throws IOException {
             if (info.getResult().getResultType() != TestResult.ResultType.SUCCESS && !info.getResult().getFailures().isEmpty()) {
                 htmlWriter.startElement("div").attribute("class", "result-details");
 
@@ -163,7 +164,18 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
             htmlWriter.startElement("thead");
             htmlWriter.startElement("tr");
 
+            boolean anyNameAndDisplayNameDiffer = Iterables.any(
+                getCurrentModel().getChildrenOf(rootName),
+                child -> {
+                    SerializableTestResult childResult = child.getPerRootInfo().get(rootName).getResult();
+                    return !childResult.getName().equals(childResult.getDisplayName());
+                }
+            );
+
             htmlWriter.startElement("th").characters("Child").endElement();
+            if (anyNameAndDisplayNameDiffer) {
+                htmlWriter.startElement("th").characters("Name").endElement();
+            }
             htmlWriter.startElement("th").characters("Tests").endElement();
             htmlWriter.startElement("th").characters("Failures").endElement();
             htmlWriter.startElement("th").characters("Skipped").endElement();
@@ -182,6 +194,9 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
                 htmlWriter.startElement("a")
                     .attribute("href", GenericPageRenderer.getUrlTo(getCurrentModel().getPath(), child.getPath()))
                     .characters(result.getDisplayName()).endElement();
+                if (anyNameAndDisplayNameDiffer) {
+                    htmlWriter.startElement("td").characters(result.getName()).endElement();
+                }
                 htmlWriter.endElement();
                 htmlWriter.startElement("td").characters(Integer.toString(perRootInfo.getTotalLeafCount())).endElement();
                 htmlWriter.startElement("td").characters(Integer.toString(perRootInfo.getFailedLeafCount())).endElement();

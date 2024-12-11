@@ -92,12 +92,12 @@ class GenericHtmlTestExecutionResult implements GenericTestExecutionResult {
     }
 
     private static class HtmlTestPathExecutionResult implements TestPathExecutionResult {
-        private String classDisplayName
+        private String pathDisplayName
         private File htmlFile
-        private Set<String> testsExecuted = new LinkedHashSet<>()
-        private Set<String> testsSucceeded = new LinkedHashSet<>()
-        private Set<String> testsFailures = new LinkedHashSet<>()
-        private Set<String> testsSkipped = new LinkedHashSet<>()
+        private List<String> testsExecuted = []
+        private List<String> testsSucceeded = []
+        private List<String> testsFailures = []
+        private List<String> testsSkipped = []
         private Document html
 
         HtmlTestPathExecutionResult(File htmlFile) {
@@ -109,19 +109,19 @@ class GenericHtmlTestExecutionResult implements GenericTestExecutionResult {
         private extractTestCaseTo(String cssSelector, Collection<String> target) {
             html.select(cssSelector).each {
                 def testDisplayName = it.textNodes().first().wholeText.trim()
-                def testName = hasMethodNameColumn() ? it.nextElementSibling().text() : testDisplayName
+                def testName = hasNameColumn() ? it.nextElementSibling().text() : testDisplayName
                 testsExecuted << testName
                 target << testName
             }
         }
 
-        private boolean hasMethodNameColumn() {
-            return html.select('tr > th').size() == 4
+        private boolean hasNameColumn() {
+            return html.select('tr > th').size() == 7
         }
 
         private void parseFile() {
             // " > TestClass" -> "TestClass"
-            classDisplayName = html.select('div.breadcrumbs').first().textNodes().last().wholeText.trim().substring(3)
+            pathDisplayName = html.select('div.breadcrumbs').first().textNodes().last().wholeText.trim().substring(3)
             extractTestCaseTo("tr > td.success:eq(0)", testsSucceeded)
             extractTestCaseTo("tr > td.failures:eq(0)", testsFailures)
             extractTestCaseTo("tr > td.skipped:eq(0)", testsSkipped)
