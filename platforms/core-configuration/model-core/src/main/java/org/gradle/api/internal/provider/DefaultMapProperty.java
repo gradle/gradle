@@ -23,6 +23,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
+import org.gradle.api.internal.lambdas.SerializableLambdas;
 import org.gradle.api.internal.provider.MapCollectors.EntriesFromMap;
 import org.gradle.api.internal.provider.MapCollectors.EntriesFromMapProvider;
 import org.gradle.api.internal.provider.MapCollectors.EntryWithValueFromProvider;
@@ -543,7 +544,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         }
 
         public CollectingSupplier(ValueCollector<K> keyCollector, MapEntryCollector<K, V> entryCollector, List<MapCollector<K, V>> collectors, int size) {
-            super(DefaultMapProperty::isAbsentIgnoring, collectors, size);
+            super(SerializableLambdas.predicate(DefaultMapProperty::isAbsentIgnoring), collectors, size);
             this.keyCollector = keyCollector;
             this.entryCollector = entryCollector;
         }

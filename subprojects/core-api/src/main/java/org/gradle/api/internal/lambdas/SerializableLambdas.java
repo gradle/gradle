@@ -24,6 +24,7 @@ import org.gradle.internal.Factory;
 import java.io.Serializable;
 import java.util.concurrent.Callable;
 import java.util.function.BiFunction;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 /**
@@ -59,6 +60,10 @@ public class SerializableLambdas {
 
     public static <T> Supplier<T> supplier(SerializableSupplier<T> supplier) {
         return supplier;
+    }
+
+    public static <T> Predicate<T> predicate(SerializablePredicate<T> predicate) {
+        return predicate;
     }
 
     /**
@@ -101,6 +106,9 @@ public class SerializableLambdas {
      * A {@link Serializable} version of {@link Supplier}.
      */
     public interface SerializableSupplier<T> extends Supplier<T>, Serializable {
+    }
+
+    public interface SerializablePredicate<T> extends Predicate<T>, Serializable{
     }
 
     private SerializableLambdas() {

@@ -22,6 +22,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
+import org.gradle.api.internal.lambdas.SerializableLambdas;
 import org.gradle.api.internal.provider.Collectors.ElementFromProvider;
 import org.gradle.api.internal.provider.Collectors.ElementsFromArray;
 import org.gradle.api.internal.provider.Collectors.ElementsFromCollection;
@@ -484,7 +485,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
             @SuppressWarnings("NonApiType") List<Collector<T>> collectors,
             int size
         ) {
-            super(AbstractCollectionProperty::isAbsentIgnoring, collectors, size);
+            super(SerializableLambdas.predicate(AbstractCollectionProperty::isAbsentIgnoring), collectors, size);
             this.type = type;
             this.collectionFactory = collectionFactory;
             this.valueCollector = valueCollector;
