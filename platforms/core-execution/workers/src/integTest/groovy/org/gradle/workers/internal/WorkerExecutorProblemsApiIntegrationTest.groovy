@@ -77,7 +77,7 @@ class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
                     Exception wrappedException = new Exception("Wrapped cause");
                     // Create and report a problem
                     // This needs to be Java 6 compatible, as we are in a worker
-                     getProblems().getReporter().reporting(problem -> problem
+                     getProblems().getReporter().report(problem -> problem
                             .id(org.gradle.api.problems.IdFactory.instance().createProblemId("type", "label", org.gradle.api.problems.IdFactory.instance().createRootProblemGroup("generic", "Generic")))
                             .stackLocation()
                             .withException(new RuntimeException("Exception message", wrappedException))

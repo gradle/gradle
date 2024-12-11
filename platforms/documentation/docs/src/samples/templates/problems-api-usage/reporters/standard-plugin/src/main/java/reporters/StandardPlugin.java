@@ -27,7 +27,7 @@ public class StandardPlugin implements Plugin<Project> {
     public void apply(Project project) {
         project.getTasks().register("myFailingTask", FailingTask.class);
         // tag::problems-api-report[]
-        problems.getReporter().reporting(problem -> problem
+        problems.getReporter().report(problem -> problem
                 .id(IdFactory.instance().createProblemId("adhoc-plugin-deprecation", "Plugin is deprecated", PROBLEM_GROUP))
                 .contextualLabel("The 'standard-plugin' is deprecated")
                 .documentedAt("https://github.com/gradle/gradle/README.md")
