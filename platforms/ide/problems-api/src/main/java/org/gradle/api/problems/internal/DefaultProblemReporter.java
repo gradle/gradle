@@ -53,7 +53,7 @@ public class DefaultProblemReporter implements InternalProblemReporter {
     }
 
     @Override
-    public void reporting(Action<ProblemSpec> spec) {
+    public void report(Action<ProblemSpec> spec) {
         DefaultProblemBuilder problemBuilder = createProblemBuilder();
         spec.execute(problemBuilder);
         report(problemBuilder.build());
@@ -68,8 +68,11 @@ public class DefaultProblemReporter implements InternalProblemReporter {
     public RuntimeException throwing(Action<ProblemSpec> spec) {
         DefaultProblemBuilder problemBuilder = createProblemBuilder();
         spec.execute(problemBuilder);
+        return throwing(problemBuilder.build());
+    }
 
-        Problem problem = problemBuilder.build();
+    @Override
+    public RuntimeException throwing(Problem problem) {
         Throwable exception = problem.getException();
         if (exception == null) {
             throw new IllegalStateException("Exception must be non-null");

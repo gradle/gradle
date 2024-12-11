@@ -17,6 +17,7 @@
 package org.gradle.integtests.tooling.r89
 
 import org.gradle.integtests.fixtures.GroovyBuildScriptLanguage
+import org.gradle.integtests.tooling.fixture.ProblemsApiGroovyScriptUtils
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
@@ -102,7 +103,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
     def "Problems expose details via Tooling API events with failure"() {
         given:
         withReportProblemTask """
-            getProblems().${targetVersion >= GradleVersion.version("8.11") ? 'getReporter()' : 'forNamespace("org.example.plugin")'}.reporting {
+            getProblems().${ProblemsApiGroovyScriptUtils.report(targetVersion)} {
                 it.${targetVersion < GradleVersion.version("8.8") ? 'label("shortProblemMessage").category("main", "sub", "id")' : 'id("id", "shortProblemMessage")'}
                 $documentationConfig
                 .lineInFileLocation("/tmp/foo", 1, 2, 3)
@@ -143,7 +144,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         withReportProblemTask """
             ${targetVersion >= GradleVersion.version("8.13") ? "def problemGroup = org.gradle.api.problems.IdFactory.instance().createRootProblemGroup('generic', 'group label')" : '' }
             ${targetVersion >= GradleVersion.version("8.13") ? "def problemId = org.gradle.api.problems.IdFactory.instance().createProblemId('id', 'shortProblemMessage')" : '' }
-            getProblems().${targetVersion >= GradleVersion.version("8.11") ? 'getReporter()' : 'forNamespace("org.example.plugin")'}.reporting {
+            getProblems().${ProblemsApiGroovyScriptUtils.report(targetVersion)} {
                 ${targetVersion >= GradleVersion.version("8.13") ? "it.id(problemId)" : 'it.id("id", "shortProblemMessage")' }
                 $documentationConfig
                 .lineInFileLocation("/tmp/foo", 1, 2, 3)
