@@ -23,11 +23,11 @@ import org.gradle.api.problems.internal.AdditionalDataBuilderFactory
 import org.gradle.api.problems.internal.DefaultProblemReporter
 import org.gradle.api.problems.internal.DeprecationData
 import org.gradle.api.problems.internal.DeprecationDataSpec
-import org.gradle.api.problems.internal.DocLink
 import org.gradle.api.problems.internal.ExceptionProblemRegistry
 import org.gradle.api.problems.internal.GeneralData
 import org.gradle.api.problems.internal.GeneralDataSpec
 import org.gradle.api.problems.internal.GradleCoreProblemGroup
+import org.gradle.api.problems.internal.InternalDocLink
 import org.gradle.api.problems.internal.InternalProblemReporter
 import org.gradle.api.problems.internal.ProblemSummarizer
 import org.gradle.api.problems.internal.TypeValidationData
@@ -123,7 +123,7 @@ class ValidationProblemSerializationTest extends Specification {
      * Required to be a named, static class for serialization to work.
      * See https://google.github.io/gson/UserGuide.html#nested-classes-including-inner-classes
      */
-    class TestDocLink implements DocLink {
+    class TestDocLink implements InternalDocLink {
 
         @Override
         String getUrl() {

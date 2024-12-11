@@ -80,9 +80,4 @@ public interface Problem {
      */
     @Nullable
     AdditionalData getAdditionalData();
-
-    /**
-     * Returns a problem builder with fields initialized with values from this instance.
-     */
-    InternalProblemBuilder toBuilder(AdditionalDataBuilderFactory additionalDataBuilderFactory);
 }

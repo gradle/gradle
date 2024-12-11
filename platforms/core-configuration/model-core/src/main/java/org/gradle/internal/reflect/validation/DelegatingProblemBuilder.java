@@ -23,8 +23,8 @@ import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.AdditionalDataSpec;
 import org.gradle.api.problems.internal.DocLink;
+import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.api.problems.internal.InternalProblemBuilder;
-import org.gradle.api.problems.internal.Problem;
 
 import javax.annotation.Nullable;
 
@@ -38,7 +38,7 @@ class DelegatingProblemBuilder implements InternalProblemBuilder {
     }
 
     @Override
-    public Problem build() {
+    public InternalProblem build() {
         return delegate.build();
     }
 
