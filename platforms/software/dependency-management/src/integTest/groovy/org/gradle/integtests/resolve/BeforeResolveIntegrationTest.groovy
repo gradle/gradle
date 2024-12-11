@@ -18,12 +18,10 @@ package org.gradle.integtests.resolve
 import org.gradle.api.internal.artifacts.configurations.MutationValidator
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.test.fixtures.dsl.GradleDsl
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
 import spock.lang.Issue
 
 class BeforeResolveIntegrationTest extends AbstractDependencyResolutionTest {
-    def "can use beforeResolve hook to modify add dependencies"() {
+    def "can use beforeResolve hook to add dependencies"() {
         mavenRepo.module('org.test', 'dep1', '1.0').publish()
         mavenRepo.module('org.test', 'dep2', '1.0').publish()
         mavenRepo.module('org.test', 'dep3', '1.0').publish()
@@ -75,14 +73,14 @@ task copyFiles(type:Copy) {
         outputContains('[dep1-1.0.jar, dep2-1.0.jar]')
 
         when:
-        executer.expectDocumentedDeprecationWarning("Mutating the dependencies of configuration ':conf' after it has been resolved or consumed. This behavior has been deprecated. This will fail with an error in Gradle 9.0. Resolved configuration ':conf'. After a Configuration has been resolved, consumed as a variant, or used for generating published metadata, it should not be modified. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutate_configuration_after_locking")
+        executer.expectDocumentedDeprecationWarning("Mutating the dependencies of configuration ':conf' after it has been resolved. This behavior has been deprecated. This will fail with an error in Gradle 9.0. After a Configuration has been resolved, consumed as a variant, or used for generating published metadata, it should not be modified. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutate_configuration_after_locking")
         succeeds 'printFilesWithConfigurationInput'
 
         then:
         outputContains('[dep1-1.0.jar, dep2-1.0.jar]')
 
         when:
-        executer.expectDocumentedDeprecationWarning("Mutating the dependencies of configuration ':conf' after it has been resolved or consumed. This behavior has been deprecated. This will fail with an error in Gradle 9.0. Resolved configuration ':conf'. After a Configuration has been resolved, consumed as a variant, or used for generating published metadata, it should not be modified. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutate_configuration_after_locking")
+        executer.expectDocumentedDeprecationWarning("Mutating the dependencies of configuration ':conf' after it has been resolved. This behavior has been deprecated. This will fail with an error in Gradle 9.0. After a Configuration has been resolved, consumed as a variant, or used for generating published metadata, it should not be modified. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutate_configuration_after_locking")
         succeeds 'copyFiles'
 
         then:
@@ -95,8 +93,8 @@ configurations.conf.incoming.beforeResolve { resolvableDependencies ->
     project.dependencies.add('conf', 'org.test:dep3:1.0')
 }
 """
-        executer.expectDocumentedDeprecationWarning("Mutating the dependencies of configuration ':conf' after it has been resolved or consumed. This behavior has been deprecated. This will fail with an error in Gradle 9.0. Resolved configuration ':conf'. After a Configuration has been resolved, consumed as a variant, or used for generating published metadata, it should not be modified. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutate_configuration_after_locking")
-        executer.expectDocumentedDeprecationWarning("Mutating the dependencies of configuration ':conf' after it has been resolved or consumed. This behavior has been deprecated. This will fail with an error in Gradle 9.0. Resolved configuration ':conf'. After a Configuration has been resolved, consumed as a variant, or used for generating published metadata, it should not be modified. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutate_configuration_after_locking")
+        executer.expectDocumentedDeprecationWarning("Mutating the dependencies of configuration ':conf' after it has been resolved. This behavior has been deprecated. This will fail with an error in Gradle 9.0. After a Configuration has been resolved, consumed as a variant, or used for generating published metadata, it should not be modified. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutate_configuration_after_locking")
+        executer.expectDocumentedDeprecationWarning("Mutating the dependencies of configuration ':conf' after it has been resolved. This behavior has been deprecated. This will fail with an error in Gradle 9.0. After a Configuration has been resolved, consumed as a variant, or used for generating published metadata, it should not be modified. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutate_configuration_after_locking")
         succeeds "copyFiles"
 
         then:
@@ -157,11 +155,11 @@ task copyFiles(type:Copy) {
         outputContains('[direct-dep-1.0.jar]')
 
         when:
-        executer.expectDocumentedDeprecationWarning("Mutating the dependency attributes of configuration ':conf' after it has been resolved or consumed. This behavior has been deprecated. This will fail with an error in Gradle 9.0. Resolved configuration ':conf'. After a Configuration has been resolved, consumed as a variant, or used for generating published metadata, it should not be modified. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutate_configuration_after_locking")
+        executer.expectDocumentedDeprecationWarning("Mutating the dependency attributes of configuration ':conf' after it has been resolved. This behavior has been deprecated. This will fail with an error in Gradle 9.0. After a Configuration has been resolved, consumed as a variant, or used for generating published metadata, it should not be modified. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutate_configuration_after_locking")
         succeeds 'printFilesWithConfigurationInput'
 
         and:
-        executer.expectDocumentedDeprecationWarning("Mutating the dependency attributes of configuration ':conf' after it has been resolved or consumed. This behavior has been deprecated. This will fail with an error in Gradle 9.0. Resolved configuration ':conf'. After a Configuration has been resolved, consumed as a variant, or used for generating published metadata, it should not be modified. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutate_configuration_after_locking")
+        executer.expectDocumentedDeprecationWarning("Mutating the dependency attributes of configuration ':conf' after it has been resolved. This behavior has been deprecated. This will fail with an error in Gradle 9.0. After a Configuration has been resolved, consumed as a variant, or used for generating published metadata, it should not be modified. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutate_configuration_after_locking")
         succeeds 'copyFiles'
 
         then: // Currently fails: excluded dependency is copied as part of configuration
@@ -218,13 +216,12 @@ task copyFiles(type:Copy) {
 """
 
         expect:
-        executer.expectDocumentedDeprecationWarning("Mutating the dependency attributes of configuration ':implementation' after it has been resolved or consumed. This behavior has been deprecated. This will fail with an error in Gradle 9.0. Child configuration observed: Resolved configuration ':compileClasspath'. After a Configuration has been resolved, consumed as a variant, or used for generating published metadata, it should not be modified. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutate_configuration_after_locking")
-        executer.expectDocumentedDeprecationWarning("Mutating the dependency attributes of configuration ':testImplementation' after it has been resolved or consumed. This behavior has been deprecated. This will fail with an error in Gradle 9.0. Child configuration observed: Resolved configuration ':testCompileClasspath'. After a Configuration has been resolved, consumed as a variant, or used for generating published metadata, it should not be modified. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutate_configuration_after_locking")
+        executer.expectDocumentedDeprecationWarning("Mutating the dependency attributes of configuration ':implementation' after it's child configuration ':compileClasspath' has been resolved. This behavior has been deprecated. This will fail with an error in Gradle 9.0. After a Configuration has been resolved, consumed as a variant, or used for generating published metadata, it should not be modified. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutate_configuration_after_locking")
+        executer.expectDocumentedDeprecationWarning("Mutating the dependency attributes of configuration ':testImplementation' after it's child configuration ':testCompileClasspath' has been resolved. This behavior has been deprecated. This will fail with an error in Gradle 9.0. After a Configuration has been resolved, consumed as a variant, or used for generating published metadata, it should not be modified. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutate_configuration_after_locking")
         succeeds('resolveCompile', 'resolveTestCompile')
     }
 
-    @Requires(UnitTestPreconditions.Online)
-    // This emulates the behaviour of the Spring Dependency Management plugin when applying dependency excludes from a BOM
+    // This emulates the historical behaviour of the Spring Dependency Management plugin when applying dependency excludes from a BOM
     def "can use beforeResolve hook to modify excludes for a dependency shared with an already-resolved configuration"() {
         given: "3 modules, where there are dependency relations such that module1 depends on module2 and module2 depends on module3"
         mavenRepo.module('org.test', 'module1', '1.0').publish()
@@ -271,7 +268,7 @@ task resolveDependencies {
 """
 
         expect: "that resolving conf a, then b, then a again, succeeds"
-        executer.expectDocumentedDeprecationWarning("Mutating the dependency attributes of configuration ':shared' after it has been resolved or consumed. This behavior has been deprecated. This will fail with an error in Gradle 9.0. Child configuration observed: Resolved configuration ':a'. After a Configuration has been resolved, consumed as a variant, or used for generating published metadata, it should not be modified. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutate_configuration_after_locking")
+        executer.expectDocumentedDeprecationWarning("Mutating the dependency attributes of configuration ':shared' after it's child configuration ':a' has been resolved. This behavior has been deprecated. This will fail with an error in Gradle 9.0. After a Configuration has been resolved, consumed as a variant, or used for generating published metadata, it should not be modified. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutate_configuration_after_locking")
         succeeds 'resolveDependencies'
     }
 
@@ -330,7 +327,7 @@ task resolveDependencies {
 
         expect:
         executer.withArgument("--parallel")
-        executer.expectDocumentedDeprecationWarning("Mutating the dependencies of configuration ':bar' after it has been resolved or consumed. This behavior has been deprecated. This will fail with an error in Gradle 9.0. Resolved configuration ':bar'. After a Configuration has been resolved, consumed as a variant, or used for generating published metadata, it should not be modified. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutate_configuration_after_locking")
+        executer.expectDocumentedDeprecationWarning("Mutating the dependencies of configuration ':bar' after it has been resolved. This behavior has been deprecated. This will fail with an error in Gradle 9.0. After a Configuration has been resolved, consumed as a variant, or used for generating published metadata, it should not be modified. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutate_configuration_after_locking")
         succeeds "a", "b"
 
         and:
@@ -371,7 +368,7 @@ task resolveDependencies {
         """
 
         expect:
-        executer.expectDocumentedDeprecationWarning("Mutating the dependencies of configuration ':implementation' after it has been resolved or consumed. This behavior has been deprecated. This will fail with an error in Gradle 9.0. Child configuration observed: Resolved configuration ':runtimeClasspath'. After a Configuration has been resolved, consumed as a variant, or used for generating published metadata, it should not be modified. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutate_configuration_after_locking")
+        executer.expectDocumentedDeprecationWarning("Mutating the dependencies of configuration ':implementation' after it's child configuration ':runtimeClasspath' has been resolved. This behavior has been deprecated. This will fail with an error in Gradle 9.0. After a Configuration has been resolved, consumed as a variant, or used for generating published metadata, it should not be modified. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutate_configuration_after_locking")
         succeeds("resolve")
     }
 
@@ -414,7 +411,7 @@ task resolveDependencies {
         """
 
         expect:
-        executer.expectDocumentedDeprecationWarning("Mutating the dependency attributes of configuration ':implementation' after it has been resolved or consumed. This behavior has been deprecated. This will fail with an error in Gradle 9.0. Child configuration observed: Resolved configuration ':runtimeClasspath'. After a Configuration has been resolved, consumed as a variant, or used for generating published metadata, it should not be modified. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutate_configuration_after_locking")
+        executer.expectDocumentedDeprecationWarning("Mutating the dependency attributes of configuration ':implementation' after it's child configuration ':runtimeClasspath' has been resolved. This behavior has been deprecated. This will fail with an error in Gradle 9.0. After a Configuration has been resolved, consumed as a variant, or used for generating published metadata, it should not be modified. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutate_configuration_after_locking")
         succeeds("resolve")
     }
 }

@@ -30,7 +30,6 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.Actions;
-import org.gradle.internal.Describables;
 import org.gradle.internal.deprecation.DeprecationLogger;
 
 import javax.annotation.Nullable;
@@ -58,7 +57,7 @@ public class ConfigurationVariantMapping {
 
     public void collectVariants(Consumer<UsageContext> collector) {
         outgoingConfiguration.runDependencyActions();
-        outgoingConfiguration.markAsObserved(Describables.of("Published variant", outgoingConfiguration.getName()));
+        outgoingConfiguration.markAsObserved("published as a variant");
         String outgoingConfigurationName = outgoingConfiguration.getName();
 
         if (!outgoingConfiguration.isTransitive()) {

@@ -144,6 +144,7 @@ import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -217,7 +218,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     private boolean usageCanBeMutated = true;
     private final ConfigurationRole roleAtCreation;
 
-    private Describable observationReason = null;
+    private Supplier<String> observationReason = null;
     private final FreezableAttributeContainer configurationAttributes;
     private final DomainObjectContext domainObjectContext;
     private final AttributesFactory attributesFactory;
@@ -1136,7 +1137,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     }
 
     @Override
-    public void markAsObserved(Describable reason) {
+    public void markAsObserved(String reason) {
         if (isObserved()) {
             return;
         }
@@ -1146,12 +1147,10 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
                 conf.configurationAttributes.freeze();
                 conf.outgoing.preventFromFurtherMutation();
                 conf.preventUsageMutation();
-
-                if (conf == this) {
-                    conf.observationReason = reason;
-                } else {
-                    conf.observationReason = () -> "Child configuration observed: " + reason.getDisplayName();
-                }
+                conf.observationReason = () -> {
+                    String target = conf == this ? "it" : "it's child " + this.getDisplayName();
+                    return target + " has been " + reason;
+                };
             }
         });
     }
@@ -1437,9 +1436,8 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         // we forbid any mutation that mutates the public state. The resolution strategy does
         // not mutate the public state of the configuration, so we allow it.
         if (observationReason != null && type != MutationType.STRATEGY) {
-            DeprecationLogger.deprecateBehaviour(String.format("Mutating the %s of %s after it has been resolved or consumed.", typeDescription, this.getDisplayName()))
+            DeprecationLogger.deprecateBehaviour(String.format("Mutating the %s of %s after %s.", typeDescription, this.getDisplayName(), observationReason.get()))
                 .withAdvice("After a Configuration has been resolved, consumed as a variant, or used for generating published metadata, it should not be modified.")
-                .withContext(observationReason.getDisplayName() + ".")
                 .willBecomeAnErrorInGradle9()
                 .withUpgradeGuideSection(8, "mutate_configuration_after_locking")
                 .nagUser();

@@ -17,7 +17,6 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencie
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.Describable;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ExcludeRule;
@@ -97,7 +96,7 @@ public class DefaultLocalVariantGraphResolveStateBuilder implements LocalVariant
             dependencyCache,
             model,
             calculatedValueContainerFactory,
-            () -> "Resolved " + configuration.getDisplayName()
+            "resolved"
         );
     }
 
@@ -117,7 +116,7 @@ public class DefaultLocalVariantGraphResolveStateBuilder implements LocalVariant
             dependencyCache,
             model,
             calculatedValueContainerFactory,
-            () -> "Consumed " + configuration.getDisplayName() + " as a variant"
+            "consumed as a variant"
         );
     }
 
@@ -128,7 +127,7 @@ public class DefaultLocalVariantGraphResolveStateBuilder implements LocalVariant
         DependencyCache dependencyCache,
         ModelContainer<?> model,
         CalculatedValueContainerFactory calculatedValueContainerFactory,
-        Describable observationReason
+        String observationReason
     ) {
         // Perform any final mutating actions for this configuration and its parents.
         // Then, lock this configuration and its parents from mutation.
