@@ -104,7 +104,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
                 $documentationConfig
                 .lineInFileLocation("/tmp/foo", 1, 2, 3)
                 $detailsConfig
-                .additionalData(org.gradle.api.problems.internal.GeneralDataSpec, data -> data.put("aKey", "aValue"))
+                .additionalData(org.gradle.api.problems.GeneralDataSpec, data -> data.put("aKey", "aValue"))
                 .severity(Severity.WARNING)
                 .solution("try this instead")
             }
@@ -140,7 +140,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
                 $documentationConfig
                 .lineInFileLocation("/tmp/foo", 1, 2, 3)
                 $detailsConfig
-                .additionalData(org.gradle.api.problems.internal.GeneralDataSpec, data -> data.put("aKey", "aValue"))
+                .additionalData(org.gradle.api.problems.GeneralDataSpec, data -> data.put("aKey", "aValue"))
                 .severity(Severity.WARNING)
                 .solution("try this instead")
             }

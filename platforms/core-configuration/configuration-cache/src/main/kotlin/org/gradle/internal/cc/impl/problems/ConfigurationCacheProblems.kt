@@ -197,7 +197,7 @@ class ConfigurationCacheProblems(
     private
     fun InternalProblems.onProblem(problem: PropertyProblem, severity: ProblemSeverity) {
         val message = problem.message.render()
-        internalReporter.create {
+        internalReporter.internalCreate {
             id(
                 DeprecationMessageBuilder.createDefaultDeprecationId(message),
                 message,
