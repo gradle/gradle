@@ -308,7 +308,7 @@ public class InstrumentingClassTransform implements ClassTransform {
                 );
                 if (methodBuilder != null) {
                     if (!targetOwner.equals(interceptedHandle.getOwner())) {
-                        methodBuilder = methodBuilder.adjustReceiverType(targetOwner);
+                        methodBuilder = methodBuilder.withReceiverType(targetOwner);
                     }
                     return new BridgeMethod(makeBridgeMethodHandle(makeBridgeMethodName(interceptedHandle), methodBuilder.getBridgeMethodDescriptor()), methodBuilder);
                 }

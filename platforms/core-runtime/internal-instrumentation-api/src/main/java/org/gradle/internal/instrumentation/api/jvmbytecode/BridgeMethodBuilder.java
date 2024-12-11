@@ -18,6 +18,8 @@ package org.gradle.internal.instrumentation.api.jvmbytecode;
 
 import org.objectweb.asm.MethodVisitor;
 
+import javax.annotation.CheckReturnValue;
+
 /**
  * A generator for a static method that replaces an intercepted method reference.
  */
@@ -43,7 +45,8 @@ public interface BridgeMethodBuilder {
      *
      * @param targetType the target type
      * @return a new bridge method builder
-     * @throws UnsupportedOperationException if this bridge method is not an instance method and doesn't support receiver refining
+     * @throws UnsupportedOperationException if this bridge method is not for an instance/interface method
      */
-    BridgeMethodBuilder adjustReceiverType(String targetType);
+    @CheckReturnValue
+    BridgeMethodBuilder withReceiverType(String targetType);
 }
