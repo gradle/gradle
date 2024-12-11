@@ -25,6 +25,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultV
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
+import org.gradle.internal.component.model.DefaultComponentOverrideMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
@@ -55,7 +56,7 @@ public class TestModuleSelectorState implements ResolvableSelectorState {
     }
 
     @Override
-    public ComponentSelector getSelector() {
+    public ComponentSelector getComponentSelector() {
         return new TestComponentSelector();
     }
 
@@ -86,7 +87,7 @@ public class TestModuleSelectorState implements ResolvableSelectorState {
         }
 
         BuildableComponentIdResolveResult result = new DefaultBuildableComponentIdResolveResult();
-        resolver.resolve(null, acceptor, rejector, result);
+        resolver.resolve(null, DefaultComponentOverrideMetadata.EMPTY, acceptor, rejector, result);
         return result;
     }
 
