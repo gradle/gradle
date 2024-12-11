@@ -1,10 +1,6 @@
 The Gradle team is excited to announce Gradle @version@.
 
-This release improves [error and warning reporting](#error-warning) by summarizing duplicate entries in the Problems API's generated problems report for better readability. The [console output](#build-authoring) is also enhanced when the Problems API is used to fail the build.
-
-Gradle @version@ introduces [platform enhancements](#platform), including file-system watching support on the Alpine Linux distribution and support for building and testing Swift 6 applications.
-
-Additionally, artifact transform ambiguities now produce a [deprecation warning](#error-warning) with clearer, more actionable information and [new methods](#build-authoring) are available in the DependencyConstraint API.
+This release features [1](), [2](), ... [n](), and more.
 
 <!--
 Include only their name, impactful features should be called out separately below.
@@ -29,22 +25,11 @@ For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility
 
 ## New features and usability improvements
 
-<a name="error-warning"></a>
 ### Error and warning reporting improvements
-
-Gradle provides a rich set of [error and warning messages](userguide/logging.html) to help you understand and resolve problems in your build.
-
-#### Summarization in the HTML report for problems
-
-The [Problems API](userguide/reporting_problems.html) provides structured feedback on build issues, helping developers and tools like IDEs identify and resolve warnings, errors, or deprecations during configuration or runtime.
-
-This release introduces a new problem summarization mechanism that reduces redundancy in the generated HTML Problems Report.
-
-The feature limits the number of identical problems reported and provides a summarized count of additional occurrences in the summary report:
 
 #### Ambiguous Artifact Transformation chains are detected and reported
 
-Previously, when two or more equal-length chains of [artifact transforms](userguide/artifact_transforms.html) produced compatible variants to satisfy a resolution request, Gradle would arbitrarily and silently select one.
+Previously, when two or more equal-length chains of <<artifact_transforms.adoc#sec,artifact transforms>> produced compatible variants to satisfy a resolution request, Gradle would arbitrarily and silently select one.
 Gradle now emits a warning for this case.
 
 This deprecation warning is the same failure message that now appears when multiple equal-length chains are available, producing incompatible variants that could each satisfy a resolution request.
@@ -100,91 +85,108 @@ Could not determine the dependencies of task ':forceResolution'.
 ```
 
 The formatting of this message has been improved to comprehensively display information about each complete chain of transformations that produces the candidates that would satisfy the request.
-This allows authors to better analyze and understand their builds, allowing them to remove ambiguity.
+This allows authors to better analyze and understand their builds, allowing them to remove the ambiguity.
 
-<a name="platform"></a>
-### Platform enhancements
+<!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. -->
 
-Gradle provides many features for specific platforms and languages.
 
-#### File-system watching and continuous mode support on Alpine Linux
+<a name="Problems API"></a>
 
-[File-system watching](userguide/file_system_watching.html) is now supported on [Alpine Linux](https://alpinelinux.org), a popular choice for container-based images and the default distribution for Docker.
+### Problems API improvements
 
-The feature is enabled by default, as is the case with all other supported platforms.
+#### Enhanced Problem Summarization for Improved Usability
 
-Additionally, it is now possible to [run builds in continuous mode](userguide/continuous_builds.html) on Alpine Linux.
+This release introduces a new problem summarization mechanism that reduces redundancy in problem reporting during builds. The feature limits the number of identical problems reported for each group (
+default threshold: 15) and provides a summarized count of additional occurrences at the end of the build.
 
-<a name="swift-support"></a>
-#### Swift 6 support
+##### Key Improvements
 
-Gradle’s [Swift support](userguide/building_swift_projects.html) allows you to build and test native Swift libraries and applications.
+- **Optimized Event Reporting**: Summarized problems minimize the data sent to clients, improving performance and reducing resource consumption.
+- **Simplified Developer Experience**: Cleaner problem reports with less noise, making it easier to identify and address critical issues.
+- **Enhanced Reporting**: Summarized problem details are reflected in the Messages, Group, and Locations tabs, maintaining clarity while reducing verbosity.
 
-Gradle now supports [Swift 6](https://www.swift.org/blog/announcing-swift-6/), introduced with [Xcode 16.0](https://developer.apple.com/documentation/xcode-release-notes/xcode-16-release-notes), extending its capabilities to the latest major version of Swift.
+This change ensures a smoother experience when using Gradle with repetitive problems.
+
+To learn more, check out our [sample project](samples/sample_problems_api_usage.html)
+<!--
+================== TEMPLATE ==============================
+
+<a name="FILL-IN-KEY-AREA"></a>
+### FILL-IN-KEY-AREA improvements
+
+<<<FILL IN CONTEXT FOR KEY AREA>>>
+Example:
+> The [configuration cache](userguide/configuration_cache.html) improves build performance by caching the result of
+> the configuration phase. Using the configuration cache, Gradle can skip the configuration phase entirely when
+> nothing that affects the build configuration has changed.
+
+#### FILL-IN-FEATURE
+> HIGHLIGHT the use case or existing problem the feature solves
+> EXPLAIN how the new release addresses that problem or use case
+> PROVIDE a screenshot or snippet illustrating the new feature, if applicable
+> LINK to the full documentation for more details
+
+================== END TEMPLATE ==========================
+
+
+==========================================================
+ADD RELEASE FEATURES BELOW
+vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
 <a name="build-authoring"></a>
 ### Build authoring improvements
 
-Gradle provides [rich APIs](userguide/getting_started_dev.html) for plugin authors and build engineers to develop custom build logic.
-
-#### Richer console output for failures using the Problems API
-
-The [Problems API](userguide/reporting_problems.html) provides structured feedback on build issues, helping developers and tools like IDEs identify and resolve warnings, errors, or deprecations during configuration or runtime.
-
-With this release, problems that are the source of a build failure have all of their information displayed on the console output at the end of the build:
-
-```text
-FAILURE: Build failed with an exception.
-
-* What went wrong:
-Execution failed for task ':sample-project:myFailingTask'.
-> Message from runtime exception
-    This happened because ProblemReporter.throwing() was called
-      This is a demonstration of how to add
-      detailed information to a build failure
-
-* Try:
-> Remove the Problems.throwing() method call from the task action
-> Run with --scan to get full insights.
-
-BUILD FAILED in 10s
-```
-
-This example output was obtained by using the Problems API as shown below:
-
-```java
-public abstract class FailingTask extends DefaultTask {
-
-
-    @Inject public abstract Problems getProblems();
-
-
-    @TaskAction public void run() {
-        throw getProblems().getReporter().throwing(problemSpec -> {
-            problemSpec.contextualLabel("This happened because ProblemReporter.throwing() was called");
-            problemSpec.details("This is a demonstration of how to add\ndetailed information to a build failure");
-            problemSpec.withException(new RuntimeException("Message from runtime exception"));
-            problemSpec.solution("Remove the Problems.throwing() method call from the task action");
-        });
-    }
-}
-```
-
-Check out our [sample project](samples/sample_problems_api_usage.html) for the complete code.
-
-This will enable plugin authors to fully leverage the Problems API to enhance any error with additional details, documentation links, and possible resolution steps.
-
-See the [Problems API](userguide/reporting_problems.html#command_line_interface) for more information.
+Gradle provides rich APIs for plugin authors and build engineers to develop custom build logic.
 
 #### `DependencyConstraintHandler` now has `addProvider` methods
 
 The [`DependencyConstraintHandler`](javadoc/org/gradle/api/artifacts/dsl/DependencyConstraintHandler.html) now has `addProvider` methods, similar to the
 [`DependencyHandler`](javadoc/org/gradle/api/artifacts/dsl/DependencyHandler.html).
 
-These are useful in plugin code to bring attention to where inputs should and should not be lazily evaluated by preventing eager results from being passed in.
+```kotlin
+dependencies {
+    constraints {
+        // Existing API:
+        add("implementation", provider { "org.foo:bar:1.0" })
+        add("implementation", provider { "org.foo:bar:1.0" }) {
+            because("newer versions have bugs")
+        }
+        // New methods:
+        addProvider("implementation", provider { "org.foo:bar:1.0" })
+        addProvider("implementation", provider { "org.foo:bar:1.0" }) {
+            because("newer versions have bugs")
+        }
+    }
+}
+```
+
+This clarifies that adding a provider is possible, and that there is no immediately usable return value. The ability to pass a provider to `DependencyConstraintHandler.add` is unaffected.
+
+### Other improvements
+
+#### File-system watching and continuous mode support on Alpine Linux
+
+[File-system watching](userguide/file_system_watching.html) is now supported on Alpine Linux.
+The feature is enabled by default, as on all other supported platforms.
+
+It is now also possible to [run builds in continuous mode](userguide/continuous_builds.html) on Alpine.
+
+<a name="swift-support"></a>
+### Swift support
+
+Gradle’s [Swift support](userguide/building_swift_projects.html) allows building and testing native Swift libraries and applications.
+
+#### Basic Swift 6 support
+
+Gradle now supports [Swift 6](https://www.swift.org/blog/announcing-swift-6/), introduced with [Xcode 16.0](https://developer.apple.com/documentation/xcode-release-notes/xcode-16-release-notes), extending its capabilities to the latest major version of Swift.
+
+<!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ADD RELEASE FEATURES ABOVE
+==========================================================
+
+-->
 
 ## Promoted features
-
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backward compatibility.
 See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
 
@@ -192,9 +194,8 @@ The following are the features that have been promoted in this Gradle release.
 
 ### Service reference properties are now stable
 
-Service references are task properties meant to facilitate the consumption of [shared build services](userguide/build_services.html#sec:service_references).
-
-[`ServiceReference`](javadoc/org/gradle/api/services/ServiceReference.html) is now stable.
+Service references are task properties meant for easier consumption of [shared build services](userguide/build_services.html#sec:service_references).
+[`ServiceReference`](/javadoc/org/gradle/api/services/ServiceReference.html) is now stable.
 
 ## Fixed issues
 
@@ -217,6 +218,6 @@ We love getting contributions from the Gradle community. For information on cont
 ## Reporting problems
 
 If you find a problem with this release, please file a bug on [GitHub Issues](https://github.com/gradle/gradle/issues) adhering to our issue guidelines.
-If you're not sure if you're encountering a bug, please use the [forum](https://discuss.gradle.org/c/help-discuss).
+If you're not sure you're encountering a bug, please use the [forum](https://discuss.gradle.org/c/help-discuss).
 
 We hope you will build happiness with Gradle, and we look forward to your feedback via [Twitter](https://twitter.com/gradle) or on [GitHub](https://github.com/gradle).
