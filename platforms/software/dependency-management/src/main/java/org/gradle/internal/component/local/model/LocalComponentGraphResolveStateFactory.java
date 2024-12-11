@@ -240,7 +240,6 @@ public class LocalComponentGraphResolveStateFactory {
         private LocalVariantGraphResolveState createVariantState(ConfigurationInternal configuration) {
             return stateBuilder.create(
                 configuration,
-                configurationsProvider,
                 componentId,
                 cache,
                 model,

@@ -41,7 +41,7 @@ class DefaultRootComponentMetadataBuilderTest extends Specification {
     }
     ImmutableModuleIdentifierFactory moduleIdentifierFactory = new DefaultImmutableModuleIdentifierFactory()
     LocalVariantGraphResolveStateBuilder configurationStateBuilder = Mock(LocalVariantGraphResolveStateBuilder) {
-        create(_, _, _, _, _, _) >> { args ->
+        create(_, _, _, _, _) >> { args ->
             Mock(LocalVariantGraphResolveState)
         }
     }

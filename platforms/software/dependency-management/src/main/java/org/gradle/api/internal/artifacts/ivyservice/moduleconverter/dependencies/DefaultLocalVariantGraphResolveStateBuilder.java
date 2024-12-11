@@ -29,7 +29,6 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.attributes.Category;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.Configurations;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationsProvider;
 import org.gradle.api.internal.artifacts.dependencies.SelfResolvingDependencyInternal;
 import org.gradle.api.internal.attributes.AttributeValue;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -85,7 +84,6 @@ public class DefaultLocalVariantGraphResolveStateBuilder implements LocalVariant
     @Override
     public LocalVariantGraphResolveState create(
         ConfigurationInternal configuration,
-        ConfigurationsProvider configurationsProvider,
         ComponentIdentifier componentId,
         DependencyCache dependencyCache,
         ModelContainer<?> model,
