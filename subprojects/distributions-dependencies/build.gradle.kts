@@ -74,7 +74,7 @@ dependencies {
         api(libs.errorProneAnnotations) { version { strictly("2.29.0") }}
         api(libs.fastutil)              { version { strictly("8.5.2") }}
         api(libs.gradleFileEvents)      { version { strictly("0.2.5") }}
-        api(libs.gradleProfiler)        { version { strictly("0.21.0-alpha-4") }}
+        api(libs.gradleProfiler)        { version { strictly("0.22.0-alpha-1") }}
         api(libs.develocityTestAnnotation) { version { strictly("2.0.1") }}
         api(libs.gcs)                   { version { strictly("v1-rev20220705-1.32.1") }}
         api(libs.googleApiClient)       { version { strictly("1.34.0"); because("our GCS version requires 1.34.0") }}
