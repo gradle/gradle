@@ -345,7 +345,7 @@ include::sample[dir="snippets/multiproject/dependencies-java/groovy",files="api/
 [[sec:convention_plugins_vs_cross_configuration]]
 == Do not use cross-project configuration
 
-An improper way to share build logic between subprojects is _cross-project configuration_ via the link:{javadocPath}//org/gradle/api/Project.html#subprojects-groovy.lang.Closure-[`subprojects {}`] and link:{javadocPath}/org/gradle/api/Project.html#allprojects-groovy.lang.Closure-[`allprojects {}`] DSL constructs.
+An improper way to share build logic between subprojects is _cross-project configuration_ via the link:{javadocPath}/org/gradle/api/Project.html#subprojects-groovy.lang.Closure-[`subprojects {}`] and link:{javadocPath}/org/gradle/api/Project.html#allprojects-groovy.lang.Closure-[`allprojects {}`] DSL constructs.
 
 TIP:  Avoid using `subprojects {}` and `allprojects {}`.
 
