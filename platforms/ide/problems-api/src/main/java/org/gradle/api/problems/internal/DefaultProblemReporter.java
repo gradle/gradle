@@ -53,7 +53,7 @@ public class DefaultProblemReporter implements InternalProblemReporter {
     }
 
     @Override
-    public void report(Action<ProblemSpec> spec) {
+    public void report(Action<? super ProblemSpec> spec) {
         DefaultProblemBuilder problemBuilder = createProblemBuilder();
         spec.execute(problemBuilder);
         report(problemBuilder.build());
@@ -65,20 +65,19 @@ public class DefaultProblemReporter implements InternalProblemReporter {
     }
 
     @Override
-    public RuntimeException throwing(Action<ProblemSpec> spec) {
+    public RuntimeException throwing(Throwable exception, Action<? super ProblemSpec> spec) {
         DefaultProblemBuilder problemBuilder = createProblemBuilder();
         spec.execute(problemBuilder);
-        return throwing(problemBuilder.build());
+        problemBuilder.withException(exception);
+        report(problemBuilder.build());
+        throw runtimeException(exception);
     }
 
     @Override
-    public RuntimeException throwing(Problem problem) {
-        Throwable exception = problem.getException();
-        if (exception == null) {
-            throw new IllegalStateException("Exception must be non-null");
-        } else {
-            throw throwError(exception, problem);
-        }
+    public RuntimeException throwing(Throwable exception, Problem problem) {
+        problem = ((InternalProblem) problem).toBuilder(additionalDataBuilderFactory).withException(transform(exception)).build();
+        report(problem);
+        throw runtimeException(exception);
     }
 
     @Override
@@ -86,19 +85,14 @@ public class DefaultProblemReporter implements InternalProblemReporter {
         for (Problem problem : problems) {
             report(((InternalProblem) problem).toBuilder(additionalDataBuilderFactory).withException(transform(exception)).build());
         }
-        if (exception instanceof RuntimeException) {
-            return (RuntimeException) exception;
-        } else {
-            throw new RuntimeException(exception);
-        }
+        throw runtimeException(exception);
     }
 
-    private RuntimeException throwError(Throwable exception, Problem problem) {
-        report(problem);
+    private static RuntimeException runtimeException(Throwable exception) {
         if (exception instanceof RuntimeException) {
             return (RuntimeException) exception;
         } else {
-            throw new RuntimeException(exception);
+            return new RuntimeException(exception);
         }
     }
 

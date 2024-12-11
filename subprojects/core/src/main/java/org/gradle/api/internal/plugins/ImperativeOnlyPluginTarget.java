@@ -70,16 +70,11 @@ public class ImperativeOnlyPluginTarget<T extends PluginAwareInternal> implement
             return;
         }
 
+        String message = String.format("The plugin must be applied %s, but was applied %s", actualTargetType.getApplyTargetDescription(), targetType.getApplyTargetDescription());
         throw problems.getInternalReporter()
-            .throwing(spec -> {
-                String message = String.format(
-                    "The plugin must be applied %s, but was applied %s",
-                    actualTargetType.getApplyTargetDescription(), targetType.getApplyTargetDescription()
-                );
-
+            .throwing(new IllegalArgumentException(message), spec -> {
                 spec.id(IdFactory.instance().createProblemId("target-type-mismatch", "Unexpected plugin type", GradleCoreProblemGroup.pluginApplication()))
                     .severity(Severity.ERROR)
-                    .withException(new IllegalArgumentException(message))
                     .contextualLabel(message)
                     .documentedAt(Documentation.userManual("custom_plugins", "project_vs_settings_vs_init_plugins").toString());
             });
