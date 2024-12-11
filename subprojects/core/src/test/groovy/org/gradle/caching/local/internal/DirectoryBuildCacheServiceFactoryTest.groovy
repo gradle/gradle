@@ -18,7 +18,7 @@ package org.gradle.caching.local.internal
 
 import org.gradle.api.cache.Cleanup
 import org.gradle.api.internal.cache.CacheConfigurationsInternal
-import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.cache.CacheBuilder
@@ -31,6 +31,7 @@ import org.gradle.caching.local.DirectoryBuildCache
 import org.gradle.internal.file.FileAccessTimeJournal
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.TestUtil
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
@@ -42,14 +43,13 @@ class DirectoryBuildCacheServiceFactoryTest extends Specification {
 
     def cacheRepository = Mock(UnscopedCacheBuilderFactory)
     def globalScopedCache = Mock(GlobalScopedCacheBuilderFactory)
-    def resolver = Mock(FileResolver)
     def fileAccessTimeJournal = Mock(FileAccessTimeJournal)
     def cacheCleanup = Stub(Property) {
         get() >> Cleanup.DEFAULT
     }
     def cacheConfigurations = Mock(CacheConfigurationsInternal)
     def cacheCleanupStrategyFactory = Mock(CacheCleanupStrategyFactory)
-    def factory = new DirectoryBuildCacheServiceFactory(cacheRepository, globalScopedCache, resolver, fileAccessTimeJournal, cacheConfigurations, cacheCleanupStrategyFactory)
+    def factory = new DirectoryBuildCacheServiceFactory(cacheRepository, globalScopedCache, fileAccessTimeJournal, cacheConfigurations, cacheCleanupStrategyFactory, TestUtil.providerFactory())
     def cacheBuilder = Stub(CacheBuilder)
     def config = Mock(DirectoryBuildCache)
     def buildCacheDescriber = new NoopBuildCacheDescriber()
@@ -61,7 +61,7 @@ class DirectoryBuildCacheServiceFactoryTest extends Specification {
         def service = factory.createBuildCacheService(config, buildCacheDescriber)
         then:
         service instanceof DirectoryBuildCacheService
-        1 * config.getDirectory() >> null
+        1 * config.getDirectory() >> TestFiles.filePropertyFactory().newDirectoryProperty()
         1 * config.getRemoveUnusedEntriesAfterDays() >> 10
         1 * globalScopedCache.baseDirForCrossVersionCache("build-cache-1") >> cacheDir
         1 * cacheRepository.cache(cacheDir) >> cacheBuilder
@@ -78,9 +78,8 @@ class DirectoryBuildCacheServiceFactoryTest extends Specification {
         def service = factory.createBuildCacheService(config, buildCacheDescriber)
         then:
         service instanceof DirectoryBuildCacheService
-        1 * config.getDirectory() >> cacheDir
+        1 * config.getDirectory() >> TestFiles.filePropertyFactory().newDirectoryProperty().value(TestFiles.fileFactory().dir(cacheDir))
         1 * config.getRemoveUnusedEntriesAfterDays() >> 10
-        1 * resolver.resolve(cacheDir) >> cacheDir
         1 * cacheRepository.cache(cacheDir) >> cacheBuilder
         1 * cacheConfigurations.getCleanup() >> cacheCleanup
         1 * cacheConfigurations.getCleanupFrequency() >> Mock(Provider)

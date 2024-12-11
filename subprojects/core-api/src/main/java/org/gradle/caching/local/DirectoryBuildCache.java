@@ -16,9 +16,12 @@
 
 package org.gradle.caching.local;
 
+import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.tasks.Optional;
 import org.gradle.caching.configuration.AbstractBuildCache;
 import org.gradle.internal.deprecation.DeprecationLogger;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.BytecodeUpgrade;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 
 import javax.annotation.Nullable;
 
@@ -29,26 +32,14 @@ import javax.annotation.Nullable;
  * @since 3.5
  */
 public abstract class DirectoryBuildCache extends AbstractBuildCache {
-    private Object directory;
     private int removeUnusedEntriesAfterDays = 7;
 
     /**
-     * Returns the directory to use to store the build cache.
+     * The directory to use to store the build cache.
      */
-    @Nullable
-    @ToBeReplacedByLazyProperty
-    public Object getDirectory() {
-        return directory;
-    }
-
-    /**
-     * Sets the directory to use to store the build cache.
-     *
-     * The directory is evaluated as per {@code Project.file(Object)}.
-     */
-    public void setDirectory(@Nullable Object directory) {
-        this.directory = directory;
-    }
+    @Optional
+    @ReplacesEagerProperty(adapter = DirectoryAdapter.class)
+    public abstract DirectoryProperty getDirectory();
 
     /**
      * Returns the number of days after unused entries are garbage collected. Defaults to 7 days.
@@ -80,5 +71,18 @@ public abstract class DirectoryBuildCache extends AbstractBuildCache {
             .nagUser();
 
         this.removeUnusedEntriesAfterDays = removeUnusedEntriesAfterDays;
+    }
+
+    static class DirectoryAdapter {
+        @BytecodeUpgrade
+        @Nullable
+        static Object getDirectory(DirectoryBuildCache buildCache) {
+            return buildCache.getDirectory().getAsFile().getOrNull();
+        }
+
+        @BytecodeUpgrade
+        static void setDirectory(DirectoryBuildCache buildCache, @Nullable Object directory) {
+            buildCache.getDirectory().set(buildCache.getDirectory().files(directory).getSingleFile());
+        }
     }
 }

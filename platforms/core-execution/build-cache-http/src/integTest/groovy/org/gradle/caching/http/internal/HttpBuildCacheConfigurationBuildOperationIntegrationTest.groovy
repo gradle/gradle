@@ -56,7 +56,7 @@ class HttpBuildCacheConfigurationBuildOperationIntegrationTest extends AbstractI
                 }
                 remote(org.gradle.caching.http.HttpBuildCache) {
                     enabled = true
-                    url = "$url"
+                    url = uri("$url")
                     push = $push
                     $credentials
                 }
@@ -104,7 +104,7 @@ class HttpBuildCacheConfigurationBuildOperationIntegrationTest extends AbstractI
             buildCache {
                 remote(org.gradle.caching.http.HttpBuildCache) {
                     enabled = true
-                    url = "${basicAuthUri}/"
+                    url = uri("${basicAuthUri}/")
                 }
             }
         """
@@ -127,7 +127,7 @@ class HttpBuildCacheConfigurationBuildOperationIntegrationTest extends AbstractI
             buildCache {
                 remote(org.gradle.caching.http.HttpBuildCache) {
                     enabled = true
-                    url = "$url/"
+                    url = uri("$url/")
                 }
             }
         """
@@ -148,7 +148,7 @@ class HttpBuildCacheConfigurationBuildOperationIntegrationTest extends AbstractI
             buildCache {
                 remote(org.gradle.caching.http.HttpBuildCache) {
                     enabled = false
-                    url = "$url/"
+                    url = uri("$url/")
                 }
             }
         """
@@ -169,7 +169,7 @@ class HttpBuildCacheConfigurationBuildOperationIntegrationTest extends AbstractI
             buildCache {
                 local {
                     enabled = false
-                    directory = 'directory'
+                    directory = file('directory')
                     push = false
                 }
             }
@@ -194,7 +194,7 @@ class HttpBuildCacheConfigurationBuildOperationIntegrationTest extends AbstractI
             buildCache {
                 remote(org.gradle.caching.http.HttpBuildCache) {
                     enabled = true
-                    url = "$url"
+                    url = uri("$url")
                     useExpectContinue = true
                 }
             }

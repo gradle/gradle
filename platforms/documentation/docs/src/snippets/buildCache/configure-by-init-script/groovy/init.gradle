@@ -2,7 +2,7 @@ gradle.settingsEvaluated { settings ->
     settings.buildCache {
         // vvv Your custom configuration goes here
         remote(HttpBuildCache) {
-            url = 'https://example.com:8123/cache/'
+            url = uri('https://example.com:8123/cache/')
         }
         // ^^^ Your custom configuration goes here
     }

@@ -17,10 +17,14 @@
 package org.gradle.caching.http;
 
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
+import org.gradle.api.internal.provider.ProviderApiDeprecationLogger;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Nested;
 import org.gradle.caching.configuration.AbstractBuildCache;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.BytecodeUpgrade;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -38,7 +42,7 @@ import java.net.URL;
  * A successful {@literal PUT} request must return any 2xx response.
  * <p>
  * {@literal PUT} requests may also return a {@literal 413 Payload Too Large} response to indicate that the payload is larger than can be accepted.
- * This is useful when {@link #isUseExpectContinue()} is enabled.
+ * This is useful when {@link #getUseExpectContinue()} is enabled.
  * <p>
  * Redirecting responses may be issued with {@literal 301}, {@literal 302}, {@literal 303}, {@literal 307} or {@literal 308} responses.
  * Redirecting responses to {@literal PUT} requests must use {@literal 307} or {@literal 308} to have the {@literal PUT} replayed.
@@ -55,49 +59,22 @@ import java.net.URL;
  */
 public abstract class HttpBuildCache extends AbstractBuildCache {
     private final HttpBuildCacheCredentials credentials;
-    private URI url;
-    private boolean allowUntrustedServer;
-    private boolean allowInsecureProtocol;
-    private boolean useExpectContinue;
 
     public HttpBuildCache() {
         this.credentials = getObjectFactory().newInstance(HttpBuildCacheCredentials.class);
+        getAllowUntrustedServer().convention(false);
+        getAllowInsecureProtocol().convention(false);
+        getUseExpectContinue().convention(false);
     }
 
     @Inject
-    protected ObjectFactory getObjectFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ObjectFactory getObjectFactory();
 
     /**
      * Returns the URI to the cache.
      */
-    @Nullable
-    @Nested
-    public URI getUrl() {
-        return url;
-    }
-
-    /**
-     * Sets the URL of the cache. The URL must end in a '/'.
-     */
-    public void setUrl(String url) {
-        setUrl(URI.create(url));
-    }
-
-    /**
-     * Sets the URL of the cache. The URL must end in a '/'.
-     */
-    public void setUrl(URL url) throws URISyntaxException {
-        setUrl(url.toURI());
-    }
-
-    /**
-     * Sets the URL of the cache. The URL must end in a '/'.
-     */
-    public void setUrl(@Nullable URI url) {
-        this.url = url;
-    }
+    @ReplacesEagerProperty(adapter = UrlAdapter.class)
+    public abstract Property<URI> getUrl();
 
     /**
      * Returns the credentials used to access the HTTP cache backend.
@@ -129,19 +106,16 @@ public abstract class HttpBuildCache extends AbstractBuildCache {
      *
      * @since 4.2
      */
-    @ToBeReplacedByLazyProperty
-    public boolean isAllowUntrustedServer() {
-        return allowUntrustedServer;
-    }
+    @ReplacesEagerProperty(originalType = boolean.class)
+    public abstract Property<Boolean> getAllowUntrustedServer();
 
-    /**
-     * Specifies whether it is acceptable to communicate with an HTTP build cache backend with an untrusted SSL certificate.
-     *
-     * @see #isAllowUntrustedServer()
-     * @since 4.2
-     */
-    public void setAllowUntrustedServer(boolean allowUntrustedServer) {
-        this.allowUntrustedServer = allowUntrustedServer;
+    // kotlin source compatibility
+    // TODO: remove in 10.0
+    @Incubating
+    @Deprecated
+    public Property<Boolean> getIsAllowUntrustedServer() {
+        ProviderApiDeprecationLogger.logDeprecation(HttpBuildCache.class, "getIsAllowUntrustedServer()", "getAllowUntrustedServer()");
+        return getAllowUntrustedServer();
     }
 
     /**
@@ -161,28 +135,16 @@ public abstract class HttpBuildCache extends AbstractBuildCache {
      *
      * @since 6.0
      */
-    @ToBeReplacedByLazyProperty
-    public boolean isAllowInsecureProtocol() {
-        return allowInsecureProtocol;
-    }
+    @ReplacesEagerProperty(originalType = boolean.class)
+    public abstract Property<Boolean> getAllowInsecureProtocol();
 
-    /**
-     * Specifies whether it is acceptable to communicate with a build cache over an insecure HTTP connection.
-     *
-     * @see #isAllowInsecureProtocol()
-     * @since 6.0
-     */
-    public void setAllowInsecureProtocol(boolean allowInsecureProtocol) {
-        this.allowInsecureProtocol = allowInsecureProtocol;
-    }
-
-    /**
-     * Specifies whether HTTP expect-continue should be used for store requests.
-     *
-     * @since 7.2
-     */
-    public void setUseExpectContinue(boolean useExpectContinue) {
-        this.useExpectContinue = useExpectContinue;
+    // kotlin source compatibility
+    // TODO: remove in 10.0
+    @Incubating
+    @Deprecated
+    public Property<Boolean> getIsAllowInsecureProtocol() {
+        ProviderApiDeprecationLogger.logDeprecation(HttpBuildCache.class, "getIsAllowInsecureProtocol()", "getAllowInsecureProtocol()");
+        return getAllowInsecureProtocol();
     }
 
     /**
@@ -198,11 +160,40 @@ public abstract class HttpBuildCache extends AbstractBuildCache {
      *
      * Note: not all HTTP servers support expect-continue.
      *
-     * @see #setUseExpectContinue(boolean)
      * @since 7.2
      */
-    @ToBeReplacedByLazyProperty
-    public boolean isUseExpectContinue() {
-        return useExpectContinue;
+    @ReplacesEagerProperty(originalType = boolean.class)
+    public abstract Property<Boolean> getUseExpectContinue();
+
+    // kotlin source compatibility
+    // TODO: remove in 10.0
+    @Incubating
+    @Deprecated
+    public Property<Boolean> getIsUseExpectContinue() {
+        ProviderApiDeprecationLogger.logDeprecation(HttpBuildCache.class, "getIsUseExpectContinue()", "getUseExpectContinue()");
+        return getUseExpectContinue();
+    }
+
+    static class UrlAdapter {
+        @BytecodeUpgrade
+        @Nullable
+        static URI getUrl(HttpBuildCache buildCache) {
+            return buildCache.getUrl().getOrNull();
+        }
+
+        @BytecodeUpgrade
+        static void setUrl(HttpBuildCache buildCache, @Nullable URI url) {
+            buildCache.getUrl().set(url);
+        }
+
+        @BytecodeUpgrade
+        static void setUrl(HttpBuildCache buildCache, String url) {
+            buildCache.getUrl().set(URI.create(url));
+        }
+
+        @BytecodeUpgrade
+        static void setUrl(HttpBuildCache buildCache, URL url) throws URISyntaxException {
+            buildCache.getUrl().set(url.toURI());
+        }
     }
 }

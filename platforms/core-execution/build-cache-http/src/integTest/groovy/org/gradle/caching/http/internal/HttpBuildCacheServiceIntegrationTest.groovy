@@ -341,7 +341,7 @@ class HttpBuildCacheServiceIntegrationTest extends HttpBuildCacheFixture {
         settingsFile << """
             buildCache {
                 remote {
-                    url = "https://invalid.invalid/"
+                    url = uri("https://invalid.invalid/")
                 }
             }
         """

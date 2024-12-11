@@ -30,7 +30,7 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
             buildCache {
                 local {
                     enabled = true
-                    directory = '${cacheDir.absoluteFile.toURI().toString()}'
+                    directory = file('${cacheDir.absoluteFile.toURI().toString()}')
                     push = true
                     removeUnusedEntriesAfterDays = 3
                 }
@@ -74,7 +74,7 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
             buildCache {
                 local {
                     enabled = true
-                    directory = '${cacheDir.absoluteFile.toURI().toString()}'
+                    directory = file('${cacheDir.absoluteFile.toURI().toString()}')
                     push = true
                 }
             }
@@ -116,7 +116,7 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
             buildCache {
                 local {
                     enabled = true
-                    directory = '${cacheDir.absoluteFile.toURI().toString()}'
+                    directory = file('${cacheDir.absoluteFile.toURI().toString()}')
                     push = true
                 }
             }
@@ -216,7 +216,7 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
 
                 local {
                     enabled = true
-                    directory = '${cacheDir.absoluteFile.toURI().toString()}'
+                    directory = file('${cacheDir.absoluteFile.toURI().toString()}')
                 }
                 remote(CustomBuildCache) {
                     enabled = true
@@ -244,7 +244,7 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
             buildCache {
                 local {
                     enabled = false
-                    directory = '${cacheDir.absoluteFile.toURI().toString()}'
+                    directory = file('${cacheDir.absoluteFile.toURI().toString()}')
                     push = true
                 }
             }

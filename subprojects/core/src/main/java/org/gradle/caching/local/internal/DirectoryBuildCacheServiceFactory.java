@@ -18,6 +18,7 @@ package org.gradle.caching.local.internal;
 
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.cache.CacheConfigurationsInternal;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.cache.CacheCleanupStrategy;
 import org.gradle.cache.CacheCleanupStrategyFactory;
 import org.gradle.cache.PersistentCache;
@@ -30,7 +31,6 @@ import org.gradle.caching.BuildCacheServiceFactory;
 import org.gradle.caching.local.DirectoryBuildCache;
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.file.FileAccessTracker;
-import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.file.impl.SingleDepthFileAccessTracker;
 
 import javax.inject.Inject;
@@ -49,37 +49,33 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
 
     private final UnscopedCacheBuilderFactory unscopedCacheBuilderFactory;
     private final GlobalScopedCacheBuilderFactory cacheBuilderFactory;
-    private final PathToFileResolver resolver;
     private final FileAccessTimeJournal fileAccessTimeJournal;
     private final CacheConfigurationsInternal cacheConfigurations;
     private final CacheCleanupStrategyFactory cacheCleanupStrategyFactory;
+    private final ProviderFactory providerFactory;
 
     @Inject
     public DirectoryBuildCacheServiceFactory(
         UnscopedCacheBuilderFactory unscopedCacheBuilderFactory,
         GlobalScopedCacheBuilderFactory cacheBuilderFactory,
-        PathToFileResolver resolver,
         FileAccessTimeJournal fileAccessTimeJournal,
         CacheConfigurationsInternal cacheConfigurations,
-        CacheCleanupStrategyFactory cacheCleanupStrategyFactory
+        CacheCleanupStrategyFactory cacheCleanupStrategyFactory,
+        ProviderFactory providerFactory
     ) {
         this.unscopedCacheBuilderFactory = unscopedCacheBuilderFactory;
         this.cacheBuilderFactory = cacheBuilderFactory;
-        this.resolver = resolver;
         this.fileAccessTimeJournal = fileAccessTimeJournal;
         this.cacheConfigurations = cacheConfigurations;
         this.cacheCleanupStrategyFactory = cacheCleanupStrategyFactory;
+        this.providerFactory = providerFactory;
     }
 
     @Override
     public BuildCacheService createBuildCacheService(DirectoryBuildCache buildCacheConfig, Describer describer) {
-        Object cacheDirectory = buildCacheConfig.getDirectory();
-        File target;
-        if (cacheDirectory != null) {
-            target = resolver.resolve(cacheDirectory);
-        } else {
-            target = cacheBuilderFactory.baseDirForCrossVersionCache(BUILD_CACHE_KEY);
-        }
+        File target = buildCacheConfig.getDirectory().getAsFile().orElse(
+            providerFactory.provider(() -> cacheBuilderFactory.baseDirForCrossVersionCache(BUILD_CACHE_KEY))
+        ).get();
         checkDirectory(target);
 
         DirectoryBuildCacheEntryRetention entryExpiration = new DirectoryBuildCacheEntryRetention(buildCacheConfig, cacheConfigurations);

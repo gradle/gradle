@@ -3,7 +3,7 @@ rootProject.name = 'http-build-cache'
 // tag::http-build-cache[]
 buildCache {
     remote(HttpBuildCache) {
-        url = 'https://example.com:8123/cache/'
+        url = uri('https://example.com:8123/cache/')
     }
 }
 // end::http-build-cache[]
@@ -11,7 +11,7 @@ buildCache {
 // tag::allow-untrusted-server[]
 buildCache {
     remote(HttpBuildCache) {
-        url = 'https://example.com:8123/cache/'
+        url = uri('https://example.com:8123/cache/')
         allowUntrustedServer = true
     }
 }
@@ -20,7 +20,7 @@ buildCache {
 // tag::use-expect-continue[]
 buildCache {
     remote(HttpBuildCache) {
-        url = 'https://example.com:8123/cache/'
+        url = uri('https://example.com:8123/cache/')
         useExpectContinue = true
     }
 }
