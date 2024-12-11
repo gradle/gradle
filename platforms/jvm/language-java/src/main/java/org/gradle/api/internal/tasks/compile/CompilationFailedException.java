@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.tasks.compile;
 
-import org.gradle.api.problems.internal.Problem;
+import org.gradle.api.problems.Problem;
 import org.gradle.internal.exceptions.CompilationFailedIndicator;
 import org.gradle.problems.internal.rendering.ProblemRenderer;
 

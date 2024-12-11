@@ -16,6 +16,7 @@
 
 package org.gradle.api.problems.internal
 
+import org.gradle.api.problems.GeneralData
 import org.gradle.api.problems.IdFactory
 import org.gradle.internal.problems.NoOpProblemDiagnosticsFactory
 import spock.lang.Specification

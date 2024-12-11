@@ -17,7 +17,7 @@
 package org.gradle.process.internal.worker.problem;
 
 import org.gradle.api.NonNullApi;
-import org.gradle.api.problems.internal.Problem;
+import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.internal.ProblemEmitter;
 import org.gradle.api.problems.internal.ProblemSummarizer;
 import org.gradle.internal.operations.OperationIdentifier;

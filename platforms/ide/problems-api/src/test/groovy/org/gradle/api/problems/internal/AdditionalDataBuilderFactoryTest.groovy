@@ -16,6 +16,7 @@
 
 package org.gradle.api.problems.internal
 
+import org.gradle.api.problems.AdditionalData
 import spock.lang.Specification
 
 import javax.annotation.Nullable

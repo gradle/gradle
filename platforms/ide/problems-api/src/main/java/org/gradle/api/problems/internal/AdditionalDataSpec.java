@@ -16,6 +16,8 @@
 
 package org.gradle.api.problems.internal;
 
+import org.gradle.api.problems.Problem;
+
 /**
  * Marker interface for additional data that can be attached to a {@link Problem}.
  */

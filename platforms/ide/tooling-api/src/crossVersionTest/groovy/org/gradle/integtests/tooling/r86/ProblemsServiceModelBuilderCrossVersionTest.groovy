@@ -36,7 +36,7 @@ class ProblemsServiceModelBuilderCrossVersionTest extends ToolingApiSpecificatio
     static String getBuildScriptSampleContent(boolean pre86api, boolean includeAdditionalMetadata, GradleVersion targetVersion, Integer threshold = 1) {
         def isNewerOrEqual811 = targetVersion >= GradleVersion.version("8.11")
         def isOlderThan89 = targetVersion < GradleVersion.version("8.9")
-        def additionalDataCall = includeAdditionalMetadata ? isOlderThan89 ? '.additionalData("keyToString", "value")"' : '.additionalData(org.gradle.api.problems.internal.GeneralData) { it.put("keyToString", "value") }' : ""
+        def additionalDataCall = includeAdditionalMetadata ? isOlderThan89 ? '.additionalData("keyToString", "value")"' : '.additionalData(org.gradle.api.problems.GeneralData) { it.put("keyToString", "value") }' : ""
         """
             import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
             import org.gradle.tooling.provider.model.ToolingModelBuilder
