@@ -507,10 +507,10 @@ abstract class BuildOperationAwareLogger implements Logger {
         if (marker == null) {
             return LogLevel.INFO;
         }
-        if (marker == Logging.LIFECYCLE) {
+        if (marker.equals(Logging.LIFECYCLE)) {
             return LogLevel.LIFECYCLE;
         }
-        if (marker == Logging.QUIET) {
+        if (marker.equals(Logging.QUIET)) {
             return LogLevel.QUIET;
         }
         return LogLevel.INFO;
