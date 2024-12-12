@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.compile;
 
+import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDetector;
 import org.gradle.api.problems.internal.InternalProblems;
@@ -50,6 +51,7 @@ public class GroovyServices extends AbstractGradleModuleServices {
             ClassPathRegistry classPathRegistry,
             ClassLoaderRegistry classLoaderRegistry,
             ActionExecutionSpecFactory actionExecutionSpecFactory,
+            ProjectLayout projectLayout,
             ProjectCacheDir projectCacheDir,
             InternalProblems problems
         ) {
@@ -63,6 +65,7 @@ public class GroovyServices extends AbstractGradleModuleServices {
                 classPathRegistry,
                 classLoaderRegistry,
                 actionExecutionSpecFactory,
+                projectLayout,
                 projectCacheDir,
                 problems
             );

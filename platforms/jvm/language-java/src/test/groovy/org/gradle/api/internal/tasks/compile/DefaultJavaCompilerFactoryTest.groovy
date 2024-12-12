@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.tasks.compile
 
+import org.gradle.api.file.ProjectLayout
 import org.gradle.api.internal.ClassPathRegistry
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDetector
 import org.gradle.api.problems.internal.InternalProblems
@@ -37,6 +38,7 @@ class DefaultJavaCompilerFactoryTest extends Specification {
         Stub(ClassPathRegistry),
         Stub(ActionExecutionSpecFactory),
         Stub(InternalProblems),
+        Stub(ProjectLayout),
         Stub(ProjectCacheDir)
     )
 

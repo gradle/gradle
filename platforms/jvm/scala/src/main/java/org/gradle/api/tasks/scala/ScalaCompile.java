@@ -18,6 +18,7 @@ package org.gradle.api.tasks.scala;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.tasks.compile.daemon.ProcessIsolatedCompilerWorkerExecutor;
 import org.gradle.api.internal.tasks.scala.ScalaCompilerFactory;
@@ -127,9 +128,10 @@ public abstract class ScalaCompile extends AbstractScalaCompile {
             ClassLoaderRegistry classLoaderRegistry = getServices().get(ClassLoaderRegistry.class);
             ActionExecutionSpecFactory actionExecutionSpecFactory = getServices().get(ActionExecutionSpecFactory.class);
             ProjectCacheDir projectCacheDir = getServices().get(ProjectCacheDir.class);
+            ProjectLayout projectLayout = getServices().get(ProjectLayout.class);
             ScalaCompilerFactory scalaCompilerFactory = new ScalaCompilerFactory(
                 getServices().get(WorkerDirectoryProvider.class).getWorkingDirectory(),
-                new ProcessIsolatedCompilerWorkerExecutor(workerDaemonFactory, actionExecutionSpecFactory, projectCacheDir), getScalaClasspath(),
+                new ProcessIsolatedCompilerWorkerExecutor(workerDaemonFactory, actionExecutionSpecFactory, projectLayout.getSettingsDirectory().getAsFile(), projectCacheDir), getScalaClasspath(),
                 getZincClasspath(), forkOptionsFactory, classPathRegistry, classLoaderRegistry,
                 getServices().get(ClasspathHasher.class));
             compiler = scalaCompilerFactory.newCompiler(spec);

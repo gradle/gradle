@@ -21,10 +21,12 @@ import java.io.File;
 public abstract class AbstractWorkerRequirement implements WorkerRequirement {
     private final File workerDirectory;
     private final File projectCacheDir;
+    private final File settingsDirectory;
 
-    public AbstractWorkerRequirement(File workerDirectory, File projectCacheDir) {
+    public AbstractWorkerRequirement(File workerDirectory, File projectCacheDir, File settingsDirectory) {
         this.workerDirectory = workerDirectory;
         this.projectCacheDir = projectCacheDir;
+        this.settingsDirectory = settingsDirectory;
     }
 
     @Override
@@ -35,5 +37,10 @@ public abstract class AbstractWorkerRequirement implements WorkerRequirement {
     @Override
     public File getProjectCacheDir() {
         return projectCacheDir;
+    }
+
+    @Override
+    public File getSettingsDirectory() {
+        return settingsDirectory;
     }
 }
