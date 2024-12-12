@@ -16,6 +16,7 @@
 
 package org.gradle.internal.operations
 
+import org.gradle.internal.time.Clock
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
 import javax.annotation.Nullable
@@ -26,7 +27,7 @@ import static org.gradle.internal.operations.DefaultBuildOperationRunner.Readabl
 
 class DefaultBuildOperationRunnerTest extends ConcurrentSpec {
 
-    def timeProvider = Mock(BuildOperationTimeSupplier)
+    def timeProvider = Mock(Clock)
     def listener = Mock(BuildOperationExecutionListener)
     def currentBuildOperationRef = CurrentBuildOperationRef.instance()
     def operationRunner = new DefaultBuildOperationRunner(
