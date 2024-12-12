@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.tasks.compile;
 
+import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.tasks.compile.daemon.ProcessIsolatedCompilerWorkerExecutor;
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDetector;
@@ -39,6 +40,7 @@ public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
     private final ActionExecutionSpecFactory actionExecutionSpecFactory;
     private JavaHomeBasedJavaCompilerFactory javaHomeBasedJavaCompilerFactory;
     private final InternalProblems problems;
+    private final ProjectLayout projectLayout;
     private final ProjectCacheDir projectCacheDir;
 
     public DefaultJavaCompilerFactory(
@@ -50,6 +52,7 @@ public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
         ClassPathRegistry classPathRegistry,
         ActionExecutionSpecFactory actionExecutionSpecFactory,
         InternalProblems problems,
+        ProjectLayout projectLayout,
         ProjectCacheDir projectCacheDir
     ) {
         this.workingDirProvider = workingDirProvider;
@@ -60,6 +63,7 @@ public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
         this.classPathRegistry = classPathRegistry;
         this.actionExecutionSpecFactory = actionExecutionSpecFactory;
         this.problems = problems;
+        this.projectLayout = projectLayout;
         this.projectCacheDir = projectCacheDir;
     }
 
@@ -88,7 +92,14 @@ public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
         }
 
         if (ForkingJavaCompileSpec.class.isAssignableFrom(type)) {
-            return (Compiler<T>) new DaemonJavaCompiler(workingDirProvider.getWorkingDirectory(), JdkJavaCompiler.class, new Object[]{getJavaHomeBasedJavaCompilerFactory()}, new ProcessIsolatedCompilerWorkerExecutor(workerDaemonFactory, actionExecutionSpecFactory, projectCacheDir), forkOptionsFactory, classPathRegistry);
+            return (Compiler<T>) new DaemonJavaCompiler(
+                workingDirProvider.getWorkingDirectory(),
+                JdkJavaCompiler.class,
+                new Object[]{getJavaHomeBasedJavaCompilerFactory()},
+                new ProcessIsolatedCompilerWorkerExecutor(workerDaemonFactory, actionExecutionSpecFactory, projectLayout.getSettingsDirectory().getAsFile(), projectCacheDir),
+                forkOptionsFactory,
+                classPathRegistry
+            );
         } else {
             return (Compiler<T>) new JdkJavaCompiler(getJavaHomeBasedJavaCompilerFactory(), problems);
         }

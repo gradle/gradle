@@ -23,17 +23,22 @@ import org.gradle.workers.internal.ForkedWorkerRequirement;
 import org.gradle.workers.internal.IsolatedClassLoaderWorkerRequirement;
 import org.gradle.workers.internal.WorkerDaemonFactory;
 
+import java.io.File;
+
 public class ProcessIsolatedCompilerWorkerExecutor extends AbstractIsolatedCompilerWorkerExecutor {
+
+    private final File settingsDirectory;
     private final ProjectCacheDir projectCacheDir;
 
-    public ProcessIsolatedCompilerWorkerExecutor(WorkerDaemonFactory delegate, ActionExecutionSpecFactory actionExecutionSpecFactory, ProjectCacheDir projectCacheDir) {
+    public ProcessIsolatedCompilerWorkerExecutor(WorkerDaemonFactory delegate, ActionExecutionSpecFactory actionExecutionSpecFactory, File settingsDirectory, ProjectCacheDir projectCacheDir) {
         super(delegate, actionExecutionSpecFactory);
+        this.settingsDirectory = settingsDirectory;
         this.projectCacheDir = projectCacheDir;
     }
 
     @Override
     public IsolatedClassLoaderWorkerRequirement getIsolatedWorkerRequirement(DaemonForkOptions daemonForkOptions) {
         // Compiler daemons do not rely on project cache directory
-        return new ForkedWorkerRequirement(daemonForkOptions.getWorkingDir(), projectCacheDir.getDir(), daemonForkOptions);
+        return new ForkedWorkerRequirement(daemonForkOptions.getWorkingDir(), projectCacheDir.getDir(), settingsDirectory, daemonForkOptions);
     }
 }

@@ -154,7 +154,9 @@ public class WorkersServices extends AbstractGradleModuleServices {
                 instantiatorFactory.decorateLenient(projectServices),
                 classpathTransformer,
                 projectLayout.getProjectDirectory().getAsFile(),
-                projectCacheDir);
+                projectCacheDir,
+                projectLayout.getSettingsDirectory().getAsFile()
+            );
             noIsolationWorkerFactory.setWorkerExecutor(workerExecutor);
             return workerExecutor;
         }

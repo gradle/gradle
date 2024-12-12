@@ -72,8 +72,10 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
     private final Instantiator instantiator;
     private final IsolationScheme<WorkAction<?>, WorkParameters> isolationScheme = new IsolationScheme<>(Cast.uncheckedCast(WorkAction.class), WorkParameters.class, WorkParameters.None.class);
     private final CachedClasspathTransformer classpathTransformer;
-    private final File baseDir;
+    private final File projectDir;
     private final ProjectCacheDir projectCacheDir;
+
+    private final File settingsDir;
 
     public DefaultWorkerExecutor(
         WorkerFactory daemonWorkerFactory, WorkerFactory isolatedClassloaderWorkerFactory, WorkerFactory noIsolationWorkerFactory,
@@ -81,8 +83,9 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         AsyncWorkTracker asyncWorkTracker, WorkerDirectoryProvider workerDirectoryProvider, WorkerExecutionQueueFactory workerExecutionQueueFactory,
         ClassLoaderStructureProvider classLoaderStructureProvider, ActionExecutionSpecFactory actionExecutionSpecFactory, Instantiator instantiator,
         CachedClasspathTransformer classpathTransformer,
-        File baseDir,
-        ProjectCacheDir projectCacheDir
+        File projectDir,
+        ProjectCacheDir projectCacheDir,
+        File settingsDir
     ) {
         this.daemonWorkerFactory = daemonWorkerFactory;
         this.isolatedClassloaderWorkerFactory = isolatedClassloaderWorkerFactory;
@@ -97,8 +100,9 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         this.actionExecutionSpecFactory = actionExecutionSpecFactory;
         this.instantiator = instantiator;
         this.classpathTransformer = classpathTransformer;
-        this.baseDir = baseDir;
+        this.projectDir = projectDir;
         this.projectCacheDir = projectCacheDir;
+        this.settingsDir = settingsDir;
     }
 
     @Override
@@ -239,13 +243,13 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
             builder.javaForkOptions(forkOptions)
                 .withClassLoaderStructure(classLoaderStructureProvider.getWorkerProcessClassLoaderStructure(isolatedFromChanges.getAsFiles(), getParamClasses(executionClass, parameters)));
 
-            return new ForkedWorkerRequirement(baseDir, projectCacheDir.getDir(), builder.build());
+            return new ForkedWorkerRequirement(projectDir, projectCacheDir.getDir(), settingsDir, builder.build());
         } else if (configuration instanceof ClassLoaderWorkerSpec) {
             ClassLoaderWorkerSpec classLoaderConfiguration = (ClassLoaderWorkerSpec) configuration;
             ClassPath isolatedFromChanges = classpathTransformer.copyingTransform(DefaultClassPath.of(classLoaderConfiguration.getClasspath()));
-            return new IsolatedClassLoaderWorkerRequirement(baseDir, projectCacheDir.getDir(), classLoaderStructureProvider.getInProcessClassLoaderStructure(isolatedFromChanges.getAsFiles(), getParamClasses(executionClass, parameters)));
+            return new IsolatedClassLoaderWorkerRequirement(projectDir, projectCacheDir.getDir(), settingsDir, classLoaderStructureProvider.getInProcessClassLoaderStructure(isolatedFromChanges.getAsFiles(), getParamClasses(executionClass, parameters)));
         } else {
-            return new FixedClassLoaderWorkerRequirement(baseDir, projectCacheDir.getDir(), Thread.currentThread().getContextClassLoader());
+            return new FixedClassLoaderWorkerRequirement(projectDir, projectCacheDir.getDir(), settingsDir, Thread.currentThread().getContextClassLoader());
         }
     }
 

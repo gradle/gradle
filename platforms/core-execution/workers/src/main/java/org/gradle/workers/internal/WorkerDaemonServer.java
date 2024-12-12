@@ -104,7 +104,7 @@ public class WorkerDaemonServer implements RequestHandler<TransportableActionExe
     @Override
     public DefaultWorkResult run(TransportableActionExecutionSpec spec) {
         try {
-            try (CloseableServiceRegistry internalServices = WorkerProjectServices.create(this.internalServices, spec.getBaseDir(), spec.getProjectCacheDir())) {
+            try (CloseableServiceRegistry internalServices = WorkerProjectServices.create(this.internalServices, spec.getSettingsDir(), spec.getBaseDir(), spec.getProjectCacheDir())) {
                 RequestHandler<TransportableActionExecutionSpec, DefaultWorkResult> worker = getIsolatedClassloaderWorker(spec.getClassLoaderStructure(), internalServices);
                 return worker.run(spec);
             }
@@ -208,12 +208,12 @@ public class WorkerDaemonServer implements RequestHandler<TransportableActionExe
 
     static class WorkerProjectServices implements ServiceRegistrationProvider {
 
-        public static CloseableServiceRegistry create(ServiceRegistry parent, File baseDir, File projectCacheDir) {
+        public static CloseableServiceRegistry create(ServiceRegistry parent, File settingsDir, File baseDir, File projectCacheDir) {
             return ServiceRegistryBuilder.builder()
                 .displayName("worker request services for " + baseDir.getAbsolutePath())
                 .parent(parent)
                 .provider(new WorkerProjectServices())
-                .provider(new WorkerSharedProjectScopeServices(baseDir, baseDir)) // TODO: needs proper settings dir
+                .provider(new WorkerSharedProjectScopeServices(settingsDir, baseDir))
                 .provider(new WorkerBuildSessionScopeWorkaroundServices(projectCacheDir))
                 .build();
         }
