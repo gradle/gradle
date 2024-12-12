@@ -16,19 +16,27 @@
 
 package org.gradle.api.plugins;
 
+import com.google.common.collect.ImmutableList;
+import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.plugins.BuildConfigurationRule;
 import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.internal.plugins.NaggingBasePluginConvention;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.provider.AbstractProviderWithValue;
 import org.gradle.api.plugins.internal.DefaultBasePluginExtension;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
+
+import javax.annotation.Nullable;
+import java.util.Collection;
 
 /**
  * <p>A {@link org.gradle.api.Plugin} which defines a basic project lifecycle and some common convention properties.</p>
@@ -51,9 +59,7 @@ public abstract class BasePlugin implements Plugin<Project> {
         configureBuildConfigurationRule(project);
         configureArchiveDefaults(project, baseExtension);
         configureConfigurations(project);
-        configureAssemble((ProjectInternal) project);
     }
-
 
     @SuppressWarnings("deprecation")
     private void addConvention(Project project, BasePluginExtension baseExtension) {
@@ -94,24 +100,57 @@ public abstract class BasePlugin implements Plugin<Project> {
         configurations.maybeCreateConsumableUnlocked(Dependency.DEFAULT_CONFIGURATION)
             .setDescription("Configuration for default artifacts.");
 
-        final DefaultArtifactPublicationSet defaultArtifacts = project.getExtensions().create(
-            "defaultArtifacts", DefaultArtifactPublicationSet.class, archivesConfiguration.getArtifacts()
+        // TODO #15639: Deprecate DefaultArtifactPublicationSet and the `archives` configuration
+        project.getExtensions().create(
+            "defaultArtifacts",
+            DefaultArtifactPublicationSet.class,
+            archivesConfiguration.getArtifacts()
         );
 
-        configurations.all(configuration -> {
-            if (!configuration.equals(archivesConfiguration)) {
-                configuration.getArtifacts().configureEach(artifact -> {
-                    if (configuration.isVisible()) {
-                        defaultArtifacts.addCandidate(artifact);
-                    }
-                });
-            }
-        });
+        // TODO #26418: Deprecate assemble building all artifacts of all visible configurations.
+        archivesConfiguration.getArtifacts().addAllLater(getElements(configurations).map(allConfigurations ->
+            allConfigurations.stream()
+                .filter(configuration -> !configuration.equals(archivesConfiguration) && configuration.isVisible())
+                .flatMap(configuration -> configuration.getArtifacts().stream())
+                .collect(ImmutableList.toImmutableList())
+        ));
+
+        project.getTasks().named(ASSEMBLE_TASK_NAME, task ->
+            task.dependsOn(archivesConfiguration.getAllArtifacts().getBuildDependencies())
+        );
     }
 
-    private void configureAssemble(final ProjectInternal project) {
-        project.getTasks().named(ASSEMBLE_TASK_NAME, task -> {
-            task.dependsOn(task.getProject().getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION).getAllArtifacts().getBuildDependencies());
-        });
+    /**
+     * Meant to be similar to {@link FileCollection#getElements()}.
+     * <p>
+     * We may eventually want something like this as public API
+     * on {@link DomainObjectCollection}.
+     */
+    private static <T> Provider<Collection<T>> getElements(DomainObjectCollection<T> collection) {
+        return new DomainObjectCollectionElementsProvider<>(collection);
     }
+
+    private static class DomainObjectCollectionElementsProvider<T> extends AbstractProviderWithValue<Collection<T>> {
+
+        // TODO: Eventually, this should track the build dependencies of all pending providers added to the collection.
+
+        private final DomainObjectCollection<T> collection;
+
+        public DomainObjectCollectionElementsProvider(DomainObjectCollection<T> collection) {
+            this.collection = collection;
+        }
+
+        @Nullable
+        @Override
+        public Class<Collection<T>> getType() {
+            return null;
+        }
+
+        @Override
+        protected Value<? extends Collection<T>> calculateOwnValue(ValueConsumer consumer) {
+            return Value.of(ImmutableList.copyOf(collection));
+        }
+
+    }
+
 }
