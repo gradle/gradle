@@ -18,8 +18,9 @@ package org.gradle.internal.deprecation;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
+import org.gradle.api.problems.DocLink;
 import org.gradle.api.problems.internal.DeprecationData;
-import org.gradle.api.problems.internal.DocLink;
+import org.gradle.api.problems.internal.InternalDocLink;
 import org.gradle.internal.featurelifecycle.FeatureUsage;
 
 import javax.annotation.Nullable;
@@ -172,7 +173,7 @@ public class DeprecatedFeatureUsage extends FeatureUsage {
         append(outputBuilder, contextualAdvice);
         append(outputBuilder, advice);
         if (documentation != null) {
-            append(outputBuilder, documentation.getConsultDocumentationMessage());
+            append(outputBuilder, ((InternalDocLink) documentation).getConsultDocumentationMessage());
         }
         return outputBuilder.toString();
     }

@@ -17,6 +17,9 @@
 package org.gradle.api.problems.internal;
 
 import org.gradle.api.NonNullApi;
+import org.gradle.api.problems.AdditionalData;
+import org.gradle.api.problems.ProblemDefinition;
+import org.gradle.api.problems.ProblemLocation;
 
 import javax.annotation.Nullable;
 import java.io.Serializable;
@@ -24,7 +27,7 @@ import java.util.Arrays;
 import java.util.List;
 
 @NonNullApi
-public class DefaultProblem implements Serializable, Problem {
+public class DefaultProblem implements Serializable, InternalProblem {
     private final ProblemDefinition problemDefinition;
     private final String contextualLabel;
     private final List<String> solutions;

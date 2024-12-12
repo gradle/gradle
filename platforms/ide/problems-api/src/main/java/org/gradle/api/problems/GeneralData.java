@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.internal;
+package org.gradle.api.problems;
+
+import org.gradle.api.Incubating;
+
+import java.util.Map;
 
 /**
- * A file location.
+ * General additional data type that can be used to attach arbitrary data to a problem with a string map.
+ *
+ * @since 8.13
  */
-public interface FileLocation extends ProblemLocation {
+@Incubating
+public interface GeneralData extends AdditionalData {
 
     /**
-     * The path to the file.
+     * Return the data as a map of strings.
      *
-     * @return the file path
+     * @return the data
+     * @since 8.13
      */
-    String getPath();
+    Map<String, String> getAsMap();
 }

@@ -181,7 +181,7 @@ public class TomlCatalogFileParser {
 
     private void reportErrors(List<TomlParseError> errors) {
         InternalProblemReporter internalReporter = getInternalReporter();
-        errors.stream().map(error -> internalReporter.create(builder ->
+        errors.stream().map(error -> internalReporter.internalCreate(builder ->
             configureVersionCatalogError(builder, error.getMessage(), TOML_SYNTAX_ERROR, definingLocation -> {
                 definingLocation.lineInFileLocation(catalogFilePath.toAbsolutePath().toString(), error.position().line(), error.position().column());
                 return definingLocation;
@@ -597,6 +597,6 @@ public class TomlCatalogFileParser {
     }
 
     private RuntimeException throwVersionCatalogProblemException(Action<InternalProblemSpec> action) {
-        throw throwError(getInternalProblems(), INVALID_TOML_CATALOG_DEFINITION, ImmutableList.of(getInternalReporter().create(action)));
+        throw throwError(getInternalProblems(), INVALID_TOML_CATALOG_DEFINITION, ImmutableList.of(getInternalReporter().internalCreate(action)));
     }
 }

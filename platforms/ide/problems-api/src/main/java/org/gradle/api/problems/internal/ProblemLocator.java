@@ -16,6 +16,8 @@
 
 package org.gradle.api.problems.internal;
 
+import org.gradle.api.problems.Problem;
+
 import java.util.Collection;
 
 public interface ProblemLocator {

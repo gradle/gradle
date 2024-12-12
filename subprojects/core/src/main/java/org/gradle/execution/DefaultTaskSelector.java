@@ -21,9 +21,9 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.api.problems.GeneralDataSpec;
 import org.gradle.api.problems.ProblemSpec;
 import org.gradle.api.problems.Severity;
-import org.gradle.api.problems.internal.GeneralDataSpec;
 import org.gradle.api.problems.internal.InternalProblemSpec;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.specs.Spec;
@@ -96,19 +96,18 @@ public class DefaultTaskSelector implements TaskSelector {
         String searchContext = getSearchContext(targetProject, includeSubprojects);
 
         if (context.getOriginalPath().getPath().equals(taskName)) {
-            throw getProblemsService().getInternalReporter().throwing(spec -> {
+            String message = matcher.formatErrorMessage("Task", searchContext);
+            throw getProblemsService().getInternalReporter().throwing(new TaskSelectionException(message), spec -> {
                 configureProblem(spec, matcher, context);
-                String message = matcher.formatErrorMessage("Task", searchContext);
-                spec.contextualLabel(message)
-                    .withException(new TaskSelectionException(message));
+                spec.contextualLabel(message);
             });
         }
         String message = String.format("Cannot locate %s that match '%s' as %s", context.getType(), context.getOriginalPath(),
             matcher.formatErrorMessage("task", searchContext));
 
-        throw getProblemsService().getInternalReporter().throwing(spec -> configureProblem(spec, matcher, context)
-            .contextualLabel(message)
-            .withException(new TaskSelectionException(message)) // this instead of cause
+        throw getProblemsService().getInternalReporter().throwing(new TaskSelectionException(message) /* this instead of cause */, spec ->
+            configureProblem(spec, matcher, context)
+              .contextualLabel(message)
         );
     }
 

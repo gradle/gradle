@@ -16,6 +16,7 @@
 
 package org.gradle.api.problems;
 
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 
 /**
@@ -28,31 +29,15 @@ import org.gradle.api.Incubating;
 public interface ProblemSpec {
 
     /**
-     * Defines simple identification for this problem.
+     * Defines the context-independent identifier for this problem.
      * <p>
-     * It is a mandatory property to configure when emitting a problem with {@link ProblemReporter}..
-     * <p>
-     * Calling this method will set the reported problem group to {@link SharedProblemGroup#generic()}
+     * It is a mandatory property to configure when emitting a problem with {@link ProblemReporter} and can be defined by using {@link IdFactory}.
      *
-     * @param name the name of the problem. As a convention kebab-case-formatting should be used.
-     * @param displayName a human-readable representation of the problem, free of any contextual information.
+     * @param problemId the problem id
      * @return this
-     * @since 8.8
+     * @since 8.13
      */
-    ProblemSpec id(String name, String displayName);
-
-    /**
-     * Defines simple identification for this problem.
-     * <p>
-     * It is a mandatory property to configure when emitting a problem with {@link ProblemReporter}.
-     *
-     * @param name the name of the problem. As a convention kebab-case-formatting should be used.
-     * @param displayName a human-readable representation of the problem, free of any contextual information.
-     * @param parent the container problem group.
-     * @return this
-     * @since 8.8
-     */
-    ProblemSpec id(String name, String displayName, ProblemGroup parent);
+    ProblemSpec id(ProblemId problemId);
 
     /**
      * Declares a short, but context-dependent message for this problem.
@@ -167,4 +152,20 @@ public interface ProblemSpec {
      * @since 8.6
      */
     ProblemSpec severity(Severity severity);
+
+    /**
+     * Attaches additional data describing the problem.
+     * <p>
+     * Only the types listed for {@link AdditionalData} can be used as arguments, otherwise an invalid problem report will be created.
+     * <p>
+     * If not additional data was configured for this problem, then a new instance will be created. If additional data was already configured, then the existing instance will be used and the configuration will be applied to it.
+     *
+     * @param specType the type of the additional data configurer (see the AdditionalDataSpec interface for the list of supported types)
+     * @param config  The action configuring the additional data
+     * @return this
+     * @param <U> The type of the configurator object that will be applied to the additional data
+     * @since 8.13
+     */
+    <U extends AdditionalDataSpec> ProblemSpec additionalData(Class<? extends U> specType, Action<? super U> config);
+
 }

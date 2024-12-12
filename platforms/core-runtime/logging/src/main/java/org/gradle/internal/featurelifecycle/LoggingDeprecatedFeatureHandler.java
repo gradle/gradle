@@ -20,13 +20,13 @@ import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.logging.configuration.WarningMode;
+import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.internal.DeprecationDataSpec;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblemReporter;
 import org.gradle.api.problems.internal.InternalProblemSpec;
 import org.gradle.api.problems.internal.InternalProblems;
-import org.gradle.api.problems.internal.Problem;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.deprecation.DeprecatedFeatureUsage;
 import org.gradle.internal.logging.LoggingConfigurationBuildOptions;
@@ -95,7 +95,7 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
 
     private void reportDeprecation(final DeprecatedFeatureUsage usage, final ProblemDiagnostics diagnostics) {
         InternalProblemReporter reporter = ((InternalProblems) problemsService).getInternalReporter();
-        Problem problem = reporter.create(new Action<InternalProblemSpec>() {
+        Problem problem = reporter.internalCreate(new Action<InternalProblemSpec>() {
             @Override
             public void execute(InternalProblemSpec builder) {
                 InternalProblemSpec problemSpec = builder

@@ -18,10 +18,10 @@ package org.gradle.api.tasks.compile
 
 import org.gradle.api.JavaVersion
 import org.gradle.api.internal.tasks.compile.DiagnosticToProblemListener
+import org.gradle.api.problems.FileLocation
+import org.gradle.api.problems.LineInFileLocation
+import org.gradle.api.problems.OffsetInFileLocation
 import org.gradle.api.problems.Severity
-import org.gradle.api.problems.internal.FileLocation
-import org.gradle.api.problems.internal.LineInFileLocation
-import org.gradle.api.problems.internal.OffsetInFileLocation
 import org.gradle.api.tasks.compile.fixtures.ProblematicClassGenerator
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
