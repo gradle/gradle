@@ -81,6 +81,19 @@ ADD RELEASE FEATURES ABOVE
 
 -->
 
+<a name="build-authoring"></a>
+### Build authoring improvements
+
+Gradle provides rich APIs for plugin authors and build engineers to develop custom build logic.
+
+#### Configurations are initialized lazily
+
+Similar to Tasks, Configurations are now initialized lazily, only when necessary.
+
+Now, when applying the `Base` plugin or any plugins derived from it such as the JVM plugins, configurations that are lazily declared using `register` or through the incubating role-based factory methods will no longer be eagerly realized unless required.
+
+Configurations should be declared using the `register` method instead of the `create` method to take advantage of the lazy initialization.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backward compatibility.
