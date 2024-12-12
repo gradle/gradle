@@ -20,6 +20,7 @@ import org.gradle.internal.buildtree.BuildActionRunner;
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
 import org.gradle.internal.buildtree.BuildTreeModelAction;
 import org.gradle.internal.buildtree.BuildTreeModelController;
+import org.gradle.internal.buildtree.BuildTreeModelTarget;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
 import org.gradle.tooling.internal.provider.action.BuildModelAction;
@@ -78,7 +79,7 @@ public class BuildModelActionRunner implements BuildActionRunner {
         public Object fromBuildModel(BuildTreeModelController controller) {
             String modelName = buildModelAction.getModelName();
             try {
-                return controller.getModel(null, modelName, null);
+                return controller.getModel(BuildTreeModelTarget.ofDefault(), modelName, null);
             } catch (UnknownModelException e) {
                 modelLookupFailure = e;
                 throw e;
