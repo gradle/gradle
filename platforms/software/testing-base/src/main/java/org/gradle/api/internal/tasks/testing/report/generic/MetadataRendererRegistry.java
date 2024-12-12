@@ -31,6 +31,20 @@ import java.util.Set;
 @ServiceScope(Scope.Global.class)
 public class MetadataRendererRegistry {
     private final Set<MetadataRenderer<?>> renderers = new HashSet<>();
+    private final MetadataRenderer<Object> unknownTypeRenderer = new MetadataRenderer<Object>() {
+        @Override
+        public Class<Object> getMetadataType() {
+            return Object.class;
+        }
+
+        @Override
+        public SimpleHtmlWriter render(Object metadata, SimpleHtmlWriter htmlWriter) throws IOException {
+            return (SimpleHtmlWriter) htmlWriter
+                .startElement("span").attribute("class", "unrenderable")
+                    .characters("[unrenderable type]")
+                .endElement();
+        }
+    };
     private final LoadingCache<String, MetadataRenderer<?>> rendererLookupCache = CacheBuilder.newBuilder()
         .maximumSize(100)
         .build(new CacheLoader<String, MetadataRenderer<?>>() {
@@ -60,14 +74,14 @@ public class MetadataRendererRegistry {
         Class<T> type;
         try {
             type = (Class<T>) Class.forName(metadataTypeName);
-        } catch (ClassNotFoundException ex) {
-            throw new RuntimeException(ex);
+        } catch (ClassNotFoundException e) {
+            return (MetadataRenderer<T>) unknownTypeRenderer;
         }
 
         return renderers.stream().filter(r -> r.getMetadataType().isAssignableFrom(type))
             .findFirst()
             .map(r -> (MetadataRenderer<T>) r)
-            .orElseThrow(() -> new IllegalArgumentException("No renderer found for: " + type));
+            .orElse((MetadataRenderer<T>) unknownTypeRenderer);
     }
 
     public interface MetadataRenderer<T> {

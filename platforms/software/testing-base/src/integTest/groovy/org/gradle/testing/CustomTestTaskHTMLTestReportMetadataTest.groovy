@@ -28,7 +28,7 @@ final class CustomTestTaskHTMLTestReportMetadataTest extends AbstractIntegration
         buildFile << registerSimpleFailingCustomTestTaskWithMetadata()
 
         when:
-        fails(":failing")
+        fails(":failing", "--S")
 
         then:
         failure.assertHasCause("Test(s) failed.")
@@ -116,9 +116,14 @@ final class CustomTestTaskHTMLTestReportMetadataTest extends AbstractIntegration
         and:
         def results = resultsFor("failing")
         results.testPath(":failing suite:failing test")
-            .assertMetadata(["stringKey", "stringKey2", "longStringKey", "intKey", "intKey2", "longKey", "uriKey"])
-
-        assert false
+            .assertMetadata(["stringKey": "This is a string",
+                             "stringKey2": "This is another string",
+                             "longStringKey": "This is a incredibly long string, and will be truncated: abcdefghijklmnopqrstuvwxyz abcdefghijklmnop...",
+                             "intKey": "1",
+                             "intKey2": "2",
+                             "longKey": "5000000000000000",
+                             "uriKey": "<a href=\"https://www.google.com\">https://www.google.com</a>",
+                             "unknownKey": "<span class=\"unrenderable\">[unrenderable type]</span>"])
     }
 
     private registerSimpleFailingCustomTestTaskWithMetadata(String name = "failing") {
@@ -236,6 +241,7 @@ final class CustomTestTaskHTMLTestReportMetadataTest extends AbstractIntegration
                                  myTest.metadata(Instant.now(), ['intKey': 1, 'intKey2': 2])
                                  myTest.metadata(Instant.now(), 'longKey', 5000000000000000L)
                                  myTest.metadata(Instant.now(), 'uriKey', new URI('https://www.google.com'))
+                                 myTest.metadata(Instant.now(), 'unknownKey', Instant.now())
                                  myTest.failed(java.time.Instant.now(), "failure message")
                             }
                             mySuite.failed(java.time.Instant.now())

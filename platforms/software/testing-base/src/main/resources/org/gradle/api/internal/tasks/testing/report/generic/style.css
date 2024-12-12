@@ -117,3 +117,11 @@ td.elements .key {
 td.elements .value {
     width: 80%;
 }
+
+td.elements a {
+    color: blue;
+}
+
+td.elements .unrenderable {
+    color: darkred;
+}

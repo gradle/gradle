@@ -19,7 +19,9 @@ package org.gradle.api.internal.tasks.testing.report.generic;
 import org.gradle.api.tasks.testing.TestResult;
 import org.hamcrest.Matcher;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 // For now, I think this works enough. It will need to be rewritten to account for different root tabs.
 public interface TestPathExecutionResult {
@@ -54,4 +56,13 @@ public interface TestPathExecutionResult {
      * @return {@code this}
      */
     TestPathExecutionResult assertMetadata(List<String> keys);
+
+
+    /**
+     * Asserts that the given metadata keys are present in the test result with the given rendered text.
+     *
+     * @param metadata the metadata to verify, in the order they were recorded
+     * @return {@code this}
+     */
+    TestPathExecutionResult assertMetadata(LinkedHashMap<String, String> metadata);
 }

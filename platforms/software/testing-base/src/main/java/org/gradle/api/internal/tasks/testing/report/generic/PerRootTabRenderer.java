@@ -363,7 +363,15 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
 
         private SimpleHtmlWriter renderMetadataElementValue(SerializedMetadata.SerializedMetadataElement element, SimpleHtmlWriter htmlWriter) throws IOException {
             MetadataRenderer<?> renderer = metadataRendererRegistry.getRenderer(element.getValueType());
-            return renderer.render(element.getValue(), htmlWriter);
+
+            try {
+                return renderer.render(element.getValue(), htmlWriter);
+            } catch (Exception e) {
+                return (SimpleHtmlWriter) htmlWriter
+                    .startElement("span").attribute("class", "unrenderable")
+                        .characters("[error rendering value]")
+                    .endElement();
+            }
         }
 
         private String formatLogTime(long logTime) {
