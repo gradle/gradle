@@ -314,19 +314,29 @@ abstract class ProjectDelegate : Project {
     override fun project(path: String, configureAction: Action<in Project>): Project =
         delegate.project(path, configureAction)
 
+    @Deprecated("Use tasks.register instead", ReplaceWith("tasks.register(name)"))
     override fun task(name: String): Task =
+        @Suppress("DEPRECATION")
         delegate.task(name)
 
+    @Deprecated("Use tasks.register instead")
     override fun task(args: Map<String, *>, name: String): Task =
+        @Suppress("DEPRECATION")
         delegate.task(args, name)
 
+    @Deprecated("Use tasks.register instead")
     override fun task(args: Map<String, *>, name: String, configureClosure: Closure<*>): Task =
+        @Suppress("DEPRECATION")
         delegate.task(args, name, configureClosure)
 
+    @Deprecated("Use tasks.register instead", ReplaceWith("tasks.register(name, configureClosure)"))
     override fun task(name: String, configureClosure: Closure<*>): Task =
+        @Suppress("DEPRECATION")
         delegate.task(name, configureClosure)
 
+    @Deprecated("Use tasks.register instead", ReplaceWith("tasks.register(name, configureAction)"))
     override fun task(name: String, configureAction: Action<in Task>): Task =
+        @Suppress("DEPRECATION")
         delegate.task(name, configureAction)
 
     override fun copy(closure: Closure<*>): WorkResult =
