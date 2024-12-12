@@ -339,7 +339,7 @@ Custom test root > My Suite > another failing test FAILED
     def "captures custom serializable object metadata for custom test"() {
         given:
         buildFile("""
-            class TestType implements org.gradle.internal.operations.trace.CustomOperationTraceSerialization {
+            class TestType implements org.gradle.internal.operations.trace.CustomOperationTraceSerialization, Serializable {
                 private int field
 
                 TestType(int field) {
@@ -736,7 +736,6 @@ Custom test root > My Suite > another failing test FAILED
     private TestFile singleCustomTestRecordingMetadata(String key, @GroovyBuildScriptLanguage String valueExpression) {
         buildFile("""
             import java.time.Instant
-            import javax.inject.Inject
 
             abstract class CustomTestTask extends DefaultTask {
                 @Inject
