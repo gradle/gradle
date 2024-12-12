@@ -102,10 +102,28 @@ final class CustomTestTaskHTMLTestReportMetadataTest extends AbstractIntegration
             .assertMetadata(["ikey3"])
     }
 
+    def "emits test report with metadata with rendered values"() {
+        given:
+        buildFile << registerSimpleFailingCustomTestTaskWithDifferentRenderableMetadataEvents()
+
+        when:
+        fails(":failing")
+
+        then:
+        failure.assertHasCause("Test(s) failed.")
+        failure.assertHasErrorOutput("See the test results for more details: " + resultsUrlFor("failing"))
+
+        and:
+        def results = resultsFor("failing")
+        results.testPath(":failing suite:failing test")
+            .assertMetadata(["stringKey", "stringKey2", "longStringKey", "intKey", "intKey2", "longKey", "uriKey"])
+
+        assert false
+    }
+
     private registerSimpleFailingCustomTestTaskWithMetadata(String name = "failing") {
         assert !name.toCharArray().any { it.isWhitespace() }
-
-        """
+        return """
             class TestValue implements Serializable {
                 String name
                 String address
@@ -156,8 +174,7 @@ final class CustomTestTaskHTMLTestReportMetadataTest extends AbstractIntegration
 
     private registerSimpleFailingCustomTestTaskWithMultiValueMetadataEvents(String name = "failing") {
         assert !name.toCharArray().any { it.isWhitespace() }
-
-        """
+        return """
             abstract class ${name}CustomTestTask extends DefaultTask {
                 @Inject
                 abstract TestEventReporterFactory getTestEventReporterFactory()
@@ -192,12 +209,51 @@ final class CustomTestTaskHTMLTestReportMetadataTest extends AbstractIntegration
         """
     }
 
+    private registerSimpleFailingCustomTestTaskWithDifferentRenderableMetadataEvents(String name = "failing") {
+        assert !name.toCharArray().any { it.isWhitespace() }
+        return """
+            abstract class ${name}CustomTestTask extends DefaultTask {
+                @Inject
+                abstract TestEventReporterFactory getTestEventReporterFactory()
+
+                @Inject
+                abstract ProjectLayout getLayout()
+
+                @TaskAction
+                void runTests() {
+                    try (def reporter = testEventReporterFactory.createTestEventReporter(
+                        "${name}",
+                        getLayout().getBuildDirectory().dir("test-results/${name}").get(),
+                        getLayout().getBuildDirectory().dir("reports/tests/${name}").get()
+                    )) {
+                       reporter.started(java.time.Instant.now())
+                       try (def mySuite = reporter.reportTestGroup("${name} suite")) {
+                            mySuite.started(java.time.Instant.now())
+                            try (def myTest = mySuite.reportTest("${name} test", "failing test")) {
+                                 myTest.started(java.time.Instant.now())
+                                 myTest.metadata(Instant.now(), ['stringKey': 'This is a string', 'stringKey2': 'This is another string'])
+                                 myTest.metadata(Instant.now(), 'longStringKey', 'This is a incredibly long string, and will be truncated: abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz')
+                                 myTest.metadata(Instant.now(), ['intKey': 1, 'intKey2': 2])
+                                 myTest.metadata(Instant.now(), 'longKey', 5000000000000000L)
+                                 myTest.metadata(Instant.now(), 'uriKey', new URI('https://www.google.com'))
+                                 myTest.failed(java.time.Instant.now(), "failure message")
+                            }
+                            mySuite.failed(java.time.Instant.now())
+                       }
+                       reporter.failed(java.time.Instant.now())
+                   }
+                }
+            }
+
+            tasks.register("${name}", ${name}CustomTestTask)
+        """
+    }
+
     // Is it even realistic that a single test task would create multiple reporters?
     // We'll test it anyway.
     private registerMultipleSuitesWithSuccessfulAndFailingCustomTestTasksWithMetadata(String name = "failing") {
         assert !name.toCharArray().any { it.isWhitespace() }
-
-        """
+        return """
             abstract class ${name}CustomTestTask extends DefaultTask {
                 @Inject
                 abstract TestEventReporterFactory getTestEventReporterFactory()

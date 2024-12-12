@@ -162,7 +162,7 @@ public final class SerializableTestResult {
                 encoder.writeSmallInt(metadata.getEntries().size());
                 for (SerializedMetadataElement entry : metadata.getEntries()) {
                     encoder.writeString(entry.getKey());
-                    encoder.writeBinary(entry.getValue());
+                    encoder.writeBinary(entry.getSerializedValue());
                     encoder.writeString(entry.getValueType());
                 }
             }

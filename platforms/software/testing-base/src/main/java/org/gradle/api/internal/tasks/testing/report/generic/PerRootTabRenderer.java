@@ -18,10 +18,11 @@ package org.gradle.api.internal.tasks.testing.report.generic;
 
 import com.google.common.collect.Iterables;
 import com.google.common.io.CharStreams;
+import org.gradle.api.internal.tasks.testing.report.generic.MetadataRendererRegistry.MetadataRenderer;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableFailure;
-import org.gradle.api.internal.tasks.testing.results.serializable.SerializedMetadata;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResult;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResultStore;
+import org.gradle.api.internal.tasks.testing.results.serializable.SerializedMetadata;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.html.SimpleHtmlWriter;
@@ -263,8 +264,11 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
 
     @SuppressWarnings({"MethodMayBeStatic", "UnusedReturnValue"})
     public static final class ForMetadata extends PerRootTabRenderer {
-        public ForMetadata(String rootName) {
+        private final MetadataRendererRegistry metadataRendererRegistry;
+
+        public ForMetadata(String rootName, MetadataRendererRegistry metadataRendererRegistry) {
             super(rootName);
+            this.metadataRendererRegistry = metadataRendererRegistry;
         }
 
         @Override
@@ -300,7 +304,7 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
             htmlWriter.startElement("tbody");
             int rowNum = 0;
                 for (SerializedMetadata metadata : metadatas) {
-                    htmlWriter.startElement("tr").attribute("class", rowNum++ % 2 == 0 ? "metadata even" : "metadata odd")
+                    htmlWriter.startElement("tr").attribute("class", rowNum++ % 2 == 0 ? "even" : "odd")
                         .startElement("td")
                             .startElement("span").attribute("class", "time")
                                 .characters(formatLogTime(metadata.getLogTime())) // TODO: Perhaps better rendered as an offset from test start time?
@@ -332,9 +336,6 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
                         .characters("Key")
                     .endElement()
                     .startElement("th")
-                        .characters("Type")
-                    .endElement()
-                    .startElement("th")
                         .characters("Value")
                     .endElement()
                 .endElement()
@@ -350,17 +351,19 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
                         .startElement("td").attribute("class", "key")
                             .characters(element.getKey())
                         .endElement()
-                        .startElement("td")
-                            .characters(element.getValueType())
-                        .endElement()
-                        .startElement("td")
-                            .characters("RENDER DATA HERE")
+                        .startElement("td").attribute("class", "value");
+                            renderMetadataElementValue(element, htmlWriter)
                         .endElement()
                     .endElement();
                 }
             htmlWriter.endElement();
 
             return htmlWriter;
+        }
+
+        private SimpleHtmlWriter renderMetadataElementValue(SerializedMetadata.SerializedMetadataElement element, SimpleHtmlWriter htmlWriter) throws IOException {
+            MetadataRenderer<?> renderer = metadataRendererRegistry.getRenderer(element.getValueType());
+            return renderer.render(element.getValue(), htmlWriter);
         }
 
         private String formatLogTime(long logTime) {

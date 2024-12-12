@@ -66,11 +66,18 @@ public class GenericHtmlTestReport {
     private final BuildOperationRunner buildOperationRunner;
     private final BuildOperationExecutor buildOperationExecutor;
     private final Map<String, SerializableTestResultStore.OutputReader> outputReaders;
+    private final MetadataRendererRegistry metadataRendererRegistry;
 
-    public GenericHtmlTestReport(BuildOperationRunner buildOperationRunner, BuildOperationExecutor buildOperationExecutor, Map<String, SerializableTestResultStore.OutputReader> outputReaders) {
+    public GenericHtmlTestReport(
+        BuildOperationRunner buildOperationRunner,
+        BuildOperationExecutor buildOperationExecutor,
+        Map<String, SerializableTestResultStore.OutputReader> outputReaders,
+        MetadataRendererRegistry metadataRendererRegistry
+    ) {
         this.buildOperationRunner = buildOperationRunner;
         this.buildOperationExecutor = buildOperationExecutor;
         this.outputReaders = outputReaders;
+        this.metadataRendererRegistry = metadataRendererRegistry;
     }
 
     public void generateReport(TestTreeModel root, java.nio.file.Path reportDir) {
@@ -117,7 +124,8 @@ public class GenericHtmlTestReport {
                         tree,
                         output,
                         outputReaders,
-                        rootDisplayNames
+                        rootDisplayNames,
+                        metadataRendererRegistry
                     ));
                     Set<String> allChildren = new LinkedHashSet<>();
                     for (TestTreeModel.PerRootInfo perRootInfo : tree.getPerRootInfo().values()) {
@@ -139,13 +147,22 @@ public class GenericHtmlTestReport {
         private final HtmlReportBuilder output;
         private final Map<String, SerializableTestResultStore.OutputReader> outputReaders;
         private final Map<String, String> rootDisplayNames;
+        private final MetadataRendererRegistry metadataRendererRegistry;
 
-        HtmlReportFileGenerator(String fileUrl, TestTreeModel results, HtmlReportBuilder output, Map<String, SerializableTestResultStore.OutputReader> outputReaders, Map<String, String> rootDisplayNames) {
+        HtmlReportFileGenerator(
+            String fileUrl,
+            TestTreeModel results,
+            HtmlReportBuilder output,
+            Map<String, SerializableTestResultStore.OutputReader> outputReaders,
+            Map<String, String> rootDisplayNames,
+            MetadataRendererRegistry metadataRendererRegistry
+        ) {
             this.fileUrl = fileUrl;
             this.results = results;
             this.output = output;
             this.outputReaders = outputReaders;
             this.rootDisplayNames = rootDisplayNames;
+            this.metadataRendererRegistry = metadataRendererRegistry;
         }
 
         @Override
@@ -155,7 +172,7 @@ public class GenericHtmlTestReport {
 
         @Override
         public void run(BuildOperationContext context) {
-            output.renderHtmlPage(fileUrl, results, new GenericPageRenderer(outputReaders, rootDisplayNames));
+            output.renderHtmlPage(fileUrl, results, new GenericPageRenderer(outputReaders, rootDisplayNames, metadataRendererRegistry));
         }
     }
 }

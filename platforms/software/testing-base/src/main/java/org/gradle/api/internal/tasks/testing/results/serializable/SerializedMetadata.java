@@ -19,8 +19,9 @@ package org.gradle.api.internal.tasks.testing.results.serializable;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.NonNullApi;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.Map;
@@ -37,13 +38,7 @@ public final class SerializedMetadata {
         this.logTime = logTime;
 
         ImmutableList.Builder<SerializedMetadataElement> builder = ImmutableList.builder();
-        for (Map.Entry<String, Object> entry : metadata.entrySet()) {
-            try {
-                builder.add(new SerializedMetadataElement(entry.getKey(), SerializedMetadataElement.toBytes(entry.getValue()), entry.getValue().getClass().getName()));
-            } catch (IOException e) {
-                throw new RuntimeException("Failed to serialize metadata entry: " + entry.getKey(), e);
-            }
-        }
+        metadata.forEach((key, value) -> builder.add(new SerializedMetadataElement(key, SerializedMetadataElement.toBytes(value), value.getClass().getName())));
         this.metadatas = builder.build();
     }
 
@@ -72,9 +67,25 @@ public final class SerializedMetadata {
             this.valueType = valueType;
         }
 
+        public String getKey() {
+            return key;
+        }
+
+        public byte[] getSerializedValue() {
+            return value;
+        }
+
+        public Object getValue() {
+            return fromBytes(value);
+        }
+
+        public String getValueType() {
+            return valueType;
+        }
+
         // TODO: Use some other, better serialization strategy here informed by Problems API work
         // TODO: Or just use the KryoBackedEncoder/Decoder - the exact serialization strategy isn't too important
-        private static byte[] toBytes(Object obj) throws IOException {
+        private static byte[] toBytes(Object obj) {
             if (obj instanceof byte[]) {
                 return (byte[]) obj;
             } else if (obj instanceof Serializable) {
@@ -82,22 +93,21 @@ public final class SerializedMetadata {
                      ObjectOutputStream objectStream = new ObjectOutputStream(byteStream)) {
                     objectStream.writeObject(obj);
                     return byteStream.toByteArray();
+                } catch (Exception e) {
+                    throw new RuntimeException("Failed to serialize metadata entry: " + obj, e);
                 }
             } else {
                 throw new IllegalArgumentException("Object must be Serializable");
             }
         }
 
-        public String getKey() {
-            return key;
-        }
-
-        public byte[] getValue() {
-            return value;
-        }
-
-        public String getValueType() {
-            return valueType;
+        private Object fromBytes(byte[] bytes) {
+            try (ByteArrayInputStream byteStream = new ByteArrayInputStream(bytes);
+                 ObjectInputStream objectStream = new ObjectInputStream(byteStream)) {
+                return objectStream.readObject();
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to deserialize metadata entry: " + key, e);
+            }
         }
     }
 }

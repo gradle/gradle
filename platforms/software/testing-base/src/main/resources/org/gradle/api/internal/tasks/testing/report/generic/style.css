@@ -98,4 +98,22 @@ ul.linkList li {
 
 .metadata .elements {
     padding: 10px;
+    width: 100%;
+}
+
+td.elements table {
+    width: 100% !important;
+}
+
+td.elements th, td.elements td {
+    padding: 10px;
+    text-align: left;
+}
+
+td.elements .key {
+    width: 20%;
+}
+
+td.elements .value {
+    width: 80%;
 }

@@ -53,10 +53,16 @@ final class GenericPageRenderer extends TabbedPageRenderer<TestTreeModel> {
 
     private final Map<String, SerializableTestResultStore.OutputReader> outputReaders;
     private final Map<String, String> rootDisplayNames;
+    private final MetadataRendererRegistry metadataRendererRegistry;
 
-    GenericPageRenderer(Map<String, SerializableTestResultStore.OutputReader> outputReaders, Map<String, String> rootDisplayNames) {
+    GenericPageRenderer(
+        Map<String, SerializableTestResultStore.OutputReader> outputReaders,
+        Map<String, String> rootDisplayNames,
+        MetadataRendererRegistry metadataRendererRegistry
+    ) {
         this.outputReaders = outputReaders;
         this.rootDisplayNames = rootDisplayNames;
+        this.metadataRendererRegistry = metadataRendererRegistry;
     }
 
     private void renderBreadcrumbs(SimpleHtmlWriter htmlWriter) throws IOException {
@@ -118,7 +124,7 @@ final class GenericPageRenderer extends TabbedPageRenderer<TestTreeModel> {
                 tabsRenderer.add(tabPrefix + "error output", new PerRootTabRenderer.ForOutput(rootName, outputReader, TestOutputEvent.Destination.StdErr));
             }
             if (!info.getMetadatas().isEmpty()) {
-                tabsRenderer.add(tabPrefix + "metadata", new PerRootTabRenderer.ForMetadata(rootName));
+                tabsRenderer.add(tabPrefix + "metadata", new PerRootTabRenderer.ForMetadata(rootName, metadataRendererRegistry));
             }
         });
         return tabsRenderer;
