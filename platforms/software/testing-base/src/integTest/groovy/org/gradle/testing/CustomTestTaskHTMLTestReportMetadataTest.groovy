@@ -25,7 +25,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 final class CustomTestTaskHTMLTestReportMetadataTest extends AbstractIntegrationSpec implements VerifiesGenericTestReportResults {
     def "emits test report with metadata"() {
         given:
-        buildFile << registerSimpleFailingCustomTestTaskWithMetadata("failing")
+        buildFile << registerSimpleFailingCustomTestTaskWithMetadata()
 
         when:
         fails(":failing")
@@ -39,22 +39,39 @@ final class CustomTestTaskHTMLTestReportMetadataTest extends AbstractIntegration
         results.testPath(":failing suite")
             .assertMetadata(["suitekey"])
         results.testPath(":failing suite:failing test")
-            .assertMetadata(["testkey"])
+            .assertMetadata(["testkey", "testkey2", "testkey3", "testkey4"])
 
         and: "Also in the aggregate report"
         def aggregateResults = aggregateResults()
         aggregateResults.testPath(":failing suite")
             .assertChildCount(1, 1, 0)
         aggregateResults.testPath(":failing suite:failing test")
-            .assertMetadata(["testkey"])
+            .assertMetadata(["testkey", "testkey2", "testkey3", "testkey4"])
+    }
+
+    def "emits test report with metadata with multiple values in metadata event"() {
+        given:
+        buildFile << registerSimpleFailingCustomTestTaskWithMultiValueMetadataEvents()
+
+        when:
+        fails(":failing")
+
+        then:
+        failure.assertHasCause("Test(s) failed.")
+        failure.assertHasErrorOutput("See the test results for more details: " + resultsUrlFor("failing"))
+
+        and:
+        def results = resultsFor("failing")
+        results.testPath(":failing suite:failing test")
+            .assertMetadata(["group1key1", "group1key2", "group2key1", "group2key2"])
     }
 
     def "emits complex aggregated test report with metadata"() {
         given:
-        buildFile << registerMultipleSuitesWithSuccessfulAndFailingCustomTestTasksWithMetadata("complex")
+        buildFile << registerMultipleSuitesWithSuccessfulAndFailingCustomTestTasksWithMetadata()
 
         when:
-        fails(":complex")
+        fails(":failing")
 
         then:
         failure.assertHasCause("Test(s) failed.")
@@ -85,10 +102,20 @@ final class CustomTestTaskHTMLTestReportMetadataTest extends AbstractIntegration
             .assertMetadata(["ikey3"])
     }
 
-    def registerSimpleFailingCustomTestTaskWithMetadata(String name) {
+    private registerSimpleFailingCustomTestTaskWithMetadata(String name = "failing") {
         assert !name.toCharArray().any { it.isWhitespace() }
 
         """
+            class TestValue implements Serializable {
+                String name
+                String address
+
+                TestValue(String name, String address) {
+                    this.name = name
+                    this.address = address
+                }
+            }
+
             abstract class ${name}CustomTestTask extends DefaultTask {
                 @Inject
                 abstract TestEventReporterFactory getTestEventReporterFactory()
@@ -110,7 +137,48 @@ final class CustomTestTaskHTMLTestReportMetadataTest extends AbstractIntegration
                             try (def myTest = mySuite.reportTest("${name} test", "failing test")) {
                                  myTest.started(java.time.Instant.now())
                                  myTest.metadata(Instant.now(), 'testkey', 'testvalue')
+                                 myTest.metadata(Instant.now(), 'testkey2', 1)
+                                 myTest.metadata(Instant.now(), 'testkey3', ['a', 'b', 'c'])
+                                 myTest.metadata(Instant.now(), 'testkey4', new TestValue("Bob", "123 Main St"))
                                  myTest.output(Instant.now(), TestOutputEvent.Destination.StdOut, "This is a test output on stdout")
+                                 myTest.failed(java.time.Instant.now(), "failure message")
+                            }
+                            mySuite.failed(java.time.Instant.now())
+                       }
+                       reporter.failed(java.time.Instant.now())
+                   }
+                }
+            }
+
+            tasks.register("${name}", ${name}CustomTestTask)
+        """
+    }
+
+    private registerSimpleFailingCustomTestTaskWithMultiValueMetadataEvents(String name = "failing") {
+        assert !name.toCharArray().any { it.isWhitespace() }
+
+        """
+            abstract class ${name}CustomTestTask extends DefaultTask {
+                @Inject
+                abstract TestEventReporterFactory getTestEventReporterFactory()
+
+                @Inject
+                abstract ProjectLayout getLayout()
+
+                @TaskAction
+                void runTests() {
+                    try (def reporter = testEventReporterFactory.createTestEventReporter(
+                        "${name}",
+                        getLayout().getBuildDirectory().dir("test-results/${name}").get(),
+                        getLayout().getBuildDirectory().dir("reports/tests/${name}").get()
+                    )) {
+                       reporter.started(java.time.Instant.now())
+                       try (def mySuite = reporter.reportTestGroup("${name} suite")) {
+                            mySuite.started(java.time.Instant.now())
+                            try (def myTest = mySuite.reportTest("${name} test", "failing test")) {
+                                 myTest.started(java.time.Instant.now())
+                                 myTest.metadata(Instant.now(), ['group1key1': 'group1value1', 'group1key2': 'group1value2'])
+                                 myTest.metadata(Instant.now(), ['group2key1': 'group2value1', 'group2key2': 'group2value2'])
                                  myTest.failed(java.time.Instant.now(), "failure message")
                             }
                             mySuite.failed(java.time.Instant.now())
@@ -126,7 +194,7 @@ final class CustomTestTaskHTMLTestReportMetadataTest extends AbstractIntegration
 
     // Is it even realistic that a single test task would create multiple reporters?
     // We'll test it anyway.
-    def registerMultipleSuitesWithSuccessfulAndFailingCustomTestTasksWithMetadata(String name) {
+    private registerMultipleSuitesWithSuccessfulAndFailingCustomTestTasksWithMetadata(String name = "failing") {
         assert !name.toCharArray().any { it.isWhitespace() }
 
         """
