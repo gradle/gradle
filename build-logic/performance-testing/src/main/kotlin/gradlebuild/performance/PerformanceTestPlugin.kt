@@ -192,7 +192,7 @@ class PerformanceTestPlugin : Plugin<Project> {
             reportDir = project.layout.buildDirectory.dir(this@configureEach.name)
             databaseParameters = project.propertiesForPerformanceDb
             branchName = buildBranch
-            channel = project.performanceChannel.orElse(branchName.map { "commits-$it" })
+            channel = project.performanceChannel.get()
             val prefix = channel.map { channelName ->
                 val osIndependentPrefix = if (channelName.startsWith("flakiness-detection")) {
                     "flakiness-detection"
@@ -413,12 +413,10 @@ class PerformanceTestExtension(
             }
         )
 
-        val channelSuffix = if (OperatingSystem.current().isLinux) "" else "-${OperatingSystem.current().familyName.toLowerCase()}"
-
         registeredPerformanceTests.add(
             createPerformanceTest("${testProject}PerformanceTest", generatorTask) {
                 description = "Runs performance tests on $testProject - supposed to be used on CI"
-                channel.set("commits$channelSuffix")
+                channel.set(project.performanceChannel)
 
                 extensions.findByType<DevelocityTestConfiguration>()?.testRetry?.maxRetries = 1
 
