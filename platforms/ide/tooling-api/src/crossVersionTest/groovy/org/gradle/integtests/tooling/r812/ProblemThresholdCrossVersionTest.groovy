@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.tooling.r812
 
+import org.gradle.integtests.tooling.fixture.ProblemsApiGroovyScriptUtils
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
@@ -227,9 +228,10 @@ class ProblemThresholdCrossVersionTest extends ToolingApiSpecification {
         }
     }
     String getProblemReportingBody(int threshold, String category = "testcategory", String label = "label") {
-        """($threshold).times {
+        """
+           ($threshold).times {
                  problems.getReporter().reporting {
-                    it.id("$category", "$label")
+                    it.${ProblemsApiGroovyScriptUtils.id(targetVersion, category, label)}
                       .details('Wrong API usage, will not show up anywhere')
                  }
              }

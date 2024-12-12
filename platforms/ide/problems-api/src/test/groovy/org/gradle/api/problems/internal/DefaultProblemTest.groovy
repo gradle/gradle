@@ -16,7 +16,7 @@
 
 package org.gradle.api.problems.internal
 
-
+import org.gradle.api.problems.IdFactory
 import org.gradle.api.problems.Severity
 import org.gradle.api.problems.SharedProblemGroup
 import org.gradle.internal.deprecation.Documentation
@@ -99,7 +99,7 @@ class DefaultProblemTest extends Specification {
     private static createTestProblem(Severity severity = Severity.ERROR, AdditionalData additionalData = null) {
         new DefaultProblem(
             new DefaultProblemDefinition(
-                new DefaultProblemId('message', "displayName", SharedProblemGroup.generic()),
+                IdFactory.instance().createProblemId('message', "displayName", SharedProblemGroup.generic()),
                 severity,
                 Documentation.userManual('id'),
             ),
@@ -117,7 +117,7 @@ class DefaultProblemTest extends Specification {
         given:
         def problem = new DefaultProblem(
             new DefaultProblemDefinition(
-                new DefaultProblemId('message', "displayName", SharedProblemGroup.generic()),
+                IdFactory.instance().createProblemId('message', "displayName", SharedProblemGroup.generic()),
                 Severity.WARNING,
                 Documentation.userManual('id'),
             ),
