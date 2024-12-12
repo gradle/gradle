@@ -62,7 +62,6 @@ dependencies {
         lockfileFixture.createLockfile('lockedConf',['org:foo:1.0'], unique)
 
         def constraintVersion = lockMode() == LockMode.LENIENT ? "1.0" : "{strictly 1.0}"
-        def extraReason = lockMode() == LockMode.LENIENT ? " (update/lenient mode)" : ""
 
         when:
         succeeds 'checkDeps'
@@ -73,7 +72,7 @@ dependencies {
             root(":", ":depLock:") {
                 edge("org:foo:1.+", "org:foo:1.0")
                 constraint("org:foo:$constraintVersion", "org:foo:1.0") {
-                    byConstraint("dependency was locked to version '1.0'$extraReason")
+                    byConstraint("Dependency version enforced by Dependency Locking")
                 }
             }
         }

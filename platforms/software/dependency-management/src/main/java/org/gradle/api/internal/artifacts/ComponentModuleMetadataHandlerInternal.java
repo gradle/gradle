@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.resolve.resolver;
+package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.internal.artifacts.ResolveContext;
-import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
+import org.gradle.api.artifacts.dsl.ComponentModuleMetadataHandler;
+import org.gradle.api.internal.artifacts.dsl.ImmutableModuleReplacements;
 
 /**
- * Resolves a context to the meta-data for the provided {@link ResolveContext}.
+ * Internal counterpart to {@link ComponentModuleMetadataHandler}.
  */
-public interface ResolveContextToComponentResolver {
-    void resolve(ResolveContext resolveContext, BuildableComponentResolveResult result);
+public interface ComponentModuleMetadataHandlerInternal extends ComponentModuleMetadataHandler {
+
+    ImmutableModuleReplacements getModuleReplacements();
+
 }
