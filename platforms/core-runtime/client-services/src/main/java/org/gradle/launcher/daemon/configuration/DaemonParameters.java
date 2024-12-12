@@ -17,6 +17,7 @@ package org.gradle.launcher.daemon.configuration;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.buildconfiguration.DaemonJvmPropertiesDefaults;
 import org.gradle.internal.jvm.inspection.JvmVendor;
 import org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode;
@@ -65,6 +66,12 @@ public class DaemonParameters {
     private boolean status;
     private DaemonPriority priority = DaemonPriority.NORMAL;
     private DaemonJvmCriteria requestedJvmCriteria = new DaemonJvmCriteria.LauncherJvm();
+
+    /**
+     * Defines the log level for the gradle daemon infrastructure (not the actual build log).
+     * Each build request carries its own log level, and it is used during the execution of the build (see LogToClient)
+     */
+    private LogLevel logLevel = LogLevel.DEBUG;
 
     public DaemonParameters(File gradleUserHomeDir, FileCollectionFactory fileCollectionFactory) {
         this(gradleUserHomeDir, fileCollectionFactory, Collections.<String, String>emptyMap());
@@ -147,7 +154,7 @@ public class DaemonParameters {
                 Optional<JvmVendor.KnownJvmVendor> knownVendor =
                     Arrays.stream(JvmVendor.KnownJvmVendor.values()).filter(e -> e.name().equals(requestedVendor)).findFirst();
 
-                if (knownVendor.isPresent() && knownVendor.get()!=JvmVendor.KnownJvmVendor.UNKNOWN) {
+                if (knownVendor.isPresent() && knownVendor.get() != JvmVendor.KnownJvmVendor.UNKNOWN) {
                     javaVendor = DefaultJvmVendorSpec.of(knownVendor.get());
                 } else {
                     javaVendor = DefaultJvmVendorSpec.matching(requestedVendor);
@@ -275,5 +282,13 @@ public class DaemonParameters {
 
     public void setPriority(DaemonPriority priority) {
         this.priority = priority;
+    }
+
+    public LogLevel getLogLevel() {
+        return logLevel;
+    }
+
+    public void setLogLevel(LogLevel logLevel) {
+        this.logLevel = logLevel;
     }
 }
