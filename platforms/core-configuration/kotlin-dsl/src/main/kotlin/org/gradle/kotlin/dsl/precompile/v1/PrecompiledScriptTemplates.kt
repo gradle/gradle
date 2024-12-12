@@ -52,12 +52,26 @@ import kotlin.script.templates.ScriptTemplateDefinition
 /**
  * Base script template for compilation of `plugins {}` blocks extracted from precompiled scripts.
  */
+@ScriptTemplateDefinition
+@KotlinScript(
+    fileExtension = "gradle.kts",
+    compilationConfiguration = PrecompiledPluginsBlockCompilationConfiguration::class
+)
+@SamWithReceiverAnnotations("org.gradle.api.HasImplicitReceiver")
+@GradleDsl
 open class PrecompiledPluginsBlock(private val pluginDependencies: PluginDependenciesSpec) {
 
     fun plugins(configuration: PluginDependenciesSpecScope.() -> Unit) {
         PluginDependenciesSpecScope(pluginDependencies).configuration()
     }
 }
+
+internal
+object PrecompiledPluginsBlockCompilationConfiguration : ScriptCompilationConfiguration({
+    isStandalone(false)
+    baseClass(PrecompiledPluginsBlock::class)
+    defaultImportsForPrecompiledScript()
+})
 
 
 /**

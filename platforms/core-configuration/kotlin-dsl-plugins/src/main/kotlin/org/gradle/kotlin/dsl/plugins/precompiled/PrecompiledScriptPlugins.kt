@@ -24,12 +24,15 @@ import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.internal.Factory
 import org.gradle.internal.deprecation.DeprecationLogger
-
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.plugins.dsl.KotlinDslPluginOptions
+import org.gradle.kotlin.dsl.precompile.v1.PrecompiledPluginsBlock
 import org.gradle.kotlin.dsl.provider.PrecompiledScriptPluginsSupport
 import org.gradle.kotlin.dsl.provider.gradleKotlinDslJarsOf
 import org.gradle.kotlin.dsl.support.serviceOf
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.plugin.KotlinBaseApiPlugin
+import org.jetbrains.kotlin.gradle.scripting.internal.ScriptingGradleSubplugin
 
 
 /**
@@ -41,11 +44,41 @@ abstract class PrecompiledScriptPlugins : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
 
-        if (serviceOf<PrecompiledScriptPluginsSupport>().enableOn(Target(project))) {
+        val compilePluginsBlock = configurations.dependencyScope("compilePluginsBlock")
+        val compilePluginsBlockClasspath = configurations.resolvable("compilePluginsBlockClasspath") {
+            it.extendsFrom(compilePluginsBlock.get())
+        }
+        dependencies {
+            compilePluginsBlock.name(kotlin("scripting-compiler-embeddable"))
+        }
 
-            dependencies {
-                "kotlinCompilerPluginClasspath"(gradleKotlinDslJarsOf(project))
-                "kotlinCompilerPluginClasspath"(gradleApi())
+        apply<KotlinBaseApiPlugin>()
+        apply<ScriptingGradleSubplugin>()
+        plugins.withType(KotlinBaseApiPlugin::class.java) { kotlinBaseApiPlugin ->
+
+            val target = Target(project)
+
+            kotlinBaseApiPlugin.registerKotlinJvmCompileTask(
+                taskName = "compileKotlinPluginsBlocks",
+                moduleName = "gradle-kotlin-dsl-plugins-blocks",
+            ).configure { task ->
+                task.enabled = false
+                task.multiPlatformEnabled.set(false)
+                task.libraries.from(sourceSets["main"].compileClasspath)
+                // TODO this must be set, maybe setting the toolchain is doable and better?
+                //      probably should set from target only if available
+                task.compilerOptions.jvmTarget.set(target.jvmTarget.map { JvmTarget.fromTarget(it.toString()) }.orElse(JvmTarget.JVM_1_8))
+//                println(" OUTER JVM TARGET = ${task.compilerOptions.jvmTarget.orNull}")
+                task.pluginClasspath.from(compilePluginsBlockClasspath.get())
+                task.compilerOptions.freeCompilerArgs.addAll(listOf("-script-templates", PrecompiledPluginsBlock::class.qualifiedName))
+            }
+
+            if (serviceOf<PrecompiledScriptPluginsSupport>().enableOn(target)) {
+
+                dependencies {
+                    "kotlinCompilerPluginClasspath"(gradleKotlinDslJarsOf(project))
+                    "kotlinCompilerPluginClasspath"(gradleApi())
+                }
             }
         }
     }

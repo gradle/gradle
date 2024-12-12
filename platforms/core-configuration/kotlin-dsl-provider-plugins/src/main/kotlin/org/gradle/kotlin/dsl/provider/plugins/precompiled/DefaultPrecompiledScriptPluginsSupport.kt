@@ -22,6 +22,7 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.Transformer
 import org.gradle.api.file.Directory
+import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.initialization.Settings
@@ -30,6 +31,7 @@ import org.gradle.api.invocation.Gradle
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.api.provider.ListProperty
+import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.ClasspathNormalizer
 import org.gradle.api.tasks.PathSensitivity
@@ -201,19 +203,52 @@ fun Project.enableScriptCompilationOf(
                 metadataOutputDir.set(pluginSpecBuildersMetadata)
             }
 
-        val compilePluginsBlocks by registering(CompilePrecompiledScriptPluginPlugins::class) {
+        val compilePluginsBlocks = if (names.contains("compileKotlinPluginsBlocks")) {
+//            println("NEW SETUP")
+            named("compileKotlinPluginsBlocks") { task ->
+                task.doFirst {
+                    println("DEBUG HERE")
+                }
+                task.enabled = true
+                task.dependsOn(generateExternalPluginSpecBuilders)
+                task.dependsOn(extractPrecompiledScriptPluginPlugins)
+                task.withGroovyBuilder {
+                    "source"(externalPluginSpecBuilders)
+                    "source"(extractedPluginsBlocks)
+                    val destinationDirectory = getProperty("destinationDirectory") as DirectoryProperty
+                    destinationDirectory.set(compiledPluginsBlocks)
+//                    "compilerOptions" {
+//                        val jt = getProperty("jvmTarget") as Property<*>
+//                        println("===> JVM TARGET = ${jt.orNull}")
+//                    }
+                }
+                task.configureKotlinCompilerArgumentsLazily(
+                    resolverEnvironmentStringFor(
+                        serviceOf(),
+                        serviceOf(),
+                        compileClasspath,
+                        generateExternalPluginSpecBuilders.flatMap { it.metadataOutputDir },
+                    )
+                )
+                task.doFirst {
+                    task.validateKotlinCompilerArguments()
+                }
+            }
+        } else {
+//            println("OLD SETUP")
+            register("compilePluginsBlocks", CompilePrecompiledScriptPluginPlugins::class.java) { task ->
+                task.javaLauncher.set(javaToolchainService.launcherFor(java.toolchain))
+                @Suppress("DEPRECATION") task.jvmTarget.set(jvmTargetProvider)
 
-            javaLauncher.set(javaToolchainService.launcherFor(java.toolchain))
-            @Suppress("DEPRECATION") jvmTarget.set(jvmTargetProvider)
+                task.dependsOn(extractPrecompiledScriptPluginPlugins)
+                task.sourceDir(extractedPluginsBlocks)
 
-            dependsOn(extractPrecompiledScriptPluginPlugins)
-            sourceDir(extractedPluginsBlocks)
+                task.dependsOn(generateExternalPluginSpecBuilders)
+                task.sourceDir(externalPluginSpecBuilders)
 
-            dependsOn(generateExternalPluginSpecBuilders)
-            sourceDir(externalPluginSpecBuilders)
-
-            classPathFiles.from(compileClasspath)
-            outputDir.set(compiledPluginsBlocks)
+                task.classPathFiles.from(compileClasspath)
+                task.outputDir.set(compiledPluginsBlocks)
+            }
         }
 
         val (generatePrecompiledScriptPluginAccessors, _) =
@@ -264,7 +299,7 @@ fun Project.enableScriptCompilationOf(
 
             val configurePrecompiledScriptDependenciesResolver by registering(ConfigurePrecompiledScriptDependenciesResolver::class) {
                 dependsOn(generatePrecompiledScriptPluginAccessors)
-                metadataDir.set(accessorsMetadata)
+                metadataDir.set(generatePrecompiledScriptPluginAccessors.flatMap { it.metadataOutputDir })
                 classPathFiles.from(compileClasspath)
                 val objects = objects
                 onConfigure { resolverEnvironment ->
@@ -345,6 +380,7 @@ fun Task.configureKotlinCompilerArgumentsLazily(resolverEnvironment: Provider<St
             @Suppress("unchecked_cast")
             val freeCompilerArgs = getProperty("freeCompilerArgs") as ListProperty<String>
             freeCompilerArgs.addAll(scriptTemplatesArgs)
+            freeCompilerArgs.add("-Xallow-any-scripts-in-source-roots")
             freeCompilerArgs.add(resolverEnvironment.mappedToScriptResolverEnvironmentArg)
         }
     }
