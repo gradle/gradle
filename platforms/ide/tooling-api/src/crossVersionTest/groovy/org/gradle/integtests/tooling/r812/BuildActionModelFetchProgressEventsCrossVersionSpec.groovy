@@ -21,7 +21,7 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.model.GradleProject
 
-@TargetGradleVersion('>=8.12')
+@TargetGradleVersion('>=8.13')
 class BuildActionModelFetchProgressEventsCrossVersionSpec extends ToolingApiSpecification {
 
     def setup() {
