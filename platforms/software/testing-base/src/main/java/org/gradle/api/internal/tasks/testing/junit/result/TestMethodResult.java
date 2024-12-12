@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.junit.result;
 
+import org.gradle.api.internal.tasks.testing.results.serializable.SerializableFailure;
 import org.gradle.api.tasks.testing.TestResult;
 
 import java.util.ArrayList;
@@ -28,7 +29,7 @@ public class TestMethodResult {
     private TestResult.ResultType resultType;
     private long duration;
     private long endTime;
-    private final List<TestFailure> failures = new ArrayList<TestFailure>();
+    private final List<SerializableFailure> failures = new ArrayList<SerializableFailure>();
 
     public TestMethodResult(long id, String name) {
         this(id, name, name);
@@ -64,7 +65,7 @@ public class TestMethodResult {
     }
 
     public TestMethodResult addFailure(String message, String stackTrace, String exceptionType) {
-        this.failures.add(new TestFailure(message, stackTrace, exceptionType));
+        this.failures.add(new SerializableFailure(message, stackTrace, exceptionType));
         return this;
     }
 
@@ -80,7 +81,7 @@ public class TestMethodResult {
         return displayName;
     }
 
-    public List<TestFailure> getFailures() {
+    public List<SerializableFailure> getFailures() {
         return failures;
     }
 

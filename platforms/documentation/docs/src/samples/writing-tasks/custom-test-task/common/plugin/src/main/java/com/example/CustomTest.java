@@ -4,6 +4,7 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.provider.Property;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
@@ -14,6 +15,7 @@ import org.gradle.api.tasks.testing.TestEventReporterFactory;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 
 import javax.inject.Inject;
+import java.io.IOException;
 import java.time.Instant;
 
 /**
@@ -39,7 +41,7 @@ public abstract class CustomTest extends DefaultTask {
     protected abstract DirectoryProperty getHtmlReportDirectory();
 
     @TaskAction
-    void runTests() {
+    void runTests() throws IOException {
         // This task is a demonstration of generating the proper test events.
         // It simulates a variety of conditions and nesting levels
 

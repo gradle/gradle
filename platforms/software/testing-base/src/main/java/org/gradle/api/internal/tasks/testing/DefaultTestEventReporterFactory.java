@@ -19,15 +19,11 @@ package org.gradle.api.internal.tasks.testing;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.Directory;
-import org.gradle.api.internal.tasks.testing.junit.result.TestClassResult;
-import org.gradle.api.internal.tasks.testing.junit.result.TestOutputStore;
-import org.gradle.api.internal.tasks.testing.junit.result.TestReportDataCollector;
-import org.gradle.api.internal.tasks.testing.junit.result.TestResultSerializer;
 import org.gradle.api.internal.tasks.testing.logging.SimpleTestEventLogger;
 import org.gradle.api.internal.tasks.testing.logging.TestEventProgressListener;
 import org.gradle.api.internal.tasks.testing.results.HtmlTestReportGenerator;
+import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResultStore;
 import org.gradle.api.internal.tasks.testing.results.TestExecutionResultsListener;
-import org.gradle.api.internal.tasks.testing.results.TestListenerAdapter;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
 import org.gradle.api.tasks.testing.GroupTestEventReporter;
 import org.gradle.api.tasks.testing.TestEventReporterFactory;
@@ -38,12 +34,8 @@ import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 
 import javax.inject.Inject;
-import java.io.Closeable;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.Map;
 
 @NonNullApi
 public final class DefaultTestEventReporterFactory implements TestEventReporterFactory {
@@ -81,66 +73,25 @@ public final class DefaultTestEventReporterFactory implements TestEventReporterF
         testListenerInternalBroadcaster.add(new TestEventProgressListener(progressLoggerFactory));
 
         // Record all emitted results to disk
-        ClosableTestReportDataCollector testReportDataCollector = new ClosableTestReportDataCollector(binaryResultsDirectory.getAsFile().toPath());
-        testListenerInternalBroadcaster.add(new TestListenerAdapter(testReportDataCollector.getDelegate(), testReportDataCollector.getDelegate()));
+        Path binaryResultsDir = binaryResultsDirectory.getAsFile().toPath();
+        SerializableTestResultStore.Writer testResultWriter;
+        try {
+            testResultWriter = new SerializableTestResultStore(binaryResultsDir).openWriter();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+        testListenerInternalBroadcaster.add(testResultWriter);
 
         return new LifecycleTrackingGroupTestEventReporter(new DefaultRootTestEventReporter(
             rootName,
             testListenerInternalBroadcaster.getSource(),
             new LongIdGenerator(),
             htmlReportDirectory.getAsFile().toPath(),
-            testReportDataCollector,
+            binaryResultsDir,
+            testResultWriter,
             htmlTestReportGenerator,
             listenerManager.getBroadcaster(TestExecutionResultsListener.class)
         ));
-    }
-
-    /**
-     * Wrapper for {@link TestReportDataCollector} that tracks extra state, ensuring it is properly closable.
-     *
-     * This should eventually be merged with TestReportDataCollector.
-     */
-    @NonNullApi
-    public static class ClosableTestReportDataCollector implements Closeable {
-
-        private final Path resultsDirectory;
-
-        private final Map<String, TestClassResult> results;
-        private final TestOutputStore.Writer outputWriter;
-        private final TestReportDataCollector delegate;
-
-        public ClosableTestReportDataCollector(Path resultsDirectory) {
-            this.resultsDirectory = resultsDirectory;
-
-            try {
-                Files.createDirectories(resultsDirectory);
-            } catch (IOException e) {
-                throw new UncheckedIOException(e);
-            }
-
-            TestOutputStore testOutputStore = new TestOutputStore(resultsDirectory.toFile());
-            this.outputWriter = testOutputStore.writer();
-            this.results = new HashMap<>();
-
-            this.delegate = new TestReportDataCollector(
-                results,
-                outputWriter
-            );
-        }
-
-        public TestReportDataCollector getDelegate() {
-            return delegate;
-        }
-
-        public Path getBinaryResultsDirectory() {
-            return resultsDirectory;
-        }
-
-        @Override
-        public void close() {
-            outputWriter.close();
-            new TestResultSerializer(resultsDirectory.toFile()).write(results.values());
-        }
     }
 
 }
