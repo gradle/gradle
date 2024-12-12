@@ -17,6 +17,8 @@
 package org.gradle.api.problems.internal;
 
 import org.gradle.api.problems.ProblemReporter;
+import org.gradle.api.problems.deprecation.DeprecationReporter;
+import org.gradle.api.problems.internal.deprecation.DefaultDeprecationReporter;
 import org.gradle.internal.exception.ExceptionAnalyser;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.service.scopes.Scope;
@@ -48,6 +50,11 @@ public class DefaultProblems implements InternalProblems {
     @Override
     public ProblemReporter getReporter() {
         return createReporter();
+    }
+
+    @Override
+    public DeprecationReporter getDeprecationReporter() {
+        return new DefaultDeprecationReporter(createReporter());
     }
 
     @Nonnull

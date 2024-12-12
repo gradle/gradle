@@ -58,7 +58,6 @@ class KnownProblemIds {
         'validation:property-validation' : 'Property validation problems',
         'validation:type-validation' : 'Gradle type validation',
         'validation:configuration-cache' : 'Configuration cache',
-
         // dependency resolution failures
         'dependency-variant-resolution' : 'Dependency variant resolution',
 
@@ -82,6 +81,10 @@ class KnownProblemIds {
         'compilation:java:compiler-warn-.+' : 'Java compilation warning',
         'compilation:java:compiler-note-.+' : 'Java compilation note',
         'compilation:java:initialization-failed': 'Java compilation initialization error',
+        // New deprecation API groups
+        'deprecation:generic': 'Generic deprecation',
+        'deprecation:behavior': 'Behavior deprecation',
+        // Deprecation-logger groups
         'dependency-version-catalog:alias-not-finished' : 'version catalog error',
         'dependency-version-catalog:invalid-dependency-notation' : 'Dependency version catalog problem',
         'dependency-version-catalog:reserved-alias-name' : 'version catalog error',

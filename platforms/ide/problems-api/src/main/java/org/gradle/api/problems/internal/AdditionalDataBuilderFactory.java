@@ -63,6 +63,20 @@ public final class AdditionalDataBuilderFactory {
                     return DefaultPropertyTraceData.builder((PropertyTraceData) instance);
                 }
             }));
+        // New deprecation API data builder
+        // As this conflicts with the older API, everything needs to be a full class name
+        additionalDataProviders.put(
+            org.gradle.api.problems.deprecation.DeprecationDataSpec.class,
+            new DataTypeAndProvider(
+                org.gradle.api.problems.deprecation.DeprecationData.class,
+                new Function<AdditionalData, AdditionalDataBuilder<? extends AdditionalData>>() {
+                    @Override
+                    public AdditionalDataBuilder<? extends AdditionalData> apply(@Nullable AdditionalData instance) {
+                        return org.gradle.api.problems.internal.deprecation.DefaultDeprecationData.builder((org.gradle.api.problems.deprecation.DeprecationData) instance);
+                    }
+                }
+            )
+        );
     }
 
     /**

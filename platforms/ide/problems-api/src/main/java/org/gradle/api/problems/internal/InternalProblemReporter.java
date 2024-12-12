@@ -64,4 +64,10 @@ public interface InternalProblemReporter extends ProblemReporter {
      * @since 8.12
      */
     RuntimeException throwing(Throwable exception, Collection<? extends Problem> problems);
+
+    /**
+     * Creates a new problem builder for other, more specific builders to use.
+     * @return a new problem builder
+     */
+    InternalProblemBuilder createProblemBuilder();
 }
