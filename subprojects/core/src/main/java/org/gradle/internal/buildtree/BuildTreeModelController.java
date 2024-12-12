@@ -29,8 +29,16 @@ public interface BuildTreeModelController {
      */
     GradleInternal getConfiguredModel();
 
+    /**
+     * Creates the model with a given parameter in the target scope.
+     * <p>
+     * The model builder is resolved in the target scope, configuring the scope if necessary.
+     *
+     * @return the created model (null is a valid model)
+     * @throws UnknownModelException when the model builder cannot be found
+     */
     @Nullable
-    Object getModel(@Nullable BuildTreeModelTarget target, String modelName, @Nullable Object parameter) throws UnknownModelException;
+    Object getModel(BuildTreeModelTarget target, String modelName, @Nullable Object parameter) throws UnknownModelException;
 
     boolean queryModelActionsRunInParallel();
 

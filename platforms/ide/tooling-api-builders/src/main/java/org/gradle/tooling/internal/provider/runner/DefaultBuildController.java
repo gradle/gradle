@@ -99,7 +99,7 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
             throw new BuildCancelledException(String.format("Could not build '%s' model. Build cancelled.", modelIdentifier.getName()));
         }
 
-        BuildTreeModelTarget scopedTarget = getTarget(target);
+        BuildTreeModelTarget scopedTarget = resolveTarget(target);
         try {
             Object model = controller.getModel(scopedTarget, modelIdentifier.getName(), parameter);
             return new ProviderBuildResult<>(model);
@@ -108,10 +108,9 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
         }
     }
 
-    @Nullable
-    private static BuildTreeModelTarget getTarget(@Nullable Object target) {
+    private static BuildTreeModelTarget resolveTarget(@Nullable Object target) {
         if (target == null) {
-            return null;
+            return BuildTreeModelTarget.ofDefault();
         } else if (target instanceof GradleProjectIdentity) {
             GradleProjectIdentity projectIdentity = (GradleProjectIdentity) target;
             return BuildTreeModelTarget.ofProject(projectIdentity.getRootDir(), projectIdentity.getProjectPath());
@@ -133,7 +132,6 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
         assertCanQuery();
         return controller.runQueryModelActions(actions);
     }
-
 
     private void assertCanQuery() {
         if (!workerThreadRegistry.isWorkerThread()) {

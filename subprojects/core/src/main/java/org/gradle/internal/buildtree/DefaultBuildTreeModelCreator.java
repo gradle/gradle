@@ -75,14 +75,14 @@ public class DefaultBuildTreeModelCreator implements BuildTreeModelCreator {
 
         @Override
         @Nullable
-        public Object getModel(@Nullable BuildTreeModelTarget target, String modelName, @Nullable Object parameter) throws UnknownModelException {
+        public Object getModel(BuildTreeModelTarget target, String modelName, @Nullable Object parameter) throws UnknownModelException {
             // Include target resolution into the operation to identify all work (including build configuration)
             // that is executed to provide the requested model
             return buildOperationRunner.call(new CallableBuildOperation<Object>() {
                 @Override
                 @Nullable
                 public Object call(BuildOperationContext context) {
-                    ToolingModelScope scope = getTarget(target, modelName, parameter != null);
+                    ToolingModelScope scope = locateBuilderForTarget(target, modelName, parameter != null);
                     return getModelForScope(scope, modelName, parameter);
                 }
 
@@ -105,15 +105,38 @@ public class DefaultBuildTreeModelCreator implements BuildTreeModelCreator {
             return actionRunner.run(actions);
         }
 
-        private ToolingModelScope locateBuilderForDefaultTarget(String modelName, boolean param) {
-            return locateBuilderForTarget(defaultTarget, modelName, param);
+        private ToolingModelScope locateBuilderForTarget(BuildTreeModelTarget target, String modelName, boolean parameter) {
+            if (target instanceof BuildTreeModelTarget.Default) {
+                return locateBuilderForDefaultTarget(modelName, parameter);
+            } else if (target instanceof BuildTreeModelTarget.Build) {
+                return locateBuilderForBuildTarget((BuildTreeModelTarget.Build) target, modelName, parameter);
+            } else if (target instanceof BuildTreeModelTarget.Project) {
+                return locateBuilderForProjectTarget((BuildTreeModelTarget.Project) target, modelName, parameter);
+            } else {
+                throw new IllegalStateException("Unknown target: " + target);
+            }
         }
 
-        private ToolingModelScope locateBuilderForTarget(BuildState target, String modelName, boolean param) {
+        private ToolingModelScope locateBuilderForDefaultTarget(String modelName, boolean param) {
+            return locateBuilderForBuildTarget(defaultTarget, modelName, param);
+        }
+
+        private ToolingModelScope locateBuilderForProjectTarget(BuildTreeModelTarget.Project projectTarget, String modelName, boolean parameter) {
+            BuildState build = findBuild(projectTarget.getBuildRootDir());
+            ProjectState project = findProject(build, projectTarget.getProjectPath());
+            return locateBuilderForProjectTarget(project, modelName, parameter);
+        }
+
+        private ToolingModelScope locateBuilderForBuildTarget(BuildTreeModelTarget.Build buildTarget, String modelName, boolean parameter) {
+            BuildState build = findBuild(buildTarget.getBuildRootDir());
+            return locateBuilderForBuildTarget(build, modelName, parameter);
+        }
+
+        private ToolingModelScope locateBuilderForBuildTarget(BuildState target, String modelName, boolean param) {
             return target.withToolingModels(controller -> controller.locateBuilderForTarget(modelName, param));
         }
 
-        private ToolingModelScope locateBuilderForTarget(ProjectState target, String modelName, boolean param) throws UnknownModelException {
+        private ToolingModelScope locateBuilderForProjectTarget(ProjectState target, String modelName, boolean param) {
             return target.getOwner().withToolingModels(controller -> controller.locateBuilderForTarget(target, modelName, param));
         }
 
@@ -126,33 +149,19 @@ public class DefaultBuildTreeModelCreator implements BuildTreeModelCreator {
             }
         }
 
-        private String describeTarget(@Nullable BuildTreeModelTarget target) {
-            if (target == null) {
+        private String describeTarget(BuildTreeModelTarget target) {
+            if (target instanceof BuildTreeModelTarget.Default) {
                 return "default scope";
-            } else if (target.getProjectPath() != null) {
+            } else if (target instanceof BuildTreeModelTarget.Build) {
+                return "build scope";
+            } else if (target instanceof BuildTreeModelTarget.Project) {
                 return "project scope";
             } else {
-                return "build scope";
+                throw new IllegalStateException("Unknown target: " + target);
             }
         }
 
-        private ToolingModelScope getTarget(@Nullable BuildTreeModelTarget target, String modelName, boolean parameter) {
-            if (target == null) {
-                return locateBuilderForDefaultTarget(modelName, parameter);
-            }
-
-            BuildState build = findBuild(target);
-            Path projectPath = target.getProjectPath();
-            if (projectPath == null) {
-                return locateBuilderForTarget(build, modelName, parameter);
-            } else {
-                ProjectState project = findProject(build, projectPath);
-                return locateBuilderForTarget(project, modelName, parameter);
-            }
-        }
-
-        private BuildState findBuild(BuildTreeModelTarget target) {
-            File targetBuildRootDir = target.getBuildRootDir();
+        private BuildState findBuild(File targetBuildRootDir) {
             AtomicReference<BuildState> match = new AtomicReference<>();
             buildStateRegistry.visitBuilds(buildState -> {
                 if (buildState.isImportableBuild() && buildState.getBuildRootDir().equals(targetBuildRootDir)) {

@@ -18,61 +18,120 @@ package org.gradle.internal.buildtree;
 
 import org.gradle.util.Path;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Objects;
 
 /**
- * Either a build or a project as a target for model building.
+ * Target for model building.
  * <p>
  * The target is identified by minimal information provided via Tooling API,
  * such as the root directory of the target build.
  */
-public class BuildTreeModelTarget {
+public abstract class BuildTreeModelTarget {
 
-    public static BuildTreeModelTarget ofBuild(File buildRootDir) {
-        return new BuildTreeModelTarget(buildRootDir, null);
+    @SuppressWarnings("StaticInitializerReferencesSubClass")
+    private static final Default DEFAULT = new Default();
+
+    public static Default ofDefault() {
+        return DEFAULT;
     }
 
-    public static BuildTreeModelTarget ofProject(File buildRootDir, String projectPath) {
-        return new BuildTreeModelTarget(buildRootDir, Path.path(projectPath));
+    public static Build ofBuild(File buildRootDir) {
+        return new Build(buildRootDir);
     }
 
-    private final File buildRootDir;
-    @Nullable
-    private final Path projectPath;
-
-    public BuildTreeModelTarget(File buildRootDir, @Nullable Path projectPath) {
-        this.buildRootDir = buildRootDir;
-        this.projectPath = projectPath;
+    public static Project ofProject(File buildRootDir, String projectPath) {
+        return new Project(buildRootDir, Path.path(projectPath));
     }
 
-    public File getBuildRootDir() {
-        return buildRootDir;
-    }
+    public static class Default extends BuildTreeModelTarget {
+        private Default() {}
 
-    @Nullable
-    public Path getProjectPath() {
-        return projectPath;
-    }
-
-    @Override
-    public final boolean equals(Object o) {
-        if (this == o) {
-            return true;
+        @Override
+        public String toString() {
+            return "Default";
         }
-        if (!(o instanceof BuildTreeModelTarget)) {
-            return false;
+    }
+
+    public static class Build extends BuildTreeModelTarget {
+
+        private final File buildRootDir;
+
+        private Build(File buildRootDir) {
+            this.buildRootDir = buildRootDir;
         }
 
-        BuildTreeModelTarget that = (BuildTreeModelTarget) o;
-        return buildRootDir.equals(that.buildRootDir) && Objects.equals(projectPath, that.projectPath);
+        public File getBuildRootDir() {
+            return buildRootDir;
+        }
+
+        @Override
+        public final boolean equals(Object o) {
+            if (!(o instanceof Build)) {
+                return false;
+            }
+
+            Build build = (Build) o;
+            return buildRootDir.equals(build.buildRootDir);
+        }
+
+        @Override
+        public int hashCode() {
+            return buildRootDir.hashCode();
+        }
+
+        @Override
+        public String toString() {
+            return "Build{" +
+                "buildRootDir=" + buildRootDir +
+                '}';
+        }
     }
 
-    @Override
-    public int hashCode() {
-        int result = buildRootDir.hashCode();
-        result = 31 * result + Objects.hashCode(projectPath);
-        return result;
+    public static class Project extends BuildTreeModelTarget {
+
+        private final File buildRootDir;
+        private final Path projectPath;
+
+        private Project(File buildRootDir, Path projectPath) {
+            this.buildRootDir = buildRootDir;
+            this.projectPath = projectPath;
+        }
+
+        public File getBuildRootDir() {
+            return buildRootDir;
+        }
+
+        public Path getProjectPath() {
+            return projectPath;
+        }
+
+        @Override
+        public final boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (!(o instanceof Project)) {
+                return false;
+            }
+
+            Project that = (Project) o;
+            return buildRootDir.equals(that.buildRootDir) && Objects.equals(projectPath, that.projectPath);
+        }
+
+        @Override
+        public int hashCode() {
+            int result = buildRootDir.hashCode();
+            result = 31 * result + Objects.hashCode(projectPath);
+            return result;
+        }
+
+        @Override
+        public String toString() {
+            return "Project{" +
+                "buildRootDir=" + buildRootDir +
+                ", projectPath=" + projectPath +
+                '}';
+        }
     }
 }
