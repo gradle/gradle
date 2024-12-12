@@ -35,13 +35,14 @@ import org.gradle.internal.Pair;
 import org.gradle.internal.evaluation.EvaluationScopeContext;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 
-import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toCollection;
 import static org.gradle.internal.Cast.uncheckedCast;
 import static org.gradle.internal.Cast.uncheckedNonnullCast;
 
@@ -539,11 +540,20 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         private final ValueCollector<K> keyCollector;
         private final MapEntryCollector<K, V> entryCollector;
 
-        public CollectingSupplier(ValueCollector<K> keyCollector, MapEntryCollector<K, V> entryCollector, MapCollector<K, V> collector) {
+        public CollectingSupplier(
+            ValueCollector<K> keyCollector,
+            MapEntryCollector<K, V> entryCollector,
+            MapCollector<K, V> collector
+        ) {
             this(keyCollector, entryCollector, Lists.newArrayList(collector), 1);
         }
 
-        public CollectingSupplier(ValueCollector<K> keyCollector, MapEntryCollector<K, V> entryCollector, List<MapCollector<K, V>> collectors, int size) {
+        public CollectingSupplier(
+            ValueCollector<K> keyCollector,
+            MapEntryCollector<K, V> entryCollector,
+            @SuppressWarnings("NonApiType") ArrayList<MapCollector<K, V>> collectors,
+            int size
+        ) {
             super(SerializableLambdas.predicate(DefaultMapProperty::isAbsentIgnoring), collectors, size);
             this.keyCollector = keyCollector;
             this.entryCollector = entryCollector;
@@ -605,11 +615,6 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
             );
         }
 
-        @Override
-        public ValueProducer getProducer() {
-            return getProducer(ValueSupplier::getProducer);
-        }
-
         private ExecutionTimeValue<? extends Map<K, V>> calculateFixedExecutionTimeValue(
             List<ExecutionTimeValue<? extends Map<K, V>>> values,
             SideEffectBuilder<Map<K, V>> sideEffectBuilder
@@ -631,7 +636,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
                 collectorsWithValues.stream().map(pair -> {
                     MapCollector<K, V> elements = toCollector(pair.getRight());
                     return ignoreAbsentIfNeeded(elements, isAbsentIgnoring(pair.getLeft()));
-                }).collect(toList()),
+                }).collect(toCollection(ArrayList::new)),
                 collectorsWithValues.size())
             );
         }

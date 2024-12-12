@@ -18,7 +18,6 @@ package org.gradle.api.internal.provider;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.Pair;
@@ -33,22 +32,46 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-@NonNullApi
-public abstract class AbstractCollectingSupplier<COLLECTOR, TYPE> extends AbstractMinimalProvider<TYPE> {
+public abstract class AbstractCollectingSupplier<COLLECTOR extends ValueSupplier, TYPE> extends AbstractMinimalProvider<TYPE> {
     private final Predicate<COLLECTOR> checkAbsentIgnoring;
     // This list is shared by the collectors produced by `plus`, so we don't have to copy the collectors every time.
     // However, this also means that you can only call plus on a given collector once.
-    protected final List<COLLECTOR> collectors; // TODO - Replace with PersistentList? This may make value calculation inefficient because the PersistentList can only prepend to head.
+    protected final ArrayList<COLLECTOR> collectors; // TODO - Replace with PersistentList? This may make value calculation inefficient because the PersistentList can only prepend to head.
     protected final int size;
 
     public AbstractCollectingSupplier(
         Predicate<COLLECTOR> checkAbsentIgnoring,
-        List<COLLECTOR> collectors,
+        @SuppressWarnings("NonApiType") ArrayList<COLLECTOR> collectors,
         int size
     ) {
         this.collectors = collectors;
         this.size = size;
         this.checkAbsentIgnoring = checkAbsentIgnoring;
+    }
+
+    @Override
+    public ValueProducer getProducer() {
+        return new ValueProducer() {
+            @Override
+            public void visitProducerTasks(Action<? super Task> visitor) {
+                getProducers().forEach(c -> c.visitProducerTasks(visitor));
+            }
+
+            @Override
+            public boolean isKnown() {
+                return getProducers().anyMatch(ValueProducer::isKnown);
+            }
+
+            @Override
+            public void visitDependencies(TaskDependencyResolveContext context) {
+                getProducers().forEach(c -> c.visitDependencies(context));
+            }
+
+            @Override
+            public void visitContentProducerTasks(Action<? super Task> visitor) {
+                getProducers().forEach(c -> c.visitContentProducerTasks(visitor));
+            }
+        };
     }
 
     protected List<COLLECTOR> getCollectors() {
@@ -80,10 +103,10 @@ public abstract class AbstractCollectingSupplier<COLLECTOR, TYPE> extends Abstra
 
     protected <ENTRIES, BUILDER> Value<ENTRIES> calculateValue(
         BiFunction<BUILDER, COLLECTOR, Value<Void>> collectEntriesForCollector,
-        Supplier<BUILDER> builderSupplier,
+        Supplier<BUILDER> supplyBuilder,
         Function<BUILDER, ENTRIES> buildEntries
     ) {
-        BUILDER builder = builderSupplier.get();
+        BUILDER builder = supplyBuilder.get();
         Value<Void> compositeResult = Value.present();
         for (COLLECTOR collector : getCollectors()) {
             if (compositeResult.isMissing() && !checkAbsentIgnoring.test(collector)) {
@@ -95,7 +118,7 @@ public abstract class AbstractCollectingSupplier<COLLECTOR, TYPE> extends Abstra
             if (result.isMissing()) {
                 // This is the argument of add/addAll and it is missing. It "poisons" the property (it becomes missing).
                 // We discard all values and side effects gathered so far.
-                builder = builderSupplier.get();
+                builder = supplyBuilder.get();
                 compositeResult = result;
             } else if (compositeResult.isMissing()) {
                 assert checkAbsentIgnoring.test(collector);
@@ -132,8 +155,8 @@ public abstract class AbstractCollectingSupplier<COLLECTOR, TYPE> extends Abstra
         }
         return calculateChangingExecutionTimeValue.apply(collectorsWithValues);
     }
-
     // Returns an empty list when the overall value is missing.
+
     protected List<Pair<COLLECTOR, ExecutionTimeValue<? extends TYPE>>> collectExecutionTimeValues(Function<COLLECTOR, ExecutionTimeValue<? extends TYPE>> calculateExecutionTimeValueForCollector) {
         // These are the values that are certainly part of the result, e.g. because of absent-ignoring append/appendAll argument.
         List<Pair<COLLECTOR, ExecutionTimeValue<? extends TYPE>>> executionTimeValues = new ArrayList<>();
@@ -180,30 +203,6 @@ public abstract class AbstractCollectingSupplier<COLLECTOR, TYPE> extends Abstra
         return sb.toString();
     }
 
-    protected ValueProducer getProducer(Function<COLLECTOR, ValueProducer> getProducerForCollector) {
-        return new ValueProducer() {
-            @Override
-            public void visitProducerTasks(Action<? super Task> visitor) {
-                getProducers(getProducerForCollector).forEach(c -> c.visitProducerTasks(visitor));
-            }
-
-            @Override
-            public boolean isKnown() {
-                return getProducers(getProducerForCollector).anyMatch(ValueProducer::isKnown);
-            }
-
-            @Override
-            public void visitDependencies(TaskDependencyResolveContext context) {
-                getProducers(getProducerForCollector).forEach(c -> c.visitDependencies(context));
-            }
-
-            @Override
-            public void visitContentProducerTasks(Action<? super Task> visitor) {
-                getProducers(getProducerForCollector).forEach(c -> c.visitContentProducerTasks(visitor));
-            }
-        };
-    }
-
     /**
      * Try to simplify the set of execution values to either a missing value or a fixed value.
      */
@@ -233,7 +232,7 @@ public abstract class AbstractCollectingSupplier<COLLECTOR, TYPE> extends Abstra
         return null;
     }
 
-    private Stream<ValueProducer> getProducers(Function<COLLECTOR, ValueProducer> getProducerForCollector) {
-        return getCollectors().stream().map(getProducerForCollector);
+    private Stream<ValueProducer> getProducers() {
+        return getCollectors().stream().map(ValueSupplier::getProducer);
     }
 }

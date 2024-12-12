@@ -36,12 +36,13 @@ import org.gradle.internal.evaluation.EvaluationScopeContext;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.function.Supplier;
 
-import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toCollection;
 
 /**
  * The base class for collection properties.
@@ -482,7 +483,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
             Class<C> type,
             Supplier<ImmutableCollection.Builder<T>> collectionFactory,
             ValueCollector<T> valueCollector,
-            @SuppressWarnings("NonApiType") List<Collector<T>> collectors,
+            @SuppressWarnings("NonApiType") ArrayList<Collector<T>> collectors,
             int size
         ) {
             super(SerializableLambdas.predicate(AbstractCollectionProperty::isAbsentIgnoring), collectors, size);
@@ -545,7 +546,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
                     collectorsWithValues.stream().map(pair -> {
                         Collector<T> elements = toCollector(pair.getRight());
                         return ignoreAbsentIfNeeded(elements, isAbsentIgnoring(pair.getLeft()));
-                    }).collect(toList()),
+                    }).collect(toCollection(ArrayList::new)),
                     collectorsWithValues.size()
                 )
             );
@@ -568,11 +569,6 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
                 return new ElementsFromCollectionProvider<>(value.toProvider());
             }
             return new ElementsFromCollection<>(value.getFixedValue());
-        }
-
-        @Override
-        public ValueProducer getProducer() {
-            return getProducer(ValueSupplier::getProducer);
         }
     }
 
