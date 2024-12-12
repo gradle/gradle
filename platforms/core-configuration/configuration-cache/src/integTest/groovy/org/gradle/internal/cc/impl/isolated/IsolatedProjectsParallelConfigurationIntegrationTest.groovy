@@ -17,7 +17,6 @@
 package org.gradle.internal.cc.impl.isolated
 
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
-import org.gradle.util.internal.ToBeImplemented
 import org.junit.Rule
 
 class IsolatedProjectsParallelConfigurationIntegrationTest extends AbstractIsolatedProjectsIntegrationTest {
@@ -90,12 +89,11 @@ class IsolatedProjectsParallelConfigurationIntegrationTest extends AbstractIsola
         outputDoesNotContain("Configure :b")
     }
 
-    @ToBeImplemented
     def "task-graph listeners registered in parallel are all executed"() {
         given:
-        def n = 10
-        def k = 10
-        def projects = (1..n).collect { "sub$it" }
+        def numberOfSubprojects = 10
+        def numberOfListenersPerProject = 10
+        def projects = (1..numberOfSubprojects).collect { "sub$it" }
 
         projects.each {
             settingsFile """
@@ -103,9 +101,15 @@ class IsolatedProjectsParallelConfigurationIntegrationTest extends AbstractIsola
             """
 
             buildFile "$it/build.gradle", """
-                ${server.callFromBuildUsingExpression("'configure-' + project.name")}
+                // call from background thread not to exhaust workers
+                new Thread() {
+                    @Override
+                    void run() {
+                        ${server.callFromBuildUsingExpression("'configure-' + project.name")}
+                    }
+                }.start()
 
-                ${k}.times { index ->
+                ${numberOfListenersPerProject}.times { index ->
                     gradle.taskGraph.whenReady {
                         println("On taskGraph.whenReady for '$it' (\$index)")
                     }
@@ -120,21 +124,21 @@ class IsolatedProjectsParallelConfigurationIntegrationTest extends AbstractIsola
 
         then:
         def messages = projects.collect { project ->
-            (0..k - 1).collect { index ->
+            (0..numberOfListenersPerProject - 1).collect { index ->
                 "On taskGraph.whenReady for '$project' ($index)"
             }
         }.flatten()
 
-        messages.size() == n * k
+        messages.size() == numberOfSubprojects * numberOfListenersPerProject
 
         def missing = messages.findAll {
             !output.contains(it)
         }
 
-        // TODO: there should be no missing messages
-//         missing.size() == 0
+        missing.size() == 0
 
-        missing.size() > 0
+        where:
+        it << (1..10)
     }
 
     // TODO Test -x behavior
