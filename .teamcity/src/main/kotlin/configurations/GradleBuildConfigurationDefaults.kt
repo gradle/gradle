@@ -116,7 +116,6 @@ fun BaseGradleBuildType.gradleRunnerStep(
     os: Os = Os.LINUX,
     arch: Arch = Arch.AMD64,
     extraParameters: String = "",
-    daemon: Boolean = true,
     maxParallelForks: String = "%maxParallelForks%",
     isRetry: Boolean = false,
 ) {
@@ -126,7 +125,7 @@ fun BaseGradleBuildType.gradleRunnerStep(
 
     val buildScanTags = model.buildScanTags + listOfNotNull(stage?.id) + extraBuildScanTags
     val parameters = (
-        buildToolGradleParameters(daemon, maxParallelForks = maxParallelForks) +
+        buildToolGradleParameters(maxParallelForks = maxParallelForks) +
             listOf(extraParameters) +
             buildScanTags.map { buildScanTagParam(it) } +
             functionalTestParameters(os, arch)
@@ -154,14 +153,13 @@ fun applyDefaults(
     arch: Arch = Arch.AMD64,
     extraParameters: String = "",
     timeout: Int = 90,
-    daemon: Boolean = true,
     buildJvm: Jvm = BuildToolBuildJvm,
     extraSteps: BuildSteps.() -> Unit = {}
 ) {
     buildType.applyDefaultSettings(os, timeout = timeout, buildJvm = buildJvm)
 
     buildType.killProcessStep(KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS, os)
-    buildType.gradleRunnerStep(model, gradleTasks, os, arch, extraParameters, daemon)
+    buildType.gradleRunnerStep(model, gradleTasks, os, arch, extraParameters)
 
     buildType.steps {
         extraSteps()
@@ -179,11 +177,10 @@ private fun BaseGradleBuildType.addRetrySteps(
     arch: Arch = Arch.AMD64,
     extraParameters: String = "",
     maxParallelForks: String = "%maxParallelForks%",
-    daemon: Boolean = true,
 ) {
     killProcessStep(KILL_ALL_GRADLE_PROCESSES, os, arch, executionMode = ExecutionMode.RUN_ONLY_ON_FAILURE)
     cleanUpGitUntrackedFilesAndDirectories()
-    gradleRunnerStep(model, gradleTasks, os, arch, extraParameters, daemon, maxParallelForks = maxParallelForks, isRetry = true)
+    gradleRunnerStep(model, gradleTasks, os, arch, extraParameters, maxParallelForks = maxParallelForks, isRetry = true)
 }
 
 fun applyTestDefaults(
@@ -198,7 +195,6 @@ fun applyTestDefaults(
     timeout: Int = 90,
     maxParallelForks: String = "%maxParallelForks%",
     extraSteps: BuildSteps.() -> Unit = {}, // the steps after runner steps
-    daemon: Boolean = true,
     preSteps: BuildSteps.() -> Unit = {} // the steps before runner steps
 ) {
     buildType.applyDefaultSettings(os, timeout = timeout, buildJvm = buildJvm, arch = arch)
@@ -208,7 +204,7 @@ fun applyTestDefaults(
     }
 
     buildType.killProcessStep(KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS, os, arch)
-    buildType.gradleRunnerStep(model, gradleTasks, os, arch, extraParameters, daemon, maxParallelForks = maxParallelForks)
+    buildType.gradleRunnerStep(model, gradleTasks, os, arch, extraParameters, maxParallelForks = maxParallelForks)
     buildType.addRetrySteps(model, gradleTasks, os, arch, extraParameters)
     buildType.killProcessStep(KILL_PROCESSES_STARTED_BY_GRADLE, os, arch, executionMode = ExecutionMode.ALWAYS)
 
