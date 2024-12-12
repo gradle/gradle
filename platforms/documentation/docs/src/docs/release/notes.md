@@ -1,3 +1,7 @@
+<meta property="og:image" content="https://gradle.org/images/releases/gradle-8.12" />
+<meta property="og:type"  content="website" />
+<meta property="og:title" content="Gradle 8.12 Release Notes" />
+
 The Gradle team is excited to announce Gradle @version@.
 
 This release improves [error and warning reporting](#error-warning) by summarizing duplicate entries in the Problems API's generated problems report for better readability. The [console output](#build-authoring) is also enhanced when the Problems API is used to fail the build.

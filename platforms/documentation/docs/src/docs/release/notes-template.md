@@ -1,3 +1,7 @@
+<meta property="og:image" content="" />
+<meta property="og:type"  content="website" />
+<meta property="og:title" content="" />
+
 The Gradle team is excited to announce Gradle @version@.
 
 This release features [1](), [2](), ... [n](), and more.
