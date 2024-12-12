@@ -45,7 +45,7 @@ This is possible in the following cases:
 - dynamic dependency versions are used (version ranges, `latest.release`, `1.+`, ...)
 - or _changing_ versions are used (SNAPSHOTs, fixed version with changing contents, ...)
 
-The recommended way to deal with dynamic versions is to use <<dependency_locking.adoc#dependency-locking,dependency locking>>.
+The recommended way to deal with dynamic versions is to use <<dependency_locking.adoc#sec:dependency-locking,dependency locking>>.
 However, it is possible to prevent the use of dynamic versions altogether, which is an alternate strategy:
 
 .Failing on dynamic versions
@@ -120,7 +120,7 @@ include::sample[dir="snippets/dependencyManagement/customizingResolution-consist
 
 As a result, both the `runtimeClasspath` and `compileClasspath` will resolve Groovy 3.0.1.
 
-The relationship is _directed_, which means that if the `runtimeClasspath` configuration has to be resolved, Gradle will _first_ resolve the `compileClasspath` and then "inject" the result of resolution as <<rich_versions.adoc#sec:strict-version,strict constraints>> into the `runtimeClasspath`.
+The relationship is _directed_, which means that if the `runtimeClasspath` configuration has to be resolved, Gradle will _first_ resolve the `compileClasspath` and then "inject" the result of resolution as <<dependency_versions.adoc#sec:strict-version,strict constraints>> into the `runtimeClasspath`.
 
 If, for some reason, the versions of the two graphs cannot be "aligned", then resolution will fail with a call to action.
 
