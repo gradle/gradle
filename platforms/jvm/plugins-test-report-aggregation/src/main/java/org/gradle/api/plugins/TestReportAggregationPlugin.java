@@ -65,14 +65,12 @@ public abstract class TestReportAggregationPlugin implements Plugin<Project> {
         ConfigurationContainer configurations = project.getConfigurations();
         final Configuration testAggregation = configurations.dependencyScope(TEST_REPORT_AGGREGATION_CONFIGURATION_NAME, dependencyScope -> {
             dependencyScope.setDescription("A configuration to collect test execution results.");
-            dependencyScope.setVisible(false);
         }).get();
 
         // A resolvable configuration to collect test results
         Configuration testResultsConf = configurations.resolvable("aggregateTestReportResults", resolvable -> {
             resolvable.extendsFrom(testAggregation);
             resolvable.setDescription("Graph needed for the aggregated test results report.");
-            resolvable.setVisible(false);
         }).get();
 
         ReportingExtension reporting = project.getExtensions().getByType(ReportingExtension.class);
