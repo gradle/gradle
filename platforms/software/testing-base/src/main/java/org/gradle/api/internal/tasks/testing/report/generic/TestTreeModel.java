@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.testing.report.generic;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.ListMultimap;
+import org.gradle.api.internal.tasks.testing.results.serializable.SerializableMetadata;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResult;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResultStore;
 import org.gradle.api.tasks.testing.TestResult;
@@ -156,6 +157,10 @@ public class TestTreeModel {
 
         public int getSkippedLeafCount() {
             return skippedLeafCount;
+        }
+
+        public List<SerializableMetadata> getMetadatas() {
+            return outputTrackedResult.getInnerResult().getMetadatas();
         }
     }
 

@@ -23,7 +23,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import java.util.Arrays;
 import java.util.Map;
 
 /**
@@ -32,15 +31,15 @@ import java.util.Map;
 @NonNullApi
 public final class SerializableMetadata {
     private final long logTime;
-    private final ImmutableList<SerializableMetadataEntry> metadatas;
+    private final ImmutableList<SerializableMetadataElement> metadatas;
 
     public SerializableMetadata(long logTime, Map<String, Object> metadata) {
         this.logTime = logTime;
 
-        ImmutableList.Builder<SerializableMetadataEntry> builder = ImmutableList.builder();
+        ImmutableList.Builder<SerializableMetadataElement> builder = ImmutableList.builder();
         for (Map.Entry<String, Object> entry : metadata.entrySet()) {
             try {
-                builder.add(new SerializableMetadataEntry(entry.getKey(), SerializableMetadataEntry.toBytes(entry.getValue()), entry.getValue().getClass().getName()));
+                builder.add(new SerializableMetadataElement(entry.getKey(), SerializableMetadataElement.toBytes(entry.getValue()), entry.getValue().getClass().getName()));
             } catch (IOException e) {
                 throw new RuntimeException("Failed to serialize metadata entry: " + entry.getKey(), e);
             }
@@ -48,7 +47,7 @@ public final class SerializableMetadata {
         this.metadatas = builder.build();
     }
 
-    public SerializableMetadata(long logTime, ImmutableList<SerializableMetadataEntry> metadatas) {
+    public SerializableMetadata(long logTime, ImmutableList<SerializableMetadataElement> metadatas) {
         this.logTime = logTime;
         this.metadatas = metadatas;
     }
@@ -57,17 +56,17 @@ public final class SerializableMetadata {
         return logTime;
     }
 
-    public ImmutableList<SerializableMetadataEntry> getEntries() {
+    public ImmutableList<SerializableMetadataElement> getEntries() {
         return metadatas;
     }
 
     @NonNullApi
-    public static final class SerializableMetadataEntry {
+    public static final class SerializableMetadataElement {
         private final String key;
         private final byte[] value;
         private final String valueType;
 
-        public SerializableMetadataEntry(String key, byte[] value, String valueType) {
+        public SerializableMetadataElement(String key, byte[] value, String valueType) {
             this.key = key;
             this.value = value;
             this.valueType = valueType;
@@ -91,9 +90,8 @@ public final class SerializableMetadata {
 
         @Override
         public String toString() {
-            return "SerializableMetadataEntry{" +
+            return "SerializableMetadataElement{" +
                 "key='" + key + '\'' +
-                ", value=" + Arrays.toString(value) +
                 ", valueType='" + valueType + '\'' +
                 '}';
         }

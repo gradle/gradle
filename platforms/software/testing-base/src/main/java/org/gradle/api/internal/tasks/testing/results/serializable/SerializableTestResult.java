@@ -18,7 +18,7 @@ package org.gradle.api.internal.tasks.testing.results.serializable;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.NonNullApi;
-import org.gradle.api.internal.tasks.testing.results.serializable.SerializableMetadata.SerializableMetadataEntry;
+import org.gradle.api.internal.tasks.testing.results.serializable.SerializableMetadata.SerializableMetadataElement;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
@@ -160,7 +160,7 @@ public final class SerializableTestResult {
             for (SerializableMetadata metadata : result.metadatas) {
                 encoder.writeLong(metadata.getLogTime());
                 encoder.writeSmallInt(metadata.getEntries().size());
-                for (SerializableMetadataEntry entry : metadata.getEntries()) {
+                for (SerializableMetadataElement entry : metadata.getEntries()) {
                     encoder.writeString(entry.getKey());
                     encoder.writeBinary(entry.getValue());
                     encoder.writeString(entry.getValueType());
@@ -174,12 +174,12 @@ public final class SerializableTestResult {
             for (int i = 0; i < metadataCount; i++) {
                 long logTime = decoder.readLong();
                 int entryCount = decoder.readSmallInt();
-                ImmutableList.Builder<SerializableMetadataEntry> entries = ImmutableList.builder();
+                ImmutableList.Builder<SerializableMetadata.SerializableMetadataElement> entries = ImmutableList.builder();
                 for (int j = 0; j < entryCount; j++) {
                     String key = decoder.readString();
                     byte[] value = decoder.readBinary();
                     String valueType = decoder.readString();
-                    entries.add(new SerializableMetadataEntry(key, value, valueType));
+                    entries.add(new SerializableMetadata.SerializableMetadataElement(key, value, valueType));
                 }
                 metadatas.add(new SerializableMetadata(logTime, entries.build()));
             }

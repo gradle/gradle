@@ -82,3 +82,20 @@ ul.linkList li {
     list-style: none;
     margin-bottom: 5px;
 }
+
+.metadata .odd {
+    background-color: #f7f7f7;
+    border: solid 1px #d0d0d0;
+}
+
+.metadata .even {
+    border: solid 1px #d0d0d0;
+}
+
+.metadata .time {
+    padding: 10px;
+}
+
+.metadata .elements {
+    padding: 10px;
+}
