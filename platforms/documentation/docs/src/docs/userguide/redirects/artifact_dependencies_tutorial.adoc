@@ -1,0 +1,3 @@
+++++
+<meta http-equiv="refresh" content="0;URL=dependency_management_for_java_projects.html">
+++++
