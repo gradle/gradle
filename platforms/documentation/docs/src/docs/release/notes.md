@@ -18,6 +18,25 @@ Include only their name, impactful features should be called out separately belo
 -->
 
 We would like to thank the following community members for their contributions to this release of Gradle:
+[Abhiraj Adhikary](https://github.com/abhirajadhikary06),
+[Ayush Saxena](https://github.com/Ayushcode10),
+[Björn Kautler](https://github.com/Vampire),
+[davidburstrom](https://github.com/davidburstrom),
+[Dominic Fellbaum](https://github.com/felldo),
+[Emmanuel Ferdman](https://github.com/emmanuel-ferdman),
+[Finn Petersen](https://github.com/fp7),
+[Johnny Lim](https://github.com/izeye),
+[Mahdi Hosseinzadeh](https://github.com/mahozad),
+[Martin Bonnin](https://github.com/martinbonnin),
+[Paint_Ninja](https://github.com/PaintNinja),
+[Petter Måhlén](https://github.com/pettermahlen),
+[Philip Wedemann](https://github.com/hfhbd),
+[stegeto22](https://github.com/stegeto22),
+[Tanish](https://github.com/Taz03),
+[TheGoesen](https://github.com/TheGoesen),
+[Tim Nielens](https://github.com/tnielens),
+[Trout Zhang](https://github.com/TroutZhang),
+[Victor Merkulov](https://github.com/urdak)
 
 Be sure to check out the [public roadmap](https://blog.gradle.org/roadmap-announcement) for insight into what's planned for future releases.
 
