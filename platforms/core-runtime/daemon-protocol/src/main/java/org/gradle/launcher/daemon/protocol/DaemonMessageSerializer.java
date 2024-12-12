@@ -63,6 +63,7 @@ import org.gradle.launcher.daemon.diagnostics.DaemonDiagnostics;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionResult;
 import org.gradle.launcher.exec.DefaultBuildActionParameters;
+import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 import org.gradle.tooling.internal.provider.serialization.SerializedPayloadSerializer;
 
@@ -76,7 +77,7 @@ import static org.gradle.internal.serialize.BaseSerializerFactory.FILE_SERIALIZE
 import static org.gradle.internal.serialize.BaseSerializerFactory.NO_NULL_STRING_MAP_SERIALIZER;
 
 public class DaemonMessageSerializer {
-    public static Serializer<Message> create(Serializer<BuildAction> buildActionSerializer) {
+    public static Serializer<Message> create(Serializer<BuildAction> buildActionSerializer, PayloadSerializer pls) {
         BaseSerializerFactory factory = new BaseSerializerFactory();
         Serializer<LogLevel> logLevelSerializer = factory.getSerializerFor(LogLevel.class);
         Serializer<Throwable> throwableSerializer = factory.getSerializerFor(Throwable.class);
@@ -92,7 +93,7 @@ public class DaemonMessageSerializer {
         registry.register(Finished.class, new FinishedSerializer());
 
         // Build events
-        registry.register(BuildEvent.class, new BuildEventSerializer());
+        registry.register(BuildEvent.class, new BuildEventSerializer(pls));
 
         // Input events
         registry.register(ForwardInput.class, new ForwardInputSerializer());
@@ -206,16 +207,31 @@ public class DaemonMessageSerializer {
     }
 
     private static class BuildEventSerializer implements Serializer<BuildEvent> {
-        private final Serializer<Object> payloadSerializer = new DefaultSerializer<>();
+
+        private final Serializer<Object> serializer;
+        @SuppressWarnings("unused")
+        private final PayloadSerializer pls;
+
+        public BuildEventSerializer(PayloadSerializer pls) {
+            this.pls = pls;
+            serializer = new DefaultSerializer<>(
+                outputStream -> new AdditionalDataReplacingObjectOutputStream(outputStream, pls),
+                inputStream -> new AdditionalDataReplacingObjectInputStream(inputStream, pls));
+        }
 
         @Override
         public void write(Encoder encoder, BuildEvent buildEvent) throws Exception {
-            payloadSerializer.write(encoder, buildEvent.getPayload());
+//            SerializedPayload serializedPayload = pls.serialize(buildEvent.getPayload());
+//            serializer.write(encoder, serializedPayload);
+            serializer.write(encoder, buildEvent.getPayload());
         }
 
         @Override
         public BuildEvent read(Decoder decoder) throws Exception {
-            return new BuildEvent(payloadSerializer.read(decoder));
+//            SerializedPayload read = (SerializedPayload) serializer.read(decoder);
+//            return new BuildEvent(pls.deserialize(read));
+            Object read = serializer.read(decoder);
+            return new BuildEvent(read);
         }
     }
 

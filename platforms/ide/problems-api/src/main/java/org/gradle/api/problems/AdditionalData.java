@@ -14,10 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.internal;
+package org.gradle.api.problems;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.problems.internal.InternalProblemSpec;
+import org.gradle.api.problems.internal.Problem;
+
+import java.io.Serializable;
 
 /**
  * Marker interface for additional data that can be attached to a {@link Problem}.
@@ -32,8 +36,8 @@ import org.gradle.api.Incubating;
  * </ul>
  *
  * @see InternalProblemSpec#additionalData(Class, Action)
+ * @since 8.13
  */
 @Incubating
-public interface AdditionalData {
-
+public interface AdditionalData extends Serializable {
 }

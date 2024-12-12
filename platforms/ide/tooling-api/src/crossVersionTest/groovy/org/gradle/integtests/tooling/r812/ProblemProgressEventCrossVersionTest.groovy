@@ -30,7 +30,6 @@ import org.gradle.tooling.events.problems.LineInFileLocation
 import org.gradle.tooling.events.problems.Problem
 import org.gradle.tooling.events.problems.Severity
 import org.gradle.tooling.events.problems.SingleProblemEvent
-import org.gradle.tooling.events.problems.internal.GeneralData
 import org.gradle.util.GradleVersion
 import org.junit.Assume
 
@@ -43,6 +42,7 @@ import static org.gradle.integtests.tooling.r86.ProblemsServiceModelBuilderCross
 @ToolingApiVersion(">=8.12 <8.13")
 @TargetGradleVersion(">=8.9")
 class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
+
 
     def withReportProblemTask(@GroovyBuildScriptLanguage String taskActionMethodBody) {
         buildFile getProblemReportTaskString(taskActionMethodBody)
@@ -262,7 +262,8 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         then:
         thrown(BuildException)
         listener.problems.size() == 1
-        (listener.problems[0].additionalData as GeneralData).asMap['typeName']== 'MyTask'
+        def gd = (listener.problems[0].additionalData)
+        gd.asMap['typeName'] == 'MyTask'
     }
 
     @TargetGradleVersion("=8.6")

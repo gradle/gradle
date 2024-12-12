@@ -16,6 +16,9 @@
 
 package org.gradle.api.problems.internal;
 
+import org.gradle.api.problems.AdditionalData;
+import org.gradle.api.problems.AdditionalDataBuilderFactory;
+
 import javax.annotation.Nullable;
 import java.util.List;
 

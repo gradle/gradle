@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.internal;
+package org.gradle.integtests.tooling.r812;
 
-public interface AdditionalDataBuilder<T extends AdditionalData>  {
-    T build();
+public interface SomeData {
+    String getTypeName();
 }

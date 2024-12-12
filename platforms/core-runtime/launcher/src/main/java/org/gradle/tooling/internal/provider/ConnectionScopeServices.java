@@ -75,28 +75,33 @@ public class ConnectionScopeServices implements ServiceRegistrationProvider {
         GlobalUserInputReceiver userInput,
         UserInputReader userInputReader,
         ShutdownCoordinator shutdownCoordinator,
-        NotifyDaemonClientExecuter notifyDaemonClientExecuter) {
-        ClassLoaderCache classLoaderCache = new ClassLoaderCache();
+        NotifyDaemonClientExecuter notifyDaemonClientExecuter
+    ) {
         return new ProviderConnection(
-                serviceRegistry,
-                buildLayoutFactory,
-                daemonClientFactory,
-                buildActionExecuter,
-                new PayloadSerializer(
-                        new WellKnownClassLoaderRegistry(
-                            new ClientSidePayloadClassLoaderRegistry(
-                                new DefaultPayloadClassLoaderRegistry(
-                                    classLoaderCache,
-                                    new ClientSidePayloadClassLoaderFactory(
-                                        new ModelClassLoaderFactory())),
-                                new ClasspathInferer(),
-                                classLoaderCache))),
+            serviceRegistry,
+            buildLayoutFactory,
+            daemonClientFactory,
+            buildActionExecuter,
+            createPayloadSerializer(),
             fileCollectionFactory,
             userInput,
             userInputReader,
             shutdownCoordinator,
             notifyDaemonClientExecuter
         );
+    }
+
+    public static PayloadSerializer createPayloadSerializer() {
+        ClassLoaderCache classLoaderCache = new ClassLoaderCache();
+        return new PayloadSerializer(
+            new WellKnownClassLoaderRegistry(
+                new ClientSidePayloadClassLoaderRegistry(
+                    new DefaultPayloadClassLoaderRegistry(
+                        classLoaderCache,
+                        new ClientSidePayloadClassLoaderFactory(
+                            new ModelClassLoaderFactory())),
+                    new ClasspathInferer(),
+                    classLoaderCache)));
     }
 
     @Provides

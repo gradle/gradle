@@ -25,7 +25,7 @@ import static org.gradle.internal.problems.NoOpProblemDiagnosticsFactory.EMPTY_S
 class DefaultProblemBuilderTest extends Specification {
     def "additionalData accepts GeneralDataSpec"() {
         given:
-        def problemBuilder = new DefaultProblemBuilder(EMPTY_STREAM, new AdditionalDataBuilderFactory())
+        def problemBuilder = new DefaultProblemBuilder(EMPTY_STREAM, new DefaultAdditionalDataBuilderFactory())
 
         when:
         def data = problemBuilder
@@ -41,7 +41,7 @@ class DefaultProblemBuilderTest extends Specification {
 
     def "additionalData accepts DeprecationDataSpec"() {
         given:
-        def problemBuilder = new DefaultProblemBuilder(EMPTY_STREAM, new AdditionalDataBuilderFactory())
+        def problemBuilder = new DefaultProblemBuilder(EMPTY_STREAM, new DefaultAdditionalDataBuilderFactory())
 
         when:
         def data = problemBuilder
@@ -57,7 +57,7 @@ class DefaultProblemBuilderTest extends Specification {
 
     def "additionalData accepts TypeValidationDataSpec"() {
         given:
-        def problemBuilder = new DefaultProblemBuilder(EMPTY_STREAM, new AdditionalDataBuilderFactory())
+        def problemBuilder = new DefaultProblemBuilder(EMPTY_STREAM, new DefaultAdditionalDataBuilderFactory())
 
         when:
         def data = problemBuilder
@@ -76,7 +76,7 @@ class DefaultProblemBuilderTest extends Specification {
 
     def "additionalData accepts PropertyTraceDataSpec"() {
         given:
-        def problemBuilder = new DefaultProblemBuilder(EMPTY_STREAM, new AdditionalDataBuilderFactory())
+        def problemBuilder = new DefaultProblemBuilder(EMPTY_STREAM, new DefaultAdditionalDataBuilderFactory())
 
         when:
         def data = problemBuilder
@@ -93,7 +93,7 @@ class DefaultProblemBuilderTest extends Specification {
 
     def "additionalData fails with invalid type"() {
         given:
-        def problemBuilder = new DefaultProblemBuilder(EMPTY_STREAM, new AdditionalDataBuilderFactory())
+        def problemBuilder = new DefaultProblemBuilder(EMPTY_STREAM, new DefaultAdditionalDataBuilderFactory())
 
 
         when:
@@ -114,7 +114,7 @@ class DefaultProblemBuilderTest extends Specification {
 
     def "can define contextual locations"() {
         given:
-        def problemBuilder = new DefaultProblemBuilder(EMPTY_STREAM, new AdditionalDataBuilderFactory())
+        def problemBuilder = new DefaultProblemBuilder(EMPTY_STREAM, new DefaultAdditionalDataBuilderFactory())
 
         when:
         //noinspection GroovyAssignabilityCheck

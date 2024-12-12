@@ -16,7 +16,10 @@
 
 package org.gradle.tooling.internal.protocol.problem;
 
+import javax.annotation.Nullable;
+
 public interface InternalDocumentationLink {
 
+    @Nullable
     String getUrl();
 }

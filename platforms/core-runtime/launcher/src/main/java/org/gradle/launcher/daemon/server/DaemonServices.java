@@ -66,6 +66,11 @@ import org.gradle.launcher.daemon.server.scaninfo.DefaultDaemonScanInfo;
 import org.gradle.launcher.daemon.server.stats.DaemonRunningStats;
 import org.gradle.launcher.exec.BuildExecutor;
 import org.gradle.tooling.internal.provider.action.BuildActionSerializer;
+import org.gradle.tooling.internal.provider.serialization.ClassLoaderCache;
+import org.gradle.tooling.internal.provider.serialization.DefaultPayloadClassLoaderRegistry;
+import org.gradle.tooling.internal.provider.serialization.ModelClassLoaderFactory;
+import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
+import org.gradle.tooling.internal.provider.serialization.WellKnownClassLoaderRegistry;
 
 import java.io.File;
 import java.util.UUID;
@@ -184,6 +189,8 @@ public class DaemonServices implements ServiceRegistrationProvider {
         return BuildActionSerializer.create();
     }
 
+
+    //    @SuppressWarnings("unusedVariable")
     @Provides
     protected Daemon createDaemon(
         ImmutableList<DaemonCommandAction> actions,
@@ -193,12 +200,21 @@ public class DaemonServices implements ServiceRegistrationProvider {
         DaemonRegistry daemonRegistry,
         DaemonContext daemonContext,
         ListenerManager listenerManager
+
+//        ,ClassLoaderCache classLoaderCache, PayloadClassLoaderFactory classLoaderFactory
     ) {
+        ClassLoaderCache classLoaderCache = new ClassLoaderCache();
+        PayloadSerializer pls = new PayloadSerializer(
+            new WellKnownClassLoaderRegistry(
+                new DefaultPayloadClassLoaderRegistry(
+                    classLoaderCache,
+                    new ModelClassLoaderFactory())));
+
         return new Daemon(
             new DaemonTcpServerConnector(
                 executorFactory,
                 inetAddressFactory,
-                DaemonMessageSerializer.create(buildActionSerializer)
+                DaemonMessageSerializer.create(buildActionSerializer, pls)
             ),
             daemonRegistry,
             daemonContext,
@@ -207,4 +223,14 @@ public class DaemonServices implements ServiceRegistrationProvider {
             listenerManager
         );
     }
+
+//    PayloadSerializer getPayloadSerializer(ClassLoaderCache classLoaderCache, PayloadClassLoaderFactory classLoaderFactory) {
+//        return new PayloadSerializer(
+//            new WellKnownClassLoaderRegistry(
+//                new DefaultPayloadClassLoaderRegistry(
+//                    classLoaderCache,
+//                    classLoaderFactory))
+//        );
+//    }
+
 }
