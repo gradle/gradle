@@ -35,7 +35,6 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
-import org.gradle.internal.component.local.model.LocalVariantGraphResolveState;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.model.CalculatedValue;
 
@@ -70,7 +69,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         RootComponentMetadataBuilder.RootComponentState rootComponent = configuration.toRootComponent();
 
         VisitedGraphResults missingConfigurationResults =
-            maybeGetEmptyGraphForInvalidMissingConfigurationWithNoDependencies(configuration, rootComponent.getRootComponent());
+            maybeGetEmptyGraphForInvalidMissingConfigurationWithNoDependencies(configuration, rootComponent);
         if (missingConfigurationResults != null) {
             return DefaultResolverResults.buildDependenciesResolved(missingConfigurationResults, ShortCircuitingResolutionExecutor.EmptyResults.INSTANCE,
                 DefaultResolverResults.DefaultLegacyResolverResults.buildDependenciesResolved(ShortCircuitingResolutionExecutor.EmptyResults.INSTANCE)
@@ -85,7 +84,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
 
         RootComponentMetadataBuilder.RootComponentState rootComponent = configuration.toRootComponent();
         VisitedGraphResults missingConfigurationResults =
-            maybeGetEmptyGraphForInvalidMissingConfigurationWithNoDependencies(configuration, rootComponent.getRootComponent());
+            maybeGetEmptyGraphForInvalidMissingConfigurationWithNoDependencies(configuration, rootComponent);
         if (missingConfigurationResults != null) {
             ResolvedConfiguration resolvedConfiguration = new DefaultResolvedConfiguration(
                 missingConfigurationResults, configuration.getResolutionHost(), ShortCircuitingResolutionExecutor.EmptyResults.INSTANCE, new ShortCircuitingResolutionExecutor.EmptyLenientConfiguration()
@@ -97,7 +96,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
             );
         }
 
-        AttributeContainerInternal attributes = configuration.toRootComponent().getRootVariant().getAttributes();
+        AttributeContainerInternal attributes = rootComponent.getRootVariant().getAttributes();
         List<ResolutionAwareRepository> filteredRepositories = repositoriesSupplier.get().stream()
             .filter(repository -> !shouldSkipRepository(repository, configuration.getName(), attributes))
             .collect(Collectors.toList());
@@ -173,12 +172,10 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
     @Nullable
     private VisitedGraphResults maybeGetEmptyGraphForInvalidMissingConfigurationWithNoDependencies(
         ConfigurationInternal configuration,
-        LocalComponentGraphResolveState rootComponent
+        RootComponentMetadataBuilder.RootComponentState root
     ) {
-        // This variant can be null if the configuration was removed from the container before resolution.
-        @SuppressWarnings("deprecation") LocalVariantGraphResolveState rootVariant =
-            rootComponent.getConfigurationLegacy(configuration.getName());
-        if (rootVariant == null) {
+        // The root variant may not exist if the backing configuration was removed from the container before resolution.
+        if (!root.hasRootVariant()) {
             configuration.runDependencyActions();
             if (configuration.getAllDependencies().isEmpty()) {
                 DeprecationLogger.deprecateBehaviour("Removing a configuration from the container before resolution")
@@ -187,6 +184,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
                     .undocumented()
                     .nagUser();
 
+                LocalComponentGraphResolveState rootComponent = root.getRootComponent();
                 MinimalResolutionResult emptyResult = ResolutionResultGraphBuilder.empty(
                     rootComponent.getModuleVersionId(),
                     rootComponent.getId(),

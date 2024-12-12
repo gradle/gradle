@@ -168,6 +168,6 @@ class DefaultLocalVariantGraphResolveMetadataBuilderTest extends Specification {
     }
 
     def create() {
-        return converter.create(configuration, configurationsProvider, componentId, cache, StandaloneDomainObjectContext.ANONYMOUS, TestUtil.calculatedValueContainerFactory())
+        return converter.createConsumableVariantState(configuration, configurationsProvider, componentId, cache, StandaloneDomainObjectContext.ANONYMOUS, TestUtil.calculatedValueContainerFactory())
     }
 }

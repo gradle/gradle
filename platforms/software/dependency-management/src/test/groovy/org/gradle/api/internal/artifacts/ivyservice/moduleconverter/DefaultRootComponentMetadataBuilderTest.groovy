@@ -41,7 +41,7 @@ class DefaultRootComponentMetadataBuilderTest extends Specification {
     }
     ImmutableModuleIdentifierFactory moduleIdentifierFactory = new DefaultImmutableModuleIdentifierFactory()
     LocalVariantGraphResolveStateBuilder configurationStateBuilder = Mock(LocalVariantGraphResolveStateBuilder) {
-        create(_, _, _, _, _, _) >> { args ->
+        createConsumableVariantState(_, _, _, _, _, _) >> { args ->
             Mock(LocalVariantGraphResolveState)
         }
     }
@@ -57,7 +57,9 @@ class DefaultRootComponentMetadataBuilderTest extends Specification {
             TestUtil.calculatedValueContainerFactory(),
             TestUtil.inMemoryCacheFactory()
         ),
-        AttributeTestUtil.services().getSchemaFactory()
+        AttributeTestUtil.services().getSchemaFactory(),
+        configurationStateBuilder,
+        TestUtil.calculatedValueContainerFactory()
     )
 
     def builder = builderFactory.create(StandaloneDomainObjectContext.ANONYMOUS, configurationsProvider, metaDataProvider, AttributeTestUtil.mutableSchema())
