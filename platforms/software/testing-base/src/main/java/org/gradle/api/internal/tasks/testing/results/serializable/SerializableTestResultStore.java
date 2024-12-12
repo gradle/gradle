@@ -99,7 +99,7 @@ public final class SerializableTestResultStore {
         private long nextId = 1;
 
         // Map from testDescripter -> Serialized metadatas associated with that descriptor
-        private final Multimap<TestDescriptorInternal, SerializableMetadata> metadatas = LinkedHashMultimap.create();
+        private final Multimap<TestDescriptorInternal, SerializedMetadata> metadatas = LinkedHashMultimap.create();
 
         private Writer(Path serializedResultsFile, Path outputZipFile) throws IOException {
             this.serializedResultsFile = serializedResultsFile;
@@ -148,7 +148,7 @@ public final class SerializableTestResultStore {
                 testNodeBuilder.addFailure(new SerializableFailure(failureMessage(throwable), stackTrace(throwable), exceptionClassName(throwable)));
             }
 
-            for (SerializableMetadata metadata : metadatas.get(testDescriptor)) {
+            for (SerializedMetadata metadata : metadatas.get(testDescriptor)) {
                 testNodeBuilder.addMetadata(metadata);
             }
 
@@ -215,7 +215,7 @@ public final class SerializableTestResultStore {
 
         @Override
         public void metadata(TestDescriptorInternal testDescriptor, TestMetadataEvent event) {
-            metadatas.put(testDescriptor, new SerializableMetadata(event.getLogTime(), event.getValues()));
+            metadatas.put(testDescriptor, new SerializedMetadata(event.getLogTime(), event.getValues()));
         }
 
         @Override

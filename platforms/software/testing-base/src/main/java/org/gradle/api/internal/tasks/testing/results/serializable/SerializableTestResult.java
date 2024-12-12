@@ -18,7 +18,7 @@ package org.gradle.api.internal.tasks.testing.results.serializable;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.NonNullApi;
-import org.gradle.api.internal.tasks.testing.results.serializable.SerializableMetadata.SerializableMetadataElement;
+import org.gradle.api.internal.tasks.testing.results.serializable.SerializedMetadata.SerializedMetadataElement;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
@@ -47,7 +47,7 @@ public final class SerializableTestResult {
         private Long startTime;
         private Long endTime;
         private final ImmutableList.Builder<SerializableFailure> failures = ImmutableList.builder();
-        private final ImmutableList.Builder<SerializableMetadata> metadatas = ImmutableList.builder();
+        private final ImmutableList.Builder<SerializedMetadata> metadatas = ImmutableList.builder();
 
         public Builder name(String name) {
             this.name = name;
@@ -81,7 +81,7 @@ public final class SerializableTestResult {
         }
 
         @SuppressWarnings("UnusedReturnValue")
-        public Builder addMetadata(SerializableMetadata metadata) {
+        public Builder addMetadata(SerializedMetadata metadata) {
             this.metadatas.add(metadata);
             return this;
         }
@@ -129,7 +129,7 @@ public final class SerializableTestResult {
             long endTime = decoder.readLong();
 
             ImmutableList<SerializableFailure> failures = deserializeFailures(decoder);
-            ImmutableList<SerializableMetadata> metadatas = deserializeMetadatas(decoder);
+            ImmutableList<SerializedMetadata> metadatas = deserializeMetadatas(decoder);
 
             return new SerializableTestResult(name, displayName, resultType, startTime, endTime, failures, metadatas);
         }
@@ -157,10 +157,10 @@ public final class SerializableTestResult {
 
         private static void serializeMetadatas(SerializableTestResult result, Encoder encoder) throws IOException {
             encoder.writeSmallInt(result.metadatas.size());
-            for (SerializableMetadata metadata : result.metadatas) {
+            for (SerializedMetadata metadata : result.metadatas) {
                 encoder.writeLong(metadata.getLogTime());
                 encoder.writeSmallInt(metadata.getEntries().size());
-                for (SerializableMetadataElement entry : metadata.getEntries()) {
+                for (SerializedMetadataElement entry : metadata.getEntries()) {
                     encoder.writeString(entry.getKey());
                     encoder.writeBinary(entry.getValue());
                     encoder.writeString(entry.getValueType());
@@ -168,20 +168,20 @@ public final class SerializableTestResult {
             }
         }
 
-        private static ImmutableList<SerializableMetadata> deserializeMetadatas(Decoder decoder) throws IOException {
-            ImmutableList.Builder<SerializableMetadata> metadatas = ImmutableList.builder();
+        private static ImmutableList<SerializedMetadata> deserializeMetadatas(Decoder decoder) throws IOException {
+            ImmutableList.Builder<SerializedMetadata> metadatas = ImmutableList.builder();
             int metadataCount = decoder.readSmallInt();
             for (int i = 0; i < metadataCount; i++) {
                 long logTime = decoder.readLong();
                 int entryCount = decoder.readSmallInt();
-                ImmutableList.Builder<SerializableMetadata.SerializableMetadataElement> entries = ImmutableList.builder();
+                ImmutableList.Builder<SerializedMetadataElement> entries = ImmutableList.builder();
                 for (int j = 0; j < entryCount; j++) {
                     String key = decoder.readString();
                     byte[] value = decoder.readBinary();
                     String valueType = decoder.readString();
-                    entries.add(new SerializableMetadata.SerializableMetadataElement(key, value, valueType));
+                    entries.add(new SerializedMetadataElement(key, value, valueType));
                 }
-                metadatas.add(new SerializableMetadata(logTime, entries.build()));
+                metadatas.add(new SerializedMetadata(logTime, entries.build()));
             }
             return metadatas.build();
         }
@@ -193,11 +193,11 @@ public final class SerializableTestResult {
     private final long startTime;
     private final long endTime;
     private final ImmutableList<SerializableFailure> failures;
-    private final ImmutableList<SerializableMetadata> metadatas;
+    private final ImmutableList<SerializedMetadata> metadatas;
 
     public SerializableTestResult(String name, String displayName, TestResult.ResultType resultType, long startTime, long endTime,
                                   ImmutableList<SerializableFailure> failures,
-                                  ImmutableList<SerializableMetadata> metadatas) {
+                                  ImmutableList<SerializedMetadata> metadatas) {
         this.name = name;
         this.displayName = displayName;
         this.resultType = resultType;
@@ -235,7 +235,7 @@ public final class SerializableTestResult {
         return failures;
     }
 
-    public ImmutableList<SerializableMetadata> getMetadatas() {
+    public ImmutableList<SerializedMetadata> getMetadatas() {
         return metadatas;
     }
 }

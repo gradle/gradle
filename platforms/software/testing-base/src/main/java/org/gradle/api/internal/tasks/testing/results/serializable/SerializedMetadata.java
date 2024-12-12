@@ -29,17 +29,17 @@ import java.util.Map;
  * Represents the grouped metadata from a single test metadata event in a binary format that can be serialized to disk.
  */
 @NonNullApi
-public final class SerializableMetadata {
+public final class SerializedMetadata {
     private final long logTime;
-    private final ImmutableList<SerializableMetadataElement> metadatas;
+    private final ImmutableList<SerializedMetadataElement> metadatas;
 
-    public SerializableMetadata(long logTime, Map<String, Object> metadata) {
+    public SerializedMetadata(long logTime, Map<String, Object> metadata) {
         this.logTime = logTime;
 
-        ImmutableList.Builder<SerializableMetadataElement> builder = ImmutableList.builder();
+        ImmutableList.Builder<SerializedMetadataElement> builder = ImmutableList.builder();
         for (Map.Entry<String, Object> entry : metadata.entrySet()) {
             try {
-                builder.add(new SerializableMetadataElement(entry.getKey(), SerializableMetadataElement.toBytes(entry.getValue()), entry.getValue().getClass().getName()));
+                builder.add(new SerializedMetadataElement(entry.getKey(), SerializedMetadataElement.toBytes(entry.getValue()), entry.getValue().getClass().getName()));
             } catch (IOException e) {
                 throw new RuntimeException("Failed to serialize metadata entry: " + entry.getKey(), e);
             }
@@ -47,7 +47,7 @@ public final class SerializableMetadata {
         this.metadatas = builder.build();
     }
 
-    public SerializableMetadata(long logTime, ImmutableList<SerializableMetadataElement> metadatas) {
+    public SerializedMetadata(long logTime, ImmutableList<SerializedMetadataElement> metadatas) {
         this.logTime = logTime;
         this.metadatas = metadatas;
     }
@@ -56,17 +56,17 @@ public final class SerializableMetadata {
         return logTime;
     }
 
-    public ImmutableList<SerializableMetadataElement> getEntries() {
+    public ImmutableList<SerializedMetadataElement> getEntries() {
         return metadatas;
     }
 
     @NonNullApi
-    public static final class SerializableMetadataElement {
+    public static final class SerializedMetadataElement {
         private final String key;
         private final byte[] value;
         private final String valueType;
 
-        public SerializableMetadataElement(String key, byte[] value, String valueType) {
+        public SerializedMetadataElement(String key, byte[] value, String valueType) {
             this.key = key;
             this.value = value;
             this.valueType = valueType;
@@ -86,14 +86,6 @@ public final class SerializableMetadata {
             } else {
                 throw new IllegalArgumentException("Object must be Serializable");
             }
-        }
-
-        @Override
-        public String toString() {
-            return "SerializableMetadataElement{" +
-                "key='" + key + '\'' +
-                ", valueType='" + valueType + '\'' +
-                '}';
         }
 
         public String getKey() {

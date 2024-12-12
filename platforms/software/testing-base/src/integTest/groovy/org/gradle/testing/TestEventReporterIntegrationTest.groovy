@@ -350,6 +350,14 @@ Custom test root > My Suite > another failing test FAILED
                 Object getCustomOperationTraceSerializableModel() {
                     return ["my custom serializable type", "with some values", "in a list", field]
                 }
+
+                private void writeObject(java.io.ObjectOutputStream out) throws IOException {
+                    out.writeInt(field)
+                }
+
+                private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
+                    field = in.readInt()
+                }
             }
         """)
 

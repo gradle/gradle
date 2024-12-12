@@ -19,7 +19,7 @@ package org.gradle.api.internal.tasks.testing.report.generic;
 import com.google.common.collect.Iterables;
 import com.google.common.io.CharStreams;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableFailure;
-import org.gradle.api.internal.tasks.testing.results.serializable.SerializableMetadata;
+import org.gradle.api.internal.tasks.testing.results.serializable.SerializedMetadata;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResult;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResultStore;
 import org.gradle.api.tasks.testing.TestOutputEvent;
@@ -296,10 +296,10 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
 //            return htmlWriter;
 //        }
 
-        private SimpleHtmlWriter renderMetadataTableBody(List<SerializableMetadata> metadatas, SimpleHtmlWriter htmlWriter) throws IOException {
+        private SimpleHtmlWriter renderMetadataTableBody(List<SerializedMetadata> metadatas, SimpleHtmlWriter htmlWriter) throws IOException {
             htmlWriter.startElement("tbody");
             int rowNum = 0;
-                for (SerializableMetadata metadata : metadatas) {
+                for (SerializedMetadata metadata : metadatas) {
                     htmlWriter.startElement("tr").attribute("class", rowNum++ % 2 == 0 ? "metadata even" : "metadata odd")
                         .startElement("td")
                             .startElement("span").attribute("class", "time")
@@ -316,7 +316,7 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
             return htmlWriter;
         }
 
-        private SimpleHtmlWriter renderMetadataElementsTable(SerializableMetadata metadata, SimpleHtmlWriter htmlWriter) throws IOException {
+        private SimpleHtmlWriter renderMetadataElementsTable(SerializedMetadata metadata, SimpleHtmlWriter htmlWriter) throws IOException {
             htmlWriter.startElement("table");
                 renderMetadataElementsTableHeader(htmlWriter);
                 renderMetadataElementsTableBody(metadata.getEntries(), htmlWriter)
@@ -343,9 +343,9 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
             return htmlWriter;
         }
 
-        private SimpleHtmlWriter renderMetadataElementsTableBody(List<SerializableMetadata.SerializableMetadataElement> elements, SimpleHtmlWriter htmlWriter) throws IOException {
+        private SimpleHtmlWriter renderMetadataElementsTableBody(List<SerializedMetadata.SerializedMetadataElement> elements, SimpleHtmlWriter htmlWriter) throws IOException {
             htmlWriter.startElement("tbody");
-                for (SerializableMetadata.SerializableMetadataElement element : elements) {
+                for (SerializedMetadata.SerializedMetadataElement element : elements) {
                     htmlWriter.startElement("tr")
                         .startElement("td").attribute("class", "key")
                             .characters(element.getKey())

@@ -117,7 +117,7 @@ final class GenericPageRenderer extends TabbedPageRenderer<TestTreeModel> {
             if (outputReader.hasOutput(info.getOutputId(), TestOutputEvent.Destination.StdErr)) {
                 tabsRenderer.add(tabPrefix + "error output", new PerRootTabRenderer.ForOutput(rootName, outputReader, TestOutputEvent.Destination.StdErr));
             }
-            if (!info.getResult().getMetadatas().isEmpty()) {
+            if (!info.getMetadatas().isEmpty()) {
                 tabsRenderer.add(tabPrefix + "metadata", new PerRootTabRenderer.ForMetadata(rootName));
             }
         });

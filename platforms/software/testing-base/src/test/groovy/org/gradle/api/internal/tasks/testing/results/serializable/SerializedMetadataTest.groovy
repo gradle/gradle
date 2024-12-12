@@ -21,14 +21,14 @@ import spock.lang.Specification
 import java.time.Instant
 
 /**
- * Tests for {@link SerializableMetadata}.
+ * Tests for {@link SerializedMetadata}.
  */
-final class SerializableMetadataTest extends Specification implements SerializesMetadata {
+final class SerializedMetadataTest extends Specification implements SerializesMetadata {
     private now = Instant.now().toEpochMilli()
 
     def "can create SerializableMetadata from single entry with String value"() {
         when:
-        def metadata = new SerializableMetadata(now, Collections.singletonMap("key", "value"))
+        def metadata = new SerializedMetadata(now, Collections.singletonMap("key", "value"))
 
         then:
         metadata.logTime == now
@@ -40,7 +40,7 @@ final class SerializableMetadataTest extends Specification implements Serializes
 
     def "can create SerializableMetadata from single entry with int value"() {
         when:
-        def metadata = new SerializableMetadata(now, Collections.singletonMap("key", 1))
+        def metadata = new SerializedMetadata(now, Collections.singletonMap("key", 1))
 
         then:
         metadata.logTime == now
@@ -56,7 +56,7 @@ final class SerializableMetadataTest extends Specification implements Serializes
             "key1": "value1",
             "key2": "value2"
         ]
-        def metadata = new SerializableMetadata(now, entries)
+        def metadata = new SerializedMetadata(now, entries)
 
         then:
         metadata.logTime == now

@@ -20,7 +20,7 @@ import groovy.transform.SelfType
 import spock.lang.Specification
 
 /**
- * A trait to be applied to tests that verify the serialization of metadata in {@link SerializableMetadata}.
+ * A trait to be applied to tests that verify the serialization of metadata in {@link SerializedMetadata}.
  */
 @SelfType(Specification)
 trait SerializesMetadata {

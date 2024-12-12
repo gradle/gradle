@@ -33,7 +33,7 @@ final class SerializableTestResultTest extends Specification implements Serializ
         builder.startTime(Instant.now().toEpochMilli())
 
         def metadataTime = Instant.now().toEpochMilli();
-        builder.addMetadata(new SerializableMetadata(metadataTime, Collections.singletonMap("key", "value")))
+        builder.addMetadata(new SerializedMetadata(metadataTime, Collections.singletonMap("key", "value")))
 
         builder.resultType(TestResult.ResultType.SUCCESS)
         builder.endTime(Instant.now().toEpochMilli())
