@@ -216,7 +216,7 @@ _Default value:_ `[__projectDir__/src/__name__/scala]`.
 `allScala` — link:{javadocPath}/org/gradle/api/file/FileTree.html[FileTree] (read-only)::
 All Scala source files of this source set. Contains only the `.scala` files found in the Scala source directories. _Default value:_ non-null.
 
-These extensions are backed by an object of type link:{groovyDslPath}/org.gradle.api.plugins.scala.ScalaSourceSet.html[ScalaSourceSet].
+These extensions are backed by an object of type link:{javadocPath}/org/gradle/api/tasks/ScalaSourceSet.html[ScalaSourceSet].
 
 The Scala plugin also modifies some source set properties:
 

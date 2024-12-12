@@ -85,8 +85,8 @@ tasks.named("task1") {  // <2>
     }
 }
 ----
-<1> You can use the link:{groovyDslPath}/org.gradle.api.tasks.TaskContainer:register(java.lang.String)[register()] method to create new tasks.
-<2> You can use the link:{groovyDslPath}/org.gradle.api.tasks.TaskContainer:named(java.lang.String)[named()] method to configure existing tasks.
+<1> You can use the link:{groovyDslPath}/org.gradle.api.tasks.TaskContainer.html#org.gradle.api.tasks.TaskContainer:register(java.lang.String)[register()] method to create new tasks.
+<2> You can use the link:{groovyDslPath}/org.gradle.api.tasks.TaskContainer.html#org.gradle.api.tasks.TaskContainer:named(java.lang.String)[named()] method to configure existing tasks.
 =====
 
 == Step 3. Create a custom Task

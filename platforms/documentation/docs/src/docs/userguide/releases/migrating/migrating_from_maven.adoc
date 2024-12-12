@@ -88,7 +88,7 @@ If you want, you can also use a Gradle build scan to identify opportunities to <
  . <<migmvn:integration_tests,Configure integration and functional tests>>.
 +
 Many tests can simply be migrated by configuring an extra source set.
-If you are using a third-party library, such as http://docs.fitnesse.org/FrontPage[FitNesse], look to see whether  there is a suitable community plugin available on the https://plugins.gradle.org/[Gradle Plugin Portal].
+If you are using a third-party library, such as https://fitnesse.org/FitNesse/UserGuide.html[FitNesse], look to see whether  there is a suitable community plugin available on the https://plugins.gradle.org/[Gradle Plugin Portal].
 +
  . Replace Maven plugins with Gradle equivalents.
 +

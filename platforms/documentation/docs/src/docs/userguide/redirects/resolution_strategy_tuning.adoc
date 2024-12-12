@@ -1,3 +1,0 @@
-++++
-<meta http-equiv="refresh" content="0;URL=dependency_resolution_basics.html#dependency-resolution-basics">
-++++

@@ -67,7 +67,7 @@ $ echo $JAVA_HOME
 /Users/user/Library/Java/JavaVirtualMachines/corretto-11.0.22/Contents/Home
 ----
 
-You must ensure that a link:{jdkDownloadUrl}[Java Development Kit] version {minJdkVersion} or higher is link:https://www.java.com/en/download/help/index_installing.xml[properly installed], the `JAVA_HOME` environment variable is set, and link:https://www.java.com/en/download/help/path.xml[Java is added to your `PATH`].
+You must ensure that a link:{jdkDownloadUrl}[Java Development Kit] version {minJdkVersion} or higher is link:https://www.java.com/en/download/help/index_installing.html[properly installed], the `JAVA_HOME` environment variable is set, and Java is added to your `PATH`.
 
 === Permission denied
 

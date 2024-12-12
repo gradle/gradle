@@ -186,7 +186,7 @@ These methods help build authors document the purpose of a configuration and avo
 Configurations can inherit from other configurations, creating an inheritance hierarchy.
 
 Configurations form an inheritance hierarchy using the link:{groovyDslPath}/org.gradle.api.artifacts.Configuration.html#org.gradle.api.artifacts.Configuration:extendsFrom)[`Configuration.extendsFrom(Configuration...)`] method.
-A configuration can extend any other configuration other than a link:{kotlinDslPath}/gradle/org.gradle.api.artifacts/-configuration-container/detached-configuration[detached configuration], regardless of how it is defined in the build script or plugin.
+A configuration can extend any other configuration other than a link:{kotlinDslPath}/gradle/org.gradle.api.artifacts/-configuration-container/detached-configuration.html[detached configuration], regardless of how it is defined in the build script or plugin.
 
 TIP: Avoid extending consumable or resolvable configurations with configurations that are not consumable or resolvable, respectively.
 
