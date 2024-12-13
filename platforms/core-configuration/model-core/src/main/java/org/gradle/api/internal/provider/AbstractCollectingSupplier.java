@@ -155,8 +155,10 @@ public abstract class AbstractCollectingSupplier<COLLECTOR extends ValueSupplier
         }
         return calculateChangingExecutionTimeValue.apply(collectorsWithValues);
     }
-    // Returns an empty list when the overall value is missing.
 
+    /**
+     * Returns an empty list when the overall value is missing.
+     */
     protected List<Pair<COLLECTOR, ExecutionTimeValue<? extends TYPE>>> collectExecutionTimeValues(Function<COLLECTOR, ExecutionTimeValue<? extends TYPE>> calculateExecutionTimeValueForCollector) {
         // These are the values that are certainly part of the result, e.g. because of absent-ignoring append/appendAll argument.
         List<Pair<COLLECTOR, ExecutionTimeValue<? extends TYPE>>> executionTimeValues = new ArrayList<>();
