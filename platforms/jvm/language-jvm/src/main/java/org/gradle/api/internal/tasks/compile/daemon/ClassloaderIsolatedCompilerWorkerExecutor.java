@@ -36,6 +36,6 @@ public class ClassloaderIsolatedCompilerWorkerExecutor extends AbstractIsolatedC
 
     @Override
     public IsolatedClassLoaderWorkerRequirement getIsolatedWorkerRequirement(DaemonForkOptions daemonForkOptions) {
-        return new IsolatedClassLoaderWorkerRequirement(daemonForkOptions.getWorkingDir(), projectCacheDir.getDir(), settingsDirectory, daemonForkOptions.getClassLoaderStructure());
+        return new IsolatedClassLoaderWorkerRequirement(settingsDirectory, daemonForkOptions.getWorkingDir(), projectCacheDir.getDir(), daemonForkOptions.getClassLoaderStructure());
     }
 }

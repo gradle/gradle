@@ -48,7 +48,17 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
     private final FileCollectionFactory fileCollectionFactory;
     private final FileFactory fileFactory;
 
-    public DefaultProjectLayout(File settingsDir, File projectDir, FileResolver fileResolver, TaskDependencyFactory taskDependencyFactory, Factory<PatternSet> patternSetFactory, PropertyHost propertyHost, FileCollectionFactory fileCollectionFactory, FilePropertyFactory filePropertyFactory, FileFactory fileFactory) {
+    public DefaultProjectLayout(
+        File settingsDir,
+        File projectDir,
+        FileResolver fileResolver,
+        TaskDependencyFactory taskDependencyFactory,
+        Factory<PatternSet> patternSetFactory,
+        PropertyHost propertyHost,
+        FileCollectionFactory fileCollectionFactory,
+        FilePropertyFactory filePropertyFactory,
+        FileFactory fileFactory
+    ) {
         this.fileResolver = fileResolver;
         this.taskDependencyFactory = taskDependencyFactory;
         this.patternSetFactory = patternSetFactory;

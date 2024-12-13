@@ -1067,9 +1067,9 @@ class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
         withProjectRoot(newDir("project")) {
             withBuildScript(
                 """
-                        println("Settings dir: " + layout.settingsDirectory)
-                        println("Project dir: " + layout.projectDirectory)
-                      """
+                println("Settings dir: " + layout.settingsDirectory)
+                println("Project dir: " + layout.projectDirectory)
+                """
             )
         }
 

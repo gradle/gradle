@@ -23,7 +23,7 @@ public abstract class AbstractWorkerRequirement implements WorkerRequirement {
     private final File projectCacheDir;
     private final File settingsDirectory;
 
-    public AbstractWorkerRequirement(File workerDirectory, File projectCacheDir, File settingsDirectory) {
+    public AbstractWorkerRequirement(File settingsDirectory, File workerDirectory, File projectCacheDir) {
         this.workerDirectory = workerDirectory;
         this.projectCacheDir = projectCacheDir;
         this.settingsDirectory = settingsDirectory;
