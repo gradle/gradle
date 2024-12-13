@@ -218,3 +218,25 @@ Head over to the `Dependencies` tab and navigate to your desired dependency.
 Select the `Required By` tab to see the selection reason and origin of the dependency:
 
 image::dependency-management-dependency-insight-report-build-scan.png[]
+
+[[sub:resolving-unsafe-configuration-resolution-errors]]
+== Resolving unsafe configuration resolution errors
+
+Resolving a configuration can have side effects on Gradle's project model, so Gradle needs manage access to each project's configurations.
+There are a number of ways a configuration might be resolved unsafely.
+Gradle will produce a deprecation warning for each unsafe access.
+Each of these are bad practices and can cause strange and indeterminate errors.
+
+If your build has an unsafe access deprecation warning, it needs to be fixed.
+
+For example:
+
+* A task from one project directly resolves a configuration in another project in the task's action.
+* A task specifies a configuration from another project as an input file collection.
+* A build script for one project resolves a configuration in another project during evaluation.
+* Project configurations are resolved in the settings file.
+
+In most cases, this issue can be resolved by creating a cross-project dependency on the other project.
+See the documentation for <<cross_project_publications.adoc#cross_project_publications, sharing outputs between projects>> for more information.
+
+If you find a use case that can't be resolved using these techniques, please let us know by filing a https://github.com/gradle/gradle/issues[GitHub Issue] adhering to our issue guidelines.
