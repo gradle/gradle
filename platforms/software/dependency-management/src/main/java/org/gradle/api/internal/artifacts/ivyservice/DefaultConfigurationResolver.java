@@ -51,7 +51,6 @@ import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
-import org.gradle.internal.component.local.model.LocalVariantGraphResolveState;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.model.CalculatedValue;
 import org.gradle.util.Path;
@@ -291,14 +290,12 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
      * {@link RootComponentMetadataBuilder.RootComponentState#getRootVariant()}
      */
     @Nullable
-    private VisitedGraphResults maybeGetEmptyGraphForInvalidMissingConfigurationWithNoDependencies(ConfigurationInternal configuration, RootComponentMetadataBuilder.RootComponentState root) {
-        LocalComponentGraphResolveState rootComponent = root.getRootComponent();
-
-        // This variant can be null if the configuration was removed from the container before resolution.
-        @SuppressWarnings("deprecation") LocalVariantGraphResolveState rootVariant =
-            rootComponent.getConfigurationLegacy(configuration.getName());
-
-        if (rootVariant == null) {
+    private VisitedGraphResults maybeGetEmptyGraphForInvalidMissingConfigurationWithNoDependencies(
+        ConfigurationInternal configuration,
+        RootComponentMetadataBuilder.RootComponentState root
+    ) {
+        // The root variant may not exist if the backing configuration was removed from the container before resolution.
+        if (!root.hasRootVariant()) {
             configuration.runDependencyActions();
             if (configuration.getAllDependencies().isEmpty()) {
                 DeprecationLogger.deprecateBehaviour("Removing a configuration from the container before resolution")
@@ -307,6 +304,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
                     .undocumented()
                     .nagUser();
 
+                LocalComponentGraphResolveState rootComponent = root.getRootComponent();
                 MinimalResolutionResult emptyResult = ResolutionResultGraphBuilder.empty(
                     rootComponent.getModuleVersionId(),
                     rootComponent.getId(),

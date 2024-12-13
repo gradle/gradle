@@ -307,6 +307,21 @@ class PathTest extends Specification {
         path << ["path", ":path:p2"]
     }
 
+    def "can get ancestors of absolute path"() {
+        expect:
+        path(':').ancestors().toList() == []
+        path(':a').ancestors().toList() == paths([':'])
+        path(':a:b').ancestors().toList() == paths([':', ':a'])
+        path(':a:b:c').ancestors().toList() == paths([':', ':a', ':a:b'])
+    }
+
+    def "can get ancestors of relative path"() {
+        expect:
+        path('a').ancestors().toList() == []
+        path('a:b').ancestors().toList() == paths(['a'])
+        path('a:b:c').ancestors().toList() == paths(['a', 'a:b'])
+    }
+
     def paths(List<String> paths) {
         return paths.collect { path(it) }
     }

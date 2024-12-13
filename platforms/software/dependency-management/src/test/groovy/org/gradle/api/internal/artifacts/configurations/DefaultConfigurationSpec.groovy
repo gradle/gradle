@@ -1461,7 +1461,7 @@ class DefaultConfigurationSpec extends Specification {
         def a1 = Attribute.of('a1', String)
 
         when:
-        conf.markAsObserved()
+        conf.markAsObserved("reason")
         conf.getAttributes().attribute(a1, "a1")
 
         then:
@@ -1479,7 +1479,7 @@ class DefaultConfigurationSpec extends Specification {
         def containerImmutable = conf.getAttributes().asImmutable()
 
         when:
-        conf.markAsObserved()
+        conf.markAsObserved("reason")
         def containerWrapped = conf.getAttributes()
 
         then:
@@ -1643,7 +1643,7 @@ class DefaultConfigurationSpec extends Specification {
     def "observation changes prevents #usageName usage changes"() {
         given:
         def conf = conf()
-        conf.markAsObserved()
+        conf.markAsObserved("reason")
 
         when:
         changeUsage(conf)

@@ -28,7 +28,6 @@ import org.gradle.api.attributes.TestSuiteType;
 import org.gradle.api.attributes.VerificationType;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.testing.DefaultAggregateTestReport;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
@@ -63,10 +62,16 @@ public abstract class TestReportAggregationPlugin implements Plugin<Project> {
     public void apply(Project project) {
         project.getPluginManager().apply("org.gradle.reporting-base");
 
-        ConfigurationContainer configurations = ((ProjectInternal) project).getConfigurations();
-        final Configuration testAggregation = configurations.dependencyScope(TEST_REPORT_AGGREGATION_CONFIGURATION_NAME).get();
-        testAggregation.setDescription("A configuration to collect test execution results");
-        testAggregation.setVisible(false);
+        ConfigurationContainer configurations = project.getConfigurations();
+        final Configuration testAggregation = configurations.dependencyScope(TEST_REPORT_AGGREGATION_CONFIGURATION_NAME, dependencyScope -> {
+            dependencyScope.setDescription("A configuration to collect test execution results.");
+        }).get();
+
+        // A resolvable configuration to collect test results
+        Configuration testResultsConf = configurations.resolvable("aggregateTestReportResults", resolvable -> {
+            resolvable.extendsFrom(testAggregation);
+            resolvable.setDescription("Graph needed for the aggregated test results report.");
+        }).get();
 
         ReportingExtension reporting = project.getExtensions().getByType(ReportingExtension.class);
         reporting.getReports().registerBinding(AggregateTestReport.class, DefaultAggregateTestReport.class);
@@ -78,13 +83,9 @@ public abstract class TestReportAggregationPlugin implements Plugin<Project> {
         project.getPlugins().withId("java-base", plugin -> {
             JavaPluginExtension javaPluginExtension = project.getExtensions().getByType(JavaPluginExtension.class);
             testReportDirectory.convention(javaPluginExtension.getTestReportDir());
+            // If the current project is jvm-based, aggregate dependent projects as jvm-based as well.
+            getJvmPluginServices().configureAsRuntimeClasspath(testResultsConf);
         });
-
-        // A resolvable configuration to collect test results
-        Configuration testResultsConf = configurations.resolvable("aggregateTestReportResults").get();
-        testResultsConf.extendsFrom(testAggregation);
-        testResultsConf.setDescription("Graph needed for the aggregated test results report.");
-        testResultsConf.setVisible(false);
 
         // Iterate and configure each user-specified report.
         reporting.getReports().withType(AggregateTestReport.class).all(report -> {
@@ -103,11 +104,6 @@ public abstract class TestReportAggregationPlugin implements Plugin<Project> {
                 task.getTestResults().from(testResults);
                 task.getDestinationDirectory().convention(testReportDirectory.dir(report.getTestType().map(tt -> tt + "/aggregated-results")));
             });
-        });
-
-        project.getPlugins().withType(JavaBasePlugin.class, plugin -> {
-            // If the current project is jvm-based, aggregate dependent projects as jvm-based as well.
-            getJvmPluginServices().configureAsRuntimeClasspath(testAggregation);
         });
 
         // convention for synthesizing reports based on existing test suites in "this" project

@@ -827,7 +827,6 @@ Class <org.gradle.api.internal.tasks.testing.junit.result.JUnitXmlResultWriter$T
 Class <org.gradle.api.internal.tasks.testing.junit.result.JUnitXmlResultWriter> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (JUnitXmlResultWriter.java:0)
 Class <org.gradle.api.internal.tasks.testing.junit.result.TestCaseRerunHandling> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (TestCaseRerunHandling.java:0)
 Class <org.gradle.api.internal.tasks.testing.junit.result.TestClassResult> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (TestClassResult.java:0)
-Class <org.gradle.api.internal.tasks.testing.junit.result.TestFailure> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (TestFailure.java:0)
 Class <org.gradle.api.internal.tasks.testing.junit.result.TestMethodResult> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (TestMethodResult.java:0)
 Class <org.gradle.api.internal.tasks.testing.junit.result.TestOutputStore$Index> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (TestOutputStore.java:0)
 Class <org.gradle.api.internal.tasks.testing.junit.result.TestOutputStore$IndexBuilder> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (TestOutputStore.java:0)

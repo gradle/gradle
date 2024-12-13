@@ -17,12 +17,8 @@
 package org.gradle.api.internal.tasks.testing.results;
 
 import org.gradle.api.NonNullApi;
+import org.gradle.api.internal.tasks.testing.GenericTestReportGenerator;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
-import org.gradle.api.internal.tasks.testing.junit.result.AggregateTestResultsProvider;
-import org.gradle.api.internal.tasks.testing.junit.result.BinaryResultBackedTestResultsProvider;
-import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider;
-import org.gradle.api.internal.tasks.testing.report.HtmlTestReport;
-import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.logging.ConsoleRenderer;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRunner;
@@ -33,12 +29,9 @@ import org.slf4j.LoggerFactory;
 import javax.inject.Inject;
 import java.io.File;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Function;
 
 /**
  * Aggregates test results from multiple test executions and generates a report at the end of the build.
@@ -95,23 +88,8 @@ public class AggregateTestEventReporter implements ProblemReporter, TestExecutio
      * @return The path to the index file that should be reported to the user.
      */
     private Path generateTestReport(Path reportDirectory) {
-        return withTestResults(providers -> {
-            HtmlTestReport htmlReport = new HtmlTestReport(buildOperationRunner, buildOperationExecutor);
-            htmlReport.generateReport(new AggregateTestResultsProvider(providers), reportDirectory.toFile());
-            return reportDirectory.resolve("index.html");
-        });
-    }
-
-    private <T> T withTestResults(Function<List<TestResultsProvider>, T> action) {
-        List<TestResultsProvider> providers = new ArrayList<>();
-        try {
-            for (Path result : results.values()) {
-                providers.add(new BinaryResultBackedTestResultsProvider(result.toFile()));
-            }
-            return action.apply(providers);
-        } finally {
-            CompositeStoppable.stoppable(providers).stop();
-        }
+        new GenericTestReportGenerator(results.values()).generateReport(buildOperationRunner, buildOperationExecutor, reportDirectory);
+        return reportDirectory.resolve("index.html");
     }
 
     /**
