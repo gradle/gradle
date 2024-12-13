@@ -83,45 +83,24 @@ ul.linkList li {
     margin-bottom: 5px;
 }
 
-.metadata .odd {
+#metadata tr.odd {
     background-color: #f7f7f7;
     border: solid 1px #d0d0d0;
 }
 
-.metadata .even {
+#metadata tr.even {
     border: solid 1px #d0d0d0;
 }
 
-.metadata .time {
-    padding: 10px;
-}
-
-.metadata .elements {
-    padding: 10px;
-    width: 100%;
-}
-
-td.elements table {
-    width: 100% !important;
-}
-
-td.elements th, td.elements td {
+#metadata th, #metadata td {
     padding: 10px;
     text-align: left;
 }
 
-td.elements .key {
-    width: 20%;
-}
-
-td.elements .value {
-    width: 80%;
-}
-
-td.elements a {
+#metadata a {
     color: blue;
 }
 
-td.elements .unrenderable {
+#metadata .unrenderable {
     color: darkred;
 }

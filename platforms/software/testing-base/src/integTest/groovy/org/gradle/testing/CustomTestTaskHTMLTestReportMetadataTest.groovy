@@ -124,6 +124,8 @@ final class CustomTestTaskHTMLTestReportMetadataTest extends AbstractIntegration
                              "longKey": "5000000000000000",
                              "uriKey": "<a href=\"https://www.google.com\">https://www.google.com</a>",
                              "unknownKey": "<span class=\"unrenderable\">[unrenderable type]</span>"])
+
+        assert false
     }
 
     private registerSimpleFailingCustomTestTaskWithMetadata(String name = "failing") {
