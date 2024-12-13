@@ -413,7 +413,8 @@ Bundle-Activator: com.example.Activator
         def result = runner(":run")
             .expectDeprecationWarningIf(GradleContextualExecuter.notConfigCache,
                 "Invocation of Task.project at execution time has been deprecated. "+
-                "This will fail with an error in Gradle 9.0. " +
+                "This will fail with an error in Gradle 10.0. "+
+                "This API is incompatible with the configuration cache, which will become the only mode supported by Gradle in a future release. "+
                 "Consult the upgrading guide for further information: $BASE_URL/userguide/upgrading_version_7.html#task_project",
                 "https://github.com/bndtools/bnd/issues/6346"
             ).build()
