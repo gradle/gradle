@@ -1,3 +1,5 @@
+// some change
+
 plugins {
     id("gradlebuild.root-build")
 
