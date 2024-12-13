@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks.testing.results;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.tasks.testing.GenericTestReportGenerator;
+import org.gradle.api.internal.tasks.testing.report.generic.MetadataRendererRegistry;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.service.scopes.Scope;
@@ -39,14 +40,17 @@ public class HtmlTestReportGenerator {
 
     private final BuildOperationRunner buildOperationRunner;
     private final BuildOperationExecutor buildOperationExecutor;
+    private final MetadataRendererRegistry metadataRendererRegistry;
 
     @Inject
     public HtmlTestReportGenerator(
         BuildOperationRunner buildOperationRunner,
-        BuildOperationExecutor buildOperationExecutor
+        BuildOperationExecutor buildOperationExecutor,
+        MetadataRendererRegistry metadataRendererRegistry
     ) {
         this.buildOperationRunner = buildOperationRunner;
         this.buildOperationExecutor = buildOperationExecutor;
+        this.metadataRendererRegistry = metadataRendererRegistry;
     }
 
     /**
@@ -63,7 +67,7 @@ public class HtmlTestReportGenerator {
             throw new UncheckedIOException(e);
         }
 
-        new GenericTestReportGenerator(Collections.singletonList(resultsDirectory)).generateReport(buildOperationRunner, buildOperationExecutor, reportsDirectory);
+        new GenericTestReportGenerator(Collections.singletonList(resultsDirectory), metadataRendererRegistry).generateReport(buildOperationRunner, buildOperationExecutor, reportsDirectory);
         return reportsDirectory.resolve("index.html");
     }
 

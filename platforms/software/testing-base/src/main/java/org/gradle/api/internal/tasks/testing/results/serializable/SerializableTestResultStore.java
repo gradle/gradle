@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.tasks.testing.results.serializable;
 
+import com.google.common.collect.LinkedHashMultimap;
+import com.google.common.collect.Multimap;
 import org.apache.commons.io.input.NullReader;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.UncheckedIOException;
@@ -96,6 +98,9 @@ public final class SerializableTestResultStore {
         private boolean writtenRootName = false;
         private long nextId = 1;
 
+        // Map from testDescripter -> Serialized metadatas associated with that descriptor
+        private final Multimap<TestDescriptorInternal, SerializedMetadata> metadatas = LinkedHashMultimap.create();
+
         private Writer(Path serializedResultsFile, Path outputZipFile) throws IOException {
             this.serializedResultsFile = serializedResultsFile;
             Files.createDirectories(serializedResultsFile.getParent());
@@ -141,6 +146,10 @@ public final class SerializableTestResultStore {
 
             for (Throwable throwable : testResult.getExceptions()) {
                 testNodeBuilder.addFailure(new SerializableFailure(failureMessage(throwable), stackTrace(throwable), exceptionClassName(throwable)));
+            }
+
+            for (SerializedMetadata metadata : metadatas.get(testDescriptor)) {
+                testNodeBuilder.addMetadata(metadata);
             }
 
             // Sanity check so we don't write invalid data to disk
@@ -206,7 +215,7 @@ public final class SerializableTestResultStore {
 
         @Override
         public void metadata(TestDescriptorInternal testDescriptor, TestMetadataEvent event) {
-            // Ignored for now.
+            metadatas.put(testDescriptor, new SerializedMetadata(event.getLogTime(), event.getValues()));
         }
 
         @Override

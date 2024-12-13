@@ -16,8 +16,8 @@
 
 package org.gradle.testing
 
-import org.gradle.api.internal.tasks.testing.report.generic.GenericHtmlTestExecutionResult
-import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
+
+import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.logging.ConsoleRenderer
@@ -25,7 +25,7 @@ import org.gradle.internal.logging.ConsoleRenderer
 import static org.gradle.util.Matchers.containsText
 import static org.hamcrest.CoreMatchers.equalTo
 
-class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec {
+class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec implements VerifiesGenericTestReportResults {
 
     def "successful tests do not emit HTML reports to console"() {
         given:
@@ -148,20 +148,6 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
             .assertChildCount(1, 1, 0)
         aggregateResults.testPath("failing2 suite")
             .assertChildCount(1, 1, 0)
-    }
-
-    private String resultsUrlFor(String name) {
-        def expectedReportFile = file("build/reports/tests/${name}/index.html")
-        String renderedUrl = new ConsoleRenderer().asClickableFileUrl(expectedReportFile);
-        renderedUrl
-    }
-
-    private GenericTestExecutionResult resultsFor(String name) {
-        return new GenericHtmlTestExecutionResult(testDirectory, "build/reports/tests/${name}")
-    }
-
-    private GenericTestExecutionResult aggregateResults() {
-        return new GenericHtmlTestExecutionResult(testDirectory, "build/reports/aggregate-test-results")
     }
 
     def passingTask(String name, boolean print = false) {

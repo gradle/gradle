@@ -23,6 +23,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.tasks.testing.GenericTestReportGenerator;
 import org.gradle.api.internal.tasks.testing.LegacyTestReportGenerator;
 import org.gradle.api.internal.tasks.testing.TestReportGenerator;
+import org.gradle.api.internal.tasks.testing.report.generic.MetadataRendererRegistry;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResultStore;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.model.ReplacedBy;
@@ -66,6 +67,9 @@ public abstract class TestReport extends DefaultTask {
 
     @Inject
     protected abstract ObjectFactory getObjectFactory();
+
+    @Inject
+    protected abstract MetadataRendererRegistry getMetadataRendererRegistry();
 
     /**
      * Returns the directory to write the HTML report to.
@@ -190,7 +194,7 @@ public abstract class TestReport extends DefaultTask {
         }
     }
 
-    static TestReportGenerator detectAndCreateImplementation(FileCollection resultDirs) {
+    TestReportGenerator detectAndCreateImplementation(FileCollection resultDirs) {
         Boolean isGenericImplementation = null;
         for (File resultDir : resultDirs.getFiles()) {
             boolean resultDirIsGenericImplementation = SerializableTestResultStore.isGenericTestResults(resultDir);
@@ -202,7 +206,7 @@ public abstract class TestReport extends DefaultTask {
         }
         assert isGenericImplementation != null : "@SkipWhenEmpty should prevent this from being called with an empty collection";
         if (isGenericImplementation) {
-            return new GenericTestReportGenerator(resultDirs.getFiles().stream().map(File::toPath).collect(Collectors.toSet()));
+            return new GenericTestReportGenerator(resultDirs.getFiles().stream().map(File::toPath).collect(Collectors.toSet()), getMetadataRendererRegistry());
         } else {
             return new LegacyTestReportGenerator(resultDirs);
         }

@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks.testing.results;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.tasks.testing.GenericTestReportGenerator;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
+import org.gradle.api.internal.tasks.testing.report.generic.MetadataRendererRegistry;
 import org.gradle.internal.logging.ConsoleRenderer;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRunner;
@@ -43,15 +44,21 @@ public class AggregateTestEventReporter implements ProblemReporter, TestExecutio
 
     private final BuildOperationRunner buildOperationRunner;
     private final BuildOperationExecutor buildOperationExecutor;
+    private final MetadataRendererRegistry metadataRendererRegistry;
 
     // Mutable state
     private final AtomicInteger numFailedResults = new AtomicInteger(0);
     private final Map<TestDescriptorInternal, Path> results = new ConcurrentHashMap<>();
 
     @Inject
-    public AggregateTestEventReporter(BuildOperationRunner buildOperationRunner, BuildOperationExecutor buildOperationExecutor) {
+    public AggregateTestEventReporter(
+        BuildOperationRunner buildOperationRunner,
+        BuildOperationExecutor buildOperationExecutor,
+        MetadataRendererRegistry metadataRendererRegistry
+    ) {
         this.buildOperationRunner = buildOperationRunner;
         this.buildOperationExecutor = buildOperationExecutor;
+        this.metadataRendererRegistry = metadataRendererRegistry;
     }
 
     @Override
@@ -88,7 +95,7 @@ public class AggregateTestEventReporter implements ProblemReporter, TestExecutio
      * @return The path to the index file that should be reported to the user.
      */
     private Path generateTestReport(Path reportDirectory) {
-        new GenericTestReportGenerator(results.values()).generateReport(buildOperationRunner, buildOperationExecutor, reportDirectory);
+        new GenericTestReportGenerator(results.values(), metadataRendererRegistry).generateReport(buildOperationRunner, buildOperationExecutor, reportDirectory);
         return reportDirectory.resolve("index.html");
     }
 

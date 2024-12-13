@@ -14,20 +14,21 @@
  * limitations under the License.
  */
 
-plugins {
-    id("gradlebuild.distribution.api-java")
-}
+package org.gradle.api.internal.tasks.testing.results.serializable
 
-description = "Provides foundational types needed for building renderable reports"
+import groovy.transform.SelfType
+import spock.lang.Specification
 
-dependencies {
-    api(projects.core)
-
-    implementation(projects.baseServices)
-    implementation(projects.logging)
-
-    implementation(libs.commonsLang)
-    implementation(libs.jsr305)
-
-    testImplementation(libs.jsoup)
+/**
+ * A trait to be applied to tests that verify the serialization of metadata in {@link SerializedMetadata}.
+ */
+@SelfType(Specification)
+trait SerializesMetadata {
+    byte[] serialize(Object obj) {
+        try (ByteArrayOutputStream byteStream = new ByteArrayOutputStream()
+             ObjectOutputStream objectStream = new ObjectOutputStream(byteStream)) {
+            objectStream.writeObject(obj)
+            return byteStream.toByteArray()
+        }
+    }
 }

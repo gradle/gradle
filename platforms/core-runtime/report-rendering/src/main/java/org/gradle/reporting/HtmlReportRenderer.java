@@ -22,6 +22,7 @@ import org.gradle.internal.ErroringAction;
 import org.gradle.internal.IoActions;
 import org.gradle.util.internal.GFileUtils;
 
+import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
@@ -35,6 +36,7 @@ public class HtmlReportRenderer {
     /**
      * Renders a multi-page HTML report from the given model, into the given directory.
      */
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     public <T> void render(T model, ReportRenderer<T, HtmlReportBuilder> renderer, File outputDirectory) {
         try {
             outputDirectory.mkdirs();
@@ -57,7 +59,7 @@ public class HtmlReportRenderer {
     public <T> void renderSinglePage(T model, final ReportRenderer<T, HtmlPageBuilder<SimpleHtmlWriter>> renderer, final File outputFile) {
         render(model, new ReportRenderer<T, HtmlReportBuilder>() {
             @Override
-            public void render(T model, HtmlReportBuilder output) throws IOException {
+            public void render(T model, HtmlReportBuilder output) {
                 output.renderHtmlPage(outputFile.getName(), model, renderer);
             }
         }, outputFile.getParentFile());
@@ -69,7 +71,7 @@ public class HtmlReportRenderer {
     public <T> void renderRawSinglePage(T model, final ReportRenderer<T, HtmlPageBuilder<Writer>> renderer, final File outputFile) {
         render(model, new ReportRenderer<T, HtmlReportBuilder>() {
             @Override
-            public void render(T model, HtmlReportBuilder output) throws IOException {
+            public void render(T model, HtmlReportBuilder output) {
                 output.renderRawHtmlPage(outputFile.getName(), model, renderer);
             }
         }, outputFile.getParentFile());
@@ -87,7 +89,7 @@ public class HtmlReportRenderer {
 
     private static class DefaultHtmlReportContext implements HtmlReportBuilder {
         private final File outputDirectory;
-        private final Map<String, Resource> resources = new HashMap<String, Resource>();
+        private final Map<String, Resource> resources = new HashMap<>();
 
         public DefaultHtmlReportContext(File outputDirectory) {
             this.outputDirectory = outputDirectory;
@@ -119,10 +121,10 @@ public class HtmlReportRenderer {
             File outputFile = new File(outputDirectory, name);
             IoActions.writeTextFile(outputFile, "utf-8", new ErroringAction<Writer>() {
                 @Override
-                protected void doExecute(Writer writer) throws Exception {
+                protected void doExecute(@Nonnull Writer writer) throws Exception {
                     SimpleHtmlWriter htmlWriter = new SimpleHtmlWriter(writer, "");
                     htmlWriter.startElement("html");
-                    renderer.render(model, new DefaultHtmlPageBuilder<SimpleHtmlWriter>(prefix(name), htmlWriter));
+                    renderer.render(model, new DefaultHtmlPageBuilder<>(prefix(name), htmlWriter));
                     htmlWriter.endElement();
                 }
             });
@@ -133,8 +135,8 @@ public class HtmlReportRenderer {
             File outputFile = new File(outputDirectory, name);
             IoActions.writeTextFile(outputFile, "utf-8", new ErroringAction<Writer>() {
                 @Override
-                protected void doExecute(Writer writer) throws Exception {
-                    renderer.render(model, new DefaultHtmlPageBuilder<Writer>(prefix(name), writer));
+                protected void doExecute(@Nonnull Writer writer) throws Exception {
+                    renderer.render(model, new DefaultHtmlPageBuilder<>(prefix(name), writer));
                 }
             });
         }

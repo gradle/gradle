@@ -339,7 +339,7 @@ Custom test root > My Suite > another failing test FAILED
     def "captures custom serializable object metadata for custom test"() {
         given:
         buildFile("""
-            class TestType implements org.gradle.internal.operations.trace.CustomOperationTraceSerialization {
+            class TestType implements org.gradle.internal.operations.trace.CustomOperationTraceSerialization, Serializable {
                 private int field
 
                 TestType(int field) {
@@ -349,6 +349,14 @@ Custom test root > My Suite > another failing test FAILED
                 @Override
                 Object getCustomOperationTraceSerializableModel() {
                     return ["my custom serializable type", "with some values", "in a list", field]
+                }
+
+                private void writeObject(java.io.ObjectOutputStream out) throws IOException {
+                    out.writeInt(field)
+                }
+
+                private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
+                    field = in.readInt()
                 }
             }
         """)
@@ -736,7 +744,6 @@ Custom test root > My Suite > another failing test FAILED
     private TestFile singleCustomTestRecordingMetadata(String key, @GroovyBuildScriptLanguage String valueExpression) {
         buildFile("""
             import java.time.Instant
-            import javax.inject.Inject
 
             abstract class CustomTestTask extends DefaultTask {
                 @Inject

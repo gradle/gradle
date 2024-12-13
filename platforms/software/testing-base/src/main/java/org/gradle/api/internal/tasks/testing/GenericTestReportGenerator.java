@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks.testing;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.tasks.testing.report.generic.GenericHtmlTestReport;
+import org.gradle.api.internal.tasks.testing.report.generic.MetadataRendererRegistry;
 import org.gradle.api.internal.tasks.testing.report.generic.TestTreeModel;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResultStore;
 import org.gradle.internal.concurrent.CompositeStoppable;
@@ -36,13 +37,15 @@ import java.util.stream.Collectors;
 @NonNullApi
 public class GenericTestReportGenerator implements TestReportGenerator {
     private final List<SerializableTestResultStore> stores;
+    private final MetadataRendererRegistry metadataRendererRegistry;
 
-    public GenericTestReportGenerator(Collection<Path> resultDirs) {
+    public GenericTestReportGenerator(Collection<Path> resultDirs, MetadataRendererRegistry metadataRendererRegistry) {
         this.stores = resultDirs.stream()
             .distinct()
             .map(SerializableTestResultStore::new)
             .filter(SerializableTestResultStore::hasResults)
             .collect(Collectors.toList());
+        this.metadataRendererRegistry = metadataRendererRegistry;
     }
 
     @Override
@@ -63,7 +66,7 @@ public class GenericTestReportGenerator implements TestReportGenerator {
             }
 
             TestTreeModel root = TestTreeModel.loadModelFromStores(stores);
-            new GenericHtmlTestReport(operationRunner, operationExecutor, outputReaders).generateReport(root, outputDir);
+            new GenericHtmlTestReport(operationRunner, operationExecutor, outputReaders, metadataRendererRegistry).generateReport(root, outputDir);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         } finally {

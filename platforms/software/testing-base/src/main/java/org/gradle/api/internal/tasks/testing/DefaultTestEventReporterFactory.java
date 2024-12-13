@@ -74,13 +74,8 @@ public final class DefaultTestEventReporterFactory implements TestEventReporterF
 
         // Record all emitted results to disk
         Path binaryResultsDir = binaryResultsDirectory.getAsFile().toPath();
-        SerializableTestResultStore.Writer testResultWriter;
-        try {
-            testResultWriter = new SerializableTestResultStore(binaryResultsDir).openWriter();
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-        testListenerInternalBroadcaster.add(testResultWriter);
+        SerializableTestResultStore.Writer resultsSerializingListener = newResultsSerializingListener(binaryResultsDir);
+        testListenerInternalBroadcaster.add(resultsSerializingListener);
 
         return new LifecycleTrackingGroupTestEventReporter(new DefaultRootTestEventReporter(
             rootName,
@@ -88,10 +83,17 @@ public final class DefaultTestEventReporterFactory implements TestEventReporterF
             new LongIdGenerator(),
             htmlReportDirectory.getAsFile().toPath(),
             binaryResultsDir,
-            testResultWriter,
+            resultsSerializingListener,
             htmlTestReportGenerator,
             listenerManager.getBroadcaster(TestExecutionResultsListener.class)
         ));
     }
 
+    private SerializableTestResultStore.Writer newResultsSerializingListener(Path binaryResultsDir) {
+        try {
+            return new SerializableTestResultStore(binaryResultsDir).openWriter();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
 }
