@@ -24,12 +24,13 @@ import org.gradle.util.AttributeTestUtil
  * Unit tests for the {@link HierarchicalMutableAttributeContainer} class.
  */
 final class HierarchicalMutableAttributeContainerTest extends BaseAttributeContainerTest {
-    private one = Attribute.of("one", String)
-    private two = Attribute.of("two", String)
+
+    private Attribute<String> one = Attribute.of("one", String)
+    private Attribute<String> two = Attribute.of("two", String)
 
     @Override
     protected DefaultMutableAttributeContainer createContainer(Map<Attribute<?>, ?> attributes = [:], Map<Attribute<?>, ?> moreAttributes = [:]) {
-        DefaultMutableAttributeContainer container = new DefaultMutableAttributeContainer(attributesFactory, AttributeTestUtil.attributeValueIsolator())
+        DefaultMutableAttributeContainer container = AttributeTestUtil.attributesFactory().mutable()
         attributes.forEach { key, value ->
             container.attribute(key, value)
         }
