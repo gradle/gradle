@@ -21,7 +21,6 @@ import org.hamcrest.Matcher;
 
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 // For now, I think this works enough. It will need to be rewritten to account for different root tabs.
 public interface TestPathExecutionResult {

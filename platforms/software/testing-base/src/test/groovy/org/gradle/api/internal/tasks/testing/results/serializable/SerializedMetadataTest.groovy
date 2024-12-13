@@ -34,7 +34,8 @@ final class SerializedMetadataTest extends Specification implements SerializesMe
         metadata.logTime == now
         metadata.getEntries().size() == 1
         metadata.getEntries()[0].key == "key"
-        metadata.getEntries()[0].value == serialize("value")
+        metadata.getEntries()[0].value == "value"
+        metadata.getEntries()[0].serializedValue == serialize("value")
         metadata.getEntries()[0].valueType == String.class.name
     }
 
@@ -46,7 +47,8 @@ final class SerializedMetadataTest extends Specification implements SerializesMe
         metadata.logTime == now
         metadata.getEntries().size() == 1
         metadata.getEntries()[0].key == "key"
-        metadata.getEntries()[0].value == serialize(1)
+        metadata.getEntries()[0].value == 1
+        metadata.getEntries()[0].serializedValue == serialize(1)
         metadata.getEntries()[0].valueType == Integer.class.name
     }
 
@@ -62,10 +64,12 @@ final class SerializedMetadataTest extends Specification implements SerializesMe
         metadata.logTime == now
         metadata.getEntries().size() == 2
         metadata.getEntries()[0].key == "key1"
-        metadata.getEntries()[0].value == serialize("value1")
+        metadata.getEntries()[0].value == "value1"
+        metadata.getEntries()[0].serializedValue == serialize("value1")
         metadata.getEntries()[0].valueType == String.class.name
         metadata.getEntries()[1].key == "key2"
-        metadata.getEntries()[1].value == serialize("value2")
+        metadata.getEntries()[1].value == "value2"
+        metadata.getEntries()[1].serializedValue == serialize("value2")
         metadata.getEntries()[1].valueType == String.class.name
     }
 }

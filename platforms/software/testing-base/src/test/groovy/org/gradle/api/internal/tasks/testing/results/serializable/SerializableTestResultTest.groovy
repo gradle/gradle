@@ -43,6 +43,8 @@ final class SerializableTestResultTest extends Specification implements Serializ
         result.metadatas[0].entries.size() == 1
         result.metadatas[0].logTime == metadataTime
         result.metadatas[0].entries[0].key == "key"
-        result.metadatas[0].entries[0].value == serialize("value")
+        result.metadatas[0].entries[0].value == "value"
+        result.metadatas[0].entries[0].serializedValue == serialize("value")
+
     }
 }
