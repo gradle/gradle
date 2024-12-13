@@ -37,11 +37,4 @@ public interface WorkerRequirement {
      * @return cache directory
      */
     File getProjectCacheDir();
-
-    /**
-     * Returns the settings directory for the build.
-     *
-     * @return cache directory
-     */
-    File getSettingsDirectory();
 }

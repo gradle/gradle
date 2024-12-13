@@ -129,7 +129,7 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
             .displayName("project services")
             .parent(buildServices)
             .provider(new ProjectScopeServices(buildLayout.getSettingsDir(), project.getProjectDir(), project, loggingManagerInternalFactory))
-            .provider(new WorkerSharedProjectScopeServices(buildLayout.getSettingsDir(), project.getProjectDir()))
+            .provider(new WorkerSharedProjectScopeServices(project.getProjectDir()))
             .build();
     }
 

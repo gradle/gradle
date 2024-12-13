@@ -63,11 +63,9 @@ import java.io.File;
  * These Project scoped services are shared between the main build process and worker processes.
  */
 public class WorkerSharedProjectScopeServices implements ServiceRegistrationProvider {
-    private final File settingsDir;
     private final File projectDir;
 
-    public WorkerSharedProjectScopeServices(File settingsDir, File projectDir) {
-        this.settingsDir = settingsDir;
+    public WorkerSharedProjectScopeServices(File projectDir) {
         this.projectDir = projectDir;
     }
 

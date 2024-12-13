@@ -16,7 +16,6 @@
 
 package org.gradle.language.java.internal;
 
-import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.tasks.compile.DefaultJavaCompilerFactory;
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDetector;
@@ -50,7 +49,6 @@ public class JavaToolchainServices extends AbstractGradleModuleServices {
             ClassPathRegistry classPathRegistry,
             ActionExecutionSpecFactory actionExecutionSpecFactory,
             InternalProblems problems,
-            ProjectLayout projectLayout,
             ProjectCacheDir projectCacheDir
         ) {
             return new DefaultJavaCompilerFactory(
@@ -62,7 +60,6 @@ public class JavaToolchainServices extends AbstractGradleModuleServices {
                 classPathRegistry,
                 actionExecutionSpecFactory,
                 problems,
-                projectLayout,
                 projectCacheDir
             );
         }

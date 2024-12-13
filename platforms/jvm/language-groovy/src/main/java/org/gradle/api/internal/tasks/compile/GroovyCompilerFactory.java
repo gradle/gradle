@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.compile;
 
-import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.tasks.compile.daemon.ClassloaderIsolatedCompilerWorkerExecutor;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerWorkerExecutor;
@@ -51,7 +50,6 @@ public class GroovyCompilerFactory implements CompilerFactory<GroovyJavaJointCom
     private final ClassPathRegistry classPathRegistry;
     private final ClassLoaderRegistry classLoaderRegistry;
     private final ActionExecutionSpecFactory actionExecutionSpecFactory;
-    private final ProjectLayout projectLayout;
     private final ProjectCacheDir projectCacheDir;
     private final InternalProblems problems;
 
@@ -65,7 +63,6 @@ public class GroovyCompilerFactory implements CompilerFactory<GroovyJavaJointCom
         ClassPathRegistry classPathRegistry,
         ClassLoaderRegistry classLoaderRegistry,
         ActionExecutionSpecFactory actionExecutionSpecFactory,
-        ProjectLayout projectLayout,
         ProjectCacheDir projectCacheDir,
         InternalProblems problems
     ) {
@@ -78,7 +75,6 @@ public class GroovyCompilerFactory implements CompilerFactory<GroovyJavaJointCom
         this.classPathRegistry = classPathRegistry;
         this.classLoaderRegistry = classLoaderRegistry;
         this.actionExecutionSpecFactory = actionExecutionSpecFactory;
-        this.projectLayout = projectLayout;
         this.projectCacheDir = projectCacheDir;
         this.problems = problems;
     }
@@ -93,8 +89,8 @@ public class GroovyCompilerFactory implements CompilerFactory<GroovyJavaJointCom
 
     private CompilerWorkerExecutor newExecutor(MinimalGroovyCompileOptions groovyOptions) {
         return groovyOptions.isFork() ?
-            new ProcessIsolatedCompilerWorkerExecutor(workerDaemonFactory, actionExecutionSpecFactory, projectLayout.getSettingsDirectory().getAsFile(), projectCacheDir) :
-            new ClassloaderIsolatedCompilerWorkerExecutor(inProcessWorkerFactory, actionExecutionSpecFactory, projectLayout.getSettingsDirectory().getAsFile(), projectCacheDir);
+            new ProcessIsolatedCompilerWorkerExecutor(workerDaemonFactory, actionExecutionSpecFactory, projectCacheDir) :
+            new ClassloaderIsolatedCompilerWorkerExecutor(inProcessWorkerFactory, actionExecutionSpecFactory, projectCacheDir);
     }
 
     public static class DaemonSideCompiler implements Compiler<GroovyJavaJointCompileSpec> {

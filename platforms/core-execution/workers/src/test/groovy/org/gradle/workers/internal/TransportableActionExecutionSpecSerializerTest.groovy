@@ -30,7 +30,7 @@ class TransportableActionExecutionSpecSerializerTest extends Specification {
     def usesInternalServices = true
 
     def "can serialize and deserialize a spec with a hierarchical classloader structure"() {
-        def spec = new TransportableActionExecutionSpec(Runnable.class.name, bytes, classLoaderStructure(), new File("/"), new File("/foo"), new File("/project-cache"), usesInternalServices)
+        def spec = new TransportableActionExecutionSpec(Runnable.class.name, bytes, classLoaderStructure(), new File("/foo"), new File("/project-cache"), usesInternalServices)
 
         when:
         serializer.write(encoder, spec)
@@ -44,14 +44,13 @@ class TransportableActionExecutionSpecSerializerTest extends Specification {
         decodedSpec.implementationClassName == spec.implementationClassName
         decodedSpec.serializedParameters == spec.serializedParameters
         decodedSpec.classLoaderStructure == spec.classLoaderStructure
-        decodedSpec.settingsDir.canonicalPath == spec.settingsDir.canonicalPath
         decodedSpec.baseDir.canonicalPath == spec.baseDir.canonicalPath
         decodedSpec.projectCacheDir.canonicalPath == spec.projectCacheDir.canonicalPath
         decodedSpec.internalServicesRequired
     }
 
     def "can serialize and deserialize a spec with a flat classloader structure"() {
-        def spec = new TransportableActionExecutionSpec(Runnable.class.name, bytes, flatClassLoaderStructure(), new File("/"), new File("/foo"), new File("/project-cache"), usesInternalServices)
+        def spec = new TransportableActionExecutionSpec(Runnable.class.name, bytes, flatClassLoaderStructure(), new File("/foo"), new File("/project-cache"), usesInternalServices)
 
         when:
         serializer.write(encoder, spec)
@@ -66,7 +65,6 @@ class TransportableActionExecutionSpecSerializerTest extends Specification {
         decodedSpec.serializedParameters == spec.serializedParameters
         decodedSpec.classLoaderStructure instanceof FlatClassLoaderStructure
         decodedSpec.classLoaderStructure.spec == null
-        decodedSpec.settingsDir.canonicalPath == spec.settingsDir.canonicalPath
         decodedSpec.baseDir.canonicalPath == spec.baseDir.canonicalPath
         decodedSpec.projectCacheDir.canonicalPath == spec.projectCacheDir.canonicalPath
         decodedSpec.internalServicesRequired

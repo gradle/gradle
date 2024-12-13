@@ -32,11 +32,10 @@ class WorkerDaemonFactoryTest extends Specification {
 
     @Subject factory = new WorkerDaemonFactory(clientsManager, buildOperationRunner, workerDaemonClientCancellationHandler)
 
-    def settingsDir = new File("settings-dir")
-    def workingDir = new File("working-dir")
-    def projectCacheDir = new File("cache-dir")
+    def workingDir = new File("some-dir")
+    def projectCacheDir = new File("some-cache-dir")
     def options = Stub(DaemonForkOptions)
-    def requirement = new ForkedWorkerRequirement(settingsDir, workingDir, projectCacheDir, options)
+    def requirement = new ForkedWorkerRequirement(workingDir, projectCacheDir, options)
     def spec = Stub(IsolatedParametersActionExecutionSpec)
 
     def setup() {
@@ -45,7 +44,7 @@ class WorkerDaemonFactoryTest extends Specification {
 
     def "getting a worker daemon does not assume client use"() {
         when:
-        factory.getWorker(requirement);
+        factory.getWorker(requirement)
 
         then:
         0 * clientsManager._
