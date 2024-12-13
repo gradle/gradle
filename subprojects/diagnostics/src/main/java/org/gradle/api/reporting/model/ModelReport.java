@@ -24,6 +24,7 @@ import org.gradle.api.tasks.Console;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.diagnostics.internal.ProjectDetails;
 import org.gradle.api.tasks.options.Option;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.model.internal.core.ModelNode;
@@ -89,6 +90,10 @@ public abstract class ModelReport extends DefaultTask {
 
     @TaskAction
     public void report() {
+        DeprecationLogger.whileDisabled(this::doReport);
+    }
+
+    private void doReport() {
         ProjectInternal project = (ProjectInternal) getProject();
         project.prepareForRuleBasedPlugins();
 
