@@ -793,38 +793,4 @@ Full details on using these options are documented in the <<gradle_wrapper.adoc#
 Continuous Build allows you to automatically re-execute the requested tasks when file inputs change.
 You can execute the build in this mode using the `-t` or `--continuous` command-line option.
 
-For example, you can continuously run the `test` task and all dependent tasks by running:
-
-----
-$ gradle test --continuous
-----
-
-Gradle will behave as if you ran `gradle test` after a change to sources or tests that contribute to the requested tasks.
-This means unrelated changes (such as changes to build scripts) will not trigger a rebuild.
-To incorporate build logic changes, the continuous build must be restarted manually.
-
-Continuous build uses <<file_system_watching.adoc#sec:daemon_watch_fs,file system watching>> to detect changes to the inputs.
-If file system watching does not work on your system, then continuous build won't work either.
-In particular, continuous build does not work when using `--no-daemon`.
-
-When Gradle detects a change to the inputs, it will not trigger the build immediately.
-Instead, it will wait until no additional changes are detected for a certain period of time - the quiet period.
-You can configure the quiet period in milliseconds by the Gradle property `<<build_environment.adoc#sec:gradle_configuration_properties,org.gradle.continuous.quietperiod>>`.
-
-=== Terminating Continuous Build
-If Gradle is attached to an interactive input source, such as a terminal, the continuous build can be exited by pressing `CTRL-D` (On Microsoft Windows, it is required to also press `ENTER` or `RETURN` after `CTRL-D`).
-
-If Gradle is not attached to an interactive input source (e.g. is running as part of a script), the build process must be terminated (e.g. using the `kill` command or similar).
-
-If the build is being executed via the Tooling API, the build can be cancelled using the Tooling API's cancellation mechanism.
-
 Learn more in <<continuous_builds.adoc#continuous_builds>> Continuous Builds.
-
-[[sec:changes_to_symbolic_links]]
-==== Changes to symbolic links
-In general, Gradle will not detect changes to symbolic links or to files referenced via symbolic links.
-
-[[sec:changes_to_build_logic_are_not_considered]]
-==== Changes to build logic are not considered
-The current implementation does not recalculate the build model on subsequent builds.
-This means that changes to task configuration, or any other change to the build model, are effectively ignored.
