@@ -423,7 +423,10 @@ fun configureTests() {
         maxParallelForks = project.maxParallelForks
 
         configureJvmForTest()
-        addOsAsInputs()
+        if (name != "archTest") {
+            // TODO distinguish archTest and other tests
+            addOsAsInputs()
+        }
         configureRerun()
 
         if (BuildEnvironment.isCiServer) {
