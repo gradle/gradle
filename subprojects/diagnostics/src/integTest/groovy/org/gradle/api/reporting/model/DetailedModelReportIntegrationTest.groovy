@@ -17,7 +17,6 @@
 package org.gradle.api.reporting.model
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.StableConfigurationCacheDeprecations
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.junit.Rule
@@ -25,15 +24,10 @@ import org.junit.Rule
 import static org.gradle.util.internal.TextUtil.normaliseFileSeparators
 
 @UnsupportedWithConfigurationCache(because = "software model")
-class DetailedModelReportIntegrationTest extends AbstractIntegrationSpec implements StableConfigurationCacheDeprecations {
+class DetailedModelReportIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
     public final HttpServer server = new HttpServer()
-
-    @Override
-    def setup() {
-        expectTaskGetProjectDeprecations()
-    }
 
     def "includes a relative path to the build script"() {
         given:

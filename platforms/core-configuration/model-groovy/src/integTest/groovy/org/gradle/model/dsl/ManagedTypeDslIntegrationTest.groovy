@@ -17,11 +17,10 @@
 package org.gradle.model.dsl
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.StableConfigurationCacheDeprecations
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 
 @UnsupportedWithConfigurationCache(because = "software model")
-class ManagedTypeDslIntegrationTest extends AbstractIntegrationSpec implements StableConfigurationCacheDeprecations {
+class ManagedTypeDslIntegrationTest extends AbstractIntegrationSpec {
 
     def "can configure a child of a managed type using a nested closure syntax"() {
         buildFile << '''
@@ -119,7 +118,6 @@ model {
 '''
 
         when:
-        expectTaskGetProjectDeprecations()
         fails "model"
 
         then:
@@ -146,7 +144,6 @@ model {
 '''
 
         when:
-        expectTaskGetProjectDeprecations()
         fails "model"
 
         then:
@@ -174,7 +171,6 @@ model {
 '''
 
         when:
-        expectTaskGetProjectDeprecations()
         fails "model"
 
         then:
@@ -201,7 +197,6 @@ model {
 '''
 
         when:
-        expectTaskGetProjectDeprecations()
         fails "model"
 
         then:
