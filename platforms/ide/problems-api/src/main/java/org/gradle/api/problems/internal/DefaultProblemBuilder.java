@@ -82,13 +82,6 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
 
     @Override
     public InternalProblem build() {
-        // id is mandatory
-        if (getId() == null) {
-            return invalidProblem("missing-id", "Problem id must be specified", null);
-        } else if (getId().getGroup() == null) {
-            return invalidProblem("missing-parent", "Problem id must have a parent", null);
-        }
-
         if (additionalData instanceof UnsupportedAdditionalDataSpec) {
             return invalidProblem("unsupported-additional-data", "Unsupported additional data type",
                 "Unsupported additional data type: " + ((UnsupportedAdditionalDataSpec) additionalData).getType().getName() +

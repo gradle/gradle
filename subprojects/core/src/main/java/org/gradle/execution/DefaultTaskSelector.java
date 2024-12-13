@@ -97,22 +97,27 @@ public class DefaultTaskSelector implements TaskSelector {
 
         if (context.getOriginalPath().getPath().equals(taskName)) {
             String message = matcher.formatErrorMessage("Task", searchContext);
-            throw getProblemsService().getInternalReporter().throwing(new TaskSelectionException(message), spec -> {
-                configureProblem(spec, matcher, context);
-                spec.contextualLabel(message);
+            throw getProblemsService().getInternalReporter().throwing(
+                new TaskSelectionException(message),
+                matcher.problemId(),
+                spec -> {
+                    configureProblem(spec, matcher, context);
+                    spec.contextualLabel(message);
             });
         }
         String message = String.format("Cannot locate %s that match '%s' as %s", context.getType(), context.getOriginalPath(),
             matcher.formatErrorMessage("task", searchContext));
 
-        throw getProblemsService().getInternalReporter().throwing(new TaskSelectionException(message) /* this instead of cause */, spec ->
-            configureProblem(spec, matcher, context)
-              .contextualLabel(message)
+        throw getProblemsService().getInternalReporter().throwing(
+            new TaskSelectionException(message), // this instead of cause
+            matcher.problemId(),
+            spec ->
+                configureProblem(spec, matcher, context)
+                    .contextualLabel(message)
         );
     }
 
     private static ProblemSpec configureProblem(ProblemSpec spec, NameMatcher matcher, SelectionContext context) {
-        matcher.configureProblemId(spec);
         ((InternalProblemSpec) spec).additionalData(GeneralDataSpec.class, data -> data.put("requestedPath", Objects.requireNonNull(context.getOriginalPath().getPath())));
         spec.severity(Severity.ERROR);
         return spec;

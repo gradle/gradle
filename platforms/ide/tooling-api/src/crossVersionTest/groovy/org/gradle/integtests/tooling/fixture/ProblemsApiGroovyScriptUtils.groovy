@@ -20,7 +20,7 @@ import org.gradle.util.GradleVersion
 
 class ProblemsApiGroovyScriptUtils {
 
-    static String report(GradleVersion targetVersion) {
+    static String report(GradleVersion targetVersion, String idName ='id', String idLabel = 'shortProblemMessage') {
         if (targetVersion < GradleVersion.version("8.6")) {
             'create'
         } else if (targetVersion < GradleVersion.version("8.12")) {
@@ -28,7 +28,7 @@ class ProblemsApiGroovyScriptUtils {
         } else if (targetVersion < GradleVersion.version("8.13")) {
             'getReporter().reporting '
         } else {
-            'getReporter().report '
+            "getReporter().report(${newIdInstance(idName, idLabel)})"
         }
     }
 
@@ -38,7 +38,11 @@ class ProblemsApiGroovyScriptUtils {
         } else if (targetVersion < GradleVersion.version("8.13")) {
             "id(\"$name\", \"$displayName\")"
         } else {
-            "id(org.gradle.api.problems.IdFactory.instance().createProblemId(\"$name\", \"$displayName\", org.gradle.api.problems.IdFactory.instance().createRootProblemGroup(\"generic\", \"Generic\")))"
+            "id(${newIdInstance(name, displayName)})"
         }
+    }
+
+    static String newIdInstance(String name = 'type', String displayName = 'label') {
+        "org.gradle.api.problems.IdFactory.instance().createProblemId(\"$name\", \"$displayName\", org.gradle.api.problems.IdFactory.instance().createRootProblemGroup(\"generic\", \"Generic\"))"
     }
 }

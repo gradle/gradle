@@ -52,10 +52,7 @@ class ValidationProblemSerializationTest extends Specification {
 
     def "can serialize and deserialize a validation problem"() {
         given:
-        def problem = problemReporter.create {
-            it.id(problemId)
-        }
-
+        def problem = problemReporter.create(problemId) {}
         when:
         def json = gson.toJson([problem])
         def deserialized = ValidationProblemSerialization.parseMessageList(json)
@@ -76,9 +73,8 @@ class ValidationProblemSerializationTest extends Specification {
 
     def "can serialize and deserialize a validation problem with a location"() {
         given:
-        def problem = problemReporter.create {
-            it.id(problemId)
-                .lineInFileLocation("location", 1, 2, 3)
+        def problem = problemReporter.create(problemId) {
+            it.lineInFileLocation("location", 1, 2, 3)
         }
 
         when:
@@ -98,9 +94,8 @@ class ValidationProblemSerializationTest extends Specification {
 
     def "can serialize and deserialize a validation problem with a documentation link"() {
         given:
-        def problem = problemReporter.create {
-            it.id(problemId)
-                .documentedAt(new TestDocLink())
+        def problem = problemReporter.create(problemId) {
+            it.documentedAt(new TestDocLink())
                 .lineInFileLocation("location", 1, 1)
         }
 
@@ -138,9 +133,8 @@ class ValidationProblemSerializationTest extends Specification {
 
     def "can serialize and deserialize a validation problem with a cause"() {
         given:
-        def problem = problemReporter.create {
-            it.id(problemId)
-                .withException(new RuntimeException("cause"))
+        def problem = problemReporter.create(problemId) {
+            it.withException(new RuntimeException("cause"))
         }
 
         when:
@@ -158,9 +152,8 @@ class ValidationProblemSerializationTest extends Specification {
 
     def "can serialize and deserialize a validation problem with a severity"(Severity severity) {
         given:
-        def problem = problemReporter.create {
-            it.id(problemId)
-                .severity(severity)
+        def problem = problemReporter.create(problemId) {
+            it.severity(severity)
         }
 
         when:
@@ -181,9 +174,8 @@ class ValidationProblemSerializationTest extends Specification {
 
     def "can serialize and deserialize a validation problem with a solution"() {
         given:
-        def problem = problemReporter.create {
-            it.id(problemId)
-                .solution("solution 0")
+        def problem = problemReporter.create(problemId) {
+            it.solution("solution 0")
                 .solution("solution 1")
         }
 
@@ -203,9 +195,8 @@ class ValidationProblemSerializationTest extends Specification {
 
     def "can serialize and deserialize a validation problem with additional data"() {
         given:
-        def problem = problemReporter.create {
-            it.id(problemId)
-                .additionalData(TypeValidationDataSpec.class) {
+        def problem = problemReporter.create(problemId) {
+            it.additionalData(TypeValidationDataSpec.class) {
                     it.propertyName("property")
                     it.typeName("type")
                     it.parentPropertyName("parent")
@@ -231,11 +222,10 @@ class ValidationProblemSerializationTest extends Specification {
 
     def "can serialize generic additional data"() {
         given:
-        def problem = problemReporter.create {
-            it.id(problemId)
-                .additionalData(GeneralDataSpec) {
-                    it.put('foo', 'bar')
-                }
+        def problem = problemReporter.create(problemId) {
+            it.additionalData(GeneralDataSpec) {
+                it.put('foo', 'bar')
+            }
         }
 
         when:
@@ -252,11 +242,10 @@ class ValidationProblemSerializationTest extends Specification {
 
     def "can serialize deprecation additional data"() {
         given:
-        def problem = problemReporter.create {
-            it.id(problemId)
-                .additionalData(DeprecationDataSpec) {
-                    it.type(DeprecationData.Type.BUILD_INVOCATION)
-                }
+        def problem = problemReporter.create(problemId) {
+            it.additionalData(DeprecationDataSpec) {
+                it.type(DeprecationData.Type.BUILD_INVOCATION)
+            }
         }
 
         when:

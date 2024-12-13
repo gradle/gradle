@@ -1,4 +1,5 @@
 /*
+/*
  * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -49,9 +50,9 @@ class InjectedProblemsTransformerIntegrationTest extends AbstractIntegrationSpec
                 protected abstract Problems getProblems();
 
                 public void apply(Project project) {
-                    getProblems().getReporter().report(builder ->
-                        builder.id(IdFactory.instance().createProblemId("type", "label", IdFactory.instance().createRootProblemGroup("generic", "Generic")))
-                    );
+                    getProblems().getReporter().report(
+                        IdFactory.instance().createProblemId("type", "label", IdFactory.instance().createRootProblemGroup("generic", "Generic")),
+                        builder -> {});
                     project.getTasks().register("reportProblem", t -> {
                         t.doLast(t2 -> {
 
