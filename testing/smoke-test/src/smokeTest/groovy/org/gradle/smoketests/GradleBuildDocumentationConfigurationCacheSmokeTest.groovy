@@ -56,7 +56,7 @@ class GradleBuildDocumentationConfigurationCacheSmokeTest extends AbstractGradle
         result.task(":docs:generateDocInfo").outcome == TaskOutcome.FROM_CACHE
         result.task(":docs:apiMapping").outcome == TaskOutcome.FROM_CACHE
         result.task(":docs:defaultImports").outcome == TaskOutcome.FROM_CACHE
-        result.task(":docs:checkDeadInternalLinks").outcome == TaskOutcome.FROM_CACHE
+        result.task(":docs:checkDeadInternalLinks").outcome == TaskOutcome.SUCCESS
         result.task(":docs:checkstyleApi").outcome == TaskOutcome.FROM_CACHE
         result.task(":docs:incubationReport").outcome == TaskOutcome.FROM_CACHE
     }

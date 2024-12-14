@@ -37,6 +37,7 @@ Instead, it will wait until no additional changes are detected for a certain per
 You can configure the quiet period in milliseconds by the Gradle property `<<build_environment.adoc#sec:gradle_configuration_properties,org.gradle.continuous.quietperiod>>`.
 
 == Terminating Continuous Build
+
 If Gradle is attached to an interactive input source, such as a terminal, the continuous build can be exited by pressing `CTRL-D` (On Microsoft Windows, it is required to also press `ENTER` or `RETURN` after `CTRL-D`).
 
 If Gradle is not attached to an interactive input source (e.g. is running as part of a script), the build process must be terminated (e.g. using the `kill` command or similar).
@@ -45,25 +46,30 @@ If the build is being executed via the Tooling API, the build can be cancelled u
 
 [[continuous_build_limitations]]
 == Limitations
+
 Under some circumstances, continuous build may not detect changes to inputs.
 
 [[sec:continuous_build_missing_files]]
 === Creating input directories
+
 Sometimes, creating an input directory that was previously missing does not trigger a build, due to the way file system watching works.
 For example, creating the `src/main/java` directory may not trigger a build.
 Similarly, if the input is a <<working_with_files.adoc#filtering_files,filtered file tree>> and no files are matching the filter, the creation of matching files may not trigger a build.
 
 [[sec:continuous_build_untracked]]
 === Inputs of untracked tasks
+
 Changes to the inputs of <<incremental_build.adoc#sec:disable-state-tracking,untracked tasks>> or tasks that have no outputs may not trigger a build.
 
 [[sec:continuous_build_project_dir]]
 === Changes to files outside of project directories
+
 Gradle only watches for changes to files inside the project directory.
 Changes to files outside the project directory will go undetected and not trigger a build.
 
 [[sec:build_cycles]]
 === Build cycles
+
 Gradle starts watching for changes just before a task executes.
 If a task modifies its own inputs while executing, Gradle will detect the change and trigger a new build.
 If every time the task executes, the inputs are modified again, the build will be triggered again.
@@ -74,3 +80,14 @@ If your build enters a build cycle like this, you can track down the task by loo
 After identifying the file(s) that are changed during each build, you should look for a task that has that file as an input.
 In some cases, it may be obvious (e.g., a Java file is compiled with `compileJava`).
 In other cases, you can use `--info` logging to find the task that is out-of-date due to the identified files.
+
+[[sec:changes_to_symbolic_links]]
+=== Changes to symbolic links
+
+In general, Gradle will not detect changes to symbolic links or to files referenced via symbolic links.
+
+[[sec:changes_to_build_logic_are_not_considered]]
+=== Changes to build logic are not considered
+
+The current implementation does not recalculate the build model on subsequent builds.
+This means that changes to task configuration, or any other change to the build model, are effectively ignored.
