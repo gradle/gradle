@@ -1335,28 +1335,28 @@ The value of this property is derived from: <source>""")
         }
 
         when:
-        operations.each {operation -> operation.call(property) }
+        operations.each { operation -> operation.call(property) }
 
         then:
         expected == null || property.getOrNull() == ImmutableMap.copyOf(expected)
         expected != null || !property.present
 
         where:
-        expected            | initial                   | operations                                            | label
-        [k1: "1"]           | { }                       | { it.put("k1", "1") }                                 | "put"
-        [k1: "1"]           | { }                       | { it.insert("k1", "1") }                              | "insert"
-        null                | { it.set(notDefined()) }  | { it.put("k1", "1") }                                 | "put to missing"
-        [k1: "1"]           | { it.set(notDefined()) }  | { it.insert("k1", "1") }                              | "insert to missing"
-        null                | { }                       | { it.put("k1", notDefined()) }                        | "put missing"
-        []                  | { }                       | { it.insert("k1", notDefined()) }                     | "insert missing"
-        [k1: "1"]           | { it.empty() }            | { it.put("k1", "1") }                                 | "put after emptying"
-        [k1: "1"]           | { it.empty() }            | { it.insert("k1", "1") }                              | "insert after emptying"
-        [k1: "1"]           | { it.set([:]) }           | { it.put("k1", "1") }                                 | "put to empty"
-        [k1: "1"]           | { it.set([:]) }           | { it.insert("k1", "1") }                              | "insert to empty"
-        [k2: "2"]           | { }                       | { it.put("k1", notDefined()) ; it.insert("k2", "2") } | "put missing then append"
-        [k2: "2"]           | { }                       | { it.insert("k1", notDefined()) ; it.put("k2", "2") } | "insert missing then add"
-        [k2: "2"]           | { it.set([k0: "0"]) }     | { it.put("k1", notDefined()) ; it.insert("k2", "2") } | "put missing to non-empty then append"
-        [k0: "0", k2: "2"]  | { it.set([k0: "0"]) }     | { it.insert("k1", notDefined()) ; it.put("k2", "2") } | "insert missing to non-empty then add"
+        expected           | initial                  | operations                                           | label
+        [k1: "1"]          | {}                       | { it.put("k1", "1") }                                | "put"
+        [k1: "1"]          | {}                       | { it.insert("k1", "1") }                             | "insert"
+        null               | { it.set(notDefined()) } | { it.put("k1", "1") }                                | "put to missing"
+        [k1: "1"]          | { it.set(notDefined()) } | { it.insert("k1", "1") }                             | "insert to missing"
+        null               | {}                       | { it.put("k1", notDefined()) }                       | "put missing"
+        []                 | {}                       | { it.insert("k1", notDefined()) }                    | "insert missing"
+        [k1: "1"]          | { it.empty() }           | { it.put("k1", "1") }                                | "put after emptying"
+        [k1: "1"]          | { it.empty() }           | { it.insert("k1", "1") }                             | "insert after emptying"
+        [k1: "1"]          | { it.set([:]) }          | { it.put("k1", "1") }                                | "put to empty"
+        [k1: "1"]          | { it.set([:]) }          | { it.insert("k1", "1") }                             | "insert to empty"
+        [k2: "2"]          | {}                       | { it.put("k1", notDefined()); it.insert("k2", "2") } | "put missing then append"
+        [k2: "2"]          | {}                       | { it.insert("k1", notDefined()); it.put("k2", "2") } | "insert missing then add"
+        [k2: "2"]          | { it.set([k0: "0"]) }    | { it.put("k1", notDefined()); it.insert("k2", "2") } | "put missing to non-empty then append"
+        [k0: "0", k2: "2"] | { it.set([k0: "0"]) }    | { it.insert("k1", notDefined()); it.put("k2", "2") } | "insert missing to non-empty then add"
     }
 
     def "inserting into an undefined property is undefined-safe"() {
@@ -1526,9 +1526,9 @@ The value of this property is derived from: <source>""")
         assertValueIs(result, property2)
 
         where:
-        value       | result
-        [b: "2"]    | [a: "1", b: "2", c: "3"]
-        null        | [a: "1", c: "3"]
+        value    | result
+        [b: "2"] | [a: "1", b: "2", c: "3"]
+        null     | [a: "1", c: "3"]
     }
 
     def "property remains undefined-safe after restored"() {
@@ -1893,16 +1893,16 @@ The value of this property is derived from: <source>""")
         @Override
         List<Consumer<ProviderInternal<?>>> throwingConsumers() {
             return super.throwingConsumers() + super.throwingConsumers().collectMany {
-                it != GET_PRODUCER ? combineWithExtraGetters(it) : []
+                combineWithExtraGetters(it)
             }
         }
 
         @Override
         List<? extends Consumer<ProviderInternal<?>>> safeConsumers() {
-            return super.safeConsumers() +
+            def safeConsumers = super.safeConsumers() + GET_PRODUCER
+            return safeConsumers +
                 extraMapPropertyProviderGetters() as List<Consumer<ProviderInternal<?>>> +
-                super.safeConsumers().collectMany { combineWithExtraGetters(it) } +
-                combineWithExtraGetters(GET_PRODUCER)
+                safeConsumers.collectMany { combineWithExtraGetters(it) }
         }
 
         private List<Consumer<ProviderInternal<?>>> combineWithExtraGetters(Consumer<ProviderInternal<?>> targetConsumer) {
