@@ -16,8 +16,6 @@
 
 package gradlebuild.samples
 
-import gradlebuild.basics.toLowerCase
-import gradlebuild.basics.toUpperCase
 import org.gradle.api.file.Directory
 import org.gradle.buildinit.plugins.internal.CompositeProjectInitDescriptor
 import org.gradle.buildinit.plugins.internal.InitSettings
@@ -166,10 +164,10 @@ Enter selection (default: Single application project) [1..2] 1
             .withTemplate(templateFolder.template("$templateFragment.adoc"))
             .withTarget(settings.target.file("../README.adoc").asFile)
             .withBinding("language", descriptor.language.toString().replace("C++", "{cpp}"))
-            .withBinding("languageLC", descriptor.language.getName().toLowerCase())
+            .withBinding("languageLC", descriptor.language.getName().lowercase())
             .withBinding("languageExtension", descriptor.language.extension)
             .withBinding("languageIndex", "" + (languages.indexOf(descriptor.language) + 1))
-            .withBinding("componentType", descriptor.componentType.name.toLowerCase())
+            .withBinding("componentType", descriptor.componentType.name.lowercase())
             .withBinding("componentTypeIndex", "" + (descriptor.componentType.ordinal + 1))
             .withBinding("packageNameChoice", packageNameChoice)
             .withBinding("applicationStructureChoice", applicationStructureChoice)
@@ -191,7 +189,7 @@ Enter selection (default: Single application project) [1..2] 1
     private
     fun generateOutput(templateFolder: Directory, templateFragment: String, settings: InitSettings, descriptor: CompositeProjectInitDescriptor, projectLayoutSetupRegistry: ProjectLayoutSetupRegistry) {
         val subprojectName = settings.subprojects.first()
-        val languageName = descriptor.language.getName().substring(0, 1).toUpperCase() + descriptor.language.getName().substring(1)
+        val languageName = descriptor.language.getName().substring(0, 1).uppercase() + descriptor.language.getName().substring(1)
         val extraCompileJava = if (descriptor.language != Language.JAVA) """
      > Task :$subprojectName:compileJava NO-SOURCE
 
