@@ -18,12 +18,6 @@ package gradlebuild.basics
 
 import java.util.Locale
 
-fun String.toLowerCase(): String =
-    lowercase(Locale.US)
-
-fun String.toUpperCase(): String =
-    uppercase(Locale.US)
-
 fun String.capitalize(): String =
     replaceFirstChar { it.uppercase(Locale.US) }
 
