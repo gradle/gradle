@@ -44,6 +44,7 @@ dependencies {
     implementation(libs.kotlinCompilerEmbeddable)
     implementation(libs.slf4jApi)
     implementation(libs.testcontainers)
+    implementation(libs.dockerJavaApi)
 
     compileOnly(libs.kotlinStdlib)
 
