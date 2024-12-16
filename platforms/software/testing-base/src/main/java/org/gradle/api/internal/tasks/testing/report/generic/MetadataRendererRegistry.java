@@ -19,75 +19,99 @@ package org.gradle.api.internal.tasks.testing.report.generic;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import org.gradle.api.file.RegularFile;
 import org.gradle.internal.html.SimpleHtmlWriter;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * A registry of {@link MetadataRenderer} instances, used to determing how to render custom HTML
+ * for a given type of test metadata when generating a test report.
+ */
 @ServiceScope(Scope.Global.class)
-public class MetadataRendererRegistry {
-    private final Set<MetadataRenderer<?>> renderers = new HashSet<>();
-    private final MetadataRenderer<Object> unknownTypeRenderer = new MetadataRenderer<Object>() {
-        @Override
-        public Class<Object> getMetadataType() {
-            return Object.class;
-        }
+public final class MetadataRendererRegistry {
+    private static final MetadataRenderer UNKNOWN_TYPE_RENDERER = new UnknownTypeRenderer();
 
-        @Override
-        public SimpleHtmlWriter render(Object metadata, SimpleHtmlWriter htmlWriter) throws IOException {
-            return (SimpleHtmlWriter) htmlWriter
-                .startElement("span").attribute("class", "unrenderable")
-                    .characters("[unrenderable type]")
-                .endElement();
-        }
-    };
-    private final LoadingCache<String, MetadataRenderer<?>> rendererLookupCache = CacheBuilder.newBuilder()
+    private final Set<MetadataRenderer> registeredRenderers = new HashSet<>();
+    private final LoadingCache<String, MetadataRenderer> rendererLookupCache = CacheBuilder.newBuilder()
         .maximumSize(100)
-        .build(new CacheLoader<String, MetadataRenderer<?>>() {
+        .build(new CacheLoader<String, MetadataRenderer>() {
             @Override
-            public MetadataRenderer<?> load(String metadataTypeName) {
+            public MetadataRenderer load(String metadataTypeName) {
                 return lookupRenderer(metadataTypeName);
             }
         });
 
     public MetadataRendererRegistry() {
-        registerRenderer(new StringMetadataRenderer());
-        registerRenderer(new NumberMetadataRenderer());
-        registerRenderer(new URIMetadataRenderer());
+        registerRenderer(new BasicRenderer());
+        registerRenderer(new ClickableLinkRenderer());
     }
 
-    public void registerRenderer(MetadataRenderer<?> metadataRenderer) {
-        renderers.add(metadataRenderer);
+    /**
+     * Registers a new {@link MetadataRenderer} instance with this registry.
+     * <p>
+     * The types returned by {@link MetadataRenderer#getMetadataTypes()} should not be assignable from any other
+     * types returned by the same method called on already registered renderers.
+     *
+     * @param metadataRenderer the renderer to register
+     */
+    public void registerRenderer(MetadataRenderer metadataRenderer) {
+        registeredRenderers.add(metadataRenderer);
     }
 
-    @SuppressWarnings("unchecked")
-    public <T> MetadataRenderer<T> getRenderer(String metadataTypeName) {
-        return (MetadataRenderer<T>) rendererLookupCache.getUnchecked(metadataTypeName);
+    /**
+     * Returns the {@link MetadataRenderer} instance that can render the given type of metadata.
+     *
+     * @param metadataTypeName the fully qualified name of the metadata type
+     * @return the renderer for the given type
+     */
+    public MetadataRenderer getRenderer(String metadataTypeName) {
+        return rendererLookupCache.getUnchecked(metadataTypeName);
     }
 
-    @SuppressWarnings("unchecked")
-    private <T> MetadataRenderer<T> lookupRenderer(String metadataTypeName) {
-        Class<T> type;
+    private MetadataRenderer lookupRenderer(String metadataTypeName) {
+        Class<?> type;
         try {
-            type = (Class<T>) Class.forName(metadataTypeName);
+            type = Class.forName(metadataTypeName);
         } catch (ClassNotFoundException e) {
-            return (MetadataRenderer<T>) unknownTypeRenderer;
+            return UNKNOWN_TYPE_RENDERER;
         }
 
-        return renderers.stream().filter(r -> r.getMetadataType().isAssignableFrom(type))
+        return registeredRenderers.stream()
+            .filter(r -> r.getMetadataTypes().stream().anyMatch(t -> t.isAssignableFrom(type)))
             .findFirst()
-            .map(r -> (MetadataRenderer<T>) r)
-            .orElse((MetadataRenderer<T>) unknownTypeRenderer);
+            .orElse(UNKNOWN_TYPE_RENDERER);
     }
 
-    public interface MetadataRenderer<T> {
+    /**
+     * Defines the contract for a renderer that can render specific types of test metadata.
+     */
+    public interface MetadataRenderer {
         int MAX_DISPLAYABLE_LENGTH = 100;
 
-        Class<T> getMetadataType();
+        /**
+         * Returns the types of metadata that this renderer can render.
+         *
+         * @return the handled types of metadata
+         */
+        Set<Class<?>> getMetadataTypes();
+
+        /**
+         * Renders the given metadata to the given {@link SimpleHtmlWriter}.
+         *
+         * @param metadata the metadata to render
+         * @param htmlWriter the writer to render the metadata to
+         * @return the given writer, for method chaining
+         * @throws IOException if an error occurs while writing to the writer
+         */
         SimpleHtmlWriter render(Object metadata, SimpleHtmlWriter htmlWriter) throws IOException;
 
         static String trimIfNecessary(String input) {
@@ -99,22 +123,25 @@ public class MetadataRendererRegistry {
         }
     }
 
-    public static final class StringMetadataRenderer implements MetadataRenderer<String> {
+    public static final class UnknownTypeRenderer implements MetadataRenderer {
         @Override
-        public Class<String> getMetadataType() {
-            return String.class;
+        public Set<Class<?>> getMetadataTypes() {
+            return Collections.singleton(Object.class);
         }
 
         @Override
         public SimpleHtmlWriter render(Object metadata, SimpleHtmlWriter htmlWriter) throws IOException {
-            return (SimpleHtmlWriter) htmlWriter.characters(MetadataRenderer.trimIfNecessary((String) metadata));
+            return (SimpleHtmlWriter) htmlWriter
+                .startElement("span").attribute("class", "unrenderable")
+                .characters("[unrenderable type]")
+                .endElement();
         }
-    }
+    };
 
-    public static final class NumberMetadataRenderer implements MetadataRenderer<Number> {
+    public static final class BasicRenderer implements MetadataRenderer {
         @Override
-        public Class<Number> getMetadataType() {
-            return Number.class;
+        public Set<Class<?>> getMetadataTypes() {
+            return new HashSet<>(Arrays.asList(String.class, Number.class, Boolean.class));
         }
 
         @Override
@@ -123,16 +150,33 @@ public class MetadataRendererRegistry {
         }
     }
 
-    public static final class URIMetadataRenderer implements MetadataRenderer<URI> {
+    public static final class ClickableLinkRenderer implements MetadataRenderer {
         @Override
-        public Class<URI> getMetadataType() {
-            return URI.class;
+        public Set<Class<?>> getMetadataTypes() {
+            return new HashSet<>(Arrays.asList(URI.class, File.class, RegularFile.class));
         }
 
         @Override
         public SimpleHtmlWriter render(Object metadata, SimpleHtmlWriter htmlWriter) throws IOException {
-            return (SimpleHtmlWriter) htmlWriter.startElement("a").attribute("href", metadata.toString())
-                .characters(MetadataRenderer.trimIfNecessary(metadata.toString()))
+            String text;
+            URI link;
+            if (metadata instanceof File) {
+                link = ((File) metadata).toURI();
+                text = ((File) metadata).getName();
+            } else if (metadata instanceof RegularFile) {
+                link = ((RegularFile) metadata).getAsFile().toURI();
+                text = ((RegularFile) metadata).getAsFile().getName();
+            } else {
+                link = (URI) metadata;
+                if (link.getScheme().equals("file")) {
+                    text = new File(link).getName();
+                } else {
+                    text = link.toString();
+                }
+            }
+
+            return (SimpleHtmlWriter) htmlWriter.startElement("a").attribute("href", link.toString())
+                .characters(MetadataRenderer.trimIfNecessary(text))
             .endElement();
         }
     }

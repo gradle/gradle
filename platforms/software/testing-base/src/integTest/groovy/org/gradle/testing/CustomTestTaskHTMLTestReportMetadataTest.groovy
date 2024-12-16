@@ -118,6 +118,9 @@ final class CustomTestTaskHTMLTestReportMetadataTest extends AbstractIntegration
         results.testPath(":failing suite:failing test")
             .assertMetadata(["stringKey": "This is a string",
                              "stringKey2": "This is another string",
+                             "booleanKey1": "true",
+                             "booleanKey2": "false",
+                             "fileKey": "<a href=\"file:${testDirectory.file('somefile.txt').absolutePath.replace(" ", "%20")}\">somefile.txt</a>".toString(),
                              "longStringKey": "This is a incredibly long string, and will be truncated: abcdefghijklmnopqrstuvwxyz abcdefghijklmnop...",
                              "intKey": "1",
                              "intKey2": "2",
@@ -237,6 +240,8 @@ final class CustomTestTaskHTMLTestReportMetadataTest extends AbstractIntegration
                             try (def myTest = mySuite.reportTest("${name} test", "failing test")) {
                                  myTest.started(java.time.Instant.now())
                                  myTest.metadata(Instant.now(), ['stringKey': 'This is a string', 'stringKey2': 'This is another string'])
+                                 myTest.metadata(Instant.now(), ['booleanKey1': true, 'booleanKey2': false])
+                                 myTest.metadata(Instant.now(), 'fileKey', layout.projectDirectory.file('somefile.txt'))
                                  myTest.metadata(Instant.now(), 'longStringKey', 'This is a incredibly long string, and will be truncated: abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz abcdefghijklmnopqrstuvwxyz')
                                  myTest.metadata(Instant.now(), ['intKey': 1, 'intKey2': 2])
                                  myTest.metadata(Instant.now(), 'longKey', 5000000000000000L)

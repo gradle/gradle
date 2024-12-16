@@ -360,7 +360,7 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
         }
 
         private SimpleHtmlWriter renderMetadataValue(SerializedMetadata.SerializedMetadataElement element, SimpleHtmlWriter htmlWriter) throws IOException {
-            MetadataRenderer<?> renderer = metadataRendererRegistry.getRenderer(element.getValueType());
+            MetadataRenderer renderer = metadataRendererRegistry.getRenderer(element.getValueType());
 
             try {
                 return renderer.render(element.getValue(), htmlWriter);
