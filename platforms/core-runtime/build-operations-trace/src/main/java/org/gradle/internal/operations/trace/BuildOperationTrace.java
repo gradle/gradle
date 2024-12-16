@@ -152,7 +152,7 @@ public class BuildOperationTrace implements Stoppable {
     private final String basePath;
 
     private final OutputStream logOutputStream;
-    private final ObjectMapper objectMapper = createObjectMapper();
+    private final ObjectMapper objectMapper;
     private final BuildOperationListenerManager buildOperationListenerManager;
 
     public BuildOperationTrace(StartParameter startParameter, BuildOperationListenerManager buildOperationListenerManager) {
@@ -164,8 +164,11 @@ public class BuildOperationTrace implements Stoppable {
             this.logOutputStream = null;
             this.outputTree = false;
             this.listener = null;
+            this.objectMapper = null;
             return;
         }
+
+        this.objectMapper = createObjectMapper();
 
         Set<String> filter = getFilter(internalOptions);
         if (filter != null) {
