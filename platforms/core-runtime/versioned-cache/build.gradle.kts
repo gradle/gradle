@@ -23,6 +23,7 @@ description = "Versioned Gradle caches"
 dependencies {
     api(projects.coreApi)
     api(projects.logging)
+    api(projects.persistentCache)
 
     implementation(libs.commonsIo)
 }
