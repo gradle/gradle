@@ -40,7 +40,7 @@ public class ListenerBroadcast<T> implements Dispatch<MethodInvocation> {
     @Nullable
     private ProxyDispatchAdapter<T> source;
 
-    private BroadcastDispatch<T> broadcast;
+    private volatile BroadcastDispatch<T> broadcast;
 
     public ListenerBroadcast(Class<T> type) {
         this.type = type;
