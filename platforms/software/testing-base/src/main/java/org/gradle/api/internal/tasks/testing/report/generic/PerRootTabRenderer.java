@@ -273,7 +273,7 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
 
         @Override
         protected void render(TestTreeModel.PerRootInfo info, SimpleHtmlWriter htmlWriter) throws IOException {
-            htmlWriter.startElement("div").attribute("id", "metadata");
+            htmlWriter.startElement("div").attribute("class", "metadata");
                 renderMetadataTable(info, htmlWriter);
             htmlWriter.endElement();
         }

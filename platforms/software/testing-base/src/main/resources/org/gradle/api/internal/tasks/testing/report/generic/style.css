@@ -83,24 +83,24 @@ ul.linkList li {
     margin-bottom: 5px;
 }
 
-#metadata tr.odd {
+.metadata tr.odd {
     background-color: #f7f7f7;
     border: solid 1px #d0d0d0;
 }
 
-#metadata tr.even {
+.metadata tr.even {
     border: solid 1px #d0d0d0;
 }
 
-#metadata th, #metadata td {
+.metadata th, .metadata td {
     padding: 10px;
     text-align: left;
 }
 
-#metadata a {
+.metadata a {
     color: blue;
 }
 
-#metadata .unrenderable {
+.metadata .unrenderable {
     color: darkred;
 }
