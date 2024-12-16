@@ -50,6 +50,65 @@ For more information, see the sections on <<dependency_configurations.adoc#sub:w
 +
 NOTE: The word "configuration" is an overloaded term that has a different meaning outside of dependency management.
 
+[[sub:cross_configuration]]
+Cross-Configuration ::
+See <<sub:cross_project_configuration,Cross-Project Configuration>>.
+
+[[sub:cross_project_configuration]]
+Cross-Project Configuration ::
+Cross-project configuration refers to managing and customizing multiple subprojects within a multi-project build.
++
+It allows you to define common settings, dependencies, and tasks in a shared `build.gradle(.kts)` or `settings.gradle.(kts)` file, typically located in the root project:
++
+[source,groovy]
+.build.gradle
+----
+subprojects {
+    apply plugin: 'java'
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        testImplementation 'junit:junit:4.13.2'
+    }
+}
+----
++
+Cross-project configuration usually breaks `Project Isolation` and `Parallel Projects` so you should use convention plugins or the proper APIs whenever possible:
++
+[source,groovy]
+.settings.gradle
+----
+gradle.lifecycle.beforeProject {
+    repositories {
+        mavenCentral()
+    }
+}
+----
++
+The following example of cross-project configuration should *always* be avoided:
++
+[source,groovy]
+.subprojectA/build.gradle
+----
+tasks.register("customTask") {
+    // Avoid this! Directly referencing a task or property from another subproject
+    dependsOn project(":subprojectB").tasks.named("someTask")
+}
+----
++
+[source,groovy]
+.subprojectB/build.gradle
+----
+tasks.register("someTask") {
+    doLast {
+        println("Task in subprojectB")
+    }
+}
+----
++
+This tightly couples `subprojectA` to `subprojectB`, breaking modularity and creating potential issues during parallel builds or configuration caching.
+
 == D
 
 [[sub:terminology_dependency]]
@@ -75,6 +134,10 @@ A feature variant is identified by one or more <<#sub:terminology_capability, ca
 For more information, see the sections on <<feature_variants.adoc#feature_variants, modeling feature variants, and optional dependencies>>.
 
 == G
+
+[[sub:gradle_build]]
+Gradle Build::
+A Gradle Build is one or more project(s) that use the Gradle Build Tool to compile, test, package, and deploy code. A Gradle Build should contain at least one Gradle build file and is executed using the `gradle` command, such as `gradle build`.
 
 == H
 
