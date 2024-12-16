@@ -18,6 +18,9 @@ package org.gradle.cache.internal
 
 import org.gradle.cache.CleanableStore
 import org.gradle.cache.CleanupProgressMonitor
+import org.gradle.internal.versionedcache.CacheVersionMapping
+import org.gradle.internal.versionedcache.UnusedVersionsCacheCleanup
+import org.gradle.internal.versionedcache.UsedGradleVersions
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider

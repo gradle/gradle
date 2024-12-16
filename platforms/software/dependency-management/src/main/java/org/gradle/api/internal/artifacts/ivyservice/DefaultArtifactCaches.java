@@ -24,7 +24,7 @@ import org.gradle.api.logging.Logging;
 import org.gradle.cache.CacheCleanupStrategyFactory;
 import org.gradle.cache.IndexedCache;
 import org.gradle.cache.UnscopedCacheBuilderFactory;
-import org.gradle.cache.internal.UsedGradleVersions;
+import org.gradle.internal.versionedcache.UsedGradleVersions;
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.internal.Factory;
 import org.gradle.internal.file.FileAccessTimeJournal;

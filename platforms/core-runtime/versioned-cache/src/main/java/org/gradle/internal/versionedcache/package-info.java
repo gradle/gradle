@@ -14,18 +14,7 @@
  * limitations under the License.
  */
 
-plugins {
-    id("gradlebuild.distribution.implementation-java")
-}
+@NonNullApi
+package org.gradle.internal.versionedcache;
 
-description = "Versioned Gradle caches"
-
-dependencies {
-    api(projects.coreApi)
-    api(projects.logging)
-    api(projects.persistentCache)
-
-    implementation(projects.stdlibJavaExtensions)
-
-    implementation(libs.commonsIo)
-}
+import org.gradle.api.NonNullApi;

@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.cache.internal;
+package org.gradle.internal.versionedcache;
 
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
+import org.gradle.cache.internal.CacheVersion;
 import org.gradle.util.GradleVersion;
 
 import java.util.Map;

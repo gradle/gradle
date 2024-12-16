@@ -16,7 +16,7 @@
 
 package org.gradle.cache.internal
 
-
+import org.gradle.internal.versionedcache.CacheVersionMapping
 import org.gradle.util.internal.DefaultGradleVersion
 import spock.lang.Specification
 

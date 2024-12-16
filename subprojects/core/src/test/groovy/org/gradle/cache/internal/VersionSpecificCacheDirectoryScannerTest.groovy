@@ -17,6 +17,8 @@
 package org.gradle.cache.internal
 
 import org.gradle.cache.internal.scopes.DefaultCacheScopeMapping
+import org.gradle.internal.versionedcache.VersionSpecificCacheDirectory
+import org.gradle.internal.versionedcache.VersionSpecificCacheDirectoryScanner
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -47,9 +49,9 @@ class VersionSpecificCacheDirectoryScannerTest extends Specification {
 
         then:
         directories as List == [
-            new VersionSpecificCacheDirectory(cacheBaseDir.file("0.9-20101220110000+1100"), GradleVersion.version("0.9-20101220110000+1100")),
-            new VersionSpecificCacheDirectory(cacheBaseDir.file("1.2.3-rc-1"), GradleVersion.version("1.2.3-rc-1")),
-            new VersionSpecificCacheDirectory(cacheBaseDir.file("2.3.4"), GradleVersion.version("2.3.4"))
+                new VersionSpecificCacheDirectory(cacheBaseDir.file("0.9-20101220110000+1100"), GradleVersion.version("0.9-20101220110000+1100")),
+                new VersionSpecificCacheDirectory(cacheBaseDir.file("1.2.3-rc-1"), GradleVersion.version("1.2.3-rc-1")),
+                new VersionSpecificCacheDirectory(cacheBaseDir.file("2.3.4"), GradleVersion.version("2.3.4"))
         ]
     }
 
