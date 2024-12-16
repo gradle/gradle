@@ -70,6 +70,7 @@ dependencies {
     api(projects.serviceProvider)
     api(projects.snapshots)
     api(projects.stdlibJavaExtensions)
+    api(projects.versionedCache)
 
     api(libs.bouncycastlePgp)
     api(libs.groovy)

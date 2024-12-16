@@ -21,4 +21,5 @@ plugins {
 description = "Versioned Gradle caches"
 
 dependencies {
+    api(projects.logging)
 }
