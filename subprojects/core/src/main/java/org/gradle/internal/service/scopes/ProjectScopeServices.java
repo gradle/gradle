@@ -18,6 +18,7 @@ package org.gradle.internal.service.scopes;
 
 import org.gradle.api.AntBuilder;
 import org.gradle.api.component.SoftwareComponentContainer;
+import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.ExternalProcessStartedListener;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
@@ -128,20 +129,16 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
             .scope(Scope.Project.class)
             .displayName("project services")
             .parent(buildServices)
-            .provider(new ProjectScopeServices(buildLayout.getSettingsDir(), project.getProjectDir(), project, loggingManagerInternalFactory))
+            .provider(new ProjectScopeServices(project, loggingManagerInternalFactory))
             .provider(new WorkerSharedProjectScopeServices(project.getProjectDir()))
             .build();
     }
 
-    private final File settingsDir;
-    private final File projectDir;
     private final ProjectInternal project;
     private final Factory<LoggingManagerInternal> loggingManagerInternalFactory;
 
 
-    public ProjectScopeServices(File settingsDir, File projectDir, ProjectInternal project, Factory<LoggingManagerInternal> loggingManagerInternalFactory) {
-        this.settingsDir = settingsDir;
-        this.projectDir = projectDir;
+    public ProjectScopeServices(ProjectInternal project, Factory<LoggingManagerInternal> loggingManagerInternalFactory) {
         this.project = project;
         this.loggingManagerInternalFactory = loggingManagerInternalFactory;
     }
@@ -391,6 +388,9 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
     @Provides
     DefaultProjectLayout createProjectLayout(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, TaskDependencyFactory taskDependencyFactory,
                                              FilePropertyFactory filePropertyFactory, Factory<PatternSet> patternSetFactory, PropertyHost propertyHost, FileFactory fileFactory) {
+        ProjectLayout projectLayout = project.getLayout();
+        File settingsDir = projectLayout.getSettingsDirectory().getAsFile();
+        File projectDir = projectLayout.getProjectDirectory().getAsFile();
         return new DefaultProjectLayout(settingsDir, projectDir, fileResolver, taskDependencyFactory, patternSetFactory, propertyHost, fileCollectionFactory, filePropertyFactory, fileFactory);
     }
 }
