@@ -121,6 +121,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "toolchains-jvm-shared",
         "tooling-api",
         "tooling-api-provider",
+        "versioned-cache",
         "worker-main",
         "wrapper-shared",
     ]
