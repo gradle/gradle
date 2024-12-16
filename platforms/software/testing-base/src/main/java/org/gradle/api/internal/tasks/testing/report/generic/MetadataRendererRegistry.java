@@ -23,6 +23,7 @@ import org.gradle.api.file.RegularFile;
 import org.gradle.internal.html.SimpleHtmlWriter;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.gradle.util.internal.TextUtil;
 
 import java.io.File;
 import java.io.IOException;
@@ -159,23 +160,24 @@ public final class MetadataRendererRegistry {
         @Override
         public SimpleHtmlWriter render(Object metadata, SimpleHtmlWriter htmlWriter) throws IOException {
             String text;
-            URI link;
+            String link;
             if (metadata instanceof File) {
-                link = ((File) metadata).toURI();
+                link = TextUtil.normaliseFileSeparators(((File) metadata).toURI().toString());
                 text = ((File) metadata).getName();
             } else if (metadata instanceof RegularFile) {
-                link = ((RegularFile) metadata).getAsFile().toURI();
+                link = TextUtil.normaliseFileSeparators(((RegularFile) metadata).getAsFile().toURI().toString());
                 text = ((RegularFile) metadata).getAsFile().getName();
             } else {
-                link = (URI) metadata;
-                if (link.getScheme().equals("file")) {
-                    text = new File(link).getName();
+                if (((URI) metadata).getScheme().equals("file")) {
+                    link = TextUtil.normaliseFileSeparators(metadata.toString());
+                    text = new File((URI) metadata).getName();
                 } else {
-                    text = link.toString();
+                    link = metadata.toString();
+                    text = metadata.toString();
                 }
             }
 
-            return (SimpleHtmlWriter) htmlWriter.startElement("a").attribute("href", link.toString())
+            return (SimpleHtmlWriter) htmlWriter.startElement("a").attribute("href", link)
                 .characters(MetadataRenderer.trimIfNecessary(text))
             .endElement();
         }
