@@ -362,7 +362,6 @@ int main (int argc, char *argv[]) {
             }
 """
         when:
-        expectTaskGetProjectDeprecations()
         succeeds "model"
 
         then:

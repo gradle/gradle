@@ -18,11 +18,10 @@ package org.gradle.language.base
 
 import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.StableConfigurationCacheDeprecations
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 
 @UnsupportedWithConfigurationCache(because = "software model")
-class CustomBinaryTasksIntegrationTest extends AbstractIntegrationSpec implements StableConfigurationCacheDeprecations {
+class CustomBinaryTasksIntegrationTest extends AbstractIntegrationSpec {
 
     def "setup"() {
         buildFile << """
@@ -90,7 +89,6 @@ class CustomBinaryTasksIntegrationTest extends AbstractIntegrationSpec implement
 '''
 
         when:
-        expectTaskGetProjectDeprecations()
         run "model"
 
         then:

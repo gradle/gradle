@@ -411,7 +411,6 @@ model {
             }
         '''
         then:
-        expectTaskGetProjectDeprecations()
         succeeds 'components'
 
     }

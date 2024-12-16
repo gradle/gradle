@@ -17,11 +17,10 @@
 package org.gradle.language.base
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.StableConfigurationCacheDeprecations
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 
 @UnsupportedWithConfigurationCache(because = "software model")
-class CustomBinaryIntegrationTest extends AbstractIntegrationSpec implements StableConfigurationCacheDeprecations {
+class CustomBinaryIntegrationTest extends AbstractIntegrationSpec {
     def "setup"() {
         buildFile << """
 @Managed interface SampleBinary extends BinarySpec {
@@ -315,7 +314,6 @@ model {
         buildWithCustomBinaryPlugin()
         when:
         executer.withArgument("--no-problems-report")
-        expectTaskGetProjectDeprecations()
         succeeds "components"
         then:
         output.contains """

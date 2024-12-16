@@ -17,13 +17,12 @@
 package org.gradle.model.dsl
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.StableConfigurationCacheDeprecations
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 
 @UnsupportedWithConfigurationCache(because = "software model")
-class ModelMapDslIntegrationTest extends AbstractIntegrationSpec implements StableConfigurationCacheDeprecations {
+class ModelMapDslIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         buildFile << '''
 @Managed
@@ -257,7 +256,6 @@ model {
 }
 '''
         expect:
-        expectTaskGetProjectDeprecations()
         fails "model"
         failure.assertHasLineNumber(18)
         failure.assertHasCause('Exception thrown while executing model rule: create(main) { ... } @ build.gradle line 17, column 9')
@@ -294,7 +292,6 @@ model {
 }
 '''
         expect:
-        expectTaskGetProjectDeprecations()
         succeeds "model"
     }
 
@@ -313,7 +310,6 @@ model {
 }
 '''
         expect:
-        expectTaskGetProjectDeprecations()
         succeeds "model"
     }
 
@@ -396,7 +392,6 @@ model {
 '''
 
         expect:
-        expectTaskGetProjectDeprecations()
         fails 'model'
         failure.assertHasCause('Exception thrown while executing model rule: main(Thing) { ... } @ build.gradle line 17, column 9')
         failure.assertHasCause('No such property: unknown for class: Thing')
@@ -415,7 +410,6 @@ model {
 '''
 
         expect:
-        expectTaskGetProjectDeprecations()
         fails 'model'
         failure.assertHasCause('Exception thrown while executing model rule: main { ... } @ build.gradle line 17, column 9')
         failure.assertHasCause('No such property: unknown for class: Thing')
@@ -434,7 +428,6 @@ model {
 '''
 
         expect:
-        expectTaskGetProjectDeprecations()
         fails 'model'
         failure.assertHasCause('Exception thrown while executing model rule: all { ... } @ build.gradle line 17, column 9')
         failure.assertHasCause('No such property: unknown for class: Thing')
@@ -453,7 +446,6 @@ model {
 '''
 
         expect:
-        expectTaskGetProjectDeprecations()
         fails 'model'
         failure.assertHasCause('Exception thrown while executing model rule: withType(Thing) { ... } @ build.gradle line 17, column 9')
         failure.assertHasCause('No such property: unknown for class: Thing')
@@ -472,7 +464,6 @@ model {
 '''
 
         expect:
-        expectTaskGetProjectDeprecations()
         fails 'model'
         failure.assertHasCause('Exception thrown while executing model rule: beforeEach(Thing) { ... } @ build.gradle line 17, column 9')
         failure.assertHasCause('No such property: unknown for class: Thing')
@@ -491,7 +482,6 @@ model {
 '''
 
         expect:
-        expectTaskGetProjectDeprecations()
         fails 'model'
         failure.assertHasCause('Exception thrown while executing model rule: afterEach(Thing) { ... } @ build.gradle line 17, column 9')
         failure.assertHasCause('No such property: unknown for class: Thing')

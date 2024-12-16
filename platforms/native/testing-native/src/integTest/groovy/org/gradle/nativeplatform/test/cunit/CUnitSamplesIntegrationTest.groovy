@@ -45,7 +45,6 @@ class CUnitSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationS
         sample cunit
 
         when:
-        expectTaskGetProjectDeprecations()
         succeeds "components"
 
         then:

@@ -126,7 +126,7 @@ For instance, this wil *not* be allowed:
 [[task_project]]
 ==== Calling `Task.getProject()` from a task action
 
-Calling link:{javadocPath}/org/gradle/api/Task.html#getProject--[Task.getProject()] from a task action at execution time is now deprecated and will be made an error in Gradle 9.0.
+Calling link:{javadocPath}/org/gradle/api/Task.html#getProject--[Task.getProject()] from a task action at execution time is now deprecated and will be made an error in Gradle 10.0.
 This method can still be used during configuration time.
 
 The deprecation is only issued if the configuration cache is **not** enabled.
