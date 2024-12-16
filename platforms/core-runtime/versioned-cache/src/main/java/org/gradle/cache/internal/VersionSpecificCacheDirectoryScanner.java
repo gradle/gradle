@@ -59,7 +59,7 @@ public class VersionSpecificCacheDirectoryScanner {
     }
 
     private Collection<File> listVersionSpecificCacheDirs() {
-        FileFilter combinedFilter = FileFilterUtils.and(directoryFileFilter(), new RegexFileFilter("^\\d.*"));
+        FileFilter combinedFilter = FileFilterUtils.and(FileFilterUtils.directoryFileFilter(), new RegexFileFilter("^\\d.*"));
         File[] result = baseDir.listFiles(combinedFilter);
         return result == null ? Collections.<File>emptySet() : Arrays.asList(result);
     }

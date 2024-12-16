@@ -21,5 +21,8 @@ plugins {
 description = "Versioned Gradle caches"
 
 dependencies {
+    api(projects.coreApi)
     api(projects.logging)
+
+    implementation(libs.commonsIo)
 }
