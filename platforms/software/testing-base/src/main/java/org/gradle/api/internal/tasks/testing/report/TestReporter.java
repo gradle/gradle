@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.tasks.testing.report;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider;
 
 import java.io.File;
@@ -24,10 +25,11 @@ import java.io.File;
  * <p>
  * <strong>This is an internal API</strong>
  * <p>
- * This interface is currently implemented & required by cashapp/paparazzi
+ * This interface is currently implemented and required by cashapp/paparazzi
  *
  * @see <a href="https://github.com/cashapp/paparazzi/blob/bf86c4f0ffe3da60cf1e0b4988c32e1c027f07a3/paparazzi-gradle-plugin/src/main/java/app/cash/paparazzi/gradle/PaparazziPlugin.kt#L290C40-L296">link</a>
  */
+@NonNullApi
 public interface TestReporter {
     void generateReport(TestResultsProvider testResultsProvider, File reportDir);
 }
