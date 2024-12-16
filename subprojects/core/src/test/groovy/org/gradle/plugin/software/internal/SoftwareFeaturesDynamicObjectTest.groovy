@@ -16,7 +16,9 @@
 
 package org.gradle.plugin.software.internal
 
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.ExtensionAware
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class SoftwareFeaturesDynamicObjectTest extends Specification {
@@ -24,7 +26,15 @@ class SoftwareFeaturesDynamicObjectTest extends Specification {
     def softwareFeatureApplicator = Mock(SoftwareFeatureApplicator)
     def extensionAware = Mock(ExtensionAware)
     def softwareTypeImplementation = Mock(SoftwareTypeImplementation)
-    def softwareFeaturesDynamicObject = new SoftwareFeaturesDynamicObject(softwareTypeRegistry, softwareFeatureApplicator, extensionAware)
+    def softwareFeaturesDynamicObject
+
+    def setup() {
+        def services = TestUtil.createTestServices {
+            it.add(SoftwareTypeRegistry, softwareTypeRegistry)
+            it.add(SoftwareFeatureApplicator, softwareFeatureApplicator)
+        }
+        softwareFeaturesDynamicObject = services.get(ObjectFactory.class).newInstance(SoftwareFeaturesDynamicObject, extensionAware)
+    }
 
     def "applies software feature when configured"() {
         def foo = new Foo()
