@@ -101,6 +101,10 @@
          <trusted-key id="1FA868A348719E88B6D0DE24C03EF1D7D692BCFF" group="org.scala-lang"/>
          <trusted-key id="21F0942275EA159A501D375328852008A47BB995" group="^com[.]google($|([.].*))" regex="true"/>
          <trusted-key id="253E8E4C6FB28D11748115C1249DEE8E2C07A0A2" group="com.github.javaparser"/>
+         <trusted-key id="2655176F748FD83725B4805FF2A01147D830C125">
+            <trusting group="com.github.docker-java"/>
+            <trusting group="org.testcontainers"/>
+         </trusted-key>
          <trusted-key id="28118C070CB22A0175A2E8D43D12CA2AC19F3181">
             <trusting group="com.fasterxml.jackson.core"/>
             <trusting group="com.fasterxml.woodstox"/>
