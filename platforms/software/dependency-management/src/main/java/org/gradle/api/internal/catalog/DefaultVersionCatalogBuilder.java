@@ -281,6 +281,13 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
     }
 
     @Override
+    public void fromDefault(Object dependencyNotation) {
+        if (importedCatalog == null) {
+            this.from(dependencyNotation);
+        }
+    }
+
+    @Override
     public void from(Object dependencyNotation) {
         if (importedCatalog == null) {
             importedCatalog = new Import(dependencyNotation);
