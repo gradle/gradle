@@ -17,13 +17,16 @@
 package org.gradle.process.internal;
 
 import org.gradle.process.BaseExecSpec;
+import org.gradle.process.ExecSpec;
+import org.jspecify.annotations.NullMarked;
 
 /**
- * Configures a {@link BaseExecHandleBuilder} from a {@link BaseExecSpec}.
+ * Configures exec handle builders from spec objects that live in core-api.
  *
- * This logic can't live as a default method on {@link BaseExecHandleBuilder} because that interface
- * is in process-services-base which doesn't depend on core-api where {@link BaseExecSpec} lives.
+ * This logic can't live as default methods on the builder interfaces because those interfaces
+ * are in process-services-base which doesn't depend on core-api where the spec types live.
  */
+@NullMarked
 public class ExecHandleBuilderConfigurer {
 
     public static <T extends BaseExecHandleBuilder> T configureFrom(T builder, BaseExecSpec spec) {
@@ -43,6 +46,13 @@ public class ExecHandleBuilderConfigurer {
             builder.setWorkingDir(spec.getWorkingDir().get().getAsFile());
         }
         builder.setEnvironment(spec.getEnvironment().get());
+        return builder;
+    }
+
+    public static ClientExecHandleBuilder configureFrom(ClientExecHandleBuilder builder, ExecSpec execSpec) {
+        configureFrom(builder, (BaseExecSpec) execSpec);
+        builder.setArgs(execSpec.getArgs().get());
+        builder.setArgumentProviders(execSpec.getArgumentProviders().get());
         return builder;
     }
 }
