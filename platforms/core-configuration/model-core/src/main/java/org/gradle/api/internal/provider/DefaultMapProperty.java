@@ -579,7 +579,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         public Value<? extends Set<K>> calculateKeys(ValueConsumer consumer) {
             return calculateValue(
                 (builder, collector) -> collector.collectKeys(consumer, keyCollector, builder),
-                ImmutableSet::builder,
+                ImmutableSet.builder(),
                 (Function<ImmutableSet.Builder<K>, Set<K>>) builder -> ImmutableSet.copyOf(builder.build())
             );
         }
@@ -592,7 +592,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
                 // Cannot use ImmutableMap.Builder here, as it does not allow multiple entries with the same key, however the contract
                 // for MapProperty allows a provider to override the entries of earlier providers and so there can be multiple entries
                 // with the same key
-                LinkedHashMap::new,
+                new LinkedHashMap<>(),
                 (Function<LinkedHashMap<K, V>, Map<K, V>>) ImmutableMap::copyOf
             );
         }

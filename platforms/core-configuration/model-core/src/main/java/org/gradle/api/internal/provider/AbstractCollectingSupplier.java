@@ -29,7 +29,6 @@ import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -93,10 +92,9 @@ public abstract class AbstractCollectingSupplier<COLLECTOR extends ValueSupplier
 
     protected <ENTRIES, BUILDER> Value<ENTRIES> calculateValue(
         BiFunction<BUILDER, COLLECTOR, Value<Void>> collectEntriesForCollector,
-        Supplier<BUILDER> supplyBuilder,
+        BUILDER builder,
         Function<BUILDER, ENTRIES> buildEntries
     ) {
-        final BUILDER builder = supplyBuilder.get();
         Value<Void> compositeResult = Value.present();
         for (COLLECTOR collector : getCollectors()) {
             if (compositeResult.isMissing()) {

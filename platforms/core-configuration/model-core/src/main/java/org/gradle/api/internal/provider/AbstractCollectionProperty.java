@@ -511,7 +511,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
             // TODO - don't make a copy when the collector already produces an immutable collection
             return calculateValue(
                 (builder, collector) -> collector.collectEntries(consumer, valueCollector, builder),
-                collectionFactory,
+                collectionFactory.get(),
                 builder -> Cast.uncheckedNonnullCast(builder.build())
             );
         }
