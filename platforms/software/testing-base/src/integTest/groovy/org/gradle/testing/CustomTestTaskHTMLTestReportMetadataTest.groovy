@@ -18,6 +18,7 @@ package org.gradle.testing
 
 import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.util.internal.TextUtil
 
 /**
@@ -347,7 +348,7 @@ final class CustomTestTaskHTMLTestReportMetadataTest extends AbstractIntegration
     }
 
     private String normalizePath(String relativePath) {
-        boolean isWindows = System.getProperty("os.name").toLowerCase().contains("windows")
+        boolean isWindows = OperatingSystem.current() == OperatingSystem.WINDOWS
         return (isWindows ? "/" : "") + TextUtil.normaliseFileSeparators(testDirectory.file(relativePath).absolutePath.replace(" ", "%20"))
     }
 }

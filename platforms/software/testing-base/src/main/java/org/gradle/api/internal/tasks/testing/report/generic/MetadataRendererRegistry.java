@@ -19,16 +19,15 @@ package org.gradle.api.internal.tasks.testing.report.generic;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.file.RegularFile;
 import org.gradle.internal.html.SimpleHtmlWriter;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-import org.gradle.util.internal.TextUtil;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -47,7 +46,17 @@ public final class MetadataRendererRegistry {
         .build(new CacheLoader<String, MetadataRenderer>() {
             @Override
             public MetadataRenderer load(String metadataTypeName) {
-                return lookupRenderer(metadataTypeName);
+                Class<?> type;
+                try {
+                    type = Class.forName(metadataTypeName);
+                } catch (ClassNotFoundException e) {
+                    return UNKNOWN_TYPE_RENDERER;
+                }
+
+                return registeredRenderers.stream()
+                    .filter(r -> r.getMetadataTypes().stream().anyMatch(t -> t.isAssignableFrom(type)))
+                    .findFirst()
+                    .orElse(UNKNOWN_TYPE_RENDERER);
             }
         });
 
@@ -76,20 +85,6 @@ public final class MetadataRendererRegistry {
      */
     public MetadataRenderer getRenderer(String metadataTypeName) {
         return rendererLookupCache.getUnchecked(metadataTypeName);
-    }
-
-    private MetadataRenderer lookupRenderer(String metadataTypeName) {
-        Class<?> type;
-        try {
-            type = Class.forName(metadataTypeName);
-        } catch (ClassNotFoundException e) {
-            return UNKNOWN_TYPE_RENDERER;
-        }
-
-        return registeredRenderers.stream()
-            .filter(r -> r.getMetadataTypes().stream().anyMatch(t -> t.isAssignableFrom(type)))
-            .findFirst()
-            .orElse(UNKNOWN_TYPE_RENDERER);
     }
 
     /**
@@ -140,9 +135,11 @@ public final class MetadataRendererRegistry {
     };
 
     public static final class BasicRenderer implements MetadataRenderer {
+        private final Set<Class<?>> metadataTypes = ImmutableSet.of(String.class, Number.class, Boolean.class);
+
         @Override
         public Set<Class<?>> getMetadataTypes() {
-            return new HashSet<>(Arrays.asList(String.class, Number.class, Boolean.class));
+            return metadataTypes;
         }
 
         @Override
@@ -152,9 +149,11 @@ public final class MetadataRendererRegistry {
     }
 
     public static final class ClickableLinkRenderer implements MetadataRenderer {
+        private final Set<Class<?>> metadataTypes = ImmutableSet.of(URI.class, File.class, RegularFile.class);
+
         @Override
         public Set<Class<?>> getMetadataTypes() {
-            return new HashSet<>(Arrays.asList(URI.class, File.class, RegularFile.class));
+            return metadataTypes;
         }
 
         @Override
@@ -162,14 +161,14 @@ public final class MetadataRendererRegistry {
             String text;
             String link;
             if (metadata instanceof File) {
-                link = TextUtil.normaliseFileSeparators(((File) metadata).toURI().toString());
+                link = ((File) metadata).toURI().toASCIIString();
                 text = ((File) metadata).getName();
             } else if (metadata instanceof RegularFile) {
-                link = TextUtil.normaliseFileSeparators(((RegularFile) metadata).getAsFile().toURI().toString());
+                link = ((RegularFile) metadata).getAsFile().toURI().toASCIIString();
                 text = ((RegularFile) metadata).getAsFile().getName();
             } else {
                 if (((URI) metadata).getScheme().equals("file")) {
-                    link = TextUtil.normaliseFileSeparators(metadata.toString());
+                    link = metadata.toString();
                     text = new File((URI) metadata).getName();
                 } else {
                     link = metadata.toString();
