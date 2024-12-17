@@ -15,10 +15,10 @@
  */
 package org.gradle.api.tasks;
 
+import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.internal.instrumentation.api.annotations.BytecodeUpgrade;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.work.DisableCachingByDefault;
 
 import java.io.InputStream;
@@ -57,27 +57,10 @@ public abstract class Exec extends AbstractExecTask<Exec> {
      * {@inheritDoc}
      */
     @Override
-    @ToBeReplacedByLazyProperty
-    public List<String> getArgs() {
+    @ReplacesEagerProperty(adapter = Exec.ArgsAdapter.class)
+    public ListProperty<String> getArgs() {
         return super.getArgs();
     }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Exec setArgs(List<String> arguments) {
-        return super.setArgs(arguments);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Exec setArgs(Iterable<?> arguments) {
-        return super.setArgs(arguments);
-    }
-
 
     /**
      * {@inheritDoc}
@@ -122,6 +105,22 @@ public abstract class Exec extends AbstractExecTask<Exec> {
         @BytecodeUpgrade
         static Exec setIgnoreExitValue(Exec self, boolean value) {
             self.getIgnoreExitValue().set(value);
+            return self;
+        }
+    }
+
+    /**
+     * No need to upgrade getter since it's already upgraded via ExecSpec
+     */
+    static class ArgsAdapter {
+        @BytecodeUpgrade
+        static Exec setArgs(Exec self, List<String> args) {
+            return setArgs(self, (Iterable<?>) args);
+        }
+
+        @BytecodeUpgrade
+        static Exec setArgs(Exec self, Iterable<?> args) {
+            AbstractExecTask.ArgsAdapter.setArgs(self, args);
             return self;
         }
     }

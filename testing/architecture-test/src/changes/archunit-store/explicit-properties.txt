@@ -26,6 +26,9 @@ Method <org.gradle.api.reporting.GenerateBuildDashboard.getInputReports()> is no
 Method <org.gradle.api.tasks.AbstractCopyTask.getDirPermissions()> is not abstract
 Method <org.gradle.api.tasks.AbstractCopyTask.getFilePermissions()> is not abstract
 Method <org.gradle.api.tasks.AbstractCopyTask.getSource()> is not abstract
+Method <org.gradle.api.tasks.AbstractExecTask.getArgs()> is not abstract
+Method <org.gradle.api.tasks.AbstractExecTask.getArgumentProviders()> is not abstract
+Method <org.gradle.api.tasks.AbstractExecTask.getCommandLine()> is not abstract
 Method <org.gradle.api.tasks.AbstractExecTask.getEnvironment()> is not abstract
 Method <org.gradle.api.tasks.AbstractExecTask.getErrorOutput()> is not abstract
 Method <org.gradle.api.tasks.AbstractExecTask.getExecutable()> is not abstract
@@ -35,6 +38,7 @@ Method <org.gradle.api.tasks.AbstractExecTask.getIsIgnoreExitValue()> is not abs
 Method <org.gradle.api.tasks.AbstractExecTask.getStandardInput()> is not abstract
 Method <org.gradle.api.tasks.AbstractExecTask.getStandardOutput()> is not abstract
 Method <org.gradle.api.tasks.AbstractExecTask.getWorkingDir()> is not abstract
+Method <org.gradle.api.tasks.Exec.getArgs()> is not abstract
 Method <org.gradle.api.tasks.Exec.getErrorOutput()> is not abstract
 Method <org.gradle.api.tasks.Exec.getIgnoreExitValue()> is not abstract
 Method <org.gradle.api.tasks.Exec.getStandardInput()> is not abstract
@@ -42,6 +46,7 @@ Method <org.gradle.api.tasks.Exec.getStandardOutput()> is not abstract
 Method <org.gradle.api.tasks.JavaExec.getAllJvmArgs()> is not abstract
 Method <org.gradle.api.tasks.JavaExec.getBootstrapClasspath()> is not abstract
 Method <org.gradle.api.tasks.JavaExec.getClasspath()> is not abstract
+Method <org.gradle.api.tasks.JavaExec.getCommandLine()> is not abstract
 Method <org.gradle.api.tasks.JavaExec.getDebug()> is not abstract
 Method <org.gradle.api.tasks.JavaExec.getDefaultCharacterEncoding()> is not abstract
 Method <org.gradle.api.tasks.JavaExec.getEnableAssertions()> is not abstract
