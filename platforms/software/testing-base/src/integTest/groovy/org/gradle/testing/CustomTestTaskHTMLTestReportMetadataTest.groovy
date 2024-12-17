@@ -121,7 +121,7 @@ final class CustomTestTaskHTMLTestReportMetadataTest extends AbstractIntegration
                              "stringKey2": "This is another string",
                              "booleanKey1": "true",
                              "booleanKey2": "false",
-                             "fileKey": "<a href=\"file:${TextUtil.normaliseFileSeparators(testDirectory.file('somefile.txt').absolutePath.replace(" ", "%20") + "\">somefile.txt</a>")}".toString(),
+                             "fileKey": "<a href=\"file:${normalizePath('somefile.txt')}\">somefile.txt</a>".toString(),
                              "longStringKey": "This is a incredibly long string, and will be truncated: abcdefghijklmnopqrstuvwxyz abcdefghijklmnop...",
                              "intKey": "1",
                              "intKey2": "2",
@@ -344,5 +344,10 @@ final class CustomTestTaskHTMLTestReportMetadataTest extends AbstractIntegration
 
             tasks.register("${name}", ${name}CustomTestTask)
         """
+    }
+
+    private String normalizePath(String relativePath) {
+        boolean isWindows = System.getProperty("os.name").toLowerCase().contains("windows")
+        return (isWindows ? "/" : "") + TextUtil.normaliseFileSeparators(testDirectory.file(relativePath).absolutePath.replace(" ", "%20"))
     }
 }
