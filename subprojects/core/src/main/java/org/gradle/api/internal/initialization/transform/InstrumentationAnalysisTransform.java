@@ -29,6 +29,7 @@ import org.gradle.api.internal.initialization.transform.utils.InstrumentationAna
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.services.ServiceReference;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
@@ -80,7 +81,7 @@ public abstract class InstrumentationAnalysisTransform implements TransformActio
     }
 
     public interface Parameters extends TransformParameters {
-        @Internal
+        @ServiceReference
         Property<CacheInstrumentationDataBuildService> getBuildService();
 
         @Internal
