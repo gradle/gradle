@@ -18,7 +18,6 @@ package org.gradle.api.internal.provider;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableCollection;
-import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.provider.Collectors.ElementFromProvider;
@@ -33,13 +32,12 @@ import org.gradle.internal.evaluation.EvaluationScopeContext;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.function.Supplier;
 
-import static java.util.stream.Collectors.toCollection;
+import static org.gradle.api.internal.provider.AppendOnceList.toAppendOnceList;
 
 /**
  * The base class for collection properties.
@@ -472,7 +470,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         private final ValueCollector<T> valueCollector;
 
         public CollectingSupplier(Class<C> type, Supplier<ImmutableCollection.Builder<T>> collectionFactory, ValueCollector<T> valueCollector, Collector<T> value) {
-            this(type, collectionFactory, valueCollector, Lists.newArrayList(value), 1);
+            this(type, collectionFactory, valueCollector, AppendOnceList.of(value));
         }
 
         // A constructor for sharing.
@@ -480,10 +478,9 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
             Class<C> type,
             Supplier<ImmutableCollection.Builder<T>> collectionFactory,
             ValueCollector<T> valueCollector,
-            @SuppressWarnings("NonApiType") ArrayList<Collector<T>> collectors,
-            int size
+            AppendOnceList<Collector<T>> collectors
         ) {
-            super(collectors, size);
+            super(collectors);
             this.type = type;
             this.collectionFactory = collectionFactory;
             this.valueCollector = valueCollector;
@@ -517,9 +514,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
         @Override
         public CollectionSupplier<T, C> plus(Collector<T> addedCollector, boolean ignoreAbsent) {
-            Preconditions.checkState(collectors.size() == size, "Something has been appended to this collector already");
-            collectors.add(addedCollector);
-            return new CollectingSupplier<>(type, collectionFactory, valueCollector, collectors, size + 1);
+            return new CollectingSupplier<>(type, collectionFactory, valueCollector, collectors.plus(addedCollector));
         }
 
         @Override
@@ -540,8 +535,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
                     type,
                     collectionFactory,
                     valueCollector,
-                    values.stream().map(this::toCollector).collect(toCollection(ArrayList::new)),
-                    values.size()
+                    values.stream().map(this::toCollector).collect(toAppendOnceList())
                 )
             );
         }

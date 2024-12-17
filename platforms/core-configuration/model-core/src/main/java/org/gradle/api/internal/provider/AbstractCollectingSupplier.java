@@ -22,25 +22,19 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-public abstract class AbstractCollectingSupplier<COLLECTOR extends ValueSupplier, TYPE> extends AbstractMinimalProvider<TYPE> {
-    // This list is shared by the collectors produced by `plus`, so we don't have to copy the collectors every time.
+abstract class AbstractCollectingSupplier<COLLECTOR extends ValueSupplier, TYPE> extends AbstractMinimalProvider<TYPE> {
+    // The underlying list is shared by the collectors produced by `plus`, so we don't have to copy the collectors every time.
     // However, this also means that you can only call plus on a given collector once.
-    protected final ArrayList<COLLECTOR> collectors; // TODO - Replace with PersistentList? This may make value calculation inefficient because the PersistentList can only prepend to head.
-    protected final int size;
+    protected final AppendOnceList<COLLECTOR> collectors;
 
-    public AbstractCollectingSupplier(
-        @SuppressWarnings("NonApiType") ArrayList<COLLECTOR> collectors,
-        int size
-    ) {
+    public AbstractCollectingSupplier(AppendOnceList<COLLECTOR> collectors) {
         this.collectors = collectors;
-        this.size = size;
     }
 
     @Override
@@ -68,13 +62,10 @@ public abstract class AbstractCollectingSupplier<COLLECTOR extends ValueSupplier
         };
     }
 
-    protected List<COLLECTOR> getCollectors() {
-        return collectors.subList(0, size);
-    }
-
     protected boolean calculatePresence(Predicate<COLLECTOR> calculatePresenceForCollector) {
-        for (COLLECTOR collector : getCollectors()) {
+        for (COLLECTOR collector : collectors) {
             if (!calculatePresenceForCollector.test(collector)) {
+                // When any contributor is missing, the whole property is missing.
                 return false;
             }
         }
@@ -87,15 +78,12 @@ public abstract class AbstractCollectingSupplier<COLLECTOR extends ValueSupplier
         Function<BUILDER, ENTRIES> buildEntries
     ) {
         Value<Void> compositeResult = Value.present();
-        for (COLLECTOR collector : getCollectors()) {
+        for (COLLECTOR collector : collectors) {
             Value<Void> result = collectEntriesForCollector.apply(builder, collector);
             if (result.isMissing()) {
-                // This is the argument of add/addAll and it is missing. It "poisons" the property (it becomes missing).
-                // We discard all values and side effects gathered so far.
+                // When any contributor is missing, the whole property is missing.
                 return result.asType();
             }
-            // Both the property so far and the current argument are present, just continue building the value.
-            // Entries are already in the builder.
             compositeResult = compositeResult.withSideEffect(SideEffect.fixedFrom(result));
         }
         return Value.of(buildEntries.apply(builder)).withSideEffect(SideEffect.fixedFrom(compositeResult));
@@ -122,9 +110,9 @@ public abstract class AbstractCollectingSupplier<COLLECTOR extends ValueSupplier
      * Returns an empty list when the overall value is missing.
      */
     protected List<ExecutionTimeValue<? extends TYPE>> collectExecutionTimeValues(Function<COLLECTOR, ExecutionTimeValue<? extends TYPE>> calculateExecutionTimeValueForCollector) {
-        ImmutableList.Builder<ExecutionTimeValue<? extends TYPE>> executionTimeValues = ImmutableList.builder();
+        ImmutableList.Builder<ExecutionTimeValue<? extends TYPE>> executionTimeValues = ImmutableList.builderWithExpectedSize(collectors.size());
 
-        for (COLLECTOR collector : getCollectors()) {
+        for (COLLECTOR collector : collectors) {
             ExecutionTimeValue<? extends TYPE> result = calculateExecutionTimeValueForCollector.apply(collector);
             if (result.isMissing()) {
                 // If any of the property elements is missing, the property is missing too.
@@ -139,7 +127,7 @@ public abstract class AbstractCollectingSupplier<COLLECTOR extends ValueSupplier
     @Override
     protected String toStringNoReentrance() {
         StringBuilder sb = new StringBuilder();
-        getCollectors().forEach(collector -> {
+        collectors.forEach(collector -> {
             if (sb.length() > 0) {
                 sb.append(" + ");
             }
@@ -178,6 +166,6 @@ public abstract class AbstractCollectingSupplier<COLLECTOR extends ValueSupplier
     }
 
     private Stream<ValueProducer> getProducers() {
-        return getCollectors().stream().map(ValueSupplier::getProducer);
+        return collectors.stream().map(ValueSupplier::getProducer);
     }
 }

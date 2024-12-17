@@ -20,7 +20,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.provider.MapCollectors.EntriesFromMap;
@@ -33,14 +32,13 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.evaluation.EvaluationScopeContext;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 
-import static java.util.stream.Collectors.toCollection;
+import static org.gradle.api.internal.provider.AppendOnceList.toAppendOnceList;
 import static org.gradle.internal.Cast.uncheckedCast;
 import static org.gradle.internal.Cast.uncheckedNonnullCast;
 
@@ -543,16 +541,15 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
             MapEntryCollector<K, V> entryCollector,
             MapCollector<K, V> collector
         ) {
-            this(keyCollector, entryCollector, Lists.newArrayList(collector), 1);
+            this(keyCollector, entryCollector, AppendOnceList.of(collector));
         }
 
         public CollectingSupplier(
             ValueCollector<K> keyCollector,
             MapEntryCollector<K, V> entryCollector,
-            @SuppressWarnings("NonApiType") ArrayList<MapCollector<K, V>> collectors,
-            int size
+            AppendOnceList<MapCollector<K, V>> collectors
         ) {
-            super(collectors, size);
+            super(collectors);
             this.keyCollector = keyCollector;
             this.entryCollector = entryCollector;
         }
@@ -598,9 +595,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
 
         @Override
         public MapSupplier<K, V> plus(MapCollector<K, V> addedCollector, boolean ignoreAbsent) {
-            Preconditions.checkState(collectors.size() == size);
-            collectors.add(addedCollector);
-            return new CollectingSupplier<>(keyCollector, entryCollector, collectors, size + 1);
+            return new CollectingSupplier<>(keyCollector, entryCollector, collectors.plus(addedCollector));
         }
 
         @SuppressWarnings("unchecked")
@@ -634,9 +629,8 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
             return ExecutionTimeValue.changingValue(new CollectingSupplier<>(
                 keyCollector,
                 entryCollector,
-                values.stream().map(this::toCollector).collect(toCollection(ArrayList::new)),
-                values.size())
-            );
+                values.stream().map(this::toCollector).collect(toAppendOnceList())
+            ));
         }
 
         private MapCollector<K, V> toCollector(ExecutionTimeValue<? extends Map<? extends K, ? extends V>> value) {
