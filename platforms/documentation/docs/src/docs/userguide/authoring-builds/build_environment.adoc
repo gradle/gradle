@@ -19,6 +19,7 @@ Configuring the build environment is a powerful way to customize the build proce
 There are many mechanisms available.
 By leveraging these mechanisms, you can make your Gradle builds more flexible and adaptable to different environments and requirements.
 
+[[sec:project_properties]]
 == Available mechanisms
 
 Gradle provides multiple mechanisms for configuring the behavior of Gradle itself and specific projects:
