@@ -23,7 +23,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
-import org.gradle.api.internal.lambdas.SerializableLambdas;
 import org.gradle.api.internal.provider.MapCollectors.EntriesFromMap;
 import org.gradle.api.internal.provider.MapCollectors.EntriesFromMapProvider;
 import org.gradle.api.internal.provider.MapCollectors.EntryWithValueFromProvider;
@@ -429,7 +428,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         @Override
         public MapSupplier<K, V> plus(MapCollector<K, V> collector, boolean ignoreAbsent) {
             // nothing + something = nothing, unless we ignoreAbsent.
-            return ignoreAbsent ? newCollectingSupplierOf(ignoreAbsentIfNeeded(collector, ignoreAbsent)) : this;
+            return ignoreAbsent ? newCollectingSupplierOf(collector) : this;
         }
 
         @Override
@@ -467,7 +466,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         @Override
         public MapSupplier<K, V> plus(MapCollector<K, V> collector, boolean ignoreAbsent) {
             // empty + something = something
-            return newCollectingSupplierOf(ignoreAbsentIfNeeded(collector, ignoreAbsent));
+            return newCollectingSupplierOf(collector);
         }
 
         @Override
@@ -554,7 +553,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
             @SuppressWarnings("NonApiType") ArrayList<MapCollector<K, V>> collectors,
             int size
         ) {
-            super(SerializableLambdas.predicate(DefaultMapProperty::isAbsentIgnoring), collectors, size);
+            super(collectors, size);
             this.keyCollector = keyCollector;
             this.entryCollector = entryCollector;
         }
@@ -601,7 +600,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         @Override
         public MapSupplier<K, V> plus(MapCollector<K, V> addedCollector, boolean ignoreAbsent) {
             Preconditions.checkState(collectors.size() == size);
-            collectors.add(ignoreAbsentIfNeeded(addedCollector, ignoreAbsent));
+            collectors.add(addedCollector);
             return new CollectingSupplier<>(keyCollector, entryCollector, collectors, size + 1);
         }
 
@@ -635,7 +634,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
                 entryCollector,
                 collectorsWithValues.stream().map(pair -> {
                     MapCollector<K, V> elements = toCollector(pair.getRight());
-                    return ignoreAbsentIfNeeded(elements, isAbsentIgnoring(pair.getLeft()));
+                    return elements;
                 }).collect(toCollection(ArrayList::new)),
                 collectorsWithValues.size())
             );
@@ -647,64 +646,6 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
                 return new EntriesFromMapProvider<>(value.toProvider());
             }
             return new EntriesFromMap<>(value.getFixedValue());
-        }
-    }
-
-    private static boolean isAbsentIgnoring(MapCollector<?, ?> collector) {
-        return collector instanceof AbsentIgnoringCollector<?, ?>;
-    }
-
-    private static <K, V> MapCollector<K, V> ignoreAbsentIfNeeded(MapCollector<K, V> collector, boolean ignoreAbsent) {
-        if (ignoreAbsent && !isAbsentIgnoring(collector)) {
-            return new AbsentIgnoringCollector<>(collector);
-        }
-        return collector;
-    }
-
-    private static class AbsentIgnoringCollector<K, V> implements MapCollector<K, V> {
-        private final MapCollector<K, V> delegate;
-
-        private AbsentIgnoringCollector(MapCollector<K, V> delegate) {
-            this.delegate = delegate;
-        }
-
-        @Override
-        public Value<Void> collectEntries(ValueConsumer consumer, MapEntryCollector<K, V> collector, Map<K, V> dest) {
-            Map<K, V> candidates = new LinkedHashMap<>();
-            // we cannot use dest directly because we don't want to emit any entries if either left or right are missing
-            Value<Void> value = delegate.collectEntries(consumer, collector, candidates);
-            if (value.isMissing()) {
-                return Value.present();
-            }
-            dest.putAll(candidates);
-            return Value.present().withSideEffect(SideEffect.fixedFrom(value));
-        }
-
-        @Override
-        public Value<Void> collectKeys(ValueConsumer consumer, ValueCollector<K> collector, ImmutableCollection.Builder<K> dest) {
-            ImmutableSet.Builder<K> candidateKeys = ImmutableSet.builder();
-            Value<Void> value = delegate.collectKeys(consumer, collector, candidateKeys);
-            if (value.isMissing()) {
-                return Value.present();
-            }
-            dest.addAll(candidateKeys.build());
-            return value;
-        }
-
-        @Override
-        public ExecutionTimeValue<? extends Map<? extends K, ? extends V>> calculateExecutionTimeValue() {
-            ExecutionTimeValue<? extends Map<? extends K, ? extends V>> executionTimeValue = delegate.calculateExecutionTimeValue();
-            return executionTimeValue.isMissing() ? ExecutionTimeValue.fixedValue(ImmutableMap.of()) : executionTimeValue;
-        }
-
-        @Override
-        public ValueProducer getProducer() {
-            return delegate.getProducer();
-        }
-
-        @Override
-        public boolean calculatePresence(ValueConsumer consumer) {
-            return true;
         }
     }
 

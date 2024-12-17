@@ -18,11 +18,9 @@ package org.gradle.api.internal.provider;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableCollection;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
-import org.gradle.api.internal.lambdas.SerializableLambdas;
 import org.gradle.api.internal.provider.Collectors.ElementFromProvider;
 import org.gradle.api.internal.provider.Collectors.ElementsFromArray;
 import org.gradle.api.internal.provider.Collectors.ElementsFromCollection;
@@ -372,7 +370,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         @Override
         public CollectionSupplier<T, C> plus(Collector<T> collector, boolean ignoreAbsent) {
             // No value + something = no value, unless we ignoreAbsent.
-            return ignoreAbsent ? newSupplierOf(ignoreAbsentIfNeeded(collector, ignoreAbsent)) : this;
+            return ignoreAbsent ? newSupplierOf(collector) : this;
         }
 
         @Override
@@ -406,7 +404,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         @Override
         public CollectionSupplier<T, C> plus(Collector<T> collector, boolean ignoreAbsent) {
             // empty + something = something
-            return newSupplierOf(ignoreAbsentIfNeeded(collector, ignoreAbsent));
+            return newSupplierOf(collector);
         }
 
         @Override
@@ -486,7 +484,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
             @SuppressWarnings("NonApiType") ArrayList<Collector<T>> collectors,
             int size
         ) {
-            super(SerializableLambdas.predicate(AbstractCollectionProperty::isAbsentIgnoring), collectors, size);
+            super(collectors, size);
             this.type = type;
             this.collectionFactory = collectionFactory;
             this.valueCollector = valueCollector;
@@ -521,7 +519,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         @Override
         public CollectionSupplier<T, C> plus(Collector<T> addedCollector, boolean ignoreAbsent) {
             Preconditions.checkState(collectors.size() == size, "Something has been appended to this collector already");
-            collectors.add(ignoreAbsentIfNeeded(addedCollector, ignoreAbsent));
+            collectors.add(addedCollector);
             return new CollectingSupplier<>(type, collectionFactory, valueCollector, collectors, size + 1);
         }
 
@@ -545,7 +543,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
                     valueCollector,
                     collectorsWithValues.stream().map(pair -> {
                         Collector<T> elements = toCollector(pair.getRight());
-                        return ignoreAbsentIfNeeded(elements, isAbsentIgnoring(pair.getLeft()));
+                        return elements;
                     }).collect(toCollection(ArrayList::new)),
                     collectorsWithValues.size()
                 )
@@ -616,57 +614,6 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         @Override
         public String toString() {
             return collection.toString();
-        }
-    }
-
-    private static boolean isAbsentIgnoring(Collector<?> collector) {
-        return collector instanceof AbsentIgnoringCollector<?>;
-    }
-
-    private static <T> Collector<T> ignoreAbsentIfNeeded(Collector<T> collector, boolean ignoreAbsent) {
-        if (ignoreAbsent && !isAbsentIgnoring(collector)) {
-            return new AbsentIgnoringCollector<>(collector);
-        }
-        return collector;
-    }
-
-    private static class AbsentIgnoringCollector<T> implements Collector<T> {
-        private final Collector<T> delegate;
-
-        private AbsentIgnoringCollector(Collector<T> delegate) {
-            this.delegate = delegate;
-        }
-
-        @Override
-        public Value<Void> collectEntries(ValueConsumer consumer, ValueCollector<T> collector, ImmutableCollection.Builder<T> dest) {
-            ImmutableList.Builder<T> candidateEntries = ImmutableList.builder();
-            Value<Void> value = delegate.collectEntries(consumer, collector, candidateEntries);
-            if (value.isMissing()) {
-                return Value.present();
-            }
-            dest.addAll(candidateEntries.build());
-            return Value.present().withSideEffect(SideEffect.fixedFrom(value));
-        }
-
-        @Override
-        public int size() {
-            return delegate.size();
-        }
-
-        @Override
-        public ExecutionTimeValue<? extends Iterable<? extends T>> calculateExecutionTimeValue() {
-            ExecutionTimeValue<? extends Iterable<? extends T>> executionTimeValue = delegate.calculateExecutionTimeValue();
-            return executionTimeValue.isMissing() ? ExecutionTimeValue.fixedValue(ImmutableList.of()) : executionTimeValue;
-        }
-
-        @Override
-        public boolean calculatePresence(ValueConsumer consumer) {
-            return true;
-        }
-
-        @Override
-        public ValueProducer getProducer() {
-            return delegate.getProducer();
         }
     }
 
