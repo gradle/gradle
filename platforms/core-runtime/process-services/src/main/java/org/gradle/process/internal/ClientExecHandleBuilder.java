@@ -17,7 +17,9 @@
 package org.gradle.process.internal;
 
 import org.gradle.api.NonNullApi;
+import org.gradle.process.BaseExecSpec;
 import org.gradle.process.CommandLineArgumentProvider;
+import org.gradle.process.ExecSpec;
 import org.gradle.process.ProcessForkOptions;
 
 import javax.annotation.Nullable;
@@ -91,6 +93,8 @@ public interface ClientExecHandleBuilder extends BaseExecHandleBuilder {
 
     List<CommandLineArgumentProvider> getArgumentProviders();
 
+    ClientExecHandleBuilder setArgumentProviders(List<CommandLineArgumentProvider> argumentProviders);
+
     @Override
     ClientExecHandleBuilder setEnvironment(Map<String, Object> environmentVariables);
 
@@ -98,8 +102,14 @@ public interface ClientExecHandleBuilder extends BaseExecHandleBuilder {
 
     InputStream getStandardInput();
 
-
     void copyTo(ProcessForkOptions options);
+
+    default ClientExecHandleBuilder configureFrom(ExecSpec execSpec) {
+        configureFrom((BaseExecSpec) execSpec);
+        setArgs(execSpec.getArgs().get());
+        setArgumentProviders(execSpec.getArgumentProviders().get());
+        return this;
+    }
 
     ExecHandle buildWithEffectiveArguments(List<String> effectiveArguments);
 }

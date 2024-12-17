@@ -2,7 +2,7 @@ def login = tasks.register('login', Exec) {
     def loginProvider = providers.credentials(PasswordCredentials, 'login')
     inputs.property('credentials', loginProvider)
 
-    commandLine = ['sh', 'login.sh']
+    commandLine(['sh', 'login.sh'])
     doFirst {
         def loginCredentials = loginProvider.get()
         standardInput = new ByteArrayInputStream("$loginCredentials.username\n$loginCredentials.password".getBytes())

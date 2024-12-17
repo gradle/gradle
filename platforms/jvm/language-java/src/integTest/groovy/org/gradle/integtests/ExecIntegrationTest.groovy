@@ -246,11 +246,11 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
 
             task run(type: Exec) {
                 def testFile = file("$buildDir/out.txt")
-                argumentProviders << new JavaTestCommand(
+                argumentProviders.add(new JavaTestCommand(
                     expectedWorkingDir: projectDir,
                     classPath: sourceSets.main.runtimeClasspath,
                     outputFile: testFile
-                )
+                ))
                 executable = org.gradle.internal.jvm.Jvm.current().getJavaExecutable().absolutePath
                 doLast {
                     assert testFile.exists()
