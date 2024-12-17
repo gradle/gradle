@@ -58,9 +58,11 @@ abstract class BuildEnvironmentService : BuildService<BuildEnvironmentService.Pa
             DeprecationLogger.whileDisabled {
                 isIgnoreExitValue = true
             }
-            commandLine = listOf("git", *args)
+            val commandLine = listOf("git", *args)
             if (OperatingSystem.current().isWindows) {
-                commandLine = listOf("cmd.exe", "/d", "/c") + commandLine
+                commandLine(listOf("cmd.exe", "/d", "/c") + commandLine)
+            } else {
+                commandLine(commandLine)
             }
         }
         return execOutput.result.zip(execOutput.standardOutput.asText) { result, outputText ->

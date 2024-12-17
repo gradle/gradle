@@ -40,7 +40,7 @@ class ProcessOutputValueSourceTest extends ValueSourceBasedSpec {
 
         then:
         1 * execOperations.exec(_) >> { Action<? super ExecSpec> action -> action.execute(spec) }
-        spec.getCommandLine() == ["echo", "hello"]
+        spec.getCommandLine().get() == ["echo", "hello"]
     }
 
     def "environment is propagated to execOperations"() {
