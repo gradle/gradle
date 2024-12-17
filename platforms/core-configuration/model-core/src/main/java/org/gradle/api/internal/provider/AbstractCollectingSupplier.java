@@ -25,7 +25,6 @@ import javax.annotation.Nullable;
 import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 abstract class AbstractCollectingSupplier<COLLECTOR extends ValueSupplier, TYPE> extends AbstractMinimalProvider<TYPE> {
@@ -35,6 +34,11 @@ abstract class AbstractCollectingSupplier<COLLECTOR extends ValueSupplier, TYPE>
 
     public AbstractCollectingSupplier(AppendOnceList<COLLECTOR> collectors) {
         this.collectors = collectors;
+    }
+
+    @Override
+    public final Value<? extends TYPE> calculateValue(ValueConsumer consumer) {
+        return super.calculateValue(consumer);
     }
 
     @Override
@@ -62,9 +66,10 @@ abstract class AbstractCollectingSupplier<COLLECTOR extends ValueSupplier, TYPE>
         };
     }
 
-    protected boolean calculatePresence(Predicate<COLLECTOR> calculatePresenceForCollector) {
+    @Override
+    public final boolean calculatePresence(ValueConsumer consumer) {
         for (COLLECTOR collector : collectors) {
-            if (!calculatePresenceForCollector.test(collector)) {
+            if (!collector.calculatePresence(consumer)) {
                 // When any contributor is missing, the whole property is missing.
                 return false;
             }

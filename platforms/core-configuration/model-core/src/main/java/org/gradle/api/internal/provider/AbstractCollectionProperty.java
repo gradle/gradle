@@ -486,11 +486,6 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
             this.valueCollector = valueCollector;
         }
 
-        @Override
-        protected Value<? extends C> calculateOwnValue(ValueConsumer consumer) {
-            return calculateValue(consumer);
-        }
-
         @Nullable
         @Override
         public Class<C> getType() {
@@ -498,12 +493,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         }
 
         @Override
-        public boolean calculatePresence(ValueConsumer consumer) {
-            return calculatePresence(collector -> collector.calculatePresence(consumer));
-        }
-
-        @Override
-        public Value<C> calculateValue(ValueConsumer consumer) {
+        public Value<? extends C> calculateOwnValue(ValueConsumer consumer) {
             // TODO - don't make a copy when the collector already produces an immutable collection
             return calculateValue(
                 (builder, collector) -> collector.collectEntries(consumer, valueCollector, builder),

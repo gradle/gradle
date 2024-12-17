@@ -553,16 +553,6 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
             this.entryCollector = entryCollector;
         }
 
-        @Override
-        protected Value<? extends Map<K, V>> calculateOwnValue(ValueConsumer consumer) {
-            return calculateValue(consumer);
-        }
-
-        @Override
-        public boolean calculatePresence(ValueConsumer consumer) {
-            return calculatePresence(collector -> collector.calculatePresence(consumer));
-        }
-
         @Nullable
         @Override
         @SuppressWarnings("unchecked")
@@ -580,7 +570,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         }
 
         @Override
-        public Value<? extends Map<K, V>> calculateValue(ValueConsumer consumer) {
+        protected Value<? extends Map<K, V>> calculateOwnValue(ValueConsumer consumer) {
             // TODO - don't make a copy when the collector already produces an immutable collection
             return calculateValue(
                 (builder, collector) -> collector.collectEntries(consumer, entryCollector, builder),
