@@ -30,7 +30,6 @@ import org.gradle.api.internal.provider.MapCollectors.SingleEntry;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
-import org.gradle.internal.Pair;
 import org.gradle.internal.evaluation.EvaluationScopeContext;
 
 import javax.annotation.Nullable;
@@ -618,6 +617,9 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
             List<ExecutionTimeValue<? extends Map<K, V>>> values,
             SideEffectBuilder<Map<K, V>> sideEffectBuilder
         ) {
+            // Cannot use ImmutableMap.Builder here, as it does not allow multiple entries with the same key, however the contract
+            // for MapProperty allows a provider to override the entries of earlier providers and so there can be multiple entries
+            // with the same key.
             Map<K, V> entries = new LinkedHashMap<>();
             for (ExecutionTimeValue<? extends Map<K, V>> value : values) {
                 entryCollector.addAll(value.getFixedValue().entrySet(), entries);
@@ -627,16 +629,13 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         }
 
         private ExecutionTimeValue<? extends Map<K, V>> calculateChangingExecutionTimeValue(
-            List<Pair<MapCollector<K, V>, ExecutionTimeValue<? extends Map<K, V>>>> collectorsWithValues
+            List<ExecutionTimeValue<? extends Map<K, V>>> values
         ) {
             return ExecutionTimeValue.changingValue(new CollectingSupplier<>(
                 keyCollector,
                 entryCollector,
-                collectorsWithValues.stream().map(pair -> {
-                    MapCollector<K, V> elements = toCollector(pair.getRight());
-                    return elements;
-                }).collect(toCollection(ArrayList::new)),
-                collectorsWithValues.size())
+                values.stream().map(this::toCollector).collect(toCollection(ArrayList::new)),
+                values.size())
             );
         }
 

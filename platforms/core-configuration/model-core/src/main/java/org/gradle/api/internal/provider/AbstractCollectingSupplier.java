@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
-import org.gradle.internal.Pair;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -28,7 +27,6 @@ import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public abstract class AbstractCollectingSupplier<COLLECTOR extends ValueSupplier, TYPE> extends AbstractMinimalProvider<TYPE> {
@@ -106,26 +104,25 @@ public abstract class AbstractCollectingSupplier<COLLECTOR extends ValueSupplier
     protected ExecutionTimeValue<? extends TYPE> calculateExecutionTimeValue(
         Function<COLLECTOR, ExecutionTimeValue<? extends TYPE>> calculateExecutionTimeValueForCollector,
         BiFunction<List<ExecutionTimeValue<? extends TYPE>>, SideEffectBuilder<TYPE>, ExecutionTimeValue<? extends TYPE>> calculateFixedExecutionTimeValue,
-        Function<List<Pair<COLLECTOR, ExecutionTimeValue<? extends TYPE>>>, ExecutionTimeValue<? extends TYPE>> calculateChangingExecutionTimeValue
+        Function<List<ExecutionTimeValue<? extends TYPE>>, ExecutionTimeValue<? extends TYPE>> calculateChangingExecutionTimeValue
     ) {
-        List<Pair<COLLECTOR, ExecutionTimeValue<? extends TYPE>>> collectorsWithValues =
+        List<ExecutionTimeValue<? extends TYPE>> executionTimeValues =
             collectExecutionTimeValues(calculateExecutionTimeValueForCollector);
-        if (collectorsWithValues.isEmpty()) {
+        if (executionTimeValues.isEmpty()) {
             return ExecutionTimeValue.missing();
         }
-        List<ExecutionTimeValue<? extends TYPE>> executionTimeValues = collectorsWithValues.stream().map(Pair::getRight).collect(Collectors.toList());
         ExecutionTimeValue<? extends TYPE> fixedOrMissing = fixedOrMissingValueOf(executionTimeValues, calculateFixedExecutionTimeValue);
         if (fixedOrMissing != null) {
             return fixedOrMissing;
         }
-        return calculateChangingExecutionTimeValue.apply(collectorsWithValues);
+        return calculateChangingExecutionTimeValue.apply(executionTimeValues);
     }
 
     /**
      * Returns an empty list when the overall value is missing.
      */
-    protected List<Pair<COLLECTOR, ExecutionTimeValue<? extends TYPE>>> collectExecutionTimeValues(Function<COLLECTOR, ExecutionTimeValue<? extends TYPE>> calculateExecutionTimeValueForCollector) {
-        ImmutableList.Builder<Pair<COLLECTOR, ExecutionTimeValue<? extends TYPE>>> executionTimeValues = ImmutableList.builder();
+    protected List<ExecutionTimeValue<? extends TYPE>> collectExecutionTimeValues(Function<COLLECTOR, ExecutionTimeValue<? extends TYPE>> calculateExecutionTimeValueForCollector) {
+        ImmutableList.Builder<ExecutionTimeValue<? extends TYPE>> executionTimeValues = ImmutableList.builder();
 
         for (COLLECTOR collector : getCollectors()) {
             ExecutionTimeValue<? extends TYPE> result = calculateExecutionTimeValueForCollector.apply(collector);
@@ -133,7 +130,7 @@ public abstract class AbstractCollectingSupplier<COLLECTOR extends ValueSupplier
                 // If any of the property elements is missing, the property is missing too.
                 return ImmutableList.of();
             }
-            executionTimeValues.add(Pair.of(collector, result));
+            executionTimeValues.add(result);
         }
         // No missing values found, so all the candidates are part of the final value.
         return executionTimeValues.build();

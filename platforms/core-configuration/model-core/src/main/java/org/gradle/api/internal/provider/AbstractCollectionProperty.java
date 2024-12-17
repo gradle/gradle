@@ -29,7 +29,6 @@ import org.gradle.api.internal.provider.Collectors.SingleElement;
 import org.gradle.api.provider.HasMultipleValues;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
-import org.gradle.internal.Pair;
 import org.gradle.internal.evaluation.EvaluationScopeContext;
 
 import javax.annotation.Nonnull;
@@ -534,18 +533,15 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         }
 
         private ExecutionTimeValue<? extends C> calculateChangingExecutionTimeValue(
-            List<Pair<Collector<T>, ExecutionTimeValue<? extends C>>> collectorsWithValues
+            List<ExecutionTimeValue<? extends C>> values
         ) {
             return ExecutionTimeValue.changingValue(
                 new CollectingSupplier<>(
                     type,
                     collectionFactory,
                     valueCollector,
-                    collectorsWithValues.stream().map(pair -> {
-                        Collector<T> elements = toCollector(pair.getRight());
-                        return elements;
-                    }).collect(toCollection(ArrayList::new)),
-                    collectorsWithValues.size()
+                    values.stream().map(this::toCollector).collect(toCollection(ArrayList::new)),
+                    values.size()
                 )
             );
         }
