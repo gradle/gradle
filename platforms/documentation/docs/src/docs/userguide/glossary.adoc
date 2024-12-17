@@ -74,10 +74,10 @@ subprojects {
 }
 ----
 +
-Cross-project configuration usually breaks `Project Isolation` and `Parallel Projects` so you should use convention plugins or the proper APIs whenever possible:
+Cross-project configuration usually breaks Project Isolation, and Parallel Project Execution, so you should use convention plugins or the proper APIs whenever possible:
 +
 [source,groovy]
-.settings.gradle
+.build.gradle
 ----
 gradle.lifecycle.beforeProject {
     repositories {
@@ -92,8 +92,12 @@ The following example of cross-project configuration should *always* be avoided:
 .subprojectA/build.gradle
 ----
 tasks.register("customTask") {
-    // Avoid this! Directly referencing a task or property from another subproject
-    dependsOn project(":subprojectB").tasks.named("someTask")
+    // Avoid this! Directly accessing outputs from another subproject's task
+    def outputFile = project(":subprojectB").tasks.named("someTask").get().outputs.files.singleFile
+    inputs.file(outputFile)
+    doLast {
+        println("Processing file from subprojectB: ${outputFile}")
+    }
 }
 ----
 +
@@ -101,8 +105,11 @@ tasks.register("customTask") {
 .subprojectB/build.gradle
 ----
 tasks.register("someTask") {
+    def outputFile = layout.buildDirectory.file("output.txt")
+    outputs.file(outputFile)
     doLast {
-        println("Task in subprojectB")
+        outputFile.get().asFile.text = "Output from subprojectB"
+        println("Generated output file in subprojectB: ${outputFile.get().asFile}")
     }
 }
 ----
@@ -137,7 +144,9 @@ For more information, see the sections on <<feature_variants.adoc#feature_varian
 
 [[sub:gradle_build]]
 Gradle Build::
-A Gradle Build is one or more project(s) that use the Gradle Build Tool to compile, test, package, and deploy code. A Gradle Build should contain at least one Gradle build file and is executed using the `gradle` command, such as `gradle build`.
+A Gradle build can consist of one or more Gradle projects and is _typically_ configured using a `settings.gradle(.kts)` file at the root.
++
+When invoked, the Gradle build executes a set of tasks based on the defined build logic, often using the Gradle Wrapper (`./gradlew`).
 
 == H
 
