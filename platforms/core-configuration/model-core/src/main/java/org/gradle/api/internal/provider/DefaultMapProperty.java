@@ -36,7 +36,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 
 import static org.gradle.api.internal.provider.AppendOnceList.toAppendOnceList;
 import static org.gradle.internal.Cast.uncheckedCast;
@@ -575,8 +574,8 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         public Value<? extends Set<K>> calculateKeys(ValueConsumer consumer) {
             return calculateValue(
                 (builder, collector) -> collector.collectKeys(consumer, keyCollector, builder),
-                ImmutableSet.builder(),
-                (Function<ImmutableSet.Builder<K>, Set<K>>) builder -> ImmutableSet.copyOf(builder.build())
+                ImmutableSet.<K>builder(),
+                ImmutableSet.Builder::build
             );
         }
 
@@ -588,8 +587,8 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
                 // Cannot use ImmutableMap.Builder here, as it does not allow multiple entries with the same key, however the contract
                 // for MapProperty allows a provider to override the entries of earlier providers and so there can be multiple entries
                 // with the same key
-                new LinkedHashMap<>(),
-                (Function<LinkedHashMap<K, V>, Map<K, V>>) ImmutableMap::copyOf
+                new LinkedHashMap<K, V>(),
+                ImmutableMap::copyOf
             );
         }
 
