@@ -114,6 +114,7 @@ dependencies {
     api(projects.processServices)
     api(projects.resources)
     api(projects.snapshots)
+    api(projects.versionedCache)
     api(projects.workerMain)
     api(projects.buildProcessServices)
     api(projects.instrumentationReporting)

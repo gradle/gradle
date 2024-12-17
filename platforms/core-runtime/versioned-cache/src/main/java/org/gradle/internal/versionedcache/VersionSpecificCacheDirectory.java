@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.cache.internal;
+package org.gradle.internal.versionedcache;
 
 import com.google.common.base.Preconditions;
 import org.gradle.util.GradleVersion;

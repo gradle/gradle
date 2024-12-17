@@ -25,6 +25,7 @@ import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
 import org.gradle.initialization.GradleUserHomeDirProvider
 import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.internal.time.TimestampSuppliers
+import org.gradle.internal.versionedcache.UsedGradleVersions
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.GradleVersion

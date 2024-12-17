@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.cache.internal;
+package org.gradle.internal.versionedcache;
 
 import com.google.common.collect.ImmutableSortedSet;
 import org.apache.commons.io.filefilter.FileFilterUtils;
@@ -28,8 +28,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.SortedSet;
-
-import static org.apache.commons.io.filefilter.FileFilterUtils.directoryFileFilter;
 
 public class VersionSpecificCacheDirectoryScanner {
 
@@ -59,7 +57,7 @@ public class VersionSpecificCacheDirectoryScanner {
     }
 
     private Collection<File> listVersionSpecificCacheDirs() {
-        FileFilter combinedFilter = FileFilterUtils.and(directoryFileFilter(), new RegexFileFilter("^\\d.*"));
+        FileFilter combinedFilter = FileFilterUtils.and(FileFilterUtils.directoryFileFilter(), new RegexFileFilter("^\\d.*"));
         File[] result = baseDir.listFiles(combinedFilter);
         return result == null ? Collections.<File>emptySet() : Arrays.asList(result);
     }

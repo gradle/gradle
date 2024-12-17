@@ -14,12 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.cache.internal;
+package org.gradle.internal.versionedcache;
 
 import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.io.filefilter.RegexFileFilter;
 import org.gradle.cache.CleanableStore;
 import org.gradle.cache.CleanupProgressMonitor;
+import org.gradle.cache.internal.AbstractCacheCleanup;
+import org.gradle.cache.internal.CacheVersion;
+import org.gradle.cache.internal.NonReservedFileFilter;
 import org.gradle.util.GradleVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,7 +77,7 @@ public class UnusedVersionsCacheCleanup extends AbstractCacheCleanup {
     private void determineUsedVersions() {
         usedVersions = new TreeSet<>();
         for (GradleVersion gradleVersion : getUsedGradleVersionsSmallerThanCurrent()) {
-            usedVersions.addAll(cacheVersionMapping.getVersionUsedBy(gradleVersion).asSet());
+            cacheVersionMapping.getVersionUsedBy(gradleVersion).ifPresent(usedVersions::add);
         }
     }
 

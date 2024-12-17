@@ -1351,6 +1351,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "versioned-cache",
+    "path": "platforms/core-runtime/versioned-cache",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "war",
     "path": "platforms/jvm/war",
     "unitTests": true,

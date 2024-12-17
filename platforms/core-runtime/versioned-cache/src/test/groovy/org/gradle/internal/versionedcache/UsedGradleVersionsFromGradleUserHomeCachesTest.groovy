@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.cache.internal
+package org.gradle.internal.versionedcache
 
 
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory

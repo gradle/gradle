@@ -28,6 +28,7 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.cache.CleanupProgressMonitor;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.cache.MonitoredCleanupAction;
+import org.gradle.internal.versionedcache.UsedGradleVersions;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.internal.DefaultGradleVersion;
 import org.slf4j.Logger;

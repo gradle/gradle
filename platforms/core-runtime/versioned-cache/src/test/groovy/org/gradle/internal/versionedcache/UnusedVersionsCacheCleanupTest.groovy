@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.cache.internal
+package org.gradle.internal.versionedcache
 
 import org.gradle.cache.CleanableStore
 import org.gradle.cache.CleanupProgressMonitor
+import org.gradle.cache.internal.CacheVersion
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
