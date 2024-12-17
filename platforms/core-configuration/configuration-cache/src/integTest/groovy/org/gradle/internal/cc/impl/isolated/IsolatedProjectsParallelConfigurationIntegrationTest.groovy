@@ -18,6 +18,7 @@ package org.gradle.internal.cc.impl.isolated
 
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
+import spock.lang.Issue
 
 class IsolatedProjectsParallelConfigurationIntegrationTest extends AbstractIsolatedProjectsIntegrationTest {
 
@@ -89,6 +90,12 @@ class IsolatedProjectsParallelConfigurationIntegrationTest extends AbstractIsola
         outputDoesNotContain("Configure :b")
     }
 
+    /**
+     * This test attempts to expose thread safety issues with
+     * listener registrations, which were found (and documented as such)
+     * not to be thread-safe originally.
+     */
+    @Issue("https://github.com/gradle/gradle/issues/31537")
     def "task-graph listeners registered in parallel are all executed"() {
         given:
         def numberOfSubprojects = 10
@@ -101,13 +108,8 @@ class IsolatedProjectsParallelConfigurationIntegrationTest extends AbstractIsola
             """
 
             buildFile "$it/build.gradle", """
-                // call from background thread not to exhaust workers
-                new Thread() {
-                    @Override
-                    void run() {
-                        ${server.callFromBuildUsingExpression("'configure-' + project.name")}
-                    }
-                }.start()
+                // this blocks the worker thread, hence max-workers is based on # of projects
+                ${server.callFromBuildUsingExpression("'configure-' + project.name")}
 
                 ${numberOfListenersPerProject}.times { index ->
                     gradle.taskGraph.whenReady {
@@ -120,7 +122,8 @@ class IsolatedProjectsParallelConfigurationIntegrationTest extends AbstractIsola
         server.expectConcurrent(projects.collect { "configure-$it".toString() })
 
         when:
-        isolatedProjectsRun("help")
+        // max-workers must be >= # of projects or else we run out of workers
+        isolatedProjectsRun("help", "--max-workers=${numberOfSubprojects + 1}")
 
         then:
         def messages = projects.collect { project ->

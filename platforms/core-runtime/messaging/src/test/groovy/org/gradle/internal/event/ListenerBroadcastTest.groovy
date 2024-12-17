@@ -20,6 +20,7 @@ import org.gradle.api.Action
 import org.gradle.internal.dispatch.Dispatch
 import org.gradle.internal.dispatch.MethodInvocation
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
+import spock.lang.Issue
 
 import java.util.concurrent.CyclicBarrier
 
@@ -375,6 +376,7 @@ class ListenerBroadcastTest extends ConcurrentSpec {
         broadcast.size() == 0
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/31537")
     def 'listeners may be added or removed by multiple threads'() {
         def threads = 10
         def listenerCount = 200
