@@ -19,6 +19,7 @@ package org.gradle.api.internal.provider.sources.process;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.process.BaseExecSpec;
 import org.gradle.process.ProcessForkOptions;
 
@@ -52,7 +53,7 @@ interface DelegatingBaseExecSpec extends BaseExecSpec {
     }
 
     @Override
-    default List<String> getCommandLine() {
+    default Provider<List<String>> getCommandLine() {
         return getDelegate().getCommandLine();
     }
 
