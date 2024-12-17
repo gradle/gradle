@@ -30,9 +30,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionS
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentGraphResolveState;
-import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
-import org.gradle.internal.component.external.model.ModuleDependencyMetadataWrapper;
-import org.gradle.internal.component.model.DependencyMetadata;
+import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.resolve.caching.ComponentMetadataSupplierRuleExecutor;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
@@ -53,12 +51,11 @@ public class RepositoryChainDependencyToComponentIdResolver implements Dependenc
     }
 
     @Override
-    public void resolve(DependencyMetadata dependency, VersionSelector acceptor, @Nullable VersionSelector rejector, BuildableComponentIdResolveResult result) {
-        ComponentSelector componentSelector = dependency.getSelector();
-        if (componentSelector instanceof ModuleComponentSelector) {
-            ModuleComponentSelector module = (ModuleComponentSelector) componentSelector;
+    public void resolve(ComponentSelector selector, ComponentOverrideMetadata overrideMetadata, VersionSelector acceptor, @Nullable VersionSelector rejector, BuildableComponentIdResolveResult result) {
+        if (selector instanceof ModuleComponentSelector) {
+            ModuleComponentSelector module = (ModuleComponentSelector) selector;
             if (acceptor.isDynamic()) {
-                dynamicRevisionResolver.resolve(toModuleDependencyMetadata(dependency), acceptor, rejector, consumerAttributes, result);
+                dynamicRevisionResolver.resolve(module, overrideMetadata, acceptor, rejector, consumerAttributes, result);
             } else {
                 String version = acceptor.getSelector();
                 ModuleIdentifier moduleId = module.getModuleIdentifier();
@@ -71,16 +68,5 @@ public class RepositoryChainDependencyToComponentIdResolver implements Dependenc
                 }
             }
         }
-    }
-
-    private ModuleDependencyMetadata toModuleDependencyMetadata(DependencyMetadata dependency) {
-        if (dependency instanceof ModuleDependencyMetadata) {
-            return (ModuleDependencyMetadata) dependency;
-        }
-        if (dependency.getSelector() instanceof ModuleComponentSelector) {
-            return new ModuleDependencyMetadataWrapper(dependency);
-        }
-        throw new IllegalArgumentException("Not a module dependency: " + dependency);
-
     }
 }

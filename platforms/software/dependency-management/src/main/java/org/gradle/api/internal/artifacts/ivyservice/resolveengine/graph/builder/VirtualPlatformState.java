@@ -66,9 +66,9 @@ public class VirtualPlatformState {
         String version = null;
         for (SelectorState selector : platformModule.getSelectors()) {
             if (selector.hasStrongOpinion()) {
-                ComponentSelector requested = selector.getRequested();
-                if (requested instanceof ModuleComponentSelector) {
-                    String nv = ((ModuleComponentSelector) requested).getVersion();
+                ComponentSelector rawSelector = selector.getComponentSelector();
+                if (rawSelector instanceof ModuleComponentSelector) {
+                    String nv = ((ModuleComponentSelector) rawSelector).getVersion();
                     if (version == null || vC.compare(nv, version) < 0) {
                         version = nv;
                     }

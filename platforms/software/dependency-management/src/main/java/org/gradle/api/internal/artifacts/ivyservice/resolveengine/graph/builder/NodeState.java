@@ -29,7 +29,6 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
-import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.ArtifactSelectionDetailsInternal;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionApplicator;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
@@ -613,20 +612,13 @@ public class NodeState implements DependencyGraphNode {
     static DependencyState maybeSubstitute(DependencyState dependencyState, DependencySubstitutionApplicator dependencySubstitutionApplicator) {
         DependencySubstitutionApplicator.SubstitutionResult substitutionResult = dependencySubstitutionApplicator.apply(dependencyState.getDependency());
         if (substitutionResult.hasFailure()) {
-            dependencyState.failure = new ModuleVersionResolveException(dependencyState.getRequested(), substitutionResult.getFailure());
-            return dependencyState;
+            ModuleVersionResolveException failure = new ModuleVersionResolveException(dependencyState.getRequested(), substitutionResult.getFailure());
+            return dependencyState.withSubstitutionFailure(failure);
         }
 
         DependencySubstitutionInternal details = substitutionResult.getResult();
         if (details != null && details.isUpdated()) {
-            // This caching works because our substitutionResult are cached themselves
-            return dependencyState.withSubstitution(substitutionResult, result -> {
-                ArtifactSelectionDetailsInternal artifactSelectionDetails = details.getArtifactSelectionDetails();
-                if (artifactSelectionDetails.isUpdated()) {
-                    return dependencyState.withTargetAndArtifacts(details.getTarget(), artifactSelectionDetails.getTargetSelectors(), details.getRuleDescriptors());
-                }
-                return dependencyState.withTarget(details.getTarget(), details.getRuleDescriptors());
-            });
+            return dependencyState.withSubstitution(substitutionResult, details);
         }
         return dependencyState;
     }

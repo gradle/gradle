@@ -19,7 +19,6 @@ import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.attributes.AttributeMergingException;
-import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.logging.text.TreeFormatter;
 
 import java.util.Set;
@@ -49,12 +48,9 @@ class IncompatibleDependencyAttributesMessageBuilder {
     }
 
     private static String formatAttributeQuery(SelectorState state, Attribute<?> attribute) {
-        DependencyMetadata dependencyMetadata = state.getDependencyMetadata();
-        ComponentSelector selector = dependencyMetadata.getSelector();
+        ComponentSelector selector = state.getComponentSelector();
         if (selector instanceof ModuleComponentSelector) {
-            StringBuilder sb = new StringBuilder("wants '" + state.getRequested() + "' with attribute " + attribute.getName() + " = ");
-            sb.append(selector.getAttributes().getAttribute(attribute));
-            return sb.toString();
+            return "wants '" + state.getComponentSelector() + "' with attribute " + attribute.getName() + " = " + selector.getAttributes().getAttribute(attribute);
         } else {
             // This is a safety net, it's unsure whether this can happen, because it's likely (certain?)
             // that for a specific module resolve state, all selectors are of the same type
