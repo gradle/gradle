@@ -51,7 +51,7 @@ class JacocoKotlinJvmPluginAggregationTest extends AbstractIntegrationSpec {
                 reporting {
                     reports {
                         testCodeCoverageReport(JacocoCoverageReport) {
-                            testType = TestSuiteType.UNIT_TEST
+                            testSuiteName = "test"
                         }
                     }
                 }

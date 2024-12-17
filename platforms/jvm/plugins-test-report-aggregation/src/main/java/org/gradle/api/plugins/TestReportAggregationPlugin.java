@@ -24,7 +24,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.attributes.Category;
-import org.gradle.api.attributes.TestSuiteType;
+import org.gradle.api.attributes.TestSuiteName;
 import org.gradle.api.attributes.VerificationType;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
@@ -96,13 +96,13 @@ public abstract class TestReportAggregationPlugin implements Plugin<Project> {
                         view.componentFilter(spec(id -> id instanceof ProjectComponentIdentifier));
                         view.attributes(attributes -> {
                             attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.VERIFICATION));
-                            attributes.attributeProvider(TestSuiteType.TEST_SUITE_TYPE_ATTRIBUTE, report.getTestType().map(tt -> objects.named(TestSuiteType.class, tt)));
+                            attributes.attributeProvider(TestSuiteName.TEST_SUITE_NAME_ATTRIBUTE, report.getTestSuiteName().map(tt -> objects.named(TestSuiteName.class, tt)));
                             attributes.attribute(VerificationType.VERIFICATION_TYPE_ATTRIBUTE, objects.named(VerificationType.class, VerificationType.TEST_RESULTS));
                         });
                     }).getFiles();
 
                 task.getTestResults().from(testResults);
-                task.getDestinationDirectory().convention(testReportDirectory.dir(report.getTestType().map(tt -> tt + "/aggregated-results")));
+                task.getDestinationDirectory().convention(testReportDirectory.dir(report.getTestSuiteName().map(tt -> tt + "/aggregated-results")));
             });
         });
 
@@ -116,7 +116,7 @@ public abstract class TestReportAggregationPlugin implements Plugin<Project> {
 
             testSuites.withType(JvmTestSuite.class).all(testSuite -> {
                 reporting.getReports().create(testSuite.getName() + "AggregateTestReport", AggregateTestReport.class, report -> {
-                    report.getTestType().convention(testSuite.getTestType());
+                    report.getTestSuiteName().convention(testSuite.getName());
                 });
             });
         });

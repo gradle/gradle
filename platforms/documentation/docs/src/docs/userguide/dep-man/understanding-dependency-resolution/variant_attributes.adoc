@@ -137,19 +137,9 @@ In addition to the ecosystem independent attributes defined above, the JVM ecosy
 | Common values are `standard-jvm` and `android`. Other values are allowed.
 | The attribute is used to prefer one variant over another if multiple are available, but in general all values are compatible. The default is `standard-jvm`.
 
-| link:{javadocPath}/org/gradle/api/attributes/TestSuiteType.html#TEST_SUITE_NAME_ATTRIBUTE[`org.gradle.testsuite.name`]
+| link:{javadocPath}/org/gradle/api/attributes/TestSuiteName.html#TEST_SUITE_NAME_ATTRIBUTE[`org.gradle.testsuite.name`]
 | Indicates the name of the link:{javadocPath}/org/gradle/testing/base/TestSuite.html[TestSuite] that produced this output.
 | Value is the name of the Suite.
-| No default, no compatibility
-
-| link:{javadocPath}/org/gradle/api/attributes/TestSuiteTargetName.html#TEST_SUITE_TARGET_NAME_ATTRIBUTE[`org.gradle.testsuite.target.name`]
-| Indicates the name of the link:{javadocPath}/org/gradle/testing/base/TestSuiteTarget.html[TestSuiteTarget] that produced this output.
-| Value is the name of the Target.
-| No default, no compatibility
-
-| link:{javadocPath}/org/gradle/api/attributes/TestSuiteType.html#TEST_SUITE_TYPE_ATTRIBUTE[`org.gradle.testsuite.type`]
-| Indicates the type of test suite (unit test, integration test, performance test, etc.)
-| `TestSuiteType` values built from constants defined in link:{javadocPath}/org/gradle/api/attributes/TestSuiteType.html[TestSuiteType] or other custom values for user-defined test suite types.
 | No default, no compatibility
 |===
 
