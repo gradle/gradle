@@ -19,12 +19,12 @@ import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.provider.ProviderApiDeprecationLogger;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.instrumentation.api.annotations.BytecodeUpgrade;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.process.BaseExecSpec;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.ExecResult;
@@ -111,29 +111,11 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
     /**
      * {@inheritDoc}
      */
-    @Override
-    public T setArgs(List<String> arguments) {
-        execSpec.setArgs(arguments);
-        return taskType.cast(this);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public T setArgs(Iterable<?> arguments) {
-        execSpec.setArgs(arguments);
-        return taskType.cast(this);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
     @Optional
     @Input
     @Override
-    @ToBeReplacedByLazyProperty(unreported = true, comment = "Unreported since setter is using generics")
-    public List<String> getArgs() {
+    @ReplacesEagerProperty(adapter = AbstractExecTask.ArgsAdapter.class)
+    public ListProperty<String> getArgs() {
         return execSpec.getArgs();
     }
 
@@ -142,8 +124,7 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
      */
     @Nested
     @Override
-    @ToBeReplacedByLazyProperty
-    public List<CommandLineArgumentProvider> getArgumentProviders() {
+    public ListProperty<CommandLineArgumentProvider> getArgumentProviders() {
         return execSpec.getArgumentProviders();
     }
 
@@ -152,33 +133,8 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
      */
     @Internal
     @Override
-    @ToBeReplacedByLazyProperty
-    public List<String> getCommandLine() {
+    public Provider<List<String>> getCommandLine() {
         return execSpec.getCommandLine();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void setCommandLine(List<String> args) {
-        execSpec.setCommandLine(args);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void setCommandLine(Iterable<?> args) {
-        execSpec.setCommandLine(args);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void setCommandLine(Object... args) {
-        execSpec.setCommandLine(args);
     }
 
     /**
@@ -326,6 +282,25 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
         static AbstractExecTask setIgnoreExitValue(AbstractExecTask task, boolean value) {
             ((BaseExecSpec) task).getIgnoreExitValue().set(value);
             return task;
+        }
+    }
+
+    /**
+     * No need to upgrade getter since it's already upgraded via ExecSpec
+     */
+    static class ArgsAdapter {
+        @BytecodeUpgrade
+        @SuppressWarnings("rawtypes")
+        static AbstractExecTask setArgs(AbstractExecTask self, List<String> args) {
+            return setArgs(self, (Iterable<?>) args);
+        }
+
+        @BytecodeUpgrade
+        @SuppressWarnings({"rawtypes", "unchecked"})
+        static AbstractExecTask setArgs(AbstractExecTask self, Iterable<?> args) {
+            self.getArgs().empty();
+            self.args(args);
+            return self;
         }
     }
 
