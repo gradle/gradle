@@ -77,16 +77,16 @@ abstract class AbstractCollectingSupplier<COLLECTOR extends ValueSupplier, TYPE>
         BUILDER builder,
         Function<BUILDER, ENTRIES> buildEntries
     ) {
-        Value<Void> compositeResult = Value.present();
+        SideEffectBuilder<ENTRIES> sideEffects = SideEffect.builder();
         for (COLLECTOR collector : collectors) {
             Value<Void> result = collectEntriesForCollector.apply(builder, collector);
             if (result.isMissing()) {
                 // When any contributor is missing, the whole property is missing.
                 return result.asType();
             }
-            compositeResult = compositeResult.withSideEffect(SideEffect.fixedFrom(result));
+            sideEffects.add(SideEffect.fixedFrom(result));
         }
-        return Value.of(buildEntries.apply(builder)).withSideEffect(SideEffect.fixedFrom(compositeResult));
+        return Value.of(buildEntries.apply(builder)).withSideEffect(sideEffects.build());
     }
 
     protected ExecutionTimeValue<? extends TYPE> calculateExecutionTimeValue(
