@@ -70,7 +70,7 @@ class DefaultProblemsReportCreator(
                             property("totalProblemCount", problemCount.get())
                             buildNameProvider.buildName()?.let { property("buildName", it) }
                             property("requestedTasks", taskNames.joinToString(" "))
-                            property("documentationLink", DocumentationRegistry().getDocumentationFor("problems-report"))
+                            property("documentationLink", DocumentationRegistry().getDocumentationFor("reporting_problems"))
                             property("documentationLinkCaption", "Problem report")
                             property("summaries") {
                                 jsonList(problemSummaries) {
