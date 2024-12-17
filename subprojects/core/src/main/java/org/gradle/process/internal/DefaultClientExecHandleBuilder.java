@@ -203,6 +203,13 @@ public class DefaultClientExecHandleBuilder implements ClientExecHandleBuilder, 
     }
 
     @Override
+    public ClientExecHandleBuilder setArgumentProviders(List<CommandLineArgumentProvider> argumentProviders) {
+        argumentsSpec.getArgumentProviders().clear();
+        argumentsSpec.getArgumentProviders().addAll(argumentProviders);
+        return this;
+    }
+
+    @Override
     @SuppressWarnings("unchecked")
     public Map<String, Object> getEnvironment() {
         if (environment == null) {

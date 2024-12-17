@@ -602,8 +602,7 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     @Internal
-    @ToBeReplacedByLazyProperty
-    public List<String> getCommandLine() {
+    public Provider<List<String>> getCommandLine() {
         return javaExecSpec.getCommandLine();
     }
 

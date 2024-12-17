@@ -15,18 +15,12 @@
  */
 package org.gradle.process.internal;
 
-import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.internal.provider.Providers;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
-import org.gradle.api.provider.Provider;
 import org.gradle.process.BaseExecSpec;
 
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Deprecated. Will be removed in Gradle 9.0. Kept for now it's subclass is used by the Kotlin plugin.
@@ -34,79 +28,50 @@ import java.util.List;
 @Deprecated
 public abstract class AbstractExecHandleBuilder implements BaseExecSpec {
 
-    protected final ClientExecHandleBuilder delegate;
-    private final Property<InputStream> standardInput;
-    private final Property<OutputStream> standardOutput;
-    private final Property<OutputStream> errorOutput;
-    private final Property<Boolean> ignoreExitValue;
-    private final Property<String> executable;
-    protected final DirectoryProperty workingDir;
-    protected final MapProperty<String, Object> environment;
+    protected final ExecAction delegate;
 
-    AbstractExecHandleBuilder(ObjectFactory objectFactory, ClientExecHandleBuilder delegate) {
-        this.delegate = delegate;
-        this.ignoreExitValue = objectFactory.property(Boolean.class).convention(false);
-        this.standardInput = objectFactory.property(InputStream.class);
-        this.standardOutput = objectFactory.property(OutputStream.class);
-        this.errorOutput = objectFactory.property(OutputStream.class);
-        this.executable = objectFactory.property(String.class);
-        this.workingDir = objectFactory.directoryProperty();
-        this.environment = objectFactory.mapProperty(String.class, Object.class).value(Providers.changing(delegate::getEnvironment));
+    AbstractExecHandleBuilder(ExecAction execAction) {
+        this.delegate = execAction;
     }
-
-    public abstract List<String> getAllArguments();
 
     @Override
     public Property<String> getExecutable() {
-        return executable;
+        return delegate.getExecutable();
     }
 
     @Override
     public AbstractExecHandleBuilder executable(Object executable) {
-        if (executable instanceof Provider) {
-            getExecutable().set(((Provider<?>) executable).map(Object::toString));
-        } else {
-            getExecutable().set(Providers.changing((Providers.SerializableCallable<String>) executable::toString));
-        }
+        delegate.executable(executable);
         return this;
     }
 
     @Override
     public MapProperty<String, Object> getEnvironment() {
-        return environment;
-    }
-
-    @Override
-    public List<String> getCommandLine() {
-        List<String> commandLine = new ArrayList<>();
-        commandLine.add(getExecutable().get());
-        commandLine.addAll(getAllArguments());
-        return commandLine;
+        return delegate.getEnvironment();
     }
 
     @Override
     public Property<InputStream> getStandardInput() {
-        return standardInput;
+        return delegate.getStandardInput();
     }
 
     @Override
     public Property<OutputStream> getStandardOutput() {
-        return standardOutput;
+        return delegate.getStandardOutput();
     }
 
     @Override
     public Property<OutputStream> getErrorOutput() {
-        return errorOutput;
+        return delegate.getErrorOutput();
     }
 
     @Override
     public Property<Boolean> getIgnoreExitValue() {
-        return ignoreExitValue;
+        return delegate.getIgnoreExitValue();
     }
 
     public AbstractExecHandleBuilder setDisplayName(String displayName) {
-        delegate.setDisplayName(displayName);
-        return this;
+        throw new UnsupportedOperationException("setTimeout() is not supported");
     }
 
     public AbstractExecHandleBuilder listener(ExecHandleListener listener) {
@@ -115,38 +80,21 @@ public abstract class AbstractExecHandleBuilder implements BaseExecSpec {
     }
 
     public AbstractExecHandleBuilder streamsHandler(StreamsHandler streamsHandler) {
-        delegate.streamsHandler(streamsHandler);
-        return this;
+        throw new UnsupportedOperationException("streamsHandler() is not supported");
     }
 
     /**
      * Merge the process' error stream into its output stream
      */
     public AbstractExecHandleBuilder redirectErrorStream() {
-        delegate.redirectErrorStream();
-        return this;
+        throw new UnsupportedOperationException("redirectErrorStream() is not supported");
     }
 
     public AbstractExecHandleBuilder setTimeout(int timeoutMillis) {
-        delegate.setTimeout(timeoutMillis);
-        return this;
+        throw new UnsupportedOperationException("setTimeout() is not supported");
     }
 
     public ExecHandle build() {
-        if (standardInput.isPresent()) {
-            delegate.setStandardInput(standardInput.get());
-        }
-        if (standardOutput.isPresent()) {
-            delegate.setStandardOutput(standardOutput.get());
-        }
-        if (errorOutput.isPresent()) {
-            delegate.setErrorOutput(errorOutput.get());
-        }
-        if (executable.isPresent()) {
-            delegate.setExecutable(executable.get());
-        }
-        delegate.setWorkingDir(workingDir.getAsFile().getOrNull());
-        delegate.setEnvironment(environment.get());
-        return delegate.build();
+        return delegate.buildHandle();
     }
 }
