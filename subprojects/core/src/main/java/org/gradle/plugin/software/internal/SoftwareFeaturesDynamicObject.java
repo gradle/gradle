@@ -23,20 +23,18 @@ import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.util.internal.ConfigureUtil;
 
 import javax.annotation.Nullable;
+import javax.inject.Inject;
 
 /**
  * Provides a dynamic object that allows software features to be queried and applied to a target object as dynamic
  * methods.  The software features are looked up by name and if a matching feature is found, the feature is applied
  * to the target object and the configuration block applied to its public model object.
  */
-public class SoftwareFeaturesDynamicObject extends AbstractDynamicObject {
-    private final SoftwareTypeRegistry softwareTypeRegistry;
-    private final SoftwareFeatureApplicator softwareFeatureApplicator;
+abstract public class SoftwareFeaturesDynamicObject extends AbstractDynamicObject {
     private final ExtensionAware target;
 
-    public SoftwareFeaturesDynamicObject(SoftwareTypeRegistry softwareTypeRegistry, SoftwareFeatureApplicator softwareFeatureApplicator, ExtensionAware target) {
-        this.softwareTypeRegistry = softwareTypeRegistry;
-        this.softwareFeatureApplicator = softwareFeatureApplicator;
+    @Inject
+    public SoftwareFeaturesDynamicObject(ExtensionAware target) {
         this.target = target;
     }
 
@@ -53,15 +51,21 @@ public class SoftwareFeaturesDynamicObject extends AbstractDynamicObject {
     private boolean isSoftwareTypeConfigureMethod(String name, @Nullable Object[] arguments) {
         return arguments != null && arguments.length == 1 &&
             arguments[0] instanceof Closure &&
-            softwareTypeRegistry.getSoftwareTypeImplementations().containsKey(name);
+            getSoftwareTypeRegistry().getSoftwareTypeImplementations().containsKey(name);
     }
 
     @Override
     public DynamicInvokeResult tryInvokeMethod(String name, @Nullable Object... arguments) {
         if (isSoftwareTypeConfigureMethod(name, arguments)) {
-            Object softwareFeatureConfigurationModel = softwareFeatureApplicator.applyFeatureTo(target, softwareTypeRegistry.getSoftwareTypeImplementations().get(name));
+            Object softwareFeatureConfigurationModel = getSoftwareFeatureApplicator().applyFeatureTo(target, getSoftwareTypeRegistry().getSoftwareTypeImplementations().get(name));
             return DynamicInvokeResult.found(ConfigureUtil.configure((Closure) arguments[0], softwareFeatureConfigurationModel));
         }
         return DynamicInvokeResult.notFound();
     }
+
+    @Inject
+    abstract protected SoftwareTypeRegistry getSoftwareTypeRegistry();
+
+    @Inject
+    abstract protected SoftwareFeatureApplicator getSoftwareFeatureApplicator();
 }

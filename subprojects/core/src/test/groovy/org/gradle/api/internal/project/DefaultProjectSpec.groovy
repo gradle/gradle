@@ -54,6 +54,7 @@ import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.invocation.GradleLifecycleActionExecutor
 import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.plugin.software.internal.SoftwareFeatureApplicator
+import org.gradle.plugin.software.internal.SoftwareFeaturesDynamicObject
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Path
@@ -242,6 +243,7 @@ class DefaultProjectSpec extends Specification {
         def objectFactory = Stub(ObjectFactory) {
             fileCollection() >> TestFiles.fileCollectionFactory().configurableFiles()
             property(Object) >> propertyFactory.property(Object)
+            newInstance(SoftwareFeaturesDynamicObject, _) >> Stub(SoftwareFeaturesDynamicObject)
         }
 
         def serviceRegistry = new DefaultServiceRegistry()

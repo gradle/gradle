@@ -96,6 +96,7 @@ import org.gradle.model.internal.manage.schema.ModelSchemaStore
 import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.normalization.internal.InputNormalizationHandlerInternal
 import org.gradle.plugin.software.internal.SoftwareFeatureApplicator
+import org.gradle.plugin.software.internal.SoftwareFeaturesDynamicObject
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Path
@@ -155,6 +156,7 @@ class DefaultProjectTest extends Specification {
             def params = args[1]
             new LifecycleAwareProject(params[0], params[1], params[2])
         }
+        newInstance(SoftwareFeaturesDynamicObject, _) >> Stub(SoftwareFeaturesDynamicObject)
     }
     SoftwareComponentContainer softwareComponentsMock = Stub(SoftwareComponentContainer)
     InputNormalizationHandlerInternal inputNormalizationHandler = Stub(InputNormalizationHandlerInternal)
