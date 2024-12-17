@@ -91,6 +91,8 @@ public interface ClientExecHandleBuilder extends BaseExecHandleBuilder {
 
     List<CommandLineArgumentProvider> getArgumentProviders();
 
+    ClientExecHandleBuilder setArgumentProviders(List<CommandLineArgumentProvider> argumentProviders);
+
     @Override
     ClientExecHandleBuilder setEnvironment(Map<String, Object> environmentVariables);
 
