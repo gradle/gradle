@@ -61,7 +61,9 @@ class JavaExecWithLongCommandLineIntegrationTest extends AbstractIntegrationSpec
                 def execOps = services.get(ExecOperations)
                 doLast {
                     execOps.javaexec {
-                        executable = runExecutable
+                        if (runExecutable.isPresent()) {
+                            executable = runExecutable
+                        }
                         classpath = runClasspath
                         mainClass = runMain
                         args runArgs
