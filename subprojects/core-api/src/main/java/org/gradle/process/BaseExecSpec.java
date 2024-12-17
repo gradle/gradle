@@ -17,8 +17,8 @@ package org.gradle.process;
 
 import org.gradle.api.internal.provider.ProviderApiDeprecationLogger;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -77,6 +77,6 @@ public interface BaseExecSpec extends ProcessForkOptions {
      *
      * @return The full command line, including the executable plus its arguments
      */
-    @ToBeReplacedByLazyProperty
-    List<String> getCommandLine();
+    @ReplacesEagerProperty
+    Provider<List<String>> getCommandLine();
 }

@@ -52,7 +52,9 @@ class JavaExecWithLongCommandLineIntegrationTest extends AbstractIntegrationSpec
                 dependsOn sourceSets.main.runtimeClasspath
                 doLast {
                     project.javaexec {
-                        executable = run.executable
+                        if (run.executable.isPresent()) {
+                            executable = run.executable
+                        }
                         classpath = run.classpath
                         mainClass = run.mainClass
                         args run.args
@@ -69,7 +71,9 @@ class JavaExecWithLongCommandLineIntegrationTest extends AbstractIntegrationSpec
                 def execOps = services.get(ExecOperations)
                 doLast {
                     execOps.javaexec {
-                        executable = runExecutable
+                        if (runExecutable.isPresent()) {
+                            executable = runExecutable
+                        }
                         classpath = runClasspath
                         mainClass = runMain
                         args runArgs
