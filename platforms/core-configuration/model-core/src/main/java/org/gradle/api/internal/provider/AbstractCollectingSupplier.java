@@ -17,7 +17,6 @@
 package org.gradle.api.internal.provider;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
@@ -76,17 +75,11 @@ public abstract class AbstractCollectingSupplier<COLLECTOR extends ValueSupplier
     }
 
     protected boolean calculatePresence(Predicate<COLLECTOR> calculatePresenceForCollector) {
-        // We're traversing the elements in reverse addition order.
-        // When determining the presence of the value, the last argument wins.
-        // See also #collectExecutionTimeValues().
-        for (COLLECTOR collector : Lists.reverse(getCollectors())) {
+        for (COLLECTOR collector : getCollectors()) {
             if (!calculatePresenceForCollector.test(collector)) {
                 return false;
             }
         }
-        // We've found an argument of append/appendAll, and everything added before it was present.
-        // append/appendAll recovers the value of a missing property, so the property is also definitely present.
-        assert size > 0;
         return true;
     }
 
@@ -97,21 +90,15 @@ public abstract class AbstractCollectingSupplier<COLLECTOR extends ValueSupplier
     ) {
         Value<Void> compositeResult = Value.present();
         for (COLLECTOR collector : getCollectors()) {
-            if (compositeResult.isMissing()) {
-                // The property is missing so far and the argument is of add/addAll.
-                // The property is going to be missing regardless of its value.
-                continue;
-            }
             Value<Void> result = collectEntriesForCollector.apply(builder, collector);
             if (result.isMissing()) {
                 // This is the argument of add/addAll and it is missing. It "poisons" the property (it becomes missing).
                 // We discard all values and side effects gathered so far.
                 return result.asType();
-            } else {
-                // Both the property so far and the current argument are present, just continue building the value.
-                // Entries are already in the builder.
-                compositeResult = compositeResult.withSideEffect(SideEffect.fixedFrom(result));
             }
+            // Both the property so far and the current argument are present, just continue building the value.
+            // Entries are already in the builder.
+            compositeResult = compositeResult.withSideEffect(SideEffect.fixedFrom(result));
         }
         return Value.of(buildEntries.apply(builder)).withSideEffect(SideEffect.fixedFrom(compositeResult));
     }
@@ -138,12 +125,9 @@ public abstract class AbstractCollectingSupplier<COLLECTOR extends ValueSupplier
      * Returns an empty list when the overall value is missing.
      */
     protected List<Pair<COLLECTOR, ExecutionTimeValue<? extends TYPE>>> collectExecutionTimeValues(Function<COLLECTOR, ExecutionTimeValue<? extends TYPE>> calculateExecutionTimeValueForCollector) {
-        List<Pair<COLLECTOR, ExecutionTimeValue<? extends TYPE>>> executionTimeValues = new ArrayList<>();
+        ImmutableList.Builder<Pair<COLLECTOR, ExecutionTimeValue<? extends TYPE>>> executionTimeValues = ImmutableList.builder();
 
-        // We traverse the collectors backwards (in reverse addition order) to simplify the logic and avoid processing things that are going to be discarded.
-        // Because of that, values are collected in reverse order too.
-        // Se also #calculatePresence.
-        for (COLLECTOR collector : Lists.reverse(getCollectors())) {
+        for (COLLECTOR collector : getCollectors()) {
             ExecutionTimeValue<? extends TYPE> result = calculateExecutionTimeValueForCollector.apply(collector);
             if (result.isMissing()) {
                 // If any of the property elements is missing, the property is missing too.
@@ -152,7 +136,7 @@ public abstract class AbstractCollectingSupplier<COLLECTOR extends ValueSupplier
             executionTimeValues.add(Pair.of(collector, result));
         }
         // No missing values found, so all the candidates are part of the final value.
-        return Lists.reverse(executionTimeValues);
+        return executionTimeValues.build();
     }
 
     @Override
