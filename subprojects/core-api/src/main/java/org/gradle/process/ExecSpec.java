@@ -15,7 +15,11 @@
  */
 package org.gradle.process;
 
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.api.provider.ListProperty;
+import org.gradle.api.provider.Provider;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 
 import java.util.List;
 
@@ -24,29 +28,13 @@ import java.util.List;
  * @since 0.9
  */
 public interface ExecSpec extends BaseExecSpec {
-    /**
-     * Sets the full command line, including the executable to be executed plus its arguments.
-     *
-     * @param args the command plus the args to be executed
-     * @since 4.0
-     */
-    void setCommandLine(List<String> args);
 
     /**
-     * Sets the full command line, including the executable to be executed plus its arguments.
-     *
-     * @param args the command plus the args to be executed
-     * @since 0.9
+     * {@inheritDoc}
      */
-    void setCommandLine(Object... args);
-
-    /**
-     * Sets the full command line, including the executable to be executed plus its arguments.
-     *
-     * @param args the command plus the args to be executed
-     * @since 0.9
-     */
-    void setCommandLine(Iterable<?> args);
+    @Override
+    @ReplacesEagerProperty(adapter = ExecSpecAdapters.CommandLineAdapter.class)
+    Provider<List<String>> getCommandLine();
 
     /**
      * Sets the full command line, including the executable to be executed plus its arguments.
@@ -85,35 +73,19 @@ public interface ExecSpec extends BaseExecSpec {
     ExecSpec args(Iterable<?> args);
 
     /**
-     * Sets the arguments for the command to be executed.
-     *
-     * @param args args for the command
-     * @return this
-     * @since 4.0
-     */
-    ExecSpec setArgs(List<String> args);
-
-    /**
-     * Sets the arguments for the command to be executed.
-     *
-     * @param args args for the command
-     * @return this
-     * @since 0.9
-     */
-    ExecSpec setArgs(Iterable<?> args);
-
-    /**
      * Returns the arguments for the command to be executed. Defaults to an empty list.
      * @since 0.9
      */
-    @ToBeReplacedByLazyProperty
-    List<String> getArgs();
+    @ReplacesEagerProperty(adapter = ExecSpecAdapters.ArgsAdapter.class)
+    ListProperty<String> getArgs();
 
     /**
      * Argument providers for the application.
      *
      * @since 4.6
      */
-    @ToBeReplacedByLazyProperty
-    List<CommandLineArgumentProvider> getArgumentProviders();
+    @ReplacesEagerProperty(replacedAccessors = {
+        @ReplacedAccessor(value = AccessorType.GETTER, name = "getArgumentProviders")
+    })
+    ListProperty<CommandLineArgumentProvider> getArgumentProviders();
 }
