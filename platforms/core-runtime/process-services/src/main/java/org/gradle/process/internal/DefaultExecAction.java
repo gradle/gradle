@@ -17,8 +17,10 @@
 package org.gradle.process.internal;
 
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.ExecResult;
 import org.gradle.process.ExecSpec;
@@ -50,10 +52,16 @@ public class DefaultExecAction implements ExecAction {
     }
 
     @Override
-    public ExecResult execute() {
-        ExecHandle execHandle = ExecHandleBuilderConfigurer.configureFrom(execHandleBuilder, execSpec)
+    public ExecHandle buildHandle() {
+        return ExecHandleBuilderConfigurer.configureFrom(execHandleBuilder, execSpec)
             .build();
-        ExecResult execResult = execHandle.start().waitForFinish();
+    }
+
+    @Override
+    public ExecResult execute() {
+        ExecResult execResult = buildHandle()
+            .start()
+            .waitForFinish();
         if (!getIgnoreExitValue().get()) {
             execResult.assertNormalExitValue();
         }
@@ -84,63 +92,36 @@ public class DefaultExecAction implements ExecAction {
 
     @Override
     public ExecAction commandLine(Object... arguments) {
-        execHandleBuilder.commandLine(arguments);
+        execSpec.commandLine(arguments);
         return this;
     }
 
     @Override
     public ExecAction commandLine(Iterable<?> args) {
-        execHandleBuilder.commandLine(args);
+        execSpec.commandLine(args);
         return this;
     }
 
     @Override
-    public void setCommandLine(List<String> args) {
-        execHandleBuilder.commandLine(args);
-    }
-
-    @Override
-    public void setCommandLine(Object... args) {
-        execHandleBuilder.commandLine(args);
-    }
-
-    @Override
-    public void setCommandLine(Iterable<?> args) {
-        execHandleBuilder.commandLine(args);
-    }
-
-    @Override
     public ExecAction args(Object... args) {
-        execHandleBuilder.args(args);
+        execSpec.args(args);
         return this;
     }
 
     @Override
     public ExecAction args(Iterable<?> args) {
-        execHandleBuilder.args(args);
+        execSpec.args(args);
         return this;
     }
 
     @Override
-    public ExecAction setArgs(List<String> arguments) {
-        execHandleBuilder.setArgs(arguments);
-        return this;
+    public ListProperty<String> getArgs() {
+        return execSpec.getArgs();
     }
 
     @Override
-    public ExecAction setArgs(Iterable<?> arguments) {
-        execHandleBuilder.setArgs(arguments);
-        return this;
-    }
-
-    @Override
-    public List<String> getArgs() {
-        return execHandleBuilder.getArgs();
-    }
-
-    @Override
-    public List<CommandLineArgumentProvider> getArgumentProviders() {
-        return execHandleBuilder.getArgumentProviders();
+    public ListProperty<CommandLineArgumentProvider> getArgumentProviders() {
+        return execSpec.getArgumentProviders();
     }
 
     @Override
@@ -181,8 +162,8 @@ public class DefaultExecAction implements ExecAction {
     }
 
     @Override
-    public List<String> getCommandLine() {
-        return execHandleBuilder.getCommandLine();
+    public Provider<List<String>> getCommandLine() {
+        return execSpec.getCommandLine();
     }
 
     @Override
@@ -193,6 +174,7 @@ public class DefaultExecAction implements ExecAction {
 
     @Override
     public ExecAction copyTo(ProcessForkOptions options) {
-        throw new UnsupportedOperationException("Copy to ProcessForkOptions is not supported for ExecAction");
+        execSpec.copyTo(options);
+        return this;
     }
 }

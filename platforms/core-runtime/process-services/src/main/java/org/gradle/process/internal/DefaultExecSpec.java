@@ -16,29 +16,22 @@
 
 package org.gradle.process.internal;
 
+import com.google.common.base.Preconditions;
+import org.gradle.api.internal.lambdas.SerializableLambdas;
+import org.gradle.api.internal.provider.CollectionPropertyInternal;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Provider;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.process.BaseExecSpec;
-import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.ExecSpec;
 
 import javax.inject.Inject;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
-
 public abstract class DefaultExecSpec extends DefaultProcessForkOptions implements ExecSpec {
-
-    private final ProcessArgumentsSpec argumentsSpec = new ProcessArgumentsSpec(new ProcessArgumentsSpec.HasExecutable() {
-        @Override
-        public String getExecutable() {
-            return DefaultExecSpec.this.getExecutable().get();
-        }
-
-        @Override
-        public void setExecutable(Object executable) {
-            DefaultExecSpec.this.executable(executable);
-        }
-    });
 
     @Inject
     public DefaultExecSpec(ObjectFactory objectFactory, PathToFileResolver resolver) {
@@ -52,7 +45,7 @@ public abstract class DefaultExecSpec extends DefaultProcessForkOptions implemen
         // BaseExecSpec
         copyBaseExecSpecTo(this, targetSpec);
         // ExecSpec
-        targetSpec.setArgs(getArgs());
+        targetSpec.getArgs().set(getArgs());
         targetSpec.getArgumentProviders().addAll(getArgumentProviders());
     }
 
@@ -73,68 +66,51 @@ public abstract class DefaultExecSpec extends DefaultProcessForkOptions implemen
     }
 
     @Override
-    public List<String> getCommandLine() {
-        return argumentsSpec.getCommandLine();
+    public Provider<List<String>> getCommandLine() {
+        return getExecutable().zip(getArgs(), (SerializableLambdas.SerializableBiFunction<String, List<String>, List<String>>) (executable, args) -> {
+            List<String> allArgs = ExecHandleCommandLineCombiner.getAllArgs(Collections.emptyList(), args, getArgumentProviders().get());
+            return ExecHandleCommandLineCombiner.getCommandLine(executable, allArgs);
+        });
     }
 
     @Override
     public ExecSpec commandLine(Object... arguments) {
-        argumentsSpec.commandLine(arguments);
+        commandLine(Arrays.asList(arguments));
         return this;
     }
 
     @Override
     public ExecSpec commandLine(Iterable<?> args) {
-        argumentsSpec.commandLine(args);
+        Iterator<?> iterator = args.iterator();
+        if (!iterator.hasNext()) {
+            throw new IllegalArgumentException("Can't set an empty command line");
+        }
+        executable(iterator.next());
+        getArgs().empty();
+        while (iterator.hasNext()) {
+            args(iterator.next());
+        }
         return this;
     }
 
     @Override
-    public void setCommandLine(List<String> args) {
-        argumentsSpec.commandLine(args);
-    }
-
-    @Override
-    public void setCommandLine(Object... args) {
-        argumentsSpec.commandLine(args);
-    }
-
-    @Override
-    public void setCommandLine(Iterable<?> args) {
-        argumentsSpec.commandLine(args);
-    }
-
-    @Override
+    @SuppressWarnings("unchecked")
     public ExecSpec args(Object... args) {
-        argumentsSpec.args(args);
+        for (Object arg : args) {
+            if (arg instanceof Provider) {
+                ((CollectionPropertyInternal<String, List<String>>) getArgs()).append(((Provider<?>) arg).map(Object::toString));
+            } else {
+                getArgs().add(Preconditions.checkNotNull(arg).toString());
+            }
+        }
         return this;
     }
 
     @Override
     public ExecSpec args(Iterable<?> args) {
-        argumentsSpec.args(args);
+        for (Object arg : args) {
+            args(arg);
+        }
         return this;
-    }
-
-    @Override
-    public ExecSpec setArgs(List<String> arguments) {
-        argumentsSpec.setArgs(arguments);
-        return this;
-    }
-
-    @Override
-    public ExecSpec setArgs(Iterable<?> arguments) {
-        argumentsSpec.setArgs(arguments);
-        return this;
-    }
-
-    @Override
-    public List<String> getArgs() {
-        return argumentsSpec.getArgs();
-    }
-
-    @Override
-    public List<CommandLineArgumentProvider> getArgumentProviders() {
-        return argumentsSpec.getArgumentProviders();
     }
 }

@@ -89,8 +89,8 @@ public abstract class DefaultJavaExecSpec extends DefaultJavaForkOptions impleme
     }
 
     @Override
-    public List<String> getCommandLine() {
-        return argumentsSpec.getCommandLine();
+    public Provider<List<String>> getCommandLine() {
+        return getExecutable().map(executable -> argumentsSpec.getCommandLine());
     }
 
     @Override
