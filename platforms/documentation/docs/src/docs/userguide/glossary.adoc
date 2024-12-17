@@ -50,6 +50,72 @@ For more information, see the sections on <<dependency_configurations.adoc#sub:w
 +
 NOTE: The word "configuration" is an overloaded term that has a different meaning outside of dependency management.
 
+[[sub:cross_configuration]]
+Cross-Configuration ::
+See <<sub:cross_project_configuration,Cross-Project Configuration>>.
+
+[[sub:cross_project_configuration]]
+Cross-Project Configuration ::
+Cross-project configuration refers to managing and customizing multiple subprojects within a multi-project build.
++
+It allows you to define common settings, dependencies, and tasks in a shared `build.gradle(.kts)` or `settings.gradle.(kts)` file, typically located in the root project:
++
+[source,groovy]
+.build.gradle
+----
+subprojects {
+    apply plugin: 'java'
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        testImplementation 'junit:junit:4.13.2'
+    }
+}
+----
++
+Cross-project configuration usually breaks Project Isolation, and Parallel Project Execution, so you should use convention plugins or the proper APIs whenever possible:
++
+[source,groovy]
+.build.gradle
+----
+gradle.lifecycle.beforeProject {
+    repositories {
+        mavenCentral()
+    }
+}
+----
++
+The following example of cross-project configuration should *always* be avoided:
++
+[source,groovy]
+.subprojectA/build.gradle
+----
+tasks.register("customTask") {
+    // Avoid this! Directly accessing outputs from another subproject's task
+    def outputFile = project(":subprojectB").tasks.named("someTask").get().outputs.files.singleFile
+    inputs.file(outputFile)
+    doLast {
+        println("Processing file from subprojectB: ${outputFile}")
+    }
+}
+----
++
+[source,groovy]
+.subprojectB/build.gradle
+----
+tasks.register("someTask") {
+    def outputFile = layout.buildDirectory.file("output.txt")
+    outputs.file(outputFile)
+    doLast {
+        outputFile.get().asFile.text = "Output from subprojectB"
+        println("Generated output file in subprojectB: ${outputFile.get().asFile}")
+    }
+}
+----
++
+This tightly couples `subprojectA` to `subprojectB`, breaking modularity and creating potential issues during parallel builds or configuration caching.
+
 == D
 
 [[sub:terminology_dependency]]
@@ -75,6 +141,12 @@ A feature variant is identified by one or more <<#sub:terminology_capability, ca
 For more information, see the sections on <<feature_variants.adoc#feature_variants, modeling feature variants, and optional dependencies>>.
 
 == G
+
+[[sub:gradle_build]]
+Gradle Build::
+A Gradle build can consist of one or more Gradle projects and is _typically_ configured using a `settings.gradle(.kts)` file at the root.
++
+When invoked, the Gradle build executes a set of tasks based on the defined build logic, often using the Gradle Wrapper (`./gradlew`).
 
 == H
 
