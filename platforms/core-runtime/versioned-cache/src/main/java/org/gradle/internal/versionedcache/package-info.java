@@ -14,6 +14,15 @@
  * limitations under the License.
  */
 
+/**
+ * Infrastructure to manage version-specific Gradle caches. Version-specific caches include
+ * <ul>
+ *     <li>Caches that are tied to a specific Gradle version, typically residing in directories named after version, e.g. {@code .gradle/8.11.1-rc-1/...}.
+ *     See {@link org.gradle.internal.versionedcache.VersionSpecificCacheDirectoryScanner}.</li>
+ *     <li>Caches that change their version less often, but their version is still tied to a Gradle version range.
+ *     See {@link org.gradle.internal.versionedcache.CacheVersionMapping}.</li>
+ * </ul>
+ */
 @NonNullApi
 package org.gradle.internal.versionedcache;
 
