@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.cache.internal
+package org.gradle.internal.versionedcache
 
-import org.gradle.internal.versionedcache.CacheVersionMapping
+import org.gradle.cache.internal.CacheVersion
 import org.gradle.util.internal.DefaultGradleVersion
 import spock.lang.Specification
 

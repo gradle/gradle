@@ -1353,7 +1353,7 @@
   {
     "name": "versioned-cache",
     "path": "platforms/core-runtime/versioned-cache",
-    "unitTests": false,
+    "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },

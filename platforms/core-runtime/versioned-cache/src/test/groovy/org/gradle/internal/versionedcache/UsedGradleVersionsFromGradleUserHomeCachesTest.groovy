@@ -14,12 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.cache.internal
+package org.gradle.internal.versionedcache
 
 
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
-import org.gradle.internal.versionedcache.UsedGradleVersions
-import org.gradle.internal.versionedcache.UsedGradleVersionsFromGradleUserHomeCaches
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.GradleVersion
