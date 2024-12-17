@@ -77,7 +77,7 @@ public class UnusedVersionsCacheCleanup extends AbstractCacheCleanup {
     private void determineUsedVersions() {
         usedVersions = new TreeSet<>();
         for (GradleVersion gradleVersion : getUsedGradleVersionsSmallerThanCurrent()) {
-            usedVersions.addAll(cacheVersionMapping.getVersionUsedBy(gradleVersion).asSet());
+            cacheVersionMapping.getVersionUsedBy(gradleVersion).ifPresent(usedVersions::add);
         }
     }
 
