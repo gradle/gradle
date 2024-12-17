@@ -699,8 +699,6 @@ Method <org.gradle.plugins.signing.type.AbstractSignatureTypeProvider.getDefault
 Method <org.gradle.plugins.signing.type.AbstractSignatureTypeProvider.getTypeForExtension(java.lang.String)> does not have raw return type (org.gradle.plugins.signing.type.SignatureType) assignable to any of [Provider] in (AbstractSignatureTypeProvider.java:0)
 Method <org.gradle.plugins.signing.type.SignatureTypeProvider.getDefaultType()> does not have raw return type (org.gradle.plugins.signing.type.SignatureType) assignable to any of [Property, MapProperty, ListProperty, SetProperty] in (SignatureTypeProvider.java:0)
 Method <org.gradle.plugins.signing.type.SignatureTypeProvider.getTypeForExtension(java.lang.String)> does not have raw return type (org.gradle.plugins.signing.type.SignatureType) assignable to any of [Provider] in (SignatureTypeProvider.java:0)
-Method <org.gradle.process.ExecSpec.getArgs()> does not have raw return type (java.util.List) assignable to any of [Property, MapProperty, ListProperty, SetProperty] in (ExecSpec.java:0)
-Method <org.gradle.process.ExecSpec.getArgumentProviders()> does not have raw return type (java.util.List) assignable to any of [Provider] in (ExecSpec.java:0)
 Method <org.gradle.process.JavaExecSpec.getArgs()> does not have raw return type (java.util.List) assignable to any of [Property, MapProperty, ListProperty, SetProperty] in (JavaExecSpec.java:0)
 Method <org.gradle.process.JavaExecSpec.getArgumentProviders()> does not have raw return type (java.util.List) assignable to any of [Provider] in (JavaExecSpec.java:0)
 Method <org.gradle.process.JavaExecSpec.getModularity()> does not have raw return type (org.gradle.api.jvm.ModularitySpec) assignable to any of [Provider] in (JavaExecSpec.java:0)
