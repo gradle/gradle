@@ -46,9 +46,9 @@ class ExecKotlinDSLIntegrationTest extends AbstractIntegrationSpec {
         outputContains("foo+bar")
 
         where:
-        method          | expression
-        "a property"    | "args = listOf(${echoArguments})"
-        "its setter"    | "setArgs(listOf(${echoArguments}))"
+        method       | expression
+        "a property" | "args = listOf(${echoArguments})"
+        "a method"   | "args(listOf(${echoArguments}))"
     }
 
     def "can execute command without setting any value for Exec.args"() {
