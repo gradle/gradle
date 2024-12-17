@@ -42,8 +42,10 @@ class AttributeContainerResolutionIntegrationTest extends AbstractIntegrationSpe
                 inputs.files(configurations.conf)
             }
         """
+
         expect:
         // When this has failed in the past, building the task graph hits a NPE from the attribute container
+        executer.expectDocumentedDeprecationWarning("Querying the contents of an attribute container while realizing attributes of the container. This behavior has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#attribute_container_recursive_query")
         succeeds("resolve")
     }
 }

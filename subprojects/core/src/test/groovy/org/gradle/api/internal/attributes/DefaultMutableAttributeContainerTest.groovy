@@ -22,12 +22,33 @@ import org.gradle.api.internal.provider.DefaultProperty
 import org.gradle.api.internal.provider.DefaultProvider
 import org.gradle.api.internal.provider.PropertyHost
 import org.gradle.api.internal.provider.Providers
+import org.gradle.api.logging.LogLevel
+import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
+import org.gradle.internal.deprecation.DeprecationLogger
+import org.gradle.internal.logging.CollectingTestOutputEventListener
+import org.gradle.internal.logging.ConfigureLogging
+import org.gradle.internal.operations.BuildOperationProgressEventEmitter
+import org.gradle.internal.problems.NoOpProblemDiagnosticsFactory
 import org.gradle.util.AttributeTestUtil
+import org.gradle.util.TestUtil
+import org.junit.Rule
 import spock.lang.Specification
 
 class DefaultMutableAttributeContainerTest extends Specification {
+
+    CollectingTestOutputEventListener outputEventListener = new CollectingTestOutputEventListener()
+
+    @Rule
+    ConfigureLogging logging = new ConfigureLogging(outputEventListener)
+
+    def setup() {
+        final diagnosticsFactory = new NoOpProblemDiagnosticsFactory()
+        def buildOperationProgressEventEmitter = Mock(BuildOperationProgressEventEmitter)
+        DeprecationLogger.init(WarningMode.All, buildOperationProgressEventEmitter, TestUtil.problemsService(), diagnosticsFactory.newUnlimitedStream())
+    }
+
     def attributesFactory = AttributeTestUtil.attributesFactory()
 
     def "lazy attributes are evaluated in insertion order"() {
@@ -61,6 +82,11 @@ class DefaultMutableAttributeContainerTest extends Specification {
 
         expect:
         container.asImmutable().keySet() == [secondAttribute, firstAttribute] as Set
+
+        and:
+        def events = outputEventListener.events.findAll { it.logLevel == LogLevel.WARN }
+        events.size() == 1
+        events[0].message.startsWith("Querying the contents of an attribute container while realizing attributes of the container. This behavior has been deprecated. This will fail with an error in Gradle 9.0")
     }
 
     def "realizing the value of lazy attributes cannot add new attributes to the container"() {

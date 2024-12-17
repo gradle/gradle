@@ -35,6 +35,30 @@ The previous step will help you identify potential problems by issuing deprecati
 . Run `gradle wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
+[[change_8.13]]
+== Upgrading from 8.12 and earlier
+
+=== Deprecations
+
+==== Recursively querying `AttributeContainer` in lazy provider
+
+In Gradle 9.0, querying the contents of an `AttributeContainer` from within an attribute value provider of the same container will become an error
+
+The following example showcases the forbidden behavior:
+
+[source,groovy]
+----
+def container = getAttributeContainer()
+def firstAttribute = Attribute.of("first", String)
+def secondAttribute = Attribute.of("second", String)
+container.attributeProvider(firstAttribute, providers.provider(() -> {
+    // Querying the contents of the container within an attribute value provider
+    // will become an error
+    container.getAttribute(secondAttribute)
+    "first"
+}))
+----
+
 [[changes_8.12]]
 == Upgrading from 8.11 and earlier
 
