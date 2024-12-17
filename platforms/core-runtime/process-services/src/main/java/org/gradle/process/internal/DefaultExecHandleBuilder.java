@@ -17,15 +17,14 @@
 package org.gradle.process.internal;
 
 import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.provider.MapProperty;
+import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.ProcessForkOptions;
 import org.gradle.process.internal.streams.StreamsHandler;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -38,36 +37,34 @@ import java.util.Map;
 @Deprecated
 public class DefaultExecHandleBuilder extends AbstractExecHandleBuilder implements ExecHandleBuilder {
 
-    private final FileResolver resolver;
+    public DefaultExecHandleBuilder(ExecAction execAction) {
+        super(execAction);
+    }
 
-    public DefaultExecHandleBuilder(ObjectFactory objectFactory, FileResolver resolver, ClientExecHandleBuilder delegate) {
-        super(objectFactory, delegate);
-        this.resolver = resolver;
+    @Override
+    public Provider<List<String>> getCommandLine() {
+        return delegate.getCommandLine();
     }
 
     @Override
     public Property<String> getExecutable() {
-        return super.getExecutable();
+        return delegate.getExecutable();
     }
 
     @Override
     public DefaultExecHandleBuilder executable(Object executable) {
-        super.executable(executable);
+        delegate.executable(executable);
         return this;
     }
 
     @Override
     public DirectoryProperty getWorkingDir() {
-        return workingDir;
+        return delegate.getWorkingDir();
     }
 
     @Override
     public DefaultExecHandleBuilder workingDir(Object dir) {
-        if (dir instanceof Provider) {
-            getWorkingDir().fileProvider(((Provider<?>) dir).map(resolver::resolve));
-        } else {
-            getWorkingDir().set(resolver.resolve(dir));
-        }
+        delegate.workingDir(dir);
         return this;
     }
 
@@ -84,23 +81,8 @@ public class DefaultExecHandleBuilder extends AbstractExecHandleBuilder implemen
     }
 
     @Override
-    public void setCommandLine(List<String> args) {
-        delegate.commandLine(args);
-    }
-
-    @Override
-    public void setCommandLine(Object... args) {
-        delegate.commandLine(args);
-    }
-
-    @Override
-    public void setCommandLine(Iterable<?> args) {
-        delegate.commandLine(args);
-    }
-
-    @Override
     public DefaultExecHandleBuilder args(Object... args) {
-        delegate.args(args);
+        args(Arrays.asList(args));
         return this;
     }
 
@@ -111,35 +93,13 @@ public class DefaultExecHandleBuilder extends AbstractExecHandleBuilder implemen
     }
 
     @Override
-    public DefaultExecHandleBuilder setArgs(List<String> arguments) {
-        delegate.setArgs(arguments);
-        return this;
-    }
-
-    @Override
-    public DefaultExecHandleBuilder setArgs(Iterable<?> arguments) {
-        delegate.setArgs(arguments);
-        return this;
-    }
-
-    @Override
-    public List<String> getArgs() {
+    public ListProperty<String> getArgs() {
         return delegate.getArgs();
     }
 
     @Override
-    public List<CommandLineArgumentProvider> getArgumentProviders() {
+    public ListProperty<CommandLineArgumentProvider> getArgumentProviders() {
         return delegate.getArgumentProviders();
-    }
-
-    @Override
-    public List<String> getAllArguments() {
-        return delegate.getAllArguments();
-    }
-
-    @Override
-    public MapProperty<String, Object> getEnvironment() {
-        return super.getEnvironment();
     }
 
     @Override
@@ -186,15 +146,14 @@ public class DefaultExecHandleBuilder extends AbstractExecHandleBuilder implemen
 
     @Override
     public ExecHandleBuilder setDaemon(boolean daemon) {
-        delegate.setDaemon(daemon);
-        return this;
+        throw new UnsupportedOperationException("setDaemon() is not supported");
     }
 
     @Override
     public ProcessForkOptions copyTo(ProcessForkOptions options) {
-        options.setExecutable(delegate.getExecutable());
-        options.setWorkingDir(delegate.getWorkingDir());
-        options.setEnvironment(delegate.getEnvironment());
+        options.getExecutable().set(delegate.getExecutable());
+        options.getWorkingDir().set(delegate.getWorkingDir());
+        options.getEnvironment().set(delegate.getEnvironment());
         return this;
     }
 }

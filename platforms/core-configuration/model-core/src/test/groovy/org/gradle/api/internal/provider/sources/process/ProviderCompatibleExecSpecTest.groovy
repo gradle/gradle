@@ -27,7 +27,7 @@ class ProviderCompatibleExecSpecTest extends ProviderCompatibleBaseExecSpecTestB
         def command = ["some", "command", "with", "arguments"]
 
         when:
-        specUnderTest.commandLine = command
+        specUnderTest.commandLine(command)
         specUnderTest.copyToParameters(parameters)
 
         then:
