@@ -16,7 +16,6 @@
 
 import gradlebuild.basics.GradleModuleApiAttribute
 import gradlebuild.basics.ImplementationCompletenessAttribute
-import gradlebuild.configureAsApiElements
 
 configurations["runtimeElements"].attributes {
     attribute(GradleModuleApiAttribute.attribute, GradleModuleApiAttribute.API)
