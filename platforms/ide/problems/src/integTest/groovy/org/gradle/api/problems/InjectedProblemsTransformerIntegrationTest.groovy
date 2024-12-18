@@ -40,6 +40,7 @@ class InjectedProblemsTransformerIntegrationTest extends AbstractIntegrationSpec
             import ${Project.name};
             import ${Plugin.name};
             import ${Problems.name};
+            import ${IdFactory.name};
             import javax.inject.Inject;
 
             public abstract class PluginImpl implements Plugin<Project> {
@@ -49,7 +50,7 @@ class InjectedProblemsTransformerIntegrationTest extends AbstractIntegrationSpec
 
                 public void apply(Project project) {
                     getProblems().getReporter().reporting(builder ->
-                        builder.id("type", "label")
+                        builder.id(IdFactory.instance().createProblemId("type", "label", IdFactory.instance().createRootProblemGroup("generic", "Generic")))
                     );
                     project.getTasks().register("reportProblem", t -> {
                         t.doLast(t2 -> {

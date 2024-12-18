@@ -24,7 +24,7 @@ import java.util.Arrays;
 import java.util.List;
 
 @NonNullApi
-public class DefaultProblem implements Serializable, Problem {
+public class DefaultProblem implements Serializable, InternalProblem {
     private final ProblemDefinition problemDefinition;
     private final String contextualLabel;
     private final List<String> solutions;
