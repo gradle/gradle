@@ -18,6 +18,7 @@ package org.gradle.process.internal;
 
 import org.gradle.process.BaseExecSpec;
 import org.gradle.process.ExecSpec;
+import org.gradle.process.JavaExecSpec;
 import org.jspecify.annotations.NullMarked;
 
 /**
@@ -53,6 +54,18 @@ public class ExecHandleBuilderConfigurer {
         configureFrom(builder, (BaseExecSpec) execSpec);
         builder.setArgs(execSpec.getArgs().get());
         builder.setArgumentProviders(execSpec.getArgumentProviders().get());
+        return builder;
+    }
+
+    public static JavaExecHandleBuilder configureFrom(JavaExecHandleBuilder builder, JavaExecSpec spec) {
+        configureFrom(builder, (BaseExecSpec) spec);
+        builder.getMainModule().set(spec.getMainModule());
+        builder.getMainClass().set(spec.getMainClass());
+        builder.getModularity().getInferModulePath().set(spec.getModularity().getInferModulePath());
+        builder.classpath(spec.getClasspath());
+        builder.setArgs(spec.getArgs().get());
+        builder.setArgumentProviders(spec.getArgumentProviders().get());
+        builder.copyJavaForkOptions(spec);
         return builder;
     }
 }
