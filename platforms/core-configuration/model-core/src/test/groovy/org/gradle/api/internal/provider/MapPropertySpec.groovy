@@ -1223,26 +1223,6 @@ The value of this property is derived from: <source>""")
         "getOrElse" | _
     }
 
-    def "may configure incrementally based on convention value"() {
-        given:
-        property.convention(['k0': '1'])
-        property.withActualValue {
-            it.putAll(['k1': '2', 'k2': '3'])
-            it.put('k2', '4')
-        }
-
-        expect:
-        assertValueIs(['k0': '1', 'k1': '2', 'k2': '4'])
-        property.explicit
-
-        when:
-        property.unset()
-
-        then:
-        assertValueIs(['k0': '1'])
-        !property.explicit
-    }
-
     def "may configure incrementally based on convention value using insert"() {
         given:
         property.convention(['k0': '1'])
@@ -1261,19 +1241,6 @@ The value of this property is derived from: <source>""")
         !property.explicit
     }
 
-    def "may configure explicit value incrementally"() {
-        given:
-        property.set([:])
-        property.withActualValue {
-            it.put('k0', '1')
-            it.putAll(['k1': '2', 'k2': '3'])
-            it.put('k2', '4')
-        }
-        expect:
-        assertValueIs(['k0': '1', 'k1': '2', 'k2': '4'])
-        assert property.explicit
-    }
-
     def "may configure explicit value incrementally using insert"() {
         given:
         property.set([:])
@@ -1281,18 +1248,6 @@ The value of this property is derived from: <source>""")
         property.insertAll(['k1': '2', 'k2': '3'])
         property.insert('k2', '4')
 
-        expect:
-        assertValueIs(['k0': '1', 'k1': '2', 'k2': '4'])
-        assert property.explicit
-    }
-
-    def "may configure actual value incrementally"() {
-        given:
-        property.withActualValue {
-            it.put('k0', '1')
-            it.putAll(['k1': '2', 'k2': '3'])
-            it.put('k2', '4')
-        }
         expect:
         assertValueIs(['k0': '1', 'k1': '2', 'k2': '4'])
         assert property.explicit
@@ -1306,17 +1261,6 @@ The value of this property is derived from: <source>""")
         expect:
         assertValueIs(['k0': '1', 'k1': '2', 'k2': '4'])
         assert property.explicit
-    }
-
-    def "may replace values originally set via convention"() {
-        given:
-        property.convention(['k0': '1', 'k1': '2', 'k2': '3'])
-        property.withActualValue {
-            it.put('k1', '4')
-        }
-        expect:
-        assertValueIs(['k0': '1', 'k1': '4', 'k2': '3'])
-        property.explicit
     }
 
     def "may replace values originally set via convention using insert"() {

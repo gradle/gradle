@@ -18,7 +18,6 @@ package org.gradle.api.internal.provider;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableCollection;
-import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.provider.Collectors.ElementFromProvider;
 import org.gradle.api.internal.provider.Collectors.ElementsFromArray;
@@ -123,13 +122,9 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
      */
     protected abstract C emptyCollection();
 
-    protected Configurer getConfigurer() {
-        return new Configurer();
-    }
-
-    protected void withActualValue(Action<Configurer> action) {
+    private void withActualValue(Runnable action) {
         setToConventionIfUnset();
-        action.execute(getConfigurer());
+        action.run();
     }
 
     @Override
@@ -145,56 +140,57 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
     @Override
     public void add(final T element) {
-        getConfigurer().add(element);
+        Preconditions.checkNotNull(element, "Cannot add a null element to a property of type %s.", collectionType.getSimpleName());
+        addExplicitCollector(new SingleElement<>(element));
     }
 
     @Override
     public void add(final Provider<? extends T> providerOfElement) {
-        getConfigurer().add(providerOfElement);
+        addExplicitCollector(new ElementFromProvider<>(Providers.internal(providerOfElement)));
     }
 
     @Override
     @SafeVarargs
     @SuppressWarnings("varargs")
     public final void addAll(T... elements) {
-        getConfigurer().addAll(elements);
+        addExplicitCollector(new ElementsFromArray<>(elements));
     }
 
     @Override
     public void addAll(Iterable<? extends T> elements) {
-        getConfigurer().addAll(elements);
+        addExplicitCollector(new ElementsFromCollection<>(elements));
     }
 
     @Override
     public void addAll(Provider<? extends Iterable<? extends T>> provider) {
-        getConfigurer().addAll(provider);
+        addExplicitCollector(new ElementsFromCollectionProvider<>(Providers.internal(provider)));
     }
 
     @Override
     public void append(T element) {
-        withActualValue(it -> it.add(element));
+        withActualValue(() -> add(element));
     }
 
     @Override
     public void append(Provider<? extends T> provider) {
-        withActualValue(it -> it.add(provider));
+        withActualValue(() -> add(provider));
     }
 
     @Override
     @SuppressWarnings("varargs")
     @SafeVarargs
     public final void appendAll(T... elements) {
-        withActualValue(it -> it.addAll(elements));
+        withActualValue(() -> addAll(elements));
     }
 
     @Override
     public void appendAll(Iterable<? extends T> elements) {
-        withActualValue(it -> it.addAll(elements));
+        withActualValue(() -> addAll(elements));
     }
 
     @Override
     public void appendAll(Provider<? extends Iterable<? extends T>> provider) {
-        withActualValue(it -> it.addAll(provider));
+        withActualValue(() -> addAll(provider));
     }
 
     @Override
@@ -603,38 +599,5 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         } else {
             set((Iterable<? extends T>) null);
         }
-    }
-
-    private class Configurer {
-
-        public Configurer() {}
-
-        protected void addCollector(Collector<T> collector) {
-            addExplicitCollector(collector);
-        }
-
-        public void add(final T element) {
-            Preconditions.checkNotNull(element, "Cannot add a null element to a property of type %s.", collectionType.getSimpleName());
-            addCollector(new SingleElement<>(element));
-        }
-
-        public void add(final Provider<? extends T> providerOfElement) {
-            addCollector(new ElementFromProvider<>(Providers.internal(providerOfElement)));
-        }
-
-        @SafeVarargs
-        @SuppressWarnings("varargs")
-        public final void addAll(T... elements) {
-            addCollector(new ElementsFromArray<>(elements));
-        }
-
-        public void addAll(Iterable<? extends T> elements) {
-            addCollector(new ElementsFromCollection<>(elements));
-        }
-
-        public void addAll(Provider<? extends Iterable<? extends T>> provider) {
-            addCollector(new ElementsFromCollectionProvider<>(Providers.internal(provider)));
-        }
-
     }
 }

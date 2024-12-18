@@ -20,7 +20,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.provider.MapCollectors.EntriesFromMap;
 import org.gradle.api.internal.provider.MapCollectors.EntriesFromMapProvider;
@@ -184,42 +183,51 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
 
     @Override
     public void put(K key, V value) {
-        getConfigurer().put(key, value);
+        Preconditions.checkNotNull(key, NULL_KEY_FORBIDDEN_MESSAGE);
+        Preconditions.checkNotNull(value, NULL_VALUE_FORBIDDEN_MESSAGE);
+        addExplicitCollector(new SingleEntry<>(key, value));
     }
 
     @Override
     public void put(K key, Provider<? extends V> providerOfValue) {
-        getConfigurer().put(key, providerOfValue);
+        Preconditions.checkNotNull(key, NULL_KEY_FORBIDDEN_MESSAGE);
+        Preconditions.checkNotNull(providerOfValue, NULL_VALUE_FORBIDDEN_MESSAGE);
+        ProviderInternal<? extends V> p = Providers.internal(providerOfValue);
+        if (p.getType() != null && !valueType.isAssignableFrom(p.getType())) {
+            throw new IllegalArgumentException(String.format("Cannot add an entry to a property of type %s with values of type %s using a provider of type %s.",
+                Map.class.getName(), valueType.getName(), p.getType().getName()));
+        }
+        addExplicitCollector(new EntryWithValueFromProvider<>(key, Providers.internal(providerOfValue)));
     }
 
     @Override
     public void putAll(Map<? extends K, ? extends V> entries) {
-        getConfigurer().putAll(entries);
+        addExplicitCollector(new EntriesFromMap<>(entries));
     }
 
     @Override
     public void putAll(Provider<? extends Map<? extends K, ? extends V>> provider) {
-        getConfigurer().putAll(provider);
+        addExplicitCollector(new EntriesFromMapProvider<>(checkMapProvider(provider)));
     }
 
     @Override
     public void insert(K key, Provider<? extends V> providerOfValue) {
-        withActualValue(it -> it.put(key, providerOfValue));
+        withActualValue(() -> put(key, providerOfValue));
     }
 
     @Override
     public void insert(K key, V value) {
-        withActualValue(it -> it.put(key, value));
+        withActualValue(() -> put(key, value));
     }
 
     @Override
     public void insertAll(Provider<? extends Map<? extends K, ? extends V>> provider) {
-        withActualValue(it -> it.putAll(provider));
+        withActualValue(() -> putAll(provider));
     }
 
     @Override
     public void insertAll(Map<? extends K, ? extends V> entries) {
-        withActualValue(it -> it.putAll(entries));
+        withActualValue(() -> putAll(entries));
     }
 
     private void addExplicitCollector(MapCollector<K, V> collector) {
@@ -228,13 +236,9 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         setSupplier(explicitValue.plus(collector));
     }
 
-    private Configurer getConfigurer() {
-        return new Configurer();
-    }
-
-    protected void withActualValue(Action<Configurer> action) {
+    protected void withActualValue(Runnable action) {
         setToConventionIfUnset();
-        action.execute(getConfigurer());
+        action.run();
     }
 
     private boolean isNoValueSupplier(MapSupplier<K, V> valueSupplier) {
@@ -624,40 +628,6 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
                 return new EntriesFromMapProvider<>(value.toProvider());
             }
             return new EntriesFromMap<>(value.getFixedValue());
-        }
-    }
-
-    private class Configurer {
-
-        public Configurer() {}
-
-        void addCollector(MapCollector<K, V> collector) {
-            addExplicitCollector(collector);
-        }
-
-        public void put(K key, V value) {
-            Preconditions.checkNotNull(key, NULL_KEY_FORBIDDEN_MESSAGE);
-            Preconditions.checkNotNull(value, NULL_VALUE_FORBIDDEN_MESSAGE);
-            addCollector(new SingleEntry<>(key, value));
-        }
-
-        public void put(K key, Provider<? extends V> providerOfValue) {
-            Preconditions.checkNotNull(key, NULL_KEY_FORBIDDEN_MESSAGE);
-            Preconditions.checkNotNull(providerOfValue, NULL_VALUE_FORBIDDEN_MESSAGE);
-            ProviderInternal<? extends V> p = Providers.internal(providerOfValue);
-            if (p.getType() != null && !valueType.isAssignableFrom(p.getType())) {
-                throw new IllegalArgumentException(String.format("Cannot add an entry to a property of type %s with values of type %s using a provider of type %s.",
-                    Map.class.getName(), valueType.getName(), p.getType().getName()));
-            }
-            addCollector(new EntryWithValueFromProvider<>(key, Providers.internal(providerOfValue)));
-        }
-
-        public void putAll(Map<? extends K, ? extends V> entries) {
-            addCollector(new EntriesFromMap<>(entries));
-        }
-
-        public void putAll(Provider<? extends Map<? extends K, ? extends V>> provider) {
-            addCollector(new EntriesFromMapProvider<>(checkMapProvider(provider)));
         }
     }
 
