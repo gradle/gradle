@@ -16,6 +16,7 @@
 
 package org.gradle.api.isolated.models;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.provider.Provider;
 
 import java.util.List;
@@ -23,8 +24,10 @@ import java.util.List;
 /**
  * TBD
  *
+ * @param <T> type of the model
  * @since 8.13
  */
+@Incubating
 public interface ProjectScopeModelRequest<T> {
 
     /**
