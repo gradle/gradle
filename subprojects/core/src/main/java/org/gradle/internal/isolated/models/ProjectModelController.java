@@ -16,12 +16,15 @@
 
 package org.gradle.internal.isolated.models;
 
-import org.gradle.api.internal.provider.ValueSupplier;
+import com.google.common.collect.ImmutableList;
+import org.gradle.api.internal.provider.ProviderInternal;
+import org.gradle.api.internal.provider.Providers;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,6 +36,12 @@ public class ProjectModelController {
 
     private final Map<ProducerKey<?>, IsolatedModelProducer<?>> workByKey = new HashMap<>();
 
+    private final ObjectFactory objectFactory;
+
+    public ProjectModelController(ObjectFactory objectFactory) {
+        this.objectFactory = objectFactory;
+    }
+
     public <T> void register(ProjectModelScopeIdentifier producerScope, IsolatedModelKey<T> key, IsolatedModelProducer<T> work) {
         ProducerKey<T> workKey = new ProducerKey<>(producerScope, key);
         workByKey.put(workKey, work);
@@ -42,31 +51,38 @@ public class ProjectModelController {
         return new ConsumerProjectScopeModelBatchProvider<>(this, request);
     }
 
-    public <T> boolean calculateBatchPresence(ProjectScopeModelBatchRequest<T> request) {
-        return !calculateBatchValue(request).isMissing();
-    }
+    public <T> ProviderInternal<? extends List<T>> calculateBatchValueProvider(ProjectScopeModelBatchRequest<T> request) {
+        IsolatedModelKey<T> modelKey = request.getModelKey();
+        ListProperty<T> batchValuesProperty = objectFactory.listProperty(modelKey.getType());
 
-    public <T> ValueSupplier.Value<? extends List<T>> calculateBatchValue(ProjectScopeModelBatchRequest<T> request) {
-        ArrayList<T> batchValues = new ArrayList<>();
         for (ProjectModelScopeIdentifier producerId : request.getProducers()) {
-            ProducerKey<T> producerKey = new ProducerKey<>(producerId, request.getModelKey());
+            ProducerKey<T> producerKey = new ProducerKey<>(producerId, modelKey);
             IsolatedModelProducer<?> producer = workByKey.get(producerKey);
-            if (producer == null && !request.isLenient()) {
-                return ValueSupplier.Value.missing();
+
+            Provider<T> producerSideProvider;
+            if (producer == null) {
+                // the producer has not been registered at all
+                producerSideProvider = Providers.notDefined();
+            } else {
+
+                if (!producer.getModelType().equals(modelKey.getType())) {
+                    throw new IllegalStateException("Producer " + producerKey + " does not match model type " + modelKey.getType());
+                }
+
+                @SuppressWarnings("unchecked")
+                IsolatedModelProducer<T> typedProducer = (IsolatedModelProducer<T>) producer;
+                producerSideProvider = typedProducer.prepare();
             }
 
-            if (!producer.getModelType().equals(request.getModelKey().getType())) {
-                throw new IllegalStateException("Producer " + producerKey + " does not match model type " + request.getModelKey().getType());
+            // Simulating aggregation leniency via list providers
+            Provider<List<T>> listWrappedValueProvider = producerSideProvider.map(ImmutableList::of);
+            if (request.isLenient()) {
+                listWrappedValueProvider = listWrappedValueProvider.orElse(ImmutableList.of());
             }
-
-            @SuppressWarnings("unchecked")
-            IsolatedModelProducer<T> typedProducer = (IsolatedModelProducer<T>) producer;
-
-            T value = typedProducer.prepare().get();
-            batchValues.add(value);
+            batchValuesProperty.addAll(listWrappedValueProvider);
         }
 
-        return ValueSupplier.Value.of(batchValues);
+        return (ProviderInternal<? extends List<T>>) batchValuesProperty;
     }
 
     private static final class ProducerKey<T> {
