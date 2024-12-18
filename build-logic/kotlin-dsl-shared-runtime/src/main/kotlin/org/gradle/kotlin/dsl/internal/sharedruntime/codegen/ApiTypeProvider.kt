@@ -623,7 +623,7 @@ val mappedTypeStrings =
         "java.lang.Number" to "kotlin.Number",
         "java.lang.Throwable" to "kotlin.Throwable",
         // Collections
-        "java.util.Iterable" to "kotlin.collections.Iterable",
+        "java.lang.Iterable" to "kotlin.collections.Iterable",
         "java.util.Iterator" to "kotlin.collections.Iterator",
         "java.util.ListIterator" to "kotlin.collections.ListIterator",
         "java.util.Collection" to "kotlin.collections.Collection",
