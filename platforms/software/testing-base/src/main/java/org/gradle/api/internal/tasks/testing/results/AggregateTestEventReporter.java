@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.results;
 
+import org.apache.commons.io.FileUtils;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.tasks.testing.GenericTestReportGenerator;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
@@ -29,6 +30,8 @@ import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -85,8 +88,16 @@ public class AggregateTestEventReporter implements ProblemReporter, TestExecutio
             if (numFailedResults.get() > 1) {
                 emitReport(reportIndexFile);
             }
+        } else {
+            // Delete any stale report
+            if (Files.exists(reportLocation)) {
+                try {
+                    FileUtils.deleteDirectory(reportLocation.toFile());
+                } catch (IOException e) {
+                    LOGGER.debug("Failed to delete stale aggregate report directory", e);
+                }
+            }
         }
-
     }
 
     /**

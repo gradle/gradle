@@ -150,6 +150,25 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
             .assertChildCount(1, 1, 0)
     }
 
+    def "stale aggregate reports are deleted if no tests were executed"() {
+        given:
+        buildFile << failingTask("failing")
+
+        when:
+        fails("failing")
+
+        then:
+        def aggregateReportFile = file("build/reports/aggregate-test-results/index.html")
+        aggregateReportFile.assertExists()
+
+        // Run again without any tests
+        when:
+        succeeds("help")
+
+        then:
+        aggregateReportFile.assertDoesNotExist()
+    }
+
     def passingTask(String name, boolean print = false) {
         assert !name.toCharArray().any { it.isWhitespace() }
 
