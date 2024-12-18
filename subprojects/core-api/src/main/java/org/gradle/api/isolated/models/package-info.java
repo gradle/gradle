@@ -13,6 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+/**
+ * Infrastructure to share models across project boundaries and build phases.
+ */
 @org.gradle.api.NonNullApi
 package org.gradle.api.isolated.models;
 

@@ -81,7 +81,7 @@ public interface IsolatedProject {
     /**
      * TBD
      *
-     * @since 8.12
+     * @since 8.13
      */
     ProjectModelScope getModels();
 
