@@ -268,7 +268,7 @@ class AsmBackedClassGeneratorInjectDecoratedTest extends AbstractClassGeneratorS
 
         then:
         def e = thrown(ClassGenerationException)
-        e.cause.message == "Cannot use @Inject and @CustomInject annotations together on method MultipleInjectAnnotations.getBoth()."
+        e.cause.message == "Cannot use @Inject and @CustomInject annotations together on method MultipleInjectAnnotations.getBoth(): Number."
     }
 
     def "object can provide its own service registry to provide services for injection"() {
@@ -290,7 +290,7 @@ class AsmBackedClassGeneratorInjectDecoratedTest extends AbstractClassGeneratorS
 
         then:
         def e = thrown(ClassGenerationException)
-        e.cause.message == "Cannot use @Inject annotation on method ExtensibleBeanWithInject.getExtensions()."
+        e.cause.message == "Cannot use @Inject annotation on method ExtensibleBeanWithInject.getExtensions(): ExtensionContainer."
     }
 
     def "cannot attach @Inject annotation to final method"() {
@@ -299,7 +299,7 @@ class AsmBackedClassGeneratorInjectDecoratedTest extends AbstractClassGeneratorS
 
         then:
         def e = thrown(ClassGenerationException)
-        e.cause.message == "Cannot use @Inject annotation on method FinalInjectBean.getThing() as it is final."
+        e.cause.message == "Cannot use @Inject annotation on method FinalInjectBean.getThing(): Number as it is final."
     }
 
     def "cannot attach @Inject annotation to static method"() {
@@ -308,7 +308,7 @@ class AsmBackedClassGeneratorInjectDecoratedTest extends AbstractClassGeneratorS
 
         then:
         def e = thrown(ClassGenerationException)
-        e.cause.message == "Cannot use @Inject annotation on method StaticInjectBean.getThing() as it is static."
+        e.cause.message == "Cannot use @Inject annotation on method StaticInjectBean.getThing(): Number as it is static."
     }
 
     def "cannot attach @Inject annotation to private method"() {
@@ -317,7 +317,7 @@ class AsmBackedClassGeneratorInjectDecoratedTest extends AbstractClassGeneratorS
 
         then:
         def e = thrown(ClassGenerationException)
-        e.cause.message == "Cannot use @Inject annotation on method PrivateInjectBean.getThing() as it is not public or protected."
+        e.cause.message == "Cannot use @Inject annotation on method PrivateInjectBean.getThing(): Number as it is not public or protected."
     }
 
     def "cannot attach @Inject annotation to non getter method"() {
@@ -326,7 +326,7 @@ class AsmBackedClassGeneratorInjectDecoratedTest extends AbstractClassGeneratorS
 
         then:
         def e = thrown(ClassGenerationException)
-        e.cause.message == "Cannot use @Inject annotation on method NonGetterInjectBean.thing() as it is not a property getter."
+        e.cause.message == "Cannot use @Inject annotation on method NonGetterInjectBean.thing(): Number as it is not a property getter."
     }
 
     def "cannot attach custom annotation that is known but not enabled to getter method"() {
@@ -337,7 +337,7 @@ class AsmBackedClassGeneratorInjectDecoratedTest extends AbstractClassGeneratorS
 
         then:
         def e = thrown(ClassGenerationException)
-        e.cause.message == "Cannot use @CustomInject annotation on method BeanWithCustomServices.getThing()."
+        e.cause.message == "Cannot use @CustomInject annotation on method BeanWithCustomServices.getThing(): Number."
     }
 
     def "cannot attach custom annotation that is known but not enabled to static method"() {
@@ -348,7 +348,7 @@ class AsmBackedClassGeneratorInjectDecoratedTest extends AbstractClassGeneratorS
 
         then:
         def e = thrown(ClassGenerationException)
-        e.cause.message == "Cannot use @CustomInject annotation on method StaticCustomInjectBean.getThing()."
+        e.cause.message == "Cannot use @CustomInject annotation on method StaticCustomInjectBean.getThing(): Number."
     }
 
     def "cannot attach custom inject annotation to methods of ExtensionAware"() {
@@ -359,7 +359,7 @@ class AsmBackedClassGeneratorInjectDecoratedTest extends AbstractClassGeneratorS
 
         then:
         def e = thrown(ClassGenerationException)
-        e.cause.message == "Cannot use @CustomInject annotation on method ExtensibleBeanWithCustomInject.getExtensions()."
+        e.cause.message == "Cannot use @CustomInject annotation on method ExtensibleBeanWithCustomInject.getExtensions(): ExtensionContainer."
     }
 
     def "cannot attach custom inject annotation to static method"() {
@@ -371,7 +371,7 @@ class AsmBackedClassGeneratorInjectDecoratedTest extends AbstractClassGeneratorS
 
         then:
         def e = thrown(ClassGenerationException)
-        e.cause.message == "Cannot use @CustomInject annotation on method StaticCustomInjectBean.getThing() as it is static."
+        e.cause.message == "Cannot use @CustomInject annotation on method StaticCustomInjectBean.getThing(): Number as it is static."
     }
 }
 

@@ -1291,9 +1291,9 @@ abstract class AbstractClassGenerator implements ClassGenerator {
                 TreeFormatter formatter = new TreeFormatter();
                 formatter.node("Cannot use ");
                 formatter.appendAnnotation(annotationType);
-                formatter.append(" annotation on property ");
-                formatter.appendMethod(method);
-                formatter.append(" of type ");
+                formatter.append(" annotation on property '");
+                formatter.append(accessorType.propertyNameFor(method));
+                formatter.append("' of type ");
                 formatter.append(TypeToken.of(returnType).toString());
                 formatter.append(". Allowed property types: ");
                 formatter.append(allowedTypes.stream()
