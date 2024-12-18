@@ -58,7 +58,7 @@ class JavaExecHandleBuilderTest extends Specification {
         builder.defaultCharacterEncoding = inputEncoding
 
         when:
-        List jvmArgs = builder.getAllJvmArgs().get()
+        List jvmArgs = builder.getAllJvmArgs()
 
         then:
         jvmArgs == ['-Dprop=value', 'jvm1', 'jvm2', '-Xms64m', '-Xmx1g', fileEncodingProperty(expectedEncoding), *localeProperties(), '-cp', "$jar1$File.pathSeparator$jar2", "mainClass"]
