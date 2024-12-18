@@ -87,6 +87,7 @@ public class JvmOptions {
 
     protected final Map<String, Object> immutableSystemProperties = new TreeMap<>();
 
+    @SuppressWarnings("this-escape")
     public JvmOptions(FileCollectionFactory fileCollectionFactory) {
         this(fileCollectionFactory, new DefaultJvmDebugSpec());
     }
@@ -357,7 +358,10 @@ public class JvmOptions {
     }
 
     public void copyFrom(JavaForkOptionsInternal source) {
+        // Reset all settings
         setAllJvmArgs(Collections.emptyList());
+        // if debug jvm arg is present then it has priority over debug options, so we need to copy the debug options before the jvmArgs
+        copyDebugOptionsFrom(new JvmDebugSpec.JavaDebugOptionsBackedSpec(source.getDebugOptions()));
         jvmArgs(source.getJvmArgs().get());
         if (source.getExtraJvmArgs() != null) {
             setExtraJvmArgs(source.getExtraJvmArgs());
@@ -378,7 +382,6 @@ public class JvmOptions {
         if (source.getDefaultCharacterEncoding().isPresent()) {
             setDefaultCharacterEncoding(source.getDefaultCharacterEncoding().get());
         }
-        copyDebugOptionsFrom(new JvmDebugSpec.JavaDebugOptionsBackedSpec(source.getDebugOptions()));
     }
 
     public void copyTo(JavaForkOptions target) {
