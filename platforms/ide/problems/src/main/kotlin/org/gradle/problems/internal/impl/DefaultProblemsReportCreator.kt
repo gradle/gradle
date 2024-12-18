@@ -20,8 +20,8 @@ import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.file.temp.TemporaryFileProvider
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
+import org.gradle.api.problems.ProblemGroup
 import org.gradle.api.problems.ProblemId
-import org.gradle.api.problems.internal.DefaultProblemGroup
 import org.gradle.api.problems.internal.FileLocation
 import org.gradle.api.problems.internal.LineInFileLocation
 import org.gradle.api.problems.internal.PluginIdLocation
@@ -98,7 +98,7 @@ class DefaultProblemsReportCreator(
 
 fun JsonWriter.problemId(id: ProblemId) {
     property("problemId") {
-        val list = generateSequence(id.group) { it.parent }.toList() + listOf(DefaultProblemGroup(id.name, id.displayName))
+        val list = generateSequence(id.group) { it.parent }.toList() + listOf(ProblemGroup.create(id.name, id.displayName))
         jsonObjectList(list) { group ->
             property("name", group.name)
             property("displayName", group.displayName)

@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.tooling.r812
 
+import org.gradle.integtests.tooling.fixture.ProblemsApiGroovyScriptUtils
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
@@ -136,7 +137,7 @@ class BuildFailureProblemsCrossVersionSpec extends ToolingApiSpecification {
                 public void execute() {
                     Exception wrappedException = new Exception("Wrapped cause");
                      getProblems().getReporter().throwing(problem -> problem
-                            .id("type", "label")
+                            .${ProblemsApiGroovyScriptUtils.id(targetVersion)}
                             .stackLocation()
                             .withException(new RuntimeException("Exception message", wrappedException))
                     );

@@ -187,7 +187,7 @@ class ReceivedProblem implements Problem {
         }
     }
 
-    static class ReceivedProblemId implements ProblemId {
+    static class ReceivedProblemId extends ProblemId {
         private final String name
         private final String displayName
         private final ReceivedProblemGroup group
@@ -230,7 +230,7 @@ class ReceivedProblem implements Problem {
         }
     }
 
-    static class ReceivedProblemGroup implements ProblemGroup {
+    static class ReceivedProblemGroup extends ProblemGroup {
         private final String name
         private final String displayName
         private final ReceivedProblemGroup parent

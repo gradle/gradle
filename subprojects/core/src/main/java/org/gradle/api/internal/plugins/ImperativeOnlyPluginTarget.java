@@ -18,6 +18,7 @@ package org.gradle.api.internal.plugins;
 
 import org.apache.commons.lang3.reflect.TypeUtils;
 import org.gradle.api.Plugin;
+import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblems;
@@ -76,7 +77,7 @@ public class ImperativeOnlyPluginTarget<T extends PluginAwareInternal> implement
                     actualTargetType.getApplyTargetDescription(), targetType.getApplyTargetDescription()
                 );
 
-                spec.id("target-type-mismatch", "Unexpected plugin type", GradleCoreProblemGroup.pluginApplication())
+                spec.id(ProblemId.create("target-type-mismatch", "Unexpected plugin type", GradleCoreProblemGroup.pluginApplication()))
                     .severity(Severity.ERROR)
                     .withException(new IllegalArgumentException(message))
                     .contextualLabel(message)
