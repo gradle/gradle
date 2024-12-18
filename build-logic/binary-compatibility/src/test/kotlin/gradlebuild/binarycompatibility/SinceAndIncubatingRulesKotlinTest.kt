@@ -135,8 +135,8 @@ class SinceAndIncubatingRulesKotlinTest : AbstractBinaryCompatibilityTest() {
 
                 added("Field", "cathedral"),
                 added("Method", "SourceKt.foo()"),
-                added("Method", "SourceKt.fooExt(java.lang.String)"),
                 added("Method", "SourceKt.fooExt(int)"),
+                added("Method", "SourceKt.fooExt(java.lang.String)"),
                 added("Method", "SourceKt.getBar()"),
                 added("Method", "SourceKt.getBarExt(java.lang.String)"),
                 added("Method", "SourceKt.getBazar()"),
@@ -149,7 +149,7 @@ class SinceAndIncubatingRulesKotlinTest : AbstractBinaryCompatibilityTest() {
                 added("Method", "SourceKt.setBazar(java.lang.String)"),
                 added("Method", "SourceKt.setBazarExt(int,java.lang.String)"),
                 added("Method", "SourceKt.setBazool(boolean)"),
-                added("Method", "SourceKt.setFool(boolean)")
+                added("Method", "SourceKt.setFool(boolean)"),
             )
         }
 
@@ -173,8 +173,8 @@ class SinceAndIncubatingRulesKotlinTest : AbstractBinaryCompatibilityTest() {
             assertHasInformation(
                 newApi("Field", "cathedral"),
                 newApi("Method", "SourceKt.foo()"),
-                newApi("Method", "SourceKt.fooExt(java.lang.String)"),
                 newApi("Method", "SourceKt.fooExt(int)"),
+                newApi("Method", "SourceKt.fooExt(java.lang.String)"),
                 newApi("Method", "SourceKt.getBar()"),
                 newApi("Method", "SourceKt.getBarExt(java.lang.String)"),
                 newApi("Method", "SourceKt.getBazar()"),
@@ -187,7 +187,7 @@ class SinceAndIncubatingRulesKotlinTest : AbstractBinaryCompatibilityTest() {
                 newApi("Method", "SourceKt.setBazar(java.lang.String)"),
                 newApi("Method", "SourceKt.setBazarExt(int,java.lang.String)"),
                 newApi("Method", "SourceKt.setBazool(boolean)"),
-                newApi("Method", "SourceKt.setFool(boolean)")
+                newApi("Method", "SourceKt.setFool(boolean)"),
             )
         }
 
@@ -216,8 +216,8 @@ class SinceAndIncubatingRulesKotlinTest : AbstractBinaryCompatibilityTest() {
                 newApi("Class", "SourceKt"),
                 newApi("Field", "cathedral"),
                 newApi("Method", "SourceKt.foo()"),
-                newApi("Method", "SourceKt.fooExt(java.lang.String)"),
                 newApi("Method", "SourceKt.fooExt(int)"),
+                newApi("Method", "SourceKt.fooExt(java.lang.String)"),
                 newApi("Method", "SourceKt.getBar()"),
                 newApi("Method", "SourceKt.getBarExt(java.lang.String)"),
                 newApi("Method", "SourceKt.getBazar()"),
@@ -230,7 +230,7 @@ class SinceAndIncubatingRulesKotlinTest : AbstractBinaryCompatibilityTest() {
                 newApi("Method", "SourceKt.setBazar(java.lang.String)"),
                 newApi("Method", "SourceKt.setBazarExt(int,java.lang.String)"),
                 newApi("Method", "SourceKt.setBazool(boolean)"),
-                newApi("Method", "SourceKt.setFool(boolean)")
+                newApi("Method", "SourceKt.setFool(boolean)"),
             )
         }
     }
@@ -258,14 +258,14 @@ class SinceAndIncubatingRulesKotlinTest : AbstractBinaryCompatibilityTest() {
             assertHasNoWarning()
             assertHasErrors(
                 added("Class", "Bar"),
-                added("Constructor", "Bar()"),
                 added("Class", "Bazar"),
+                added("Class", "Cathedral"),
+                added("Class", "Foo"),
+                added("Constructor", "Bar()"),
+                added("Field", "INSTANCE"),
                 added("Method", "Bazar.getEntries()"),
                 added("Method", "Bazar.valueOf(java.lang.String)"),
                 added("Method", "Bazar.values()"),
-                added("Class", "Cathedral"),
-                added("Field", "INSTANCE"),
-                added("Class", "Foo")
             )
         }
 
@@ -295,12 +295,12 @@ class SinceAndIncubatingRulesKotlinTest : AbstractBinaryCompatibilityTest() {
             assertHasInformation(
                 newApi("Class", "Bar"),
                 newApi("Class", "Bazar"),
+                newApi("Class", "Cathedral"),
+                newApi("Class", "Foo"),
+                newApi("Field", "INSTANCE"),
                 newApi("Method", "Bazar.getEntries()"),
                 newApi("Method", "Bazar.valueOf(java.lang.String)"),
                 newApi("Method", "Bazar.values()"),
-                newApi("Class", "Cathedral"),
-                newApi("Field", "INSTANCE"),
-                newApi("Class", "Foo")
             )
         }
     }
@@ -342,9 +342,10 @@ class SinceAndIncubatingRulesKotlinTest : AbstractBinaryCompatibilityTest() {
             assertHasNoInformation()
             assertHasNoWarning()
             assertHasErrors(
+                added("Constructor", "Bar(java.lang.String)"),
                 added("Method", "Bar.foo()"),
-                added("Method", "Bar.fooExt(java.lang.String)"),
                 added("Method", "Bar.fooExt(int)"),
+                added("Method", "Bar.fooExt(java.lang.String)"),
                 added("Method", "Bar.getBar()"),
                 added("Method", "Bar.getBarExt(java.lang.String)"),
                 added("Method", "Bar.getBazar()"),
@@ -358,7 +359,6 @@ class SinceAndIncubatingRulesKotlinTest : AbstractBinaryCompatibilityTest() {
                 added("Method", "Bar.setBazarExt(int,java.lang.String)"),
                 added("Method", "Bar.setBazool(boolean)"),
                 added("Method", "Bar.setFool(boolean)"),
-                added("Constructor", "Bar(java.lang.String)"),
                 added("Method", "Foo.foo()")
             )
         }
@@ -391,8 +391,8 @@ class SinceAndIncubatingRulesKotlinTest : AbstractBinaryCompatibilityTest() {
             assertHasNoWarning()
             assertHasInformation(
                 newApi("Method", "Bar.foo()"),
-                newApi("Method", "Bar.fooExt(java.lang.String)"),
                 newApi("Method", "Bar.fooExt(int)"),
+                newApi("Method", "Bar.fooExt(java.lang.String)"),
                 newApi("Method", "Bar.getBar()"),
                 newApi("Method", "Bar.getBarExt(java.lang.String)"),
                 newApi("Method", "Bar.getBazar()"),
@@ -406,7 +406,7 @@ class SinceAndIncubatingRulesKotlinTest : AbstractBinaryCompatibilityTest() {
                 newApi("Method", "Bar.setBazarExt(int,java.lang.String)"),
                 newApi("Method", "Bar.setBazool(boolean)"),
                 newApi("Method", "Bar.setFool(boolean)"),
-                newApi("Method", "Foo.foo()")
+                newApi("Method", "Foo.foo()"),
             )
         }
     }
