@@ -160,7 +160,13 @@ public class DefaultExecActionFactory implements ExecFactory {
     }
 
     private JavaExecSpec newJavaExecSpec() {
-        return objectFactory.newInstance(DefaultJavaExecSpec.class, objectFactory, fileResolver, fileCollectionFactory);
+        return objectFactory.newInstance(
+            DefaultJavaExecSpec.class,
+            objectFactory,
+            fileResolver,
+            fileCollectionFactory,
+            (Factory<JavaModuleDetector>) () -> javaModuleDetector
+        );
     }
 
     @Nullable

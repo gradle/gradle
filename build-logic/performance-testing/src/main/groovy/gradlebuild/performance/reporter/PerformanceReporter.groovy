@@ -77,8 +77,7 @@ class PerformanceReporter {
                 spec.systemProperty("gradleBuildBranch", branchName)
                 spec.systemProperty("gradleBuildCommitId", commitId)
 
-                spec.setClasspath(classpath)
-
+                Gradle9PropertyUpgradeSupport.setProperty(spec, "setClasspath", classpath)
                 Gradle9PropertyUpgradeSupport.setProperty(spec, "setIgnoreExitValue", true)
                 Gradle9PropertyUpgradeSupport.setProperty(spec, "setErrorOutput", output)
                 Gradle9PropertyUpgradeSupport.setProperty(spec, "setStandardOutput", output)
