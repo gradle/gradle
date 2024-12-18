@@ -16,7 +16,7 @@
 
 package org.gradle.internal.deprecation;
 
-import org.gradle.api.problems.internal.DocLink;
+import org.gradle.api.problems.DocLink;
 
 import javax.annotation.Nullable;
 

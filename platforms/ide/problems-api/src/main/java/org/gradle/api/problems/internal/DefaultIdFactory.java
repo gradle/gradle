@@ -16,26 +16,26 @@
 
 package org.gradle.api.problems.internal;
 
-import org.gradle.api.problems.Problem;
-import org.gradle.internal.operations.OperationIdentifier;
+import org.gradle.api.problems.IdFactory;
+import org.gradle.api.problems.ProblemGroup;
+import org.gradle.api.problems.ProblemId;
 
-import javax.annotation.Nullable;
-import java.io.File;
+public final class DefaultIdFactory extends IdFactory {
 
-public class NoOpProblemSummarizer implements ProblemSummarizer {
+    public static final DefaultIdFactory INSTANCE = new DefaultIdFactory();
 
     @Override
-    public void emit(Problem problem, @Nullable OperationIdentifier id) {
-        // no op
+    public ProblemGroup createRootProblemGroup(String name, String displayName) {
+        return new DefaultProblemGroup(name, displayName);
     }
 
     @Override
-    public String getId() {
-        return "";
+    public ProblemGroup createProblemGroup(String name, String displayName, ProblemGroup parent) {
+        return new DefaultProblemGroup(name, displayName, parent);
     }
 
     @Override
-    public void report(File reportDir, ProblemConsumer validationFailures) {
-        //no op
+    public ProblemId createProblemId(String name, String displayName, ProblemGroup group) {
+        return new DefaultProblemId(name, displayName, group);
     }
 }

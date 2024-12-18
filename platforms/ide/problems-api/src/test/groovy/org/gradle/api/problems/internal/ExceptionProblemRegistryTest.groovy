@@ -16,6 +16,7 @@
 
 package org.gradle.api.problems.internal
 
+import org.gradle.api.problems.Problem
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
 import java.util.concurrent.CyclicBarrier

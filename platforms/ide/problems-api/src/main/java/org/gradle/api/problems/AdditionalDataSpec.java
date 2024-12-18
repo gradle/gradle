@@ -14,26 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.internal;
+package org.gradle.api.problems;
 
-import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 
 /**
  * Marker interface for additional data that can be attached to a {@link Problem}.
- * <p>
- * This is effectively a sealed interface that is used to restrict the types of additional data that can be attached to a problem.
- * The list interfaces supported by the problems API are:
- * <ul>
- *     <li>{@link org.gradle.api.problems.internal.GeneralData}</li>
- *     <li>{@link org.gradle.api.problems.internal.TypeValidationData}</li>
- *     <li>{@link org.gradle.api.problems.internal.DeprecationData}</li>
- *     <li>{@link org.gradle.api.problems.internal.PropertyTraceData}</li>
- * </ul>
  *
- * @see InternalProblemSpec#additionalData(Class, Action)
+ * @since 8.13
  */
 @Incubating
-public interface AdditionalData {
-
+public interface AdditionalDataSpec {
 }

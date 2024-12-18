@@ -14,21 +14,33 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.internal;
+package org.gradle.api.problems;
 
-import org.gradle.api.problems.Problem;
+import org.gradle.api.Incubating;
 
-import java.io.File;
-import java.util.List;
+/**
+ * A basic location pointing to a specific part of a file using a global offset and length for coordinates.
+ * <p>
+ * The coordinates are expected to be zero indexed.
+ *
+ * @since 8.13
+ */
+@Incubating
+public interface OffsetInFileLocation extends FileLocation {
 
-public interface ProblemReportCreator {
     /**
-     * Stores a new problem in a temporary file that will be added to the final report when #createProblem is called.
+     * The global offset from the beginning of the file.
+     *
+     * @return the zero-indexed the offset
+     * @since 8.13
      */
-    void addProblem(Problem problem);
+    int getOffset();
 
     /**
-     * Renders a new problem report in the target directory. The report will contain the summaries of the omitted problem reports. The report file is only created if there's at least one problem reported.
+     * The content of the content starting from {@link #getOffset()}.
+     *
+     * @return the length
+     * @since 8.13
      */
-    void createReportFile(File reportDir, List<ProblemSummaryData> problemSummaries);
+    int getLength();
 }

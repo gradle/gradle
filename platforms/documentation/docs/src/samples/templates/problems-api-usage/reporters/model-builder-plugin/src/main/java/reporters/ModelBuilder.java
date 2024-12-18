@@ -1,6 +1,7 @@
 package reporters;
 
 import org.gradle.api.Project;
+import org.gradle.api.problems.IdFactory;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.Severity;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
@@ -23,8 +24,8 @@ public class ModelBuilder implements ToolingModelBuilder {
 
     @Override
     public Object buildAll(String modelName, Project project) {
-        problems.getReporter().reporting(problem -> problem
-            .id("unused", "Demo model")
+        problems.getReporter().report(problem -> problem
+            .id(IdFactory.instance().createProblemId("unused", "Demo model", ModelBuilderPlugin.PROBLEM_GROUP))
             .severity(Severity.WARNING)
             .details("This is a demo model and doesn't do anything useful")
         );

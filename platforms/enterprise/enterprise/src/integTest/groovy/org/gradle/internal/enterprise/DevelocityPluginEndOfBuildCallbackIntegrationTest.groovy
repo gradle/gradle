@@ -16,6 +16,9 @@
 
 package org.gradle.internal.enterprise
 
+import org.gradle.api.problems.IdFactory
+import org.gradle.api.problems.ProblemGroup
+import org.gradle.api.problems.ProblemId
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 import static org.gradle.api.problems.fixtures.ReportingScript.getProblemReportingScript
@@ -31,12 +34,11 @@ class DevelocityPluginEndOfBuildCallbackIntegrationTest extends AbstractIntegrat
         plugin.publishDummyPlugin(executer)
 
         buildFile """
+        ${ProblemGroup.name} problemGroup = ${IdFactory.name}.instance().createRootProblemGroup("generic", "group label");
+        ${ProblemId.name} problemId = ${IdFactory.name}.instance().createProblemId("type", "label", problemGroup)
             ${getProblemReportingScript """
-                problems.getReporter().throwing {
-                    it.id('type', 'label')
-                    .withException(new RuntimeException('failed'))
-            }"""}
-
+                problems.getReporter().throwing(new RuntimeException('failed'), problemId) { }
+            """}
             task $succeedingTaskName
         """
     }

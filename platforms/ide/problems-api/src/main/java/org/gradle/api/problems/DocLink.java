@@ -14,11 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.internal;
+package org.gradle.api.problems;
+
+
+import org.gradle.api.Incubating;
 
 /**
- * Specifies configuration options when creating a new GeneralData instance.
+ * A link to a documentation page.
+ * <p>
+ * Subtypes can represent different parts of the gradle documentation, e.g. the DSL reference, the user guide, etc.
+ *
+ * @since 8.13
  */
-public interface GeneralDataSpec extends AdditionalDataSpec {
-    GeneralDataSpec put(String key, String value);
+@Incubating
+public interface DocLink {
+
+    /**
+     * The URL to the documentation page.
+     *
+     * @since 8.13
+     */
+    String getUrl();
 }
