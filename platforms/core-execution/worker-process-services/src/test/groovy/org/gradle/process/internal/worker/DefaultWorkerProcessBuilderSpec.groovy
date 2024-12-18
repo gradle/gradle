@@ -16,7 +16,6 @@
 package org.gradle.process.internal.worker
 
 import org.gradle.api.JavaVersion
-import org.gradle.api.provider.Property
 import org.gradle.internal.id.IdGenerator
 import org.gradle.internal.jvm.inspection.JvmVersionDetector
 import org.gradle.internal.logging.events.OutputEventListener
@@ -97,10 +96,7 @@ class DefaultWorkerProcessBuilderSpec extends Specification {
         def process = builder.build()
 
         then:
-        2 * javaExecHandleBuilder.getMaxHeapSize() >> Stub(Property) {
-            get() >> "1024m"
-            isPresent() >> true
-        }
+        2 * javaExecHandleBuilder.getMaxHeapSize() >> "1024m"
 
         when:
         process.start()
