@@ -16,7 +16,9 @@
 
 package org.gradle.api.plugins.scala;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.provider.Property;
+import org.gradle.api.tasks.Optional;
 
 /**
  * Common configuration for Scala based projects. This is added by the {@link ScalaBasePlugin}.
@@ -24,6 +26,7 @@ import org.gradle.api.provider.Property;
  * @since 6.0
  */
 public interface ScalaPluginExtension {
+
     /**
      * The version of the Zinc compiler to use for compiling Scala code.
      * <p>
@@ -36,4 +39,16 @@ public interface ScalaPluginExtension {
      * @since 6.0
      */
     Property<String> getZincVersion();
+
+    /**
+     * The version of the Scala to use for compiling Scala code.
+     *
+     * @return The scala version
+     *
+     * @since 8.12
+     */
+    @Optional
+    @Incubating
+    Property<String> getScalaVersion();
+
 }
