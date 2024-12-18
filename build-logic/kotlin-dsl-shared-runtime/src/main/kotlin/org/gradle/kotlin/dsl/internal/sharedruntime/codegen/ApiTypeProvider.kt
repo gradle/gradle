@@ -633,7 +633,7 @@ val mappedTypeStrings =
         "java.util.HashSet" to "kotlin.collections.HashSet",
         "java.util.LinkedHashSet" to "kotlin.collections.LinkedHashSet",
         "java.util.Map" to "kotlin.collections.Map",
-        "java.util.Map.Entry" to "kotlin.collections.Map.Entry",
+        "java.util.Map\$Entry" to "kotlin.collections.Map.Entry",
         "java.util.HashMap" to "kotlin.collections.HashMap",
         "java.util.LinkedHashMap" to "kotlin.collections.LinkedHashMap"
     )
