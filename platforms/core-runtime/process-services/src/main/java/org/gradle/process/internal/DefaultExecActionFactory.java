@@ -21,6 +21,7 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.ExternalProcessStartedListener;
 import org.gradle.api.internal.file.DefaultFileCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.file.FilePropertyFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
@@ -30,6 +31,7 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.util.internal.PatternSetFactory;
 import org.gradle.api.tasks.util.internal.PatternSets;
 import org.gradle.initialization.BuildCancellationToken;
+import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.internal.jvm.Jvm;
@@ -46,6 +48,7 @@ public class DefaultExecActionFactory implements ExecFactory {
     protected final FileResolver fileResolver;
     protected final Executor executor;
     protected final FileCollectionFactory fileCollectionFactory;
+    protected final FilePropertyFactory filePropertyFactory;
     protected final ObjectFactory objectFactory;
     protected final TemporaryFileProvider temporaryFileProvider;
     @Nullable
@@ -58,6 +61,7 @@ public class DefaultExecActionFactory implements ExecFactory {
     private DefaultExecActionFactory(
         FileResolver fileResolver,
         FileCollectionFactory fileCollectionFactory,
+        FilePropertyFactory filePropertyFactory,
         Instantiator instantiator,
         Executor executor,
         TemporaryFileProvider temporaryFileProvider,
@@ -68,6 +72,7 @@ public class DefaultExecActionFactory implements ExecFactory {
     ) {
         this.fileResolver = fileResolver;
         this.fileCollectionFactory = fileCollectionFactory;
+        this.filePropertyFactory = filePropertyFactory;
         this.objectFactory = objectFactory;
         this.temporaryFileProvider = temporaryFileProvider;
         this.javaModuleDetector = javaModuleDetector;
@@ -83,6 +88,7 @@ public class DefaultExecActionFactory implements ExecFactory {
     public static DefaultExecActionFactory of(
         FileResolver fileResolver,
         FileCollectionFactory fileCollectionFactory,
+        FilePropertyFactory filePropertyFactory,
         Instantiator instantiator,
         ExecutorFactory executorFactory,
         TemporaryFileProvider temporaryFileProvider,
@@ -92,6 +98,7 @@ public class DefaultExecActionFactory implements ExecFactory {
         return new DefaultExecActionFactory(
             fileResolver,
             fileCollectionFactory,
+            filePropertyFactory,
             instantiator,
             executorFactory.create("Exec process"),
             temporaryFileProvider,
@@ -157,7 +164,13 @@ public class DefaultExecActionFactory implements ExecFactory {
     }
 
     private JavaExecSpec newJavaExecSpec() {
-        return objectFactory.newInstance(DefaultJavaExecSpec.class, objectFactory, fileResolver, fileCollectionFactory);
+        return objectFactory.newInstance(
+            DefaultJavaExecSpec.class,
+            objectFactory,
+            fileResolver,
+            fileCollectionFactory,
+            (Factory<JavaModuleDetector>) () -> javaModuleDetector
+        );
     }
 
     @Nullable
@@ -234,6 +247,7 @@ public class DefaultExecActionFactory implements ExecFactory {
             .withExternalProcessStartedListener(externalProcessStartedListener)
             .withFileResolver(fileResolver)
             .withFileCollectionFactory(fileCollectionFactory)
+            .withFilePropertyFactory(filePropertyFactory)
             .withBuildCancellationToken(buildCancellationToken)
             .withObjectFactory(objectFactory)
             .withJavaModuleDetector(javaModuleDetector);
@@ -247,6 +261,7 @@ public class DefaultExecActionFactory implements ExecFactory {
 
         private FileResolver fileResolver;
         private FileCollectionFactory fileCollectionFactory;
+        private FilePropertyFactory filePropertyFactory;
         private Instantiator instantiator;
         private BuildCancellationToken buildCancellationToken;
         private ObjectFactory objectFactory;
@@ -273,6 +288,12 @@ public class DefaultExecActionFactory implements ExecFactory {
         @Override
         public Builder withFileCollectionFactory(FileCollectionFactory fileCollectionFactory) {
             this.fileCollectionFactory = fileCollectionFactory;
+            return this;
+        }
+
+        @Override
+        public Builder withFilePropertyFactory(FilePropertyFactory filePropertyFactory) {
+            this.filePropertyFactory = filePropertyFactory;
             return this;
         }
 
@@ -316,12 +337,14 @@ public class DefaultExecActionFactory implements ExecFactory {
         public ExecFactory build() {
             Preconditions.checkState(fileResolver != null, "fileResolver is not set");
             Preconditions.checkState(fileCollectionFactory != null, "fileCollectionFactory is not set");
+            Preconditions.checkState(filePropertyFactory != null, "filePropertyFactory is not set");
             Preconditions.checkState(instantiator != null, "instantiator is not set");
             Preconditions.checkState(buildCancellationToken != null, "buildCancellationToken is not set");
             Preconditions.checkState(objectFactory != null, "objectFactory is not set");
             return new DefaultExecActionFactory(
                 fileResolver,
                 fileCollectionFactory,
+                filePropertyFactory,
                 instantiator,
                 executor,
                 temporaryFileProvider,
