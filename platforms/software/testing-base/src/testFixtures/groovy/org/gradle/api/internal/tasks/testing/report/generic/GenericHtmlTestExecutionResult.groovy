@@ -15,7 +15,11 @@
  */
 package org.gradle.api.internal.tasks.testing.report.generic
 
+import com.google.common.collect.HashMultiset
+import com.google.common.collect.ImmutableMultiset
 import com.google.common.collect.Iterables
+import com.google.common.collect.Multiset
+import com.google.common.collect.Multisets
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.util.Path
 import org.gradle.util.internal.TextUtil
@@ -101,10 +105,10 @@ class GenericHtmlTestExecutionResult implements GenericTestExecutionResult {
     private static class HtmlTestPathExecutionResult implements TestPathExecutionResult {
         private String pathDisplayName
         private File htmlFile
-        private List<String> testsExecuted = []
-        private List<String> testsSucceeded = []
-        private List<String> testsFailures = []
-        private List<String> testsSkipped = []
+        private Multiset<String> testsExecuted = HashMultiset.create()
+        private Multiset<String> testsSucceeded = HashMultiset.create()
+        private Multiset<String> testsFailures = HashMultiset.create()
+        private Multiset<String> testsSkipped = HashMultiset.create()
         private Document html
 
         HtmlTestPathExecutionResult(File htmlFile) {
@@ -115,8 +119,8 @@ class GenericHtmlTestExecutionResult implements GenericTestExecutionResult {
 
         private extractTestCaseTo(String cssSelector, Collection<String> target) {
             html.select(cssSelector).each {
-                def testDisplayName = it.textNodes().first().wholeText.trim()
-                def testName = hasNameColumn() ? it.nextElementSibling().text() : testDisplayName
+                def testDisplayName = it.text().trim()
+                def testName = hasNameColumn() ? it.nextElementSibling().text().trim() : testDisplayName
                 testsExecuted << testName
                 target << testName
             }
@@ -136,8 +140,8 @@ class GenericHtmlTestExecutionResult implements GenericTestExecutionResult {
 
         @Override
         TestPathExecutionResult assertChildrenExecuted(String... testNames) {
-            def executedAndNotSkipped = testsExecuted - testsSkipped
-            assertThat(executedAndNotSkipped, equalTo(testNames as Set))
+            def executedAndNotSkipped = Multisets.difference(testsExecuted, testsSkipped)
+            assertThat(executedAndNotSkipped, equalTo(ImmutableMultiset.copyOf(testNames)))
             return this
         }
 

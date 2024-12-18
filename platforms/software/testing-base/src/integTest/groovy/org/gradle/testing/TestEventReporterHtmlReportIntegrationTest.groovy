@@ -16,7 +16,6 @@
 
 package org.gradle.testing
 
-
 import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
@@ -24,6 +23,7 @@ import org.gradle.internal.logging.ConsoleRenderer
 
 import static org.gradle.util.Matchers.containsText
 import static org.hamcrest.CoreMatchers.equalTo
+import static org.hamcrest.Matchers.allOf
 
 class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec implements VerifiesGenericTestReportResults {
 
@@ -167,6 +167,68 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
 
         then:
         aggregateReportFile.assertDoesNotExist()
+    }
+
+    def "aggregate report with roots of same name disambiguates the roots and has both results"() {
+        given:
+        buildFile <<
+            """
+            abstract class CustomTestTask extends DefaultTask {
+                @Inject
+                abstract TestEventReporterFactory getTestEventReporterFactory()
+
+                @Inject
+                abstract ProjectLayout getLayout()
+
+                @Input
+                abstract Property<String> getChangingString()
+
+                @TaskAction
+                void runTests() {
+                    try (def reporter = testEventReporterFactory.createTestEventReporter(
+                        "TheSameName",
+                        getLayout().getBuildDirectory().dir("test-results/\${getChangingString().get()}").get(),
+                        getLayout().getBuildDirectory().dir("reports/tests/\${getChangingString().get()}").get()
+                    )) {
+                       reporter.started(java.time.Instant.now())
+                       try (def mySuite = reporter.reportTestGroup("TheSameName suite")) {
+                            mySuite.started(java.time.Instant.now())
+                            try (def myTest = mySuite.reportTest("\${getChangingString().get()} test", "\${getChangingString().get()} test")) {
+                                 myTest.started(java.time.Instant.now())
+                                 myTest.succeeded(java.time.Instant.now())
+                            }
+                            mySuite.succeeded(java.time.Instant.now())
+                       }
+                       reporter.succeeded(java.time.Instant.now())
+                   }
+                }
+            }
+
+            tasks.register("theSameName1", CustomTestTask) {
+                changingString = "theSameName1"
+            }
+            tasks.register("theSameName2", CustomTestTask) {
+                changingString = "theSameName2"
+            }
+            """
+
+        when:
+        succeeds("theSameName1", "theSameName2")
+
+
+        then:
+        def rootIndexFile = file("build/reports/aggregate-test-results/index.html")
+        rootIndexFile.exists()
+        rootIndexFile.assertContents(allOf(
+            containsText("TheSameName (1)"),
+            containsText("TheSameName (2)")
+        ))
+
+        def results = aggregateResults()
+        results
+            .testPath("TheSameName suite")
+            .assertChildCount(2, 0, 0)
+            .assertChildrenExecuted("theSameName1 test", "theSameName2 test")
     }
 
     def passingTask(String name, boolean print = false) {
