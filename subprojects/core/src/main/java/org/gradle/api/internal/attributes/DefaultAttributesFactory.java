@@ -24,8 +24,6 @@ import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.internal.Cast;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.isolation.IsolatableFactory;
-import org.gradle.internal.service.scopes.Scope;
-import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -33,7 +31,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
-@ServiceScope(Scope.BuildSession.class)
 public final class DefaultAttributesFactory implements AttributesFactory {
 
     private final AttributeValueIsolator attributeValueIsolator;
