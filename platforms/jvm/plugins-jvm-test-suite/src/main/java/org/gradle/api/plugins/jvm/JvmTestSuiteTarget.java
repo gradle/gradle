@@ -41,5 +41,5 @@ public interface JvmTestSuiteTarget extends TestSuiteTarget, Named {
      * {@inheritDoc}
      */
     @Override
-    DirectoryProperty getBinaryTestResultsDirectory();
+    DirectoryProperty getBinaryResultsDirectory();
 }

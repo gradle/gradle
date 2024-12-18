@@ -37,5 +37,5 @@ public interface TestSuiteTarget {
      *
      * @since 8.13
      */
-    Provider<Directory> getBinaryTestResultsDirectory();
+    Provider<Directory> getBinaryResultsDirectory();
 }

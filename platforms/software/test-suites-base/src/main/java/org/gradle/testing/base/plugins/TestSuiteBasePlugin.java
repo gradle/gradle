@@ -54,7 +54,7 @@ public abstract class TestSuiteBasePlugin implements Plugin<Project> {
             suite.getTargets().configureEach(target -> {
                 testResultsVariant.configure(variant -> {
                     variant.getOutgoing().artifact(
-                        target.getBinaryTestResultsDirectory(),
+                        target.getBinaryResultsDirectory(),
                         artifact -> artifact.setType(ArtifactTypeDefinition.DIRECTORY_TYPE)
                     );
                 });
