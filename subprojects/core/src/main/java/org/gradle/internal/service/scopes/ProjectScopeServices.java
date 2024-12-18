@@ -70,6 +70,7 @@ import org.gradle.api.internal.tasks.properties.TaskScheme;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
+import org.gradle.configuration.ConfigurationTargetIdentifiers;
 import org.gradle.configuration.project.DefaultProjectConfigurationActionContainer;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.internal.Factory;
@@ -350,7 +351,7 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
 
     @Provides
     protected ConfigurationTargetIdentifier createConfigurationTargetIdentifier() {
-        return ConfigurationTargetIdentifier.of(project);
+        return ConfigurationTargetIdentifiers.of(project);
     }
 
     @Provides
