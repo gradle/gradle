@@ -51,11 +51,11 @@ abstract class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationS
             def ignoreFlakyDaemonConnections = Boolean.toString(GradleVersion.version(requestedGradleVersion) < GradleVersion.version("6.0"))
 
             task runTask(type: JavaExec) {
-                args = [ "help", file("test-project"), requestedGradleVersion, requestedTargetJdk, gradle.gradleUserHomeDir, ignoreFlakyDaemonConnections ]
+                args = [ "help", file("test-project").toString(), requestedGradleVersion, requestedTargetJdk, gradle.gradleUserHomeDir.toString(), ignoreFlakyDaemonConnections ]
             }
 
             task buildAction(type: JavaExec) {
-                args = [ "action", file("test-project"), requestedGradleVersion, requestedTargetJdk, gradle.gradleUserHomeDir, ignoreFlakyDaemonConnections ]
+                args = [ "action", file("test-project").toString(), requestedGradleVersion, requestedTargetJdk, gradle.gradleUserHomeDir.toString(), ignoreFlakyDaemonConnections ]
             }
 
             configure([runTask, buildAction]) {
@@ -83,7 +83,7 @@ abstract class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationS
             // installed. We still try to run the Gradle build with Java 6/7, but we skip those tests
             // when Java 6/7 are not installed.
             tasks.withType(JavaCompile).configureEach {
-                options.compilerArgs.addAll('-target', '6', '-source', 6)
+                options.compilerArgs.addAll('-target', '6', '-source', '6')
             }
 
             dependencies {

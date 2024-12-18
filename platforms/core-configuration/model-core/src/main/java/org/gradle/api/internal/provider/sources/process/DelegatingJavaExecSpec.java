@@ -18,7 +18,6 @@ package org.gradle.api.internal.provider.sources.process;
 
 import org.gradle.api.Action;
 import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.MapProperty;
@@ -44,9 +43,8 @@ interface DelegatingJavaExecSpec extends DelegatingBaseExecSpec, JavaExecSpec {
         return getDelegate().getMainClass();
     }
 
-    @Nullable
     @Override
-    default List<String> getArgs() {
+    default ListProperty<String> getArgs() {
         return getDelegate().getArgs();
     }
 
@@ -63,19 +61,7 @@ interface DelegatingJavaExecSpec extends DelegatingBaseExecSpec, JavaExecSpec {
     }
 
     @Override
-    default JavaExecSpec setArgs(@Nullable List<String> args) {
-        getDelegate().setArgs(args);
-        return this;
-    }
-
-    @Override
-    default JavaExecSpec setArgs(@Nullable Iterable<?> args) {
-        getDelegate().setArgs(args);
-        return this;
-    }
-
-    @Override
-    default List<CommandLineArgumentProvider> getArgumentProviders() {
+    default ListProperty<CommandLineArgumentProvider> getArgumentProviders() {
         return getDelegate().getArgumentProviders();
     }
 
@@ -86,14 +72,8 @@ interface DelegatingJavaExecSpec extends DelegatingBaseExecSpec, JavaExecSpec {
     }
 
     @Override
-    default FileCollection getClasspath() {
+    default ConfigurableFileCollection getClasspath() {
         return getDelegate().getClasspath();
-    }
-
-    @Override
-    default JavaExecSpec setClasspath(FileCollection classpath) {
-        getDelegate().setClasspath(classpath);
-        return this;
     }
 
     @Override
