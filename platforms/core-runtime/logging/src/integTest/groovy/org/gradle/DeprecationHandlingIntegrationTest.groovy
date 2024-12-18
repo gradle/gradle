@@ -21,7 +21,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler
 import org.gradle.util.internal.DefaultGradleVersion
-import org.gradle.util.internal.TextUtil
 
 class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
     public static final String PLUGIN_DEPRECATION_MESSAGE = 'The DeprecatedPlugin plugin has been deprecated'
@@ -305,10 +304,10 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         succeeds "tasks"
 
         and: "stack trace suggestion is printed"
-        result.assertOutputContains("\t(Run with -Dorg.gradle.deprecation.trace=true to print the full stack trace for this deprecation warning.)")
+        outputContains("\t(Run with -Dorg.gradle.deprecation.trace=true to print the full stack trace for this deprecation warning.)")
 
         and: "we can verify the stack trace is not printed"
-        String notExpected = """run(${TextUtil.normaliseFileAndLineSeparators(buildFile.absolutePath)}:4)
+        String notExpected = """run(${buildFile.absolutePath}:4)
 \tat org.gradle.groovy.scripts.internal.DefaultScriptRunnerFactory\$ScriptRunnerImpl.run(DefaultScriptRunnerFactory.java"""
         result.assertNotOutput(notExpected)
     }
@@ -328,10 +327,10 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         succeeds "tasks", "--stacktrace"
 
         and: "stack trace suggestion is printed"
-        result.assertOutputContains("\t(Run with -Dorg.gradle.deprecation.trace=true to print the full stack trace for this deprecation warning.)")
+        outputContains("\t(Run with -Dorg.gradle.deprecation.trace=true to print the full stack trace for this deprecation warning.)")
 
         and: "we can verify the stack trace is not printed"
-        String notExpected = """run(${TextUtil.normaliseFileAndLineSeparators(buildFile.absolutePath)}:4)
+        String notExpected = """run($buildFile.absolutePath}:4)
 \tat org.gradle.groovy.scripts.internal.DefaultScriptRunnerFactory\$ScriptRunnerImpl.run(DefaultScriptRunnerFactory.java"""
         result.assertNotOutput(notExpected)
     }
@@ -354,9 +353,9 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         result.assertNotOutput("\t(Run with -Dorg.gradle.deprecation.trace=true to print the full stack trace for this deprecation warning.)")
 
         and: "we can verify the part of the stack trace that should be unchanged is printed"
-        String expected = """run(${TextUtil.normaliseFileAndLineSeparators(buildFile.absolutePath)}:4)
+        String expected = """run(${buildFile.absolutePath}:4)
 \tat org.gradle.groovy.scripts.internal.DefaultScriptRunnerFactory\$ScriptRunnerImpl.run(DefaultScriptRunnerFactory.java"""
-        result.assertOutputContains(expected)
+        outputContains(expected)
     }
 
     String deprecatedMethodUsage() {
