@@ -15,6 +15,9 @@
  */
 package org.gradle.api.internal.tasks.testing.report.generic;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Multimaps;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.tasks.testing.report.HtmlTestReport;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResultStore;
@@ -34,9 +37,9 @@ import org.gradle.reporting.ReportRenderer;
 import org.gradle.util.Path;
 import org.gradle.util.internal.GFileUtils;
 
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
-import java.util.Map;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -65,13 +68,13 @@ public class GenericHtmlTestReport {
 
     private final BuildOperationRunner buildOperationRunner;
     private final BuildOperationExecutor buildOperationExecutor;
-    private final Map<String, SerializableTestResultStore.OutputReader> outputReaders;
+    private final List<SerializableTestResultStore.OutputReader> outputReaders;
     private final MetadataRendererRegistry metadataRendererRegistry;
 
     public GenericHtmlTestReport(
         BuildOperationRunner buildOperationRunner,
         BuildOperationExecutor buildOperationExecutor,
-        Map<String, SerializableTestResultStore.OutputReader> outputReaders,
+        List<SerializableTestResultStore.OutputReader> outputReaders,
         MetadataRendererRegistry metadataRendererRegistry
     ) {
         this.buildOperationRunner = buildOperationRunner;
@@ -104,10 +107,26 @@ public class GenericHtmlTestReport {
                 }
             });
 
-            Map<String, String> rootDisplayNames = new HashMap<>(model.getPerRootInfo().size());
-            for (Map.Entry<String, TestTreeModel.PerRootInfo> entry : model.getPerRootInfo().entrySet()) {
-                rootDisplayNames.put(entry.getKey(), entry.getValue().getResult().getDisplayName());
+            ListMultimap<String, Integer> namesToIndexes = ArrayListMultimap.create();
+            List<String> rootDisplayNames = new ArrayList<>(model.getPerRootInfo().size());
+            for (int i = 0; i < model.getPerRootInfo().size(); i++) {
+                TestTreeModel.PerRootInfo perRootInfo = model.getPerRootInfo().get(i);
+                if (perRootInfo == null) {
+                    throw new IllegalStateException("Root model is missing display name info for root index " + i);
+                }
+                String displayName = perRootInfo.getResult().getDisplayName();
+                rootDisplayNames.add(displayName);
+                namesToIndexes.put(displayName, i);
             }
+            Multimaps.asMap(namesToIndexes).forEach((name, indexes) -> {
+                if (indexes.size() > 1) {
+                    // Rename affected roots to avoid conflicts: name (1), name (2), etc.
+                    for (int nameRepeatIndex = 0; nameRepeatIndex < indexes.size(); nameRepeatIndex++) {
+                        int rootIndex = indexes.get(nameRepeatIndex);
+                        rootDisplayNames.set(rootIndex, name + " (" + (nameRepeatIndex + 1) + ")");
+                    }
+                }
+            });
 
             htmlRenderer.render(model, new ReportRenderer<TestTreeModel, HtmlReportBuilder>() {
                 @Override
@@ -145,16 +164,16 @@ public class GenericHtmlTestReport {
         private final String fileUrl;
         private final TestTreeModel results;
         private final HtmlReportBuilder output;
-        private final Map<String, SerializableTestResultStore.OutputReader> outputReaders;
-        private final Map<String, String> rootDisplayNames;
+        private final List<SerializableTestResultStore.OutputReader> outputReaders;
+        private final List<String> rootDisplayNames;
         private final MetadataRendererRegistry metadataRendererRegistry;
 
         HtmlReportFileGenerator(
             String fileUrl,
             TestTreeModel results,
             HtmlReportBuilder output,
-            Map<String, SerializableTestResultStore.OutputReader> outputReaders,
-            Map<String, String> rootDisplayNames,
+            List<SerializableTestResultStore.OutputReader> outputReaders,
+            List<String> rootDisplayNames,
             MetadataRendererRegistry metadataRendererRegistry
         ) {
             this.fileUrl = fileUrl;
