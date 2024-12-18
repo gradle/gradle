@@ -44,6 +44,8 @@ Method <org.gradle.api.tasks.Exec.getIgnoreExitValue()> is not abstract
 Method <org.gradle.api.tasks.Exec.getStandardInput()> is not abstract
 Method <org.gradle.api.tasks.Exec.getStandardOutput()> is not abstract
 Method <org.gradle.api.tasks.JavaExec.getAllJvmArgs()> is not abstract
+Method <org.gradle.api.tasks.JavaExec.getArgs()> is not abstract
+Method <org.gradle.api.tasks.JavaExec.getArgumentProviders()> is not abstract
 Method <org.gradle.api.tasks.JavaExec.getBootstrapClasspath()> is not abstract
 Method <org.gradle.api.tasks.JavaExec.getClasspath()> is not abstract
 Method <org.gradle.api.tasks.JavaExec.getCommandLine()> is not abstract
