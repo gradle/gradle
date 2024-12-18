@@ -24,7 +24,7 @@
                 </tr>
             </thead>
             <tr>
-                <td>binaryTestResultsDirectory</td>
+                <td>binaryResultsDirectory</td>
             </tr>
         </table>
     </section>
