@@ -17,6 +17,7 @@
 package org.gradle.tooling.internal.provider.serialization;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.Transformer;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.ClassLoaderSpec;
@@ -58,44 +59,14 @@ public class DefaultPayloadClassLoaderRegistry implements PayloadClassLoaderRegi
 
     @Override
     public SerializeMap newSerializeSession() {
-        return new SerializeMap() {
-            final Map<ClassLoader, Short> classLoaderIds = new HashMap<>();
-            final Map<Short, ClassLoaderDetails> classLoaderDetails = new HashMap<>();
-
-            @Override
-            public short visitClass(Class<?> target) {
-                ClassLoader classLoader = target.getClassLoader();
-                Short id = classLoaderIds.get(classLoader);
-                if (id != null) {
-                    return id;
-                }
-                if (classLoaderIds.size() == Short.MAX_VALUE) {
-                    throw new UnsupportedOperationException();
-                }
-                ClassLoaderDetails details = getDetails(classLoader);
-                id = (short) (classLoaderIds.size() + 1);
-
-                classLoaderIds.put(classLoader, id);
-                classLoaderDetails.put(id, details);
-
-                return id;
-            }
-
-            @Override
-            public void collectClassLoaderDefinitions(Map<Short, ClassLoaderDetails> details) {
-                details.putAll(classLoaderDetails);
-            }
-        };
+        return new DefaultPlayLoadSerializeMap();
     }
 
     @Override
     public DeserializeMap newDeserializeSession() {
-        return new DeserializeMap() {
-            @Override
-            public Class<?> resolveClass(ClassLoaderDetails classLoaderDetails, String className) throws ClassNotFoundException {
-                ClassLoader classLoader = getClassLoader(classLoaderDetails);
-                return Class.forName(className, false, classLoader);
-            }
+        return (classLoaderDetails, className) -> {
+            ClassLoader classLoader = getClassLoader(classLoaderDetails);
+            return Class.forName(className, false, classLoader);
         };
     }
 
@@ -202,6 +173,36 @@ public class DefaultPayloadClassLoaderRegistry implements PayloadClassLoaderRegi
                 details.parents.add(getDetails(parent));
             }
             return details;
+        }
+    }
+
+    @NonNullApi
+    private class DefaultPlayLoadSerializeMap implements SerializeMap {
+        final Map<ClassLoader, Short> classLoaderIds = new HashMap<>();
+        final Map<Short, ClassLoaderDetails> classLoaderDetails = new HashMap<>();
+
+        @Override
+        public short visitClass(Class<?> target) {
+            ClassLoader classLoader = target.getClassLoader();
+            Short id = classLoaderIds.get(classLoader);
+            if (id != null) {
+                return id;
+            }
+            if (classLoaderIds.size() == Short.MAX_VALUE) {
+                throw new UnsupportedOperationException();
+            }
+            ClassLoaderDetails details = DefaultPayloadClassLoaderRegistry.this.getDetails(classLoader);
+            id = (short) (classLoaderIds.size() + 1);
+
+            classLoaderIds.put(classLoader, id);
+            classLoaderDetails.put(id, details);
+
+            return id;
+        }
+
+        @Override
+        public void collectClassLoaderDefinitions(Map<Short, ClassLoaderDetails> details) {
+            details.putAll(classLoaderDetails);
         }
     }
 }

@@ -19,6 +19,6 @@ package org.gradle.api.problems.internal;
 /**
  * Specifies configuration options when creating a new GeneralData instance.
  */
-public interface GeneralDataSpec extends AdditionalDataSpec {
+public interface GeneralDataSpec {
     GeneralDataSpec put(String key, String value);
 }

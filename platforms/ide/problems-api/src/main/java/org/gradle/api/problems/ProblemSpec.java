@@ -28,6 +28,19 @@ import org.gradle.api.Incubating;
 public interface ProblemSpec {
 
     /**
+     * Attaches additional data describing the problem.
+     * <p>
+     * Only the types listed for {@link AdditionalData} can be used as arguments, otherwise an invalid problem report will be created.
+     * <p>
+     * If not additional data was configured for this problem, then a new instance will be created. If additional data was already configured, then the existing instance will be used and the configuration will be applied to it.
+     *
+     * @return this
+     *
+     * @since 8.13
+     */
+    ProblemSpec additionalData(AdditionalData additionalData);
+
+    /**
      * Defines simple identification for this problem.
      * <p>
      * It is a mandatory property to configure when emitting a problem with {@link ProblemReporter}..

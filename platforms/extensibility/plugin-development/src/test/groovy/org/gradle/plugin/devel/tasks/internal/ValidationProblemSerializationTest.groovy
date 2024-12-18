@@ -18,19 +18,18 @@ package org.gradle.plugin.devel.tasks.internal
 
 import com.google.gson.Gson
 import org.gradle.api.problems.Severity
-import org.gradle.api.problems.internal.AdditionalDataBuilderFactory
+import org.gradle.api.problems.internal.DefaultDeprecationData
+import org.gradle.api.problems.internal.DefaultGeneralData
 import org.gradle.api.problems.internal.DefaultProblemReporter
+import org.gradle.api.problems.internal.DefaultTypeValidationData
 import org.gradle.api.problems.internal.DeprecationData
-import org.gradle.api.problems.internal.DeprecationDataSpec
 import org.gradle.api.problems.internal.DocLink
 import org.gradle.api.problems.internal.ExceptionProblemRegistry
 import org.gradle.api.problems.internal.GeneralData
-import org.gradle.api.problems.internal.GeneralDataSpec
 import org.gradle.api.problems.internal.GradleCoreProblemGroup
 import org.gradle.api.problems.internal.InternalProblemReporter
 import org.gradle.api.problems.internal.ProblemSummarizer
 import org.gradle.api.problems.internal.TypeValidationData
-import org.gradle.api.problems.internal.TypeValidationDataSpec
 import org.gradle.internal.exception.ExceptionAnalyser
 import org.gradle.internal.operations.CurrentBuildOperationRef
 import spock.lang.Specification
@@ -42,7 +41,6 @@ class ValidationProblemSerializationTest extends Specification {
             Stub(ProblemSummarizer),
             null,
             CurrentBuildOperationRef.instance(),
-            new AdditionalDataBuilderFactory(),
             new ExceptionProblemRegistry(),
             Mock(ExceptionAnalyser)
     )
@@ -200,12 +198,7 @@ class ValidationProblemSerializationTest extends Specification {
         given:
         def problem = problemReporter.create {
             it.id("id", "label", GradleCoreProblemGroup.validation())
-                .additionalData(TypeValidationDataSpec.class) {
-                    it.propertyName("property")
-                    it.typeName("type")
-                    it.parentPropertyName("parent")
-                    it.pluginId("id")
-                }
+                .additionalData(new DefaultTypeValidationData("id", "property", "", "parent", "type"))
         }
 
         when:
@@ -228,9 +221,7 @@ class ValidationProblemSerializationTest extends Specification {
         given:
         def problem = problemReporter.create {
             it.id("id", "label")
-                .additionalData(GeneralDataSpec) {
-                    it.put('foo', 'bar')
-                }
+                .additionalData(new DefaultGeneralData(["foo": "bar"]))
         }
 
         when:
@@ -249,9 +240,7 @@ class ValidationProblemSerializationTest extends Specification {
         given:
         def problem = problemReporter.create {
             it.id("id", "label")
-                .additionalData(DeprecationDataSpec) {
-                    it.type(DeprecationData.Type.BUILD_INVOCATION)
-                }
+                .additionalData(new DefaultDeprecationData(DeprecationData.Type.BUILD_INVOCATION))
         }
 
         when:

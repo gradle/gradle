@@ -14,18 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.build.event.types;
+package org.gradle.tooling.events.problems.internal;
 
 import com.google.common.collect.ImmutableMap;
-import org.gradle.api.NonNullApi;
-import org.gradle.tooling.internal.protocol.problem.InternalAdditionalDataV2;
+import org.gradle.tooling.events.problems.AdditionalData;
+import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 
 import javax.annotation.Nullable;
 import java.io.Serializable;
 import java.util.Map;
 
-@NonNullApi
-public class DefaultAdditionalData implements InternalAdditionalDataV2, Serializable {
+public class DefaultAdditionalData implements AdditionalData, Serializable {
 
     private final Map<String, Object> additionalData;
     private final Object additionalDataCustomInstance;
@@ -40,9 +39,17 @@ public class DefaultAdditionalData implements InternalAdditionalDataV2, Serializ
         return additionalData;
     }
 
-    @Nullable
     @Override
     public Object get() {
         return additionalDataCustomInstance;
+    }
+
+    @Override
+    @Nullable
+    public <T> T get(Class<T> type) {
+        if (additionalDataCustomInstance == null) {
+            return null;
+        }
+        return new ProtocolToModelAdapter().adapt(type, additionalDataCustomInstance);
     }
 }

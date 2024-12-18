@@ -32,14 +32,12 @@ public class DefaultProblemReporter implements InternalProblemReporter {
     private final ProblemStream problemStream;
     private final CurrentBuildOperationRef currentBuildOperationRef;
     private final ExceptionProblemRegistry exceptionProblemRegistry;
-    private final AdditionalDataBuilderFactory additionalDataBuilderFactory;
     private final ExceptionAnalyser exceptionAnalyser;
 
     public DefaultProblemReporter(
         ProblemSummarizer problemSummarizer,
         ProblemStream problemStream,
         CurrentBuildOperationRef currentBuildOperationRef,
-        AdditionalDataBuilderFactory additionalDataBuilderFactory,
         ExceptionProblemRegistry exceptionProblemRegistry,
         ExceptionAnalyser exceptionAnalyser
     ) {
@@ -47,7 +45,6 @@ public class DefaultProblemReporter implements InternalProblemReporter {
         this.problemStream = problemStream;
         this.currentBuildOperationRef = currentBuildOperationRef;
         this.exceptionProblemRegistry = exceptionProblemRegistry;
-        this.additionalDataBuilderFactory = additionalDataBuilderFactory;
         this.exceptionAnalyser = exceptionAnalyser;
     }
 
@@ -60,7 +57,7 @@ public class DefaultProblemReporter implements InternalProblemReporter {
 
     @Nonnull
     private DefaultProblemBuilder createProblemBuilder() {
-        return new DefaultProblemBuilder(problemStream, additionalDataBuilderFactory);
+        return new DefaultProblemBuilder(problemStream);
     }
 
     @Override
@@ -80,7 +77,7 @@ public class DefaultProblemReporter implements InternalProblemReporter {
     @Override
     public RuntimeException throwing(Throwable exception, Collection<? extends Problem> problems) {
         for (Problem problem : problems) {
-            report(problem.toBuilder(additionalDataBuilderFactory).withException(transform(exception)).build());
+            report(problem.toBuilder().withException(transform(exception)).build());
         }
         if (exception instanceof RuntimeException) {
             return (RuntimeException) exception;
@@ -140,7 +137,7 @@ public class DefaultProblemReporter implements InternalProblemReporter {
     @Override
     public void report(Problem problem, OperationIdentifier id) {
         String taskPath = ProblemTaskPathTracker.getTaskIdentityPath();
-        problem = taskPath == null ? problem : problem.toBuilder(additionalDataBuilderFactory).taskPathLocation(taskPath).build();
+        problem = taskPath == null ? problem : problem.toBuilder().taskPathLocation(taskPath).build();
         Throwable exception = problem.getException();
         if (exception != null) {
             exceptionProblemRegistry.onProblem(transform(exception), problem);

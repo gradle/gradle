@@ -16,10 +16,12 @@
 
 package org.gradle.integtests.tooling.r813
 
+
 import org.gradle.integtests.fixtures.GroovyBuildScriptLanguage
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.integtests.tooling.r812.SomeData
 import org.gradle.integtests.tooling.r85.CustomModel
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.BuildException
@@ -31,7 +33,6 @@ import org.gradle.tooling.events.problems.Problem
 import org.gradle.tooling.events.problems.Severity
 import org.gradle.tooling.events.problems.SingleProblemEvent
 import org.gradle.tooling.events.problems.TaskPathLocation
-import org.gradle.tooling.events.problems.internal.GeneralData
 import org.gradle.util.GradleVersion
 import org.junit.Assume
 
@@ -59,6 +60,10 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         return listener.problems
     }
 
+    def getGeneralDataString() {
+        targetVersion < GradleVersion.version("8.13") ? "org.gradle.api.problems.internal.GeneralDataSpec, data -> data.put('aKey', 'aValue')" : "new org.gradle.api.problems.internal.DefaultGeneralData(['aKey': 'aValue'])"
+    }
+
     def "Problems expose details via Tooling API events with failure"() {
         given:
         withReportProblemTask """
@@ -67,7 +72,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
                 $documentationConfig
                 .lineInFileLocation("/tmp/foo", 1, 2, 3)
                 $detailsConfig
-                .additionalData(org.gradle.api.problems.internal.GeneralDataSpec, data -> data.put("aKey", "aValue"))
+                .additionalData(${getGeneralDataString()})
                 .severity(Severity.WARNING)
                 .solution("try this instead")
             }
@@ -105,7 +110,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
                 $documentationConfig
                 .lineInFileLocation("/tmp/foo", 1, 2, 3)
                 $detailsConfig
-                .additionalData(org.gradle.api.problems.internal.GeneralDataSpec, data -> data.put("aKey", "aValue"))
+                .additionalData(${getGeneralDataString()})
                 .severity(Severity.WARNING)
                 .solution("try this instead")
             }
@@ -132,6 +137,76 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         detailsConfig              | expectedDetails | documentationConfig                         | expecteDocumentation
         '.details("long message")' | "long message"  | '.documentedAt("https://docs.example.org")' | 'https://docs.example.org'
         ''                         | null            | ''                                          | null
+    }
+
+    @TargetGradleVersion(">=8.13")
+    def "can serialize arbitrary additional data"() {
+        given:
+        buildFile """
+            import org.gradle.api.problems.Severity
+
+            class SomeData implements AdditionalData {
+                String typeName
+
+                SomeData(String typeName) {
+                    this.typeName = typeName
+                }
+            }
+
+            abstract class ProblemReportingTask extends DefaultTask {
+                @Inject
+                protected abstract Problems getProblems();
+
+                @TaskAction
+                void run() {
+                    getProblems().getReporter().reporting {
+                        it.id("id", "shortProblemMessage")
+                        .lineInFileLocation("/tmp/foo", 1, 2, 3)
+                        .additionalData(new SomeData("typeName"))
+                        $detailsConfig
+                        $documentationConfig
+                        .severity(Severity.WARNING)
+                        .solution("try this instead")
+                    }
+                }
+            }
+
+            abstract class MyPlugin implements Plugin<Project> {
+                void apply(Project project) {
+                    project.tasks.register("reportProblem", ProblemReportingTask)
+                }
+            }
+
+            apply(plugin: MyPlugin)
+       """
+        when:
+
+        def listener = new ProblemProgressListener()
+        withConnection { connection ->
+            connection.newBuild().forTasks('reportProblem')
+                .addProgressListener(listener)
+                .run()
+        }
+        def problems = listener.problems
+
+        then:
+        problems.size() == 1
+        verifyAll(problems[0]) {
+            additionalData.get(SomeData).typeName == 'typeName'
+            details?.details == expectedDetails
+            definition.documentationLink?.url == expectedDocumentation
+            originLocations.size() >= 2
+            (originLocations[0] as LineInFileLocation).path == '/tmp/foo'
+            (originLocations[1] as LineInFileLocation).path == "build file '$buildFile.path'"
+            definition.severity == Severity.WARNING
+            solutions.size() == 1
+            solutions[0].solution == 'try this instead'
+        }
+
+        where:
+        detailsConfig | expectedDetails | documentationConfig | expectedDocumentation
+        '.details("long message")' | "long message" | '.documentedAt("https://docs.example.org")' | 'https://docs.example.org'
+        ''            | null            | ''                  | null
     }
 
     def "Can serialize groovy compilation error"() {
@@ -193,6 +268,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         problems[0].definition.id.group.name == 'compilation'
     }
 
+    @TargetGradleVersion(">=8.13")
     def "Property validation failure should produce problem report with domain-specific additional data"() {
         setup:
         file('buildSrc/src/main/java/MyTask.java') << '''
@@ -228,7 +304,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         then:
         thrown(BuildException)
         listener.problems.size() == 1
-        (listener.problems[0].additionalData as GeneralData).asMap['typeName']== 'MyTask'
+        (listener.problems[0].additionalData.get()).typeName == 'MyTask'
     }
 
     @TargetGradleVersion("=8.6")

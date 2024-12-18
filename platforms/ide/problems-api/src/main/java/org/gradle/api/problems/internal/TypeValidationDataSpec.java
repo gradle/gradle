@@ -19,7 +19,7 @@ package org.gradle.api.problems.internal;
 /**
  * Specifies configuration options when creating a new TypeValidationData instance.
  */
-public interface TypeValidationDataSpec extends AdditionalDataSpec {
+public interface TypeValidationDataSpec {
     TypeValidationDataSpec pluginId(String pluginId);
     TypeValidationDataSpec propertyName(String propertyName);
     TypeValidationDataSpec functionName(String methodName);

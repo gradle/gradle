@@ -16,6 +16,8 @@
 
 package org.gradle.api.problems.internal;
 
+import org.gradle.api.problems.AdditionalData;
+
 /**
  * Additional data for a {@link org.gradle.internal.configuration.problems.PropertyTrace} .
  * Currently, this is only a String, but it could be extended as needed in the future.

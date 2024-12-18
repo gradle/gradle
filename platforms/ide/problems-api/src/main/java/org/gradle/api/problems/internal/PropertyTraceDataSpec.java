@@ -16,7 +16,7 @@
 
 package org.gradle.api.problems.internal;
 
-public interface PropertyTraceDataSpec extends AdditionalDataSpec {
+public interface PropertyTraceDataSpec {
 
     PropertyTraceDataSpec trace(String trace);
 

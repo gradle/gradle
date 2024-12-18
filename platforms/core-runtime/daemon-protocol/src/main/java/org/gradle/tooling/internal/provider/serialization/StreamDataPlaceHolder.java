@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,24 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.events.problems.internal;
+package org.gradle.tooling.internal.provider.serialization;
 
-import com.google.common.collect.ImmutableMap;
-import org.gradle.tooling.events.problems.AdditionalData;
+import org.gradle.api.NonNullApi;
 
 import java.io.Serializable;
-import java.util.Map;
 
-public class GeneralData implements AdditionalData, Serializable {
+@NonNullApi
+public class StreamDataPlaceHolder implements Serializable {
+    private final SerializedPayload data;
 
-    private final Map<String, Object> additionalData;
-
-    public GeneralData(Map<String, Object> additionalData) {
-        this.additionalData = ImmutableMap.copyOf(additionalData);
+    public StreamDataPlaceHolder(SerializedPayload data) {
+        this.data = data;
     }
 
-    @Override
-    public Map<String, Object> getAsMap() {
-        return additionalData;
+    public SerializedPayload getData() {
+        return data;
     }
 }

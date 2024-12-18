@@ -14,10 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.internal;
+package org.gradle.integtests.tooling.r812;
 
-/**
- * Marker interface for additional data that can be attached to a {@link Problem}.
- */
-public interface AdditionalDataSpec {
+public interface SomeData {
+    String getTypeName();
 }
