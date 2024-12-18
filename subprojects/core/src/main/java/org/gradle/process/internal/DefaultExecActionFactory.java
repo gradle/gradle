@@ -30,6 +30,7 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.util.internal.PatternSetFactory;
 import org.gradle.api.tasks.util.internal.PatternSets;
 import org.gradle.initialization.BuildCancellationToken;
+import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.internal.jvm.Jvm;
@@ -157,7 +158,13 @@ public class DefaultExecActionFactory implements ExecFactory {
     }
 
     private JavaExecSpec newJavaExecSpec() {
-        return objectFactory.newInstance(DefaultJavaExecSpec.class, objectFactory, fileResolver, fileCollectionFactory);
+        return objectFactory.newInstance(
+            DefaultJavaExecSpec.class,
+            objectFactory,
+            fileResolver,
+            fileCollectionFactory,
+            (Factory<JavaModuleDetector>) () -> javaModuleDetector
+        );
     }
 
     @Nullable

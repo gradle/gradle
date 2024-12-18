@@ -16,9 +16,7 @@
 
 package org.gradle.process.internal;
 
-import com.google.common.base.Preconditions;
 import org.gradle.api.internal.lambdas.SerializableLambdas;
-import org.gradle.api.internal.provider.CollectionPropertyInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.file.PathToFileResolver;
@@ -94,15 +92,8 @@ public abstract class DefaultExecSpec extends DefaultProcessForkOptions implemen
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public ExecSpec args(Object... args) {
-        for (Object arg : args) {
-            if (arg instanceof Provider) {
-                ((CollectionPropertyInternal<String, List<String>>) getArgs()).append(((Provider<?>) arg).map(Object::toString));
-            } else {
-                getArgs().add(Preconditions.checkNotNull(arg).toString());
-            }
-        }
+        ExecHandleCommandLineCombiner.collectArgs(getArgs(), args);
         return this;
     }
 
