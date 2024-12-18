@@ -30,7 +30,6 @@ dependencies {
 
     implementation(projects.baseServices)
     implementation(projects.pluginsJavaBase)
-    implementation(projects.pluginsJvmTestSuite)
     implementation(projects.reporting)
     implementation(projects.testingBase)
     implementation(projects.testingJvm)
