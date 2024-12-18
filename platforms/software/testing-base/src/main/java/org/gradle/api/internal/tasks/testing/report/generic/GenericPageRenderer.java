@@ -111,22 +111,23 @@ final class GenericPageRenderer extends TabbedPageRenderer<TestTreeModel> {
 
     @Override
     protected ReportRenderer<TestTreeModel, SimpleHtmlWriter> getContentRenderer() {
-        final TabsRenderer<TestTreeModel> tabsRenderer = new TabsRenderer<>();
+        TabsRenderer<TestTreeModel> rootTabsRenderer = new TabsRenderer<>();
         getModel().getPerRootInfo().forEach((rootName, info) -> {
-            // If there is only one root, don't show the root name in the tab title, since it's just confusing.
-            String tabPrefix = rootDisplayNames.size() == 1 ? "" : ("'" + rootDisplayNames.get(rootName) + "' ");
-            tabsRenderer.add(tabPrefix + "summary", new PerRootTabRenderer.ForSummary(rootName));
+            final TabsRenderer<TestTreeModel> tabsRenderer = new TabsRenderer<>();
+            tabsRenderer.add("summary", new PerRootTabRenderer.ForSummary(rootName));
             SerializableTestResultStore.OutputReader outputReader = outputReaders.get(rootName);
             if (outputReader.hasOutput(info.getOutputId(), TestOutputEvent.Destination.StdOut)) {
-                tabsRenderer.add(tabPrefix + "standard output", new PerRootTabRenderer.ForOutput(rootName, outputReader, TestOutputEvent.Destination.StdOut));
+                tabsRenderer.add("standard output", new PerRootTabRenderer.ForOutput(rootName, outputReader, TestOutputEvent.Destination.StdOut));
             }
             if (outputReader.hasOutput(info.getOutputId(), TestOutputEvent.Destination.StdErr)) {
-                tabsRenderer.add(tabPrefix + "error output", new PerRootTabRenderer.ForOutput(rootName, outputReader, TestOutputEvent.Destination.StdErr));
+                tabsRenderer.add("error output", new PerRootTabRenderer.ForOutput(rootName, outputReader, TestOutputEvent.Destination.StdErr));
             }
             if (!info.getMetadatas().isEmpty()) {
-                tabsRenderer.add(tabPrefix + "metadata", new PerRootTabRenderer.ForMetadata(rootName, metadataRendererRegistry));
+                tabsRenderer.add("metadata", new PerRootTabRenderer.ForMetadata(rootName, metadataRendererRegistry));
             }
+
+            rootTabsRenderer.add(rootDisplayNames.get(rootName), tabsRenderer);
         });
-        return tabsRenderer;
+        return rootTabsRenderer;
     }
 }
