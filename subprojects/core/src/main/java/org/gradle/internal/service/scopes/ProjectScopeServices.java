@@ -123,23 +123,20 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
         ProjectInternal project,
         Factory<LoggingManagerInternal> loggingManagerInternalFactory
     ) {
-        BuildLayout buildLayout = buildServices.get(BuildLayout.class);
         return ServiceRegistryBuilder.builder()
             .scope(Scope.Project.class)
             .displayName("project services")
             .parent(buildServices)
-            .provider(new ProjectScopeServices(buildLayout, project, loggingManagerInternalFactory))
+            .provider(new ProjectScopeServices(project, loggingManagerInternalFactory))
             .provider(new WorkerSharedProjectScopeServices(project.getProjectDir()))
             .build();
     }
 
-    private final BuildLayout buildLayout;
     private final ProjectInternal project;
     private final Factory<LoggingManagerInternal> loggingManagerInternalFactory;
 
 
-    public ProjectScopeServices(BuildLayout buildLayout, ProjectInternal project, Factory<LoggingManagerInternal> loggingManagerInternalFactory) {
-        this.buildLayout = buildLayout;
+    public ProjectScopeServices(ProjectInternal project, Factory<LoggingManagerInternal> loggingManagerInternalFactory) {
         this.project = project;
         this.loggingManagerInternalFactory = loggingManagerInternalFactory;
     }
@@ -387,7 +384,7 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    DefaultProjectLayout createProjectLayout(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, TaskDependencyFactory taskDependencyFactory,
+    DefaultProjectLayout createProjectLayout(BuildLayout buildLayout, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, TaskDependencyFactory taskDependencyFactory,
                                              FilePropertyFactory filePropertyFactory, Factory<PatternSet> patternSetFactory, PropertyHost propertyHost, FileFactory fileFactory) {
         File settingsDir = buildLayout.getSettingsDir();
         File projectDir = project.getProjectDir();
