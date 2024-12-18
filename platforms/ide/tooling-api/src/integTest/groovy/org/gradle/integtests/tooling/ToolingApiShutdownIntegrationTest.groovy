@@ -39,7 +39,7 @@ class ToolingApiShutdownIntegrationTest extends AbstractIntegrationSpec {
             tasks.register('runGradleBuildWithUnstableDaemon', JavaExec) {
                 classpath = sourceSets.main.runtimeClasspath
                 mainClass = "ToolingApiClient"
-                args = [ file("test-project") ]
+                args = [ file("test-project").absolutePath ]
             }
 
             dependencies {
