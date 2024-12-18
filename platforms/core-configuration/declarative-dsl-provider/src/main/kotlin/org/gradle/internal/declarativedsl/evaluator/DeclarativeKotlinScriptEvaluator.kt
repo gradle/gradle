@@ -86,7 +86,7 @@ class DefaultDeclarativeKotlinScriptEvaluator(
         val scriptContext = scriptContextFor(target)
         return when (val built = schemaBuilder.getEvaluationSchemaForScript(scriptContext)) {
             InterpretationSchemaBuildingResult.SchemaNotBuilt -> NotEvaluated(listOf(NoSchemaAvailable(scriptContext)), ConversionStepResult.CannotRunStep)
-            is InterpretationSchemaBuildingResult.InterpretationSequenceAvailable -> runInterpretationSequence(scriptSource, built.sequence, target)
+            is InterpretationSchemaBuildingResult.InterpretationSequenceAvailable -> runInterpretationSequence(scriptSource, built.sequence, target, targetScope)
         }
     }
 
@@ -94,10 +94,16 @@ class DefaultDeclarativeKotlinScriptEvaluator(
     fun runInterpretationSequence(
         scriptSource: ScriptSource,
         sequence: InterpretationSequence,
-        target: Any
+        target: Any,
+        classLoaderScope: ClassLoaderScope
     ): EvaluationResult<ConversionStepResult> =
         sequence.steps.map { step ->
-            stepRunner.runInterpretationSequenceStep(scriptSource.fileName, scriptSource.resource.text, step, ConversionStepContext(target, defaultAnalysisContext))
+            stepRunner.runInterpretationSequenceStep(
+                scriptSource.fileName,
+                scriptSource.resource.text,
+                step,
+                ConversionStepContext(target, { classLoaderScope.localClassLoader }, defaultAnalysisContext)
+            )
                 .also { if (it is NotEvaluated) return it }
         }.lastOrNull() ?: NotEvaluated(stageFailures = emptyList(), partialStepResult = ConversionStepResult.CannotRunStep)
 
