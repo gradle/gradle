@@ -74,7 +74,6 @@ import org.gradle.internal.operations.BuildOperationListener;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.BuildOperationState;
-import org.gradle.internal.operations.BuildOperationTimeSupplier;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.DefaultBuildOperationIdFactory;
 import org.gradle.internal.operations.DefaultBuildOperationProgressEventEmitter;
@@ -85,6 +84,8 @@ import org.gradle.internal.operations.OperationProgressEvent;
 import org.gradle.internal.operations.OperationStartEvent;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.snapshot.impl.DirectorySnapshotterStatistics;
+import org.gradle.internal.time.Clock;
+import org.gradle.internal.time.Time;
 import org.gradle.internal.time.TimestampSuppliers;
 import org.gradle.internal.vfs.FileSystemAccess;
 import org.gradle.internal.vfs.VirtualFileSystem;
@@ -264,7 +265,7 @@ class BuildCacheClientModule extends AbstractModule {
     @Provides
     BuildOperationRunner createBuildOperationRunner(
         CurrentBuildOperationRef currentBuildOperationRef,
-        BuildOperationTimeSupplier timeSupplier,
+        Clock timeSupplier,
         BuildOperationIdFactory buildOperationIdFactory,
         DefaultBuildOperationRunner.BuildOperationExecutionListenerFactory buildOperationExecutionListenerFactory
     ) {
@@ -313,7 +314,7 @@ class BuildCacheClientModule extends AbstractModule {
 
     @Provides
     BuildOperationProgressEventEmitter createBuildOperationProgressEventEmitter(
-        BuildOperationTimeSupplier timeSupplier,
+        Clock timeSupplier,
         CurrentBuildOperationRef currentBuildOperationRef,
         BuildOperationListener buildOperationListener
     ) {
@@ -353,8 +354,8 @@ class BuildCacheClientModule extends AbstractModule {
     }
 
     @Provides
-    BuildOperationTimeSupplier createTimeSupplier() {
-        return System::currentTimeMillis;
+    Clock createTimeSupplier() {
+        return Time.clock();
     }
 
     @Provides

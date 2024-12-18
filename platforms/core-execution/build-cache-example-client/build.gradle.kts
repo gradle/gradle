@@ -36,6 +36,7 @@ dependencies {
     implementation(projects.stdlibJavaExtensions)
     implementation(projects.persistentCache)
     implementation(projects.snapshots)
+    implementation(projects.time)
 
     implementation(libs.commonsIo)
     implementation(libs.guava)
