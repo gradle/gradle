@@ -17,6 +17,7 @@
 package org.gradle.internal.isolated.models;
 
 import org.gradle.api.internal.provider.AbstractMinimalProvider;
+import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.internal.evaluation.EvaluationScopeContext;
 
 import java.util.List;
@@ -26,6 +27,8 @@ public class ConsumerProjectScopeModelBatchProvider<T> extends AbstractMinimalPr
     private final ProjectModelController projectModelController;
     private final ProjectScopeModelBatchRequest<T> request;
 
+    private ProviderInternal<? extends List<T>> lazyDelegate;
+
     public ConsumerProjectScopeModelBatchProvider(ProjectModelController projectModelController, ProjectScopeModelBatchRequest<T> request) {
         this.projectModelController = projectModelController;
         this.request = request;
@@ -33,13 +36,13 @@ public class ConsumerProjectScopeModelBatchProvider<T> extends AbstractMinimalPr
 
     @Override
     public boolean calculatePresence(ValueConsumer consumer) {
-        return projectModelController.calculateBatchPresence(request);
+        return getDelegate().calculatePresence(consumer);
     }
 
     @Override
     protected Value<? extends List<T>> calculateOwnValue(ValueConsumer consumer) {
         try (EvaluationScopeContext ignored = openScope()) {
-            return projectModelController.calculateBatchValue(request);
+            return getDelegate().calculateValue(consumer);
         }
     }
 
@@ -47,5 +50,18 @@ public class ConsumerProjectScopeModelBatchProvider<T> extends AbstractMinimalPr
     public Class<List<T>> getType() {
         // TODO: provide the type of the aggregate
         return null;
+    }
+
+    @Override
+    public ValueProducer getProducer() {
+        return getDelegate().getProducer();
+    }
+
+    private ProviderInternal<? extends List<T>> getDelegate() {
+        if (lazyDelegate == null) {
+            lazyDelegate = projectModelController.calculateBatchValueProvider(request);
+        }
+
+        return lazyDelegate;
     }
 }
