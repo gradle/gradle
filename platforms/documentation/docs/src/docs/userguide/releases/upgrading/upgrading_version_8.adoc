@@ -42,21 +42,21 @@ The previous step will help you identify potential problems by issuing deprecati
 
 ==== Recursively querying `AttributeContainer` in lazy provider
 
-In Gradle 9.0, querying the contents of an `AttributeContainer` from within an attribute value provider of the same container will become an error
+In Gradle 9.0, querying the contents of an `AttributeContainer` from within an attribute value provider of the same container will become an error.
 
 The following example showcases the forbidden behavior:
 
-[source,groovy]
+[source,java]
 ----
-def container = getAttributeContainer()
-def firstAttribute = Attribute.of("first", String)
-def secondAttribute = Attribute.of("second", String)
-container.attributeProvider(firstAttribute, providers.provider(() -> {
+AttributeContainer container = getAttributeContainer();
+Attribute<String> firstAttribute = Attribute.of("first", String.class);
+Attribute<String> secondAttribute = Attribute.of("second", String.class);
+container.attributeProvider(firstAttribute, project.getProviders().provider(() -> {
     // Querying the contents of the container within an attribute value provider
-    // will become an error
-    container.getAttribute(secondAttribute)
-    "first"
-}))
+    // will become an error.
+    container.getAttribute(secondAttribute);
+    return "first";
+}));
 ----
 
 [[changes_8.12]]
