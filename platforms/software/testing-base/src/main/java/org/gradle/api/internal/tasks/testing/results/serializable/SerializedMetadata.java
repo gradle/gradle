@@ -18,9 +18,11 @@ package org.gradle.api.internal.tasks.testing.results.serializable;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.NonNullApi;
+import org.gradle.api.file.RegularFile;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
@@ -88,13 +90,25 @@ public final class SerializedMetadata {
         private static byte[] toBytes(Object obj) {
             if (obj instanceof byte[]) {
                 return (byte[]) obj;
-            } else if (obj instanceof Serializable) {
+            }
+
+            // TODO: File serialization just saves the path for now
+            Object toSerialize;
+            if (obj instanceof File) {
+                toSerialize = ((File) obj).toURI();
+            } else if (obj instanceof RegularFile) {
+                toSerialize = ((RegularFile) obj).getAsFile().toURI();
+            } else {
+                toSerialize = obj;
+            }
+
+            if (toSerialize instanceof Serializable) {
                 try (ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
                      ObjectOutputStream objectStream = new ObjectOutputStream(byteStream)) {
-                    objectStream.writeObject(obj);
+                    objectStream.writeObject(toSerialize);
                     return byteStream.toByteArray();
                 } catch (Exception e) {
-                    throw new RuntimeException("Failed to serialize metadata entry: " + obj, e);
+                    throw new RuntimeException("Failed to serialize metadata entry: " + toSerialize, e);
                 }
             } else {
                 throw new IllegalArgumentException("Object must be Serializable");
