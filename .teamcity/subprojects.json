@@ -233,7 +233,7 @@
   {
     "name": "configuration-problems-base",
     "path": "platforms/core-configuration/configuration-problems-base",
-    "unitTests": false,
+    "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },
