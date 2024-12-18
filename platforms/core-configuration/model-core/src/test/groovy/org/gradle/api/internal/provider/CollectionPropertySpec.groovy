@@ -1435,7 +1435,7 @@ The value of this property is derived from: <source>""")
         null       | _            | _          | "add, then append missing, then add"               | { it.add("0"); it.append(notDefined()); it.add("1") }
     }
 
-    def "#opName to no value property is undefined-safe"() {
+    def "#opName to no value property is undefined"() {
         given:
         property.set(null as Iterable)
 
@@ -1443,7 +1443,7 @@ The value of this property is derived from: <source>""")
         op(property)
 
         then:
-        assertValueIs(toImmutable(expected), property)
+        !property.present
 
         where:
         opName                      | op                                         | expected

@@ -123,13 +123,13 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
      */
     protected abstract C emptyCollection();
 
-    protected Configurer getConfigurer(boolean ignoreAbsent) {
-        return new Configurer(ignoreAbsent);
+    protected Configurer getConfigurer() {
+        return new Configurer();
     }
 
     protected void withActualValue(Action<Configurer> action) {
         setToConventionIfUnset();
-        action.execute(getConfigurer(true));
+        action.execute(getConfigurer());
     }
 
     @Override
@@ -145,29 +145,29 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
     @Override
     public void add(final T element) {
-        getConfigurer(false).add(element);
+        getConfigurer().add(element);
     }
 
     @Override
     public void add(final Provider<? extends T> providerOfElement) {
-        getConfigurer(false).add(providerOfElement);
+        getConfigurer().add(providerOfElement);
     }
 
     @Override
     @SafeVarargs
     @SuppressWarnings("varargs")
     public final void addAll(T... elements) {
-        getConfigurer(false).addAll(elements);
+        getConfigurer().addAll(elements);
     }
 
     @Override
     public void addAll(Iterable<? extends T> elements) {
-        getConfigurer(false).addAll(elements);
+        getConfigurer().addAll(elements);
     }
 
     @Override
     public void addAll(Provider<? extends Iterable<? extends T>> provider) {
-        getConfigurer(false).addAll(provider);
+        getConfigurer().addAll(provider);
     }
 
     @Override
@@ -206,12 +206,11 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
      * Adds the given supplier as the new root supplier for this collection.
      *
      * @param collector the collector to add
-     * @param ignoreAbsent whether elements that are missing values should be ignored
      */
-    private void addExplicitCollector(Collector<T> collector, boolean ignoreAbsent) {
+    private void addExplicitCollector(Collector<T> collector) {
         assertCanMutate();
         CollectionSupplier<T, C> explicitValue = getExplicitValue(defaultValue);
-        setSupplier(explicitValue.plus(collector, ignoreAbsent));
+        setSupplier(explicitValue.plus(collector));
     }
 
     @Override
@@ -365,9 +364,9 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         }
 
         @Override
-        public CollectionSupplier<T, C> plus(Collector<T> collector, boolean ignoreAbsent) {
-            // No value + something = no value, unless we ignoreAbsent.
-            return ignoreAbsent ? newSupplierOf(collector) : this;
+        public CollectionSupplier<T, C> plus(Collector<T> collector) {
+            // No value + something = no value.
+            return this;
         }
 
         @Override
@@ -399,7 +398,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         }
 
         @Override
-        public CollectionSupplier<T, C> plus(Collector<T> collector, boolean ignoreAbsent) {
+        public CollectionSupplier<T, C> plus(Collector<T> collector) {
             // empty + something = something
             return newSupplierOf(collector);
         }
@@ -440,8 +439,8 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         }
 
         @Override
-        public CollectionSupplier<T, C> plus(Collector<T> collector, boolean ignoreAbsent) {
-            return newSupplierOf(new FixedValueCollector<>(value, sideEffect)).plus(collector, ignoreAbsent);
+        public CollectionSupplier<T, C> plus(Collector<T> collector) {
+            return newSupplierOf(new FixedValueCollector<>(value, sideEffect)).plus(collector);
         }
 
         @Override
@@ -503,7 +502,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         }
 
         @Override
-        public CollectionSupplier<T, C> plus(Collector<T> addedCollector, boolean ignoreAbsent) {
+        public CollectionSupplier<T, C> plus(Collector<T> addedCollector) {
             return new CollectingSupplier<>(type, collectionFactory, valueCollector, collectors.plus(addedCollector));
         }
 
@@ -607,14 +606,11 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     }
 
     private class Configurer {
-        private final boolean ignoreAbsent;
 
-        public Configurer(boolean ignoreAbsent) {
-            this.ignoreAbsent = ignoreAbsent;
-        }
+        public Configurer() {}
 
         protected void addCollector(Collector<T> collector) {
-            addExplicitCollector(collector, ignoreAbsent);
+            addExplicitCollector(collector);
         }
 
         public void add(final T element) {
