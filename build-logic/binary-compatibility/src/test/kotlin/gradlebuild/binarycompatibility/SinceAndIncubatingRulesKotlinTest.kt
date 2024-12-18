@@ -51,6 +51,20 @@ class SinceAndIncubatingRulesKotlinTest : AbstractBinaryCompatibilityTest() {
 
         operator fun String.invoke(p: String, block: String.() -> Unit) = Unit
 
+        ${""/* For Kotlin DSL, we generate sources with collection types mapped to the Kotlin ones. See `org.gradle.kotlin.dsl.internal.sharedruntime.codegen.ApiTypeProviderKt#mappedTypeStrings` */}
+
+        fun wrap(a: kotlin.collections.Iterable<String>, b: kotlin.collections.Iterator<String>, c: kotlin.collections.ListIterator<String>): Unit = Unit
+
+        fun wrap(a: kotlin.collections.Collection<String>): Unit = Unit
+
+        fun wrap(a: kotlin.collections.List<String>, b: kotlin.collections.ArrayList<String>): Unit = Unit
+
+        fun wrap(a: kotlin.collections.Set<String>, b: kotlin.collections.HashSet<String>, c: kotlin.collections.LinkedHashSet<String>): Unit = Unit
+
+        fun wrap(a: kotlin.collections.Map<String, String>, b: kotlin.collections.Map.Entry<String, String>): Unit = Unit
+
+        fun wrap(a: kotlin.collections.HashMap<String, String>, b: kotlin.collections.LinkedHashMap<String, String>): Unit = Unit
+
     """
 
     private
@@ -111,6 +125,30 @@ class SinceAndIncubatingRulesKotlinTest : AbstractBinaryCompatibilityTest() {
         @Incubating
         operator fun String.invoke(p: String, block: String.() -> Unit) = Unit
 
+        /** @since 2.0 */
+        @Incubating
+        fun wrap(a: kotlin.collections.Iterable<String>, b: kotlin.collections.Iterator<String>, c: kotlin.collections.ListIterator<String>): Unit = Unit
+
+        /** @since 2.0 */
+        @Incubating
+        fun wrap(a: kotlin.collections.Collection<String>): Unit = Unit
+
+        /** @since 2.0 */
+        @Incubating
+        fun wrap(a: kotlin.collections.List<String>, b: kotlin.collections.ArrayList<String>): Unit = Unit
+
+        /** @since 2.0 */
+        @Incubating
+        fun wrap(a: kotlin.collections.Set<String>, b: kotlin.collections.HashSet<String>, c: kotlin.collections.LinkedHashSet<String>): Unit = Unit
+
+        /** @since 2.0 */
+        @Incubating
+        fun wrap(a: kotlin.collections.Map<String, String>, b: kotlin.collections.Map.Entry<String, String>): Unit = Unit
+
+        /** @since 2.0 */
+        @Incubating
+        fun wrap(a: kotlin.collections.HashMap<String, String>, b: kotlin.collections.LinkedHashMap<String, String>): Unit = Unit
+
     """
 
     @Test
@@ -150,6 +188,12 @@ class SinceAndIncubatingRulesKotlinTest : AbstractBinaryCompatibilityTest() {
                 added("Method", "SourceKt.setBazarExt(int,java.lang.String)"),
                 added("Method", "SourceKt.setBazool(boolean)"),
                 added("Method", "SourceKt.setFool(boolean)"),
+                added("Method", "SourceKt.wrap(java.lang.Iterable,java.util.Iterator,java.util.ListIterator)"),
+                added("Method", "SourceKt.wrap(java.util.Collection)"),
+                added("Method", "SourceKt.wrap(java.util.HashMap,java.util.LinkedHashMap)"),
+                added("Method", "SourceKt.wrap(java.util.List,java.util.ArrayList)"),
+                added("Method", "SourceKt.wrap(java.util.Map,java.util.Map\$Entry)"),
+                added("Method", "SourceKt.wrap(java.util.Set,java.util.HashSet,java.util.LinkedHashSet)"),
             )
         }
 
@@ -188,6 +232,12 @@ class SinceAndIncubatingRulesKotlinTest : AbstractBinaryCompatibilityTest() {
                 newApi("Method", "SourceKt.setBazarExt(int,java.lang.String)"),
                 newApi("Method", "SourceKt.setBazool(boolean)"),
                 newApi("Method", "SourceKt.setFool(boolean)"),
+                newApi("Method", "SourceKt.wrap(java.lang.Iterable,java.util.Iterator,java.util.ListIterator)"),
+                newApi("Method", "SourceKt.wrap(java.util.Collection)"),
+                newApi("Method", "SourceKt.wrap(java.util.HashMap,java.util.LinkedHashMap)"),
+                newApi("Method", "SourceKt.wrap(java.util.List,java.util.ArrayList)"),
+                newApi("Method", "SourceKt.wrap(java.util.Map,java.util.Map\$Entry)"),
+                newApi("Method", "SourceKt.wrap(java.util.Set,java.util.HashSet,java.util.LinkedHashSet)"),
             )
         }
 
@@ -231,6 +281,12 @@ class SinceAndIncubatingRulesKotlinTest : AbstractBinaryCompatibilityTest() {
                 newApi("Method", "SourceKt.setBazarExt(int,java.lang.String)"),
                 newApi("Method", "SourceKt.setBazool(boolean)"),
                 newApi("Method", "SourceKt.setFool(boolean)"),
+                newApi("Method", "SourceKt.wrap(java.lang.Iterable,java.util.Iterator,java.util.ListIterator)"),
+                newApi("Method", "SourceKt.wrap(java.util.Collection)"),
+                newApi("Method", "SourceKt.wrap(java.util.HashMap,java.util.LinkedHashMap)"),
+                newApi("Method", "SourceKt.wrap(java.util.List,java.util.ArrayList)"),
+                newApi("Method", "SourceKt.wrap(java.util.Map,java.util.Map\$Entry)"),
+                newApi("Method", "SourceKt.wrap(java.util.Set,java.util.HashSet,java.util.LinkedHashSet)"),
             )
         }
     }
@@ -359,7 +415,13 @@ class SinceAndIncubatingRulesKotlinTest : AbstractBinaryCompatibilityTest() {
                 added("Method", "Bar.setBazarExt(int,java.lang.String)"),
                 added("Method", "Bar.setBazool(boolean)"),
                 added("Method", "Bar.setFool(boolean)"),
-                added("Method", "Foo.foo()")
+                added("Method", "Foo.foo()"),
+                added("Method", "Bar.wrap(java.lang.Iterable,java.util.Iterator,java.util.ListIterator)"),
+                added("Method", "Bar.wrap(java.util.Collection)"),
+                added("Method", "Bar.wrap(java.util.HashMap,java.util.LinkedHashMap)"),
+                added("Method", "Bar.wrap(java.util.List,java.util.ArrayList)"),
+                added("Method", "Bar.wrap(java.util.Map,java.util.Map\$Entry)"),
+                added("Method", "Bar.wrap(java.util.Set,java.util.HashSet,java.util.LinkedHashSet)"),
             )
         }
 
@@ -407,6 +469,12 @@ class SinceAndIncubatingRulesKotlinTest : AbstractBinaryCompatibilityTest() {
                 newApi("Method", "Bar.setBazool(boolean)"),
                 newApi("Method", "Bar.setFool(boolean)"),
                 newApi("Method", "Foo.foo()"),
+                newApi("Method", "Bar.wrap(java.lang.Iterable,java.util.Iterator,java.util.ListIterator)"),
+                newApi("Method", "Bar.wrap(java.util.Collection)"),
+                newApi("Method", "Bar.wrap(java.util.HashMap,java.util.LinkedHashMap)"),
+                newApi("Method", "Bar.wrap(java.util.List,java.util.ArrayList)"),
+                newApi("Method", "Bar.wrap(java.util.Map,java.util.Map\$Entry)"),
+                newApi("Method", "Bar.wrap(java.util.Set,java.util.HashSet,java.util.LinkedHashSet)"),
             )
         }
     }
