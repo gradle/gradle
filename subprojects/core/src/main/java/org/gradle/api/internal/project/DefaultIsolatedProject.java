@@ -16,8 +16,9 @@
 
 package org.gradle.api.internal.project;
 
-import org.gradle.api.project.IsolatedProject;
 import org.gradle.api.file.Directory;
+import org.gradle.api.isolated.models.ProjectModelScope;
+import org.gradle.api.project.IsolatedProject;
 
 public final class DefaultIsolatedProject implements IsolatedProject {
 
@@ -54,6 +55,11 @@ public final class DefaultIsolatedProject implements IsolatedProject {
         return project.equals(rootProject)
             ? this
             : rootProject.getIsolated();
+    }
+
+    @Override
+    public ProjectModelScope getModels() {
+        return project.getModelScope();
     }
 
     @Override

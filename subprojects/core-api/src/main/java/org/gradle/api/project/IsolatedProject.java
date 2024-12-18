@@ -19,6 +19,7 @@ package org.gradle.api.project;
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.file.Directory;
+import org.gradle.api.isolated.models.ProjectModelScope;
 
 /**
  * An isolated view of {@link Project} that exposes only those properties that are safe to access from outside of
@@ -73,6 +74,16 @@ public interface IsolatedProject {
      * @since 8.8
      */
     IsolatedProject getRootProject();
+
+    // TODO: consider contexts in which IsolatedProject is available and whether the model scope access from there makes sense
+    //  Otherwise, the model scope will itself have to prevent access to it in those contexts
+
+    /**
+     * TBD
+     *
+     * @since 8.12
+     */
+    ProjectModelScope getModels();
 
     @Override
     int hashCode();
