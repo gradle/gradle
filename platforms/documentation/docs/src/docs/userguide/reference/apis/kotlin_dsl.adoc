@@ -481,7 +481,7 @@ We discuss both topics in more detail in the following sections.
 [[sec:multi_project_builds_applying_plugins]]
 === Applying plugins
 
-You can declare plugins within the subprojects to which they apply, but we recommend declaring them within the root project build script as well.
+You can <<plugins.adoc#sec:binary_plugin_locations,declare plugins>> within the subprojects to which they apply, but we recommend declaring them within the root project build script as well.
 This approach helps maintain consistent plugin versions across projects within the build and improves build performance.
 
 The <<plugins#sec:subprojects_plugins_dsl,Gradle plugins>> chapter explains how to declare plugins in the root project build script with a version and then apply them to the appropriate subprojects' build scripts.
@@ -538,6 +538,8 @@ include::sample[dir="snippets/kotlinDsl/multiProjectBuild/kotlin",files="setting
 Note how we're using the `apply()` method to apply the plugins, as the `plugins {}` block doesn't work in this context.
 We are also using standard APIs instead of type-safe accessors to configure tasks, extensions, and conventions — an approach discussed in <<kotlin_dsl#sec:kotlin_using_standard_api,Understanding what to do when type-safe model accessors are not available>>.
 
+// TO DO - cross configuration not recommended, use convention plugins
+
 [[sec:plugins_resolution_strategy]]
 == When you can't use the `plugins {}` block
 
@@ -577,7 +579,7 @@ include::sample[dir="snippets/kotlinDsl/androidSingleBuild/kotlin",files="settin
 
 In fact, the above sample will work for all `com.android.*` plugins that are provided by the specified module. That's because the packaged module contains the details of which plugin ID maps to which plugin implementation class, using the properties-file mechanism described in the <<custom_plugins#sec:custom_plugins_standalone_project,Writing Custom Plugins>> chapter.
 
-See the <<plugins#sec:plugin_management,Plugin Management>> section of the Gradle user manual for more information on the `pluginManagement {}` block and what it can be used for.
+See the <<plugins#sec:plugin_management,Plugin Management>> section of the Gradle User Manual for more information on the `pluginManagement {}` block and what it can be used for.
 
 // [PL] It seems to me that this block of content should really be in a more generic part
 //      of the user manual as it discusses techniques that apply outside of the Kotlin DSL.
@@ -673,7 +675,7 @@ include::sample[dir="snippets/kotlinDsl/containers-scope/kotlin",files="build.gr
 [[kotdsl:properties]]
 == Working with runtime properties
 
-Gradle has two main sources of properties defined at runtime: <<build_environment.adoc#sec:project_specific_properties,_project properties>> and <<writing_build_scripts#sec:extra_properties,_extra properties>>.
+Gradle has two main sources of properties defined at runtime: <<build_environment.adoc#sec:project_specific_properties,_project properties_>> and <<writing_build_scripts#sec:extra_properties,_extra properties_>>.
 
 The Kotlin DSL provides specific syntax for working with these property types, which we will explore in the following sections.
 
@@ -905,9 +907,8 @@ See link:https://kotlinlang.org/docs/reference/java-interop.html#compiler-config
 When mixing languages in your build logic, you may have to cross language boundaries.
 An extreme example would be a build that uses tasks and plugins that are implemented in Java, Groovy and Kotlin, while also using both Kotlin DSL and Groovy DSL build scripts.
 
-Quoting the Kotlin reference documentation:
-
-> Kotlin is designed with Java Interoperability in mind. Existing Java code can be called from Kotlin in a natural way, and Kotlin code can be used from Java rather smoothly as well.
+[quote,Kotlin reference documentation]
+Kotlin is designed with Java Interoperability in mind. Existing Java code can be called from Kotlin in a natural way, and Kotlin code can be used from Java rather smoothly as well.
 
 Both link:{kotlin-reference}java-interop.html[calling Java from Kotlin] and link:{kotlin-reference}java-to-kotlin-interop.html[calling Kotlin from Java] are very well covered in the Kotlin reference documentation.
 
@@ -942,7 +943,14 @@ In other words, you can only use one or the other in Groovy for any given method
 
 ==== Calling Kotlin from Groovy
 
-To call a Kotlin function that has named arguments from Groovy, just use a normal method call with positional parameters.
+To call a Kotlin function that has named arguments from Groovy, just use a normal method call with positional parameters:
+
+[source, groovy]
+.build.gradle
+----
+kotlinFunction("value1", "value2", 42)
+----
+
 There is no way to provide values by argument name.
 
 To call a Kotlin function that has default arguments from Groovy, always pass values for all the function parameters.
@@ -978,10 +986,11 @@ Both methods are useful in different circumstances and depend upon the method yo
 
 Some plugins expect simple closures, as with the link:{plugin-portal}plugin/com.jfrog.bintray[Bintray] plugin:
 
-[source,text]
+[source,kotlin]
+.build.gradle.kts
 ----
 bintray {
-    pkg(closureOf<PackageConfig> { // Use `closureOf<T> {}`
+    pkg(closureOf<PackageConfig> {
         // Config for the package here
     })
 }
@@ -1009,6 +1018,7 @@ include::sample[dir="snippets/kotlinDsl/interoperability-kotlinClosure/kotlin",f
 If some plugin makes heavy use of link:https://groovy-lang.org/metaprogramming.html[Groovy metaprogramming], then using it from Kotlin or Java or any statically-compiled language can be very cumbersome.
 
 The Kotlin DSL provides a `withGroovyBuilder {}` utility extension that attaches the Groovy metaprogramming semantics to objects of type `Any`.
+
 The following example demonstrates several features of the method on the object `target`:
 
 ====
