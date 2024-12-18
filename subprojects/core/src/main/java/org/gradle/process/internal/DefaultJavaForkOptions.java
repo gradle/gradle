@@ -38,7 +38,7 @@ import java.util.List;
 import java.util.Map;
 
 public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements JavaForkOptionsInternal {
-    private final FileCollectionFactory fileCollectionFactory;
+    protected final FileCollectionFactory fileCollectionFactory;
     private final ListProperty<String> jvmArgs;
     private final ListProperty<CommandLineArgumentProvider> jvmArgumentProviders;
     private final MapProperty<String, Object> systemProperties;

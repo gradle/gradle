@@ -2,7 +2,6 @@ Method <org.gradle.api.plugins.antlr.AntlrTask.getSource()> does not have raw re
 Method <org.gradle.api.plugins.quality.Checkstyle.getSource()> does not have raw return type (org.gradle.api.file.FileTree) assignable to any of [ConfigurableFileCollection] in (Checkstyle.java:0)
 Method <org.gradle.api.plugins.quality.CodeNarc.getSource()> does not have raw return type (org.gradle.api.file.FileTree) assignable to any of [ConfigurableFileCollection] in (CodeNarc.java:0)
 Method <org.gradle.api.plugins.quality.Pmd.getSource()> does not have raw return type (org.gradle.api.file.FileTree) assignable to any of [ConfigurableFileCollection] in (Pmd.java:0)
-Method <org.gradle.api.tasks.JavaExec.getClasspath()> does not have raw return type (org.gradle.api.file.FileCollection) assignable to any of [ConfigurableFileCollection] in (JavaExec.java:0)
 Method <org.gradle.api.tasks.SourceTask.getSource()> does not have raw return type (org.gradle.api.file.FileTree) assignable to any of [ConfigurableFileCollection] in (SourceTask.java:0)
 Method <org.gradle.api.tasks.Upload.getConfiguration()> does not have raw return type (org.gradle.api.artifacts.Configuration) assignable to any of [ConfigurableFileCollection] in (Upload.java:0)
 Method <org.gradle.api.tasks.compile.AbstractCompile.getClasspath()> does not have raw return type (org.gradle.api.file.FileCollection) assignable to any of [ConfigurableFileCollection] in (AbstractCompile.java:0)
