@@ -1359,13 +1359,13 @@ The value of this property is derived from: <source>""")
         null      | { it.set([k0: "0"]) }    | { it.insert("k1", notDefined()); it.put("k2", "2") } | "insert missing to non-empty then add"
     }
 
-    def "inserting into an undefined property is undefined-safe"() {
+    def "inserting into an undefined property is undefined"() {
         given:
         property.set((Map) null)
         property.insert('k4', '4')
 
         expect:
-        assertValueIs(['k4': '4'])
+        !property.present
     }
 
     def "putting an undefined value provider after inserting is not right-side undefined-safe"() {
@@ -1408,32 +1408,14 @@ The value of this property is derived from: <source>""")
         execTimeValue.toValue().isMissing()
     }
 
-    def "keySet provider has some values when property with no value is added via insert"() {
+    def "keySet provider has no values when property with no value is added via insert"() {
         given:
         property.set((Map) null)
-        property.put("k1", "1")
-        property.put("k2", notDefined())
         property.insert("k3", "3")
-        property.put("k4", "4")
         def keySetProvider = property.keySet()
 
         expect:
-        keySetProvider.present
-        keySetProvider.get() == ["k3", "k4"] as Set
-    }
-
-    def "keySet provider has no value when property with no value is added via insert"() {
-        given:
-        property.set((Map) null)
-        property.put("k1", "1")
-        property.put("k2", notDefined())
-        property.insert("k3", "3")
-        property.put("k4", "4")
-        def keySetProvider = property.keySet()
-
-        expect:
-        keySetProvider.present
-        keySetProvider.get() == ["k3", "k4"] as Set
+        !keySetProvider.present
     }
 
     def "can set explicit value to convention"() {
