@@ -18,15 +18,24 @@ package org.gradle.api.internal.attributes.immutable
 
 import org.gradle.api.attributes.Usage
 import org.gradle.api.internal.artifacts.JavaEcosystemSupport
+import org.gradle.api.internal.attributes.AttributesFactory
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.internal.snapshot.impl.CoercingStringValueSnapshot
+import org.gradle.util.AttributeTestUtil
 import org.gradle.util.TestUtil
 import spock.lang.Specification
+
+import static org.gradle.api.internal.attributes.immutable.TestAttributes.BAR
+import static org.gradle.api.internal.attributes.immutable.TestAttributes.BAZ
+import static org.gradle.api.internal.attributes.immutable.TestAttributes.FOO
 
 /**
  * Unit tests for {@link ImmutableAttributes}.
  */
-class ImmutableAttributesTest extends Specification implements TestsImmutableAttributes {
+class ImmutableAttributesTest extends Specification  {
+
+    static AttributesFactory factory = AttributeTestUtil.attributesFactory()
+
     def "empty set is empty"() {
         when:
         def attributes = ImmutableAttributes.EMPTY
