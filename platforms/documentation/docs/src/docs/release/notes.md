@@ -1,4 +1,4 @@
-<meta property="og:image" content="https://gradle.org/images/releases/gradle-8.12" />
+<meta property="og:image" content="https://gradle.org/images/releases/gradle-8.12.png" />
 <meta property="og:type"  content="website" />
 <meta property="og:title" content="Gradle 8.12 Release Notes" />
 
