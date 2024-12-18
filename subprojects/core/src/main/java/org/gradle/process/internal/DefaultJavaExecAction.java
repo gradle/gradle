@@ -19,14 +19,11 @@ package org.gradle.process.internal;
 import org.gradle.api.Action;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.lambdas.SerializableLambdas;
 import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
-import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.ExecResult;
 import org.gradle.process.JavaDebugOptions;
@@ -48,8 +45,6 @@ public class DefaultJavaExecAction implements JavaExecAction {
 
     private final DefaultJavaExecSpec javaExecSpec;
     private final JavaExecHandleBuilder javaExecHandleBuilder;
-    @Nullable
-    private final JavaModuleDetector javaModuleDetector;
 
     @Inject
     public DefaultJavaExecAction(
@@ -58,7 +53,6 @@ public class DefaultJavaExecAction implements JavaExecAction {
     ) {
         this.javaExecSpec = javaExecSpec;
         this.javaExecHandleBuilder = javaExecHandleBuilder;
-        this.javaModuleDetector = javaExecHandleBuilder.getJavaModuleDetector();
         // JavaExecHandleBuilder has default java executable set
         getExecutable().set(javaExecHandleBuilder.getExecutable());
     }
@@ -98,7 +92,7 @@ public class DefaultJavaExecAction implements JavaExecAction {
 
     @Nullable
     @Override
-    public List<String> getArgs() {
+    public ListProperty<String> getArgs() {
         return javaExecSpec.getArgs();
     }
 
@@ -115,19 +109,7 @@ public class DefaultJavaExecAction implements JavaExecAction {
     }
 
     @Override
-    public JavaExecSpec setArgs(@Nullable List<String> args) {
-        javaExecSpec.setArgs(args);
-        return this;
-    }
-
-    @Override
-    public JavaExecSpec setArgs(@Nullable Iterable<?> args) {
-        javaExecSpec.setArgs(args);
-        return this;
-    }
-
-    @Override
-    public List<CommandLineArgumentProvider> getArgumentProviders() {
+    public ListProperty<CommandLineArgumentProvider> getArgumentProviders() {
         return javaExecSpec.getArgumentProviders();
     }
 
@@ -138,14 +120,8 @@ public class DefaultJavaExecAction implements JavaExecAction {
     }
 
     @Override
-    public FileCollection getClasspath() {
+    public ConfigurableFileCollection getClasspath() {
         return javaExecSpec.getClasspath();
-    }
-
-    @Override
-    public JavaExecSpec setClasspath(FileCollection classpath) {
-        javaExecSpec.setClasspath(classpath);
-        return this;
     }
 
     @Override
@@ -155,10 +131,7 @@ public class DefaultJavaExecAction implements JavaExecAction {
 
     @Override
     public Provider<List<String>> getCommandLine() {
-        return javaExecSpec.getExecutable().zip(getAllJvmArgs(), (SerializableLambdas.SerializableBiFunction<String, List<String>, List<String>>) (executable, allJvmArgs) -> {
-            List<String> allArgs = ExecHandleCommandLineCombiner.getAllArgs(allJvmArgs, getArgs(), getArgumentProviders());
-            return ExecHandleCommandLineCombiner.getCommandLine(executable, allArgs);
-        });
+        return javaExecSpec.getCommandLine();
     }
 
     @Override
@@ -252,14 +225,7 @@ public class DefaultJavaExecAction implements JavaExecAction {
 
     @Override
     public Provider<List<String>> getAllJvmArgs() {
-        return javaExecSpec.getAllJvmArgs().map(allJvmArgs -> ExecHandleCommandLineCombiner.getAllJvmArgs(
-            allJvmArgs,
-            javaExecSpec.getClasspath(),
-            javaExecSpec.getMainClass(),
-            javaExecSpec.getMainModule(),
-            javaExecSpec.getModularity(),
-            javaModuleDetector
-        ));
+        return javaExecSpec.getAllJvmArgs();
     }
 
     @Override

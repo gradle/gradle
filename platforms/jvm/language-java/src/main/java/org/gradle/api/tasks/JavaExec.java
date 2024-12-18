@@ -341,13 +341,13 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      * {@inheritDoc}
      */
     @Override
-    @ToBeReplacedByLazyProperty
-    public List<String> getArgs() {
+    @ReplacesEagerProperty(adapter = ArgsAdapter.class)
+    public ListProperty<String> getArgs() {
         return javaExecSpec.getArgs();
     }
 
     /**
-     * Parses an argument list from {@code args} and passes it to {@link #setArgs(List)}.
+     * Parses an argument list from {@code args} and passes it to {@link #getArgs()}.
      *
      * <p>
      * The parser supports both single quote ({@code '}) and double quote ({@code "}) as quote delimiters.
@@ -365,24 +365,7 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Option(option = "args", description = "Command line arguments passed to the main class.")
     public JavaExec setArgsString(String args) {
-        return setArgs(Arrays.asList(Commandline.translateCommandline(args)));
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public JavaExec setArgs(List<String> applicationArgs) {
-        javaExecSpec.setArgs(applicationArgs);
-        return this;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public JavaExec setArgs(Iterable<?> applicationArgs) {
-        javaExecSpec.setArgs(applicationArgs);
+        getArgs().set(Arrays.asList(Commandline.translateCommandline(args)));
         return this;
     }
 
@@ -408,18 +391,8 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      * {@inheritDoc}
      */
     @Override
-    @ToBeReplacedByLazyProperty
-    public List<CommandLineArgumentProvider> getArgumentProviders() {
+    public ListProperty<CommandLineArgumentProvider> getArgumentProviders() {
         return javaExecSpec.getArgumentProviders();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public JavaExec setClasspath(FileCollection classpath) {
-        javaExecSpec.setClasspath(classpath);
-        return this;
     }
 
     /**
@@ -435,8 +408,8 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      * {@inheritDoc}
      */
     @Override
-    @ToBeReplacedByLazyProperty
-    public FileCollection getClasspath() {
+    @ReplacesEagerProperty(adapter = ClasspathAdapter.class)
+    public ConfigurableFileCollection getClasspath() {
         return javaExecSpec.getClasspath();
     }
 
@@ -669,6 +642,8 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
     }
 
     /**
+     * Upgrade for {@link JavaExec#getIgnoreExitValue()}
+     * <p>
      * No need to upgrade getter since it's already upgraded via BaseExecSpec
      */
     static class IgnoreExitValueAdapter {
@@ -680,6 +655,8 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
     }
 
     /**
+     * Upgrade for {@link JavaExec#getStandardInput()}
+     * <p>
      * No need to upgrade getter since it's already upgraded via BaseExecSpec
      */
     static class StandardInputAdapter {
@@ -691,7 +668,9 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
     }
 
     /**
-     * No need to upgrade getter since it's already upgraded via BaseExecSpec
+     * Upgrade for {@link JavaExec#getStandardOutput()}
+     * <p>
+     * No need to upgrade getter since it's already upgraded via JavaExecSpec
      */
     static class StandardOutputAdapter {
         @BytecodeUpgrade
@@ -702,13 +681,48 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
     }
 
     /**
-     * No need to upgrade getter since it's already upgraded via BaseExecSpec
+     * Upgrade for {@link JavaExec#getErrorOutput()}
+     * <p>
+     * No need to upgrade getter since it's already upgraded via JavaExecSpec
      */
     static class ErrorOutputAdapter {
         @BytecodeUpgrade
         static JavaExec setErrorOutput(JavaExec task, OutputStream value) {
             task.getErrorOutput().set(value);
             return task;
+        }
+    }
+
+    /**
+     * Upgrade for {@link JavaExec#getArgs()}
+     * <p>
+     * No need to upgrade getter since it's already upgraded via JavaExecSpec
+     */
+    static class ArgsAdapter {
+        @BytecodeUpgrade
+        static JavaExec setArgs(JavaExec self, List<String> args) {
+            setArgs(self, (Iterable<?>) args);
+            return self;
+        }
+
+        @BytecodeUpgrade
+        static JavaExec setArgs(JavaExec self, Iterable<?> args) {
+            self.getArgs().empty();
+            self.args(args);
+            return self;
+        }
+    }
+
+    /**
+     * Upgrade for {@link JavaExec#getClasspath()}
+     * <p>
+     * No need to upgrade getter since it's already upgraded via JavaExecSpec
+     */
+    static class ClasspathAdapter {
+        @BytecodeUpgrade
+        static JavaExec setClasspath(JavaExec self, FileCollection fileCollection) {
+            self.getClasspath().setFrom(fileCollection);
+            return self;
         }
     }
 }

@@ -20,6 +20,7 @@ import com.google.common.base.Preconditions;
 import org.gradle.api.internal.lambdas.SerializableLambdas;
 import org.gradle.api.internal.provider.CollectionPropertyInternal;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.process.BaseExecSpec;
@@ -96,14 +97,19 @@ public abstract class DefaultExecSpec extends DefaultProcessForkOptions implemen
     @Override
     @SuppressWarnings("unchecked")
     public ExecSpec args(Object... args) {
+        collectArgs(getArgs(), args);
+        return this;
+    }
+
+    @SuppressWarnings("unchecked")
+    static void collectArgs(ListProperty<String> collector, Object... args) {
         for (Object arg : args) {
             if (arg instanceof Provider) {
-                ((CollectionPropertyInternal<String, List<String>>) getArgs()).append(((Provider<?>) arg).map(Object::toString));
+                ((CollectionPropertyInternal<String, List<String>>) collector).append(((Provider<?>) arg).map(Object::toString));
             } else {
-                getArgs().add(Preconditions.checkNotNull(arg).toString());
+                collector.add(Preconditions.checkNotNull(arg).toString());
             }
         }
-        return this;
     }
 
     @Override

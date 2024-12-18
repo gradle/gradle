@@ -55,6 +55,7 @@ import org.gradle.initialization.ClassLoaderScopeRegistry;
 import org.gradle.initialization.ClassLoaderScopeRegistryListenerManager;
 import org.gradle.initialization.DefaultClassLoaderScopeRegistry;
 import org.gradle.initialization.GradleUserHomeDirProvider;
+import org.gradle.internal.Factory;
 import org.gradle.internal.classloader.ClasspathHasher;
 import org.gradle.internal.classloader.DefaultHashingClassLoaderFactory;
 import org.gradle.internal.classloader.HashingClassLoaderFactory;
@@ -260,6 +261,11 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
     @Provides
     JavaModuleDetector createJavaModuleDetector(FileContentCacheFactory cacheFactory, FileCollectionFactory fileCollectionFactory) {
         return new JavaModuleDetector(cacheFactory, fileCollectionFactory);
+    }
+
+    @Provides
+    Factory<JavaModuleDetector> createJavaModuleDetectorFactory(JavaModuleDetector javaModuleDetector) {
+        return () -> javaModuleDetector;
     }
 
     @Provides
