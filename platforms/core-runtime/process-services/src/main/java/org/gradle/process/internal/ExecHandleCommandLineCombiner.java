@@ -16,9 +16,12 @@
 
 package org.gradle.process.internal;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.provider.CollectionPropertyInternal;
 import org.gradle.api.jvm.ModularitySpec;
+import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.process.CommandLineArgumentProvider;
@@ -38,6 +41,16 @@ public class ExecHandleCommandLineCombiner {
         commandLine.add(executable);
         commandLine.addAll(allArgs);
         return commandLine;
+    }
+
+    public static void collectArgs(ListProperty<String> collector, Object... args) {
+        for (Object arg : args) {
+            if (arg instanceof Provider) {
+                ((CollectionPropertyInternal<String, List<String>>) collector).append(((Provider<?>) arg).map(Object::toString));
+            } else {
+                collector.add(Preconditions.checkNotNull(arg).toString());
+            }
+        }
     }
 
     public static List<String> getAllArgs(List<String> allJvmArgs, @Nullable List<String> args, List<CommandLineArgumentProvider> argumentProviders) {
