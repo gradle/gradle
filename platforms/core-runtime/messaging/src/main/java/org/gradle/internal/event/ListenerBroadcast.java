@@ -52,7 +52,7 @@ public class ListenerBroadcast<T> implements Dispatch<MethodInvocation> {
      *
      * @return The broadcaster.
      */
-    public T getSource() {
+    public synchronized T getSource() {
         if (source == null) {
             source = new ProxyDispatchAdapter<T>(this, type);
         }
