@@ -42,17 +42,17 @@ public class MinimalScalaCompileOptions implements Serializable {
     private final KeepAliveMode keepAliveMode;
 
     public MinimalScalaCompileOptions(BaseScalaCompileOptions compileOptions) {
-        this.failOnError = compileOptions.isFailOnError();
-        this.deprecation = compileOptions.isDeprecation();
-        this.unchecked = compileOptions.isUnchecked();
-        this.debugLevel = compileOptions.getDebugLevel();
-        this.optimize = compileOptions.isOptimize();
-        this.encoding = compileOptions.getEncoding();
-        this.force = compileOptions.isForce();
-        this.additionalParameters = ImmutableList.copyOf(compileOptions.getAdditionalParameters());
-        this.listFiles = compileOptions.isListFiles();
-        this.loggingLevel = compileOptions.getLoggingLevel();
-        this.loggingPhases = compileOptions.getLoggingPhases() == null ? null : ImmutableList.copyOf(compileOptions.getLoggingPhases());
+        this.failOnError = compileOptions.getFailOnError().getOrElse(true);
+        this.deprecation = compileOptions.getDeprecation().getOrElse(true);
+        this.unchecked = compileOptions.getUnchecked().getOrElse(true);
+        this.debugLevel = compileOptions.getDebugLevel().getOrNull();
+        this.optimize = compileOptions.getOptimize().getOrElse(false);
+        this.encoding = compileOptions.getEncoding().getOrNull();
+        this.force = compileOptions.getForce().getOrElse(false);
+        this.additionalParameters = ImmutableList.copyOf(compileOptions.getAdditionalParameters().get());
+        this.listFiles = compileOptions.getListFiles().getOrElse(false);
+        this.loggingLevel = compileOptions.getLoggingLevel().getOrNull();
+        this.loggingPhases = ImmutableList.copyOf(compileOptions.getLoggingPhases().get());
         this.forkOptions = new MinimalScalaCompilerDaemonForkOptions(compileOptions.getForkOptions());
         this.incrementalOptions = compileOptions.getIncrementalOptions();
         this.keepAliveMode = compileOptions.getKeepAliveMode().get();

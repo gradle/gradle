@@ -123,12 +123,8 @@ public abstract class EarPlugin implements Plugin<Project> {
 
         DeploymentDescriptor deploymentDescriptor =  DeprecationLogger.whileDisabled(() -> convention.getDeploymentDescriptor());
         if (deploymentDescriptor != null) {
-            if (deploymentDescriptor.getDisplayName() == null) {
-                deploymentDescriptor.setDisplayName(project.getName());
-            }
-            if (deploymentDescriptor.getDescription() == null) {
-                deploymentDescriptor.setDescription(project.getDescription());
-            }
+            deploymentDescriptor.getDisplayName().convention(project.getName());
+            deploymentDescriptor.getDescription().convention(project.getDescription());
         }
         project.getExtensions().getByType(DefaultArtifactPublicationSet.class).addCandidate(new LazyPublishArtifact(ear, ((ProjectInternal) project).getFileResolver(), taskDependencyFactory));
     }

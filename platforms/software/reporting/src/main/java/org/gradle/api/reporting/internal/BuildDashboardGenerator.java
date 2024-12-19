@@ -42,7 +42,7 @@ public class BuildDashboardGenerator extends ReportRenderer<Collection<Report>, 
         this.reports = new TreeSet<Report>(new Comparator<Report>() {
             @Override
             public int compare(Report o1, Report o2) {
-                return o1.getDisplayName().compareTo(o2.getDisplayName());
+                return o1.getDisplayName().get().compareTo(o2.getDisplayName().get());
             }
         });
         this.reports.addAll(reports);
@@ -77,9 +77,9 @@ public class BuildDashboardGenerator extends ReportRenderer<Collection<Report>, 
                         for (Report report : reports) {
                             li();
                             if (report.getOutputLocation().get().getAsFile().exists()) {
-                                a().href(RelativePathUtil.relativePath(outputFile.getParentFile(), getHtmlLinkedFileFromReport(report))).text(report.getDisplayName());
+                                a().href(RelativePathUtil.relativePath(outputFile.getParentFile(), getHtmlLinkedFileFromReport(report))).text(report.getDisplayName().get());
                             } else {
-                                span().classAttr("unavailable").text(report.getDisplayName());
+                                span().classAttr("unavailable").text(report.getDisplayName().get());
                             }
                             end(2);
                         }
@@ -101,7 +101,7 @@ public class BuildDashboardGenerator extends ReportRenderer<Collection<Report>, 
 
     private File getHtmlLinkedFileFromReport(Report report) {
         if (report instanceof DirectoryReport) {
-            return ((DirectoryReport) report).getEntryPoint();
+            return ((DirectoryReport) report).getEntryPoint().get().getAsFile();
         } else {
             return report.getOutputLocation().get().getAsFile();
         }

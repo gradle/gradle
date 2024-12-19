@@ -89,7 +89,7 @@ public class ApplicationClassesInSystemClassLoaderWorkerImplementationFactory {
         Set<File> applicationModulePath = processBuilder.getApplicationModulePath();
         LogLevel logLevel = processBuilder.getLogLevel();
         Set<String> sharedPackages = processBuilder.getSharedPackages();
-        Object requestedSecurityManager = execSpec.getSystemProperties().get("java.security.manager");
+        Object requestedSecurityManager = execSpec.getSystemProperties().get().get("java.security.manager");
         List<File> workerMainClassPath = classPathRegistry.getClassPath("WORKER_MAIN").getAsFiles();
 
         boolean runAsModule = !applicationModulePath.isEmpty() && execSpec.getModularity().getInferModulePath().get();
