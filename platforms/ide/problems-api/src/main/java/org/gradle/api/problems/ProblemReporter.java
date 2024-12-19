@@ -19,6 +19,8 @@ package org.gradle.api.problems;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 
+import java.util.Collection;
+
 /**
  * Defines different ways to report problems.
  *
@@ -26,6 +28,32 @@ import org.gradle.api.Incubating;
  */
 @Incubating
 public interface ProblemReporter {
+
+    /**
+     * Creates a new problem without reporting it immediately.
+     * The created problem can be later reported with {@link #report(Problem)}.
+     *
+     * @param action The problem configuration.
+     * @return The new problem.
+     * @since 8.13
+     */
+    Problem create(Action<? super ProblemSpec> action);
+
+    /**
+     * Reports the target problem.
+     *
+     * @param problem The problem to report.
+     * @since 8.13
+     */
+    void report(Problem problem);
+
+    /**
+     * Reports the target problems.
+     *
+     * @param problems The problems to report.
+     * @since 8.13
+     */
+    void report(Collection<? extends Problem> problems);
 
     /**
      * Configures and reports a new problem.
@@ -48,4 +76,14 @@ public interface ProblemReporter {
      * @since 8.6
      */
     RuntimeException throwing(Action<ProblemSpec> spec);
+
+    /**
+     * Reports the target problems and throws a runtime exception. When this method is used, all reported problems will be associated with the thrown exception.
+     *
+     * @param exception the exception to throw after reporting the problems
+     * @param problems the problems to report
+     * @return nothing, the method throws an exception
+     * @since 8.13
+     */
+    RuntimeException throwing(Throwable exception, Collection<? extends Problem> problems);
 }

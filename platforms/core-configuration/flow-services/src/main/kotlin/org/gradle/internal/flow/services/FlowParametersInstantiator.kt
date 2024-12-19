@@ -73,7 +73,7 @@ class FlowParametersInstantiator(
                         object : AbstractTaskDependencyResolveContext() {
                             override fun add(dependency: Any) {
                                 problems.add(
-                                    internalProblemReporter.create {
+                                    internalProblemReporter.internalCreate {
                                         id("invalid-dependency", "Property cannot carry dependency", GradleCoreProblemGroup.validation().property())
                                         contextualLabel("Property '$propertyName' cannot carry a dependency on $dependency as these are not yet supported.")
                                         severity(Severity.ERROR)
