@@ -17,6 +17,7 @@ package org.gradle.api.artifacts.dsl;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ExternalModuleDependency;
@@ -618,6 +619,27 @@ public interface DependencyHandler extends ExtensionAware {
      * @since 5.6
      */
     Dependency testFixtures(Object notation, Action<? super Dependency> configureAction);
+
+
+    /**
+     * Declares a dependency of a component with the required feature  and allows configuring
+     * the resulting dependency.
+     * @param notation the coordinates of the component providing the required feature
+     *
+     * @since 8.12
+     */
+    @Incubating
+    Dependency feature(String featureName, Object notation);
+
+    /**
+     * Declares a dependency of a component with the required feature  and allows configuring
+     * the resulting dependency.
+     * @param notation the coordinates of the component providing the required feature
+     *
+     * @since 8.12
+     */
+    @Incubating
+    Dependency feature(String featureName, Object notation, Action<? super Dependency> configureAction);
 
     /**
      * Allows fine-tuning what variant to select for the target dependency. This can be used to
