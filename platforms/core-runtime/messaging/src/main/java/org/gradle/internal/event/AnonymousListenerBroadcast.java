@@ -30,7 +30,6 @@ public class AnonymousListenerBroadcast<T> extends ListenerBroadcast<T> {
 
     @Override
     public synchronized void removeAll() {
-        super.removeAll();
-        add(forwardingDispatch);
+        replaceWith(forwardingDispatch);
     }
 }

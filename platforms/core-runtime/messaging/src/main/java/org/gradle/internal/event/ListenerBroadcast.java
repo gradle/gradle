@@ -142,6 +142,13 @@ public class ListenerBroadcast<T> implements Dispatch<MethodInvocation> {
     }
 
     /**
+     * Removes all listeners and replaces them with the given listener.
+     */
+    synchronized void replaceWith(Dispatch<MethodInvocation> dispatch) {
+        broadcast = BroadcastDispatch.empty(type).add(dispatch);
+    }
+
+    /**
      * Broadcasts the given event to all listeners.
      *
      * @param event The event
