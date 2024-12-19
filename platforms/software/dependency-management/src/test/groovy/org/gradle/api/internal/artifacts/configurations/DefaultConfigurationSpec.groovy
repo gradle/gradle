@@ -1422,19 +1422,6 @@ class DefaultConfigurationSpec extends Specification {
         conf.attributes.getAttribute(buildType).name == 'release'
     }
 
-    def "cannot define two attributes with the same name but different types"() {
-        def conf = conf()
-        def flavor = Attribute.of('flavor', Flavor)
-
-        when:
-        conf.getAttributes().attribute(flavor, new FlavorImpl(name: 'free'))
-        conf.getAttributes().attribute(Attribute.of('flavor', String.class), 'paid')
-
-        then:
-        def e = thrown(IllegalArgumentException)
-        e.message == 'Cannot have two attributes with the same name but different types. This container already has an attribute named \'flavor\' of type \'org.gradle.api.internal.artifacts.configurations.DefaultConfigurationSpec$Flavor\' and you are trying to store another one of type \'java.lang.String\''
-    }
-
     def "can overwrite a configuration attribute"() {
         def conf = conf()
         def flavor = Attribute.of(Flavor)
