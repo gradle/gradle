@@ -49,6 +49,7 @@ import org.gradle.api.problems.internal.DeprecationData;
 import org.gradle.api.problems.internal.DocLink;
 import org.gradle.api.problems.internal.FileLocation;
 import org.gradle.api.problems.internal.GeneralData;
+import org.gradle.api.problems.internal.InternalDocLink;
 import org.gradle.api.problems.internal.LineInFileLocation;
 import org.gradle.api.problems.internal.OffsetInFileLocation;
 import org.gradle.api.problems.internal.Problem;
@@ -401,7 +402,7 @@ public class ValidationProblemSerialization {
 
             out.beginObject();
             out.name("url").value(value.getUrl());
-            out.name("consultDocumentationMessage").value(value.getConsultDocumentationMessage());
+            out.name("consultDocumentationMessage").value(((InternalDocLink) value).getConsultDocumentationMessage());
             out.endObject();
         }
 
@@ -429,7 +430,7 @@ public class ValidationProblemSerialization {
 
             final String finalUrl = url;
             final String finalConsultDocumentationMessage = consultDocumentationMessage;
-            return new DocLink() {
+            return new InternalDocLink() {
                 @Override
                 public String getUrl() {
                     return finalUrl;
