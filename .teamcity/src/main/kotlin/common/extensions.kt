@@ -177,7 +177,6 @@ fun BuildType.paramsForBuildToolBuild(buildJvm: Jvm = BuildToolBuildJvm, os: Os,
         param("env.GRADLE_CACHE_REMOTE_SERVER", "%gradle.cache.remote.server%")
 
         param("env.JAVA_HOME", javaHome(buildJvm, os, arch))
-        param("env.GRADLE_OPTS", "-Xmx1536m")
         param("env.ANDROID_HOME", os.androidHome)
         param("env.ANDROID_SDK_ROOT", os.androidHome)
         param("env.GRADLE_INTERNAL_REPO_URL", "%gradle.internal.repository.url%")
@@ -188,6 +187,7 @@ fun BuildType.paramsForBuildToolBuild(buildJvm: Jvm = BuildToolBuildJvm, os: Os,
         if (os == Os.LINUX || os == Os.MACOS) {
             param("env.LC_ALL", "en_US.UTF-8")
         }
+        param("teamcity.internal.gradle.runner.launch.mode", "auto") // see https://youtrack.jetbrains.com/issue/TW-71916/Support-configuration-cache-in-the-Gradle-runner#focus=Comments-27-8333400.0-0
     }
 }
 
@@ -231,7 +231,7 @@ fun BuildStep.skipConditionally(buildType: BuildType? = null) {
     }
 }
 
-fun buildToolGradleParameters(daemon: Boolean = true, isContinue: Boolean = true, maxParallelForks: String = "%maxParallelForks%"): List<String> =
+fun buildToolGradleParameters(isContinue: Boolean = true, maxParallelForks: String = "%maxParallelForks%"): List<String> =
     listOf(
         // We pass the 'maxParallelForks' setting as 'workers.max' to limit the maximum number of executers even
         // if multiple test tasks run in parallel. We also pass it to the Gradle build as a maximum (maxParallelForks)
@@ -240,9 +240,7 @@ fun buildToolGradleParameters(daemon: Boolean = true, isContinue: Boolean = true
         "-PmaxParallelForks=$maxParallelForks",
         pluginPortalUrlOverride,
         "-s",
-        "--no-configuration-cache",
         "%additional.gradle.parameters%",
-        if (daemon) "--daemon" else "--no-daemon",
         if (isContinue) "--continue" else ""
     )
 

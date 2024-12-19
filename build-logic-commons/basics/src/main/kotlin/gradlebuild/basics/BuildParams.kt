@@ -241,10 +241,6 @@ val Project.buildMilestoneNumber: Provider<String>
     get() = gradleProperty(BUILD_MILESTONE_NUMBER)
 
 
-val Project.isRetryBuild: Boolean
-    get() = gradleProperty(RETRY_BUILD).isPresent
-
-
 val Project.buildTimestamp: Provider<String>
     get() = gradleProperty(BUILD_TIMESTAMP)
 
