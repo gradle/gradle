@@ -16,12 +16,11 @@ public abstract class FailingTask extends DefaultTask {
     @TaskAction
     public void run() {
         // tag::problems-api-fail-the-build[]
-        throw getProblems().getReporter().throwing(problemSpec -> {
+        throw getProblems().getReporter().throwing((new RuntimeException("Message from runtime exception")), problemSpec -> {
             problemSpec.id(ProblemId.create("sample-error", "Sample Error", StandardPlugin.PROBLEM_GROUP));
             problemSpec.contextualLabel("This happened because ProblemReporter.throwing() was called");
             problemSpec.details("This is a demonstration of how to add\ndetailed information to a build failure");
             problemSpec.documentedAt("https://example.com/docs");
-            problemSpec.withException(new RuntimeException("Message from runtime exception"));
             problemSpec.solution("Remove the Problems.throwing() method call from the task action");
         });
         // end::problems-api-fail-the-build[]

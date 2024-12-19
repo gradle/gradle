@@ -77,7 +77,7 @@ public abstract class AbstractResolutionFailureException extends StyledException
 
     @Override
     public AbstractResolutionFailureException reportAsProblem(InternalProblems problemsService) {
-        Problem problem = problemsService.getInternalReporter().create(builder -> {
+        Problem problem = problemsService.getInternalReporter().internalCreate(builder -> {
             ResolutionFailureProblemId problemId = getFailure().getProblemId();
             builder.id(TextUtil.screamingSnakeToKebabCase(problemId.name()), problemId.getDisplayName(), GradleCoreProblemGroup.variantResolution())
                 .contextualLabel(getMessage())
