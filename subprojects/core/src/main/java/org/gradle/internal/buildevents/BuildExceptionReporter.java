@@ -24,7 +24,7 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
-import org.gradle.api.problems.internal.Problem;
+import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.internal.ProblemLocator;
 import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.initialization.BuildClientMetaData;

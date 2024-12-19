@@ -16,10 +16,11 @@
 
 package org.gradle.internal.component.resolution.failure;
 
+import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.internal.InternalProblems;
 
 /**
- * Represents a {@link Throwable} that can be reported as a {@link org.gradle.api.problems.internal.Problem} to
+ * Represents a {@link Throwable} that can be reported as a {@link Problem} to
  * the {@link org.gradle.api.problems.Problems} service.
  * <p>
  * This is necessary, as Dependency Management uses exceptions for flow control, and some exceptions are meant to

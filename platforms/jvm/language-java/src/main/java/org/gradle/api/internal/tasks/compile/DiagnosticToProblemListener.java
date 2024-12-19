@@ -25,13 +25,13 @@ import com.sun.tools.javac.util.JavacMessages;
 import com.sun.tools.javac.util.Log;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.ProblemSpec;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblemReporter;
-import org.gradle.api.problems.internal.Problem;
 
 import javax.tools.Diagnostic;
 import javax.tools.DiagnosticListener;

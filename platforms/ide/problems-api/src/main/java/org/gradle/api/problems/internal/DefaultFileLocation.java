@@ -16,6 +16,8 @@
 
 package org.gradle.api.problems.internal;
 
+import org.gradle.api.problems.FileLocation;
+
 import java.io.Serializable;
 
 public class DefaultFileLocation implements FileLocation, Serializable {

@@ -16,6 +16,9 @@
 
 package org.gradle.api.problems.internal;
 
+import org.gradle.api.problems.FileLocation;
+import org.gradle.api.problems.OffsetInFileLocation;
+
 public class DefaultOffsetInFileLocation extends DefaultFileLocation implements OffsetInFileLocation {
 
     private final int offset;

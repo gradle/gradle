@@ -17,13 +17,14 @@
 package org.gradle.api.problems.internal
 
 import com.google.common.collect.ImmutableList
+import org.gradle.api.problems.ProblemDefinition
 import org.gradle.api.problems.ProblemGroup
 import org.gradle.api.problems.ProblemId
 import org.gradle.api.problems.Severity
 import org.gradle.internal.deprecation.Documentation
 import spock.lang.Specification
 
-class DefaultProblemDefinitionReport extends Specification {
+class DefaultProblemDefinitionReportTest extends Specification {
     def "equal objects are equal"() {
         when:
         def pd1 = createProblemDefinition()

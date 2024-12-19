@@ -16,8 +16,6 @@
 
 package org.gradle.api.problems
 
-import org.gradle.api.problems.internal.LineInFileLocation
-import org.gradle.api.problems.internal.OffsetInFileLocation
 import org.gradle.api.problems.internal.TaskPathLocation
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.GroovyBuildScriptLanguage
@@ -297,7 +295,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
     def "cannot emit a problem with invalid additional data"() {
         given:
-        buildFile 'class InvalidData implements org.gradle.api.problems.internal.AdditionalData {}'
+        buildFile 'class InvalidData implements AdditionalData {}'
         withReportProblemTask """
             ${problemIdScript()}
             problems.getReporter().reporting {

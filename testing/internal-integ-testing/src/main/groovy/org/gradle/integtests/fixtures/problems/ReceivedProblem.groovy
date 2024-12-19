@@ -17,20 +17,20 @@
 package org.gradle.integtests.fixtures.problems
 
 import groovy.transform.CompileStatic
+import org.gradle.api.problems.AdditionalData
+import org.gradle.api.problems.FileLocation
+import org.gradle.api.problems.LineInFileLocation
+import org.gradle.api.problems.OffsetInFileLocation
+import org.gradle.api.problems.ProblemDefinition
 import org.gradle.api.problems.ProblemGroup
 import org.gradle.api.problems.ProblemId
+import org.gradle.api.problems.ProblemLocation
 import org.gradle.api.problems.Severity
-import org.gradle.api.problems.internal.AdditionalData
 import org.gradle.api.problems.internal.AdditionalDataBuilderFactory
-import org.gradle.api.problems.internal.FileLocation
 import org.gradle.api.problems.internal.InternalDocLink
 import org.gradle.api.problems.internal.InternalProblem
 import org.gradle.api.problems.internal.InternalProblemBuilder
-import org.gradle.api.problems.internal.LineInFileLocation
-import org.gradle.api.problems.internal.OffsetInFileLocation
 import org.gradle.api.problems.internal.PluginIdLocation
-import org.gradle.api.problems.internal.ProblemDefinition
-import org.gradle.api.problems.internal.ProblemLocation
 import org.gradle.api.problems.internal.TaskPathLocation
 
 /*

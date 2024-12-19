@@ -17,6 +17,9 @@
 package org.gradle.api.problems.internal;
 
 import org.gradle.api.NonNullApi;
+import org.gradle.api.problems.AdditionalData;
+import org.gradle.api.problems.ProblemDefinition;
+import org.gradle.api.problems.ProblemLocation;
 
 import javax.annotation.Nullable;
 import java.io.Serializable;

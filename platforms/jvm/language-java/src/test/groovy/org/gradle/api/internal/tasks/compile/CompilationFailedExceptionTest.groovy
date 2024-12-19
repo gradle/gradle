@@ -16,10 +16,10 @@
 
 package org.gradle.api.internal.tasks.compile
 
+import org.gradle.api.problems.Problem
+import org.gradle.api.problems.ProblemDefinition
 import org.gradle.api.problems.ProblemId
 import org.gradle.api.problems.internal.GradleCoreProblemGroup
-import org.gradle.api.problems.internal.Problem
-import org.gradle.api.problems.internal.ProblemDefinition
 import spock.lang.Issue
 import spock.lang.Specification
 

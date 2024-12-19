@@ -18,8 +18,14 @@ package org.gradle.api.problems.internal;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
+import org.gradle.api.problems.AdditionalData;
+import org.gradle.api.problems.DocLink;
+import org.gradle.api.problems.FileLocation;
+import org.gradle.api.problems.Problem;
+import org.gradle.api.problems.ProblemDefinition;
 import org.gradle.api.problems.ProblemGroup;
 import org.gradle.api.problems.ProblemId;
+import org.gradle.api.problems.ProblemLocation;
 import org.gradle.api.problems.Severity;
 import org.gradle.problems.Location;
 import org.gradle.problems.ProblemDiagnostics;

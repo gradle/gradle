@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.internal;
+package org.gradle.api.problems;
 
+
+import org.gradle.api.Incubating;
 
 /**
- * Represents a location information of a problem.
+ * A link to a documentation page.
+ * <p>
+ * Subtypes can represent different parts of the gradle documentation, e.g. the DSL reference, the user guide, etc.
+ *
+ * @since 8.13
  */
-public interface ProblemLocation {
+@Incubating
+public interface DocLink {
+
+    /**
+     * The URL to the documentation page.
+     *
+     * @since 8.13
+     */
+    String getUrl();
 }
