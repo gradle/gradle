@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.provider.sources.process;
 
+import org.gradle.api.provider.Property;
 import org.gradle.process.BaseExecSpec;
 import org.gradle.process.ProcessForkOptions;
 
@@ -30,46 +31,22 @@ import java.util.Map;
  */
 interface DelegatingBaseExecSpec extends BaseExecSpec {
     @Override
-    default BaseExecSpec setIgnoreExitValue(boolean ignoreExitValue) {
-        getDelegate().setIgnoreExitValue(ignoreExitValue);
-        return this;
+    default Property<Boolean> getIgnoreExitValue() {
+        return getDelegate().getIgnoreExitValue();
     }
 
     @Override
-    default boolean isIgnoreExitValue() {
-        return getDelegate().isIgnoreExitValue();
-    }
-
-    @Override
-    default BaseExecSpec setStandardInput(InputStream inputStream) {
-        getDelegate().setStandardInput(inputStream);
-        return this;
-    }
-
-    @Override
-    default InputStream getStandardInput() {
+    default Property<InputStream> getStandardInput() {
         return getDelegate().getStandardInput();
     }
 
     @Override
-    default BaseExecSpec setStandardOutput(OutputStream outputStream) {
-        getDelegate().setStandardOutput(outputStream);
-        return this;
-    }
-
-    @Override
-    default OutputStream getStandardOutput() {
+    default Property<OutputStream> getStandardOutput() {
         return getDelegate().getStandardOutput();
     }
 
     @Override
-    default BaseExecSpec setErrorOutput(OutputStream outputStream) {
-        getDelegate().setErrorOutput(outputStream);
-        return this;
-    }
-
-    @Override
-    default OutputStream getErrorOutput() {
+    default Property<OutputStream> getErrorOutput() {
         return getDelegate().getErrorOutput();
     }
 

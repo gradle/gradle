@@ -84,7 +84,7 @@ public abstract class ProcessOutputValueSource implements ValueSource<ProcessOut
          * Whether the exception should be thrown if the process has non-successful exit code.
          *
          * @return the property to ignore exit value
-         * @see org.gradle.process.BaseExecSpec#setIgnoreExitValue(boolean)
+         * @see org.gradle.process.BaseExecSpec#getIgnoreExitValue()
          */
         Property<Boolean> getIgnoreExitValue();
 
@@ -122,7 +122,7 @@ public abstract class ProcessOutputValueSource implements ValueSource<ProcessOut
 
         ExecResult r = execOperations.exec(spec -> {
             spec.commandLine(getParameters().getCommandLine().get());
-            spec.setIgnoreExitValue(getParameters().getIgnoreExitValue().getOrElse(false));
+            spec.getIgnoreExitValue().set(getParameters().getIgnoreExitValue().orElse(false));
 
             if (getParameters().getWorkingDirectory().isPresent()) {
                 spec.setWorkingDir(getParameters().getWorkingDirectory().get().getAsFile());
@@ -132,8 +132,8 @@ public abstract class ProcessOutputValueSource implements ValueSource<ProcessOut
             } else if (hasAdditionalEnvVars()) {
                 spec.environment(getParameters().getAdditionalEnvironmentVariables().get());
             }
-            spec.setStandardOutput(stdout);
-            spec.setErrorOutput(stderr);
+            spec.getStandardOutput().set(stdout);
+            spec.getErrorOutput().set(stderr);
         });
         return new ExecOutputData(r, stdout.toByteArray(), stderr.toByteArray());
     }

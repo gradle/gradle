@@ -24,7 +24,6 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.reporting.Reporting;
 import org.gradle.api.reporting.dependencies.internal.DefaultDependencyReportContainer;
 import org.gradle.api.reporting.dependencies.internal.HtmlDependencyReporter;
@@ -97,24 +96,13 @@ public abstract class HtmlDependencyReportTask extends AbstractDependencyReportT
     }
 
     @Inject
-    protected ObjectFactory getObjectFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract VersionSelectorScheme getVersionSelectorScheme();
 
     @Inject
-    protected VersionSelectorScheme getVersionSelectorScheme() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract VersionComparator getVersionComparator();
 
     @Inject
-    protected VersionComparator getVersionComparator() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Inject
-    protected  VersionParser getVersionParser() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract VersionParser getVersionParser();
 
     /**
      * Required for decorating reports container callbacks for tracing user code application.
@@ -136,12 +124,12 @@ public abstract class HtmlDependencyReportTask extends AbstractDependencyReportT
         HtmlDependencyReporter reporter = new HtmlDependencyReporter(getVersionSelectorScheme(), getVersionComparator(), getVersionParser());
         reporter.render(projectsWithConfigurations.get(), reports.getHtml().getOutputLocation().getAsFile().get());
 
-        getLogger().lifecycle("See the report at: {}", new ConsoleRenderer().asClickableFileUrl(reports.getHtml().getEntryPoint()));
+        getLogger().lifecycle("See the report at: {}", new ConsoleRenderer().asClickableFileUrl(reports.getHtml().getEntryPoint().get().getAsFile()));
     }
 
     private ProjectsWithConfigurations<ProjectDetails.ProjectNameAndPath, ConfigurationDetails> computeProjectsWithConfigurations() {
         return ProjectsWithConfigurations.from(
-            getProjects(),
+            getProjects().get(),
             ProjectDetails::withNameAndPath,
             HtmlDependencyReportTask::getConfigurationsWhichCouldHaveDependencyInfo
         );

@@ -17,8 +17,10 @@
 package org.gradle.api.publish.maven.tasks;
 
 import org.gradle.api.DefaultTask;
+import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.provider.ProviderApiDeprecationLogger;
 import org.gradle.api.publish.maven.MavenPom;
 import org.gradle.api.publish.maven.internal.dependencies.VersionRangeMapper;
 import org.gradle.api.publish.maven.internal.publication.MavenPomInternal;
@@ -28,7 +30,9 @@ import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.UntrackedTask;
 import org.gradle.internal.deprecation.DeprecationLogger;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.BytecodeUpgrade;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.serialization.Cached;
 import org.gradle.internal.serialization.Transient;
 
@@ -46,15 +50,9 @@ import static org.gradle.internal.serialization.Transient.varOf;
 public abstract class GenerateMavenPom extends DefaultTask {
 
     private final Transient.Var<MavenPom> pom = varOf();
-    private Object destination;
     private final Cached<MavenPomFileGenerator.MavenPomSpec> mavenPomSpec = Cached.of(() ->
         MavenPomFileGenerator.generateSpec((MavenPomInternal) getPom())
     );
-
-    @Inject
-    protected FileResolver getFileResolver() {
-        throw new UnsupportedOperationException();
-    }
 
     /**
      * Get the version range mapper.
@@ -103,11 +101,9 @@ public abstract class GenerateMavenPom extends DefaultTask {
 
     /**
      * The Maven POM.
-     *
-     * @return The Maven POM.
      */
     @Internal
-    @ToBeReplacedByLazyProperty
+    @NotToBeReplacedByLazyProperty(because = "we need a better way to handle this, see https://github.com/gradle/gradle/pull/30665#pullrequestreview-2329667058")
     public MavenPom getPom() {
         return pom.get();
     }
@@ -118,39 +114,36 @@ public abstract class GenerateMavenPom extends DefaultTask {
 
     /**
      * The file the POM will be written to.
-     *
-     * @return The file the POM will be written to
      */
     @OutputFile
-    @ToBeReplacedByLazyProperty
-    public File getDestination() {
-        return destination == null ? null : getFileResolver().resolve(destination);
-    }
-
-    /**
-     * Sets the destination the descriptor will be written to.
-     *
-     * @param destination The file the descriptor will be written to.
-     * @since 4.0
-     */
-    public void setDestination(File destination) {
-        this.destination = destination;
-    }
-
-    /**
-     * Sets the destination the descriptor will be written to.
-     *
-     * The value is resolved with {@link org.gradle.api.Project#file(Object)}
-     *
-     * @param destination The file the descriptor will be written to.
-     */
-    public void setDestination(Object destination) {
-        this.destination = destination;
-    }
+    @ReplacesEagerProperty(adapter = GenerateMavenPomAdapter.class)
+    public abstract RegularFileProperty getDestination();
 
     @TaskAction
     public void doGenerate() {
-        mavenPomSpec.get().writeTo(getDestination());
+        mavenPomSpec.get().writeTo(getDestination().getAsFile().get());
     }
 
+    @Inject
+    @Deprecated
+    @SuppressWarnings("DeprecatedIsStillUsed")
+    protected abstract FileResolver getFileResolver();
+
+    static class GenerateMavenPomAdapter {
+        @BytecodeUpgrade
+        static File getDestination(GenerateMavenPom self) {
+            return self.getDestination().getAsFile().getOrNull();
+        }
+
+        @BytecodeUpgrade
+        static void setDestination(GenerateMavenPom self, File destination) {
+            self.getDestination().fileValue(destination);
+        }
+
+        @BytecodeUpgrade
+        static void setDestination(GenerateMavenPom self, Object destination) {
+            ProviderApiDeprecationLogger.logDeprecation(GenerateMavenPom.class, "setDestination(Object)", "getDestination()");
+            self.getDestination().fileValue(self.getFileResolver().resolve(destination));
+        }
+    }
 }

@@ -23,9 +23,11 @@ import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestOutputListener;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.api.tasks.testing.logging.TestLogEvent;
-import org.gradle.api.tasks.testing.logging.TestLogging;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.util.internal.TextUtil;
+
+import java.util.EnumSet;
+import java.util.Set;
 
 /**
  * Console logger for test events.
@@ -34,12 +36,42 @@ public class TestEventLogger extends AbstractTestLogger implements TestListener,
     private static final String INDENT = "    ";
 
     private final TestExceptionFormatter exceptionFormatter;
-    private final TestLogging testLogging;
+    private final int minGranularity;
+    private final int maxGranularity;
+    private final Set<TestLogEvent> testLogEvents;
+    private final boolean showExceptions;
 
-    public TestEventLogger(StyledTextOutputFactory textOutputFactory, LogLevel logLevel, TestLogging testLogging, TestExceptionFormatter exceptionFormatter) {
-        super(textOutputFactory, logLevel, testLogging.getDisplayGranularity());
+    public TestEventLogger(
+        StyledTextOutputFactory textOutputFactory,
+        LogLevel logLevel,
+        TestExceptionFormatter exceptionFormatter,
+        boolean showExceptions,
+        int minGranularity,
+        int maxGranularity,
+        int displayGranularity,
+        Boolean showStandardStreams,
+        Set<TestLogEvent> testLogEvents
+    ) {
+        super(textOutputFactory, logLevel, displayGranularity);
         this.exceptionFormatter = exceptionFormatter;
-        this.testLogging = testLogging;
+        this.showExceptions = showExceptions;
+        this.minGranularity = minGranularity;
+        this.maxGranularity = maxGranularity;
+        this.testLogEvents = calculateTestLogEvents(showStandardStreams, testLogEvents);
+    }
+
+    private static Set<TestLogEvent> calculateTestLogEvents(Boolean showStandardStreams, Set<TestLogEvent> events) {
+        if (showStandardStreams == null) {
+            return events;
+        }
+
+        Set<TestLogEvent> calculatedEvents = events.isEmpty() ? EnumSet.noneOf(TestLogEvent.class) : EnumSet.copyOf(events);
+        if (showStandardStreams) {
+            calculatedEvents.addAll(EnumSet.of(TestLogEvent.STANDARD_OUT, TestLogEvent.STANDARD_ERROR));
+        } else {
+            calculatedEvents.removeAll(EnumSet.of(TestLogEvent.STANDARD_OUT, TestLogEvent.STANDARD_ERROR));
+        }
+        return calculatedEvents;
     }
 
     @Override
@@ -102,14 +134,14 @@ public class TestEventLogger extends AbstractTestLogger implements TestListener,
     }
 
     private boolean shouldLogExceptions(TestResult result) {
-        return testLogging.getShowExceptions() && !result.getExceptions().isEmpty();
+        return showExceptions && !result.getExceptions().isEmpty();
     }
 
     private boolean isLoggedGranularity(TestDescriptor descriptor) {
         int level = getLevel(descriptor);
-        return ((testLogging.getMinGranularity() == -1 && !descriptor.isComposite()) ||
-            (testLogging.getMinGranularity() > -1 && level >= testLogging.getMinGranularity())) &&
-            (testLogging.getMaxGranularity() == -1 || level <= testLogging.getMaxGranularity());
+        return ((minGranularity == -1 && !descriptor.isComposite()) ||
+            (minGranularity > -1 && level >= minGranularity)) &&
+            (maxGranularity == -1 || level <= maxGranularity);
     }
 
     private int getLevel(TestDescriptor descriptor) {
@@ -122,6 +154,6 @@ public class TestEventLogger extends AbstractTestLogger implements TestListener,
     }
 
     private boolean isLoggedEventType(TestLogEvent event) {
-        return testLogging.getEvents().contains(event);
+        return testLogEvents.contains(event);
     }
 }

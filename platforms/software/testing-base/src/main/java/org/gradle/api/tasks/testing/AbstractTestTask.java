@@ -177,7 +177,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
 
     public AbstractTestTask() {
         Instantiator instantiator = getInstantiator();
-        testLogging = instantiator.newInstance(DefaultTestLoggingContainer.class, instantiator);
+        testLogging = getProject().getObjects().newInstance(DefaultTestLoggingContainer.class);
         testListenerSubscriptions = new BroadcastSubscriptions<TestListener>(TestListener.class);
         testOutputListenerSubscriptions = new BroadcastSubscriptions<TestOutputListener>(TestOutputListener.class);
         binaryResultsDirectory = getProject().getObjects().directoryProperty();
@@ -332,7 +332,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     }
 
     private TestExceptionFormatter getExceptionFormatter(TestLogging testLogging) {
-        switch (testLogging.getExceptionFormat()) {
+        switch (testLogging.getExceptionFormat().get()) {
             case SHORT:
                 return new ShortExceptionFormatter(testLogging);
             case FULL:
@@ -412,7 +412,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      * apply plugin: 'java'
      *
      * test.testLogging {
-     *     exceptionFormat = "full"
+     *     exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
      * }
      * </pre>
      *
@@ -467,7 +467,17 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         LogLevel currentLevel = determineCurrentLogLevel();
         TestLogging levelLogging = getTestLogging().get(currentLevel);
         TestExceptionFormatter exceptionFormatter = getExceptionFormatter(levelLogging);
-        TestEventLogger eventLogger = new TestEventLogger(getTextOutputFactory(), currentLevel, levelLogging, exceptionFormatter);
+        TestEventLogger eventLogger = new TestEventLogger(
+            getTextOutputFactory(),
+            currentLevel,
+            exceptionFormatter,
+            levelLogging.getShowExceptions().get(),
+            levelLogging.getMinGranularity().get(),
+            levelLogging.getMaxGranularity().get(),
+            levelLogging.getDisplayGranularity().get(),
+            levelLogging.getShowStandardStreams().getOrNull(),
+            levelLogging.getEvents().get()
+        );
         addTestListener(eventLogger);
         addTestOutputListener(eventLogger);
 
@@ -598,7 +608,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
             JUnitXmlReport junitXml = reports.getJunitXml();
             if (junitXml.getRequired().get()) {
                 JUnitXmlResultOptions xmlResultOptions = new JUnitXmlResultOptions(
-                    junitXml.isOutputPerTestCase(),
+                    junitXml.getOutputPerTestCase().get(),
                     junitXml.getMergeReruns().get(),
                     junitXml.getIncludeSystemOutLog().get(),
                     junitXml.getIncludeSystemErrLog().get()
@@ -686,12 +696,12 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
 
         DirectoryReport htmlReport = getReports().getHtml();
         if (htmlReport.getRequired().get()) {
-            String reportUrl = new ConsoleRenderer().asClickableFileUrl(htmlReport.getEntryPoint());
+            String reportUrl = new ConsoleRenderer().asClickableFileUrl(htmlReport.getEntryPoint().get().getAsFile());
             message = message.concat(". See the report at: " + reportUrl);
         } else {
             DirectoryReport junitXmlReport = getReports().getJunitXml();
             if (junitXmlReport.getRequired().get()) {
-                String resultsUrl = new ConsoleRenderer().asClickableFileUrl(junitXmlReport.getEntryPoint());
+                String resultsUrl = new ConsoleRenderer().asClickableFileUrl(junitXmlReport.getEntryPoint().get().getAsFile());
                 message = message.concat(". See the results at: " + resultsUrl);
             }
         }

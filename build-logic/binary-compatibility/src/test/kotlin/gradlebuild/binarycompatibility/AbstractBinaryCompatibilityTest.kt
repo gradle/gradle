@@ -344,7 +344,8 @@ abstract class AbstractBinaryCompatibilityTest {
                             file("test-api-changes.json"),
                             rootProject.layout.projectDirectory,
                             newUpgradedPropertiesFile.get().asFile,
-                            oldUpgradedPropertiesFile.get().asFile
+                            oldUpgradedPropertiesFile.get().asFile,
+                            "1.0"
                         )
                     }
                     """

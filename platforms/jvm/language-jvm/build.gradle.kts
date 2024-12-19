@@ -1,6 +1,5 @@
 plugins {
     id("gradlebuild.distribution.api-java")
-    id("gradlebuild.instrumented-java-project")
 }
 
 description = """Contains some base and shared classes for JVM language support, like AbstractCompile class and BaseForkOptions classes,

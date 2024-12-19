@@ -17,60 +17,73 @@
 package org.gradle.api.publish.ivy.internal.artifact;
 
 import org.gradle.api.Task;
+import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationCoordinates;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskProvider;
 
 import javax.annotation.Nullable;
-import java.io.File;
 
 public class SingleOutputTaskIvyArtifact extends AbstractIvyArtifact {
 
     private final TaskProvider<? extends Task> generator;
     private final IvyPublicationCoordinates coordinates;
-    private final String extension;
-    private final String type;
-    private final String classifier;
+    private final String defaultExtension;
+    private final String defaultType;
+    private final String defaultClassifier;
     private final TaskDependencyInternal buildDependencies;
 
-    public SingleOutputTaskIvyArtifact(TaskProvider<? extends Task> generator, IvyPublicationCoordinates coordinates, String extension, String type, @Nullable String classifier, TaskDependencyFactory taskDependencyFactory) {
-        super(taskDependencyFactory);
+    public SingleOutputTaskIvyArtifact(
+        TaskProvider<? extends Task> generator,
+        IvyPublicationCoordinates coordinates,
+        String extension,
+        String type,
+        @Nullable String classifier,
+        TaskDependencyFactory taskDependencyFactory,
+        ProviderFactory providerFactory,
+        ObjectFactory objectFactory
+    ) {
+        super(taskDependencyFactory, providerFactory, objectFactory);
         this.generator = generator;
         this.coordinates = coordinates;
-        this.extension = extension;
-        this.type = type;
-        this.classifier = classifier;
+        this.defaultExtension = extension;
+        this.defaultType = type;
+        this.defaultClassifier = classifier;
         this.buildDependencies = taskDependencyFactory.visitingDependencies(context -> {
             context.add(generator.get());
         });
     }
 
     @Override
-    protected String getDefaultName() {
-        return coordinates.getModule().get();
+    protected Provider<String> getDefaultName() {
+        return coordinates.getModule();
     }
 
     @Override
-    protected String getDefaultType() {
-        return type;
+    protected Provider<String> getDefaultType() {
+        return Providers.of(defaultType);
     }
 
     @Override
-    protected String getDefaultExtension() {
-        return extension;
+    protected Provider<String> getDefaultExtension() {
+        return Providers.of(defaultExtension);
     }
 
     @Override
-    protected String getDefaultClassifier() {
-        return classifier;
+    protected Provider<String> getDefaultClassifier() {
+        return Providers.ofNullable(defaultClassifier);
     }
 
     @Override
-    protected String getDefaultConf() {
-        return null;
+    protected Provider<String> getDefaultConf() {
+        return Providers.notDefined();
     }
 
     @Override
@@ -79,8 +92,8 @@ public class SingleOutputTaskIvyArtifact extends AbstractIvyArtifact {
     }
 
     @Override
-    public File getFile() {
-        return generator.get().getOutputs().getFiles().getSingleFile();
+    public Provider<RegularFile> getFile() {
+        return Providers.of(() -> generator.get().getOutputs().getFiles().getSingleFile());
     }
 
     public boolean isEnabled() {

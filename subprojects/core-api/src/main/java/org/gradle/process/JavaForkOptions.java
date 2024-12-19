@@ -17,16 +17,21 @@
 package org.gradle.process;
 
 import org.gradle.api.Action;
-import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.provider.ListProperty;
+import org.gradle.api.provider.MapProperty;
+import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.internal.HasInternalProtocol;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
 
@@ -35,21 +40,15 @@ import java.util.Map;
  */
 @HasInternalProtocol
 public interface JavaForkOptions extends ProcessForkOptions {
+
     /**
-     * Returns the system properties which will be used for the process.
+     * System properties which will be used for the process.
      *
      * @return The system properties. Returns an empty map when there are no system properties.
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    Map<String, Object> getSystemProperties();
-
-    /**
-     * Sets the system properties to use for the process.
-     *
-     * @param properties The system properties. Must not be null.
-     */
-    void setSystemProperties(Map<String, ?> properties);
+    @ReplacesEagerProperty
+    MapProperty<String, Object> getSystemProperties();
 
     /**
      * Adds some system properties to use for the process.
@@ -73,81 +72,42 @@ public interface JavaForkOptions extends ProcessForkOptions {
      *
      * @return The default character encoding. Returns null if the {@link java.nio.charset.Charset#defaultCharset() default character encoding of this JVM} should be used.
      */
-    @ToBeReplacedByLazyProperty
-    @Nullable @Optional @Input
-    String getDefaultCharacterEncoding();
-
-    /**
-     * Sets the default character encoding to use.
-     *
-     * Note: Many JVM implementations support the setting of this attribute via system property on startup (namely, the {@code file.encoding} property). For JVMs
-     * where this is the case, setting the {@code file.encoding} property via {@link #setSystemProperties(java.util.Map)} or similar will have no effect as
-     * this value will be overridden by the value specified by {@link #getDefaultCharacterEncoding()}.
-     *
-     * @param defaultCharacterEncoding The default character encoding. Use null to use {@link java.nio.charset.Charset#defaultCharset() this JVM's default charset}
-     */
-     void setDefaultCharacterEncoding(@Nullable String defaultCharacterEncoding);
+    @Optional
+    @Input
+    @ReplacesEagerProperty
+    Property<String> getDefaultCharacterEncoding();
 
     /**
      * Returns the minimum heap size for the process, if any.
+     * Supports the units megabytes (e.g. "512m") and gigabytes (e.g. "1g").
      *
      * @return The minimum heap size. Returns null if the default minimum heap size should be used.
      */
-    @ToBeReplacedByLazyProperty
-    @Nullable @Optional @Input
-    String getMinHeapSize();
-
-    /**
-     * Sets the minimum heap size for the process.
-     * Supports the units megabytes (e.g. "512m") and gigabytes (e.g. "1g").
-     *
-     * @param heapSize The minimum heap size. Use null for the default minimum heap size.
-     */
-    void setMinHeapSize(@Nullable String heapSize);
+    @Optional
+    @Input
+    @ReplacesEagerProperty
+    Property<String> getMinHeapSize();
 
     /**
      * Returns the maximum heap size for the process, if any.
+     * Supports the units megabytes (e.g. "512m") and gigabytes (e.g. "1g").
      *
      * @return The maximum heap size. Returns null if the default maximum heap size should be used.
      */
-    @ToBeReplacedByLazyProperty
-    @Nullable @Optional @Input
-    String getMaxHeapSize();
+    @Optional
+    @Input
+    @ReplacesEagerProperty
+    Property<String> getMaxHeapSize();
 
     /**
-     * Sets the maximum heap size for the process.
-     * Supports the units megabytes (e.g. "512m") and gigabytes (e.g. "1g").
+     * The extra arguments to use to launch the JVM for the process.
      *
-     * @param heapSize The heap size. Use null for the default maximum heap size.
+     * @return The list of arguments. Returns an empty list if there are no arguments.
      */
-    void setMaxHeapSize(@Nullable String heapSize);
-
-    /**
-     * Returns the extra arguments to use to launch the JVM for the process. Does not include system properties and the
-     * minimum/maximum heap size.
-     *
-     * @return The immutable list of arguments. Returns an empty list if there are no arguments.
-     */
-    @ToBeReplacedByLazyProperty
-    @Nullable @Optional @Input
-    List<String> getJvmArgs();
-
-    /**
-     * Sets the extra arguments to use to launch the JVM for the process. System properties
-     * and minimum/maximum heap size are updated.
-     *
-     * @param arguments The arguments. Must not be null.
-     * @since 4.0
-     */
-    void setJvmArgs(@Nullable List<String> arguments);
-
-    /**
-     * Sets the extra arguments to use to launch the JVM for the process. System properties
-     * and minimum/maximum heap size are updated.
-     *
-     * @param arguments The arguments. Must not be null.
-     */
-    void setJvmArgs(@Nullable Iterable<?> arguments);
+    @Optional
+    @Input
+    @ReplacesEagerProperty(adapter = JavaForkOptionsAdapters.JvmArgsAdapter.class)
+    ListProperty<String> getJvmArgs();
 
     /**
      * Adds some arguments to use to launch the JVM for the process.
@@ -171,8 +131,8 @@ public interface JavaForkOptions extends ProcessForkOptions {
      * @since 4.6
      */
     @Nested
-    @ToBeReplacedByLazyProperty
-    List<CommandLineArgumentProvider> getJvmArgumentProviders();
+    @ReplacesEagerProperty(replacedAccessors = @ReplacedAccessor(value = AccessorType.GETTER, name = "getJvmArgumentProviders"))
+    ListProperty<CommandLineArgumentProvider> getJvmArgumentProviders();
 
     /**
      * Returns the bootstrap classpath to use for the process. The default bootstrap classpath for the JVM is used when
@@ -181,16 +141,8 @@ public interface JavaForkOptions extends ProcessForkOptions {
      * @return The bootstrap classpath. Never returns null.
      */
     @Classpath
-    @ToBeReplacedByLazyProperty
-    FileCollection getBootstrapClasspath();
-
-    /**
-     * Sets the bootstrap classpath to use for the process. Set to an empty classpath to use the default bootstrap
-     * classpath for the specified JVM.
-     *
-     * @param classpath The classpath. Must not be null. Can be empty.
-     */
-    void setBootstrapClasspath(FileCollection classpath);
+    @ReplacesEagerProperty
+    ConfigurableFileCollection getBootstrapClasspath();
 
     /**
      * Adds the given values to the end of the bootstrap classpath for the process.
@@ -201,20 +153,15 @@ public interface JavaForkOptions extends ProcessForkOptions {
     JavaForkOptions bootstrapClasspath(Object... classpath);
 
     /**
-     * Returns true if assertions are enabled for the process.
-     *
-     * @return true if assertions are enabled, false if disabled
+     * A flag that marks if assertions are enabled for the process.
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    boolean getEnableAssertions();
-
-    /**
-     * Enable or disable assertions for the process.
-     *
-     * @param enabled true to enable assertions, false to disable.
-     */
-    void setEnableAssertions(boolean enabled);
+    @Optional
+    @ReplacesEagerProperty(replacedAccessors = {
+        @ReplacedAccessor(value = AccessorType.GETTER, name = "getEnableAssertions", originalType = boolean.class),
+        @ReplacedAccessor(value = AccessorType.SETTER, name = "setEnableAssertions", originalType = boolean.class)
+    })
+    Property<Boolean> getEnableAssertions();
 
     /**
      * Determines whether debugging is enabled for the test process. When enabled — {@code debug = true} — the process
@@ -224,22 +171,13 @@ public interface JavaForkOptions extends ProcessForkOptions {
      * <p>
      * Since Gradle 5.6, you can configure the port and other Java debug properties via
      * {@link #debugOptions(Action)}.
-     *
-     * @return true when debugging is enabled, false to disable.
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    boolean getDebug();
-
-    /**
-     * Enable or disable debugging for the process. When enabled, the process is started suspended and listening on port
-     * 5005.
-     * <p>
-     * The debug properties (e.g. the port number) can be configured in {@link #debugOptions(Action)}.
-     *
-     * @param enabled true to enable debugging, false to disable.
-     */
-    void setDebug(boolean enabled);
+    @ReplacesEagerProperty(replacedAccessors = {
+        @ReplacedAccessor(value = AccessorType.GETTER, name = "getDebug", originalType = boolean.class),
+        @ReplacedAccessor(value = AccessorType.SETTER, name = "setDebug", originalType = boolean.class)
+    })
+    Property<Boolean> getDebug();
 
     /**
      * Returns the Java Debug Wire Protocol properties for the process. If enabled then the {@code -agentlib:jdwp=...}
@@ -251,7 +189,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
     JavaDebugOptions getDebugOptions();
 
     /**
-     * Configures Java Debug Wire Protocol properties for the process. If {@link #setDebug(boolean)} is enabled then
+     * Configures Java Debug Wire Protocol properties for the process. If {@link #getDebug()} (boolean)} is enabled then
      * the {@code -agentlib:jdwp=...}  will be appended to the JVM arguments with the configuration from the parameter.
      *
      * @param action the Java debug configuration
@@ -266,25 +204,8 @@ public interface JavaForkOptions extends ProcessForkOptions {
      * @return The immutable list of arguments. Returns an empty list if there are no arguments.
      */
     @Internal
-    @ToBeReplacedByLazyProperty
-    List<String> getAllJvmArgs();
-
-    /**
-     * Sets the full set of arguments to use to launch the JVM for the process. Overwrites any previously set system
-     * properties, minimum/maximum heap size, assertions, and bootstrap classpath.
-     *
-     * @param arguments The arguments. Must not be null.
-     * @since 4.0
-     */
-    void setAllJvmArgs(List<String> arguments);
-
-    /**
-     * Sets the full set of arguments to use to launch the JVM for the process. Overwrites any previously set system
-     * properties, minimum/maximum heap size, assertions, and bootstrap classpath.
-     *
-     * @param arguments The arguments. Must not be null.
-     */
-    void setAllJvmArgs(Iterable<?> arguments);
+    @ReplacesEagerProperty(adapter = JavaForkOptionsAdapters.AllJvmArgsAdapter.class)
+    Provider<List<String>> getAllJvmArgs();
 
     /**
      * Copies these options to the given options.

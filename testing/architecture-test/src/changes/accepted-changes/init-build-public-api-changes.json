@@ -1,0 +1,28 @@
+{
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.buildinit.tasks.InitBuild",
+            "member": "Method org.gradle.buildinit.tasks.InitBuild.getInsecureProtocol()",
+            "acceptation": "Changed to idiomatic property getter",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.buildinit.tasks.InitBuild",
+            "member": "Method org.gradle.buildinit.tasks.InitBuild.getSplitProject()",
+            "acceptation": "Changed to idiomatic property getter",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.buildinit.tasks.InitBuild",
+            "member": "Method org.gradle.buildinit.tasks.InitBuild.getUseIncubating()",
+            "acceptation": "Changed to idiomatic property getter",
+            "changes": [
+                "Method is now abstract"
+            ]
+        }
+    ]
+}
