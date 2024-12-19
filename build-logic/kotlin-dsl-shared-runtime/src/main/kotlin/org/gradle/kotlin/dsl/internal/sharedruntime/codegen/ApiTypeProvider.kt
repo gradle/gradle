@@ -623,7 +623,7 @@ val mappedTypeStrings =
         "java.lang.Number" to "kotlin.Number",
         "java.lang.Throwable" to "kotlin.Throwable",
         // Collections
-        "java.util.Iterable" to "kotlin.collections.Iterable",
+        "java.lang.Iterable" to "kotlin.collections.Iterable",
         "java.util.Iterator" to "kotlin.collections.Iterator",
         "java.util.ListIterator" to "kotlin.collections.ListIterator",
         "java.util.Collection" to "kotlin.collections.Collection",
@@ -633,7 +633,7 @@ val mappedTypeStrings =
         "java.util.HashSet" to "kotlin.collections.HashSet",
         "java.util.LinkedHashSet" to "kotlin.collections.LinkedHashSet",
         "java.util.Map" to "kotlin.collections.Map",
-        "java.util.Map.Entry" to "kotlin.collections.Map.Entry",
+        "java.util.Map\$Entry" to "kotlin.collections.Map.Entry",
         "java.util.HashMap" to "kotlin.collections.HashMap",
         "java.util.LinkedHashMap" to "kotlin.collections.LinkedHashMap"
     )
