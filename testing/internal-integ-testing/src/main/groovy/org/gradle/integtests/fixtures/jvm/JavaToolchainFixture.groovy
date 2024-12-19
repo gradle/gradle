@@ -21,6 +21,7 @@ import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
 
 /**
@@ -104,5 +105,28 @@ trait JavaToolchainFixture {
     JavaVersion classJavaVersion(File classFile) {
         assert classFile.exists()
         return JavaVersion.forClass(classFile.bytes)
+    }
+
+    /**
+     * Return java home from a path
+     */
+    File findJavaHome(File potentialHome) {
+        if (OperatingSystem.current().isMacOsX()) {
+            if (new File(potentialHome, "Contents/Home").exists()) {
+                return new File(potentialHome, "Contents/Home")
+            }
+            if (new File(potentialHome, "Home").exists()) {
+                return new File(potentialHome, "Home")
+            }
+        }
+        final File standaloneJre = new File(potentialHome, "jre")
+        if (!hasJavaExecutable(potentialHome) && hasJavaExecutable(standaloneJre)) {
+            return standaloneJre
+        }
+        return potentialHome
+    }
+
+    private boolean hasJavaExecutable(File potentialHome) {
+        return new File(potentialHome, OperatingSystem.current().getExecutableName("bin/java")).exists()
     }
 }
