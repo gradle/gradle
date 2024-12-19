@@ -15,10 +15,11 @@
  */
 package org.gradle.api.internal.plugins;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
+import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.PublishArtifact;
-import org.gradle.api.artifacts.PublishArtifactSet;
 import org.gradle.api.internal.provider.AbstractMinimalProvider;
 import org.gradle.api.internal.provider.ChangingValue;
 import org.gradle.api.internal.provider.ChangingValueHandler;
@@ -33,19 +34,16 @@ import java.util.Set;
  * The policy for which artifacts should be published by default when none are explicitly declared.
  */
 public abstract class DefaultArtifactPublicationSet {
-    private final PublishArtifactSet artifactContainer;
-    private DefaultArtifactProvider defaultArtifactProvider;
+
+    private final DefaultArtifactProvider defaultArtifactProvider;
 
     @Inject
-    public DefaultArtifactPublicationSet(PublishArtifactSet artifactContainer) {
-        this.artifactContainer = artifactContainer;
+    public DefaultArtifactPublicationSet(ConfigurationContainer configurations, String aggregateArtifactsConfName) {
+        this.defaultArtifactProvider = new DefaultArtifactProvider(configurations, aggregateArtifactsConfName);
+        configurations.getByName(aggregateArtifactsConfName).getArtifacts().addAllLater(defaultArtifactProvider);
     }
 
     public void addCandidate(PublishArtifact artifact) {
-        if (defaultArtifactProvider == null) {
-            defaultArtifactProvider = new DefaultArtifactProvider();
-            artifactContainer.addAllLater(defaultArtifactProvider);
-        }
         defaultArtifactProvider.addArtifact(artifact);
     }
 
@@ -54,17 +52,43 @@ public abstract class DefaultArtifactPublicationSet {
     }
 
     private static class DefaultArtifactProvider extends AbstractMinimalProvider<Set<PublishArtifact>> implements CollectionProviderInternal<PublishArtifact, Set<PublishArtifact>>, ChangingValue<Set<PublishArtifact>> {
+
+        private final ConfigurationContainer configurations;
+        private final String aggregateArtifactsConfName;
+
         private Set<PublishArtifact> defaultArtifacts;
-        private Set<PublishArtifact> artifacts;
+        private Set<PublishArtifact> explicitArtifacts;
+        private ImmutableSet<PublishArtifact> aggregateArtifacts;
         private PublishArtifact currentDefault;
         private final ChangingValueHandler<Set<PublishArtifact>> changingValue = new ChangingValueHandler<Set<PublishArtifact>>();
 
+        public DefaultArtifactProvider(ConfigurationContainer configurations, String aggregateArtifactsConfName) {
+            this.configurations = configurations;
+            this.aggregateArtifactsConfName = aggregateArtifactsConfName;
+
+            configurations.configureEach(conf -> {
+                if (!conf.getName().equals(aggregateArtifactsConfName)) {
+                    conf.getArtifacts().configureEach(artifact -> {
+                        reset();
+                    });
+                }
+            });
+        }
+
         void addArtifact(PublishArtifact artifact) {
-            if (artifacts == null) {
-                artifacts = new LinkedHashSet<>();
+            if (explicitArtifacts == null) {
+                explicitArtifacts = new LinkedHashSet<>();
             }
 
-            if (artifacts.add(artifact) && defaultArtifacts != null) {
+            if (explicitArtifacts.add(artifact)) {
+                reset();
+            }
+        }
+
+        private void reset() {
+            if (defaultArtifacts != null) {
+                aggregateArtifacts = null;
+
                 Set<PublishArtifact> previousArtifacts = Sets.newLinkedHashSet(defaultArtifacts);
                 defaultArtifacts = null;
                 changingValue.handle(previousArtifacts);
@@ -78,10 +102,10 @@ public abstract class DefaultArtifactPublicationSet {
 
         @Override
         public int size() {
-            if (artifacts == null) {
-                return 0;
+            if (explicitArtifacts == null) {
+                return getAggregateConfigurationArtifacts().size();
             }
-            return artifacts.size();
+            return explicitArtifacts.size() + getAggregateConfigurationArtifacts().size();
         }
 
         @Nullable
@@ -95,29 +119,47 @@ public abstract class DefaultArtifactPublicationSet {
             if (defaultArtifacts == null) {
                 defaultArtifacts = new LinkedHashSet<>();
                 currentDefault = null;
-                if (artifacts != null) {
-                    for (PublishArtifact artifact : artifacts) {
-                        String thisType = artifact.getType();
-
-                        if (currentDefault == null) {
-                            defaultArtifacts.add(artifact);
-                            currentDefault = artifact;
-                        } else {
-                            String currentType = currentDefault.getType();
-                            if (thisType.equals("ear")) {
-                                replaceCurrent(artifact);
-                            } else if (thisType.equals("war")) {
-                                if (currentType.equals("jar")) {
-                                    replaceCurrent(artifact);
-                                }
-                            } else if (!thisType.equals("jar")) {
-                                defaultArtifacts.add(artifact);
-                            }
-                        }
+                if (explicitArtifacts != null) {
+                    for (PublishArtifact artifact : explicitArtifacts) {
+                        processArtifact(artifact);
                     }
+                }
+                for (PublishArtifact artifact : getAggregateConfigurationArtifacts())  {
+                    processArtifact(artifact);
                 }
             }
             return Value.of(defaultArtifacts);
+        }
+
+        // TODO #26418: Deprecate assemble building all artifacts of all visible configurations.
+        private ImmutableSet<PublishArtifact> getAggregateConfigurationArtifacts() {
+            if (aggregateArtifacts == null) {
+                aggregateArtifacts = configurations.stream()
+                    .filter(conf -> !conf.getName().equals(aggregateArtifactsConfName) && conf.isVisible())
+                    .flatMap(conf -> conf.getArtifacts().stream())
+                    .collect(ImmutableSet.toImmutableSet());
+            }
+            return aggregateArtifacts;
+        }
+
+        private void processArtifact(PublishArtifact artifact) {
+            String thisType = artifact.getType();
+
+            if (currentDefault == null) {
+                defaultArtifacts.add(artifact);
+                currentDefault = artifact;
+            } else {
+                String currentType = currentDefault.getType();
+                if (thisType.equals("ear")) {
+                    replaceCurrent(artifact);
+                } else if (thisType.equals("war")) {
+                    if (currentType.equals("jar")) {
+                        replaceCurrent(artifact);
+                    }
+                } else if (!thisType.equals("jar")) {
+                    defaultArtifacts.add(artifact);
+                }
+            }
         }
 
         void replaceCurrent(PublishArtifact artifact) {

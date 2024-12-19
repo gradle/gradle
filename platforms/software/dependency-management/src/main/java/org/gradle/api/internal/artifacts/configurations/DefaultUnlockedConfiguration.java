@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.configurations;
 
 import org.gradle.api.artifacts.ConfigurablePublishArtifact;
 import org.gradle.api.artifacts.DependencyResolutionListener;
+import org.gradle.api.artifacts.UnlockedConfiguration;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
@@ -43,7 +44,7 @@ import org.gradle.internal.work.WorkerThreadRegistry;
 /**
  * A concrete {@link DefaultConfiguration} implementation which can change roles.
  */
-public class DefaultUnlockedConfiguration extends DefaultConfiguration {
+public class DefaultUnlockedConfiguration extends DefaultConfiguration implements UnlockedConfiguration {
 
     public DefaultUnlockedConfiguration(
         DomainObjectContext domainObjectContext,
