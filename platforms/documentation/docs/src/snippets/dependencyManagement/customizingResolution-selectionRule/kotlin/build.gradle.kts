@@ -55,7 +55,7 @@ tasks.register("printRejectConfig") {
 
 // tag::component-selection-with-metadata[]
 configurations {
-    create("metadataRulesConfig") {
+    register("metadataRulesConfig") {
         resolutionStrategy {
             componentSelection {
                 // Reject any versions with a status of 'experimental'
@@ -90,7 +90,7 @@ tasks.register("printMetadataRulesConfig") {
 
 // tag::targeted-component-selection[]
 configurations {
-    create("targetConfig") {
+    register("targetConfig") {
         resolutionStrategy {
             componentSelection {
                 withModule("org.sample:api") {
@@ -116,7 +116,7 @@ tasks.register("printTargetConfig") {
 }
 
 configurations {
-    create("sampleConfig") {
+    register("sampleConfig") {
         resolutionStrategy {
             componentSelection {
                 withModule("org.sample:api") {
