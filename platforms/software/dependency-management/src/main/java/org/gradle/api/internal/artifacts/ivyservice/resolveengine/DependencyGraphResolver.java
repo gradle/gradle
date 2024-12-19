@@ -20,14 +20,13 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
 import org.gradle.api.internal.artifacts.configurations.ConflictResolution;
-import org.gradle.api.internal.artifacts.dsl.ModuleReplacementsData;
+import org.gradle.api.internal.artifacts.dsl.ImmutableModuleReplacements;
 import org.gradle.api.internal.artifacts.ivyservice.clientmodule.ClientModuleResolver;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.CachingDependencySubstitutionApplicator;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DefaultDependencySubstitutionApplicator;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionApplicator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyMetadataFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.CapabilitiesResolutionInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
@@ -40,6 +39,8 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.Compone
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.component.external.model.ModuleComponentGraphResolveStateFactory;
+import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
+import org.gradle.internal.component.local.model.LocalVariantGraphResolveState;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
@@ -90,13 +91,14 @@ public class DependencyGraphResolver {
      * coupled to a Configuration, and this resolver should be able to resolve non-Configuration types.
      */
     public void resolve(
-        RootComponentMetadataBuilder.RootComponentState rootComponent,
+        LocalComponentGraphResolveState rootComponent,
+        LocalVariantGraphResolveState rootVariant,
         List<? extends DependencyMetadata> syntheticDependencies,
         Spec<? super DependencyMetadata> edgeFilter,
         ComponentSelectorConverter componentSelectorConverter,
         DependencyToComponentIdResolver componentIdResolver,
         ComponentMetaDataResolver componentMetaDataResolver,
-        ModuleReplacementsData moduleReplacements,
+        ImmutableModuleReplacements moduleReplacements,
         ImmutableActionSet<DependencySubstitutionInternal> dependencySubstitutionRule,
         ConflictResolution conflictResolution,
         CapabilitiesResolutionInternal capabilitiesResolutionRules,
@@ -116,6 +118,7 @@ public class DependencyGraphResolver {
 
         dependencyGraphBuilder.resolve(
             rootComponent,
+            rootVariant,
             syntheticDependencies,
             edgeFilter,
             componentSelectorConverter,

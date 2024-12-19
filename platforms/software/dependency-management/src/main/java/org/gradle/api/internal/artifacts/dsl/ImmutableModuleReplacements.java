@@ -16,29 +16,31 @@
 
 package org.gradle.api.internal.artifacts.dsl;
 
+import com.google.common.collect.ImmutableMap;
 import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.artifacts.dsl.DependencyHandler;
 
 import javax.annotation.Nullable;
 
-public interface ModuleReplacementsData {
-    ModuleReplacementsData NO_OP = new ModuleReplacementsData() {
-        @Nullable
-        @Override
-        public Replacement getReplacementFor(ModuleIdentifier sourceModule) {
-            return null;
-        }
+/**
+ * Immutable user-configured description of which modules replace other
+ * modules in a dependency graph.
+ *
+ * @see DependencyHandler#getModules()
+ */
+public class ImmutableModuleReplacements {
 
-        @Override
-        public boolean participatesInReplacements(ModuleIdentifier moduleId) {
-            return false;
-        }
-    };
+    private final ImmutableMap<ModuleIdentifier, Replacement> replacements;
 
-    @Nullable Replacement getReplacementFor(ModuleIdentifier sourceModule);
+    public ImmutableModuleReplacements(ImmutableMap<ModuleIdentifier, Replacement> replacements) {
+        this.replacements = replacements;
+    }
 
-    boolean participatesInReplacements(ModuleIdentifier moduleId);
+    @Nullable public Replacement getReplacementFor(ModuleIdentifier sourceModule) {
+        return replacements.get(sourceModule);
+    }
 
-    class Replacement {
+    public static class Replacement {
         private final ModuleIdentifier target;
         private final String reason;
 

@@ -15,21 +15,25 @@
  */
 package org.gradle.api.internal.artifacts.configurations;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.DomainObjectContext;
-import org.gradle.api.internal.artifacts.ResolveContext;
+import org.gradle.api.internal.artifacts.ivyservice.ResolutionParameters;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
+import org.gradle.operations.dependencies.configurations.ConfigurationIdentity;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Set;
 
-public interface ConfigurationInternal extends ResolveContext, DeprecatableConfiguration, Configuration {
+public interface ConfigurationInternal extends DeprecatableConfiguration, Configuration {
+
     enum InternalState {
         UNRESOLVED,
         BUILD_DEPENDENCIES_RESOLVED,
@@ -47,6 +51,9 @@ public interface ConfigurationInternal extends ResolveContext, DeprecatableConfi
 
     @Override
     AttributeContainerInternal getAttributes();
+
+    @Override
+    ResolutionStrategyInternal getResolutionStrategy();
 
     /**
      * Runs any registered dependency actions for this Configuration, and any parent Configuration.
@@ -88,6 +95,26 @@ public interface ConfigurationInternal extends ResolveContext, DeprecatableConfi
      * superconfigurations.
      */
     Set<ExcludeRule> getAllExcludeRules();
+
+    /**
+     * @see ResolutionParameters#getConfigurationIdentity()
+     */
+    ConfigurationIdentity getConfigurationIdentity();
+
+    /**
+     * @see ResolutionParameters#getResolutionHost()
+     */
+    ResolutionHost getResolutionHost();
+
+    /**
+     * @see ResolutionParameters#getRootComponent()
+     */
+    RootComponentMetadataBuilder.RootComponentState toRootComponent();
+
+    /**
+     * Version locks to use during resolution as a result of consistent resolution.
+     */
+    ImmutableList<ResolutionParameters.ModuleVersionLock> getConsistentResolutionVersionLocks();
 
     /**
      * @implSpec Usage: This method should only be called on resolvable configurations and should throw an exception if

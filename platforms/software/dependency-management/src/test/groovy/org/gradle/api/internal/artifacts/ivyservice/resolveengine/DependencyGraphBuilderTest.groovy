@@ -29,13 +29,12 @@ import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.configurations.ConflictResolution
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
-import org.gradle.api.internal.artifacts.dsl.ModuleReplacementsData
+import org.gradle.api.internal.artifacts.dsl.ImmutableModuleReplacements
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DefaultDependencySubstitutionApplicator
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultExcludeRuleConverter
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultLocalVariantGraphResolveStateBuilder
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyMetadataFactory
@@ -98,7 +97,7 @@ class DependencyGraphBuilderTest extends Specification {
     def metaDataResolver = Mock(ComponentMetaDataResolver)
     def attributesSchema = ImmutableAttributesSchema.EMPTY
     def attributes = ImmutableAttributes.EMPTY
-    def moduleReplacements = Mock(ModuleReplacementsData)
+    def moduleReplacements = Mock(ImmutableModuleReplacements)
     def moduleIdentifierFactory = Mock(ImmutableModuleIdentifierFactory) {
         module(_, _) >> { args ->
             DefaultModuleIdentifier.newId(*args)
@@ -153,16 +152,12 @@ class DependencyGraphBuilderTest extends Specification {
     )
 
     def root = rootProject()
-    def rootComponent = Stub(RootComponentMetadataBuilder.RootComponentState) {
-        getRootComponent() >> root
-        getRootVariant() >> root.getConfigurationLegacy('root')
-        getAttributesSchema() >> attributesSchema
-    }
 
     private TestGraphVisitor resolve(Spec<? super DependencyMetadata> edgeFilter = { true }) {
         def graphVisitor = new TestGraphVisitor()
         builder.resolve(
-            rootComponent,
+            root,
+            root.getConfigurationLegacy('root'),
             [],
             edgeFilter,
             componentSelectorConverter,
@@ -212,9 +207,7 @@ class DependencyGraphBuilderTest extends Specification {
 
         def moduleA = DefaultModuleIdentifier.newId("group", "a")
         def moduleB = DefaultModuleIdentifier.newId("group", "b")
-        moduleReplacements.participatesInReplacements(moduleA) >> true
-        moduleReplacements.participatesInReplacements(moduleB) >> true
-        moduleReplacements.getReplacementFor(moduleA) >> new ModuleReplacementsData.Replacement(moduleB, null)
+        moduleReplacements.getReplacementFor(moduleA) >> new ImmutableModuleReplacements.Replacement(moduleB, null)
         1 * conflictResolver.select(!null) >> {  args ->
             def details = args[0]
             Collection<ComponentResolutionState> candidates = details.candidates

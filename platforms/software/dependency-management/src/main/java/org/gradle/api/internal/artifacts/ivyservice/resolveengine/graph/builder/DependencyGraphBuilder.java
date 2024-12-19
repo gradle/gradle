@@ -24,12 +24,11 @@ import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.configurations.ConflictResolution;
-import org.gradle.api.internal.artifacts.dsl.ModuleReplacementsData;
+import org.gradle.api.internal.artifacts.dsl.ImmutableModuleReplacements;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionApplicator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleConflictResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphSelector;
@@ -46,6 +45,8 @@ import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.api.internal.attributes.matching.AttributeMatcher;
 import org.gradle.api.internal.capabilities.CapabilityInternal;
 import org.gradle.api.specs.Spec;
+import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
+import org.gradle.internal.component.local.model.LocalVariantGraphResolveState;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.ComponentIdGenerator;
 import org.gradle.internal.component.model.DependencyMetadata;
@@ -118,13 +119,14 @@ public class DependencyGraphBuilder {
     }
 
     public void resolve(
-        RootComponentMetadataBuilder.RootComponentState rootComponent,
+        LocalComponentGraphResolveState rootComponent,
+        LocalVariantGraphResolveState rootVariant,
         List<? extends DependencyMetadata> syntheticDependencies,
         Spec<? super DependencyMetadata> edgeFilter,
         ComponentSelectorConverter componentSelectorConverter,
         DependencyToComponentIdResolver componentIdResolver,
         ComponentMetaDataResolver componentMetaDataResolver,
-        ModuleReplacementsData moduleReplacements,
+        ImmutableModuleReplacements moduleReplacements,
         DependencySubstitutionApplicator dependencySubstitutionApplicator,
         ModuleConflictResolver<ComponentState> moduleConflictResolver,
         List<CapabilitiesConflictHandler.Resolver> capabilityConflictResolvers,
@@ -139,6 +141,7 @@ public class DependencyGraphBuilder {
         ResolveState resolveState = new ResolveState(
             idGenerator,
             rootComponent,
+            rootVariant,
             componentIdResolver,
             componentMetaDataResolver,
             edgeFilter,

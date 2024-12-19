@@ -52,12 +52,6 @@ public class DefaultDependencyConstraint extends AbstractDependencyConstraint {
         this.versionConstraint = new DefaultMutableVersionConstraint(version);
     }
 
-    public static DefaultDependencyConstraint strictly(String group, String name, String strictVersion) {
-        DefaultMutableVersionConstraint versionConstraint = new DefaultMutableVersionConstraint((String) null);
-        versionConstraint.strictly(strictVersion);
-        return new DefaultDependencyConstraint(DefaultModuleIdentifier.newId(group, name), versionConstraint);
-    }
-
     public DefaultDependencyConstraint(ModuleIdentifier module, VersionConstraint versionConstraint) {
         this(module, new DefaultMutableVersionConstraint(versionConstraint));
     }
