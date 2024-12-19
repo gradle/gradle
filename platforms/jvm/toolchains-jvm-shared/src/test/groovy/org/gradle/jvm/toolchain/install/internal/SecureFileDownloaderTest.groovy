@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,9 +22,11 @@ import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransp
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
 import org.gradle.authentication.Authentication
 import org.gradle.internal.resource.ExternalResource
+import org.gradle.internal.resource.ExternalResourceFactory
 import org.gradle.internal.resource.ExternalResourceName
 import org.gradle.internal.resource.ExternalResourceRepository
 import org.gradle.internal.verifier.HttpRedirectVerifier
+import org.gradle.jvm.toolchain.internal.install.JavaToolchainHttpRedirectVerifierFactory
 import org.gradle.jvm.toolchain.internal.install.SecureFileDownloader
 import spock.lang.Specification
 import spock.lang.TempDir
@@ -40,7 +42,7 @@ class SecureFileDownloaderTest extends Specification {
         RepositoryTransportFactory transportFactory = newTransportFactory()
 
         given:
-        def downloader = new SecureFileDownloader(transportFactory)
+        def downloader = createSecureFileDownloader(transportFactory)
         def destinationFile = new File(Files.createTempDirectory(temporaryFolder.toPath(), null).toFile(), "target")
 
         when:
@@ -57,7 +59,7 @@ class SecureFileDownloaderTest extends Specification {
         RepositoryTransportFactory transportFactory = newTransportFactory({ throw new BuildCancelledException() })
 
         given:
-        def downloader = new SecureFileDownloader(transportFactory)
+        def downloader = createSecureFileDownloader(transportFactory)
         def destinationFile = new File(Files.createTempDirectory(temporaryFolder.toPath(), null).toFile(), "target")
 
         when:
@@ -67,6 +69,16 @@ class SecureFileDownloaderTest extends Specification {
         then:
         thrown(BuildCancelledException)
         !destinationFile.exists()
+    }
+
+    private SecureFileDownloader createSecureFileDownloader(RepositoryTransportFactory repositoryTransportFactory) {
+        new SecureFileDownloader(new ExternalResourceFactory() {
+            @Override
+            ExternalResourceRepository createExternalResource(URI source, Collection<Authentication> authentications) {
+                JavaToolchainHttpRedirectVerifierFactory verifierFactory = new JavaToolchainHttpRedirectVerifierFactory()
+                return repositoryTransportFactory.createTransport("https", "simple transport", authentications, verifierFactory.createVerifier(source)).getRepository()
+            }
+        })
     }
 
     private RepositoryTransportFactory newTransportFactory(Closure doAfterRead = {}) {

@@ -16,6 +16,8 @@
 
 package org.gradle.platform;
 
+import com.google.common.base.Ascii;
+import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
 
 /**
@@ -38,5 +40,24 @@ public enum Architecture {
     /**
      * 64-bit reduced instruction set computer (RISC) architectures, including "aarch64", "arm64".
      */
-    AARCH64
+    AARCH64;
+
+    /**
+     * Get the architecture of the current system.
+     *
+     * @since 8.13
+     */
+    public static Architecture current() {
+        String arch = System.getProperty("os.arch", "none");
+        String archName = Ascii.toLowerCase(arch);
+        if (archName.equals("x86")) {
+            return X86;
+        } else if (archName.equals("amd64") || archName.equals("x86_64")) {
+            return X86_64;
+        } else if (archName.equals("aarch64")) {
+            return AARCH64;
+        } else {
+            throw new GradleException("Unhandled system architecture: " + arch);
+        }
+    }
 }

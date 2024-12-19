@@ -17,6 +17,7 @@
 package org.gradle.jvm.toolchain;
 
 import org.gradle.api.Incubating;
+import org.gradle.internal.jvm.inspection.JvmVendor;
 import org.gradle.internal.jvm.inspection.JvmVendor.KnownJvmVendor;
 import org.gradle.jvm.toolchain.internal.DefaultJvmVendorSpec;
 
@@ -112,6 +113,28 @@ public abstract class JvmVendorSpec {
      */
     public static JvmVendorSpec matching(String match) {
         return DefaultJvmVendorSpec.matching(match);
+    }
+
+    /**
+     * Returns a vendor spec that matches a VM by its vendor.
+     * <p>
+     * The passed in vendor will first be matched against the known vendors.
+     * If there is a match, then the vendor spec matching the known vendor will be returned.
+     *
+     * @param vendor the vendor string to match
+     * @return a {@code JvmVendorSpec} that matches the given vendor
+     * @see JvmVendorSpec#ADOPTIUM ADOPTIUM and others known vendor specs
+     *
+     * @since 8.13
+     */
+    @Incubating
+    public static JvmVendorSpec of(String vendor) {
+        KnownJvmVendor knownVendor = JvmVendor.fromString(vendor).getKnownVendor();
+        if (knownVendor != KnownJvmVendor.UNKNOWN) {
+            return matching(knownVendor);
+        } else {
+            return matching(vendor);
+        }
     }
 
     private static JvmVendorSpec matching(KnownJvmVendor vendor) {

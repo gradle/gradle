@@ -35,6 +35,12 @@ dependencies {
     api(projects.serviceProvider)
     api(projects.persistentCache)
     api(projects.stdlibJavaExtensions)
+    api(projects.time)
+    api(projects.modelCore)
+    api(projects.resources)
+    api(projects.resourcesHttp)
+    api(projects.toolingApi)
+    api(projects.toolchainsJvmShared)
 
     // The client should not depend on core or core-api or projects that depend on these.
     // However, these project still contains some types that are shared between the client and daemon.
@@ -53,9 +59,9 @@ dependencies {
     implementation(projects.fileTemp)
     implementation(projects.instrumentationAgentServices)
     implementation(projects.loggingApi)
-    implementation(projects.time)
-    implementation(projects.toolchainsJvmShared)
     implementation(projects.io)
+    implementation(projects.buildConfiguration)
+    implementation(projects.dependencyManagement)
 
     implementation(libs.guava)
     implementation(libs.asm)
