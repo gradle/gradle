@@ -298,22 +298,8 @@ fun functionalTestParameters(os: Os, arch: Arch = Arch.AMD64): List<String> {
     )
 }
 
-fun promotionBuildParameters(
-    dependencyBuildId: RelativeId,
-    extraParameters: String,
-    gitUserName: String,
-    gitUserEmail: String
-): String {
-    return listOf(
-        "-PcommitId=%dep.$dependencyBuildId.build.vcs.number%",
-        extraParameters,
-        "'-PgitUserName=$gitUserName'",
-        "'-PgitUserEmail=$gitUserEmail'",
-        pluginPortalUrlOverride,
-        "-DenablePredictiveTestSelection=false",
-        "%additional.gradle.parameters%"
-    ).joinToString(" ")
-}
+fun promotionBuildParameters(dependencyBuildId: RelativeId, extraParameters: String, gitUserName: String, gitUserEmail: String) =
+    """-PcommitId=%dep.$dependencyBuildId.build.vcs.number% $extraParameters "-PgitUserName=$gitUserName" "-PgitUserEmail=$gitUserEmail" $pluginPortalUrlOverride %additional.gradle.parameters%"""
 
 /**
  * Align with build-logic/cleanup/src/main/java/gradlebuild/cleanup/services/KillLeakingJavaProcesses.java
