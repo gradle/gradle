@@ -30,24 +30,24 @@ class ComponentModuleMetadataContainerTest extends Specification {
         }
     }
 
-    ComponentModuleMetadataContainer replacements = new ComponentModuleMetadataContainer(moduleIdentifierFactory)
+    ComponentModuleMetadataContainer modules = new ComponentModuleMetadataContainer(moduleIdentifierFactory)
 
     def "keeps track of replacements"() {
-        replacements.module("com.google.collections:google-collections").replacedBy("com.google.guava:guava");
-        replacements.module(newId("foo", "bar")).replacedBy(newId("foo", "xxx"), 'custom');
+        modules.module("com.google.collections:google-collections").replacedBy("com.google.guava:guava");
+        modules.module(newId("foo", "bar")).replacedBy(newId("foo", "xxx"), 'custom');
 
         expect:
-        replacements.replacements.getReplacementFor(newId("com.google.collections", "google-collections")).target == newId("com.google.guava", "guava")
-        replacements.replacements.getReplacementFor(newId("foo", "bar")).target == newId("foo", "xxx")
-        replacements.replacements.getReplacementFor(newId("foo", "bar")).reason == 'custom'
+        modules.replacements.getReplacementFor(newId("com.google.collections", "google-collections")).target == newId("com.google.guava", "guava")
+        modules.replacements.getReplacementFor(newId("foo", "bar")).target == newId("foo", "xxx")
+        modules.replacements.getReplacementFor(newId("foo", "bar")).reason == 'custom'
 
-        !replacements.replacements.getReplacementFor(newId("com.google.guava", "guava"))
-        !replacements.replacements.getReplacementFor(newId("bar", "foo"))
+        !modules.replacements.getReplacementFor(newId("com.google.guava", "guava"))
+        !modules.replacements.getReplacementFor(newId("bar", "foo"))
     }
 
     def "does not allow replacing with the same module"() {
         when:
-        replacements.module("o:o").replacedBy("o:o")
+        modules.module("o:o").replacedBy("o:o")
 
         then:
         def ex = thrown(InvalidUserDataException)
@@ -56,8 +56,8 @@ class ComponentModuleMetadataContainerTest extends Specification {
 
     def "detects cycles early"() {
         when:
-        replacements.module("o:a").replacedBy("o:b")
-        replacements.module("o:b").replacedBy("o:a")
+        modules.module("o:a").replacedBy("o:b")
+        modules.module("o:b").replacedBy("o:a")
 
         then:
         def ex = thrown(InvalidUserDataException)
@@ -66,11 +66,11 @@ class ComponentModuleMetadataContainerTest extends Specification {
 
     def "detects transitive cycles early"() {
         when:
-        replacements.module("o:o").replacedBy("o:x")
+        modules.module("o:o").replacedBy("o:x")
         //a->b->c->a
-        replacements.module("o:a").replacedBy("o:b")
-        replacements.module("o:b").replacedBy("o:c")
-        replacements.module("o:c").replacedBy("o:a")
+        modules.module("o:a").replacedBy("o:b")
+        modules.module("o:b").replacedBy("o:c")
+        modules.module("o:c").replacedBy("o:a")
 
         then:
         def ex = thrown(InvalidUserDataException)
@@ -78,7 +78,7 @@ class ComponentModuleMetadataContainerTest extends Specification {
     }
 
     def "provides module metadata information"() {
-        def module = replacements.module("com.google.collections:google-collections")
+        def module = modules.module("com.google.collections:google-collections")
 
         expect:
         module.id == newId("com.google.collections", "google-collections")
