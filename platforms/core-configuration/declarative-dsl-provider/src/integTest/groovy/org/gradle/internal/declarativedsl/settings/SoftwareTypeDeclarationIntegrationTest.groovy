@@ -350,6 +350,8 @@ class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec imp
             testSoftwareType {
                 id = "test"
 
+                dir = layout.projectDirectory.dir("someDir")
+
                 foo {
                     bar = "baz"
                 }
@@ -358,6 +360,6 @@ class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec imp
     }
 
     void assertThatDeclaredValuesAreSetProperly() {
-        outputContains("""id = test\nbar = baz""")
+        outputContains("id = test\ndir = ${testDirectory.file("someDir").path}\nbar = baz")
     }
 }

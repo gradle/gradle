@@ -29,6 +29,7 @@ import org.gradle.internal.declarativedsl.evaluationSchema.FixedTypeDiscovery
 import org.gradle.internal.declarativedsl.evaluationSchema.ObjectConversionComponent
 import org.gradle.internal.declarativedsl.evaluationSchema.ifConversionSupported
 import org.gradle.internal.declarativedsl.evaluator.softwareTypes.SOFTWARE_TYPE_ACCESSOR_PREFIX
+import org.gradle.internal.declarativedsl.InstanceAndPublicType
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeCustomAccessors
 import org.gradle.internal.declarativedsl.schemaBuilder.DataSchemaBuilder
 import org.gradle.internal.declarativedsl.schemaBuilder.FunctionExtractor
@@ -161,10 +162,10 @@ class RuntimeModelTypeAccessors(
 
     val modelTypeById = info.associate { it.customAccessorId to it.delegate }
 
-    override fun getObjectFromCustomAccessor(receiverObject: Any, accessor: ConfigureAccessor.Custom): Any? {
+    override fun getObjectFromCustomAccessor(receiverObject: Any, accessor: ConfigureAccessor.Custom): InstanceAndPublicType {
         val softwareType = modelTypeById[accessor.customAccessorIdentifier]
-            ?: return null
-        return applySoftwareTypePlugin(receiverObject, softwareType, softwareFeatureApplicator)
+            ?: return InstanceAndPublicType.NULL
+        return InstanceAndPublicType.of(applySoftwareTypePlugin(receiverObject, softwareType, softwareFeatureApplicator), softwareType.modelPublicType.kotlin)
     }
 
     private

@@ -35,6 +35,7 @@ import org.gradle.internal.declarativedsl.objectGraph.reflect
 
 data class ConversionStepContext(
     val targetObject: Any,
+    val scopeClassLoader: () -> ClassLoader,
     val analysisStepContext: AnalysisStepContext
 ) : StepContext
 
@@ -57,7 +58,7 @@ sealed interface ConversionStepResult : StepResult {
 
 
 class AnalysisAndConversionStepRunner(
-    private val analysisStepRunner: InterpretationSequenceStepRunner<AnalysisStepContext, AnalysisStepResult>
+    private val analysisStepRunner: InterpretationSequenceStepRunner<AnalysisStepContext, AnalysisStepResult>,
 ) : InterpretationSequenceStepRunner<ConversionStepContext, ConversionStepResult> {
 
     override fun runInterpretationSequenceStep(
@@ -78,7 +79,7 @@ class AnalysisAndConversionStepRunner(
                     analysisResult.stepResult.assignmentTrace
                 )
                 val topLevelObjectReflection = reflect(analysisResult.stepResult.resolutionResult.topLevelReceiver, context)
-                applyReflectionToJvmObjectConversion(evaluationSchema, step, stepContext.targetObject, topLevelObjectReflection)
+                applyReflectionToJvmObjectConversion(evaluationSchema, step, stepContext.targetObject, stepContext.scopeClassLoader, topLevelObjectReflection)
                 EvaluationResult.Evaluated(ConversionStepResult.ConversionSucceeded(analysisResult.stepResult))
             } else EvaluationResult.Evaluated(ConversionStepResult.ConversionNotApplicable(analysisResult.stepResult))
     }
@@ -88,7 +89,8 @@ class AnalysisAndConversionStepRunner(
         evaluationSchema: EvaluationAndConversionSchema,
         step: InterpretationSequenceStepWithConversion<R>,
         target: Any,
-        topLevelObjectReflection: ObjectReflection
+        getScopeClassLoader: () -> ClassLoader,
+        topLevelObjectReflection: ObjectReflection,
     ) {
         val conversionSchema = evaluationSchema.conversionSchemaForScriptTarget(target)
         val propertyResolver = CompositePropertyResolver(conversionSchema.runtimePropertyResolvers)
@@ -97,7 +99,7 @@ class AnalysisAndConversionStepRunner(
 
         val topLevelReceiver = step.getTopLevelReceiverFromTarget(target)
         val converter = DeclarativeReflectionToObjectConverter(
-            emptyMap(), topLevelReceiver, functionResolver, propertyResolver, customAccessors
+            emptyMap(), topLevelReceiver, functionResolver, propertyResolver, customAccessors, getScopeClassLoader
         )
         converter.apply(topLevelObjectReflection)
 
