@@ -16,7 +16,7 @@
 
 package org.gradle.launcher.daemon
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.launcher.daemon.logging.DaemonMessages
@@ -78,13 +78,18 @@ task sleep {
         ex.message.contains("Unrecognized option: -Xyz")
     }
 
-    @ToBeFixedForConfigurationCache(because = "asserts on configuration phase logging")
     def "daemon log contains all necessary logging"() {
         given:
-        file("build.gradle") << "println 'Hello build!'"
+        buildFile """
+            tasks.register('hello') {
+                doLast {
+                    println 'Hello build!'
+                }
+            }
+        """
 
         when:
-        executer.withArguments("-i").run()
+        executer.withArguments("-i").withTasks("hello").run()
 
         then:
         def log = readLog(executer.daemonBaseDir)
@@ -97,7 +102,7 @@ task sleep {
         log.count('Hello build!') == 1
 
         when: "another build requested with the same daemon"
-        executer.withArguments("-i").run()
+        executer.withArguments("-i").withTasks("hello").run()
 
         then:
         def aLog = readLog(executer.daemonBaseDir)
@@ -186,12 +191,15 @@ task sleep {
 
     //Java 9 and above needs --add-opens to make environment variable mutation work
     @Requires(UnitTestPreconditions.Jdk8OrEarlier)
-    @ToBeFixedForConfigurationCache(because = "asserts on configuration phase logging")
     def "foreground daemon log honors log levels for logging"() {
         given:
-        file("build.gradle") << """
-            logger.debug('debug me!')
-            logger.info('info me!')
+        buildFile """
+            tasks.register("log") {
+                doLast {
+                    logger.debug('debug me!')
+                    logger.info('info me!')
+                }
+            }
         """
 
         when:
@@ -201,7 +209,7 @@ task sleep {
         poll(60) { assert daemon.standardOutput.contains(DaemonMessages.PROCESS_STARTED) }
 
         when:
-        def infoBuild = executer.withArguments("-i").run()
+        def infoBuild = executer.withArguments("-i").withTasks("log").run()
 
         then:
         infoBuild.output.count("debug me!") == 0
@@ -215,7 +223,7 @@ task sleep {
         daemon.standardOutput.count(DaemonMessages.ABOUT_TO_START_RELAYING_LOGS) == 0
 
         when:
-        def debugBuild = executer.withArguments("-d").run()
+        def debugBuild = executer.withArguments("-d").withTasks("log").run()
 
         then:
         debugBuild.output.count("debug me!") == 1
