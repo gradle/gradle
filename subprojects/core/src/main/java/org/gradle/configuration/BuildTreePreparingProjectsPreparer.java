@@ -86,7 +86,7 @@ public class BuildTreePreparingProjectsPreparer implements ProjectsPreparer {
                 if (builder == null) {
                     builder = catalogs.create(defaultLibrary);
                 }
-                builder.from(services.get(FileCollectionFactory.class).fixed(dependenciesFile));
+                builder.fromDefault(services.get(FileCollectionFactory.class).fixed(dependenciesFile));
             });
         }
         accessors.generateAccessors(dm.getDependenciesModelBuilders(), classLoaderScope, settings);
