@@ -17,7 +17,7 @@
 package org.gradle.internal.featurelifecycle;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.gradle.api.problems.internal.DocLink;
+import org.gradle.api.problems.DocLink;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.deprecation.DeprecatedFeatureUsage;
 import org.gradle.internal.operations.trace.CustomOperationTraceSerialization;

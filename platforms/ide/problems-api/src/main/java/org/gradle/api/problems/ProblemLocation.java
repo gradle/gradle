@@ -14,14 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.internal;
+package org.gradle.api.problems;
 
-import java.util.Map;
+
+import org.gradle.api.Incubating;
 
 /**
- * General additional data type that can be used to attach arbitrary data to a problem with a string map.
+ * Represents a location information of a problem.
+ *
+ * @since 8.13
  */
-public interface GeneralData extends AdditionalData {
-
-    Map<String, String> getAsMap();
+@Incubating
+public interface ProblemLocation {
 }

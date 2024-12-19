@@ -18,9 +18,9 @@ package org.gradle.problems.internal.rendering;
 
 import com.google.common.base.Strings;
 import org.gradle.api.NonNullApi;
+import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
-import org.gradle.api.problems.internal.Problem;
 import org.gradle.util.internal.TextUtil;
 
 import java.io.PrintWriter;
