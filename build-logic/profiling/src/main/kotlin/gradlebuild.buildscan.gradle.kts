@@ -20,12 +20,9 @@ import gradlebuild.basics.BuildEnvironment.isCiServer
 import gradlebuild.basics.BuildEnvironment.isCodeQl
 import gradlebuild.basics.BuildEnvironment.isGhActions
 import gradlebuild.basics.BuildEnvironment.isTeamCity
-import gradlebuild.basics.BuildParams.RETRY_BUILD
 import gradlebuild.basics.buildBranch
 import gradlebuild.basics.environmentVariable
-import gradlebuild.basics.gradleProperty
 import gradlebuild.basics.isPromotionBuild
-import gradlebuild.basics.isRetryBuild
 import gradlebuild.basics.kotlindsl.execAndGetStdoutIgnoringError
 import gradlebuild.basics.logicalBranch
 import gradlebuild.basics.predictiveTestSelectionEnabled
@@ -105,8 +102,6 @@ fun DevelocityConfiguration.extractCiData() {
         link("CI CompileAll Scan", customValueSearchUrl(mapOf("gitCommitId" to commitId)) + "&search.tags=CompileAll")
     }
 
-    fun Project.isRetryBuild(): Boolean = gradleProperty(RETRY_BUILD).isPresent
-
     if (isCiServer) {
         buildScan {
             val execOps = serviceOf<ExecOperations>()
@@ -148,9 +143,6 @@ fun DevelocityConfiguration.extractCiData() {
             }
             buildFinished {
                 println("##teamcity[setParameter name='env.GRADLE_RUNNER_FINISHED' value='true']")
-                if (failures.isEmpty() && isRetryBuild()) {
-                    println("##teamcity[buildStatus status='SUCCESS' text='Retried build succeeds']")
-                }
             }
         }
     }

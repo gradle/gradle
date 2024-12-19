@@ -428,7 +428,7 @@ fun configureTests() {
 
         if (BuildEnvironment.isCiServer) {
             develocity.testRetry {
-                maxRetries.convention(determineMaxRetries())
+                maxRetries.convention(0) //determineMaxRetries())
                 maxFailures = determineMaxFailures()
             }
         }

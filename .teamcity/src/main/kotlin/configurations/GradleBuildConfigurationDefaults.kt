@@ -29,6 +29,7 @@ import jetbrains.buildServer.configs.kotlin.buildFeatures.PullRequests
 import jetbrains.buildServer.configs.kotlin.buildFeatures.commitStatusPublisher
 import jetbrains.buildServer.configs.kotlin.buildFeatures.parallelTests
 import jetbrains.buildServer.configs.kotlin.buildFeatures.pullRequests
+import jetbrains.buildServer.configs.kotlin.buildSteps.script
 import model.CIBuildModel
 import model.StageName
 
@@ -129,16 +130,29 @@ fun BaseGradleBuildType.gradleRunnerStep(
             listOf(extraParameters) +
             buildScanTags.map { buildScanTagParam(it) } +
             functionalTestParameters(os, arch)
-        ).joinToString(separator = " ") + if (isRetry) " -PretryBuild" else ""
+        ).joinToString(separator = " ")
 
     steps {
         gradleWrapper(this@gradleRunnerStep) {
+            id = stepName
             name = stepName
             tasks = "clean $gradleTasks"
             gradleParams = parameters
             executionMode = stepExecutionMode
-            if (isRetry) {
-                onlyRunOnGitHubMergeQueueBranch()
+//            if (isRetry) {
+//                onlyRunOnGitHubMergeQueueBranch()
+//            }
+        }
+        if (isRetry) {
+            script {
+                executionMode = ExecutionMode.RUN_ONLY_ON_FAILURE
+                conditions {
+                    equals("teamcity.build.step.status.${GRADLE_RUNNER_STEP_NAME}", "failure")
+                    equals("teamcity.build.step.status.${GRADLE_RETRY_RUNNER_STEP_NAME}", "success")
+                }
+                scriptContent = """
+                    echo "##teamcity[buildStatus status='SUCCESS' text='Retried build succeeds']"
+                """.trimIndent()
             }
         }
     }
