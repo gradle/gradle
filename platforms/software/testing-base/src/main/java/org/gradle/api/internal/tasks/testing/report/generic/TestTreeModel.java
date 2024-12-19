@@ -18,9 +18,9 @@ package org.gradle.api.internal.tasks.testing.report.generic;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.ListMultimap;
-import org.gradle.api.internal.tasks.testing.results.serializable.SerializedMetadata;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResult;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResultStore;
+import org.gradle.api.internal.tasks.testing.results.serializable.SerializedMetadata;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.util.Path;
 
@@ -47,8 +47,9 @@ public class TestTreeModel {
      */
     public static TestTreeModel loadModelFromStores(List<SerializableTestResultStore> stores) throws IOException {
         Map<Path, TestTreeModel> modelsByPath = new HashMap<>();
-        for (SerializableTestResultStore store : stores) {
-            store.forEachResult(new StoreLoader(modelsByPath));
+        for (int i = 0; i < stores.size(); i++) {
+            SerializableTestResultStore store = stores.get(i);
+            store.forEachResult(new StoreLoader(i, modelsByPath));
         }
         TestTreeModel rootModel = modelsByPath.get(Path.ROOT);
         if (rootModel == null) {
@@ -69,10 +70,12 @@ public class TestTreeModel {
             }
         }
 
+        private final int rootIndex;
         private final Map<Path, TestTreeModel> modelsByPath;
         private final ListMultimap<Long, Child> childrenByParentId;
 
-        public StoreLoader(Map<Path, TestTreeModel> modelsByPath) {
+        public StoreLoader(int rootIndex, Map<Path, TestTreeModel> modelsByPath) {
+            this.rootIndex = rootIndex;
             this.modelsByPath = modelsByPath;
             this.childrenByParentId = ArrayListMultimap.create();
         }
@@ -102,19 +105,19 @@ public class TestTreeModel {
             OptionalLong parentOutputId = result.getParentOutputId();
             if (!parentOutputId.isPresent()) {
                 // We have the root, so now we can resolve all paths and attach to the models.
-                finalizePath(result.getInnerResult().getName(), Path.ROOT, result.getOutputId(), thisInfo);
+                finalizePath(Path.ROOT, result.getOutputId(), thisInfo);
             } else {
                 childrenByParentId.put(parentOutputId.getAsLong(), new Child(result.getOutputId(), thisInfo));
             }
         }
 
-        private void finalizePath(String rootName, Path path, long id, PerRootInfo rootInfo) {
+        private void finalizePath(Path path, long id, PerRootInfo rootInfo) {
             // We use LinkedHashMap for the roots to keep them in the order of declaration in TestReport.
             TestTreeModel model = modelsByPath.computeIfAbsent(path, p -> new TestTreeModel(p, new LinkedHashMap<>(), new HashMap<>()));
-            model.perRootInfo.put(rootName, rootInfo);
+            model.perRootInfo.put(rootIndex, rootInfo);
             for (Child child : childrenByParentId.get(id)) {
                 Path childPath = path.child(child.info.outputTrackedResult.getInnerResult().getName());
-                finalizePath(rootName, childPath, child.id, child.info);
+                finalizePath(childPath, child.id, child.info);
                 model.children.computeIfAbsent(child.info.outputTrackedResult.getInnerResult().getName(), n -> modelsByPath.get(childPath));
             }
         }
@@ -165,10 +168,10 @@ public class TestTreeModel {
     }
 
     private final Path path;
-    private final Map<String, PerRootInfo> perRootInfo;
+    private final Map<Integer, PerRootInfo> perRootInfo;
     private final Map<String, TestTreeModel> children;
 
-    public TestTreeModel(Path path, Map<String, PerRootInfo> perRootInfo, Map<String, TestTreeModel> children) {
+    public TestTreeModel(Path path, Map<Integer, PerRootInfo> perRootInfo, Map<String, TestTreeModel> children) {
         this.path = path;
         this.perRootInfo = perRootInfo;
         this.children = children;
@@ -184,11 +187,15 @@ public class TestTreeModel {
     }
 
     /**
-     * Map from root name to the result for this node of the tree in that root.
+     * Map from root index to the result for this node of the tree in that root.
+     *
+     * <p>
+     * This is not a {@link List} because there are no guarantees that there are results for all roots, i.e. this is a sparse list.
+     * </p>
      *
      * @return the results for this node of the tree
      */
-    public Map<String, PerRootInfo> getPerRootInfo() {
+    public Map<Integer, PerRootInfo> getPerRootInfo() {
         return Collections.unmodifiableMap(perRootInfo);
     }
 
@@ -196,7 +203,7 @@ public class TestTreeModel {
         return Collections.unmodifiableMap(children);
     }
 
-    public Iterable<TestTreeModel> getChildrenOf(String rootName) {
-        return Iterables.transform(perRootInfo.get(rootName).getChildren(), children::get);
+    public Iterable<TestTreeModel> getChildrenOf(int rootIndex) {
+        return Iterables.transform(perRootInfo.get(rootIndex).getChildren(), children::get);
     }
 }

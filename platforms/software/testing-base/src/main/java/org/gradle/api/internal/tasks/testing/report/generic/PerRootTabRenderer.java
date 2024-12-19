@@ -39,17 +39,17 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, SimpleHtmlWriter> {
-    protected final String rootName;
+    protected final int rootIndex;
     private TestTreeModel currentModel;
 
-    public PerRootTabRenderer(String rootName) {
-        this.rootName = rootName;
+    public PerRootTabRenderer(int rootIndex) {
+        this.rootIndex = rootIndex;
     }
 
     @Override
     public void render(TestTreeModel model, SimpleHtmlWriter htmlWriter) throws IOException {
         this.currentModel = model;
-        TestTreeModel.PerRootInfo info = model.getPerRootInfo().get(rootName);
+        TestTreeModel.PerRootInfo info = model.getPerRootInfo().get(rootIndex);
         render(info, htmlWriter);
     }
 
@@ -63,8 +63,8 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
     protected abstract void render(TestTreeModel.PerRootInfo info, SimpleHtmlWriter htmlWriter) throws IOException;
 
     public static final class ForSummary extends PerRootTabRenderer {
-        public ForSummary(String rootName) {
-            super(rootName);
+        public ForSummary(int rootIndex) {
+            super(rootIndex);
         }
 
         @Override
@@ -171,9 +171,9 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
             htmlWriter.startElement("tr");
 
             boolean anyNameAndDisplayNameDiffer = Iterables.any(
-                getCurrentModel().getChildrenOf(rootName),
+                getCurrentModel().getChildrenOf(rootIndex),
                 child -> {
-                    SerializableTestResult childResult = child.getPerRootInfo().get(rootName).getResult();
+                    SerializableTestResult childResult = child.getPerRootInfo().get(rootIndex).getResult();
                     return !childResult.getName().equals(childResult.getDisplayName());
                 }
             );
@@ -191,8 +191,8 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
             htmlWriter.endElement();
             htmlWriter.endElement();
 
-            for (TestTreeModel child : getCurrentModel().getChildrenOf(rootName)) {
-                TestTreeModel.PerRootInfo perRootInfo = child.getPerRootInfo().get(rootName);
+            for (TestTreeModel child : getCurrentModel().getChildrenOf(rootIndex)) {
+                TestTreeModel.PerRootInfo perRootInfo = child.getPerRootInfo().get(rootIndex);
                 SerializableTestResult result = perRootInfo.getResult();
                 String statusClass = getStatusClass(result.getResultType());
                 htmlWriter.startElement("tr");
@@ -243,8 +243,8 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
         private final SerializableTestResultStore.OutputReader outputReader;
         private final TestOutputEvent.Destination destination;
 
-        public ForOutput(String rootName, SerializableTestResultStore.OutputReader outputReader, TestOutputEvent.Destination destination) {
-            super(rootName);
+        public ForOutput(int rootIndex, SerializableTestResultStore.OutputReader outputReader, TestOutputEvent.Destination destination) {
+            super(rootIndex);
             this.outputReader = outputReader;
             this.destination = destination;
         }
@@ -266,8 +266,8 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
     public static final class ForMetadata extends PerRootTabRenderer {
         private final MetadataRendererRegistry metadataRendererRegistry;
 
-        public ForMetadata(String rootName, MetadataRendererRegistry metadataRendererRegistry) {
-            super(rootName);
+        public ForMetadata(int rootIndex, MetadataRendererRegistry metadataRendererRegistry) {
+            super(rootIndex);
             this.metadataRendererRegistry = metadataRendererRegistry;
         }
 

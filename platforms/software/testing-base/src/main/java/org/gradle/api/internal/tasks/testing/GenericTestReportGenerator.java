@@ -28,10 +28,9 @@ import org.gradle.internal.operations.BuildOperationRunner;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @NonNullApi
@@ -59,10 +58,10 @@ public class GenericTestReportGenerator implements TestReportGenerator {
         if (!hasResults()) {
             return;
         }
-        Map<String, SerializableTestResultStore.OutputReader> outputReaders = new HashMap<>(stores.size());
+        List<SerializableTestResultStore.OutputReader> outputReaders = new ArrayList<>(stores.size());
         try {
             for (SerializableTestResultStore store : stores) {
-                outputReaders.put(store.getRootName(), store.openOutputReader());
+                outputReaders.add(store.openOutputReader());
             }
 
             TestTreeModel root = TestTreeModel.loadModelFromStores(stores);
@@ -70,7 +69,7 @@ public class GenericTestReportGenerator implements TestReportGenerator {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         } finally {
-            CompositeStoppable.stoppable(outputReaders.values()).stop();
+            CompositeStoppable.stoppable(outputReaders).stop();
         }
     }
 }
