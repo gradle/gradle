@@ -201,7 +201,8 @@ class UnitTestPreconditions {
             } catch (Exception ex) {
                 return false
             }
-            return true
+            // https://github.com/gradle/gradle-private/issues/4580
+            return false
         }
     }
 
