@@ -28,26 +28,19 @@ import org.gradle.kotlin.dsl.*
 import org.gradle.process.CommandLineArgumentProvider
 
 
-// Android Studio Jellyfish 2023.3.1
+// Android Studio Ladybug 2024.2.1.11
 // Find all references here https://developer.android.com/studio/archive
 // Update verification-metadata.xml
-const val DEFAULT_ANDROID_STUDIO_VERSION = "2023.3.1.18"
+const val DEFAULT_ANDROID_STUDIO_VERSION = "2024.2.1.11"
 const val UNPACK_ANDROID_STUDIO_TASK_NAME = "unpackAndroidStudio"
 const val ANDROID_STUDIO_INSTALL_PATH = "android-studio"
 
-private fun String.is2024OrLater(): Boolean {
-    val majorVersion = substringBefore('.')
-    return majorVersion.toInt() >= 2024
-}
-
 private fun determineExtension(version: String): String {
-    // since 2024.x Android Studio is only distributed as dmg
-    val macExtension = if (version.is2024OrLater()) "dmg" else "zip"
     return when {
         BuildEnvironment.isWindows -> "windows.zip"
         BuildEnvironment.isLinux -> "linux.tar.gz"
-        BuildEnvironment.isMacOsX && BuildEnvironment.isIntel -> "mac.$macExtension"
-        BuildEnvironment.isMacOsX && !BuildEnvironment.isIntel -> "mac_arm.$macExtension"
+        BuildEnvironment.isMacOsX && BuildEnvironment.isIntel -> "mac.dmg"
+        BuildEnvironment.isMacOsX && !BuildEnvironment.isIntel -> "mac_arm.dmg"
         else -> error("Unsupported version/OS: ${version}/${OperatingSystem.current()}")
     }
 }
