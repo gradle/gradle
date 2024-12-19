@@ -48,14 +48,6 @@ class DefaultDependencyConstraintTest extends Specification {
         return new DefaultDependencyConstraint(group, name, version)
     }
 
-    def "creates a strict version"() {
-        when:
-        def constraint = DefaultDependencyConstraint.strictly("org", "foo", "1.0")
-
-        then:
-        constraint.versionConstraint.strictVersion == '1.0'
-    }
-
     def "creates deep copy"() {
         when:
         def copy = dependencyConstraint.copy() as DependencyConstraint

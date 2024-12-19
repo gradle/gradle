@@ -15,74 +15,44 @@
  */
 package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.internal.artifacts.configurations.ResolutionHost;
-import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.Conflict;
-import org.gradle.internal.component.model.DependencyMetadata;
-import org.gradle.operations.dependencies.configurations.ConfigurationIdentity;
-
-import javax.annotation.Nullable;
-import java.util.List;
-import java.util.Set;
+import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
+import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.CapabilitiesResolutionInternal;
+import org.gradle.internal.ImmutableActionSet;
 
 /**
  * Represents something that can be resolved.
+ * <p>
+ * This is the legacy counterpart to {@link org.gradle.api.internal.artifacts.ivyservice.ResolutionParameters}.
+ * The new parameters type is thread-safe, where any interactions with mutable Project state
+ * are guarded by proper project locking. Otherwise, the new parameters are fully immutable.
+ * <p>
+ * TODO: Eventually, the data in this class should be made thread-safe and immutable in the same manner. The
+ * primary restriction is that the user-provided {@link org.gradle.api.Action actions} provided by this class
+ * are not necessarily isolated from the project. They are free to interact with the mutable project state without
+ * proper locking. To resolve this, we should introduce a serialization and deserialization round-trip for each
+ * registered action, where we deprecate (and then fail) if the user provided an action that cannot be
+ * {@link org.gradle.api.IsolatedAction isolated} from the project.
  */
 public interface ResolveContext {
 
-    String getName();
+    /**
+     * The cache policy to use when resolving external resources.
+     */
+    CachePolicy getCachePolicy();
 
     /**
-     * The identity of this resolve context, if it is a configuration.
-     * <p>
-     * Currently, everything that can be resolved is a configuration, but
-     * this is likely to change in the future when we introduce new APIs
-     * to perform resolution.
-     * <p>
-     * Used by artifact transforms to identify the source configuration in
-     * build operations.
+     * Rules that may substitute user declared dependencies for other dependencies.
      */
-    @Nullable
-    ConfigurationIdentity getConfigurationIdentity();
+    ImmutableActionSet<DependencySubstitutionInternal> getDependencySubstitutionRules();
 
     /**
-     * Identifies this resolve context within a lockfile.
+     * Rules that may resolve capability conflicts.
      */
-    String getDependencyLockingId();
-
-    ResolutionHost getResolutionHost();
-
-    ResolutionStrategyInternal getResolutionStrategy();
+    CapabilitiesResolutionInternal getCapabilityConflictResolutionRules();
 
     /**
-     * @implSpec Usage: This method should only be called on resolvable configurations and should throw an exception if
-     * called on a configuration that does not permit this usage.
+     * Rules that specify which components dynamic version selection may select.
      */
-    RootComponentMetadataBuilder.RootComponentState toRootComponent();
+    ComponentSelectionRulesInternal getComponentSelectionRules();
 
-    /**
-     * Returns the synthetic dependencies for this context. These dependencies are generated
-     * by Gradle and not provided by the user, and are used for dependency locking and consistent resolution.
-     * These constraints are not always used during resolution, based on which phase of execution we are in
-     * (task dependencies, execution, ...)
-     *
-     * @implSpec Usage: This method should only be called on resolvable configurations and should throw an exception if
-     * called on a configuration that does not permit this usage.
-     */
-    List<? extends DependencyMetadata> getSyntheticDependencies();
-
-    FailureResolutions getFailureResolutions();
-
-    /**
-     * Details about this resolve context to provide additional context during failure cases.
-     */
-    interface FailureResolutions {
-
-        /**
-         * Provide resolutions to add to a failure to assist the user on resolving the provided
-         * version conflicts.
-         */
-        List<String> forVersionConflict(Set<Conflict> conflicts);
-    }
 }

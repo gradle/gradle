@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.ComponentSelectionRules
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal
+import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.configurations.ConflictResolution
 import org.gradle.api.internal.artifacts.configurations.MutationValidator
@@ -48,7 +49,9 @@ class DefaultResolutionStrategySpec extends Specification {
 
     def cachePolicy = Mock(DefaultCachePolicy)
     def dependencySubstitutions = Mock(DependencySubstitutionsInternal)
-    def globalDependencySubstitutions = Mock(DependencySubstitutionRules)
+    def globalDependencySubstitutions = Mock(GlobalDependencyResolutionRules) {
+        getDependencySubstitutionRules() >> Stub(DependencySubstitutionRules)
+    }
     def componentSelectorConverter = Mock(ComponentSelectorConverter)
     def vcsResolver = Mock(VcsResolver)
     @Shared
