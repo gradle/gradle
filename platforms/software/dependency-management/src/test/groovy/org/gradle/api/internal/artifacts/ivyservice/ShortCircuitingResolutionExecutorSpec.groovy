@@ -36,9 +36,9 @@ import spock.lang.Specification
 
 class ShortCircuitingResolutionExecutorSpec extends Specification {
 
-    DependencyLockingState lockingState = Mock()
-    DependencyLockingProvider lockingProvider = Mock()
-    ResolveContext resolveContext = Mock(ResolveContext)
+    def lockingState = Mock(DependencyLockingState)
+    def lockingProvider = Mock(DependencyLockingProvider)
+    def resolveContext = Mock(ResolveContext)
 
     def delegate = Mock(ResolutionExecutor)
     def dependencyResolver = new ShortCircuitingResolutionExecutor(delegate, new AttributeDesugaring(AttributeTestUtil.attributesFactory()), lockingProvider)
