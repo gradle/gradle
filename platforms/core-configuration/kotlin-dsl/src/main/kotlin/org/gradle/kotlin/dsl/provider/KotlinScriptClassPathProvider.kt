@@ -121,7 +121,7 @@ class KotlinScriptClassPathProvider(
     internal
     fun exportClassPathFromHierarchyOf(scope: ClassLoaderScope): ClassPath {
         require(scope.isLocked) {
-            "$scope must be locked before it can be used to compute a classpath!"
+            "${scope.id} must be locked before it can be used to compute a classpath!"
         }
         val exportedClassPath = cachedClassLoaderClassPath.of(scope.exportClassLoader)
         return DefaultClassPath.of(exportedClassPath - gradleImplementationClassPath)
