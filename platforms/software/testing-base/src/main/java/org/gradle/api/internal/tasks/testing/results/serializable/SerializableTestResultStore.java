@@ -95,7 +95,6 @@ public final class SerializableTestResultStore {
         private final Path temporaryResultsFile;
         private final KryoBackedEncoder resultsEncoder;
         private final FileSystem outputZipFileSystem;
-        private boolean writtenRootName = false;
         private long nextId = 1;
 
         // Map from testDescripter -> Serialized metadatas associated with that descriptor
@@ -126,13 +125,6 @@ public final class SerializableTestResultStore {
         public void started(TestDescriptorInternal testDescriptor, TestStartEvent startEvent) {
             long id = nextId++;
             assignedIds.put(testDescriptor.getId(), id);
-            if (testDescriptor.getParent() == null) {
-                if (writtenRootName) {
-                    throw new IllegalStateException("Multiple roots");
-                }
-                writtenRootName = true;
-                resultsEncoder.writeString(testDescriptor.getName());
-            }
         }
 
         @Override
@@ -150,11 +142,6 @@ public final class SerializableTestResultStore {
 
             for (SerializedMetadata metadata : metadatas.get(testDescriptor)) {
                 testNodeBuilder.addMetadata(metadata);
-            }
-
-            // Sanity check so we don't write invalid data to disk
-            if (!writtenRootName) {
-                throw new IllegalStateException("Root was not started before a test was completed");
             }
 
             // We remove the id here since no further events should come for this test, and it won't be needed as a parent id anymore
@@ -232,8 +219,6 @@ public final class SerializableTestResultStore {
         if (Files.exists(serializedResultsFile) && Files.exists(outputZipFile)) {
             // Inspect the results file, read first ID to see if there are any results
             try (KryoBackedDecoder decoder = openAndInitializeDecoder()) {
-                // Read and discard root name
-                decoder.readString();
                 return decoder.readSmallLong() != 0;
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
@@ -269,21 +254,6 @@ public final class SerializableTestResultStore {
     }
 
     /**
-     * Get the root name of the test results.
-     *
-     * @return the root name
-     * @throws IllegalStateException if there are no results
-     */
-    public String getRootName() throws IOException {
-        if (!hasResults()) {
-            throw new IllegalStateException("No results");
-        }
-        try (KryoBackedDecoder resultsDecoder = openAndInitializeDecoder()) {
-            return resultsDecoder.readString();
-        }
-    }
-
-    /**
      * Visit every result in the store. Parents are visited <em>AFTER</em> their children, but not necessarily in a breadth-first or depth-first order.
      * The action is called once for each result.
      *
@@ -292,8 +262,6 @@ public final class SerializableTestResultStore {
      */
     public void forEachResult(Consumer<? super OutputTrackedResult> action) throws IOException {
         try (KryoBackedDecoder resultsDecoder = openAndInitializeDecoder()) {
-            // Read and discard root name
-            resultsDecoder.readString();
             while (true) {
                 long id = resultsDecoder.readSmallLong();
                 if (id == 0) {
