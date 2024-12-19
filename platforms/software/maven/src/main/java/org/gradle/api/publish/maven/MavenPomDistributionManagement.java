@@ -16,6 +16,7 @@
 
 package org.gradle.api.publish.maven;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.Action;
 import org.gradle.api.provider.Property;
 import org.gradle.internal.HasInternalProtocol;
@@ -39,4 +40,11 @@ public interface MavenPomDistributionManagement {
      */
     void relocation(Action<? super MavenPomRelocation> action);
 
+    /**
+     * Configures the repository information.
+     *
+     * @since 8.12
+     */
+    @Incubating
+    void repository(Action<? super MavenPomDeploymentRepository> action);
 }
