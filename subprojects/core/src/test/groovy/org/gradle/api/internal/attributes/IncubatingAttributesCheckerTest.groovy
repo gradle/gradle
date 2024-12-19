@@ -24,7 +24,6 @@ import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class IncubatingAttributesCheckerTest extends Specification {
-    def attributesFactory = AttributeTestUtil.attributesFactory()
 
     // region: Single Attribute tests
     def "attribute without any @Incubating is not reported"() {
@@ -55,7 +54,7 @@ class IncubatingAttributesCheckerTest extends Specification {
 
     // region: AttributeContainer tests
     def "container with attribute which doesn't use @Incubating is not reported"() {
-        def container = new DefaultMutableAttributeContainer(attributesFactory)
+        def container = AttributeTestUtil.attributesFactory().mutable()
         container.attribute(Usage.USAGE_ATTRIBUTE, TestUtil.objectFactory().named(Usage, Usage.JAVA_API))
 
         expect:
@@ -63,7 +62,7 @@ class IncubatingAttributesCheckerTest extends Specification {
     }
 
     def "container with @Incubating attribute is reported"() {
-        def container = new DefaultMutableAttributeContainer(attributesFactory)
+        def container = AttributeTestUtil.attributesFactory().mutable()
         container.attribute(TestSuiteName.TEST_SUITE_NAME_ATTRIBUTE, TestUtil.objectFactory().named(TestSuiteName, "foo"))
 
         expect:
@@ -71,7 +70,7 @@ class IncubatingAttributesCheckerTest extends Specification {
     }
 
     def "container with attribute without @Incubating annotation on class, with @Incubating on value is reported"() {
-        def container = new DefaultMutableAttributeContainer(attributesFactory)
+        def container = AttributeTestUtil.attributesFactory().mutable()
         container.attribute(Category.CATEGORY_ATTRIBUTE, TestUtil.objectFactory().named(Category, Category.VERIFICATION))
 
         expect:
@@ -79,7 +78,7 @@ class IncubatingAttributesCheckerTest extends Specification {
     }
 
     def "container with attribute without @Incubating annotation on class, with @Incubating on different value is not reported"() {
-        def container = new DefaultMutableAttributeContainer(attributesFactory)
+        def container = AttributeTestUtil.attributesFactory().mutable()
         container.attribute(Category.CATEGORY_ATTRIBUTE, TestUtil.objectFactory().named(Category, Category.LIBRARY))
 
         expect:

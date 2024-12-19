@@ -19,6 +19,7 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
+import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.internal.Cast;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.isolation.IsolatableFactory;
@@ -27,21 +28,27 @@ import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.snapshot.impl.CoercingStringValueSnapshot;
 
 import javax.annotation.Nullable;
+import javax.inject.Inject;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 @ServiceScope(Scope.BuildSession.class)
 public class DefaultAttributesFactory implements AttributesFactory {
+    private final IsolatableFactory isolatableFactory;
+    private final NamedObjectInstantiator instantiator;
+    private final PropertyFactory propertyFactory;
+
     private final ImmutableAttributes root;
     private final Map<ImmutableAttributes, ImmutableList<DefaultImmutableAttributesContainer>> children;
-    private final IsolatableFactory isolatableFactory;
     private final UsageCompatibilityHandler usageCompatibilityHandler;
-    private final NamedObjectInstantiator instantiator;
 
-    public DefaultAttributesFactory(IsolatableFactory isolatableFactory, NamedObjectInstantiator instantiator) {
+    @Inject
+    public DefaultAttributesFactory(IsolatableFactory isolatableFactory, NamedObjectInstantiator instantiator, PropertyFactory propertyFactory) {
         this.isolatableFactory = isolatableFactory;
         this.instantiator = instantiator;
+        this.propertyFactory = propertyFactory;
+
         this.root = ImmutableAttributes.EMPTY;
         this.children = new ConcurrentHashMap<>();
         this.usageCompatibilityHandler = new UsageCompatibilityHandler(isolatableFactory, instantiator);
@@ -52,17 +59,17 @@ public class DefaultAttributesFactory implements AttributesFactory {
     }
 
     @Override
-    public DefaultMutableAttributeContainer mutable() {
-        return new DefaultMutableAttributeContainer(this);
+    public AttributeContainerInternal mutable() {
+        return new DefaultMutableAttributeContainer(this, propertyFactory);
     }
 
     @Override
-    public HierarchicalMutableAttributeContainer mutable(AttributeContainerInternal fallback) {
-        return join(fallback, new DefaultMutableAttributeContainer(this));
+    public AttributeContainerInternal mutable(AttributeContainerInternal fallback) {
+        return join(fallback, new DefaultMutableAttributeContainer(this, propertyFactory));
     }
 
     @Override
-    public HierarchicalMutableAttributeContainer join(AttributeContainerInternal fallback, AttributeContainerInternal primary) {
+    public AttributeContainerInternal join(AttributeContainerInternal fallback, AttributeContainerInternal primary) {
         return new HierarchicalMutableAttributeContainer(this, fallback, primary);
     }
 

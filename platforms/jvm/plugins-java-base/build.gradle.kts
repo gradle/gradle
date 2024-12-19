@@ -46,6 +46,7 @@ dependencies {
 
     implementation(projects.fileCollections)
     implementation(projects.fileOperations)
+    implementation(projects.functional)
     implementation(projects.jvmServices)
     implementation(projects.logging)
     implementation(projects.platformBase)
