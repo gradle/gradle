@@ -29,6 +29,9 @@
             <tr>
                 <td>buildDirectory</td>
             </tr>
+            <tr>
+                <td>settingsDirectory</td>
+            </tr>
         </table>
     </section>
     <section>
