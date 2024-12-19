@@ -54,6 +54,7 @@ import org.gradle.api.internal.plugins.ExtensionContainerInternal;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
+import org.gradle.api.isolated.models.IsolatedModelRouter;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.LoggingManager;
 import org.gradle.api.model.ObjectFactory;
@@ -1188,5 +1189,10 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
     @Override
     public Object getLifecycleActionsState() {
         return delegate.getLifecycleActionsState();
+    }
+
+    @Override
+    public IsolatedModelRouter getIsolatedModelRouter() {
+        return delegate.getIsolatedModelRouter();
     }
 }
