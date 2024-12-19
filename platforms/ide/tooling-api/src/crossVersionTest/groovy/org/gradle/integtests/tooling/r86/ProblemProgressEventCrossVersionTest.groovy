@@ -17,6 +17,7 @@
 package org.gradle.integtests.tooling.r86
 
 import org.gradle.integtests.fixtures.GroovyBuildScriptLanguage
+import org.gradle.integtests.tooling.fixture.ProblemsApiGroovyScriptUtils
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
@@ -98,7 +99,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         withReportProblemTask """
             for(int i = 0; i < 10; i++) {
                 $problemsReportingMethodCall {
-                    it.${targetVersion < GradleVersion.version("8.8") ? 'label("The \'standard-plugin\' is deprecated").category("deprecation", "plugin")' : 'id("adhoc-deprecation", "The \'standard-plugin\' is deprecated")' }
+                    it.${ProblemsApiGroovyScriptUtils.id(targetVersion, "adhoc-deprecation", "The 'standard-plugin' is deprecated")}
                         .severity(Severity.WARNING)
                         .solution("Please use 'standard-plugin-2' instead of this plugin")
                     }
@@ -149,7 +150,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         given:
         withReportProblemTask """
             $problemsReportingMethodCall {
-                it.${targetVersion < GradleVersion.version("8.8") ? 'label("shortProblemMessage").category("main", "sub", "id")' : 'id("id", "shortProblemMessage")' }
+                it.${ProblemsApiGroovyScriptUtils.id(targetVersion, "id", "shortProblemMessage")}
                 .fileLocation("/tmp/foo")
             }
         """
@@ -165,7 +166,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         given:
         withReportProblemTask """
             $problemsReportingMethodCall {
-                it.${targetVersion < GradleVersion.version("8.8") ? 'label("shortProblemMessage").category("main", "sub", "id")' : 'id("id", "shortProblemMessage")' }
+                it.${ProblemsApiGroovyScriptUtils.id(targetVersion, "id", "shortProblemMessage")}
                 .lineInFileLocation("/tmp/foo", 1)
             }
         """
@@ -182,7 +183,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         given:
         withReportProblemTask """
                 $problemsReportingMethodCall {
-                    it.${targetVersion < GradleVersion.version("8.8") ? 'label("shortProblemMessage").category("main", "sub", "id")' : 'id("id", "shortProblemMessage")' }
+                    it.${ProblemsApiGroovyScriptUtils.id(targetVersion, "id", "shortProblemMessage")}
                     .lineInFileLocation("/tmp/foo", 1, 2)
                 }
         """
@@ -198,7 +199,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         given:
         withReportProblemTask """
             $problemsReportingMethodCall {
-                it.${targetVersion < GradleVersion.version("8.8") ? 'label("shortProblemMessage").category("main", "sub", "id")' : 'id("id", "shortProblemMessage")' }
+                it.${ProblemsApiGroovyScriptUtils.id(targetVersion, "id", "shortProblemMessage")}
                 .lineInFileLocation("/tmp/foo", 1, 2, 3)
             }
         """
@@ -214,7 +215,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         given:
         withReportProblemTask """
             $problemsReportingMethodCall {
-                it.${targetVersion < GradleVersion.version("8.8") ? 'label("shortProblemMessage").category("main", "sub", "id")' : 'id("id", "shortProblemMessage")' }
+                it.${ProblemsApiGroovyScriptUtils.id(targetVersion, "id", "shortProblemMessage")}
                 .offsetInFileLocation("/tmp/foo", 20, 10)
             }
         """

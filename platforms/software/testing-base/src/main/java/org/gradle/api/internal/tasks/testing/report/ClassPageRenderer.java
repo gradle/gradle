@@ -15,9 +15,9 @@
  */
 package org.gradle.api.internal.tasks.testing.report;
 
+import org.gradle.api.internal.tasks.testing.results.serializable.SerializableFailure;
 import org.gradle.internal.ErroringAction;
 import org.gradle.internal.html.SimpleHtmlWriter;
-import org.gradle.api.internal.tasks.testing.junit.result.TestFailure;
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.internal.SystemProperties;
@@ -100,7 +100,7 @@ class ClassPageRenderer extends PageRenderer<ClassTestResults> {
             htmlWriter.startElement("div").attribute("class", "test")
                 .startElement("a").attribute("name", test.getId().toString()).characters("").endElement() //browsers dont understand <a name="..."/>
                 .startElement("h3").attribute("class", test.getStatusClass()).characters(test.getDisplayName()).endElement();
-            for (TestFailure failure : test.getFailures()) {
+            for (SerializableFailure failure : test.getFailures()) {
                 String message;
                 if (GUtil.isTrue(failure.getMessage()) && !failure.getStackTrace().contains(failure.getMessage())) {
                     message = failure.getMessage() + SystemProperties.getInstance().getLineSeparator() + SystemProperties.getInstance().getLineSeparator() + failure.getStackTrace();

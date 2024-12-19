@@ -620,7 +620,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         failure.assertHasDescription('A problem occurred evaluating root project')
         failure.assertHasCause('Could not create an instance of type MakeGreen$Parameters.')
         failure.assertHasCause('Could not generate a decorated class for type MakeGreen.Parameters.')
-        failure.assertHasCause("Cannot use @${annotation.simpleName} annotation on method Parameters.getBad().")
+        failure.assertHasCause("Cannot use @${annotation.simpleName} annotation on method Parameters.getBad(): String.")
 
         where:
         annotation << [InputArtifact, InputArtifactDependencies]
@@ -894,7 +894,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         then:
         failure.assertHasDescription("A problem occurred evaluating root project")
         failure.assertHasCause("Could not register artifact transform MakeGreen (from {color=blue} to {color=green})")
-        failure.assertHasCause("Cannot use @InputArtifact annotation on property MakeGreen.getInput() of type ${typeName}. Allowed property types: org.gradle.api.provider.Provider<org.gradle.api.file.FileSystemLocation>.")
+        failure.assertHasCause("Cannot use @InputArtifact annotation on property 'input' of type ${typeName}. Allowed property types: org.gradle.api.provider.Provider<org.gradle.api.file.FileSystemLocation>.")
 
         where:
         propertyType << [
@@ -935,7 +935,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         then:
         failure.assertHasDescription("A problem occurred evaluating root project")
         failure.assertHasCause("Could not register artifact transform MakeGreen (from {color=blue} to {color=green})")
-        failure.assertHasCause("Cannot use @InputArtifactDependencies annotation on property MakeGreen.getDependencies() of type ${propertyType.name}. Allowed property types: org.gradle.api.file.FileCollection.")
+        failure.assertHasCause("Cannot use @InputArtifactDependencies annotation on property 'dependencies' of type ${propertyType.name}. Allowed property types: org.gradle.api.file.FileCollection.")
 
         where:
         annotation                | propertyType
@@ -1041,7 +1041,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         failure.assertHasDescription("A problem occurred evaluating root project")
         failure.assertHasCause("Could not create task of type 'MyTask'.")
         failure.assertHasCause("Could not generate a decorated class for type MyTask.")
-        failure.assertHasCause("Cannot use @${annotation.simpleName} annotation on method MyTask.getThing().")
+        failure.assertHasCause("Cannot use @${annotation.simpleName} annotation on method MyTask.getThing(): File.")
 
         where:
         annotation << [InputArtifact, InputArtifactDependencies]

@@ -61,6 +61,8 @@ public interface Problem {
     /**
      * Returns additional locations, which can help to understand the problem further.
      * <p>
+     * For example, if a problem was emitted during task execution, the task path will be available in this list.
+     * <p>
      * Might be empty if there is no meaningful contextual information.
      */
     List<ProblemLocation> getContextualLocations();

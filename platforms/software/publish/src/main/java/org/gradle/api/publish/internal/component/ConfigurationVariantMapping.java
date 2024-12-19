@@ -57,7 +57,7 @@ public class ConfigurationVariantMapping {
 
     public void collectVariants(Consumer<UsageContext> collector) {
         outgoingConfiguration.runDependencyActions();
-        outgoingConfiguration.markAsObserved();
+        outgoingConfiguration.markAsObserved("published as a variant");
         String outgoingConfigurationName = outgoingConfiguration.getName();
 
         if (!outgoingConfiguration.isTransitive()) {

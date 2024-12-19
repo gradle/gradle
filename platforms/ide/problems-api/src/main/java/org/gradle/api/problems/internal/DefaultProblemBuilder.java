@@ -21,7 +21,6 @@ import org.gradle.api.Action;
 import org.gradle.api.problems.ProblemGroup;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.Severity;
-import org.gradle.api.problems.SharedProblemGroup;
 import org.gradle.problems.Location;
 import org.gradle.problems.ProblemDiagnostics;
 import org.gradle.problems.buildtree.ProblemStream;
@@ -38,6 +37,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     private String contextualLabel;
     private Severity severity;
     private final ImmutableList.Builder<ProblemLocation> locations = ImmutableList.builder();
+    private final ImmutableList.Builder<ProblemLocation> contextLocations = ImmutableList.builder();
     private String details;
     private DocLink docLink;
     private List<String> solutions;
@@ -63,9 +63,8 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
         this.contextualLabel = problem.getContextualLabel();
         this.solutions = new ArrayList<String>(problem.getSolutions());
         this.severity = problem.getDefinition().getSeverity();
-
-        locations.addAll(problem.getOriginLocations());
-
+        this.locations.addAll(problem.getOriginLocations());
+        this.contextLocations.addAll(problem.getContextualLocations());
         this.details = problem.getDetails();
         this.docLink = problem.getDefinition().getDocumentationLink();
         this.exception = problem.getException();
@@ -99,7 +98,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
             contextualLabel,
             solutions,
             locations.build(),
-            ImmutableList.<ProblemLocation>of(),
+            contextLocations.build(),
             details,
             exceptionForProblemInstantiation,
             additionalData
@@ -130,7 +129,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     }
 
     private Problem invalidProblem(String id, String displayName, @Nullable String contextualLabel) {
-        id(id, displayName, new DefaultProblemGroup(
+        id(id, displayName, ProblemGroup.create(
             "problems-api",
             "Problems API")
         ).stackLocation();
@@ -172,37 +171,37 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
 
     @Override
     public InternalProblemBuilder taskPathLocation(String buildTreePath) {
-        this.addLocation(new DefaultTaskPathLocation(buildTreePath));
+        this.contextLocations.add(new DefaultTaskPathLocation(buildTreePath));
         return this;
     }
 
     @Override
     public InternalProblemBuilder fileLocation(String path) {
-        this.addLocation(DefaultFileLocation.from(path));
+        this.locations.add(DefaultFileLocation.from(path));
         return this;
     }
 
     @Override
     public InternalProblemBuilder lineInFileLocation(String path, int line) {
-        this.addLocation(DefaultLineInFileLocation.from(path, line));
+        this.locations.add(DefaultLineInFileLocation.from(path, line));
         return this;
     }
 
     @Override
     public InternalProblemBuilder lineInFileLocation(String path, int line, int column) {
-        this.addLocation(DefaultLineInFileLocation.from(path, line, column));
+        this.locations.add(DefaultLineInFileLocation.from(path, line, column));
         return this;
     }
 
     @Override
     public InternalProblemBuilder offsetInFileLocation(String path, int offset, int length) {
-        this.addLocation(DefaultOffsetInFileLocation.from(path, offset, length));
+        this.locations.add(DefaultOffsetInFileLocation.from(path, offset, length));
         return this;
     }
 
     @Override
     public InternalProblemBuilder lineInFileLocation(String path, int line, int column, int length) {
-        this.addLocation(DefaultLineInFileLocation.from(path, line, column, length));
+        this.locations.add(DefaultLineInFileLocation.from(path, line, column, length));
         return this;
     }
 
@@ -225,19 +224,27 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     }
 
     @Override
-    public InternalProblemBuilder id(String name, String displayName) {
-        this.id = new DefaultProblemId(name, displayName, cloneGroup(SharedProblemGroup.generic()));
+    public InternalProblemBuilder id(ProblemId problemId) {
+        if (problemId instanceof DefaultProblemId) {
+            this.id = problemId;
+        } else {
+            this.id = cloneId(problemId);
+        }
         return this;
     }
 
     @Override
     public InternalProblemBuilder id(String name, String displayName, ProblemGroup parent) {
-        this.id = new DefaultProblemId(name, displayName, cloneGroup(parent));
+        this.id = ProblemId.create(name, displayName, cloneGroup(parent));
         return this;
     }
 
+    private static ProblemId cloneId(ProblemId original) {
+        return ProblemId.create(original.getName(), original.getDisplayName(), cloneGroup(original.getGroup()));
+    }
+
     private static ProblemGroup cloneGroup(ProblemGroup original) {
-        return new DefaultProblemGroup(original.getName(), original.getDisplayName(), original.getParent() == null ? null : cloneGroup(original.getParent()));
+        return ProblemGroup.create(original.getName(), original.getDisplayName(), original.getParent() == null ? null : cloneGroup(original.getParent()));
     }
 
     @Override
@@ -278,10 +285,6 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     @Nullable
     Throwable getException() {
         return exception;
-    }
-
-    protected void addLocation(ProblemLocation location) {
-        this.locations.add(location);
     }
 
     public ProblemId getId() {

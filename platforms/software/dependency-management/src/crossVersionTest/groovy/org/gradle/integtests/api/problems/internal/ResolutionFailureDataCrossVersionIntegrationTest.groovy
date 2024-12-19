@@ -26,6 +26,7 @@ import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.problems.ProblemEvent
 import org.gradle.tooling.events.problems.SingleProblemEvent
 import org.gradle.tooling.events.problems.internal.GeneralData
+import org.gradle.util.GradleVersion
 
 /**
  * Tests that the tooling API can receive and process a problem containing additional {@link ResolutionFailureData}
@@ -39,9 +40,8 @@ class ResolutionFailureDataCrossVersionIntegrationTest extends ToolingApiSpecifi
         given:
         withReportProblemTask """
             TestResolutionFailure failure = new TestResolutionFailure()
-
             getProblems().getReporter().reporting {
-                it.id("id", "shortProblemMessage")
+                it.${id(targetVersion)}
                 .additionalData(ResolutionFailureDataSpec.class, data -> data.from(failure))
             }
         """
@@ -67,7 +67,7 @@ class ResolutionFailureDataCrossVersionIntegrationTest extends ToolingApiSpecifi
             TestResolutionFailure failure = new TestResolutionFailure()
 
             getProblems().getReporter().reporting {
-                it.id("id", "shortProblemMessage")
+               it.${id(targetVersion)}
                 .additionalData(ResolutionFailureDataSpec.class, data -> data.from(failure))
             }
         """
@@ -94,6 +94,14 @@ class ResolutionFailureDataCrossVersionIntegrationTest extends ToolingApiSpecifi
                 .run()
         }
         return listener.problems
+    }
+
+    String id(GradleVersion targetVersion) {
+        if (targetVersion < GradleVersion.version("8.13")) {
+            'id("type", "label")'
+        } else {
+            'id(org.gradle.api.problems.ProblemId.create("type", "label", org.gradle.api.problems.ProblemGroup.create("generic", "Generic")))'
+        }
     }
 
     def withReportProblemTask(@GroovyBuildScriptLanguage String taskActionMethodBody) {

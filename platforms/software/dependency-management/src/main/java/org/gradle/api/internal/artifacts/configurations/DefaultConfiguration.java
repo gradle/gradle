@@ -144,6 +144,7 @@ import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -188,7 +189,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     private final Set<MutationValidator> childMutationValidators = new HashSet<>();
     private final MutationValidator parentMutationValidator = DefaultConfiguration.this::validateParentMutation;
     private final RootComponentMetadataBuilder rootComponentMetadataBuilder;
-    private RootComponentMetadataBuilder.RootComponentState rootComponentState;
     private final ConfigurationsProvider configurationsProvider;
 
     private final Path identityPath;
@@ -218,7 +218,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     private boolean usageCanBeMutated = true;
     private final ConfigurationRole roleAtCreation;
 
-    private boolean observed = false;
+    private Supplier<String> observationReason = null;
     private final FreezableAttributeContainer configurationAttributes;
     private final DomainObjectContext domainObjectContext;
     private final AttributesFactory attributesFactory;
@@ -775,7 +775,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
                 ResolverResults results;
                 try {
                     results = resolver.resolveGraph(DefaultConfiguration.this);
-                    DefaultConfiguration.this.rootComponentState = null;
                 } catch (Exception e) {
                     throw exceptionMapper.mapFailure(e, "dependencies", displayName.getDisplayName());
                 }
@@ -920,7 +919,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
             // Reset this configuration to an unresolved state
             currentResolveState.set(Optional.empty());
-            rootComponentState = null;
 
             return value;
         } finally {
@@ -1037,13 +1035,13 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         }
         DisplayName displayName = Describables.of(this.displayName, "all artifacts");
 
-        if (observed && extendsFrom.isEmpty()) {
+        if (isObserved() && extendsFrom.isEmpty()) {
             // No further mutation is allowed and there's no parent: the artifact set corresponds to this configuration own artifacts
             this.allArtifacts = new DefaultPublishArtifactSet(displayName, ownArtifacts, fileCollectionFactory, taskDependencyFactory);
             return;
         }
 
-        if (!observed) {
+        if (!isObserved()) {
             // If the configuration can still be mutated, we need to create a composite
             inheritedArtifacts = domainObjectCollectionFactory.newDomainObjectSet(PublishArtifact.class, ownArtifacts);
         }
@@ -1134,24 +1132,31 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     @Override
     public boolean isCanBeMutated() {
-        boolean immutable = observed || currentResolveState.get().isPresent();
+        boolean immutable = isObserved() || currentResolveState.get().isPresent();
         return !immutable;
     }
 
     @Override
-    public void markAsObserved() {
-        if (observed) {
+    public void markAsObserved(String reason) {
+        if (isObserved()) {
             return;
         }
 
         runActionInHierarchy(conf -> {
-            if (!conf.observed) {
+            if (!conf.isObserved()) {
                 conf.configurationAttributes.freeze();
                 conf.outgoing.preventFromFurtherMutation();
                 conf.preventUsageMutation();
-                conf.observed = true;
+                conf.observationReason = () -> {
+                    String target = conf == this ? "it" : "it's child " + this.getDisplayName();
+                    return target + " has been " + reason;
+                };
             }
         });
+    }
+
+    private boolean isObserved() {
+        return observationReason != null;
     }
 
     /**
@@ -1309,10 +1314,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     @Override
     public RootComponentMetadataBuilder.RootComponentState toRootComponent() {
         warnOnInvalidInternalAPIUsage("toRootComponent()", ProperMethodUsage.RESOLVABLE);
-        if (rootComponentState == null) {
-            rootComponentState = rootComponentMetadataBuilder.toRootComponent(getName());
-        }
-        return rootComponentState;
+        return rootComponentMetadataBuilder.toRootComponent(getName());
     }
 
     @Override
@@ -1433,8 +1435,8 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         // If an external party has seen the public state (variant metadata) of our configuration,
         // we forbid any mutation that mutates the public state. The resolution strategy does
         // not mutate the public state of the configuration, so we allow it.
-        if (observed && type != MutationType.STRATEGY) {
-            DeprecationLogger.deprecateBehaviour(String.format("Mutating the %s of %s after it has been resolved or consumed.", typeDescription, this.getDisplayName()))
+        if (observationReason != null && type != MutationType.STRATEGY) {
+            DeprecationLogger.deprecateBehaviour(String.format("Mutating the %s of %s after %s.", typeDescription, this.getDisplayName(), observationReason.get()))
                 .withAdvice("After a Configuration has been resolved, consumed as a variant, or used for generating published metadata, it should not be modified.")
                 .willBecomeAnErrorInGradle9()
                 .withUpgradeGuideSection(8, "mutate_configuration_after_locking")

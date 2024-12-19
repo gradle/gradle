@@ -16,7 +16,6 @@
 
 package org.gradle.workers.internal
 
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.jvm.Jvm
 import org.gradle.workers.fixtures.WorkerExecutorFixture
@@ -79,7 +78,7 @@ class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
                     // Create and report a problem
                     // This needs to be Java 6 compatible, as we are in a worker
                      getProblems().getReporter().reporting(problem -> problem
-                            .id("type", "label")
+                            .id(org.gradle.api.problems.ProblemId.create("type", "label", org.gradle.api.problems.ProblemGroup.create("generic", "Generic")))
                             .stackLocation()
                             .withException(new RuntimeException("Exception message", wrappedException))
                     );

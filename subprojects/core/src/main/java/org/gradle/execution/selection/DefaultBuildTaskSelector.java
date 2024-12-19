@@ -19,6 +19,7 @@ package org.gradle.execution.selection;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Task;
 import org.gradle.api.internal.project.ProjectState;
+import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.ProblemSpec;
 import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.GeneralDataSpec;
@@ -196,7 +197,7 @@ public class DefaultBuildTaskSelector implements BuildTaskSelector {
 
         if (name.isEmpty() || StringUtils.isBlank(name)) {
             throw problemsService.getInternalReporter().throwing(spec -> {
-                spec.id("empty-path", "Empty path", GradleCoreProblemGroup.taskSelection());
+                spec.id(ProblemId.create("empty-path", "Empty path", GradleCoreProblemGroup.taskSelection()));
                 String message = String.format("Cannot locate matching %s for an empty path. The path should include a task name (for example %s).", type, examplePaths());
                 configureProblem(spec, message, name, new TaskSelectionException(message));
             });
@@ -205,7 +206,7 @@ public class DefaultBuildTaskSelector implements BuildTaskSelector {
         Pattern root = Pattern.compile("\\s*:(\\s*:)*\\s*");
         if (root.matcher(name).matches()) {
             throw problemsService.getInternalReporter().throwing(spec -> {
-                spec.id("missing-task-name", "Missing task name", GradleCoreProblemGroup.taskSelection());
+                spec.id(ProblemId.create("missing-task-name", "Missing task name", GradleCoreProblemGroup.taskSelection()));
                 String message = String.format("Cannot locate %s that match '%s'. The path should include a task name (for example %s).", type, name, examplePaths());
                 configureProblem(spec, message, name, new TaskSelectionException(message));
             });
@@ -225,7 +226,7 @@ public class DefaultBuildTaskSelector implements BuildTaskSelector {
             }
 
             throw problemsService.getInternalReporter().throwing(spec -> {
-                spec.id("empty-segments", "Empty segments", GradleCoreProblemGroup.taskSelection());
+                spec.id(ProblemId.create("empty-segments", "Empty segments", GradleCoreProblemGroup.taskSelection()));
                 String message = String.format("Cannot locate %s that match '%s'. The path should not include an empty segment (try '%s' instead).", type, name, normalized);
                 configureProblem(spec, message, name, new TaskSelectionException(message));
             });

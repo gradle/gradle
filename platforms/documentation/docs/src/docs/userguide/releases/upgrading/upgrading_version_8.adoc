@@ -35,6 +35,44 @@ The previous step will help you identify potential problems by issuing deprecati
 . Run `gradle wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
+[[changes_8.13]]
+== Upgrading from 8.12 and earlier
+
+=== Potential breaking changes
+
+==== Changes to Test Report Aggregation and Jacoco Aggregation
+
+Several changes have been made to the incubating <<test_report_aggregation_plugin#test_report_aggregation_plugin,Test Report Aggregation>> and <<jacoco_report_aggregation_plugin.adoc#jacoco_report_aggregation_plugin,JaCoCo Report Aggregation>> plugins.
+
+The plugins now create a single test results variant for each test suite, containing all test results for the entire suite, instead of one variant for each test target.
+This change allows the aggregation plugins to aggregate test suites with multiple targets, where previously this would result in an ambiguous variant selection error.
+In the future, as we continue to develop these plugins, we plan to once again create one results variant per test suite target, allowing test results from certain targets to be explicitly aggregated.
+
+The `testType` property on link:{javadocPath}/org/gradle/testing/jacoco/plugins/JacocoCoverageReport.html[JacocoCoverageReport] and link:{javadocPath}/org/gradle/api/tasks/testing/AggregateTestReport.html[AggregateTestReport] has been removed and replaced with a new `testSuiteName` property.
+Similarly, the `testType` property was removed from link:{javadocPath}/org/gradle/api/plugins/jvm/JvmTestSuite.html[JvmTestSuite] and both the `TestSuiteTargetName` and `TestSuiteType` attributes have been removed.
+Test reports and Jacoco reports can now be aggregated between projects by specifying the name of the test suite in the target project to aggregate.
+
+=== Deprecations
+
+==== Recursively querying `AttributeContainer` in lazy provider
+
+In Gradle 9.0, querying the contents of an `AttributeContainer` from within an attribute value provider of the same container will become an error.
+
+The following example showcases the forbidden behavior:
+
+[source,java]
+----
+AttributeContainer container = getAttributeContainer();
+Attribute<String> firstAttribute = Attribute.of("first", String.class);
+Attribute<String> secondAttribute = Attribute.of("second", String.class);
+container.attributeProvider(firstAttribute, project.getProviders().provider(() -> {
+    // Querying the contents of the container within an attribute value provider
+    // will become an error.
+    container.getAttribute(secondAttribute);
+    return "first";
+}));
+----
+
 [[changes_8.12]]
 == Upgrading from 8.11 and earlier
 

@@ -17,7 +17,7 @@
 package org.gradle.api.internal.attributes
 
 import org.gradle.api.attributes.Category
-import org.gradle.api.attributes.TestSuiteType
+import org.gradle.api.attributes.TestSuiteName
 import org.gradle.api.attributes.Usage
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.TestUtil
@@ -34,7 +34,7 @@ class IncubatingAttributesCheckerTest extends Specification {
 
     def "attribute with @Incubating annotation on class is reported"() {
         expect:
-        !IncubatingAttributesChecker.isIncubating(TestSuiteType.TEST_SUITE_TYPE_ATTRIBUTE)
+        !IncubatingAttributesChecker.isIncubating(TestSuiteName.TEST_SUITE_NAME_ATTRIBUTE)
     }
 
     def "attribute without @Incubating annotation on class, with @Incubating on value is reported"() {
@@ -64,7 +64,7 @@ class IncubatingAttributesCheckerTest extends Specification {
 
     def "container with @Incubating attribute is reported"() {
         def container = new DefaultMutableAttributeContainer(attributesFactory)
-        container.attribute(TestSuiteType.TEST_SUITE_TYPE_ATTRIBUTE, TestUtil.objectFactory().named(TestSuiteType, TestSuiteType.INTEGRATION_TEST))
+        container.attribute(TestSuiteName.TEST_SUITE_NAME_ATTRIBUTE, TestUtil.objectFactory().named(TestSuiteName, "foo"))
 
         expect:
         IncubatingAttributesChecker.isAnyIncubating(container)

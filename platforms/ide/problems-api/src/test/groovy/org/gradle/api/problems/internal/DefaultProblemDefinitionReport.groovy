@@ -17,8 +17,9 @@
 package org.gradle.api.problems.internal
 
 import com.google.common.collect.ImmutableList
+import org.gradle.api.problems.ProblemGroup
+import org.gradle.api.problems.ProblemId
 import org.gradle.api.problems.Severity
-import org.gradle.api.problems.SharedProblemGroup
 import org.gradle.internal.deprecation.Documentation
 import spock.lang.Specification
 
@@ -82,6 +83,6 @@ class DefaultProblemDefinitionReport extends Specification {
         List<String> solutions = ImmutableList.of(),
         String displayName = "display name"
     ) {
-            new DefaultProblemDefinition(new DefaultProblemId(label, displayName, SharedProblemGroup.generic()), severity, documentation)
+            new DefaultProblemDefinition(ProblemId.create(label, displayName, ProblemGroup.create("generic", "Generic")), severity, documentation)
     }
 }

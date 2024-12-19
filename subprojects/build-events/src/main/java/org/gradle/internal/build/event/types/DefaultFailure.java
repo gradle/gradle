@@ -17,7 +17,7 @@ package org.gradle.internal.build.event.types;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.problems.internal.Problem;
-import org.gradle.api.problems.internal.ProblemLookup;
+import org.gradle.api.problems.internal.ProblemLocator;
 import org.gradle.internal.exceptions.MultiCauseException;
 import org.gradle.tooling.internal.protocol.InternalBasicProblemDetailsVersion3;
 import org.gradle.tooling.internal.protocol.InternalFailure;
@@ -74,7 +74,7 @@ public class DefaultFailure implements Serializable, InternalFailure {
         return fromThrowable(throwable, t -> ImmutableList.of(), p -> null);
     }
 
-    public static InternalFailure fromThrowable(Throwable t, ProblemLookup problemLookup, Function<Problem, InternalBasicProblemDetailsVersion3> mapper) {
+    public static InternalFailure fromThrowable(Throwable t, ProblemLocator problemLocator, Function<Problem, InternalBasicProblemDetailsVersion3> mapper) {
 
         // Iterate through the cause hierarchy, with including multi-cause exceptions and convert them to a corresponding Failure with the same cause structure. If the current exception has a
         // corresponding problem in `problemsMapping` (ie the exception was thrown via ProblemReporter.throwing()), then the problem will be also available in the new failure object.
@@ -87,11 +87,11 @@ public class DefaultFailure implements Serializable, InternalFailure {
             causeFailures = Collections.emptyList();
         } else if (cause instanceof MultiCauseException) {
             MultiCauseException multiCause = (MultiCauseException) cause;
-            causeFailures = multiCause.getCauses().stream().map(f -> fromThrowable(f, problemLookup, mapper)).collect(Collectors.toList());
+            causeFailures = multiCause.getCauses().stream().map(f -> fromThrowable(f, problemLocator, mapper)).collect(Collectors.toList());
         } else {
-            causeFailures = Collections.singletonList(fromThrowable(cause, problemLookup, mapper));
+            causeFailures = Collections.singletonList(fromThrowable(cause, problemLocator, mapper));
         }
-        Collection<Problem> problemMapping = problemLookup.findAll(t);
+        Collection<Problem> problemMapping = problemLocator.findAll(t);
 
         List<Problem> problems = new ArrayList<>();
         if (problemMapping != null) {

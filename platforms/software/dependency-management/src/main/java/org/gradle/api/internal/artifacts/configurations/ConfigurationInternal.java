@@ -58,13 +58,15 @@ public interface ConfigurationInternal extends ResolveContext, DeprecatableConfi
     /**
      * Marks this configuration as observed, meaning its state has been seen by some external operation
      * and further changes to this context that would change its public state are forbidden.
+     *
+     * @param reason Describes the external operation that observed this configuration
      */
-    void markAsObserved();
+    void markAsObserved(String reason);
 
     /**
      * Legacy observation mechanism, will be removed in Gradle 9.0.
      * <p>
-     * Prefer {@link #markAsObserved()}
+     * Prefer {@link #markAsObserved(String)}
      */
     void markAsObserved(InternalState requestedState);
 

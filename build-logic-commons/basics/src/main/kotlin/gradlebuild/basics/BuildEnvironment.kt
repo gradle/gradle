@@ -88,7 +88,7 @@ object BuildEnvironment {
     )
 
     private
-    val architecture = System.getProperty("os.arch").toLowerCase()
+    val architecture = System.getProperty("os.arch").lowercase()
 
     val isCiServer = CI_ENVIRONMENT_VARIABLE in System.getenv()
     val isGhActions = "GITHUB_ACTIONS" in System.getenv()

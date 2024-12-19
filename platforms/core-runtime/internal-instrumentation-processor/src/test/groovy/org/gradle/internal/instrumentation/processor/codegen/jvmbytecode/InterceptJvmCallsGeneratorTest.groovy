@@ -70,7 +70,7 @@ class InterceptJvmCallsGeneratorTest extends InstrumentationCodeGenTest {
                 public BridgeMethodBuilder findBridgeMethodBuilder(String className, int tag, String owner, String name, String descriptor) {
                     if (metadata.isInstanceOf(owner, "org/gradle/api/Rule")) {
                         if (name.equals("getDescription") && descriptor.equals("()Ljava/lang/String;") && (tag == Opcodes.H_INVOKEVIRTUAL || tag == Opcodes.H_INVOKEINTERFACE)) {
-                            final DefaultBridgeMethodBuilder builder = DefaultBridgeMethodBuilder.create(
+                            DefaultBridgeMethodBuilder builder = DefaultBridgeMethodBuilder.create(
                                 tag,
                                 owner,
                                 descriptor,
@@ -227,7 +227,7 @@ class InterceptJvmCallsGeneratorTest extends InstrumentationCodeGenTest {
                 public BridgeMethodBuilder findBridgeMethodBuilder(String className, int tag, String owner, String name, String descriptor) {
                     if (owner.equals("java/io/File")) {
                         if (name.equals("listFiles") && descriptor.equals("()[Ljava/io/File;") && (tag == Opcodes.H_INVOKEVIRTUAL || tag == Opcodes.H_INVOKEINTERFACE)) {
-                            final DefaultBridgeMethodBuilder builder = DefaultBridgeMethodBuilder.create(
+                            DefaultBridgeMethodBuilder builder = DefaultBridgeMethodBuilder.create(
                                 tag,
                                 owner,
                                 descriptor,
@@ -238,7 +238,7 @@ class InterceptJvmCallsGeneratorTest extends InstrumentationCodeGenTest {
                             return builder;
                         }
                         if (name.equals("exists") && descriptor.equals("()Z") && (tag == Opcodes.H_INVOKEVIRTUAL || tag == Opcodes.H_INVOKEINTERFACE)) {
-                            final DefaultBridgeMethodBuilder builder = DefaultBridgeMethodBuilder.create(
+                            DefaultBridgeMethodBuilder builder = DefaultBridgeMethodBuilder.create(
                                 tag,
                                 owner,
                                 descriptor,
@@ -305,7 +305,7 @@ class InterceptJvmCallsGeneratorTest extends InstrumentationCodeGenTest {
                 public BridgeMethodBuilder findBridgeMethodBuilder(String className, int tag, String owner, String name, String descriptor) {
                     if (owner.equals("java/io/File")) {
                         if (name.equals("exists") && descriptor.equals("()Z") && (tag == Opcodes.H_INVOKEVIRTUAL || tag == Opcodes.H_INVOKEINTERFACE)) {
-                            final DefaultBridgeMethodBuilder builder = DefaultBridgeMethodBuilder.create(
+                            DefaultBridgeMethodBuilder builder = DefaultBridgeMethodBuilder.create(
                                 tag,
                                 owner,
                                 descriptor,
@@ -313,7 +313,7 @@ class InterceptJvmCallsGeneratorTest extends InstrumentationCodeGenTest {
                                 "intercept_exists",
                                 "(Ljava/io/File;Lorg/gradle/internal/instrumentation/api/types/BytecodeInterceptorFilter;)Z"
                             );
-                            builder.withVisitorContext(context);
+                            builder = builder.withVisitorContext(context);
                             return builder;
                         }
                     }

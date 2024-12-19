@@ -19,6 +19,7 @@ package org.gradle.internal.execution
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.Iterables
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.problems.ProblemId
 import org.gradle.api.problems.Severity
 import org.gradle.api.problems.internal.GradleCoreProblemGroup
 import org.gradle.api.problems.internal.ProblemsProgressEventEmitterHolder
@@ -249,7 +250,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
                 context
                     .forType(UnitOfWork, false)
                     .visitPropertyProblem {
-                        it.id("test-problem", "Validation problem", GradleCoreProblemGroup.validation())
+                        it.id(ProblemId.create("test-problem", "Validation problem", GradleCoreProblemGroup.validation().type()))
                             .severity(Severity.WARNING)
                             .documentedAt(Documentation.userManual("id", "section"))
                             .details("Test")
@@ -558,7 +559,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
                 validationContext.forType(Object, true).visitTypeProblem {
                     it
                         .withAnnotationType(Object)
-                        .id("test-problem", "Validation error", GradleCoreProblemGroup.validation())
+                        .id(ProblemId.create("test-problem", "Validation error", GradleCoreProblemGroup.validation().type()))
                         .documentedAt(Documentation.userManual("id", "section"))
                         .details("Test")
                         .severity(Severity.ERROR)

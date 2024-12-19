@@ -58,12 +58,12 @@ Collects variants of direct and transitive project dependencies via the `testRep
 
 [source]
 ----
-    - org.gradle.category              = verification   // <1>
-    - org.gradle.testsuite.type        = unit-test      // <2>
-    - org.gradle.verificationtype      = test-results   // <3>
+    - org.gradle.category         = verification   // <1>
+    - org.gradle.testsuite.name   = test           // <2>
+    - org.gradle.verificationtype = test-results   // <3>
 ----
 <1> Category attribute; value is fixed.
-<2> TestSuiteType attribute; value is derived from link:{javadocPath}/org/gradle/api/plugins/jvm/JvmTestSuite.html#getTestType--[JvmTestSuite#getTestType()].
+<2> TestSuiteName attribute; value is derived from link:{javadocPath}/org/gradle/testing/base/TestSuite.html#getName--[TestSuite#getName()].
 <3> VerificationType attribute; value is fixed.
 
 More information about the variants produced by test execution are available in the <<jvm_test_suite_plugin#sec:outgoing_variants,Outgoing Variants>> section of the JVM Test Suite Plugin documentation.
@@ -82,7 +82,7 @@ For more information, see <<command_line_interface.adoc#sec:continue_build_on_fa
 When the project also applies the `jvm-test-suite` plugin, the following reporting objects are added for each test suite:
 
 `__testSuite__AggregateTestReport` — link:{javadocPath}/org/gradle/api/tasks/testing/AggregateTestReport.html[AggregateTestReport]::
-Creates a container to parameterize the link:{javadocPath}/org/gradle/api/attributes/TestSuiteType.html[TestSuiteType] value.
+Creates an aggregate Jacoco report aggregating all test suites with a given link:{javadocPath}/org/gradle/api/attributes/TestSuiteName.html[name] across all project dependencies.
 
 === Manual report creation
 
@@ -93,7 +93,7 @@ When the project does not apply the `jvm-test-suite` plugin, you must manually r
 include::sample[dir="samples/incubating/java/jvm-multi-project-with-test-aggregation-standalone/kotlin/test-results",files="build.gradle.kts[tags=create_report]"]
 include::sample[dir="samples/incubating/java/jvm-multi-project-with-test-aggregation-standalone/groovy/test-results",files="build.gradle[tags=create_report]"]
 ====
-<.> Creates a report named `testAggregateTestReport` of type `AggregateTestReport`.  For convenience, sets `TestType` using a constant value from the  link:{javadocPath}/org/gradle/api/attributes/TestSuiteType.html[TestSuiteType] class.  Any String value is acceptable.
+<.> Creates a report named `testAggregateTestReport` of type `AggregateTestReport`, aggregating all test suites from all project dependencies with a given link:{javadocPath}/org/gradle/testing/base/TestSuite.html#getName--[TestSuite#getName()].
 
 Report creation automatically creates backing tasks to aggregate by the given test suite type value.
 

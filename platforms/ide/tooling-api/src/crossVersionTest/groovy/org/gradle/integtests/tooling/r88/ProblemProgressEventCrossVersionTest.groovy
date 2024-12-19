@@ -17,6 +17,7 @@
 package org.gradle.integtests.tooling.r88
 
 import org.gradle.integtests.fixtures.GroovyBuildScriptLanguage
+import org.gradle.integtests.tooling.fixture.ProblemsApiGroovyScriptUtils
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
@@ -178,7 +179,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
 
     def "Problems expose summary Tooling API events"() {
         given:
-        withMultipleProblems("id(\"deprecation\", \"The 'standard-plugin' is deprecated\")")
+        withMultipleProblems('deprecation', "The 'standard-plugin' is deprecated")
 
         when:
         def listener = new ProblemProgressListener()
@@ -195,8 +196,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
     @TargetGradleVersion(">=8.6 <=8.7")
     def "Problems expose summary Tooling API events 8.6 to 8.7"() {
         given:
-        withMultipleProblems("""label("The 'standard-plugin' is deprecated")
-                        .category("deprecation", "plugin")""")
+        withMultipleProblems('deprecation', "The 'standard-plugin' is deprecated")
 
         when:
         def listener = new ProblemProgressListener()
@@ -210,11 +210,11 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         listener.problems.size() == 0
     }
 
-    def withMultipleProblems(String labelCode) {
+    def withMultipleProblems(String name, String displayName) {
         withReportProblemTask """
             for(int i = 0; i < 10; i++) {
                 problems.${targetVersion >= GradleVersion.version("8.11") ? 'getReporter()' : 'forNamespace("org.example.plugin")'}.reporting{
-                    it.$labelCode
+                    it.${ProblemsApiGroovyScriptUtils.id(targetVersion, name, displayName)}
                         .severity(Severity.WARNING)
                         .solution("Please use 'standard-plugin-2' instead of this plugin")
                     }

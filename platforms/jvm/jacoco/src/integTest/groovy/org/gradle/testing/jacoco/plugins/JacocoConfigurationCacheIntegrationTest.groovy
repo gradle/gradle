@@ -45,7 +45,7 @@ class JacocoConfigurationCacheIntegrationTest extends AbstractIntegrationSpec {
             reporting {
                 reports {
                     val testCodeCoverageReport by creating(JacocoCoverageReport::class) {
-                        testType = TestSuiteType.UNIT_TEST
+                        testSuiteName = "test"
                     }
                 }
             }

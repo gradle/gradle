@@ -58,6 +58,11 @@ public interface InternalBuildProgressListener {
     String TEST_OUTPUT = "TEST_OUTPUT";
 
     /**
+     * The constant for test metadata of the task execution operations.
+     */
+    String TEST_METADATA = "TEST_METADATA";
+
+    /**
      * The constant for file download operations.
      */
     String FILE_DOWNLOAD = "FILE_DOWNLOAD";

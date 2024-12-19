@@ -41,8 +41,8 @@ class PropertyAssignmentIntegrationTest extends AbstractIntegrationSpec {
         "Enum = String"                                 | "MyEnum"   | '"YES"'                                  | "YES"
         "File = T extends FileSystemLocation"           | "File"     | 'layout.buildDirectory.dir("out").get()' | unsupportedWithCause("Cannot cast object")
         "File = Provider<T extends FileSystemLocation>" | "File"     | 'layout.buildDirectory.dir("out")'       | unsupportedWithCause("Cannot cast object")
-        "File = File"                                   | "File"     | 'file("$buildDir/out")'                  | "out"
-        "File = Provider<File>"                         | "File"     | 'provider { file("$buildDir/out") }'     | unsupportedWithCause("Cannot cast object")
+        "File = File"                                   | "File"     | 'file("out")'                            | "out"
+        "File = Provider<File>"                         | "File"     | 'provider { file("out") }'               | unsupportedWithCause("Cannot cast object")
         "File = Object"                                 | "File"     | 'new MyObject("out")'                    | unsupportedWithCause("Cannot cast object")
     }
 
@@ -61,8 +61,8 @@ class PropertyAssignmentIntegrationTest extends AbstractIntegrationSpec {
         "Enum = String"                                 | "Property<MyEnum>"   | '"YES"'                                  | unsupportedWithCause("Cannot set the value of task ':myTask' property 'input'")
         "File = T extends FileSystemLocation"           | "DirectoryProperty"  | 'layout.buildDirectory.dir("out").get()' | "out"
         "File = Provider<T extends FileSystemLocation>" | "DirectoryProperty"  | 'layout.buildDirectory.dir("out")'       | "out"
-        "File = File"                                   | "DirectoryProperty"  | 'file("$buildDir/out")'                  | "out"
-        "File = Provider<File>"                         | "DirectoryProperty"  | 'provider { file("$buildDir/out") }'     | unsupportedWithCause("Cannot get the value of task ':myTask' property 'input'")
+        "File = File"                                   | "DirectoryProperty"  | 'file("out")'                            | "out"
+        "File = Provider<File>"                         | "DirectoryProperty"  | 'provider { file("out") }'               | unsupportedWithCause("Cannot get the value of task ':myTask' property 'input'")
         "File = Object"                                 | "DirectoryProperty"  | 'new MyObject("out")'                    | unsupportedWithCause("Cannot set the value of task ':myTask' property 'input'")
     }
 
@@ -81,8 +81,8 @@ class PropertyAssignmentIntegrationTest extends AbstractIntegrationSpec {
         "Enum = String"                                 | "MyEnum"   | '"YES"'                                  | unsupportedWithDescription("Type mismatch")
         "File = T extends FileSystemLocation"           | "File"     | 'layout.buildDirectory.dir("out").get()' | unsupportedWithDescription("Type mismatch")
         "File = Provider<T extends FileSystemLocation>" | "File"     | 'layout.buildDirectory.dir("out")'       | unsupportedWithDescription("Type mismatch")
-        "File = File"                                   | "File"     | 'file("$buildDir/out")'                  | "out"
-        "File = Provider<File>"                         | "File"     | 'provider { file("$buildDir/out") }'     | unsupportedWithDescription("Type mismatch")
+        "File = File"                                   | "File"     | 'file("out")'                            | "out"
+        "File = Provider<File>"                         | "File"     | 'provider { file("out") }'               | unsupportedWithDescription("Type mismatch")
         "File = Object"                                 | "File"     | 'MyObject("out")'                        | unsupportedWithDescription("Type mismatch")
     }
 
@@ -101,8 +101,8 @@ class PropertyAssignmentIntegrationTest extends AbstractIntegrationSpec {
         "Enum = String"                                 | "Property<MyEnum>"   | '"YES"'                                  | unsupportedWithDescription("Type mismatch")
         "File = T extends FileSystemLocation"           | "DirectoryProperty"  | 'layout.buildDirectory.dir("out").get()' | "out"
         "File = Provider<T extends FileSystemLocation>" | "DirectoryProperty"  | 'layout.buildDirectory.dir("out")'       | "out"
-        "File = File"                                   | "DirectoryProperty"  | 'file("$buildDir/out")'                  | "out"
-        "File = Provider<File>"                         | "DirectoryProperty"  | 'provider { file("$buildDir/out") }'     | "out"
+        "File = File"                                   | "DirectoryProperty"  | 'file("out")'                            | "out"
+        "File = Provider<File>"                         | "DirectoryProperty"  | 'provider { file("out") }'               | "out"
         "File = Object"                                 | "DirectoryProperty"  | 'MyObject("out")'                        | unsupportedWithDescription("Type mismatch")
     }
 

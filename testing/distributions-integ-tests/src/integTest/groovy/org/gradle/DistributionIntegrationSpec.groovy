@@ -34,7 +34,7 @@ import static org.hamcrest.MatcherAssert.assertThat
 
 abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
 
-    protected static final THIRD_PARTY_LIB_COUNT = 139
+    protected static final THIRD_PARTY_LIB_COUNT = 140
 
     @Shared
     String baseVersion = GradleVersion.current().baseVersion.version
@@ -121,6 +121,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "toolchains-jvm-shared",
         "tooling-api",
         "tooling-api-provider",
+        "versioned-cache",
         "worker-main",
         "wrapper-shared",
     ]

@@ -43,14 +43,11 @@ errorprone {
 
 
 dependencies {
-    api(projects.concurrent)
-    api(projects.stdlibJavaExtensions)
-    api(projects.serialization)
-    api(projects.serviceLookup)
-    api(projects.serviceProvider)
     api(projects.baseServices)
     api(projects.buildOperations)
     api(projects.buildOption)
+    api(projects.buildProcessServices)
+    api(projects.concurrent)
     api(projects.core)
     api(projects.coreApi)
     api(projects.enterpriseLogging)
@@ -68,8 +65,12 @@ dependencies {
     api(projects.problemsApi)
     api(projects.resources)
     api(projects.security)
+    api(projects.serialization)
+    api(projects.serviceLookup)
+    api(projects.serviceProvider)
     api(projects.snapshots)
-    api(projects.buildProcessServices)
+    api(projects.stdlibJavaExtensions)
+    api(projects.versionedCache)
 
     api(libs.bouncycastlePgp)
     api(libs.groovy)

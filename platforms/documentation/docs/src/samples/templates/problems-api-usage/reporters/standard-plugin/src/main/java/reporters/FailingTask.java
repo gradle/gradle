@@ -1,6 +1,7 @@
 package reporters;
 
 import org.gradle.api.DefaultTask;
+import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.tasks.TaskAction;
 
@@ -11,11 +12,12 @@ public abstract class FailingTask extends DefaultTask {
     @Inject
     public abstract Problems getProblems();
 
+
     @TaskAction
     public void run() {
         // tag::problems-api-fail-the-build[]
         throw getProblems().getReporter().throwing(problemSpec -> {
-            problemSpec.id("sample-error", "Sample Error");
+            problemSpec.id(ProblemId.create("sample-error", "Sample Error", StandardPlugin.PROBLEM_GROUP));
             problemSpec.contextualLabel("This happened because ProblemReporter.throwing() was called");
             problemSpec.details("This is a demonstration of how to add\ndetailed information to a build failure");
             problemSpec.documentedAt("https://example.com/docs");
