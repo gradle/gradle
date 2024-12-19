@@ -56,12 +56,12 @@ class DefaultProblemsReportCreator(
 ) : ProblemReportCreator {
 
     private val report = CommonReport(executorFactory, temporaryFileProvider, internalOptions, "problems report", "problems-report", false)
-    private val taskNames: List<String> = startParameter.taskNames
+    private val taskNames = startParameter.taskNames
     private val problemCount = AtomicInteger(0)
 
     private val failureDecorator = FailureDecorator()
 
-    override fun createReportFile(reportDir: File, problemSummaries: MutableList<ProblemSummaryData>) {
+    override fun createReportFile(reportDir: File, problemSummaries: List<ProblemSummaryData>) {
         report.writeReportFileTo(reportDir.resolve("reports/problems"), object : JsonSource {
             override fun writeToJson(jsonWriter: JsonWriter) {
                 with(jsonWriter) {
@@ -110,7 +110,7 @@ class JsonProblemWriter(private val problem: Problem, private val failureDecorat
     override fun writeToJson(jsonWriter: JsonWriter) {
         with(jsonWriter) {
             jsonObject {
-                val fileLocations = problem.originLocations
+                val fileLocations = problem.originLocations + problem.contextualLocations
                 if (fileLocations.isNotEmpty()) {
                     property("locations") {
                         jsonObjectList(fileLocations) { location ->
