@@ -18,6 +18,7 @@ package org.gradle.internal.cc.impl.isolated
 
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
+import spock.lang.Issue
 
 class IsolatedProjectsParallelConfigurationIntegrationTest extends AbstractIsolatedProjectsIntegrationTest {
 
@@ -26,6 +27,9 @@ class IsolatedProjectsParallelConfigurationIntegrationTest extends AbstractIsola
 
     def setup() {
         server.start()
+    }
+
+    def withTwoWaitingProjects() {
         settingsFile """
             include(":a")
             include(":b")
@@ -46,6 +50,8 @@ class IsolatedProjectsParallelConfigurationIntegrationTest extends AbstractIsola
 
     def 'all projects are configured in parallel for #invocation'() {
         given:
+        withTwoWaitingProjects()
+
         server.expect("configure-root")
         server.expectConcurrent("configure-a", "configure-b")
 
@@ -67,10 +73,12 @@ class IsolatedProjectsParallelConfigurationIntegrationTest extends AbstractIsola
 
     def 'parallel configuration can be disabled in favor of configure-on-demand'() {
         given:
+        withTwoWaitingProjects()
+
         server.expect("configure-root")
         server.expect("configure-a")
 
-        buildFile("b/build.gradle","""
+        buildFile("b/build.gradle", """
             println "Configure :b"
         """)
 
@@ -80,6 +88,60 @@ class IsolatedProjectsParallelConfigurationIntegrationTest extends AbstractIsola
         then:
         result.assertTaskExecuted(":a:build")
         outputDoesNotContain("Configure :b")
+    }
+
+    /**
+     * This test attempts to expose thread safety issues with
+     * listener registrations, which were found (and documented as such)
+     * not to be thread-safe originally.
+     */
+    @Issue("https://github.com/gradle/gradle/issues/31537")
+    def "task-graph listeners registered in parallel are all executed"() {
+        given:
+        def numberOfSubprojects = 10
+        def numberOfListenersPerProject = 10
+        def projects = (1..numberOfSubprojects).collect { "sub$it" }
+
+        projects.each {
+            settingsFile """
+                include("$it")
+            """
+
+            buildFile "$it/build.gradle", """
+                // this blocks the worker thread, hence max-workers is based on # of projects
+                ${server.callFromBuildUsingExpression("'configure-' + project.name")}
+
+                ${numberOfListenersPerProject}.times { index ->
+                    gradle.taskGraph.whenReady {
+                        println("On taskGraph.whenReady for '$it' (\$index)")
+                    }
+                }
+            """
+        }
+
+        server.expectConcurrent(projects.collect { "configure-$it".toString() })
+
+        when:
+        // max-workers must be >= # of projects or else we run out of workers
+        isolatedProjectsRun("help", "--max-workers=${numberOfSubprojects + 1}")
+
+        then:
+        def messages = projects.collect { project ->
+            (0..numberOfListenersPerProject - 1).collect { index ->
+                "On taskGraph.whenReady for '$project' ($index)"
+            }
+        }.flatten()
+
+        messages.size() == numberOfSubprojects * numberOfListenersPerProject
+
+        def missing = messages.findAll {
+            !output.contains(it)
+        }
+
+        missing.size() == 0
+
+        where:
+        it << (1..10)
     }
 
     // TODO Test -x behavior
