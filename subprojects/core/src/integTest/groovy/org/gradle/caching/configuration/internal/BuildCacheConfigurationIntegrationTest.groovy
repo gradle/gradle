@@ -29,7 +29,7 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << """
             buildCache {
                 local {
-                    directory = '$cacheDir'
+                    directory = file('$cacheDir')
                 }
             }
         """
@@ -47,7 +47,7 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
             gradle.startParameter.buildCacheEnabled = true
             buildCache {
                 local {
-                    directory = '$cacheDir'
+                    directory = file('$cacheDir')
                 }
             }
         """
@@ -64,7 +64,7 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
             gradle.settingsEvaluated { settings ->
                 settings.buildCache {
                     local {
-                        directory = '$cacheDir'
+                        directory = file('$cacheDir')
                     }
                 }
             }
@@ -83,7 +83,7 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
             gradle.settingsEvaluated { settings ->
                 settings.buildCache {
                     local {
-                        directory = '$cacheDir'
+                        directory = file('$cacheDir')
                     }
                 }
             }
@@ -101,7 +101,7 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
             gradle.settingsEvaluated { settings ->
                 settings.buildCache {
                     local {
-                        directory = '$cacheDir'
+                        directory = file('$cacheDir')
                     }
                 }
             }
@@ -109,7 +109,7 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << """
             buildCache {
                 local {
-                    directory = "wrong"
+                    directory = file("wrong")
                 }
             }
         """
@@ -242,7 +242,7 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << """
             buildCache {
                 local {
-                    directory = '$cacheDir'
+                    directory = file('$cacheDir')
                     enabled = false
                 }
             }

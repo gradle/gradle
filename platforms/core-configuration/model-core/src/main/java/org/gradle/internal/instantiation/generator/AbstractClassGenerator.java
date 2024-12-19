@@ -81,6 +81,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -1088,7 +1089,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
                 }
             }
             for (Method setter : property.setters) {
-                if (!Modifier.isAbstract(setter.getModifiers())) {
+                if (!Modifier.isAbstract(setter.getModifiers()) && !isLazyUriProperty(setter, property)) {
                     return false;
                 }
             }
@@ -1106,6 +1107,20 @@ abstract class AbstractClassGenerator implements ClassGenerator {
                 // Read only but unrecognized type
                 return false;
             }
+        }
+
+        private boolean isLazyUriProperty(Method setter, PropertyMetadata property) {
+            MethodMetadata mainGetter = property.getMainGetter();
+            if (mainGetter == null) {
+                return false;
+            }
+            if (mainGetter.method.getReturnType().equals(Property.class)) {
+                @SuppressWarnings("unchecked")
+                TypeToken<Property<?>> typeToken = (TypeToken<Property<?>>) TypeToken.of(mainGetter.method.getGenericReturnType());
+                Class<?> nestedType = JavaReflectionUtil.extractNestedType(typeToken, Property.class, 0).getRawType();
+                return nestedType.equals(URI.class) && setter.getParameterTypes()[0].equals(String.class);
+            }
+            return false;
         }
 
         @Override

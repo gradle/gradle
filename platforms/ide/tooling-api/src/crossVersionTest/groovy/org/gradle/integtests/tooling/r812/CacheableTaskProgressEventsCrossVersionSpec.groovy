@@ -49,7 +49,7 @@ class CacheableTaskProgressEventsCrossVersionSpec extends ToolingApiSpecificatio
         settingsFile << """
             buildCache {
                 local {
-                    directory = "${TextUtil.escapeString(cacheDir.absolutePath)}"
+                    directory = file("${TextUtil.escapeString(cacheDir.absolutePath)}")
                 }
             }
         """
@@ -80,11 +80,11 @@ class CacheableTaskProgressEventsCrossVersionSpec extends ToolingApiSpecificatio
         settingsFile.text = """
             buildCache {
                 local {
-                    directory = '${localCache.absoluteFile.toURI()}'
+                    directory = file('${localCache.absoluteFile.toURI()}')
                     push = true
                 }
                 remote(DirectoryBuildCache) {
-                    directory = '${remoteCache.absoluteFile.toURI()}'
+                    directory = file('${remoteCache.absoluteFile.toURI()}')
                     push = true
                 }
             }
