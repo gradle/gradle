@@ -19,6 +19,7 @@ import com.gradle.develocity.agent.gradle.internal.test.TestDistributionConfigur
 import com.gradle.develocity.agent.gradle.test.DevelocityTestConfiguration
 import gradlebuild.basics.BuildEnvironment
 import gradlebuild.basics.FlakyTestStrategy
+import gradlebuild.basics.ImplementationCompletenessAttribute
 import gradlebuild.basics.accessors.kotlinMainSourceSet
 import gradlebuild.basics.buildRunningOnCi
 import gradlebuild.basics.flakyTestStrategy
@@ -96,6 +97,8 @@ configureCompileDefaults()
 addCompileAllTasks()
 configureSourcesVariant()
 configureTests()
+
+configureAttributes()
 
 tasks.registerCITestDistributionLifecycleTasks()
 
@@ -249,6 +252,28 @@ fun enforceKotlinCompatibility(targetVersion: Provider<Int>, useRelease: Provide
     }
 }
 
+class ImplCompletenessDisambiguationRule : AttributeDisambiguationRule<ImplementationCompletenessAttribute> {
+    override fun execute(t: MultipleCandidatesDetails<ImplementationCompletenessAttribute>) {
+//        val stubs = t.candidateValues.find { it.name == ImplementationCompletenessAttribute.STUBS.name }
+//        if (stubs != null) {
+//            t.closestMatch(stubs)
+//        }
+        t.candidateValues
+            .filter { it.name != ImplementationCompletenessAttribute.STUBS.name }
+            .forEach(t::closestMatch)
+    }
+}
+
+fun configureAttributes() {
+//    dependencies {
+//        attributesSchema {
+//            attribute(ImplementationCompletenessAttribute.attribute) {
+//                disambiguationRules.add(ImplCompletenessDisambiguationRule::class.java)
+//            }
+//        }
+//    }
+}
+
 fun configureSourcesVariant() {
     java {
         withSourcesJar()
@@ -354,6 +379,7 @@ fun Test.configureFlakyTest() {
             excludeSpockAnnotation("org.gradle.test.fixtures.Flaky")
             (options as JUnitPlatformOptions).excludeTags("org.gradle.test.fixtures.Flaky")
         }
+
         FlakyTestStrategy.ONLY -> {
             // Note there is an issue: https://github.com/spockframework/spock/issues/1288
             // JUnit Platform `includeTags` works before Spock engine, thus excludes all spock tests.

@@ -181,7 +181,7 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFact
         }
     }
 
-    private static abstract class AbstractFileVar<T extends FileSystemLocation, THIS extends FileSystemLocationProperty<T>> extends DefaultProperty<T> implements FileSystemLocationPropertyInternal<T> {
+    static abstract class AbstractFileVar<T extends FileSystemLocation, THIS extends FileSystemLocationProperty<T>> extends DefaultProperty<T> implements FileSystemLocationPropertyInternal<T> {
 
         public AbstractFileVar(PropertyHost host, Class<T> type) {
             super(host, type);
