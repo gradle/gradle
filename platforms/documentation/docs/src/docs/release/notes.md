@@ -37,6 +37,12 @@ It renders metadata!
 
 TODO: JVM Team should finish this placeholder
 
+### Error and warning reporting improvements
+
+#### Deprecation warnings full stack trace flag corrected
+
+The instructions printed under a deprecation warning now correctly indicate how to enable full stack traces for deprecation warnings.
+
 <!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. -->
 
 <!--

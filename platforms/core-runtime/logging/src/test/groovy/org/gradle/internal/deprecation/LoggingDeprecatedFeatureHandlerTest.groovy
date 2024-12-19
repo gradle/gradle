@@ -135,10 +135,10 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         and:
         events[0].message == TextUtil.toPlatformLineSeparators("""feature1 removal
 \tat some.KotlinGradleScript.foo(GradleScript.gradle.kts:31337)
-\t(Run with --stacktrace to get the full stack trace of this deprecation warning.)""")
+\t(Run with -D${LoggingDeprecatedFeatureHandler.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME}=true to print the full stack trace for this deprecation warning.)""")
         events[1].message == TextUtil.toPlatformLineSeparators("""feature1 removal
 \tat some.KotlinGradleScript.foo(GradleScript.gradle.kts:7)
-\t(Run with --stacktrace to get the full stack trace of this deprecation warning.)""")
+\t(Run with -D${LoggingDeprecatedFeatureHandler.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME}=true to print the full stack trace for this deprecation warning.)""")
 
         where:
         fakeStackTrace1 = [
