@@ -67,6 +67,7 @@ public abstract class DefaultToolchainSpec implements JavaToolchainSpecInternal 
         }
     }
 
+    // TODO Since we might need to use it on the launcher, we may have to decouple it from instantiator features
     @Inject
     public DefaultToolchainSpec() {
         getVendor().convention(getConventionVendor());
