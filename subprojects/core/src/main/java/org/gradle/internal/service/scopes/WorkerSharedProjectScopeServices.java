@@ -24,9 +24,7 @@ import org.gradle.api.internal.file.DefaultArchiveOperations;
 import org.gradle.api.internal.file.DefaultFileOperations;
 import org.gradle.api.internal.file.DefaultFilePropertyFactory;
 import org.gradle.api.internal.file.DefaultFileSystemOperations;
-import org.gradle.api.internal.file.DefaultProjectLayout;
 import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.api.internal.file.FileFactory;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FilePropertyFactory;
@@ -152,11 +150,5 @@ public class WorkerSharedProjectScopeServices implements ServiceRegistrationProv
                 taskDependencyFactory,
                 fileCollectionFactory,
                 domainObjectCollectionFactory);
-    }
-
-    @Provides
-    DefaultProjectLayout createProjectLayout(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, TaskDependencyFactory taskDependencyFactory,
-                                             FilePropertyFactory filePropertyFactory, Factory<PatternSet> patternSetFactory, PropertyHost propertyHost, FileFactory fileFactory) {
-        return new DefaultProjectLayout(projectDir, fileResolver, taskDependencyFactory, patternSetFactory, propertyHost, fileCollectionFactory, filePropertyFactory, fileFactory);
     }
 }

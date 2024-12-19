@@ -21,12 +21,13 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
     private static final String STRING_CALLABLE = 'new java.util.concurrent.Callable<String>() { String call() { return "src/resource/file.txt" } }'
 
-    def "can access the project dir and build dir"() {
+    def "can access the settings, project and build dir"() {
         buildFile """
+            println "settings dir: " + layout.settingsDirectory.asFile
             println "project dir: " + layout.projectDirectory.asFile
             def b = layout.buildDirectory
             println "build dir: " + b.get()
-            buildDir = "output"
+            layout.buildDirectory = "output"
             println "build dir 2: " + b.get()
 """
 
@@ -34,6 +35,7 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
         run()
 
         then:
+        outputContains("settings dir: " + testDirectory)
         outputContains("project dir: " + testDirectory)
         outputContains("build dir: " + testDirectory.file("build"))
         outputContains("build dir 2: " + testDirectory.file("output"))
@@ -83,7 +85,7 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
             }
 
             apply plugin: SomePlugin
-            buildDir = "output"
+            layout.buildDirectory = "output"
 """
 
         when:
@@ -94,15 +96,18 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
         outputContains("task build dir: " + testDirectory.file("output"))
     }
 
-    def "can define and resolve calculated directory relative to project and build directory"() {
+    def "can define and resolve calculated directory relative to settings, project and build directory"() {
         buildFile """
             def childDirName = "child"
-            def srcDir = layout.projectDir.dir("src").dir(providers.provider { childDirName })
+            def confDir = layout.settingsDirectory.dir("configs").dir(providers.provider { childDirName })
+            def srcDir = layout.projectDirectory.dir("src").dir(providers.provider { childDirName })
             def outputDir = layout.buildDirectory.dir(providers.provider { childDirName })
+            println "conf dir 1: " + confDir.get()
             println "src dir 1: " + srcDir.get()
             println "output dir 1: " + outputDir.get()
-            buildDir = "output/some-dir"
+            layout.buildDirectory = "output/some-dir"
             childDirName = "other-child"
+            println "conf dir 2: " + confDir.get()
             println "src dir 2: " + srcDir.get()
             println "output dir 2: " + outputDir.get()
 """
@@ -111,21 +116,26 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
         run()
 
         then:
+        outputContains("conf dir 1: " + testDirectory.file("configs/child"))
         outputContains("src dir 1: " + testDirectory.file("src/child"))
         outputContains("output dir 1: " + testDirectory.file("build/child"))
+        outputContains("conf dir 2: " + testDirectory.file("configs/other-child"))
         outputContains("src dir 2: " + testDirectory.file("src/other-child"))
         outputContains("output dir 2: " + testDirectory.file("output/some-dir/other-child"))
     }
 
-    def "can define and resolve calculated file relative to project and build directory"() {
+    def "can define and resolve calculated file relative to settings, project and build directory"() {
         buildFile """
             def childDirName = "child"
-            def srcFile = layout.projectDir.dir("src").file(providers.provider { childDirName })
+            def confFile = layout.settingsDirectory.dir("configs").file(providers.provider { childDirName })
+            def srcFile = layout.projectDirectory.dir("src").file(providers.provider { childDirName })
             def outputFile = layout.buildDirectory.file(providers.provider { childDirName })
+            println "conf file 1: " + confFile.get()
             println "src file 1: " + srcFile.get()
             println "output file 1: " + outputFile.get()
-            buildDir = "output/some-dir"
+            layout.buildDirectory = "output/some-dir"
             childDirName = "other-child"
+            println "conf file 2: " + confFile.get()
             println "src file 2: " + srcFile.get()
             println "output file 2: " + outputFile.get()
 """
@@ -134,13 +144,15 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
         run()
 
         then:
+        outputContains("conf file 1: " + testDirectory.file("configs/child"))
         outputContains("src file 1: " + testDirectory.file("src/child"))
         outputContains("output file 1: " + testDirectory.file("build/child"))
+        outputContains("conf file 2: " + testDirectory.file("configs/other-child"))
         outputContains("src file 2: " + testDirectory.file("src/other-child"))
         outputContains("output file 2: " + testDirectory.file("output/some-dir/other-child"))
     }
 
-    def "can use file() method to resolve locations created relative to the project dir and build dir"() {
+    def "can use file() method to resolve locations created relative to the settings, project and build dir"() {
         buildFile << """
             def location = $expression
             println "location: " + file(location)
@@ -154,6 +166,10 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         expression                                                             | resolvesTo
+        "layout.settingsDirectory.dir('configs')"                              | "configs"
+        "layout.settingsDirectory.dir(providers.provider { 'configs' })"       | "configs"
+        "layout.settingsDirectory.file('configs/file')"                        | "configs/file"
+        "layout.settingsDirectory.file(providers.provider { 'configs/file' })" | "configs/file"
         "layout.projectDirectory.dir('src/main/java')"                         | "src/main/java"
         "layout.projectDirectory.dir(providers.provider { 'src/main/java' })"  | "src/main/java"
         "layout.projectDirectory.file('src/main/java')"                        | "src/main/java"
@@ -164,26 +180,27 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
         "layout.buildDirectory.file(providers.provider { 'classes/main' })"    | "build/classes/main"
     }
 
-    def "can construct file collection containing locations created relative to the project dir and build dir"() {
+    def "can construct file collection containing locations created relative to the settings, project and build dir"() {
         buildFile << """
-            def l = $expression
+            def l = layout.$expression
             def c = files(l)
-            println "files 1: " + c.files
-            buildDir = 'output'
-            println "files 2: " + c.files
-"""
+            println "files: " + c.files
+        """.stripIndent()
 
         when:
         run()
 
         then:
-        outputContains("files 1: [" + testDirectory.file(resolvesTo1) + "]")
-        outputContains("files 2: [" + testDirectory.file(resolvesTo2) + "]")
+        outputContains("files: [" + testDirectory.file(resolvesTo) + "]")
 
         where:
-        expression                                   | resolvesTo1          | resolvesTo2
-        "layout.buildDirectory.dir('classes/main')"  | "build/classes/main" | "output/classes/main"
-        "layout.buildDirectory.file('exe/main.exe')" | "build/exe/main.exe" | "output/exe/main.exe"
+        expression                                     | resolvesTo
+        "settingsDirectory.dir('configs')"             | "configs"
+        "settingsDirectory.file('configs/file.txt')"   | "configs/file.txt"
+        "projectDirectory.dir('src/main')"             | "src/main"
+        "projectDirectory.file('src/main/App.java')"   | "src/main/App.java"
+        "buildDirectory.dir('classes/main')"           | "build/classes/main"
+        "buildDirectory.file('exe/main.exe')"          | "build/exe/main.exe"
     }
 
     def 'can create empty #collectionType'() {
