@@ -51,9 +51,7 @@ public abstract class BasePlugin implements Plugin<Project> {
         configureBuildConfigurationRule(project);
         configureArchiveDefaults(project, baseExtension);
         configureConfigurations(project);
-        configureAssemble((ProjectInternal) project);
     }
-
 
     @SuppressWarnings("deprecation")
     private void addConvention(Project project, BasePluginExtension baseExtension) {
@@ -94,24 +92,17 @@ public abstract class BasePlugin implements Plugin<Project> {
         configurations.maybeCreateConsumableUnlocked(Dependency.DEFAULT_CONFIGURATION)
             .setDescription("Configuration for default artifacts.");
 
-        final DefaultArtifactPublicationSet defaultArtifacts = project.getExtensions().create(
-            "defaultArtifacts", DefaultArtifactPublicationSet.class, archivesConfiguration.getArtifacts()
+        // TODO #15639: Deprecate DefaultArtifactPublicationSet and the `archives` configuration
+        project.getExtensions().create(
+            "defaultArtifacts",
+            DefaultArtifactPublicationSet.class,
+            configurations,
+            Dependency.ARCHIVES_CONFIGURATION
         );
 
-        configurations.all(configuration -> {
-            if (!configuration.equals(archivesConfiguration)) {
-                configuration.getArtifacts().configureEach(artifact -> {
-                    if (configuration.isVisible()) {
-                        defaultArtifacts.addCandidate(artifact);
-                    }
-                });
-            }
-        });
+        project.getTasks().named(ASSEMBLE_TASK_NAME, task ->
+            task.dependsOn(archivesConfiguration.getAllArtifacts().getBuildDependencies())
+        );
     }
 
-    private void configureAssemble(final ProjectInternal project) {
-        project.getTasks().named(ASSEMBLE_TASK_NAME, task -> {
-            task.dependsOn(task.getProject().getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION).getAllArtifacts().getBuildDependencies());
-        });
-    }
 }
