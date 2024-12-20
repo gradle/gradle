@@ -38,8 +38,11 @@ class DefaultFileLockContentionHandlerTest extends ConcurrentSpecification {
             return addressFactory.localBindingAddress
         }
     }
-    def handler = new DefaultFileLockContentionHandler(executorFactory, addressProvider)
-    def client = new DefaultFileLockContentionHandler(executorFactory, addressProvider)
+    String pid = UnixDomainSocketFileLockCommunicator.currentPid as String
+    def unixDomainSocketFileProvider = new UnixDomainSocketFileCommunicatorProvider()
+    def unixDomainSocketFileProvider2 = new UnixDomainSocketFileCommunicatorProvider()
+    def handler = new DefaultFileLockContentionHandler(executorFactory, addressProvider, unixDomainSocketFileProvider)
+    def client = new DefaultFileLockContentionHandler(executorFactory, addressProvider, unixDomainSocketFileProvider2)
 
     def cleanup() {
         handler?.stop()
@@ -55,8 +58,8 @@ class DefaultFileLockContentionHandlerTest extends ConcurrentSpecification {
         handler.start(10, { action1.set(true) })
         handler.start(11, { action2.set(true) })
 
-        client.maybePingOwner(port, 10, "lock 1", 50000, null)
-        client.maybePingOwner(port, 11, "lock 2", 50000, null)
+        client.maybePingOwner(pid, port, 10, "lock 1", 50000, null)
+        client.maybePingOwner(pid, port, 11, "lock 2", 50000, null)
 
         then:
         poll {
@@ -75,9 +78,9 @@ class DefaultFileLockContentionHandlerTest extends ConcurrentSpecification {
 
         client.reservePort()
         client.start(11) {}
-        client.maybePingOwner(port, 10, "lock 1", 50000) {
+        client.maybePingOwner(pid, port, 10, "lock 1", 50000, {
             signaled.set(true)
-        }
+        })
 
         then:
         poll {
@@ -90,7 +93,7 @@ class DefaultFileLockContentionHandlerTest extends ConcurrentSpecification {
             2 * create(_ as String) >> Mock(ManagedExecutor)
         }
 
-        FileLockContentionHandler handler = new DefaultFileLockContentionHandler(factory, addressProvider)
+        FileLockContentionHandler handler = new DefaultFileLockContentionHandler(factory, addressProvider, unixDomainSocketFileProvider)
 
         expect:
         handler.reservePort()
@@ -115,7 +118,7 @@ class DefaultFileLockContentionHandlerTest extends ConcurrentSpecification {
         handler.start(10, { throw new RuntimeException("Boo!") })
         handler.stop()
 
-        client.maybePingOwner(port, 10, "lock 1", 50000, null)
+        client.maybePingOwner(pid, port, 10, "lock 1", 50000, null)
 
         then:
         noExceptionThrown()
@@ -131,7 +134,7 @@ class DefaultFileLockContentionHandlerTest extends ConcurrentSpecification {
         handler.stop(10)
 
         //receive request for lock that is already closed
-        client.maybePingOwner(port, 10, "lock 1", 50000, null)
+        client.maybePingOwner(pid, port, 10, "lock 1", 50000, null)
 
         then:
         canHandleMoreRequests()
@@ -141,7 +144,7 @@ class DefaultFileLockContentionHandlerTest extends ConcurrentSpecification {
         def executed = new AtomicBoolean()
         int port = handler.reservePort();
         handler.start(15, { executed.set(true) })
-        client.maybePingOwner(port, 15, "lock", 50000, null)
+        client.maybePingOwner(pid, port, 15, "lock", 50000, null)
         poll { assert executed.get() }
     }
 
@@ -169,7 +172,7 @@ class DefaultFileLockContentionHandlerTest extends ConcurrentSpecification {
         def releaseLockActionExecutor = Mock(ManagedExecutor)
         factory.create(_ as String) >>> [lockRequestListener, releaseLockActionExecutor]
 
-        FileLockContentionHandler handler = new DefaultFileLockContentionHandler(factory, addressProvider)
+        FileLockContentionHandler handler = new DefaultFileLockContentionHandler(factory, addressProvider, unixDomainSocketFileProvider)
 
         when:
         handler.reservePort()

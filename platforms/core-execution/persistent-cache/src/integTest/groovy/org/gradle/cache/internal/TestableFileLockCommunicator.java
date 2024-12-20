@@ -17,10 +17,10 @@
 package org.gradle.cache.internal;
 
 import org.gradle.cache.internal.locklistener.FileLockCommunicator;
+import org.gradle.cache.internal.locklistener.FileLockPacket;
 import org.gradle.cache.internal.locklistener.FileLockPacketPayload;
 
 import java.io.IOException;
-import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.SocketAddress;
 import java.util.Optional;
@@ -46,13 +46,13 @@ public class TestableFileLockCommunicator implements FileLockCommunicator {
     }
 
     @Override
-    public boolean pingOwner(InetAddress address, int ownerPort, long lockId, String displayName) {
-        return delegate.pingOwner(address, ownerPort, lockId, displayName);
+    public boolean pingOwner(InetAddress address, String pid, int ownerPort, long lockId, String displayName) {
+        return delegate.pingOwner(address, pid, ownerPort, lockId, displayName);
     }
 
     @Override
-    public Optional<DatagramPacket> receive() throws IOException {
-        Optional<DatagramPacket> result = delegate.receive();
+    public Optional<FileLockPacket> receive() throws IOException {
+        Optional<FileLockPacket> result = delegate.receive();
         if (result.isPresent()) {
             totalMessages++;
         }
@@ -64,7 +64,7 @@ public class TestableFileLockCommunicator implements FileLockCommunicator {
     }
 
     @Override
-    public FileLockPacketPayload decode(DatagramPacket receivedPacket) {
+    public FileLockPacketPayload decode(FileLockPacket receivedPacket) {
         return delegate.decode(receivedPacket);
     }
 
@@ -86,6 +86,11 @@ public class TestableFileLockCommunicator implements FileLockCommunicator {
     @Override
     public int getPort() {
         return delegate.getPort();
+    }
+
+    @Override
+    public String createFileLockOwnerId(String pid, int port) {
+        return delegate.createFileLockOwnerId(pid, port);
     }
 
     public int getTotalMessages() {
