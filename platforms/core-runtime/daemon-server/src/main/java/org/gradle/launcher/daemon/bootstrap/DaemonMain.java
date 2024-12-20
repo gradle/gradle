@@ -55,6 +55,8 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import static java.util.concurrent.TimeUnit.DAYS;
+
 /**
  * The entry point for a daemon process.
  *
@@ -84,6 +86,7 @@ public class DaemonMain extends EntryPoint {
         NativeServicesMode nativeServicesMode;
         String daemonUid;
         DaemonPriority priority;
+        LogLevel logLevel;
         List<File> additionalClassPath;
 
         KryoBackedDecoder decoder = new KryoBackedDecoder(new EncodedStream.EncodedInput(System.in));
@@ -96,6 +99,7 @@ public class DaemonMain extends EntryPoint {
             nativeServicesMode = NativeServicesMode.values()[decoder.readSmallInt()];
             daemonUid = decoder.readString();
             priority = DaemonPriority.values()[decoder.readSmallInt()];
+            logLevel = LogLevel.values()[decoder.readSmallInt()];
             int argCount = decoder.readSmallInt();
             startupOpts = new ArrayList<String>(argCount);
             for (int i = 0; i < argCount; i++) {
@@ -120,7 +124,8 @@ public class DaemonMain extends EntryPoint {
         File daemonLog = daemonServices.get(DaemonLogFile.class).getFile();
 
         // Any logging prior to this point will not end up in the daemon log file.
-        initialiseLogging(loggingManager, daemonLog);
+        initialiseLogging(loggingManager, daemonLog, logLevel);
+        cleanupOldLogFiles(daemonLog);
 
         // Detach the process from the parent terminal/console
         ProcessEnvironment processEnvironment = daemonServices.get(ProcessEnvironment.class);
@@ -163,7 +168,7 @@ public class DaemonMain extends EntryPoint {
         }
     }
 
-    protected void initialiseLogging(LoggingManagerInternal loggingManager, File daemonLog) {
+    protected void initialiseLogging(LoggingManagerInternal loggingManager, File daemonLog, LogLevel logLevel) {
         // create log file
         PrintStream result;
         try {
@@ -194,11 +199,36 @@ public class DaemonMain extends EntryPoint {
         // so that logging gets its way to the daemon log:
         loggingManager.attachSystemOutAndErr();
 
-        // Making the daemon infrastructure log with DEBUG. This is only for the infrastructure!
-        // Each build request carries it's own log level and it is used during the execution of the build (see LogToClient)
-        loggingManager.setLevelInternal(LogLevel.DEBUG);
+        loggingManager.setLevelInternal(logLevel);
 
         loggingManager.start();
+    }
+
+    /**
+     * Removes all log files in the given folder
+     * older than ~2 weeks
+     *
+     * @param currentLogFile The currently used log file
+     */
+    private static void cleanupOldLogFiles(File currentLogFile) {
+        String extension = ".log";
+        File folder = currentLogFile.getParentFile();
+        File[] logFiles = folder.listFiles(f -> f.isFile() && f.getName().endsWith(extension));
+        if (logFiles == null) {
+            LOGGER.warn("Could not list log files for cleanup");
+            return;
+        }
+        long maxAge = System.currentTimeMillis() - DAYS.toMillis(14);
+        for (File logFile : logFiles) {
+            if (logFile.equals(currentLogFile) // Should never happen, but just to be safe
+                || logFile.lastModified() >= maxAge) {
+                continue;
+            }
+
+            if (!logFile.delete()) {
+                LOGGER.warn("Could not delete old log file: {}", logFile.getAbsolutePath());
+            }
+        }
     }
 
     /**
