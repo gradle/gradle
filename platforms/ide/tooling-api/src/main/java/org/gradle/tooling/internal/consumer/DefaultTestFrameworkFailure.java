@@ -19,6 +19,7 @@ package org.gradle.tooling.internal.consumer;
 import org.gradle.tooling.Failure;
 import org.gradle.tooling.TestFrameworkFailure;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 public class DefaultTestFrameworkFailure extends DefaultFailure implements TestFrameworkFailure {
@@ -26,8 +27,8 @@ public class DefaultTestFrameworkFailure extends DefaultFailure implements TestF
     private final String className;
     private final String stacktrace;
 
-    public DefaultTestFrameworkFailure(String message, String description, List<? extends Failure> causes, String className, String stacktrace) {
-        super(message, description, causes);
+    public DefaultTestFrameworkFailure(@Nullable Class<? extends Throwable> exceptionType, String message, String description, List<? extends Failure> causes, String className, String stacktrace) {
+        super(exceptionType, message, description, causes);
         this.className = className;
         this.stacktrace = stacktrace;
     }

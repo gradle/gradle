@@ -19,6 +19,7 @@ package org.gradle.tooling.internal.consumer;
 import org.gradle.tooling.Failure;
 import org.gradle.tooling.TestAssertionFailure;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 public class DefaultTestAssertionFailure extends DefaultFailure implements TestAssertionFailure {
@@ -27,8 +28,8 @@ public class DefaultTestAssertionFailure extends DefaultFailure implements TestA
     private final String stacktrace;
     private final String className;
 
-    public DefaultTestAssertionFailure(String message, String description, String expected, String actual, List<? extends Failure> causes, String className, String stacktrace) {
-        super(message, description, causes);
+    public DefaultTestAssertionFailure(@Nullable Class<? extends Throwable> exceptionType, String message, String description, String expected, String actual, List<? extends Failure> causes, String className, String stacktrace) {
+        super(exceptionType, message, description, causes);
         this.expected = expected;
         this.actual = actual;
         this.className = className;
