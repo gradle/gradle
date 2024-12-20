@@ -47,6 +47,7 @@ import org.gradle.api.internal.tasks.testing.logging.TestEventLogger;
 import org.gradle.api.internal.tasks.testing.logging.TestExceptionFormatter;
 import org.gradle.api.internal.tasks.testing.logging.TestWorkerProgressListener;
 import org.gradle.api.internal.tasks.testing.report.HtmlTestReport;
+import org.gradle.api.internal.tasks.testing.report.TestReporter;
 import org.gradle.api.internal.tasks.testing.results.StateTrackingTestResultProcessor;
 import org.gradle.api.internal.tasks.testing.results.TestListenerAdapter;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
@@ -172,6 +173,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     private final BroadcastSubscriptions<TestOutputListener> testOutputListenerSubscriptions;
     private final TestLoggingContainer testLogging;
     private final DirectoryProperty binaryResultsDirectory;
+    private TestReporter testReporter;
     private boolean ignoreFailures;
     private boolean failFast;
 
@@ -242,6 +244,10 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      * @since 4.4
      */
     protected abstract TestExecutionSpec createTestExecutionSpec();
+
+    void setTestReporter(TestReporter testReporter) {
+        this.testReporter = testReporter;
+    }
 
     // only way I know of to determine current log level
     private LogLevel determineCurrentLogLevel() {
@@ -617,11 +623,17 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
             if (!html.getRequired().get()) {
                 getLogger().info("Test report disabled, omitting generation of the HTML test report.");
             } else {
-                HtmlTestReport htmlReport = new HtmlTestReport(getBuildOperationRunner(), getBuildOperationExecutor());
-                htmlReport.generateReport(testResultsProvider, html.getOutputLocation().getAsFile().getOrNull());
+                File htmlReportDestinationDir = html.getOutputLocation().getAsFile().getOrNull();
+                if (testReporter != null) {
+                    testReporter.generateReport(testResultsProvider, htmlReportDestinationDir);
+                } else {
+                    HtmlTestReport htmlReport = new HtmlTestReport(getBuildOperationRunner(), getBuildOperationExecutor());
+                    htmlReport.generateReport(testResultsProvider, htmlReportDestinationDir);
+                }
             }
         } finally {
             CompositeStoppable.stoppable(testResultsProvider).stop();
+            testReporter = null;
         }
     }
 

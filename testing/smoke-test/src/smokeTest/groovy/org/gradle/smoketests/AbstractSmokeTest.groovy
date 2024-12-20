@@ -179,6 +179,9 @@ abstract class AbstractSmokeTest extends Specification {
         // https://plugins.gradle.org/plugin/org.jenkins-ci.jpi
         static jenkinsJpi = Versions.of("0.50.0")
 
+        // https://github.com/cashapp/paparazzi/releases/tag/1.3.5
+        static paparazzi = "1.3.5"
+
         // https://mvnrepository.com/artifact/com.guardsquare/proguard-gradle
         static proguardGradle = "7.5.0"
 

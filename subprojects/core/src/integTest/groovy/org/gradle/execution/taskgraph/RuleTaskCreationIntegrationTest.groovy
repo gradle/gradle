@@ -18,12 +18,11 @@ package org.gradle.execution.taskgraph
 
 import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.StableConfigurationCacheDeprecations
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.model.internal.core.ModelPath
 
 @UnsupportedWithConfigurationCache(because = "software model")
-class RuleTaskCreationIntegrationTest extends AbstractIntegrationSpec implements WithRuleBasedTasks, StableConfigurationCacheDeprecations {
+class RuleTaskCreationIntegrationTest extends AbstractIntegrationSpec implements WithRuleBasedTasks {
     def setup() {
         buildFile << ruleBasedTasks()
     }
@@ -614,7 +613,6 @@ apply type: MyPlugin
 """
 
         when:
-        expectTaskGetProjectDeprecations()
         succeeds("model")
 
         then:

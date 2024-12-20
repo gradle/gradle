@@ -17,9 +17,8 @@
 package org.gradle.api.reporting.dependents
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.StableConfigurationCacheDeprecations
 
-class DependentComponentsReportIntegrationTest extends AbstractIntegrationSpec implements StableConfigurationCacheDeprecations {
+class DependentComponentsReportIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         settingsFile << "rootProject.name = 'test'"
@@ -42,7 +41,6 @@ class DependentComponentsReportIntegrationTest extends AbstractIntegrationSpec i
         buildFile
 
         when:
-        expectTaskGetProjectDeprecations()
         run "dependentComponents"
 
         then:

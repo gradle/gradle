@@ -95,6 +95,15 @@ Zinc has been updated to https://github.com/sbt/zinc/releases/tag/v1.10.4[1.10.4
 To determine the location of the Mac OS X SDK for Swift, Gradle now passes the `--sdk macosx` arguments to `xcrun`.
 This is necessary because the SDK could be discovered inconsistently without this argument across different environments.
 
+==== Source level deprecation of TaskContainer.create methods
+
+Eager task creation methods on link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html[the `TaskContainer` interface] have been marked `@Deprecated` and will generate compiler and IDE warnings when used in build scripts or plugin code.
+There is not yet a Gradle deprecation warning emitted for their use.
+
+However, if the build is configured to fail on warnings during Kotlin script or plugin code compilation, this behavior may cause the build to fail.
+
+A standard Gradle deprecation warning will be printed upon use when these methods are fully deprecated in a future version.
+
 === Deprecations
 
 [[deprecated_ambiguous_transformation_chains]]
@@ -164,7 +173,7 @@ For instance, this wil *not* be allowed:
 [[task_project]]
 ==== Calling `Task.getProject()` from a task action
 
-Calling link:{javadocPath}/org/gradle/api/Task.html#getProject--[Task.getProject()] from a task action at execution time is now deprecated and will be made an error in Gradle 9.0.
+Calling link:{javadocPath}/org/gradle/api/Task.html#getProject--[Task.getProject()] from a task action at execution time is now deprecated and will be made an error in Gradle 10.0.
 This method can still be used during configuration time.
 
 The deprecation is only issued if the configuration cache is **not** enabled.
@@ -196,8 +205,17 @@ Sometimes, classes declare methods with the same name, and these may even have s
 
 These generated methods are now deprecated and will be removed in Gradle 10.0, and both `propertyName value` and `propertyName(value)` will stop working unless the explicit method `propertyName` is defined.
 Use explicit assignment `propertyName = value` instead.
-While explicit methods can be used with space, like `propertyName value`, consider using the `propertyName(value)` syntax for clarity.
+
+For explicit methods, consider using the `propertyName(value)` syntax instead of `propertyName value` for clarity.
 For example, `jvmArgs "some", "arg"` can be replaced with `jvmArgs("some", "arg")` or with `jvmArgs = ["some", "arg"]` for `Test` tasks.
+
+If you have a big project, to replace occurrences of space-assignment syntax you can use, for example, the following `sed` command:
+[source]
+---
+find . -name 'build.gradle' -type f -exec sed -i.bak -E 's/([^A-Za-z]|^)(replaceme)[ \t]*([^= \t{])/\1\2 = \3/g' {} +
+---
+
+You should replace `replaceme` with one or more property names you want to replace, separated by `|`, e.g. `(url|group)`.
 
 [[dependency-insight-report-task-get-dependency-spec]]
 ==== DependencyInsightReportTask.getDependencySpec

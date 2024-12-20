@@ -31,7 +31,7 @@ Gradle provides multiple mechanisms for configuring the behavior of Gradle itsel
 |Flags that configure build behavior and Gradle features
 |`--rerun`
 
-|<<sec:project_specific_properties,Project properties>>
+|<<sec:project_properties,Project properties>>
 |Properties specific to your Gradle project
 |`TestFilter::isFailOnNoMatchingTests=false`
 
@@ -130,7 +130,7 @@ You can place the `gradle.properties` file in the root directory of your project
 
 When resolving properties, Gradle first looks in the project-level `gradle.properties` file, then in the user-level `gradle.properties` file located in `GRADLE_USER_HOME`, and finally in the `gradle.properties` file located in `GRADLE_HOME`, with project-level properties taking precedence over user-level and installation-level properties.
 
-[[sec:project_specific_properties]]
+[[sec:project_properties]]
 == Project properties
 
 Project properties are specific to your Gradle project, they can be used to customize your build.
