@@ -50,9 +50,7 @@ class InjectedProblemsTransformerIntegrationTest extends AbstractIntegrationSpec
                 protected abstract Problems getProblems();
 
                 public void apply(Project project) {
-                    getProblems().getReporter().report(builder ->
-                        builder.id(ProblemId.create("type", "label", ProblemGroup.create("generic", "Generic")))
-                    );
+                    getProblems().getReporter().report(ProblemId.create("type", "label", ProblemGroup.create("generic", "Generic")), builder -> {});
                     project.getTasks().register("reportProblem", t -> {
                         t.doLast(t2 -> {
 

@@ -36,8 +36,7 @@ class DevelocityPluginEndOfBuildCallbackIntegrationTest extends AbstractIntegrat
         ${ProblemGroup.name} problemGroup = ${ProblemGroup.name}.create("generic", "group label");
         ${ProblemId.name} problemId = ${ProblemId.name}.create("type", "label", problemGroup)
             ${getProblemReportingScript """
-                problems.getReporter().throwing(new RuntimeException('failed')) {
-                    it.id(problemId)
+                problems.getReporter().throwing(new RuntimeException('failed'), problemId) {
             }"""}
 
             task $succeedingTaskName

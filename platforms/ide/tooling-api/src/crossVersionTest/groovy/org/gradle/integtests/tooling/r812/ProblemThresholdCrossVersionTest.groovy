@@ -230,7 +230,7 @@ class ProblemThresholdCrossVersionTest extends ToolingApiSpecification {
     String getProblemReportingBody(int threshold, String category = "testcategory", String label = "label") {
         """
            ($threshold).times {
-                 getProblems().${ProblemsApiGroovyScriptUtils.report(targetVersion)} {
+                 getProblems().${ProblemsApiGroovyScriptUtils.report(targetVersion, category, label)} {
                     it.${ProblemsApiGroovyScriptUtils.id(targetVersion, category, label)}
                       .details('Wrong API usage, will not show up anywhere')
                  }

@@ -82,8 +82,13 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
                 break;
         }
 
-        Problem reportedProblem = problemReporter.create(spec -> buildProblem(diagnostic, spec));
+        Problem reportedProblem = problemReporter.create(id(diagnostic), spec -> buildProblem(diagnostic, spec));
         problemsReported.add(reportedProblem);
+    }
+
+    private static ProblemId id(Diagnostic<? extends JavaFileObject> diagnostic) {
+        String idName = diagnostic.getCode().replace('.', '-');
+        return ProblemId.create(idName, mapKindToDisplayName(diagnostic.getKind()), GradleCoreProblemGroup.compilation().java());
     }
 
     /**
@@ -156,18 +161,12 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
     void buildProblem(Diagnostic<? extends JavaFileObject> diagnostic, ProblemSpec spec) {
         Severity severity = mapKindToSeverity(diagnostic.getKind());
         spec.severity(severity);
-        addId(spec, diagnostic);
         addFormattedMessage(spec, diagnostic);
         addDetails(spec, diagnostic);
         addLocations(spec, diagnostic);
         if (severity == Severity.ERROR) {
             spec.solution(CompilationFailedException.RESOLUTION_MESSAGE);
         }
-    }
-
-    private static void addId(ProblemSpec spec, Diagnostic<? extends JavaFileObject> diagnostic) {
-        String idName = diagnostic.getCode().replace('.', '-');
-        spec.id(ProblemId.create(idName, mapKindToDisplayName(diagnostic.getKind()), GradleCoreProblemGroup.compilation().java()));
     }
 
     private void addFormattedMessage(ProblemSpec spec, Diagnostic<? extends JavaFileObject> diagnostic) {

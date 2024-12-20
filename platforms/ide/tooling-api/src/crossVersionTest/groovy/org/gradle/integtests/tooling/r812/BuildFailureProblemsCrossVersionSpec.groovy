@@ -138,7 +138,7 @@ class BuildFailureProblemsCrossVersionSpec extends ToolingApiSpecification {
                 @Override
                 public void execute() {
                     Exception wrappedException = new Exception("Wrapped cause");
-                     getProblems().getReporter().throwing(${targetVersion >= GradleVersion.version('8.13') ? 'new RuntimeException("Exception message", wrappedException), ' : ''}problem -> problem
+                     getProblems().getReporter().throwing(${targetVersion >= GradleVersion.version('8.13') ? 'new RuntimeException("Exception message", wrappedException), ' + ProblemsApiGroovyScriptUtils.createIdExpression() + ', ' : ''}problem -> problem
                             .${ProblemsApiGroovyScriptUtils.id(targetVersion)}
                             .stackLocation()
                             ${targetVersion >= GradleVersion.version('8.13') ? '' : '.withException(new RuntimeException("Exception message", wrappedException))'}

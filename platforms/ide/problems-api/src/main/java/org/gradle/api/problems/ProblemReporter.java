@@ -33,21 +33,23 @@ public interface ProblemReporter {
      * Creates a new problem without reporting it immediately.
      * The created problem can be later reported with {@link #report(Problem)}.
      *
+     * @param problemId The problem id
      * @param action The problem configuration.
      * @return The new problem.
      * @since 8.13
      */
-    Problem create(Action<? super ProblemSpec> action);
+    Problem create(ProblemId problemId, Action<? super ProblemSpec> action);
 
     /**
      * Configures and reports a new problem.
      * <p>
      * The spec must specify the problem label and the category. Any additional configuration is optional.
      *
+     * @param problemId the problem id
      * @param spec the problem configuration
      * @since 8.13
      */
-    void report(Action<? super ProblemSpec> spec);
+    void report(ProblemId problemId, Action<? super ProblemSpec> spec);
 
     /**
      * Reports the target problem.
@@ -72,10 +74,13 @@ public interface ProblemReporter {
      * <p>
      * The spec must specify the exception, the problem label, and the category. Any additional configuration is optional.
      *
+     * @param exception the exception to throw after reporting the problems
+     * @param problemId the problem id
+     * @param spec the problem configuration
      * @return never returns by throwing the exception, but using {@code throw} statement at the call site is encouraged to indicate the intent and benefit from local control flow.
      * @since 8.13
      */
-    RuntimeException throwing(Throwable exception, Action<? super ProblemSpec> spec);
+    RuntimeException throwing(Throwable exception, ProblemId problemId, Action<? super ProblemSpec> spec);
 
     /**
      * Configures a new problem, reports it, and uses it to throw a new exception.
@@ -84,6 +89,8 @@ public interface ProblemReporter {
      * <p>
      * The spec must specify the exception, the problem label, and the category. Any additional configuration is optional.
      *
+     * @param exception the exception to throw after reporting the problems
+     * @param problem the problem to report
      * @return never returns by throwing the exception, but using {@code throw} statement at the call site is encouraged to indicate the intent and benefit from local control flow.
      * @since 8.13
      */
