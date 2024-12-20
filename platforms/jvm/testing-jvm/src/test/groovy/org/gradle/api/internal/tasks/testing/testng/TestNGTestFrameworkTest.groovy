@@ -22,7 +22,7 @@ import org.gradle.api.tasks.testing.Test
 import org.gradle.api.tasks.testing.testng.TestNGOptions
 import org.gradle.internal.actor.ActorFactory
 import org.gradle.internal.id.IdGenerator
-import org.gradle.internal.time.Clock
+import org.gradle.internal.time.FixedClock
 import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.util.TestUtil
 import spock.lang.Shared
@@ -42,7 +42,7 @@ public class TestNGTestFrameworkTest extends Specification {
     void "creates test class processor"() {
         when:
         def framework = createFramework()
-        def processor = framework.getProcessorFactory().create(Mock(IdGenerator), Mock(ActorFactory), Mock(Clock))
+        def processor = framework.getProcessorFactory().create(Mock(IdGenerator), Mock(ActorFactory), FixedClock.create())
 
         then:
         processor instanceof TestNGTestClassProcessor
