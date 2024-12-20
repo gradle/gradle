@@ -533,7 +533,6 @@ The following types/formats are supported:
         '''
 
         then:
-        expectTaskGetProjectDeprecations()
         fails 'model'
 
         and:
@@ -549,7 +548,6 @@ The following types/formats are supported:
         '''
 
         then:
-        expectTaskGetProjectDeprecations()
         fails 'model'
 
         and:

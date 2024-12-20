@@ -731,7 +731,7 @@ Sets a <<build_environment.adoc#sec:gradle_system_properties,system property>> o
 Specifies an <<init_scripts.adoc#init_scripts,initialization script>>.
 
 `-P`, `--project-prop`::
-Sets a <<build_environment.adoc#sec:project_specific_properties,project property>> of the root project, for example `-Pmyprop=myvalue`.
+Sets a <<build_environment.adoc#sec:project_properties,project property>> of the root project, for example `-Pmyprop=myvalue`.
 
 `-Dorg.gradle.jvmargs`::
 A <<build_environment.adoc#sec:gradle_configuration_properties,Gradle property>> that sets JVM arguments.
@@ -793,4 +793,4 @@ Full details on using these options are documented in the <<gradle_wrapper.adoc#
 Continuous Build allows you to automatically re-execute the requested tasks when file inputs change.
 You can execute the build in this mode using the `-t` or `--continuous` command-line option.
 
-Learn more in <<continuous_builds.adoc#continuous_builds>> Continuous Builds.
+Learn more in <<continuous_builds.adoc#continuous_builds,Continuous Builds>>.

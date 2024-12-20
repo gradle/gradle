@@ -23,6 +23,7 @@ import org.gradle.api.reporting.components.internal.ComponentReportRenderer;
 import org.gradle.api.reporting.components.internal.TypeAwareBinaryRenderer;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.diagnostics.internal.ProjectDetails;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.language.base.ProjectSourceSet;
@@ -68,6 +69,10 @@ public abstract class ComponentReport extends DefaultTask {
 
     @TaskAction
     public void report() {
+        DeprecationLogger.whileDisabled(this::doReport);
+    }
+
+    private void doReport() {
         ProjectInternal project = (ProjectInternal) getProject();
         project.prepareForRuleBasedPlugins();
 

@@ -43,7 +43,7 @@ Gradle supports various ways to declare *versions and ranges*:
 
 |Maven-style range
 |`[1.0,)`, `[1.1, 2.0)`, `(1.2, 1.5]`
-|`[` `]` indicates inclusive bounds; `(` `)` indicates exclusive bounds.
+|`[` `]` indicates inclusive bounds; `(` `)` indicates exclusive bounds. See <<sec:maven-style-range,below to learn more>>.
 
 When the upper or lower bound is missing, the range has no upper or lower bound.
 
@@ -63,6 +63,16 @@ Declaring a version as `+`, without any prefix, will include any version.
 |`1.0-SNAPSHOT`, `1.4.9-beta1-SNAPSHOT`
 |Indicates a snapshot version.
 |===
+
+[[sec:maven-style-range]]
+=== Maven-style range
+
+There are a number of options to indicate bounds in the Maven-style:
+
+- `[` and `]` indicate an inclusive bound -> `[1.1, 2.0]`
+- `(` and `)` indicate an exclusive bound -> `(1.1, 2.0)` or `(1.2, 1.5]` or `[1.1, 2.0)`
+- `]` can be used instead of `(` for an exclusive lower bound -> `]1.2, 1.5]` instead of `(1.2, 1.5]`
+- `[` can be used instead of `)` for exclusive upper bound -> `[1.1, 2.0[` instead of `[1.1, 2.0)`
 
 [[sec:version-ordering]]
 == Understanding version ordering
