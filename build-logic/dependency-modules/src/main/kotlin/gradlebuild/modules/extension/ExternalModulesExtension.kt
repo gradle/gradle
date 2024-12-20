@@ -24,7 +24,7 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val groovyGroup = if (isBundleGroovy4) "org.apache.groovy" else "org.codehaus.groovy"
 
     val configurationCacheReportVersion = "1.23"
-    val gradleIdeStarterVersion = "0.3"
+    val gradleIdeStarterVersion = "0.5"
     val kotlinVersion = "2.0.21"
 
     fun futureKotlin(module: String) = "org.jetbrains.kotlin:kotlin-$module:$kotlinVersion"
