@@ -1076,6 +1076,13 @@ public class AsmBackedClassGeneratorTest {
     }
 
     @Test
+    public void mixedInClosureOverloadForActionPreservesDeprecation() throws Exception {
+        BeanWithDeprecatedMethod bean = newInstance(BeanWithDeprecatedMethod.class);
+        assertNull(bean.getClass().getMethod("doStuff", Closure.class).getAnnotation(Deprecated.class));
+        assertNotNull(bean.getClass().getMethod("doDeprecatedStuff", Closure.class).getAnnotation(Deprecated.class));
+    }
+
+    @Test
     public void doesNotOverrideExistingClosureOverload() throws Exception {
         BeanWithDslMethods bean = newInstance(BeanWithDslMethods.class);
         bean.prop = "value";
@@ -1239,6 +1246,13 @@ public class AsmBackedClassGeneratorTest {
         @Override
         public void doStuff(Action<String> action) {
             action.execute("overloaded");
+        }
+    }
+
+    public static class BeanWithDeprecatedMethod extends Bean {
+        @Deprecated
+        public void doDeprecatedStuff(Action<String> action) {
+            action.execute("deprecated");
         }
     }
 
