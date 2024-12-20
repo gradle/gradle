@@ -91,8 +91,6 @@ public interface ListenerManager {
      * of the listener as they need.  The client code must provide some way for its users to register listeners on the
      * specialized broadcasters.
      *
-     * <p>The returned value is not thread-safe.</p>
-     *
      * @param listenerClass The type of listener for which to create a broadcaster.
      * @return A broadcaster that forwards method calls to all listeners assigned to it, or of the same type that have
      * been (or will be) registered with this manager.
