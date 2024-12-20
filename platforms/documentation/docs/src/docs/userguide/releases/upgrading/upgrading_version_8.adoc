@@ -57,6 +57,15 @@ Zinc has been updated to https://github.com/sbt/zinc/releases/tag/v1.10.4[1.10.4
 To determine the location of the Mac OS X SDK for Swift, Gradle now passes the `--sdk macosx` arguments to `xcrun`.
 This is necessary because the SDK could be discovered inconsistently without this argument across different environments.
 
+==== Source level deprecation of TaskContainer.create methods
+
+Eager task creation methods on link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html[the `TaskContainer` interface] have been marked `@Deprecated` and will generate compiler and IDE warnings when used in build scripts or plugin code.
+There is not yet a Gradle deprecation warning emitted for their use.
+
+However, if the build is configured to fail on warnings during Kotlin script or plugin code compilation, this behavior may cause the build to fail.
+
+A standard Gradle deprecation warning will be printed upon use when these methods are fully deprecated in a future version.
+
 === Deprecations
 
 [[deprecated_ambiguous_transformation_chains]]
