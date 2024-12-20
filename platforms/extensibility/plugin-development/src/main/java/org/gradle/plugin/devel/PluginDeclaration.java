@@ -16,7 +16,6 @@
 
 package org.gradle.plugin.devel;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
@@ -121,7 +120,6 @@ public abstract class PluginDeclaration implements Named {
      *
      * @since 7.6
      */
-    @Incubating
     public abstract SetProperty<String> getTags();
 
 }
