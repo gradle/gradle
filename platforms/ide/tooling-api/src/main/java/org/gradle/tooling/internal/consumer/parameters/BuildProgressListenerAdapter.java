@@ -377,6 +377,8 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
             buildPhaseListeners.getSource().statusChanged(event);
         } else if (event instanceof ProblemEvent) {
             problemListeners.getSource().statusChanged(event);
+        } else if (event instanceof FileDownloadProgressEvent || event instanceof DefaultStatusEvent) {
+            fileDownloadListeners.getSource().statusChanged(event);
         } else {
             // Everything else treat as a generic operation
             buildOperationProgressListeners.getSource().statusChanged(event);

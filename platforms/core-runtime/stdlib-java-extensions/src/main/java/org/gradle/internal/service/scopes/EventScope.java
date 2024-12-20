@@ -37,5 +37,9 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 @Inherited
 public @interface EventScope {
-    Class<? extends Scope> value();
+    /**
+     * One or more scopes in which the service is declared,
+     * from the longest lifecycle to the shortest.
+     */
+    Class<? extends Scope>[] value();
 }
