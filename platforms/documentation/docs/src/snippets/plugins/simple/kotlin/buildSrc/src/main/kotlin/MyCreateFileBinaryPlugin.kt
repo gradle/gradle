@@ -12,10 +12,10 @@ abstract class CreateFileTask : DefaultTask() {
     abstract val fileText: Property<String>
 
     @Input
-    val fileName = project.rootDir.toString() + "/myfile.txt"
+    val filePath = project.layout.settingsDirectory.file("myfile.txt").asFile.path
 
     @OutputFile
-    val myFile: File = File(fileName)
+    val myFile: File = File(filePath)
 
     @TaskAction
     fun action() {

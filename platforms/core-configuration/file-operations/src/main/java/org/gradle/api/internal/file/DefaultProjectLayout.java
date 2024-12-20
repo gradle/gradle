@@ -37,6 +37,8 @@ import org.gradle.internal.Factory;
 import java.io.File;
 
 public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
+
+    private final Directory settingsDir;
     private final Directory projectDir;
     private final DirectoryProperty buildDir;
     private final FileResolver fileResolver;
@@ -46,13 +48,24 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
     private final FileCollectionFactory fileCollectionFactory;
     private final FileFactory fileFactory;
 
-    public DefaultProjectLayout(File projectDir, FileResolver fileResolver, TaskDependencyFactory taskDependencyFactory, Factory<PatternSet> patternSetFactory, PropertyHost propertyHost, FileCollectionFactory fileCollectionFactory, FilePropertyFactory filePropertyFactory, FileFactory fileFactory) {
+    public DefaultProjectLayout(
+        File settingsDir,
+        File projectDir,
+        FileResolver fileResolver,
+        TaskDependencyFactory taskDependencyFactory,
+        Factory<PatternSet> patternSetFactory,
+        PropertyHost propertyHost,
+        FileCollectionFactory fileCollectionFactory,
+        FilePropertyFactory filePropertyFactory,
+        FileFactory fileFactory
+    ) {
         this.fileResolver = fileResolver;
         this.taskDependencyFactory = taskDependencyFactory;
         this.patternSetFactory = patternSetFactory;
         this.propertyHost = propertyHost;
         this.fileCollectionFactory = fileCollectionFactory;
         this.fileFactory = fileFactory;
+        this.settingsDir = fileFactory.dir(settingsDir);
         this.projectDir = fileFactory.dir(projectDir);
         this.buildDir = filePropertyFactory.newDirectoryProperty().convention(fileFactory.dir(fileResolver.resolve(Project.DEFAULT_BUILD_DIR_NAME)));
     }
@@ -60,6 +73,11 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
     @Override
     public Directory getProjectDirectory() {
         return projectDir;
+    }
+
+    @Override
+    public Directory getSettingsDirectory() {
+        return settingsDir;
     }
 
     @Override

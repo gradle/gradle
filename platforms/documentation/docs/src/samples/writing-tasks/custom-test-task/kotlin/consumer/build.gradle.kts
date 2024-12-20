@@ -18,6 +18,6 @@ application {
 }
 tasks {
     "run"(JavaExec::class) {
-        args(gradle.gradleHomeDir!!.absolutePath, gradle.parent!!.rootProject.rootDir.absolutePath)
+        args(gradle.gradleHomeDir!!.absolutePath, gradle.parent!!.rootProject.layout.projectDirectory.asFile.absolutePath)
     }
 }

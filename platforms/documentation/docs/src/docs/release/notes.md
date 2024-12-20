@@ -75,7 +75,13 @@ Example:
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
+<a name="project-layout"></a>
+### Project Layout improvement
 
+The [`ProjectLayout`](org/gradle/api/file/ProjectLayout.html) class is used to access various directories and files within a project. 
+In this version of Gradle it gets the ability to also access the settings directory of the build (where the settings file is located).
+While this is a non-project specific location, there are uses cases where projects need to be aware of it and resolve file paths relative to it.
+See [`ProjectLayout.getSettingsDirectory()`](org/gradle/api/file/ProjectLayout.html#getSettingsDirectory()).
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
