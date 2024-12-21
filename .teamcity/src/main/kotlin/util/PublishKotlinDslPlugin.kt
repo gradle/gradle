@@ -47,7 +47,7 @@ object PublishKotlinDslPlugin : BuildType({
     steps {
         gradleWrapper {
             name = "Publish Kotlin DSL Plugin"
-            tasks = "clean :kotlin-dsl-plugins:publishPlugins --no-configuration-cache"
+            tasks = "clean :kotlin-dsl-plugins:publishPlugins"
         }
     }
 })
