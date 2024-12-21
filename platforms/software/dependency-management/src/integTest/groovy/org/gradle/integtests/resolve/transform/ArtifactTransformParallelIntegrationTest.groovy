@@ -76,6 +76,11 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
 
                     void transform(TransformOutputs outputs) {
                         def input = inputArtifact.get().asFile
+                        def timestampFormatter = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
+                        def currentTime = java.time.LocalDateTime.now().format(timestampFormatter)
+
+                        println "[" + currentTime + "] Running transform for " + input.name
+
                         ${server.callFromBuildUsingExpression("input.name")}
                         if (input.name.startsWith("bad")) {
                             throw new RuntimeException("Transform Failure: " + input.name)
