@@ -56,11 +56,9 @@ fun Project.currentGitBranchViaFileSystemQuery(): Provider<String> = getBuildEnv
 fun Project.currentGitCommitViaFileSystemQuery(): Provider<String> = getBuildEnvironmentExtensionOrNull()?.gitCommitId ?: objects.property(String::class.java)
 
 
-// pre-test/master/queue/alice/feature -> master
-// pre-test/release/current/bob/bugfix -> release
 // gh-readonly-queue/master/pr-1234-5678abcdef -> master
 fun toMergeQueueBaseBranch(actualBranch: String): String = when {
-    actualBranch.startsWith("pre-test/") || actualBranch.startsWith("gh-readonly-queue/") -> actualBranch.substringAfter("/").substringBefore("/")
+    actualBranch.startsWith("gh-readonly-queue/") -> actualBranch.substringAfter("/").substringBefore("/")
     else -> actualBranch
 }
 

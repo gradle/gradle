@@ -206,7 +206,6 @@ class PerformanceTestPlugin : Plugin<Project> {
                 }
             }
             channelPatterns.add(prefix.zip(logicalBranch) { prefixString, branch -> "$prefixString-$branch" })
-            channelPatterns.add(prefix.zip(logicalBranch) { prefixString, branch -> "$prefixString-pre-test/$branch/%" })
             channelPatterns.add(prefix.zip(logicalBranch) { prefixString, branch -> "$prefixString-gh-readonly-queue/$branch/%" })
             commitId = buildCommitId
             projectName = project.name
