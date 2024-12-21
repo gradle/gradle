@@ -71,6 +71,11 @@ dependencies {
 
     testImplementation(libs.junit)
 
+    testImplementation(libs.mockitoKotlin)
+    testImplementation(libs.kotlinReflect)
+    testImplementation(libs.mockitoKotlin2)
+    testImplementation(libs.mockitoCore)
+
     integTestImplementation(projects.internalTesting)
     integTestImplementation(testFixtures(projects.logging))
     integTestDistributionRuntimeOnly(projects.distributionsFull)
