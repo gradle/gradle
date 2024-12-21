@@ -24,6 +24,7 @@ import gradlebuild.binarycompatibility.CleanAcceptedApiChanges
 import gradlebuild.binarycompatibility.transforms.ExplodeZipAndFindJars
 import gradlebuild.binarycompatibility.transforms.FindGradleClasspath
 import gradlebuild.binarycompatibility.transforms.FindGradleJars
+import gradlebuild.identity.provider.LatestNightlyVersionValueSource
 
 plugins {
     id("gradlebuild.module-identity")
@@ -179,7 +180,8 @@ def checkBinaryCompatibility = tasks.register("checkBinaryCompatibility", gradle
         mainApiChangesJsonFile.asFile,
         project.isolated.rootProject.projectDirectory,
         currentUpgradedPropertiesFile.get().asFile,
-        baselineUpgradedPropertiesFile.get().asFile
+        baselineUpgradedPropertiesFile.get().asFile,
+        compatibilityBaselineVersion
     )
 }
 tasks.named("check").configure { dependsOn(checkBinaryCompatibility) }

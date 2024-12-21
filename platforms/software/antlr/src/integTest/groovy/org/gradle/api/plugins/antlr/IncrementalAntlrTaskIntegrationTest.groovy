@@ -104,7 +104,7 @@ class IncrementalAntlrTaskIntegrationTest extends AbstractAntlrIntegrationTest {
         buildFile << """
             project(":grammar-builder") {
                 generateGrammarSource {
-                    arguments << '-dfa'
+                    arguments.add('-dfa')
                 }
             }
         """

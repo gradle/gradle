@@ -31,6 +31,7 @@ import org.gradle.api.java.archives.Manifest;
 import org.gradle.api.java.archives.internal.CustomManifestInternalWrapper;
 import org.gradle.api.java.archives.internal.DefaultManifest;
 import org.gradle.api.java.archives.internal.ManifestInternal;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.bundling.Zip;
@@ -40,6 +41,7 @@ import org.gradle.internal.serialization.Cached;
 import org.gradle.util.internal.ConfigureUtil;
 import org.gradle.work.DisableCachingByDefault;
 
+import javax.annotation.Nonnull;
 import java.nio.charset.Charset;
 
 import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
@@ -57,7 +59,7 @@ public abstract class Jar extends Zip {
 
     public Jar() {
         getArchiveExtension().set(DEFAULT_EXTENSION);
-        setMetadataCharset("UTF-8");
+        getMetadataCharset().convention("UTF-8");
 
         manifest = new DefaultManifest(getFileResolver());
         // Add these as separate specs, so they are not affected by the changes to the main spec
@@ -109,23 +111,8 @@ public abstract class Jar extends Zip {
      * @since 2.14
      */
     @Override
-    @ToBeReplacedByLazyProperty
-    public String getMetadataCharset() {
-        return super.getMetadataCharset();
-    }
-
-    /**
-     * The character set used to encode JAR metadata like file names.
-     * Defaults to UTF-8.
-     * You can change this property but it is not recommended as JVMs expect JAR metadata to be encoded using UTF-8
-     *
-     * @param metadataCharset the character set used to encode JAR metadata like file names
-     * @since 2.14
-     */
-    @Override
-    public void setMetadataCharset(String metadataCharset) {
-        super.setMetadataCharset(metadataCharset);
-    }
+    @Nonnull
+    public abstract Property<String> getMetadataCharset();
 
     /**
      * The character set used to encode the manifest content.

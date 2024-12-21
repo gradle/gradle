@@ -18,6 +18,7 @@ Class <org.gradle.api.tasks.compile.GroovyCompile> extends/implements org.gradle
 Class <org.gradle.api.tasks.compile.JavaCompile> extends/implements org.gradle.api.internal.tasks.compile.HasCompileOptions that is Gradle Internal API in (JavaCompile.java:0)
 Class <org.gradle.api.tasks.diagnostics.AbstractReportTask> extends/implements org.gradle.api.internal.ConventionTask that is Gradle Internal API in (AbstractReportTask.java:0)
 Class <org.gradle.api.tasks.diagnostics.ConventionReportTask> extends/implements org.gradle.api.internal.ConventionTask that is Gradle Internal API in (ConventionReportTask.java:0)
+Class <org.gradle.api.tasks.diagnostics.ProjectBasedReportTask> extends/implements org.gradle.api.internal.ConventionTask that is Gradle Internal API in (ProjectBasedReportTask.java:0)
 Class <org.gradle.api.tasks.testing.AbstractTestTask> extends/implements org.gradle.api.internal.ConventionTask that is Gradle Internal API in (AbstractTestTask.java:0)
 Class <org.gradle.ide.visualstudio.plugins.VisualStudioPlugin> extends/implements org.gradle.plugins.ide.internal.IdePlugin that is Gradle Internal API in (VisualStudioPlugin.java:0)
 Class <org.gradle.ide.xcode.plugins.XcodePlugin> extends/implements org.gradle.plugins.ide.internal.IdePlugin that is Gradle Internal API in (XcodePlugin.java:0)

@@ -59,7 +59,7 @@ tasks.register("tar", Tar) {
 tasks.register("tarGz", Tar) {
     from "archive-contents"
     archiveFileName = "archive.tar.gz"
-    compression = 'gzip'
+    compression = Compression.GZIP
 }
 
 tasks.withType(AbstractArchiveTask).configureEach {
