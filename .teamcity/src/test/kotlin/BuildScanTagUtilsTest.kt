@@ -45,8 +45,8 @@ class BuildScanTagUtilsTest {
     @Test
     fun `test functional test project tags`() {
         assertEquals(
-            "QuickJava23AdoptiumLinuxAmd64",
-            TestCoverage(1, TestType.quick, Os.LINUX, JvmVersion.java23, JvmVendor.openjdk).asBuildScanCustomValue()
+            "QuickJava24AdoptiumLinuxAmd64",
+            TestCoverage(1, TestType.quick, Os.LINUX, JvmVersion.java24, JvmVendor.openjdk).asBuildScanCustomValue()
         )
     }
 }
