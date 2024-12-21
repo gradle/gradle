@@ -19,6 +19,7 @@ package org.gradle.api.provider
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
+import spock.lang.Ignore
 
 class CollectionPropertyIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
@@ -444,6 +445,7 @@ task wrongPropertyElementTypeApi(type: MyTask) {
         succeeds("verify")
     }
 
+    @Ignore('withActualValue is no longer supported')
     def "can leverage convention in list property"() {
         buildFile """
             verify {
