@@ -21,48 +21,17 @@ import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemReporter;
 import org.gradle.internal.operations.OperationIdentifier;
 
-import java.util.Collection;
-
 public interface InternalProblemReporter extends ProblemReporter {
 
     /**
-     * Creates a new problem without reporting it immediately.
-     * The created problem can be later reported with {@link #report(Problem)}.
-     *
-     * @param action The problem configuration.
-     * @return The new problem.
-     */
-    Problem create(Action<InternalProblemSpec> action);
-
-    /**
-     * Reports the target problem.
-     *
-     * @param problem The problem to report.
-     */
-    void report(Problem problem);
-
-    /**
-     * Reports the target problems.
-     *
-     * @param problems The problems to report.
-     */
-    void report(Collection<? extends Problem> problems);
-
-    /**
      * Reports the target problem with an explicit operation identifier.
+     * <p>
+     * This method is used to report problems from workers, where the operation identifier is not available.
      *
      * @param problem The problem to report.
      * @param id The operation identifier.
      */
     void report(Problem problem, OperationIdentifier id);
 
-    /**
-     * Reports the target problems and throws a runtime exception. When this method is used, all reported problems will be associated with the thrown exception.
-     *
-     * @param exception the exception to throw after reporting the problems
-     * @param problems the problems to report
-     * @return nothing, the method throws an exception
-     * @since 8.12
-     */
-    RuntimeException throwing(Throwable exception, Collection<? extends Problem> problems);
+    Problem internalCreate(Action<? super InternalProblemSpec> action);
 }

@@ -72,7 +72,7 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
         try {
             task = createCompileTask(spec, result);
         } catch (RuntimeException ex) {
-            throw problemsService.getInternalReporter().throwing(builder -> {
+            throw problemsService.getInternalReporter().throwing(ex, builder -> {
                 buildProblemFrom(ex, builder);
             });
         }

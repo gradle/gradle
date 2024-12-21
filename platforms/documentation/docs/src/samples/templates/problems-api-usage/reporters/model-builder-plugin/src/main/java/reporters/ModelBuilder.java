@@ -24,7 +24,7 @@ public class ModelBuilder implements ToolingModelBuilder {
 
     @Override
     public Object buildAll(String modelName, Project project) {
-        problems.getReporter().reporting(problem -> problem
+        problems.getReporter().report(problem -> problem
             .id(ProblemId.create("unused", "Demo model", ModelBuilderPlugin.PROBLEM_GROUP))
             .severity(Severity.WARNING)
             .details("This is a demo model and doesn't do anything useful")

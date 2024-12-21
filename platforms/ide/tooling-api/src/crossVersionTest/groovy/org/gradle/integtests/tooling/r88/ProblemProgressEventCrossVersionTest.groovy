@@ -26,7 +26,6 @@ import org.gradle.tooling.BuildException
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.problems.ProblemEvent
-import org.gradle.util.GradleVersion
 
 import static org.gradle.integtests.fixtures.AvailableJavaHomes.getJdk17
 import static org.gradle.integtests.tooling.r86.ProblemProgressEventCrossVersionTest.getProblemReportTaskString
@@ -82,7 +81,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
     def "Problems expose details via Tooling API events with failure"() {
         given:
         withReportProblemTask """
-            getProblems().${targetVersion >= GradleVersion.version("8.11") ? 'getReporter()' : 'forNamespace("org.example.plugin")'}.reporting {
+            getProblems().${ProblemsApiGroovyScriptUtils.report(targetVersion)} {
                 it.id("id", "shortProblemMessage")
                 $documentationConfig
                 .lineInFileLocation("/tmp/foo", 1, 2, 3)
@@ -110,7 +109,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
     def "Problems expose details via Tooling API events with failure 8.6 to 8.7"() {
         given:
         withReportProblemTask """
-            getProblems().forNamespace("org.example.plugin").reporting {
+            getProblems().${ProblemsApiGroovyScriptUtils.report(targetVersion)} {
                 it.label("shortProblemMessage")
                 .category("main", "sub", "id")
                 $documentationConfig
@@ -213,7 +212,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
     def withMultipleProblems(String name, String displayName) {
         withReportProblemTask """
             for(int i = 0; i < 10; i++) {
-                problems.${targetVersion >= GradleVersion.version("8.11") ? 'getReporter()' : 'forNamespace("org.example.plugin")'}.reporting{
+                problems.${ProblemsApiGroovyScriptUtils.report(targetVersion)} {
                     it.${ProblemsApiGroovyScriptUtils.id(targetVersion, name, displayName)}
                         .severity(Severity.WARNING)
                         .solution("Please use 'standard-plugin-2' instead of this plugin")

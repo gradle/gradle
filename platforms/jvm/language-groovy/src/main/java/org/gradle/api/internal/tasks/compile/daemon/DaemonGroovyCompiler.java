@@ -117,12 +117,11 @@ public class DaemonGroovyCompiler extends AbstractDaemonCompiler<GroovyJavaJoint
             File toolsJar = jvm.getToolsJar();
             if (toolsJar == null) {
                 String contextualMessage = String.format("The 'tools.jar' cannot be found in the JDK '%s'.", jvm.getJavaHome());
-                throw problemReporter.throwing(problemSpec -> problemSpec
+                throw problemReporter.throwing(new IllegalStateException(contextualMessage), problemSpec -> problemSpec
                     .id(ProblemId.create("groovy-daemon-compiler", "Missing tools.jar", GradleCoreProblemGroup.compilation().groovy()))
                     .contextualLabel(contextualMessage)
                     .solution("Check if the installation is not a JRE but a JDK.")
                     .severity(Severity.ERROR)
-                    .withException(new IllegalStateException(contextualMessage))
                 );
             } else {
                 languageGroovyClasspath = languageGroovyClasspath.plus(Collections.singletonList(toolsJar));

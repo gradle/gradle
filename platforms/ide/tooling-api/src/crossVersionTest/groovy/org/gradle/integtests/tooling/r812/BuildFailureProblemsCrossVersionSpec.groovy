@@ -22,6 +22,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.Failure
 import org.gradle.tooling.GradleConnectionException
+import org.gradle.util.GradleVersion
 
 @ToolingApiVersion('>=8.12')
 @TargetGradleVersion('>=8.12')
@@ -98,6 +99,7 @@ class BuildFailureProblemsCrossVersionSpec extends ToolingApiSpecification {
         e.failures[0].causes[0].problems[0].definition.id.displayName == 'Selection failed'
     }
 
+    @TargetGradleVersion('>=8.12 <8.13')
     def "failure from worker using process isolation"() {
         setup:
         file('buildSrc/build.gradle') << """
@@ -136,10 +138,10 @@ class BuildFailureProblemsCrossVersionSpec extends ToolingApiSpecification {
                 @Override
                 public void execute() {
                     Exception wrappedException = new Exception("Wrapped cause");
-                     getProblems().getReporter().throwing(problem -> problem
+                     getProblems().getReporter().throwing(${targetVersion >= GradleVersion.version('8.13') ? 'new RuntimeException("Exception message", wrappedException), ' : ''}problem -> problem
                             .${ProblemsApiGroovyScriptUtils.id(targetVersion)}
                             .stackLocation()
-                            .withException(new RuntimeException("Exception message", wrappedException))
+                            ${targetVersion >= GradleVersion.version('8.13') ? '' : '.withException(new RuntimeException("Exception message", wrappedException))'}
                     );
                 }
             }
