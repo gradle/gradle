@@ -40,6 +40,7 @@ import org.gradle.cache.internal.SingleDepthFilesFinder;
 import org.gradle.cache.internal.locklistener.DefaultFileLockContentionHandler;
 import org.gradle.cache.internal.locklistener.FileLockContentionHandler;
 import org.gradle.cache.internal.locklistener.InetAddressProvider;
+import org.gradle.cache.internal.locklistener.UnixDomainSocketFileCommunicatorProvider;
 import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.caching.internal.controller.DefaultBuildCacheController;
 import org.gradle.caching.internal.controller.service.BuildCacheServicesConfiguration;
@@ -178,7 +179,7 @@ class BuildCacheClientModule extends AbstractModule {
                     throw new RuntimeException(e);
                 }
             }
-        });
+        }, new UnixDomainSocketFileCommunicatorProvider());
     }
 
     @Provides

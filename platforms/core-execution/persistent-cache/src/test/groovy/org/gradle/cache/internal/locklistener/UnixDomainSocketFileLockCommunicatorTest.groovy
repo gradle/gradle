@@ -17,25 +17,18 @@
 
 package org.gradle.cache.internal.locklistener
 
-import org.gradle.internal.remote.internal.inet.InetAddressFactory
+
 import org.gradle.util.ConcurrentSpecification
+
+import java.nio.ByteBuffer
+import java.nio.channels.SocketChannel
 
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 
-class FileLockCommunicatorTest extends ConcurrentSpecification {
+class UnixDomainSocketFileLockCommunicatorTest extends ConcurrentSpecification {
 
-    def addressFactory = new InetAddressFactory()
-    def communicator = new FileLockCommunicator(new InetAddressProvider() {
-        @Override
-        InetAddress getWildcardBindingAddress() {
-            return addressFactory.wildcardBindingAddress
-        }
-
-        @Override
-        Iterable<InetAddress> getCommunicationAddresses() {
-            return addressFactory.communicationAddresses
-        }
-    })
+    String pid = UnixDomainSocketFileLockCommunicator.currentPid as String
+    def communicator = new UnixDomainSocketFileLockCommunicator()
 
     def cleanup() {
         communicator.stop()
@@ -67,7 +60,8 @@ class FileLockCommunicatorTest extends ConcurrentSpecification {
         }
 
         when:
-        communicator.pingOwner(communicator.getPort(), 155, "lock")
+        Thread.sleep(1000)
+        communicator.pingOwner(pid, communicator.getPort(), 155, "lock")
 
         then:
         poll {
@@ -89,10 +83,11 @@ class FileLockCommunicatorTest extends ConcurrentSpecification {
         }
 
         when:
-        def socket = new DatagramSocket(0, addressFactory.getWildcardBindingAddress())
-        def bytes = [1, 0, 0, 0, 0, 0, 0, 0, 155] as byte[]
-        addressFactory.getCommunicationAddresses().each { address ->
-            socket.send(new DatagramPacket(bytes, bytes.length, new InetSocketAddress(address, communicator.port)))
+        def socket = communicator.unixDomainSocketAddressOf(pid, communicator.getPort())
+        // Payload: [pid, inProcessId, <data>]
+        def bytes = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 155] as byte[]
+        try (SocketChannel clientChannel = SocketChannel.open(socket)) {
+            clientChannel.write(ByteBuffer.wrap(bytes));
         }
 
         then:
@@ -112,7 +107,7 @@ class FileLockCommunicatorTest extends ConcurrentSpecification {
 
     def "pinging on a port that nobody listens is safe"() {
         when:
-        communicator.pingOwner(6666, 166, "lock")
+        communicator.pingOwner(pid, 6666, 166, "lock")
 
         then:
         noExceptionThrown()

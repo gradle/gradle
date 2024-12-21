@@ -35,6 +35,7 @@ import org.gradle.cache.internal.DefaultProcessMetaDataProvider;
 import org.gradle.cache.internal.locklistener.DefaultFileLockContentionHandler;
 import org.gradle.cache.internal.locklistener.FileLockContentionHandler;
 import org.gradle.cache.internal.locklistener.InetAddressProvider;
+import org.gradle.cache.internal.locklistener.UnixDomainSocketFileCommunicatorProvider;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.DefaultBuildCancellationToken;
 import org.gradle.internal.Factory;
@@ -90,7 +91,7 @@ public class BasicGlobalScopeServices implements ServiceRegistrationProvider {
                 public Iterable<InetAddress> getCommunicationAddresses() {
                     return inetAddressFactory.getCommunicationAddresses();
                 }
-            });
+            }, new UnixDomainSocketFileCommunicatorProvider());
     }
 
     @Provides
