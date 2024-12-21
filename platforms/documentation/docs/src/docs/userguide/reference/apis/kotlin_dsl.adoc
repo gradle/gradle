@@ -105,43 +105,7 @@ image::intellij-script-dependencies-reload.png[Reload script dependencies]
 We recommend _disabling automatic build import_ while _enabling automatic reloading of script dependencies_.
 This approach provides early feedback when editing Gradle scripts while giving you control over when the entire build setup synchronizes with your IDE.
 
-=== Troubleshooting
-
-The IDE support is provided by two components:
-
-1. Kotlin Plugin (used by IntelliJ IDEA/Android Studio).
-2. Gradle.
-
-The level of support varies based on the versions of each.
-
-If you encounter issues, first run `./gradlew tasks` from the command line to determine if the problem is specific to the IDE.
-If the issue persists on the command line, it likely originates from the build itself rather than IDE integration.
-
-However, if the build runs successfully on the command line but your script editor reports errors, try restarting your IDE and invalidating its caches.
-
-If the issue persists, and you suspect a problem with the Kotlin DSL script editor, try the following:
-
-* Run `./gradlew tasks` to gather more details.
-* Check the logs in one of these locations:
-** `$HOME/Library/Logs/gradle-kotlin-dsl` on macOS
-** `$HOME/.gradle-kotlin-dsl/log` on Linux
-** `$HOME/AppData/Local/gradle-kotlin-dsl/log` on Windows
-* Report the issue on the link:{gradle-issues}[Gradle issue tracker], including as much detail as possible.
-
-From version 5.1 onward, the log directory is automatically cleaned.
-Logs are checked periodically (at most, every 24 hours), and files are deleted if unused for 7 days.
-
-If this doesn’t help pinpoint the problem, you can enable the `org.gradle.kotlin.dsl.logging.tapi` system property in your IDE.
-This causes the Gradle Daemon to log additional details in its log file located at `$HOME/.gradle/daemon`.
-
-In IntelliJ IDEA, enable this property by navigating to `Help > Edit Custom VM Options...` and adding: `-Dorg.gradle.kotlin.dsl.logging.tapi=true`.
-
-For IDE problems outside the Kotlin DSL script editor, please open issues in the corresponding IDE's issue tracker:
-
-* link:[JetBrains's IDEA issue tracker]
-* link:[Google's Android Studio issue tracker]
-
-Lastly, if you face problems with Gradle itself or with the Kotlin DSL, please open issues on the link:{gradle-issues}[Gradle issue tracker].
+See the <<sec:troubleshooting>> section to learn more.
 
 [[sec:scripts]]
 == Kotlin DSL scripts
@@ -215,7 +179,8 @@ org.gradle.kotlin.dsl.allWarningsAsErrors=true
 
 The Groovy DSL allows you to reference many build model elements by name, even if they are defined at runtime, such as named configurations or source sets.
 
-For example, you can access the `implementation` configuration via `configurations.implementation`.
+For example, when the `Java` plugin is applied, you can access the `implementation` configuration via `configurations.implementation`.
+
 The Kotlin DSL replaces this dynamic resolution with type-safe model accessors, which work with model elements contributed by plugins.
 
 [[kotdsl:accessor_applicability]]
@@ -236,10 +201,10 @@ For the main project build scripts and precompiled project script plugins:
 |`sourceSets`
 
 |Extensions on the `dependencies` and `repositories` containers, and extensions on them
-|`testImplementation`, `mavenCentral`
+|`testImplementation` (contributed by the Java Plugin), `mavenCentral`
 
 |Elements in the `tasks` and `configurations` containers
-|`compileJava`, `test`
+|`compileJava` (contributed by the Java Plugin), `test`
 
 |Elements in <<kotdsl:containers,project-extension containers>>
 |Source sets contributed by the Java Plugin that are added to the `sourceSets` container: `sourceSets.main.java { setSrcDirs(listOf("src/main/java")) }`
@@ -468,142 +433,6 @@ include::sample[dir="snippets/kotlinDsl/sourceSetConvention/kotlin",files="build
 
 This technique is primarily necessary for source sets added by language plugins that have yet to be migrated to extensions.
 
-[[kotdsl:multi_project_builds]]
-[[sec:multi_project_builds]]
-== Multi-project builds
-
-As with single-project builds, you should use the `plugins {}` block in your multi-project builds to take advantage of type-safe accessors.
-
-However, in multi-project builds, you won't be able to use type-safe accessors when configuring subprojects within the root build script or when performing other forms of cross-configuration between projects.
-
-We discuss both topics in more detail in the following sections.
-
-[[sec:multi_project_builds_applying_plugins]]
-=== Applying plugins
-
-You can <<plugins.adoc#sec:binary_plugin_locations,declare plugins>> within the subprojects to which they apply, but we recommend declaring them within the root project build script as well.
-This approach helps maintain consistent plugin versions across projects within the build and improves build performance.
-
-The <<plugins#sec:subprojects_plugins_dsl,Gradle plugins>> chapter explains how to declare plugins in the root project build script with a version and then apply them to the appropriate subprojects' build scripts.
-
-Below is an example demonstrating this approach using three subprojects and three plugins.
-Notice that the root build script only declares the community plugins, as the Java Library Plugin is tied to the version of Gradle you are using:
-
-[[ex:multi_project_ratpack]]
-====
-include::sample[dir="snippets/kotlinDsl/multiProjectBuild/kotlin",files="settings.gradle.kts[tags=base];build.gradle.kts[tags=root];domain/build.gradle.kts[];infra/build.gradle.kts[];http/build.gradle.kts[]"]
-====
-
-If your build requires additional plugin repositories beyond the Gradle Plugin Portal, declare them in the `pluginManagement {}` block in your `settings.gradle.kts` file, as shown below:
-
-====
-include::sample[dir="snippets/kotlinDsl/multiProjectBuild/kotlin",files="settings.gradle.kts[tags=repositories]"]
-====
-
-Plugins fetched from a source other than the link:https://plugins.gradle.org/[Gradle Plugin Portal] can only be declared via the `plugins {}` block if they are published with their <<plugins#sec:plugin_markers,plugin marker artifacts>>.
-
-NOTE: At the time of writing, all versions of the Android Plugin for Gradle up to 3.2.0 present in the `google()` repository lack plugin marker artifacts.
-
-If those artifacts are missing, then you can't use the `plugins {}` block.
-You must fall back to declaring your plugin dependencies using the `buildscript {}` block in the root project build script.
-
-Here's an example for the Android Plugin:
-
-====
-include::sample[dir="snippets/kotlinDsl/androidBuild/kotlin",files="settings.gradle.kts[tags=android];build.gradle.kts[tags=android-buildscript];lib/build.gradle.kts[tags=android];app/build.gradle.kts[tags=android]"]
-====
-
-This technique is similar to what Android Studio generates when creating a new build.
-The main difference is that the subprojects' build scripts in the example above declare their plugins using the `plugins {}` block.
-This allows you to use type-safe accessors for the model elements that the plugins contribute.
-
-Note that this technique cannot be used if you want to apply a plugin to the root project build script of a multi-project build (instead of just its subprojects) or to a single-project build.
-In these cases, a different approach is required, which is discussed in <<kotlin_dsl#sec:plugins_resolution_strategy,this section>>.
-
-[[sec:kotlin_cross_project_configuration]]
-=== Cross-configuring projects
-
-<<sharing_build_logic_between_subprojects#sec:convention_plugins_vs_cross_configuration,Cross-project configuration>> is a mechanism that allows you to configure a project from another project's build script.
-A common use case is configuring subprojects within the root project build script.
-
-When using this approach, you won't be able to use type-safe accessors for model elements contributed by plugins.
-Instead, you'll need to rely on string literals and the standard Gradle APIs.
-
-For example, let's modify the <<ex:multi_project_ratpack,Java/Ratpack sample build>> to fully configure its subprojects from the root project build script:
-
-====
-include::sample[dir="snippets/kotlinDsl/multiProjectBuild/kotlin",files="settings.gradle.kts[tags=base];build.gradle.kts[tags=cross]"]
-====
-
-Note how we're using the `apply()` method to apply the plugins, as the `plugins {}` block doesn't work in this context.
-We are also using standard APIs instead of type-safe accessors to configure tasks, extensions, and conventions — an approach discussed in <<kotlin_dsl#sec:kotlin_using_standard_api,Understanding what to do when type-safe model accessors are not available>>.
-
-// TO DO - cross configuration not recommended, use convention plugins
-
-[[sec:plugins_resolution_strategy]]
-== When you can't use the `plugins {}` block
-
-Plugins fetched from a source other than the link:https://plugins.gradle.org/[Gradle Plugin Portal] may or may not be usable with the `plugins {}` block.
-It depends on how they have been published and, specifically, whether they have been published with the necessary <<plugins#sec:plugin_markers,plugin marker artifacts>>.
-
-For example, the Android Plugin for Gradle is not published to the Gradle Plugin Portal and — at least up to version 3.2.0 of the plugin — the metadata required to resolve the artifacts for a given plugin identifier is not published to the Google repository.
-
-If your build is a multi-project build, and you don't need to apply such a plugin to your _root_ project, you can work around this issue using the technique <<kotlin_dsl#sec:multi_project_builds_applying_plugins,described above>>.
-For any other use-case, keep reading.
-
-[TIP]
-====
-When publishing plugins, please use Gradle's built-in <<java_gradle_plugin#java_gradle_plugin,Gradle Plugin Development Plugin>>.
-
-It automates the publication of the metadata necessary to make your plugins usable with the `plugins {}` block.
-====
-
-In this section, we will show you how to apply the Android Plugin to a single-project build or the root project of a multi-project build.
-The goal is to map the `com.android.application` plugin identifier to a resolvable artifact.
-
-This process involves two steps:
-
-1. Add a plugin repository to the build's settings script.
-2. Map the plugin ID to the corresponding artifact coordinates.
-
-You can accomplish both steps by configuring a `pluginManagement {}` block in the build's settings script.
-
-The following sample demonstrates how to:
-
-1. Add the `google()` repository, where the Android plugin is published, to the repository search list.
-2. Use a `resolutionStrategy {}` block to map the `com.android.application` plugin ID to the `com.android.tools.build:gradle:<version>` artifact in the `google()` repository:
-
-====
-include::sample[dir="snippets/kotlinDsl/androidSingleBuild/kotlin",files="settings.gradle.kts[tags=android];build.gradle.kts[tags=android]"]
-====
-
-In fact, the above sample will work for all `com.android.*` plugins that are provided by the specified module. That's because the packaged module contains the details of which plugin ID maps to which plugin implementation class, using the properties-file mechanism described in the <<custom_plugins#sec:custom_plugins_standalone_project,Writing Custom Plugins>> chapter.
-
-See the <<plugins#sec:plugin_management,Plugin Management>> section of the Gradle User Manual for more information on the `pluginManagement {}` block and what it can be used for.
-
-// [PL] It seems to me that this block of content should really be in a more generic part
-//      of the user manual as it discusses techniques that apply outside of the Kotlin DSL.
-//      In fact, it indicates missing content that this chapter should be able to link to.
-//
-// In the case of multi-project builds, this approach is similar to using a `buildscript {}` block in the root project build script to depend on third party plugins and then using `plugins {}` in your sub project build scripts to apply them.
-// The main difference is that this approach means that the root project can also benefit from the `plugins {}` block and it is more aligned with Gradle best practices.
-//
-// [PL] We should also aim to avoid temporary information in the user manual that could
-//      be out of date at any time.
-// The same approach can be used to resolve plugins from composite builds, which link:https://github.com/gradle/gradle/issues/2528[do not expose plugin markers] yet.
-// Simply map the plugin ID to the corresponding artifact coordinates as shown in the Android samples above.
-
-// TODO ?
-// [[sec:buildSrc]]
-// == Using `buildSrc`
-//
-// 1. what is buildSrc -> link
-// 2. apply the `kotlin-dsl` plugin, see below for the details
-// 3. all dependencies added to `buildSrc/build.gradle.kts` will be available to all build scripts
-// 3. all members from `buildSrc/src/main/kotlin` will be available to all build scripts
-// 4. handy for constants, objects, functions, extension functions
-// 5. perfect for Gradle Tasks, Gradle Plugins and DSL Extensions
-
 [[kotdsl:containers]]
 == Working with container objects
 
@@ -794,7 +623,7 @@ tasks.create("myTask") {
 // === `Property`, `Provider` and `NamedDomainObjectProvider`
 
 [[kotdsl:assignment]]
-== Kotlin lazy property assignment
+== Lazy property assignment
 
 Gradle's Kotlin DSL supports lazy property assignment using the `=` operator.
 
@@ -816,7 +645,7 @@ include::sample[dir="snippets/kotlinDsl/assignment/kotlin",files="build.gradle.k
 Lazy property assignment is supported from IntelliJ 2022.3 and from Android Studio Giraffe.
 
 [[sec:kotlin-dsl_plugin]]
-== The Kotlin DSL Plugin
+== Kotlin DSL Plugin
 
 The Kotlin DSL Plugin provides a convenient way to develop Kotlin-based projects that contribute build logic.
 This includes <<sharing_build_logic_between_subprojects.adoc#sec:using_buildsrc,buildSrc projects>>, <<composite_builds#composite_builds,included builds>>, and <<custom_plugins#custom_plugins,Gradle plugins>>.
@@ -851,7 +680,7 @@ include::sample[dir="samples/java/jvm-multi-project-with-toolchains/kotlin/",fil
 ====
 
 [[sec:kotlin]]
-== The embedded Kotlin
+== Embedded Kotlin
 
 Gradle embeds Kotlin in order to provide support for Kotlin-based scripts.
 
@@ -1067,6 +896,45 @@ apply(from = "dynamic-groovy-plugin-configuration.gradle")  <3>
 <1> The Groovy script uses dynamic Groovy to configure plugin
 <2> The Kotlin build script requests and applies the plugin
 <3> The Kotlin build script applies the Groovy script
+
+[[sec:troubleshooting]]
+== Troubleshooting
+
+The IDE support is provided by two components:
+
+1. Kotlin Plugin (used by IntelliJ IDEA/Android Studio).
+2. Gradle.
+
+The level of support varies based on the versions of each.
+
+If you encounter issues, first run `./gradlew tasks` from the command line to determine if the problem is specific to the IDE.
+If the issue persists on the command line, it likely originates from the build itself rather than IDE integration.
+
+However, if the build runs successfully on the command line but your script editor reports errors, try restarting your IDE and invalidating its caches.
+
+If the issue persists, and you suspect a problem with the Kotlin DSL script editor, try the following:
+
+* Run `./gradlew tasks` to gather more details.
+* Check the logs in one of these locations:
+** `$HOME/Library/Logs/gradle-kotlin-dsl` on macOS
+** `$HOME/.gradle-kotlin-dsl/log` on Linux
+** `$HOME/AppData/Local/gradle-kotlin-dsl/log` on Windows
+* Report the issue on the link:{gradle-issues}[Gradle issue tracker], including as much detail as possible.
+
+From version 5.1 onward, the log directory is automatically cleaned.
+Logs are checked periodically (at most, every 24 hours), and files are deleted if unused for 7 days.
+
+If this doesn’t help pinpoint the problem, you can enable the `org.gradle.kotlin.dsl.logging.tapi` system property in your IDE.
+This causes the Gradle Daemon to log additional details in its log file located at `$HOME/.gradle/daemon`.
+
+In IntelliJ IDEA, enable this property by navigating to `Help > Edit Custom VM Options...` and adding: `-Dorg.gradle.kotlin.dsl.logging.tapi=true`.
+
+For IDE problems outside the Kotlin DSL script editor, please open issues in the corresponding IDE's issue tracker:
+
+* link:[JetBrains's IDEA issue tracker]
+* link:[Google's Android Studio issue tracker]
+
+Lastly, if you face problems with Gradle itself or with the Kotlin DSL, please open issues on the link:{gradle-issues}[Gradle issue tracker].
 
 [[kotdsl:limitations]]
 == Limitations
