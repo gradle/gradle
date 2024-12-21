@@ -22,37 +22,16 @@ import org.gradle.api.internal.provider.DefaultProperty
 import org.gradle.api.internal.provider.DefaultProvider
 import org.gradle.api.internal.provider.PropertyHost
 import org.gradle.api.internal.provider.Providers
-import org.gradle.api.logging.LogLevel
-import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
-import org.gradle.internal.deprecation.DeprecationLogger
-import org.gradle.internal.logging.CollectingTestOutputEventListener
-import org.gradle.internal.logging.ConfigureLogging
-import org.gradle.internal.operations.BuildOperationProgressEventEmitter
-import org.gradle.internal.problems.NoOpProblemDiagnosticsFactory
+import org.gradle.internal.evaluation.CircularEvaluationException
 import org.gradle.util.AttributeTestUtil
-import org.gradle.util.TestUtil
-import org.junit.Rule
 import spock.lang.Specification
 
 class DefaultMutableAttributeContainerTest extends Specification {
 
-    CollectingTestOutputEventListener outputEventListener = new CollectingTestOutputEventListener()
-
-    @Rule
-    ConfigureLogging logging = new ConfigureLogging(outputEventListener)
-
-    def setup() {
-        final diagnosticsFactory = new NoOpProblemDiagnosticsFactory()
-        def buildOperationProgressEventEmitter = Mock(BuildOperationProgressEventEmitter)
-        DeprecationLogger.init(WarningMode.All, buildOperationProgressEventEmitter, TestUtil.problemsService(), diagnosticsFactory.newUnlimitedStream())
-    }
-
-    def attributesFactory = AttributeTestUtil.attributesFactory()
-
     def "lazy attributes are evaluated in insertion order"() {
-        def container = new DefaultMutableAttributeContainer(attributesFactory)
+        def container = AttributeTestUtil.attributesFactory().mutable()
         def actual = []
         def expected = []
         (1..100).each { idx ->
@@ -68,8 +47,8 @@ class DefaultMutableAttributeContainerTest extends Specification {
         actual == expected
     }
 
-    def "realizing the value of lazy attributes may cause other attributes to be realized"() {
-        def container = new DefaultMutableAttributeContainer(attributesFactory)
+    def "cannot query container while realizing the value of lazy attributes"() {
+        def container = AttributeTestUtil.attributesFactory().mutable()
         def firstAttribute = Attribute.of("first", String)
         def secondAttribute = Attribute.of("second", String)
         container.attributeProvider(firstAttribute, Providers.<String>changing {
@@ -80,17 +59,15 @@ class DefaultMutableAttributeContainerTest extends Specification {
         })
         container.attributeProvider(secondAttribute, Providers.of("second"))
 
-        expect:
-        container.asImmutable().keySet() == [secondAttribute, firstAttribute] as Set
+        when:
+        container.asImmutable()
 
-        and:
-        def events = outputEventListener.events.findAll { it.logLevel == LogLevel.WARN }
-        events.size() == 1
-        events[0].message.startsWith("Querying the contents of an attribute container while realizing attributes of the container. This behavior has been deprecated. This will fail with an error in Gradle 9.0")
+        then:
+        thrown(CircularEvaluationException)
     }
 
     def "realizing the value of lazy attributes cannot add new attributes to the container"() {
-        def container = new DefaultMutableAttributeContainer(attributesFactory)
+        def container = AttributeTestUtil.attributesFactory().mutable()
         def firstAttribute = Attribute.of("first", String)
         def secondAttribute = Attribute.of("second", String)
         container.attributeProvider(firstAttribute, Providers.<String>changing {
@@ -100,13 +77,14 @@ class DefaultMutableAttributeContainerTest extends Specification {
 
         when:
         container.asImmutable()
+
         then:
         def e = thrown(IllegalStateException)
         e.message == "Cannot add new attribute 'second' while realizing all attributes of the container."
     }
 
     def "realizing the value of lazy attributes cannot add new lazy attributes to the container"() {
-        def container = new DefaultMutableAttributeContainer(attributesFactory)
+        def container = AttributeTestUtil.attributesFactory().mutable()
         def firstAttribute = Attribute.of("first", String)
         def secondAttribute = Attribute.of("second", String)
         container.attributeProvider(firstAttribute, Providers.<String>changing {
@@ -116,6 +94,7 @@ class DefaultMutableAttributeContainerTest extends Specification {
 
         when:
         container.asImmutable()
+
         then:
         def e = thrown(IllegalStateException)
         e.message == "Cannot add new attribute 'second' while realizing all attributes of the container."
@@ -124,7 +103,7 @@ class DefaultMutableAttributeContainerTest extends Specification {
     def "adding mismatched attribute types fails fast"() {
         Property<Integer> testProperty = new DefaultProperty<>(Mock(PropertyHost), Integer).convention(1)
         def testAttribute = Attribute.of("test", String)
-        def container = new DefaultMutableAttributeContainer(attributesFactory)
+        def container = AttributeTestUtil.attributesFactory().mutable()
 
         when:
         //noinspection GroovyAssignabilityCheck - meant to fail
@@ -137,7 +116,7 @@ class DefaultMutableAttributeContainerTest extends Specification {
     def "adding mismatched attribute types fails when retrieving the key when the provider does not know the type"() {
         Provider<?> testProperty = new DefaultProvider<?>( { 1 })
         def testAttribute = Attribute.of("test", String)
-        def container = new DefaultMutableAttributeContainer(attributesFactory)
+        def container = AttributeTestUtil.attributesFactory().mutable()
 
         when:
         //noinspection GroovyAssignabilityCheck - meant to fail
@@ -152,8 +131,8 @@ class DefaultMutableAttributeContainerTest extends Specification {
         Property<String> testProperty1 = new DefaultProperty<>(Mock(PropertyHost), String).convention("value")
         Property<String> testProperty2 = new DefaultProperty<>(Mock(PropertyHost), String).convention("value")
         def testAttribute = Attribute.of("test", String)
-        def container1 = new DefaultMutableAttributeContainer(attributesFactory)
-        def container2 = new DefaultMutableAttributeContainer(attributesFactory)
+        def container1 = AttributeTestUtil.attributesFactory().mutable()
+        def container2 = AttributeTestUtil.attributesFactory().mutable()
 
         when:
         container1.attributeProvider(testAttribute, testProperty1)
@@ -168,8 +147,8 @@ class DefaultMutableAttributeContainerTest extends Specification {
         Property<String> testProperty1 = new DefaultProperty<>(Mock(PropertyHost), String).convention("value1")
         Property<String> testProperty2 = new DefaultProperty<>(Mock(PropertyHost), String).convention("value2")
         def testAttribute = Attribute.of("test", String)
-        def container1 = new DefaultMutableAttributeContainer(attributesFactory)
-        def container2 = new DefaultMutableAttributeContainer(attributesFactory)
+        def container1 = AttributeTestUtil.attributesFactory().mutable()
+        def container2 = AttributeTestUtil.attributesFactory().mutable()
 
         when:
         container1.attributeProvider(testAttribute, testProperty1)
@@ -184,8 +163,8 @@ class DefaultMutableAttributeContainerTest extends Specification {
         Property<String> testProperty1 = new DefaultProperty<>(Mock(PropertyHost), String).convention("value")
         Property<String> testProperty2 = new DefaultProperty<>(Mock(PropertyHost), String).convention("value")
         def testAttribute = Attribute.of("test", String)
-        def container1 = new DefaultMutableAttributeContainer(attributesFactory)
-        def container2 = new DefaultMutableAttributeContainer(attributesFactory)
+        def container1 = AttributeTestUtil.attributesFactory().mutable()
+        def container2 = AttributeTestUtil.attributesFactory().mutable()
 
         when:
         container1.attributeProvider(testAttribute, testProperty1)
@@ -199,8 +178,8 @@ class DefaultMutableAttributeContainerTest extends Specification {
         Property<String> testProperty1 = new DefaultProperty<>(Mock(PropertyHost), String).convention("value1")
         Property<String> testProperty2 = new DefaultProperty<>(Mock(PropertyHost), String).convention("value2")
         def testAttribute = Attribute.of("test", String)
-        def container1 = new DefaultMutableAttributeContainer(attributesFactory)
-        def container2 = new DefaultMutableAttributeContainer(attributesFactory)
+        def container1 = AttributeTestUtil.attributesFactory().mutable()
+        def container2 = AttributeTestUtil.attributesFactory().mutable()
 
         when:
         container1.attributeProvider(testAttribute, testProperty1)
@@ -213,7 +192,7 @@ class DefaultMutableAttributeContainerTest extends Specification {
     def "adding attribute should override replace existing lazy attribute"() {
         given: "a container with testAttr set to a provider"
         def testAttr = Attribute.of("test", String)
-        def container = new DefaultMutableAttributeContainer(attributesFactory)
+        def container = AttributeTestUtil.attributesFactory().mutable()
         Property<String> testProvider = new DefaultProperty<>(Mock(PropertyHost), String).convention("lazy value")
         container.attributeProvider(testAttr, testProvider)
 
@@ -227,7 +206,7 @@ class DefaultMutableAttributeContainerTest extends Specification {
     def "adding lazy attribute should override replace existing attribute"() {
         given: "a container with testAttr set to a fixed value"
         def testAttr = Attribute.of("test", String)
-        def container = new DefaultMutableAttributeContainer(attributesFactory)
+        def container = AttributeTestUtil.attributesFactory().mutable()
         container.attribute(testAttr, "set value")
 
         when: "adding a lazy testAttr"
@@ -238,40 +217,12 @@ class DefaultMutableAttributeContainerTest extends Specification {
         "lazy value" == container.getAttribute(testAttr)
     }
 
-    def "toString should not change the internal state of the class"() {
-        given: "a container and a lazy and non-lazy attribute"
-        def container = new DefaultMutableAttributeContainer(attributesFactory)
-        def testEager = Attribute.of("eager", String)
-        def testLazy = Attribute.of("lazy", String)
-        Property<String> testProvider = new DefaultProperty<>(Mock(PropertyHost), String).convention("lazy value")
-
-        when: "the attributes are added to the container"
-        container.attribute(testEager, "eager value")
-        container.attributeProvider(testLazy, testProvider)
-
-        then: "they are located in proper internal collections"
-        container.@attributes.containsKey(testEager)
-        !container.@attributes.containsKey(testLazy)
-        container.@lazyAttributes.containsKey(testLazy)
-        !container.@lazyAttributes.containsKey(testEager)
-
-        when: "calling toString"
-        def result = container.toString()
-
-        then: "the result should not change the internals of the class"
-        result == "{eager=eager value, lazy=property(java.lang.String, fixed(class java.lang.String, lazy value))}"
-        container.@attributes.containsKey(testEager)
-        !container.@attributes.containsKey(testLazy)
-        container.@lazyAttributes.containsKey(testLazy)
-        !container.@lazyAttributes.containsKey(testEager)
-    }
-
     def "can query contents of container"() {
         def thing = Attribute.of("thing", String)
         def thing2 = Attribute.of("thing2", String)
 
         when:
-        def container = new DefaultMutableAttributeContainer(attributesFactory)
+        def container = AttributeTestUtil.attributesFactory().mutable()
 
         then:
         container.empty
@@ -301,7 +252,7 @@ class DefaultMutableAttributeContainerTest extends Specification {
 
     def "A copy of an attribute container contains the same attributes and the same values as the original"() {
         given:
-        def container = new DefaultMutableAttributeContainer(attributesFactory)
+        def container = AttributeTestUtil.attributesFactory().mutable()
         container.attribute(Attribute.of("a1", Integer), 1)
         container.attribute(Attribute.of("a2", String), "2")
         container.attributeProvider(Attribute.of("a3", String), Providers.of("3"))
@@ -318,7 +269,7 @@ class DefaultMutableAttributeContainerTest extends Specification {
 
     def "changes to attribute container are not seen by immutable copy"() {
         given:
-        AttributeContainerInternal container = new DefaultMutableAttributeContainer(attributesFactory)
+        AttributeContainerInternal container = AttributeTestUtil.attributesFactory().mutable()
         container.attribute(Attribute.of("a1", Integer), 1)
         container.attribute(Attribute.of("a2", String), "2")
         container.attributeProvider(Attribute.of("a3", String), Providers.of("3"))
@@ -338,7 +289,7 @@ class DefaultMutableAttributeContainerTest extends Specification {
 
     def "An attribute container can provide the attributes through the HasAttributes interface"() {
         given:
-        def container = new DefaultMutableAttributeContainer(attributesFactory)
+        def container = AttributeTestUtil.attributesFactory().mutable()
         container.attribute(Attribute.of("a1", Integer), 1)
         container.attributeProvider(Attribute.of("a2", String), Providers.of("2"))
 
@@ -357,7 +308,7 @@ class DefaultMutableAttributeContainerTest extends Specification {
         def c = Attribute.of("c", String)
 
         when:
-        def container = new DefaultMutableAttributeContainer(attributesFactory)
+        def container = AttributeTestUtil.attributesFactory().mutable()
 
         then:
         container.toString() == "{}"
@@ -369,12 +320,12 @@ class DefaultMutableAttributeContainerTest extends Specification {
         container.attributeProvider(a, Providers.of("a"))
 
         then:
-        container.toString() == "{a=fixed(class java.lang.String, a), b=b, c=c}"
+        container.toString() == "{a=a, b=b, c=c}"
         container.asImmutable().toString() == "{a=a, b=b, c=c}"
     }
 
     def "can access lazy elements while iterating over keySet"() {
-        def container = new DefaultMutableAttributeContainer(attributesFactory)
+        def container = AttributeTestUtil.attributesFactory().mutable()
 
         when:
         container.attributeProvider(Attribute.of("a", String), Providers.of("foo"))
@@ -384,5 +335,20 @@ class DefaultMutableAttributeContainerTest extends Specification {
         for (Attribute<?> attribute : container.keySet()) {
             container.getAttribute(attribute)
         }
+    }
+
+    def "cannot define two attributes with the same name but different types"() {
+        def container = AttributeTestUtil.attributesFactory().mutable()
+
+        given:
+        container.attribute(Attribute.of('flavor', Boolean), true)
+        container.attribute(Attribute.of('flavor', String.class), 'paid')
+
+        when:
+        container.asImmutable()
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == "Cannot have two attributes with the same name but different types. This container has an attribute named 'flavor' of type 'java.lang.Boolean' and another attribute of type 'java.lang.String'"
     }
 }
