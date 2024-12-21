@@ -19,14 +19,14 @@ package org.gradle.api.internal.file
 import groovy.transform.CompileStatic
 import org.gradle.api.Action
 import org.gradle.api.file.SyncSpec
-import org.gradle.api.model.ObjectFactory
+import org.gradle.internal.reflect.Instantiator
 import spock.lang.Specification
 
 class DefaultFileSystemOperationsTest extends Specification {
 
     private FileOperations fileOperations = Mock()
-    private ObjectFactory objectFactory = Mock()
-    private DefaultFileSystemOperations fileSystemOperations = new DefaultFileSystemOperations(objectFactory, fileOperations)
+    private Instantiator instantiator = Mock()
+    private DefaultFileSystemOperations fileSystemOperations = new DefaultFileSystemOperations(instantiator, fileOperations)
 
     def 'copySpec forwards to FileOperations::copySpec'() {
         when:

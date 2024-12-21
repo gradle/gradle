@@ -42,5 +42,6 @@ class PlatformInOutputNormalizer implements OutputNormalizer {
         return commandOutput
             .replaceAll(arch, "%ARCH%")
             .replaceAll(os.name(), "%OS%")
+            .replaceAll(internalOs.toString() ,"%OS_ARCH%")
     }
 }

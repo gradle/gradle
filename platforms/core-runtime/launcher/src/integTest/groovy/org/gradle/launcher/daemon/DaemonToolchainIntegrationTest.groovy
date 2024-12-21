@@ -93,6 +93,6 @@ class DaemonToolchainIntegrationTest extends AbstractIntegrationSpec implements 
 
         expect:
         fails("help")
-        failure.assertHasDescription("Cannot find a Java installation on your machine (${OperatingSystem.current()}) matching: Compatible with Java 10, vendor matching('ibm') (from gradle/gradle-daemon-jvm.properties)")
+        failure.assertHasDescription("Cannot find a Java installation on your machine (${OperatingSystem.current()}) matching: Compatible with Java 10, IBM (from gradle/gradle-daemon-jvm.properties)")
     }
 }

@@ -42,6 +42,7 @@ import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.internal.file.copy.CopySpecResolver;
 import org.gradle.api.internal.file.copy.CopySpecSource;
 import org.gradle.api.internal.file.copy.DefaultCopySpec;
+import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.specs.Spec;
@@ -148,6 +149,11 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
         throw new UnsupportedOperationException();
     }
 
+    @Inject
+    protected PropertyFactory getPropertyFactory() {
+        throw new UnsupportedOperationException();
+    }
+
     @TaskAction
     protected void copy() {
         CopyActionExecuter copyActionExecuter = createCopyActionExecuter();
@@ -160,7 +166,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
         Instantiator instantiator = getInstantiator();
         FileSystem fileSystem = getFileSystem();
 
-        return new CopyActionExecuter(instantiator, getObjectFactory(), fileSystem, false, getDocumentationRegistry());
+        return new CopyActionExecuter(instantiator, getPropertyFactory(), fileSystem, false, getDocumentationRegistry());
     }
 
     /**
