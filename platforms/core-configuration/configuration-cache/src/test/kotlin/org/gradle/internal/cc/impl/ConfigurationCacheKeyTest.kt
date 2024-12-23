@@ -164,8 +164,7 @@ class ConfigurationCacheKeyTest {
         return ConfigurationCacheKey(
             ConfigurationCacheStartParameter(
                 BuildLayout(
-                    file("root"),
-                    file("settings"),
+                    file("buildDefinition"),
                     null,
                     null
                 ),
