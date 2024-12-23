@@ -16,7 +16,7 @@
 
 <develocity>
     <server>
-        <url>https://develocity.grdev.net</url>
+        <url>https://ge.gradle.org</url>
     </server>
     <buildScan>
         <publishing>
