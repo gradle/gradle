@@ -85,8 +85,8 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             task compile(type: JavaCompile) {
                 classpath = files()
-                sourceCompatibility = JavaVersion.current()
-                targetCompatibility = JavaVersion.current()
+                sourceCompatibility = JavaVersion.current().majorVersion
+                targetCompatibility = JavaVersion.current().majorVersion
                 destinationDirectory = file("build/classes")
                 source "src/main/java"
             }
@@ -203,8 +203,8 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
     def buildScriptWithClasspath(String... dependencies) {
         """
             task compile(type: JavaCompile) {
-                sourceCompatibility = JavaVersion.current()
-                targetCompatibility = JavaVersion.current()
+                sourceCompatibility = JavaVersion.current().majorVersion
+                targetCompatibility = JavaVersion.current().majorVersion
                 destinationDirectory = file("build/classes")
                 source "src/main/java"
                 classpath = files('${dependencies.join("', '")}')

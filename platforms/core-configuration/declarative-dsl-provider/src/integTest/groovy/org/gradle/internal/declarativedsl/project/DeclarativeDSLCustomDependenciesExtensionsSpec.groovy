@@ -543,8 +543,8 @@ class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractIntegration
 
                 """
                 java {
-                    sourceCompatibility = "${lastSupportedVersion}"
-                    targetCompatibility = "${lastSupportedVersion}"
+                    sourceCompatibility = JavaVersion.toVersion("${lastSupportedVersion}")
+                    targetCompatibility = JavaVersion.toVersion("${lastSupportedVersion}")
                 }
                 tasks.compileKotlin {
                     kotlinOptions.jvmTarget = "${lastSupportedVersion}"

@@ -16,6 +16,7 @@
 
 package org.gradle.plugins.ide.idea.model
 
+import org.gradle.api.JavaVersion
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.plugins.ide.idea.IdeaPlugin
@@ -44,8 +45,8 @@ class IdeaModuleTest extends AbstractProjectBuilderSpec {
         project.getPlugins().apply(IdeaPlugin)
         project.getPlugins().apply(JavaPlugin)
         moduleProject.getPlugins().apply(JavaPlugin)
-        moduleProject.sourceCompatibility = 1.5
-        project.sourceCompatibility = 1.5
+        moduleProject.sourceCompatibility = JavaVersion.VERSION_1_5
+        project.sourceCompatibility = JavaVersion.VERSION_1_5
 
         def iml = Mock(IdeaModuleIml)
         def module = TestUtil.newInstance(IdeaModule, moduleProject, iml)

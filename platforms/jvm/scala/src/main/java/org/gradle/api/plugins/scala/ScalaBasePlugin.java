@@ -30,7 +30,6 @@ import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.MultipleCandidatesDetails;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.plugins.DslObject;
@@ -263,27 +262,18 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
             compile.getScalaClasspath().convention(project.provider(() -> scalaRuntime.inferScalaClasspath(compile.getClasspath())));
             compile.getZincClasspath().convention(project.getConfigurations().getAt(ZINC_CONFIGURATION_NAME));
             compile.getScalaCompilerPlugins().convention(project.getConfigurations().getAt(SCALA_COMPILER_PLUGINS_CONFIGURATION_NAME));
-            ConventionMapping conventionMapping = compile.getConventionMapping();
-            conventionMapping.map("sourceCompatibility", () -> computeJavaSourceCompatibilityConvention(javaExtension, compile).toString());
-            conventionMapping.map("targetCompatibility", () -> computeJavaTargetCompatibilityConvention(javaExtension, compile).toString());
+            compile.getSourceCompatibility().convention(
+                javaExtension.getSourceCompatibility().map(JavaVersion::toString).orElse(
+                    compile.getJavaLauncher().map(launcher -> launcher.getMetadata().getLanguageVersion().toString())
+                )
+            );
+            compile.getTargetCompatibility().convention(
+                javaExtension.getTargetCompatibility().map(JavaVersion::toString).orElse(
+                    compile.getSourceCompatibility()
+                )
+            );
             compile.getScalaCompileOptions().getKeepAliveMode().convention(KeepAliveMode.SESSION);
         });
-    }
-
-    private static JavaVersion computeJavaSourceCompatibilityConvention(DefaultJavaPluginExtension javaExtension, ScalaCompile compileTask) {
-        JavaVersion rawSourceCompatibility = javaExtension.getRawSourceCompatibility();
-        if (rawSourceCompatibility != null) {
-            return rawSourceCompatibility;
-        }
-        return JavaVersion.toVersion(compileTask.getJavaLauncher().get().getMetadata().getLanguageVersion().toString());
-    }
-
-    private static JavaVersion computeJavaTargetCompatibilityConvention(DefaultJavaPluginExtension javaExtension, ScalaCompile compileTask) {
-        JavaVersion rawTargetCompatibility = javaExtension.getRawTargetCompatibility();
-        if (rawTargetCompatibility != null) {
-            return rawTargetCompatibility;
-        }
-        return JavaVersion.toVersion(compileTask.getSourceCompatibility());
     }
 
     private void configureScaladoc(final Project project, final ScalaRuntime scalaRuntime) {

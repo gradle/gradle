@@ -35,8 +35,8 @@ class GroovyCompileOldJavaTargetIntegrationTest extends AbstractIntegrationSpec 
             ${javaPluginToolchainVersion(jdk11)}
 
             java {
-                sourceCompatibility = "${javaVersion}"
-                targetCompatibility = "${javaVersion}"
+                sourceCompatibility = JavaVersion.toVersion("${javaVersion}")
+                targetCompatibility = JavaVersion.toVersion("${javaVersion}")
             }
 
             dependencies {

@@ -162,7 +162,20 @@ fun enforceCompatibility(gradlebuildJava: UnitTestAndCompileExtension) {
             // Some projects use dependencies that target higher JVM versions
             // than the projects target. Disable dependency management checks
             // that verify these dependencies have compatible java versions.
-            java.disableAutoTargetJvm()
+            // TODO: Remove the logic after Gradle 9.0, leave only `java.autoTargetJvm = false`
+            val newMethod = java.javaClass.methods.find { it.name == "getAutoTargetJvm" }
+            if (newMethod != null) {
+                @Suppress("UNCHECKED_CAST")
+                val prop = newMethod.invoke(java) as Property<Boolean>
+                prop.set(false)
+            } else {
+                val oldMethod = java.javaClass.methods.find { it.name == "disableAutoTargetJvm" }
+                if (oldMethod != null) {
+                    oldMethod.invoke(java)
+                } else {
+                    error("Could not find method to disable auto target JVM")
+                }
+            }
         }
     }
 }

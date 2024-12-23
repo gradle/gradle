@@ -28,14 +28,16 @@ import org.gradle.api.component.AdhocComponentWithVariants;
 import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.provider.ProviderApiDeprecationLogger;
 import org.gradle.api.java.archives.Manifest;
 import org.gradle.api.java.archives.internal.DefaultManifest;
 import org.gradle.api.jvm.ModularitySpec;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.FeatureSpec;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.JavaResolutionConsistency;
 import org.gradle.api.plugins.jvm.internal.JvmFeatureInternal;
+import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
@@ -71,41 +73,30 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  * multiple components may be created by JVM language plugins in the future.
  */
 @SuppressWarnings("JavadocReference")
-public class DefaultJavaPluginExtension implements JavaPluginExtension {
+public abstract class DefaultJavaPluginExtension implements JavaPluginExtension {
     private static final Pattern VALID_FEATURE_NAME = Pattern.compile("[a-zA-Z0-9]+");
     private final SourceSetContainer sourceSets;
 
     private final JavaToolchainSpecInternal toolchainSpec;
-    private final ObjectFactory objectFactory;
     private final ModularitySpec modularity;
     private final JavaToolchainSpec toolchain;
     private final ProjectInternal project;
 
-    private final DirectoryProperty docsDir;
-    private final DirectoryProperty testResultsDir;
-    private final DirectoryProperty testReportDir;
-    private JavaVersion srcCompat;
-    private JavaVersion targetCompat;
-    private boolean autoTargetJvm = true;
-
     @Inject
     public DefaultJavaPluginExtension(ProjectInternal project, SourceSetContainer sourceSets, DefaultToolchainSpec toolchainSpec) {
-        this.docsDir = project.getObjects().directoryProperty();
-        this.testResultsDir = project.getObjects().directoryProperty();
-        this.testReportDir = project.getObjects().directoryProperty(); //TestingBasePlugin.TESTS_DIR_NAME;
         this.project = project;
         this.sourceSets = sourceSets;
         this.toolchainSpec = toolchainSpec;
-        this.objectFactory = project.getObjects();
-        this.modularity = objectFactory.newInstance(DefaultModularitySpec.class);
+        this.modularity = project.getObjects().newInstance(DefaultModularitySpec.class);
         this.toolchain = toolchainSpec;
         configureDefaults();
     }
 
     private void configureDefaults() {
-        docsDir.convention(project.getLayout().getBuildDirectory().dir("docs"));
-        testResultsDir.convention(project.getLayout().getBuildDirectory().dir(TestingBasePlugin.TEST_RESULTS_DIR_NAME));
-        testReportDir.convention(project.getExtensions().getByType(ReportingExtension.class).getBaseDirectory().dir(TestingBasePlugin.TESTS_DIR_NAME));
+        getAutoTargetJvm().convention(true);
+        getDocsDir().convention(project.getLayout().getBuildDirectory().dir("docs"));
+        getTestResultsDir().convention(project.getLayout().getBuildDirectory().dir(TestingBasePlugin.TEST_RESULTS_DIR_NAME));
+        getTestReportDir().convention(project.getExtensions().getByType(ReportingExtension.class).getBaseDirectory().dir(TestingBasePlugin.TESTS_DIR_NAME));
     }
 
     @Override
@@ -114,62 +105,30 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
     }
 
     @Override
-    public DirectoryProperty getDocsDir() {
-        return docsDir;
+    public abstract DirectoryProperty getDocsDir();
+
+    @Override
+    public abstract DirectoryProperty getTestResultsDir();
+
+    @Override
+    public abstract DirectoryProperty getTestReportDir();
+
+    @Override
+    public Provider<JavaVersion> getEffectiveSourceCompatibility() {
+        return getSourceCompatibility().orElse(
+            project.provider(() -> {
+                if (toolchainSpec != null && toolchainSpec.isConfigured()) {
+                    return JavaVersion.toVersion(toolchainSpec.getLanguageVersion().get().toString());
+                } else {
+                    return JavaVersion.current();
+                }
+            })
+        );
     }
 
     @Override
-    public DirectoryProperty getTestResultsDir() {
-        return testResultsDir;
-    }
-
-    @Override
-    public DirectoryProperty getTestReportDir() {
-        return testReportDir;
-    }
-
-    @Override
-    public JavaVersion getSourceCompatibility() {
-        if (srcCompat != null) {
-            return srcCompat;
-        } else if (toolchainSpec != null && toolchainSpec.isConfigured()) {
-            return JavaVersion.toVersion(toolchainSpec.getLanguageVersion().get().toString());
-        } else {
-            return JavaVersion.current();
-        }
-    }
-
-    public JavaVersion getRawSourceCompatibility() {
-        return srcCompat;
-    }
-
-    @Override
-    public void setSourceCompatibility(Object value) {
-        setSourceCompatibility(JavaVersion.toVersion(value));
-    }
-
-    @Override
-    public void setSourceCompatibility(JavaVersion value) {
-        srcCompat = value;
-    }
-
-    @Override
-    public JavaVersion getTargetCompatibility() {
-        return targetCompat != null ? targetCompat : getSourceCompatibility();
-    }
-
-    public JavaVersion getRawTargetCompatibility() {
-        return targetCompat;
-    }
-
-    @Override
-    public void setTargetCompatibility(Object value) {
-        setTargetCompatibility(JavaVersion.toVersion(value));
-    }
-
-    @Override
-    public void setTargetCompatibility(JavaVersion value) {
-        targetCompat = value;
+    public Provider<JavaVersion> getEffectiveTargetCompatibility() {
+        return getTargetCompatibility().orElse(getEffectiveSourceCompatibility());
     }
 
     @Override
@@ -199,13 +158,13 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
     }
 
     @Override
-    public void disableAutoTargetJvm() {
-        this.autoTargetJvm = false;
-    }
+    public abstract Property<Boolean> getAutoTargetJvm();
 
     @Override
-    public boolean getAutoTargetJvmDisabled() {
-        return !autoTargetJvm;
+    @Deprecated
+    public void disableAutoTargetJvm() {
+        ProviderApiDeprecationLogger.logDeprecation(JavaPluginExtension.class, "disableAutoTargetJvm()", "getAutoTargetJvm().set(false)");
+        getAutoTargetJvm().set(false);
     }
 
     /**

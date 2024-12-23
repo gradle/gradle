@@ -218,8 +218,8 @@ abstract class AbstractJavaCompilerIntegrationSpec extends AbstractIntegrationSp
 
             compileJava {
                 ${configureBoostrapClasspath(lower)}
-                sourceCompatibility = JavaVersion.toVersion(${lowerVersion})
-                targetCompatibility = JavaVersion.toVersion(${lowerVersion})
+                sourceCompatibility = '${lowerVersion}'
+                targetCompatibility = '${lowerVersion}'
             }
 
             assert configurations.apiElements.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == ${lowerVersion}
@@ -310,7 +310,7 @@ abstract class AbstractJavaCompilerIntegrationSpec extends AbstractIntegrationSp
         given:
         goodCode()
         buildFile << """
-            java.disableAutoTargetJvm()
+            java.autoTargetJvm = false
             java.targetCompatibility = JavaVersion.VERSION_1_7 // Ignored
 
             compileJava {
@@ -341,8 +341,8 @@ abstract class AbstractJavaCompilerIntegrationSpec extends AbstractIntegrationSp
         buildFile << """
             java.targetCompatibility = JavaVersion.VERSION_1_9 // Ignored
             compileJava {
-                targetCompatibility = JavaVersion.toVersion(${lowerVersion})
-                sourceCompatibility = JavaVersion.toVersion(${lowerVersion})
+                targetCompatibility = '$lowerVersion'
+                sourceCompatibility = '$lowerVersion'
                 ${configureBoostrapClasspath(lower)}
             }
 

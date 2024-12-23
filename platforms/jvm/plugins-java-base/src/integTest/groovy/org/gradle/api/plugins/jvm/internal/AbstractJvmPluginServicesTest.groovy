@@ -60,7 +60,9 @@ abstract class AbstractJvmPluginServicesTest extends Specification {
             findPlugin(_) >> null
         }
         getExtensions() >> Stub(ExtensionContainerInternal) {
-            getByType(JavaPluginExtension) >> Mock(JavaPluginExtension)
+            getByType(JavaPluginExtension) >> Mock(JavaPluginExtension) {
+                getAutoTargetJvm() >> TestUtil.propertyFactory().property(Boolean).value(true)
+            }
         }
         getTasks() >> tasks
         getConfigurations() >> configurations

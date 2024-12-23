@@ -36,7 +36,7 @@ abstract class AbstractIncrementalCompileIntegrationTest extends AbstractIntegra
         file("src/main/${language.name}/Test.${language.name}") << 'public class Test{}'
         buildFile << """
             apply plugin: '${language.name}'
-            java.sourceCompatibility = '${Jvm.current().javaVersion.previous()}'
+            java.sourceCompatibility = JavaVersion.${Jvm.current().javaVersion.previous().name()}
             ${language.compileTaskName}.options.debug = true
             ${language.compileTaskName}.options.incremental = true
             ${language.projectGroovyDependencies()}
@@ -49,7 +49,7 @@ abstract class AbstractIncrementalCompileIntegrationTest extends AbstractIntegra
         executedAndNotSkipped ":${language.compileTaskName}"
 
         when:
-        buildFile << "java.sourceCompatibility = '${Jvm.current().javaVersion}'\n"
+        buildFile << "java.sourceCompatibility = JavaVersion.${Jvm.current().javaVersion.name()}\n"
         succeeds ":${language.compileTaskName}"
 
         then:

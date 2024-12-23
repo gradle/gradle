@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.testng
 
+import org.gradle.api.JavaVersion
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.testing.Test
@@ -36,7 +37,7 @@ public class TestNGTestFrameworkTest extends Specification {
     Test testTask = TestUtil.createTask(Test, project)
 
     void setup() {
-        project.ext.sourceCompatibility = "1.7"
+        project.ext.sourceCompatibility = JavaVersion.VERSION_1_7
     }
 
     void "creates test class processor"() {

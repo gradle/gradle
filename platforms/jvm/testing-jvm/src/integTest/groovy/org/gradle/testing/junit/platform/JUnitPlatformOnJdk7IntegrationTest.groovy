@@ -36,7 +36,7 @@ class JUnitPlatformOnJdk7IntegrationTest extends AbstractIntegrationSpec {
             }
 
             java {
-                disableAutoTargetJvm()
+                autoTargetJvm = false
                 toolchain {
                     languageVersion = JavaLanguageVersion.of(7)
                 }

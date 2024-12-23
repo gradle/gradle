@@ -390,8 +390,8 @@ apply plugin: 'eclipse'
 apply plugin: 'java'
 apply plugin: 'eclipse'
 java {
-    sourceCompatibility = 1.4
-    targetCompatibility = 1.3
+    sourceCompatibility = JavaVersion.VERSION_1_4
+    targetCompatibility = JavaVersion.VERSION_1_3
 }
 '''
         def jdt = parseJdtFile()
@@ -406,8 +406,8 @@ java {
 apply plugin: 'java'
 apply plugin: 'eclipse'
 java {
-    sourceCompatibility = 1.4
-    targetCompatibility = 1.5
+    sourceCompatibility = JavaVersion.VERSION_1_4
+    targetCompatibility = JavaVersion.VERSION_1_5
 }
 eclipse {
     jdt {

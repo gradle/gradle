@@ -1,6 +1,6 @@
 apply plugin: 'java'
 
-java.sourceCompatibility = 1.6
+java.sourceCompatibility = JavaVersion.VERSION_1_6
 
 configurations {
     provided

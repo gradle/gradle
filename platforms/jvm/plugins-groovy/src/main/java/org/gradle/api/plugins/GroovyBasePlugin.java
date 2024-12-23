@@ -44,9 +44,7 @@ import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
-import java.util.function.Supplier;
 
 import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
 
@@ -93,12 +91,13 @@ public abstract class GroovyBasePlugin implements Plugin<Project> {
             );
 
             DefaultJavaPluginExtension javaExtension = (DefaultJavaPluginExtension) project.getExtensions().getByType(JavaPluginExtension.class);
-            JvmPluginsHelper.configureCompileDefaults(compile, javaExtension, (@Nullable JavaVersion rawConvention, Supplier<JavaVersion> javaVersionSupplier) -> {
-                if (rawConvention != null) {
-                    return rawConvention;
-                }
-                return JavaVersion.toVersion(compile.getJavaLauncher().get().getMetadata().getLanguageVersion().toString());
-            });
+            JvmPluginsHelper.configureCompileDefaults(compile, javaExtension, (Provider<JavaVersion> extensionConfiguredVersion, Provider<JavaVersion> extensionEffectiveVersion) ->
+                extensionConfiguredVersion.orElse(
+                    compile.getJavaLauncher().map(
+                        launcher -> JavaVersion.toVersion(launcher.getMetadata().getLanguageVersion().toString())
+                    )
+                )
+            );
         });
     }
 

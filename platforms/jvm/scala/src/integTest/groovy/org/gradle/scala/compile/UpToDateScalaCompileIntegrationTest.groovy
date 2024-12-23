@@ -109,8 +109,8 @@ class UpToDateScalaCompileIntegrationTest extends AbstractIntegrationSpec implem
             }
 
             java {
-                sourceCompatibility = '1.7'
-                targetCompatibility = '1.7'
+                sourceCompatibility = JavaVersion.VERSION_1_7
+                targetCompatibility = JavaVersion.VERSION_1_7
             }
         """.stripIndent()
     }

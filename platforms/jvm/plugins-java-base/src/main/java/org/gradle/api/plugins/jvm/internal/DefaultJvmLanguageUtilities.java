@@ -82,7 +82,7 @@ public class DefaultJvmLanguageUtilities implements JvmLanguageUtilities {
     private static <COMPILE extends AbstractCompile & HasCompileOptions> int getDefaultTargetPlatform(Configuration configuration, JavaPluginExtension java, Set<TaskProvider<COMPILE>> compileTasks) {
         assert !compileTasks.isEmpty();
 
-        if (!configuration.isCanBeConsumed() && java.getAutoTargetJvmDisabled()) {
+        if (!configuration.isCanBeConsumed() && !java.getAutoTargetJvm().get()) {
             return Integer.MAX_VALUE;
         }
 
@@ -98,7 +98,7 @@ public class DefaultJvmLanguageUtilities implements JvmLanguageUtilities {
             if (flagIndex != -1 && flagIndex + 1 < compilerArgs.size()) {
                 return Integer.parseInt(String.valueOf(compilerArgs.get(flagIndex + 1)));
             } else {
-                return Integer.parseInt(JavaVersion.toVersion(compileTask.getTargetCompatibility()).getMajorVersion());
+                return Integer.parseInt(JavaVersion.toVersion(compileTask.getTargetCompatibility().get()).getMajorVersion());
             }
         }).max(Comparator.naturalOrder()).get();
     }
