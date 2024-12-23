@@ -17,6 +17,8 @@
 package org.gradle.ide.sync
 
 import org.gradle.ide.sync.fixtures.IsolatedProjectsIdeSyncFixture
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 
 class IsolatedProjectsAndroidProjectSyncTest extends AbstractIdeSyncTest {
 
@@ -25,6 +27,10 @@ class IsolatedProjectsAndroidProjectSyncTest extends AbstractIdeSyncTest {
 
     private IsolatedProjectsIdeSyncFixture fixture = new IsolatedProjectsIdeSyncFixture(testDirectory)
 
+    @Requires(
+        value = UnitTestPreconditions.MacOs,
+        reason = "intellij-ide-starter can't download AndroidStudio distribution for Linux yet."
+    )
     def "can sync simple Android build without problems"() {
         given:
         simpleAndroidProject(AGP_VERSION)
