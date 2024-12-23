@@ -17,12 +17,12 @@
 package org.gradle.launcher.daemon.server
 
 import org.gradle.internal.remote.Address
+import org.gradle.internal.time.MockClock
 import org.gradle.launcher.daemon.context.DaemonContext
 import org.gradle.launcher.daemon.registry.DaemonInfo
 import org.gradle.launcher.daemon.registry.DaemonRegistry
 import org.gradle.launcher.daemon.registry.EmbeddedDaemonRegistry
 import org.gradle.launcher.daemon.server.api.DaemonState
-import org.gradle.internal.time.MockClock
 import spock.lang.Specification
 
 import static org.gradle.launcher.daemon.server.api.DaemonState.Busy
@@ -43,7 +43,7 @@ abstract class DaemonExpirationStrategyTest extends Specification {
         DaemonContext context = Mock(DaemonContext) {
             _ * getUid() >> uid
         }
-        DaemonInfo info = new DaemonInfo(daemonAddress, context, "password".bytes, Busy, new MockClock(lastIdleTime))
+        DaemonInfo info = new DaemonInfo(daemonAddress, context, "password".bytes, Busy, MockClock.createAutoIncrementingAt(lastIdleTime))
         info.setState(state)
         registry.store(info)
         return info

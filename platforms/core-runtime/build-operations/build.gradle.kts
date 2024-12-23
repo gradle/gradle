@@ -15,7 +15,10 @@ dependencies {
     implementation(libs.slf4jApi)
 
     testFixturesImplementation(libs.guava)
+
+    testImplementation(testFixtures(projects.time))
 }
+
 tasks.isolatedProjectsIntegTest {
     enabled = false
 }

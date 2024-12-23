@@ -80,6 +80,7 @@ dependencies {
     testImplementation(testFixtures(projects.logging))
     testImplementation(testFixtures(projects.dependencyManagement))
     testImplementation(testFixtures(projects.ide))
+    testImplementation(testFixtures(projects.time))
     testImplementation(testFixtures(projects.workers))
 
     integTestNormalizedDistribution(projects.distributionsFull) {
