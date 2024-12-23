@@ -204,11 +204,7 @@ fun Project.enableScriptCompilationOf(
             }
 
         val compilePluginsBlocks = if (names.contains("compileKotlinPluginsBlocks")) {
-//            println("NEW SETUP")
             named("compileKotlinPluginsBlocks") { task ->
-                task.doFirst {
-                    println("DEBUG HERE")
-                }
                 task.enabled = true
                 task.dependsOn(generateExternalPluginSpecBuilders)
                 task.dependsOn(extractPrecompiledScriptPluginPlugins)
@@ -235,7 +231,6 @@ fun Project.enableScriptCompilationOf(
                 }
             }
         } else {
-//            println("OLD SETUP")
             register("compilePluginsBlocks", CompilePrecompiledScriptPluginPlugins::class.java) { task ->
                 task.javaLauncher.set(javaToolchainService.launcherFor(java.toolchain))
                 @Suppress("DEPRECATION") task.jvmTarget.set(jvmTargetProvider)

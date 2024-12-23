@@ -76,9 +76,7 @@ fun resolverEnvironmentStringFor(
         listOf(
             kotlinDslImplicitImports to implicitImportsForPrecompiledScriptPlugins(implicitImports, classPathFingerprinter, classPathFiles)
         ) + precompiledScriptPluginImportsFrom(metadataDir.asFile)
-    ).also {
-        println("RESOLVER_ENVIRONMENT_STRING=$it")
-    }
+    )
 }
 
 
