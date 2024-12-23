@@ -27,7 +27,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.IoActions;
 import org.gradle.launcher.bootstrap.ExecutionListener;
-import org.gradle.launcher.configuration.BuildLayoutResult;
+import org.gradle.launcher.configuration.BuildLocationResult;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.internal.GFileUtils;
 
@@ -41,13 +41,13 @@ public class WelcomeMessageAction implements Action<ExecutionListener> {
     public static final String WELCOME_MESSAGE_ENABLED_SYSTEM_PROPERTY = "org.gradle.internal.launcher.welcomeMessageEnabled";
 
     private final Logger logger;
-    private final BuildLayoutResult buildLayout;
+    private final BuildLocationResult buildLayout;
     private final GradleVersion gradleVersion;
     private final Function<String, InputStream> inputStreamProvider;
     private final WelcomeMessageConfiguration welcomeMessageConfiguration;
     private final Action<ExecutionListener> action;
 
-    WelcomeMessageAction(BuildLayoutResult buildLayout, WelcomeMessageConfiguration welcomeMessageConfiguration, Action<ExecutionListener> action) {
+    WelcomeMessageAction(BuildLocationResult buildLayout, WelcomeMessageConfiguration welcomeMessageConfiguration, Action<ExecutionListener> action) {
         this(Logging.getLogger(WelcomeMessageAction.class), buildLayout, welcomeMessageConfiguration, GradleVersion.current(), new Function<String, InputStream>() {
             @Nullable
             @Override
@@ -58,7 +58,7 @@ public class WelcomeMessageAction implements Action<ExecutionListener> {
     }
 
     @VisibleForTesting
-    WelcomeMessageAction(Logger logger, BuildLayoutResult buildLayout, WelcomeMessageConfiguration welcomeMessageConfiguration, GradleVersion gradleVersion, Function<String, InputStream> inputStreamProvider, Action<ExecutionListener> action) {
+    WelcomeMessageAction(Logger logger, BuildLocationResult buildLayout, WelcomeMessageConfiguration welcomeMessageConfiguration, GradleVersion gradleVersion, Function<String, InputStream> inputStreamProvider, Action<ExecutionListener> action) {
         this.logger = logger;
         this.buildLayout = buildLayout;
         this.gradleVersion = gradleVersion;

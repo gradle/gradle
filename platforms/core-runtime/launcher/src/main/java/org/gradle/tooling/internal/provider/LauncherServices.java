@@ -31,7 +31,7 @@ import org.gradle.execution.WorkValidationWarningReporter;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.initialization.BuildRequestMetaData;
-import org.gradle.initialization.layout.BuildLayout;
+import org.gradle.initialization.location.BuildLocation;
 import org.gradle.internal.build.BuildLayoutValidator;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.event.BuildEventListenerFactory;
@@ -206,7 +206,7 @@ public class LauncherServices extends AbstractGradleModuleServices {
             FileHasherStatistics.Collector fileHasherStatisticsCollector,
             DirectorySnapshotterStatistics.Collector directorySnapshotterStatisticsCollector,
             BuildOperationRunner buildOperationRunner,
-            BuildLayout buildLayout,
+            BuildLocation buildLocation,
             ExceptionAnalyser exceptionAnalyser,
             List<ProblemReporter> problemReporters,
             BuildLoggerFactory buildLoggerFactory,
@@ -235,7 +235,7 @@ public class LauncherServices extends AbstractGradleModuleServices {
                                     new ProblemReportingBuildActionRunner(
                                         new ChainingBuildActionRunner(buildActionRunners),
                                         exceptionAnalyser,
-                                        buildLayout,
+                                        buildLocation,
                                         problemReporters
                                     ),
                                     buildStartedTime,

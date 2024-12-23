@@ -18,8 +18,8 @@ package org.gradle.launcher.cli.converter
 
 import org.gradle.cli.CommandLineParser
 import org.gradle.initialization.BuildLayoutParameters
-import org.gradle.initialization.layout.BuildLayoutFactory
-import org.gradle.launcher.configuration.BuildLayoutResult
+import org.gradle.initialization.location.BuildLocationFactory
+import org.gradle.launcher.configuration.BuildLocationResult
 import org.gradle.launcher.configuration.InitialProperties
 import org.gradle.launcher.daemon.configuration.DaemonBuildOptions
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -27,12 +27,12 @@ import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Specification
 
-class LayoutToPropertiesConverterTest extends Specification {
+class BuildLocationToPropertiesConverterTest extends Specification {
     @Rule
     SetSystemProperties sysProperties = new SetSystemProperties()
     @Rule
     TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider(getClass())
-    def converter = new LayoutToPropertiesConverter(new BuildLayoutFactory())
+    def converter = new BuildLocationToPropertiesConverter(new BuildLocationFactory())
     def gradleDistribution = temp.createDir("gradleDistribution")
     def gradleHome = temp.createDir("gradleHome")
     def rootDir = temp.createDir("projectDir")
@@ -186,12 +186,12 @@ class LayoutToPropertiesConverterTest extends Specification {
         return initialPropertiesConverter.convert(parsedCommandLine)
     }
 
-    BuildLayoutResult layout(InitialProperties initialProperties, @DelegatesTo(BuildLayoutParameters) Closure overrides = {}) {
-        def buildLayoutConverter = new BuildLayoutConverter()
+    BuildLocationResult layout(InitialProperties initialProperties, @DelegatesTo(BuildLayoutParameters) Closure overrides = {}) {
+        def buildLocationConverter = new BuildLocationConverter()
         def parser = new CommandLineParser()
-        buildLayoutConverter.configure(parser)
+        buildLocationConverter.configure(parser)
         def parsedCommandLine = parser.parse([])
-        return buildLayoutConverter.convert(initialProperties, parsedCommandLine, null) {
+        return buildLocationConverter.convert(initialProperties, parsedCommandLine, null) {
             it.setGradleInstallationHomeDir(gradleDistribution)
             it.setGradleUserHomeDir(gradleHome)
             it.setCurrentDir(rootDir)

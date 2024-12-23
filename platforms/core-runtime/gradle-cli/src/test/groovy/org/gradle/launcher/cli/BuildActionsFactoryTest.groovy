@@ -18,7 +18,7 @@ package org.gradle.launcher.cli
 import org.gradle.api.Action
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.cli.CommandLineParser
-import org.gradle.initialization.layout.BuildLayoutFactory
+import org.gradle.initialization.location.BuildLocationFactory
 import org.gradle.internal.Actions
 import org.gradle.internal.Factory
 import org.gradle.internal.jvm.Jvm
@@ -182,7 +182,7 @@ class BuildActionsFactoryTest extends Specification {
     def convert(String... args) {
         def parser = new CommandLineParser()
         BuildEnvironmentConfigurationConverter buildEnvironmentConfigurationConverter = new BuildEnvironmentConfigurationConverter(
-            new BuildLayoutFactory(),
+            new BuildLocationFactory(),
             basicServices.get(FileCollectionFactory.class))
         buildEnvironmentConfigurationConverter.configure(parser)
         def cl = parser.parse(args)

@@ -17,7 +17,7 @@
 package org.gradle.workers.internal;
 
 import org.gradle.api.Action;
-import org.gradle.initialization.layout.ProjectCacheDir;
+import org.gradle.initialization.location.ProjectCacheDir;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.classpath.CachedClasspathTransformer;

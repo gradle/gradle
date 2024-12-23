@@ -51,8 +51,8 @@ public class StartParameterInternal extends StartParameter {
     public StartParameterInternal() {
     }
 
-    protected StartParameterInternal(BuildLayoutParameters layoutParameters) {
-        super(layoutParameters);
+    protected StartParameterInternal(BuildLayoutParameters locationParameters) {
+        super(locationParameters);
     }
 
     @Override

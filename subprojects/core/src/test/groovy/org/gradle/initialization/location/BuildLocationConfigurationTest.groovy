@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,18 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.initialization.layout
+package org.gradle.initialization.location
 
 import org.gradle.api.internal.StartParameterInternal
 import spock.lang.Specification
 
-class BuildLayoutConfigurationTest extends Specification {
+class BuildLocationConfigurationTest extends Specification {
 
     def "uses specified settings script"() {
         def startParameter = new StartParameterInternal()
         def settingsFile = new File("settings.gradle")
         startParameter.settingsFile = settingsFile
-        def config = new BuildLayoutConfiguration(startParameter)
+        def config = new BuildLocationConfiguration(startParameter)
 
         expect:
         config.settingsFile == settingsFile.canonicalFile
@@ -32,7 +32,7 @@ class BuildLayoutConfigurationTest extends Specification {
 
     def "uses default settings file when none specified"() {
         def startParameter = new StartParameterInternal()
-        def config = new BuildLayoutConfiguration(startParameter)
+        def config = new BuildLocationConfiguration(startParameter)
 
         expect:
         config.settingsFile == null

@@ -21,15 +21,15 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
-import org.gradle.initialization.layout.BuildLayoutFactory;
+import org.gradle.initialization.location.BuildLocationFactory;
 import org.gradle.jvm.toolchain.internal.ToolchainConfiguration;
-import org.gradle.launcher.cli.converter.BuildLayoutConverter;
+import org.gradle.launcher.cli.converter.BuildLocationConverter;
+import org.gradle.launcher.cli.converter.BuildLocationToPropertiesConverter;
 import org.gradle.launcher.cli.converter.BuildOptionBackedConverter;
 import org.gradle.launcher.cli.converter.InitialPropertiesConverter;
-import org.gradle.launcher.cli.converter.LayoutToPropertiesConverter;
 import org.gradle.launcher.cli.converter.StartParameterConverter;
 import org.gradle.launcher.configuration.AllProperties;
-import org.gradle.launcher.configuration.BuildLayoutResult;
+import org.gradle.launcher.configuration.BuildLocationResult;
 import org.gradle.launcher.configuration.InitialProperties;
 import org.gradle.launcher.daemon.configuration.DaemonBuildOptions;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
@@ -43,8 +43,8 @@ import java.util.Map;
 public class BuildEnvironmentConfigurationConverter {
 
     private final InitialPropertiesConverter initialPropertiesConverter;
-    private final BuildLayoutConverter buildLayoutConverter;
-    private final LayoutToPropertiesConverter layoutToPropertiesConverter;
+    private final BuildLocationConverter buildLocationConverter;
+    private final BuildLocationToPropertiesConverter buildLocationToPropertiesConverter;
     private final StartParameterConverter startParameterConverter;
     private final BuildOptionBackedConverter<DaemonParameters> daemonParametersConverter;
 
@@ -52,25 +52,25 @@ public class BuildEnvironmentConfigurationConverter {
     private final FileCollectionFactory fileCollectionFactory;
 
     BuildEnvironmentConfigurationConverter(InitialPropertiesConverter initialPropertiesConverter,
-                                           BuildLayoutConverter buildLayoutConverter,
-                                           LayoutToPropertiesConverter layoutToPropertiesConverter,
+                                           BuildLocationConverter buildLocationConverter,
+                                           BuildLocationToPropertiesConverter buildLocationToPropertiesConverter,
                                            StartParameterConverter startParameterConverter,
                                            BuildOptionBackedConverter<DaemonParameters> daemonParametersConverter,
                                            FileCollectionFactory fileCollectionFactory
     ) {
         this.initialPropertiesConverter = initialPropertiesConverter;
-        this.buildLayoutConverter = buildLayoutConverter;
-        this.layoutToPropertiesConverter = layoutToPropertiesConverter;
+        this.buildLocationConverter = buildLocationConverter;
+        this.buildLocationToPropertiesConverter = buildLocationToPropertiesConverter;
         this.startParameterConverter = startParameterConverter;
         this.daemonParametersConverter = daemonParametersConverter;
         this.fileCollectionFactory = fileCollectionFactory;
         this.toolchainConfigurationBuildOptionBackedConverter = new BuildOptionBackedConverter<>(new ToolchainBuildOptions());
     }
 
-    public BuildEnvironmentConfigurationConverter(BuildLayoutFactory buildLayoutFactory, FileCollectionFactory fileCollectionFactory) {
+    public BuildEnvironmentConfigurationConverter(BuildLocationFactory buildLocationFactory, FileCollectionFactory fileCollectionFactory) {
         this(new InitialPropertiesConverter(),
-            new BuildLayoutConverter(),
-            new LayoutToPropertiesConverter(buildLayoutFactory),
+            new BuildLocationConverter(),
+            new BuildLocationToPropertiesConverter(buildLocationFactory),
             new StartParameterConverter(),
             new BuildOptionBackedConverter<>(new DaemonBuildOptions()),
             fileCollectionFactory
@@ -79,8 +79,8 @@ public class BuildEnvironmentConfigurationConverter {
 
     public Parameters convertParameters(ParsedCommandLine args, @Nullable File currentDir) throws CommandLineArgumentException {
         InitialProperties initialProperties = initialPropertiesConverter.convert(args);
-        BuildLayoutResult buildLayout = buildLayoutConverter.convert(initialProperties, args, currentDir);
-        AllProperties properties = layoutToPropertiesConverter.convert(initialProperties, buildLayout);
+        BuildLocationResult buildLayout = buildLocationConverter.convert(initialProperties, args, currentDir);
+        AllProperties properties = buildLocationToPropertiesConverter.convert(initialProperties, buildLayout);
         StartParameterInternal startParameter = new StartParameterInternal();
         startParameterConverter.convert(args, buildLayout, properties, startParameter);
 
@@ -100,7 +100,7 @@ public class BuildEnvironmentConfigurationConverter {
 
     public void configure(CommandLineParser parser) {
         initialPropertiesConverter.configure(parser);
-        buildLayoutConverter.configure(parser);
+        buildLocationConverter.configure(parser);
         startParameterConverter.configure(parser);
         daemonParametersConverter.configure(parser);
     }

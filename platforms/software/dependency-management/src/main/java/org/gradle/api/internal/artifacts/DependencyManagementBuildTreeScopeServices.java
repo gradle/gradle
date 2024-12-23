@@ -71,7 +71,7 @@ import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.filestore.ArtifactIdentifierFileStore;
 import org.gradle.api.internal.filestore.DefaultArtifactIdentifierFileStore;
 import org.gradle.api.internal.filestore.TwoStageArtifactIdentifierFileStore;
-import org.gradle.initialization.layout.BuildLayout;
+import org.gradle.initialization.location.BuildLocation;
 import org.gradle.internal.component.external.model.ModuleComponentGraphResolveStateFactory;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory;
 import org.gradle.internal.component.model.ComponentIdGenerator;
@@ -177,8 +177,8 @@ class DependencyManagementBuildTreeScopeServices implements ServiceRegistrationP
     }
 
     @Provides
-    StartParameterResolutionOverride createStartParameterResolutionOverride(StartParameter startParameter, BuildLayout buildLayout) {
-        File rootDirectory = buildLayout.getRootDirectory();
+    StartParameterResolutionOverride createStartParameterResolutionOverride(StartParameter startParameter, BuildLocation buildLocation) {
+        File rootDirectory = buildLocation.getRootDirectory();
         File gradleDir = new File(rootDirectory, "gradle");
         return new StartParameterResolutionOverride(startParameter, gradleDir);
     }

@@ -17,8 +17,8 @@ package org.gradle.tooling.internal.consumer;
 
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.initialization.BuildCancellationToken;
-import org.gradle.initialization.layout.BuildLayout;
-import org.gradle.initialization.layout.BuildLayoutFactory;
+import org.gradle.initialization.location.BuildLocation;
+import org.gradle.initialization.location.BuildLocationFactory;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
@@ -55,7 +55,7 @@ public class DistributionFactory {
      * Returns the default distribution to use for the specified project.
      */
     public Distribution getDefaultDistribution(File projectDir, boolean searchUpwards) {
-        BuildLayout layout = new BuildLayoutFactory().getLayoutFor(projectDir, searchUpwards);
+        BuildLocation layout = new BuildLocationFactory().getLocationFor(projectDir, searchUpwards);
         WrapperExecutor wrapper = WrapperExecutor.forProjectDirectory(layout.getRootDirectory());
         if (wrapper.getDistribution() != null) {
             return new ZippedDistribution(wrapper.getConfiguration(), clock);
@@ -150,7 +150,7 @@ public class DistributionFactory {
         }
 
         private File determineRootDir(ConnectionParameters connectionParameters) {
-            return new BuildLayoutFactory().getLayoutFor(
+            return new BuildLocationFactory().getLocationFor(
                 connectionParameters.getProjectDir(),
                 connectionParameters.isSearchUpwards() != null ? connectionParameters.isSearchUpwards() : true
             ).getRootDirectory();

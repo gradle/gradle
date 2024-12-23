@@ -21,14 +21,14 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.initialization.BuildLayoutParametersBuildOptions;
 import org.gradle.initialization.ParallelismBuildOptions;
 import org.gradle.initialization.StartParameterBuildOptions;
-import org.gradle.initialization.layout.BuildLayout;
-import org.gradle.initialization.layout.BuildLayoutFactory;
+import org.gradle.initialization.location.BuildLocation;
+import org.gradle.initialization.location.BuildLocationFactory;
 import org.gradle.internal.Cast;
 import org.gradle.internal.buildconfiguration.DaemonJvmPropertiesDefaults;
 import org.gradle.internal.buildoption.BuildOption;
 import org.gradle.internal.logging.LoggingConfigurationBuildOptions;
 import org.gradle.launcher.configuration.AllProperties;
-import org.gradle.launcher.configuration.BuildLayoutResult;
+import org.gradle.launcher.configuration.BuildLocationResult;
 import org.gradle.launcher.configuration.InitialProperties;
 import org.gradle.launcher.daemon.configuration.DaemonBuildOptions;
 import org.gradle.launcher.daemon.toolchain.ToolchainBuildOptions;
@@ -45,13 +45,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-public class LayoutToPropertiesConverter {
+public class BuildLocationToPropertiesConverter {
 
     private final List<BuildOption<?>> allBuildOptions = new ArrayList<>();
-    private final BuildLayoutFactory buildLayoutFactory;
+    private final BuildLocationFactory buildLocationFactory;
 
-    public LayoutToPropertiesConverter(BuildLayoutFactory buildLayoutFactory) {
-        this.buildLayoutFactory = buildLayoutFactory;
+    public BuildLocationToPropertiesConverter(BuildLocationFactory buildLocationFactory) {
+        this.buildLocationFactory = buildLocationFactory;
         allBuildOptions.addAll(new BuildLayoutParametersBuildOptions().getAllOptions());
         allBuildOptions.addAll(new StartParameterBuildOptions().getAllOptions());
         allBuildOptions.addAll(new LoggingConfigurationBuildOptions().getAllOptions()); // TODO maybe a new converter also here
@@ -61,7 +61,7 @@ public class LayoutToPropertiesConverter {
         allBuildOptions.addAll(new ToolchainBuildOptions().getAllOptions());
     }
 
-    public AllProperties convert(InitialProperties initialProperties, BuildLayoutResult layout) {
+    public AllProperties convert(InitialProperties initialProperties, BuildLocationResult layout) {
         Map<String, String> properties = new HashMap<>();
         configureFromHomeDir(layout.getGradleInstallationHomeDir(), properties);
         configureFromBuildDir(layout, properties);
@@ -88,13 +88,13 @@ public class LayoutToPropertiesConverter {
         maybeConfigureFrom(new File(gradleUserHomeDir, Project.GRADLE_PROPERTIES), result);
     }
 
-    private void configureFromBuildDir(BuildLayoutResult layoutResult, Map<String, String> result) {
-        BuildLayout layout = buildLayoutFactory.getLayoutFor(layoutResult.toLayoutConfiguration());
+    private void configureFromBuildDir(BuildLocationResult layoutResult, Map<String, String> result) {
+        BuildLocation layout = buildLocationFactory.getLocationFor(layoutResult.toLocationConfiguration());
         maybeConfigureFrom(new File(layout.getRootDirectory(), Project.GRADLE_PROPERTIES), result);
     }
 
-    private void configureFromDaemonJVMProperties(BuildLayoutResult layoutResult, Map<String, String> result) {
-        BuildLayout layout = buildLayoutFactory.getLayoutFor(layoutResult.toLayoutConfiguration());
+    private void configureFromDaemonJVMProperties(BuildLocationResult layoutResult, Map<String, String> result) {
+        BuildLocation layout = buildLocationFactory.getLocationFor(layoutResult.toLocationConfiguration());
         configureFrom(new File(layout.getRootDirectory(), DaemonJvmPropertiesDefaults.DAEMON_JVM_PROPERTIES_FILE), result);
     }
 

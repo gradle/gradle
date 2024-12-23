@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.initialization.layout;
+package org.gradle.initialization.location;
 
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.SettingsInternal;
@@ -28,26 +28,26 @@ import javax.inject.Inject;
 import java.io.File;
 
 @ServiceScope(Scope.Global.class)
-public class BuildLayoutFactory {
+public class BuildLocationFactory {
 
     private static final String DEFAULT_SETTINGS_FILE_BASENAME = "settings";
     private final ScriptFileResolver scriptFileResolver;
 
     @Inject
-    public BuildLayoutFactory(ScriptFileResolver scriptFileResolver) {
+    public BuildLocationFactory(ScriptFileResolver scriptFileResolver) {
         this.scriptFileResolver = scriptFileResolver;
     }
 
-    public BuildLayoutFactory() {
+    public BuildLocationFactory() {
         this(new DefaultScriptFileResolver());
     }
 
     /**
-     * Determines the layout of the build, given a current directory and some other configuration.
+     * Determines the location of the build, given a current directory and some other configuration.
      */
-    public BuildLayout getLayoutFor(File currentDir, boolean shouldSearchUpwards) {
+    public BuildLocation getLocationFor(File currentDir, boolean shouldSearchUpwards) {
         boolean searchUpwards = shouldSearchUpwards && !isBuildSrc(currentDir);
-        return getLayoutFor(currentDir, searchUpwards ? null : currentDir.getParentFile());
+        return getLocationFor(currentDir, searchUpwards ? null : currentDir.getParentFile());
     }
 
     private boolean isBuildSrc(File currentDir) {
@@ -57,20 +57,20 @@ public class BuildLayoutFactory {
     /**
      * Determines the layout of the build, given a current directory and some other configuration.
      */
-    public BuildLayout getLayoutFor(BuildLayoutConfiguration configuration) {
+    public BuildLocation getLocationFor(BuildLocationConfiguration configuration) {
         if (configuration.isUseEmptySettings()) {
-            return buildLayoutFrom(configuration, null);
+            return buildLocationFrom(configuration, null);
         }
         File explicitSettingsFile = configuration.getSettingsFile();
         if (explicitSettingsFile != null) {
-            return buildLayoutFrom(configuration, explicitSettingsFile);
+            return buildLocationFrom(configuration, explicitSettingsFile);
         }
 
-        return getLayoutFor(configuration.getCurrentDir(), configuration.isSearchUpwards());
+        return getLocationFor(configuration.getCurrentDir(), configuration.isSearchUpwards());
     }
 
-    private BuildLayout buildLayoutFrom(BuildLayoutConfiguration configuration, File settingsFile) {
-        return new BuildLayout(configuration.getCurrentDir(), settingsFile, scriptFileResolver);
+    private BuildLocation buildLocationFrom(BuildLocationConfiguration configuration, File settingsFile) {
+        return new BuildLocation(configuration.getCurrentDir(), settingsFile, scriptFileResolver);
     }
 
     @Nullable
@@ -78,21 +78,21 @@ public class BuildLayoutFactory {
         return scriptFileResolver.resolveScriptFile(directory, DEFAULT_SETTINGS_FILE_BASENAME);
     }
 
-    BuildLayout getLayoutFor(File currentDir, File stopAt) {
+    BuildLocation getLocationFor(File currentDir, File stopAt) {
         File settingsFile = findExistingSettingsFileIn(currentDir);
         if (settingsFile != null) {
-            return layout(settingsFile);
+            return buildLocation(settingsFile);
         }
         for (File candidate = currentDir.getParentFile(); candidate != null && !candidate.equals(stopAt); candidate = candidate.getParentFile()) {
             settingsFile = findExistingSettingsFileIn(candidate);
             if (settingsFile != null) {
-                return layout(settingsFile);
+                return buildLocation(settingsFile);
             }
         }
-        return layout(new File(currentDir, Settings.DEFAULT_SETTINGS_FILE));
+        return buildLocation(new File(currentDir, Settings.DEFAULT_SETTINGS_FILE));
     }
 
-    private BuildLayout layout(File settingsFile) {
-        return new BuildLayout(settingsFile.getParentFile(), FileUtils.canonicalize(settingsFile), scriptFileResolver);
+    private BuildLocation buildLocation(File settingsFile) {
+        return new BuildLocation(settingsFile.getParentFile(), FileUtils.canonicalize(settingsFile), scriptFileResolver);
     }
 }

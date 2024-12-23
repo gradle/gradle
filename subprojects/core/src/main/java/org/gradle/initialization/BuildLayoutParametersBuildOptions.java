@@ -34,7 +34,7 @@ public class BuildLayoutParametersBuildOptions extends BuildOptionSet<BuildLayou
     private static List<BuildOption<? super BuildLayoutParameters>> options;
 
     static {
-        List<BuildOption<BuildLayoutParameters>> options = new ArrayList<BuildOption<BuildLayoutParameters>>();
+        List<BuildOption<BuildLayoutParameters>> options = new ArrayList<>();
         options.add(new GradleUserHomeOption());
         options.add(new ProjectDirOption());
         options.add(new SettingsFileOption());

@@ -20,7 +20,7 @@ import org.gradle.cache.UnscopedCacheBuilderFactory;
 import org.gradle.cache.internal.CacheFactory;
 import org.gradle.cache.internal.DefaultUnscopedCacheBuilderFactory;
 import org.gradle.cache.internal.scopes.DefaultGlobalScopedCacheBuilderFactory;
-import org.gradle.initialization.layout.GlobalCacheDir;
+import org.gradle.initialization.location.GlobalCacheDir;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.service.Provides;

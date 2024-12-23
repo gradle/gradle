@@ -19,7 +19,7 @@ package org.gradle.api.file
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.build.BuildTestFile
 
-class BuildLayoutIntegrationTest extends AbstractIntegrationSpec {
+class BuildLocationIntegrationTest extends AbstractIntegrationSpec {
     private String printLocations() {
         settingsScriptSnippet """
             println "settings root dir: " + layout.rootDirectory + "."

@@ -23,8 +23,8 @@ import org.gradle.api.internal.project.ProjectRegistry
 import org.gradle.api.plugins.internal.HelpBuiltInCommand
 import org.gradle.buildinit.plugins.internal.action.InitBuiltInCommand
 import org.gradle.groovy.scripts.ScriptSource
-import org.gradle.initialization.layout.BuildLayout
-import org.gradle.initialization.layout.BuildLayoutFactory
+import org.gradle.initialization.location.BuildLocation
+import org.gradle.initialization.location.BuildLocationFactory
 import org.gradle.internal.FileUtils
 import org.gradle.internal.logging.ToStringLogger
 import org.gradle.internal.scripts.ScriptFileResolver
@@ -34,10 +34,10 @@ import spock.lang.Specification
 
 class DefaultSettingsLoaderTest extends Specification {
     private projectRootDir = FileUtils.canonicalize(new File("someDir"))
-    private mockBuildLayout = new BuildLayout(projectRootDir, null, Stub(ScriptFileResolver))
+    private mockBuildLayout = new BuildLocation(projectRootDir, null, Stub(ScriptFileResolver))
     @SuppressWarnings('GroovyAssignabilityCheck')
-    private mockBuildLayoutFactory = Mock(BuildLayoutFactory) {
-        getLayoutFor(_) >> mockBuildLayout
+    private mockBuildLocationFactory = Mock(BuildLocationFactory) {
+        getLocationFor(_) >> mockBuildLayout
     }
     private mockProjectDescriptor = Mock(DefaultProjectDescriptor) {
         getPath() >> ":"
@@ -84,7 +84,7 @@ class DefaultSettingsLoaderTest extends Specification {
 
     private logger = new ToStringLogger()
     private builtInCommands = [new InitBuiltInCommand(), new HelpBuiltInCommand()]
-    private DefaultSettingsLoader settingsLoader = new DefaultSettingsLoader(mockSettingsProcessor, mockBuildLayoutFactory, builtInCommands, logger)
+    private DefaultSettingsLoader settingsLoader = new DefaultSettingsLoader(mockSettingsProcessor, mockBuildLocationFactory, builtInCommands, logger)
 
     def "running default task loads settings"() {
         when:

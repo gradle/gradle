@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.initialization.layout;
+package org.gradle.initialization.location;
 
 import org.gradle.initialization.SettingsLocation;
 import org.gradle.internal.scripts.ScriptFileResolver;
@@ -23,7 +23,7 @@ import java.io.File;
 
 import static org.gradle.initialization.DefaultProjectDescriptor.BUILD_SCRIPT_BASENAME;
 
-public class BuildLayout extends SettingsLocation {
+public class BuildLocation extends SettingsLocation {
     private final File buildDefinitionDirectory;
     private final ScriptFileResolver scriptFileResolver;
 
@@ -33,7 +33,7 @@ public class BuildLayout extends SettingsLocation {
      * Note: `null` for `settingsFile` means explicitly no settings
      *   A non null value can be a non existent file, which is semantically equivalent to an empty file
      */
-     public BuildLayout(File buildDefinitionDirectory, @Nullable File settingsFile, ScriptFileResolver scriptFileResolver) {
+     public BuildLocation(File buildDefinitionDirectory, @Nullable File settingsFile, ScriptFileResolver scriptFileResolver) {
         super(buildDefinitionDirectory, settingsFile);
         this.buildDefinitionDirectory = buildDefinitionDirectory;
         this.scriptFileResolver = scriptFileResolver;

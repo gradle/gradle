@@ -20,7 +20,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.initialization.GradleUserHomeDirProvider;
-import org.gradle.initialization.layout.BuildLayout;
+import org.gradle.initialization.location.BuildLocation;
 import org.gradle.internal.hash.Hashing;
 
 import java.io.File;
@@ -32,18 +32,18 @@ public class BuildScopeCacheDir {
 
     public BuildScopeCacheDir(
         GradleUserHomeDirProvider userHomeDirProvider,
-        BuildLayout buildLayout,
+        BuildLocation buildLocation,
         StartParameter startParameter
     ) {
         if (startParameter.getProjectCacheDir() != null) {
             // Use explicitly requested build scoped cache dir
             cacheDir = startParameter.getProjectCacheDir();
-        } else if (!buildLayout.getRootDirectory().getName().equals(SettingsInternal.BUILD_SRC) && buildLayout.isBuildDefinitionMissing()) {
+        } else if (!buildLocation.getBuildDefinitionDirectory().getName().equals(SettingsInternal.BUILD_SRC) && buildLocation.isBuildDefinitionMissing()) {
             // No build definition, use a cache dir in the user home directory to avoid generating garbage in the root directory
-            cacheDir = new File(userHomeDirProvider.getGradleUserHomeDirectory(), UNDEFINED_BUILD + Hashing.hashString(buildLayout.getRootDirectory().getAbsolutePath()));
+            cacheDir = new File(userHomeDirProvider.getGradleUserHomeDirectory(), UNDEFINED_BUILD + Hashing.hashString(buildLocation.getRootDirectory().getAbsolutePath()));
         } else {
             // Use the .gradle directory in the build root directory
-            cacheDir = new File(buildLayout.getRootDirectory(), ".gradle");
+            cacheDir = new File(buildLocation.getRootDirectory(), ".gradle");
         }
         if (cacheDir.exists() && !cacheDir.isDirectory()) {
             throw new UncheckedIOException(String.format("Cache directory '%s' exists and is not a directory.", cacheDir));

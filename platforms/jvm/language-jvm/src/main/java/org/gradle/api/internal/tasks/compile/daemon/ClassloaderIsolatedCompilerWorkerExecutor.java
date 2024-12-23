@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks.compile.daemon;
 
-import org.gradle.initialization.layout.ProjectCacheDir;
+import org.gradle.initialization.location.ProjectCacheDir;
 import org.gradle.workers.internal.ActionExecutionSpecFactory;
 import org.gradle.workers.internal.DaemonForkOptions;
 import org.gradle.workers.internal.IsolatedClassLoaderWorkerRequirement;

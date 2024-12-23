@@ -18,8 +18,8 @@ package org.gradle.internal.declarativedsl.provider
 
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.model.ObjectFactory
-import org.gradle.initialization.layout.BuildLayoutConfiguration
-import org.gradle.initialization.layout.BuildLayoutFactory
+import org.gradle.initialization.location.BuildLocationConfiguration
+import org.gradle.initialization.location.BuildLocationFactory
 import org.gradle.internal.declarativedsl.evaluator.DeclarativeKotlinScriptEvaluator
 import org.gradle.internal.declarativedsl.evaluator.GradleProcessInterpretationSchemaBuilder
 import org.gradle.internal.declarativedsl.evaluator.MemoizedInterpretationSchemaBuilder
@@ -62,11 +62,11 @@ object BuildServices : ServiceRegistrationProvider {
     @Provides
     fun createInterpretationSchemaBuilder(
         softwareTypeRegistry: SoftwareTypeRegistry,
-        buildLayoutFactory: BuildLayoutFactory,
+        buildLocationFactory: BuildLocationFactory,
         settingsUnderInitialization: SettingsUnderInitialization,
         gradleInternal: GradleInternal
     ) = MemoizedInterpretationSchemaBuilder(
-        StoringInterpretationSchemaBuilder(GradleProcessInterpretationSchemaBuilder(settingsUnderInitialization::instance, softwareTypeRegistry), buildLayoutFactory.settingsDir(gradleInternal))
+        StoringInterpretationSchemaBuilder(GradleProcessInterpretationSchemaBuilder(settingsUnderInitialization::instance, softwareTypeRegistry), buildLocationFactory.settingsDir(gradleInternal))
     )
 
     @Provides
@@ -78,6 +78,6 @@ object BuildServices : ServiceRegistrationProvider {
     }
 
     private
-    fun BuildLayoutFactory.settingsDir(gradle: GradleInternal): File =
-        getLayoutFor(BuildLayoutConfiguration(gradle.startParameter)).settingsDir
+    fun BuildLocationFactory.settingsDir(gradle: GradleInternal): File =
+        getLocationFor(BuildLocationConfiguration(gradle.startParameter)).settingsDir
 }

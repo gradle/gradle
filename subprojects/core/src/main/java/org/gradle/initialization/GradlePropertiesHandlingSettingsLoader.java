@@ -17,23 +17,23 @@
 package org.gradle.initialization;
 
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.initialization.layout.BuildLayoutConfiguration;
-import org.gradle.initialization.layout.BuildLayoutFactory;
+import org.gradle.initialization.location.BuildLocationConfiguration;
+import org.gradle.initialization.location.BuildLocationFactory;
 
 public class GradlePropertiesHandlingSettingsLoader implements SettingsLoader {
     private final SettingsLoader delegate;
-    private final BuildLayoutFactory buildLayoutFactory;
+    private final BuildLocationFactory buildLocationFactory;
     private final GradlePropertiesController gradlePropertiesController;
 
-    public GradlePropertiesHandlingSettingsLoader(SettingsLoader delegate, BuildLayoutFactory buildLayoutFactory, GradlePropertiesController gradlePropertiesController) {
+    public GradlePropertiesHandlingSettingsLoader(SettingsLoader delegate, BuildLocationFactory buildLocationFactory, GradlePropertiesController gradlePropertiesController) {
         this.delegate = delegate;
-        this.buildLayoutFactory = buildLayoutFactory;
+        this.buildLocationFactory = buildLocationFactory;
         this.gradlePropertiesController = gradlePropertiesController;
     }
 
     @Override
     public SettingsState findAndLoadSettings(GradleInternal gradle) {
-        SettingsLocation settingsLocation = buildLayoutFactory.getLayoutFor(new BuildLayoutConfiguration(gradle.getStartParameter()));
+        SettingsLocation settingsLocation = buildLocationFactory.getLocationFor(new BuildLocationConfiguration(gradle.getStartParameter()));
         gradlePropertiesController.loadGradlePropertiesFrom(settingsLocation.getSettingsDir(), true);
         return delegate.findAndLoadSettings(gradle);
     }

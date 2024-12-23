@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.initialization.layout;
+package org.gradle.initialization.location;
 
 import org.gradle.StartParameter;
 import org.gradle.api.internal.StartParameterInternal;
@@ -26,14 +26,14 @@ import java.io.File;
 /**
  * Configuration which affects the (static) layout of a build.
  */
-public class BuildLayoutConfiguration {
+public class BuildLocationConfiguration {
     private final File currentDir;
     private final boolean searchUpwards;
     private final File settingsFile;
     private final File buildFile;
     private final boolean useEmptySettings;
 
-    public BuildLayoutConfiguration(StartParameter startParameter) {
+    public BuildLocationConfiguration(StartParameter startParameter) {
         currentDir = startParameter.getCurrentDir();
         searchUpwards = ((StartParameterInternal)startParameter).isSearchUpwards();
         @SuppressWarnings("deprecation")
@@ -45,7 +45,7 @@ public class BuildLayoutConfiguration {
         useEmptySettings = ((StartParameterInternal)startParameter).isUseEmptySettings();
     }
 
-    public BuildLayoutConfiguration(BuildLayoutParameters parameters) {
+    public BuildLocationConfiguration(BuildLayoutParameters parameters) {
         this.currentDir = parameters.getCurrentDir();
         this.searchUpwards = true;
         this.settingsFile = parameters.getSettingsFile();

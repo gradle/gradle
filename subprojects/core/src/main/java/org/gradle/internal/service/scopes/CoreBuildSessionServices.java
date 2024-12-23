@@ -41,10 +41,10 @@ import org.gradle.groovy.scripts.internal.ScriptSourceHasher;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildRequestMetaData;
 import org.gradle.initialization.GradleUserHomeDirProvider;
-import org.gradle.initialization.layout.BuildLayout;
-import org.gradle.initialization.layout.BuildLayoutConfiguration;
-import org.gradle.initialization.layout.BuildLayoutFactory;
-import org.gradle.initialization.layout.ProjectCacheDir;
+import org.gradle.initialization.location.BuildLocation;
+import org.gradle.initialization.location.BuildLocationConfiguration;
+import org.gradle.initialization.location.BuildLocationFactory;
+import org.gradle.initialization.location.ProjectCacheDir;
 import org.gradle.internal.build.BuildLayoutValidator;
 import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.concurrent.ExecutorFactory;
@@ -103,24 +103,24 @@ public class CoreBuildSessionServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    BuildLayout createBuildLocations(BuildLayoutFactory buildLayoutFactory, StartParameter startParameter) {
-        return buildLayoutFactory.getLayoutFor(new BuildLayoutConfiguration(startParameter));
+    BuildLocation createBuildLocations(BuildLocationFactory buildLocationFactory, StartParameter startParameter) {
+        return buildLocationFactory.getLocationFor(new BuildLocationConfiguration(startParameter));
     }
 
     @Provides
-    FileResolver createFileResolver(FileLookup fileLookup, BuildLayout buildLayout) {
-        return fileLookup.getFileResolver(buildLayout.getRootDirectory());
+    FileResolver createFileResolver(FileLookup fileLookup, BuildLocation buildLocation) {
+        return fileLookup.getFileResolver(buildLocation.getRootDirectory());
     }
 
     @Provides
     ProjectCacheDir createProjectCacheDir(
         GradleUserHomeDirProvider userHomeDirProvider,
-        BuildLayout buildLayout,
+        BuildLocation buildLocation,
         Deleter deleter,
         BuildOperationRunner buildOperationRunner,
         StartParameter startParameter
     ) {
-        BuildScopeCacheDir cacheDir = new BuildScopeCacheDir(userHomeDirProvider, buildLayout, startParameter);
+        BuildScopeCacheDir cacheDir = new BuildScopeCacheDir(userHomeDirProvider, buildLocation, startParameter);
         return new ProjectCacheDir(cacheDir.getDir(), buildOperationRunner, deleter);
     }
 

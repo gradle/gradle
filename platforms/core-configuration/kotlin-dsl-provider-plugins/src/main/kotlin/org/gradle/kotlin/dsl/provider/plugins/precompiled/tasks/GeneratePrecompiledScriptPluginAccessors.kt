@@ -413,9 +413,9 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
      */
     private
     class ProjectSchemaBuildStartParameter(
-        buildLayout: BuildLayoutParameters,
+        buildLayoutParameters: BuildLayoutParameters,
         offline: Boolean,
-    ) : StartParameterInternal(buildLayout) {
+    ) : StartParameterInternal(buildLayoutParameters) {
 
         init {
             // Dry run in case a callback tries to access the task graph.

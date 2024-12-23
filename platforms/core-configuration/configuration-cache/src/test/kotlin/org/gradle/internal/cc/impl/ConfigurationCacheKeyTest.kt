@@ -18,7 +18,7 @@ package org.gradle.internal.cc.impl
 
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.logging.LogLevel
-import org.gradle.initialization.layout.BuildLayout
+import org.gradle.initialization.location.BuildLocation
 import org.gradle.internal.buildoption.DefaultInternalOptions
 import org.gradle.internal.buildoption.Option
 import org.gradle.internal.buildtree.RunTasksRequirements
@@ -163,7 +163,7 @@ class ConfigurationCacheKeyTest {
         val startParameter = StartParameterInternal().apply(configure)
         return ConfigurationCacheKey(
             ConfigurationCacheStartParameter(
-                BuildLayout(
+                BuildLocation(
                     file("buildDefinition"),
                     null,
                     null

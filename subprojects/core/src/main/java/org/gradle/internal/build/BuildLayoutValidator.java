@@ -21,9 +21,9 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.configuration.project.BuiltInCommand;
 import org.gradle.initialization.BuildClientMetaData;
-import org.gradle.initialization.layout.BuildLayout;
-import org.gradle.initialization.layout.BuildLayoutConfiguration;
-import org.gradle.initialization.layout.BuildLayoutFactory;
+import org.gradle.initialization.location.BuildLocation;
+import org.gradle.initialization.location.BuildLocationConfiguration;
+import org.gradle.initialization.location.BuildLocationFactory;
 import org.gradle.internal.exceptions.FailureResolutionAware;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -36,26 +36,26 @@ import static org.gradle.internal.scripts.ScriptFileUtil.getValidSettingsFileNam
 
 @ServiceScope(Scope.BuildSession.class)
 public class BuildLayoutValidator {
-    private final BuildLayoutFactory buildLayoutFactory;
+    private final BuildLocationFactory buildLocationFactory;
     private final DocumentationRegistry documentationRegistry;
     private final BuildClientMetaData clientMetaData;
     private final List<BuiltInCommand> builtInCommands;
 
     public BuildLayoutValidator(
-        BuildLayoutFactory buildLayoutFactory,
+        BuildLocationFactory buildLocationFactory,
         DocumentationRegistry documentationRegistry,
         BuildClientMetaData clientMetaData,
         List<BuiltInCommand> builtInCommands
     ) {
-        this.buildLayoutFactory = buildLayoutFactory;
+        this.buildLocationFactory = buildLocationFactory;
         this.documentationRegistry = documentationRegistry;
         this.clientMetaData = clientMetaData;
         this.builtInCommands = builtInCommands;
     }
 
     public void validate(StartParameterInternal startParameter) {
-        BuildLayout buildLayout = buildLayoutFactory.getLayoutFor(new BuildLayoutConfiguration(startParameter));
-        if (!buildLayout.isBuildDefinitionMissing()) {
+        BuildLocation buildLocation = buildLocationFactory.getLocationFor(new BuildLocationConfiguration(startParameter));
+        if (!buildLocation.isBuildDefinitionMissing()) {
             // All good
             return;
         }

@@ -17,8 +17,8 @@ package org.gradle.tooling.internal.provider
 
 import org.gradle.TaskExecutionRequest
 import org.gradle.initialization.StartParameterBuildOptions
-import org.gradle.launcher.cli.converter.BuildLayoutConverter
-import org.gradle.launcher.cli.converter.LayoutToPropertiesConverter
+import org.gradle.launcher.cli.converter.BuildLocationConverter
+import org.gradle.launcher.cli.converter.BuildLocationToPropertiesConverter
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.tooling.internal.protocol.InternalLaunchable
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters
@@ -29,8 +29,8 @@ class ProviderStartParameterConverterTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider(getClass())
     def params = Stub(ProviderOperationParameters)
-    def layout = Stub(BuildLayoutConverter.Result)
-    def properties = Stub(LayoutToPropertiesConverter.Result)
+    def layout = Stub(BuildLocationConverter.Result)
+    def properties = Stub(BuildLocationToPropertiesConverter.Result)
 
     def "allows configuring the start parameter with build arguments"() {
         params.getArguments() >> ['-PextraProperty=foo', '-m']

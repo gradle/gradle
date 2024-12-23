@@ -29,7 +29,7 @@ import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.initialization.NoOpBuildEventConsumer;
-import org.gradle.initialization.layout.BuildLayoutFactory;
+import org.gradle.initialization.location.BuildLocationFactory;
 import org.gradle.internal.build.event.BuildEventSubscriptions;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.daemon.client.execution.ClientBuildRequestContext;
@@ -41,12 +41,12 @@ import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-import org.gradle.launcher.cli.converter.BuildLayoutConverter;
+import org.gradle.launcher.cli.converter.BuildLocationConverter;
 import org.gradle.launcher.cli.converter.BuildOptionBackedConverter;
 import org.gradle.launcher.cli.converter.InitialPropertiesConverter;
-import org.gradle.launcher.cli.converter.LayoutToPropertiesConverter;
+import org.gradle.launcher.cli.converter.BuildLocationToPropertiesConverter;
 import org.gradle.launcher.configuration.AllProperties;
-import org.gradle.launcher.configuration.BuildLayoutResult;
+import org.gradle.launcher.configuration.BuildLocationResult;
 import org.gradle.launcher.configuration.InitialProperties;
 import org.gradle.launcher.daemon.client.DaemonClient;
 import org.gradle.launcher.daemon.client.DaemonClientFactory;
@@ -105,7 +105,7 @@ import static java.util.Collections.emptySet;
 public class ProviderConnection {
     private static final Logger LOGGER = LoggerFactory.getLogger(ProviderConnection.class);
     private final PayloadSerializer payloadSerializer;
-    private final BuildLayoutFactory buildLayoutFactory;
+    private final BuildLocationFactory buildLocationFactory;
     private final DaemonClientFactory daemonClientFactory;
     private final BuildActionExecutor<BuildActionParameters, BuildRequestContext> embeddedExecutor;
     private final ServiceRegistry sharedServices;
@@ -119,7 +119,7 @@ public class ProviderConnection {
 
     public ProviderConnection(
         ServiceRegistry sharedServices,
-        BuildLayoutFactory buildLayoutFactory,
+        BuildLocationFactory buildLocationFactory,
         DaemonClientFactory daemonClientFactory,
         BuildActionExecutor<BuildActionParameters, BuildRequestContext> embeddedExecutor,
         PayloadSerializer payloadSerializer,
@@ -129,7 +129,7 @@ public class ProviderConnection {
         ShutdownCoordinator shutdownCoordinator,
         NotifyDaemonClientExecuter notifyDaemonClientExecuter
     ) {
-        this.buildLayoutFactory = buildLayoutFactory;
+        this.buildLocationFactory = buildLocationFactory;
         this.daemonClientFactory = daemonClientFactory;
         this.embeddedExecutor = embeddedExecutor;
         this.payloadSerializer = payloadSerializer;
@@ -324,23 +324,23 @@ public class ProviderConnection {
         commandLineParser.allowMixedSubcommandsAndOptions();
 
         InitialPropertiesConverter initialPropertiesConverter = new InitialPropertiesConverter();
-        BuildLayoutConverter buildLayoutConverter = new BuildLayoutConverter();
+        BuildLocationConverter buildLocationConverter = new BuildLocationConverter();
         initialPropertiesConverter.configure(commandLineParser);
-        buildLayoutConverter.configure(commandLineParser);
+        buildLocationConverter.configure(commandLineParser);
 
         ParsedCommandLine parsedCommandLine = commandLineParser.parse(operationParameters.getArguments() == null ? Collections.emptyList() : operationParameters.getArguments());
 
         InitialProperties initialProperties = initialPropertiesConverter.convert(parsedCommandLine);
-        BuildLayoutResult buildLayoutResult = buildLayoutConverter.convert(initialProperties, parsedCommandLine, operationParameters.getProjectDir(), layout -> {
+        BuildLocationResult buildLocationResult = buildLocationConverter.convert(initialProperties, parsedCommandLine, operationParameters.getProjectDir(), layout -> {
             if (operationParameters.getGradleUserHomeDir() != null) {
                 layout.setGradleUserHomeDir(operationParameters.getGradleUserHomeDir());
             }
             layout.setProjectDir(operationParameters.getProjectDir());
         });
 
-        AllProperties properties = new LayoutToPropertiesConverter(buildLayoutFactory).convert(initialProperties, buildLayoutResult);
+        AllProperties properties = new BuildLocationToPropertiesConverter(buildLocationFactory).convert(initialProperties, buildLocationResult);
 
-        DaemonParameters daemonParams = new DaemonParameters(buildLayoutResult.getGradleUserHomeDir(), fileCollectionFactory);
+        DaemonParameters daemonParams = new DaemonParameters(buildLocationResult.getGradleUserHomeDir(), fileCollectionFactory);
         new DaemonBuildOptions().propertiesConverter().convert(properties.getProperties(), daemonParams);
         if (operationParameters.getDaemonBaseDir() != null) {
             daemonParams.setBaseDir(operationParameters.getDaemonBaseDir());
@@ -383,25 +383,25 @@ public class ProviderConnection {
             GUtil.addToMap(effectiveSystemProperties, System.getProperties());
             effectiveSystemProperties.putAll(daemonParams.getMutableAndImmutableSystemProperties());
         }
-        StartParameterInternal startParameter = new ProviderStartParameterConverter().toStartParameter(operationParameters, buildLayoutResult, properties);
+        StartParameterInternal startParameter = new ProviderStartParameterConverter().toStartParameter(operationParameters, buildLocationResult, properties);
 
         Map<String, String> gradlePropertiesAsSeenByToolchains = new HashMap<>();
         gradlePropertiesAsSeenByToolchains.putAll(properties.getProperties());
         gradlePropertiesAsSeenByToolchains.putAll(startParameter.getProjectProperties());
         new BuildOptionBackedConverter<>(new ToolchainBuildOptions()).convert(parsedCommandLine, gradlePropertiesAsSeenByToolchains, daemonParams.getToolchainConfiguration());
 
-        return new Parameters(daemonParams, buildLayoutResult, properties, effectiveSystemProperties, startParameter, requestContext);
+        return new Parameters(daemonParams, buildLocationResult, properties, effectiveSystemProperties, startParameter, requestContext);
     }
 
     private static class Parameters {
         final DaemonParameters daemonParams;
-        final BuildLayoutResult buildLayout;
+        final BuildLocationResult buildLayout;
         final AllProperties properties;
         final Map<String, String> tapiSystemProperties;
         final StartParameterInternal startParameter;
         final DaemonRequestContext requestContext;
 
-        public Parameters(DaemonParameters daemonParams, BuildLayoutResult buildLayout, AllProperties properties, Map<String, String> tapiSystemProperties, StartParameterInternal startParameter, DaemonRequestContext requestContext) {
+        public Parameters(DaemonParameters daemonParams, BuildLocationResult buildLayout, AllProperties properties, Map<String, String> tapiSystemProperties, StartParameterInternal startParameter, DaemonRequestContext requestContext) {
             this.daemonParams = daemonParams;
             this.buildLayout = buildLayout;
             this.properties = properties;
