@@ -17,13 +17,14 @@
 package org.gradle.ide.sync
 
 import org.gradle.ide.sync.fixtures.IsolatedProjectsIdeSyncFixture
+import org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersions
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 
 class IsolatedProjectsAndroidProjectSyncTest extends AbstractIdeSyncTest {
 
     // https://developer.android.com/build/releases/gradle-plugin
-    private final static String AGP_VERSION = "8.7.0"
+    private final static String AGP_VERSION = new AndroidGradlePluginVersions().getLatest()
 
     private IsolatedProjectsIdeSyncFixture fixture = new IsolatedProjectsIdeSyncFixture(testDirectory)
 
