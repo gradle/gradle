@@ -53,7 +53,7 @@ public class DefaultProblemReporter implements InternalProblemReporter {
     }
 
     @Override
-    public void reporting(Action<ProblemSpec> spec) {
+    public void report(Action<? super ProblemSpec> spec) {
         DefaultProblemBuilder problemBuilder = createProblemBuilder();
         spec.execute(problemBuilder);
         report(problemBuilder.build());
@@ -65,17 +65,19 @@ public class DefaultProblemReporter implements InternalProblemReporter {
     }
 
     @Override
-    public RuntimeException throwing(Action<ProblemSpec> spec) {
+    public RuntimeException throwing(Throwable exception, Action<? super ProblemSpec> spec) {
         DefaultProblemBuilder problemBuilder = createProblemBuilder();
         spec.execute(problemBuilder);
+        problemBuilder.withException(exception);
+        report(problemBuilder.build());
+        throw runtimeException(exception);
+    }
 
-        Problem problem = problemBuilder.build();
-        Throwable exception = problem.getException();
-        if (exception == null) {
-            throw new IllegalStateException("Exception must be non-null");
-        } else {
-            throw throwError(exception, problem);
-        }
+    @Override
+    public RuntimeException throwing(Throwable exception, Problem problem) {
+        problem = ((InternalProblem) problem).toBuilder(additionalDataBuilderFactory).withException(transform(exception)).build();
+        report(problem);
+        throw runtimeException(exception);
     }
 
     @Override
@@ -83,24 +85,26 @@ public class DefaultProblemReporter implements InternalProblemReporter {
         for (Problem problem : problems) {
             report(((InternalProblem) problem).toBuilder(additionalDataBuilderFactory).withException(transform(exception)).build());
         }
-        if (exception instanceof RuntimeException) {
-            return (RuntimeException) exception;
-        } else {
-            throw new RuntimeException(exception);
-        }
+        throw runtimeException(exception);
     }
 
-    private RuntimeException throwError(Throwable exception, Problem problem) {
-        report(problem);
+    private static RuntimeException runtimeException(Throwable exception) {
         if (exception instanceof RuntimeException) {
             return (RuntimeException) exception;
         } else {
-            throw new RuntimeException(exception);
+            return new RuntimeException(exception);
         }
     }
 
     @Override
-    public Problem create(Action<InternalProblemSpec> action) {
+    public Problem create(Action<? super ProblemSpec> action) {
+        DefaultProblemBuilder defaultProblemBuilder = createProblemBuilder();
+        action.execute(defaultProblemBuilder);
+        return defaultProblemBuilder.build();
+    }
+
+    @Override
+    public Problem internalCreate(Action<? super InternalProblemSpec> action) {
         DefaultProblemBuilder defaultProblemBuilder = createProblemBuilder();
         action.execute(defaultProblemBuilder);
         return defaultProblemBuilder.build();
