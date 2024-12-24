@@ -55,7 +55,6 @@ abstract class AbstractIdeSyncTest extends Specification {
 
     /**
      * Runs a full sync process for the build-under-test with a given Android Studio version.
-     * <p>
      */
     protected void androidStudioSync(String version) {
         ideSync("ai-$version")
