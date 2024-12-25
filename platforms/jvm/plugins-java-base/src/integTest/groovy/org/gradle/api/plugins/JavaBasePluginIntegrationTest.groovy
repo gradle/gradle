@@ -25,12 +25,11 @@ class JavaBasePluginIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << """
             include 'main', 'tests'
         """
-        buildFile << """
-            project(':main') {
-                apply plugin: 'java'
-            }
-            project(':tests') {
-                apply plugin: 'java-base'
+        buildFile("main/build.gradle", """
+            apply plugin: 'java'
+        """)
+        buildFile("tests/build.gradle", """
+            apply plugin: 'java-base'
                 sourceSets {
                     unitTest {
                     }
@@ -38,8 +37,7 @@ class JavaBasePluginIntegrationTest extends AbstractIntegrationSpec {
                 dependencies {
                     unitTestImplementation project(':main')
                 }
-            }
-        """
+        """)
         file("main/src/main/java/Main.java") << """public class Main { }"""
         file("tests/src/unitTest/java/Test.java") << """public class Test { Main main = null; }"""
 
