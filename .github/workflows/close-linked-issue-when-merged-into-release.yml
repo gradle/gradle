@@ -1,0 +1,20 @@
+name: Close linked issues when PR merged into release
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - release
+      - release7x
+
+permissions:
+  issues: write
+
+jobs:
+  closeIssueOnPrMerge:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Closes issues related to a merged pull request.
+        uses: ldez/gha-mjolnir@50ef6170214a84277545578a308ad77a1a30d78d
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
