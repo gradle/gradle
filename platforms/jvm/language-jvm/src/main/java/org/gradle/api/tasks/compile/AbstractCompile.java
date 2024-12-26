@@ -18,6 +18,7 @@ package org.gradle.api.tasks.compile;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.model.ReplacedBy;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
@@ -44,8 +45,6 @@ import static org.gradle.internal.instrumentation.api.annotations.ReplacesEagerP
 public abstract class AbstractCompile extends SourceTask {
     private final DirectoryProperty destinationDirectory;
     private FileCollection classpath;
-    private String sourceCompatibility;
-    private String targetCompatibility;
 
     public AbstractCompile() {
         this.destinationDirectory = getProject().getObjects().directoryProperty();
@@ -149,42 +148,20 @@ public abstract class AbstractCompile extends SourceTask {
     }
 
     /**
-     * Returns the Java language level to use to compile the source files.
+     * The Java language level to use to compile the source files.
      *
      * @return The source language level.
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public String getSourceCompatibility() {
-        return sourceCompatibility;
-    }
+    @ReplacesEagerProperty
+    public abstract Property<String> getSourceCompatibility();
 
     /**
-     * Sets the Java language level to use to compile the source files.
-     *
-     * @param sourceCompatibility The source language level. Must not be null.
-     */
-    public void setSourceCompatibility(String sourceCompatibility) {
-        this.sourceCompatibility = sourceCompatibility;
-    }
-
-    /**
-     * Returns the target JVM to generate the {@code .class} files for.
+     * The target JVM to generate the {@code .class} files for.
      *
      * @return The target JVM.
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public String getTargetCompatibility() {
-        return targetCompatibility;
-    }
-
-    /**
-     * Sets the target JVM to generate the {@code .class} files for.
-     *
-     * @param targetCompatibility The target JVM. Must not be null.
-     */
-    public void setTargetCompatibility(String targetCompatibility) {
-        this.targetCompatibility = targetCompatibility;
-    }
+    @ReplacesEagerProperty
+    public abstract Property<String> getTargetCompatibility();
 }

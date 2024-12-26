@@ -556,10 +556,10 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         project.sourceSets.create('custom')
 
         then:
-        JavaVersion.toVersion(project.tasks.compileJava.getSourceCompatibility()).majorVersion == Jvm.current().javaVersion.majorVersion
-        JavaVersion.toVersion(project.tasks.compileJava.getTargetCompatibility()).majorVersion == Jvm.current().javaVersion.majorVersion
-        JavaVersion.toVersion(project.tasks.compileCustomJava.getSourceCompatibility()).majorVersion == Jvm.current().javaVersion.majorVersion
-        JavaVersion.toVersion(project.tasks.compileCustomJava.getTargetCompatibility()).majorVersion == Jvm.current().javaVersion.majorVersion
+        JavaVersion.toVersion(project.tasks.compileJava.getSourceCompatibility().get()).majorVersion == Jvm.current().javaVersion.majorVersion
+        JavaVersion.toVersion(project.tasks.compileJava.getTargetCompatibility().get()).majorVersion == Jvm.current().javaVersion.majorVersion
+        JavaVersion.toVersion(project.tasks.compileCustomJava.getSourceCompatibility().get()).majorVersion == Jvm.current().javaVersion.majorVersion
+        JavaVersion.toVersion(project.tasks.compileCustomJava.getTargetCompatibility().get()).majorVersion == Jvm.current().javaVersion.majorVersion
     }
 
     def "wires toolchain for test if toolchain is configured"() {
@@ -599,8 +599,8 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         def javaCompileTask = project.tasks.named("compileJava", JavaCompile).get()
 
         then:
-        javaCompileTask.sourceCompatibility == prevJavaVersion.toString()
-        javaCompileTask.sourceCompatibility == prevJavaVersion.toString()
+        javaCompileTask.sourceCompatibility.get() == prevJavaVersion.toString()
+        javaCompileTask.sourceCompatibility.get() == prevJavaVersion.toString()
     }
 
     void "source and target compatibility of compile tasks default to release if set"() {
@@ -614,10 +614,10 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         testCompileJava.options.release.set(9)
 
         then:
-        compileJava.targetCompatibility == "1.8"
-        compileJava.sourceCompatibility == "1.8"
-        testCompileJava.targetCompatibility == "9"
-        testCompileJava.sourceCompatibility == "9"
+        compileJava.targetCompatibility.get() == "1.8"
+        compileJava.sourceCompatibility.get() == "1.8"
+        testCompileJava.targetCompatibility.get() == "9"
+        testCompileJava.sourceCompatibility.get() == "9"
     }
 
     private void setupProjectWithToolchain(JavaVersion version) {

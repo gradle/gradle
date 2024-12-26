@@ -27,10 +27,12 @@ import org.gradle.api.capabilities.Capability;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.SourceDirectorySet;
-import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration;
 import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.provider.AbstractProperty;
+import org.gradle.api.internal.provider.Providers;
+import org.gradle.api.internal.provider.ValueSupplier;
 import org.gradle.api.internal.tasks.DefaultSourceSetOutput;
 import org.gradle.api.internal.tasks.JvmConstants;
 import org.gradle.api.model.ObjectFactory;
@@ -48,10 +50,10 @@ import org.gradle.internal.Cast;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 
 import javax.annotation.Nullable;
+import java.lang.reflect.Method;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.function.BiFunction;
-import java.util.function.Supplier;
 
 import static org.gradle.util.internal.TextUtil.camelToKebabCase;
 
@@ -177,21 +179,44 @@ public class JvmPluginsHelper {
      * @param compatibilityComputer A function to compute the compatibility version to use as the convention
      *      given the raw version values and the current version property values set on the extension
      */
-    public static void configureCompileDefaults(AbstractCompile compile, DefaultJavaPluginExtension javaExtension, BiFunction<JavaVersion, Supplier<JavaVersion>, JavaVersion> compatibilityComputer) {
-        ConventionMapping conventionMapping = compile.getConventionMapping();
-        conventionMapping.map("sourceCompatibility", () -> computeSourceCompatibilityConvention(javaExtension, compatibilityComputer).toString());
-        conventionMapping.map("targetCompatibility", () -> computeTargetCompatibilityConvention(javaExtension, compile, compatibilityComputer).toString());
+    public static void configureCompileDefaults(AbstractCompile compile, DefaultJavaPluginExtension javaExtension, BiFunction<Provider<JavaVersion>, Provider<JavaVersion>, Provider<JavaVersion>> compatibilityComputer) {
+        compile.getSourceCompatibility().convention(
+            compatibilityComputer.apply(
+                javaExtension.getSourceCompatibility(),
+                javaExtension.getEffectiveSourceCompatibility()
+            ).map(JavaVersion::toString)
+        );
+        compile.getTargetCompatibility().convention(
+            compatibilityComputer.apply(
+                javaExtension.getTargetCompatibility()
+                    .orElse(javaExtension.getSourceCompatibility())
+                    .orElse(getRawSourceCompatibilityValue(compile).map(JavaVersion::toVersion)),
+                javaExtension.getEffectiveTargetCompatibility()
+            ).map(JavaVersion::toString)
+        );
     }
 
-    private static JavaVersion computeSourceCompatibilityConvention(DefaultJavaPluginExtension javaExtension, BiFunction<JavaVersion, Supplier<JavaVersion>, JavaVersion> compatibilityComputer) {
-        return compatibilityComputer.apply(javaExtension.getRawSourceCompatibility(), javaExtension::getSourceCompatibility);
-    }
+    // we need to know value WITHOUT convention before we set the convention
+    // FIXME: refactor the code below
+    private static Method explicitValueMethod;
 
-    private static JavaVersion computeTargetCompatibilityConvention(DefaultJavaPluginExtension javaExtension, AbstractCompile compile, BiFunction<JavaVersion, Supplier<JavaVersion>, JavaVersion> compatibilityComputer) {
-        JavaVersion rawTargetCompatibility = javaExtension.getRawTargetCompatibility();
-        if (rawTargetCompatibility == null) {
-            rawTargetCompatibility = JavaVersion.toVersion(compile.getSourceCompatibility());
+    static {
+        try {
+            explicitValueMethod = AbstractProperty.class.getDeclaredMethod("getExplicitValue", ValueSupplier.class);
+            explicitValueMethod.setAccessible(true);
+        } catch (NoSuchMethodException e) {
+            throw new RuntimeException(e);
         }
-        return compatibilityComputer.apply(rawTargetCompatibility, javaExtension::getTargetCompatibility);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Provider<String> getRawSourceCompatibilityValue(AbstractCompile compile) {
+        return compile.getProject().provider(() -> {
+            try {
+                return ((Provider<String>) explicitValueMethod.invoke(compile.getSourceCompatibility(), Providers.notDefined())).getOrNull();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 }

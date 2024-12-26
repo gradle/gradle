@@ -75,8 +75,8 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         def ext = project.extensions.java
         project.sourceCompatibility == JavaVersion.current()
         project.targetCompatibility == JavaVersion.current()
-        ext.sourceCompatibility == JavaVersion.current()
-        ext.targetCompatibility == JavaVersion.current()
+        ext.effectiveSourceCompatibility.get() == JavaVersion.current()
+        ext.effectiveTargetCompatibility.get() == JavaVersion.current()
 
         when:
         project.sourceCompatibility = JavaVersion.VERSION_1_6
@@ -84,17 +84,17 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         then:
         project.sourceCompatibility == JavaVersion.VERSION_1_6
         project.targetCompatibility == JavaVersion.VERSION_1_6
-        ext.sourceCompatibility == JavaVersion.VERSION_1_6
-        ext.targetCompatibility == JavaVersion.VERSION_1_6
+        ext.effectiveSourceCompatibility.get() == JavaVersion.VERSION_1_6
+        ext.effectiveTargetCompatibility.get() == JavaVersion.VERSION_1_6
 
         when:
-        ext.sourceCompatibility = JavaVersion.VERSION_1_8
+        ext.sourceCompatibility.set(JavaVersion.VERSION_1_8)
 
         then:
         project.sourceCompatibility == JavaVersion.VERSION_1_8
         project.targetCompatibility == JavaVersion.VERSION_1_8
-        ext.sourceCompatibility == JavaVersion.VERSION_1_8
-        ext.targetCompatibility == JavaVersion.VERSION_1_8
+        ext.effectiveSourceCompatibility.get() == JavaVersion.VERSION_1_8
+        ext.effectiveTargetCompatibility.get() == JavaVersion.VERSION_1_8
 
         when:
         project.targetCompatibility = JavaVersion.VERSION_1_7
@@ -102,17 +102,17 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         then:
         project.sourceCompatibility == JavaVersion.VERSION_1_8
         project.targetCompatibility == JavaVersion.VERSION_1_7
-        ext.sourceCompatibility == JavaVersion.VERSION_1_8
-        ext.targetCompatibility == JavaVersion.VERSION_1_7
+        ext.effectiveSourceCompatibility.get() == JavaVersion.VERSION_1_8
+        ext.effectiveTargetCompatibility.get() == JavaVersion.VERSION_1_7
 
         when:
-        ext.targetCompatibility = JavaVersion.VERSION_1_6
+        ext.targetCompatibility.set(JavaVersion.VERSION_1_6)
 
         then:
         project.sourceCompatibility == JavaVersion.VERSION_1_8
         project.targetCompatibility == JavaVersion.VERSION_1_6
-        ext.sourceCompatibility == JavaVersion.VERSION_1_8
-        ext.targetCompatibility == JavaVersion.VERSION_1_6
+        ext.effectiveSourceCompatibility.get() == JavaVersion.VERSION_1_8
+        ext.effectiveTargetCompatibility.get() == JavaVersion.VERSION_1_6
     }
 
     def "creates tasks and applies mappings for source set"() {
@@ -284,7 +284,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
 
         then:
         def compile = project.task('customCompile', type: JavaCompile)
-        compile.sourceCompatibility == project.sourceCompatibility.toString()
+        compile.sourceCompatibility.get() == project.sourceCompatibility.toString()
 
         def test = project.task('customTest', type: Test.class)
         test.workingDir == project.projectDir

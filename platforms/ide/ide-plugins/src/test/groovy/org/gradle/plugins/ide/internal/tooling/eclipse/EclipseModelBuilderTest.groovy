@@ -167,7 +167,7 @@ class EclipseModelBuilderTest extends AbstractProjectBuilderSpec {
         given:
         def modelBuilder = createEclipseModelBuilder()
         project.plugins.apply(JavaPlugin)
-        project.java."$compatibilityProperty" = "1.2"
+        project.java."$compatibilityProperty" = JavaVersion.VERSION_1_2
 
         when:
         def eclipseModel = modelBuilder.buildAll("org.gradle.tooling.model.eclipse.EclipseProject", project)
@@ -186,7 +186,7 @@ class EclipseModelBuilderTest extends AbstractProjectBuilderSpec {
         def modelBuilder = createEclipseModelBuilder()
         project.plugins.apply(JavaPlugin)
         project.plugins.apply(EclipsePlugin)
-        project.java."$compatibilityProperty" = "1.2"
+        project.java."$compatibilityProperty" = JavaVersion.VERSION_1_2
         project.eclipse.jdt."$compatibilityProperty" = "1.3"
 
         when:
@@ -209,7 +209,7 @@ class EclipseModelBuilderTest extends AbstractProjectBuilderSpec {
         child1.eclipse.jdt."$compatibilityProperty" = "1.2"
         child2.plugins.apply(JavaPlugin)
         child2.plugins.apply(EclipsePlugin)
-        child2.java."$compatibilityProperty" = "1.3"
+        child2.java."$compatibilityProperty" = JavaVersion.VERSION_1_3
         child2.eclipse.jdt."$compatibilityProperty" = "1.1"
 
         when:
@@ -228,8 +228,8 @@ class EclipseModelBuilderTest extends AbstractProjectBuilderSpec {
     def "non convention source and target compatibility properties are ignored"() {
         given:
         def modelBuilder = createEclipseModelBuilder()
-        project.ext.sourceCompatibility = '1.2'
-        project.ext.targetCompatibility = '1.2'
+        project.ext.sourceCompatibility = JavaVersion.VERSION_1_2
+        project.ext.targetCompatibility = JavaVersion.VERSION_1_2
         project.plugins.apply(JavaPlugin)
 
         when:

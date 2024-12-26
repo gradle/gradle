@@ -81,7 +81,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.function.BiFunction;
-import java.util.function.Supplier;
 
 /**
  * <p>A {@link org.gradle.api.Plugin} which compiles and tests Java source, and assembles it into a JAR file.</p>
@@ -324,19 +323,15 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
 
     private void configureCompileDefaults(final Project project, final DefaultJavaPluginExtension javaExtension) {
         project.getTasks().withType(AbstractCompile.class).configureEach(compile -> {
-            JvmPluginsHelper.configureCompileDefaults(compile, javaExtension, (@Nullable JavaVersion rawConvention, Supplier<JavaVersion> javaVersionSupplier) -> {
+            JvmPluginsHelper.configureCompileDefaults(compile, javaExtension, (Provider<JavaVersion> extensionConfiguredVersion, Provider<JavaVersion> extensionEffectiveVersion) -> {
                 if (compile instanceof JavaCompile) {
                     JavaCompile javaCompile = (JavaCompile) compile;
-                    if (javaCompile.getOptions().getRelease().isPresent()) {
-                        return JavaVersion.toVersion(javaCompile.getOptions().getRelease().get());
-                    }
-                    if (rawConvention != null) {
-                        return rawConvention;
-                    }
-                    return JavaVersion.toVersion(javaCompile.getJavaCompiler().get().getMetadata().getLanguageVersion().toString());
+                    return javaCompile.getOptions().getRelease().map(JavaVersion::toVersion)
+                        .orElse(extensionConfiguredVersion)
+                        .orElse(javaCompile.getJavaCompiler().map(compiler -> JavaVersion.toVersion(compiler.getMetadata().getLanguageVersion())));
+                } else {
+                    return extensionEffectiveVersion; // used by plugins, e.g. Kotlin plugin
                 }
-
-                return javaVersionSupplier.get();
             });
 
             compile.getDestinationDirectory().convention(project.getProviders().provider(new BackwardCompatibilityOutputDirectoryConvention(compile)));

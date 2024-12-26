@@ -25,9 +25,12 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.java.archives.Manifest;
 import org.gradle.api.jvm.ModularitySpec;
+import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Nested;
+import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.SourceSetContainer;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 
 /**
@@ -42,38 +45,35 @@ import org.gradle.jvm.toolchain.JavaToolchainSpec;
 public interface JavaPluginExtension {
 
     /**
-     * Returns the source compatibility used for compiling Java sources.
-     */
-    @ToBeReplacedByLazyProperty
-    JavaVersion getSourceCompatibility();
-
-    /**
-     * Sets the source compatibility used for compiling Java sources.
-     * <p>
+     * The configured source compatibility used for compiling Java sources.
      * This property cannot be set if a {@link #getToolchain() toolchain} has been configured.
-     *
-     * @param value The value for the source compatibility
-     *
-     * @see #toolchain(Action)
      */
-    void setSourceCompatibility(JavaVersion value);
+    @Optional
+    @ReplacesEagerProperty(adapter = JavaPluginExtensionAdapters.SourceCompatibilityAdapter.class)
+    Property<JavaVersion> getSourceCompatibility();
 
     /**
-     * Returns the target compatibility used for compiling Java sources.
-     */
-    @ToBeReplacedByLazyProperty
-    JavaVersion getTargetCompatibility();
-
-    /**
-     * Sets the target compatibility used for compiling Java sources.
-     * <p>
+     * The configured target compatibility used for compiling Java sources.
      * This property cannot be set if a {@link #getToolchain() toolchain} has been configured.
-     *
-     * @param value The value for the target compatibility
-     *
-     * @see #toolchain(Action)
      */
-    void setTargetCompatibility(JavaVersion value);
+    @Optional
+    @ReplacesEagerProperty(adapter = JavaPluginExtensionAdapters.TargetCompatibilityAdapter.class)
+    Property<JavaVersion> getTargetCompatibility();
+
+    /**
+     * The resulting source compatibility used for compiling Java sources with conventions applied.
+     * @since 9.0
+     */
+    @Incubating
+    Provider<JavaVersion> getEffectiveSourceCompatibility();
+
+    /**
+     * The resulting target compatibility used for compiling Java sources with conventions applied.
+     *
+     * @since 9.0
+     */
+    @Incubating
+    Provider<JavaVersion> getEffectiveTargetCompatibility();
 
     /**
      * Registers a feature.
@@ -118,8 +118,26 @@ public interface JavaPluginExtension {
      * on higher versions.
      *
      * @since 5.3
+     * @deprecated Use {@link #getAutoTargetJvm()}.set(false) instead.
      */
+    @Deprecated
     void disableAutoTargetJvm();
+
+    /**
+     * If this is set to false, Gradle will not automatically try to fetch
+     * dependencies which have a JVM version compatible with the target compatibility
+     * of this module.
+     * <p>
+     * This should be used whenever the default behavior is not
+     * applicable, in particular when for some reason it's not possible to split
+     * a module and that this module only has some classes which require dependencies
+     * on higher versions.
+     * <p>
+     * Default is true.
+     * @since 9.0
+     */
+    @ReplacesEagerProperty(adapter = JavaPluginExtensionAdapters.AutoTargetJvmDisabledAdapter.class)
+    Property<Boolean> getAutoTargetJvm();
 
     /**
      * Adds a task {@code javadocJar} that will package the output of the {@code javadoc} task in a JAR with classifier {@code javadoc}.
@@ -241,22 +259,6 @@ public interface JavaPluginExtension {
     DirectoryProperty getTestReportDir();
 
     /**
-     * Sets the source compatibility used for compiling Java sources.
-     *
-     * @param value The value for the source compatibility as defined by {@link JavaVersion#toVersion(Object)}
-     * @since 7.1
-     */
-    void setSourceCompatibility(Object value);
-
-    /**
-     * Sets the target compatibility used for compiling Java sources.
-     *
-     * @param value The value for the target compatibility as defined by {@link JavaVersion#toVersion(Object)}
-     * @since 7.1
-     */
-    void setTargetCompatibility(Object value);
-
-    /**
      * Creates a new instance of a {@link Manifest}.
      * @since 7.1
      */
@@ -286,14 +288,4 @@ public interface JavaPluginExtension {
      * @since 7.1
      */
     SourceSetContainer getSourceSets();
-
-    /**
-     * Tells if automatic JVM targeting is enabled. When disabled, Gradle
-     * will not automatically try to get dependencies corresponding to the
-     * same (or compatible) level as the target compatibility of this module.
-     *
-     * @since 7.1
-     */
-    @ToBeReplacedByLazyProperty
-    boolean getAutoTargetJvmDisabled();
 }

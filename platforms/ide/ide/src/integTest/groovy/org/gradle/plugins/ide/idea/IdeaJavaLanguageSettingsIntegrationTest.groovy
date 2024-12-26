@@ -17,8 +17,8 @@
 package org.gradle.plugins.ide.idea
 
 import org.gradle.api.JavaVersion
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.plugins.ide.AbstractIdeIntegrationSpec
 import org.gradle.plugins.ide.fixtures.IdeaFixtures
 import org.junit.Rule
@@ -43,7 +43,7 @@ allprojects {
     apply plugin:'idea'
     apply plugin:'java'
 
-    java.sourceCompatibility = "1.7"
+    java.sourceCompatibility = JavaVersion.VERSION_1_7
 }
 """
         when:
@@ -65,19 +65,19 @@ allprojects {
     apply plugin:'idea'
     apply plugin:'java'
 
-    java.sourceCompatibility = 1.6
+    java.sourceCompatibility = JavaVersion.VERSION_1_6
 }
 
 project(':child1') {
-    java.sourceCompatibility = 1.7
+    java.sourceCompatibility = JavaVersion.VERSION_1_7
 }
 
 project(':child2') {
-    java.sourceCompatibility = 1.5
+    java.sourceCompatibility = JavaVersion.VERSION_1_5
 }
 
 project(':child3') {
-    java.sourceCompatibility = 1.8
+    java.sourceCompatibility = JavaVersion.VERSION_1_8
 }
 """
         when:
@@ -99,8 +99,8 @@ allprojects {
     apply plugin:'idea'
     apply plugin:'java'
 
-    java.sourceCompatibility = 1.4
-    java.targetCompatibility = 1.4
+    java.sourceCompatibility = JavaVersion.VERSION_1_4
+    java.targetCompatibility = JavaVersion.VERSION_1_4
 }
 
 idea {
@@ -111,18 +111,18 @@ idea {
 }
 
 project(':child1') {
-    java.sourceCompatibility = 1.6
-    java.targetCompatibility = 1.6
+    java.sourceCompatibility = JavaVersion.VERSION_1_6
+    java.targetCompatibility = JavaVersion.VERSION_1_6
 }
 
 project(':child2') {
-    java.sourceCompatibility = 1.5
-    java.targetCompatibility = 1.5
+    java.sourceCompatibility = JavaVersion.VERSION_1_5
+    java.targetCompatibility = JavaVersion.VERSION_1_5
 }
 
 project(':child3') {
-    java.sourceCompatibility = 1.7
-    java.targetCompatibility = 1.8
+    java.sourceCompatibility = JavaVersion.VERSION_1_7
+    java.targetCompatibility = JavaVersion.VERSION_1_8
 }
 """
         when:
@@ -159,8 +159,8 @@ project(':child3') {
             apply plugin:'idea'
             apply plugin:'java'
 
-            java.sourceCompatibility = 1.4
-            java.targetCompatibility = 1.4
+            java.sourceCompatibility = JavaVersion.VERSION_1_4
+            java.targetCompatibility = JavaVersion.VERSION_1_4
         }
         """
         and:
@@ -178,7 +178,7 @@ allprojects {
 }
 subprojects {
     apply plugin:'java'
-    java.sourceCompatibility = 1.7
+    java.sourceCompatibility = JavaVersion.VERSION_1_7
 }
 """
 
@@ -198,7 +198,7 @@ subprojects {
 subprojects {
     apply plugin:'java'
     apply plugin: 'idea'
-    java.sourceCompatibility = 1.7
+    java.sourceCompatibility = JavaVersion.VERSION_1_7
 }
 """
 
@@ -227,7 +227,7 @@ include 'subprojectC'
 allprojects {
     apply plugin: 'java'
     apply plugin: 'idea'
-    java.targetCompatibility = '1.6'
+    java.targetCompatibility = JavaVersion.VERSION_1_6
 }
 
 idea {
@@ -261,7 +261,7 @@ include 'subprojectC'
 allprojects {
     apply plugin: 'java'
     apply plugin: 'idea'
-    java.targetCompatibility = '1.7'
+    java.targetCompatibility = JavaVersion.VERSION_1_7
 }
 
 idea {
@@ -295,11 +295,11 @@ allprojects {
 }
 
 project(':') {
-    java.targetCompatibility = 1.8
+    java.targetCompatibility = JavaVersion.VERSION_1_8
 }
 
 project(':subprojectA') {
-    java.targetCompatibility = 1.7
+    java.targetCompatibility = JavaVersion.VERSION_1_7
 }
 """
 
@@ -327,11 +327,11 @@ allprojects {
 }
 
 project(':') {
-    java.sourceCompatibility = 1.8
+    java.sourceCompatibility = JavaVersion.VERSION_1_8
 }
 
 project(':child1') {
-    java.sourceCompatibility = 1.7
+    java.sourceCompatibility = JavaVersion.VERSION_1_7
 }
 """
 
@@ -354,7 +354,7 @@ include 'child1'
         buildFile << """
 allprojects {
     apply plugin: 'java'
-    java.sourceCompatibility = 1.7
+    java.sourceCompatibility = JavaVersion.VERSION_1_7
 }
 
 project(':child1') {
@@ -385,19 +385,19 @@ include 'subprojectD'
 configure(project(':subprojectA')) {
     apply plugin: 'java'
     apply plugin: 'idea'
-    java.targetCompatibility = '1.6'
+    java.targetCompatibility = JavaVersion.VERSION_1_6
 }
 
 configure(project(':subprojectB')) {
     apply plugin: 'java'
     apply plugin: 'idea'
-    java.targetCompatibility = '1.7'
+    java.targetCompatibility = JavaVersion.VERSION_1_7
 }
 
 configure(project(':subprojectC')) {
     apply plugin: 'java'
     apply plugin: 'idea'
-    java.targetCompatibility = '1.8'
+    java.targetCompatibility = JavaVersion.VERSION_1_8
 }
 
 configure(project(':subprojectD')) {

@@ -127,8 +127,8 @@ class GroovyJavaJointCompileSourceOrderIntegrationTest extends AbstractIntegrati
                 source ${sourceFiles.collect { "'src/main/groovy/$it'" }.join(", ")}
                 classpath = configurations.compile
                 groovyClasspath = configurations.compile
-                sourceCompatibility = JavaVersion.current()
-                targetCompatibility = JavaVersion.current()
+                sourceCompatibility = JavaVersion.current().majorVersion
+                targetCompatibility = JavaVersion.current().majorVersion
                 destinationDirectory = file("\$buildDir/classes")
             }
         """

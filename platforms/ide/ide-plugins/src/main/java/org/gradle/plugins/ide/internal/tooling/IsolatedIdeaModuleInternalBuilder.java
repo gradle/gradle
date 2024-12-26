@@ -81,8 +81,8 @@ public class IsolatedIdeaModuleInternalBuilder implements ParameterizedToolingMo
         // Simulating IdeaPlugin to only expose these values when 'java-base' plugin is applied
         if (project.getPlugins().hasPlugin(JavaBasePlugin.class)) {
             JavaPluginExtension javaExt = project.getExtensions().getByType(JavaPluginExtension.class);
-            model.setJavaSourceCompatibility(javaExt.getSourceCompatibility());
-            model.setJavaTargetCompatibility(javaExt.getTargetCompatibility());
+            model.setJavaSourceCompatibility(javaExt.getEffectiveSourceCompatibility().get());
+            model.setJavaTargetCompatibility(javaExt.getEffectiveTargetCompatibility().get());
         }
 
         model.setDependencies(IdeaModuleBuilderSupport.buildDependencies(resolvedDependencies));
