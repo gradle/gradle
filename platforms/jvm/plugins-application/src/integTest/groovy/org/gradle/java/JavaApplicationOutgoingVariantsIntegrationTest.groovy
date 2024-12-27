@@ -18,11 +18,9 @@ package org.gradle.java
 
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 
 import java.util.stream.Collectors
 
-@ToBeFixedForIsolatedProjects(because = "Property dynamic lookup when creating custom configuration")
 class JavaApplicationOutgoingVariantsIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         def repo = mavenRepo
@@ -51,7 +49,7 @@ class JavaApplicationOutgoingVariantsIntegrationTest extends AbstractIntegration
            }
         """)
         buildFile("consumer/build.gradle", """
-            configurations { consume }
+            configurations { create('consume') }
             dependencies { consume project(':java') }
             task resolve {
                 inputs.files configurations.consume
