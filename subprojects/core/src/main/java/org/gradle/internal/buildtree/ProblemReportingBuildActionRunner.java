@@ -75,7 +75,7 @@ public class ProblemReportingBuildActionRunner implements BuildActionRunner {
     }
 
     private File defaultRootBuildDirOf() {
-        return new File(buildLocation.getRootDirectory(), "build");
+        return new File(buildLocation.getBuildDefinitionDirectory(), "build");
     }
 
     private static class RootProjectBuildDirCollectingListener extends InternalBuildAdapter {

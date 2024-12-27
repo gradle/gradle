@@ -90,12 +90,12 @@ public class BuildLocationToPropertiesConverter {
 
     private void configureFromBuildDir(BuildLocationResult layoutResult, Map<String, String> result) {
         BuildLocation layout = buildLocationFactory.getLocationFor(layoutResult.toLocationConfiguration());
-        maybeConfigureFrom(new File(layout.getRootDirectory(), Project.GRADLE_PROPERTIES), result);
+        maybeConfigureFrom(new File(layout.getBuildDefinitionDirectory(), Project.GRADLE_PROPERTIES), result);
     }
 
     private void configureFromDaemonJVMProperties(BuildLocationResult layoutResult, Map<String, String> result) {
         BuildLocation layout = buildLocationFactory.getLocationFor(layoutResult.toLocationConfiguration());
-        configureFrom(new File(layout.getRootDirectory(), DaemonJvmPropertiesDefaults.DAEMON_JVM_PROPERTIES_FILE), result);
+        configureFrom(new File(layout.getBuildDefinitionDirectory(), DaemonJvmPropertiesDefaults.DAEMON_JVM_PROPERTIES_FILE), result);
     }
 
     private void configureFrom(File propertiesFile, Map<String, String> result) {

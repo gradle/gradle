@@ -178,7 +178,7 @@ class DependencyManagementBuildTreeScopeServices implements ServiceRegistrationP
 
     @Provides
     StartParameterResolutionOverride createStartParameterResolutionOverride(StartParameter startParameter, BuildLocation buildLocation) {
-        File rootDirectory = buildLocation.getRootDirectory();
+        File rootDirectory = buildLocation.getBuildDefinitionDirectory();
         File gradleDir = new File(rootDirectory, "gradle");
         return new StartParameterResolutionOverride(startParameter, gradleDir);
     }

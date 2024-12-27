@@ -40,10 +40,10 @@ public class BuildScopeCacheDir {
             cacheDir = startParameter.getProjectCacheDir();
         } else if (!buildLocation.getBuildDefinitionDirectory().getName().equals(SettingsInternal.BUILD_SRC) && buildLocation.isBuildDefinitionMissing()) {
             // No build definition, use a cache dir in the user home directory to avoid generating garbage in the root directory
-            cacheDir = new File(userHomeDirProvider.getGradleUserHomeDirectory(), UNDEFINED_BUILD + Hashing.hashString(buildLocation.getRootDirectory().getAbsolutePath()));
+            cacheDir = new File(userHomeDirProvider.getGradleUserHomeDirectory(), UNDEFINED_BUILD + Hashing.hashString(buildLocation.getBuildDefinitionDirectory().getAbsolutePath()));
         } else {
-            // Use the .gradle directory in the build root directory
-            cacheDir = new File(buildLocation.getRootDirectory(), ".gradle");
+            // Use the .gradle directory in the build definition directory
+            cacheDir = new File(buildLocation.getBuildDefinitionDirectory(), ".gradle");
         }
         if (cacheDir.exists() && !cacheDir.isDirectory()) {
             throw new UncheckedIOException(String.format("Cache directory '%s' exists and is not a directory.", cacheDir));

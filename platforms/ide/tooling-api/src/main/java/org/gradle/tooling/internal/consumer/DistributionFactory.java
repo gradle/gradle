@@ -56,7 +56,7 @@ public class DistributionFactory {
      */
     public Distribution getDefaultDistribution(File projectDir, boolean searchUpwards) {
         BuildLocation layout = new BuildLocationFactory().getLocationFor(projectDir, searchUpwards);
-        WrapperExecutor wrapper = WrapperExecutor.forProjectDirectory(layout.getRootDirectory());
+        WrapperExecutor wrapper = WrapperExecutor.forProjectDirectory(layout.getBuildDefinitionDirectory());
         if (wrapper.getDistribution() != null) {
             return new ZippedDistribution(wrapper.getConfiguration(), clock);
         }
@@ -153,7 +153,7 @@ public class DistributionFactory {
             return new BuildLocationFactory().getLocationFor(
                 connectionParameters.getProjectDir(),
                 connectionParameters.isSearchUpwards() != null ? connectionParameters.isSearchUpwards() : true
-            ).getRootDirectory();
+            ).getBuildDefinitionDirectory();
         }
 
         private File determineRealUserHomeDir(ConnectionParameters connectionParameters) {

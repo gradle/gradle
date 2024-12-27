@@ -43,14 +43,7 @@ public class BuildLocation extends SettingsLocation {
      * Was a build definition found?
      */
     public boolean isBuildDefinitionMissing() {
-        return getSettingsFile() != null && !getSettingsFile().exists() && scriptFileResolver.resolveScriptFile(getRootDirectory(), BUILD_SCRIPT_BASENAME) == null;
-    }
-
-    /**
-     * Returns the root directory of the build, is never null.
-     */
-    public File getRootDirectory() {
-        return buildDefinitionDirectory;
+        return getSettingsFile() != null && !getSettingsFile().exists() && scriptFileResolver.resolveScriptFile(buildDefinitionDirectory, BUILD_SCRIPT_BASENAME) == null;
     }
 
     /**

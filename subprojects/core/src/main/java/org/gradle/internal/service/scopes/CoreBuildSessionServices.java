@@ -109,7 +109,7 @@ public class CoreBuildSessionServices implements ServiceRegistrationProvider {
 
     @Provides
     FileResolver createFileResolver(FileLookup fileLookup, BuildLocation buildLocation) {
-        return fileLookup.getFileResolver(buildLocation.getRootDirectory());
+        return fileLookup.getFileResolver(buildLocation.getBuildDefinitionDirectory());
     }
 
     @Provides
