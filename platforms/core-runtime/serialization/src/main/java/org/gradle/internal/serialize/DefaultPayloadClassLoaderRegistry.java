@@ -18,7 +18,6 @@ package org.gradle.internal.serialize;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.NonNullApi;
-import org.gradle.api.Transformer;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.ClassLoaderSpec;
 import org.gradle.internal.classloader.ClassLoaderVisitor;

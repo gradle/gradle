@@ -18,7 +18,6 @@ package org.gradle.internal.serialize;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import org.gradle.api.Transformer;
 import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;

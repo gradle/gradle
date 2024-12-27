@@ -26,7 +26,7 @@ dependencies {
     reports("flot:flot:0.8.1:min@js")
 
     api(projects.baseServices)
-//    api(projects.coreApi)
+    api(projects.coreApi)
     api(projects.internalIntegTesting)
     api(projects.internalTesting)
     api(projects.stdlibJavaExtensions)

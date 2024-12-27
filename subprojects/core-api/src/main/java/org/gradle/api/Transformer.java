@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import javax.annotation.Nullable;
  * @param <OUT> The type the value is transformed to.
  * @param <IN> The type of the value to be transformed.
  */
-public interface Transformer<OUT, IN> {
+public interface Transformer<OUT extends @org.jetbrains.annotations.Nullable Object, IN> {
     /**
      * Transforms the given object, and returns the transformed value.
      *
