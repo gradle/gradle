@@ -54,18 +54,18 @@ class JavaApplicationOutgoingVariantsIntegrationTest extends AbstractIntegration
             task resolve {
                 inputs.files configurations.consume
                 def fileNames = provider {
-                configurations.consume.files.collect { it.name }
-            }
-            def incomingArtifacts = provider {
-                configurations.consume.incoming.artifacts.collect { "\$it.id \$it.variant.attributes" }
-            }
-            doLast {
-                println "files: " + fileNames.get()
-                incomingArtifacts.get().each {
-                    println it
+                    configurations.consume.files.collect { it.name }
+                }
+                def incomingArtifacts = provider {
+                    configurations.consume.incoming.artifacts.collect { "\$it.id \$it.variant.attributes" }
+                }
+                doLast {
+                    println "files: " + fileNames.get()
+                    incomingArtifacts.get().each {
+                        println it
+                    }
                 }
             }
-        }
         """)
     }
 
