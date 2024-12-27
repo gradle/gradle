@@ -26,12 +26,11 @@ import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.artifacts.DefaultResolverResults;
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
-import org.gradle.api.internal.artifacts.RepositoriesSupplier;
 import org.gradle.api.internal.artifacts.LegacyResolutionParameters;
+import org.gradle.api.internal.artifacts.RepositoriesSupplier;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
-import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 import org.gradle.api.internal.artifacts.dsl.ImmutableModuleReplacements;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.CapabilitiesResolutionInternal;
@@ -162,7 +161,8 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
             resolutionStrategy.isDependencyVerificationEnabled(),
             resolutionStrategy.isFailingOnDynamicVersions(),
             resolutionStrategy.isFailingOnChangingVersions(),
-            failureResolutions
+            failureResolutions,
+            resolutionStrategy.getCachePolicy().asImmutable()
         );
     }
 
@@ -172,11 +172,6 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
 
         public ConfigurationLegacyResolutionParameters(ResolutionStrategyInternal resolutionStrategy) {
             this.resolutionStrategy = resolutionStrategy;
-        }
-
-        @Override
-        public CachePolicy getCachePolicy() {
-            return resolutionStrategy.getCachePolicy();
         }
 
         @Override

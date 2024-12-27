@@ -23,8 +23,7 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.ComponentMetadataProcessor;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
-import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
-import org.gradle.api.internal.artifacts.configurations.dynamicversion.Expiry;
+import org.gradle.api.internal.artifacts.ivyservice.ImmutableCachePolicy;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetadataCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleRepositoryCaches;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts.ArtifactAtRepositoryKey;
@@ -84,7 +83,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
 
     private final ModuleComponentRepository<ModuleComponentResolveMetadata> delegate;
     private final ModuleComponentGraphResolveStateFactory resolveStateFactory;
-    private final CachePolicy cachePolicy;
+    private final ImmutableCachePolicy cachePolicy;
     private final BuildCommencedTimeProvider timeProvider;
     private final ComponentMetadataProcessor metadataProcessor;
     private final ChangingValueDependencyResolutionListener listener;
@@ -95,7 +94,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         ModuleComponentRepository<ModuleComponentResolveMetadata> delegate,
         ModuleRepositoryCaches caches,
         ModuleComponentGraphResolveStateFactory resolveStateFactory,
-        CachePolicy cachePolicy,
+        ImmutableCachePolicy cachePolicy,
         BuildCommencedTimeProvider timeProvider,
         ComponentMetadataProcessor metadataProcessor,
         ChangingValueDependencyResolutionListener listener
@@ -173,7 +172,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
                     .stream()
                     .map(original -> DefaultModuleVersionIdentifier.newId(moduleId, original))
                     .collect(Collectors.toSet());
-                Expiry expiry = cachePolicy.versionListExpiry(moduleId, versions, cachedModuleVersionList.getAge());
+                ImmutableCachePolicy.Expiry expiry = cachePolicy.versionListExpiry(moduleId, versions, cachedModuleVersionList.getAge());
                 if (expiry.isMustCheck()) {
                     LOGGER.debug("Version listing in dynamic revision cache is expired: will perform fresh resolve of '{}' in '{}'", selector, delegate.getName());
                 } else {
@@ -218,7 +217,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
             }
             ModuleComponentGraphResolveState state = getProcessedMetadata(metadataProcessor.getRulesHash(), cachedMetadata);
             if (requestMetaData.isChanging() || state.getMetadata().isChanging()) {
-                Expiry expiry = cachePolicy.changingModuleExpiry(moduleComponentIdentifier, cachedMetadata.getModuleVersion(), cachedMetadata.getAge());
+                ImmutableCachePolicy.Expiry expiry = cachePolicy.changingModuleExpiry(moduleComponentIdentifier, cachedMetadata.getModuleVersion(), cachedMetadata.getAge());
                 if (expiry.isMustCheck()) {
                     LOGGER.debug("Cached meta-data for changing module is expired: will perform fresh resolve of '{}' in '{}'", moduleComponentIdentifier, delegate.getName());
                     return;
@@ -327,7 +326,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
                 final boolean isChangingModule = moduleSource.isChangingModule();
                 ModuleComponentArtifactMetadata moduleComponentArtifactMetadata = (ModuleComponentArtifactMetadata) artifact;
                 if (cached.isMissing()) {
-                    Expiry expiry = cachePolicy.artifactExpiry(moduleComponentArtifactMetadata, null, age, isChangingModule, descriptorHash.equals(cached.getDescriptorHash()));
+                    ImmutableCachePolicy.Expiry expiry = cachePolicy.artifactExpiry(moduleComponentArtifactMetadata, null, age, isChangingModule, descriptorHash.equals(cached.getDescriptorHash()));
                     if (!expiry.isMustCheck()) {
                         LOGGER.debug("Detected non-existence of artifact '{}' in resolver cache", artifact);
                         for (String location : cached.attemptedLocations()) {
@@ -337,7 +336,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
                     }
                 } else {
                     File cachedArtifactFile = cached.getCachedFile();
-                    Expiry expiry = cachePolicy.artifactExpiry(moduleComponentArtifactMetadata, cachedArtifactFile, age, isChangingModule, descriptorHash.equals(cached.getDescriptorHash()));
+                    ImmutableCachePolicy.Expiry expiry = cachePolicy.artifactExpiry(moduleComponentArtifactMetadata, cachedArtifactFile, age, isChangingModule, descriptorHash.equals(cached.getDescriptorHash()));
                     if (!expiry.isMustCheck()) {
                         LOGGER.debug("Found artifact '{}' in resolver cache: {}", artifact, cachedArtifactFile);
                         result.resolved(cachedArtifactFile);
@@ -410,7 +409,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
                     processedMetadata = attachRepositorySource(processedMetadata);
                     if (processedMetadata.isChanging() || requestMetaData.isChanging()) {
                         processedMetadata = makeChanging(processedMetadata);
-                        Expiry expiry = cachePolicy.changingModuleExpiry(moduleComponentIdentifier, cachedMetadata.getModuleVersion(), Duration.ZERO);
+                        ImmutableCachePolicy.Expiry expiry = cachePolicy.changingModuleExpiry(moduleComponentIdentifier, cachedMetadata.getModuleVersion(), Duration.ZERO);
                         listener.onChangingModuleResolve(moduleComponentIdentifier, expiry);
                     }
                     ModuleComponentGraphResolveState state = resolveStateFactory.stateFor(processedMetadata);

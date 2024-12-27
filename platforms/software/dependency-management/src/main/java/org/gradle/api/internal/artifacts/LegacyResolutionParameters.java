@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.CapabilitiesResolutionInternal;
 import org.gradle.internal.ImmutableActionSet;
 
@@ -32,11 +31,6 @@ import org.gradle.internal.ImmutableActionSet;
  * {@link org.gradle.api.IsolatedAction isolated} from the project.
  */
 public interface LegacyResolutionParameters {
-
-    /**
-     * The cache policy to use when resolving external resources.
-     */
-    CachePolicy getCachePolicy();
 
     /**
      * Rules that may substitute user declared dependencies for other dependencies.

@@ -20,8 +20,7 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.internal.artifacts.ComponentMetadataProcessor
 import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
-import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy
-import org.gradle.api.internal.artifacts.configurations.dynamicversion.Expiry
+import org.gradle.api.internal.artifacts.ivyservice.ImmutableCachePolicy
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.AbstractModuleMetadataCache
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetadataCache
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleRepositoryCaches
@@ -62,7 +61,7 @@ class CachingModuleComponentRepositoryTest extends Specification {
     def moduleDescriptorCache = Mock(AbstractModuleMetadataCache)
     def moduleArtifactsCache = Mock(AbstractArtifactsCache)
     def artifactAtRepositoryCache = Mock(ModuleArtifactCache)
-    def cachePolicy = Stub(CachePolicy)
+    def cachePolicy = Stub(ImmutableCachePolicy)
     def metadataProcessor = Stub(ComponentMetadataProcessor)
     def listener = Stub(ChangingValueDependencyResolutionListener)
     def caches = new ModuleRepositoryCaches(moduleResolutionCache, moduleDescriptorCache, moduleArtifactsCache, artifactAtRepositoryCache)
@@ -163,7 +162,7 @@ class CachingModuleComponentRepositoryTest extends Specification {
         def module = Mock(ModuleComponentIdentifier)
         def localAccess = repo.localAccess
         realRemoteAccess.estimateMetadataFetchingCost(module) >> remoteAnswer
-        cachePolicy.missingModuleExpiry(_, _) >> Stub(Expiry) {
+        cachePolicy.missingModuleExpiry(_, _) >> Stub(ImmutableCachePolicy.Expiry) {
             isMustCheck() >> mustRefreshMissingModule
         }
         moduleDescriptorCache.getCachedModuleDescriptor(_, module) >> Stub(ModuleMetadataCache.CachedMetadata) {
@@ -191,7 +190,7 @@ class CachingModuleComponentRepositoryTest extends Specification {
         def module = Mock(ModuleComponentIdentifier)
         def localAccess = repo.localAccess
         realRemoteAccess.estimateMetadataFetchingCost(module) >> remoteAnswer
-        cachePolicy.changingModuleExpiry(_, _, _) >> Stub(Expiry) {
+        cachePolicy.changingModuleExpiry(_, _, _) >> Stub(ImmutableCachePolicy.Expiry) {
             isMustCheck() >> mustRefreshChangingModule
         }
         moduleDescriptorCache.getCachedModuleDescriptor(_, module) >> Stub(ModuleMetadataCache.CachedMetadata) {
@@ -223,7 +222,7 @@ class CachingModuleComponentRepositoryTest extends Specification {
         def module = Mock(ModuleComponentIdentifier)
         def localAccess = repo.localAccess
         realRemoteAccess.estimateMetadataFetchingCost(module) >> remoteAnswer
-        cachePolicy.moduleExpiry(_, _, _) >> Stub(Expiry) {
+        cachePolicy.moduleExpiry(_, _, _) >> Stub(ImmutableCachePolicy.Expiry) {
             isMustCheck() >> mustRefreshModule
         }
         moduleDescriptorCache.getCachedModuleDescriptor(_, module) >> Stub(ModuleMetadataCache.CachedMetadata) {

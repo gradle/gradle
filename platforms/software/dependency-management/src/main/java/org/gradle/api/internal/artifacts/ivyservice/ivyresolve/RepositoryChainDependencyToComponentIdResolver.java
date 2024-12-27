@@ -24,7 +24,7 @@ import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ComponentMetadataProcessorFactory;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
-import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
+import org.gradle.api.internal.artifacts.ivyservice.ImmutableCachePolicy;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.attributes.AttributesFactory;
@@ -41,7 +41,7 @@ public class RepositoryChainDependencyToComponentIdResolver implements Dependenc
     private final DynamicVersionResolver dynamicRevisionResolver;
     private final AttributeContainer consumerAttributes;
 
-    public RepositoryChainDependencyToComponentIdResolver(VersionedComponentChooser componentChooser, VersionParser versionParser, AttributeContainer consumerAttributes, AttributesFactory attributesFactory, ComponentMetadataProcessorFactory componentMetadataProcessorFactory, ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor, CachePolicy cachePolicy) {
+    public RepositoryChainDependencyToComponentIdResolver(VersionedComponentChooser componentChooser, VersionParser versionParser, AttributeContainer consumerAttributes, AttributesFactory attributesFactory, ComponentMetadataProcessorFactory componentMetadataProcessorFactory, ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor, ImmutableCachePolicy cachePolicy) {
         this.dynamicRevisionResolver = new DynamicVersionResolver(componentChooser, versionParser, attributesFactory, componentMetadataProcessorFactory, componentMetadataSupplierRuleExecutor, cachePolicy);
         this.consumerAttributes = consumerAttributes;
     }

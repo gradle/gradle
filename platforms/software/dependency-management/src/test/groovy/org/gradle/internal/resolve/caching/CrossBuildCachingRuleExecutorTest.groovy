@@ -20,11 +20,11 @@ import com.google.common.collect.ImmutableMultimap
 import org.gradle.api.Action
 import org.gradle.api.Transformer
 import org.gradle.api.artifacts.CacheableRule
-import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy
+import org.gradle.api.internal.artifacts.ivyservice.ImmutableCachePolicy
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheDecorator
-import org.gradle.cache.PersistentCache
 import org.gradle.cache.IndexedCache
+import org.gradle.cache.PersistentCache
 import org.gradle.cache.internal.DefaultInMemoryCacheDecoratorFactory
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
 import org.gradle.internal.action.DefaultConfigurableRule
@@ -70,7 +70,7 @@ class CrossBuildCachingRuleExecutorTest extends Specification {
             new Details(name: id.name)
         }
     }
-    CachePolicy cachePolicy = Mock()
+    ImmutableCachePolicy cachePolicy = Mock()
     ServiceRegistry serviceRegistry = Mock()
     InstantiatingAction<Details> rule
 

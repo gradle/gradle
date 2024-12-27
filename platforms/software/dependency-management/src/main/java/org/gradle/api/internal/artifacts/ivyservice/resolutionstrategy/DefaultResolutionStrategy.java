@@ -32,6 +32,7 @@ import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.configurations.ConflictResolution;
 import org.gradle.api.internal.artifacts.configurations.MutationValidator;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
+import org.gradle.api.internal.artifacts.configurations.CachePolicy;
 import org.gradle.api.internal.artifacts.dsl.ModuleVersionSelectorParsers;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionsInternal;
@@ -62,7 +63,7 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     private ConflictResolution conflictResolution = ConflictResolution.latest;
     private final DefaultComponentSelectionRules componentSelectionRules;
 
-    private final DefaultCachePolicy cachePolicy;
+    private final CachePolicy cachePolicy;
     private final DependencySubstitutionsInternal dependencySubstitutions;
     private final GlobalDependencyResolutionRules globalDependencySubstitutionRules;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
@@ -85,29 +86,16 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
 
     @Inject
     public DefaultResolutionStrategy(
+        CachePolicy cachePolicy,
+        DependencySubstitutionsInternal dependencySubstitutions,
         GlobalDependencyResolutionRules globalDependencySubstitutionRules,
         VcsResolver vcsResolver,
-        DependencySubstitutionsInternal dependencySubstitutions,
         ImmutableModuleIdentifierFactory moduleIdentifierFactory,
         ComponentSelectorConverter componentSelectorConverter,
         DependencyLockingProvider dependencyLockingProvider,
         CapabilitiesResolutionInternal capabilitiesResolution,
         ObjectFactory objectFactory
     ) {
-        this(
-            new DefaultCachePolicy(),
-            dependencySubstitutions,
-            globalDependencySubstitutionRules,
-            vcsResolver,
-            moduleIdentifierFactory,
-            componentSelectorConverter,
-            dependencyLockingProvider,
-            capabilitiesResolution,
-            objectFactory
-        );
-    }
-
-    DefaultResolutionStrategy(DefaultCachePolicy cachePolicy, DependencySubstitutionsInternal dependencySubstitutions, GlobalDependencyResolutionRules globalDependencySubstitutionRules, VcsResolver vcsResolver, ImmutableModuleIdentifierFactory moduleIdentifierFactory, ComponentSelectorConverter componentSelectorConverter, DependencyLockingProvider dependencyLockingProvider, CapabilitiesResolutionInternal capabilitiesResolution, ObjectFactory objectFactory) {
         this.cachePolicy = cachePolicy;
         this.dependencySubstitutions = dependencySubstitutions;
         this.globalDependencySubstitutionRules = globalDependencySubstitutionRules;
@@ -271,7 +259,7 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     }
 
     @Override
-    public DefaultCachePolicy getCachePolicy() {
+    public CachePolicy getCachePolicy() {
         return cachePolicy;
     }
 

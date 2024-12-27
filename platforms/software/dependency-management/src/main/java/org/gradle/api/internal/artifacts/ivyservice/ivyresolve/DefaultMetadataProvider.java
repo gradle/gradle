@@ -29,8 +29,8 @@ import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.MetadataResolutionContext;
-import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyModuleDescriptor;
+import org.gradle.api.internal.artifacts.ivyservice.ImmutableCachePolicy;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MavenVersionUtils;
 import org.gradle.api.internal.artifacts.repositories.resolver.ComponentMetadataAdapter;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
@@ -242,16 +242,16 @@ class DefaultMetadataProvider implements MetadataProvider {
 
     private static class DefaultMetadataResolutionContext implements MetadataResolutionContext {
 
-        private final CachePolicy cachePolicy;
+        private final ImmutableCachePolicy cachePolicy;
         private final Instantiator instantiator;
 
-        private DefaultMetadataResolutionContext(CachePolicy cachePolicy, Instantiator instantiator) {
+        private DefaultMetadataResolutionContext(ImmutableCachePolicy cachePolicy, Instantiator instantiator) {
             this.cachePolicy = cachePolicy;
             this.instantiator = instantiator;
         }
 
         @Override
-        public CachePolicy getCachePolicy() {
+        public ImmutableCachePolicy getCachePolicy() {
             return cachePolicy;
         }
 

@@ -20,7 +20,6 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.verification.DependencyVerificationMode;
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.ChecksumAndSignatureVerificationOverride;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.DependencyVerificationOverride;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.writer.WriteDependencyVerificationFile;
@@ -68,14 +67,6 @@ public class StartParameterResolutionOverride {
     public StartParameterResolutionOverride(StartParameter startParameter, File gradleDir) {
         this.startParameter = startParameter;
         this.gradleDir = gradleDir;
-    }
-
-    public void applyToCachePolicy(CachePolicy cachePolicy) {
-        if (startParameter.isOffline()) {
-            cachePolicy.setOffline();
-        } else if (startParameter.isRefreshDependencies()) {
-            cachePolicy.setRefreshDependencies();
-        }
     }
 
     public ModuleComponentRepository<ModuleComponentResolveMetadata> overrideModuleVersionRepository(ModuleComponentRepository<ModuleComponentResolveMetadata> original) {

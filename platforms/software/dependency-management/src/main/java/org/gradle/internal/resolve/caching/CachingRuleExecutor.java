@@ -16,7 +16,7 @@
 package org.gradle.internal.resolve.caching;
 
 import org.gradle.api.Transformer;
-import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
+import org.gradle.api.internal.artifacts.ivyservice.ImmutableCachePolicy;
 import org.gradle.internal.action.InstantiatingAction;
 
 /**
@@ -51,5 +51,6 @@ public interface CachingRuleExecutor<KEY, DETAILS, RESULT> {
         InstantiatingAction<DETAILS> rule,
         Transformer<RESULT, D> detailsToResult,
         Transformer<D, KEY> onCacheMiss,
-        CachePolicy cachePolicy);
+        ImmutableCachePolicy cachePolicy
+    );
 }

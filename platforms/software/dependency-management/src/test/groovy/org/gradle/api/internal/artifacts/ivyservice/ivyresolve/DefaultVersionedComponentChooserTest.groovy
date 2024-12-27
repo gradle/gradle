@@ -47,7 +47,6 @@ class DefaultVersionedComponentChooserTest extends Specification {
     def versionSelectorScheme = new DefaultVersionSelectorScheme(versionComparator, versionParser)
     def componentSelectionRules = Mock(ComponentSelectionRulesInternal)
     def consumerAttributes = ImmutableAttributes.EMPTY
-    def cachePolicy = new DefaultCachePolicy()
 
     def chooser = new DefaultVersionedComponentChooser(versionComparator, versionParser, AttributeTestUtil.services(), componentSelectionRules, ImmutableAttributesSchema.EMPTY)
 
@@ -396,7 +395,7 @@ class DefaultVersionedComponentChooserTest extends Specification {
                 resolve() >> resolvedWithStatus(status, attributes)
             }
             getComponentMetadataSupplier() >> null
-            getCachePolicy() >> cachePolicy
+            getCachePolicy() >> new DefaultCachePolicy()
             getComponentMetadataSupplierExecutor() >> { componentMetadataSupplierExecutor() }
         }
         return c

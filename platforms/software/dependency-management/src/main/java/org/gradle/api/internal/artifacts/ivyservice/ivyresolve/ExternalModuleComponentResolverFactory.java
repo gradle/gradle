@@ -25,7 +25,7 @@ import org.gradle.api.internal.artifacts.ComponentMetadataProcessorFactory;
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.MetadataResolutionContext;
-import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
+import org.gradle.api.internal.artifacts.ivyservice.ImmutableCachePolicy;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
@@ -130,7 +130,7 @@ public class ExternalModuleComponentResolverFactory {
         ComponentMetadataProcessorFactory metadataProcessor,
         ComponentSelectionRulesInternal componentSelectionRules,
         boolean dependencyVerificationEnabled,
-        CachePolicy cachePolicy,
+        ImmutableCachePolicy cachePolicy,
         AttributeContainer consumerAttributes,
         ImmutableAttributesSchema consumerSchema
     ) {
@@ -223,7 +223,7 @@ public class ExternalModuleComponentResolverFactory {
             ComponentMetadataProcessorFactory componentMetadataProcessorFactory,
             ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor,
             CalculatedValueFactory calculatedValueFactory,
-            CachePolicy cachePolicy
+            ImmutableCachePolicy cachePolicy
         ) {
             this.delegate = new UserResolverChain(versionComparator, new DefaultComponentSelectionRules(moduleIdentifierFactory), versionParser, consumerAttributes, attributesSchema, attributesFactory, attributeSchemaServices, componentMetadataProcessorFactory, componentMetadataSupplierRuleExecutor, calculatedValueFactory, cachePolicy);
         }
@@ -275,16 +275,16 @@ public class ExternalModuleComponentResolverFactory {
 
     private static class DefaultMetadataResolutionContext implements MetadataResolutionContext {
 
-        private final CachePolicy cachePolicy;
+        private final ImmutableCachePolicy cachePolicy;
         private final Instantiator instantiator;
 
-        private DefaultMetadataResolutionContext(CachePolicy cachePolicy, Instantiator instantiator) {
+        private DefaultMetadataResolutionContext(ImmutableCachePolicy cachePolicy, Instantiator instantiator) {
             this.cachePolicy = cachePolicy;
             this.instantiator = instantiator;
         }
 
         @Override
-        public CachePolicy getCachePolicy() {
+        public ImmutableCachePolicy getCachePolicy() {
             return cachePolicy;
         }
 
