@@ -386,7 +386,7 @@ class ConfigurationCacheState(
 
     private
     fun GradleInternal.loadGradleProperties() {
-        val settingDir = serviceOf<BuildLocation>().settingsDir
+        val settingDir = serviceOf<BuildLocation>().buildDefinitionDirectory
         // Load Gradle properties from a file but skip applying system properties defined here.
         // System properties from the file may be mutated by the build logic, and the execution-time values are already restored by the EnvironmentChangeTracker.
         // Applying properties from file overwrites these modifications.

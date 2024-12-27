@@ -79,5 +79,5 @@ object BuildServices : ServiceRegistrationProvider {
 
     private
     fun BuildLocationFactory.settingsDir(gradle: GradleInternal): File =
-        getLocationFor(BuildLocationConfiguration(gradle.startParameter)).settingsDir
+        getLocationFor(BuildLocationConfiguration(gradle.startParameter)).buildDefinitionDirectory
 }

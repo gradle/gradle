@@ -34,15 +34,15 @@ import spock.lang.Specification
 
 class DefaultSettingsLoaderTest extends Specification {
     private projectRootDir = FileUtils.canonicalize(new File("someDir"))
-    private mockBuildLayout = new BuildLocation(projectRootDir, null, Stub(ScriptFileResolver))
+    private mockBuildLocation = new BuildLocation(projectRootDir, null, Stub(ScriptFileResolver))
     @SuppressWarnings('GroovyAssignabilityCheck')
     private mockBuildLocationFactory = Mock(BuildLocationFactory) {
-        getLocationFor(_) >> mockBuildLayout
+        getLocationFor(_) >> mockBuildLocation
     }
     private mockProjectDescriptor = Mock(DefaultProjectDescriptor) {
         getPath() >> ":"
-        getProjectDir() >> mockBuildLayout.settingsDir
-        getBuildFile() >> new File(mockBuildLayout.settingsDir, "build.gradle")
+        getProjectDir() >> mockBuildLocation.buildDefinitionDirectory
+        getBuildFile() >> new File(mockBuildLocation.buildDefinitionDirectory, "build.gradle")
     }
     private mockProjectRegistry = Mock(ProjectRegistry) {
         getAllProjects() >> Collections.singleton(mockProjectDescriptor)
@@ -60,7 +60,7 @@ class DefaultSettingsLoaderTest extends Specification {
         // When we process, we're interested in retaining the start parameter in
         // the resulting state, so we can test it, so create a new mock and configure it
         //noinspection GroovyAssignabilityCheck
-        process(mockGradle, mockBuildLayout, mockClassLoaderScope, _) >> { gradle, settingsLocation, clasLoaderScope, startParameter ->
+        process(mockGradle, mockBuildLocation, mockClassLoaderScope, _) >> { gradle, settingsLocation, clasLoaderScope, startParameter ->
             def mockResultSettingsScript = Mock(ScriptSource) {
                 getDisplayName() >> "foo"
             }
@@ -99,7 +99,7 @@ class DefaultSettingsLoaderTest extends Specification {
 
     def "running init uses new empty settings"() {
         given:
-        startParameterInternal.setCurrentDir(mockBuildLayout.settingsDir)
+        startParameterInternal.setCurrentDir(mockBuildLocation.buildDefinitionDirectory)
         startParameterInternal.setTaskNames(["init"])
 
         when:

@@ -73,7 +73,7 @@ public class DefaultSettingsLoader implements SettingsLoader {
     @Override
     public SettingsState findAndLoadSettings(GradleInternal gradle) {
         StartParameter startParameter = gradle.getStartParameter();
-        SettingsLocation settingsLocation = buildLocationFactory.getLocationFor(new BuildLocationConfiguration(startParameter));
+        BuildLocation buildLocation = buildLocationFactory.getLocationFor(new BuildLocationConfiguration(startParameter));
 
         SettingsState state;
         ProjectSpec spec;
@@ -83,7 +83,7 @@ public class DefaultSettingsLoader implements SettingsLoader {
             spec = ProjectSpecs.forStartParameter(startParameter, state.getSettings());
         } else {
             logger.debug("Loading build definition for build: '{}'", gradle.getIdentityPath());
-            state = findSettingsAndLoadIfAppropriate(gradle, startParameter, settingsLocation, gradle.getClassLoaderScope());
+            state = findSettingsAndLoadIfAppropriate(gradle, startParameter, buildLocation, gradle.getClassLoaderScope());
             SettingsInternal settings = state.getSettings();
             spec = ProjectSpecs.forStartParameter(startParameter, settings);
             if (useEmptySettings(spec, settings, startParameter)) {
@@ -177,10 +177,10 @@ public class DefaultSettingsLoader implements SettingsLoader {
     private SettingsState findSettingsAndLoadIfAppropriate(
         GradleInternal gradle,
         StartParameter startParameter,
-        SettingsLocation settingsLocation,
+        BuildLocation buildLocation,
         ClassLoaderScope classLoaderScope
     ) {
-        SettingsState state = settingsProcessor.process(gradle, settingsLocation, classLoaderScope, startParameter);
+        SettingsState state = settingsProcessor.process(gradle, buildLocation, classLoaderScope, startParameter);
         validate(state.getSettings());
         return state;
     }

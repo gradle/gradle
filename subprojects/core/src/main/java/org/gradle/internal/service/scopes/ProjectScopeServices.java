@@ -387,7 +387,7 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
     DefaultProjectLayout createProjectLayout(
         BuildLocation buildLocation, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, TaskDependencyFactory taskDependencyFactory,
         FilePropertyFactory filePropertyFactory, Factory<PatternSet> patternSetFactory, PropertyHost propertyHost, FileFactory fileFactory) {
-        File settingsDir = buildLocation.getSettingsDir();
+        File settingsDir = buildLocation.getBuildDefinitionDirectory();
         File projectDir = project.getProjectDir();
         return new DefaultProjectLayout(settingsDir, projectDir, fileResolver, taskDependencyFactory, patternSetFactory, propertyHost, fileCollectionFactory, filePropertyFactory, fileFactory);
     }

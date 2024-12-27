@@ -201,7 +201,7 @@ class DefaultConfigurationCacheHost internal constructor(
 
         private
         fun settingsDir() =
-            service<BuildLocation>().settingsDir
+            service<BuildLocation>().buildDefinitionDirectory
 
         private
         fun getProjectDescriptor(parentPath: Path?): DefaultProjectDescriptor? =

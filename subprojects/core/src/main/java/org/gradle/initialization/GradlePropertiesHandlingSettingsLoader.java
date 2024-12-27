@@ -17,6 +17,7 @@
 package org.gradle.initialization;
 
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.initialization.location.BuildLocation;
 import org.gradle.initialization.location.BuildLocationConfiguration;
 import org.gradle.initialization.location.BuildLocationFactory;
 
@@ -33,8 +34,8 @@ public class GradlePropertiesHandlingSettingsLoader implements SettingsLoader {
 
     @Override
     public SettingsState findAndLoadSettings(GradleInternal gradle) {
-        SettingsLocation settingsLocation = buildLocationFactory.getLocationFor(new BuildLocationConfiguration(gradle.getStartParameter()));
-        gradlePropertiesController.loadGradlePropertiesFrom(settingsLocation.getSettingsDir(), true);
+        BuildLocation buildLocation = buildLocationFactory.getLocationFor(new BuildLocationConfiguration(gradle.getStartParameter()));
+        gradlePropertiesController.loadGradlePropertiesFrom(buildLocation.getBuildDefinitionDirectory(), true);
         return delegate.findAndLoadSettings(gradle);
     }
 }
