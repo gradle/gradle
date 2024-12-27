@@ -20,8 +20,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.Capabilit
 import org.gradle.internal.ImmutableActionSet;
 
 /**
- * Represents something that can be resolved.
- * <p>
  * This is the legacy counterpart to {@link org.gradle.api.internal.artifacts.ivyservice.ResolutionParameters}.
  * The new parameters type is thread-safe, where any interactions with mutable Project state
  * are guarded by proper project locking. Otherwise, the new parameters are fully immutable.
@@ -33,7 +31,7 @@ import org.gradle.internal.ImmutableActionSet;
  * registered action, where we deprecate (and then fail) if the user provided an action that cannot be
  * {@link org.gradle.api.IsolatedAction isolated} from the project.
  */
-public interface ResolveContext {
+public interface LegacyResolutionParameters {
 
     /**
      * The cache policy to use when resolving external resources.
