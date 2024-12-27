@@ -21,7 +21,7 @@ import org.gradle.internal.build.event.BuildEventSubscriptions
 import org.gradle.internal.serialize.SerializerSpec
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.test.internal.DefaultDebugOptions
-import org.gradle.tooling.internal.provider.serialization.SerializedPayload
+import org.gradle.internal.serialize.SerializedPayload
 
 import java.beans.Introspector
 

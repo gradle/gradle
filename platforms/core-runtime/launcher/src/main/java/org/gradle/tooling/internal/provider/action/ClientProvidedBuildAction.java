@@ -18,7 +18,7 @@ package org.gradle.tooling.internal.provider.action;
 
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.internal.build.event.BuildEventSubscriptions;
-import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
+import org.gradle.internal.serialize.SerializedPayload;
 
 public class ClientProvidedBuildAction extends SubscribableBuildAction {
     private final StartParameterInternal startParameter;

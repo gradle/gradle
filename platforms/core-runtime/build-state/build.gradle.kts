@@ -37,6 +37,7 @@ dependencies {
     implementation(projects.concurrent)
     implementation(projects.loggingApi)
     implementation(projects.problemsApi)
+    implementation(projects.serialization)
 }
 tasks.isolatedProjectsIntegTest {
     enabled = false

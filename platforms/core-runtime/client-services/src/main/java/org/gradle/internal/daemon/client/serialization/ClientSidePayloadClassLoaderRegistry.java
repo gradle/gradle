@@ -17,12 +17,12 @@
 package org.gradle.internal.daemon.client.serialization;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.tooling.internal.provider.serialization.ClassLoaderCache;
-import org.gradle.tooling.internal.provider.serialization.ClassLoaderDetails;
-import org.gradle.tooling.internal.provider.serialization.ClientOwnedClassLoaderSpec;
-import org.gradle.tooling.internal.provider.serialization.DeserializeMap;
-import org.gradle.tooling.internal.provider.serialization.PayloadClassLoaderRegistry;
-import org.gradle.tooling.internal.provider.serialization.SerializeMap;
+import org.gradle.internal.serialize.ClassLoaderCache;
+import org.gradle.internal.serialize.ClassLoaderDetails;
+import org.gradle.internal.serialize.ClientOwnedClassLoaderSpec;
+import org.gradle.internal.serialize.DeserializeMap;
+import org.gradle.internal.serialize.PayloadClassLoaderRegistry;
+import org.gradle.internal.serialize.SerializeMap;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.lang.ref.WeakReference;

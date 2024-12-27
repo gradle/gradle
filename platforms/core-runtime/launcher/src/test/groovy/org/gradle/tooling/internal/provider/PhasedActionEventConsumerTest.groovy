@@ -20,8 +20,8 @@ import org.gradle.initialization.BuildEventConsumer
 import spock.lang.Specification
 import org.gradle.tooling.internal.protocol.PhasedActionResult
 import org.gradle.tooling.internal.protocol.PhasedActionResultListener
-import org.gradle.tooling.internal.provider.serialization.PayloadSerializer
-import org.gradle.tooling.internal.provider.serialization.SerializedPayload
+import org.gradle.internal.serialize.PayloadSerializer
+import org.gradle.internal.serialize.SerializedPayload
 
 class PhasedActionEventConsumerTest extends Specification {
     def phasedActionResultListener = Mock(PhasedActionResultListener)

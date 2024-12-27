@@ -21,8 +21,8 @@ import org.gradle.internal.buildtree.BuildTreeLifecycleController;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.tooling.internal.protocol.PhasedActionResult;
 import org.gradle.tooling.internal.provider.action.ClientProvidedBuildAction;
-import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
-import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
+import org.gradle.internal.serialize.PayloadSerializer;
+import org.gradle.internal.serialize.SerializedPayload;
 
 import javax.annotation.Nullable;
 

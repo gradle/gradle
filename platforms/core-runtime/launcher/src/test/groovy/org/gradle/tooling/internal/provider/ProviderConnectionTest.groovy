@@ -19,7 +19,7 @@ package org.gradle.tooling.internal.provider
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters
-import org.gradle.tooling.internal.provider.serialization.PayloadSerializer
+import org.gradle.internal.serialize.PayloadSerializer
 import org.gradle.util.GradleVersion
 import spock.lang.Specification
 

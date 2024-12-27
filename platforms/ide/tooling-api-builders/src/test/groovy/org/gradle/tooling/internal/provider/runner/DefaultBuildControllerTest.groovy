@@ -27,7 +27,7 @@ import org.gradle.tooling.internal.gradle.GradleBuildIdentity
 import org.gradle.tooling.internal.gradle.GradleProjectIdentity
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException
 import org.gradle.tooling.internal.protocol.ModelIdentifier
-import org.gradle.tooling.internal.provider.serialization.PayloadSerializer
+import org.gradle.internal.serialize.PayloadSerializer
 import org.gradle.tooling.provider.model.UnknownModelException
 import org.gradle.util.Path
 import spock.lang.Specification

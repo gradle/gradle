@@ -18,7 +18,7 @@ package org.gradle.tooling.internal.provider;
 
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
-import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
+import org.gradle.internal.serialize.PayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.StreamedValue;
 
 public class StreamedValueConsumer implements BuildEventConsumer {

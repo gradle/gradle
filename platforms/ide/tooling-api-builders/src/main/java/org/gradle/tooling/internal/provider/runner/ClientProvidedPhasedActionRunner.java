@@ -25,8 +25,8 @@ import org.gradle.tooling.internal.protocol.InternalPhasedAction;
 import org.gradle.tooling.internal.protocol.PhasedActionResult;
 import org.gradle.tooling.internal.provider.PhasedBuildActionResult;
 import org.gradle.tooling.internal.provider.action.ClientProvidedPhasedAction;
-import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
-import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
+import org.gradle.internal.serialize.PayloadSerializer;
+import org.gradle.internal.serialize.SerializedPayload;
 
 import javax.annotation.Nullable;
 

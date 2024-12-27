@@ -17,7 +17,7 @@
 package org.gradle.internal.daemon.client.serialization
 
 import org.gradle.internal.classloader.VisitableURLClassLoader
-import org.gradle.tooling.internal.provider.serialization.PayloadClassLoaderFactory
+import org.gradle.internal.serialize.PayloadClassLoaderFactory
 import spock.lang.Specification
 
 class ClientSidePayloadClassLoaderFactoryTest extends Specification {

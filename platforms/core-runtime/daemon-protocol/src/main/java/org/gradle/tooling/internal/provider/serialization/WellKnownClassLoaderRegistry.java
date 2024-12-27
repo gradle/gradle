@@ -20,6 +20,10 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.NonNullApi;
 import org.gradle.internal.classloader.ClassLoaderSpec;
 import org.gradle.internal.classloader.ClassLoaderUtils;
+import org.gradle.internal.serialize.ClassLoaderDetails;
+import org.gradle.internal.serialize.DeserializeMap;
+import org.gradle.internal.serialize.PayloadClassLoaderRegistry;
+import org.gradle.internal.serialize.SerializeMap;
 
 import java.util.HashMap;
 import java.util.Map;

@@ -14,31 +14,7 @@
  * limitations under the License.
  */
 
-plugins {
-    id("gradlebuild.distribution.implementation-java")
-    id("gradlebuild.publish-public-libraries")
-}
-
-description = "Tools to serialize data"
-
-gradlebuildJava.usedInWorkers()
-
-dependencies {
-    api(projects.baseServices)
-    api(projects.hashing)
-    api(projects.stdlibJavaExtensions)
-
-    api(libs.guava)
-    api(libs.jsr305)
-
-    implementation(projects.io)
-
-    implementation(libs.fastutil)
-    implementation(libs.kryo)
-    implementation(libs.slf4jApi)
-
-    compileOnly(libs.errorProneAnnotations)
-}
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}
+/**
+ * The root package of the Gradle build system.
+ */
+package org.gradle;

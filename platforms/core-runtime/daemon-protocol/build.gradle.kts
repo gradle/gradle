@@ -37,14 +37,14 @@ dependencies {
     api(projects.toolchainsJvmShared)
 
     // The client should not depend on core or core-api, but core still contains some types that are shared between the client and daemon
-    api(projects.coreApi)
+//    api(projects.coreApi)
     api(projects.core)
 
     implementation(libs.guava)
-    implementation(libs.slf4jApi)
+//    implementation(libs.slf4jApi)
 
     implementation(projects.enterpriseLogging)
-    implementation(projects.io)
+//    implementation(projects.io)
     implementation(projects.problemsApi)
     implementation(projects.time)
 

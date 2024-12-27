@@ -34,7 +34,7 @@ import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.tooling.internal.provider.action.BuildModelAction;
 import org.gradle.tooling.internal.provider.action.ClientProvidedBuildAction;
 import org.gradle.tooling.internal.provider.action.ClientProvidedPhasedAction;
-import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
+import org.gradle.internal.serialize.SerializedPayload;
 
 import java.util.function.Supplier;
 

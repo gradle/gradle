@@ -20,15 +20,15 @@ import org.gradle.api.internal.tasks.userinput.DefaultUserInputReader;
 import org.gradle.api.internal.tasks.userinput.UserInputReader;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.daemon.serialization.DaemonSidePayloadClassLoaderFactory;
+import org.gradle.internal.serialize.ClassLoaderCache;
+import org.gradle.internal.serialize.DefaultPayloadClassLoaderFactory;
+import org.gradle.internal.serialize.DefaultPayloadClassLoaderRegistry;
+import org.gradle.internal.serialize.PayloadClassLoaderFactory;
+import org.gradle.internal.serialize.PayloadSerializer;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
-import org.gradle.tooling.internal.provider.serialization.ClassLoaderCache;
-import org.gradle.tooling.internal.provider.serialization.DefaultPayloadClassLoaderFactory;
-import org.gradle.tooling.internal.provider.serialization.DefaultPayloadClassLoaderRegistry;
-import org.gradle.tooling.internal.provider.serialization.PayloadClassLoaderFactory;
-import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.WellKnownClassLoaderRegistry;
 
 public class DaemonServices extends AbstractGradleModuleServices {

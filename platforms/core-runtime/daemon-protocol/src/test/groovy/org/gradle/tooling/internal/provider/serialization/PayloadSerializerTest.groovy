@@ -17,6 +17,10 @@
 package org.gradle.tooling.internal.provider.serialization
 
 import org.gradle.internal.classloader.FilteringClassLoader
+import org.gradle.internal.serialize.ClassLoaderCache
+import org.gradle.internal.serialize.DefaultPayloadClassLoaderFactory
+import org.gradle.internal.serialize.DefaultPayloadClassLoaderRegistry
+import org.gradle.internal.serialize.PayloadSerializer
 import org.gradle.tooling.internal.provider.AbstractClassGraphSpec
 import org.gradle.tooling.internal.provider.CustomPayload
 import org.gradle.tooling.internal.provider.PayloadInterface

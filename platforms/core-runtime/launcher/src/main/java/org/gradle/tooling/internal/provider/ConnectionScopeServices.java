@@ -24,6 +24,10 @@ import org.gradle.internal.daemon.client.serialization.ClientSidePayloadClassLoa
 import org.gradle.internal.daemon.client.serialization.ClientSidePayloadClassLoaderRegistry;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.logging.console.GlobalUserInputReceiver;
+import org.gradle.internal.serialize.ClassLoaderCache;
+import org.gradle.internal.serialize.DefaultPayloadClassLoaderFactory;
+import org.gradle.internal.serialize.DefaultPayloadClassLoaderRegistry;
+import org.gradle.internal.serialize.PayloadSerializer;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
@@ -34,10 +38,6 @@ import org.gradle.launcher.daemon.client.DaemonStopClientExecuter;
 import org.gradle.launcher.daemon.client.NotifyDaemonClientExecuter;
 import org.gradle.launcher.exec.BuildExecutor;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
-import org.gradle.tooling.internal.provider.serialization.ClassLoaderCache;
-import org.gradle.tooling.internal.provider.serialization.DefaultPayloadClassLoaderFactory;
-import org.gradle.tooling.internal.provider.serialization.DefaultPayloadClassLoaderRegistry;
-import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.WellKnownClassLoaderRegistry;
 
 /**
