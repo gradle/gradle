@@ -1818,7 +1818,7 @@ Found the following transformation chains:
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
         failure.assertHasCause("Failed to transform a.jar to match attributes {artifactType=size}")
         failure.assertHasCause("Execution failed for ToNullTransform: ${file("a.jar").absolutePath}.")
-        failure.assertHasCause("path may not be null or empty string. path='null'")
+        failure.assertHasCause("Cannot convert 'null' to File")
 
         where:
         method << ['dir', 'file']

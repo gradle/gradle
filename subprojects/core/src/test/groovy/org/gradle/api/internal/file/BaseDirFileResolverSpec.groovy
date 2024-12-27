@@ -170,6 +170,14 @@ The following types/formats are supported:
   - A TextResource instance.""")
     }
 
+    def "does not allow resolving empty path"() {
+        when:
+        normalize("")
+        then:
+        def ex = thrown IllegalArgumentException
+        ex.message.contains "Cannot convert '' to File"
+    }
+
     def "normalizes null-returning closure to null"() {
         def ancestor = new File(tmpDir.testDirectory, "test")
         def baseDir = new File(ancestor, "base")
@@ -188,7 +196,7 @@ The following types/formats are supported:
         }, baseDir)
         then:
         IllegalArgumentException e = thrown()
-        e.message == "Cannot convert path to File. path='null returning Callable'"
+        e.message == "Cannot convert 'null returning Callable' to File."
     }
 
     def "normalizes Provider value"() {
@@ -206,10 +214,31 @@ The following types/formats are supported:
 
     def "does not allow resolving null URI"() {
         when:
-        resolver(tmpDir.testDirectory).resolveUri(null)
+        normalizeURI(null)
         then:
-        def ex = thrown UnsupportedNotationException
-        ex.message.contains "Cannot convert a null value to URI."
+        def ex = thrown IllegalArgumentException
+        ex.message.contains "Cannot convert 'null' to URI"
+    }
+
+    def "does not allow resolving empty URI"() {
+        when:
+        normalizeURI("")
+        then:
+        def ex = thrown IllegalArgumentException
+        ex.message.contains "Cannot convert '' to URI"
+    }
+
+    def "normalizes Provider value for uri"() {
+        def baseDir = tmpDir.testDirectory.file("base")
+        def file = tmpDir.testDirectory.file("test")
+        def provider1 = Stub(Provider)
+        provider1.get() >> file
+        def provider2 = Stub(Provider)
+        provider2.get() >> "value"
+
+        expect:
+        normalizeURI(provider1, baseDir) == file.toURI()
+        normalizeURI(provider2, baseDir) == baseDir.file("value").toURI()
     }
 
     def createLink(File link, File target) {
@@ -228,6 +257,10 @@ The following types/formats are supported:
 
     def normalize(Object path, File baseDir = tmpDir.testDirectory) {
         resolver(baseDir).resolve(path)
+    }
+
+    def normalizeURI(Object path, File baseDir = tmpDir.testDirectory) {
+        resolver(baseDir).resolveUri(path)
     }
 
     private BaseDirFileResolver resolver(File baseDir = tmpDir.testDirectory) {

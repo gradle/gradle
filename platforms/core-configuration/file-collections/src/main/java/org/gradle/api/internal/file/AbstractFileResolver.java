@@ -20,22 +20,27 @@ import org.gradle.api.PathValidation;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.typeconversion.NotationParser;
-import org.gradle.internal.typeconversion.OptionalParserAdapter;
+import org.gradle.internal.typeconversion.NotationParserBuilder;
+import org.gradle.internal.typeconversion.TransformingConverter;
 import org.gradle.internal.typeconversion.UnsupportedNotationException;
 import org.gradle.util.internal.DeferredUtil;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.net.URI;
-import java.util.Optional;
 
 public abstract class AbstractFileResolver implements FileResolver {
     private final NotationParser<Object, File> fileNotationParser;
-    private final NotationParser<Object, Optional<URI>> uriNotationParser;
+    private final NotationParser<Object, URI> uriOrFileNotationParser;
 
     protected AbstractFileResolver() {
         this.fileNotationParser = FileNotationConverter.parser();
-        this.uriNotationParser = new OptionalParserAdapter<>(new UriNotationConverter());
+        this.uriOrFileNotationParser = NotationParserBuilder
+            .toType(URI.class)
+            .typeDisplayName("a URI or File")
+            .noImplicitConverters()
+            .converter(new UriNotationConverter())
+            .converter(new TransformingConverter<>(new FileNotationConverter(), file -> resolveFile(file, PathValidation.NONE).toURI()))
+            .toComposite();
     }
 
     public FileResolver withBaseDir(Object path) {
@@ -75,40 +80,30 @@ public abstract class AbstractFileResolver implements FileResolver {
 
     @Override
     public File resolve(Object path, PathValidation validation) {
-        File file = doResolve(path);
-
-        file = FileUtils.normalize(file);
-
-        validate(file, validation);
-
-        return file;
+        Object unpacked = DeferredUtil.unpack(path);
+        if (unpacked == null || "".equals(unpacked)) {
+            throw new IllegalArgumentException(String.format("Cannot convert '%s' to File.", path));
+        }
+        File maybeRelativeFile = fileNotationParser.parseNotation(unpacked);
+        return resolveFile(maybeRelativeFile, validation);
     }
 
     @Override
-    public URI resolveUri(Object path) {
-        return convertObjectToURI(path);
+    public URI resolveUri(Object uri) {
+        Object unpacked = DeferredUtil.unpack(uri);
+        if (unpacked == null || "".equals(unpacked)) {
+            throw new IllegalArgumentException(String.format("Cannot convert '%s' to URI.", uri));
+        }
+        return uriOrFileNotationParser.parseNotation(unpacked);
     }
 
-    protected abstract File doResolve(Object path);
+    protected abstract File doResolve(File path);
 
-    protected URI convertObjectToURI(Object path) {
-        Object object = DeferredUtil.unpack(path);
-        if (object == null) {
-            throw new UnsupportedNotationException("Cannot convert a null value to URI.");
-        }
-        return uriNotationParser
-            .parseNotation(object)
-            .filter(uri -> !"file".equals(uri.getScheme()))
-            .orElseGet(() -> resolve(object).toURI()); //TODO: the error message should be more informative
-    }
-
-    @Nullable
-    protected File convertObjectToFile(Object path) {
-        Object object = DeferredUtil.unpack(path);
-        if (object == null) {
-            return null;
-        }
-        return fileNotationParser.parseNotation(object);
+    private File resolveFile(File maybeRelativeFile, PathValidation validation) {
+        File file = doResolve(maybeRelativeFile);
+        file = FileUtils.normalize(file);
+        validate(file, validation);
+        return file;
     }
 
     protected void validate(File file, PathValidation validation) {
@@ -138,5 +133,4 @@ public abstract class AbstractFileResolver implements FileResolver {
                 break;
         }
     }
-
 }

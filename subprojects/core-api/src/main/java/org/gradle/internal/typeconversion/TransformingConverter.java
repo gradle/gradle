@@ -16,16 +16,26 @@
 package org.gradle.internal.typeconversion;
 
 import org.gradle.api.NonNullApi;
+import org.gradle.api.Transformer;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 
-import java.util.Optional;
-
 @NonNullApi
-public class OptionalParserAdapter<N, T> implements NotationParser<N, Optional<T>> {
+public class TransformingConverter<N, T, R> implements NotationConverter<N, R> {
     private final NotationConverter<N, T> converter;
+    private final Transformer<? extends R, T> transformer;
 
-    public OptionalParserAdapter(NotationConverter<N, T> converter) {
+    public TransformingConverter(NotationConverter<N, T> converter, Transformer<? extends R, T> transformer) {
         this.converter = converter;
+        this.transformer = transformer;
+    }
+
+    @Override
+    public void convert(N notation, NotationConvertResult<? super R> result) throws TypeConversionException {
+        ResultImpl<T> intermediateResult = new ResultImpl<>();
+        converter.convert(notation, intermediateResult);
+        if (intermediateResult.hasResult()) {
+            result.converted(transformer.transform(intermediateResult.result));
+        }
     }
 
     @Override
@@ -33,12 +43,6 @@ public class OptionalParserAdapter<N, T> implements NotationParser<N, Optional<T
         converter.describe(visitor);
     }
 
-    @Override
-    public Optional<T> parseNotation(N notation) throws TypeConversionException {
-        ResultImpl<T> result = new ResultImpl<>();
-        converter.convert(notation, result);
-        return result.getOptionalResult();
-    }
 
     @NonNullApi
     private static class ResultImpl<T> implements NotationConvertResult<T> {
@@ -54,10 +58,6 @@ public class OptionalParserAdapter<N, T> implements NotationParser<N, Optional<T
         public void converted(T result) {
             hasResult = true;
             this.result = result;
-        }
-
-        public Optional<T> getOptionalResult() {
-            return hasResult ? Optional.of(result) : Optional.empty();
         }
     }
 }

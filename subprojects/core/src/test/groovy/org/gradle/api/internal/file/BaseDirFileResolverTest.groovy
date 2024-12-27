@@ -161,11 +161,11 @@ class BaseDirFileResolverTest {
         def ex = assertThrows(InvalidUserDataException, {
             baseDirConverter.resolve(URI.create('file:relative'))
         })
-        assertThat(ex.message, equalTo('Cannot convert URL \'file:relative\' to a file.'))
+        assertThat(ex.message, equalTo('Cannot convert URI \'file:relative\' to a file.'))
         ex = assertThrows(InvalidUserDataException, {
             baseDirConverter.resolve(URI.create('file:../relative'))
         })
-        assertThat(ex.message, equalTo('Cannot convert URL \'file:../relative\' to a file.'))
+        assertThat(ex.message, equalTo('Cannot convert URI \'file:../relative\' to a file.'))
     }
 
     @Test public void testResolveRelativeFileURIString() {
