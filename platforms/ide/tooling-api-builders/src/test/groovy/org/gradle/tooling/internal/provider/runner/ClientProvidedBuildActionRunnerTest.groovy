@@ -26,8 +26,8 @@ import org.gradle.tooling.internal.protocol.InternalBuildAction
 import org.gradle.tooling.internal.protocol.InternalBuildActionFailureException
 import org.gradle.tooling.internal.protocol.InternalBuildActionVersion2
 import org.gradle.tooling.internal.provider.action.ClientProvidedBuildAction
-import org.gradle.tooling.internal.provider.serialization.PayloadSerializer
-import org.gradle.tooling.internal.provider.serialization.SerializedPayload
+import org.gradle.internal.serialize.PayloadSerializer
+import org.gradle.internal.serialize.SerializedPayload
 import spock.lang.Specification
 
 import java.util.function.Function

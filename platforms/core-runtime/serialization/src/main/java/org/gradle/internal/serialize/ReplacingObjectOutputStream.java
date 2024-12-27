@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.provider.serialization;
+package org.gradle.internal.serialize;
 
 import org.gradle.api.NonNullApi;
 import org.gradle.api.UncheckedIOException;
@@ -23,7 +23,6 @@ import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
-import java.util.Arrays;
 
 @NonNullApi
 public class ReplacingObjectOutputStream extends ObjectOutputStream {
@@ -51,6 +50,12 @@ public class ReplacingObjectOutputStream extends ObjectOutputStream {
     }
 
     private boolean isReplaceable(Object obj) {
-        return Arrays.stream(classes).anyMatch(clazz -> clazz.isInstance(obj));
+        for (Class<?> clazz : classes) {
+            if (clazz.isInstance(obj)) {
+                return true;
+            }
+        }
+        return false;
+//        return Arrays.stream(classes).anyMatch(clazz -> clazz.isInstance(obj));
     }
 }

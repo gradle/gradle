@@ -19,7 +19,7 @@ package org.gradle.internal.daemon.serialization
 import org.gradle.internal.classloader.VisitableURLClassLoader
 import org.gradle.internal.classpath.CachedClasspathTransformer
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.tooling.internal.provider.serialization.PayloadClassLoaderFactory
+import org.gradle.internal.serialize.PayloadClassLoaderFactory
 import org.junit.Rule
 import spock.lang.Specification
 

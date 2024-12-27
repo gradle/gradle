@@ -64,11 +64,11 @@ import org.gradle.launcher.daemon.diagnostics.DaemonDiagnostics;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionResult;
 import org.gradle.launcher.exec.DefaultBuildActionParameters;
-import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
-import org.gradle.tooling.internal.provider.serialization.ReplacingObjectInputStream;
-import org.gradle.tooling.internal.provider.serialization.ReplacingObjectOutputStream;
-import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
-import org.gradle.tooling.internal.provider.serialization.SerializedPayloadSerializer;
+import org.gradle.internal.serialize.PayloadSerializer;
+import org.gradle.internal.serialize.ReplacingObjectInputStream;
+import org.gradle.internal.serialize.ReplacingObjectOutputStream;
+import org.gradle.internal.serialize.SerializedPayload;
+import org.gradle.internal.serialize.SerializedPayloadSerializer;
 
 import java.io.File;
 import java.util.Collections;

@@ -13,6 +13,7 @@ errorprone {
 dependencies {
     implementation(projects.baseServicesGroovy) // for 'Specs'
     implementation(projects.coreApi)
+    implementation(projects.daemonProtocol)
     implementation(projects.dependencyManagement)
     implementation(projects.launcher)
     implementation(projects.problemsApi)
@@ -29,10 +30,10 @@ dependencies {
     api(projects.buildEvents)
     api(projects.buildOperations)
     api(projects.core)
-    api(projects.daemonProtocol)
     api(projects.enterpriseOperations)
-    api(projects.stdlibJavaExtensions)
+    api(projects.serialization)
     api(projects.serviceProvider)
+    api(projects.stdlibJavaExtensions)
     api(projects.toolingApi)
 
     runtimeOnly(projects.compositeBuilds)

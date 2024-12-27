@@ -16,7 +16,7 @@
 
 package org.gradle.launcher.exec;
 
-import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
+import org.gradle.internal.serialize.SerializedPayload;
 
 import javax.annotation.Nullable;
 

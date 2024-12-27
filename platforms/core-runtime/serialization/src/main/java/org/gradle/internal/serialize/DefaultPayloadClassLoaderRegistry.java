@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.provider.serialization;
+package org.gradle.internal.serialize;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.NonNullApi;
@@ -45,6 +45,7 @@ import java.util.UUID;
  * A {@link PayloadClassLoaderRegistry} that maps classes loaded by a set of ClassLoaders that it manages. For ClassLoaders owned by this JVM, inspects the ClassLoader to determine a ClassLoader spec to send across to the peer JVM. For classes serialized from the peer, maintains a set of cached ClassLoaders created using the ClassLoader specs received from the peer.
  */
 @ThreadSafe
+@NonNullApi
 public class DefaultPayloadClassLoaderRegistry implements PayloadClassLoaderRegistry {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultPayloadClassLoaderRegistry.class);
     private final PayloadClassLoaderFactory classLoaderFactory;
@@ -64,10 +65,18 @@ public class DefaultPayloadClassLoaderRegistry implements PayloadClassLoaderRegi
 
     @Override
     public DeserializeMap newDeserializeSession() {
-        return (classLoaderDetails, className) -> {
-            ClassLoader classLoader = getClassLoader(classLoaderDetails);
-            return Class.forName(className, false, classLoader);
+
+        return new DeserializeMap() {
+            @Override
+            public Class<?> resolveClass(ClassLoaderDetails classLoaderDetails, String className) throws ClassNotFoundException {
+                ClassLoader classLoader = getClassLoader(classLoaderDetails);
+                return Class.forName(className, false, classLoader);
+            }
         };
+//            (classLoaderDetails, className) -> {
+//            ClassLoader classLoader = getClassLoader(classLoaderDetails);
+//            return Class.forName(className, false, classLoader);
+//        };
     }
 
     private ClassLoader getClassLoader(ClassLoaderDetails details) {
@@ -86,7 +95,9 @@ public class DefaultPayloadClassLoaderRegistry implements PayloadClassLoaderRegi
                         urlClassLoader.addURL(uri.toURL());
                     }
                 }
-            } catch (URISyntaxException | MalformedURLException e) {
+            } catch (URISyntaxException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            } catch (MalformedURLException e) {
                 throw UncheckedException.throwAsUncheckedException(e);
             }
         }
@@ -95,7 +106,7 @@ public class DefaultPayloadClassLoaderRegistry implements PayloadClassLoaderRegi
 
     private static Set<URI> uris(VisitableURLClassLoader classLoader) throws URISyntaxException {
         URL[] urls = classLoader.getURLs();
-        Set<URI> uris = new HashSet<>(urls.length);
+        Set<URI> uris = new HashSet<URI>(urls.length);
         for (URL url : urls) {
             uris.add(url.toURI());
         }
@@ -108,7 +119,7 @@ public class DefaultPayloadClassLoaderRegistry implements PayloadClassLoaderRegi
 
     private static class ClassLoaderSpecVisitor extends ClassLoaderVisitor {
         final ClassLoader classLoader;
-        final List<ClassLoader> parents = new ArrayList<>();
+        final List<ClassLoader> parents = new ArrayList<ClassLoader>();
         ClassLoaderSpec spec;
         URL[] classPath;
 
@@ -144,7 +155,7 @@ public class DefaultPayloadClassLoaderRegistry implements PayloadClassLoaderRegi
                 parents.add(getClassLoader(parentDetails));
             }
             if (parents.isEmpty()) {
-                parents.add(classLoaderFactory.getClassLoaderFor(SystemClassLoaderSpec.INSTANCE, ImmutableList.of()));
+                parents.add(classLoaderFactory.getClassLoaderFor(SystemClassLoaderSpec.INSTANCE, ImmutableList.<ClassLoader>of()));
             }
 
             LOGGER.info("Creating ClassLoader {} from {} and {}.", details.uuid, details.spec, parents);
@@ -178,8 +189,8 @@ public class DefaultPayloadClassLoaderRegistry implements PayloadClassLoaderRegi
 
     @NonNullApi
     private class DefaultPlayLoadSerializeMap implements SerializeMap {
-        final Map<ClassLoader, Short> classLoaderIds = new HashMap<>();
-        final Map<Short, ClassLoaderDetails> classLoaderDetails = new HashMap<>();
+        final Map<ClassLoader, Short> classLoaderIds = new HashMap<ClassLoader, Short>();
+        final Map<Short, ClassLoaderDetails> classLoaderDetails = new HashMap<Short, ClassLoaderDetails>();
 
         @Override
         public short visitClass(Class<?> target) {

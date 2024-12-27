@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.provider.serialization;
+package org.gradle.internal.serialize;
 
 import org.gradle.internal.classloader.ClassLoaderSpec;
 
