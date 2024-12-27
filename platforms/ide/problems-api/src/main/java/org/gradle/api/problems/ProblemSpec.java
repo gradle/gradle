@@ -31,7 +31,7 @@ public interface ProblemSpec {
      * Attaches additional data describing the problem.
      * <p>
      * Any type implementing {@link AdditionalData} can be used as an argument.
-     * <p>
+     * </p>
      * @return this
      *
      * @since 8.13

@@ -1,6 +1,14 @@
 {
     "acceptedApiChanges": [
         {
+            "type": "org.gradle.api.Transformer",
+            "member": "Method org.gradle.api.Transformer.transform(java.lang.Object)",
+            "acceptation": "[ADD YOUR CUSTOM REASON HERE]",
+            "changes": [
+                "From non-null returning to null returning breaking change"
+            ]
+        },
+        {
             "type": "org.gradle.api.tasks.testing.TestReport",
             "member": "Method org.gradle.api.tasks.testing.TestReport.getBuildOperationExecutor()",
             "acceptation": "Protected methods intende to be overriden by Gradle, not API",

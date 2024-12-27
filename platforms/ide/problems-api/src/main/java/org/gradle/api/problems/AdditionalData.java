@@ -25,7 +25,6 @@ import java.io.Serializable;
  * Marker interface for additional data that can be attached to a {@link Problem}.
  * It and all its contained Objects need to be Serializable to be able to be carried in a BuildEvent to the TAPI.
  * If the serialization fails it will be skipped for the events.
- * <p>
  *
  * @see InternalProblemSpec#additionalData(AdditionalData)
  * @since 8.13
