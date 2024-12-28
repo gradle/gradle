@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.cc.impl.isolation
+package org.gradle.internal.isolation.actions
 
 import org.gradle.api.IsolatedAction
-import org.gradle.internal.cc.base.logger
 import org.gradle.internal.cc.base.exceptions.ConfigurationCacheError
-import org.gradle.internal.cc.impl.problems.AbstractProblemsListener
-import org.gradle.internal.cc.impl.services.IsolatedActionCodecsFactory
+import org.gradle.internal.cc.base.logger
+import org.gradle.internal.cc.base.problems.AbstractProblemsListener
+import org.gradle.internal.configuration.problems.ProblemsListener
 import org.gradle.internal.configuration.problems.PropertyProblem
 import org.gradle.internal.extensions.stdlib.invert
 import org.gradle.internal.extensions.stdlib.uncheckedCast
@@ -51,7 +51,6 @@ import java.util.IdentityHashMap
  *
  * @param G type of the root object stored in [graph]
  */
-internal
 class SerializedIsolatedActionGraph<G>(
     /**
      * The serialized graph.
@@ -69,16 +68,50 @@ class SerializedIsolatedActionGraph<G>(
 )
 
 
-internal
+sealed class TrySerialize<L> {
+    data class Success<L>(val value: SerializedIsolatedActionGraph<L>) : TrySerialize<L>()
+    data class Failure<L>(val problems: List<PropertyProblem>) : TrySerialize<L>()
+}
+
+
 class IsolatedActionSerializer(
     private val owner: IsolateOwner,
     private val beanStateWriterLookup: BeanStateWriterLookup,
     private val isolatedActionCodecs: IsolatedActionCodecsFactory
 ) {
+    fun <G : Any> trySerialize(action: G): TrySerialize<G> {
+        val problems = mutableListOf<PropertyProblem>()
+        val recordingListener: ProblemsListener = object : AbstractProblemsListener() {
+            override fun onProblem(problem: PropertyProblem) {
+                problems.add(problem)
+            }
+        }
+        val result = doSerialize(action, recordingListener)
+
+        return when (problems.isEmpty()) {
+            true -> TrySerialize.Success(result)
+            false -> TrySerialize.Failure(problems)
+        }
+    }
+
     fun <G : Any> serialize(action: G): SerializedIsolatedActionGraph<G> {
+        return doSerialize(action, ThrowingProblemsListener)
+    }
+
+    private fun <G : Any> doSerialize(
+        action: G,
+        problemsListener: ProblemsListener
+    ): SerializedIsolatedActionGraph<G> {
+        return serializedIsolatedActionGraph(action, problemsListener)
+    }
+
+    private fun <G : Any> serializedIsolatedActionGraph(
+        action: G,
+        problemsListener: ProblemsListener
+    ): SerializedIsolatedActionGraph<G> {
         val outputStream = ByteArrayOutputStream()
         val environmentEncoder = EnvironmentEncoder()
-        serializeTo(outputStream, environmentEncoder, action)
+        serializeTo(outputStream, environmentEncoder, action, problemsListener)
         return SerializedIsolatedActionGraph(
             outputStream.toByteArray(),
             environmentEncoder.getResultingEnvironment()
@@ -89,9 +122,10 @@ class IsolatedActionSerializer(
     fun serializeTo(
         outputStream: ByteArrayOutputStream,
         environmentEncoder: EnvironmentEncoder,
-        action: Any
+        action: Any,
+        problemsListener: ProblemsListener
     ) {
-        writeContextFor(outputStream, environmentEncoder).useToRun {
+        writeContextFor(outputStream, environmentEncoder, problemsListener).useToRun {
             runWriteOperation {
                 withIsolate(owner) {
                     write(action)
@@ -104,19 +138,19 @@ class IsolatedActionSerializer(
     fun writeContextFor(
         outputStream: OutputStream,
         classEncoder: ClassEncoder,
+        problemsListener: ProblemsListener
     ): CloseableWriteContext = DefaultWriteContext(
         codec = isolatedActionCodecs.isolatedActionCodecs(),
         encoder = KryoBackedEncoder(outputStream),
         beanStateWriterLookup = beanStateWriterLookup,
         logger = logger,
         tracer = null,
-        problemsListener = ThrowingProblemsListener,
+        problemsListener = problemsListener,
         classEncoder = classEncoder
     )
 }
 
 
-internal
 class IsolatedActionDeserializer(
     private val owner: IsolateOwner,
     private val beanStateReaderLookup: BeanStateReaderLookup,

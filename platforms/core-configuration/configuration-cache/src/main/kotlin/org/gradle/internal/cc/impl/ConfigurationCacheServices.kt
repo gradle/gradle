@@ -29,7 +29,6 @@ import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
 import org.gradle.internal.cc.impl.problems.BuildNameProvider
 import org.gradle.internal.cc.impl.services.DefaultIsolatedProjectEvaluationListenerProvider
-import org.gradle.internal.cc.impl.services.IsolatedActionCodecsFactory
 import org.gradle.internal.cc.impl.services.RemoteScriptUpToDateChecker
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.configuration.problems.CommonReport
@@ -68,7 +67,6 @@ class ConfigurationCacheServices : AbstractGradleModuleServices() {
             add(InputTrackingState::class.java)
             add(InstrumentedExecutionAccessListener::class.java)
             add(InstrumentedInputAccessListener::class.java)
-            add(IsolatedActionCodecsFactory::class.java)
             addProvider(IgnoredConfigurationInputsProvider)
             addProvider(RemoteScriptUpToDateCheckerProvider)
             addProvider(ExecutionAccessCheckerProvider)

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.cc.impl.services
+package org.gradle.internal.isolation.actions
 
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.FileFactory
@@ -22,10 +22,10 @@ import org.gradle.api.internal.file.FilePropertyFactory
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory.ValueSourceProvider
 import org.gradle.api.internal.provider.PropertyFactory
 import org.gradle.api.services.internal.BuildServiceProvider
-import org.gradle.internal.cc.impl.serialize.baseTypes
 import org.gradle.internal.serialize.codecs.core.DirectoryCodec
 import org.gradle.internal.serialize.codecs.core.DirectoryPropertyCodec
 import org.gradle.internal.serialize.codecs.core.FixedValueReplacingProviderCodec
+import org.gradle.internal.serialize.codecs.core.JavaRecordCodec
 import org.gradle.internal.serialize.codecs.core.ListPropertyCodec
 import org.gradle.internal.serialize.codecs.core.LoggerCodec
 import org.gradle.internal.serialize.codecs.core.MapPropertyCodec
@@ -39,7 +39,9 @@ import org.gradle.internal.serialize.codecs.core.jos.ExternalizableCodec
 import org.gradle.internal.serialize.codecs.core.jos.JavaObjectSerializationCodec
 import org.gradle.internal.serialize.codecs.core.jos.JavaSerializationEncodingLookup
 import org.gradle.internal.serialize.codecs.core.unsupportedTypes
+import org.gradle.internal.serialize.codecs.guava.guavaTypes
 import org.gradle.internal.serialize.codecs.stdlib.ProxyCodec
+import org.gradle.internal.serialize.codecs.stdlib.stdlibTypes
 import org.gradle.internal.serialize.graph.codecs.BeanCodec
 import org.gradle.internal.serialize.graph.codecs.Bindings
 import org.gradle.internal.serialize.graph.codecs.BindingsBuilder
@@ -50,7 +52,6 @@ import org.gradle.internal.service.scopes.ServiceScope
 
 
 @ServiceScope(Scope.BuildTree::class)
-internal
 class IsolatedActionCodecsFactory(
 
     private
@@ -68,7 +69,9 @@ class IsolatedActionCodecsFactory(
 ) {
     fun isolatedActionCodecs() = Bindings.of {
         allUnsupportedTypes()
-        baseTypes()
+        stdlibTypes()
+        guavaTypes()
+        bind(JavaRecordCodec)
         supportedPropertyTypes()
         groovyCodecs()
         bind(ExternalizableCodec)
@@ -115,7 +118,7 @@ class IsolatedActionCodecsFactory(
 
     /**
      * Value sources and build services are currently unsupported but could eventually
-     * be captured as part of the serialized action [environment][org.gradle.internal.cc.impl.isolation.SerializedIsolatedActionGraph.environment]
+     * be captured as part of the serialized action [environment][org.gradle.internal.isolation.actions.SerializedIsolatedActionGraph.environment]
      **/
     private
     fun BindingsBuilder.unsupportedProviderTypes() {

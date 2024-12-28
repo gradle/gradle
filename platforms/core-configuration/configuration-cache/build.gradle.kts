@@ -55,6 +55,7 @@ dependencies {
     implementation(projects.hashing)
     implementation(projects.inputTracking)
     implementation(projects.instrumentationAgentServices)
+    implementation(projects.isolatedActions)
     implementation(projects.logging)
     implementation(projects.modelCore)
     implementation(projects.persistentCache)

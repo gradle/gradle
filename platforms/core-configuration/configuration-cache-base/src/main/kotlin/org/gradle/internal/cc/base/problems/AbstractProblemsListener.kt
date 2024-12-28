@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.cc.impl.problems
+package org.gradle.internal.cc.base.problems
 
 import org.gradle.internal.cc.base.exceptions.ConfigurationCacheError
 import org.gradle.internal.cc.base.exceptions.ConfigurationCacheThrowable
-import org.gradle.internal.extensions.stdlib.maybeUnwrapInvocationTargetException
 import org.gradle.internal.configuration.problems.ProblemsListener
 import org.gradle.internal.configuration.problems.PropertyTrace
 import org.gradle.internal.configuration.problems.StructuredMessage
 import org.gradle.internal.configuration.problems.StructuredMessageBuilder
+import org.gradle.internal.extensions.stdlib.maybeUnwrapInvocationTargetException
 import java.io.IOException
-
 
 abstract class AbstractProblemsListener : ProblemsListener {
 

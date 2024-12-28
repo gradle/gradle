@@ -148,6 +148,7 @@ val core = platform("core") {
         subproject("graph-serialization")
         subproject("guava-serialization-codecs")
         subproject("input-tracking")
+        subproject("isolated-actions")
         subproject("kotlin-dsl")
         subproject("kotlin-dsl-provider-plugins")
         subproject("kotlin-dsl-tooling-builders")

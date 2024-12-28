@@ -721,6 +721,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "isolated-actions",
+    "path": "platforms/core-configuration/isolated-actions",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
     "name": "ivy",
     "path": "platforms/software/ivy",
     "unitTests": true,
