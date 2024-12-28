@@ -16,7 +16,12 @@
 
 package org.gradle.internal.isolation.actions
 
+import org.gradle.api.internal.project.ProjectState
+import org.gradle.api.invocation.Gradle
+import org.gradle.internal.cc.base.serialize.IsolateOwners
+import org.gradle.internal.service.Provides
 import org.gradle.internal.service.ServiceRegistration
+import org.gradle.internal.service.ServiceRegistrationProvider
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices
 
 class IsolatedActionsServices : AbstractGradleModuleServices() {
@@ -27,4 +32,18 @@ class IsolatedActionsServices : AbstractGradleModuleServices() {
         }
     }
 
+    override fun registerProjectServices(registration: ServiceRegistration) {
+        registration.addProvider(ProjectScopeServices())
+    }
+
+    internal
+    class ProjectScopeServices : ServiceRegistrationProvider {
+
+        @Provides
+        fun createProjectActionIsolator(gradle: Gradle, projectState: ProjectState): ProjectActionIsolator {
+            val isolator = DefaultActionIsolator(IsolateOwners.OwnerGradle(gradle))
+            return DefaultProjectActionIsolator(isolator, projectState)
+        }
+
+    }
 }

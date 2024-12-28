@@ -33,11 +33,13 @@ class DefaultActionIsolator(owner: IsolateOwner) : ActionIsolator {
         deserializer = IsolatedActionDeserializer(owner, owner.serviceOf(), isolatedActionCodecs)
     }
 
-    override fun <T : Any?> isolateLenient(action: Action<T>, actionType: String, model: ModelContainer<*>): Action<T> =
+    override fun <T : Any?> isolateLenient(action: Action<T>, actionType: String, model: ModelContainer<*>): ThreadSafeAction<T> =
         serializer.trySerialize(action).let { result ->
             return when (result) {
                 is TrySerialize.Success<Action<T>> -> {
-                    deserializer.deserialize(result.value)
+                    ThreadSafeAction { param ->
+                        deserializer.deserialize(result.value).execute(param)
+                    }
                 }
                 is TrySerialize.Failure<*> -> {
                     val problemMessage = result.problems.run {
@@ -53,7 +55,7 @@ class DefaultActionIsolator(owner: IsolateOwner) : ActionIsolator {
                         .undocumented()
                         .nagUser()
 
-                    Action { param ->
+                    ThreadSafeAction { param ->
                         model.fromMutableState { action.execute(param) }
                     }
                 }

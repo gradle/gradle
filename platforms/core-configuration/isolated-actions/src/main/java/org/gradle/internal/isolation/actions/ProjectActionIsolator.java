@@ -18,20 +18,19 @@ package org.gradle.internal.isolation.actions;
 
 import org.gradle.api.Action;
 import org.gradle.api.NonNullApi;
-import org.gradle.internal.model.ModelContainer;
 
 /**
- * Isolates actions from their owning context, ensuring actions do not capture state from that context.
+ * Isolates actions from the project state, ensuring actions do not capture state from the project.
  */
 @NonNullApi
-public interface ActionIsolator {
+public interface ProjectActionIsolator {
 
     /**
-     * Attempts to isolate the given action from its owning context. If so, return the isolated action.
+     * Attempts to isolate the given action from a project. If so, return the isolated action.
      * <p>
-     * If the action cannot be isolated, emit a deprecation warning and return an action that is guarded by the
-     * lock owned by the given model.
+     * If the action cannot be isolated, emit a deprecation warning and return an action that
+     * guards the original action while holding the project lock.
      */
-    <T> ThreadSafeAction<T> isolateLenient(Action<T> action, String actionType, ModelContainer<?> model);
+    <T> ThreadSafeAction<T> isolateLenient(Action<T> action, String actionType);
 
 }
