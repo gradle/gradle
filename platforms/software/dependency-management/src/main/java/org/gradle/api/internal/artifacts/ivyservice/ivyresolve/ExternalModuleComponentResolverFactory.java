@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ArtifactResult;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ComponentMetadataProcessor;
@@ -48,7 +49,6 @@ import org.gradle.internal.component.external.model.ModuleComponentResolveMetada
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentArtifactResolveMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
-import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.model.CalculatedValueFactory;
 import org.gradle.internal.reflect.Instantiator;
@@ -248,8 +248,8 @@ public class ExternalModuleComponentResolverFactory {
         }
 
         @Override
-        public void resolve(DependencyMetadata dependency, VersionSelector acceptor, @Nullable VersionSelector rejector, BuildableComponentIdResolveResult result) {
-            delegate.getComponentIdResolver().resolve(dependency, acceptor, rejector, result);
+        public void resolve(ComponentSelector selector, ComponentOverrideMetadata overrideMetadata, VersionSelector acceptor, @Nullable VersionSelector rejector, BuildableComponentIdResolveResult result) {
+            delegate.getComponentIdResolver().resolve(selector, overrideMetadata, acceptor, rejector, result);
         }
 
         @Override

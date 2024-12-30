@@ -63,6 +63,7 @@ public interface ResolvableSelectorState {
 
     boolean hasStrongOpinion();
 
+    @Nullable
     IvyArtifactName getFirstDependencyArtifact();
 
     @Deprecated

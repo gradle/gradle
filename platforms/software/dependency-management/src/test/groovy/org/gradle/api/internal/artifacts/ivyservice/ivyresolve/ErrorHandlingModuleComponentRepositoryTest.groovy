@@ -24,10 +24,10 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionCon
 import org.gradle.api.internal.component.ArtifactType
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
-import org.gradle.internal.component.external.model.ModuleDependencyMetadata
 import org.gradle.internal.component.model.ComponentArtifactMetadata
 import org.gradle.internal.component.model.ComponentArtifactResolveMetadata
 import org.gradle.internal.component.model.ComponentOverrideMetadata
+import org.gradle.internal.component.model.DefaultComponentOverrideMetadata
 import org.gradle.internal.component.model.ImmutableModuleSources
 import org.gradle.internal.component.model.ModuleSource
 import org.gradle.internal.resolve.ArtifactResolveException
@@ -88,21 +88,20 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
         access = createAccess(maxRetries)
 
         given:
-        def dependency = Mock(ModuleDependencyMetadata)
+        def selector = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId('a', 'b'), DefaultImmutableVersionConstraint.of('1.0'))
         def result = Mock(BuildableModuleVersionListingResolveResult)
-        dependency.getSelector() >> DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId('a', 'b'), DefaultImmutableVersionConstraint.of('1.0'))
 
         when: 'repo is not disabled'
         repositoryBlacklister.isDisabled(REPOSITORY_ID) >> false
-        access.listModuleVersions(dependency, result)
+        access.listModuleVersions(selector, DefaultComponentOverrideMetadata.EMPTY, result)
 
         then: 'work is delegated'
-        1 * delegate.listModuleVersions(dependency, result)
+        1 * delegate.listModuleVersions(selector, _, result)
 
         when: 'exception is thrown in resolution'
         repositoryBlacklister.getDisabledReason(REPOSITORY_ID) >> Optional.of(exception)
-        effectiveRetries * delegate.listModuleVersions(dependency, result) >> { throw exception }
-        access.listModuleVersions(dependency, result)
+        effectiveRetries * delegate.listModuleVersions(selector, _, result) >> { throw exception }
+        access.listModuleVersions(selector, DefaultComponentOverrideMetadata.EMPTY, result)
 
         then: 'resolution fails and repo is disabled'
         1 * repositoryBlacklister.tryDisableRepository(REPOSITORY_ID, { hasCause(it, exception) })
@@ -111,7 +110,7 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
         when: 'repo is already disabled'
         repositoryBlacklister.isDisabled(REPOSITORY_ID) >> true
         repositoryBlacklister.getDisabledReason(REPOSITORY_ID) >> Optional.of(exception)
-        access.listModuleVersions(dependency, result)
+        access.listModuleVersions(selector, DefaultComponentOverrideMetadata.EMPTY, result)
 
         then: 'resolution fails directly'
         1 * result.failed(_ as ModuleVersionResolveException)

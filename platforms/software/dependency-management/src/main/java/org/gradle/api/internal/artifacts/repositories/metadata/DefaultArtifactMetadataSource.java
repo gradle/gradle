@@ -15,8 +15,8 @@
  */
 package org.gradle.api.internal.artifacts.repositories.metadata;
 
-import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleDescriptorHashModuleSource;
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceArtifactResolver;
@@ -25,7 +25,6 @@ import org.gradle.api.internal.artifacts.repositories.resolver.ResourcePattern;
 import org.gradle.api.internal.artifacts.repositories.resolver.VersionLister;
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
-import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
@@ -53,7 +52,7 @@ public class DefaultArtifactMetadataSource implements MetadataSource<MutableModu
 
     @Override
     public MutableModuleComponentResolveMetadata create(String repositoryName, ComponentResolvers componentResolvers, ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata prescribedMetaData, ExternalResourceArtifactResolver artifactResolver, BuildableModuleComponentMetaDataResolveResult<ModuleComponentResolveMetadata> result) {
-        IvyArtifactName artifact = getArtifactName(moduleComponentIdentifier, prescribedMetaData);
+        IvyArtifactName artifact = getPrimaryArtifact(moduleComponentIdentifier, prescribedMetaData);
         if (!artifactResolver.artifactExists(new DefaultModuleComponentArtifactMetadata(moduleComponentIdentifier, artifact), result)) {
             return null;
         }
@@ -68,7 +67,7 @@ public class DefaultArtifactMetadataSource implements MetadataSource<MutableModu
         return metadata;
     }
 
-    private IvyArtifactName getArtifactName(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata overrideMetadata) {
+    private static IvyArtifactName getPrimaryArtifact(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata overrideMetadata) {
         if (overrideMetadata.getArtifact() != null) {
             return overrideMetadata.getArtifact();
         }
@@ -76,19 +75,17 @@ public class DefaultArtifactMetadataSource implements MetadataSource<MutableModu
     }
 
     @Override
-    public void listModuleVersions(ModuleDependencyMetadata dependency, ModuleIdentifier module, List<ResourcePattern> ivyPatterns, List<ResourcePattern> artifactPatterns, VersionLister versionLister, BuildableModuleVersionListingResolveResult result) {
+    public void listModuleVersions(ModuleComponentSelector selector, ComponentOverrideMetadata overrideMetadata, List<ResourcePattern> ivyPatterns, List<ResourcePattern> artifactPatterns, VersionLister versionLister, BuildableModuleVersionListingResolveResult result) {
         // List modules with missing metadata files
-        IvyArtifactName dependencyArtifact = getPrimaryDependencyArtifact(dependency);
-        versionLister.listVersions(module, dependencyArtifact, artifactPatterns, result);
+        IvyArtifactName dependencyArtifact = getPrimaryArtifact(selector, overrideMetadata);
+        versionLister.listVersions(selector.getModuleIdentifier(), dependencyArtifact, artifactPatterns, result);
     }
 
-    static IvyArtifactName getPrimaryDependencyArtifact(ModuleDependencyMetadata dependency) {
-        String moduleName = dependency.getSelector().getModule();
-        List<IvyArtifactName> artifacts = dependency.getArtifacts();
-        if (artifacts.isEmpty()) {
-            return new DefaultIvyArtifactName(moduleName, "jar", "jar");
+    private static IvyArtifactName getPrimaryArtifact(ModuleComponentSelector selector, ComponentOverrideMetadata overrideMetadata) {
+        if (overrideMetadata.getArtifact() != null) {
+            return overrideMetadata.getArtifact();
         }
-        return artifacts.get(0);
+        return new DefaultIvyArtifactName(selector.getModule(), "jar", "jar");
     }
 
 }
