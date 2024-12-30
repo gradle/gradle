@@ -81,9 +81,11 @@ class LenientPlatformDependencyMetadata implements ModuleDependencyMetadata, For
     @Override
     public GraphVariantSelectionResult selectVariants(GraphVariantSelector variantSelector, ImmutableAttributes consumerAttributes, ComponentGraphResolveState targetComponentState, ImmutableAttributesSchema consumerSchema, Set<CapabilitySelector> explicitRequestedCapabilities) {
         if (targetComponentState instanceof LenientPlatformGraphResolveState) {
-            VariantGraphResolveState variant = ((LenientPlatformGraphResolveState) targetComponentState).getDefaultVariant(from, platformId);
+            LenientPlatformGraphResolveState lenientPlatform = (LenientPlatformGraphResolveState) targetComponentState;
+            VariantGraphResolveState variant = lenientPlatform.getCandidatesForGraphVariantSelection().getVariantForSourceNode(from, platformId);
             return new GraphVariantSelectionResult(Collections.singletonList(variant), false);
         }
+
         // the target component exists, so we need to fallback to the traditional selection process
         return new LocalComponentDependencyMetadata(cs, null, Collections.emptyList(), Collections.emptyList(), false, false, true, false, false, null).selectVariants(variantSelector, consumerAttributes, targetComponentState, consumerSchema, explicitRequestedCapabilities);
     }
