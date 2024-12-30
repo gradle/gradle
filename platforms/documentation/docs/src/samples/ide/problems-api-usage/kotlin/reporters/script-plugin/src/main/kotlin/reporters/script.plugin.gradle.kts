@@ -10,7 +10,7 @@ interface Injected {
 val problems = project.objects.newInstance<Injected>().problems
 val problemGroup = ProblemGroup.create("root", "Root Group")
 
-problems.getReporter().reporting {
+problems.getReporter().report {
     id(ProblemId.create("adhoc-script-deprecation", "Deprecated script plugin", problemGroup))
         .contextualLabel("Deprecated script plugin 'demo-script-plugin'")
         .severity(Severity.WARNING)
@@ -20,7 +20,7 @@ problems.getReporter().reporting {
 tasks {
     val warningTask by registering {
         doLast {
-            problems.getReporter().reporting {
+            problems.getReporter().report {
                 id(ProblemId.create("adhoc-task-deprecation", "Deprecated task", problemGroup))
                     .contextualLabel("Task 'warningTask' is deprecated")
                     .severity(Severity.WARNING)
@@ -31,11 +31,10 @@ tasks {
 
     val failingTask by registering {
         doLast {
-            problems.getReporter().throwing {
+            problems.getReporter().throwing(RuntimeException("The 'failingTask' should not be called")) {
                 id(ProblemId.create("broken-task", "Task should not be called", problemGroup))
                     .contextualLabel("Task 'failingTask' should not be called")
                     .severity(Severity.ERROR)
-                    .withException(RuntimeException("The 'failingTask' should not be called"))
                     .solution("Please use 'successfulTask' instead of this task")
             }
         }

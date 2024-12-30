@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.result.ComponentSelectionReason
+import org.gradle.api.artifacts.result.ResolvedDependencyResult
 import org.gradle.api.artifacts.result.ResolvedVariantResult
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint
@@ -213,7 +214,7 @@ class ResolutionResultGraphBuilderSpec extends Specification {
         def result = builder.getRoot(id("root"))
 
         then:
-        def mid1 = first(result.dependencies)
+        def mid1 = first(result.dependencies) as ResolvedDependencyResult
         mid1.selected.dependencies.size() == 2
         mid1.selected.dependencies*.requested.module == ['leaf1', 'leaf2']
     }

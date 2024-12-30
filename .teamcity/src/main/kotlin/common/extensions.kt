@@ -218,7 +218,7 @@ fun BuildSteps.checkCleanM2AndAndroidUserHome(os: Os = Os.LINUX, buildType: Buil
 
 fun BuildStep.onlyRunOnGitHubMergeQueueBranch() {
     conditions {
-        matches("teamcity.build.branch", "(pre-test/.*)|(gh-readonly-queue/.*)")
+        matches("teamcity.build.branch", "gh-readonly-queue/.*")
     }
 }
 

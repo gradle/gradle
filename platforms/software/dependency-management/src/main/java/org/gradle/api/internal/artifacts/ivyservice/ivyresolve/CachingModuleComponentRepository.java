@@ -41,7 +41,6 @@ import org.gradle.internal.component.external.model.ModuleComponentArtifactMetad
 import org.gradle.internal.component.external.model.ModuleComponentGraphResolveState;
 import org.gradle.internal.component.external.model.ModuleComponentGraphResolveStateFactory;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
-import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentArtifactResolveMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
@@ -155,19 +154,18 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         }
 
         @Override
-        public void listModuleVersions(ModuleDependencyMetadata dependency, BuildableModuleVersionListingResolveResult result) {
+        public void listModuleVersions(ModuleComponentSelector selector, ComponentOverrideMetadata overrideMetadata, BuildableModuleVersionListingResolveResult result) {
             // First try to determine the versions in-memory: don't use the cache in this case
-            delegate.getLocalAccess().listModuleVersions(dependency, result);
+            delegate.getLocalAccess().listModuleVersions(selector, overrideMetadata, result);
             if (result.hasResult()) {
                 return;
             }
 
-            listModuleVersionsFromCache(dependency, result);
+            listModuleVersionsFromCache(selector, result);
         }
 
-        private void listModuleVersionsFromCache(ModuleDependencyMetadata dependency, BuildableModuleVersionListingResolveResult result) {
-            ModuleComponentSelector requested = dependency.getSelector();
-            final ModuleIdentifier moduleId = requested.getModuleIdentifier();
+        private void listModuleVersionsFromCache(ModuleComponentSelector selector, BuildableModuleVersionListingResolveResult result) {
+            final ModuleIdentifier moduleId = selector.getModuleIdentifier();
             ModuleVersionsCache.CachedModuleVersionList cachedModuleVersionList = moduleVersionsCache.getCachedModuleResolution(delegate, moduleId);
             if (cachedModuleVersionList != null) {
                 Set<String> versionList = cachedModuleVersionList.getModuleVersions();
@@ -177,13 +175,13 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
                     .collect(Collectors.toSet());
                 Expiry expiry = cachePolicy.versionListExpiry(moduleId, versions, cachedModuleVersionList.getAge());
                 if (expiry.isMustCheck()) {
-                    LOGGER.debug("Version listing in dynamic revision cache is expired: will perform fresh resolve of '{}' in '{}'", requested, delegate.getName());
+                    LOGGER.debug("Version listing in dynamic revision cache is expired: will perform fresh resolve of '{}' in '{}'", selector, delegate.getName());
                 } else {
                     // When age == 0, verified since the start of this build, assume listing hasn't changed
                     boolean authoritative = cachedModuleVersionList.getAge().toMillis() == 0;
                     result.listed(versionList);
                     result.setAuthoritative(authoritative);
-                    listener.onDynamicVersionSelection(requested, expiry, versions);
+                    listener.onDynamicVersionSelection(selector, expiry, versions);
                 }
             }
         }
@@ -361,11 +359,11 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         }
 
         @Override
-        public void listModuleVersions(ModuleDependencyMetadata dependency, BuildableModuleVersionListingResolveResult result) {
-            delegate.getRemoteAccess().listModuleVersions(dependency, result);
+        public void listModuleVersions(ModuleComponentSelector selector, ComponentOverrideMetadata overrideMetadata, BuildableModuleVersionListingResolveResult result) {
+            delegate.getRemoteAccess().listModuleVersions(selector, overrideMetadata, result);
             switch (result.getState()) {
                 case Listed:
-                    ModuleIdentifier moduleId = dependency.getSelector().getModuleIdentifier();
+                    ModuleIdentifier moduleId = selector.getModuleIdentifier();
                     Set<String> versionList = result.getVersions();
                     Set<ModuleVersionIdentifier> versions = versionList
                         .stream()
@@ -373,7 +371,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
                         .collect(Collectors.toSet());
                     moduleVersionsCache.cacheModuleVersionList(delegate, moduleId, versionList);
                     listener.onDynamicVersionSelection(
-                        dependency.getSelector(),
+                        selector,
                         cachePolicy.versionListExpiry(moduleId, versions, Duration.ZERO),
                         versions
                     );

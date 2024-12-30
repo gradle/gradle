@@ -35,7 +35,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
     def "problem replaced with a validation warning if mandatory id is missing"() {
         given:
         withReportProblemTask """
-            problems.getReporter().reporting {
+            problems.getReporter().report {
                 it.details('Wrong API usage, will not show up anywhere')
             }
         """
@@ -65,7 +65,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         given:
         withReportProblemTask """
             ${problemIdScript()}
-            problems.getReporter().reporting {
+            problems.getReporter().report {
                 it.id(problemId)
             }
         """
@@ -93,7 +93,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         given:
         withReportProblemTask """
             ${problemIdScript()}
-            problems.getReporter().reporting {
+            problems.getReporter().report {
                 it.id(problemId)
                 .stackLocation()
             }
@@ -121,7 +121,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         given:
         withReportProblemTask """
             ${problemIdScript()}
-            problems.getReporter().reporting {
+            problems.getReporter().report {
                 it.id(problemId)
                 .documentedAt("https://example.org/doc")
             }
@@ -138,7 +138,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         given:
         withReportProblemTask """
             ${problemIdScript()}
-            problems.getReporter().reporting {
+            problems.getReporter().report {
                 it.id(problemId)
                 .offsetInFileLocation("test-location", 1, 2)
             }
@@ -168,7 +168,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         given:
         withReportProblemTask """
             ${problemIdScript()}
-            problems.getReporter().reporting {
+            problems.getReporter().report {
                 it.id(problemId)
                 .lineInFileLocation("test-location", 1, 2)
             }
@@ -199,7 +199,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         given:
         withReportProblemTask """
             ${problemIdScript()}
-            problems.getReporter().reporting {
+            problems.getReporter().report {
                 it.id(problemId)
                 .severity(Severity.${severity.name()})
             }
@@ -219,7 +219,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         given:
         withReportProblemTask """
             ${problemIdScript()}
-            problems.getReporter().reporting {
+            problems.getReporter().report {
                 it.id(problemId)
                 .solution("solution")
             }
@@ -236,7 +236,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         given:
         withReportProblemTask """
             ${problemIdScript()}
-            problems.getReporter().reporting {
+            problems.getReporter().report {
                 it.id(problemId)
                 .withException(new RuntimeException("test"))
             }
@@ -256,7 +256,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         given:
         withReportProblemTask """
             ${problemIdScript()}
-            problems.getReporter().reporting {
+            problems.getReporter().report {
                 it.id(problemId)
                 .additionalData(org.gradle.api.problems.internal.GeneralDataSpec) {
                     it.put('key','value')
@@ -271,11 +271,11 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         receivedProblem.additionalData.asMap == ['key': 'value']
     }
 
-    def "cannot set addtional data with different type"() {
+    def "cannot set additional data with different type"() {
         given:
         withReportProblemTask """
             ${problemIdScript()}
-            problems.getReporter().reporting {
+            problems.getReporter().report {
                 it.id(problemId)
                 .additionalData(org.gradle.api.problems.internal.GeneralDataSpec) {
                     it.put('key','value')
@@ -298,7 +298,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         buildFile 'class InvalidData implements AdditionalData {}'
         withReportProblemTask """
             ${problemIdScript()}
-            problems.getReporter().reporting {
+            problems.getReporter().report {
                 it.id(problemId)
                 .additionalData(InvalidData) {}
             }
@@ -324,9 +324,8 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         given:
         withReportProblemTask """
             ${problemIdScript()}
-            problems.getReporter().throwing {
+            problems.getReporter().throwing(new RuntimeException('test')) {
                 it.id(problemId)
-                .withException(new RuntimeException('test'))
             }
         """
 
@@ -342,13 +341,12 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         withReportProblemTask """
             ${problemIdScript()}
             try {
-                problems.getReporter().throwing {
+                problems.getReporter().throwing(new RuntimeException("test")) {
                     it.id(${ProblemId.name}.create("type11", "inner", problemGroup))
-                    .withException(new RuntimeException("test"))
                 }
             } catch (RuntimeException ex) {
-                problems.getReporter().throwing {
-                    it.id(${ProblemId.name}.create("type12", "outer", problemGroup)).withException(ex)
+                problems.getReporter().throwing(ex) {
+                    it.id(${ProblemId.name}.create("type12", "outer", problemGroup))
                 }
             }
         """
@@ -366,7 +364,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         withReportProblemTask """
             ${problemIdScript()}
             for (int i = 0; i < 10; i++) {
-                problems.getReporter().reporting {
+                problems.getReporter().report {
                         it.id(problemId)
                         .severity(Severity.WARNING)
                         .solution("solution")
@@ -397,7 +395,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         withReportProblemTask """
             ${problemIdScript()}
             for (int i = 0; i < 10; i++) {
-                problems.getReporter().reporting {
+                problems.getReporter().report {
                         it.id(${ProblemId.name}.create("type\$i", "This is the heading problem text\$i", problemGroup))
                         .severity(Severity.WARNING)
                         .details("This is a huge amount of extremely and very relevant details for this problem\$i")
@@ -432,7 +430,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         withReportProblemTask """
             ${problemIdScript()}
             for (int i = 0; i < 10; i++) {
-                problems.getReporter().reporting {
+                problems.getReporter().report {
                         it.id(${ProblemId.name}.create("type\$i", "This is the heading problem text\$i", problemGroup))
                         .severity(Severity.WARNING)
                         .details("This is a huge amount of extremely and very relevant details for this problem\$i")

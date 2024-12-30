@@ -95,7 +95,7 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
 
     private void reportDeprecation(final DeprecatedFeatureUsage usage, final ProblemDiagnostics diagnostics) {
         InternalProblemReporter reporter = ((InternalProblems) problemsService).getInternalReporter();
-        Problem problem = reporter.create(new Action<InternalProblemSpec>() {
+        Problem problem = reporter.internalCreate(new Action<InternalProblemSpec>() {
             @Override
             public void execute(InternalProblemSpec builder) {
                 InternalProblemSpec problemSpec = builder

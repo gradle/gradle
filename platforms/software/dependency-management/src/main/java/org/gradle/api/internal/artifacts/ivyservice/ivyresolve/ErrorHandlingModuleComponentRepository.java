@@ -30,7 +30,6 @@ import org.gradle.api.logging.Logging;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.action.InstantiatingAction;
 import org.gradle.internal.component.external.model.ModuleComponentGraphResolveState;
-import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentArtifactResolveMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
@@ -134,14 +133,12 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
         }
 
         @Override
-        public void listModuleVersions(ModuleDependencyMetadata dependency, BuildableModuleVersionListingResolveResult result) {
+        public void listModuleVersions(ModuleComponentSelector selector, ComponentOverrideMetadata overrideMetadata, BuildableModuleVersionListingResolveResult result) {
             performOperationWithRetries(result,
-                () -> delegate.listModuleVersions(dependency, result),
-                cause -> new ModuleVersionResolveException(dependency.getSelector(), () -> buildDisabledRepositoryErrorMessage(repositoryName)),
-                cause -> {
-                    ModuleComponentSelector selector = dependency.getSelector();
-                    return new ModuleVersionResolveException(selector, () -> "Failed to list versions for " + selector.getGroup() + ":" + selector.getModule() + ".", cause);
-                });
+                () -> delegate.listModuleVersions(selector, overrideMetadata, result),
+                cause -> new ModuleVersionResolveException(selector, () -> buildDisabledRepositoryErrorMessage(repositoryName)),
+                cause -> new ModuleVersionResolveException(selector, () -> "Failed to list versions for " + selector.getGroup() + ":" + selector.getModule() + ".", cause)
+            );
         }
 
         @Override
