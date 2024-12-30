@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.ComponentMetadataSupplierDetails;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.repositories.ArtifactResolutionDetails;
 import org.gradle.api.internal.artifacts.repositories.resolver.MetadataFetchingCost;
@@ -27,7 +28,6 @@ import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.Factory;
 import org.gradle.internal.action.InstantiatingAction;
 import org.gradle.internal.component.external.model.ModuleComponentGraphResolveState;
-import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentArtifactResolveMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
@@ -93,10 +93,10 @@ public class FilteredModuleComponentRepository implements ModuleComponentReposit
         }
 
         @Override
-        public void listModuleVersions(ModuleDependencyMetadata dependency, BuildableModuleVersionListingResolveResult result) {
-            ModuleIdentifier identifier = dependency.getSelector().getModuleIdentifier();
+        public void listModuleVersions(ModuleComponentSelector selector, ComponentOverrideMetadata overrideMetadata, BuildableModuleVersionListingResolveResult result) {
+            ModuleIdentifier identifier = selector.getModuleIdentifier();
             whenModulePresent(identifier, null,
-                    () -> delegate.listModuleVersions(dependency, result),
+                    () -> delegate.listModuleVersions(selector, overrideMetadata, result),
                     () -> result.listed(Collections.emptyList()));
         }
 

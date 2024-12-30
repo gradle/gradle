@@ -18,6 +18,7 @@ package org.gradle.vcs.internal.resolver;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.BuildDefinition;
@@ -36,7 +37,6 @@ import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentArtifactResolveMetadata;
 import org.gradle.internal.component.model.ComponentGraphSpecificResolveState;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
-import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.resolve.ModuleVersionNotFoundException;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
@@ -85,9 +85,9 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
     }
 
     @Override
-    public void resolve(DependencyMetadata dependency, VersionSelector acceptor, VersionSelector rejector, BuildableComponentIdResolveResult result) {
-        if (dependency.getSelector() instanceof ModuleComponentSelector) {
-            final ModuleComponentSelector depSelector = (ModuleComponentSelector) dependency.getSelector();
+    public void resolve(ComponentSelector selector, ComponentOverrideMetadata overrideMetadata, VersionSelector acceptor, VersionSelector rejector, BuildableComponentIdResolveResult result) {
+        if (selector instanceof ModuleComponentSelector) {
+            final ModuleComponentSelector depSelector = (ModuleComponentSelector) selector;
             VersionControlSpec spec = vcsResolver.locateVcsFor(depSelector);
             // TODO: Need failure handling, e.g., cannot clone repository
             if (spec != null) {
