@@ -516,7 +516,7 @@ public class ResolutionExecutor {
             componentMetadataProcessorFactory,
             legacyParams.getComponentSelectionRules(),
             params.isDependencyVerificationEnabled(),
-            params.getCachePolicy(),
+            params.getCacheExpirationControl(),
             // We should not need to know _what_ we're resolving in order to construct a resolver for a set of repositories.
             // The request attributes and schema are used to support filtering components by attributes when using dynamic versions.
             // We should consider just removing that feature and making dynamic version selection dumber.

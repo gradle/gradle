@@ -22,8 +22,8 @@ import org.gradle.api.internal.artifacts.cache.DependencyResolutionControl;
 import org.gradle.api.internal.artifacts.cache.ModuleResolutionControl;
 import org.gradle.api.internal.artifacts.configurations.CachePolicy;
 import org.gradle.api.internal.artifacts.configurations.MutationValidator;
-import org.gradle.api.internal.artifacts.ivyservice.DefaultImmutableCachePolicy;
-import org.gradle.api.internal.artifacts.ivyservice.ImmutableCachePolicy;
+import org.gradle.api.internal.artifacts.ivyservice.DefaultCacheExpirationControl;
+import org.gradle.api.internal.artifacts.ivyservice.CacheExpirationControl;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -128,8 +128,8 @@ public class DefaultCachePolicy implements CachePolicy {
     }
 
     @Override
-    public ImmutableCachePolicy asImmutable() {
-        return new DefaultImmutableCachePolicy(
+    public CacheExpirationControl asImmutable() {
+        return new DefaultCacheExpirationControl(
             ImmutableList.copyOf(dependencyCacheRules),
             ImmutableList.copyOf(moduleCacheRules),
             ImmutableList.copyOf(artifactCacheRules),

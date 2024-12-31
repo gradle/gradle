@@ -20,7 +20,6 @@ import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ResolvedModuleVersion;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.internal.artifacts.configurations.CachePolicy;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 
 import java.io.File;
@@ -28,9 +27,9 @@ import java.time.Duration;
 import java.util.Set;
 
 /**
- * Immutable counterpart to {@link CachePolicy}.
+ * Determines whether cached external artifacts and metadata should be considered expired.
  */
-public interface ImmutableCachePolicy {
+public interface CacheExpirationControl {
 
     Expiry versionListExpiry(ModuleIdentifier moduleIdentifier, Set<ModuleVersionIdentifier> moduleVersions, Duration age);
 

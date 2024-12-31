@@ -25,7 +25,7 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.artifacts.ComponentMetadataProcessor
 import org.gradle.api.internal.artifacts.ComponentMetadataProcessorFactory
-import org.gradle.api.internal.artifacts.ivyservice.ImmutableCachePolicy
+import org.gradle.api.internal.artifacts.ivyservice.CacheExpirationControl
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId
 import org.gradle.cache.internal.DefaultInMemoryCacheDecoratorFactory
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
@@ -61,7 +61,7 @@ class DefaultMetadataProviderTest extends Specification {
     def ruleExecutor = new ComponentMetadataSupplierRuleExecutor(Stub(GlobalScopedCacheBuilderFactory), Stub(DefaultInMemoryCacheDecoratorFactory), Stub(ValueSnapshotter), Stub(BuildCommencedTimeProvider), Stub(Serializer))
 
     def setup() {
-        resolveState.getCachePolicy() >> Mock(ImmutableCachePolicy)
+        resolveState.getCacheExpirationControl() >> Mock(CacheExpirationControl)
         resolveState.getComponentMetadataSupplierExecutor() >> ruleExecutor
         resolveState.attributesFactory >> AttributeTestUtil.attributesFactory()
     }

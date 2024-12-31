@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.internal.artifacts.ivyservice.ImmutableCachePolicy;
+import org.gradle.api.internal.artifacts.ivyservice.CacheExpirationControl;
 import org.gradle.internal.reflect.Instantiator;
 
 /**
@@ -31,7 +31,7 @@ public interface MetadataResolutionContext {
      *
      * @return the cache policy
      */
-    ImmutableCachePolicy getCachePolicy();
+    CacheExpirationControl getCacheExpirationControl();
 
     /**
      * Provides an injecting instantiator, giving access to services potentially contextual to a repository.

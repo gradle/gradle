@@ -15,12 +15,12 @@
  */
 package org.gradle.api.internal.artifacts.configurations;
 
-import org.gradle.api.internal.artifacts.ivyservice.ImmutableCachePolicy;
+import org.gradle.api.internal.artifacts.ivyservice.CacheExpirationControl;
 
 import java.util.concurrent.TimeUnit;
 
 /**
- * Immutable counterpart to {@link ImmutableCachePolicy}.
+ * Immutable counterpart to {@link CacheExpirationControl}.
  * <p>
  * Encapsulates all configurable caching rules of a {@link ResolutionStrategyInternal}.
  */
@@ -38,6 +38,6 @@ public interface CachePolicy {
 
     CachePolicy copy();
 
-    ImmutableCachePolicy asImmutable();
+    CacheExpirationControl asImmutable();
 
 }

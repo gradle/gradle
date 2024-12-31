@@ -36,9 +36,9 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Default implementation of {@link ImmutableCachePolicy}.
+ * Default implementation of {@link CacheExpirationControl}.
  */
-public class DefaultImmutableCachePolicy implements ImmutableCachePolicy {
+public class DefaultCacheExpirationControl implements CacheExpirationControl {
 
     private final ImmutableList<Action<? super DependencyResolutionControl>> dependencyCacheRules;
     private final ImmutableList<Action<? super ModuleResolutionControl>> moduleCacheRules;
@@ -48,7 +48,7 @@ public class DefaultImmutableCachePolicy implements ImmutableCachePolicy {
     private final boolean offline;
     private final boolean refresh;
 
-    public DefaultImmutableCachePolicy(
+    public DefaultCacheExpirationControl(
         ImmutableList<Action<? super DependencyResolutionControl>> dependencyCacheRules,
         ImmutableList<Action<? super ModuleResolutionControl>> moduleCacheRules,
         ImmutableList<Action<? super ArtifactResolutionControl>> artifactCacheRules,

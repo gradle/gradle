@@ -26,7 +26,7 @@ import org.gradle.api.artifacts.ComponentMetadataContext
 import org.gradle.api.artifacts.ComponentMetadataRule
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
-import org.gradle.api.internal.artifacts.ivyservice.ImmutableCachePolicy
+import org.gradle.api.internal.artifacts.ivyservice.CacheExpirationControl
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleDescriptorHashModuleSource
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheDecorator
@@ -72,7 +72,7 @@ class ComponentMetadataRuleExecutorTest extends Specification {
     InstantiatingAction<ComponentMetadataContext> rule
     Transformer<ModuleComponentResolveMetadata, ComponentMetadataContext> detailsToResult = Mock()
     Transformer<ComponentMetadataContext, ModuleVersionIdentifier> onCacheMiss = Mock()
-    ImmutableCachePolicy cachePolicy = Mock()
+    CacheExpirationControl cacheExpirationControl = Mock()
 
     ModuleComponentResolveMetadata result
 
@@ -138,7 +138,7 @@ class ComponentMetadataRuleExecutorTest extends Specification {
             1 * record.getOutput() >> TestHashCodes.hashCodeFrom(10000)
             1 * cachedResult.isChanging() >> changing
             1 * cachedResult.getModuleVersionId() >> id
-            1 * cachePolicy.moduleExpiry({ it.id == id }, Duration.ZERO, changing) >> Stub(ImmutableCachePolicy.Expiry) {
+            1 * cacheExpirationControl.moduleExpiry({ it.id == id }, Duration.ZERO, changing) >> Stub(CacheExpirationControl.Expiry) {
                 isMustCheck() >> false
             }
             // we make it return false, this should invalidate the cache
@@ -146,7 +146,7 @@ class ComponentMetadataRuleExecutorTest extends Specification {
         } else {
             1 * cachedResult.isChanging() >> changing
             1 * cachedResult.getModuleVersionId() >> id
-            1 * cachePolicy.moduleExpiry({ it.id == id }, Duration.ZERO, changing) >> Stub(ImmutableCachePolicy.Expiry) {
+            1 * cacheExpirationControl.moduleExpiry({ it.id == id }, Duration.ZERO, changing) >> Stub(CacheExpirationControl.Expiry) {
                 isMustCheck() >> mustRefresh
             }
         }
@@ -184,7 +184,7 @@ class ComponentMetadataRuleExecutorTest extends Specification {
     }
 
     void execute(ModuleComponentResolveMetadata key) {
-        def executionResult = executor.execute(key, rule, detailsToResult, onCacheMiss, cachePolicy)
+        def executionResult = executor.execute(key, rule, detailsToResult, onCacheMiss, cacheExpirationControl)
         result = executionResult
     }
 

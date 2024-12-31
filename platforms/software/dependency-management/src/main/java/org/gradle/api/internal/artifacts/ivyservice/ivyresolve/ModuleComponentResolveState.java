@@ -19,7 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 import org.gradle.api.artifacts.ComponentMetadataSupplierDetails;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ComponentMetadataProcessorFactory;
-import org.gradle.api.internal.artifacts.ivyservice.ImmutableCachePolicy;
+import org.gradle.api.internal.artifacts.ivyservice.CacheExpirationControl;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.internal.action.InstantiatingAction;
 import org.gradle.internal.component.external.model.ModuleComponentGraphResolveState;
@@ -42,5 +42,5 @@ public interface ModuleComponentResolveState extends Versioned {
 
     ComponentMetadataSupplierRuleExecutor getComponentMetadataSupplierExecutor();
 
-    ImmutableCachePolicy getCachePolicy();
+    CacheExpirationControl getCacheExpirationControl();
 }

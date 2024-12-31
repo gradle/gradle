@@ -64,7 +64,7 @@ public class ResolutionParameters {
     private final boolean failingOnDynamicVersions;
     private final boolean failingOnChangingVersions;
     private final FailureResolutions failureResolutions;
-    private final ImmutableCachePolicy cachePolicy;
+    private final CacheExpirationControl cacheExpirationControl;
 
     public ResolutionParameters(
         ResolutionHost resolutionHost,
@@ -83,7 +83,7 @@ public class ResolutionParameters {
         boolean failingOnDynamicVersions,
         boolean failingOnChangingVersions,
         FailureResolutions failureResolutions,
-        ImmutableCachePolicy cachePolicy
+        CacheExpirationControl cacheExpirationControl
     ) {
         this.resolutionHost = resolutionHost;
         this.rootComponent = rootComponent;
@@ -101,7 +101,7 @@ public class ResolutionParameters {
         this.failingOnDynamicVersions = failingOnDynamicVersions;
         this.failingOnChangingVersions = failingOnChangingVersions;
         this.failureResolutions = failureResolutions;
-        this.cachePolicy = cachePolicy;
+        this.cacheExpirationControl = cacheExpirationControl;
     }
 
     /**
@@ -293,8 +293,8 @@ public class ResolutionParameters {
     /**
      * Controls the caching behavior for external dependencies.
      */
-    public ImmutableCachePolicy getCachePolicy() {
-        return cachePolicy;
+    public CacheExpirationControl getCacheExpirationControl() {
+        return cacheExpirationControl;
     }
 
 }
