@@ -39,7 +39,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.action.InstantiatingAction;
 import org.gradle.internal.component.external.model.ExternalComponentResolveMetadata;
-import org.gradle.internal.component.external.model.ModuleComponentGraphResolveState;
+import org.gradle.internal.component.external.model.ExternalModuleComponentGraphResolveState;
 import org.gradle.internal.component.external.model.ivy.IvyModuleResolveMetadata;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.reflect.Instantiator;
@@ -52,7 +52,7 @@ import java.util.List;
 class DefaultMetadataProvider implements MetadataProvider {
     private final static Transformer<ComponentMetadata, BuildableComponentMetadataSupplierDetails> TO_COMPONENT_METADATA = BuildableComponentMetadataSupplierDetails::getExecutionResult;
     private final ModuleComponentResolveState resolveState;
-    private BuildableModuleComponentMetaDataResolveResult<ModuleComponentGraphResolveState> cachedResult;
+    private BuildableModuleComponentMetaDataResolveResult<ExternalModuleComponentGraphResolveState> cachedResult;
     private ComponentMetadata cachedComponentMetadata;
     private boolean computedMetadata;
 

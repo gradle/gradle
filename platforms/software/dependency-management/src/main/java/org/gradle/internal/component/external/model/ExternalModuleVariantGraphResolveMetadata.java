@@ -23,12 +23,12 @@ import org.gradle.internal.component.model.VariantGraphResolveMetadata;
 import java.util.List;
 
 /**
- * A variant of an external component.
+ * A variant of an external module component.
  * <p>
  * Unlike local variants, the dependencies of external variants are known statically,
  * and are available as part of the metadata.
  */
-public interface ExternalVariantGraphResolveMetadata extends VariantGraphResolveMetadata {
+public interface ExternalModuleVariantGraphResolveMetadata extends VariantGraphResolveMetadata {
 
     /**
      * Get the dependencies for this variant.

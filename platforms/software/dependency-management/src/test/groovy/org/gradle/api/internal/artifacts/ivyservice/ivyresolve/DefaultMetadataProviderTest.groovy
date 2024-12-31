@@ -32,7 +32,7 @@ import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
 import org.gradle.internal.action.DefaultConfigurableRule
 import org.gradle.internal.action.DefaultConfigurableRules
 import org.gradle.internal.action.InstantiatingAction
-import org.gradle.internal.component.external.model.ModuleComponentGraphResolveState
+import org.gradle.internal.component.external.model.ExternalModuleComponentGraphResolveState
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata
 import org.gradle.internal.component.external.model.ivy.IvyModuleResolveMetadata
 import org.gradle.internal.resolve.caching.ComponentMetadataSupplierRuleExecutor
@@ -53,7 +53,7 @@ class DefaultMetadataProviderTest extends Specification {
         getVersion() >> "1.2"
     }
     def metaData = Stub(ModuleComponentResolveMetadata)
-    def componentState = Stub(ModuleComponentGraphResolveState) {
+    def componentState = Stub(ExternalModuleComponentGraphResolveState) {
         getLegacyMetadata() >> metaData
     }
     def resolveState = Mock(ModuleComponentResolveState)
@@ -132,7 +132,7 @@ class DefaultMetadataProviderTest extends Specification {
         metaData.branch >> "branchValue"
         metaData.extraAttributes >> ImmutableMap.copyOf(extraInfo)
 
-        def componentState = Stub(ModuleComponentGraphResolveState)
+        def componentState = Stub(ExternalModuleComponentGraphResolveState)
         componentState.legacyMetadata >> metaData
 
         resolveState.resolve() >> {

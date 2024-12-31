@@ -32,8 +32,9 @@ import org.gradle.api.internal.artifacts.repositories.resolver.MetadataFetchingC
 import org.gradle.api.internal.component.ArtifactType
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata
-import org.gradle.internal.component.external.model.ModuleComponentGraphResolveState
+import org.gradle.internal.component.external.model.ExternalModuleComponentGraphResolveState
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata
+import org.gradle.internal.component.external.model.maven.MavenModuleResolveMetadata
 import org.gradle.internal.component.model.ComponentArtifactMetadata
 import org.gradle.internal.component.model.ComponentArtifactResolveMetadata
 import org.gradle.internal.component.model.ComponentOverrideMetadata
@@ -123,7 +124,7 @@ class CachingModuleComponentRepositoryTest extends Specification {
 
         then:
         1 * realLocalAccess.resolveComponentMetaData(componentId, prescribedMetaData, _) >> { id, m, r ->
-            r.resolved(Stub(ModuleComponentResolveMetadata))
+            r.resolved(Stub(MavenModuleResolveMetadata))
         }
         0 * _
     }
@@ -194,7 +195,7 @@ class CachingModuleComponentRepositoryTest extends Specification {
             isMustCheck() >> mustRefreshChangingModule
         }
         moduleDescriptorCache.getCachedModuleDescriptor(_, module) >> Stub(ModuleMetadataCache.CachedMetadata) {
-            getProcessedMetadata(_) >> Stub(ModuleComponentGraphResolveState) {
+            getProcessedMetadata(_) >> Stub(ExternalModuleComponentGraphResolveState) {
                 getMetadata() >> Stub(ModuleComponentResolveMetadata) {
                     isChanging() >> true
                 }
@@ -226,7 +227,7 @@ class CachingModuleComponentRepositoryTest extends Specification {
             isMustCheck() >> mustRefreshModule
         }
         moduleDescriptorCache.getCachedModuleDescriptor(_, module) >> Stub(ModuleMetadataCache.CachedMetadata) {
-            getProcessedMetadata(_) >> Stub(ModuleComponentGraphResolveState)
+            getProcessedMetadata(_) >> Stub(ExternalModuleComponentGraphResolveState)
             getAge() >> Duration.ofMillis(100)
         }
 

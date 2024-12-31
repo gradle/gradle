@@ -32,7 +32,7 @@ import org.gradle.api.internal.attributes.AttributeSchemaServices;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.api.internal.attributes.matching.AttributeMatcher;
-import org.gradle.internal.component.external.model.ModuleComponentGraphResolveMetadata;
+import org.gradle.internal.component.external.model.ExternalModuleComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.resolve.RejectedByAttributesVersion;
 import org.gradle.internal.resolve.RejectedByRuleVersion;
@@ -69,7 +69,7 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
     }
 
     @Override
-    public ComponentGraphResolveMetadata selectNewestComponent(@Nullable ModuleComponentGraphResolveMetadata one, @Nullable ModuleComponentGraphResolveMetadata two) {
+    public ComponentGraphResolveMetadata selectNewestComponent(@Nullable ExternalModuleComponentGraphResolveMetadata one, @Nullable ExternalModuleComponentGraphResolveMetadata two) {
         if (one == null || two == null) {
             return two == null ? one : two;
         }
@@ -86,7 +86,7 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
         return comparison < 0 ? two : one;
     }
 
-    private boolean isMissingModuleDescriptor(ModuleComponentGraphResolveMetadata metadata) {
+    private boolean isMissingModuleDescriptor(ExternalModuleComponentGraphResolveMetadata metadata) {
         return metadata.isMissing();
     }
 

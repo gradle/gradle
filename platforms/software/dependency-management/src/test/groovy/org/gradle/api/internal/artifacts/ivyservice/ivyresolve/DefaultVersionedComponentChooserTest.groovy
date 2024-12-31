@@ -28,8 +28,8 @@ import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema
 import org.gradle.api.internal.attributes.matching.AttributeMatcher
 import org.gradle.api.specs.Specs
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
-import org.gradle.internal.component.external.model.ModuleComponentGraphResolveMetadata
-import org.gradle.internal.component.external.model.ModuleComponentGraphResolveState
+import org.gradle.internal.component.external.model.ExternalModuleComponentGraphResolveMetadata
+import org.gradle.internal.component.external.model.ExternalModuleComponentGraphResolveState
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata
 import org.gradle.internal.resolve.ModuleVersionResolveException
 import org.gradle.internal.resolve.caching.ComponentMetadataSupplierRuleExecutor
@@ -50,13 +50,13 @@ class DefaultVersionedComponentChooserTest extends Specification {
     def chooser = new DefaultVersionedComponentChooser(versionComparator, versionParser, AttributeTestUtil.services(), componentSelectionRules, ImmutableAttributesSchema.EMPTY)
 
     def "chooses latest version for component meta data"() {
-        def one = Stub(ModuleComponentGraphResolveMetadata) {
+        def one = Stub(ExternalModuleComponentGraphResolveMetadata) {
             getModuleVersionId() >> DefaultModuleVersionIdentifier.newId("group", "name", "1.0")
         }
-        def two = Stub(ModuleComponentGraphResolveMetadata) {
+        def two = Stub(ExternalModuleComponentGraphResolveMetadata) {
             getModuleVersionId() >> DefaultModuleVersionIdentifier.newId("group", "name", "1.1")
         }
-        def three = Stub(ModuleComponentGraphResolveMetadata) {
+        def three = Stub(ExternalModuleComponentGraphResolveMetadata) {
             getModuleVersionId() >> DefaultModuleVersionIdentifier.newId("group", "name", "1.2")
         }
 
@@ -74,10 +74,10 @@ class DefaultVersionedComponentChooserTest extends Specification {
     }
 
     def "chooses non-generated descriptor over generated"() {
-        def one = Mock(ModuleComponentGraphResolveMetadata) {
+        def one = Mock(ExternalModuleComponentGraphResolveMetadata) {
             getModuleVersionId() >> DefaultModuleVersionIdentifier.newId("group", "name", "1.0")
         }
-        def two = Mock(ModuleComponentGraphResolveMetadata) {
+        def two = Mock(ExternalModuleComponentGraphResolveMetadata) {
             getModuleVersionId() >> DefaultModuleVersionIdentifier.newId("group", "name", "1.0")
         }
 
@@ -360,7 +360,7 @@ class DefaultVersionedComponentChooserTest extends Specification {
             getStatus() >> status
             getAttributes() >> AttributeTestUtil.attributes(attributes)
         }
-        def state = Stub(ModuleComponentGraphResolveState) {
+        def state = Stub(ExternalModuleComponentGraphResolveState) {
             getLegacyMetadata() >> meta
         }
         def result = new DefaultBuildableModuleComponentMetaDataResolveResult()

@@ -22,7 +22,7 @@ import org.gradle.api.internal.artifacts.ComponentMetadataProcessorFactory;
 import org.gradle.api.internal.artifacts.ivyservice.CacheExpirationControl;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.internal.action.InstantiatingAction;
-import org.gradle.internal.component.external.model.ModuleComponentGraphResolveState;
+import org.gradle.internal.component.external.model.ExternalModuleComponentGraphResolveState;
 import org.gradle.internal.resolve.caching.ComponentMetadataSupplierRuleExecutor;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 
@@ -31,7 +31,7 @@ import javax.annotation.Nullable;
 public interface ModuleComponentResolveState extends Versioned {
     ModuleComponentIdentifier getId();
 
-    BuildableModuleComponentMetaDataResolveResult<ModuleComponentGraphResolveState> resolve();
+    BuildableModuleComponentMetaDataResolveResult<ExternalModuleComponentGraphResolveState> resolve();
 
     ComponentMetadataProcessorFactory getComponentMetadataProcessorFactory();
 
