@@ -229,26 +229,9 @@ These limitations will be removed in a future Gradle release.
 The set of type-safe model accessors available is determined right before evaluating the script body, immediately after the `plugins {}` block.
 Model elements contributed after that point, such as configurations defined in your build script, **will not work** with type-safe model accessors:
 
-[source,kotlin]
-----
-// Applies the Java plugin
-plugins {
-    id("java")
-}
-
-// Access to 'implementation' (contributed by the Java plugin) works here:
-dependencies {
-    implementation("org.example:library:1.0")
-}
-
-// Add a custom configuration
-configurations.create("customConfiguration")
-
-// Type-safe accessors for 'customConfiguration' will NOT be available because it was created after the plugins block
-dependencies {
-    customConfiguration("org.example:custom-library:1.0") // ❌ Error: No type-safe accessor for 'customConfiguration'
-}
-----
+====
+include::sample[dir="snippets/kotlinDsl/basics/kotlin",files="build.gradle.kts[tags=basics]"]
+====
 
 However, this means you can use type-safe accessors for any model elements contributed by plugins that are _applied by parent projects_.
 
@@ -275,29 +258,15 @@ For example, on `tasks`, accessors are of type `TaskProvider<T>` and provide a l
 
 Here are some examples illustrating when configuration avoidance applies:
 
-[source,kotlin]
-----
-tasks.test {
-    // lazy configuration
-}
-
-// Lazy reference
-val testProvider: TaskProvider<Test> = tasks.test
-
-testProvider {
-    // lazy configuration
-}
-
-// Eagerly realized Test task, defeats configuration avoidance if done out of a lazy context
-val test: Test = tasks.test.get()
-----
+====
+include::sample[dir="snippets/kotlinDsl/basics/kotlin",files="build.gradle.kts[tags=lazy]"]
+====
 
 For all other containers, accessors for elements are of type `NamedDomainObjectProvider<T>`, providing the same behavior:
 
-[source,kotlin]
-----
-val mainSourceSetProvider: NamedDomainObjectProvider<SourceSet> = sourceSets.named("main")
-----
+====
+include::sample[dir="snippets/kotlinDsl/basics/kotlin",files="build.gradle.kts[tags=container]"]
+====
 
 [[sec:kotlin_using_standard_api]]
 === Understanding what to do when type-safe model accessors are not available
@@ -359,10 +328,9 @@ As a last resort, you can check the plugin's source code, though this should not
 
 You can also use the link:{kotlinDslPath}/gradle/org.gradle.kotlin.dsl/the.html[`the<T>()`] function if you only need a reference to the extension or convention without configuring it, or if you want to perform a one-line configuration:
 
-[source,kotlin]
-----
-the<SourceSetContainer>()["main"].srcDir("src/core/java")
-----
+====
+include::sample[dir="snippets/kotlinDsl/basics/kotlin",files="build.gradle.kts[tags=source]"]
+====
 
 The snippet above also demonstrates one way to configure elements of a project extension that is a container.
 
@@ -504,7 +472,7 @@ include::sample[dir="snippets/kotlinDsl/containers-scope/kotlin",files="build.gr
 [[kotdsl:properties]]
 == Working with runtime properties
 
-Gradle has two main sources of properties defined at runtime: <<build_environment.adoc#sec:project_specific_properties,_project properties_>> and <<writing_build_scripts#sec:extra_properties,_extra properties_>>.
+Gradle has two main sources of properties defined at runtime: <<build_environment.adoc#sec:project_properties,_project properties_>> and <<writing_build_scripts#sec:extra_properties,_extra properties_>>.
 
 The Kotlin DSL provides specific syntax for working with these property types, which we will explore in the following sections.
 
@@ -514,12 +482,9 @@ The Kotlin DSL allows you to access project properties by binding them via Kotli
 
 The following snippet demonstrates this technique for a couple of project properties, one of which _must_ be defined:
 
-[source,kotlin]
-.build.gradle.kts
-----
-val myProperty: String by project  // <1>
-val myNullableProperty: String? by project // <2>
-----
+====
+include::sample[dir="snippets/kotlinDsl/basics/kotlin",files="build.gradle.kts[tags=property]"]
+====
 <1> Makes the `myProperty` project property available via a `myProperty` delegated property — the project property must exist in this case, otherwise the build will fail when the build script attempts to use the `myProperty` value
 <2> Does the same for the `myNullableProperty` project property, but the build won't fail on using the `myNullableProperty` value as long as you check for null (standard https://kotlinlang.org/docs/reference/null-safety.html[Kotlin rules for null safety] apply)
 
@@ -532,15 +497,9 @@ link:{groovyDslPath}/org.gradle.api.plugins.ExtensionAware.html#org.gradle.api.p
 
 In Kotlin DSL, you can access and create extra properties via delegated properties, using the `by extra` syntax as demonstrated in the following sample:
 
-[source,kotlin]
-.build.gradle.kts
-----
-val myNewProperty by extra("initial value")  // <1>
-val myOtherNewProperty by extra { "calculated initial value" }  // <2>
-
-val myProperty: String by extra  // <3>
-val myNullableProperty: String? by extra  // <4>
-----
+====
+include::sample[dir="snippets/kotlinDsl/basics/kotlin",files="build.gradle.kts[tags=extra]"]
+====
 <1> Creates a new extra property called `myNewProperty` in the current context (the project in this case) and initializes it with the value `"initial value"`, which also determines the property's _type_
 <2> Create a new extra property whose initial value is calculated by the provided lambda
 <3> Binds an existing extra property from the current context (the project in this case) to a `myProperty` reference
@@ -550,11 +509,9 @@ This approach works for all Gradle scripts: project build scripts, script plugin
 
 You can also access extra properties on a root project from a subproject using the following syntax:
 
-[source,kotlin]
-.my-sub-project/build.gradle.kts
-----
-val myNewProperty: String by rootProject.extra  // <1>
-----
+====
+include::sample[dir="snippets/kotlinDsl/basics/kotlin",files="my-sub-project/build.gradle.kts[tags=prop]"]
+====
 <1> Binds the root project's `myNewProperty` extra property to a reference of the same name
 
 Extra properties aren't just limited to projects.
@@ -562,41 +519,17 @@ For example, `Task` extends `ExtensionAware`, so you can attach extra properties
 
 Here's an example that defines a new `myNewTaskProperty` on the `test` task and then uses that property to initialize another task:
 
-[source,kotlin]
-.build.gradle.kts
-----
-tasks {
-    test {
-        val reportType by extra("dev")  // <1>
-        doLast {
-            // Use 'suffix' for post processing of reports
-        }
-    }
-
-    register<Zip>("archiveTestReports") {
-        val reportType: String by test.get().extra  // <2>
-        archiveAppendix = reportType
-        from(test.get().reports.html.destination)
-    }
-}
-----
+====
+include::sample[dir="snippets/kotlinDsl/basics/kotlin",files="build.gradle.kts[tags=test-task]"]
+====
 <1> Creates a new `reportType` extra property on the `test` task
 <2> Makes the `test` task's `reportType` extra property available to configure the `archiveTestReports` task
 
 If you're happy to use eager configuration rather than the configuration avoidance APIs, you could use a single, "global" property for the report type, like this:
 
-[source,kotlin]
-.build.gradle.kts
-----
-tasks.test.doLast { ... }
-
-val testReportType by tasks.test.get().extra("dev")  // <1>
-
-tasks.create<Zip>("archiveTestReports") {
-    archiveAppendix = testReportType  // <2>
-    from(test.get().reports.html.destination)
-}
-----
+====
+include::sample[dir="snippets/kotlinDsl/basics/kotlin",files="build.gradle.kts[tags=test-task-eager]"]
+====
 <1> Creates and initializes an extra property on the `test` task, binding it to a "global" property
 <2> Uses the "global" property to initialize the `archiveTestReports` task
 
@@ -606,21 +539,51 @@ However, it is more succinct than the delegated properties syntax and can be use
 
 Here is a simple example demonstrating how to set and read extra properties using the map syntax:
 
-[source,kotlin]
-.build.gradle.kts
-----
-extra["myNewProperty"] = "initial value"  // <1>
-
-tasks.create("myTask") {
-    doLast {
-        println("Property: ${project.extra["myNewProperty"]}")  // <2>
-    }
-}
-----
+====
+include::sample[dir="snippets/kotlinDsl/basics/kotlin",files="build.gradle.kts[tags=write]"]
+====
 <1> Creates a new project extra property called `myNewProperty` and sets its value
 <2> Reads the value from the project extra property we created — note the `project.` qualifier on `extra[...]`, otherwise Gradle will assume we want to read an extra property from the _task_
 
-// === `Property`, `Provider` and `NamedDomainObjectProvider`
+[[kotdsl:types]]
+== Working with Gradle types
+
+`Property`, `Provider`, and `NamedDomainObjectProvider` are <<properties_providers.adoc#properties_and_providers,types>> that represent deferred and lazy evaluation of values and objects.
+The Kotlin DSL provides a specialized syntax for working with these types.
+
+=== Using a `Property`
+
+A property represents a value that can be set and read lazily:
+
+- Setting a value: `property.set(value)` or `property = value`
+- Accessing the value: `property.get()`
+- Using the delegate syntax: `val propValue: String by property`
+
+====
+include::sample[dir="snippets/kotlinDsl/basics/kotlin/my-sub-project",files="build.gradle.kts[tags=property]"]
+====
+
+=== Using a `Provider`
+
+A provider represents a read-only, lazily-evaluated value:
+
+- Accessing the value: `provider.get()`
+- Chaining: `provider.map { transform(it) }`
+
+====
+include::sample[dir="snippets/kotlinDsl/basics/kotlin/my-sub-project",files="build.gradle.kts[tags=provider]"]
+====
+
+=== Using a `NamedDomainObjectProvider`
+
+A named domain object provider represents a lazily-evaluated named object from a Gradle container (like tasks or extensions):
+
+- Accessing the object: `namedObjectProvider.get()`
+- Configuring the object: `namedObjectProvider.configure { ... }`
+
+====
+include::sample[dir="snippets/kotlinDsl/basics/kotlin/my-sub-project",files="build.gradle.kts[tags=named]"]
+====
 
 [[kotdsl:assignment]]
 == Lazy property assignment
@@ -871,7 +834,7 @@ Another option when dealing with problematic plugins that assume a Groovy DSL bu
 .dynamic-groovy-plugin-configuration.gradle
 [source, groovy]
 ----
-native {                                                    <1>
+native {    // <1>
     dynamic {
         groovy as Usual
     }
@@ -887,9 +850,9 @@ native {                                                    <1>
 [source, kotlin]
 ----
 plugins {
-    id("dynamic-groovy-plugin") version "1.0"               <2>
+    id("dynamic-groovy-plugin") version "1.0"   // <2>
 }
-apply(from = "dynamic-groovy-plugin-configuration.gradle")  <3>
+apply(from = "dynamic-groovy-plugin-configuration.gradle")  // <3>
 ----
 =====
 ====
@@ -948,3 +911,10 @@ The main reason for this is the slower script compilation for Kotlin DSL.
 * The Kotlin DSL will not support the `model {}` block, which is part of the link:https://blog.gradle.org/state-and-future-of-the-gradle-software-model[discontinued Gradle Software Model].
 
 If you run into trouble or discover a suspected bug, please report the issue in the link:{gradle-issues}[Gradle issue tracker].
+
+[[kotdsl:multi_project_builds]]
+[[sec:multi_project_builds]]
+[[sec:multi_project_builds_applying_plugins]]
+[[ex:multi_project_ratpack]]
+[[sec:kotlin_cross_project_configuration]]
+[[sec:plugins_resolution_strategy]]
