@@ -16,7 +16,7 @@
 
 package org.gradle.internal.component.external.model.ivy;
 
-import org.gradle.internal.component.external.model.ModuleComponentGraphResolveState;
+import org.gradle.internal.component.external.model.ExternalModuleComponentGraphResolveState;
 import org.gradle.internal.component.model.ConfigurationGraphResolveState;
 
 import javax.annotation.Nullable;
@@ -25,7 +25,7 @@ import java.util.Set;
 /**
  * Resolution state for an ivy component. Exposes the configurations of the component.
  */
-public interface IvyComponentGraphResolveState extends ModuleComponentGraphResolveState {
+public interface IvyComponentGraphResolveState extends ExternalModuleComponentGraphResolveState {
 
     /**
      * Get all names such that {@link #getConfiguration(String)} return a non-null value.

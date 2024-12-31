@@ -27,7 +27,7 @@ import org.gradle.api.internal.artifacts.repositories.resolver.MetadataFetchingC
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.Factory;
 import org.gradle.internal.action.InstantiatingAction;
-import org.gradle.internal.component.external.model.ModuleComponentGraphResolveState;
+import org.gradle.internal.component.external.model.ExternalModuleComponentGraphResolveState;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentArtifactResolveMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
@@ -41,11 +41,11 @@ import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.Map;
 
-public class FilteredModuleComponentRepository implements ModuleComponentRepository<ModuleComponentGraphResolveState> {
-    private final ModuleComponentRepository<ModuleComponentGraphResolveState> delegate;
+public class FilteredModuleComponentRepository implements ModuleComponentRepository<ExternalModuleComponentGraphResolveState> {
+    private final ModuleComponentRepository<ExternalModuleComponentGraphResolveState> delegate;
     private final Action<? super ArtifactResolutionDetails> filterAction;
 
-    public FilteredModuleComponentRepository(ModuleComponentRepository<ModuleComponentGraphResolveState> delegate, Action<? super ArtifactResolutionDetails> filterAction) {
+    public FilteredModuleComponentRepository(ModuleComponentRepository<ExternalModuleComponentGraphResolveState> delegate, Action<? super ArtifactResolutionDetails> filterAction) {
         this.delegate = delegate;
         this.filterAction = filterAction;
     }
@@ -65,12 +65,12 @@ public class FilteredModuleComponentRepository implements ModuleComponentReposit
     }
 
     @Override
-    public ModuleComponentRepositoryAccess<ModuleComponentGraphResolveState> getLocalAccess() {
+    public ModuleComponentRepositoryAccess<ExternalModuleComponentGraphResolveState> getLocalAccess() {
         return new FilteringAccess(delegate.getLocalAccess());
     }
 
     @Override
-    public ModuleComponentRepositoryAccess<ModuleComponentGraphResolveState> getRemoteAccess() {
+    public ModuleComponentRepositoryAccess<ExternalModuleComponentGraphResolveState> getRemoteAccess() {
         return new FilteringAccess(delegate.getRemoteAccess());
     }
 
@@ -85,10 +85,10 @@ public class FilteredModuleComponentRepository implements ModuleComponentReposit
         return delegate.getComponentMetadataSupplier();
     }
 
-    private class FilteringAccess implements ModuleComponentRepositoryAccess<ModuleComponentGraphResolveState> {
-        private final ModuleComponentRepositoryAccess<ModuleComponentGraphResolveState> delegate;
+    private class FilteringAccess implements ModuleComponentRepositoryAccess<ExternalModuleComponentGraphResolveState> {
+        private final ModuleComponentRepositoryAccess<ExternalModuleComponentGraphResolveState> delegate;
 
-        private FilteringAccess(ModuleComponentRepositoryAccess<ModuleComponentGraphResolveState> delegate) {
+        private FilteringAccess(ModuleComponentRepositoryAccess<ExternalModuleComponentGraphResolveState> delegate) {
             this.delegate = delegate;
         }
 
@@ -101,7 +101,7 @@ public class FilteredModuleComponentRepository implements ModuleComponentReposit
         }
 
         @Override
-        public void resolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata requestMetaData, BuildableModuleComponentMetaDataResolveResult<ModuleComponentGraphResolveState> result) {
+        public void resolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata requestMetaData, BuildableModuleComponentMetaDataResolveResult<ExternalModuleComponentGraphResolveState> result) {
             whenModulePresent(moduleComponentIdentifier.getModuleIdentifier(), moduleComponentIdentifier,
                     () -> delegate.resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, result),
                 result::missing);

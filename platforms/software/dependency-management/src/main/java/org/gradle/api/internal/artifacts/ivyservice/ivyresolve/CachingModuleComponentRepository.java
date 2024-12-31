@@ -37,7 +37,7 @@ import org.gradle.api.internal.artifacts.repositories.resolver.MetadataFetchingC
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.action.InstantiatingAction;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
-import org.gradle.internal.component.external.model.ModuleComponentGraphResolveState;
+import org.gradle.internal.component.external.model.ExternalModuleComponentGraphResolveState;
 import org.gradle.internal.component.external.model.ModuleComponentGraphResolveStateFactory;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
@@ -73,7 +73,7 @@ import java.util.stream.Collectors;
  * The `ResolveAndCacheRepositoryAccess` provided by {@link #getRemoteAccess()} will first delegate any resolution request,
  * and then store the result in the dependency resolution cache.
  */
-public class CachingModuleComponentRepository implements ModuleComponentRepository<ModuleComponentGraphResolveState> {
+public class CachingModuleComponentRepository implements ModuleComponentRepository<ExternalModuleComponentGraphResolveState> {
     private static final Logger LOGGER = LoggerFactory.getLogger(CachingModuleComponentRepository.class);
 
     private final ModuleVersionsCache moduleVersionsCache;
@@ -127,12 +127,12 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
     }
 
     @Override
-    public ModuleComponentRepositoryAccess<ModuleComponentGraphResolveState> getLocalAccess() {
+    public ModuleComponentRepositoryAccess<ExternalModuleComponentGraphResolveState> getLocalAccess() {
         return locateInCacheRepositoryAccess;
     }
 
     @Override
-    public ModuleComponentRepositoryAccess<ModuleComponentGraphResolveState> getRemoteAccess() {
+    public ModuleComponentRepositoryAccess<ExternalModuleComponentGraphResolveState> getRemoteAccess() {
         return resolveAndCacheRepositoryAccess;
     }
 
@@ -146,7 +146,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         return delegate.getComponentMetadataSupplier();
     }
 
-    private class LocateInCacheRepositoryAccess implements ModuleComponentRepositoryAccess<ModuleComponentGraphResolveState> {
+    private class LocateInCacheRepositoryAccess implements ModuleComponentRepositoryAccess<ExternalModuleComponentGraphResolveState> {
         @Override
         public String toString() {
             return "cache lookup for " + delegate;
@@ -186,7 +186,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         }
 
         @Override
-        public void resolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata requestMetaData, BuildableModuleComponentMetaDataResolveResult<ModuleComponentGraphResolveState> result) {
+        public void resolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata requestMetaData, BuildableModuleComponentMetaDataResolveResult<ExternalModuleComponentGraphResolveState> result) {
             // First try to determine the metadata in-memory: don't use the cache in this case
             DefaultBuildableModuleComponentMetaDataResolveResult<ModuleComponentResolveMetadata> localResult = new DefaultBuildableModuleComponentMetaDataResolveResult<>();
             delegate.getLocalAccess().resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, localResult);
@@ -199,7 +199,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
             resolveComponentMetaDataFromCache(moduleComponentIdentifier, requestMetaData, result);
         }
 
-        private void resolveComponentMetaDataFromCache(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata requestMetaData, BuildableModuleComponentMetaDataResolveResult<ModuleComponentGraphResolveState> result) {
+        private void resolveComponentMetaDataFromCache(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata requestMetaData, BuildableModuleComponentMetaDataResolveResult<ExternalModuleComponentGraphResolveState> result) {
             ModuleMetadataCache.CachedMetadata cachedMetadata = moduleMetadataCache.getCachedModuleDescriptor(delegate, moduleComponentIdentifier);
             if (cachedMetadata == null) {
                 return;
@@ -215,7 +215,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
                 result.setAuthoritative(cachedMetadata.getAge().toMillis() == 0);
                 return;
             }
-            ModuleComponentGraphResolveState state = getProcessedMetadata(metadataProcessor.getRulesHash(), cachedMetadata);
+            ExternalModuleComponentGraphResolveState state = getProcessedMetadata(metadataProcessor.getRulesHash(), cachedMetadata);
             if (requestMetaData.isChanging() || state.getMetadata().isChanging()) {
                 CacheExpirationControl.Expiry expiry = cacheExpirationControl.changingModuleExpiry(moduleComponentIdentifier, cachedMetadata.getModuleVersion(), cachedMetadata.getAge());
                 if (expiry.isMustCheck()) {
@@ -237,8 +237,8 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
             result.setAuthoritative(cachedMetadata.getAge().toMillis() == 0);
         }
 
-        private ModuleComponentGraphResolveState getProcessedMetadata(int key, ModuleMetadataCache.CachedMetadata cachedMetadata) {
-            ModuleComponentGraphResolveState state = cachedMetadata.getProcessedMetadata(key);
+        private ExternalModuleComponentGraphResolveState getProcessedMetadata(int key, ModuleMetadataCache.CachedMetadata cachedMetadata) {
+            ExternalModuleComponentGraphResolveState state = cachedMetadata.getProcessedMetadata(key);
             if (state == null) {
                 ModuleComponentResolveMetadata metadata = metadataProcessor.processMetadata(cachedMetadata.getMetadata());
                 metadata = attachRepositorySource(metadata);
@@ -300,7 +300,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
                 }
                 return MetadataFetchingCost.CHEAP;
             }
-            ModuleComponentGraphResolveState state = getProcessedMetadata(metadataProcessor.getRulesHash(), cachedMetadata);
+            ExternalModuleComponentGraphResolveState state = getProcessedMetadata(metadataProcessor.getRulesHash(), cachedMetadata);
             if (state.getMetadata().isChanging()) {
                 if (cacheExpirationControl.changingModuleExpiry(moduleComponentIdentifier, cachedMetadata.getModuleVersion(), cachedMetadata.getAge()).isMustCheck()) {
                     return estimateCostViaRemoteAccess(moduleComponentIdentifier);
@@ -351,7 +351,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
                .orElseThrow(() -> new RuntimeException("Cannot find expected module source " + ModuleDescriptorHashModuleSource.class.getSimpleName() + " in " + sources));
     }
 
-    private class ResolveAndCacheRepositoryAccess implements ModuleComponentRepositoryAccess<ModuleComponentGraphResolveState> {
+    private class ResolveAndCacheRepositoryAccess implements ModuleComponentRepositoryAccess<ExternalModuleComponentGraphResolveState> {
         @Override
         public String toString() {
             return "cache > " + delegate.getRemoteAccess();
@@ -383,11 +383,11 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         }
 
         @Override
-        public void resolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata requestMetaData, BuildableModuleComponentMetaDataResolveResult<ModuleComponentGraphResolveState> result) {
+        public void resolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata requestMetaData, BuildableModuleComponentMetaDataResolveResult<ExternalModuleComponentGraphResolveState> result) {
             resolveComponentMetaDataAndCache(moduleComponentIdentifier, requestMetaData, result);
         }
 
-        private void resolveComponentMetaDataAndCache(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata requestMetaData, BuildableModuleComponentMetaDataResolveResult<ModuleComponentGraphResolveState> result) {
+        private void resolveComponentMetaDataAndCache(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata requestMetaData, BuildableModuleComponentMetaDataResolveResult<ExternalModuleComponentGraphResolveState> result) {
             ComponentOverrideMetadata forced = requestMetaData.withChanging();
             DefaultBuildableModuleComponentMetaDataResolveResult<ModuleComponentResolveMetadata> localResult = new DefaultBuildableModuleComponentMetaDataResolveResult<>();
             delegate.getRemoteAccess().resolveComponentMetaData(moduleComponentIdentifier, forced, localResult);
@@ -412,7 +412,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
                         CacheExpirationControl.Expiry expiry = cacheExpirationControl.changingModuleExpiry(moduleComponentIdentifier, cachedMetadata.getModuleVersion(), Duration.ZERO);
                         listener.onChangingModuleResolve(moduleComponentIdentifier, expiry);
                     }
-                    ModuleComponentGraphResolveState state = resolveStateFactory.stateFor(processedMetadata);
+                    ExternalModuleComponentGraphResolveState state = resolveStateFactory.stateFor(processedMetadata);
                     cachedMetadata.putProcessedMetadata(metadataProcessor.getRulesHash(), state);
                     localResult.applyTo(result);
                     result.resolved(state);

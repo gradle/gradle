@@ -43,7 +43,7 @@ import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.Actions;
-import org.gradle.internal.component.external.model.ModuleComponentGraphResolveState;
+import org.gradle.internal.component.external.model.ExternalModuleComponentGraphResolveState;
 import org.gradle.internal.component.external.model.ModuleComponentGraphResolveStateFactory;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
@@ -149,7 +149,7 @@ public class ExternalModuleComponentResolverFactory {
             MetadataResolutionContext metadataResolutionContext = new DefaultMetadataResolutionContext(cacheExpirationControl, instantiator);
             ComponentMetadataProcessor componentMetadataProcessor = metadataProcessor.createComponentMetadataProcessor(metadataResolutionContext);
 
-            ModuleComponentRepository<ModuleComponentGraphResolveState> moduleComponentRepository;
+            ModuleComponentRepository<ExternalModuleComponentGraphResolveState> moduleComponentRepository;
             if (baseRepository.isLocal()) {
                 moduleComponentRepository = new CachingModuleComponentRepository(baseRepository, cacheProvider.getInMemoryOnlyCaches(), moduleResolveStateFactory, cacheExpirationControl, timeProvider, componentMetadataProcessor, ChangingValueDependencyResolutionListener.NO_OP);
                 moduleComponentRepository = new LocalModuleComponentRepository<>(moduleComponentRepository);
@@ -174,9 +174,9 @@ public class ExternalModuleComponentResolverFactory {
         return moduleResolver;
     }
 
-    private static ModuleComponentRepository<ModuleComponentGraphResolveState> filterRepository(
+    private static ModuleComponentRepository<ExternalModuleComponentGraphResolveState> filterRepository(
         ResolutionAwareRepository repository,
-        ModuleComponentRepository<ModuleComponentGraphResolveState> moduleComponentRepository
+        ModuleComponentRepository<ExternalModuleComponentGraphResolveState> moduleComponentRepository
     ) {
         Action<? super ArtifactResolutionDetails> filter = Actions.doNothing();
         if (repository instanceof ContentFilteringRepository) {
@@ -190,8 +190,8 @@ public class ExternalModuleComponentResolverFactory {
         return new FilteredModuleComponentRepository(moduleComponentRepository, filter);
     }
 
-    private ModuleComponentRepository<ModuleComponentGraphResolveState> maybeApplyDependencyVerification(
-        ModuleComponentRepository<ModuleComponentGraphResolveState> moduleComponentRepository,
+    private ModuleComponentRepository<ExternalModuleComponentGraphResolveState> maybeApplyDependencyVerification(
+        ModuleComponentRepository<ExternalModuleComponentGraphResolveState> moduleComponentRepository,
         boolean dependencyVerificationEnabled
     ) {
         if (!dependencyVerificationEnabled) {
@@ -228,7 +228,7 @@ public class ExternalModuleComponentResolverFactory {
             this.delegate = new UserResolverChain(versionComparator, new DefaultComponentSelectionRules(moduleIdentifierFactory), versionParser, consumerAttributes, attributesSchema, attributesFactory, attributeSchemaServices, componentMetadataProcessorFactory, componentMetadataSupplierRuleExecutor, calculatedValueFactory, cacheExpirationControl);
         }
 
-        public void add(ModuleComponentRepository<ModuleComponentGraphResolveState> moduleComponentRepository) {
+        public void add(ModuleComponentRepository<ExternalModuleComponentGraphResolveState> moduleComponentRepository) {
             delegate.add(moduleComponentRepository);
         }
 
