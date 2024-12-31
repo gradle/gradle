@@ -16,15 +16,16 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.attributes.matching.AttributeMatchingCandidate;
 
 /**
  * Represents a variant which is produced as the result of applying an artifact transform chain
  * to a root producer variant.
  */
-public class TransformedVariant implements HasAttributes {
+public class TransformedVariant implements AttributeMatchingCandidate {
+
     private final ResolvedVariant root;
     private final VariantDefinition chain;
 
