@@ -105,10 +105,6 @@ public class DefaultExternalComponentGraphResolveState<G extends ExternalCompone
         return variants.computeIfAbsent(configuration, c -> newVariantState(configuration));
     }
 
-    protected VariantGraphResolveState newResolveStateFor(ModuleConfigurationMetadata configuration) {
-        return newVariantState(configuration);
-    }
-
     private DefaultConfigurationGraphResolveState newVariantState(ModuleConfigurationMetadata configuration) {
         return new DefaultConfigurationGraphResolveState(idGenerator.nextVariantId(), configuration);
     }
