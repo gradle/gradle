@@ -25,7 +25,7 @@ import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.internal.artifacts.DefaultResolverResults;
-import org.gradle.api.internal.artifacts.ResolveContext;
+import org.gradle.api.internal.artifacts.LegacyResolutionParameters;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingState;
@@ -76,9 +76,9 @@ public class ShortCircuitingResolutionExecutor {
         this.dependencyLockingProvider = dependencyLockingProvider;
     }
 
-    public ResolverResults resolveBuildDependencies(ResolveContext resolveContext, ResolutionParameters params, CalculatedValue<ResolverResults> futureCompleteResults) {
+    public ResolverResults resolveBuildDependencies(LegacyResolutionParameters legacyParams, ResolutionParameters params, CalculatedValue<ResolverResults> futureCompleteResults) {
         if (hasDependencies(params)) {
-            return delegate.resolveBuildDependencies(resolveContext, params, futureCompleteResults);
+            return delegate.resolveBuildDependencies(legacyParams, params, futureCompleteResults);
         }
 
         VisitedGraphResults graphResults = emptyGraphResults(params);
@@ -87,16 +87,16 @@ public class ShortCircuitingResolutionExecutor {
         );
     }
 
-    public ResolverResults resolveGraph(ResolveContext resolveContext, ResolutionParameters params, List<ResolutionAwareRepository> repositories) throws ResolveException {
+    public ResolverResults resolveGraph(LegacyResolutionParameters legacyParams, ResolutionParameters params, List<ResolutionAwareRepository> repositories) throws ResolveException {
         if (hasDependencies(params)) {
-            return delegate.resolveGraph(resolveContext, params, repositories);
+            return delegate.resolveGraph(legacyParams, params, repositories);
         }
 
         if (params.isDependencyLockingEnabled()) {
             DependencyLockingState lockingState = dependencyLockingProvider.loadLockState(params.getDependencyLockingId(), params.getResolutionHost().displayName());
             if (lockingState.mustValidateLockState() && !lockingState.getLockedDependencies().isEmpty()) {
                 // Invalid lock state, need to do a real resolution to gather locking failures
-                return delegate.resolveGraph(resolveContext, params, repositories);
+                return delegate.resolveGraph(legacyParams, params, repositories);
             }
             dependencyLockingProvider.persistResolvedDependencies(params.getDependencyLockingId(), params.getResolutionHost().displayName(), Collections.emptySet(), Collections.emptySet());
         }

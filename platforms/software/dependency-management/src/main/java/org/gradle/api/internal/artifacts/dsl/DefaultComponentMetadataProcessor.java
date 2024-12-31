@@ -239,7 +239,7 @@ public class DefaultComponentMetadataProcessor implements ComponentMetadataProce
     private ModuleComponentResolveMetadata processClassRuleWithCaching(InstantiatingAction<ComponentMetadataContext> action, final ModuleComponentResolveMetadata metadata, MetadataResolutionContext metadataResolutionContext) {
         try {
             return ruleExecutor.execute(metadata, action, DETAILS_TO_RESULT,
-                moduleVersionIdentifier -> new WrappingComponentMetadataContext(metadata, instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser, componentIdentifierNotationParser, platformSupport), metadataResolutionContext.getCachePolicy());
+                moduleVersionIdentifier -> new WrappingComponentMetadataContext(metadata, instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser, componentIdentifierNotationParser, platformSupport), metadataResolutionContext.getCacheExpirationControl());
         } catch (InvalidUserCodeException e) {
             throw e;
         } catch (Exception e) {

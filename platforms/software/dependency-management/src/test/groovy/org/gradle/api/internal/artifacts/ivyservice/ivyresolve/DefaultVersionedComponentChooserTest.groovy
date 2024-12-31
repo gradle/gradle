@@ -23,7 +23,6 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser
-import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultCachePolicy
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema
 import org.gradle.api.internal.attributes.matching.AttributeMatcher
@@ -47,7 +46,6 @@ class DefaultVersionedComponentChooserTest extends Specification {
     def versionSelectorScheme = new DefaultVersionSelectorScheme(versionComparator, versionParser)
     def componentSelectionRules = Mock(ComponentSelectionRulesInternal)
     def consumerAttributes = ImmutableAttributes.EMPTY
-    def cachePolicy = new DefaultCachePolicy()
 
     def chooser = new DefaultVersionedComponentChooser(versionComparator, versionParser, AttributeTestUtil.services(), componentSelectionRules, ImmutableAttributesSchema.EMPTY)
 
@@ -396,7 +394,6 @@ class DefaultVersionedComponentChooserTest extends Specification {
                 resolve() >> resolvedWithStatus(status, attributes)
             }
             getComponentMetadataSupplier() >> null
-            getCachePolicy() >> cachePolicy
             getComponentMetadataSupplierExecutor() >> { componentMetadataSupplierExecutor() }
         }
         return c

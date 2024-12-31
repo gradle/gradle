@@ -26,12 +26,11 @@ import org.gradle.api.artifacts.ComponentMetadata
 import org.gradle.api.artifacts.ComponentMetadataSupplierDetails
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
-import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy
-import org.gradle.api.internal.artifacts.configurations.dynamicversion.Expiry
+import org.gradle.api.internal.artifacts.ivyservice.CacheExpirationControl
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheDecorator
-import org.gradle.cache.PersistentCache
 import org.gradle.cache.IndexedCache
+import org.gradle.cache.PersistentCache
 import org.gradle.cache.internal.DefaultInMemoryCacheDecoratorFactory
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
 import org.gradle.internal.action.DefaultConfigurableRule
@@ -57,16 +56,16 @@ class ComponentMetadataSupplierRuleExecutorTest extends Specification {
     ComponentMetadataSupplierRuleExecutor executor
     GlobalScopedCacheBuilderFactory cacheBuilderFactory
     DefaultInMemoryCacheDecoratorFactory cacheDecoratorFactory
-    ValueSnapshotter valueSnapshotter
+    ValueSnapshotter valueSnapshotter = Mock()
     BuildCommencedTimeProvider timeProvider = Stub(BuildCommencedTimeProvider) {
         getCurrentTime() >> 0
     }
     IndexedCache<ValueSnapshot, CrossBuildCachingRuleExecutor.CachedEntry<ComponentMetadata>> store = Mock()
-    Serializer<ComponentMetadata> serializer
+    Serializer<ComponentMetadata> serializer = Mock()
     InstantiatingAction<ComponentMetadataSupplierDetails> rule
-    Transformer<ComponentMetadata, ComponentMetadataSupplierDetails> detailsToResult
-    Transformer<ComponentMetadataSupplierDetails, ModuleVersionIdentifier> onCacheMiss
-    CachePolicy cachePolicy
+    Transformer<ComponentMetadata, ComponentMetadataSupplierDetails> detailsToResult = Mock()
+    Transformer<ComponentMetadataSupplierDetails, ModuleVersionIdentifier> onCacheMiss = Mock()
+    CacheExpirationControl cacheExpirationControl = Mock()
 
     ComponentMetadata result
 
@@ -82,15 +81,12 @@ class ComponentMetadataSupplierRuleExecutorTest extends Specification {
                 }
             }
         }
-        cacheBuilderFactory = Mock()
-        cacheDecoratorFactory = Mock()
-        cacheBuilderFactory.createCacheBuilder(_) >> cacheBuilder
-        cacheDecoratorFactory.decorator(_, _) >> Mock(CacheDecorator)
-        valueSnapshotter = Mock()
-        serializer = Mock()
-        cachePolicy = Mock()
-        detailsToResult = Mock()
-        onCacheMiss = Mock()
+        cacheBuilderFactory = Mock(GlobalScopedCacheBuilderFactory) {
+            createCacheBuilder(_) >> cacheBuilder
+        }
+        cacheDecoratorFactory = Mock(DefaultInMemoryCacheDecoratorFactory) {
+            decorator(_, _) >> Mock(CacheDecorator)
+        }
         executor = new ComponentMetadataSupplierRuleExecutor(cacheBuilderFactory, cacheDecoratorFactory, valueSnapshotter, timeProvider, serializer)
     }
 
@@ -129,7 +125,7 @@ class ComponentMetadataSupplierRuleExecutorTest extends Specification {
             1 * record.getOutput() >> HashCode.fromInt(10000)
             1 * cachedResult.isChanging() >> changing
             1 * cachedResult.getId() >> id
-            1 * cachePolicy.moduleExpiry({ it.id == id }, Duration.ZERO, changing) >> Stub(Expiry) {
+            1 * cacheExpirationControl.moduleExpiry({ it.id == id }, Duration.ZERO, changing) >> Stub(CacheExpirationControl.Expiry) {
                 isMustCheck() >> false
             }
             // we make it return false, this should invalidate the cache
@@ -137,7 +133,7 @@ class ComponentMetadataSupplierRuleExecutorTest extends Specification {
         } else {
             1 * cachedResult.isChanging() >> changing
             1 * cachedResult.getId() >> id
-            1 * cachePolicy.moduleExpiry({ it.id == id }, Duration.ZERO, changing) >> Stub(Expiry) {
+            1 * cacheExpirationControl.moduleExpiry({ it.id == id }, Duration.ZERO, changing) >> Stub(CacheExpirationControl.Expiry) {
                 isMustCheck() >> mustRefresh
             }
         }
@@ -175,7 +171,7 @@ class ComponentMetadataSupplierRuleExecutorTest extends Specification {
     }
 
     void execute(ModuleVersionIdentifier id) {
-        def executionResult = executor.execute(id, rule, detailsToResult, onCacheMiss, cachePolicy)
+        def executionResult = executor.execute(id, rule, detailsToResult, onCacheMiss, cacheExpirationControl)
         result = executionResult
     }
 

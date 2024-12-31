@@ -19,7 +19,7 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
-import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
+import org.gradle.api.internal.artifacts.ivyservice.CacheExpirationControl;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.cache.FileLockManager;
@@ -101,19 +101,19 @@ public class CrossBuildCachingRuleExecutor<KEY, DETAILS, RESULT> implements Cach
     }
 
     @Override
-    public <D extends DETAILS> RESULT execute(final KEY key, final InstantiatingAction<DETAILS> action, final Transformer<RESULT, D> detailsToResult, final Transformer<D, KEY> onCacheMiss, final CachePolicy cachePolicy) {
+    public <D extends DETAILS> RESULT execute(KEY key, InstantiatingAction<DETAILS> action, Transformer<RESULT, D> detailsToResult, Transformer<D, KEY> onCacheMiss, CacheExpirationControl cacheExpirationControl) {
         if (action == null) {
             return null;
         }
         final ConfigurableRules<DETAILS> rules = action.getRules();
         if (rules.isCacheable()) {
-            return tryFromCache(key, action, detailsToResult, onCacheMiss, cachePolicy, rules);
+            return tryFromCache(key, action, detailsToResult, onCacheMiss, cacheExpirationControl, rules);
         } else {
             return executeRule(key, action, detailsToResult, onCacheMiss);
         }
     }
 
-    private <D extends DETAILS> RESULT tryFromCache(KEY key, InstantiatingAction<DETAILS> action, Transformer<RESULT, D> detailsToResult, Transformer<D, KEY> onCacheMiss, CachePolicy cachePolicy, ConfigurableRules<DETAILS> rules) {
+    private <D extends DETAILS> RESULT tryFromCache(KEY key, InstantiatingAction<DETAILS> action, Transformer<RESULT, D> detailsToResult, Transformer<D, KEY> onCacheMiss, CacheExpirationControl cacheExpirationControl, ConfigurableRules<DETAILS> rules) {
         final HashCode keyHash = computeExplicitInputsSnapshot(key, rules);
         DefaultImplicitInputRegistrar registrar = new DefaultImplicitInputRegistrar();
         ImplicitInputsCapturingInstantiator instantiator = findInputCapturingInstantiator(action);
@@ -126,7 +126,7 @@ public class CrossBuildCachingRuleExecutor<KEY, DETAILS, RESULT> implements Cach
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Found result for rule {} and key {} in cache", rules, key);
             }
-            if (validator.isValid(cachePolicy, entry) && areImplicitInputsUpToDate(instantiator, key, rules, entry)) {
+            if (validator.isValid(cacheExpirationControl, entry) && areImplicitInputsUpToDate(instantiator, key, rules, entry)) {
                 // Here it means that we have validated that the entry is still up-to-date, and that means a couple of things:
                 // 1. the cache policy said that the entry is still valid (for example, `--refresh-dependencies` wasn't called)
                 // 2. if the rule is cacheable, we have validated that its discovered inputs are still the same
@@ -230,7 +230,7 @@ public class CrossBuildCachingRuleExecutor<KEY, DETAILS, RESULT> implements Cach
      * @param <RESULT> the type of entry stored in the cache.
      */
     public interface EntryValidator<RESULT> {
-        boolean isValid(CachePolicy policy, CachedEntry<RESULT> entry);
+        boolean isValid(CacheExpirationControl policy, CachedEntry<RESULT> entry);
     }
 
     private static class CacheEntrySerializer<RESULT> extends AbstractSerializer<CachedEntry<RESULT>> {

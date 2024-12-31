@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
+import org.gradle.api.internal.artifacts.LegacyResolutionParameters;
 import org.gradle.api.internal.artifacts.configurations.ConflictResolution;
 import org.gradle.api.internal.artifacts.dsl.ImmutableModuleReplacements;
 import org.gradle.api.internal.artifacts.ivyservice.clientmodule.ClientModuleResolver;
@@ -86,7 +87,7 @@ public class DependencyGraphResolver {
      * Perform a graph resolution, visiting the resolved graph with the provided visitor.
      *
      * <p>We should keep this class independent of
-     * {@link org.gradle.api.internal.artifacts.ResolveContext} and
+     * {@link LegacyResolutionParameters} and
      * {@link org.gradle.api.artifacts.ResolutionStrategy}</p>, as those are tightly
      * coupled to a Configuration, and this resolver should be able to resolve non-Configuration types.
      */

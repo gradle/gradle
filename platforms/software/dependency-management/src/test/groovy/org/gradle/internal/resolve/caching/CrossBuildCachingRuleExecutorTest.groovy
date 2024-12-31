@@ -20,11 +20,11 @@ import com.google.common.collect.ImmutableMultimap
 import org.gradle.api.Action
 import org.gradle.api.Transformer
 import org.gradle.api.artifacts.CacheableRule
-import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy
+import org.gradle.api.internal.artifacts.ivyservice.CacheExpirationControl
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheDecorator
-import org.gradle.cache.PersistentCache
 import org.gradle.cache.IndexedCache
+import org.gradle.cache.PersistentCache
 import org.gradle.cache.internal.DefaultInMemoryCacheDecoratorFactory
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
 import org.gradle.internal.action.DefaultConfigurableRule
@@ -70,7 +70,7 @@ class CrossBuildCachingRuleExecutorTest extends Specification {
             new Details(name: id.name)
         }
     }
-    CachePolicy cachePolicy = Mock()
+    CacheExpirationControl cacheExpirationControl = Mock()
     ServiceRegistry serviceRegistry = Mock()
     InstantiatingAction<Details> rule
 
@@ -120,7 +120,7 @@ class CrossBuildCachingRuleExecutorTest extends Specification {
         def id = new Id('Alicia')
 
         when:
-        executor.execute(id, null, detailsToResult, onCacheMiss, cachePolicy)
+        executor.execute(id, null, detailsToResult, onCacheMiss, cacheExpirationControl)
 
         then:
         0 * _
@@ -229,7 +229,7 @@ class CrossBuildCachingRuleExecutorTest extends Specification {
         }
         1 * implicitInput.getInput() >> '/foo/bar'
         1 * implicitInput.getOutput() >> 'abcdef012'
-        1 * validator.isValid(cachePolicy, _) >> true
+        1 * validator.isValid(cacheExpirationControl, _) >> true
         1 * service.isUpToDate('/foo/bar', 'abcdef012') >> false
         1 * serviceRegistry.find(SomeService) >> service
         1 * service.withImplicitInputRecorder(_) >> service
@@ -265,7 +265,7 @@ class CrossBuildCachingRuleExecutorTest extends Specification {
         1 * implicitInput1.getOutput() >> 'abcdef012'
         1 * implicitInput2.getInput() >> '/foo/baz'
         1 * implicitInput2.getOutput() >> 'abcdef987'
-        1 * validator.isValid(cachePolicy, _) >> true
+        1 * validator.isValid(cacheExpirationControl, _) >> true
         1 * service.isUpToDate('/foo/bar', 'abcdef012') >> true
         1 * service.isUpToDate('/foo/baz', 'abcdef987') >> false
         2 * serviceRegistry.find(SomeService) >> service
@@ -277,7 +277,7 @@ class CrossBuildCachingRuleExecutorTest extends Specification {
 
 
     void execute(Id id) {
-        def executionResult = executor.execute(id, rule, detailsToResult, onCacheMiss, cachePolicy)
+        def executionResult = executor.execute(id, rule, detailsToResult, onCacheMiss, cacheExpirationControl)
         result = executionResult
     }
 

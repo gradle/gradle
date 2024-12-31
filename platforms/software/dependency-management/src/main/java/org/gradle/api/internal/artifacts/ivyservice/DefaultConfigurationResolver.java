@@ -26,12 +26,11 @@ import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.artifacts.DefaultResolverResults;
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
+import org.gradle.api.internal.artifacts.LegacyResolutionParameters;
 import org.gradle.api.internal.artifacts.RepositoriesSupplier;
-import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
-import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 import org.gradle.api.internal.artifacts.dsl.ImmutableModuleReplacements;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.CapabilitiesResolutionInternal;
@@ -101,8 +100,8 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         }
 
         ResolutionParameters params = getResolutionParameters(configuration, root, false);
-        ConfigurationResolveContext resolveContext = new ConfigurationResolveContext(configuration.getResolutionStrategy());
-        return resolutionExecutor.resolveBuildDependencies(resolveContext, params, futureCompleteResults);
+        LegacyResolutionParameters legacyParams = new ConfigurationLegacyResolutionParameters(configuration.getResolutionStrategy());
+        return resolutionExecutor.resolveBuildDependencies(legacyParams, params, futureCompleteResults);
     }
 
     @Override
@@ -126,8 +125,8 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
             .collect(Collectors.toList());
 
         ResolutionParameters params = getResolutionParameters(configuration, root, true);
-        ConfigurationResolveContext resolveContext = new ConfigurationResolveContext(configuration.getResolutionStrategy());
-        return resolutionExecutor.resolveGraph(resolveContext, params, filteredRepositories);
+        LegacyResolutionParameters legacyParams = new ConfigurationLegacyResolutionParameters(configuration.getResolutionStrategy());
+        return resolutionExecutor.resolveGraph(legacyParams, params, filteredRepositories);
     }
 
     @Override
@@ -162,21 +161,17 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
             resolutionStrategy.isDependencyVerificationEnabled(),
             resolutionStrategy.isFailingOnDynamicVersions(),
             resolutionStrategy.isFailingOnChangingVersions(),
-            failureResolutions
+            failureResolutions,
+            resolutionStrategy.getCachePolicy().asImmutable()
         );
     }
 
-    private static class ConfigurationResolveContext implements ResolveContext {
+    private static class ConfigurationLegacyResolutionParameters implements LegacyResolutionParameters {
 
         private final ResolutionStrategyInternal resolutionStrategy;
 
-        public ConfigurationResolveContext(ResolutionStrategyInternal resolutionStrategy) {
+        public ConfigurationLegacyResolutionParameters(ResolutionStrategyInternal resolutionStrategy) {
             this.resolutionStrategy = resolutionStrategy;
-        }
-
-        @Override
-        public CachePolicy getCachePolicy() {
-            return resolutionStrategy.getCachePolicy();
         }
 
         @Override
@@ -234,7 +229,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
      */
     private static boolean shouldSkipRepository(
         ResolutionAwareRepository repository,
-        String resolveContextName,
+        String configurationName,
         AttributeContainer consumerAttributes
     ) {
         if (!(repository instanceof ContentFilteringRepository)) {
@@ -246,8 +241,8 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         Set<String> includedConfigurations = cfr.getIncludedConfigurations();
         Set<String> excludedConfigurations = cfr.getExcludedConfigurations();
 
-        if ((includedConfigurations != null && !includedConfigurations.contains(resolveContextName)) ||
-            (excludedConfigurations != null && excludedConfigurations.contains(resolveContextName))
+        if ((includedConfigurations != null && !includedConfigurations.contains(configurationName)) ||
+            (excludedConfigurations != null && excludedConfigurations.contains(configurationName))
         ) {
             return true;
         }
