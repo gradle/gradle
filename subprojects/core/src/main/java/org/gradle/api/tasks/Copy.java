@@ -28,20 +28,20 @@ import org.gradle.work.DisableCachingByDefault;
 import java.io.File;
 
 /**
- * Copies files into a destination directory. This task can also rename and filter files as it copies. The task
- * implements {@link org.gradle.api.file.CopySpec CopySpec} for specifying what to copy.
- *
- * <p> Examples:
- * <pre class='autoTested'>
+ * Copies files into a destination directory. This task can also rename and filter files as it copies.
+ * <p>
+ * The task implements {@link org.gradle.api.file.CopySpec CopySpec} for specifying what to copy.
+ * For example:
+ * <pre class='autoTested'><code class="language-groovy">
  * task copyDocs(type: Copy) {
  *     from 'src/main/doc'
  *     into 'build/target/doc'
  * }
  *
- * //for Ant filter
+ * // For Ant filter
  * import org.apache.tools.ant.filters.ReplaceTokens
  *
- * //for including in the copy task
+ * // For including in the copy task
  * def dataContent = copySpec {
  *     from 'src/data'
  *     include '*.data'
@@ -66,7 +66,7 @@ import java.io.File;
  *
  *     with dataContent
  * }
- * </pre>
+ * </code></pre>
  */
 @DisableCachingByDefault(because = "Not worth caching")
 public abstract class Copy extends AbstractCopyTask {

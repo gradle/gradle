@@ -1,0 +1,76 @@
+/* Dejavu */
+
+/* Dejavu Sans */
+
+@font-face {
+	font-family: "DejaVu Sans";
+	src:
+		local('DejaVuSans'),
+		local('DejaVu Sans'),
+		url("DejaVuSans.woff") format("woff"),
+		url("DejaVuSans.woff2") format("woff2");
+	font-weight: normal;
+	font-style: normal;
+	font-display: swap;
+}
+@font-face {
+	font-family: "DejaVu Sans";
+	src:
+		local('DejaVuSansBold'),
+		local('DejaVu Sans Bold'),
+		url("DejaVuSans-Bold.woff") format("woff"),
+		url("DejaVuSans-Bold.woff2") format("woff2");
+	font-weight: bold;
+	font-style: normal;
+	font-display: swap;
+}
+
+/* Dejavu Sans Mono */
+
+@font-face {
+	font-family: "DejaVu Sans Mono";
+	src:
+		local('DejaVuSansMono'),
+		local('DejaVu Sans Mono'),
+		url("DejaVuSansMono.woff") format("woff"),
+		url("DejaVuSansMono.woff2") format("woff2");
+	font-weight: normal;
+	font-style: normal;
+	font-display: swap;
+}
+@font-face {
+	font-family: "DejaVu Sans Mono";
+	src:
+		local('DejaVuSansMono-Bold'),
+		local('DejaVu Sans Mono Bold'),
+		url("DejaVuSansMono-Bold.woff") format("woff"),
+		url("DejaVuSansMono-Bold.woff2") format("woff2");
+	font-weight: bold;
+	font-style: normal;
+	font-display: swap;
+}
+
+/* Dejavu Serif */
+
+@font-face {
+	font-family: "DejaVu Serif";
+	src:
+		local("DejaVuSerif"),
+		local("DejaVu Serif"),
+		url("DejaVuSerif.woff") format("woff"),
+		url("DejaVuSerif.woff2") format("woff2");
+	font-weight: normal;
+	font-style: normal;
+	font-display: swap;
+}
+@font-face {
+	font-family: "DejaVu Serif";
+	src:
+		local("DejaVuSerif-Bold"),
+		local("DejaVu Serif Bold"),
+		url("DejaVuSerif-Bold.woff") format("woff"),
+		url("DejaVuSerif-Bold.woff2") format("woff2");
+	font-weight: bold;
+	font-style: normal;
+	font-display: swap;
+}

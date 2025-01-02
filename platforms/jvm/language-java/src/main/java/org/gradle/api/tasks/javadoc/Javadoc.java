@@ -66,11 +66,11 @@ import java.util.List;
 import static org.gradle.util.internal.GUtil.isTrue;
 
 /**
- * <p>Generates HTML API documentation for Java classes.</p>
+ * Generates HTML API documentation for Java classes.
  * <p>
  * If you create your own Javadoc tasks remember to specify the 'source' property!
- * Without source the Javadoc task will not create any documentation. Example:
- * <pre class='autoTested'>
+ * Without a source, the Javadoc task will not create documentation. For example:
+ * <pre class='autoTested'><code class="language-groovy">
  * plugins {
  *     id 'java'
  * }
@@ -78,11 +78,10 @@ import static org.gradle.util.internal.GUtil.isTrue;
  * task myJavadocs(type: Javadoc) {
  *   source = sourceSets.main.allJava
  * }
- * </pre>
- *
+ * </code></pre>
  * <p>
  * An example how to create a task that runs a custom doclet implementation:
- * <pre class='autoTested'>
+ * <pre class='autoTested'><code class="language-groovy">
  * plugins {
  *     id 'java'
  * }
@@ -92,7 +91,7 @@ import static org.gradle.util.internal.GUtil.isTrue;
  * }
  *
  * dependencies {
- *   //jaxDoclet "some.interesting:Dependency:1.0"
+ *   //jaxDoclet "some.interesting:dependency:1.0"
  * }
  *
  * task generateRestApiDocs(type: Javadoc) {
@@ -102,7 +101,7 @@ import static org.gradle.util.internal.GUtil.isTrue;
  *   options.doclet = "com.lunatech.doclets.jax.jaxrs.JAXRSDoclet"
  *   options.addStringOption("jaxrscontext", "http://localhost:8080/myapp")
  * }
- * </pre>
+ * </code></pre>
  */
 @CacheableTask
 public abstract class Javadoc extends SourceTask {

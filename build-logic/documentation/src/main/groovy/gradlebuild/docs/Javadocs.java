@@ -17,6 +17,7 @@
 package gradlebuild.docs;
 
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.provider.Property;
 
@@ -40,6 +41,11 @@ public abstract class Javadocs {
      * The CSS file to style Javadocs with
      */
     public abstract RegularFileProperty getJavadocCss();
+
+    /**
+     * The font files to style Javadocs with
+     */
+    public abstract DirectoryProperty getJavadocFontDir();
 
     /**
      * A collection of the final rendered Javaodcs
