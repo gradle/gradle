@@ -18,7 +18,9 @@ package org.gradle.internal.properties.annotations;
 
 import com.google.common.reflect.TypeToken;
 import org.gradle.api.Named;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.tasks.Input;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 
 import javax.annotation.Nullable;
