@@ -16,6 +16,8 @@
 
 package org.gradle.tooling.internal.provider.serialization;
 
+import org.gradle.internal.serialize.SerializedPayload;
+
 import java.io.Serializable;
 
 /**

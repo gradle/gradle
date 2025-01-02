@@ -34,8 +34,8 @@ import org.gradle.tooling.internal.protocol.InternalStreamedValueRelay;
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
 import org.gradle.tooling.internal.provider.connection.ProviderBuildResult;
-import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
-import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
+import org.gradle.internal.serialize.PayloadSerializer;
+import org.gradle.internal.serialize.SerializedPayload;
 import org.gradle.tooling.internal.provider.serialization.StreamedValue;
 import org.gradle.tooling.provider.model.UnknownModelException;
 

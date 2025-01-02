@@ -24,8 +24,8 @@ import org.gradle.internal.buildtree.BuildTreeModelTarget;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
 import org.gradle.tooling.internal.provider.action.BuildModelAction;
-import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
-import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
+import org.gradle.internal.serialize.PayloadSerializer;
+import org.gradle.internal.serialize.SerializedPayload;
 import org.gradle.tooling.provider.model.UnknownModelException;
 
 public class BuildModelActionRunner implements BuildActionRunner {

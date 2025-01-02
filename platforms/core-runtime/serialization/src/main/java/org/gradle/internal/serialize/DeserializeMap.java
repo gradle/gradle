@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.provider.serialization;
+package org.gradle.internal.serialize;
 
-import org.gradle.internal.classloader.ClassLoaderSpec;
-
-import java.util.List;
-
-/**
- * Used to create ClassLoaders used to serialize objects between the tooling api provider and daemon.
- *
- * <p>Implementations are not required to be thread-safe.</p>
- */
-public interface PayloadClassLoaderFactory {
-    ClassLoader getClassLoaderFor(ClassLoaderSpec spec, List<? extends ClassLoader> parents);
+public interface DeserializeMap {
+    /**
+     * Loads a serialized Class.
+     */
+    Class<?> resolveClass(ClassLoaderDetails classLoaderDetails, String className) throws ClassNotFoundException;
 }

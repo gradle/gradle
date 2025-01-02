@@ -14,21 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems;
+package org.gradle.internal.serialize;
 
-import org.gradle.api.Incubating;
-import org.gradle.api.problems.internal.InternalProblemSpec;
+import org.gradle.internal.classloader.ClassLoaderSpec;
 
-import java.io.Serializable;
+import java.util.List;
 
 /**
- * Marker interface for additional data that can be attached to a {@link Problem}.
- * It and all its contained Objects need to be Serializable to be able to be carried in a BuildEvent to the TAPI.
- * If the serialization fails it will be skipped for the events.
+ * Used to create ClassLoaders used to serialize objects between the tooling api provider and daemon.
  *
- * @see InternalProblemSpec#additionalData(AdditionalData)
- * @since 8.13
+ * <p>Implementations are not required to be thread-safe.</p>
  */
-@Incubating
-public interface AdditionalData extends Serializable {
+public interface PayloadClassLoaderFactory {
+    ClassLoader getClassLoaderFor(ClassLoaderSpec spec, List<? extends ClassLoader> parents);
 }

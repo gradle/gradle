@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.api.problems.internal
 
-import org.gradle.api.problems.GeneralData
+
 import org.gradle.api.problems.internal.ResolutionFailureData
 import org.gradle.integtests.fixtures.GroovyBuildScriptLanguage
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
@@ -77,8 +77,8 @@ class ResolutionFailureDataCrossVersionIntegrationTest extends ToolingApiSpecifi
         """
 
         when:
-        List<GeneralData> failureData = runAndGetProblems().collect { ProblemEvent event ->
-            event.problem.additionalData as GeneralData
+        def failureData = runAndGetProblems().collect { ProblemEvent event ->
+            event.problem.additionalData
         }
 
         then:

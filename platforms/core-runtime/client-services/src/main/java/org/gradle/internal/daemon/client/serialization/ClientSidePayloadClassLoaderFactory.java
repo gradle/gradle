@@ -20,7 +20,7 @@ import org.gradle.model.internal.asm.AsmConstants;
 import org.gradle.internal.classloader.ClassLoaderSpec;
 import org.gradle.internal.classloader.TransformingClassLoader;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
-import org.gradle.tooling.internal.provider.serialization.PayloadClassLoaderFactory;
+import org.gradle.internal.serialize.PayloadClassLoaderFactory;
 import org.gradle.tooling.provider.model.internal.LegacyConsumerInterface;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassReader;

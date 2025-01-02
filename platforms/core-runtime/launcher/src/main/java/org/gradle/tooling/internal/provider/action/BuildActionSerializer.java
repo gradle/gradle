@@ -49,8 +49,8 @@ import org.gradle.tooling.internal.protocol.test.InternalDebugOptions;
 import org.gradle.tooling.internal.protocol.test.InternalJvmTestRequest;
 import org.gradle.tooling.internal.protocol.test.InternalTaskSpec;
 import org.gradle.tooling.internal.protocol.test.InternalTestSpec;
-import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
-import org.gradle.tooling.internal.provider.serialization.SerializedPayloadSerializer;
+import org.gradle.internal.serialize.SerializedPayload;
+import org.gradle.internal.serialize.SerializedPayloadSerializer;
 
 import java.io.File;
 import java.io.Serializable;
