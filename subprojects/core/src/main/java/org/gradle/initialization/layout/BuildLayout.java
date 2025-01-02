@@ -31,6 +31,9 @@ public class BuildLayout extends SettingsLocation {
     //       A non null value can be a non existent file, which is semantically equivalent to an empty file
     public BuildLayout(File rootDirectory, File settingsDir, @Nullable File settingsFile, ScriptFileResolver scriptFileResolver) {
         super(settingsDir, settingsFile);
+        if (!rootDirectory.getAbsoluteFile().equals(settingsDir.getAbsoluteFile())) {
+            throw new IllegalArgumentException("Root dir differs from settings dir:\nroot dir: " + rootDirectory.getAbsoluteFile() + "\n settings dir: " + settingsDir.getAbsoluteFile());
+        }
         this.rootDirectory = rootDirectory;
         this.scriptFileResolver = scriptFileResolver;
     }
