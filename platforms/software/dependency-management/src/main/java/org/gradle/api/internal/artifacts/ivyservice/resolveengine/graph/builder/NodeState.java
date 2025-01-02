@@ -1044,7 +1044,7 @@ public class NodeState implements DependencyGraphNode {
     }
 
     private void disconnectOutgoingEdge(EdgeState outgoingEdge) {
-        outgoingEdge.removeFromTargetConfigurations();
+        outgoingEdge.detachFromTargetNodes();
         outgoingEdge.getSelector().getTargetModule().disconnectIncomingEdge(this, outgoingEdge);
         outgoingEdge.getSelector().release();
     }
@@ -1067,12 +1067,14 @@ public class NodeState implements DependencyGraphNode {
     private void restartIncomingEdges() {
         if (incomingEdges.size() == 1) {
             EdgeState singleEdge = incomingEdges.get(0);
-            singleEdge.restartConnected();
+            singleEdge.retarget();
         } else {
             for (EdgeState edge : new ArrayList<>(incomingEdges)) {
-                edge.restartConnected();
+                edge.retarget();
             }
         }
+        // TODO: Restarting incoming edges should ensure they are pointing to the correct node.
+        // If they end up pointing to us after restart, we should not remove them.
         clearIncomingEdges();
     }
 

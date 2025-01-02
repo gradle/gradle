@@ -146,7 +146,7 @@ public class VirtualPlatformState {
 
     void attachOrphanEdges() {
         for (EdgeState orphanEdge : orphanEdges) {
-            orphanEdge.attachToTargetConfigurations();
+            orphanEdge.attachToTargetNodes();
         }
         orphanEdges.clear();
     }
