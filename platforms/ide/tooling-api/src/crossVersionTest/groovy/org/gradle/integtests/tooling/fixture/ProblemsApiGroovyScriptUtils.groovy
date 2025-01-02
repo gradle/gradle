@@ -42,6 +42,14 @@ class ProblemsApiGroovyScriptUtils {
         }
     }
 
+    static String getGeneralDataString(GradleVersion targetVersion) {
+        if (targetVersion < GradleVersion.version("8.13")) {
+            "org.gradle.api.problems.internal.GeneralDataSpec, data -> data.put('aKey', 'aValue')"
+        } else {
+            "new org.gradle.api.problems.internal.DefaultGeneralData(['aKey': 'aValue'])"
+        }
+    }
+
     static String createIdExpression(String name = 'type', String displayName = 'label') {
         "org.gradle.api.problems.ProblemId.create(\"$name\", \"$displayName\", org.gradle.api.problems.ProblemGroup.create(\"generic\", \"Generic\"))"
     }
