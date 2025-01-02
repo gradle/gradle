@@ -1223,26 +1223,6 @@ The value of this property is derived from: <source>""")
         "getOrElse" | _
     }
 
-    def "may configure incrementally based on convention value"() {
-        given:
-        property.convention(['k0': '1'])
-        property.withActualValue {
-            it.putAll(['k1': '2', 'k2': '3'])
-            it.put('k2', '4')
-        }
-
-        expect:
-        assertValueIs(['k0': '1', 'k1': '2', 'k2': '4'])
-        property.explicit
-
-        when:
-        property.unset()
-
-        then:
-        assertValueIs(['k0': '1'])
-        !property.explicit
-    }
-
     def "may configure incrementally based on convention value using insert"() {
         given:
         property.convention(['k0': '1'])
@@ -1261,19 +1241,6 @@ The value of this property is derived from: <source>""")
         !property.explicit
     }
 
-    def "may configure explicit value incrementally"() {
-        given:
-        property.set([:])
-        property.withActualValue {
-            it.put('k0', '1')
-            it.putAll(['k1': '2', 'k2': '3'])
-            it.put('k2', '4')
-        }
-        expect:
-        assertValueIs(['k0': '1', 'k1': '2', 'k2': '4'])
-        assert property.explicit
-    }
-
     def "may configure explicit value incrementally using insert"() {
         given:
         property.set([:])
@@ -1281,18 +1248,6 @@ The value of this property is derived from: <source>""")
         property.insertAll(['k1': '2', 'k2': '3'])
         property.insert('k2', '4')
 
-        expect:
-        assertValueIs(['k0': '1', 'k1': '2', 'k2': '4'])
-        assert property.explicit
-    }
-
-    def "may configure actual value incrementally"() {
-        given:
-        property.withActualValue {
-            it.put('k0', '1')
-            it.putAll(['k1': '2', 'k2': '3'])
-            it.put('k2', '4')
-        }
         expect:
         assertValueIs(['k0': '1', 'k1': '2', 'k2': '4'])
         assert property.explicit
@@ -1306,17 +1261,6 @@ The value of this property is derived from: <source>""")
         expect:
         assertValueIs(['k0': '1', 'k1': '2', 'k2': '4'])
         assert property.explicit
-    }
-
-    def "may replace values originally set via convention"() {
-        given:
-        property.convention(['k0': '1', 'k1': '2', 'k2': '3'])
-        property.withActualValue {
-            it.put('k1', '4')
-        }
-        expect:
-        assertValueIs(['k0': '1', 'k1': '4', 'k2': '3'])
-        property.explicit
     }
 
     def "may replace values originally set via convention using insert"() {
@@ -1342,104 +1286,30 @@ The value of this property is derived from: <source>""")
         expected != null || !property.present
 
         where:
-        expected           | initial                  | operations                                           | label
-        [k1: "1"]          | {}                       | { it.put("k1", "1") }                                | "put"
-        [k1: "1"]          | {}                       | { it.insert("k1", "1") }                             | "insert"
-        null               | { it.set(notDefined()) } | { it.put("k1", "1") }                                | "put to missing"
-        [k1: "1"]          | { it.set(notDefined()) } | { it.insert("k1", "1") }                             | "insert to missing"
-        null               | {}                       | { it.put("k1", notDefined()) }                       | "put missing"
-        []                 | {}                       | { it.insert("k1", notDefined()) }                    | "insert missing"
-        [k1: "1"]          | { it.empty() }           | { it.put("k1", "1") }                                | "put after emptying"
-        [k1: "1"]          | { it.empty() }           | { it.insert("k1", "1") }                             | "insert after emptying"
-        [k1: "1"]          | { it.set([:]) }          | { it.put("k1", "1") }                                | "put to empty"
-        [k1: "1"]          | { it.set([:]) }          | { it.insert("k1", "1") }                             | "insert to empty"
-        [k2: "2"]          | {}                       | { it.put("k1", notDefined()); it.insert("k2", "2") } | "put missing then append"
-        [k2: "2"]          | {}                       | { it.insert("k1", notDefined()); it.put("k2", "2") } | "insert missing then add"
-        [k2: "2"]          | { it.set([k0: "0"]) }    | { it.put("k1", notDefined()); it.insert("k2", "2") } | "put missing to non-empty then append"
-        [k0: "0", k2: "2"] | { it.set([k0: "0"]) }    | { it.insert("k1", notDefined()); it.put("k2", "2") } | "insert missing to non-empty then add"
+        expected  | initial                  | operations                                           | label
+        [k1: "1"] | {}                       | { it.put("k1", "1") }                                | "put"
+        [k1: "1"] | {}                       | { it.insert("k1", "1") }                             | "insert"
+        null      | { it.set(notDefined()) } | { it.put("k1", "1") }                                | "put to missing"
+        null      | { it.set(notDefined()) } | { it.insert("k1", "1") }                             | "insert to missing"
+        null      | {}                       | { it.put("k1", notDefined()) }                       | "put missing"
+        null      | {}                       | { it.insert("k1", notDefined()) }                    | "insert missing"
+        [k1: "1"] | { it.empty() }           | { it.put("k1", "1") }                                | "put after emptying"
+        [k1: "1"] | { it.empty() }           | { it.insert("k1", "1") }                             | "insert after emptying"
+        [k1: "1"] | { it.set([:]) }          | { it.put("k1", "1") }                                | "put to empty"
+        [k1: "1"] | { it.set([:]) }          | { it.insert("k1", "1") }                             | "insert to empty"
+        null      | {}                       | { it.put("k1", notDefined()); it.insert("k2", "2") } | "put missing then append"
+        null      | {}                       | { it.insert("k1", notDefined()); it.put("k2", "2") } | "insert missing then add"
+        null      | { it.set([k0: "0"]) }    | { it.put("k1", notDefined()); it.insert("k2", "2") } | "put missing to non-empty then append"
+        null      | { it.set([k0: "0"]) }    | { it.insert("k1", notDefined()); it.put("k2", "2") } | "insert missing to non-empty then add"
     }
 
-    def "inserting into an undefined property is undefined-safe"() {
+    def "inserting into an undefined property is undefined"() {
         given:
         property.set((Map) null)
         property.insert('k4', '4')
 
         expect:
-        assertValueIs(['k4': '4'])
-    }
-
-    def "inserting after putting an undefined element provider is undefined-safe"() {
-        given:
-        property.putAll(Providers.of([k1: '1', k2: '2']))
-        property.put('k3', notDefined())
-        property.insert('k4', '4')
-
-        expect:
-        assertValueIs([k4: '4'])
-    }
-
-    def "inserting after putting an undefined map provider is undefined-safe"() {
-        given:
-        property.putAll(Providers.of([k1: '1', k2: '2']))
-        property.putAll(notDefined())
-        property.insert('k4', '4')
-
-        expect:
-        assertValueIs([k4: '4'])
-    }
-
-    def "inserting an undefined value provider is undefined-safe"() {
-        given:
-        property.insert("k1", notDefined())
-
-        expect:
-        assertValueIs([:])
-    }
-
-    def "inserting an undefined map provider is undefined-safe"() {
-        given:
-        property.insertAll(notDefined())
-
-        expect:
-        assertValueIs([:])
-    }
-
-    def "putting after inserting an undefined map provider into an empty map is left-side undefined-safe"() {
-        given:
-        property.insertAll(notDefined())
-        property.put("k1", "1")
-
-        expect:
-        assertValueIs([k1: '1'])
-    }
-
-    def "putting after inserting an undefined value provider into an empty map is left-side undefined-safe"() {
-        given:
-        property.insert("k1", notDefined())
-        property.put("k2", "2")
-
-        expect:
-        assertValueIs([k2: '2'])
-    }
-
-    def "putting after inserting an undefined map provider into a non-empty map is left-side undefined-safe"() {
-        given:
-        property.set(["k0": "0"])
-        property.insertAll(notDefined())
-        property.put("k1", "1")
-
-        expect:
-        assertValueIs([k0: '0', k1: '1'])
-    }
-
-    def "putting after inserting an undefined value provider into a non-emoty map is left-side undefined-safe"() {
-        given:
-        property.put("k0", "0")
-        property.insert("k1", notDefined())
-        property.put("k2", "2")
-
-        expect:
-        assertValueIs([k0: '0', k2: '2'])
+        !property.present
     }
 
     def "putting an undefined value provider after inserting is not right-side undefined-safe"() {
@@ -1462,35 +1332,6 @@ The value of this property is derived from: <source>""")
         property.getOrNull() == null
     }
 
-    def "putting after inserting an undefined value provider is undefined-safe"() {
-        given:
-        property.put("k0", "0")
-        property.insert("k1", notDefined())
-        property.put("k2", "2")
-
-        expect:
-        assertValueIs([k0: '0', k2: '2'])
-    }
-
-    def "execution time value is present if only undefined-safe operations are performed"() {
-        given:
-        property.set(notDefined())
-        property.put("a", notDefined())
-        property.insert("b", "2")
-        property.putAll([c: '3'])
-        property.putAll([d: '4'])
-        property.insert("e", notDefined())
-
-        expect:
-        assertValueIs([b: '2', c: '3', d: '4'])
-
-        when:
-        def execTimeValue = property.calculateExecutionTimeValue()
-
-        then:
-        assertEqualValues([b: '2', c: '3', d: '4'], execTimeValue.toValue().get())
-    }
-
     def "execution time value is missing if any undefined-safe operations are performed in the tail"() {
         given:
         property.set(notDefined())
@@ -1511,86 +1352,14 @@ The value of this property is derived from: <source>""")
         execTimeValue.toValue().isMissing()
     }
 
-    def "property restores undefined-safe items"() {
-        given:
-        property.put("a", "1")
-        property.insertAll(supplierWithChangingExecutionTimeValues(Map, value, value))
-        property.put("c", "3")
-
-        when:
-        def execTimeValue = property.calculateExecutionTimeValue()
-        def property2 = property()
-        property2.fromState(execTimeValue)
-
-        then:
-        assertValueIs(result, property2)
-
-        where:
-        value    | result
-        [b: "2"] | [a: "1", b: "2", c: "3"]
-        null     | [a: "1", c: "3"]
-    }
-
-    def "property remains undefined-safe after restored"() {
-        given:
-        property.put("a", notDefined())
-        property.insert("b", "2")
-        // changing execution time values or else we would end up with fixed values
-        property.putAll(supplierWithChangingExecutionTimeValues([c: '3a'], [c: '3b'], [c: '3c'], [c: '3d'], [c: '3e']))
-        property.putAll(supplierWithValues([d: '4']))
-        property.insert("e", notDefined())
-
-        when:
-        def execTimeValue = property.calculateExecutionTimeValue()
-        def property2 = property()
-        property2.fromState(execTimeValue)
-
-        then:
-        assertValueIs([b: '2', c: '3a', d: '4'], property2)
-
-        when:
-        property2.put("f", "6")
-        property2.insert("g", "7")
-        property2.insert("h", notDefined())
-        def execTimeValue2 = property2.calculateExecutionTimeValue()
-
-        then:
-        assertValueIs([b: '2', c: '3b', d: '4', f: '6', g: '7'], property2)
-
-        when:
-        def property3 = property()
-        property3.fromState(execTimeValue2)
-
-        then:
-        assertValueIs([b: '2', c: '3c', d: '4', f: '6', g: '7'], property3)
-    }
-
-    def "keySet provider has some values when property with no value is added via insert"() {
+    def "keySet provider has no values when property with no value is added via insert"() {
         given:
         property.set((Map) null)
-        property.put("k1", "1")
-        property.put("k2", notDefined())
         property.insert("k3", "3")
-        property.put("k4", "4")
         def keySetProvider = property.keySet()
 
         expect:
-        keySetProvider.present
-        keySetProvider.get() == ["k3", "k4"] as Set
-    }
-
-    def "keySet provider has no value when property with no value is added via insert"() {
-        given:
-        property.set((Map) null)
-        property.put("k1", "1")
-        property.put("k2", notDefined())
-        property.insert("k3", "3")
-        property.put("k4", "4")
-        def keySetProvider = property.keySet()
-
-        expect:
-        keySetProvider.present
-        keySetProvider.get() == ["k3", "k4"] as Set
+        !keySetProvider.present
     }
 
     def "can set explicit value to convention"() {
