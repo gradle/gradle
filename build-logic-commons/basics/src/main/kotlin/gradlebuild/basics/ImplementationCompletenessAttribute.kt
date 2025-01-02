@@ -14,19 +14,15 @@
  * limitations under the License.
  */
 
-import gradlebuild.basics.GradleModuleApiAttribute
-import gradlebuild.basics.ImplementationCompletenessAttribute
+package gradlebuild.basics
 
-configurations["runtimeElements"].attributes {
-    attribute(GradleModuleApiAttribute.attribute, GradleModuleApiAttribute.API)
-}
+import org.gradle.api.attributes.Attribute
 
-val apiStubElements = configurations.consumable("apiStubElements") {
-    isVisible = false
-    extendsFrom(configurations.named("implementation").get())
-    extendsFrom(configurations.named("compileOnly").get())
-//    configureAsApiElements(objects)
-    attributes {
-        attribute(ImplementationCompletenessAttribute.attribute, ImplementationCompletenessAttribute.STUBS)
+// TODO: Find a better name
+enum class ImplementationCompletenessAttribute {
+    STUBS, FULL;
+
+    companion object {
+        val attribute = Attribute.of(ImplementationCompletenessAttribute::class.java)
     }
 }

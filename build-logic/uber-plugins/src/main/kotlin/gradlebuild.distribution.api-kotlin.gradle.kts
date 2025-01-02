@@ -1,3 +1,8 @@
+import gradlebuild.configureAsRuntimeJarClasspath
+import org.jetbrains.kotlin.gradle.plugin.CompilerPluginConfig
+import org.jetbrains.kotlin.gradle.plugin.FilesSubpluginOption
+import org.jetbrains.kotlin.gradle.tasks.BaseKotlinCompile
+
 /*
  * Copyright 2020 the original author or authors.
  *
@@ -18,4 +23,42 @@ plugins {
     id("gradlebuild.kotlin-library")
     id("gradlebuild.distribution-module")
     id("gradlebuild.distribution.api")
+}
+
+val apiGenDependencies = configurations.dependencyScope("apiGen")
+val apiGenClasspath = configurations.resolvable("apiGenClasspath") {
+    extendsFrom(apiGenDependencies.get())
+    configureAsRuntimeJarClasspath(objects)
+}
+
+dependencies {
+    apiGenDependencies(libs.kotlinJvmAbiGenEmbeddable)
+}
+
+val abiClassesDirectory = layout.buildDirectory.dir("generated/kotlin-abi")
+kotlin {
+    target.compilations.named("main") {
+        compileTaskProvider.configure {
+            this as BaseKotlinCompile // TODO: Is there a way we can avoid a cast here?
+            pluginClasspath.from(apiGenClasspath)
+            outputs.dir(abiClassesDirectory)
+                .withPropertyName("abiClassesDirectory")
+            pluginOptions.add(provider {
+                CompilerPluginConfig().apply {
+                    addPluginArgument("org.jetbrains.kotlin.jvm.abi", FilesSubpluginOption(
+                        "outputDir", listOf(abiClassesDirectory.get().asFile)
+                    ))
+                }
+            })
+        }
+    }
+}
+
+configurations {
+    // TODO: Why are we not generating extensions for this configuration?
+    named("apiStubElements") {
+        outgoing.artifact(abiClassesDirectory) {
+            builtBy(kotlin.target.compilations.named("main").flatMap { it.compileTaskProvider })
+        }
+    }
 }
