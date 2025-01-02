@@ -21,7 +21,7 @@ import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.initialization.GradleUserHomeDirProvider;
-import org.gradle.initialization.layout.ProjectCacheDir;
+import org.gradle.initialization.location.ProjectCacheDir;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;

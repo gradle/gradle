@@ -22,7 +22,7 @@ import org.gradle.api.launcher.cli.WelcomeMessageConfiguration
 import org.gradle.api.launcher.cli.WelcomeMessageDisplayMode
 import org.gradle.internal.logging.ToStringLogger
 import org.gradle.launcher.bootstrap.ExecutionListener
-import org.gradle.launcher.configuration.BuildLayoutResult
+import org.gradle.launcher.configuration.BuildLocationResult
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GradleVersion
 import org.gradle.util.SetSystemProperties
@@ -39,7 +39,7 @@ class WelcomeMessageActionTest extends Specification {
     @TempDir
     public File temporaryFolder
 
-    BuildLayoutResult buildLayout
+    BuildLocationResult buildLayout
     File gradleUserHomeDir
     ToStringLogger log
     Action<ExecutionListener> delegateAction
@@ -48,7 +48,7 @@ class WelcomeMessageActionTest extends Specification {
 
     def setup() {
         gradleUserHomeDir = temporaryFolder
-        buildLayout = Mock(BuildLayoutResult) {
+        buildLayout = Mock(BuildLocationResult) {
             getGradleUserHomeDir() >> gradleUserHomeDir
         }
         log = new ToStringLogger()

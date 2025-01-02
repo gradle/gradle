@@ -21,9 +21,9 @@ import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 import org.gradle.internal.DefaultTaskExecutionRequest;
+import org.gradle.launcher.cli.converter.BuildLocationConverter;
 import org.gradle.launcher.configuration.AllProperties;
-import org.gradle.launcher.cli.converter.BuildLayoutConverter;
-import org.gradle.launcher.configuration.BuildLayoutResult;
+import org.gradle.launcher.configuration.BuildLocationResult;
 import org.gradle.launcher.cli.converter.InitialPropertiesConverter;
 import org.gradle.launcher.cli.converter.StartParameterConverter;
 import org.gradle.tooling.internal.protocol.InternalLaunchable;
@@ -55,7 +55,7 @@ class ProviderStartParameterConverter {
         return requests;
     }
 
-    public StartParameterInternal toStartParameter(ProviderOperationParameters parameters, BuildLayoutResult buildLayout, AllProperties properties) {
+    public StartParameterInternal toStartParameter(ProviderOperationParameters parameters, BuildLocationResult buildLayout, AllProperties properties) {
         // Important that this is constructed on the client so that it has the right gradleHomeDir and other state internally
         StartParameterInternal startParameter = new StartParameterInternal();
 
@@ -70,7 +70,7 @@ class ProviderStartParameterConverter {
         StartParameterConverter converter = new StartParameterConverter();
         CommandLineParser parser = new CommandLineParser();
         new InitialPropertiesConverter().configure(parser);
-        new BuildLayoutConverter().configure(parser);
+        new BuildLocationConverter().configure(parser);
         converter.configure(parser);
         ParsedCommandLine parsedCommandLine;
         try {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.initialization.layout;
+package org.gradle.initialization.location;
 
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.cache.scopes.BuildScopedCacheBuilderFactory;
@@ -27,14 +27,14 @@ import java.io.File;
  * Contains information about the build layout, resolved after running the settings script and selecting the default project.
  */
 @ServiceScope(Scope.Build.class)
-public class ResolvedBuildLayout {
+public class ResolvedBuildLocation {
     private final GradleInternal gradle;
-    private final BuildLayout buildLayout;
+    private final BuildLocation buildLocation;
     private final BuildScopedCacheBuilderFactory cacheBuilderFactory;
 
-    public ResolvedBuildLayout(GradleInternal gradle, BuildLayout buildLayout, BuildScopedCacheBuilderFactory cacheBuilderFactory) {
+    public ResolvedBuildLocation(GradleInternal gradle, BuildLocation buildLocation, BuildScopedCacheBuilderFactory cacheBuilderFactory) {
         this.gradle = gradle;
-        this.buildLayout = buildLayout;
+        this.buildLocation = buildLocation;
         this.cacheBuilderFactory = cacheBuilderFactory;
     }
 
@@ -61,7 +61,7 @@ public class ResolvedBuildLayout {
      * in that settings script.</p>
      */
     public boolean isBuildDefinitionMissing() {
-        boolean isNoBuildDefinitionFound = buildLayout.isBuildDefinitionMissing();
+        boolean isNoBuildDefinitionFound = buildLocation.isBuildDefinitionMissing();
         boolean isCurrentDirNotPartOfContainingBuild = gradle.getSettings().getSettingsScript().getResource().getLocation().getFile() == null;
         return isNoBuildDefinitionFound || isCurrentDirNotPartOfContainingBuild;
     }

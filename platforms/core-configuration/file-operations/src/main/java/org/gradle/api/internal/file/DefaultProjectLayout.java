@@ -38,7 +38,7 @@ import java.io.File;
 
 public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
 
-    private final Directory settingsDir;
+    private final Directory settingsDir; // TODO: build definition dir?
     private final Directory projectDir;
     private final DirectoryProperty buildDir;
     private final FileResolver fileResolver;

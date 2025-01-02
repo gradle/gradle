@@ -24,7 +24,7 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.execution.selection.BuildTaskSelector;
 import org.gradle.initialization.BuildClientMetaData;
-import org.gradle.initialization.layout.ResolvedBuildLayout;
+import org.gradle.initialization.location.ResolvedBuildLocation;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.util.GradleVersion;
@@ -75,7 +75,7 @@ public abstract class Help extends DefaultTask {
     }
 
     @Inject
-    protected ResolvedBuildLayout getResolvedBuildLayout() {
+    protected ResolvedBuildLocation getResolvedBuildLayout() {
         throw new UnsupportedOperationException();
     }
 

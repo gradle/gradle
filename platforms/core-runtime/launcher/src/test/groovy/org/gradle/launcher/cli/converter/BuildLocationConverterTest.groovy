@@ -19,12 +19,12 @@ package org.gradle.launcher.cli.converter
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.cli.CommandLineParser
 import org.gradle.initialization.BuildLayoutParameters
-import org.gradle.launcher.configuration.BuildLayoutResult
+import org.gradle.launcher.configuration.BuildLocationResult
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Specification
 
-class BuildLayoutConverterTest extends Specification {
+class BuildLocationConverterTest extends Specification {
     @Rule
     SetSystemProperties systemProperties = new SetSystemProperties()
 
@@ -114,10 +114,10 @@ class BuildLayoutConverterTest extends Specification {
         return parameters
     }
 
-    BuildLayoutResult toResult(List<String> args, @DelegatesTo(BuildLayoutParameters) Closure overrides = {}) {
+    BuildLocationResult toResult(List<String> args, @DelegatesTo(BuildLayoutParameters) Closure overrides = {}) {
         def parser = new CommandLineParser()
         def initialPropertiesConverter = new InitialPropertiesConverter()
-        def converter = new BuildLayoutConverter()
+        def converter = new BuildLocationConverter()
         initialPropertiesConverter.configure(parser)
         converter.configure(parser)
         def parsedCommandLine = parser.parse(args)

@@ -19,6 +19,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
+import org.gradle.initialization.location.BuildLocation;
 
 /**
  * Responsible for locating, constructing, and configuring the {@link SettingsInternal} for a build.
@@ -29,7 +30,7 @@ public interface SettingsProcessor {
      */
     SettingsState process(
         GradleInternal gradle,
-        SettingsLocation settingsLocation,
+        BuildLocation buildLocation,
         ClassLoaderScope buildRootClassLoaderScope,
         StartParameter startParameter
     );

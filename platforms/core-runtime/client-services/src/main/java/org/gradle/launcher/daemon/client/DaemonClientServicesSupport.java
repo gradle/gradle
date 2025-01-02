@@ -23,7 +23,7 @@ import org.gradle.cache.internal.DefaultCacheFactory;
 import org.gradle.cache.internal.DefaultUnscopedCacheBuilderFactory;
 import org.gradle.cache.internal.scopes.DefaultGlobalScopedCacheBuilderFactory;
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
-import org.gradle.initialization.layout.GlobalCacheDir;
+import org.gradle.initialization.location.GlobalCacheDir;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.id.IdGenerator;

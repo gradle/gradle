@@ -27,7 +27,7 @@ import org.gradle.initialization.ParallelismBuildOptions;
 import org.gradle.initialization.StartParameterBuildOptions;
 import org.gradle.internal.logging.LoggingConfigurationBuildOptions;
 import org.gradle.launcher.configuration.AllProperties;
-import org.gradle.launcher.configuration.BuildLayoutResult;
+import org.gradle.launcher.configuration.BuildLocationResult;
 
 public class StartParameterConverter {
     private final BuildOptionBackedConverter<WelcomeMessageConfiguration> welcomeMessageConfigurationCommandLineConverter = new BuildOptionBackedConverter<>(new WelcomeMessageBuildOptions());
@@ -45,7 +45,7 @@ public class StartParameterConverter {
         buildOptionsConverter.configure(parser);
     }
 
-    public StartParameterInternal convert(ParsedCommandLine parsedCommandLine, BuildLayoutResult buildLayout, AllProperties properties, StartParameterInternal startParameter) throws CommandLineArgumentException {
+    public StartParameterInternal convert(ParsedCommandLine parsedCommandLine, BuildLocationResult buildLayout, AllProperties properties, StartParameterInternal startParameter) throws CommandLineArgumentException {
         buildLayout.applyTo(startParameter);
 
         welcomeMessageConfigurationCommandLineConverter.convert(parsedCommandLine, properties.getProperties(), startParameter.getWelcomeMessageConfiguration());

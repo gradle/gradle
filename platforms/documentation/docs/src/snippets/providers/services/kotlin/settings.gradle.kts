@@ -1,4 +1,4 @@
-import org.gradle.initialization.layout.BuildLayout
+import org.gradle.api.file.BuildLayout
 
 rootProject.name = "services"
 

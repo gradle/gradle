@@ -25,7 +25,7 @@ import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.deployment.internal.DefaultDeploymentRegistry;
 import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.initialization.RootBuildLifecycleListener;
-import org.gradle.initialization.layout.BuildLayout;
+import org.gradle.initialization.location.BuildLocation;
 import org.gradle.internal.InternalBuildAdapter;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.build.BuildLifecycleController;
@@ -102,7 +102,7 @@ class DefaultRootBuildState extends AbstractCompositeParticipantBuildState imple
 
     @Override
     public File getBuildRootDir() {
-        return getBuildController().getGradle().getServices().get(BuildLayout.class).getRootDirectory();
+        return getBuildController().getGradle().getServices().get(BuildLocation.class).getBuildDefinitionDirectory();
     }
 
     @Override

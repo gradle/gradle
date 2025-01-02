@@ -20,6 +20,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
+import org.gradle.initialization.location.BuildLocation;
 
 public class SettingsEvaluatedCallbackFiringSettingsProcessor implements SettingsProcessor {
 
@@ -30,8 +31,8 @@ public class SettingsEvaluatedCallbackFiringSettingsProcessor implements Setting
     }
 
     @Override
-    public SettingsState process(GradleInternal gradle, SettingsLocation settingsLocation, ClassLoaderScope buildRootClassLoaderScope, StartParameter startParameter) {
-        SettingsState state = delegate.process(gradle, settingsLocation, buildRootClassLoaderScope, startParameter);
+    public SettingsState process(GradleInternal gradle, BuildLocation buildLocation, ClassLoaderScope buildRootClassLoaderScope, StartParameter startParameter) {
+        SettingsState state = delegate.process(gradle, buildLocation, buildRootClassLoaderScope, startParameter);
         SettingsInternal settings = state.getSettings();
         gradle.getBuildListenerBroadcaster().settingsEvaluated(settings);
         settings.preventFromFurtherMutation();

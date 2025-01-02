@@ -18,19 +18,19 @@ package org.gradle.launcher.configuration;
 
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.initialization.BuildLayoutParameters;
-import org.gradle.initialization.layout.BuildLayoutConfiguration;
+import org.gradle.initialization.location.BuildLocationConfiguration;
 
 import java.io.File;
 
 /**
  * Immutable build layout parameters, calculated from the command-line options and environment.
  */
-public interface BuildLayoutResult {
-    void applyTo(BuildLayoutParameters buildLayout);
+public interface BuildLocationResult {
+    void applyTo(BuildLayoutParameters buildLayoutParameters);
 
     void applyTo(StartParameterInternal startParameter);
 
-    BuildLayoutConfiguration toLayoutConfiguration();
+    BuildLocationConfiguration toLocationConfiguration();
 
     File getGradleInstallationHomeDir();
 

@@ -148,10 +148,10 @@ import org.gradle.initialization.SettingsProcessor;
 import org.gradle.initialization.buildsrc.BuildSourceBuilder;
 import org.gradle.initialization.buildsrc.BuildSrcBuildListenerFactory;
 import org.gradle.initialization.buildsrc.BuildSrcProjectConfigurationAction;
-import org.gradle.initialization.layout.BuildLayout;
-import org.gradle.initialization.layout.BuildLayoutConfiguration;
-import org.gradle.initialization.layout.BuildLayoutFactory;
-import org.gradle.initialization.layout.ResolvedBuildLayout;
+import org.gradle.initialization.location.BuildLocation;
+import org.gradle.initialization.location.BuildLocationConfiguration;
+import org.gradle.initialization.location.BuildLocationFactory;
+import org.gradle.initialization.location.ResolvedBuildLocation;
 import org.gradle.initialization.properties.DefaultProjectPropertiesLoader;
 import org.gradle.initialization.properties.DefaultSystemPropertiesInstaller;
 import org.gradle.initialization.properties.ProjectPropertiesLoader;
@@ -250,7 +250,7 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         registration.add(DefaultArchiveOperations.class);
         registration.add(ProjectFactory.class);
         registration.add(DefaultSettingsLoaderFactory.class);
-        registration.add(ResolvedBuildLayout.class);
+        registration.add(ResolvedBuildLocation.class);
         registration.add(DefaultNodeValidator.class);
         registration.add(TaskNodeFactory.class);
         registration.add(TaskNodeDependencyResolver.class);
@@ -302,17 +302,17 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
     @Provides
     protected BuildScopedCacheBuilderFactory createBuildScopedCacheBuilderFactory(
         GradleUserHomeDirProvider userHomeDirProvider,
-        BuildLayout buildLayout,
+        BuildLocation buildLocation,
         StartParameter startParameter,
         UnscopedCacheBuilderFactory unscopedCacheBuilderFactory
     ) {
-        BuildScopeCacheDir cacheDir = new BuildScopeCacheDir(userHomeDirProvider, buildLayout, startParameter);
+        BuildScopeCacheDir cacheDir = new BuildScopeCacheDir(userHomeDirProvider, buildLocation, startParameter);
         return new DefaultBuildScopedCacheBuilderFactory(cacheDir.getDir(), unscopedCacheBuilderFactory);
     }
 
     @Provides
-    protected BuildLayout createBuildLocations(BuildLayoutFactory buildLayoutFactory, BuildDefinition buildDefinition) {
-        return buildLayoutFactory.getLayoutFor(new BuildLayoutConfiguration(buildDefinition.getStartParameter()));
+    protected BuildLocation createBuildLocations(BuildLocationFactory buildLocationFactory, BuildDefinition buildDefinition) {
+        return buildLocationFactory.getLocationFor(new BuildLocationConfiguration(buildDefinition.getStartParameter()));
     }
 
     @Provides

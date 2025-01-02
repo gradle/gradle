@@ -30,7 +30,7 @@ import org.gradle.cli.ParsedCommandLine;
 import org.gradle.configuration.DefaultBuildClientMetaData;
 import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.initialization.BuildClientMetaData;
-import org.gradle.initialization.layout.BuildLayoutFactory;
+import org.gradle.initialization.location.BuildLocationFactory;
 import org.gradle.internal.Actions;
 import org.gradle.internal.buildevents.BuildExceptionReporter;
 import org.gradle.internal.jvm.Jvm;
@@ -47,13 +47,13 @@ import org.gradle.internal.service.scopes.BasicGlobalScopeServices;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.launcher.bootstrap.CommandLineActionFactory;
 import org.gradle.launcher.bootstrap.ExecutionListener;
-import org.gradle.launcher.cli.converter.BuildLayoutConverter;
+import org.gradle.launcher.cli.converter.BuildLocationConverter;
+import org.gradle.launcher.cli.converter.BuildLocationToPropertiesConverter;
 import org.gradle.launcher.cli.converter.BuildOptionBackedConverter;
 import org.gradle.launcher.cli.converter.InitialPropertiesConverter;
-import org.gradle.launcher.cli.converter.LayoutToPropertiesConverter;
 import org.gradle.launcher.cli.converter.WelcomeMessageBuildOptions;
 import org.gradle.launcher.configuration.AllProperties;
-import org.gradle.launcher.configuration.BuildLayoutResult;
+import org.gradle.launcher.configuration.BuildLocationResult;
 import org.gradle.launcher.configuration.InitialProperties;
 import org.gradle.util.internal.DefaultGradleVersion;
 
@@ -350,7 +350,7 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
         public void execute(ExecutionListener executionListener) {
             ServiceRegistry basicServices = createBasicGlobalServices(loggingServices);
             BuildEnvironmentConfigurationConverter buildEnvironmentConfigurationConverter = new BuildEnvironmentConfigurationConverter(
-                new BuildLayoutFactory(),
+                new BuildLocationFactory(),
                 basicServices.get(FileCollectionFactory.class));
             buildEnvironmentConfigurationConverter.configure(parser);
 
@@ -436,14 +436,14 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
             BuildOptionBackedConverter<WelcomeMessageConfiguration> welcomeMessageConverter = new BuildOptionBackedConverter<>(new WelcomeMessageBuildOptions());
             BuildOptionBackedConverter<LoggingConfiguration> loggingBuildOptions = new BuildOptionBackedConverter<>(new LoggingConfigurationBuildOptions());
             InitialPropertiesConverter propertiesConverter = new InitialPropertiesConverter();
-            BuildLayoutConverter buildLayoutConverter = new BuildLayoutConverter();
-            LayoutToPropertiesConverter layoutToPropertiesConverter = new LayoutToPropertiesConverter(new BuildLayoutFactory());
+            BuildLocationConverter buildLocationConverter = new BuildLocationConverter();
+            BuildLocationToPropertiesConverter buildLocationToPropertiesConverter = new BuildLocationToPropertiesConverter(new BuildLocationFactory());
 
-            BuildLayoutResult buildLayout = buildLayoutConverter.defaultValues();
+            BuildLocationResult buildLocationResult = buildLocationConverter.defaultValues();
 
             CommandLineParser parser = new CommandLineParser();
             propertiesConverter.configure(parser);
-            buildLayoutConverter.configure(parser);
+            buildLocationConverter.configure(parser);
             loggingBuildOptions.configure(parser);
 
             parser.allowUnknownOptions();
@@ -456,10 +456,10 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
                 InitialProperties initialProperties = propertiesConverter.convert(parsedCommandLine);
 
                 // Calculate build layout, for loading properties and other logging configuration
-                buildLayout = buildLayoutConverter.convert(initialProperties, parsedCommandLine, null);
+                buildLocationResult = buildLocationConverter.convert(initialProperties, parsedCommandLine, null);
 
                 // Read *.properties files
-                AllProperties properties = layoutToPropertiesConverter.convert(initialProperties, buildLayout);
+                AllProperties properties = buildLocationToPropertiesConverter.convert(initialProperties, buildLocationResult);
 
                 // Calculate the logging configuration
                 loggingBuildOptions.convert(parsedCommandLine, properties.getProperties(), loggingConfiguration);
@@ -476,8 +476,8 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
             try {
                 Action<ExecutionListener> exceptionReportingAction =
                     new ExceptionReportingAction(reporter, loggingManager,
-                        new NativeServicesInitializingAction(buildLayout, loggingConfiguration, loggingManager,
-                            new WelcomeMessageAction(buildLayout, welcomeMessageConfiguration,
+                        new NativeServicesInitializingAction(buildLocationResult, loggingConfiguration, loggingManager,
+                            new WelcomeMessageAction(buildLocationResult, welcomeMessageConfiguration,
                                 new DebugLoggerWarningAction(loggingConfiguration, action))));
                 exceptionReportingAction.execute(executionListener);
             } finally {

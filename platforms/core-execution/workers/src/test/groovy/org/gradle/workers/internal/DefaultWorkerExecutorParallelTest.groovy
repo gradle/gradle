@@ -18,7 +18,7 @@ package org.gradle.workers.internal
 
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.model.ObjectFactory
-import org.gradle.initialization.layout.ProjectCacheDir
+import org.gradle.initialization.location.ProjectCacheDir
 import org.gradle.internal.Actions
 import org.gradle.internal.Factory
 import org.gradle.internal.classpath.CachedClasspathTransformer
