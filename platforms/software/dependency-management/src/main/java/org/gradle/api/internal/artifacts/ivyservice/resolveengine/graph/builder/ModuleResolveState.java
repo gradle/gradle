@@ -284,17 +284,19 @@ public class ModuleResolveState implements CandidateModule {
     private void restartUnattachedEdges() {
         if (unattachedEdges.size() == 1) {
             EdgeState singleEdge = unattachedEdges.get(0);
-            singleEdge.restart();
+            singleEdge.retarget();
         } else {
             for (EdgeState edge : new ArrayList<>(unattachedEdges)) {
-                edge.restart();
+                edge.retarget();
             }
         }
     }
 
     public void addUnattachedEdge(EdgeState edge) {
-        unattachedEdges.add(edge);
-        edge.markUnattached();
+        if (!edge.isUnattached()) {
+            unattachedEdges.add(edge);
+            edge.markUnattached();
+        }
     }
 
     public void removeUnattachedEdge(EdgeState edge) {

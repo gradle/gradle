@@ -806,6 +806,16 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
     }
 
     @Override
+    MavenModule eachVariant(@DelegatesTo(value = VariantMetadataSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> action) {
+        variants.each { variant ->
+            action.resolveStrategy = Closure.DELEGATE_FIRST
+            action.delegate = variant
+            action()
+        }
+        return this
+    }
+
+    @Override
     MavenModule withoutDefaultVariants() {
         variants.clear()
         this
