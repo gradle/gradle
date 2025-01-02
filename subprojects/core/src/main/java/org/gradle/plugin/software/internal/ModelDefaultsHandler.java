@@ -17,10 +17,11 @@
 package org.gradle.plugin.software.internal;
 
 import org.gradle.api.Plugin;
+import org.gradle.api.internal.initialization.ClassLoaderScope;
 
 /**
  * Applies the model defaults from a given software type to a target object.
  */
 public interface ModelDefaultsHandler {
-    <T> void apply(T target, String softwareTypeName, Plugin<?> plugin);
+    <T> void apply(T target, ClassLoaderScope classLoaderScope, String softwareTypeName, Plugin<?> plugin);
 }

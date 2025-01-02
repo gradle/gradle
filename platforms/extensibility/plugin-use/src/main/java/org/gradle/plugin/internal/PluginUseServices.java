@@ -28,6 +28,7 @@ import org.gradle.api.internal.initialization.StandaloneDomainObjectContext;
 import org.gradle.api.internal.plugins.PluginInspector;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.plugins.software.SoftwareType;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
 import org.gradle.api.internal.tasks.properties.InspectionSchemeFactory;
 import org.gradle.api.problems.internal.InternalProblems;
@@ -206,8 +207,14 @@ public class PluginUseServices extends AbstractGradleModuleServices {
     @NonNullApi
     private static class ProjectScopeServices implements ServiceRegistrationProvider {
         @Provides
-        SoftwareFeatureApplicator createSoftwareFeatureApplicator(ModelDefaultsApplicator modelDefaultsApplicator, PluginScheme pluginScheme, InternalProblems problems, PluginManagerInternal pluginManager) {
-            return new DefaultSoftwareFeatureApplicator(modelDefaultsApplicator, pluginScheme.getInspectionScheme(), problems, pluginManager);
+        SoftwareFeatureApplicator createSoftwareFeatureApplicator(
+            ModelDefaultsApplicator modelDefaultsApplicator,
+            PluginScheme pluginScheme,
+            InternalProblems problems,
+            PluginManagerInternal pluginManager,
+            ProjectInternal project
+        ) {
+            return new DefaultSoftwareFeatureApplicator(modelDefaultsApplicator, pluginScheme.getInspectionScheme(), problems, pluginManager, project.getClassLoaderScope());
         }
 
         @Provides

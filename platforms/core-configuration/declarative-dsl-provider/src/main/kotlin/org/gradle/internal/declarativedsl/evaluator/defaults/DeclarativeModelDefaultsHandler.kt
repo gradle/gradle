@@ -17,6 +17,7 @@
 package org.gradle.internal.declarativedsl.evaluator.defaults
 
 import org.gradle.api.Plugin
+import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.declarative.dsl.evaluation.EvaluationSchema
 import org.gradle.internal.declarativedsl.analysis.AssignmentRecord
 import org.gradle.internal.declarativedsl.analysis.ObjectOrigin
@@ -51,7 +52,7 @@ abstract class DeclarativeModelDefaultsHandler @Inject constructor(softwareTypeR
     private
     val modelDefaultsRepository = softwareTypeRegistryBasedModelDefaultsRepository(softwareTypeRegistry)
 
-    override fun <T : Any> apply(target: T, softwareTypeName: String, plugin: Plugin<*>) {
+    override fun <T : Any> apply(target: T, classLoaderScope: ClassLoaderScope, softwareTypeName: String, plugin: Plugin<*>) {
         val analysisStepRunner = ApplyDefaultsOnlyAnalysisStepRunner()
         val analysisStepContext = AnalysisStepContext(
             emptySet(),
@@ -63,7 +64,7 @@ abstract class DeclarativeModelDefaultsHandler @Inject constructor(softwareTypeR
                 "<none>",
                 "",
                 step,
-                ConversionStepContext(target, analysisStepContext)
+                ConversionStepContext(target, { classLoaderScope.localClassLoader }, analysisStepContext)
             )
 
         when (result) {
