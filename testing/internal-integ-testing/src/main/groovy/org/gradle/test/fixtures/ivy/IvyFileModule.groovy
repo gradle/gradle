@@ -150,6 +150,16 @@ class IvyFileModule extends AbstractModule implements IvyModule {
     }
 
     @Override
+    Module eachVariant(@DelegatesTo(value = VariantMetadataSpec.class, strategy = Closure.DELEGATE_FIRST) Closure<?> action) {
+        variants.each { variant ->
+            action.resolveStrategy = Closure.DELEGATE_FIRST
+            action.delegate = variant
+            action()
+        }
+        return this
+    }
+
+    @Override
     IvyModule withoutDefaultVariants() {
         variants.clear()
         return this
