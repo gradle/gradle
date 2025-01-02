@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,37 +22,11 @@ import org.gradle.api.internal.plugins.PluginAwareInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 
 import javax.annotation.Nullable;
-import java.util.Locale;
 
 /**
- * Uniquely identifies the target of some configuration.
- *
- * This is primarily used to support
- * {@code ApplyScriptPluginBuildOperationType.Details} and {@code ApplyPluginBuildOperationType.Details}.
+ * @see ConfigurationTargetIdentifier
  */
-public abstract class ConfigurationTargetIdentifier {
-
-    private ConfigurationTargetIdentifier() {
-    }
-
-    public enum Type {
-        GRADLE,
-        SETTINGS,
-        PROJECT;
-
-        public final String label = name().toLowerCase(Locale.ROOT);
-    }
-
-    public abstract Type getTargetType();
-
-    /**
-     * If type == project, that project's path (not identity path).
-     * Else, null.
-     */
-    @Nullable
-    public abstract String getTargetPath();
-
-    public abstract String getBuildPath();
+public class ConfigurationTargetIdentifiers {
 
     /**
      * Returns null if the thing is of an unknown type.
@@ -127,5 +101,4 @@ public abstract class ConfigurationTargetIdentifier {
             }
         };
     }
-
 }
