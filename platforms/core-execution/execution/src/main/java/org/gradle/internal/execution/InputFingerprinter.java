@@ -21,10 +21,13 @@ import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.internal.execution.UnitOfWork.InputVisitor;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.snapshot.ValueSnapshot;
 
 import java.util.function.Consumer;
 
+@ServiceScope(Scope.BuildSession.class)
 public interface InputFingerprinter {
     Result fingerprintInputProperties(
         ImmutableSortedMap<String, ValueSnapshot> previousValueSnapshots,
