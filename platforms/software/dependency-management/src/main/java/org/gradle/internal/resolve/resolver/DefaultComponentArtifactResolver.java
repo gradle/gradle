@@ -40,7 +40,7 @@ public class DefaultComponentArtifactResolver implements ComponentArtifactResolv
 
     @Override
     public Set<ResolvableArtifact> resolveArtifacts(List<? extends ComponentArtifactMetadata> artifacts) {
-        ImmutableSet.Builder<ResolvableArtifact> resolvedArtifacts = ImmutableSet.builder();
+        ImmutableSet.Builder<ResolvableArtifact> resolvedArtifacts = ImmutableSet.builderWithExpectedSize(artifacts.size());
         for (ComponentArtifactMetadata artifact : artifacts) {
             DefaultBuildableArtifactResolveResult result = new DefaultBuildableArtifactResolveResult();
             artifactResolver.resolveArtifact(component, artifact, result);
