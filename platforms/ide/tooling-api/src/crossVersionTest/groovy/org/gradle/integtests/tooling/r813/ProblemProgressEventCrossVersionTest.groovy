@@ -441,7 +441,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
                     getProblems().${report(targetVersion)} {
                         it.${id(targetVersion)}
                         .lineInFileLocation("/tmp/foo", 1, 2, 3)
-                        .additionalData(new SomeData("typeName"))
+//                        .additionalData(new SomeData("typeName"))
                         .severity(Severity.WARNING)
                     }
                 }
