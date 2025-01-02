@@ -17,9 +17,12 @@ package org.gradle.api.internal.attributes;
 
 import org.gradle.api.attributes.Attribute;
 import org.gradle.internal.isolation.Isolatable;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.Map;
 
+@ServiceScope(Scope.BuildSession.class)
 public interface AttributesFactory {
     /**
      * Returns an empty mutable attribute container.

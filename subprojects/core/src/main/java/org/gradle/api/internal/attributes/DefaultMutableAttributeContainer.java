@@ -41,12 +41,14 @@ final class DefaultMutableAttributeContainer extends AbstractAttributeContainer 
     private Map<Attribute<?>, Provider<?>> lazyAttributes = Cast.uncheckedCast(Collections.EMPTY_MAP);
     private boolean realizingAttributes = false;
 
-    private final DefaultAttributesFactory attributesFactory;
+    private final AttributesFactory attributesFactory;
+    private final AttributeValueIsolator attributeValueIsolator;
 
     private ImmutableAttributes immutableValue;
 
-    public DefaultMutableAttributeContainer(DefaultAttributesFactory attributesFactory) {
+    public DefaultMutableAttributeContainer(AttributesFactory attributesFactory, AttributeValueIsolator attributeValueIsolator) {
         this.attributesFactory = attributesFactory;
+        this.attributeValueIsolator = attributeValueIsolator;
     }
 
     @Override
@@ -78,7 +80,7 @@ final class DefaultMutableAttributeContainer extends AbstractAttributeContainer 
         assertAttributeValueIsNotNull(value);
         assertAttributeTypeIsValid(value.getClass(), key);
         immutableValue = null;
-        attributes.put(key, attributesFactory.isolate(value));
+        attributes.put(key, attributeValueIsolator.isolate(value));
         removeLazyAttributeIfPresent(key);
     }
 

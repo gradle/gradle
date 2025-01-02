@@ -21,6 +21,7 @@ import groovy.transform.stc.SimpleType
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.AttributesSchema
 import org.gradle.api.internal.attributes.AttributeSchemaServices
+import org.gradle.api.internal.attributes.AttributeValueIsolator
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.attributes.DefaultAttributesFactory
 import org.gradle.api.internal.attributes.DefaultAttributesSchema
@@ -30,8 +31,13 @@ import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchemaFac
 import org.gradle.api.internal.attributes.immutable.artifact.ImmutableArtifactTypeRegistryFactory
 
 class AttributeTestUtil {
+
+    static AttributeValueIsolator attributeValueIsolator() {
+        return new AttributeValueIsolator(SnapshotTestUtil.isolatableFactory(), TestUtil.objectInstantiator())
+    }
+
     static DefaultAttributesFactory attributesFactory() {
-        return new DefaultAttributesFactory(SnapshotTestUtil.isolatableFactory(), TestUtil.objectInstantiator())
+        return new DefaultAttributesFactory(attributeValueIsolator(), SnapshotTestUtil.isolatableFactory(), TestUtil.objectInstantiator())
     }
 
     /**
