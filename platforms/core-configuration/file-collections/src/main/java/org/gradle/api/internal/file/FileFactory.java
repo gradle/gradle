@@ -18,9 +18,12 @@ package org.gradle.api.internal.file;
 
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.RegularFile;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.io.File;
 
+@ServiceScope({Scope.Global.class, Scope.Project.class})
 public interface FileFactory {
     Directory dir(File dir);
 
