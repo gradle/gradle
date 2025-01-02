@@ -17,6 +17,8 @@
 package org.gradle.internal.encryption
 
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.service.scopes.Scope
+import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.util.internal.EncryptionAlgorithm
 import java.io.InputStream
 import java.io.OutputStream
@@ -25,6 +27,7 @@ import java.io.OutputStream
 /**
  * Provides access to configuration parameters to control encryption.
  */
+@ServiceScope(Scope.BuildTree::class)
 interface EncryptionConfiguration {
     val isEncrypting: Boolean
     val encryptionKeyHashCode: HashCode
@@ -35,6 +38,7 @@ interface EncryptionConfiguration {
 /**
  * A service for encrypting/decrypting streams.
  */
+@ServiceScope(Scope.BuildTree::class)
 interface EncryptionService : EncryptionConfiguration {
     fun outputStream(output: OutputStream): OutputStream
     fun inputStream(input: InputStream): InputStream
