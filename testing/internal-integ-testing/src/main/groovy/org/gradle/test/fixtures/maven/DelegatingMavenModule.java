@@ -308,6 +308,12 @@ public abstract class DelegatingMavenModule<T extends MavenModule> implements Ma
     }
 
     @Override
+    public MavenModule eachVariant(Closure<?> action) {
+        backingModule.eachVariant(action);
+        return this;
+    }
+
+    @Override
     public Map<String, String> getAttributes() {
         return backingModule.getAttributes();
     }
