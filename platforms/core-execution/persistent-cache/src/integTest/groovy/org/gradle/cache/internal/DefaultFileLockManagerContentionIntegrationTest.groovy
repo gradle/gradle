@@ -23,6 +23,7 @@ import org.gradle.cache.internal.filelock.DefaultLockOptions
 import org.gradle.cache.internal.locklistener.DefaultFileLockContentionHandler
 import org.gradle.cache.internal.locklistener.FileLockContentionHandler
 import org.gradle.cache.internal.locklistener.InetAddressProvider
+import org.gradle.cache.internal.locklistener.UnixDomainSocketFileCommunicatorProvider
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.internal.concurrent.DefaultExecutorFactory
@@ -378,7 +379,7 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
             Iterable<InetAddress> getCommunicationAddresses() {
                 return addressFactory.communicationAddresses
             }
-        })
+        }, new UnixDomainSocketFileCommunicatorProvider())
         def fileLockManager = new DefaultFileLockManager(new ProcessMetaDataProvider() {
             String getProcessIdentifier() { return "pid" }
             String getProcessDisplayName() { return "process" }
