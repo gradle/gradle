@@ -25,7 +25,6 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.quality.Checkstyle;
 import org.gradle.api.plugins.quality.CheckstyleExtension;
 import org.gradle.api.tasks.Copy;
-import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.javadoc.Javadoc;
