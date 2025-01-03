@@ -23,23 +23,16 @@ import org.gradle.initialization.MixInLegacyTypesClassLoader;
 import org.gradle.internal.classloader.ClassLoaderSpec;
 import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
-import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.service.ServiceRegistry;
 
 public class IsolatedClassloaderWorker extends AbstractClassLoaderWorker {
     private final GroovySystemLoaderFactory groovySystemLoaderFactory = new GroovySystemLoaderFactory();
     private ClassLoader workerClassLoader;
-    private boolean reuseClassloader;
 
     public IsolatedClassloaderWorker(ClassLoader workerClassLoader, ServiceRegistry workServices, ActionExecutionSpecFactory actionExecutionSpecFactory, InstantiatorFactory instantiatorFactory) {
         super(workServices, actionExecutionSpecFactory, instantiatorFactory);
         this.workerClassLoader = workerClassLoader;
-    }
-
-    public IsolatedClassloaderWorker(ClassLoader workerClassLoader, ServiceRegistry workServices, ActionExecutionSpecFactory actionExecutionSpecFactory, InstantiatorFactory instantiatorFactory, boolean reuseClassloader) {
-        this(workerClassLoader, workServices, actionExecutionSpecFactory, instantiatorFactory);
-        this.reuseClassloader = reuseClassloader;
     }
 
     @Override
@@ -50,10 +43,7 @@ public class IsolatedClassloaderWorker extends AbstractClassLoaderWorker {
         } finally {
             workerClasspathGroovy.shutdown();
             // TODO: we should just cache these classloaders and eject/stop them when they are no longer in use
-            if (!reuseClassloader) {
-                CompositeStoppable.stoppable(workerClassLoader).stop();
-                this.workerClassLoader = null;
-            }
+            this.workerClassLoader = null;
         }
     }
 
