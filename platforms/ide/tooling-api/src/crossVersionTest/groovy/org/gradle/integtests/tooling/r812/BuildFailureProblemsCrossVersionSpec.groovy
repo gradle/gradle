@@ -99,7 +99,6 @@ class BuildFailureProblemsCrossVersionSpec extends ToolingApiSpecification {
         e.failures[0].causes[0].problems[0].definition.id.displayName == 'Selection failed'
     }
 
-    @TargetGradleVersion('>=8.12 <8.13')
     def "failure from worker using process isolation"() {
         setup:
         file('buildSrc/build.gradle') << """
@@ -138,11 +137,7 @@ class BuildFailureProblemsCrossVersionSpec extends ToolingApiSpecification {
                 @Override
                 public void execute() {
                     Exception wrappedException = new Exception("Wrapped cause");
-                     getProblems().getReporter().throwing(${targetVersion >= GradleVersion.version('8.13') ? 'new RuntimeException("Exception message", wrappedException), ' : ''}problem -> problem
-                            .${ProblemsApiGroovyScriptUtils.id(targetVersion)}
-                            .stackLocation()
-                            ${targetVersion >= GradleVersion.version('8.13') ? '' : '.withException(new RuntimeException("Exception message", wrappedException))'}
-                    );
+                    ${throwAsProblem('new RuntimeException("Exception message", wrappedException)')}
                 }
             }
         """
@@ -180,5 +175,24 @@ class BuildFailureProblemsCrossVersionSpec extends ToolingApiSpecification {
         problem.definition.id.name == 'type'
         problem.definition.id.displayName == 'label'
         problem.failure.message == 'Exception message'
+    }
+
+
+    private String throwAsProblem(String exception) {
+        if (targetVersion >= GradleVersion.version('8.13')) {
+            """
+                getProblems().getReporter().throwing($exception, ${ProblemsApiGroovyScriptUtils.createIdExpression()}, problem ->
+                    problem.stackLocation()
+                );
+            """
+        } else {
+            """
+                getProblems().getReporter().throwing(problem -> problem
+                    .${ProblemsApiGroovyScriptUtils.id(targetVersion)}
+                    .stackLocation()
+                    .withException($exception)
+                );
+            """
+        }
     }
 }
