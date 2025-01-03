@@ -89,18 +89,15 @@ public class ProblemsProgressEventUtils {
     }
 
     static InternalProblemEventVersion2 createProblemEvent(OperationIdentifier buildOperationId, DefaultProblemProgressDetails details, Supplier<OperationIdentifier> operationIdentifierSupplier) {
-        return createProblemEvent(buildOperationId, details.getProblem(), operationIdentifierSupplier);
-    }
-
-    static InternalProblemEventVersion2 createProblemSummaryEvent(@Nullable OperationIdentifier buildOperationId, DefaultProblemsSummaryProgressDetails details, Supplier<OperationIdentifier> operationIdentifierSupplier) {
-        return createProblemSummaryEvent(buildOperationId, details.getProblemIdCounts(), operationIdentifierSupplier);
-    }
-
-    private static InternalProblemEventVersion2 createProblemEvent(OperationIdentifier buildOperationId, Problem problem, Supplier<OperationIdentifier> operationIdentifierSupplier) {
+        Problem problem = details.getProblem();
         return new DefaultProblemEvent(
             createDefaultProblemDescriptor(buildOperationId, operationIdentifierSupplier),
             createDefaultProblemDetails(problem)
         );
+    }
+
+    static InternalProblemEventVersion2 createProblemSummaryEvent(@Nullable OperationIdentifier buildOperationId, DefaultProblemsSummaryProgressDetails details, Supplier<OperationIdentifier> operationIdentifierSupplier) {
+        return createProblemSummaryEvent(buildOperationId, details.getProblemIdCounts(), operationIdentifierSupplier);
     }
 
     private static InternalProblemEventVersion2 createProblemSummaryEvent(OperationIdentifier buildOperationId, List<ProblemSummaryData> problemIdCounts, Supplier<OperationIdentifier> operationIdentifierSupplier) {
