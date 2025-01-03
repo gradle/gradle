@@ -1,3 +1,5 @@
+import org.gradle.util.internal.GUtil
+
 plugins {
     id("gradlebuild.root-build")
 
@@ -21,6 +23,21 @@ dependencyAnalysis {
                 exclude(":internal-instrumentation-processor")
             }
             ignoreSourceSet("archTest", "crossVersionTest", "docsTest", "integTest", "jmh", "peformanceTest", "smokeTest", "testInterceptors", "testFixtures", "smokeIdeTest")
+        }
+    }
+}
+
+tasks.register("checkWrapperVersion") {
+    group = "verification"
+    val distributionUrl = tasks.named<Wrapper>("wrapper").map { task ->
+        GUtil.loadProperties(task.propertiesFile).getProperty("distributionUrl")
+    }
+
+    doLast {
+        val configuredVersion = distributionUrl.get().substringAfterLast("gradle-").substringBeforeLast("-")
+        val wrapperGradleVersion = GradleVersion.version(configuredVersion)
+        if (wrapperGradleVersion.isSnapshot) {
+            throw GradleException("Wrapper version ${wrapperGradleVersion.version} is not a long-lived version. Please use GA, RC, or milestone version.")
         }
     }
 }
