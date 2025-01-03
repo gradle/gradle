@@ -71,11 +71,7 @@ public class DefaultAttributesFactory implements AttributesFactory {
 
     @Override
     public <T> ImmutableAttributes concat(ImmutableAttributes node, Attribute<T> key, @Nullable T value) {
-        return concat(node, key, isolate(value));
-    }
-
-    private <T> Isolatable<T> isolate(@Nullable T value) {
-        return attributeValueIsolator.isolate(value);
+        return concat(node, key, attributeValueIsolator.isolate(value));
     }
 
     @Override
