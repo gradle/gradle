@@ -351,6 +351,10 @@ public class ProviderConnection {
         if (jvmArguments != null) {
             daemonParams.setJvmArgs(jvmArguments);
         }
+        List<String> additionalJvmArguments = operationParameters.getAdditionalJvmArguments(null);
+        if (additionalJvmArguments != null) {
+            daemonParams.addJvmArgs(additionalJvmArguments);
+        }
 
         daemonParams.setRequestedJvmCriteriaFromMap(properties.getDaemonJvmProperties());
 

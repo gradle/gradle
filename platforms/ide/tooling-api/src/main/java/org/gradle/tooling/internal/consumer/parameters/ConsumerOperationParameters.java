@@ -67,6 +67,7 @@ public class ConsumerOperationParameters implements BuildParameters {
         private InputStream stdin;
         private File javaHome;
         private List<String> jvmArguments;
+        private List<String> additionalJvmArguments;
         private Map<String, String> envVariables;
         private List<String> arguments;
         private List<String> tasks;
@@ -121,7 +122,7 @@ public class ConsumerOperationParameters implements BuildParameters {
         }
 
         public Builder addJvmArguments(List<String> jvmArguments) {
-            this.jvmArguments = concat(this.jvmArguments, jvmArguments);
+            this.additionalJvmArguments = concat(this.additionalJvmArguments, jvmArguments);
             return this;
         }
 
@@ -220,7 +221,7 @@ public class ConsumerOperationParameters implements BuildParameters {
                 throw new IllegalStateException("No entry point specified.");
             }
 
-            return new ConsumerOperationParameters(entryPoint, parameters, stdout, stderr, colorOutput, stdin, javaHome, jvmArguments, envVariables, arguments, tasks, launchables, injectedPluginClasspath,
+            return new ConsumerOperationParameters(entryPoint, parameters, stdout, stderr, colorOutput, stdin, javaHome, jvmArguments, additionalJvmArguments, envVariables, arguments, tasks, launchables, injectedPluginClasspath,
                 legacyProgressListeners, progressListeners, cancellationToken, systemProperties, new FailsafeStreamedValueListener(streamedValueListener));
         }
 
@@ -232,6 +233,7 @@ public class ConsumerOperationParameters implements BuildParameters {
             progressListeners.putAll(operationParameters.progressListeners);
             arguments = operationParameters.arguments;
             jvmArguments = operationParameters.jvmArguments;
+            additionalJvmArguments = operationParameters.additionalJvmArguments;
             envVariables = operationParameters.envVariables;
             stdout = operationParameters.stdout;
             stderr = operationParameters.stderr;
@@ -257,6 +259,7 @@ public class ConsumerOperationParameters implements BuildParameters {
 
     private final File javaHome;
     private final List<String> jvmArguments;
+    private final List<String> additionalJvmArguments;
     private final Map<String, String> envVariables;
     private final List<String> arguments;
     private final List<String> tasks;
@@ -270,10 +273,25 @@ public class ConsumerOperationParameters implements BuildParameters {
     private final FailsafeStreamedValueListener streamedValueListener;
 
     private ConsumerOperationParameters(
-        String entryPointName, ConnectionParameters parameters, OutputStream stdout, OutputStream stderr, Boolean colorOutput, InputStream stdin,
-        File javaHome, List<String> jvmArguments, Map<String, String> envVariables, List<String> arguments, List<String> tasks, List<InternalLaunchable> launchables, ClassPath injectedPluginClasspath,
-        List<org.gradle.tooling.ProgressListener> legacyProgressListeners, Map<OperationType, List<ProgressListener>> progressListeners, CancellationToken cancellationToken,
-        Map<String, String> systemProperties, FailsafeStreamedValueListener streamedValueListener
+        String entryPointName,
+        ConnectionParameters parameters,
+        OutputStream stdout,
+        OutputStream stderr,
+        Boolean colorOutput,
+        InputStream stdin,
+        File javaHome,
+        List<String> jvmArguments,
+        List<String> additionalJvmArguments,
+        Map<String, String> envVariables,
+        List<String> arguments,
+        List<String> tasks,
+        List<InternalLaunchable> launchables,
+        ClassPath injectedPluginClasspath,
+        List<org.gradle.tooling.ProgressListener> legacyProgressListeners,
+        Map<OperationType, List<ProgressListener>> progressListeners,
+        CancellationToken cancellationToken,
+        Map<String, String> systemProperties,
+        FailsafeStreamedValueListener streamedValueListener
     ) {
         this.entryPointName = entryPointName;
         this.parameters = parameters;
@@ -283,6 +301,7 @@ public class ConsumerOperationParameters implements BuildParameters {
         this.stdin = stdin;
         this.javaHome = javaHome;
         this.jvmArguments = jvmArguments;
+        this.additionalJvmArguments = additionalJvmArguments;
         this.envVariables = envVariables;
         this.arguments = arguments;
         this.tasks = tasks;
@@ -405,6 +424,10 @@ public class ConsumerOperationParameters implements BuildParameters {
 
     public List<String> getJvmArguments() {
         return jvmArguments;
+    }
+
+    public List<String> getAdditionalJvmArguments() {
+        return additionalJvmArguments;
     }
 
     public Map<String, String> getEnvironmentVariables() {

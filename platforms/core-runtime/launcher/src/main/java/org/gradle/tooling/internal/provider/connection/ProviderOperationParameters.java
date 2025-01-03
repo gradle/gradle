@@ -56,6 +56,9 @@ public interface ProviderOperationParameters {
     @Nullable
     List<String> getJvmArguments();
 
+    @Nullable
+    List<String> getAdditionalJvmArguments(@Nullable List<String> defaultArguments);
+
     /**
      * @return When null, use the provider's default environment variables. When empty, use no environment variables.
      * @since 3.5-rc-1
