@@ -18,7 +18,6 @@ package org.gradle.problems.internal.rendering
 
 
 import org.gradle.api.problems.ProblemGroup
-import org.gradle.api.problems.internal.AdditionalDataBuilderFactory
 import org.gradle.api.problems.internal.DefaultProblemBuilder
 import spock.lang.Specification
 
@@ -36,7 +35,7 @@ class ProblemRendererTest extends Specification {
 
     def "individual problem header is correct when only group display name is present"() {
         given:
-        def problem = new DefaultProblemBuilder(new AdditionalDataBuilderFactory())
+        def problem = new DefaultProblemBuilder()
             .id("test-id", "test-id-display-name", level1Group)
             .build()
 
@@ -49,7 +48,7 @@ class ProblemRendererTest extends Specification {
 
     def "individual problem header is correct when contextual label is present"() {
         given:
-        def problem = new DefaultProblemBuilder(new AdditionalDataBuilderFactory())
+        def problem = new DefaultProblemBuilder()
             .id("test-id", "display-name", level1Group)
             .contextualLabel("contextual-label")
             .build()
@@ -63,7 +62,7 @@ class ProblemRendererTest extends Specification {
 
     def "individual problem with details are displayed"() {
         given:
-        def problem = new DefaultProblemBuilder(new AdditionalDataBuilderFactory())
+        def problem = new DefaultProblemBuilder()
             .id("id", "display-name", level1Group)
             .details("details")
             .build()
@@ -77,7 +76,7 @@ class ProblemRendererTest extends Specification {
 
     def "individual problem with multiline details are displayed and indented correctly"() {
         given:
-        def problem = new DefaultProblemBuilder(new AdditionalDataBuilderFactory())
+        def problem = new DefaultProblemBuilder()
             .id("id", "display-name", level1Group)
             .details("details:1\ndetails:2")
             .build()
