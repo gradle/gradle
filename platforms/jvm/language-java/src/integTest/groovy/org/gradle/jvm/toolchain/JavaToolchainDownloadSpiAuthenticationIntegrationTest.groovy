@@ -17,6 +17,7 @@
 package org.gradle.jvm.toolchain
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.junit.Rule
@@ -75,7 +76,7 @@ class JavaToolchainDownloadSpiAuthenticationIntegrationTest extends AbstractInte
         failure.assertHasDescription("Could not determine the dependencies of task ':compileJava'.")
                .assertHasCause("Could not resolve all dependencies for configuration ':compileClasspath'.")
                .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'.")
-               .assertHasCause("Cannot find a Java installation on your machine matching this tasks requirements: {languageVersion=99, vendor=vendor matching('exotic'), implementation=vendor-specific} for")
+               .assertHasCause("Cannot find a Java installation on your machine (${OperatingSystem.current()}) matching: {languageVersion=99, vendor=vendor matching('exotic'), implementation=vendor-specific}")
                 .assertHasCause("No matching toolchain could be found in the locally installed toolchains or the configured toolchain download repositories. " +
                     "Some toolchain resolvers had provisioning failures: custom (Unable to download toolchain matching the requirements " +
                     "({languageVersion=99, vendor=vendor matching('exotic'), implementation=vendor-specific}) from '$archiveUri', " +
@@ -132,7 +133,7 @@ class JavaToolchainDownloadSpiAuthenticationIntegrationTest extends AbstractInte
         failure.assertHasDescription("Could not determine the dependencies of task ':compileJava'.")
             .assertHasCause("Could not resolve all dependencies for configuration ':compileClasspath'.")
             .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'.")
-            .assertHasCause("Cannot find a Java installation on your machine matching this tasks requirements: {languageVersion=99, vendor=vendor matching('exotic'), implementation=vendor-specific} for")
+            .assertHasCause("Cannot find a Java installation on your machine (${OperatingSystem.current()}) matching: {languageVersion=99, vendor=vendor matching('exotic'), implementation=vendor-specific}")
             .assertHasCause("No matching toolchain could be found in the locally installed toolchains or the configured toolchain download repositories. " +
                 "Some toolchain resolvers had provisioning failures: custom (Unable to download toolchain matching the requirements " +
                 "({languageVersion=99, vendor=vendor matching('exotic'), implementation=vendor-specific}) from '$archiveUri', " +
