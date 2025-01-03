@@ -24,3 +24,14 @@ dependencyAnalysis {
         }
     }
 }
+
+tasks.register("check-wrapper-version") {
+    group = "verification"
+    val wrapperVersion = tasks.named<Wrapper>("wrapper").map { it.gradleVersion }
+    doLast {
+        val wrapperGradleVersion = GradleVersion.version(wrapperVersion.get())
+        if (!(wrapperGradleVersion == wrapperGradleVersion.baseVersion || wrapperVersion.get().contains("rc") || wrapperVersion.get().contains("milestone"))) {
+            throw GradleException("Wrapper version $wrapperVersion is not a long-lived version. Please use GA, RC, or milestone version.")
+        }
+    }
+}
