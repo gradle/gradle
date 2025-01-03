@@ -78,7 +78,7 @@ public class TransientConfigurationResultsBuilder {
         this.resolutionHost = resolutionHost;
     }
 
-    public void resolvedDependency(final Long id, ModuleVersionIdentifier moduleVersionId, String variantName) {
+    public void resolvedDependency(long id, ModuleVersionIdentifier moduleVersionId, String variantName) {
         binaryStore.write(encoder -> {
             encoder.writeByte(NODE);
             encoder.writeSmallLong(id);
@@ -87,7 +87,7 @@ public class TransientConfigurationResultsBuilder {
         });
     }
 
-    public void done(final Long id) {
+    public void done(long id) {
         binaryStore.write(encoder -> {
             encoder.writeByte(ROOT);
             encoder.writeSmallLong(id);
@@ -103,7 +103,7 @@ public class TransientConfigurationResultsBuilder {
         });
     }
 
-    public void parentChildMapping(final Long parent, final Long child, final int artifactId) {
+    public void parentChildMapping(long parent, long child, int artifactId) {
         binaryStore.write(encoder -> {
             encoder.writeByte(EDGE);
             encoder.writeSmallLong(parent);
@@ -112,7 +112,7 @@ public class TransientConfigurationResultsBuilder {
         });
     }
 
-    public void nodeArtifacts(final Long node, final int artifactId) {
+    public void nodeArtifacts(long node, int artifactId) {
         binaryStore.write(encoder -> {
             encoder.writeByte(NODE_ARTIFACTS);
             encoder.writeSmallLong(node);
