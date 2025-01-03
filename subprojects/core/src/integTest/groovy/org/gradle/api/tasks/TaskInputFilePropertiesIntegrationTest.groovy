@@ -91,7 +91,7 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec imp
                     "a Path instance",
                     "a Directory instance",
                     "a RegularFile instance",
-                    "a URI or URL instance",
+                    "a URI or URL instance of file",
                     "a TextResource instance"
                 ).includeLink()
         })
@@ -108,7 +108,7 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec imp
                 'Use a Path instance',
                 'Use a Directory instance',
                 'Use a RegularFile instance',
-                'Use a URI or URL instance',
+                'Use a URI or URL instance of file',
                 'Use a TextResource instance',
             ]
             additionalData.asMap == [
@@ -162,7 +162,7 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec imp
                     "a Path instance",
                     "a Directory instance",
                     "a RegularFile instance",
-                    "a URI or URL instance",
+                    "a URI or URL instance of file",
                     "a TextResource instance"
                 ).includeLink()
         })
@@ -185,7 +185,7 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec imp
                 'Use a Path instance',
                 'Use a Directory instance',
                 'Use a RegularFile instance',
-                'Use a URI or URL instance',
+                'Use a URI or URL instance of file',
                 'Use a TextResource instance',
             ]
             additionalData.asMap == [

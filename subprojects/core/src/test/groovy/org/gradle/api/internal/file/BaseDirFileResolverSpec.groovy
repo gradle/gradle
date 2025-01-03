@@ -158,7 +158,7 @@ class BaseDirFileResolverSpec extends Specification {
 
         then:
         UnsupportedNotationException e = thrown()
-        e.message == toPlatformLineSeparators("""Cannot convert the provided notation to a File or URI: 12.
+        e.message == toPlatformLineSeparators("""Cannot convert the provided notation to a File: 12.
 The following types/formats are supported:
   - A String or CharSequence path, for example 'src/main/java' or '/usr/include'.
   - A String or CharSequence URI, for example 'file:/usr/include'.
@@ -166,8 +166,16 @@ The following types/formats are supported:
   - A Path instance.
   - A Directory instance.
   - A RegularFile instance.
-  - A URI or URL instance.
+  - A URI or URL instance of file.
   - A TextResource instance.""")
+    }
+
+    def "does not allow resolving empty path"() {
+        when:
+        normalize("")
+        then:
+        def ex = thrown IllegalArgumentException
+        ex.message.contains "Cannot convert '' to File"
     }
 
     def "normalizes null-returning closure to null"() {
@@ -188,7 +196,7 @@ The following types/formats are supported:
         }, baseDir)
         then:
         IllegalArgumentException e = thrown()
-        e.message == "Cannot convert path to File. path='null returning Callable'"
+        e.message == "Cannot convert 'null returning Callable' to File."
     }
 
     def "normalizes Provider value"() {
@@ -206,10 +214,31 @@ The following types/formats are supported:
 
     def "does not allow resolving null URI"() {
         when:
-        resolver(tmpDir.testDirectory).resolveUri(null)
+        normalizeURI(null)
         then:
-        def ex = thrown UnsupportedNotationException
-        ex.message.contains "Cannot convert a null value to a File or URI."
+        def ex = thrown IllegalArgumentException
+        ex.message.contains "Cannot convert 'null' to URI"
+    }
+
+    def "does not allow resolving empty URI"() {
+        when:
+        normalizeURI("")
+        then:
+        def ex = thrown IllegalArgumentException
+        ex.message.contains "Cannot convert '' to URI"
+    }
+
+    def "normalizes Provider value for uri"() {
+        def baseDir = tmpDir.testDirectory.file("base")
+        def file = tmpDir.testDirectory.file("test")
+        def provider1 = Stub(Provider)
+        provider1.get() >> file
+        def provider2 = Stub(Provider)
+        provider2.get() >> "value"
+
+        expect:
+        normalizeURI(provider1, baseDir) == file.toURI()
+        normalizeURI(provider2, baseDir) == baseDir.file("value").toURI()
     }
 
     def createLink(File link, File target) {
@@ -228,6 +257,10 @@ The following types/formats are supported:
 
     def normalize(Object path, File baseDir = tmpDir.testDirectory) {
         resolver(baseDir).resolve(path)
+    }
+
+    def normalizeURI(Object path, File baseDir = tmpDir.testDirectory) {
+        resolver(baseDir).resolveUri(path)
     }
 
     private BaseDirFileResolver resolver(File baseDir = tmpDir.testDirectory) {

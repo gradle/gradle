@@ -16,12 +16,12 @@
 
 package org.gradle.api.internal.file;
 
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.resources.TextResource;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
-import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.typeconversion.NotationConvertResult;
 import org.gradle.internal.typeconversion.NotationConverter;
 import org.gradle.internal.typeconversion.NotationParser;
@@ -36,17 +36,15 @@ import java.nio.file.Path;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class FileOrUriNotationConverter implements NotationConverter<Object, Object> {
-
-    private static final Pattern URI_SCHEME = Pattern.compile("([a-zA-Z][a-zA-Z0-9+-\\.]*:).+");
+public class FileNotationConverter implements NotationConverter<Object, File> {
     private static final Pattern ENCODED_URI = Pattern.compile("%([0-9a-fA-F]{2})");
 
-    public static NotationParser<Object, Object> parser() {
+    public static NotationParser<Object, File> parser() {
         return NotationParserBuilder
-            .toType(Object.class)
-            .typeDisplayName("a File or URI")
+            .toType(File.class)
+            .typeDisplayName("a File")
             .noImplicitConverters()
-            .converter(new FileOrUriNotationConverter())
+            .converter(new FileNotationConverter())
             .toComposite();
     }
 
@@ -58,14 +56,14 @@ public class FileOrUriNotationConverter implements NotationConverter<Object, Obj
         visitor.candidate("A Path instance.");
         visitor.candidate("A Directory instance.");
         visitor.candidate("A RegularFile instance.");
-        visitor.candidate("A URI or URL instance.");
+        visitor.candidate("A URI or URL instance of file.");
         visitor.candidate("A TextResource instance.");
     }
 
     @Override
-    public void convert(Object notation, NotationConvertResult<? super Object> result) throws TypeConversionException {
+    public void convert(Object notation, NotationConvertResult<? super File> result) throws TypeConversionException {
         if (notation instanceof File) {
-            result.converted(notation);
+            result.converted((File) notation);
             return;
         }
         if (notation instanceof Path) {
@@ -89,11 +87,10 @@ public class FileOrUriNotationConverter implements NotationConverter<Object, Obj
                 try {
                     result.converted(new File(uri));
                     return;
-                } catch (IllegalArgumentException ignored) {
-                    // Bad file URI, return URI as-is
+                } catch (IllegalArgumentException ex) {
+                    throw new InvalidUserDataException(String.format("Cannot convert URI '%s' to a file.", uri), ex);
                 }
             }
-            result.converted(uri);
             return;
         }
         if (notation instanceof CharSequence) {
@@ -111,21 +108,7 @@ public class FileOrUriNotationConverter implements NotationConverter<Object, Obj
                     // Unparsable, use old logic
                 }
                 // Fallback if relative or unparsable
-                result.converted(new File(fallbackUrlDecode(notationString.substring(5))));
-                return;
-            }
-            if (notationString.startsWith("http:") || notationString.startsWith("https:")) {
-                convertToUrl(notationString, result);
-                return;
-            }
-            Matcher schemeMatcher = URI_SCHEME.matcher(notationString);
-            if (schemeMatcher.matches()) {
-                String scheme = schemeMatcher.group(1);
-                if (isWindowsRootDirectory(scheme)) {
-                    result.converted(new File(notationString));
-                    return;
-                }
-                convertToUrl(notationString, result);
+                result.converted(new File(fallbackUrlDecode(notationString)));
                 return;
             }
             result.converted(new File(notationString));
@@ -136,27 +119,16 @@ public class FileOrUriNotationConverter implements NotationConverter<Object, Obj
         }
     }
 
-    private static boolean isWindowsRootDirectory(String scheme) {
-        return scheme.length() == 2 && Character.isLetter(scheme.charAt(0)) && scheme.charAt(1) == ':' && OperatingSystem.current().isWindows();
-    }
-
-    private static void convertToUrl(String notationString, NotationConvertResult<? super Object> result) {
-        try {
-            result.converted(new URI(notationString));
-        } catch (URISyntaxException e) {
-            throw new UncheckedIOException(e);
-        }
-    }
-
     /**
      * Lenient legacy behavior to fall back to when URI cannot be normally parsed.
      */
-    private static String fallbackUrlDecode(String path) {
+    private static String fallbackUrlDecode(String fullPath) {
         DeprecationLogger.deprecateBehaviour("Passing invalid URIs to URI or File converting methods.")
-            .withAdvice("Use a valid URL or a file path instead.")
+            .withAdvice("Use a valid URL or a file path instead of '" + fullPath + "'.")
             .willBecomeAnErrorInGradle9()
             .withUpgradeGuideSection(8, "deprecated_invalid_url_decoding")
             .nagUser();
+        String path = fullPath.substring(5);
         StringBuffer builder = new StringBuffer();
         Matcher matcher = ENCODED_URI.matcher(path);
         while (matcher.find()) {
