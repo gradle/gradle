@@ -19,7 +19,7 @@ package org.gradle.ide.sync
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 
-class IsolatedProjectsParallelSyncTest extends AbstractIdeaSyncTest {
+class IsolatedProjectsParallelSyncTest extends AbstractIdeSyncTest {
 
     @Rule
     BlockingHttpServer server = new BlockingHttpServer(5_000)
