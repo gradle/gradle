@@ -16,52 +16,24 @@
 
 package org.gradle.api.internal.tasks.testing.report.generic;
 
-import org.gradle.api.tasks.testing.TestResult;
-import org.hamcrest.Matcher;
-
-import java.util.LinkedHashMap;
 import java.util.List;
 
-// For now, I think this works enough. It will need to be rewritten to account for different root tabs.
+/**
+ * Represents the result of executing a test path.
+ */
 public interface TestPathExecutionResult {
     /**
-     * Asserts that the given child paths (and only the given child paths) were executed for the current test path.
-     *
-     * <p>
-     * For example, if you want to know if {@code :TestClass:testMethod} executed {@code subTest1} and {@code subTest2},
-     * you would call {@code testPath(":TestClass:testMethod").assertPathsExecuted("subTest1", "subTest2")}.
-     * </p>
-     *
-     * <p>
-     * This method only works on direct children of the current test path.
-     * </p>
+     * Assert that a single root is present, and provides access to the results of the test path execution.
      */
-    TestPathExecutionResult assertChildrenExecuted(String... testNames);
-
-    TestPathExecutionResult assertChildCount(int tests, int failures, int errors);
-
-    TestPathExecutionResult assertStdout(Matcher<? super String> matcher);
-
-    TestPathExecutionResult assertStderr(Matcher<? super String> matcher);
-
-    TestPathExecutionResult assertHasResult(TestResult.ResultType resultType);
-
-    TestPathExecutionResult assertFailureMessages(Matcher<? super String> matcher);
+    TestPathRootExecutionResult onlyRoot();
 
     /**
-     * Asserts that the given metadata keys are present in the test result.
-     *
-     * @param keys the keys to verify, in the order they were recorded
-     * @return {@code this}
+     * Assert that there is a root with the given root name, and provides access to the results of the test path execution.
      */
-    TestPathExecutionResult assertMetadata(List<String> keys);
-
+    TestPathRootExecutionResult root(String rootName);
 
     /**
-     * Asserts that the given metadata keys are present in the test result with the given rendered text.
-     *
-     * @param metadata the metadata to verify, in the order they were recorded
-     * @return {@code this}
+     * Returns the names of the roots that were executed.
      */
-    TestPathExecutionResult assertMetadata(LinkedHashMap<String, String> metadata);
+    List<String> getRootNames();
 }
