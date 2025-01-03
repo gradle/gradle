@@ -83,8 +83,6 @@ import org.gradle.internal.serialize.kryo.KryoBackedDecoder
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder
 import org.gradle.internal.serialize.kryo.StringDeduplicatingKryoBackedDecoder
 import org.gradle.internal.serialize.kryo.StringDeduplicatingKryoBackedEncoder
-import org.gradle.internal.service.scopes.Scope
-import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.util.Path
 import java.io.Closeable
 import java.io.File
@@ -92,7 +90,6 @@ import java.io.InputStream
 import java.io.OutputStream
 
 
-@ServiceScope(Scope.Build::class)
 internal
 class DefaultConfigurationCacheIO internal constructor(
     private val startParameter: ConfigurationCacheStartParameter,
