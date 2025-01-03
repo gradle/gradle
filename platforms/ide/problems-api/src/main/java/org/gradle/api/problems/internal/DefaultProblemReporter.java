@@ -61,8 +61,9 @@ public class DefaultProblemReporter implements InternalProblemReporter {
         report(problemBuilder.build());
     }
 
+    @Override
     @Nonnull
-    private DefaultProblemBuilder createProblemBuilder() {
+    public DefaultProblemBuilder createProblemBuilder() {
         return new DefaultProblemBuilder(problemStream, additionalDataBuilderFactory);
     }
 

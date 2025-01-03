@@ -65,9 +65,8 @@ public abstract class ProblemGroup {
      * @since 8.8
      */
     @Nullable
-    public abstract ProblemGroup getParent();
-
-    /**
+    public abstractProblemGroup getParent();
+/**
      * Creates a new root problem i.e. a group with no parent.
      *
      * @param name the name of the group. The convention is to use kebab-case (ie lower case with hyphens).

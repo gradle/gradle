@@ -34,4 +34,10 @@ public interface InternalProblemReporter extends ProblemReporter {
     void report(Problem problem, OperationIdentifier id);
 
     Problem internalCreate(Action<? super InternalProblemSpec> action);
+
+    /**
+     * Creates a new problem builder for other, more specific builders to use.
+     * @return a new problem builder
+     */
+    InternalProblemBuilder createProblemBuilder();
 }
