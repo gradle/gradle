@@ -47,6 +47,7 @@ dependencies {
     api(libs.guava)
     api(libs.jsr305)
 
+    implementation(projects.buildConfiguration)
     implementation(projects.enterpriseOperations)
     implementation(projects.functional)
     implementation(projects.io)

@@ -129,35 +129,43 @@ public class DaemonParameters {
         this.requestedJvmCriteria = requestedJvmCriteria;
     }
 
-    public void setRequestedJvmCriteriaFromMap(@Nullable Map<String, String> buildProperties) {
-        String requestedVersion = buildProperties.get(DaemonJvmPropertiesDefaults.TOOLCHAIN_VERSION_PROPERTY);
-        if (requestedVersion != null) {
-            JavaLanguageVersion javaVersion;
-            try {
-                javaVersion = DefaultJavaLanguageVersion.fromFullVersion(requestedVersion);
-            } catch (Exception e) {
-                // TODO: This should be pushed somewhere else so we consistently report this message in the right context.
-                throw new IllegalArgumentException(String.format("Value '%s' given for %s is an invalid Java version", requestedVersion, DaemonJvmPropertiesDefaults.TOOLCHAIN_VERSION_PROPERTY));
-            }
-
-            final JvmVendorSpec javaVendor;
-            String requestedVendor = buildProperties.get(DaemonJvmPropertiesDefaults.TOOLCHAIN_VENDOR_PROPERTY);
-
-            if (requestedVendor != null) {
-                Optional<JvmVendor.KnownJvmVendor> knownVendor =
-                    Arrays.stream(JvmVendor.KnownJvmVendor.values()).filter(e -> e.name().equals(requestedVendor)).findFirst();
-
-                if (knownVendor.isPresent() && knownVendor.get()!=JvmVendor.KnownJvmVendor.UNKNOWN) {
-                    javaVendor = DefaultJvmVendorSpec.of(knownVendor.get());
-                } else {
-                    javaVendor = DefaultJvmVendorSpec.matching(requestedVendor);
+    public void setRequestedJvmCriteriaFromMap(@Nullable Map<String, String> buildProperties, Boolean isExecutingUpdateDaemonJvmTask) {
+        try {
+            String requestedVersion = buildProperties.get(DaemonJvmPropertiesDefaults.TOOLCHAIN_VERSION_PROPERTY);
+            if (requestedVersion != null) {
+                JavaLanguageVersion javaVersion;
+                try {
+                    javaVersion = DefaultJavaLanguageVersion.fromFullVersion(requestedVersion);
+                } catch (Exception e) {
+                    // TODO: This should be pushed somewhere else so we consistently report this message in the right context.
+                    throw new IllegalArgumentException(String.format("Value '%s' given for %s is an invalid Java version", requestedVersion, DaemonJvmPropertiesDefaults.TOOLCHAIN_VERSION_PROPERTY));
                 }
-            } else {
-                // match any vendor
-                javaVendor = DefaultJvmVendorSpec.any();
-            }
 
-            this.requestedJvmCriteria = new DaemonJvmCriteria.Spec(javaVersion, javaVendor, JvmImplementation.VENDOR_SPECIFIC);
+                final JvmVendorSpec javaVendor;
+                String requestedVendor = buildProperties.get(DaemonJvmPropertiesDefaults.TOOLCHAIN_VENDOR_PROPERTY);
+
+                if (requestedVendor != null) {
+                    Optional<JvmVendor.KnownJvmVendor> knownVendor =
+                        Arrays.stream(JvmVendor.KnownJvmVendor.values()).filter(e -> e.name().equals(requestedVendor)).findFirst();
+
+                    if (knownVendor.isPresent() && knownVendor.get() != JvmVendor.KnownJvmVendor.UNKNOWN) {
+                        javaVendor = DefaultJvmVendorSpec.of(knownVendor.get());
+                    } else {
+                        javaVendor = DefaultJvmVendorSpec.matching(requestedVendor);
+                    }
+                } else {
+                    // match any vendor
+                    javaVendor = DefaultJvmVendorSpec.any();
+                }
+
+                this.requestedJvmCriteria = new DaemonJvmCriteria.Spec(javaVersion, javaVendor, JvmImplementation.VENDOR_SPECIFIC);
+            }
+        } catch (Exception e) {
+            // When executing updateDaemonJvm task any validation exception will be skipped,
+            // allowing to update the defined criteria on properties file using java home
+            if (!isExecutingUpdateDaemonJvmTask) {
+                throw e;
+            }
         }
     }
 
