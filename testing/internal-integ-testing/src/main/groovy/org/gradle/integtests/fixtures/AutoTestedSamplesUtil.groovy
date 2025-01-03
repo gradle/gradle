@@ -23,7 +23,8 @@ import java.util.regex.Pattern
 
 class AutoTestedSamplesUtil {
 
-    private static final Pattern SAMPLE_START = Pattern.compile(/<pre class=['"]autoTested(.*?)['"].*?>/)
+    private static final Pattern SAMPLE_START = Pattern.compile(/<pre class=['"]autoTested['"].*?>(?:<code class=['"]language-(groovy|java)['"]>)?/);
+
     private static final Pattern LEADING_ASTERISK_PATTERN = Pattern.compile(/(?m)^\s*?\*/)
     private static final Pattern LITERAL_PATTERN = Pattern.compile(/\{@literal ([^}]+)}/)
 
@@ -64,6 +65,9 @@ class AutoTestedSamplesUtil {
             def start = samples.end()
             def end = text.indexOf("</pre>", start)
             def sample = text.substring(start, end)
+            if (sample.endsWith("</code>")) {
+                sample = sample.substring(0, sample.length() - 7) // Remove '</code>'
+            }
             sample = LEADING_ASTERISK_PATTERN.matcher(sample).replaceAll('')
             sample = sample.replace('&lt;', '<')
             sample = sample.replace('&gt;', '>')
