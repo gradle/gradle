@@ -16,7 +16,6 @@
 
 package org.gradle.jvm.toolchain.internal.install;
 
-import org.gradle.api.GradleException;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.authentication.Authentication;
@@ -27,8 +26,6 @@ import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.resource.ExternalResource;
-import org.gradle.internal.resource.ResourceExceptions;
-import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.jvm.toolchain.JavaToolchainDownload;
 import org.gradle.jvm.toolchain.JavaToolchainResolver;
 import org.gradle.jvm.toolchain.JavaToolchainResolverRegistry;
@@ -37,12 +34,12 @@ import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainRequest;
 import org.gradle.jvm.toolchain.internal.JavaToolchainResolverRegistryInternal;
 import org.gradle.jvm.toolchain.internal.JdkCacheDirectory;
 import org.gradle.jvm.toolchain.internal.RealizedJavaToolchainRepository;
-import org.gradle.jvm.toolchain.internal.ToolchainDownloadFailedException;
+import org.gradle.jvm.toolchain.internal.install.exceptions.ToolchainDownloadException;
+import org.gradle.jvm.toolchain.internal.install.exceptions.ToolchainProvisioningNotConfiguredException;
 import org.gradle.platform.BuildPlatform;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.net.URI;
@@ -59,15 +56,6 @@ import static org.gradle.jvm.toolchain.internal.AutoInstalledInstallationSupplie
 public class DefaultJavaToolchainProvisioningService implements JavaToolchainProvisioningService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultJavaToolchainProvisioningService.class);
-
-    private static class MissingToolchainException extends GradleException {
-
-        public MissingToolchainException(JavaToolchainSpec spec, URI uri, @Nullable Throwable cause) {
-            super("Unable to download toolchain matching the requirements (" + spec.getDisplayName() + ") from '" + uri + "'" + (cause != null ? ", due to: " + cause.getMessage() : "."));
-        }
-
-    }
-
     private static final Object PROVISIONING_PROCESS_LOCK = new Object();
 
     private final JavaToolchainResolverRegistryInternal toolchainResolverRegistry;
@@ -107,17 +95,19 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
     @Override
     public File tryInstall(JavaToolchainSpec spec) {
         if (!isAutoDownloadEnabled()) {
-            throw new ToolchainDownloadFailedException("No locally installed toolchains match and toolchain auto-provisioning is not enabled.",
+            throw new ToolchainProvisioningNotConfiguredException(spec, "Toolchain auto-provisioning is not enabled.",
                 "Learn more about toolchain auto-detection at " + Documentation.userManual("toolchains", "sec:auto_detection").getUrl() + ".");
         }
 
         List<? extends RealizedJavaToolchainRepository> repositories = toolchainResolverRegistry.requestedRepositories();
         if (repositories.isEmpty()) {
-            throw new ToolchainDownloadFailedException("No locally installed toolchains match and toolchain download repositories have not been configured.",
+            throw new ToolchainProvisioningNotConfiguredException(spec, "Toolchain download repositories have not been configured.",
                 "Learn more about toolchain auto-detection at " + Documentation.userManual("toolchains", "sec:auto_detection").getUrl() + ".",
                 "Learn more about toolchain repositories at " + Documentation.userManual("toolchains", "sub:download_repositories").getUrl() + ".");
         }
 
+        // TODO: This should be refactored to leverage the new JavaToolchainResolverService but the current error handling makes it hard
+        // However, this exception handling is wrong as it may cause unreproducible behaviors since we can query a later resolver when a previous one fails.
         ToolchainDownloadFailureTracker downloadFailureTracker = new ToolchainDownloadFailureTracker();
         File successfulProvisioning = null;
         for (RealizedJavaToolchainRepository repository : repositories) {
@@ -142,7 +132,7 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
         }
 
         if (successfulProvisioning == null) {
-            throw downloadFailureTracker.buildFailureException();
+            throw downloadFailureTracker.buildFailureException(spec);
         } else {
             downloadFailureTracker.logFailuresIfAny();
             return successfulProvisioning;
@@ -168,21 +158,9 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
                     fileLock.close();
                 }
             } catch (Exception e) {
-                throw new MissingToolchainException(spec, uri, e);
+                throw new ToolchainDownloadException(spec, uri, e);
             }
         }
-    }
-
-    private String getFileName(URI uri, ExternalResource resource) {
-        ExternalResourceMetaData metaData = resource.getMetaData();
-        if (metaData == null) {
-            throw ResourceExceptions.getMissing(uri);
-        }
-        String fileName = metaData.getFilename();
-        if (fileName == null) {
-            throw new GradleException("Can't determine filename for resource located at: " + uri);
-        }
-        return fileName;
     }
 
     private <T> T wrapInOperation(String displayName, Callable<T> provisioningStep) {
@@ -224,16 +202,18 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
             provisioningFailures.put(repositoryName, failure);
         }
 
-        public ToolchainDownloadFailedException buildFailureException() {
-            String message = "No matching toolchain could be found in the locally installed toolchains or the configured toolchain download repositories." +
-                (hasFailures() ? " " + failureMessage() : "");
+        public ToolchainProvisioningNotConfiguredException buildFailureException(JavaToolchainSpec spec) {
+            String cause = "No matching toolchain could be found in the configured toolchain download repositories.";
+            if (hasFailures()) {
+                cause = failureMessage();
+            }
 
             String[] resolutions = {
                 "Learn more about toolchain auto-detection at " + Documentation.userManual("toolchains", "sec:auto_detection").getUrl() + ".",
                 "Learn more about toolchain repositories at " + Documentation.userManual("toolchains", "sub:download_repositories").getUrl() + "."
             };
 
-            ToolchainDownloadFailedException exception = new ToolchainDownloadFailedException(message, resolutions);
+            ToolchainProvisioningNotConfiguredException exception = new ToolchainProvisioningNotConfiguredException(spec, cause, resolutions);
 
             return addFailuresAsSuppressed(exception);
         }

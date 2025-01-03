@@ -93,7 +93,7 @@ public class WorkerSharedProjectScopeServices implements ServiceRegistrationProv
             FileHasher fileHasher,
             DefaultResourceHandler.Factory resourceHandlerFactory,
             FileCollectionFactory fileCollectionFactory,
-            ObjectFactory objectFactory,
+            PropertyFactory propertyFactory,
             FileSystem fileSystem,
             Factory<PatternSet> patternSetFactory,
             Deleter deleter,
@@ -110,21 +110,21 @@ public class WorkerSharedProjectScopeServices implements ServiceRegistrationProv
                 fileHasher,
                 resourceHandlerFactory,
                 fileCollectionFactory,
-                objectFactory,
+                propertyFactory,
                 fileSystem,
                 patternSetFactory,
                 deleter,
                 documentationRegistry,
                 taskDependencyFactory,
                 providers,
-            decompressionCoordinator,
+                decompressionCoordinator,
                 temporaryFileProvider
         );
     }
 
     @Provides
-    protected FileSystemOperations createFileSystemOperations(ObjectFactory objectFactory, Instantiator instantiator, FileOperations fileOperations) {
-        return instantiator.newInstance(DefaultFileSystemOperations.class, objectFactory, fileOperations);
+    protected FileSystemOperations createFileSystemOperations(Instantiator instantiator, FileOperations fileOperations) {
+        return instantiator.newInstance(DefaultFileSystemOperations.class, instantiator, fileOperations);
     }
 
     @Provides

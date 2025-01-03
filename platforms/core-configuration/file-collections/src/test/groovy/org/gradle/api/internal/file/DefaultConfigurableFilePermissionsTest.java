@@ -17,7 +17,6 @@
 package org.gradle.api.internal.file;
 
 import org.gradle.api.file.ConfigurableUserClassFilePermissions;
-import org.gradle.util.TestUtil;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -141,7 +140,7 @@ public class DefaultConfigurableFilePermissionsTest {
     }
 
     private static DefaultConfigurableFilePermissions newPermission(boolean isDirectory) {
-        return new DefaultConfigurableFilePermissions(TestUtil.objectFactory(), DefaultConfigurableFilePermissions.getDefaultUnixNumeric(isDirectory));
+        return new DefaultConfigurableFilePermissions(DefaultConfigurableFilePermissions.getDefaultUnixNumeric(isDirectory));
     }
 
     private static void assertPermissions(ConfigurableUserClassFilePermissions permission, boolean read, boolean write, boolean execute) {

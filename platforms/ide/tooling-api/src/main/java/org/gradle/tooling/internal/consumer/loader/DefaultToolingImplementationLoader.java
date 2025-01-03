@@ -26,6 +26,9 @@ import org.gradle.internal.service.DefaultServiceLocator;
 import org.gradle.internal.service.ServiceLocator;
 import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.UnsupportedVersionException;
+import org.gradle.tooling.events.OperationDescriptor;
+import org.gradle.tooling.events.download.FileDownloadOperationDescriptor;
+import org.gradle.tooling.events.download.FileDownloadResult;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.ConnectionParameters;
 import org.gradle.tooling.internal.consumer.Distribution;
@@ -112,8 +115,14 @@ public class DefaultToolingImplementationLoader implements ToolingImplementation
         ClassPath implementationClasspath = distribution.getToolingImplementationClasspath(progressLoggerFactory, progressListener, connectionParameters, cancellationToken);
         LOGGER.debug("Using tooling provider classpath: {}", implementationClasspath);
         FilteringClassLoader.Spec filterSpec = new FilteringClassLoader.Spec();
+        filterSpec.allowPackage("org.gradle.tooling.events.download.internal");
+        filterSpec.allowPackage("org.gradle.tooling.events.download");
+        filterSpec.allowPackage("org.gradle.tooling.events.internal");
         filterSpec.allowPackage("org.gradle.tooling.internal.protocol");
         filterSpec.allowClass(JavaVersion.class);
+        filterSpec.allowClass(OperationDescriptor.class);
+        filterSpec.allowClass(FileDownloadOperationDescriptor.class);
+        filterSpec.allowClass(FileDownloadResult.class);
         FilteringClassLoader filteringClassLoader = new FilteringClassLoader(classLoader, filterSpec);
         return VisitableURLClassLoader.fromClassPath("tooling-implementation-loader", filteringClassLoader, implementationClasspath);
     }

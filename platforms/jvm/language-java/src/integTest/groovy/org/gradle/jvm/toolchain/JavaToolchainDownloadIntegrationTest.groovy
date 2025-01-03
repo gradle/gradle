@@ -16,11 +16,10 @@
 
 package org.gradle.jvm.toolchain
 
-import net.rubygrapefruit.platform.internal.DefaultSystemInfo
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.DocumentationUtils
+import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.platform.internal.DefaultBuildPlatform
 
 import static org.gradle.integtests.fixtures.SuggestionsMessages.GET_HELP
 import static org.gradle.integtests.fixtures.SuggestionsMessages.INFO_DEBUG
@@ -29,7 +28,7 @@ import static org.gradle.integtests.fixtures.SuggestionsMessages.STACKTRACE_MESS
 import static org.gradle.jvm.toolchain.JavaToolchainDownloadUtil.applyToolchainResolverPlugin
 import static org.gradle.jvm.toolchain.JavaToolchainDownloadUtil.noUrlResolverCode
 
-class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
+class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec implements JavaToolchainFixture {
 
     def "fails for missing combination"() {
         settingsFile << """
@@ -61,8 +60,8 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
         then:
         failure.assertHasDescription("Could not determine the dependencies of task ':compileJava'.")
                .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'")
-               .assertHasCause("Cannot find a Java installation on your machine matching this tasks requirements: {languageVersion=14, vendor=Eclipse Temurin, implementation=J9} ${getFailureMessageBuildPlatform()}.")
-               .assertHasCause("No matching toolchain could be found in the locally installed toolchains or the configured toolchain download repositories.")
+               .assertHasCause("Cannot find a Java installation on your machine (${OperatingSystem.current()}) matching: {languageVersion=14, vendor=Eclipse Temurin, implementation=J9}. " +
+                    "No matching toolchain could be found in the configured toolchain download repositories.")
                .assertHasResolutions(
                    DocumentationUtils.normalizeDocumentationLink("Learn more about toolchain auto-detection at https://docs.gradle.org/current/userguide/toolchains.html#sec:auto_detection."),
                    DocumentationUtils.normalizeDocumentationLink("Learn more about toolchain repositories at https://docs.gradle.org/current/userguide/toolchains.html#sub:download_repositories."),
@@ -100,8 +99,8 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
         then:
         failure.assertHasDescription("Could not determine the dependencies of task ':compileJava'.")
                .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'")
-               .assertHasCause("Cannot find a Java installation on your machine matching this tasks requirements: {languageVersion=14, vendor=any vendor, implementation=vendor-specific} ${getFailureMessageBuildPlatform()}.")
-               .assertHasCause("No locally installed toolchains match and toolchain auto-provisioning is not enabled.")
+               .assertHasCause("Cannot find a Java installation on your machine (${OperatingSystem.current()}) matching: {languageVersion=14, vendor=any vendor, implementation=vendor-specific}. " +
+                   "Toolchain auto-provisioning is not enabled.")
                .assertHasResolutions(
                    DocumentationUtils.normalizeDocumentationLink("Learn more about toolchain auto-detection at https://docs.gradle.org/current/userguide/toolchains.html#sec:auto_detection."),
                    STACKTRACE_MESSAGE,
@@ -136,11 +135,10 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
         then:
         failure.assertHasDescription("Could not determine the dependencies of task ':compileJava'.")
                .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'")
-               .assertHasCause("Cannot find a Java installation on your machine matching this tasks requirements: {languageVersion=99, vendor=any vendor, implementation=vendor-specific} for")
-               .assertHasCause("No matching toolchain could be found in the locally installed toolchains or the configured toolchain download repositories. " +
+               .assertHasCause("Cannot find a Java installation on your machine (${OperatingSystem.current()}) matching: {languageVersion=99, vendor=any vendor, implementation=vendor-specific}. " +
                    "Some toolchain resolvers had provisioning failures: custom (Unable to download toolchain matching the requirements " +
                    "({languageVersion=99, vendor=any vendor, implementation=vendor-specific}) from 'http://exoticJavaToolchain.com/java-99', " +
-                   "due to: Attempting to download a file from an insecure URI http://exoticJavaToolchain.com/java-99. This is not supported, use a secure URI instead.).")
+                   "due to: Attempting to download java toolchain from an insecure URI http://exoticJavaToolchain.com/java-99. This is not supported, use a secure URI instead.).")
     }
 
     private static String unsecuredToolchainResolverCode() {
@@ -152,10 +150,4 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
             }
         """
     }
-
-    private def getFailureMessageBuildPlatform() {
-        def buildPlatform = new DefaultBuildPlatform(new DefaultSystemInfo(), OperatingSystem.current())
-        return "for ${buildPlatform.operatingSystem} on ${buildPlatform.architecture.toString().toLowerCase()}"
-    }
-
 }
