@@ -16,13 +16,20 @@
 package org.gradle.api.plugins.scala;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.DependencyScopeConfiguration;
+import org.gradle.api.artifacts.ModuleDependency;
+import org.gradle.api.artifacts.ResolvableConfiguration;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.artifacts.dsl.DependencyFactory;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.attributes.AttributeDisambiguationRule;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
@@ -35,8 +42,8 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMig
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.internal.tasks.DefaultSourceSet;
-import org.gradle.api.internal.tasks.scala.DefaultScalaPluginExtension;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.JavaBasePlugin;
@@ -53,6 +60,7 @@ import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.scala.IncrementalCompileOptions;
 import org.gradle.api.tasks.scala.ScalaCompile;
 import org.gradle.api.tasks.scala.ScalaDoc;
+import org.gradle.api.tasks.scala.internal.ScalaRuntimeHelper;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.logging.util.Log4jBannedVersion;
 import org.gradle.jvm.tasks.Jar;
@@ -64,6 +72,7 @@ import org.gradle.language.scala.tasks.KeepAliveMode;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.concurrent.Callable;
+import java.util.function.Supplier;
 
 import static org.gradle.api.attributes.Category.CATEGORY_ATTRIBUTE;
 import static org.gradle.api.attributes.Usage.USAGE_ATTRIBUTE;
@@ -96,11 +105,17 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
 
     private final ObjectFactory objectFactory;
     private final JvmPluginServices jvmPluginServices;
+    private final DependencyFactory dependencyFactory;
 
     @Inject
-    public ScalaBasePlugin(ObjectFactory objectFactory, JvmPluginServices jvmPluginServices) {
+    public ScalaBasePlugin(
+        ObjectFactory objectFactory,
+        JvmPluginServices jvmPluginServices,
+        DependencyFactory dependencyFactory
+    ) {
         this.objectFactory = objectFactory;
         this.jvmPluginServices = jvmPluginServices;
+        this.dependencyFactory = dependencyFactory;
     }
 
     @Override
@@ -108,15 +123,19 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
         project.getPluginManager().apply(JavaBasePlugin.class);
 
         ScalaRuntime scalaRuntime = project.getExtensions().create(SCALA_RUNTIME_EXTENSION_NAME, ScalaRuntime.class, project);
-        ScalaPluginExtension scalaPluginExtension = project.getExtensions().create(ScalaPluginExtension.class, "scala", DefaultScalaPluginExtension.class);
+
+        ScalaPluginExtension scalaPluginExtension = project.getExtensions().create("scala", ScalaPluginExtension.class);
+        scalaPluginExtension.getZincVersion().convention(ScalaBasePlugin.DEFAULT_ZINC_VERSION);
+
+        Provider<ResolvableConfiguration> compilerClasspath = getCompilerRuntimeClasspath(project, scalaPluginExtension);
 
         Usage incrementalAnalysisUsage = objectFactory.named(Usage.class, "incremental-analysis");
         Category incrementalAnalysisCategory = objectFactory.named(Category.class, "scala-analysis");
         configureConfigurations((ProjectInternal) project, incrementalAnalysisCategory, incrementalAnalysisUsage, scalaPluginExtension);
 
-        configureCompileDefaults(project, scalaRuntime, (DefaultJavaPluginExtension) javaPluginExtension(project));
-        configureSourceSetDefaults((ProjectInternal) project, incrementalAnalysisCategory, incrementalAnalysisUsage);
-        configureScaladoc(project, scalaRuntime);
+        configureCompileDefaults(project, scalaRuntime, (DefaultJavaPluginExtension) javaPluginExtension(project), scalaPluginExtension, compilerClasspath);
+        configureSourceSetDefaults((ProjectInternal) project, incrementalAnalysisCategory, incrementalAnalysisUsage, scalaPluginExtension);
+        configureScaladoc(project, scalaRuntime, scalaPluginExtension, compilerClasspath);
     }
 
     @SuppressWarnings("deprecation")
@@ -172,7 +191,23 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
         });
     }
 
-    private void configureSourceSetDefaults(final ProjectInternal project, Category incrementalAnalysisCategory, final Usage incrementalAnalysisUsage) {
+    private Provider<ResolvableConfiguration> getCompilerRuntimeClasspath(Project project, ScalaPluginExtension scalaPluginExtension) {
+        Provider<DependencyScopeConfiguration> scalaCompiler = project.getConfigurations().dependencyScope("scalaCompiler", conf -> {
+            conf.setDescription("Dependencies for the Scala compiler");
+            conf.getDependencies().addLater(getScalaCompilerDependency(scalaPluginExtension));
+            conf.getDependencies().addLater(getScalaBridgeDependency(scalaPluginExtension));
+            conf.getDependencies().addLater(getScalaCompilerInterfaceDependency(scalaPluginExtension));
+            conf.getDependencies().addLater(getScaladocDependency(scalaPluginExtension));
+        });
+
+        return project.getConfigurations().resolvable("scalaCompilerRuntimeClasspath", conf -> {
+            conf.setDescription("Runtime classpath for the Scala compiler");
+            conf.extendsFrom(scalaCompiler.get());
+            jvmPluginServices.configureAsRuntimeClasspath(conf);
+        });
+    }
+
+    private void configureSourceSetDefaults(final ProjectInternal project, Category incrementalAnalysisCategory, final Usage incrementalAnalysisUsage, ScalaPluginExtension scalaPluginExtension) {
         javaPluginExtension(project).getSourceSets().all(sourceSet -> {
 
             ScalaSourceDirectorySet scalaSource = getScalaSourceDirectorySet(sourceSet);
@@ -187,9 +222,97 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
             sourceSet.getAllJava().source(scalaSource);
             sourceSet.getAllSource().source(scalaSource);
 
+            project.getConfigurations().getByName(sourceSet.getImplementationConfigurationName()).getDependencies().addLater(getScalaDependency(scalaPluginExtension));
+
             Configuration incrementalAnalysis = createIncrementalAnalysisConfigurationFor(project.getConfigurations(), incrementalAnalysisCategory, incrementalAnalysisUsage, sourceSet);
 
             createScalaCompileTask(project, sourceSet, scalaSource, incrementalAnalysis);
+        });
+    }
+
+    /**
+     * Determines the scala standard library that user code compiles against.
+     */
+    private Provider<Dependency> getScalaDependency(ScalaPluginExtension scalaPluginExtension) {
+        return scalaPluginExtension.getScalaVersion().map(scalaVersion -> {
+            if (ScalaRuntimeHelper.isScala3(scalaVersion)) {
+                return dependencyFactory.create("org.scala-lang", "scala3-library_3", scalaVersion);
+            } else {
+                return dependencyFactory.create("org.scala-lang", "scala-library", scalaVersion);
+            }
+        });
+    }
+
+    /**
+     * Determines the Scala compiler dependency.
+     */
+    private Provider<Dependency> getScalaCompilerDependency(ScalaPluginExtension scalaPluginExtension) {
+        return scalaPluginExtension.getScalaVersion().map(scalaVersion -> {
+            if (ScalaRuntimeHelper.isScala3(scalaVersion)) {
+                return dependencyFactory.create("org.scala-lang", "scala3-compiler_3", scalaVersion);
+            } else {
+                return dependencyFactory.create("org.scala-lang", "scala-compiler", scalaVersion);
+            }
+        });
+    }
+
+    /**
+     * Determines Scala bridge dependency. In Scala 3 it is released for each Scala
+     * version together with the compiler jars. For Scala 2 we download sources jar and compile
+     * it later on.
+     *
+     * @see org.gradle.api.internal.tasks.scala.ZincScalaCompilerFactory
+     */
+    private Provider<Dependency> getScalaBridgeDependency(ScalaPluginExtension scalaPluginExtension) {
+        return scalaPluginExtension.getScalaVersion().flatMap(scalaVersion -> {
+            if (ScalaRuntimeHelper.isScala3(scalaVersion)) {
+                return Providers.of(dependencyFactory.create("org.scala-lang", "scala3-sbt-bridge", scalaVersion));
+            } else {
+                return scalaPluginExtension.getZincVersion().map(zincVersion -> {
+                    String scalaMajorMinorVersion = Joiner.on('.').join(Splitter.on('.').splitToList(scalaVersion).subList(0, 2));
+                    String name = "compiler-bridge_" + scalaMajorMinorVersion;
+                    ModuleDependency dependency = dependencyFactory.create("org.scala-sbt", name, zincVersion);
+
+                    // Use an artifact to remain compatible with Ivy repositories, which
+                    // don't support variant derivation.
+                    dependency.artifact(artifact -> {
+                        artifact.setClassifier("sources");
+                        artifact.setType("jar");
+                        artifact.setExtension("jar");
+                        artifact.setName(name);
+                    });
+
+                    return dependency;
+                });
+            }
+        });
+    }
+
+    /**
+     * Determines Scala compiler interfaces dependency.
+     */
+    private Provider<Dependency> getScalaCompilerInterfaceDependency(ScalaPluginExtension scalaPluginExtension) {
+        return scalaPluginExtension.getScalaVersion().flatMap(scalaVersion -> {
+            if (ScalaRuntimeHelper.isScala3(scalaVersion)) {
+                return Providers.of(dependencyFactory.create("org.scala-lang", "scala3-interfaces", scalaVersion));
+            } else {
+                return scalaPluginExtension.getZincVersion().map(zincVersion ->
+                    dependencyFactory.create("org.scala-sbt", "compiler-interface", zincVersion)
+                );
+            }
+        });
+    }
+
+    /**
+     * Determines Scaladoc dependency. Note that scaladoc for Scala 2 is packaged along with the compiler.
+     */
+    private Provider<Dependency> getScaladocDependency(ScalaPluginExtension scalaPluginExtension) {
+        return scalaPluginExtension.getScalaVersion().map(scalaVersion -> {
+            if (ScalaRuntimeHelper.isScala3(scalaVersion)) {
+                return dependencyFactory.create("org.scala-lang", "scaladoc_3", scalaVersion);
+            } else {
+                return null;
+            }
         });
     }
 
@@ -260,10 +383,20 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
         scalaCompile.dependsOn(scalaCompile.getAnalysisFiles());
     }
 
-    private static void configureCompileDefaults(final Project project, final ScalaRuntime scalaRuntime, final DefaultJavaPluginExtension javaExtension) {
+    private static void configureCompileDefaults(
+        Project project,
+        ScalaRuntime scalaRuntime,
+        DefaultJavaPluginExtension javaExtension,
+        ScalaPluginExtension scalaPluginExtension,
+        Provider<ResolvableConfiguration> scalaCompilerRuntimeClasspath
+    ) {
         project.getTasks().withType(ScalaCompile.class).configureEach(compile -> {
             ConventionMapping conventionMapping = compile.getConventionMapping();
-            conventionMapping.map("scalaClasspath", (Callable<FileCollection>) () -> scalaRuntime.inferScalaClasspath(compile.getClasspath()));
+            conventionMapping.map("scalaClasspath", (Callable<FileCollection>) () -> getScalaCompilerClasspath(
+                scalaPluginExtension,
+                scalaCompilerRuntimeClasspath,
+                () -> scalaRuntime.inferScalaClasspath(compile.getClasspath())
+            ));
             conventionMapping.map("zincClasspath", (Callable<Configuration>) () -> project.getConfigurations().getAt(ZINC_CONFIGURATION_NAME));
             conventionMapping.map("scalaCompilerPlugins", (Callable<FileCollection>) () -> project.getConfigurations().getAt(SCALA_COMPILER_PLUGINS_CONFIGURATION_NAME));
             conventionMapping.map("sourceCompatibility", () -> computeJavaSourceCompatibilityConvention(javaExtension, compile).toString());
@@ -288,13 +421,35 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
         return JavaVersion.toVersion(compileTask.getSourceCompatibility());
     }
 
-    private void configureScaladoc(final Project project, final ScalaRuntime scalaRuntime) {
+    private static void configureScaladoc(
+        Project project,
+        ScalaRuntime scalaRuntime,
+        ScalaPluginExtension scalaPluginExtension,
+        Provider<ResolvableConfiguration> scalaCompilerRuntimeClasspath
+    ) {
         project.getTasks().withType(ScalaDoc.class).configureEach(scalaDoc -> {
-            scalaDoc.getConventionMapping().map("scalaClasspath", (Callable<FileCollection>) () -> scalaRuntime.inferScalaClasspath(scalaDoc.getClasspath()));
+            scalaDoc.getConventionMapping().map("scalaClasspath", (Callable<FileCollection>) () -> getScalaCompilerClasspath(
+                scalaPluginExtension,
+                scalaCompilerRuntimeClasspath,
+                () -> scalaRuntime.inferScalaClasspath(scalaDoc.getClasspath())
+            ));
             scalaDoc.getConventionMapping().map("destinationDir", (Callable<File>) () -> javaPluginExtension(project).getDocsDir().dir("scaladoc").get().getAsFile());
             scalaDoc.getConventionMapping().map("title", (Callable<String>) () -> project.getExtensions().getByType(ReportingExtension.class).getApiDocTitle());
             scalaDoc.getJavaLauncher().convention(getJavaLauncher(project));
         });
+    }
+
+    private static FileCollection getScalaCompilerClasspath(
+        ScalaPluginExtension scalaPluginExtension,
+        Provider<ResolvableConfiguration> scalaCompilerRuntimeClasspath,
+        Supplier<FileCollection> classpathInferrer
+    ) {
+        if (scalaPluginExtension.getScalaVersion().isPresent()) {
+            return scalaCompilerRuntimeClasspath.get();
+        } else {
+            // TODO: Deprecate this path in 9.x when we de-incubate ScalaPluginExtension#getScalaVersion()
+            return classpathInferrer.get();
+        }
     }
 
     private static Provider<JavaLauncher> getJavaLauncher(Project project) {
