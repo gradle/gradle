@@ -17,11 +17,9 @@
 package org.gradle.api.internal.attributes.matching;
 
 import org.gradle.api.attributes.Attribute;
-import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.attributes.AttributeValue;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 
-import java.util.Collection;
 import java.util.List;
 
 public interface AttributeMatcher {
@@ -50,8 +48,8 @@ public interface AttributeMatcher {
      * criteria attributes. Then, if there is more than one match, performs disambiguation to attempt
      * to reduce the set of matches to a more preferred subset.
      */
-    <T extends HasAttributes> List<T> matchMultipleCandidates(
-        Collection<? extends T> candidates,
+    <T extends AttributeMatchingCandidate> List<T> matchMultipleCandidates(
+        List<? extends T> candidates,
         ImmutableAttributes requested
     );
 

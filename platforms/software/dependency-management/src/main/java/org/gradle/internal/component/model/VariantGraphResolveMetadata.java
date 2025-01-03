@@ -16,7 +16,6 @@
 
 package org.gradle.internal.component.model;
 
-import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 
@@ -27,7 +26,7 @@ import org.gradle.internal.component.external.model.ImmutableCapabilities;
  * of this variant, as they may be expensive to resolve. Expensive information about this variant
  * can be accessed via the methods of {@link VariantGraphResolveState}.
  */
-public interface VariantGraphResolveMetadata extends HasAttributes {
+public interface VariantGraphResolveMetadata {
 
     /**
      * Returns the name for this variant, which is unique for the variants of its owning component.
@@ -38,7 +37,6 @@ public interface VariantGraphResolveMetadata extends HasAttributes {
      */
     String getName();
 
-    @Override
     ImmutableAttributes getAttributes();
 
     ImmutableCapabilities getCapabilities();
