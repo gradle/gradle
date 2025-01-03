@@ -469,12 +469,12 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
 
                 @TaskAction
                 void run() {
-//                    getProblems().${report(targetVersion)} {
-//                        it.${id(targetVersion)}
-//                        .lineInFileLocation("/tmp/foo", 1, 2, 3)
-//                        .additionalData(new SomeData("typeName"))
-//                        .severity(Severity.WARNING)
-//                    }
+                    getProblems().${report(targetVersion)} {
+                        it.${id(targetVersion)}
+                        .lineInFileLocation("/tmp/foo", 1, 2, 3)
+                        .additionalData(new SomeData("typeName"))
+                        .severity(Severity.WARNING)
+                    }
                 }
             }
 
@@ -498,7 +498,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         def problems = listener.problems
 
         then:
-        problems.size() == 1
+        problems.size() == 2
         verifyAll(problems[0]) {
             additionalData.get(SomeData).typeName == 'typeName'
         }
