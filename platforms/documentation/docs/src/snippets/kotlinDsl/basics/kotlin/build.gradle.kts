@@ -12,6 +12,7 @@ repositories {
 dependencies {
     implementation("org.apache.commons:commons-lang3:3.12.0")
     testImplementation("org.junit.jupiter:junit-jupiter:5.10.0")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher") // Add this if needed for runtime
 }
 
 // Add a custom configuration
@@ -97,7 +98,7 @@ tasks.create<Zip>("archiveTestsReports") {
 // tag::write[]
 extra["myNewProperty"] = "initial value"  // <1>
 
-tasks.create("myTask") {
+tasks.register("myTask") {
     doLast {
         println("Property: ${project.extra["myNewProperty"]}")  // <2>
     }
