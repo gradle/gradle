@@ -56,6 +56,8 @@ import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.internal.classloader.ClasspathHasher;
 import org.gradle.internal.classloader.DefaultHashingClassLoaderFactory;
 import org.gradle.internal.classloader.HashingClassLoaderFactory;
+import org.gradle.internal.classpath.CachedClasspathTransformer;
+import org.gradle.internal.classpath.ClasspathTransformerCacheFactory;
 import org.gradle.internal.classpath.ClasspathWalker;
 import org.gradle.internal.classpath.DefaultCachedClasspathTransformer;
 import org.gradle.internal.classpath.DefaultClasspathBuilder;
@@ -117,12 +119,12 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
         registration.add(ClasspathWalker.class);
         registration.add(DefaultClasspathBuilder.class);
         registration.add(GradleUserHomeTemporaryFileProvider.class);
-        registration.add(DefaultClasspathTransformerCacheFactory.class);
+        registration.add(ClasspathTransformerCacheFactory.class, DefaultClasspathTransformerCacheFactory.class);
         registration.add(GradleUserHomeScopeFileTimeStampInspector.class);
         registration.add(GradleCoreInstrumentationTypeRegistry.class);
         registration.add(ClasspathElementTransformFactoryForAgent.class);
         registration.add(ClasspathElementTransformFactoryForLegacy.class);
-        registration.add(DefaultCachedClasspathTransformer.class);
+        registration.add(CachedClasspathTransformer.class, DefaultCachedClasspathTransformer.class);
         registration.add(GroovyDslWorkspaceProvider.class);
         for (GradleModuleServices services : globalServices.getAll(GradleModuleServices.class)) {
             services.registerGradleUserHomeServices(registration);
