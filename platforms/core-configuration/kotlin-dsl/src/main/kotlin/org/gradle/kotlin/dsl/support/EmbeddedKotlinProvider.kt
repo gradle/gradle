@@ -16,12 +16,15 @@
 package org.gradle.kotlin.dsl.support
 
 import org.gradle.api.artifacts.dsl.DependencyHandler
+import org.gradle.internal.service.scopes.Scope
+import org.gradle.internal.service.scopes.ServiceScope
 
 import org.gradle.kotlin.dsl.embeddedKotlinVersion
 
 import java.util.Properties
 
 
+@ServiceScope(Scope.UserHome::class)
 class EmbeddedKotlinProvider internal constructor() {
 
     fun addDependenciesTo(
