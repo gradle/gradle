@@ -16,11 +16,14 @@
 
 package org.gradle.nativeplatform.toolchain.internal.gcc.metadata;
 
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.toolchain.internal.xcode.MacOSSdkPathLocator;
 
 import java.io.File;
 
+@ServiceScope(Scope.BuildSession.class)
 public class SystemLibraryDiscovery {
     private final MacOSSdkPathLocator macOSSdkPathLocator;
 
