@@ -21,16 +21,16 @@ import org.gradle.api.artifacts.ivy.IvyModuleDescriptor;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyModuleDescriptor;
 import org.gradle.api.internal.artifacts.repositories.resolver.ComponentMetadataAdapter;
 import org.gradle.internal.component.external.model.ExternalComponentResolveMetadata;
-import org.gradle.internal.component.external.model.ModuleComponentGraphResolveState;
+import org.gradle.internal.component.external.model.ExternalModuleComponentGraphResolveState;
 import org.gradle.internal.component.external.model.ivy.IvyModuleResolveMetadata;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 
 class CachedMetadataProvider implements MetadataProvider {
-    private final BuildableModuleComponentMetaDataResolveResult<ModuleComponentGraphResolveState> cachedResult;
+    private final BuildableModuleComponentMetaDataResolveResult<ExternalModuleComponentGraphResolveState> cachedResult;
     private final ComponentMetadata cachedComponentMetadata;
     private final boolean usable;
 
-    CachedMetadataProvider(BuildableModuleComponentMetaDataResolveResult<ModuleComponentGraphResolveState> result) {
+    CachedMetadataProvider(BuildableModuleComponentMetaDataResolveResult<ExternalModuleComponentGraphResolveState> result) {
         cachedResult = result;
         usable = cachedResult.getState() == BuildableModuleComponentMetaDataResolveResult.State.Resolved;
         if (usable) {

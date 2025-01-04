@@ -20,12 +20,12 @@ import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.file.temp.TemporaryFileProvider
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
+import org.gradle.api.problems.ProblemGroup
+import org.gradle.api.problems.FileLocation
+import org.gradle.api.problems.LineInFileLocation
+import org.gradle.api.problems.Problem
 import org.gradle.api.problems.ProblemId
-import org.gradle.api.problems.internal.DefaultProblemGroup
-import org.gradle.api.problems.internal.FileLocation
-import org.gradle.api.problems.internal.LineInFileLocation
 import org.gradle.api.problems.internal.PluginIdLocation
-import org.gradle.api.problems.internal.Problem
 import org.gradle.api.problems.internal.ProblemReportCreator
 import org.gradle.api.problems.internal.ProblemSummaryData
 import org.gradle.api.problems.internal.TaskPathLocation
@@ -70,7 +70,7 @@ class DefaultProblemsReportCreator(
                             property("totalProblemCount", problemCount.get())
                             buildNameProvider.buildName()?.let { property("buildName", it) }
                             property("requestedTasks", taskNames.joinToString(" "))
-                            property("documentationLink", DocumentationRegistry().getDocumentationFor("problems-report"))
+                            property("documentationLink", DocumentationRegistry().getDocumentationFor("reporting_problems"))
                             property("documentationLinkCaption", "Problem report")
                             property("summaries") {
                                 jsonList(problemSummaries) {
@@ -98,7 +98,7 @@ class DefaultProblemsReportCreator(
 
 fun JsonWriter.problemId(id: ProblemId) {
     property("problemId") {
-        val list = generateSequence(id.group) { it.parent }.toList() + listOf(DefaultProblemGroup(id.name, id.displayName))
+        val list = generateSequence(id.group) { it.parent }.toList() + listOf(ProblemGroup.create(id.name, id.displayName))
         jsonObjectList(list) { group ->
             property("name", group.name)
             property("displayName", group.displayName)

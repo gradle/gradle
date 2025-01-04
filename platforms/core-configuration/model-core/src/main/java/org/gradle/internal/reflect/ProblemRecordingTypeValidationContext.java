@@ -17,10 +17,10 @@
 package org.gradle.internal.reflect;
 
 import org.gradle.api.Action;
+import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.internal.AdditionalDataBuilderFactory;
 import org.gradle.api.problems.internal.DefaultProblemBuilder;
 import org.gradle.api.problems.internal.InternalProblems;
-import org.gradle.api.problems.internal.Problem;
 import org.gradle.api.problems.internal.TypeValidationDataSpec;
 import org.gradle.internal.reflect.validation.DefaultTypeAwareProblemBuilder;
 import org.gradle.internal.reflect.validation.TypeAwareProblemBuilder;

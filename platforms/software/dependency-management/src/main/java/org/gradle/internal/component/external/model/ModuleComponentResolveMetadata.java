@@ -32,10 +32,10 @@ import javax.annotation.Nullable;
  *
  * This type is being replaced by several other interfaces. Try to avoid this interface.
  * @see ComponentGraphResolveMetadata
- * @see ModuleComponentGraphResolveMetadata
+ * @see ExternalModuleComponentGraphResolveMetadata
  * @see ComponentArtifactResolveMetadata
  */
-public interface ModuleComponentResolveMetadata extends ExternalComponentResolveMetadata, ModuleComponentGraphResolveMetadata {
+public interface ModuleComponentResolveMetadata extends ExternalComponentResolveMetadata, ExternalModuleComponentGraphResolveMetadata {
     /**
      * {@inheritDoc}
      */

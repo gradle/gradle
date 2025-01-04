@@ -30,5 +30,4 @@ public interface Clock {
      * The current time in millis.
      */
     long getCurrentTime();
-
 }

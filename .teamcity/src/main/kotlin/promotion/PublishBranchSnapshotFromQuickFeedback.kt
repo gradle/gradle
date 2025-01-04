@@ -21,12 +21,12 @@ import jetbrains.buildServer.configs.kotlin.RelativeId
 import vcsroots.gradlePromotionBranches
 
 object PublishBranchSnapshotFromQuickFeedback : PublishGradleDistributionFullBuild(
-    promotedBranch = "%branch.to.promote%",
+    promotedBranch = "%branch.qualifier%",
     triggerName = "QuickFeedback",
     prepTask = "prepSnapshot",
     promoteTask = "promoteSnapshot",
-    extraParameters = "-PpromotedBranch=%branch.qualifier% ",
-    vcsRootId = gradlePromotionBranches
+    extraParameters = "-PpromotedBranch=%branch.qualifier%",
+    vcsRootId = gradlePromotionBranches,
 ) {
     init {
         id("Promotion_PublishBranchSnapshotFromQuickFeedback")
@@ -36,12 +36,11 @@ object PublishBranchSnapshotFromQuickFeedback : PublishGradleDistributionFullBui
         val triggerName = this.triggerName
 
         params {
-            param("branch.qualifier", "%dep.${RelativeId("Check_Stage_${triggerName}_Trigger")}.teamcity.build.branch%")
             text(
-                "branch.to.promote",
-                "%branch.qualifier%",
-                label = "Branch to promote",
-                description = "Type in the branch of gradle/gradle you want to promote. Leave the default value when promoting an existing build.",
+                "branch.qualifier",
+                "%dep.${RelativeId("Check_Stage_${triggerName}_Trigger")}.teamcity.build.branch%",
+                label = "Branch qualifier for the distribution name",
+                description = "The published distribution name looks like '8.13-branch-%branch.qualifier%-20241217145847+0000'.",
                 display = ParameterDisplay.PROMPT,
                 allowEmpty = false
             )

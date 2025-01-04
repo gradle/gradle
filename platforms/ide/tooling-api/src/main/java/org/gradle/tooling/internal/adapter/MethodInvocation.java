@@ -43,6 +43,23 @@ class MethodInvocation {
         this.parameters = parameters;
     }
 
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(returnType.getTypeName());
+        sb.append(' ');
+        sb.append(delegate.getClass().getTypeName());
+        sb.append('.');
+        sb.append(name);
+        sb.append('(');
+        for (Class parameter : parameterTypes) {
+            sb.append(parameter.getTypeName()).append(',');
+        }
+        sb.append(')');
+        return sb.toString();
+
+    }
+
     public boolean isGetter() {
         return parameterTypes.length == 0 && isIsOrGet();
     }

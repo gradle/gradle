@@ -80,8 +80,8 @@ class ConfigurationCacheServices : AbstractGradleModuleServices() {
         registration.run {
             add(RelevantProjectsRegistry::class.java)
             addProvider(TaskExecutionAccessCheckerProvider)
-            add(DefaultConfigurationCacheHost::class.java)
-            add(DefaultConfigurationCacheIO::class.java)
+            add(ConfigurationCacheHost::class.java, DefaultConfigurationCacheHost::class.java)
+            add(ConfigurationCacheBuildTreeIO::class.java, ConfigurationCacheIncludedBuildIO::class.java, DefaultConfigurationCacheIO::class.java)
             add(
                 IsolatedProjectEvaluationListenerProvider::class.java,
                 GradleLifecycleActionExecutor::class.java,

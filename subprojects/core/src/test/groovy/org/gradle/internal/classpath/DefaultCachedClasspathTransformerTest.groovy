@@ -23,7 +23,7 @@ import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheCleanupStrategyFactory
 import org.gradle.cache.FileLockManager
 import org.gradle.cache.GlobalCacheLocations
-import org.gradle.cache.internal.UsedGradleVersions
+import org.gradle.internal.versionedcache.UsedGradleVersions
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
 import org.gradle.internal.Pair
 import org.gradle.internal.classpath.transforms.ClassTransform

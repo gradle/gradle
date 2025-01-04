@@ -30,6 +30,7 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyConstraintFa
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCachesProvider;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ExternalModuleComponentResolverFactory;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolverProviderFactories;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.StartParameterResolutionOverride;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.CachingVersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator;
@@ -136,6 +137,7 @@ class DependencyManagementBuildScopeServices implements ServiceRegistrationProvi
         registration.add(FileResourceConnector.class);
         registration.add(ResolvedArtifactSetResolver.class);
         registration.add(ExternalModuleComponentResolverFactory.class);
+        registration.add(ResolverProviderFactories.class);
     }
 
     @Provides

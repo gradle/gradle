@@ -201,8 +201,6 @@ ${variantOf('runtimeElements-resources', [
 
 ${variantOf('testResultsElementsForTest', [
                 'org.gradle.testsuite.name': of('test', ''),
-                'org.gradle.testsuite.target.name': of('test', ''),
-                'org.gradle.testsuite.type': of('unit-test', ''),
                 'org.gradle.verificationtype': of('test-results', ''),
                 'org.gradle.category': of('verification', 'library'),
                 'org.gradle.dependency.bundling': of('', 'external'),
@@ -314,8 +312,6 @@ ${variantOf('runtimeElements-resources', [
 
 ${variantOf('testResultsElementsForTest', [
                 'org.gradle.testsuite.name': of('test', ''),
-                'org.gradle.testsuite.target.name': of('test', ''),
-                'org.gradle.testsuite.type': of('unit-test', ''),
                 'org.gradle.verificationtype': of('test-results', ''),
                 'org.gradle.category': of('verification', 'library'),
                 'org.gradle.dependency.bundling': of('', 'external'),

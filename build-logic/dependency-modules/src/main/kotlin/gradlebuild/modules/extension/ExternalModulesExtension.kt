@@ -175,6 +175,7 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val bytebuddyAgent = "net.bytebuddy:byte-buddy-agent"
     val cglib = "cglib:cglib"
     val compileTesting = "com.google.testing.compile:compile-testing"
+    val dockerJavaApi = "com.github.docker-java:docker-java-api"
     val equalsverifier = "nl.jqno.equalsverifier:equalsverifier"
     val hikariCP = "com.zaxxer:HikariCP"
     val guice = "com.google.inject:guice"

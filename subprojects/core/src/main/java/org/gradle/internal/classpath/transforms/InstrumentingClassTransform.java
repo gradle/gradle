@@ -47,6 +47,7 @@ import org.objectweb.asm.tree.MethodNode;
 
 import javax.annotation.Nullable;
 import java.lang.invoke.CallSite;
+import java.lang.invoke.LambdaMetafactory;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.util.Collection;
@@ -63,7 +64,9 @@ import static org.gradle.model.internal.asm.AsmConstants.ASM_LEVEL;
 import static org.objectweb.asm.Opcodes.ACC_PRIVATE;
 import static org.objectweb.asm.Opcodes.ACC_STATIC;
 import static org.objectweb.asm.Opcodes.ACC_SYNTHETIC;
+import static org.objectweb.asm.Opcodes.H_INVOKEINTERFACE;
 import static org.objectweb.asm.Opcodes.H_INVOKESTATIC;
+import static org.objectweb.asm.Opcodes.H_INVOKEVIRTUAL;
 import static org.objectweb.asm.Opcodes.INVOKESTATIC;
 import static org.objectweb.asm.Type.INT_TYPE;
 import static org.objectweb.asm.Type.getMethodDescriptor;
@@ -74,7 +77,7 @@ public class InstrumentingClassTransform implements ClassTransform {
     /**
      * Decoration format. Increment this when making changes.
      */
-    private static final int DECORATION_FORMAT = 37;
+    private static final int DECORATION_FORMAT = 38;
 
     private static final Type INSTRUMENTED_TYPE = getType(Instrumented.class);
     private static final Type BYTECODE_INTERCEPTOR_FILTER_TYPE = Type.getType(BytecodeInterceptorFilter.class);
@@ -91,6 +94,8 @@ public class InstrumentingClassTransform implements ClassTransform {
 
     private static final String INSTRUMENTED_CALL_SITE_METHOD = "$instrumentedCallSiteArray";
     private static final String CREATE_CALL_SITE_ARRAY_METHOD = "$createCallSiteArray";
+
+    private static final String LAMBDA_METAFACTORY_TYPE = getType(LambdaMetafactory.class).getInternalName();
 
     private static final AdhocInterceptors ADHOC_INTERCEPTORS = new AdhocInterceptors();
 
@@ -251,16 +256,61 @@ public class InstrumentingClassTransform implements ClassTransform {
          * @return the bridge method that intercepts the original method or null if there is no interceptor
          */
         @Nullable
-        public BridgeMethod findBridgeMethodFor(Handle originalHandle) {
-            return bridgeMethods.computeIfAbsent(originalHandle, this::maybeBuildBridgeMethod);
+        public BridgeMethod findBridgeMethodFor(Type factoryMethodType, Handle originalHandle) {
+            Handle targetHandle = originalHandle;
+            if ((originalHandle.getTag() == H_INVOKEVIRTUAL || originalHandle.getTag() == H_INVOKEINTERFACE) && factoryMethodType.getArgumentCount() > 0) {
+                // This is a bound instance method, like myFile::exists. The receiver is the first (only?) captured argument,
+                // which is passed to the `factoryMethodType`. An unbound reference, like File::exists, has no captured arguments at all.
+
+                // As elsewhere, if the implementation is rewritten, the original method reference is going to be replaced by a reference to a static method.
+                // However, there is a caveat: static method argument type checking is stricter.
+                // It is possible for the captured receiver argument (of the factory method type) to be a subtype of the method's receiver.
+                // For example, you can have `class MyFile extends File {}`, and capture new MyFile()::exists. The method reference is to the File::exists,
+                // but the factoryMethodType accepts MyFile. This is happily accepted by the LambdaMetafactory.
+
+                // If we simply rewrite the `File::exists` to a reference to `static boolean exists_bridge(File)`, then the LambdaMetafactory will complain,
+                // because the static method argument is no longer a receiver.
+                // To work around that we get the exact receiver type and use it as an interceptor argument, so in our example we will generate
+                // `static boolean exists_bridge(MyFile)`.
+                Type exactReceiverType = factoryMethodType.getArgumentTypes()[0];
+                if (!exactReceiverType.equals(Type.getObjectType(originalHandle.getOwner()))) {
+                    targetHandle = new Handle(
+                        originalHandle.getTag(),
+                        exactReceiverType.getInternalName(),
+                        originalHandle.getName(),
+                        originalHandle.getDesc(),
+                        originalHandle.isInterface()
+                    );
+                }
+            }
+            // We use the target handle to look up bridge methods, but original handle to find the base builders for them.
+            // The found bridge builder is refined based on the target owner.
+            // That way we only generate a single bridge method for each target owner + originalHandle.
+            String targetOwner = targetHandle.getOwner();
+            return bridgeMethods.computeIfAbsent(targetHandle, unused -> maybeBuildBridgeMethod(targetOwner, originalHandle));
         }
 
+        /**
+         * Prepares the bridge method for the {@code interceptedHandle} with proper argument types.
+         * @param targetOwner the owner type to be used by the bridge method
+         * @param interceptedHandle the method reference to potentially intercept
+         * @return the bridge method data or null if the method shouldn't be intercepted
+         */
         @Nullable
-        private BridgeMethod maybeBuildBridgeMethod(Handle handle) {
+        private BridgeMethod maybeBuildBridgeMethod(String targetOwner, Handle interceptedHandle) {
             for (JvmBytecodeCallInterceptor interceptor : interceptors) {
-                BridgeMethodBuilder methodBuilder = interceptor.findBridgeMethodBuilder(className, handle.getTag(), handle.getOwner(), handle.getName(), handle.getDesc());
+                BridgeMethodBuilder methodBuilder = interceptor.findBridgeMethodBuilder(
+                    className,
+                    interceptedHandle.getTag(),
+                    interceptedHandle.getOwner(),
+                    interceptedHandle.getName(),
+                    interceptedHandle.getDesc()
+                );
                 if (methodBuilder != null) {
-                    return new BridgeMethod(makeBridgeMethodHandle(makeBridgeMethodName(handle), methodBuilder.getBridgeMethodDescriptor()), methodBuilder);
+                    if (!targetOwner.equals(interceptedHandle.getOwner())) {
+                        methodBuilder = methodBuilder.withReceiverType(targetOwner);
+                    }
+                    return new BridgeMethod(makeBridgeMethodHandle(makeBridgeMethodName(interceptedHandle), methodBuilder.getBridgeMethodDescriptor()), methodBuilder);
                 }
             }
             return null;
@@ -369,10 +419,20 @@ public class InstrumentingClassTransform implements ClassTransform {
                 );
                 bootstrapMethodArguments = ArrayUtils.add(bootstrapMethodArguments, interceptorFilter.name());
                 super.visitInvokeDynamicInsn(name, descriptor, interceptor, bootstrapMethodArguments);
+            } else if (isLambdaMetafactoryCallsite(bootstrapMethodHandle, bootstrapMethodArguments)) {
+                // The bootstrap method prototypes of LambdaMetafactory.metafactory and altMetafactory goes as follows:
+                // (MethodHandles.Lookup caller, <-- JVM-provided at runtime
+                // String interfaceMethodName, <-- name
+                // MethodType factoryType, <-- descriptor
+                // MethodType interfaceMethodType, <-- bootstrapMethodArguments[0]
+                // MethodHandle implementation, <-- bootstrapMethodArguments[1]
+                // MethodType dynamicMethodType, <-- bootstrapMethodArguments[2]
+                // ... )
+                // `implementation` is the handle to the lambda implementation, which we want to potentially intercept.
+                // factoryType is the descriptor for (captured args) -> SAM interface.
+                bootstrapMethodArguments[1] = maybeInstrumentMethodReference(Type.getMethodType(descriptor), (Handle) bootstrapMethodArguments[1]);
+                super.visitInvokeDynamicInsn(name, descriptor, bootstrapMethodHandle, bootstrapMethodArguments);
             } else {
-                for (int i = 0; i < bootstrapMethodArguments.length; i++) {
-                    bootstrapMethodArguments[i] = maybeInstrumentBootstrapArgument(bootstrapMethodArguments[i]);
-                }
                 super.visitInvokeDynamicInsn(name, descriptor, bootstrapMethodHandle, bootstrapMethodArguments);
             }
         }
@@ -384,15 +444,15 @@ public class InstrumentingClassTransform implements ClassTransform {
                 bootstrapMethodHandle.getDesc().equals(GROOVY_INDY_INTERFACE_BOOTSTRAP_METHOD_DESCRIPTOR);
         }
 
-        private Object maybeInstrumentBootstrapArgument(Object argument) {
-            if (argument instanceof Handle) {
-                return maybeInstrumentHandle((Handle) argument);
-            }
-            return argument;
+        private boolean isLambdaMetafactoryCallsite(Handle bootstrapMethodHandle, Object[] bootstrapMethodArguments) {
+            return bootstrapMethodHandle.getOwner().equals(LAMBDA_METAFACTORY_TYPE) &&
+                (bootstrapMethodHandle.getName().equals("metafactory") || bootstrapMethodHandle.getName().equals("altMetafactory")) &&
+                bootstrapMethodArguments.length >= 3 &&
+                bootstrapMethodArguments[1] instanceof Handle;
         }
 
-        private Handle maybeInstrumentHandle(Handle handle) {
-            BridgeMethod bridgeMethod = owner.findBridgeMethodFor(handle);
+        private Handle maybeInstrumentMethodReference(Type factoryMethodType, Handle handle) {
+            BridgeMethod bridgeMethod = owner.findBridgeMethodFor(factoryMethodType, handle);
             if (bridgeMethod != null) {
                 return bridgeMethod.bridgeMethodHandle;
             }

@@ -16,6 +16,8 @@
 
 package org.gradle.api.problems.internal;
 
+import org.gradle.api.problems.Problem;
+
 import java.io.File;
 import java.util.List;
 

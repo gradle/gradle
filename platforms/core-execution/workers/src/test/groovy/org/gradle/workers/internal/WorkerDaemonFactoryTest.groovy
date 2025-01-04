@@ -44,7 +44,7 @@ class WorkerDaemonFactoryTest extends Specification {
 
     def "getting a worker daemon does not assume client use"() {
         when:
-        factory.getWorker(requirement);
+        factory.getWorker(requirement)
 
         then:
         0 * clientsManager._

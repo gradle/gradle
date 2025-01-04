@@ -31,9 +31,16 @@ import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
+import org.gradle.api.problems.AdditionalData;
+import org.gradle.api.problems.DocLink;
+import org.gradle.api.problems.FileLocation;
+import org.gradle.api.problems.GeneralData;
+import org.gradle.api.problems.LineInFileLocation;
+import org.gradle.api.problems.OffsetInFileLocation;
+import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemGroup;
 import org.gradle.api.problems.ProblemId;
-import org.gradle.api.problems.internal.AdditionalData;
+import org.gradle.api.problems.ProblemLocation;
 import org.gradle.api.problems.internal.DefaultDeprecationData;
 import org.gradle.api.problems.internal.DefaultFileLocation;
 import org.gradle.api.problems.internal.DefaultGeneralData;
@@ -42,20 +49,12 @@ import org.gradle.api.problems.internal.DefaultOffsetInFileLocation;
 import org.gradle.api.problems.internal.DefaultPluginIdLocation;
 import org.gradle.api.problems.internal.DefaultProblem;
 import org.gradle.api.problems.internal.DefaultProblemCategory;
-import org.gradle.api.problems.internal.DefaultProblemGroup;
-import org.gradle.api.problems.internal.DefaultProblemId;
 import org.gradle.api.problems.internal.DefaultPropertyTraceData;
 import org.gradle.api.problems.internal.DefaultTaskPathLocation;
 import org.gradle.api.problems.internal.DefaultTypeValidationData;
 import org.gradle.api.problems.internal.DeprecationData;
-import org.gradle.api.problems.internal.DocLink;
-import org.gradle.api.problems.internal.FileLocation;
-import org.gradle.api.problems.internal.GeneralData;
-import org.gradle.api.problems.internal.LineInFileLocation;
-import org.gradle.api.problems.internal.OffsetInFileLocation;
-import org.gradle.api.problems.internal.Problem;
+import org.gradle.api.problems.internal.InternalDocLink;
 import org.gradle.api.problems.internal.ProblemCategory;
-import org.gradle.api.problems.internal.ProblemLocation;
 import org.gradle.api.problems.internal.PropertyTraceData;
 import org.gradle.api.problems.internal.TypeValidationData;
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
@@ -403,7 +402,7 @@ public class ValidationProblemSerialization {
 
             out.beginObject();
             out.name("url").value(value.getUrl());
-            out.name("consultDocumentationMessage").value(value.getConsultDocumentationMessage());
+            out.name("consultDocumentationMessage").value(((InternalDocLink) value).getConsultDocumentationMessage());
             out.endObject();
         }
 
@@ -431,7 +430,7 @@ public class ValidationProblemSerialization {
 
             final String finalUrl = url;
             final String finalConsultDocumentationMessage = consultDocumentationMessage;
-            return new DocLink() {
+            return new InternalDocLink() {
                 @Override
                 public String getUrl() {
                     return finalUrl;
@@ -561,7 +560,7 @@ public class ValidationProblemSerialization {
             String name = problemObject.get("name").getAsString();
             String displayName = problemObject.get("displayName").getAsString();
             ProblemGroup group = deserializeGroup(problemObject.get("group"));
-            return new DefaultProblemId(name, displayName, group);
+            return ProblemId.create(name, displayName, group);
         }
 
         private static ProblemGroup deserializeGroup(JsonElement groupObject) {
@@ -570,9 +569,9 @@ public class ValidationProblemSerialization {
             String displayName = group.get("displayName").getAsString();
             JsonElement parent = group.get("parent");
             if (parent == null) {
-                return new DefaultProblemGroup(name, displayName);
+                return ProblemGroup.create(name, displayName);
             }
-            return new DefaultProblemGroup(name, displayName, deserializeGroup(parent));
+            return ProblemGroup.create(name, displayName, deserializeGroup(parent));
         }
 
         @Override

@@ -29,8 +29,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.action.InstantiatingAction;
-import org.gradle.internal.component.external.model.ModuleComponentGraphResolveState;
-import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
+import org.gradle.internal.component.external.model.ExternalModuleComponentGraphResolveState;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentArtifactResolveMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
@@ -54,13 +53,13 @@ import java.util.concurrent.Callable;
  * This implementation will also disable any repository that throws a critical failure, failing-fast with that
  * repository for any subsequent requests.
  */
-public class ErrorHandlingModuleComponentRepository implements ModuleComponentRepository<ModuleComponentGraphResolveState> {
+public class ErrorHandlingModuleComponentRepository implements ModuleComponentRepository<ExternalModuleComponentGraphResolveState> {
 
-    private final ModuleComponentRepository<ModuleComponentGraphResolveState> delegate;
+    private final ModuleComponentRepository<ExternalModuleComponentGraphResolveState> delegate;
     private final ErrorHandlingModuleComponentRepositoryAccess local;
     private final ErrorHandlingModuleComponentRepositoryAccess remote;
 
-    public ErrorHandlingModuleComponentRepository(ModuleComponentRepository<ModuleComponentGraphResolveState> delegate, RepositoryDisabler remoteRepositoryDisabler) {
+    public ErrorHandlingModuleComponentRepository(ModuleComponentRepository<ExternalModuleComponentGraphResolveState> delegate, RepositoryDisabler remoteRepositoryDisabler) {
         this.delegate = delegate;
         local = new ErrorHandlingModuleComponentRepositoryAccess(delegate.getLocalAccess(), getId(), RepositoryDisabler.NoOpDisabler.INSTANCE, getName());
         remote = new ErrorHandlingModuleComponentRepositoryAccess(delegate.getRemoteAccess(), getId(), remoteRepositoryDisabler, getName());
@@ -82,12 +81,12 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
     }
 
     @Override
-    public ModuleComponentRepositoryAccess<ModuleComponentGraphResolveState> getLocalAccess() {
+    public ModuleComponentRepositoryAccess<ExternalModuleComponentGraphResolveState> getLocalAccess() {
         return local;
     }
 
     @Override
-    public ModuleComponentRepositoryAccess<ModuleComponentGraphResolveState> getRemoteAccess() {
+    public ModuleComponentRepositoryAccess<ExternalModuleComponentGraphResolveState> getRemoteAccess() {
         return remote;
     }
 
@@ -101,23 +100,23 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
         return delegate.getComponentMetadataSupplier();
     }
 
-    private static final class ErrorHandlingModuleComponentRepositoryAccess implements ModuleComponentRepositoryAccess<ModuleComponentGraphResolveState> {
+    private static final class ErrorHandlingModuleComponentRepositoryAccess implements ModuleComponentRepositoryAccess<ExternalModuleComponentGraphResolveState> {
         private static final Logger LOGGER = Logging.getLogger(ErrorHandlingModuleComponentRepositoryAccess.class);
         private final static String MAX_TENTATIVES_BEFORE_DISABLING = "org.gradle.internal.repository.max.tentatives";
         private final static String INITIAL_BACKOFF_MS = "org.gradle.internal.repository.initial.backoff";
 
-        private final ModuleComponentRepositoryAccess<ModuleComponentGraphResolveState> delegate;
+        private final ModuleComponentRepositoryAccess<ExternalModuleComponentGraphResolveState> delegate;
         private final String repositoryId;
         private final RepositoryDisabler repositoryDisabler;
         private final int maxTentativesCount;
         private final int initialBackOff;
         private final String repositoryName;
 
-        private ErrorHandlingModuleComponentRepositoryAccess(ModuleComponentRepositoryAccess<ModuleComponentGraphResolveState> delegate, String repositoryId, RepositoryDisabler repositoryDisabler, String repositoryName) {
+        private ErrorHandlingModuleComponentRepositoryAccess(ModuleComponentRepositoryAccess<ExternalModuleComponentGraphResolveState> delegate, String repositoryId, RepositoryDisabler repositoryDisabler, String repositoryName) {
             this(delegate, repositoryId, repositoryDisabler, Integer.getInteger(MAX_TENTATIVES_BEFORE_DISABLING, 3), Integer.getInteger(INITIAL_BACKOFF_MS, 1000), repositoryName);
         }
 
-        private ErrorHandlingModuleComponentRepositoryAccess(ModuleComponentRepositoryAccess<ModuleComponentGraphResolveState> delegate, String repositoryId, RepositoryDisabler repositoryDisabler, int maxTentativesCount, int initialBackoff, String repositoryName) {
+        private ErrorHandlingModuleComponentRepositoryAccess(ModuleComponentRepositoryAccess<ExternalModuleComponentGraphResolveState> delegate, String repositoryId, RepositoryDisabler repositoryDisabler, int maxTentativesCount, int initialBackoff, String repositoryName) {
             this.repositoryName = repositoryName;
             assert maxTentativesCount > 0 : "Max tentatives must be > 0";
             assert initialBackoff >= 0 : "Initial backoff must be >= 0";
@@ -134,18 +133,16 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
         }
 
         @Override
-        public void listModuleVersions(ModuleDependencyMetadata dependency, BuildableModuleVersionListingResolveResult result) {
+        public void listModuleVersions(ModuleComponentSelector selector, ComponentOverrideMetadata overrideMetadata, BuildableModuleVersionListingResolveResult result) {
             performOperationWithRetries(result,
-                () -> delegate.listModuleVersions(dependency, result),
-                cause -> new ModuleVersionResolveException(dependency.getSelector(), () -> buildDisabledRepositoryErrorMessage(repositoryName)),
-                cause -> {
-                    ModuleComponentSelector selector = dependency.getSelector();
-                    return new ModuleVersionResolveException(selector, () -> "Failed to list versions for " + selector.getGroup() + ":" + selector.getModule() + ".", cause);
-                });
+                () -> delegate.listModuleVersions(selector, overrideMetadata, result),
+                cause -> new ModuleVersionResolveException(selector, () -> buildDisabledRepositoryErrorMessage(repositoryName)),
+                cause -> new ModuleVersionResolveException(selector, () -> "Failed to list versions for " + selector.getGroup() + ":" + selector.getModule() + ".", cause)
+            );
         }
 
         @Override
-        public void resolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata requestMetaData, BuildableModuleComponentMetaDataResolveResult<ModuleComponentGraphResolveState> result) {
+        public void resolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata requestMetaData, BuildableModuleComponentMetaDataResolveResult<ExternalModuleComponentGraphResolveState> result) {
             performOperationWithRetries(result,
                 () -> delegate.resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, result),
                 cause -> new ModuleVersionResolveException(moduleComponentIdentifier, () -> buildDisabledRepositoryErrorMessage(repositoryName), cause),

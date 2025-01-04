@@ -27,6 +27,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 
+import static org.gradle.test.fixtures.server.http.BlockingHttpServer.getCurrentTimestamp;
+
 class SendPartialResponseThenBlock implements BlockingHttpServer.BlockingRequest, ResponseProducer {
     private final byte[] content;
     private final Lock lock;
@@ -64,7 +66,7 @@ class SendPartialResponseThenBlock implements BlockingHttpServer.BlockingRequest
             while (!released && failure == null) {
                 long waitMs = mostRecentEvent + timeout.toMillis() - clock.getCurrentTime();
                 if (waitMs < 0) {
-                    System.out.println(String.format("[%d] timeout waiting to be released after sending some content", requestId));
+                    System.out.printf("[%s][%d] timeout waiting to be released after sending some content%n", getCurrentTimestamp(), requestId);
                     failure = new AssertionError("Timeout waiting to be released after sending some content.");
                     condition.signalAll();
                     throw failure;

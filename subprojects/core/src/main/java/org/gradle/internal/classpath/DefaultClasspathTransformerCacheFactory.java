@@ -22,18 +22,18 @@ import org.gradle.cache.CacheCleanupStrategy;
 import org.gradle.cache.CacheCleanupStrategyFactory;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
-import org.gradle.cache.internal.CacheVersionMapping;
+import org.gradle.internal.versionedcache.CacheVersionMapping;
 import org.gradle.cache.internal.CompositeCleanupAction;
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
 import org.gradle.cache.internal.SingleDepthFilesFinder;
-import org.gradle.cache.internal.UnusedVersionsCacheCleanup;
-import org.gradle.cache.internal.UsedGradleVersions;
+import org.gradle.internal.versionedcache.UnusedVersionsCacheCleanup;
+import org.gradle.internal.versionedcache.UsedGradleVersions;
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.file.FileAccessTracker;
 import org.gradle.internal.file.impl.SingleDepthFileAccessTracker;
 
-import static org.gradle.cache.internal.CacheVersionMapping.introducedIn;
+import static org.gradle.internal.versionedcache.CacheVersionMapping.introducedIn;
 
 public class DefaultClasspathTransformerCacheFactory implements ClasspathTransformerCacheFactory {
     private static final CacheVersionMapping CACHE_VERSION_MAPPING = introducedIn("2.2")

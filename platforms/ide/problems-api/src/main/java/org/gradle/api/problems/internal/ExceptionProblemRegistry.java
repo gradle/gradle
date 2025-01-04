@@ -18,10 +18,12 @@ package org.gradle.api.problems.internal;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.MultimapBuilder;
 import com.google.common.collect.Multimaps;
 import org.gradle.api.Incubating;
+import org.gradle.api.problems.Problem;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -46,24 +48,31 @@ public class ExceptionProblemRegistry {
         problemsForThrowables.put(exception, problem);
     }
 
-    public ProblemLookup getProblemLookup() {
-        return new DefaultProblemLookup();
+    public ProblemLocator getProblemLocator() {
+        return new DefaultProblemLocator(problemsForThrowables);
     }
 
     /*
      * Workaround for the fact that the exception thrown by the worker is not the same instance as the one that was thrown by the build. With the lookup we can find the original exception by comparing
      * the stack frames. The comparison is expensive, so we only do when it's necessary (when the original exception does not contain the target and there's a matching class name and message).
      */
-    private class DefaultProblemLookup implements ProblemLookup {
+    private static class DefaultProblemLocator implements ProblemLocator {
 
+        private final Multimap<Throwable, Problem> problemsForThrowables;
+        private Multimap<String, Throwable> exceptionLookup = null;
 
-        private final Multimap<String, Throwable> lookup;
-
-        DefaultProblemLookup() {
-            this.lookup = initLookup(problemsForThrowables.keySet());
+        DefaultProblemLocator(Multimap<Throwable, Problem> problemsForThrowables) {
+            this.problemsForThrowables = ImmutableMultimap.copyOf(problemsForThrowables);
         }
 
-        private Multimap<String, Throwable> initLookup(Set<Throwable> exceptions) {
+        Multimap<String, Throwable> exceptionLookup() {
+            if (exceptionLookup == null) {
+                exceptionLookup = initLookup(this.problemsForThrowables.keySet());
+            }
+            return exceptionLookup;
+        }
+
+        private static Multimap<String, Throwable> initLookup(Set<Throwable> exceptions) {
             Multimap<String, Throwable> lookup = ArrayListMultimap.create();
             for (Throwable exception : exceptions) {
                 lookup.put(key(exception), exception);
@@ -71,11 +80,11 @@ public class ExceptionProblemRegistry {
             return lookup;
         }
 
-        private String key(Throwable t) {
+        private static String key(Throwable t) {
             return t.getClass().getName() + ":" + messageOf(t);
         }
 
-        private String messageOf(Throwable t) {
+        private static String messageOf(Throwable t) {
             String result = "";
             try {
                 String message = t.getMessage();
@@ -98,14 +107,13 @@ public class ExceptionProblemRegistry {
                 if (problemsForThrowables.keySet().contains(t)) {
                     return t;
                 }
-                Collection<Throwable> candidates = lookup.get(key(t));
+                Collection<Throwable> candidates = exceptionLookup().get(key(t));
                 for (Throwable candidate : candidates) {
                     if (deepEquals(candidate, t, new ArrayList<Throwable>())) {
                         return candidate;
                     }
                 }
-            } catch (RuntimeException e) {
-                e.printStackTrace();
+            } catch (RuntimeException ignore) {
                 return null;
             }
             return null;
@@ -128,7 +136,7 @@ public class ExceptionProblemRegistry {
             StackTraceElement[] s1 = t1.getStackTrace();
             StackTraceElement[] s2 = t2.getStackTrace();
             for (int i = 0; i < s1.length && i < s2.length; i++) {
-                if (!isSackTraceElementEquals(s1[i], s2[i])) {
+                if (!isStackTraceElementEquals(s1[i], s2[i])) {
                     return false;
                 }
             }
@@ -137,7 +145,7 @@ public class ExceptionProblemRegistry {
             return deepEquals(t1.getCause(), t2.getCause(), seen);
         }
 
-        private boolean isSackTraceElementEquals(StackTraceElement s1, StackTraceElement s2) {
+        private boolean isStackTraceElementEquals(StackTraceElement s1, StackTraceElement s2) {
             if (!s1.getClassName().equals(s2.getClassName())) {
                 return false;
             }

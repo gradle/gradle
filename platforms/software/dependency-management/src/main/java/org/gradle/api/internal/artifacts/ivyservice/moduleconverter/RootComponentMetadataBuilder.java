@@ -50,5 +50,11 @@ public interface RootComponentMetadataBuilder {
         LocalComponentGraphResolveState getRootComponent();
 
         LocalVariantGraphResolveState getRootVariant();
+
+        /**
+         * This should almost always be true, but is only false in cases where we emit a deprecation warning.
+         * This can be removed in Gradle 9.0. Afterward we can always assume the root variant is present.
+         */
+        boolean hasRootVariant();
     }
 }

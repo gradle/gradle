@@ -20,5 +20,5 @@ application {
 }
 
 run {
-    args(gradle.gradleHomeDir.absolutePath, gradle.parent.rootProject.rootDir.absolutePath)
+    args(gradle.gradleHomeDir.absolutePath, gradle.parent.rootProject.layout.projectDirectory.asFile.absolutePath)
 }

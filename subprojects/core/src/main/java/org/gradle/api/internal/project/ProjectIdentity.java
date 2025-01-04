@@ -21,6 +21,8 @@ import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.internal.Describables;
 import org.gradle.util.Path;
 
+import javax.annotation.Nullable;
+
 /**
  * Identifies a single project within the build and the build tree.
  */
@@ -87,7 +89,7 @@ public final class ProjectIdentity implements Describable {
     }
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(@Nullable Object o) {
         if (this == o) {
             return true;
         }

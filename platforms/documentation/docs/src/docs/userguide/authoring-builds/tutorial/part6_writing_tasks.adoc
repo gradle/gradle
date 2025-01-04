@@ -115,14 +115,14 @@ class LicensePlugin: Plugin<Project> {
 
 abstract class LicenseTask : DefaultTask() {
     @Input
-    val fileName = project.rootDir.toString() + "/license.txt"
+    val licenseFilePath = project.layout.settingsDirectory.file("license.txt").asFile.path
 
     @TaskAction
     fun action() {
         // Read the license text
-        val licenseText = File(fileName).readText()
+        val licenseText = File(licenseFilePath).readText()
         // Walk the directories looking for java files
-        File(project.rootDir.toString()).walk().forEach {
+        project.layout.settingsDirectory.asFile.walk().forEach {
             if (it.extension == "java") {
                 // Read the source code
                 var ins: InputStream = it.inputStream()
@@ -152,14 +152,14 @@ class LicensePlugin implements Plugin<Project> {
 
 abstract class LicenseTask extends DefaultTask {
     @Input
-    def fileName = project.rootDir.toString() + "/license.txt"
+    def licenseFilePath = project.layout.settingsDirectory.file("license.txt").asFile.path
 
     @TaskAction
     void action() {
         // Read the license text
-        def licenseText = new File(fileName).text
+        def licenseText = new File(licenseFilePath).text
         // Walk the directories looking for java files
-        new File(project.rootDir.toString()).eachFileRecurse { file ->
+        project.layout.settingsDirectory.asFile.eachFileRecurse { file ->
             int lastIndexOf = file.getName().lastIndexOf('.')
             if ((lastIndexOf != -1) && (file.getName().substring(lastIndexOf)) == ".java") {// Read the source code
                 def content = file.getText()

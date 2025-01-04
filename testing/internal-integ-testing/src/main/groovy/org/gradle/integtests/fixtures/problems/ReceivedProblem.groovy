@@ -17,27 +17,27 @@
 package org.gradle.integtests.fixtures.problems
 
 import groovy.transform.CompileStatic
+import org.gradle.api.problems.AdditionalData
+import org.gradle.api.problems.FileLocation
+import org.gradle.api.problems.LineInFileLocation
+import org.gradle.api.problems.OffsetInFileLocation
+import org.gradle.api.problems.ProblemDefinition
 import org.gradle.api.problems.ProblemGroup
 import org.gradle.api.problems.ProblemId
+import org.gradle.api.problems.ProblemLocation
 import org.gradle.api.problems.Severity
-import org.gradle.api.problems.internal.AdditionalData
 import org.gradle.api.problems.internal.AdditionalDataBuilderFactory
-import org.gradle.api.problems.internal.DocLink
-import org.gradle.api.problems.internal.FileLocation
+import org.gradle.api.problems.internal.InternalDocLink
+import org.gradle.api.problems.internal.InternalProblem
 import org.gradle.api.problems.internal.InternalProblemBuilder
-import org.gradle.api.problems.internal.LineInFileLocation
-import org.gradle.api.problems.internal.OffsetInFileLocation
 import org.gradle.api.problems.internal.PluginIdLocation
-import org.gradle.api.problems.internal.Problem
-import org.gradle.api.problems.internal.ProblemDefinition
-import org.gradle.api.problems.internal.ProblemLocation
 import org.gradle.api.problems.internal.TaskPathLocation
 
 /*
  * A deserialized representation of a problem received from the build operation trace.
  */
 @CompileStatic
-class ReceivedProblem implements Problem {
+class ReceivedProblem implements InternalProblem {
     private final long operationId
     private final ReceivedProblemDefinition definition
     private final String contextualLabel
@@ -84,19 +84,18 @@ class ReceivedProblem implements Problem {
         operationId
     }
 
-    <T> T firstLocationOfType(Class<T> type) {
-        def locations = getOriginLocations()
-        def location = locations.find { type.isInstance(it) } as T
-        assert location != null
-        assert type.isInstance(location)
-        location
+    <T> T oneLocation(Class<T> type) {
+        def result = allLocations(type)
+        assert result.size() == 1
+        result.first()
     }
 
-    <T> T oneLocation(Class<T> type) {
-        def locations = getOriginLocations()
-        assert locations.size() == 1
-        assert type.isInstance(locations[0])
-        locations[0] as T
+    private <T> List<T> allLocations(Class<T> type) {
+        allLocations.findAll { type.isInstance(it) } as List<T>
+    }
+
+    private List<?> getAllLocations() {
+        getOriginLocations() + getContextualLocations()
     }
 
     @Override
@@ -188,7 +187,7 @@ class ReceivedProblem implements Problem {
         }
     }
 
-    static class ReceivedProblemId implements ProblemId {
+    static class ReceivedProblemId extends ProblemId {
         private final String name
         private final String displayName
         private final ReceivedProblemGroup group
@@ -231,7 +230,7 @@ class ReceivedProblem implements Problem {
         }
     }
 
-    static class ReceivedProblemGroup implements ProblemGroup {
+    static class ReceivedProblemGroup extends ProblemGroup {
         private final String name
         private final String displayName
         private final ReceivedProblemGroup parent
@@ -258,7 +257,7 @@ class ReceivedProblem implements Problem {
         }
     }
 
-    static class ReceivedDocumentationLink implements DocLink {
+    static class ReceivedDocumentationLink implements InternalDocLink {
         private final String url
         private final String consultDocumentationMessage
 

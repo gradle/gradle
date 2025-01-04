@@ -7,4 +7,4 @@ FAILURE: Build failed with an exception.
 
 * What went wrong:
 Execution failed for task ':test'.
-> Test(s) failed.
+> Test(s) failed. See the test results for more details: file:///home/user/gradle/samples/build/reports/tests/test/index.html

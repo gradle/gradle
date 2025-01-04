@@ -1,105 +1,27 @@
 {
     "acceptedApiChanges": [
         {
-            "type": "org.gradle.api.artifacts.dsl.DependencyConstraintHandler",
-            "member": "Method org.gradle.api.artifacts.dsl.DependencyConstraintHandler.addProvider(java.lang.String,org.gradle.api.provider.Provider)",
-            "acceptation": "Not incubating as API is cloned from DependencyHandler",
+            "type": "org.gradle.api.tasks.testing.TestReport",
+            "member": "Method org.gradle.api.tasks.testing.TestReport.getBuildOperationExecutor()",
+            "acceptation": "Protected methods intende to be overriden by Gradle, not API",
             "changes": [
-                "Method added to interface"
+                "Method is now abstract"
             ]
         },
         {
-            "type": "org.gradle.api.artifacts.dsl.DependencyConstraintHandler",
-            "member": "Method org.gradle.api.artifacts.dsl.DependencyConstraintHandler.addProvider(java.lang.String,org.gradle.api.provider.Provider,org.gradle.api.Action)",
-            "acceptation": "Not incubating as API is cloned from DependencyHandler",
+            "type": "org.gradle.api.tasks.testing.TestReport",
+            "member": "Method org.gradle.api.tasks.testing.TestReport.getBuildOperationRunner()",
+            "acceptation": "Protected methods intende to be overriden by Gradle, not API",
             "changes": [
-                "Method added to interface"
+                "Method is now abstract"
             ]
         },
         {
-            "type": "org.gradle.api.artifacts.dsl.DependencyConstraintHandler",
-            "member": "Method org.gradle.api.artifacts.dsl.DependencyConstraintHandler.addProviderConvertible(java.lang.String,org.gradle.api.provider.ProviderConvertible)",
-            "acceptation": "Not incubating as API is cloned from DependencyHandler",
+            "type": "org.gradle.api.tasks.testing.TestReport",
+            "member": "Method org.gradle.api.tasks.testing.TestReport.getObjectFactory()",
+            "acceptation": "Protected methods intende to be overriden by Gradle, not API",
             "changes": [
-                "Method added to interface"
-            ]
-        },
-        {
-            "type": "org.gradle.api.artifacts.dsl.DependencyConstraintHandler",
-            "member": "Method org.gradle.api.artifacts.dsl.DependencyConstraintHandler.addProviderConvertible(java.lang.String,org.gradle.api.provider.ProviderConvertible,org.gradle.api.Action)",
-            "acceptation": "Not incubating as API is cloned from DependencyHandler",
-            "changes": [
-                "Method added to interface"
-            ]
-        },
-        {
-            "type": "org.gradle.kotlin.dsl.TaskContainerExtensionsKt",
-            "member": "Method org.gradle.kotlin.dsl.TaskContainerExtensionsKt.create(org.gradle.api.tasks.TaskContainer,java.lang.String,kotlin.jvm.functions.Function1)",
-            "acceptation": "Pulled down method to deprecate it",
-            "changes": [
-                "Method added to public class"
-            ]
-        },
-        {
-            "type": "org.gradle.kotlin.dsl.TaskContainerExtensionsKt",
-            "member": "Method org.gradle.kotlin.dsl.TaskContainerExtensionsKt.creating(org.gradle.api.tasks.TaskContainer,java.lang.Class,kotlin.jvm.functions.Function1)",
-            "acceptation": "Pulled down method to deprecate it",
-            "changes": [
-                "Method added to public class"
-            ]
-        },
-        {
-            "type": "org.gradle.kotlin.dsl.TaskContainerExtensionsKt",
-            "member": "Method org.gradle.kotlin.dsl.TaskContainerExtensionsKt.creating(org.gradle.api.tasks.TaskContainer,kotlin.jvm.functions.Function1)",
-            "acceptation": "Pulled down method to deprecate it",
-            "changes": [
-                "Method added to public class"
-            ]
-        },
-        {
-            "type": "org.gradle.kotlin.dsl.TaskContainerExtensionsKt",
-            "member": "Method org.gradle.kotlin.dsl.TaskContainerExtensionsKt.creating(org.gradle.api.tasks.TaskContainer,kotlin.reflect.KClass)",
-            "acceptation": "Pulled down method to deprecate it",
-            "changes": [
-                "Method added to public class"
-            ]
-        },
-        {
-            "type": "org.gradle.kotlin.dsl.TaskContainerExtensionsKt",
-            "member": "Method org.gradle.kotlin.dsl.TaskContainerExtensionsKt.creating(org.gradle.api.tasks.TaskContainer,kotlin.reflect.KClass,kotlin.jvm.functions.Function1)",
-            "acceptation": "Pulled down method to deprecate it",
-            "changes": [
-                "Method added to public class"
-            ]
-        },
-        {
-            "type": "org.gradle.kotlin.dsl.TaskContainerExtensionsKt",
-            "member": "Method org.gradle.kotlin.dsl.TaskContainerExtensionsKt.getCreating$annotations(org.gradle.api.tasks.TaskContainer)",
-            "acceptation": "Pulled down method to deprecate it",
-            "changes": [
-                "Method added to public class"
-            ]
-        },
-        {
-            "type": "org.gradle.kotlin.dsl.TaskContainerExtensionsKt",
-            "member": "Method org.gradle.kotlin.dsl.TaskContainerExtensionsKt.getCreating(org.gradle.api.tasks.TaskContainer)",
-            "acceptation": "Pulled down method to deprecate it",
-            "changes": [
-                "Method added to public class"
-            ]
-        },
-        {
-            "type": "org.gradle.language.swift.SwiftVersion",
-            "member": "Field SWIFT6",
-            "acceptation": "No need to incubate",
-            "changes": []
-        },
-        {
-            "type": "org.gradle.tooling.events.problems.ProblemDefinition",
-            "member": "Method org.gradle.tooling.events.problems.ProblemDefinition.getDocumentationLink()",
-            "acceptation": "Change in incubating API",
-            "changes": [
-                "From non-null returning to null returning breaking change"
+                "Method is now abstract"
             ]
         }
     ]

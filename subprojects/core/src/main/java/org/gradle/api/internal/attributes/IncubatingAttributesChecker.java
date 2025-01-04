@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
  * An attribute is incubating iff it is a type annotated with {@link org.gradle.api.Incubating}, or if the value is equal to the value of a constant defined
  * in the corresponding attribute interface which is annotated with {@link org.gradle.api.Incubating}.
  *
- * For example, any attribute named {@link org.gradle.api.attributes.TestSuiteType} is currently incubating, as is a {@link Category#CATEGORY_ATTRIBUTE} with a value
+ * For example, any attribute named {@link org.gradle.api.attributes.TestSuiteName} is currently incubating, as is a {@link Category#CATEGORY_ATTRIBUTE} with a value
  * equal to {@link Category#VERIFICATION}.
  *
  * @since 7.5

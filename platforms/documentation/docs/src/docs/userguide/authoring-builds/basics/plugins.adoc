@@ -202,7 +202,7 @@ Core binary plugins provided as part of the Gradle distribution are automaticall
 The <<#sec:plugins_block,plugins DSL>> is recommended to resolve and apply plugins in one step.
 
 [[sec:binary_plugin_locations]]
-== Resolving plugins
+== Applying plugins
 
 Gradle provides the *core plugins* (e.g., `JavaPlugin`, `GroovyPlugin`, `MavenPublishPlugin`, etc.) as part of its distribution, which means they are automatically resolved.
 
@@ -217,12 +217,28 @@ plugins {
 
 For example:
 
-[source,text]
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source, kotlin]
 ----
 plugins {
     id("java")
 }
 ----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source, groovy]
+----
+plugins {
+    id 'java'
+}
+----
+=====
+====
 
 Non-core plugins must be resolved before they can be applied.
 Non-core plugins are identified by a unique ID and a version in the build file:
@@ -233,6 +249,31 @@ plugins {
     id «plugin id» version «plugin version»
 }
 ----
+
+For example:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source, kotlin]
+----
+plugins {
+    id("com.gradleup.shadow") version "8.3.4"
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source, groovy]
+----
+plugins {
+    id 'com.gradleup.shadow' version '8.3.4'
+}
+----
+=====
+====
 
 And the location of the plugin must be specified in the settings file:
 
@@ -249,7 +290,7 @@ There are additional considerations for resolving and applying plugins:
 
 |<<#sec:plugins_block,1>>
 |Apply a plugin to a project.
-|<<#sec:plugins_block,The `plugins` block in the build file>>
+|<<#sec:plugins_block,The `plugins` block in the build file>>.
 a|
 ----
 plugins {
@@ -258,7 +299,7 @@ plugins {
 ----
 
 |<<sec:subprojects_plugins_dsl,2>>
-|Apply a plugin to multiple subprojects.
+|Apply a plugin to multiple projects.
 |<<sec:subprojects_plugins_dsl,The `subprojects` or `allprojects` blocks in the root build file>>. **Not Recommended**
 a|
 ----
@@ -273,9 +314,20 @@ allprojects {
 }
 ----
 
-|<<#sec:buildsrc_plugins_dsl,3>>
-|Apply a plugin to multiple subprojects.
-|<<#sec:buildsrc_plugins_dsl,A convention plugin in the `buildSrc` directory>> **Recommended**.
+|<<sec:root_plugins_dsl,3>>
+|Apply a plugin to multiple projects.
+|<<sec:root_plugins_dsl,The `plugins` block in the root build file>>.
+a|
+----
+plugins {
+    id("com.gradleup.shadow") version "8.3.4" apply false
+    id("io.ratpack.ratpack-java") version "1.8.2" apply false
+}
+----
+
+|<<#sec:buildsrc_plugins_dsl,4>>
+|Apply a plugin to multiple projects.
+|<<#sec:buildsrc_plugins_dsl,A convention plugin in the `buildSrc` directory>>. **Recommended**.
 a|
 ----
 plugins {
@@ -283,7 +335,7 @@ plugins {
 }
 ----
 
-|<<#sec:applying_plugins_buildscript,4>>
+|<<#sec:applying_plugins_buildscript,5>>
 |Apply a plugin needed _for the build script itself_.
 |<<#sec:applying_plugins_buildscript,The `buildscript` block in the build file itself>>. **Legacy**.
 a|
@@ -299,8 +351,10 @@ buildscript {
 apply(plugin = "org.barfuin.gradle.taskinfo")
 ----
 
-|<<sec:script_plugins,5>>
+|<<sec:script_plugins,6>>
 |Apply a script plugins.
+
+Applying a plugin when type-safe accessors are not available.
 |<<sec:script_plugins,The legacy `apply()` method in the build file>>. **Not Recommended**. **Legacy**.
 a|
 ----
@@ -407,8 +461,31 @@ include::sample[dir="snippets/plugins/multiproject/groovy", files="settings.grad
 
 You can also encapsulate the versions of external plugins by composing the build logic using your own <<sharing_build_logic_between_subprojects#sec:sharing_logic_via_convention_plugins,convention plugins>>.
 
+[[sec:root_plugins_dsl]]
+=== 3. Applying plugins declared in the root project
+
+You can apply plugins from the root or parent project in a multi-project build to share common logic and behavior with other projects.
+The root/parent project is the project at the top of the directory hierarchy.
+
+You should use the `plugins {}` block because it ensures that the plugin is applied and configured before the project’s evaluation phase.
+This way, you can safely use type-safe accessors for any model elements introduced by the plugin:
+
+====
+include::sample[dir="snippets/kotlinDsl/multiProjectBuild/kotlin",files="settings.gradle.kts[tags=base];build.gradle.kts[tags=root];domain/build.gradle.kts[tags=root];infra/build.gradle.kts[tags=root];http/build.gradle.kts[tags=root]"]
+====
+
+In the root/parent `build.gradle(.kts)`, plugins are declared but not applied (via `apply false`).
+This approach, while optional, makes the plugins available to be explicitly applied in specific subprojects.
+Without `apply false`, plugins declared in the root project cannot be explicitly applied only to certain subprojects.
+
+NOTE: `apply false` is optional. If `apply false` is not used when declaring plugins in the root build file, those plugins would automatically be applied to the root project.
+
+In the `infra` subproject, the `com.gradleup.shadow` plugin, which was made available in the root project, is explicitly applied.
+The `http` subproject applies `io.ratpack.ratpack-java`.
+The `domain` subproject does not apply a plugin from the root.
+
 [[sec:buildsrc_plugins_dsl]]
-=== 3. Applying convention plugins from the `buildSrc` directory
+=== 4. Applying convention plugins from the `buildSrc` directory
 
 `buildSrc` is an optional directory at the Gradle project root that contains build logic (i.e., plugins) used in building the main project.
 You can apply plugins that reside in a project's `buildSrc` directory as long as they have a defined ID.
@@ -428,7 +505,7 @@ include::sample[dir="snippets/plugins/dslWithBuildSrc/groovy", files="build.grad
 ====
 
 [[sec:applying_plugins_buildscript]]
-=== 4. Applying plugins using the `buildscript{}` block
+=== 5. Applying plugins using the `buildscript{}` block
 
 To define libraries or plugins used in the build script itself, you can use the `buildscript` block.
 The `buildscript` block is also used for specifying where to find those dependencies.
@@ -442,7 +519,7 @@ include::sample[dir="snippets/plugins/buildscript/groovy", files="build.gradle[t
 ====
 
 [[sec:script_plugins]]
-=== 5. Applying script plugins using the legacy `apply()` method
+=== 6. Applying script plugins using the legacy `apply()` method
 
 A script plugin is an ad-hoc plugin, typically written and applied in the same build script.
 It is applied using the <<sec:old_plugin_application,legacy application method>>:

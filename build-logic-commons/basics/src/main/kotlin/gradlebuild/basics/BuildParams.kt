@@ -67,6 +67,7 @@ import gradlebuild.basics.BuildParams.VENDOR_MAPPING
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.provider.Provider
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.jvm.toolchain.JvmVendorSpec
 import org.gradle.jvm.toolchain.internal.LocationListInstallationSupplier.JAVA_INSTALLATIONS_PATHS_PROPERTY
 import org.jetbrains.kotlin.util.capitalizeDecapitalize.toUpperCaseAsciiOnly
@@ -288,7 +289,10 @@ val Project.performanceBaselines: String?
     get() = stringPropertyOrNull(PERFORMANCE_BASELINES)
 
 val Project.performanceChannel: Provider<String>
-    get() = environmentVariable(PERFORMANCE_CHANNEL_ENV)
+    get() = environmentVariable(PERFORMANCE_CHANNEL_ENV).orElse(provider {
+        val channelSuffix = if (OperatingSystem.current().isLinux) "" else "-${OperatingSystem.current().familyName.toLowerCase()}"
+        "commits$channelSuffix-${buildBranch.get()}"
+     })
 
 val Project.performanceDbPassword: Provider<String>
     get() = environmentVariable(PERFORMANCE_DB_PASSWORD_ENV)
@@ -360,10 +364,7 @@ val Project.predictiveTestSelectionEnabled: Provider<Boolean>
         .map { it.toBoolean() }
         .orElse(
             buildBranch.zip(buildRunningOnCi) { branch, ci ->
-                val protectedBranches = listOf("master", "release")
-                ci && !protectedBranches.contains(branch)
-                    && !branch.startsWith("pre-test/")
-                    && !branch.startsWith("gh-readonly-queue/")
+                ci && !listOf("master", "release", "gh-readonly-queue/").any { branch.startsWith(it) }
             }
         ).zip(project.rerunAllTests) { enabled, rerunAllTests ->
             enabled && !rerunAllTests

@@ -17,12 +17,10 @@ package org.gradle.api.internal.artifacts.ivyservice
 
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
-import org.gradle.api.internal.artifacts.ResolveContext
+import org.gradle.api.internal.artifacts.LegacyResolutionParameters
 import org.gradle.api.internal.artifacts.ResolverResults
-import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingState
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSelectionSpec
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository
@@ -38,19 +36,22 @@ import spock.lang.Specification
 
 class ShortCircuitingResolutionExecutorSpec extends Specification {
 
-    def delegate = Mock(ResolutionExecutor)
+    def lockingState = Mock(DependencyLockingState)
+    def lockingProvider = Mock(DependencyLockingProvider)
+    def legacyParams = Mock(LegacyResolutionParameters)
 
-    def dependencyResolver = new ShortCircuitingResolutionExecutor(delegate, new AttributeDesugaring(AttributeTestUtil.attributesFactory()))
+    def delegate = Mock(ResolutionExecutor)
+    def dependencyResolver = new ShortCircuitingResolutionExecutor(delegate, new AttributeDesugaring(AttributeTestUtil.attributesFactory()), lockingProvider)
 
     def "returns empty build dependencies when no dependencies"() {
         def depVisitor = Mock(TaskDependencyResolveContext)
         def artifactVisitor = Mock(ArtifactVisitor)
 
         given:
-        ResolveContext resolveContext = confWithoutDependencies()
+        ResolutionParameters params = paramsWithoutDependencies()
 
         when:
-        def results = dependencyResolver.resolveBuildDependencies(resolveContext, Stub(CalculatedValue))
+        def results = dependencyResolver.resolveBuildDependencies(legacyParams, params, Stub(CalculatedValue))
 
         then:
         def visitedArtifacts = results.visitedArtifacts
@@ -69,10 +70,10 @@ class ShortCircuitingResolutionExecutorSpec extends Specification {
         def artifactVisitor = Mock(ArtifactVisitor)
 
         given:
-        ResolveContext resolveContext = confWithoutDependencies()
+        ResolutionParameters params = paramsWithoutDependencies()
 
         when:
-        def results = dependencyResolver.resolveGraph(resolveContext, [])
+        def results = dependencyResolver.resolveGraph(legacyParams, params, [])
 
         then:
         results.visitedGraph.resolutionResult.rootSource.get().dependencies.empty
@@ -90,10 +91,10 @@ class ShortCircuitingResolutionExecutorSpec extends Specification {
 
     def "returns empty result when no dependencies"() {
         given:
-        ResolveContext resolveContext = confWithoutDependencies()
+        ResolutionParameters params = paramsWithoutDependencies()
 
         when:
-        def results = dependencyResolver.resolveGraph(resolveContext, [])
+        def results = dependencyResolver.resolveGraph(legacyParams, params, [])
 
         then:
         def resolvedConfig = results.legacyResults.resolvedConfiguration
@@ -110,37 +111,26 @@ class ShortCircuitingResolutionExecutorSpec extends Specification {
 
     def 'empty graph result for build dependencies does not interact with dependency locking'() {
         given:
-        ResolutionStrategyInternal resolutionStrategy = Mock()
-
-        ResolveContext resolveContext = confWithoutDependencies()
-        resolveContext.name >> 'lockedConf'
-        resolveContext.resolutionStrategy >> resolutionStrategy
+        ResolutionParameters params = paramsWithoutDependencies()
 
         when:
-        dependencyResolver.resolveBuildDependencies(resolveContext, Stub(CalculatedValue))
+        dependencyResolver.resolveBuildDependencies(legacyParams, params, Stub(CalculatedValue))
 
         then:
 
-        0 * resolutionStrategy._
+        0 * lockingProvider._
     }
 
     def 'empty graph result still interacts with dependency locking'() {
         given:
-        ResolutionStrategyInternal resolutionStrategy = Mock()
-        DependencyLockingProvider lockingProvider = Mock()
-        DependencyLockingState lockingState = Mock()
-
-        ResolveContext resolveContext = confWithoutDependencies()
-        resolveContext.dependencyLockingId >> 'lockedConf'
-        resolveContext.resolutionStrategy >> resolutionStrategy
+        ResolutionParameters params = paramsWithoutDependencies()
+        params.dependencyLockingId >> 'lockedConf'
+        params.dependencyLockingEnabled >> true
 
         when:
-        dependencyResolver.resolveGraph(resolveContext, [])
+        dependencyResolver.resolveGraph(legacyParams, params, [])
 
         then:
-
-        1 * resolutionStrategy.dependencyLockingEnabled >> true
-        1 * resolutionStrategy.dependencyLockingProvider >> lockingProvider
         1 * lockingProvider.loadLockState('lockedConf', _) >> lockingState
         1 * lockingState.mustValidateLockState() >> false
         1 * lockingProvider.persistResolvedDependencies('lockedConf', _, Collections.emptySet(), Collections.emptySet())
@@ -148,72 +138,63 @@ class ShortCircuitingResolutionExecutorSpec extends Specification {
 
     def 'empty result with non empty lock state causes resolution through delegate'() {
         given:
-        ResolutionStrategyInternal resolutionStrategy = Mock()
-        DependencyLockingProvider lockingProvider = Mock()
-        DependencyLockingState lockingState = Mock()
         ResolverResults delegateResults = Mock()
         List<ResolutionAwareRepository> repos = Mock()
 
-        ResolveContext resolveContext = confWithoutDependencies()
-        resolveContext.dependencyLockingId >> 'lockedConf'
-        resolveContext.resolutionStrategy >> resolutionStrategy
+        ResolutionParameters params = paramsWithoutDependencies()
+        params.dependencyLockingId >> 'lockedConf'
+        params.dependencyLockingEnabled >> true
 
         when:
-        def results = dependencyResolver.resolveGraph(resolveContext, repos)
+        def results = dependencyResolver.resolveGraph(legacyParams, params, repos)
 
         then:
-        1 * resolutionStrategy.dependencyLockingEnabled >> true
-        1 * resolutionStrategy.dependencyLockingProvider >> lockingProvider
         1 * lockingProvider.loadLockState('lockedConf', _) >> lockingState
         1 * lockingState.mustValidateLockState() >> true
         1 * lockingState.lockedDependencies >> [DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId('org', 'foo'), '1.0')]
-        1 * delegate.resolveGraph(resolveContext, repos) >> delegateResults
+        1 * delegate.resolveGraph(legacyParams, params, repos) >> delegateResults
         results == delegateResults
     }
 
     def "delegates to backing service to resolve build dependencies when there are one or more dependencies"() {
         given:
         ResolverResults delegateResults = Mock()
-        ResolveContext resolveContext = confWithDependencies()
+        ResolutionParameters params = paramsWithDependencies()
 
         when:
-        def results = dependencyResolver.resolveBuildDependencies(resolveContext, Stub(CalculatedValue))
+        def results = dependencyResolver.resolveBuildDependencies(legacyParams, params, Stub(CalculatedValue))
 
         then:
-        1 * delegate.resolveBuildDependencies(resolveContext, _) >> delegateResults
+        1 * delegate.resolveBuildDependencies(legacyParams, params, _) >> delegateResults
         results == delegateResults
     }
 
     def "delegates to backing service to resolve graph when there are one or more dependencies"() {
         given:
         ResolverResults delegateResults = Mock()
-        ResolveContext resolveContext = confWithDependencies()
+        ResolutionParameters params = paramsWithDependencies()
         List<ResolutionAwareRepository> repos = Mock()
 
         when:
-        def results = dependencyResolver.resolveGraph(resolveContext, repos)
+        def results = dependencyResolver.resolveGraph(legacyParams, params, repos)
 
         then:
-        1 * delegate.resolveGraph(resolveContext, repos) >> delegateResults
+        1 * delegate.resolveGraph(legacyParams, params, repos) >> delegateResults
         results == delegateResults
     }
 
-    ResolveContext confWithoutDependencies() {
-        Stub(ResolveContext) {
-            toRootComponent() >> Stub(RootComponentMetadataBuilder.RootComponentState) {
-                getRootVariant() >> Stub(LocalVariantGraphResolveState) {
-                    getDependencies() >> Collections.emptyList()
-                }
+    ResolutionParameters paramsWithoutDependencies() {
+        Stub(ResolutionParameters) {
+            getRootVariant() >> Stub(LocalVariantGraphResolveState) {
+                getDependencies() >> Collections.emptyList()
             }
         }
     }
 
-    ResolveContext confWithDependencies() {
-        Stub(ResolveContext) {
-            toRootComponent() >> Stub(RootComponentMetadataBuilder.RootComponentState) {
-                getRootVariant() >> Stub(LocalVariantGraphResolveState) {
-                    getDependencies() >> [Mock(DependencyMetadata)]
-                }
+    ResolutionParameters paramsWithDependencies() {
+        Stub(ResolutionParameters) {
+            getRootVariant() >> Stub(LocalVariantGraphResolveState) {
+                getDependencies() >> [Mock(DependencyMetadata)]
             }
         }
     }

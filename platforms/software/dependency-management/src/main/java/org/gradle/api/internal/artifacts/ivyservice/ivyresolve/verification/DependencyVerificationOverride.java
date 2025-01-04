@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository;
-import org.gradle.internal.component.external.model.ModuleComponentGraphResolveState;
+import org.gradle.internal.component.external.model.ExternalModuleComponentGraphResolveState;
 
 import java.io.File;
 
@@ -30,7 +30,7 @@ public interface DependencyVerificationOverride {
         return new File(gradleDirectory, VERIFICATION_METADATA_XML);
     }
 
-    ModuleComponentRepository<ModuleComponentGraphResolveState> overrideDependencyVerification(ModuleComponentRepository<ModuleComponentGraphResolveState> original);
+    ModuleComponentRepository<ExternalModuleComponentGraphResolveState> overrideDependencyVerification(ModuleComponentRepository<ExternalModuleComponentGraphResolveState> original);
 
     default void buildFinished(GradleInternal model) {
     }

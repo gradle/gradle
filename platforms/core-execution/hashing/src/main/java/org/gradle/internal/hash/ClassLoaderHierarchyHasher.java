@@ -16,11 +16,15 @@
 
 package org.gradle.internal.hash;
 
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+
 import javax.annotation.Nullable;
 
 /**
  * Provides a combined hash for a hierarchy of classloaders.
  */
+@ServiceScope(Scope.UserHome.class)
 public interface ClassLoaderHierarchyHasher {
     /**
      * Returns a hash for the given classloader hierarchy, or {@code null}
