@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.transform
 import com.google.common.collect.ImmutableList
 import org.gradle.api.artifacts.transform.TransformAction
 import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
+import org.gradle.api.internal.artifacts.VariantTransformRegistry
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant
@@ -43,8 +44,10 @@ class DefaultArtifactVariantSelectorTest extends Specification {
     def attributeMatcher = Mock(AttributeMatcher)
     def schemaServices = Mock(AttributeSchemaServices) {
         getMatcher(consumerSchema, producerSchema) >> attributeMatcher
+        getTransformSelector(attributeMatcher) >> matchingCache
     }
     def variantSelectionFailureProcessor = DependencyManagementTestUtil.newFailureHandler()
+    def transformationChainSelector = new TransformationChainSelector(schemaServices, Mock(VariantTransformRegistry), variantSelectionFailureProcessor)
 
     def "selects producer variant with requested attributes"() {
         def variant1 = resolvedVariant()
@@ -115,7 +118,7 @@ class DefaultArtifactVariantSelectorTest extends Specification {
 
         attributeMatcher.matchMultipleCandidates(ImmutableList.copyOf(variants), _) >> []
         attributeMatcher.matchMultipleCandidates(transformedVariants, _) >> transformedVariants
-        matchingCache.findCandidateTransformationChains(_, _) >> transformedVariants
+        matchingCache.findCandidateTransformationChains(_, _, _) >> transformedVariants
 
         def selector = newSelector()
 
@@ -162,7 +165,7 @@ Found the following transformation chains:
 
         attributeMatcher.matchMultipleCandidates(_, _) >> []
 
-        matchingCache.findCandidateTransformationChains(_, _) >> []
+        matchingCache.findCandidateTransformationChains(_, _, _) >> []
 
         expect:
         def result = newSelector().select(set, typeAttributes("dll"), true)
@@ -186,7 +189,7 @@ Found the following transformation chains:
 
         attributeMatcher.matchMultipleCandidates(_, _) >> []
 
-        matchingCache.findCandidateTransformationChains(_, _) >> []
+        matchingCache.findCandidateTransformationChains(_, _, _) >> []
 
         when:
         def result = newSelector().select(set, typeAttributes("dll"), false)
@@ -204,10 +207,10 @@ Found the following transformation chains:
     private ArtifactVariantSelector newSelector() {
         new AttributeMatchingArtifactVariantSelector(
             consumerSchema,
-            matchingCache,
             AttributeTestUtil.attributesFactory(),
             schemaServices,
-            variantSelectionFailureProcessor
+            variantSelectionFailureProcessor,
+            transformationChainSelector
         )
     }
 

@@ -48,16 +48,16 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
 
     public AttributeMatchingArtifactVariantSelector(
         ImmutableAttributesSchema consumerSchema,
-        ConsumerProvidedVariantFinder transformationChainBuilder,
         AttributesFactory attributesFactory,
         AttributeSchemaServices attributeSchemaServices,
-        ResolutionFailureHandler failureHandler
+        ResolutionFailureHandler failureHandler,
+        TransformationChainSelector transformationChainSelector
     ) {
         this.consumerSchema = consumerSchema;
         this.attributesFactory = attributesFactory;
         this.attributeSchemaServices = attributeSchemaServices;
         this.failureHandler = failureHandler;
-        this.transformationChainSelector = new TransformationChainSelector(transformationChainBuilder, failureHandler);
+        this.transformationChainSelector = transformationChainSelector;
     }
 
     @Override

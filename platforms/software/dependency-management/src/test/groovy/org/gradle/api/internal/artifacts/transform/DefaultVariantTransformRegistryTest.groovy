@@ -31,7 +31,6 @@ import org.gradle.api.internal.file.FileLookup
 import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
 import org.gradle.api.internal.tasks.properties.InspectionScheme
 import org.gradle.api.plugins.ExtensionAware
-import org.gradle.api.problems.internal.InternalProblems
 import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.TestHashCodes
@@ -39,7 +38,6 @@ import org.gradle.internal.instantiation.InjectAnnotationHandler
 import org.gradle.internal.isolation.TestIsolatableFactory
 import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.internal.properties.bean.PropertyWalker
-import org.gradle.internal.service.ServiceLookup
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.ProjectBuilderImpl
 import org.gradle.util.AttributeTestUtil
@@ -70,10 +68,6 @@ class DefaultVariantTransformRegistryTest extends Specification {
     def classLoaderHierarchyHasher = Mock(ClassLoaderHierarchyHasher)
     def calculatedValueContainerFactory = TestUtil.calculatedValueContainerFactory()
     def attributesFactory = AttributeTestUtil.attributesFactory()
-    def serviceLookup = Stub(ServiceLookup) {
-        get(InternalProblems) >> Mock(InternalProblems)
-        get(DocumentationRegistry) >> new DocumentationRegistry()
-    }
     def registryFactory = new DefaultTransformRegistrationFactory(
         new TestBuildOperationRunner(),
         isolatableFactory,
@@ -94,9 +88,11 @@ class DefaultVariantTransformRegistryTest extends Specification {
             ),
             inspectionScheme
         ),
-        serviceLookup
+        TestUtil.services()
     )
-    def registry = new DefaultVariantTransformRegistry(instantiatorFactory, attributesFactory, serviceLookup, registryFactory, instantiatorFactory.injectScheme(), new DocumentationRegistry())
+
+    def parametersScheme = new TransformParameterScheme(instantiatorFactory.injectScheme(), inspectionScheme)
+    def registry = new DefaultVariantTransformRegistry(instantiatorFactory, attributesFactory, AttributeTestUtil.services(), TestUtil.services(), registryFactory, parametersScheme, new DocumentationRegistry())
 
     def "setup"() {
         _ * classLoaderHierarchyHasher.getClassLoaderHash(_) >> TestHashCodes.hashCodeFrom(123)
@@ -110,8 +106,8 @@ class DefaultVariantTransformRegistryTest extends Specification {
         }
 
         then:
-        registry.registrations.size() == 1
-        def registration = registry.registrations[0]
+        registry.registrations.transforms.size() == 1
+        def registration = registry.registrations.transforms[0]
         registration.from.getAttribute(TEST_ATTRIBUTE) == "FROM"
         registration.to.getAttribute(TEST_ATTRIBUTE) == "TO"
         registration.transformStep.transform.implementationClass == TestTransform
@@ -126,8 +122,8 @@ class DefaultVariantTransformRegistryTest extends Specification {
         }
 
         then:
-        registry.registrations.size() == 1
-        def registration = registry.registrations[0]
+        registry.registrations.transforms.size() == 1
+        def registration = registry.registrations.transforms[0]
         registration.from.getAttribute(TEST_ATTRIBUTE) == "FROM"
         registration.to.getAttribute(TEST_ATTRIBUTE) == "TO"
         registration.transformStep.transform.implementationClass == ParameterlessTestTransform
