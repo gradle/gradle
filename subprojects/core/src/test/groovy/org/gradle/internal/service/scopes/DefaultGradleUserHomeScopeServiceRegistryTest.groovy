@@ -208,6 +208,7 @@ class DefaultGradleUserHomeScopeServiceRegistryTest extends Specification {
         }
     }
 
+    @ServiceScope(Scope.UserHome.class)
     class SomeHomeDirService implements Closeable {
         final File homeDir;
         boolean closed
