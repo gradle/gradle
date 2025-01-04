@@ -31,6 +31,7 @@ import org.gradle.api.Action;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.reflect.PropertyAccessorType;
 import org.gradle.internal.reflect.annotations.AnnotationCategory;
 import org.gradle.internal.reflect.annotations.HasAnnotationMetadata;
@@ -329,7 +330,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         for (PropertyAnnotationMetadataBuilder metadataBuilder : metadataBuilders) {
             String propertyName = metadataBuilder.getPropertyName();
             PropertyAnnotationMetadataBuilder previouslySeenBuilder = propertyBuilders.putIfAbsent(propertyName, metadataBuilder);
-            // Do we have an 'is'-getter as well as a 'get'-getter?
+            // Do we have an 'is'-getter as well as a 'get'-getter? (`previouslySeenBuilder` is the 'get'-getter if so, due to previous sorting)
             if (previouslySeenBuilder != null) {
                 // It is okay to have redundant generated 'is'-getters
                 if (generatedMethodDetector.test(metadataBuilder.getMethod())) {
@@ -363,6 +364,21 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                         .solution("Remove one of the getters")
                         .solution("Annotate one of the getters with @Internal")
                 );
+            } else {
+                // Warn on Boolean is-getters that are not ignored and do not have a corresponding get-getter
+                Method method = metadataBuilder.getter;
+                if (PropertyAccessorType.of(method) == PropertyAccessorType.IS_GETTER && method.getReturnType() == Boolean.class && ignoredMethodAnnotations.stream().noneMatch(metadataBuilder::hasAnnotation)) {
+                    DeprecationLogger.deprecateAction("Declaring an 'is-' property with a Boolean type")
+                        .withAdvice(String.format(
+                            "Add a method named '%s' with the same behavior and mark the old one with @Deprecated and @ReplacedBy, or change the type of '%s.%s' (and the setter) to 'boolean'.",
+                            method.getName().replace("is", "get"),
+                            method.getDeclaringClass().getCanonicalName(), method.getName()
+                        ))
+                        .withContext("The combination of method name and return type is not consistent with Java Bean property rules and will become unsupported in future versions of Groovy.")
+                        .startingWithGradle9("this property will be ignored by Gradle")
+                        .withUpgradeGuideSection(8, "groovy_boolean_properties")
+                        .nagUser();
+                }
             }
         }
         return ImmutableList.copyOf(propertyBuilders.values());

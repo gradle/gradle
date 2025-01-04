@@ -18,6 +18,7 @@ package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.GradleVersion
 
 /**
  * https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-dependencies
@@ -60,6 +61,12 @@ class BomSupportPluginsSmokeTest extends AbstractSmokeTest {
 
         when:
         def runner = runner('checkDep')
+        if (bomSupportProvider == "nebula recommender plugin") {
+            runner.expectDeprecationWarning(
+                "Declaring an 'is-' property with a Boolean type has been deprecated. Starting with Gradle 9.0, this property will be ignored by Gradle. The combination of method name and return type is not consistent with Java Bean property rules and will become unsupported in future versions of Groovy. Add a method named 'getStrictMode' with the same behavior and mark the old one with @Deprecated, or change the type of 'netflix.nebula.dependency.recommender.provider.RecommendationProviderContainer.isStrictMode' (and the setter) to 'boolean'. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#groovy_boolean_properties",
+                "https://github.com/nebula-plugins/nebula-dependency-recommender-plugin/issues/127"
+            )
+        }
         runner.build()
 
         then:
