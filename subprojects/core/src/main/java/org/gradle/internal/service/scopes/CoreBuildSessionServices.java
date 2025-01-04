@@ -36,8 +36,6 @@ import org.gradle.cache.internal.scopes.DefaultBuildTreeScopedCacheBuilderFactor
 import org.gradle.cache.scopes.BuildTreeScopedCacheBuilderFactory;
 import org.gradle.deployment.internal.DefaultDeploymentRegistry;
 import org.gradle.deployment.internal.PendingChangesManager;
-import org.gradle.groovy.scripts.internal.DefaultScriptSourceHasher;
-import org.gradle.groovy.scripts.internal.ScriptSourceHasher;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildRequestMetaData;
 import org.gradle.initialization.GradleUserHomeDirProvider;
@@ -138,11 +136,6 @@ public class CoreBuildSessionServices implements ServiceRegistrationProvider {
     BuildSessionScopeFileTimeStampInspector createFileTimeStampInspector(BuildTreeScopedCacheBuilderFactory cacheBuilderFactory) {
         File workDir = cacheBuilderFactory.baseDirForCache("fileChanges");
         return new BuildSessionScopeFileTimeStampInspector(workDir);
-    }
-
-    @Provides
-    ScriptSourceHasher createScriptSourceHasher() {
-        return new DefaultScriptSourceHasher();
     }
 
     @Provides

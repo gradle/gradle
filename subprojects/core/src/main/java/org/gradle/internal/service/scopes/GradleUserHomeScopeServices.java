@@ -46,10 +46,8 @@ import org.gradle.execution.plan.ToPlannedNodeConverter;
 import org.gradle.execution.plan.ToPlannedNodeConverterRegistry;
 import org.gradle.execution.plan.ToPlannedTaskConverter;
 import org.gradle.groovy.scripts.internal.CrossBuildInMemoryCachingScriptClassCache;
-import org.gradle.groovy.scripts.internal.DefaultScriptSourceHasher;
 import org.gradle.groovy.scripts.internal.GroovyDslWorkspaceProvider;
 import org.gradle.groovy.scripts.internal.RegistryAwareClassLoaderHierarchyHasher;
-import org.gradle.groovy.scripts.internal.ScriptSourceHasher;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.initialization.ClassLoaderScopeRegistry;
 import org.gradle.initialization.ClassLoaderScopeRegistryListenerManager;
@@ -159,11 +157,6 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
     @Provides
     ScopedListenerManager createListenerManager(ScopedListenerManager parent) {
         return parent.createChild(Scope.UserHome.class);
-    }
-
-    @Provides
-    ScriptSourceHasher createScriptSourceHasher() {
-        return new DefaultScriptSourceHasher();
     }
 
     @Provides
