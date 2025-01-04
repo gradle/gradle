@@ -15,8 +15,12 @@
  */
 package org.gradle.internal.hash;
 
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+
 import java.io.File;
 
+@ServiceScope({Scope.UserHome.class, Scope.BuildSession.class})
 public interface FileHasher {
     /**
      * Returns the hash of the current content of the given file. The provided file must exist and be a file (rather than, say, a directory).

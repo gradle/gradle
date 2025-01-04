@@ -17,6 +17,8 @@
 package org.gradle.execution.plan;
 
 import org.gradle.api.NonNullApi;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.taskgraph.NodeIdentity;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -32,6 +34,7 @@ import java.util.List;
  */
 @NonNullApi
 @ThreadSafe
+@ServiceScope(Scope.UserHome.class)
 public interface ToPlannedNodeConverter {
 
     /**

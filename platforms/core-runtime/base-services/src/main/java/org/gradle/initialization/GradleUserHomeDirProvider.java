@@ -16,8 +16,12 @@
 
 package org.gradle.initialization;
 
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+
 import java.io.File;
 
+@ServiceScope(Scope.UserHome.class)
 public interface GradleUserHomeDirProvider {
     /**
      * Returns the user home directory for the current build.

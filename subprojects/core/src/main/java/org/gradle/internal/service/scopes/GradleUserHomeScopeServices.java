@@ -38,6 +38,7 @@ import org.gradle.cache.internal.DefaultFileContentCacheFactory;
 import org.gradle.cache.internal.DefaultGeneratedGradleJarCache;
 import org.gradle.cache.internal.DefaultGlobalCacheLocations;
 import org.gradle.cache.internal.FileContentCacheFactory;
+import org.gradle.cache.internal.GeneratedGradleJarCache;
 import org.gradle.cache.internal.GradleUserHomeCleanupServices;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.LegacyCacheCleanupEnablement;
@@ -257,7 +258,7 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
         return new JavaModuleDetector(cacheFactory, fileCollectionFactory);
     }
 
-    @Provides
+    @Provides({GeneratedGradleJarCache.class, GlobalCache.class})
     DefaultGeneratedGradleJarCache createGeneratedGradleJarCache(GlobalScopedCacheBuilderFactory cacheBuilderFactory) {
         String gradleVersion = GradleVersion.current().getVersion();
         return new DefaultGeneratedGradleJarCache(cacheBuilderFactory, gradleVersion);
