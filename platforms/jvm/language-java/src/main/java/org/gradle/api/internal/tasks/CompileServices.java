@@ -82,7 +82,7 @@ public class CompileServices extends AbstractGradleModuleServices {
 
     private static class UserHomeScopeServices implements ServiceRegistrationProvider {
         @Provides
-        UserHomeScopedCompileCaches createCompileCaches(GlobalScopedCacheBuilderFactory cacheBuilderFactory, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, StringInterner interner) {
+        GeneralCompileCaches createCompileCaches(GlobalScopedCacheBuilderFactory cacheBuilderFactory, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, StringInterner interner) {
             return new UserHomeScopedCompileCaches(cacheBuilderFactory, inMemoryCacheDecoratorFactory, interner);
         }
     }
