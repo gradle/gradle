@@ -18,7 +18,10 @@ package org.gradle.internal.classloader;
 
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
+@ServiceScope(Scope.UserHome.class)
 public interface ClasspathHasher {
     /**
      * Returns a strong hash for a given classpath.

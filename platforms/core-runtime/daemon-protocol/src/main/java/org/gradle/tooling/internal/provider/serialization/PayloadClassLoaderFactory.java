@@ -17,6 +17,8 @@
 package org.gradle.tooling.internal.provider.serialization;
 
 import org.gradle.internal.classloader.ClassLoaderSpec;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.List;
 
@@ -25,6 +27,7 @@ import java.util.List;
  *
  * <p>Implementations are not required to be thread-safe.</p>
  */
+@ServiceScope(Scope.UserHome.class)
 public interface PayloadClassLoaderFactory {
     ClassLoader getClassLoaderFor(ClassLoaderSpec spec, List<? extends ClassLoader> parents);
 }

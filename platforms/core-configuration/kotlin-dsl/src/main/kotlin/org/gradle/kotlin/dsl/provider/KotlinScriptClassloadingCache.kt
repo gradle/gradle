@@ -17,6 +17,8 @@ package org.gradle.kotlin.dsl.provider
 
 import org.gradle.cache.internal.CrossBuildInMemoryCache
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory
+import org.gradle.internal.service.scopes.Scope
+import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.kotlin.dsl.execution.CompiledScript
 
 import org.gradle.kotlin.dsl.execution.ProgramId
@@ -24,6 +26,7 @@ import org.gradle.kotlin.dsl.execution.ProgramId
 import javax.inject.Inject
 
 
+@ServiceScope(Scope.UserHome::class)
 internal
 class KotlinScriptClassloadingCache @Inject constructor(
     cacheFactory: CrossBuildInMemoryCacheFactory

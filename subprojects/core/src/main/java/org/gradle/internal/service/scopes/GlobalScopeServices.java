@@ -53,6 +53,8 @@ import org.gradle.configuration.DefaultImportsReader;
 import org.gradle.configuration.ImportsReader;
 import org.gradle.execution.DefaultWorkValidationWarningRecorder;
 import org.gradle.execution.WorkValidationWarningReporter;
+import org.gradle.groovy.scripts.internal.DefaultScriptSourceHasher;
+import org.gradle.groovy.scripts.internal.ScriptSourceHasher;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.initialization.DefaultClassLoaderRegistry;
@@ -381,5 +383,10 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
     @Provides
     FailureFactory createFailureFactory() {
         return DefaultFailureFactory.withDefaultClassifier();
+    }
+
+    @Provides
+    ScriptSourceHasher createScriptSourceHasher() {
+        return new DefaultScriptSourceHasher();
     }
 }

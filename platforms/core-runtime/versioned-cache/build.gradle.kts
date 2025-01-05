@@ -24,10 +24,9 @@ dependencies {
     api(projects.coreApi)
     api(projects.logging)
     api(projects.persistentCache)
+    api(projects.stdlibJavaExtensions)
 
     api(libs.jsr305)
-
-    implementation(projects.stdlibJavaExtensions)
 
     implementation(libs.commonsIo)
     implementation(libs.guava)
