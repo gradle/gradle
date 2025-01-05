@@ -51,7 +51,7 @@ public class BuildSessionState implements Closeable {
         this.userHomeScopeServiceRegistry = userHomeScopeServiceRegistry;
         userHomeServices = userHomeScopeServiceRegistry.getServicesFor(startParameter.getGradleUserHomeDir());
         sessionScopeServices = ServiceRegistryBuilder.builder()
-            .scope(Scope.BuildSession.class)
+            .scopeStrictly(Scope.BuildSession.class)
             .displayName("build session services")
             .parent(userHomeServices)
             .parent(crossBuildSessionServices.getServices())
