@@ -40,14 +40,16 @@ public class BuildSessionState implements Closeable {
     private final ServiceRegistry sessionScopeServices;
     private final DefaultBuildSessionContext context;
 
-    public BuildSessionState(GradleUserHomeScopeServiceRegistry userHomeScopeServiceRegistry,
-                             CrossBuildSessionState crossBuildSessionServices,
-                             StartParameterInternal startParameter,
-                             BuildRequestMetaData requestMetaData,
-                             ClassPath injectedPluginClassPath,
-                             BuildCancellationToken buildCancellationToken,
-                             BuildClientMetaData buildClientMetaData,
-                             BuildEventConsumer buildEventConsumer) {
+    public BuildSessionState(
+        GradleUserHomeScopeServiceRegistry userHomeScopeServiceRegistry,
+        CrossBuildSessionState crossBuildSessionServices,
+        StartParameterInternal startParameter,
+        BuildRequestMetaData requestMetaData,
+        ClassPath injectedPluginClassPath,
+        BuildCancellationToken buildCancellationToken,
+        BuildClientMetaData buildClientMetaData,
+        BuildEventConsumer buildEventConsumer
+    ) {
         this.userHomeScopeServiceRegistry = userHomeScopeServiceRegistry;
         userHomeServices = userHomeScopeServiceRegistry.getServicesFor(startParameter.getGradleUserHomeDir());
         sessionScopeServices = ServiceRegistryBuilder.builder()
