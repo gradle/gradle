@@ -21,12 +21,15 @@ import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption;
 import org.gradle.internal.buildoption.Option;
 import org.gradle.internal.buildtree.BuildModelParameters;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.watch.registry.WatchMode;
 
 import javax.annotation.Nullable;
 import java.io.File;
 import java.time.Duration;
 
+@ServiceScope(Scope.BuildSession.class)
 public class StartParameterInternal extends StartParameter {
     private WatchMode watchFileSystemMode = WatchMode.DEFAULT;
     private boolean vfsVerboseLogging;
