@@ -48,7 +48,7 @@ import javax.inject.Inject;
 /**
  * A task which reports information about the Artifact Transforms (implemented by {@link TransformAction}) used by a project.
  *
- * This is useful for investigating ambiguous transformation scenarios.  The output can help predict which ATs will need
+ * This is useful for investigating ambiguous transformation scenarios.  The output can help predict which transforms will need
  * to be modified to remove ambiguity.  This class implements {@link Reporting} to make configuring additional file output formats simple.
  *
  * @since 8.13
