@@ -25,6 +25,7 @@ import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
 import org.gradle.internal.typeconversion.TypeConversionException;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -44,7 +45,7 @@ public class UriNotationConverter implements NotationConverter<Object, URI> {
     @Override
     public void describe(DiagnosticsVisitor visitor) {
         visitor.candidate("A URI or URL instance.");
-        visitor.candidate("A String or CharSequence URI").example("'http://www.gradle.org'");
+        visitor.candidate("A String or CharSequence URI").example("\"http://www.gradle.org\"");
     }
 
     @Override
@@ -53,7 +54,7 @@ public class UriNotationConverter implements NotationConverter<Object, URI> {
             try {
                 notation = ((URL) notation).toURI();
             } catch (URISyntaxException e) {
-                throw new InvalidUserDataException(String.format("Cannot convert '%s' to a URI.", notation), e);
+                throw invalidUserDataException(notation, e);
             }
         }
         if (notation instanceof URI) {
@@ -70,7 +71,7 @@ public class UriNotationConverter implements NotationConverter<Object, URI> {
                 try {
                     result.converted(new URI(notationString));
                 } catch (URISyntaxException e) {
-                    throw new InvalidUserDataException(String.format("Cannot convert '%s' to a URI.", notationString), e);
+                    throw invalidUserDataException(notationString, e);
                 }
                 return;
             }
@@ -84,6 +85,11 @@ public class UriNotationConverter implements NotationConverter<Object, URI> {
                 // ignore, this is not a valid URI
             }
         }
+    }
+
+    @Nonnull
+    private static InvalidUserDataException invalidUserDataException(Object notation, URISyntaxException e) {
+        return new InvalidUserDataException(String.format("Cannot convert '%s' to a URI.", notation), e);
     }
 
     private static boolean isWindowsRootDirectory(@Nullable String scheme) {

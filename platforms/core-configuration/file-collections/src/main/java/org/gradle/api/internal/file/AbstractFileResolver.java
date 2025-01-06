@@ -80,21 +80,21 @@ public abstract class AbstractFileResolver implements FileResolver {
 
     @Override
     public File resolve(Object path, PathValidation validation) {
-        Object unpacked = DeferredUtil.unpack(path);
-        if (unpacked == null || "".equals(unpacked)) {
-            throw new IllegalArgumentException(String.format("Cannot convert '%s' to File.", path));
-        }
-        File maybeRelativeFile = fileNotationParser.parseNotation(unpacked);
+        File maybeRelativeFile = unpackAndParseNotation(path, fileNotationParser, "File");
         return resolveFile(maybeRelativeFile, validation);
     }
 
     @Override
     public URI resolveUri(Object uri) {
-        Object unpacked = DeferredUtil.unpack(uri);
+        return unpackAndParseNotation(uri, uriOrFileNotationParser, "URI");
+    }
+
+    private static <T> T unpackAndParseNotation(Object input, NotationParser<Object, T> parser, String hint) {
+        Object unpacked = DeferredUtil.unpack(input);
         if (unpacked == null || "".equals(unpacked)) {
-            throw new IllegalArgumentException(String.format("Cannot convert '%s' to URI.", uri));
+            throw new IllegalArgumentException(String.format("Cannot convert '%s' to %s.", input, hint));
         }
-        return uriOrFileNotationParser.parseNotation(unpacked);
+        return parser.parseNotation(unpacked);
     }
 
     protected abstract File doResolve(File path);
