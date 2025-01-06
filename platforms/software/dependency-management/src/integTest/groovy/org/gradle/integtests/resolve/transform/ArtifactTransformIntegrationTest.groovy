@@ -2634,6 +2634,26 @@ To Attributes:
         failure.assertHasCause("There is already a transform registered with the name 'test' in this project.")
     }
 
+    def "transforms can't explicitly supply a null name"() {
+        given:
+        buildFile << """
+            project(':lib') {
+                dependencies {
+                    registerTransform(null, FileSizer) {
+                        from.attribute(artifactType, 'jar')
+                        to.attribute(artifactType, 'size')
+                    }
+                }
+            }
+        """
+
+        when:
+        fails "tasks"
+
+        then:
+        failure.assertHasCause("Can not register artifact transform with null name.")
+    }
+
     def "can resolve transformed variant during configuration time"() {
         given:
         buildFile << """
