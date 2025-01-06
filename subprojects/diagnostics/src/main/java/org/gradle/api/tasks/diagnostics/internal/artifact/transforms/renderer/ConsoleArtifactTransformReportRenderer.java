@@ -119,7 +119,7 @@ public final class ConsoleArtifactTransformReportRenderer extends AbstractArtifa
 
         output.style(StyledTextOutput.Style.Info);
         if (hasUnnamed) {
-            output.println("(u) Unnamed artifact transform. Using setName() when registering transforms will make them easier to identify.");
+            output.println("(u) Unnamed artifact transform. Providing a name as the first argument to registerTransform() will make them easier to identify.");
         }
         if (hasCacheable) {
             output.println("(c) Artifact transform has a type marked with @CacheableTransform. Asserts the transformation is idempotent and results can be reused without rerunning the transform.");

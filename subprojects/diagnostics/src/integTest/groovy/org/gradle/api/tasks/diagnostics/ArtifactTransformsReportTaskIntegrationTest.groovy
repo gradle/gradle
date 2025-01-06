@@ -65,7 +65,7 @@ To Attributes:
     - color = red
     - shape = circle
 
-(u) Unnamed artifact transform. Using setName() when registering transforms will make them easier to identify.
+(u) Unnamed artifact transform. Providing a name as the first argument to registerTransform() will make them easier to identify.
 """)
     }
 
@@ -111,7 +111,7 @@ From Attributes:
 To Attributes:
     - shape = circle
 
-(u) Unnamed artifact transform. Using setName() when registering transforms will make them easier to identify.
+(u) Unnamed artifact transform. Providing a name as the first argument to registerTransform() will make them easier to identify.
 (c) Artifact transform has a type marked with @CacheableTransform. Asserts the transformation is idempotent and results can be reused without rerunning the transform.
 """)
     }
@@ -157,7 +157,7 @@ From Attributes:
 To Attributes:
     - shape = circle
 
-(u) Unnamed artifact transform. Using setName() when registering transforms will make them easier to identify.
+(u) Unnamed artifact transform. Providing a name as the first argument to registerTransform() will make them easier to identify.
 (c) Artifact transform has a type marked with @CacheableTransform. Asserts the transformation is idempotent and results can be reused without rerunning the transform.
 """)
     }
@@ -214,7 +214,7 @@ From Attributes:
 To Attributes:
     - color = purple
 
-(u) Unnamed artifact transform. Using setName() when registering transforms will make them easier to identify.
+(u) Unnamed artifact transform. Providing a name as the first argument to registerTransform() will make them easier to identify.
 """)
     }
 
