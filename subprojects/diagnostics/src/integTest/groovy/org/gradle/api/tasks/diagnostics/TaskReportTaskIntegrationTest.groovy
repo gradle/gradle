@@ -44,7 +44,7 @@ wrapper - Generates Gradle wrapper files.
 
 Help tasks
 ----------
-artifactTransforms - Displays the Artifact Transforms that can be resolved in root project '$projectName'.
+artifactTransforms - Displays the Artifact Transforms that can be executed in root project '$projectName'.
 buildEnvironment - Displays all buildscript dependencies declared in root project '$projectName'.
 dependencies - Displays all dependencies declared in root project '$projectName'.
 dependencyInsight - Displays the insight into a specific dependency in root project '$projectName'.
@@ -78,7 +78,7 @@ wrapper (org.gradle.api.tasks.wrapper.Wrapper) - Generates Gradle wrapper files.
 
 Help tasks
 ----------
-artifactTransforms (org.gradle.api.tasks.diagnostics.ArtifactTransformsReportTask) - Displays the Artifact Transforms that can be resolved in root project '$projectName'.
+artifactTransforms (org.gradle.api.tasks.diagnostics.ArtifactTransformsReportTask) - Displays the Artifact Transforms that can be executed in root project '$projectName'.
 buildEnvironment (org.gradle.api.tasks.diagnostics.BuildEnvironmentReportTask) - Displays all buildscript dependencies declared in root project '$projectName'.
 dependencies (org.gradle.api.tasks.diagnostics.DependencyReportTask) - Displays all dependencies declared in root project '$projectName'.
 dependencyInsight (org.gradle.api.tasks.diagnostics.DependencyInsightReportTask) - Displays the insight into a specific dependency in root project '$projectName'.

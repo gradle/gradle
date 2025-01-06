@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.diagnostics.internal.artifacttransforms.renderer;
+package org.gradle.api.tasks.diagnostics.internal.artifact.transforms.renderer;
 
 import com.google.common.collect.Streams;
 import org.apache.commons.lang.StringUtils;
-import org.gradle.api.tasks.diagnostics.internal.artifacttransforms.model.ArtifactTransformReportModel;
-import org.gradle.api.tasks.diagnostics.internal.artifacttransforms.model.ReportArtifactTransform;
-import org.gradle.api.tasks.diagnostics.internal.artifacttransforms.spec.ArtifactTransformReportSpec;
+import org.gradle.api.tasks.diagnostics.internal.artifact.transforms.model.ArtifactTransformReportModel;
+import org.gradle.api.tasks.diagnostics.internal.artifact.transforms.model.ReportArtifactTransform;
+import org.gradle.api.tasks.diagnostics.internal.artifact.transforms.spec.ArtifactTransformReportSpec;
 import org.gradle.internal.logging.text.StyledTextOutput;
 
 import javax.annotation.Nullable;
