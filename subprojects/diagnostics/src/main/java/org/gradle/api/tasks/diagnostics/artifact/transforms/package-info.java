@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,7 @@
  */
 
 /**
- * Internal immutable value types responsible for containing the model of Artifact Transform data in a project
- * for use in reporting.
+ * Diagnostic tasks which report information about Artifact Transforms.
  */
 @org.gradle.api.NonNullApi
-package org.gradle.api.tasks.diagnostics.internal.artifacttransforms.model;
+package org.gradle.api.tasks.diagnostics.artifact.transforms;

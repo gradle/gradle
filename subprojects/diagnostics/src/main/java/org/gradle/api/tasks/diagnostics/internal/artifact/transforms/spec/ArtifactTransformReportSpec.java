@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.diagnostics.internal.artifacttransforms.spec;
+package org.gradle.api.tasks.diagnostics.internal.artifact.transforms.spec;
 
 import javax.annotation.Nullable;
 import java.util.Optional;
@@ -31,6 +31,14 @@ public final class ArtifactTransformReportSpec {
         this.searchTarget = searchTarget;
     }
 
+    /**
+     * This allow the user to filter which Artifact Transforms are included in the report.
+     * <p>
+     * Currently, filtering is performed upon the type of the Artifact Transform.  This could be
+     * expanded to include name, attributes, or other properties in the future.
+     *
+     * @return the target Artifact Transforms to report on
+     */
     public Optional<String> getSearchTarget() {
         return Optional.ofNullable(searchTarget);
     }

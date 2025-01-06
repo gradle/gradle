@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.diagnostics.artifacttransforms;
-
-import org.gradle.api.Incubating;
-import org.gradle.api.reporting.ConfigurableReport;
-import org.gradle.api.reporting.ReportContainer;
-
 /**
- * The reporting configuration for any {@link org.gradle.api.tasks.diagnostics.AbstractConfigurationReportTask}.
- *
- * @since 8.13
+ * Specification classes which describe options used to run Artifact Transform reports
+ * which will affect output.
  */
-@Incubating
-public interface ArtifactTransformReports extends ReportContainer<ConfigurableReport> {
-}
+@org.gradle.api.NonNullApi
+package org.gradle.api.tasks.diagnostics.internal.artifact.transforms.spec;
