@@ -16,13 +16,13 @@
 
 package org.gradle.nativeplatform.internal.modulemap;
 
-import com.google.common.collect.Lists;
 import com.google.common.io.Files;
 import org.apache.commons.io.FileUtils;
 import org.gradle.api.UncheckedIOException;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.gradle.util.internal.CollectionUtils.collect;
@@ -30,9 +30,9 @@ import static org.gradle.util.internal.CollectionUtils.filter;
 
 public class GenerateModuleMapFile {
     public static void generateFile(File moduleMapFile, String moduleName, List<String> publicHeaderDirs) {
-        List<String> lines = Lists.newArrayList(
-            "module " + moduleName + " {"
-        );
+        String firstLine = "module " + moduleName + " {";
+        List<String> lines = new ArrayList<>();
+        lines.add(firstLine);
         List<String> validHeaderDirs = filter(publicHeaderDirs, path -> new File(path).exists());
         lines.addAll(collect(validHeaderDirs, path -> "\tumbrella \"" + path + "\""));
         lines.add("\texport *");
