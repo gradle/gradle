@@ -101,7 +101,7 @@ public abstract class HelpTasksPlugin implements Plugin<Project> {
             task.getRecursive().convention(false);
         });
         tasks.register(ARTIFACT_TRANSFORMS_TASK, ArtifactTransformsReportTask.class, task -> {
-            task.setDescription("Displays the Artifact Transforms that can be resolved in " + projectName + ".");
+            task.setDescription("Displays the Artifact Transforms that can be executed in " + projectName + ".");
             task.setGroup(HELP_GROUP);
             task.setImpliesSubProjects(true);
         });
