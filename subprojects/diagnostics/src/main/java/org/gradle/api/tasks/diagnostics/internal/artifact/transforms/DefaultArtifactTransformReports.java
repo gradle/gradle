@@ -30,9 +30,9 @@ import java.util.Collections;
  *
  * Class must be non-{@code final}.
  */
-public class ArtifactTransformReportsImpl extends DelegatingReportContainer<ConfigurableReport> implements ArtifactTransformReports {
+public class DefaultArtifactTransformReports extends DelegatingReportContainer<ConfigurableReport> implements ArtifactTransformReports {
     @Inject
-    public ArtifactTransformReportsImpl(ObjectFactory objectFactory) {
+    public DefaultArtifactTransformReports(ObjectFactory objectFactory) {
         super(DefaultReportContainer.create(objectFactory, ConfigurableReport.class, factory -> Collections.emptyList()));
     }
 }

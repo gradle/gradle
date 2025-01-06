@@ -31,7 +31,7 @@ import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.diagnostics.artifact.transforms.ArtifactTransformReports;
-import org.gradle.api.tasks.diagnostics.internal.artifact.transforms.ArtifactTransformReportsImpl;
+import org.gradle.api.tasks.diagnostics.internal.artifact.transforms.DefaultArtifactTransformReports;
 import org.gradle.api.tasks.diagnostics.internal.artifact.transforms.model.ArtifactTransformReportModel;
 import org.gradle.api.tasks.diagnostics.internal.artifact.transforms.model.ArtifactTransformReportModelFactory;
 import org.gradle.api.tasks.diagnostics.internal.artifact.transforms.renderer.ConsoleArtifactTransformReportRenderer;
@@ -67,7 +67,7 @@ public abstract class ArtifactTransformsReportTask extends DefaultTask implement
      * @since 8.13
      */
     public ArtifactTransformsReportTask() {
-        reports = getObjectFactory().newInstance(ArtifactTransformReportsImpl.class);
+        reports = getObjectFactory().newInstance(DefaultArtifactTransformReports.class);
     }
 
     /**
