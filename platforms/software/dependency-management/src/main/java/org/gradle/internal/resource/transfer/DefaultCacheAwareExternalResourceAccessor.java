@@ -17,6 +17,8 @@
 package org.gradle.internal.resource.transfer;
 
 import com.google.common.io.Files;
+import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.UncheckedIOException;
@@ -43,6 +45,7 @@ import org.gradle.util.internal.BuildCommencedTimeProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
@@ -83,7 +86,12 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
 
             // If we have no caching options, just get the thing directly
             if (cached == null && (additionalCandidates == null || additionalCandidates.isNone())) {
-                return copyToCache(location, fileStore, delegate.withProgressLogging().resource(location));
+                File partPosition = calculateFixedPartPosition(location);
+                LocallyAvailableExternalResource resource = copyToCache(location, fileStore, delegate.withProgressLogging().resource(location, false, partPosition));
+                if (partPosition != null && partPosition.exists()) {
+                    partPosition.delete();
+                }
+                return resource;
             }
 
             // We might be able to use a cached/locally available version
@@ -144,8 +152,27 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
             }
 
             // All local/cached options failed, get directly
-            return copyToCache(location, fileStore, delegate.withProgressLogging().resource(location, revalidate));
+            File partPosition = calculateFixedPartPosition(location);
+            LocallyAvailableExternalResource resource = copyToCache(location, fileStore, delegate.withProgressLogging().resource(location, revalidate, partPosition));
+            if (partPosition != null && partPosition.exists()) {
+                partPosition.delete();
+            }
+            return resource;
         });
+    }
+
+    @Nullable
+    private File calculateFixedPartPosition(@Nonnull ExternalResourceName location) {
+        String key = DigestUtils.md5Hex(location.getPath()) + ".part";
+        File part = new File(System.getProperty("java.io.tmpdir"), ".gradle/" + key);
+        try {
+            FileUtils.forceMkdir(part.getParentFile());
+        } catch (IOException e) {
+            LOGGER.warn("Unable to create directory to store part file for {}", location.getDisplayName(), e);
+            return null;
+        }
+
+        return part;
     }
 
     @Nullable
