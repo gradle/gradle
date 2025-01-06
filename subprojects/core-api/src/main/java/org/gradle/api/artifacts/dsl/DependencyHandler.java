@@ -551,13 +551,12 @@ public interface DependencyHandler extends ExtensionAware {
      *     }
      * }
      * </pre>
+     * You should favor calling {@link #registerTransform(String, Class, Action)} instead, and supplying a name to identify the transform whenever possible.
      *
      * @see TransformAction
      * @since 5.3
      */
-    default <T extends TransformParameters> void registerTransform(Class<? extends TransformAction<T>> actionType, Action<? super TransformSpec<T>> registrationAction) {
-        registerTransform(null, actionType, registrationAction);
-    }
+    <T extends TransformParameters> void registerTransform(Class<? extends TransformAction<T>> actionType, Action<? super TransformSpec<T>> registrationAction);
 
     /**
      * Registers an <a href="https://docs.gradle.org/current/userguide/artifact_transforms.html">artifact transform</a> as in
@@ -571,7 +570,7 @@ public interface DependencyHandler extends ExtensionAware {
      * @since 8.13
      */
     @Incubating
-    <T extends TransformParameters> void registerTransform(@Nullable String name, Class<? extends TransformAction<T>> actionType, Action<? super TransformSpec<T>> registrationAction);
+    <T extends TransformParameters> void registerTransform(String name, Class<? extends TransformAction<T>> actionType, Action<? super TransformSpec<T>> registrationAction);
 
     /**
      * Declares a dependency on a platform. If the target coordinates represent multiple

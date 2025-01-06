@@ -128,7 +128,10 @@ abstract class DependencyHandlerDelegate : DependencyHandler {
     override fun artifactTypes(configureAction: Action<in ArtifactTypeContainer>) =
         delegate.artifactTypes(configureAction)
 
-    override fun <T : TransformParameters?> registerTransform(name: String?, actionType: Class<out TransformAction<T>>, registrationAction: Action<in TransformSpec<T>>) =
+    override fun <T : TransformParameters?> registerTransform(actionType: Class<out TransformAction<T>>, registrationAction: Action<in TransformSpec<T>>) =
+        delegate.registerTransform(actionType, registrationAction)
+
+    override fun <T : TransformParameters?> registerTransform(name: String, actionType: Class<out TransformAction<T>>, registrationAction: Action<in TransformSpec<T>>) =
         delegate.registerTransform(name, actionType, registrationAction)
 
     override fun platform(notation: Any): Dependency =
