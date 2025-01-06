@@ -321,7 +321,7 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
      * Returns the set of implicit task names expected for any project for the target Gradle version.
      */
     Set<String> getImplicitTasks() {
-        if (targetVersion >= GradleVersion.version("8.12")) {
+        if (targetVersion >= GradleVersion.version("8.13")) {
             return ['artifactTransforms', 'buildEnvironment', 'components', 'dependencies', 'dependencyInsight', 'dependentComponents', 'help', 'javaToolchains', 'projects', 'properties', 'tasks', 'model', 'outgoingVariants', 'resolvableConfigurations']
         } else if (targetVersion >= GradleVersion.version("7.5")) {
             return ['buildEnvironment', 'components', 'dependencies', 'dependencyInsight', 'dependentComponents', 'help', 'javaToolchains', 'projects', 'properties', 'tasks', 'model', 'outgoingVariants', 'resolvableConfigurations']
