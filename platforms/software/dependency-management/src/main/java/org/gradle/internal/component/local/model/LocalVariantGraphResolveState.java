@@ -17,8 +17,10 @@
 package org.gradle.internal.component.local.model;
 
 import org.gradle.api.Transformer;
+import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 import org.gradle.internal.component.model.VariantGraphResolveState;
 
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -28,6 +30,9 @@ public interface LocalVariantGraphResolveState extends VariantGraphResolveState 
 
     @Override
     LocalVariantGraphResolveMetadata getMetadata();
+
+    @Override
+    List<LocalOriginDependencyMetadata> getDependencies();
 
     /**
      * Returns the file dependencies attached to this variant, if any.
