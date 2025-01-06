@@ -22,6 +22,8 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.io.StreamByteBuffer;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -32,6 +34,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @ThreadSafe
+@ServiceScope(Scope.UserHome.class)
 public class PayloadSerializer {
     private final PayloadClassLoaderRegistry classLoaderRegistry;
 

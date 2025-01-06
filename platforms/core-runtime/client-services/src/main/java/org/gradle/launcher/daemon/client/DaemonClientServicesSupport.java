@@ -17,6 +17,7 @@ package org.gradle.launcher.daemon.client;
 
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.cache.FileLockManager;
+import org.gradle.cache.GlobalCache;
 import org.gradle.cache.UnscopedCacheBuilderFactory;
 import org.gradle.cache.internal.CacheFactory;
 import org.gradle.cache.internal.DefaultCacheFactory;
@@ -89,7 +90,7 @@ public abstract class DaemonClientServicesSupport implements ServiceRegistration
         return new DefaultUnscopedCacheBuilderFactory(cacheFactory);
     }
 
-    @Provides
+    @Provides({GlobalScopedCacheBuilderFactory.class, GlobalCache.class})
     DefaultGlobalScopedCacheBuilderFactory createGlobalScopedCache(GlobalCacheDir globalCacheDir, UnscopedCacheBuilderFactory unscopedCacheBuilderFactory) {
         return new DefaultGlobalScopedCacheBuilderFactory(globalCacheDir.getDir(), unscopedCacheBuilderFactory);
     }

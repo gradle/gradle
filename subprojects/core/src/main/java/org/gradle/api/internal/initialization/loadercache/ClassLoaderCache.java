@@ -20,11 +20,14 @@ import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.scan.UsedByScanPlugin;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.Nullable;
 import java.util.function.Function;
 
 @UsedByScanPlugin("test-retry")
+@ServiceScope(Scope.UserHome.class)
 public interface ClassLoaderCache {
 
     /**

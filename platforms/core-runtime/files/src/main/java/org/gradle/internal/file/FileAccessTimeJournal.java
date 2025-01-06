@@ -16,8 +16,12 @@
 
 package org.gradle.internal.file;
 
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+
 import java.io.File;
 
+@ServiceScope(Scope.UserHome.class)
 public interface FileAccessTimeJournal {
 
     long getLastAccessTime(File file);

@@ -29,6 +29,8 @@ import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.DefaultSerializerRegistry;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.snapshot.impl.AbstractIsolatedMap;
 import org.gradle.internal.snapshot.impl.ArrayOfPrimitiveValueSnapshot;
 import org.gradle.internal.snapshot.impl.AttributeDefinitionSnapshot;
@@ -59,6 +61,7 @@ import java.util.List;
 
 import static org.gradle.internal.classloader.ClassLoaderUtils.classFromContextLoader;
 
+@ServiceScope(Scope.UserHome.class)
 public class IsolatableSerializerRegistry extends DefaultSerializerRegistry {
     private static final byte STRING_VALUE = (byte) 0;
     private static final byte BOOLEAN_VALUE = (byte) 1;

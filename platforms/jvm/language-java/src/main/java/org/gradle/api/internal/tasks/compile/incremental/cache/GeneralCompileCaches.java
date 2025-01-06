@@ -20,6 +20,8 @@ import org.gradle.api.internal.tasks.compile.incremental.deps.ClassAnalysis;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData;
 import org.gradle.cache.Cache;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
  * The build scoped compile caches.
@@ -27,6 +29,7 @@ import org.gradle.internal.hash.HashCode;
  * NOTE: This class cannot be renamed because it used to leak onto the public API
  * and some community plugins still depend on it in their byte code.
  */
+@ServiceScope(Scope.UserHome.class)
 public interface GeneralCompileCaches {
     Cache<HashCode, ClassSetAnalysisData> getClassSetAnalysisCache();
     Cache<HashCode, ClassAnalysis> getClassAnalysisCache();
