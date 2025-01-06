@@ -16,17 +16,18 @@
 
 package org.gradle.nativeplatform.toolchain.internal;
 
-import com.google.common.collect.Lists;
+import com.google.common.collect.ImmutableList;
 import org.gradle.internal.os.OperatingSystem;
 
+import java.util.Collections;
 import java.util.List;
 
 public enum SymbolExtractorOsConfig {
-    OBJCOPY("objcopy", Lists.newArrayList("--only-keep-debug"), ".debug"),
-    DSYMUTIL("dsymutil", Lists.<String>newArrayList("-f"), ".dwarf") {
+    OBJCOPY("objcopy", Collections.singletonList("--only-keep-debug"), ".debug"),
+    DSYMUTIL("dsymutil", Collections.singletonList("-f"), ".dwarf") {
         @Override
         public List<String> getInputOutputFileArguments(String inputFilePath, String outputFilePath) {
-            return Lists.newArrayList("-o", outputFilePath, inputFilePath);
+            return ImmutableList.of("-o", outputFilePath, inputFilePath);
         }
     };
 
@@ -59,7 +60,7 @@ public enum SymbolExtractorOsConfig {
     }
 
     public List<String> getInputOutputFileArguments(String inputFilePath, String outputFilePath) {
-        return Lists.newArrayList(inputFilePath, outputFilePath);
+        return ImmutableList.of(inputFilePath, outputFilePath);
     }
 
     public String getExtension() {

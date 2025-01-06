@@ -16,7 +16,6 @@
 
 package org.gradle.nativeplatform.test.internal;
 
-import com.google.common.collect.Lists;
 import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
 import org.gradle.nativeplatform.internal.NativeDependentBinariesResolutionStrategy;
 import org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec;
@@ -36,7 +35,7 @@ public class NativeDependentBinariesResolutionStrategyTestSupport implements Nat
     public List<NativeBinarySpecInternal> getTestDependencies(NativeBinarySpecInternal nativeBinary) {
         if (nativeBinary instanceof NativeTestSuiteBinarySpec) {
             NativeBinarySpecInternal testedBinary = (NativeBinarySpecInternal) ((NativeTestSuiteBinarySpec) nativeBinary).getTestedBinary();
-            return Lists.newArrayList(testedBinary);
+            return Collections.singletonList(testedBinary);
         }
         return Collections.emptyList();
     }

@@ -16,7 +16,6 @@
 
 package org.gradle.jvm.toolchain.internal;
 
-import com.google.common.collect.Lists;
 import net.rubygrapefruit.platform.MissingRegistryEntryException;
 import net.rubygrapefruit.platform.WindowsRegistry;
 import org.gradle.internal.nativeintegration.NativeIntegrationUnavailableException;
@@ -54,13 +53,13 @@ public class WindowsInstallationSupplier implements InstallationSupplier {
 
     private Set<InstallationLocation> findInstallationsInRegistry() {
         final Stream<String> openJdkInstallations = findOpenJDKs();
-        final Stream<String> jvms = Lists.newArrayList(
+        final Stream<String> jvms = Stream.of(
             "SOFTWARE\\JavaSoft\\JDK",
             "SOFTWARE\\JavaSoft\\Java Development Kit",
             "SOFTWARE\\JavaSoft\\Java Runtime Environment",
             "SOFTWARE\\Wow6432Node\\JavaSoft\\Java Development Kit",
             "SOFTWARE\\Wow6432Node\\JavaSoft\\Java Runtime Environment"
-        ).stream().map(this::findJvms).flatMap(List::stream);
+        ).map(this::findJvms).flatMap(List::stream);
         return Stream.concat(openJdkInstallations, jvms)
             .map(javaHome -> InstallationLocation.autoDetected(new File(javaHome), getSourceName()))
             .collect(Collectors.toSet());

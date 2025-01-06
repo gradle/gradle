@@ -16,14 +16,14 @@
 
 package org.gradle.internal.logging.events;
 
-import com.google.common.collect.Lists;
+import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.List;
 
 public class YesNoQuestionPromptEvent extends PromptOutputEvent {
-    public static final List<String> YES_NO_CHOICES = Lists.newArrayList("yes", "no");
+    public static final List<String> YES_NO_CHOICES = ImmutableList.of("yes", "no");
     private final String question;
 
     public YesNoQuestionPromptEvent(long timestamp, String question) {
