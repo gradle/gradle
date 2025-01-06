@@ -38,12 +38,10 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.EnumMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
@@ -244,7 +242,8 @@ public class ConsumerOperationParameters implements BuildParameters {
                 progressListeners,
                 cancellationToken,
                 systemProperties,
-            new FailsafeStreamedValueListener(streamedValueListener));
+                new FailsafeStreamedValueListener(streamedValueListener)
+            );
         }
 
         public void copyFrom(ConsumerOperationParameters operationParameters) {
