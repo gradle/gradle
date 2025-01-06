@@ -114,7 +114,7 @@ public final class ConsoleArtifactTransformReportRenderer extends AbstractArtifa
     }
 
     private void writeLegend(List<ReportArtifactTransform> configs) {
-        boolean hasUnnamed =  !configs.stream().allMatch(ReportArtifactTransform::isNamed);
+        boolean hasUnnamed = !configs.stream().allMatch(ReportArtifactTransform::isNamed);
         boolean hasCacheable = configs.stream().anyMatch(ReportArtifactTransform::isCacheable);
 
         output.style(StyledTextOutput.Style.Info);
