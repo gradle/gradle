@@ -27,7 +27,7 @@ import javax.annotation.Nullable;
 import java.util.List;
 
 /**
- * The {@link AbstractArtifactTransformReportRenderer} extension that can be used to render a {@link ArtifactTransformReportModel}
+ * A type of {@link AbstractArtifactTransformReportRenderer} that can be used to render a {@link ArtifactTransformReportModel}
  * to the console with richly formatted output.
  */
 public final class ConsoleArtifactTransformReportRenderer extends AbstractArtifactTransformReportRenderer<StyledTextOutput> {
