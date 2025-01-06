@@ -346,14 +346,21 @@ public class ProviderConnection {
             daemonParams.setBaseDir(operationParameters.getDaemonBaseDir());
         }
 
-        //override the params with the explicit settings provided by the tooling api
+        // Since 8.13, we split the daemon JVM args into base and additional JVM args (#31462)
+        // When calling the following new methods, the following can happen:
+        // - < 8.13: the new split will return a null
+        // - >=8.13: the new split will return a non-null value, clearly signifying that the method is supported.
         List<String> baseJvmArguments = operationParameters.getBaseJvmArguments(null);
-        if (baseJvmArguments != null) {
-            daemonParams.setJvmArgs(baseJvmArguments);
-        }
         List<String> additionalJvmArguments = operationParameters.getAdditionalJvmArguments(null);
-        if (additionalJvmArguments != null) {
+        if (baseJvmArguments != null && additionalJvmArguments != null) {
+            daemonParams.setJvmArgs(baseJvmArguments);
             daemonParams.addJvmArgs(additionalJvmArguments);
+        } else {
+            // If the new base/additional methods are not supported, we fall back to the old method
+            List<String> jvmArguments = operationParameters.getJvmArguments();
+            if (jvmArguments != null) {
+                daemonParams.setJvmArgs(jvmArguments);
+            }
         }
 
         daemonParams.setRequestedJvmCriteriaFromMap(properties.getDaemonJvmProperties());

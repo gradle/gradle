@@ -38,6 +38,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.EnumMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -66,10 +67,8 @@ public class ConsumerOperationParameters implements BuildParameters {
         private Boolean colorOutput;
         private InputStream stdin;
         private File javaHome;
-        @Nullable
-        private List<String> baseJvmArguments;
-        @Nullable
-        private List<String> additionalJvmArguments;
+        private List<String> baseJvmArguments = Collections.emptyList();
+        private List<String> additionalJvmArguments = Collections.emptyList();
         private Map<String, String> envVariables;
         private List<String> arguments;
         private List<String> tasks;
@@ -119,7 +118,9 @@ public class ConsumerOperationParameters implements BuildParameters {
         }
 
         public Builder setBaseJvmArguments(@Nullable List<String> baseJvmArguments) {
-            this.baseJvmArguments = baseJvmArguments;
+            if (baseJvmArguments != null) {
+                this.baseJvmArguments = new ArrayList<>(baseJvmArguments);
+            }
             return this;
         }
 
@@ -301,8 +302,8 @@ public class ConsumerOperationParameters implements BuildParameters {
         Boolean colorOutput,
         InputStream stdin,
         File javaHome,
-        @Nullable List<String> setJvmArguments,
-        @Nullable List<String> additionalJvmArguments,
+        List<String> setJvmArguments,
+        List<String> additionalJvmArguments,
         Map<String, String> envVariables,
         List<String> arguments,
         List<String> tasks,
@@ -460,7 +461,6 @@ public class ConsumerOperationParameters implements BuildParameters {
     /**
      * @see ConsumerOperationParameters#getBaseJvmArguments()
      */
-    @Nullable
     public List<String> getBaseJvmArguments() {
         return setJvmArguments;
     }
@@ -468,7 +468,6 @@ public class ConsumerOperationParameters implements BuildParameters {
     /**
      * @see ConsumerOperationParameters#getAdditionalJvmArguments()
      */
-    @Nullable
     public List<String> getAdditionalJvmArguments() {
         return additionalJvmArguments;
     }
