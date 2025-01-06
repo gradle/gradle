@@ -347,7 +347,7 @@ public class ProviderConnection {
         }
 
         //override the params with the explicit settings provided by the tooling api
-        List<String> jvmArguments = operationParameters.getJvmArguments();
+        List<String> jvmArguments = operationParameters.getBaseJvmArguments(null);
         if (jvmArguments != null) {
             daemonParams.setJvmArgs(jvmArguments);
         }

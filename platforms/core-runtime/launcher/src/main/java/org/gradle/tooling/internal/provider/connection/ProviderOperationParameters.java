@@ -51,11 +51,24 @@ public interface ProviderOperationParameters {
     File getJavaHome();
 
     /**
+     * Returns a backward-compatible union of {@link #getBaseJvmArguments(List)} ()} and {@link #getAdditionalJvmArguments(List)} ()}.
+     * Deduplication is the responsibility of the caller.
+     *
      * @return When null, use the provider's default JVM arguments. When empty, use no JVM arguments.
      */
     @Nullable
     List<String> getJvmArguments();
 
+    /**
+     * Returns a list of base JVM arguments,
+     * overriding all (except some special cases, see {@link org.gradle.process.internal.JvmOptions}) JVM options.
+     */
+    List<String> getBaseJvmArguments(@Nullable List<String> defaultArguments);
+
+    /**
+     * Returns the list of additional JVM arguments.
+     * Additional arguments are applied over the arguments returned
+     */
     @Nullable
     List<String> getAdditionalJvmArguments(@Nullable List<String> defaultArguments);
 

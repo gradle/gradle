@@ -38,10 +38,12 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.EnumMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
@@ -66,7 +68,9 @@ public class ConsumerOperationParameters implements BuildParameters {
         private Boolean colorOutput;
         private InputStream stdin;
         private File javaHome;
-        private List<String> jvmArguments;
+        @Nullable
+        private List<String> baseJvmArguments;
+        @Nullable
         private List<String> additionalJvmArguments;
         private Map<String, String> envVariables;
         private List<String> arguments;
@@ -116,12 +120,12 @@ public class ConsumerOperationParameters implements BuildParameters {
             return this;
         }
 
-        public Builder setJvmArguments(List<String> jvmArguments) {
-            this.jvmArguments = jvmArguments;
+        public Builder setBaseJvmArguments(@Nullable List<String> baseJvmArguments) {
+            this.baseJvmArguments = baseJvmArguments;
             return this;
         }
 
-        public Builder addJvmArguments(List<String> jvmArguments) {
+        public Builder addJvmArguments(@Nullable List<String> jvmArguments) {
             this.additionalJvmArguments = concat(this.additionalJvmArguments, jvmArguments);
             return this;
         }
@@ -136,7 +140,7 @@ public class ConsumerOperationParameters implements BuildParameters {
             return this;
         }
 
-        private static List<String> concat(List<String> first, List<String> second) {
+        private static List<String> concat(@Nullable List<String> first, @Nullable List<String> second) {
             List<String> result = new ArrayList<String>();
             if (first != null) {
                 result.addAll(first);
@@ -221,8 +225,26 @@ public class ConsumerOperationParameters implements BuildParameters {
                 throw new IllegalStateException("No entry point specified.");
             }
 
-            return new ConsumerOperationParameters(entryPoint, parameters, stdout, stderr, colorOutput, stdin, javaHome, jvmArguments, additionalJvmArguments, envVariables, arguments, tasks, launchables, injectedPluginClasspath,
-                legacyProgressListeners, progressListeners, cancellationToken, systemProperties, new FailsafeStreamedValueListener(streamedValueListener));
+            return new ConsumerOperationParameters(
+                entryPoint,
+                parameters,
+                stdout,
+                stderr,
+                colorOutput,
+                stdin,
+                javaHome,
+                baseJvmArguments,
+                additionalJvmArguments,
+                envVariables,
+                arguments,
+                tasks,
+                launchables,
+                injectedPluginClasspath,
+                legacyProgressListeners,
+                progressListeners,
+                cancellationToken,
+                systemProperties,
+            new FailsafeStreamedValueListener(streamedValueListener));
         }
 
         public void copyFrom(ConsumerOperationParameters operationParameters) {
@@ -232,7 +254,7 @@ public class ConsumerOperationParameters implements BuildParameters {
             legacyProgressListeners.addAll(operationParameters.legacyProgressListeners);
             progressListeners.putAll(operationParameters.progressListeners);
             arguments = operationParameters.arguments;
-            jvmArguments = operationParameters.jvmArguments;
+            baseJvmArguments = operationParameters.setJvmArguments;
             additionalJvmArguments = operationParameters.additionalJvmArguments;
             envVariables = operationParameters.envVariables;
             stdout = operationParameters.stdout;
@@ -258,7 +280,7 @@ public class ConsumerOperationParameters implements BuildParameters {
     private final InputStream stdin;
 
     private final File javaHome;
-    private final List<String> jvmArguments;
+    private final List<String> setJvmArguments;
     private final List<String> additionalJvmArguments;
     private final Map<String, String> envVariables;
     private final List<String> arguments;
@@ -280,8 +302,8 @@ public class ConsumerOperationParameters implements BuildParameters {
         Boolean colorOutput,
         InputStream stdin,
         File javaHome,
-        List<String> jvmArguments,
-        List<String> additionalJvmArguments,
+        @Nullable List<String> setJvmArguments,
+        @Nullable List<String> additionalJvmArguments,
         Map<String, String> envVariables,
         List<String> arguments,
         List<String> tasks,
@@ -300,7 +322,7 @@ public class ConsumerOperationParameters implements BuildParameters {
         this.colorOutput = colorOutput;
         this.stdin = stdin;
         this.javaHome = javaHome;
-        this.jvmArguments = jvmArguments;
+        this.setJvmArguments = setJvmArguments;
         this.additionalJvmArguments = additionalJvmArguments;
         this.envVariables = envVariables;
         this.arguments = arguments;
@@ -422,10 +444,32 @@ public class ConsumerOperationParameters implements BuildParameters {
         return javaHome;
     }
 
+    /**
+     * @see ConsumerOperationParameters#getJvmArguments()
+     */
     public List<String> getJvmArguments() {
-        return jvmArguments;
+        List<String> result = new ArrayList<>();
+        if (setJvmArguments != null) {
+            result.addAll(setJvmArguments);
+        }
+        if (additionalJvmArguments != null) {
+            result.addAll(additionalJvmArguments);
+        }
+        return result;
     }
 
+    /**
+     * @see ConsumerOperationParameters#getBaseJvmArguments()
+     */
+    @Nullable
+    public List<String> getBaseJvmArguments() {
+        return setJvmArguments;
+    }
+
+    /**
+     * @see ConsumerOperationParameters#getAdditionalJvmArguments()
+     */
+    @Nullable
     public List<String> getAdditionalJvmArguments() {
         return additionalJvmArguments;
     }

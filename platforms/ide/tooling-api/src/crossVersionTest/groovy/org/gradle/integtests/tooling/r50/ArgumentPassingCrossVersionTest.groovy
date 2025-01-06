@@ -18,10 +18,14 @@ package org.gradle.integtests.tooling.r50
 
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
+import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.BuildLauncher
 import org.gradle.tooling.model.build.BuildEnvironment
 
+// TODO: Only for testing, remove
+@ToolingApiVersion("=8.12")
 class ArgumentPassingCrossVersionTest extends ToolingApiSpecification {
 
     static final String JVM_ARG_1 = '-verbosegc'

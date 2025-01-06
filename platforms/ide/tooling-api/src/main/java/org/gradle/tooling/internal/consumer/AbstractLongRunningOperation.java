@@ -120,7 +120,7 @@ public abstract class AbstractLongRunningOperation<T extends AbstractLongRunning
 
     @Override
     public T setJvmArguments(String... jvmArguments) {
-        operationParamsBuilder.setJvmArguments(rationalizeInput(jvmArguments));
+        operationParamsBuilder.setBaseJvmArguments(rationalizeInput(jvmArguments));
         return getThis();
     }
 
@@ -144,7 +144,7 @@ public abstract class AbstractLongRunningOperation<T extends AbstractLongRunning
 
     @Override
     public T setJvmArguments(Iterable<String> jvmArguments) {
-        operationParamsBuilder.setJvmArguments(rationalizeInput(jvmArguments));
+        operationParamsBuilder.setBaseJvmArguments(rationalizeInput(jvmArguments));
         return getThis();
     }
 
