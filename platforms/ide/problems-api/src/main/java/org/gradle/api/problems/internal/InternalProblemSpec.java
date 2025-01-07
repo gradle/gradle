@@ -35,11 +35,9 @@ public interface InternalProblemSpec extends ProblemSpec {
      * <p>
      * If not additional data was configured for this problem, then a new instance will be created. If additional data was already configured, then the existing instance will be used and the configuration will be applied to it.
      *
-     * @param specType the type of the additional data configurer (see the AdditionalDataSpec interface for the list of supported types)
-     * @param config  The action configuring the additional data
      * @return this
-     * @param <U> The type of the configurator object that will be applied to the additional data
      */
+    @Override
     InternalProblemSpec additionalData(AdditionalData additionalData);
 
     /**
@@ -66,6 +64,7 @@ public interface InternalProblemSpec extends ProblemSpec {
      * @param problemId the problem id
      * @return this
      */
+    @Override
     InternalProblemSpec id(ProblemId problemId);
 
     /**

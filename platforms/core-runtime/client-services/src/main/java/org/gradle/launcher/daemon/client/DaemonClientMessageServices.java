@@ -33,6 +33,11 @@ import org.gradle.internal.operations.BuildOperationIdFactory;
 import org.gradle.internal.operations.DefaultBuildOperationIdFactory;
 import org.gradle.internal.remote.internal.OutgoingConnector;
 import org.gradle.internal.remote.internal.inet.TcpOutgoingConnector;
+import org.gradle.internal.serialize.ClassLoaderCache;
+import org.gradle.internal.serialize.DefaultPayloadClassLoaderFactory;
+import org.gradle.internal.serialize.DefaultPayloadClassLoaderRegistry;
+import org.gradle.internal.serialize.LazyPayloadSerializerContainer;
+import org.gradle.internal.serialize.PayloadSerializer;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistrationProvider;
@@ -42,11 +47,6 @@ import org.gradle.launcher.daemon.diagnostics.DaemonStartupInfo;
 import org.gradle.launcher.daemon.protocol.DaemonMessageSerializer;
 import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
-import org.gradle.tooling.internal.provider.serialization.ClassLoaderCache;
-import org.gradle.tooling.internal.provider.serialization.DefaultPayloadClassLoaderFactory;
-import org.gradle.tooling.internal.provider.serialization.DefaultPayloadClassLoaderRegistry;
-import org.gradle.tooling.internal.provider.serialization.LazyPayloadSerializerContainer;
-import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.WellKnownClassLoaderRegistry;
 
 import javax.annotation.Nonnull;
@@ -111,7 +111,6 @@ public class DaemonClientMessageServices implements ServiceRegistrationProvider 
     @NonNullApi
     static class DefaultLazyPayloadSerializerContainer implements LazyPayloadSerializerContainer {
         private PayloadSerializer payloadSerializer;
-
 
         @Override
         public PayloadSerializer get() {

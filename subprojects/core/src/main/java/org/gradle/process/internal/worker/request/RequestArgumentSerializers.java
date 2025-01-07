@@ -19,7 +19,7 @@ package org.gradle.process.internal.worker.request;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.DefaultSerializerRegistry;
 import org.gradle.internal.serialize.Encoder;
-import org.gradle.internal.serialize.Message;
+import org.gradle.internal.serialize.MessageSerializer;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.serialize.SerializerRegistry;
 
@@ -37,6 +37,7 @@ public class RequestArgumentSerializers {
 
     public static class JavaObjectSerializer implements Serializer<Object> {
         private final ClassLoader classLoader;
+        private final MessageSerializer messageSerializer = new MessageSerializer();
 
         public JavaObjectSerializer(ClassLoader classLoader) {
             this.classLoader = classLoader;
@@ -44,12 +45,12 @@ public class RequestArgumentSerializers {
 
         @Override
         public Object read(Decoder decoder) throws Exception {
-            return Message.receive(decoder.getInputStream(), classLoader);
+            return messageSerializer.receive(decoder.getInputStream(), classLoader);
         }
 
         @Override
         public void write(Encoder encoder, Object value) throws Exception {
-            Message.send(value, encoder.getOutputStream());
+            messageSerializer.send(value, encoder.getOutputStream());
         }
     }
 }

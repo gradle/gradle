@@ -21,7 +21,7 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.io.BufferCaster;
 import org.gradle.internal.remote.internal.MessageIOException;
-import org.gradle.internal.remote.internal.MessageSerializer;
+import org.gradle.internal.remote.internal.MessageSerializerFactory;
 import org.gradle.internal.remote.internal.RecoverableMessageIOException;
 import org.gradle.internal.remote.internal.RemoteConnection;
 import org.gradle.internal.serialize.FlushableEncoder;
@@ -55,7 +55,7 @@ public class SocketConnection<T> implements RemoteConnection<T> {
     private final OutputStream outstr;
     private final FlushableEncoder encoder;
 
-    public SocketConnection(SocketChannel socket, MessageSerializer streamSerializer, StatefulSerializer<T> messageSerializer) {
+    public SocketConnection(SocketChannel socket, MessageSerializerFactory streamSerializer, StatefulSerializer<T> messageSerializer) {
         this.socket = socket;
         try {
             outstr = new SocketOutputStream(socket);

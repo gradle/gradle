@@ -117,14 +117,7 @@ public class MessageHubBackedObjectConnection implements ObjectConnection {
 
     @Override
     public void connect() {
-        ClassLoader methodParamClassLoader;
-        if (methodParamClassLoaders.size() == 0) {
-            methodParamClassLoader = getClass().getClassLoader();
-        } else if (methodParamClassLoaders.size() == 1) {
-            methodParamClassLoader = methodParamClassLoaders.iterator().next();
-        } else {
-            methodParamClassLoader = new CachingClassLoader(new MultiParentClassLoader(methodParamClassLoaders));
-        }
+        ClassLoader methodParamClassLoader = getMethodParamClassLoader();
         MethodArgsSerializer argsSerializer = new DefaultMethodArgsSerializer(paramSerializers, new JavaSerializationBackedMethodArgsSerializer(methodParamClassLoader));
 
         StatefulSerializer<InterHubMessage> serializer = new InterHubMessageSerializer(
@@ -137,6 +130,16 @@ public class MessageHubBackedObjectConnection implements ObjectConnection {
         hub.addConnection(connection);
         hub.noFurtherConnections();
         completion = null;
+    }
+
+    private ClassLoader getMethodParamClassLoader() {
+        if (methodParamClassLoaders.isEmpty()) {
+            return getClass().getClassLoader();
+        } else if (methodParamClassLoaders.size() == 1) {
+            return methodParamClassLoaders.iterator().next();
+        } else {
+            return new CachingClassLoader(new MultiParentClassLoader(methodParamClassLoaders));
+        }
     }
 
     @Override

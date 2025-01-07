@@ -24,7 +24,7 @@ import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-public class KryoBackedMessageSerializer implements MessageSerializer {
+public class KryoBackedMessageSerializer implements MessageSerializerFactory {
     @Override
     public Decoder newDecoder(InputStream inputStream) {
         return new KryoBackedDecoder(inputStream);

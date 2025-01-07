@@ -17,7 +17,6 @@
 package org.gradle.internal.serialize;
 
 import org.gradle.api.NonNullApi;
-import org.gradle.internal.serialize.ClassLoaderObjectInputStream;
 
 import javax.annotation.Nullable;
 import java.io.IOException;

@@ -22,7 +22,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 
-public abstract class Message {
+public class MessageSerializer {
     /**
      * Serialize the <code>message</code> onto the provided <code>outputStream</code>, replacing all {@link Throwable}s in the object graph with a placeholder object that can be read back by {@link
      * #receive(java.io.InputStream, ClassLoader)}.
@@ -30,7 +30,7 @@ public abstract class Message {
      * @param message object to serialize
      * @param outputSteam stream to serialize onto
      */
-    public static void send(Object message, OutputStream outputSteam) throws IOException {
+    public void send(Object message, OutputStream outputSteam) throws IOException {
         ObjectOutputStream oos = new ExceptionReplacingObjectOutputStream(outputSteam);
         try {
             oos.writeObject(message);
@@ -47,7 +47,7 @@ public abstract class Message {
      * @param classLoader loader used to load exception classes
      * @return the de-serialized object
      */
-    public static Object receive(InputStream inputSteam, ClassLoader classLoader)
+    public Object receive(InputStream inputSteam, ClassLoader classLoader)
             throws IOException, ClassNotFoundException {
         ObjectInputStream ois = new ExceptionReplacingObjectInputStream(inputSteam, classLoader);
         return ois.readObject();
