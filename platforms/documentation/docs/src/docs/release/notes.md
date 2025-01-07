@@ -25,71 +25,67 @@ For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility
 
 ## New features and usability improvements
 
-### Test reporting improvements
+<a name="build-authoring"></a>
+### Build authoring improvements
+
+Gradle provides [rich APIs](userguide/getting_started_dev.html) for plugin authors and build engineers to develop custom build logic.
+
+### ProjectLayout API improvement
+
+The [`ProjectLayout`](org/gradle/api/file/ProjectLayout.html) class provides access to directories and files within a project.
+
+Starting with this version of Gradle, it can also access the settings directory (the location of the `settings.gradle(.kts)` file). 
+While the settings directory is not specific to any project, some use cases require resolving file paths relative to it.
+
+Previously, accessing the settings directory required using `rootProject.layout.projectDirectory`. 
+This approach involved accessing the `rootProject` object, which is discouraged, and then manually resolving paths to the settings directory.
+
+The new capability addresses a common scenario: resolving files shared across all projects in a build, such as linting configurations or `version.txt` files in the root folder.
+For example, all subprojects in a build might need access to a shared file, such as a `version.txt` file in the root folder. 
+This use case is common in the build logic of the `gradle/gradle` project (e.g., instances of `rootProject.layout.projectDirectory` in `buildSrc`).
+
+Refer to [`ProjectLayout.getSettingsDirectory()`](org/gradle/api/file/ProjectLayout.html#getSettingsDirectory()) for additional details.
+
+<a name="error-warning"></a>
+### Error and warning reporting improvements
+
+Gradle provides a rich set of [error and warning messages](userguide/logging.html) to help you understand and resolve problems in your build.
 
 #### New test report support for Custom Test Tasks
 
-It's new and improved!
+Gradle provides an HTML test report at the end of the console output when tests fail.
 
-It allows for infinite nesting of test groups!
+In this release, there are a number of updates to this report including support for:
 
-It renders metadata!
+- It allows for infinite nesting of test groups! 
+- It renders metadata!
+- It supports Custom Test tasks?
+
+Metadata keys are printed at the group and test event levels. Metadata events with multiple keys are rendered together. Known value types are rendered. URIs are rendered as clickable links.
+
+PIC
+
 
 TODO: JVM Team should finish this placeholder
 
-### Error and warning reporting improvements
-
-#### Deprecation warnings full stack trace flag corrected
+#### Corrected deprecation warnings that enable the full stack trace flag
 
 The instructions printed under a deprecation warning now correctly indicate how to enable full stack traces for deprecation warnings.
 
-<!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. -->
+The console properly prints out:
 
-<!--
+```text
+Run with -Dorg.gradle.deprecation.trace=true to print the full stack trace for this deprecation warning.
+```
 
-================== TEMPLATE ==============================
+Previously, the console printed the incorrect suggestion: 
 
-<a name="FILL-IN-KEY-AREA"></a>
-### FILL-IN-KEY-AREA improvements
-
-<<<FILL IN CONTEXT FOR KEY AREA>>>
-Example:
-> The [configuration cache](userguide/configuration_cache.html) improves build performance by caching the result of
-> the configuration phase. Using the configuration cache, Gradle can skip the configuration phase entirely when
-> nothing that affects the build configuration has changed.
-
-#### FILL-IN-FEATURE
-> HIGHLIGHT the use case or existing problem the feature solves
-> EXPLAIN how the new release addresses that problem or use case
-> PROVIDE a screenshot or snippet illustrating the new feature, if applicable
-> LINK to the full documentation for more details
-
-<!-- To embed videos, use the macros below. You can extract the URL from YouTube by clicking the "Share" button. For Wistia, contact Gradle's Video Team -->
-@youtube(Summary,6aRM8lAYyUA?si=qeXDSX8_8hpVmH01)@
-@wistia(Summary,a5izazvgit)@
-
-================== END TEMPLATE ==========================
-
-
-==========================================================
-ADD RELEASE FEATURES BELOW
-vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
-
-<a name="project-layout"></a>
-### Project Layout improvement
-
-The [`ProjectLayout`](org/gradle/api/file/ProjectLayout.html) class is used to access various directories and files within a project. 
-In this version of Gradle it gets the ability to also access the settings directory of the build (where the settings file is located).
-While this is a non-project specific location, there are uses cases where projects need to be aware of it and resolve file paths relative to it.
-See [`ProjectLayout.getSettingsDirectory()`](org/gradle/api/file/ProjectLayout.html#getSettingsDirectory()).
-
-<!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-ADD RELEASE FEATURES ABOVE
-==========================================================
-
--->
+```text
+Run with --stacktrace to get the full stack trace of this deprecation warning.
+```
 
 ## Promoted features
+
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backward compatibility.
 See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
 
