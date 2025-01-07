@@ -39,7 +39,6 @@ public class FileLockCommunicator {
     private static final String SOCKET_CANNOT_ASSIGN_ADDRESS_ERROR_MESSAGE = "Cannot assign requested address";
 
     private final DatagramSocket socket;
-    private volatile boolean stopped;
 
     public FileLockCommunicator(InetAddressProvider inetAddressProvider) {
         try {
@@ -81,9 +80,6 @@ public class FileLockCommunicator {
             socket.receive(packet);
             return packet;
         } catch (IOException e) {
-            if (!stopped) {
-                throw new RuntimeException(e);
-            }
             throw new GracefullyStoppedException();
         }
     }
@@ -93,16 +89,14 @@ public class FileLockCommunicator {
     }
 
     public void confirmUnlockRequest(SocketAddress address, long lockId) {
+        byte[] bytes = FileLockPacketPayload.encode(lockId, UNLOCK_REQUEST_CONFIRMATION);
+        DatagramPacket packet = new DatagramPacket(bytes, bytes.length);
+        packet.setSocketAddress(address);
+        LOGGER.debug("Confirming unlock request to Gradle process at port {} for lock with id {}.", packet.getPort(), lockId);
         try {
-            byte[] bytes = FileLockPacketPayload.encode(lockId, UNLOCK_REQUEST_CONFIRMATION);
-            DatagramPacket packet = new DatagramPacket(bytes, bytes.length);
-            packet.setSocketAddress(address);
             socket.send(packet);
         } catch (IOException e) {
-            if (!stopped) {
-                throw new RuntimeException(e);
-            }
-            throw new GracefullyStoppedException();
+            LOGGER.debug("Failed to confirm unlock request to Gradle process at port {} for lock with id {}.", packet.getPort(), lockId);
         }
     }
 
@@ -115,15 +109,12 @@ public class FileLockCommunicator {
             try {
                 socket.send(packet);
             } catch (IOException e) {
-                if (!stopped) {
-                    LOGGER.debug("Failed to confirm lock release to Gradle process at port {} for lock with id {}.", packet.getPort(), lockId);
-                }
+                LOGGER.debug("Failed to confirm lock release to Gradle process at port {} for lock with id {}.", packet.getPort(), lockId);
             }
         }
     }
 
     public void stop() {
-        stopped = true;
         socket.close();
     }
 
