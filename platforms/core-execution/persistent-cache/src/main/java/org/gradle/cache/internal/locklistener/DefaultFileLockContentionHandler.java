@@ -28,6 +28,7 @@ import java.net.SocketAddress;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -108,9 +109,6 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
                 try {
                     LOGGER.debug("Starting file lock listener thread.");
                     doRun();
-                } catch (Throwable t) {
-                    //Logging exception here is only needed because by default Gradle does not show the stack trace
-                    LOGGER.error("Problems handling incoming cache access requests.", t);
                 } finally {
                     LOGGER.debug("File lock listener thread completed.");
                 }
@@ -118,29 +116,41 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
 
             private void doRun() {
                 while (true) {
-                    DatagramPacket packet;
-                    FileLockPacketPayload payload;
                     try {
-                        packet = communicator.receive();
-                        payload = communicator.decode(packet);
-                    } catch (GracefullyStoppedException e) {
-                        return;
-                    }
-
-                    lock.lock();
-                    try {
-                        ContendedAction contendedAction = contendedActions.get(payload.getLockId());
-                        if (contendedAction == null) {
-                            acceptConfirmationAsLockRequester(payload, packet.getPort());
-                        } else {
-                            contendedAction.addRequester(packet.getSocketAddress());
-                            if (!contendedAction.running) {
-                                startLockReleaseAsLockHolder(contendedAction);
+                        // shutting down?
+                        lock.lock();
+                        try {
+                            if (stopped) {
+                                return;
                             }
-                            communicator.confirmUnlockRequest(packet.getSocketAddress(), payload.getLockId());
+                        } finally {
+                            lock.unlock();
                         }
-                    } finally {
-                        lock.unlock();
+
+                        Optional<DatagramPacket> received = communicator.receive();
+
+                        if (received.isPresent()) {
+                            DatagramPacket packet = received.get();
+                            FileLockPacketPayload payload = communicator.decode(packet);
+                            lock.lock();
+                            try {
+                                ContendedAction contendedAction = contendedActions.get(payload.getLockId());
+                                if (contendedAction == null) {
+                                    acceptConfirmationAsLockRequester(payload, packet.getPort());
+                                } else {
+                                    contendedAction.addRequester(packet.getSocketAddress());
+                                    if (!contendedAction.running) {
+                                        startLockReleaseAsLockHolder(contendedAction);
+                                    }
+                                    communicator.confirmUnlockRequest(packet.getSocketAddress(), payload.getLockId());
+                                }
+                            } finally {
+                                lock.unlock();
+                            }
+                        }
+                    } catch (Throwable t) {
+                        // Logging exception here is only needed because by default Gradle does not show the stack trace
+                        LOGGER.error("Problems handling incoming cache access requests.", t);
                     }
                 }
             }

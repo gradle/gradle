@@ -58,7 +58,7 @@ class FileLockCommunicatorTest extends ConcurrentSpecification {
         FileLockPacketPayload receivedPayload
 
         start {
-            def packet = communicator.receive()
+            def packet = communicator.receive().get()
             receivedPayload = communicator.decode(packet)
         }
 
@@ -80,7 +80,7 @@ class FileLockCommunicatorTest extends ConcurrentSpecification {
         FileLockPacketPayload receivedPayload
 
         start {
-            def packet = communicator.receive()
+            def packet = communicator.receive().get()
             receivedPayload = communicator.decode(packet)
         }
 
@@ -104,9 +104,9 @@ class FileLockCommunicatorTest extends ConcurrentSpecification {
     def "may not receive after the stop"() {
         communicator.stop()
         when:
-        communicator.receive()
+        def result = communicator.receive()
         then:
-        thrown(GracefullyStoppedException)
+        result.empty
     }
 
     def "pinging on a port that nobody listens is safe"() {

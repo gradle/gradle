@@ -25,6 +25,8 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketAddress;
 import java.net.SocketException;
+import java.nio.channels.ClosedChannelException;
+import java.util.Optional;
 import java.util.Set;
 
 import static org.gradle.cache.internal.locklistener.FileLockPacketType.LOCK_RELEASE_CONFIRMATION;
@@ -73,14 +75,18 @@ public class FileLockCommunicator {
         return pingSentSuccessfully;
     }
 
-    public DatagramPacket receive() throws GracefullyStoppedException {
+    public Optional<DatagramPacket> receive() throws IOException {
         try {
             byte[] bytes = new byte[FileLockPacketPayload.MAX_BYTES];
             DatagramPacket packet = new DatagramPacket(bytes, bytes.length);
             socket.receive(packet);
-            return packet;
+            return Optional.of(packet);
         } catch (IOException e) {
-            throw new GracefullyStoppedException();
+            // Socket was shutdown while waiting to receive message
+            if (e.getCause() instanceof ClosedChannelException) {
+                return Optional.empty();
+            }
+            throw e;
         }
     }
 
