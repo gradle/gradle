@@ -22,7 +22,7 @@ When Isolated Projects is enabled, the configuration model of Gradle projects ar
 This means that build logic, such as build scripts or plugins, applied to a project cannot directly access the mutable state of another project.
 This allows configuration and tooling model creation for each project to safely run in parallel, with the result cached and invalidated independently for each project.
 
-== Status as of Gradle 8.9
+== Status as of Gradle 8.11
 
 When Isolated Projects is enabled, Gradle applies two levels of caching during IDE sync:
 
