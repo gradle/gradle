@@ -75,6 +75,7 @@ import static org.gradle.cache.internal.locklistener.FileLockPacketType.LOCK_REL
 public class DefaultFileLockContentionHandler implements FileLockContentionHandler, Stoppable {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultFileLockContentionHandler.class);
     private static final int PING_DELAY = 1000;
+
     private final Lock lock = new ReentrantLock();
 
     private final Map<Long, ContendedAction> contendedActions = new HashMap<>();
@@ -84,13 +85,19 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
 
     private final FileLockCommunicator communicator;
     private final ManagedExecutor fileLockRequestListener;
+    private final InetAddressProvider inetAddressProvider;
     private final ManagedExecutor unlockActionExecutor;
+
     private boolean stopped;
 
     public DefaultFileLockContentionHandler(ExecutorFactory executorFactory, InetAddressProvider inetAddressProvider) {
+        this.inetAddressProvider = inetAddressProvider;
+
         this.communicator = new FileLockCommunicator(inetAddressProvider);
+
         this.fileLockRequestListener = executorFactory.create("File lock request listener");
         fileLockRequestListener.execute(listener());
+
         this.unlockActionExecutor = executorFactory.create("File lock release action executor");
     }
 
@@ -189,7 +196,7 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
             return false;
         }
 
-        boolean pingSentSuccessfully = getCommunicator().pingOwner(port, lockId, displayName);
+        boolean pingSentSuccessfully = getCommunicator().pingOwner(inetAddressProvider.getCommunicationAddress(), port, lockId, displayName);
         if (pingSentSuccessfully) {
             lock.lock();
             try {

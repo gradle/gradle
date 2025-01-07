@@ -67,7 +67,7 @@ class FileLockCommunicatorTest extends ConcurrentSpecification {
         }
 
         when:
-        communicator.pingOwner(communicator.getPort(), 155, "lock")
+        communicator.pingOwner(addressFactory.localBindingAddress, communicator.getPort(), 155, "lock")
 
         then:
         poll {
@@ -111,7 +111,7 @@ class FileLockCommunicatorTest extends ConcurrentSpecification {
 
     def "pinging on a port that nobody listens is safe"() {
         when:
-        communicator.pingOwner(6666, 166, "lock")
+        communicator.pingOwner(addressFactory.localBindingAddress, 6666, 166, "lock")
 
         then:
         noExceptionThrown()

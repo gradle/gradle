@@ -39,11 +39,9 @@ public class FileLockCommunicator {
     private static final String SOCKET_CANNOT_ASSIGN_ADDRESS_ERROR_MESSAGE = "Cannot assign requested address";
 
     private final DatagramSocket socket;
-    private final InetAddressProvider inetAddressProvider;
     private volatile boolean stopped;
 
     public FileLockCommunicator(InetAddressProvider inetAddressProvider) {
-        this.inetAddressProvider = inetAddressProvider;
         try {
             socket = new DatagramSocket(0, inetAddressProvider.getWildcardBindingAddress());
         } catch (SocketException e) {
@@ -51,11 +49,10 @@ public class FileLockCommunicator {
         }
     }
 
-    public boolean pingOwner(int ownerPort, long lockId, String displayName) {
+    public boolean pingOwner(InetAddress address, int ownerPort, long lockId, String displayName) {
         boolean pingSentSuccessfully = false;
         try {
             byte[] bytesToSend = FileLockPacketPayload.encode(lockId, UNLOCK_REQUEST);
-            InetAddress address = inetAddressProvider.getCommunicationAddress();
             try {
                 socket.send(new DatagramPacket(bytesToSend, bytesToSend.length, address, ownerPort));
                 pingSentSuccessfully = true;
