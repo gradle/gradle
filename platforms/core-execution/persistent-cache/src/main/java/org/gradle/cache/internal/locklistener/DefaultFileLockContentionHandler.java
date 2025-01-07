@@ -85,8 +85,8 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
     private final Map<Long, Integer> unlocksConfirmedFrom = new HashMap<>();
 
     private final FileLockCommunicator communicator;
-    private final ManagedExecutor fileLockRequestListener;
     private final InetAddressProvider inetAddressProvider;
+    private final ManagedExecutor fileLockRequestListener;
     private final ManagedExecutor unlockActionExecutor;
 
     private boolean stopped;
@@ -252,6 +252,12 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
 
     @Override
     public int reservePort() {
+        lock.lock();
+        try {
+            assertNotStopped();
+        } finally {
+            lock.unlock();
+        }
         return getCommunicator().getPort();
     }
 
