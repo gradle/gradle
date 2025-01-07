@@ -51,10 +51,10 @@ public interface ProviderOperationParameters {
     File getJavaHome();
 
     /**
-     * Returns a backward-compatible union of {@link #getBaseJvmArguments(List)} ()} and {@link #getAdditionalJvmArguments(List)} ()}.
+     * Returns a backward-compatible concatenated list of {@link #getBaseJvmArguments(List)} ()} and {@link #getAdditionalJvmArguments(List)} ()}.
      * Deduplication is the responsibility of the caller.
      *
-     * @return When null, use the provider's default JVM arguments. When empty, use no JVM arguments.
+     * @return null if no JVM arguments are provided, otherwise a concatenated list of JVM arguments.
      */
     @Nullable
     List<String> getJvmArguments();
