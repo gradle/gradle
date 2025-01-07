@@ -254,7 +254,7 @@ public class ConsumerOperationParameters implements BuildParameters {
             legacyProgressListeners.addAll(operationParameters.legacyProgressListeners);
             progressListeners.putAll(operationParameters.progressListeners);
             arguments = operationParameters.arguments;
-            baseJvmArguments = operationParameters.setJvmArguments;
+            baseJvmArguments = operationParameters.baseJvmArguments;
             additionalJvmArguments = operationParameters.additionalJvmArguments;
             envVariables = operationParameters.envVariables;
             stdout = operationParameters.stdout;
@@ -280,7 +280,7 @@ public class ConsumerOperationParameters implements BuildParameters {
     private final InputStream stdin;
 
     private final File javaHome;
-    private final List<String> setJvmArguments;
+    private final List<String> baseJvmArguments;
     private final List<String> additionalJvmArguments;
     private final Map<String, String> envVariables;
     private final List<String> arguments;
@@ -322,7 +322,7 @@ public class ConsumerOperationParameters implements BuildParameters {
         this.colorOutput = colorOutput;
         this.stdin = stdin;
         this.javaHome = javaHome;
-        this.setJvmArguments = setJvmArguments;
+        this.baseJvmArguments = setJvmArguments;
         this.additionalJvmArguments = additionalJvmArguments;
         this.envVariables = envVariables;
         this.arguments = arguments;
@@ -444,30 +444,23 @@ public class ConsumerOperationParameters implements BuildParameters {
         return javaHome;
     }
 
-    /**
-     * @see ConsumerOperationParameters#getJvmArguments()
-     */
+    @Nullable
     public List<String> getJvmArguments() {
-        List<String> result = new ArrayList<>();
-        if (setJvmArguments != null) {
-            result.addAll(setJvmArguments);
+        if (baseJvmArguments.isEmpty() && additionalJvmArguments.isEmpty()) {
+            // To keep the old behavior, when no JVM arguments are set, return null...
+            return null;
+        } else {
+            // ...otherwise, return the combined list of JVM arguments
+            List<String> arguments = new ArrayList<>(baseJvmArguments);
+            arguments.addAll(additionalJvmArguments);
+            return arguments;
         }
-        if (additionalJvmArguments != null) {
-            result.addAll(additionalJvmArguments);
-        }
-        return result;
     }
 
-    /**
-     * @see ConsumerOperationParameters#getBaseJvmArguments()
-     */
     public List<String> getBaseJvmArguments() {
-        return setJvmArguments;
+        return baseJvmArguments;
     }
 
-    /**
-     * @see ConsumerOperationParameters#getAdditionalJvmArguments()
-     */
     public List<String> getAdditionalJvmArguments() {
         return additionalJvmArguments;
     }
