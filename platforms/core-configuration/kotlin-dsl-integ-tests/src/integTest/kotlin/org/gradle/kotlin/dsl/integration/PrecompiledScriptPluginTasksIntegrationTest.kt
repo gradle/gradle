@@ -122,7 +122,7 @@ class PrecompiledScriptPluginTasksIntegrationTest : AbstractKotlinIntegrationTes
         val cachedTasks = listOf(
             ":extractPrecompiledScriptPluginPlugins",
             ":generateExternalPluginSpecBuilders",
-            ":compilePluginsBlocks",
+            ":compileKotlinPluginsBlocks",
             ":generateScriptPluginAdapters"
         )
         val downstreamKotlinCompileTask = ":compileKotlin"
@@ -260,7 +260,7 @@ class PrecompiledScriptPluginTasksIntegrationTest : AbstractKotlinIntegrationTes
         withKotlinDslPluginIn("consumer").appendText("""dependencies { implementation(project(":producer")) }""")
         withFile("consumer/src/main/kotlin/some.gradle.kts", "")
         build(":consumer:classes").apply {
-            assertTaskExecuted(":consumer:compilePluginsBlocks")
+            assertTaskExecuted(":consumer:compileKotlinPluginsBlocks")
             assertNotOutput("w: Classpath entry points to a non-existent location")
         }
         assertFalse(file("producer/build/classes/java/main").exists())
