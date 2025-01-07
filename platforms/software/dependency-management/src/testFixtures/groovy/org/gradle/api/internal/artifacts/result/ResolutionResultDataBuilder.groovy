@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.artifacts.result
 
+import com.google.common.collect.ImmutableList
+import com.google.common.collect.ImmutableMap
 import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.artifacts.result.ComponentSelectionReason
@@ -46,7 +48,7 @@ class ResolutionResultDataBuilder {
     }
 
     static DefaultResolvedComponentResult newModule(String group='a', String module='a', String version='1', ComponentSelectionReason selectionReason = ComponentSelectionReasons.requested(), ResolvedVariantResult variant = newVariant(), String repoId = null) {
-        new DefaultResolvedComponentResult(newId(group, module, version), selectionReason, new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId(group, module), version), [1L: variant], [variant], repoId)
+        new DefaultResolvedComponentResult(newId(group, module, version), selectionReason, new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId(group, module), version), ImmutableMap.of(1L, variant), ImmutableList.of(variant), repoId)
     }
 
     static DefaultResolvedDependencyResult newDependency(ComponentSelector componentSelector, String group='a', String module='a', String selectedVersion='1') {

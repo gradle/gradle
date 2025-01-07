@@ -18,6 +18,8 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSetMultimap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -30,6 +32,7 @@ import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
+import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphDependency;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedComponentResult;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedVariantResult;
@@ -90,6 +93,9 @@ public class ResolutionResultGraphBuilder implements ResolvedComponentVisitor {
     }
 
     public ResolvedComponentResultInternal getRoot(long rootId) {
+        for (DefaultResolvedComponentResult component : components.values()) {
+            component.complete();
+        }
         return components.get(rootId);
     }
 
@@ -129,6 +135,8 @@ public class ResolutionResultGraphBuilder implements ResolvedComponentVisitor {
     }
 
     public void visitOutgoingEdges(long fromComponentId, Collection<? extends ResolvedGraphDependency> dependencies) {
+        ImmutableSet.Builder<DependencyResult> componentDependencies = ImmutableSet.builderWithExpectedSize(dependencies.size());
+        ImmutableSetMultimap.Builder<ResolvedVariantResult, DependencyResult> variantDependencies = ImmutableSetMultimap.builder();
         DefaultResolvedComponentResult fromComponent = components.get(fromComponentId);
         for (ResolvedGraphDependency d : dependencies) {
             DependencyResult dependencyResult;
@@ -155,22 +163,31 @@ public class ResolutionResultGraphBuilder implements ResolvedComponentVisitor {
                 dependencyResult = dependencyResultFactory.createResolvedDependency(d.getRequested(), fromComponent, selectedComponent, selectedVariant, d.isConstraint());
                 selectedComponent.addDependent((ResolvedDependencyResult) dependencyResult);
             }
-            fromComponent.addDependency(dependencyResult);
-            fromComponent.associateDependencyToVariant(dependencyResult, fromVariant);
+            componentDependencies.add(dependencyResult);
+            variantDependencies.put(fromVariant, dependencyResult);
         }
+        fromComponent.addDependencies(componentDependencies.build());
+        fromComponent.addVariantDependencies(variantDependencies.build());
     }
 
     // TODO: Dependency locking failures should be attached to the resolution result just like
     // dependency verification failures are. Dependency locking failures are not unresolved dependencies
     // and should not be modeled as one.
     public void addDependencyLockingFailures(long rootId, Set<UnresolvedDependency> extraFailures) {
+        if (extraFailures.isEmpty()) {
+            return;
+        }
+
+        ImmutableSet.Builder<DependencyResult> failuresAsDependencies = ImmutableSet.builderWithExpectedSize(extraFailures.size());
         DefaultResolvedComponentResult root = components.get(rootId);
         for (UnresolvedDependency failure : extraFailures) {
             ModuleVersionSelector failureSelector = failure.getSelector();
             ModuleComponentSelector failureComponentSelector = DefaultModuleComponentSelector.newSelector(failureSelector.getModule(), failureSelector.getVersion());
-            root.addDependency(dependencyResultFactory.createUnresolvedDependency(failureComponentSelector, root, true,
+            UnresolvedDependencyResult unresolvedDependency = dependencyResultFactory.createUnresolvedDependency(failureComponentSelector, root, true,
                 ComponentSelectionReasons.of(DEPENDENCY_LOCKING),
-                new ModuleVersionResolveException(failureComponentSelector, () -> "Dependency lock state out of date", failure.getProblem())));
+                new ModuleVersionResolveException(failureComponentSelector, () -> "Dependency lock state out of date", failure.getProblem()));
+            failuresAsDependencies.add(unresolvedDependency);
         }
+        root.addDependencies(failuresAsDependencies.build());
     }
 }
