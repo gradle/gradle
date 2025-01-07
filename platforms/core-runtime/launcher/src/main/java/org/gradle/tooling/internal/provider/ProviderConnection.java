@@ -353,13 +353,15 @@ public class ProviderConnection {
         List<String> baseJvmArguments = operationParameters.getBaseJvmArguments(null);
         List<String> additionalJvmArguments = operationParameters.getAdditionalJvmArguments(null);
         if (baseJvmArguments != null && additionalJvmArguments != null) {
-            daemonParams.setJvmArgs(baseJvmArguments);
+            if (!baseJvmArguments.isEmpty()) {
+                daemonParams.setJvmArgs(baseJvmArguments);
+            }
             daemonParams.addJvmArgs(additionalJvmArguments);
         } else {
             // If the new base/additional methods are not supported, we fall back to the old method
-            List<String> jvmArguments = operationParameters.getJvmArguments();
-            if (jvmArguments != null) {
-                daemonParams.setJvmArgs(jvmArguments);
+            List<String> legacyJvmArguments = operationParameters.getJvmArguments();
+            if (legacyJvmArguments != null) {
+                daemonParams.setJvmArgs(legacyJvmArguments);
             }
         }
 
