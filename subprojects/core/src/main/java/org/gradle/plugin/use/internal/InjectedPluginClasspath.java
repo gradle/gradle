@@ -17,7 +17,10 @@
 package org.gradle.plugin.use.internal;
 
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
+@ServiceScope(Scope.BuildSession.class)
 public class InjectedPluginClasspath {
 
     private final ClassPath classPath;

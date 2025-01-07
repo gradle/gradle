@@ -19,7 +19,10 @@ package org.gradle.api.internal.project;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.internal.MutationGuard;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
+@ServiceScope(Scope.BuildSession.class)
 public interface CrossProjectConfigurator {
 
     void project(ProjectInternal project, Action<? super Project> configureAction);
