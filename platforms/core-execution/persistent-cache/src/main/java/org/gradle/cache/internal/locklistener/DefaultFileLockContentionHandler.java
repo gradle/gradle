@@ -82,17 +82,16 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
     private final Map<Long, Integer> unlocksRequestedFrom = new HashMap<>();
     private final Map<Long, Integer> unlocksConfirmedFrom = new HashMap<>();
 
-    private final ExecutorFactory executorFactory;
-    private final InetAddressProvider inetAddressProvider;
-
-    private FileLockCommunicator communicator;
-    private ManagedExecutor fileLockRequestListener;
-    private ManagedExecutor unlockActionExecutor;
+    private final FileLockCommunicator communicator;
+    private final ManagedExecutor fileLockRequestListener;
+    private final ManagedExecutor unlockActionExecutor;
     private boolean stopped;
 
     public DefaultFileLockContentionHandler(ExecutorFactory executorFactory, InetAddressProvider inetAddressProvider) {
-        this.executorFactory = executorFactory;
-        this.inetAddressProvider = inetAddressProvider;
+        this.communicator = new FileLockCommunicator(inetAddressProvider);
+        this.fileLockRequestListener = executorFactory.create("File lock request listener");
+        fileLockRequestListener.execute(listener());
+        this.unlockActionExecutor = executorFactory.create("File lock release action executor");
     }
 
     private Runnable listener() {
@@ -169,16 +168,7 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
             unlocksRequestedFrom.remove(lockId);
             unlocksConfirmedFrom.remove(lockId);
             assertNotStopped();
-            if (communicator == null) {
-                throw new IllegalStateException("Must initialize the handler by reserving the port first.");
-            }
-            if (fileLockRequestListener == null) {
-                fileLockRequestListener = executorFactory.create("File lock request listener");
-                fileLockRequestListener.execute(listener());
-            }
-            if (unlockActionExecutor == null) {
-                unlockActionExecutor = executorFactory.create("File lock release action executor");
-            }
+
             if (contendedActions.containsKey(lockId)) {
                 throw new UnsupportedOperationException("Multiple contention actions for a given lock are currently not supported.");
             }
@@ -235,18 +225,12 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
         try {
             stopped = true;
             contendedActions.clear();
-            if (communicator != null) {
-                communicator.stop();
-            }
+            communicator.stop();
         } finally {
             lock.unlock();
         }
-        if (fileLockRequestListener != null) {
-            fileLockRequestListener.stop();
-        }
-        if (unlockActionExecutor != null) {
-            unlockActionExecutor.stop();
-        }
+        fileLockRequestListener.stop();
+        unlockActionExecutor.stop();
     }
 
     @Override
@@ -255,16 +239,7 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
     }
 
     private FileLockCommunicator getCommunicator() {
-        lock.lock();
-        try {
-            assertNotStopped();
-            if (communicator == null) {
-                communicator = new FileLockCommunicator(inetAddressProvider);
-            }
-            return communicator;
-        } finally {
-            lock.unlock();
-        }
+        return communicator;
     }
 
     private class ContendedAction implements Runnable {
