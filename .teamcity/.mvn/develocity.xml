@@ -22,5 +22,19 @@
         <publishing>
             <onlyIf>true</onlyIf>
         </publishing>
+        <values>
+            <value>
+                <name>PartOf</name>
+                <value>QuickFeedbackLinuxOnly</value>
+            </value>
+            <value>
+                <name>PartOf</name>
+                <value>QuickFeedback</value>
+            </value>
+            <value>
+                <name>PartOf</name>
+                <value>PullRequestFeedback</value>
+            </value>
+        </values>
     </buildScan>
 </develocity>
