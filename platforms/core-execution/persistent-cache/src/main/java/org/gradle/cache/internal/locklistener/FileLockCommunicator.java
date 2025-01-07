@@ -36,9 +36,6 @@ import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
 
 public class FileLockCommunicator {
     private static final Logger LOGGER = LoggerFactory.getLogger(FileLockCommunicator.class);
-    private static final String SOCKET_OPERATION_NOT_PERMITTED_ERROR_MESSAGE = "Operation not permitted";
-    private static final String SOCKET_NETWORK_UNREACHABLE_ERROR_MESSAGE = "Network is unreachable";
-    private static final String SOCKET_CANNOT_ASSIGN_ADDRESS_ERROR_MESSAGE = "Cannot assign requested address";
 
     private final DatagramSocket socket;
 
@@ -52,25 +49,12 @@ public class FileLockCommunicator {
 
     public boolean pingOwner(InetAddress address, int ownerPort, long lockId, String displayName) {
         boolean pingSentSuccessfully = false;
+        byte[] bytesToSend = FileLockPacketPayload.encode(lockId, UNLOCK_REQUEST);
         try {
-            byte[] bytesToSend = FileLockPacketPayload.encode(lockId, UNLOCK_REQUEST);
-            try {
-                socket.send(new DatagramPacket(bytesToSend, bytesToSend.length, address, ownerPort));
-                pingSentSuccessfully = true;
-            } catch (IOException e) {
-                String message = e.getMessage();
-                if (message != null && (
-                    message.startsWith(SOCKET_OPERATION_NOT_PERMITTED_ERROR_MESSAGE)
-                        || message.startsWith(SOCKET_NETWORK_UNREACHABLE_ERROR_MESSAGE)
-                        || message.startsWith(SOCKET_CANNOT_ASSIGN_ADDRESS_ERROR_MESSAGE)
-                )) {
-                    LOGGER.debug("Failed attempt to ping owner of lock for {} (lock id: {}, port: {}, address: {})", displayName, lockId, ownerPort, address);
-                } else {
-                    throw e;
-                }
-            }
+            socket.send(new DatagramPacket(bytesToSend, bytesToSend.length, address, ownerPort));
+            pingSentSuccessfully = true;
         } catch (IOException e) {
-            throw new RuntimeException(String.format("Failed to ping owner of lock for %s (lock id: %s, port: %s)", displayName, lockId, ownerPort), e);
+            LOGGER.debug("Failed attempt to ping owner of lock for {} (lock id: {}, port: {}, address: {})", displayName, lockId, ownerPort, address);
         }
         return pingSentSuccessfully;
     }
@@ -94,10 +78,10 @@ public class FileLockCommunicator {
         return FileLockPacketPayload.decode(receivedPacket.getData(), receivedPacket.getLength());
     }
 
-    public void confirmUnlockRequest(SocketAddress address, long lockId) {
+    public void confirmUnlockRequest(SocketAddress requesterAddress, long lockId) {
         byte[] bytes = FileLockPacketPayload.encode(lockId, UNLOCK_REQUEST_CONFIRMATION);
         DatagramPacket packet = new DatagramPacket(bytes, bytes.length);
-        packet.setSocketAddress(address);
+        packet.setSocketAddress(requesterAddress);
         LOGGER.debug("Confirming unlock request to Gradle process at port {} for lock with id {}.", packet.getPort(), lockId);
         try {
             socket.send(packet);
@@ -106,11 +90,11 @@ public class FileLockCommunicator {
         }
     }
 
-    public void confirmLockRelease(Set<SocketAddress> addresses, long lockId) {
+    public void confirmLockRelease(Set<SocketAddress> requesterAddresses, long lockId) {
         byte[] bytes = FileLockPacketPayload.encode(lockId, LOCK_RELEASE_CONFIRMATION);
-        for (SocketAddress address : addresses) {
+        for (SocketAddress requesterAddress : requesterAddresses) {
             DatagramPacket packet = new DatagramPacket(bytes, bytes.length);
-            packet.setSocketAddress(address);
+            packet.setSocketAddress(requesterAddress);
             LOGGER.debug("Confirming lock release to Gradle process at port {} for lock with id {}.", packet.getPort(), lockId);
             try {
                 socket.send(packet);
