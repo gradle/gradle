@@ -82,7 +82,7 @@ class KotlinDslPluginCrossVersionSmokeTest : AbstractKotlinIntegrationTest() {
     )
     fun `can build plugin for oldest supported Kotlin language version using last published plugin`() {
 
-        `can build plugin for oldest supported Kotlin language version`(kotlinLanguageDeprecationCount = 1)
+        `can build plugin for oldest supported Kotlin language version`()
     }
 
     @Test
@@ -94,11 +94,11 @@ class KotlinDslPluginCrossVersionSmokeTest : AbstractKotlinIntegrationTest() {
 
         doForceLocallyBuiltKotlinDslPlugins()
 
-        `can build plugin for oldest supported Kotlin language version`(kotlinLanguageDeprecationCount = 2)
+        `can build plugin for oldest supported Kotlin language version`()
     }
 
     private
-    fun `can build plugin for oldest supported Kotlin language version`(kotlinLanguageDeprecationCount: Int) {
+    fun `can build plugin for oldest supported Kotlin language version`() {
 
         val oldestKotlinLanguageVersion = KotlinGradlePluginVersions.getLANGUAGE_VERSIONS().first()
 
@@ -118,7 +118,7 @@ class KotlinDslPluginCrossVersionSmokeTest : AbstractKotlinIntegrationTest() {
         withDefaultSettings().appendText("""includeBuild("producer")""")
         withBuildScript("""plugins { id("some") }""")
 
-        repeat(kotlinLanguageDeprecationCount) {
+        repeat(2) {
             executer.expectDeprecationWarning("w: Language version $oldestKotlinLanguageVersion is deprecated and its support will be removed in a future version of Kotlin")
         }
 
