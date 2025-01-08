@@ -195,6 +195,7 @@ trait SoftwareTypeFixture {
 
             import org.gradle.api.Action;
             import org.gradle.api.file.DirectoryProperty;
+            import org.gradle.api.file.RegularFileProperty;
             import org.gradle.api.model.ObjectFactory;
             import org.gradle.api.provider.ListProperty;
             import org.gradle.api.provider.Property;
@@ -217,6 +218,9 @@ trait SoftwareTypeFixture {
                 @Restricted
                 public abstract DirectoryProperty getDir();
 
+                @Restricted
+                public abstract RegularFileProperty getFile();
+
                 public Foo getFoo() {
                     return foo;
                 }
@@ -238,6 +242,7 @@ trait SoftwareTypeFixture {
                 public String toString() {
                     return "id = " + getId().get() + "\\n" +
                         (getDir().isPresent() ? "dir = " + getDir().getOrNull() + "\\n" : "") +
+                        (getFile().isPresent() ? "file = " + getFile().getOrNull() + "\\n" : "") +
                         "bar = " + getFoo().getBar().get() + (isFooConfigured ? "\\n(foo is configured)" : "");
                 }
             }
@@ -302,6 +307,7 @@ trait SoftwareTypeFixture {
 
             import org.gradle.api.Action;
             import org.gradle.api.file.DirectoryProperty;
+            import org.gradle.api.file.RegularFileProperty;
             import org.gradle.api.provider.Property;
 
             @Restricted
@@ -311,6 +317,9 @@ trait SoftwareTypeFixture {
 
                 @Restricted
                 public abstract DirectoryProperty getDir();
+
+                @Restricted
+                public abstract RegularFileProperty getFile();
 
                 Foo getFoo();
 
@@ -362,6 +371,7 @@ trait SoftwareTypeFixture {
                 public String toString() {
                     return "id = " + getId().get() + "\\n" +
                         (getDir().isPresent() ? "dir = " + getDir().getOrNull() + "\\n" : "") +
+                        (getFile().isPresent() ? "file = " + getFile().getOrNull() + "\\n" : "") +
                         "bar = " + getFoo().getBar().get();
                 }
             }
@@ -734,6 +744,7 @@ trait SoftwareTypeFixture {
             import org.gradle.api.Plugin;
             import org.gradle.api.Project;
             import org.gradle.api.file.DirectoryProperty;
+            import org.gradle.api.file.RegularFileProperty;
             import org.gradle.api.provider.ListProperty;
             import org.gradle.api.provider.Property;
             import org.gradle.api.tasks.Nested;
@@ -779,6 +790,9 @@ trait SoftwareTypeFixture {
 
                     @Restricted
                     public abstract DirectoryProperty getDir();
+
+                    @Restricted
+                    public abstract RegularFileProperty getFile();
 
                     public Foo getFoo() {
                         return foo;

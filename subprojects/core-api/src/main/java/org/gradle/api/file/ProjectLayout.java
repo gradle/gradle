@@ -55,6 +55,7 @@ public interface ProjectLayout {
      * @since 8.13
      */
     @Incubating
+    @Restricted
     Directory getSettingsDirectory();
 
     /**

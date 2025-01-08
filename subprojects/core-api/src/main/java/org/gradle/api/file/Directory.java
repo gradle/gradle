@@ -68,6 +68,7 @@ public interface Directory extends FileSystemLocation {
      * @param path The path. Can be absolute.
      * @return The file.
      */
+    @Restricted
     RegularFile file(String path);
 
     /**
