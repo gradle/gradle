@@ -38,8 +38,8 @@ import kotlin.script.templates.ScriptTemplateDefinition
 )
 @ScriptTemplateAdditionalCompilerArguments(
     [
-        "-language-version", "1.8",
-        "-api-version", "1.8",
+        "-language-version", "2.1",
+        "-api-version", "2.1",
         "-Xjvm-default=all",
         "-Xjsr305=strict",
         "-Xjspecify-annotations=strict",
