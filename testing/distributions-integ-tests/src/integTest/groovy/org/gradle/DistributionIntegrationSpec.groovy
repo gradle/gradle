@@ -41,6 +41,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
 
     def coreLibsModules = [
         "base-asm",
+        "base-diagnostics",
         "base-services",
         "base-services-groovy",
         "build-cache",
