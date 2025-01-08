@@ -32,8 +32,8 @@ class FileLockCommunicatorTest extends ConcurrentSpecification {
         }
 
         @Override
-        Iterable<InetAddress> getCommunicationAddresses() {
-            return addressFactory.communicationAddresses
+        InetAddress getCommunicationAddress() {
+            return addressFactory.localBindingAddress
         }
     })
 
@@ -91,9 +91,8 @@ class FileLockCommunicatorTest extends ConcurrentSpecification {
         when:
         def socket = new DatagramSocket(0, addressFactory.getWildcardBindingAddress())
         def bytes = [1, 0, 0, 0, 0, 0, 0, 0, 155] as byte[]
-        addressFactory.getCommunicationAddresses().each { address ->
-            socket.send(new DatagramPacket(bytes, bytes.length, new InetSocketAddress(address, communicator.port)))
-        }
+        def address = addressFactory.localBindingAddress
+        socket.send(new DatagramPacket(bytes, bytes.length, new InetSocketAddress(address, communicator.port)))
 
         then:
         poll {
