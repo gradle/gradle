@@ -51,7 +51,7 @@ public interface ProviderOperationParameters {
     File getJavaHome();
 
     /**
-     * Returns a backward-compatible concatenated list of {@link #getBaseJvmArguments(List)} ()} and {@link #getAdditionalJvmArguments(List)} ()}.
+     * Returns a backward-compatible concatenated list of {@link #getBaseJvmArguments()} and {@link #getAdditionalJvmArguments()}.
      * Deduplication is the responsibility of the caller.
      *
      * @return null if no JVM arguments are provided, otherwise a concatenated list of JVM arguments.
@@ -60,17 +60,20 @@ public interface ProviderOperationParameters {
     List<String> getJvmArguments();
 
     /**
-     * Returns a list of base JVM arguments,
-     * overriding all (except some special cases, see {@link org.gradle.process.internal.JvmOptions}) JVM options.
-     */
-    List<String> getBaseJvmArguments(@Nullable List<String> defaultArguments);
-
-    /**
-     * Returns the list of additional JVM arguments.
-     * Additional arguments are applied over the arguments returned
+     * Arguments, which will override the default JVM arguments.
+     *
+     * @return null if no JVM arguments are provided, otherwise a list of JVM arguments.
      */
     @Nullable
-    List<String> getAdditionalJvmArguments(@Nullable List<String> defaultArguments);
+    List<String> getBaseJvmArguments();
+
+    /**
+     * Additional arguments, which will be appended to the default/overridden JVM arguments.
+     *
+     * @return null if no additional JVM arguments are provided, otherwise a list of additional JVM arguments.
+     */
+    @Nullable
+    List<String> getAdditionalJvmArguments();
 
     /**
      * @return When null, use the provider's default environment variables. When empty, use no environment variables.

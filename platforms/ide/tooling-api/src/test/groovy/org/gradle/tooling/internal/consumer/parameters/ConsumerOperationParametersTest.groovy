@@ -77,6 +77,41 @@ class ConsumerOperationParametersTest extends Specification {
         params.launchables == null
     }
 
+    def "returns null jvmArguments when no argument was set"() {
+        when:
+        def params = builder.build()
+
+        then:
+        params.jvmArguments == null
+    }
+
+    def "ifa values are supplied to JVM argments, they are concatenated"(
+        List<String> baseJvmArguments,
+        List<String> additionalJvmArguments,
+        List<String> expectedJvmArguments
+    ) {
+        when:
+        if (baseJvmArguments != null) {
+            builder.setBaseJvmArguments(baseJvmArguments)
+        }
+        if (additionalJvmArguments != null) {
+            builder.addJvmArguments(additionalJvmArguments)
+        }
+        def params = builder.build()
+
+        then:
+        params.getJvmArguments() == expectedJvmArguments
+
+        where:
+        baseJvmArguments | additionalJvmArguments | expectedJvmArguments
+        ["foo"]          | null                   | ["foo"]
+        ["foo"]          | []                     | ["foo"]
+        null             | ["bar"]                | ["bar"]
+        []               | ["bar"]                | ["bar"]
+        ["foo"]          | ["bar"]                | ["foo", "bar"]
+
+    }
+
     def adapt(def object) {
         return new FixedBuildIdentifierProvider(id()).applyTo(new ProtocolToModelAdapter().builder(TaskSelector)).build(object)
     }

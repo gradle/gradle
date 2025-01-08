@@ -347,18 +347,23 @@ public class ProviderConnection {
         }
 
         // Since 8.13, we split the daemon JVM args into base and additional JVM args (#31462)
-        // When calling the following new methods, the following can happen:
-        // - < 8.13: the new split will return a null
-        // - >=8.13: the new split will return a non-null value, clearly signifying that the method is supported.
-        List<String> baseJvmArguments = operationParameters.getBaseJvmArguments(null);
-        List<String> additionalJvmArguments = operationParameters.getAdditionalJvmArguments(null);
-        if (baseJvmArguments != null && additionalJvmArguments != null) {
-            if (!baseJvmArguments.isEmpty()) {
+        // When calling the following new methods, the following states can happen:
+        // - incompatible (before 8.13 provider): falling back to old behavior,
+        // - not used: no methods should be called, default daemon JVM arguments are applied
+        // - used:
+        //   - base JVM arguments (if supplied) override the default daemon JVM arguments
+        //   - additional JVM (if supplied) applied on top of the set JVM arguments
+        try {
+            List<String> baseJvmArguments = operationParameters.getBaseJvmArguments();
+            if (baseJvmArguments != null && !baseJvmArguments.isEmpty()) {
                 daemonParams.setJvmArgs(baseJvmArguments);
             }
-            daemonParams.addJvmArgs(additionalJvmArguments);
-        } else {
-            // If the new base/additional methods are not supported, we fall back to the old method
+            List<String> additionalJvmArguments = operationParameters.getAdditionalJvmArguments();
+            if (additionalJvmArguments != null && !additionalJvmArguments.isEmpty()) {
+                daemonParams.addJvmArgs(additionalJvmArguments);
+            }
+        } catch (NoSuchMethodError ex) {
+            // Incompatible provider, falling back to old behavior
             List<String> legacyJvmArguments = operationParameters.getJvmArguments();
             if (legacyJvmArguments != null) {
                 daemonParams.setJvmArgs(legacyJvmArguments);
