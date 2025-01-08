@@ -41,6 +41,7 @@ import org.gradle.kotlin.dsl.accessors.ProjectAccessorsClassPathGenerator
 import org.gradle.kotlin.dsl.accessors.Stage1BlocksAccessorClassPathGenerator
 import org.gradle.kotlin.dsl.execution.EvalOption
 import org.gradle.kotlin.dsl.precompile.PrecompiledScriptDependenciesResolver
+import org.gradle.kotlin.dsl.precompile.PrecompiledScriptDependenciesResolver.EnvironmentProperties.kotlinDslPluginSpecBuildersImplicitImports
 import org.gradle.kotlin.dsl.provider.ClassPathModeExceptionCollector
 import org.gradle.kotlin.dsl.provider.KotlinScriptClassPathProvider
 import org.gradle.kotlin.dsl.provider.KotlinScriptEvaluator
@@ -218,6 +219,10 @@ fun precompiledScriptPluginModelBuilder(
             implicitImportsFrom(
                 resolve("accessors").resolve(hashOf(scriptFile))
             ) + implicitImportsFrom(
+                resolve("plugin-spec-builders").resolve(kotlinDslPluginSpecBuildersImplicitImports)
+            ) + implicitImportsFrom(
+                // Gradle <= 8.12 was using this other name with a dash but this was incompatible with moving to kotlin-scripting-host API
+                // Keeping it for compatibility with previous Gradle versions
                 resolve("plugin-spec-builders").resolve("implicit-imports")
             )
         }
