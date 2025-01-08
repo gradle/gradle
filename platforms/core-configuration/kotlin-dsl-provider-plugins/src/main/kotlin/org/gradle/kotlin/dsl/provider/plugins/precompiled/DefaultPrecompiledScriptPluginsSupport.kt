@@ -179,7 +179,6 @@ class DefaultPrecompiledScriptPluginsSupport : PrecompiledScriptPluginsSupport {
 }
 
 
-@Suppress("LongMethod")
 private
 fun Project.enableScriptCompilationOf(
     scriptPlugins: List<PrecompiledScriptPlugin>,
@@ -215,48 +214,15 @@ fun Project.enableScriptCompilationOf(
                 metadataOutputDir.set(pluginSpecBuildersMetadata)
             }
 
-        val compilePluginsBlocks = if (names.contains("compilePluginsBlocks")) {
-            // Let's use a regular KotlinCompile task, created by PrecompiledScriptPlugins,
-            // to compile plugins blocks extracted from precompiled script plugins.
-            named("compilePluginsBlocks") { task ->
-                task.enabled = true
-                task.dependsOn(generateExternalPluginSpecBuilders)
-                task.dependsOn(extractPrecompiledScriptPluginPlugins)
-                task.withGroovyBuilder {
-                    "source"(externalPluginSpecBuilders)
-                    "source"(extractedPluginsBlocks)
-                    val destinationDirectory = getProperty("destinationDirectory") as DirectoryProperty
-                    destinationDirectory.set(compiledPluginsBlocks)
-                }
-                task.configureKotlinCompilerArgumentsLazily(
-                    resolverEnvironmentStringFor(
-                        serviceOf(),
-                        serviceOf(),
-                        compileClasspath,
-                        generateExternalPluginSpecBuilders.flatMap { it.metadataOutputDir },
-                    )
-                )
-                task.doFirst {
-                    task.validateKotlinCompilerArguments()
-                }
-            }
-        } else {
-            // OLD: Let's use a custom task that uses the Kotlin embedded compiler *internal* K1 API
-            //      to compile plugins blocks extracted from precompiled script plugins.
-            register("compilePluginsBlocks", CompilePrecompiledScriptPluginPlugins::class.java) { task ->
-                task.javaLauncher.set(javaToolchainService.launcherFor(java.toolchain))
-                @Suppress("DEPRECATION") task.jvmTarget.set(jvmTargetProvider)
-
-                task.dependsOn(extractPrecompiledScriptPluginPlugins)
-                task.sourceDir(extractedPluginsBlocks)
-
-                task.dependsOn(generateExternalPluginSpecBuilders)
-                task.sourceDir(externalPluginSpecBuilders)
-
-                task.classPathFiles.from(compileClasspath)
-                task.outputDir.set(compiledPluginsBlocks)
-            }
-        }
+        val compilePluginsBlocks = registerCompilePluginsBlocksTask(
+            compileClasspath = compileClasspath,
+            jvmTarget = jvmTargetProvider,
+            extractPluginsBlocksTask = extractPrecompiledScriptPluginPlugins,
+            extractedPluginsBlocksDir = extractedPluginsBlocks,
+            externalPluginSpecBuildersTask = generateExternalPluginSpecBuilders,
+            externalPluginSpecBuildersDir = externalPluginSpecBuilders,
+            outputDir = compiledPluginsBlocks
+        )
 
         val (generatePrecompiledScriptPluginAccessors, _) =
             codeGenerationTask<GeneratePrecompiledScriptPluginAccessors>(
@@ -320,6 +286,56 @@ fun Project.enableScriptCompilationOf(
         }
     }
 }
+
+private fun Project.registerCompilePluginsBlocksTask(
+    compileClasspath: FileCollection,
+    jvmTarget: Provider<JavaVersion>,
+    extractPluginsBlocksTask: TaskProvider<ExtractPrecompiledScriptPluginPlugins>?,
+    extractedPluginsBlocksDir: Provider<Directory>,
+    externalPluginSpecBuildersTask: TaskProvider<GenerateExternalPluginSpecBuilders>,
+    externalPluginSpecBuildersDir: Provider<Directory>,
+    outputDir: Provider<Directory>
+) =
+    if (tasks.names.contains("compilePluginsBlocks")) {
+        // Let's use a regular KotlinCompile task, created by PrecompiledScriptPlugins
+        tasks.named("compilePluginsBlocks") { task ->
+            task.enabled = true
+            task.dependsOn(externalPluginSpecBuildersTask)
+            task.dependsOn(extractPluginsBlocksTask)
+            task.withGroovyBuilder {
+                "source"(externalPluginSpecBuildersDir)
+                "source"(extractedPluginsBlocksDir)
+                val destinationDirectory = getProperty("destinationDirectory") as DirectoryProperty
+                destinationDirectory.set(outputDir)
+            }
+            task.configureKotlinCompilerArgumentsLazily(
+                resolverEnvironmentStringFor(
+                    project.serviceOf(),
+                    project.serviceOf(),
+                    compileClasspath,
+                    externalPluginSpecBuildersTask.flatMap { it.metadataOutputDir },
+                )
+            )
+            task.doFirst {
+                task.validateKotlinCompilerArguments()
+            }
+        }
+    } else {
+        // OLD: Let's use a custom task that uses the Kotlin embedded compiler *internal* K1 API
+        tasks.register("compilePluginsBlocks", CompilePrecompiledScriptPluginPlugins::class.java) { task ->
+            task.javaLauncher.set(project.javaToolchainService.launcherFor(project.java.toolchain))
+            @Suppress("DEPRECATION") task.jvmTarget.set(jvmTarget)
+
+            task.dependsOn(extractPluginsBlocksTask)
+            task.sourceDir(extractedPluginsBlocksDir)
+
+            task.dependsOn(externalPluginSpecBuildersTask)
+            task.sourceDir(externalPluginSpecBuildersDir)
+
+            task.classPathFiles.from(compileClasspath)
+            task.outputDir.set(outputDir)
+        }
+    }
 
 
 private
