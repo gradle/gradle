@@ -52,8 +52,8 @@ abstract class KotlinDslCompilerPlugins : Plugin<Project> {
 
         tasks.withType<KotlinCompile>().configureEach { kotlinCompile ->
             kotlinCompile.compilerOptions {
-                apiVersion.set(KotlinVersion.KOTLIN_1_8)
-                languageVersion.set(KotlinVersion.KOTLIN_1_8)
+                apiVersion.set(KotlinVersion.KOTLIN_2_1)
+                languageVersion.set(KotlinVersion.KOTLIN_2_1)
                 freeCompilerArgs.addAll(KotlinDslPluginSupport.kotlinCompilerArgs)
             }
             kotlinCompile.setWarningRewriter(ExperimentalCompilerWarningSilencer(listOf(
