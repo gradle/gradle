@@ -21,6 +21,7 @@ import org.gradle.api.internal.tasks.testing.operations.TestListenerBuildOperati
 import org.gradle.api.internal.tasks.testing.report.generic.MetadataRendererRegistry;
 import org.gradle.api.internal.tasks.testing.results.AggregateTestEventReporter;
 import org.gradle.api.internal.tasks.testing.results.HtmlTestReportGenerator;
+import org.gradle.api.tasks.testing.TestEventReporterFactory;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
@@ -72,7 +73,7 @@ public class TestingBasePluginServices extends AbstractGradleModuleServices {
     @NonNullApi
     public static class TestingBuildScopeServices implements ServiceRegistrationProvider {
         void configure(ServiceRegistration serviceRegistration) {
-            serviceRegistration.add(DefaultTestEventReporterFactory.class);
+            serviceRegistration.add(TestEventReporterFactory.class, DefaultTestEventReporterFactory.class);
         }
     }
 }

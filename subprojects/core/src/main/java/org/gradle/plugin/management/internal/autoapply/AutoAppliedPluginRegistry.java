@@ -18,6 +18,8 @@ package org.gradle.plugin.management.internal.autoapply;
 
 import org.gradle.api.Project;
 import org.gradle.api.initialization.Settings;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.plugin.management.internal.PluginRequests;
 
 /**
@@ -25,6 +27,7 @@ import org.gradle.plugin.management.internal.PluginRequests;
  *
  * @since 4.3
  */
+@ServiceScope(Scope.Build.class)
 public interface AutoAppliedPluginRegistry {
 
     /**

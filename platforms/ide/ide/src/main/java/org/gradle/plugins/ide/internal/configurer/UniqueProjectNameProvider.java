@@ -16,7 +16,10 @@
 package org.gradle.plugins.ide.internal.configurer;
 
 import org.gradle.api.Project;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
+@ServiceScope(Scope.Build.class)
 public interface UniqueProjectNameProvider {
     String getUniqueName(Project project);
 }

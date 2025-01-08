@@ -16,9 +16,12 @@
 package org.gradle.kotlin.dsl.provider
 
 import org.gradle.internal.concurrent.Stoppable
+import org.gradle.internal.service.scopes.Scope
+import org.gradle.internal.service.scopes.ServiceScope
 import java.util.Collections.synchronizedList
 
 
+@ServiceScope(Scope.Build::class)
 open class ClassPathModeExceptionCollector : Stoppable {
 
     private

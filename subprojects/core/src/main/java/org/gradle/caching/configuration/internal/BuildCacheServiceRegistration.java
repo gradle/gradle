@@ -18,7 +18,10 @@ package org.gradle.caching.configuration.internal;
 
 import org.gradle.caching.BuildCacheServiceFactory;
 import org.gradle.caching.configuration.BuildCache;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
+@ServiceScope(Scope.Build.class)
 public interface BuildCacheServiceRegistration {
     Class<? extends BuildCache> getConfigurationType();
     Class<? extends BuildCacheServiceFactory<?>> getFactoryType();
