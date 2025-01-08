@@ -51,13 +51,13 @@ When reporting issues, Gradle ensures that the reports are concise and free of u
 Specifically, it prevents reporting the same problem repeatedly once a certain threshold is reached.
 
 - During the build, the _first_ few instances of a problem are reported as a link:{javaDocPath}/org/gradle/tooling/events/problems/Problem.html[Problem], providing all information available for that problem.
-- At the end of the build, subsequent occurrences of the same problem are grouped and summarized as a link:{javaDocPath}org/gradle/tooling/events/problems/ProblemSummary.html[ProblemSummary].
-This summary is delivered as with a link:{javaDocPath}org/gradle/tooling/events/problems/ProblemSummariesEvent.html[ProblemSummariesEvent], which provides the total count of occurrences.
+- At the end of the build, subsequent occurrences of the same problem are grouped and summarized as a link:{javaDocPath}/org/gradle/tooling/events/problems/ProblemSummary.html[ProblemSummary].
+This summary is delivered as with a link:{javaDocPath}/org/gradle/tooling/events/problems/ProblemSummariesEvent.html[ProblemSummariesEvent], which provides the total count of occurrences.
 
 === Build failures
 
 The standard approach for indicating a build failure is to throw an exception.
-link:{javaDocPath}org/gradle/api/problems/ProblemReporter.html#throwing(org.gradle.api.Action)[ProblemReporter] provides enhanced support for this by allowing exceptions to be thrown with associated problem reports.
+link:{javaDocPath}/org/gradle/api/problems/ProblemReporter.html#throwing(org.gradle.api.Action)[ProblemReporter] provides enhanced support for this by allowing exceptions to be thrown with associated problem reports.
 
 include::sample[dir="samples/templates/problems-api-usage/reporters/standard-plugin/src/main/java/reporters",files="FailingTask.java[tags=problems-api-fail-the-build]"]
 

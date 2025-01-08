@@ -17,10 +17,13 @@
 package org.gradle.internal.execution;
 
 import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 
 import java.io.File;
 
+@ServiceScope(Scope.BuildSession.class)
 public interface OutputSnapshotter {
     /**
      * Takes a snapshot of the outputs of a work.

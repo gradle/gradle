@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.file
 
+import org.gradle.api.InvalidUserDataException
 import org.gradle.api.file.Directory
 import org.gradle.api.file.RegularFile
 import org.gradle.api.resources.TextResource
@@ -27,7 +28,7 @@ import spock.lang.Specification
 
 import static org.gradle.util.internal.TextUtil.toPlatformLineSeparators
 
-class FileOrUriNotationConverterTest extends Specification {
+class FileNotationConverterTest extends Specification {
 
     @Rule public TestNameTestDirectoryProvider folder = new TestNameTestDirectoryProvider(getClass());
 
@@ -37,7 +38,6 @@ class FileOrUriNotationConverterTest extends Specification {
         when:
         def object = parse(testFile)
         then:
-        object instanceof File
         testFile == object
     }
 
@@ -47,7 +47,6 @@ class FileOrUriNotationConverterTest extends Specification {
         when:
         def object = parse(testPath)
         then:
-        object instanceof File
         testPath.toFile() == object
     }
 
@@ -90,7 +89,6 @@ class FileOrUriNotationConverterTest extends Specification {
         when:
         def object = parse(testFile.getAbsolutePath())
         then:
-        object instanceof File
         testFile.getAbsolutePath() == object.getAbsolutePath()
     }
 
@@ -100,7 +98,6 @@ class FileOrUriNotationConverterTest extends Specification {
         when:
         def object = parse(testFileURI)
         then:
-        object instanceof File
         object.toURI() == testFileURI
     }
 
@@ -110,7 +107,6 @@ class FileOrUriNotationConverterTest extends Specification {
         when:
         def object = parse(uriString)
         then:
-        object instanceof File
         object.toURI().toString() == uriString
     }
 
@@ -121,7 +117,6 @@ class FileOrUriNotationConverterTest extends Specification {
         when:
         def object = parse(uriString)
         then:
-        object instanceof File
         object.toURI().toString() == uriString
     }
 
@@ -131,44 +126,48 @@ class FileOrUriNotationConverterTest extends Specification {
         when:
         def object = parse(testFileURL)
         then:
-        object instanceof File
         object.toURI().toURL() == testFileURL
     }
 
-    def "with non File URI instance is returned"() {
+    def "with non File, an error is thrown"() {
         setup:
         def unsupportedURI = URI.create("http://gradle.org")
         when:
-        def parsed = parse(unsupportedURI)
+        parse(unsupportedURI)
         then:
-        parsed instanceof URI
+        UnsupportedNotationException e = thrown()
+        showsProperMessage(e, "http://gradle.org")
     }
 
-    def "with non File URI String URI is returned"() {
+    // See also BaseDirFileResolverTest.testCanResolveNonFileURI()
+    def "with non File URI, String File is returned"() {
         setup:
-        def unsupportedURIString = "http://gradle.org"
+        def uriString = "http://gradle.org"
         when:
-        def parsed = parse(unsupportedURIString)
+        def parsed = parse(uriString)
         then:
-        parsed instanceof URI
+        parsed == new File(uriString)
     }
 
-    def "does not throw NPE for URI with unknown schema"() {
+    def "throws a error for URI with unknown schema"() {
         setup:
         def unsupportedURIString = new URI("no-schema")
         when:
-        def parsed = parse(unsupportedURIString)
+        parse(unsupportedURIString)
         then:
-        parsed instanceof URI
+        UnsupportedNotationException e = thrown()
+        showsProperMessage(e, "no-schema")
     }
 
+    // see also BaseDirFileResolverTest.testResolveRelativeFileURI
     def "does not throw NPE for non-hierarchical URI"() {
         setup:
         def unsupportedURIString = new URI("file::something")
         when:
         def parsed = parse(unsupportedURIString)
         then:
-        parsed instanceof URI
+        InvalidUserDataException e = thrown()
+        e.message == "Cannot convert URI 'file::something' to a file."
     }
 
     @Issue("GRADLE-2072")
@@ -178,7 +177,15 @@ class FileOrUriNotationConverterTest extends Specification {
 
         then:
         UnsupportedNotationException e = thrown()
-        e.message == toPlatformLineSeparators("""Cannot convert the provided notation to a File or URI: 12.
+        showsProperMessage(e, 12)
+    }
+
+    private def parse(def value) {
+        return FileNotationConverter.parser().parseNotation(value)
+    }
+
+    private void showsProperMessage(UnsupportedNotationException e, value) {
+        assert e.message == toPlatformLineSeparators("""Cannot convert the provided notation to a File: $value.
 The following types/formats are supported:
   - A String or CharSequence path, for example 'src/main/java' or '/usr/include'.
   - A String or CharSequence URI, for example 'file:/usr/include'.
@@ -186,11 +193,7 @@ The following types/formats are supported:
   - A Path instance.
   - A Directory instance.
   - A RegularFile instance.
-  - A URI or URL instance.
+  - A URI or URL instance of file.
   - A TextResource instance.""")
-    }
-
-    def parse(def value) {
-        return FileOrUriNotationConverter.parser().parseNotation(value)
     }
 }

@@ -12,19 +12,19 @@ errorprone {
 }
 
 dependencies {
-    api(projects.concurrent)
-    api(projects.serviceProvider)
     api(projects.baseServices)
+    api(projects.concurrent)
     api(projects.core)
     api(projects.coreApi)
     api(projects.dependencyManagement)
     api(projects.fileCollections)
+    api(projects.serviceProvider)
+    api(projects.stdlibJavaExtensions)
 
     api(libs.jgit)
     api(libs.inject)
     api(libs.jsr305)
 
-    implementation(projects.stdlibJavaExtensions)
     implementation(projects.persistentCache)
     implementation(projects.serialization)
     implementation(projects.files)

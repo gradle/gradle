@@ -23,9 +23,12 @@ import org.gradle.cache.internal.FileIntegrityViolationSuppressingObjectHolderDe
 import org.gradle.cache.internal.OnDemandFileAccess;
 import org.gradle.internal.file.Chmod;
 import org.gradle.internal.id.UniqueId;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.io.File;
 
+@ServiceScope(Scope.BuildSession.class)
 class PersistentScopeIdStoreFactory {
 
     private final Chmod chmod;
