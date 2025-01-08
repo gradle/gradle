@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,16 @@
  */
 
 plugins {
-    id("gradlebuild.buildscan") // Reporting: Add more data through custom tags to build scans
-    id("gradlebuild.ide") // Local development: Tweak IDEA import
-    id("gradlebuild.dependency-analysis") // Auditing dependencies to find unused libraries
-    id("gradlebuild.warmup-ec2") // Warm up EC2 AMI
+    `kotlin-dsl`
+}
+
+description = "Provides plugins for Configuration Cache usage adjustments"
+
+group = "gradlebuild"
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+        vendor = JvmVendorSpec.ADOPTIUM
+    }
 }
