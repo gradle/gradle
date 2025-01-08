@@ -122,6 +122,18 @@ import javax.inject.Inject
  * External plugin dependencies are declared as regular artifact dependencies but a more
  * semantic preserving model could be introduced in the future.
  *
+ * ### Configuring the Kotlin Gradle Plugin
+ * The implementation does configure KGP.
+ * The KGP types are not available in the Gradle distribution, thus are not available to this implementation.
+ *
+ * This matter of fact makes the implementation convoluted because it needs to use reflection and [withGroovyBuilder].
+ *
+ * ### Backwards compatibility
+ * While it is strongly recommended to use the default version of the published `kotlin-dsl` plugins,
+ * this implementation must currently support some previous versions according to [KotlinDslPluginCrossVersionSmokeTest].
+ *
+ * This requirement makes the implementation convoluted because it needs to handle different setup types.
+ *
  * ### Type-safe accessors
  * The process of generating type-safe accessors for precompiled script plugins is carried out by the
  * following tasks:
@@ -203,8 +215,10 @@ fun Project.enableScriptCompilationOf(
                 metadataOutputDir.set(pluginSpecBuildersMetadata)
             }
 
-        val compilePluginsBlocks = if (names.contains("compileKotlinPluginsBlocks")) {
-            named("compileKotlinPluginsBlocks") { task ->
+        val compilePluginsBlocks = if (names.contains("compilePluginsBlocks")) {
+            // Let's use a regular KotlinCompile task, created by PrecompiledScriptPlugins,
+            // to compile plugins blocks extracted from precompiled script plugins.
+            named("compilePluginsBlocks") { task ->
                 task.enabled = true
                 task.dependsOn(generateExternalPluginSpecBuilders)
                 task.dependsOn(extractPrecompiledScriptPluginPlugins)
@@ -213,10 +227,6 @@ fun Project.enableScriptCompilationOf(
                     "source"(extractedPluginsBlocks)
                     val destinationDirectory = getProperty("destinationDirectory") as DirectoryProperty
                     destinationDirectory.set(compiledPluginsBlocks)
-//                    "compilerOptions" {
-//                        val jt = getProperty("jvmTarget") as Property<*>
-//                        println("===> JVM TARGET = ${jt.orNull}")
-//                    }
                 }
                 task.configureKotlinCompilerArgumentsLazily(
                     resolverEnvironmentStringFor(
@@ -231,6 +241,8 @@ fun Project.enableScriptCompilationOf(
                 }
             }
         } else {
+            // OLD: Let's use a custom task that uses the Kotlin embedded compiler *internal* K1 API
+            //      to compile plugins blocks extracted from precompiled script plugins.
             register("compilePluginsBlocks", CompilePrecompiledScriptPluginPlugins::class.java) { task ->
                 task.javaLauncher.set(javaToolchainService.launcherFor(java.toolchain))
                 @Suppress("DEPRECATION") task.jvmTarget.set(jvmTargetProvider)

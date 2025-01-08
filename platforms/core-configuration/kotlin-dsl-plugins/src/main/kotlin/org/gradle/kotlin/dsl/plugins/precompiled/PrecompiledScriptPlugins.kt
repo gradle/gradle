@@ -44,34 +44,13 @@ abstract class PrecompiledScriptPlugins : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
 
-        val compilePluginsBlock = configurations.dependencyScope("compilePluginsBlock")
-        val compilePluginsBlockClasspath = configurations.resolvable("compilePluginsBlockClasspath") {
-            it.extendsFrom(compilePluginsBlock.get())
-        }
-        dependencies {
-            compilePluginsBlock.name(kotlin("scripting-compiler-embeddable"))
-        }
-
         apply<KotlinBaseApiPlugin>()
         apply<ScriptingGradleSubplugin>()
         plugins.withType(KotlinBaseApiPlugin::class.java) { kotlinBaseApiPlugin ->
 
             val target = Target(project)
 
-            kotlinBaseApiPlugin.registerKotlinJvmCompileTask(
-                taskName = "compileKotlinPluginsBlocks",
-                moduleName = "gradle-kotlin-dsl-plugins-blocks",
-            ).configure { task ->
-                task.enabled = false
-                task.multiPlatformEnabled.set(false)
-                task.libraries.from(sourceSets["main"].compileClasspath)
-                // TODO this must be set, maybe setting the toolchain is doable and better?
-                //      probably should set from target only if available
-                task.compilerOptions.jvmTarget.set(target.jvmTarget.map { JvmTarget.fromTarget(it.toString()) }.orElse(JvmTarget.JVM_1_8))
-//                println(" OUTER JVM TARGET = ${task.compilerOptions.jvmTarget.orNull}")
-                task.pluginClasspath.from(compilePluginsBlockClasspath.get())
-                task.compilerOptions.freeCompilerArgs.addAll(listOf("-script-templates", PrecompiledPluginsBlock::class.qualifiedName))
-            }
+            registerCompileKotlinPluginsBlocks(kotlinBaseApiPlugin, target)
 
             if (serviceOf<PrecompiledScriptPluginsSupport>().enableOn(target)) {
 
@@ -80,6 +59,34 @@ abstract class PrecompiledScriptPlugins : Plugin<Project> {
                     "kotlinCompilerPluginClasspath"(gradleApi())
                 }
             }
+        }
+    }
+
+    private fun Project.registerCompileKotlinPluginsBlocks(
+        kotlinBaseApiPlugin: KotlinBaseApiPlugin,
+        target: Target,
+    ) {
+        val taskName = "compilePluginsBlocks"
+        val pluginDependencyScope = configurations.dependencyScope("${taskName}PluginClasspath")
+        val pluginClasspath = configurations.resolvable("${taskName}PluginClasspathElements") {
+            it.extendsFrom(pluginDependencyScope.get())
+        }
+        dependencies {
+            pluginDependencyScope.name(kotlin("scripting-compiler-embeddable"))
+        }
+
+        kotlinBaseApiPlugin.registerKotlinJvmCompileTask(
+            taskName = taskName,
+            moduleName = "gradle-kotlin-dsl-plugins-blocks",
+        ).configure { task ->
+            task.enabled = false
+            task.multiPlatformEnabled.set(false)
+            if (target.jvmTarget.isPresent) {
+                task.compilerOptions.jvmTarget.set(target.jvmTarget.map { JvmTarget.fromTarget(it.toString()) })
+            }
+            task.libraries.from(sourceSets["main"].compileClasspath)
+            task.pluginClasspath.from(pluginClasspath.get())
+            task.compilerOptions.freeCompilerArgs.addAll(listOf("-script-templates", PrecompiledPluginsBlock::class.qualifiedName))
         }
     }
 
