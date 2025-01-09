@@ -154,7 +154,7 @@ gradle.lifecycle.beforeProject {
 
 ==== Isolated project views
 
-There is now support for obtaining an isolated view of a project as an   link:{javadocPath}org/gradle/api/project/IsolatedProject.html[`IsolatedProject`] via link:{javadocPath}/org/gradle/api/Project.html#getIsolated--[`Project.getIsolated()`].
+There is now support for obtaining an isolated view of a project as an   link:{javadocPath}/org/gradle/api/project/IsolatedProject.html[`IsolatedProject`] via link:{javadocPath}/org/gradle/api/Project.html#getIsolated--[`Project.getIsolated()`].
 
 The view exposes only those properties that are safe to access across project boundaries when running the build configuration phase in parallel (to be supported in a future release).
 
