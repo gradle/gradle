@@ -29,7 +29,6 @@ import org.gradle.api.file.RelativePath
 import org.gradle.api.internal.file.DefaultConfigurableFilePermissions
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.pattern.PatternMatcher
-import org.gradle.api.model.ObjectFactory
 import org.gradle.internal.Actions
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
@@ -42,9 +41,9 @@ class DefaultCopySpecTest extends Specification {
     @Rule
     public TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider(getClass())
     private fileCollectionFactory = TestFiles.fileCollectionFactory(testDir.testDirectory)
-    private objectFactory = TestUtil.objectFactory()
+    private propertyFactory = TestUtil.propertyFactory()
     private instantiator = TestUtil.instantiatorFactory().decorateLenient()
-    private final DefaultCopySpec spec = new DefaultCopySpec(fileCollectionFactory, objectFactory, instantiator, TestFiles.patternSetFactory)
+    private final DefaultCopySpec spec = new DefaultCopySpec(fileCollectionFactory, propertyFactory, instantiator, TestFiles.patternSetFactory)
 
     private List<String> getTestSourceFileNames() {
         ['first', 'second']
@@ -397,7 +396,7 @@ class DefaultCopySpecTest extends Specification {
         spec.caseSensitive = false
         spec.includeEmptyDirs = false
         spec.duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-        setter.call(spec, objectFactory)
+        setter.call(spec)
         spec.filteringCharset = 'UTF8'
 
         then:
@@ -412,15 +411,15 @@ class DefaultCopySpecTest extends Specification {
 
         where:
         method             | setter
-        "mode"                  | { DefaultCopySpec spec, ObjectFactory objectFactory ->
+        "mode"                  | { DefaultCopySpec spec ->
             spec.fileMode = 0444
             spec.dirMode = 0655
         }
-        "property"              | { DefaultCopySpec spec, ObjectFactory objectFactory ->
-            spec.filePermissions.value(new DefaultConfigurableFilePermissions(objectFactory, 0444))
-            spec.dirPermissions.value(new DefaultConfigurableFilePermissions(objectFactory, 0655))
+        "property"              | { DefaultCopySpec spec ->
+            spec.filePermissions.value(new DefaultConfigurableFilePermissions(0444))
+            spec.dirPermissions.value(new DefaultConfigurableFilePermissions(0655))
         }
-        "configuration block"   | { DefaultCopySpec spec, ObjectFactory objectFactory ->
+        "configuration block"   | { DefaultCopySpec spec ->
             spec.filePermissions {
                 it.user.write = false
             }
@@ -470,7 +469,7 @@ class DefaultCopySpecTest extends Specification {
     }
 
     def 'can add spec hierarchy as child'() {
-        CopySpec otherSpec = new DefaultCopySpec(fileCollectionFactory, objectFactory, instantiator, TestFiles.patternSetFactory)
+        CopySpec otherSpec = new DefaultCopySpec(fileCollectionFactory, propertyFactory, instantiator, TestFiles.patternSetFactory)
         otherSpec.addChild()
         def added = []
 

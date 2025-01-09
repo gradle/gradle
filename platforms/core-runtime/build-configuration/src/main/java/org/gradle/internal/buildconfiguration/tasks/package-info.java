@@ -15,7 +15,7 @@
  */
 
 /**
- * The Gradle Daemon JVM internals.
+ * The Gradle build configuration tasks internals.
  */
 @NonNullApi
 package org.gradle.internal.buildconfiguration.tasks;
