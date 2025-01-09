@@ -17,12 +17,15 @@
 package org.gradle.internal.work;
 
 import org.gradle.internal.operations.BuildOperationRef;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.List;
 
 /**
  * Allows asynchronous work to be tracked based on the build operation it is associated with.
  */
+@ServiceScope(Scope.BuildSession.class)
 public interface AsyncWorkTracker {
     enum ProjectLockRetention {
         RETAIN_PROJECT_LOCKS, RELEASE_PROJECT_LOCKS, RELEASE_AND_REACQUIRE_PROJECT_LOCKS
