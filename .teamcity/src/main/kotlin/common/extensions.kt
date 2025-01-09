@@ -157,9 +157,9 @@ fun BuildType.applyDefaultSettings(os: Os = Os.LINUX, arch: Arch = Arch.AMD64, b
     if (os !in listOf(Os.WINDOWS, Os.MACOS)) {
         steps {
             exec {
-                name = "CAPTURE_EC2_METADATA"
+                name = "EC2_BUILD_CUSTOMIZATIONS"
                 executionMode = BuildStep.ExecutionMode.ALWAYS
-                path = ".teamcity/scripts/ec2-metadata.sh"
+                path = ".teamcity/scripts/configure_build_env_on_ec2.sh"
 
                 conditions {
                     requiresEc2Agent()
