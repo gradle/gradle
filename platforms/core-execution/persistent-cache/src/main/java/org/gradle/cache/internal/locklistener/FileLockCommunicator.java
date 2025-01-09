@@ -25,7 +25,6 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketAddress;
 import java.net.SocketException;
-import java.nio.channels.ClosedChannelException;
 import java.util.Optional;
 import java.util.Set;
 
@@ -67,7 +66,7 @@ public class FileLockCommunicator {
             return Optional.of(packet);
         } catch (IOException e) {
             // Socket was shutdown while waiting to receive message
-            if (e.getCause() instanceof ClosedChannelException) {
+            if (socket.isClosed()) {
                 return Optional.empty();
             }
             throw e;
