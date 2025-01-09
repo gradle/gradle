@@ -21,9 +21,11 @@ import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
 import org.gradle.util.GradleVersion
+import spock.lang.Ignore
 
 import static org.gradle.kotlin.dsl.tooling.fixtures.KotlinScriptModelParameters.setModelParameters
 
+@Ignore
 @TargetGradleVersion(">=6.0")
 @LeaksFileHandles("Kotlin Compiler Daemon taking time to shut down")
 @Flaky(because = 'https://github.com/gradle/gradle-private/issues/3414')

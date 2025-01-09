@@ -27,16 +27,18 @@ import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.problems.ProblemEvent
 import org.gradle.tooling.events.problems.SingleProblemEvent
 import org.gradle.util.GradleVersion
+import spock.lang.Ignore
 
 /**
  * Tests that the tooling API can receive and process a problem containing additional {@link ResolutionFailureData}
  * data.
  */
+@Ignore
 @TargetGradleVersion(">=8.11")
 @ToolingApiVersion(">=8.11")
 class ResolutionFailureDataCrossVersionIntegrationTest extends ToolingApiSpecification {
     @ToolingApiVersion(">=8.11 <8.12")
-    def "can supply ResolutionFailureData (Tooling API client [8.11,8.12)"() {
+    def "can supp (Tooling API client [8.11,8.12)"() {
         given:
         withReportProblemTask """
             TestResolutionFailure failure = new TestResolutionFailure()

@@ -102,7 +102,8 @@ public class DaemonMessageSerializer {
         registry.register(Finished.class, new FinishedSerializer());
 
         // Build events
-        registry.register(BuildEvent.class, new BuildEventSerializer(pls));
+        registry.register(ProblemEvent.class, new ProblemEventSerializer(pls));
+        registry.register(BuildEvent.class, new BuildEventSerializer());
 
         // Input events
         registry.register(ForwardInput.class, new ForwardInputSerializer());
@@ -216,10 +217,24 @@ public class DaemonMessageSerializer {
     }
 
     private static class BuildEventSerializer implements Serializer<BuildEvent> {
+        private final Serializer<Object> payloadSerializer = new DefaultSerializer<>();
+
+        @Override
+        public void write(Encoder encoder, BuildEvent buildEvent) throws Exception {
+            payloadSerializer.write(encoder, buildEvent.getPayload());
+        }
+
+        @Override
+        public BuildEvent read(Decoder decoder) throws Exception {
+            return new BuildEvent(payloadSerializer.read(decoder));
+        }
+    }
+
+    private static class ProblemEventSerializer implements Serializer<ProblemEvent> {
 
         private final Serializer<Object> serializer;
 
-        public BuildEventSerializer(PayloadSerializer pls) {
+        public ProblemEventSerializer(PayloadSerializer pls) {
             serializer = new DefaultSerializer<>(
                 new OutputStreamObjectOutputStreamStreamFactory(pls),
                 new InputStreamObjectInputStreamStreamFactory(pls)
@@ -227,14 +242,14 @@ public class DaemonMessageSerializer {
         }
 
         @Override
-        public void write(Encoder encoder, BuildEvent buildEvent) throws Exception {
+        public void write(Encoder encoder, ProblemEvent buildEvent) throws Exception {
             serializer.write(encoder, buildEvent.getPayload());
         }
 
         @Override
-        public BuildEvent read(Decoder decoder) throws Exception {
+        public ProblemEvent read(Decoder decoder) throws Exception {
             Object read = serializer.read(decoder);
-            return new BuildEvent(read);
+            return new ProblemEvent(read);
         }
 
         @NonNullApi

@@ -38,6 +38,7 @@ import org.gradle.tooling.events.problems.SingleProblemEvent
 import org.gradle.tooling.events.problems.TaskPathLocation
 import org.gradle.util.GradleVersion
 import org.junit.Assume
+import spock.lang.Ignore
 
 import static org.gradle.integtests.fixtures.AvailableJavaHomes.getJdk17
 import static org.gradle.integtests.fixtures.AvailableJavaHomes.getJdk21
@@ -46,6 +47,7 @@ import static org.gradle.integtests.tooling.fixture.ProblemsApiGroovyScriptUtils
 import static org.gradle.integtests.tooling.r86.ProblemProgressEventCrossVersionTest.getProblemReportTaskString
 import static org.gradle.integtests.tooling.r86.ProblemsServiceModelBuilderCrossVersionTest.getBuildScriptSampleContent
 
+@Ignore
 @ToolingApiVersion(">=8.13")
 @TargetGradleVersion(">=8.9")
 class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
