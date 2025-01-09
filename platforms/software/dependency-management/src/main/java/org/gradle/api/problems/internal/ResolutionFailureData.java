@@ -18,6 +18,7 @@ package org.gradle.api.problems.internal;
 
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.problems.AdditionalData;
+import org.gradle.api.problems.CustomAdditionalData;
 import org.gradle.api.problems.GeneralData;
 import org.gradle.api.problems.Problem;
 import org.gradle.internal.component.resolution.failure.interfaces.ResolutionFailure;
@@ -34,7 +35,7 @@ import java.util.Map;
  * <li>ProblemDisplayName - a human-readable description of the problem</li>
  * </ul>
  */
-public interface ResolutionFailureData extends GeneralData {
+public interface ResolutionFailureData extends GeneralData, CustomAdditionalData {
     /**
      * Getter for the resolution failure that caused the problem.
      *

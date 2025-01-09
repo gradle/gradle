@@ -29,7 +29,7 @@ import java.io.StreamCorruptedException;
 public class DefaultSerializer<T> extends AbstractSerializer<T> {
     @NonNullApi
     public interface StreamFactory<T, U> {
-        U create(T t) throws IOException;
+        U create(T t, ClassLoader classLoader) throws IOException;
     }
 
     private ClassLoader classLoader;
@@ -45,14 +45,14 @@ public class DefaultSerializer<T> extends AbstractSerializer<T> {
     public DefaultSerializer() {
         this.classLoader = getClass().getClassLoader();
         this.objectOutputStreamFactory = new OutputStreamObjectOutputStreamStreamFactory();
-        this.inputStreamStreamFactory = new InputStreamObjectInputStreamStreamFactory(classLoader);
+        this.inputStreamStreamFactory = new InputStreamObjectInputStreamStreamFactory();
     }
 
 
     public DefaultSerializer(ClassLoader classLoader) {
         this.classLoader = classLoader != null ? classLoader : getClass().getClassLoader();
         this.objectOutputStreamFactory = new OutputStreamObjectOutputStreamStreamFactory();
-        this.inputStreamStreamFactory = new InputStreamObjectInputStreamStreamFactory(this.classLoader);
+        this.inputStreamStreamFactory = new InputStreamObjectInputStreamStreamFactory();
     }
 
     public ClassLoader getClassLoader() {
@@ -66,7 +66,7 @@ public class DefaultSerializer<T> extends AbstractSerializer<T> {
     @Override
     public T read(Decoder decoder) throws Exception {
         try {
-            return Cast.uncheckedNonnullCast(inputStreamStreamFactory.create(decoder.getInputStream()).readObject());
+            return Cast.uncheckedNonnullCast(inputStreamStreamFactory.create(decoder.getInputStream(), classLoader).readObject());
         } catch (StreamCorruptedException e) {
             return null;
         }
@@ -74,7 +74,7 @@ public class DefaultSerializer<T> extends AbstractSerializer<T> {
 
     @Override
     public void write(Encoder encoder, T value) throws IOException {
-        ObjectOutputStream objectStr = objectOutputStreamFactory.create(encoder.getOutputStream());
+        ObjectOutputStream objectStr = objectOutputStreamFactory.create(encoder.getOutputStream(), classLoader);
         objectStr.writeObject(value);
         objectStr.flush();
     }
@@ -97,21 +97,16 @@ public class DefaultSerializer<T> extends AbstractSerializer<T> {
     @NonNullApi
     private static class OutputStreamObjectOutputStreamStreamFactory implements StreamFactory<OutputStream, ObjectOutputStream> {
         @Override
-        public ObjectOutputStream create(OutputStream outputStream) throws IOException {
+        public ObjectOutputStream create(OutputStream outputStream, ClassLoader classLoaderNotUsed) throws IOException {
             return new ObjectOutputStream(outputStream);
         }
     }
 
     @NonNullApi
     private static class InputStreamObjectInputStreamStreamFactory implements StreamFactory<InputStream, ObjectInputStream> {
-        private final ClassLoader classLoader;
-
-        InputStreamObjectInputStreamStreamFactory(ClassLoader classLoader) {
-            this.classLoader = classLoader;
-        }
 
         @Override
-        public ObjectInputStream create(InputStream inputStream) throws IOException {
+        public ObjectInputStream create(InputStream inputStream, ClassLoader classLoader) throws IOException {
             return new ClassLoaderObjectInputStream(inputStream, classLoader);
         }
     }

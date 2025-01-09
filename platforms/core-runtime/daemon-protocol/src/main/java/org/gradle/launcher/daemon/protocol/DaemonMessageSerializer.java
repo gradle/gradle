@@ -18,7 +18,7 @@ package org.gradle.launcher.daemon.protocol;
 
 import org.gradle.api.NonNullApi;
 import org.gradle.api.logging.LogLevel;
-import org.gradle.api.problems.AdditionalData;
+import org.gradle.api.problems.CustomAdditionalData;
 import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
@@ -222,7 +222,7 @@ public class DaemonMessageSerializer {
         public BuildEventSerializer(PayloadSerializer pls) {
             serializer = new DefaultSerializer<>(
                 new OutputStreamObjectOutputStreamStreamFactory(pls),
-                new InputStreamObjectInputStreamStreamFactory(pls, getClass().getClassLoader())
+                new InputStreamObjectInputStreamStreamFactory(pls)
             );
         }
 
@@ -246,25 +246,22 @@ public class DaemonMessageSerializer {
             }
 
             @Override
-            public ObjectOutputStream create(OutputStream outputStream) throws IOException {
-                return new ReplacingObjectOutputStream(outputStream, pls, AdditionalData.class);
+            public ObjectOutputStream create(OutputStream outputStream, ClassLoader classLoaderNotUsed) throws IOException {
+                return new ReplacingObjectOutputStream(outputStream, pls, CustomAdditionalData.class);
             }
         }
 
         @NonNullApi
         private static class InputStreamObjectInputStreamStreamFactory implements DefaultSerializer.StreamFactory<InputStream, ObjectInputStream> {
             private final PayloadSerializer pls;
-            @SuppressWarnings("unused")
-            private final ClassLoader classLoader;
 
-            public InputStreamObjectInputStreamStreamFactory(PayloadSerializer pls, ClassLoader classLoader) {
+            public InputStreamObjectInputStreamStreamFactory(PayloadSerializer pls) {
                 this.pls = pls;
-                this.classLoader = classLoader;
             }
 
             @Override
-            public ObjectInputStream create(InputStream inputStream) throws IOException {
-                return new ReplacingObjectInputStream(inputStream, pls, getClass().getClassLoader());
+            public ObjectInputStream create(InputStream inputStream, ClassLoader classLoader) throws IOException {
+                return new ReplacingObjectInputStream(inputStream, pls, classLoader);
             }
         }
     }
