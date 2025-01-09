@@ -85,11 +85,7 @@ class ConsumerOperationParametersTest extends Specification {
         params.jvmArguments == null
     }
 
-    def "set and additional JVM argments, when supplied, are concatenated"(
-        List<String> baseJvmArguments,
-        List<String> additionalJvmArguments,
-        List<String> expectedJvmArguments
-    ) {
+    def "set and additional JVM argments, when supplied, are concatenated"() {
         when:
         if (baseJvmArguments != null) {
             builder.setBaseJvmArguments(baseJvmArguments)
