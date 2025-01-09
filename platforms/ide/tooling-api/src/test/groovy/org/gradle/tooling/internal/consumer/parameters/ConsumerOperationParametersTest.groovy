@@ -85,7 +85,7 @@ class ConsumerOperationParametersTest extends Specification {
         params.jvmArguments == null
     }
 
-    def "ifa values are supplied to JVM argments, they are concatenated"(
+    def "set and additional JVM argments, when supplied, are concatenated"(
         List<String> baseJvmArguments,
         List<String> additionalJvmArguments,
         List<String> expectedJvmArguments
