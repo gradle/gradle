@@ -40,6 +40,9 @@ class ServiceScopeValidatorWorkarounds {
         // makes CC skip serialization and instead use service look-up which yield a wrong value for this specially setup task
         "org.gradle.api.internal.StartParameterInternal",
 
+        // Configuration Cache service Codec fails to get an instance of this service, due to multiple being available
+        "org.gradle.caching.configuration.internal.BuildCacheServiceRegistration",
+
         "org.gradle.nativeplatform.platform.internal.NativePlatforms",
         "org.gradle.nativeplatform.internal.NativePlatformResolver",
         "org.gradle.nativeplatform.internal.DefaultTargetMachineFactory"
