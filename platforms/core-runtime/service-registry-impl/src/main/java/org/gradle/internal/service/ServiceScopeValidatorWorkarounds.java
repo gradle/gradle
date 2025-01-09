@@ -31,6 +31,11 @@ class ServiceScopeValidatorWorkarounds {
         "org.gradle.cache.internal.ProducerGuard",
         "org.gradle.internal.typeconversion.NotationParser",
 
+        // It's supposed to be only in the Settings scope
+        // However, ProjectBuilderImpl does not instantiate that scope at all, while still requiring the service
+        // Because of this, it artificially puts it into the Build-scope to make it available
+        "org.gradle.initialization.DefaultProjectDescriptorRegistry",
+
         // Problematic with GradleBuild task and CC, because marking it as a service
         // makes CC skip serialization and instead use service look-up which yield a wrong value for this specially setup task
         "org.gradle.api.internal.StartParameterInternal",
