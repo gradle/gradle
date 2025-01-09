@@ -75,6 +75,7 @@ public class DefaultGradleEnterprisePluginBackgroundJobExecutors implements Grad
      *
      * @throws RuntimeException any exception or error thrown by a job is rethrown from this method, potentially wrapped as a RuntimeException
      */
+    @Override
     public void stop() {
         if (executorService.isShutdown()) {
             return;
