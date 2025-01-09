@@ -1,3 +1,4 @@
+import org.gradle.internal.os.OperatingSystem
 // tag::apply-cpp-plugin[]
 plugins {
     `cpp-application` // or `cpp-library`
@@ -9,7 +10,7 @@ version = "1.2.1"
 if (OperatingSystem.current().isWindows()) {
 // tag::cpp-toolchain[]
     toolChains{
-        withType<VisualCpp>.configureEach {
+        withType<VisualCpp>().configureEach {
             setInstallDir("C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools")
         }
     }
