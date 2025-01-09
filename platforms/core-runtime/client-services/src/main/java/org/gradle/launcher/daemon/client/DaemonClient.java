@@ -44,6 +44,7 @@ import org.gradle.launcher.daemon.protocol.Finished;
 import org.gradle.launcher.daemon.protocol.ForwardInput;
 import org.gradle.launcher.daemon.protocol.Message;
 import org.gradle.launcher.daemon.protocol.OutputMessage;
+import org.gradle.launcher.daemon.protocol.ProblemEvent;
 import org.gradle.launcher.daemon.protocol.Result;
 import org.gradle.launcher.daemon.protocol.Stop;
 import org.gradle.launcher.daemon.server.api.DaemonStoppedException;
@@ -258,6 +259,8 @@ public class DaemonClient implements BuildActionExecutor<BuildActionParameters, 
                     outputEventListener.onOutput(((OutputMessage) object).getEvent());
                 } else if (object instanceof BuildEvent) {
                     buildEventConsumer.dispatch(((BuildEvent) object).getPayload());
+                } else if (object instanceof ProblemEvent) {
+                    buildEventConsumer.dispatch(((ProblemEvent) object).getPayload());
                 } else {
                     return object;
                 }

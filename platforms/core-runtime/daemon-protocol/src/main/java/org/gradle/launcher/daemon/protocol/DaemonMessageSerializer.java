@@ -93,6 +93,7 @@ public class DaemonMessageSerializer {
 
         // Build events
         registry.register(BuildEvent.class, new BuildEventSerializer());
+        registry.register(ProblemEvent.class, new ProblemEventSerializer());
 
         // Input events
         registry.register(ForwardInput.class, new ForwardInputSerializer());
@@ -202,6 +203,20 @@ public class DaemonMessageSerializer {
         @Override
         public Failure read(Decoder decoder) throws Exception {
             return new Failure(throwableSerializer.read(decoder));
+        }
+    }
+
+    private static class ProblemEventSerializer implements Serializer<ProblemEvent> {
+        private final Serializer<Object> payloadSerializer = new DefaultSerializer<>();
+
+        @Override
+        public void write(Encoder encoder, ProblemEvent buildEvent) throws Exception {
+            payloadSerializer.write(encoder, buildEvent.getPayload());
+        }
+
+        @Override
+        public ProblemEvent read(Decoder decoder) throws Exception {
+            return new ProblemEvent(payloadSerializer.read(decoder));
         }
     }
 
