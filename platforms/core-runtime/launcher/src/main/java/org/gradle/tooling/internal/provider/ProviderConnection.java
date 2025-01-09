@@ -84,6 +84,7 @@ import org.gradle.tooling.internal.provider.connection.ProviderOperationParamete
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 import org.gradle.tooling.internal.provider.test.ProviderInternalTestExecutionRequest;
+import org.gradle.tooling.model.UnsupportedMethodException;
 import org.gradle.tooling.model.build.BuildEnvironment;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.internal.GUtil;
@@ -362,7 +363,7 @@ public class ProviderConnection {
             if (additionalJvmArguments != null && !additionalJvmArguments.isEmpty()) {
                 daemonParams.addJvmArgs(additionalJvmArguments);
             }
-        } catch (NoSuchMethodError ex) {
+        } catch (UnsupportedMethodException ex) {
             // Incompatible provider, falling back to old behavior
             List<String> legacyJvmArguments = operationParameters.getJvmArguments();
             if (legacyJvmArguments != null) {
