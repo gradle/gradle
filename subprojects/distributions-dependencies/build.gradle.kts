@@ -20,7 +20,7 @@ val antVersion = "1.10.15"
 // subprojects/base-services/src/main/java/org/gradle/internal/classanalysis/AsmConstants.java
 // when upgrading ASM.
 val asmVersion = "9.7"
-val awsS3Version = "1.12.651"
+val awsS3Version = "1.12.780"
 val bouncycastleVersion = "1.78.1"
 val jacksonVersion = "2.16.1"
 val jaxbVersion = "3.0.0"
