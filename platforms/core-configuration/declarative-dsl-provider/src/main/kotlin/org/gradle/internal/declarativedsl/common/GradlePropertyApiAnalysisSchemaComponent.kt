@@ -16,9 +16,7 @@
 
 package org.gradle.internal.declarativedsl.common
 
-import org.gradle.api.file.Directory
 import org.gradle.api.file.DirectoryProperty
-import org.gradle.api.file.RegularFile
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.Property
 import org.gradle.declarative.dsl.model.annotations.AccessFromCurrentReceiverOnly
@@ -40,7 +38,6 @@ import kotlin.reflect.full.instanceParameter
 import kotlin.reflect.full.memberFunctions
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.full.primaryConstructor
-import kotlin.reflect.typeOf
 
 
 /**
@@ -129,10 +126,14 @@ fun isGradlePropertyType(type: KType): Boolean = type.classifier in handledPrope
 
 private
 fun propertyValueType(type: KType): KType {
-    return when (type.classifier) {
-        Property::class -> type.arguments[0].type ?: error("expected a declared property type")
-        DirectoryProperty::class -> typeOf<Directory>()
-        RegularFileProperty::class -> typeOf<RegularFile>()
-        else -> type // TODO: we can have a generic solution by recursively going through supertypes until we find what Property<T> it actually is
+    fun searchClassHierarchyForPropertyType(type: KType): KType? {
+        return when (val classifier = type.classifier) {
+            Property::class -> type
+            is KClass<*> -> classifier.supertypes.firstOrNull { superType -> searchClassHierarchyForPropertyType(superType) != null }
+            else -> null
+        }
     }
+
+    val propertyType = searchClassHierarchyForPropertyType(type)
+    return propertyType?.arguments?.get(0)?.type ?: type
 }

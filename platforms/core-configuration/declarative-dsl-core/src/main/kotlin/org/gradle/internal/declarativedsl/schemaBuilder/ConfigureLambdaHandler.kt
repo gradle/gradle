@@ -93,7 +93,7 @@ class CompositeConfigureLambdas(internal val implementations: List<ConfigureLamb
         implementations.any { it.isConfigureLambdaForType(configuredType, maybeLambdaType) }
 
     override fun produceValueCaptor(lambdaType: KType): ConfigureLambdaHandler.ValueCaptor {
-        val implementation = implementations.firstOrNull { it.getTypeConfiguredByLambda(lambdaType) != null } // TODO: can this be simplified now, that we know the type configured by the lambda?
+        val implementation = implementations.firstOrNull { it.getTypeConfiguredByLambda(lambdaType) != null }
         when (implementation) {
             null -> throw IllegalAccessException("none of the configure lambda handlers could produce an instance")
             else -> return implementation.produceValueCaptor(lambdaType)

@@ -84,7 +84,7 @@ class AccessorTest {
     val runtimeCustomAccessors = object : RuntimeCustomAccessors {
         override fun getObjectFromCustomAccessor(receiverObject: Any, accessor: ConfigureAccessor.Custom): InstanceAndPublicType =
             if (receiverObject is MyReceiver && accessor.customAccessorIdentifier == "test")
-                InstanceAndPublicType.unknownPublicType(receiverObject.myHiddenInstance.value) // TODO: doesn't seem to be exercised in tests
+                InstanceAndPublicType.unknownPublicType(receiverObject.myHiddenInstance.value)
             else InstanceAndPublicType.NULL
     }
 
