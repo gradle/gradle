@@ -63,6 +63,18 @@ public interface ProjectState extends ModelContainer<ProjectInternal> {
     Set<ProjectState> getChildProjects();
 
     /**
+     * Returns the direct children of this project in no particular order.
+     */
+    Iterable<ProjectState> getUnorderedChildProjects();
+
+    /**
+     * Checks whether this project has child projects.
+     *
+     * @return true when this project has child projects.
+     */
+    boolean hasChildren();
+
+    /**
      * Returns the name of this project (which may not necessarily be unique).
      */
     String getName();
