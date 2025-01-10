@@ -836,9 +836,9 @@
             <sha256 value="889e1e07300265211222ad70b0644b9af0954eb2f9eaf06544c0e436967f434f" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
       </component>
-      <component group="gradle.plugin.org.jetbrains.gradle.plugin.idea-ext" name="gradle-idea-ext" version="1.0.1">
-         <artifact name="gradle-idea-ext-1.0.1.jar">
-            <sha256 value="001c6c04c330b0e16bf9836afdf8b27c89e5e33caf88b3d8272d12afe1a24e08" origin="Verified" reason="Artifact is not signed"/>
+      <component group="gradle.plugin.org.jetbrains.gradle.plugin.idea-ext" name="gradle-idea-ext" version="1.1.10">
+         <artifact name="gradle-idea-ext-1.1.10.jar">
+            <sha256 value="fea76e0c13f9e96c2516d0176e649be44d979f4ec80319f3c8628a6e7947512d" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="gradle.plugin.org.ysb33r.gradle" name="gradle-cloudci-plugin" version="2.3">
