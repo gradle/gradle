@@ -17,6 +17,7 @@
 package org.gradle.internal.cc.impl.isolated
 
 import org.gradle.internal.cc.impl.fixtures.CustomModel
+import org.gradle.internal.cc.impl.fixtures.SomeToolingModel
 import org.gradle.tooling.StreamedValueListener
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.eclipse.EclipseProject
@@ -120,8 +121,76 @@ class IsolatedProjectsToolingApiStreamingBuildActionIntegrationTest extends Abst
         streamedModels2[1].value == 2
     }
 
+    def "models are streamed on build action partial cache hit"() {
+        withSomeToolingModelBuilderPluginInBuildSrc()
+        settingsFile << """
+            include("a")
+            include("b")
+        """
+        buildFile "a/build.gradle", """
+            plugins.apply(my.MyPlugin)
+        """
+        buildFile "b/build.gradle", """
+            plugins.apply(my.MyPlugin)
+        """
+
+        def listener1 = new TestStreamedValueListener()
+        def listener2 = new TestStreamedValueListener()
+
+        when:
+        withIsolatedProjects()
+        def messages1 = runBuildAction(new StreamCustomModelForEachProject()) {
+            setStreamedValueListener(listener1)
+        }
+
+        then:
+        fixture.assertModelStored {
+            projectConfigured(":buildSrc")
+            buildModelCreated()
+            projectConfigured(":")
+            modelsCreated(":a", ":b")
+        }
+
+        and:
+        messages1 == ["It works from project :a", "It works from project :b"]
+
+        and:
+        def streamedModels1 = listener1.models as List<SomeToolingModel>
+        streamedModels1.size() == 2
+        streamedModels1[0].message == "It works from project :a"
+        streamedModels1[1].message == "It works from project :b"
+
+        when:
+        buildFile "b/build.gradle", """
+            myExtension.message = "It works from updated project :b"
+        """
+
+        withIsolatedProjects()
+        def messages2 = runBuildAction(new StreamCustomModelForEachProject()) {
+            setStreamedValueListener(listener2)
+        }
+
+        then:
+        fixture.assertModelUpdated {
+            fileChanged("b/build.gradle")
+            projectsConfigured(":buildSrc", ":", ":b")
+            modelsCreated(":b")
+            modelsReused(":buildSrc", ":", ":a")
+        }
+
+        and:
+        messages2 == ["It works from project :a", "It works from updated project :b"]
+
+        and:
+        def streamedModels2 = listener2.models as List<SomeToolingModel>
+        streamedModels2.size() == 2
+        streamedModels2[0].message == "It works from project :a"
+        streamedModels2[1].message == "It works from updated project :b"
+    }
+
     private static class TestStreamedValueListener implements StreamedValueListener {
         def models = new CopyOnWriteArrayList<Object>()
+
         @Override
         void onValue(Object value) {
             models += value
