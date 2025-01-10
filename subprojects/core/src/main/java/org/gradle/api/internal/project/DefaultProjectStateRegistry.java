@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.project;
 
+import com.google.common.collect.Iterables;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
@@ -330,9 +331,23 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
         public Set<ProjectState> getChildProjects() {
             Set<ProjectState> children = new TreeSet<>(Comparator.comparing(ProjectState::getIdentityPath));
             for (DefaultProjectDescriptor child : descriptor.children()) {
-                children.add(projectsByPath.get(owner.calculateIdentityPathForProject(child.path())));
+                children.add(getStateForChild(child));
             }
             return children;
+        }
+
+        @Override
+        public Iterable<ProjectState> getUnorderedChildProjects() {
+            return Iterables.transform(descriptor.children(), this::getStateForChild);
+        }
+
+        @Override
+        public boolean hasChildren() {
+            return !descriptor.children().isEmpty();
+        }
+
+        private ProjectStateImpl getStateForChild(DefaultProjectDescriptor child) {
+            return projectsByPath.get(owner.calculateIdentityPathForProject(child.path()));
         }
 
         @Override
