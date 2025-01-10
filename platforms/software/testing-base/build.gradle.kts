@@ -46,9 +46,6 @@ dependencies {
     implementation(projects.files)
     implementation(projects.modelCore)
 
-    implementation(libs.ant) {
-        because("only used for DateUtils")
-    }
     implementation(libs.commonsLang)
     implementation(libs.commonsIo)
     implementation(libs.kryo)
