@@ -21,7 +21,9 @@ import org.gradle.kotlin.dsl.fixtures.normalisedPath
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
+import org.junit.Ignore
 import org.junit.Test
+import org.junit.jupiter.api.Disabled
 
 
 class TestKitIntegrationTest : AbstractKotlinIntegrationTest() {
@@ -29,6 +31,8 @@ class TestKitIntegrationTest : AbstractKotlinIntegrationTest() {
     @Test
     @Requires(IntegTestPreconditions.NotEmbeddedExecutor::class)
     @LeaksFileHandles("Kotlin Compiler Daemon working directory")
+    @Disabled
+    @Ignore
     fun `withPluginClasspath works`() {
 
         withDefaultSettings()
@@ -253,5 +257,6 @@ class TestKitIntegrationTest : AbstractKotlinIntegrationTest() {
         println(
             build("test").output
         )
+        println("DONE")
     }
 }

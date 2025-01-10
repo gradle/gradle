@@ -67,9 +67,11 @@ internal
 fun PrecompiledScriptPlugin.writeScriptPluginAdapterTo(outputDir: File) {
 
     val (packageDir, packageDeclaration) =
-        packageName?.let { packageName ->
-            packageDir(outputDir, packageName) to "package $packageName"
-        } ?: outputDir to ""
+        packageName
+            ?.let { packageName ->
+                packageDir(outputDir, packageName) to "package $packageName"
+            }
+            ?: (outputDir to "")
 
     val outputFile =
         packageDir.resolve("$simplePluginAdapterClassName.kt")

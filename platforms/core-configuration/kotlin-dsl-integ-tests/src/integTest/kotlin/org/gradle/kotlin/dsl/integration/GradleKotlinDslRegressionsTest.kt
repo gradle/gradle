@@ -218,7 +218,7 @@ class GradleKotlinDslRegressionsTest : AbstractKotlinIntegrationTest() {
             apply(from = "applied.gradle.kts")
         """)
         buildAndFail("help").apply {
-            assertHasErrorOutput("Unresolved reference: sourceCompatibility")
+            assertHasErrorOutput("Unresolved reference 'sourceCompatibility'.")
         }
 
         withFile("applied.gradle.kts", """
@@ -228,7 +228,7 @@ class GradleKotlinDslRegressionsTest : AbstractKotlinIntegrationTest() {
             println(java.sourceCompatibility)
         """)
         buildAndFail("help").apply {
-            assertHasErrorOutput("Unresolved reference: sourceCompatibility")
+            assertHasErrorOutput("Unresolved reference 'sourceCompatibility'.")
         }
     }
 }

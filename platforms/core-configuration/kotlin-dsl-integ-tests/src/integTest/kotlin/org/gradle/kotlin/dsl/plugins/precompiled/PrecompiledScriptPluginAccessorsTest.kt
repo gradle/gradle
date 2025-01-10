@@ -113,7 +113,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
 
         buildAndFail("compileKotlin").apply {
             assertHasCause("Compilation error.")
-            assertHasErrorOutput("Unresolved reference: after")
+            assertHasErrorOutput("Unresolved reference 'after'.")
         }
     }
 
