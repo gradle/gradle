@@ -20,7 +20,6 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.buildconfiguration.tasks.UpdateDaemonJvm;
 import org.gradle.configuration.project.ProjectConfigureAction;
 import org.gradle.internal.Pair;
-import org.gradle.internal.buildconfiguration.resolvers.UnconfiguredToolchainRepositoriesResolver;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.jvm.toolchain.JavaToolchainDownload;
@@ -39,6 +38,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static java.util.Collections.emptyMap;
 
 public class DaemonJvmPropertiesConfigurator implements ProjectConfigureAction {
 
@@ -67,8 +68,10 @@ public class DaemonJvmPropertiesConfigurator implements ProjectConfigureAction {
                                 toolchainSpec.getVendor().set(JvmVendorSpec.of(vendor));
                             }
                             JavaToolchainResolverService resolverService = project.getServices().get(JavaToolchainResolverService.class);
-                            if (!resolverService.hasConfiguredToolchainRepositories()) {
-                                throw new UnconfiguredToolchainRepositoriesResolver();
+                            if (!platforms.isEmpty() && !resolverService.hasConfiguredToolchainRepositories()) {
+                                // TODO revisit failure condition, but don't require generation as long as its results are not used
+//                                throw new UnconfiguredToolchainRepositoriesResolver();
+                                return emptyMap();
                             }
                             Map<BuildPlatform, Optional<URI>> buildPlatformOptionalUriMap = platforms.stream()
                                 .collect(Collectors.toMap(platform -> platform,
