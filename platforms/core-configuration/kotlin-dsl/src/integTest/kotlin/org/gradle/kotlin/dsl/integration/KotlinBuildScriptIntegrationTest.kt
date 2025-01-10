@@ -181,6 +181,17 @@ class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
             """
         )
 
+        executer.expectDeprecationWarning(
+            "e: ${clickableUrlFor(file("build.gradle.kts"))}:7:17: 'fun Project.plugins(block: PluginDependenciesSpec.() -> Unit): Nothing' is deprecated. " +
+                "The plugins {} block must not be used here. " +
+                "If you need to apply a plugin imperatively, please use apply<PluginType>() or apply(plugin = \"id\") instead."
+        )
+        executer.expectDeprecationWarning(
+            "                          ^ 'fun Project.plugins(block: PluginDependenciesSpec.() -> Unit): Nothing' is deprecated. " +
+                "The plugins {} block must not be used here. " +
+                "If you need to apply a plugin imperatively, please use apply<PluginType>() or apply(plugin = \"id\") instead."
+        )
+
         buildAndFail("help").apply {
             assertThat(error, containsString("The plugins {} block must not be used here"))
         }
@@ -329,16 +340,21 @@ class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
     @Test
     fun `can access project extensions`() {
         withKotlinBuildSrc()
-        withFile("buildSrc/src/main/kotlin/MyExtension.kt", """
+        withFile(
+            "buildSrc/src/main/kotlin/MyExtension.kt", """
             interface MyExtension {
                 fun some(message: String) { println(message) }
             }
-        """)
-        withFile("buildSrc/src/main/kotlin/my-plugin.gradle.kts", """
+            """
+        )
+        withFile(
+            "buildSrc/src/main/kotlin/my-plugin.gradle.kts", """
             extensions.create<MyExtension>("my")
             tasks.register("noop")
-        """)
-        withBuildScript("""
+            """
+        )
+        withBuildScript(
+            """
             plugins { id("my-plugin") }
 
             extensions.getByType(MyExtension::class).some("api.get")
@@ -348,10 +364,11 @@ class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
             configure<MyExtension> { some("kotlin.configure") }
             my.some("accessor.get")
             my { some("accessor.configure") }
-        """)
+            """
+        )
 
         assertThat(
-            build("noop", "-q").output.trim(),
+            build("noop", "-q", "--stacktrace").output.trim(),
             equalTo(
                 """
                 api.get
@@ -387,23 +404,29 @@ class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
     @UnsupportedWithConfigurationCache(because = "test configuration phase")
     fun `can access project conventions`() {
         withKotlinBuildSrc()
-        withFile("buildSrc/src/main/kotlin/MyConvention.kt", """
+        withFile(
+            "buildSrc/src/main/kotlin/MyConvention.kt", """
             interface MyConvention {
                 fun some(message: String) { println(message) }
             }
-        """)
-        withFile("buildSrc/src/main/kotlin/my-plugin.gradle.kts", """
+            """
+        )
+        withFile(
+            "buildSrc/src/main/kotlin/my-plugin.gradle.kts", """
             convention.plugins["my"] = objects.newInstance<MyConvention>()
             tasks.register("noop")
-        """)
-        withBuildScript("""
+            """
+        )
+        withBuildScript(
+            """
             plugins { id("my-plugin") }
 
             convention.getPlugin(MyConvention::class).some("api.get")
             the<MyConvention>().some("kotlin.reified.get")
             the(MyConvention::class).some("kotlin.kclass.get")
             configure<MyConvention> { some("kotlin.configure") }
-        """)
+        """
+        )
 
         assertThat(
             build("noop", "-q").output.trim(),
@@ -431,13 +454,15 @@ class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
 
     @Test
     fun `script compilation warnings are output on the console`() {
-        val script = withBuildScript("""
+        val script = withBuildScript(
+            """
             @Deprecated("BECAUSE")
             fun deprecatedFunction() {}
             deprecatedFunction()
-        """)
+        """
+        )
         build("help").apply {
-            assertOutputContains("w: ${clickableUrlFor(script)}:4:13: 'deprecatedFunction(): Unit' is deprecated. BECAUSE")
+            assertOutputContains("w: ${clickableUrlFor(script)}:4:13: 'fun deprecatedFunction(): Unit' is deprecated. BECAUSE")
         }
     }
 }

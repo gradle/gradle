@@ -41,6 +41,8 @@ import org.gradle.kotlin.dsl.fixtures.FoldersDslExpression
 import org.gradle.kotlin.dsl.fixtures.assertFailsWith
 import org.gradle.kotlin.dsl.fixtures.assertInstanceOf
 import org.gradle.kotlin.dsl.fixtures.assertStandardOutputOf
+import org.gradle.kotlin.dsl.fixtures.clickableUrlFor
+import org.gradle.kotlin.dsl.fixtures.normalisedPath
 import org.gradle.kotlin.dsl.fixtures.withFolders
 
 import org.gradle.kotlin.dsl.precompile.v1.PrecompiledInitScript
@@ -481,12 +483,19 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
             """
         )
 
+        executer.expectDeprecationWarning(
+            "e: ${clickableUrlFor(file("src/main/kotlin/my-project-plugin.gradle.kts")).replace("%C5%9D","s%CC%82")}:3:17 " +
+                "'fun Project.plugins(block: PluginDependenciesSpec.() -> Unit): Nothing' is deprecated. " +
+                "The plugins {} block must not be used here. " +
+                "If you need to apply a plugin imperatively, please use apply<PluginType>() or apply(plugin = \"id\") instead."
+        )
+
         buildAndFail("classes").run {
             assertHasDescription(
                 "Execution failed for task ':compileKotlin'."
             )
             assertHasErrorOutput(
-                """my-project-plugin.gradle.kts:3:17 Using 'plugins(PluginDependenciesSpec.() -> Unit): Nothing' is an error. The plugins {} block must not be used here. If you need to apply a plugin imperatively, please use apply<PluginType>() or apply(plugin = "id") instead."""
+                """my-project-plugin.gradle.kts:3:17 'fun Project.plugins(block: PluginDependenciesSpec.() -> Unit): Nothing' is deprecated. The plugins {} block must not be used here. If you need to apply a plugin imperatively, please use apply<PluginType>() or apply(plugin = "id") instead."""
             )
         }
     }

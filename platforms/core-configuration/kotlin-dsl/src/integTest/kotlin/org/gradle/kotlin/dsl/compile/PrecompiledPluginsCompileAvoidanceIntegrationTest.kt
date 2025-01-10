@@ -116,7 +116,7 @@ class PrecompiledPluginsCompileAvoidanceIntegrationTest : AbstractCompileAvoidan
                 project.extensions.create<TestExtension>("bar")
             """
         )
-        configureProjectAndExpectCompileFailure("Unresolved reference: foo")
+        configureProjectAndExpectCompileFailure("Unresolved reference 'foo'.")
     }
 
     @Test

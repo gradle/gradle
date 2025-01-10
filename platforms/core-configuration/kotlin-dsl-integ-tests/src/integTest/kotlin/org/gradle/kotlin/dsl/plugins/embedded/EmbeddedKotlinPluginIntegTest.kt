@@ -151,15 +151,15 @@ class EmbeddedKotlinPluginIntegTest : AbstractKotlinIntegrationTest() {
                     .createArtifactResolutionQuery()
                     .forComponents(*components.toTypedArray())
                     .withArtifacts(
-                        JvmLibrary::class.java,
-                        SourcesArtifact::class.java,
-                        JavadocArtifact::class.java)
+                        JvmLibrary::class,
+                        SourcesArtifact::class,
+                        JavadocArtifact::class)
                     .execute()
                     .resolvedComponents
 
             inline fun <reified T : Artifact> printFileNamesOf() =
                 resolvedComponents
-                    .flatMap { it.getArtifacts(T::class.java) }
+                    .flatMap { it.getArtifacts(T::class) }
                     .filterIsInstance<ResolvedArtifactResult>()
                     .forEach { println(it.file.name) }
 
