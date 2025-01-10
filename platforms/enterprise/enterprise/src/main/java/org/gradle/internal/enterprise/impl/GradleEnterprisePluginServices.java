@@ -17,7 +17,10 @@
 package org.gradle.internal.enterprise.impl;
 
 import org.gradle.internal.enterprise.DevelocityBuildLifecycleService;
+import org.gradle.internal.enterprise.DevelocityPluginUnsafeConfigurationService;
+import org.gradle.internal.enterprise.GradleEnterprisePluginBuildState;
 import org.gradle.internal.enterprise.GradleEnterprisePluginCheckInService;
+import org.gradle.internal.enterprise.GradleEnterprisePluginConfig;
 import org.gradle.internal.enterprise.GradleEnterprisePluginRequiredServices;
 import org.gradle.internal.enterprise.impl.legacy.DefaultBuildScanBuildStartedTime;
 import org.gradle.internal.enterprise.impl.legacy.DefaultBuildScanClock;
@@ -34,10 +37,10 @@ public class GradleEnterprisePluginServices extends AbstractGradleModuleServices
         registration.add(GradleEnterpriseAutoAppliedPluginRegistry.class);
         registration.add(GradleEnterprisePluginAutoAppliedStatus.class);
         registration.add(DefaultGradleEnterprisePluginServiceRef.class);
-        registration.add(DefaultGradleEnterprisePluginBuildState.class);
-        registration.add(DefaultGradleEnterprisePluginConfig.class);
-        registration.add(DefaultGradleEnterprisePluginBackgroundJobExecutors.class);
-        registration.add(DefaultDevelocityPluginUnsafeConfigurationService.class);
+        registration.add(GradleEnterprisePluginBuildState.class, DefaultGradleEnterprisePluginBuildState.class);
+        registration.add(GradleEnterprisePluginConfig.class, DefaultGradleEnterprisePluginConfig.class);
+        registration.add(GradleEnterprisePluginBackgroundJobExecutorsInternal.class, DefaultGradleEnterprisePluginBackgroundJobExecutors.class);
+        registration.add(DevelocityPluginUnsafeConfigurationService.class, DefaultDevelocityPluginUnsafeConfigurationService.class);
 
         // legacy
         registration.add(DefaultBuildScanClock.class);
