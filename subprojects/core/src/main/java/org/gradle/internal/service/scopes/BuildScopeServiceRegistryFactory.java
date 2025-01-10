@@ -24,6 +24,7 @@ import org.gradle.internal.service.ServiceRegistryBuilder;
 
 import java.io.Closeable;
 
+@ServiceScope(Scope.Build.class)
 public class BuildScopeServiceRegistryFactory implements ServiceRegistryFactory, Closeable {
     private final ServiceRegistry services;
     private final CompositeStoppable registries = new CompositeStoppable();

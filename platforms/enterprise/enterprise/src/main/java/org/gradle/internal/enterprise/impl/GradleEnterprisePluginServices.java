@@ -16,10 +16,14 @@
 
 package org.gradle.internal.enterprise.impl;
 
+import org.gradle.internal.enterprise.DevelocityBuildLifecycleService;
+import org.gradle.internal.enterprise.GradleEnterprisePluginCheckInService;
+import org.gradle.internal.enterprise.GradleEnterprisePluginRequiredServices;
 import org.gradle.internal.enterprise.impl.legacy.DefaultBuildScanBuildStartedTime;
 import org.gradle.internal.enterprise.impl.legacy.DefaultBuildScanClock;
 import org.gradle.internal.enterprise.impl.legacy.DefaultBuildScanScopeIds;
 import org.gradle.internal.enterprise.impl.legacy.LegacyGradleEnterprisePluginCheckInService;
+import org.gradle.internal.scan.scopeids.BuildScanScopeIds;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 
@@ -44,12 +48,12 @@ public class GradleEnterprisePluginServices extends AbstractGradleModuleServices
     public void registerBuildServices(ServiceRegistration registration) {
         registration.add(GradleEnterprisePluginAutoApplicationListener.class);
         registration.add(DefaultGradleEnterprisePluginAdapterFactory.class);
-        registration.add(DefaultGradleEnterprisePluginCheckInService.class);
-        registration.add(DefaultDevelocityBuildLifecycleService.class);
-        registration.add(DefaultGradleEnterprisePluginRequiredServices.class);
+        registration.add(GradleEnterprisePluginCheckInService.class, DefaultGradleEnterprisePluginCheckInService.class);
+        registration.add(DevelocityBuildLifecycleService.class, DefaultDevelocityBuildLifecycleService.class);
+        registration.add(GradleEnterprisePluginRequiredServices.class, DefaultGradleEnterprisePluginRequiredServices.class);
 
         // legacy
-        registration.add(DefaultBuildScanScopeIds.class);
+        registration.add(BuildScanScopeIds.class, DefaultBuildScanScopeIds.class);
         registration.add(LegacyGradleEnterprisePluginCheckInService.class);
     }
 

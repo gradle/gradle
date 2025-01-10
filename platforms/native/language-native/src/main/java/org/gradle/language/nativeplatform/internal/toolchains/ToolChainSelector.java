@@ -16,9 +16,12 @@
 
 package org.gradle.language.nativeplatform.internal.toolchains;
 
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
+@ServiceScope({Scope.Build.class, Scope.Project.class})
 public interface ToolChainSelector {
     /**
      * Selects a platform of the given type that can run on the host machine, and a toolchain to build for this platform.
