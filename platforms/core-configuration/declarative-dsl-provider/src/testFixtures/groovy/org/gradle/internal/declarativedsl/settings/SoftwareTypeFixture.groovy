@@ -194,8 +194,6 @@ trait SoftwareTypeFixture {
             import org.gradle.declarative.dsl.model.annotations.Restricted;
 
             import org.gradle.api.Action;
-            import org.gradle.api.file.DirectoryProperty;
-            import org.gradle.api.file.RegularFileProperty;
             import org.gradle.api.model.ObjectFactory;
             import org.gradle.api.provider.ListProperty;
             import org.gradle.api.provider.Property;
@@ -215,11 +213,6 @@ trait SoftwareTypeFixture {
                 @Restricted
                 public abstract Property<String> getId();
 
-                @Restricted
-                public abstract DirectoryProperty getDir();
-
-                @Restricted
-                public abstract RegularFileProperty getFile();
 
                 public Foo getFoo() {
                     return foo;
@@ -240,10 +233,7 @@ trait SoftwareTypeFixture {
 
                 @Override
                 public String toString() {
-                    return "id = " + getId().get() + "\\n" +
-                        (getDir().isPresent() ? "dir = " + getDir().getOrNull() + "\\n" : "") +
-                        (getFile().isPresent() ? "file = " + getFile().getOrNull() + "\\n" : "") +
-                        "bar = " + getFoo().getBar().get() + (isFooConfigured ? "\\n(foo is configured)" : "");
+                    return "id = " + getId().get() + "\\nbar = " + getFoo().getBar().get() + (isFooConfigured ? "\\n(foo is configured)" : "");
                 }
             }
         """
@@ -305,21 +295,14 @@ trait SoftwareTypeFixture {
             import org.gradle.declarative.dsl.model.annotations.Configuring;
             import org.gradle.declarative.dsl.model.annotations.Restricted;
 
-            import org.gradle.api.Action;
-            import org.gradle.api.file.DirectoryProperty;
-            import org.gradle.api.file.RegularFileProperty;
             import org.gradle.api.provider.Property;
+            import org.gradle.api.Action;
 
             @Restricted
             public interface TestSoftwareTypeExtension {
                 @Restricted
                 Property<String> getId();
 
-                @Restricted
-                public abstract DirectoryProperty getDir();
-
-                @Restricted
-                public abstract RegularFileProperty getFile();
 
                 Foo getFoo();
 
@@ -369,10 +352,7 @@ trait SoftwareTypeFixture {
 
                 @Override
                 public String toString() {
-                    return "id = " + getId().get() + "\\n" +
-                        (getDir().isPresent() ? "dir = " + getDir().getOrNull() + "\\n" : "") +
-                        (getFile().isPresent() ? "file = " + getFile().getOrNull() + "\\n" : "") +
-                        "bar = " + getFoo().getBar().get();
+                    return "id = " + getId().get() + "\\nbar = " + getFoo().getBar().get();
                 }
             }
         """
@@ -428,7 +408,7 @@ trait SoftwareTypeFixture {
                     System.out.println("Applying " + getClass().getSimpleName());
                     ${implementationTypeClassName} extension = getTestSoftwareTypeExtension();
 
-                    ${conventions}
+                    ${conventions == null ? "" : conventions}
                     target.getTasks().register("print${implementationTypeClassName}Configuration", DefaultTask.class, task -> {
                         task.doLast("print restricted extension content", t -> {
                             System.out.println(extension);
@@ -441,12 +421,12 @@ trait SoftwareTypeFixture {
 
     static String getProjectPluginThatRegistersItsOwnExtension(
         boolean shouldRegisterExtension = true,
-        String extension = "extension"
+        String extension = "extension",
+        String conventions = testSoftwareTypeExtensionConventions
     ) {
         String implementationTypeClassName = "TestSoftwareTypeExtension"
         String softwareTypePluginClassName = "SoftwareTypeImplPlugin"
         String softwareType = "testSoftwareType"
-        String conventions = testSoftwareTypeExtensionConventions
         String extensionRegistration = shouldRegisterExtension ? """target.getExtensions().add("${softwareType}", ${extension});""" : ""
         return """
             package org.gradle.test;
@@ -473,7 +453,7 @@ trait SoftwareTypeFixture {
                     ${implementationTypeClassName} extension = getTestSoftwareTypeExtension();
                     ${extensionRegistration}
 
-                    ${conventions}
+                    ${conventions == null ? "" : conventions}
                     target.getTasks().register("print${implementationTypeClassName}Configuration", DefaultTask.class, task -> {
                         task.doLast("print restricted extension content", t -> {
                             System.out.println(extension);
@@ -743,8 +723,6 @@ trait SoftwareTypeFixture {
             import org.gradle.api.DefaultTask;
             import org.gradle.api.Plugin;
             import org.gradle.api.Project;
-            import org.gradle.api.file.DirectoryProperty;
-            import org.gradle.api.file.RegularFileProperty;
             import org.gradle.api.provider.ListProperty;
             import org.gradle.api.provider.Property;
             import org.gradle.api.tasks.Nested;
@@ -787,12 +765,6 @@ trait SoftwareTypeFixture {
 
                     @Restricted
                     public abstract Property<String> getId();
-
-                    @Restricted
-                    public abstract DirectoryProperty getDir();
-
-                    @Restricted
-                    public abstract RegularFileProperty getFile();
 
                     public Foo getFoo() {
                         return foo;
