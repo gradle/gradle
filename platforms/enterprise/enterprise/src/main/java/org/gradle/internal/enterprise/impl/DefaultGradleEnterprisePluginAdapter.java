@@ -46,7 +46,8 @@ public class DefaultGradleEnterprisePluginAdapter implements GradleEnterprisePlu
     private final GradleEnterprisePluginConfig config;
     private final GradleEnterprisePluginRequiredServices requiredServices;
     private final GradleEnterprisePluginBuildState buildState;
-    private final DefaultGradleEnterprisePluginServiceRef pluginServiceRef;
+    private final GradleEnterprisePluginBackgroundJobExecutorsInternal backgroundJobExecutors;
+    private final GradleEnterprisePluginServiceRefInternal pluginServiceRef;
 
     private final BuildOperationNotificationListenerRegistrar buildOperationNotificationListenerRegistrar;
 
@@ -57,13 +58,15 @@ public class DefaultGradleEnterprisePluginAdapter implements GradleEnterprisePlu
         GradleEnterprisePluginConfig config,
         GradleEnterprisePluginRequiredServices requiredServices,
         GradleEnterprisePluginBuildState buildState,
-        DefaultGradleEnterprisePluginServiceRef pluginServiceRef,
+        GradleEnterprisePluginBackgroundJobExecutorsInternal backgroundJobExecutors,
+        GradleEnterprisePluginServiceRefInternal pluginServiceRef,
         BuildOperationNotificationListenerRegistrar buildOperationNotificationListenerRegistrar
     ) {
         this.pluginServiceFactory = pluginServiceFactory;
         this.config = config;
         this.requiredServices = requiredServices;
         this.buildState = buildState;
+        this.backgroundJobExecutors = backgroundJobExecutors;
         this.pluginServiceRef = pluginServiceRef;
         this.buildOperationNotificationListenerRegistrar = buildOperationNotificationListenerRegistrar;
 
@@ -87,13 +90,12 @@ public class DefaultGradleEnterprisePluginAdapter implements GradleEnterprisePlu
     @Override
     public void buildFinished(@Nullable Throwable buildFailure) {
         // Ensure that all tasks are complete prior to the buildFinished callback.
-        requiredServices.getBackgroundJobExecutors().stop();
+        backgroundJobExecutors.shutdown();
 
         if (pluginService != null) {
             pluginService.getEndOfBuildListener().buildFinished(new DefaultDevelocityPluginResult(buildFailure));
         }
     }
-
 
     private void createPluginService() {
         pluginService = pluginServiceFactory.create(config, requiredServices, buildState);

@@ -13,7 +13,6 @@ errorprone {
 dependencies {
     api(projects.baseServices)
     api(projects.buildOperations)
-    api(projects.concurrent)
     api(projects.configurationCache)
     api(projects.core)
     api(projects.coreApi)
@@ -33,6 +32,7 @@ dependencies {
     api(libs.inject)
     api(libs.jsr305)
 
+    implementation(projects.concurrent)
     implementation(projects.dependencyManagement)
     implementation(projects.files)
     implementation(projects.hashing)
