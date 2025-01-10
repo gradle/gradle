@@ -406,6 +406,15 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
         }
 
         @Override
+        public void ensureSelfConfigured() {
+            ProjectState parent = getBuildParent();
+            if (parent != null) {
+                ((ProjectStateImpl) parent).controller.assertConfigured();
+            }
+            controller.ensureSelfConfigured();
+        }
+
+        @Override
         public void ensureTasksDiscovered() {
             controller.ensureTasksDiscovered();
         }
