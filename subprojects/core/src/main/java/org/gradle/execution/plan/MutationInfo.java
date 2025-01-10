@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,36 +16,57 @@
 
 package org.gradle.execution.plan;
 
-import java.util.HashSet;
-import java.util.Set;
+import com.google.common.collect.ImmutableSet;
 
-class MutationInfo {
-    private final Set<Node> nodesYetToConsumeOutput = new HashSet<>();
-    final Set<String> outputPaths = new HashSet<>();
-    final Set<String> destroyablePaths = new HashSet<>();
-    boolean hasFileInputs;
-    boolean hasOutputs;
-    boolean hasLocalState;
-    boolean hasValidationProblem;
-    private boolean outputProduced;
+public class MutationInfo {
 
-    void started() {
-        outputProduced = true;
+    public static final MutationInfo EMPTY = new MutationInfo(ImmutableSet.of(), ImmutableSet.of(), false, false, false, false);
+
+    private final ImmutableSet<String> outputPaths;
+    private final ImmutableSet<String> destroyablePaths;
+    private final boolean hasFileInputs;
+    private final boolean hasOutputs;
+    private final boolean hasLocalState;
+    private final boolean hasValidationProblem;
+
+    public MutationInfo(
+        ImmutableSet<String> outputPaths,
+        ImmutableSet<String> destroyablePaths,
+        boolean hasFileInputs,
+        boolean hasOutputs,
+        boolean hasLocalState,
+        boolean hasValidationProblem
+    ) {
+        this.outputPaths = outputPaths;
+        this.destroyablePaths = destroyablePaths;
+        this.hasFileInputs = hasFileInputs;
+        this.hasOutputs = hasOutputs;
+        this.hasLocalState = hasLocalState;
+        this.hasValidationProblem = hasValidationProblem;
     }
 
-    boolean isOutputProducedButNotYetConsumed() {
-        return outputProduced && !nodesYetToConsumeOutput.isEmpty();
+    public ImmutableSet<String> getOutputPaths() {
+        return outputPaths;
     }
 
-    public Set<Node> getNodesYetToConsumeOutput() {
-        return nodesYetToConsumeOutput;
+    public ImmutableSet<String> getDestroyablePaths() {
+        return destroyablePaths;
     }
 
-    public void consumerCompleted(Node node) {
-        nodesYetToConsumeOutput.remove(node);
+    public boolean hasValidationProblem() {
+        return hasValidationProblem;
     }
 
-    public void addConsumer(Node node) {
-        nodesYetToConsumeOutput.add(node);
+    public boolean hasLocalState() {
+        return hasLocalState;
     }
+
+    public boolean hasOutputs() {
+        return hasOutputs;
+    }
+
+    public boolean hasFileInputs() {
+        return hasFileInputs;
+    }
+
 }

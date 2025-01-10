@@ -70,7 +70,8 @@ public abstract class Node {
     private int index;
     private DependencyNodesSet dependencyNodes = DependencyNodesSet.EMPTY;
     private DependentNodesSet dependentNodes = DependentNodesSet.EMPTY;
-    private final MutationInfo mutationInfo = new MutationInfo();
+    private MutationInfo mutationInfo = MutationInfo.EMPTY;
+    private final ConsumerState consumerState = new ConsumerState();
     private NodeGroup group = NodeGroup.DEFAULT_GROUP;
 
     @VisibleForTesting
@@ -387,7 +388,7 @@ public abstract class Node {
 
     void addDependencyPredecessor(Node fromNode) {
         dependentNodes = dependentNodes.addDependencyPredecessors(fromNode);
-        mutationInfo.addConsumer(fromNode);
+        consumerState.addConsumer(fromNode);
     }
 
     void addMustPredecessor(TaskNode fromNode) {
@@ -589,8 +590,16 @@ public abstract class Node {
     public void visitPostExecutionNodes(Consumer<? super Node> visitor) {
     }
 
+    public void mutationsResolved(MutationInfo mutationInfo)  {
+        this.mutationInfo = mutationInfo;
+    }
+
     public MutationInfo getMutationInfo() {
         return mutationInfo;
+    }
+
+    public ConsumerState getConsumerState() {
+        return consumerState;
     }
 
     public boolean isPublicNode() {
