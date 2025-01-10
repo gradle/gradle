@@ -37,6 +37,7 @@ public class GradleContextualExecuter extends AbstractDelegatingGradleExecuter {
     private enum Executer {
         embedded(false),
         forking(true),
+        forkingDebug(true),
         noDaemon(true),
         parallel(true, true),
         configCache(true),
@@ -142,6 +143,8 @@ public class GradleContextualExecuter extends AbstractDelegatingGradleExecuter {
                 return new ParallelForkingGradleExecuter(getDistribution(), getTestDirectoryProvider(), gradleVersion, buildContext);
             case forking:
                 return new DaemonGradleExecuter(getDistribution(), getTestDirectoryProvider(), gradleVersion, buildContext);
+            case forkingDebug:
+                return new DaemonGradleExecuter(getDistribution(), getTestDirectoryProvider(), gradleVersion, buildContext).enableDebug();
             case configCache:
                 return new ConfigurationCacheGradleExecuter(getDistribution(), getTestDirectoryProvider(), gradleVersion, buildContext);
             case isolatedProjects:

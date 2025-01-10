@@ -19,11 +19,14 @@ import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.util.GradleVersion;
 
+import java.util.List;
+
 import static org.gradle.integtests.fixtures.executer.AbstractGradleExecuter.CliDaemonArgument.NO_DAEMON;
 
 public class DaemonGradleExecuter extends NoDaemonGradleExecuter {
 
     private boolean daemonExplicitlyRequired;
+    private boolean debugMode = false;
 
     public DaemonGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider) {
         super(distribution, testDirectoryProvider);
@@ -46,6 +49,11 @@ public class DaemonGradleExecuter extends NoDaemonGradleExecuter {
         return super.requireDaemon();
     }
 
+    public DaemonGradleExecuter enableDebug() {
+        debugMode = true;
+        return this;
+    }
+
     @Override
     protected void validateDaemonVisibility() {
         if (isDaemonExplicitlyRequired()) {
@@ -64,5 +72,15 @@ public class DaemonGradleExecuter extends NoDaemonGradleExecuter {
         if (!noExplicitNativeServicesDir) {
             invocation.environmentVars.put(NativeServices.NATIVE_DIR_OVERRIDE, buildContext.getNativeServicesDir().getAbsolutePath());
         }
+    }
+
+    @Override
+    protected List<String> getAllArgs() {
+        List<String> allArgs = super.getAllArgs();
+        if (debugMode) {
+            allArgs.add("-Dorg.gradle.debug=true");
+            allArgs.add("-Dorg.gradle.debug.server=false");
+        }
+        return allArgs;
     }
 }

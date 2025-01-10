@@ -81,12 +81,21 @@ fun ProjectSettings.configureCopyright() {
 
 fun ProjectSettings.configureRunConfigurations() {
     runConfigurations {
-        create<Remote>("Remote debug port 5005") {
+        create<Remote>("Remote debug port 5005 (client)") {
             mode = Remote.RemoteMode.ATTACH
             transport = Remote.RemoteTransport.SOCKET
             sharedMemoryAddress = "javadebug"
             host = "localhost"
             port = 5005
+        }
+
+        create<Remote>("Remote debug port 5005 (server)") {
+            mode = Remote.RemoteMode.LISTEN
+            transport = Remote.RemoteTransport.SOCKET
+            sharedMemoryAddress = "javadebug"
+            host = "localhost"
+            port = 5005
+            // should add auto restart here
         }
     }
 }
