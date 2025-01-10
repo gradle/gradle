@@ -227,6 +227,11 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
         }
 
         @Override
+        public int getTotalProjectCount() {
+            return projectsByPath.size();
+        }
+
+        @Override
         public void withMutableStateOfAllProjects(Runnable runnable) {
             withMutableStateOfAllProjects(Factories.toFactory(runnable));
         }
