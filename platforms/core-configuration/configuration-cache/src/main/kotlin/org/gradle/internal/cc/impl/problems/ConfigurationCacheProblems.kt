@@ -19,11 +19,12 @@ package org.gradle.internal.cc.impl.problems
 import com.google.common.collect.Sets.newConcurrentHashSet
 import org.gradle.api.logging.Logging
 import org.gradle.api.problems.ProblemGroup
+import org.gradle.api.problems.ProblemId
 import org.gradle.api.problems.ProblemSpec
 import org.gradle.api.problems.Severity
+import org.gradle.api.problems.internal.DefaultPropertyTraceData
 import org.gradle.api.problems.internal.GradleCoreProblemGroup
 import org.gradle.api.problems.internal.InternalProblems
-import org.gradle.api.problems.internal.PropertyTraceDataSpec
 import org.gradle.initialization.RootBuildLifecycleListener
 import org.gradle.internal.cc.impl.ConfigurationCacheAction
 import org.gradle.internal.cc.impl.ConfigurationCacheAction.STORE
@@ -196,19 +197,17 @@ class ConfigurationCacheProblems(
     private
     fun InternalProblems.onProblem(problem: PropertyProblem, severity: ProblemSeverity) {
         val message = problem.message.render()
-        internalReporter.internalCreate {
-            id(
-                DeprecationMessageBuilder.createDefaultDeprecationId(message),
-                message,
-                configCacheValidation
-            )
+        val problemId = ProblemId.create(
+            DeprecationMessageBuilder.createDefaultDeprecationId(message),
+            message,
+            configCacheValidation
+        )
+        internalReporter.create(problemId) {
             contextualLabel(message)
             documentOfProblem(problem)
             locationOfProblem(problem)
             severity(severity.toProblemSeverity())
-            additionalData(PropertyTraceDataSpec::class.java) {
-                trace(problem.trace.containingUserCode)
-            }
+            additionalData(DefaultPropertyTraceData(problem.trace.containingUserCode))
         }.also { internalReporter.report(it) }
     }
 

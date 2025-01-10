@@ -17,10 +17,12 @@
 package org.gradle.launcher.daemon.server;
 
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.build.event.types.DefaultProblemEvent;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.daemon.clientinput.StdinHandler;
 import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.launcher.daemon.protocol.BuildEvent;
 import org.gradle.launcher.daemon.protocol.BuildStarted;
@@ -34,7 +36,6 @@ import org.gradle.launcher.daemon.protocol.OutputMessage;
 import org.gradle.launcher.daemon.protocol.Result;
 import org.gradle.launcher.daemon.protocol.UserResponse;
 import org.gradle.launcher.daemon.server.api.DaemonConnection;
-import org.gradle.internal.daemon.clientinput.StdinHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -142,7 +143,11 @@ public class DefaultDaemonConnection implements DaemonConnection {
 
     @Override
     public void event(Object event) {
-        connection.dispatchAndFlush(new BuildEvent(event));
+        if (event instanceof DefaultProblemEvent) {
+            connection.dispatchAndFlush(new org.gradle.launcher.daemon.protocol.ProblemEvent(event));
+        } else {
+            connection.dispatchAndFlush(new BuildEvent(event));
+        }
     }
 
     @Override

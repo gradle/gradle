@@ -18,20 +18,11 @@ package org.gradle.api.problems.internal;
 
 import org.gradle.internal.component.resolution.failure.interfaces.ResolutionFailure;
 
-import javax.annotation.Nullable;
-
 /**
  * Default implementation of {@link ResolutionFailureData}.
  */
 public class DefaultResolutionFailureData implements ResolutionFailureData {
     private final ResolutionFailure resolutionFailure;
-
-    public static AdditionalDataBuilder<ResolutionFailureData> builder(@Nullable ResolutionFailureData resolutionFailure) {
-        if (resolutionFailure == null) {
-            return new DefaultResolutionFailureDataBuilder();
-        }
-        return new DefaultResolutionFailureDataBuilder(resolutionFailure);
-    }
 
     public DefaultResolutionFailureData(ResolutionFailure resolutionFailure) {
         this.resolutionFailure = resolutionFailure;
@@ -40,26 +31,5 @@ public class DefaultResolutionFailureData implements ResolutionFailureData {
     @Override
     public ResolutionFailure getResolutionFailure() {
         return resolutionFailure;
-    }
-
-    private static class DefaultResolutionFailureDataBuilder implements ResolutionFailureDataSpec, AdditionalDataBuilder<ResolutionFailureData> {
-        private ResolutionFailure failure;
-
-        public DefaultResolutionFailureDataBuilder(ResolutionFailureData from) {
-            this.failure = from.getResolutionFailure();
-        }
-
-        public DefaultResolutionFailureDataBuilder() { /* empty */ }
-
-        @Override
-        public ResolutionFailureDataSpec from(ResolutionFailure failure){
-            this.failure = failure;
-            return this;
-        }
-
-        @Override
-        public ResolutionFailureData build() {
-            return new DefaultResolutionFailureData(failure);
-        }
     }
 }

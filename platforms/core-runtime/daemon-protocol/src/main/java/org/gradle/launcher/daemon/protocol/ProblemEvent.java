@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.internal;
+package org.gradle.launcher.daemon.protocol;
 
 /**
- * Specifies configuration options when creating a new DeprecationData instance.
+ * Some arbitrary build event sent from build logic back to the build requester.
  */
-public interface DeprecationDataSpec extends AdditionalDataSpec {
-    DeprecationDataSpec type(DeprecationData.Type type);
+public class ProblemEvent extends Message {
+    private final Object payload;
+
+    public ProblemEvent(Object payload) {
+        this.payload = payload;
+    }
+
+    public Object getPayload() {
+        return payload;
+    }
+
+    @Override
+    public String toString() {
+        return getClass().getSimpleName() + "[problemEvent=" + payload + "]";
+    }
 }

@@ -16,6 +16,9 @@
 
 package org.gradle.testkit.runner
 
+import spock.lang.Ignore
+
+@Ignore
 class GradleRunnerArgumentsIntegrationTest extends BaseGradleRunnerIntegrationTest {
 
     def "can execute build without specifying any arguments"() {

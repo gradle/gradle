@@ -18,10 +18,7 @@ package org.gradle.internal.reflect;
 
 import org.gradle.api.Action;
 import org.gradle.api.problems.Problem;
-import org.gradle.api.problems.internal.AdditionalDataBuilderFactory;
 import org.gradle.api.problems.internal.DefaultProblemBuilder;
-import org.gradle.api.problems.internal.InternalProblems;
-import org.gradle.api.problems.internal.TypeValidationDataSpec;
 import org.gradle.internal.reflect.validation.DefaultTypeAwareProblemBuilder;
 import org.gradle.internal.reflect.validation.TypeAwareProblemBuilder;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
@@ -36,16 +33,13 @@ import java.util.function.Supplier;
 abstract public class ProblemRecordingTypeValidationContext implements TypeValidationContext {
     private final Class<?> rootType;
     private final Supplier<Optional<PluginId>> pluginId;
-    private final InternalProblems problems;
 
     public ProblemRecordingTypeValidationContext(
         @Nullable Class<?> rootType,
-        Supplier<Optional<PluginId>> pluginId,
-        InternalProblems problems
+        Supplier<Optional<PluginId>> pluginId
     ) {
         this.rootType = rootType;
         this.pluginId = pluginId;
-        this.problems = problems;
     }
 
     @Override
@@ -63,13 +57,12 @@ abstract public class ProblemRecordingTypeValidationContext implements TypeValid
         problemBuilder.withAnnotationType(rootType);
         pluginId()
             .map(PluginId::getId)
-            .ifPresent(id -> problemBuilder.additionalData(TypeValidationDataSpec.class, data -> data.pluginId(id)));
+            .ifPresent(id -> problemBuilder.pluginId(id));
         recordProblem(problemBuilder.build());
     }
 
     private @Nonnull DefaultTypeAwareProblemBuilder getDefaultTypeAwareProblemBuilder(Action<? super TypeAwareProblemBuilder> problemSpec) {
-        AdditionalDataBuilderFactory additionalDataBuilderFactory = problems.getAdditionalDataBuilderFactory();
-        DefaultTypeAwareProblemBuilder problemBuilder = new DefaultTypeAwareProblemBuilder(new DefaultProblemBuilder((ProblemStream) null, additionalDataBuilderFactory), additionalDataBuilderFactory);
+        DefaultTypeAwareProblemBuilder problemBuilder = new DefaultTypeAwareProblemBuilder(new DefaultProblemBuilder((ProblemStream) null));
         problemSpec.execute(problemBuilder);
         return problemBuilder;
     }

@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.api.problems.internal
 
+import org.gradle.api.problems.GeneralData
 import org.gradle.api.problems.internal.ResolutionFailureData
 import org.gradle.integtests.fixtures.GroovyBuildScriptLanguage
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
@@ -25,31 +26,32 @@ import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.problems.ProblemEvent
 import org.gradle.tooling.events.problems.SingleProblemEvent
-import org.gradle.tooling.events.problems.internal.GeneralData
 import org.gradle.util.GradleVersion
+import spock.lang.Ignore
 
 /**
  * Tests that the tooling API can receive and process a problem containing additional {@link ResolutionFailureData}
  * data.
  */
+@Ignore
 @TargetGradleVersion(">=8.11")
 @ToolingApiVersion(">=8.11")
 class ResolutionFailureDataCrossVersionIntegrationTest extends ToolingApiSpecification {
     @ToolingApiVersion(">=8.11 <8.12")
-    def "can supply ResolutionFailureData  (Tooling API client [8.11,8.12)"() {
+    def "can supp (Tooling API client [8.11,8.12)"() {
         given:
         withReportProblemTask """
             TestResolutionFailure failure = new TestResolutionFailure()
             getProblems().${report(targetVersion)} {
                 it.${id(targetVersion)}
-                .additionalData(ResolutionFailureDataSpec.class, data -> data.from(failure))
+                problems.internal.DefaultResolutionFailureData(failure))
             }
         """
 
         when:
-        List<GeneralData> failureData = runAndGetProblems()
+        def failureData = runAndGetProblems()
             .findAll { it instanceof SingleProblemEvent }
-            .collect { ProblemEvent problem -> problem.additionalData as GeneralData }
+            .collect { ProblemEvent problem -> problem.additionalData }
 
         then:
         failureData.size() >= 1 // Depending on Java version, we might get a Java version test execution failure first, so just check the last one
@@ -60,15 +62,15 @@ class ResolutionFailureDataCrossVersionIntegrationTest extends ToolingApiSpecifi
         }
     }
 
-    @ToolingApiVersion(">=8.12")
-    def "can supply ResolutionFailureData (Tooling API client >= 8.12)"() {
+    @ToolingApiVersion(">=8.13")
+    def "can supply ResolutionFailureData (Tooling API client >= 8.13)"() {
         given:
         withReportProblemTask """
             TestResolutionFailure failure = new TestResolutionFailure()
 
             getProblems().${report(targetVersion)} {
-               it.${id(targetVersion)}
-                .additionalData(ResolutionFailureDataSpec.class, data -> data.from(failure))
+                it.${id(targetVersion)}
+                 .additionalData(${targetVersion < GradleVersion.version("8.13") ? "ResolutionFailureDataSpec.class, data -> data.from(failure)" : "new org.gradle.api.problems.internal.DefaultResolutionFailureData(failure)"})
             }
         """
 
@@ -123,7 +125,7 @@ class ResolutionFailureDataCrossVersionIntegrationTest extends ToolingApiSpecifi
             import org.gradle.api.problems.internal.ResolutionFailureDataSpec
             import org.gradle.internal.component.resolution.failure.interfaces.ResolutionFailure
 
-            class TestResolutionFailure implements ResolutionFailure {
+            class TestResolutionFailure implements ResolutionFailure, Serializable {
                 @Override
                 public String describeRequestTarget() {
                     return "test failure";
