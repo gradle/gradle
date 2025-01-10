@@ -31,7 +31,7 @@ public class DefaultGradleEnterprisePluginAdapterFactory {
     private final GradleEnterprisePluginRequiredServices requiredServices;
     private final GradleEnterprisePluginBuildState buildState;
     private final GradleEnterprisePluginBackgroundJobExecutorsInternal backgroundJobExecutors;
-    private final DefaultGradleEnterprisePluginServiceRef pluginServiceRef;
+    private final GradleEnterprisePluginServiceRefInternal pluginServiceRef;
     private final BuildOperationNotificationListenerRegistrar buildOperationNotificationListenerRegistrar;
 
     public DefaultGradleEnterprisePluginAdapterFactory(
@@ -39,7 +39,7 @@ public class DefaultGradleEnterprisePluginAdapterFactory {
         GradleEnterprisePluginRequiredServices requiredServices,
         GradleEnterprisePluginBuildState buildState,
         GradleEnterprisePluginBackgroundJobExecutorsInternal backgroundJobExecutors,
-        DefaultGradleEnterprisePluginServiceRef pluginServiceRef,
+        GradleEnterprisePluginServiceRefInternal pluginServiceRef,
         BuildOperationNotificationListenerRegistrar buildOperationNotificationListenerRegistrar
     ) {
         this.config = config;

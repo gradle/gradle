@@ -36,7 +36,7 @@ public class GradleEnterprisePluginServices extends AbstractGradleModuleServices
     public void registerBuildTreeServices(ServiceRegistration registration) {
         registration.add(GradleEnterpriseAutoAppliedPluginRegistry.class);
         registration.add(GradleEnterprisePluginAutoAppliedStatus.class);
-        registration.add(DefaultGradleEnterprisePluginServiceRef.class);
+        registration.add(GradleEnterprisePluginServiceRefInternal.class, DefaultGradleEnterprisePluginServiceRef.class);
         registration.add(GradleEnterprisePluginBuildState.class, DefaultGradleEnterprisePluginBuildState.class);
         registration.add(GradleEnterprisePluginConfig.class, DefaultGradleEnterprisePluginConfig.class);
         registration.add(GradleEnterprisePluginBackgroundJobExecutorsInternal.class, DefaultGradleEnterprisePluginBackgroundJobExecutors.class);

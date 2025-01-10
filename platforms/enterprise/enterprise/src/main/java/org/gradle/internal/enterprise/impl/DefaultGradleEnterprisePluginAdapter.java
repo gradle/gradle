@@ -47,7 +47,7 @@ public class DefaultGradleEnterprisePluginAdapter implements GradleEnterprisePlu
     private final GradleEnterprisePluginRequiredServices requiredServices;
     private final GradleEnterprisePluginBuildState buildState;
     private final GradleEnterprisePluginBackgroundJobExecutorsInternal backgroundJobExecutors;
-    private final DefaultGradleEnterprisePluginServiceRef pluginServiceRef;
+    private final GradleEnterprisePluginServiceRefInternal pluginServiceRef;
 
     private final BuildOperationNotificationListenerRegistrar buildOperationNotificationListenerRegistrar;
 
@@ -59,7 +59,7 @@ public class DefaultGradleEnterprisePluginAdapter implements GradleEnterprisePlu
         GradleEnterprisePluginRequiredServices requiredServices,
         GradleEnterprisePluginBuildState buildState,
         GradleEnterprisePluginBackgroundJobExecutorsInternal backgroundJobExecutors,
-        DefaultGradleEnterprisePluginServiceRef pluginServiceRef,
+        GradleEnterprisePluginServiceRefInternal pluginServiceRef,
         BuildOperationNotificationListenerRegistrar buildOperationNotificationListenerRegistrar
     ) {
         this.pluginServiceFactory = pluginServiceFactory;
