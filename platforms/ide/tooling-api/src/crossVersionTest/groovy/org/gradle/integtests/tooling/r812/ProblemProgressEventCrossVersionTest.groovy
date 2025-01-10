@@ -31,7 +31,7 @@ import org.gradle.tooling.events.problems.LineInFileLocation
 import org.gradle.tooling.events.problems.Problem
 import org.gradle.tooling.events.problems.Severity
 import org.gradle.tooling.events.problems.SingleProblemEvent
-import org.gradle.tooling.events.problems.internal.GeneralData
+import org.gradle.util.GradleVersion
 import org.junit.Assume
 
 import static org.gradle.integtests.fixtures.AvailableJavaHomes.getJdk17
@@ -103,7 +103,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
                 $documentationConfig
                 .lineInFileLocation("/tmp/foo", 1, 2, 3)
                 $detailsConfig
-                .additionalData(org.gradle.api.problems.internal.GeneralDataSpec, data -> data.put("aKey", "aValue"))
+                .additionalData(${getGeneralDataString()})
                 .severity(Severity.WARNING)
                 .solution("try this instead")
             }
@@ -139,7 +139,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
                 $documentationConfig
                 .lineInFileLocation("/tmp/foo", 1, 2, 3)
                 $detailsConfig
-                .additionalData(org.gradle.api.problems.internal.GeneralDataSpec, data -> data.put("aKey", "aValue"))
+                .additionalData(${getGeneralDataString()})
                 .severity(Severity.WARNING)
                 .solution("try this instead")
             }
@@ -166,6 +166,10 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         detailsConfig              | expectedDetails | documentationConfig                         | expecteDocumentation
         '.details("long message")' | "long message"  | '.documentedAt("https://docs.example.org")' | 'https://docs.example.org'
         ''                         | null            | ''                                          | null
+    }
+
+    def getGeneralDataString() {
+        targetVersion < GradleVersion.version("8.13") ? "org.gradle.api.problems.internal.GeneralDataSpec, data -> data.put('aKey', 'aValue')" : "new org.gradle.api.problems.internal.DefaultGeneralData(['aKey': 'aValue'])"
     }
 
     def "Can serialize groovy compilation error"() {
@@ -262,7 +266,8 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         then:
         thrown(BuildException)
         listener.problems.size() == 1
-        (listener.problems[0].additionalData as GeneralData).asMap['typeName']== 'MyTask'
+        def gd = listener.problems[0].additionalData
+        gd.asMap['typeName'] == 'MyTask'
     }
 
     @TargetGradleVersion("=8.6")

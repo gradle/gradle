@@ -16,13 +16,14 @@
 
 package org.gradle.execution.selection;
 
+import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Task;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.ProblemSpec;
 import org.gradle.api.problems.Severity;
-import org.gradle.api.problems.internal.GeneralDataSpec;
+import org.gradle.api.problems.internal.DefaultGeneralData;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblemSpec;
 import org.gradle.api.problems.internal.InternalProblems;
@@ -184,7 +185,7 @@ public class DefaultBuildTaskSelector implements BuildTaskSelector {
     private static void configureProblem(ProblemSpec spec, String message, String requestedPath) {
         spec.contextualLabel(message);
         spec.severity(Severity.ERROR);
-        ((InternalProblemSpec) spec).additionalData(GeneralDataSpec.class, data -> data.put("requestedPath", Objects.requireNonNull(requestedPath)));
+        ((InternalProblemSpec) spec).additionalData(new DefaultGeneralData(ImmutableMap.of("requestedPath", Objects.requireNonNull(requestedPath))));
     }
 
     private TaskSelector.SelectionContext sanityCheckPath(String name, String type) {

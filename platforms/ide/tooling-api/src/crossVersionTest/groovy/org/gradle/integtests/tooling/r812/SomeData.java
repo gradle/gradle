@@ -14,15 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.internal;
+package org.gradle.integtests.tooling.r812;
 
-/**
- * Specifies configuration options when creating a new TypeValidationData instance.
- */
-public interface TypeValidationDataSpec extends AdditionalDataSpec {
-    TypeValidationDataSpec pluginId(String pluginId);
-    TypeValidationDataSpec propertyName(String propertyName);
-    TypeValidationDataSpec functionName(String methodName);
-    TypeValidationDataSpec parentPropertyName(String parentPropertyName);
-    TypeValidationDataSpec typeName(String typeName);
+public interface SomeData {
+    String getTypeName();
 }

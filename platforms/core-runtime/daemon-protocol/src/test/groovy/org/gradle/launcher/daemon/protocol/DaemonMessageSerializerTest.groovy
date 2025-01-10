@@ -18,6 +18,7 @@ package org.gradle.launcher.daemon.protocol
 
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.logging.LogLevel
+import org.gradle.api.problems.internal.DefaultGeneralData
 import org.gradle.configuration.GradleLauncherMetaData
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.invocation.BuildAction
@@ -38,10 +39,11 @@ import org.gradle.internal.serialize.SerializerSpec
 import org.gradle.launcher.daemon.diagnostics.DaemonDiagnostics
 import org.gradle.launcher.exec.BuildActionResult
 import org.gradle.launcher.exec.DefaultBuildActionParameters
+import org.gradle.tooling.internal.provider.serialization.PayloadSerializerTest
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload
 
 class DaemonMessageSerializerTest extends SerializerSpec {
-    def serializer = DaemonMessageSerializer.create(new DefaultSerializer<BuildAction>())
+    def serializer = DaemonMessageSerializer.create(new DefaultSerializer<BuildAction>(), { PayloadSerializerTest.createPayloadSerializer() })
 
     def "can serialize BuildEvent messages"() {
         expect:
@@ -49,6 +51,14 @@ class DaemonMessageSerializerTest extends SerializerSpec {
         def result = serialize(event, serializer)
         result instanceof BuildEvent
         result.payload == ["a", "b", "c"]
+    }
+
+    def "can serialize BuildEvent messages with AdditionalData"() {
+        expect:
+        def event = new BuildEvent(Arrays.asList(new DefaultGeneralData(["sdf": "sdf"])))
+        def result = serialize(event, serializer)
+        result instanceof BuildEvent
+        result.payload[0].asMap == ["sdf": "sdf"]
     }
 
     def "can serialize LogLevelChangeEvent messages"() {

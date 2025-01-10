@@ -75,7 +75,6 @@ import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskStatistics;
 import org.gradle.api.invocation.BuildInvocationDetails;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.problems.internal.AdditionalDataBuilderFactory;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.services.internal.BuildServiceProvider;
 import org.gradle.api.services.internal.BuildServiceProviderNagger;
@@ -798,11 +797,6 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
     @Provides
     protected SharedModelDefaults createSharedModelDefaults(Instantiator instantiator, SoftwareTypeRegistry softwareTypeRegistry) {
         return instantiator.newInstance(DefaultSharedModelDefaults.class, softwareTypeRegistry);
-    }
-
-    @Provides
-    protected AdditionalDataBuilderFactory createAdditionalDataBuilderFactory() {
-        return new AdditionalDataBuilderFactory();
     }
 
     @Provides

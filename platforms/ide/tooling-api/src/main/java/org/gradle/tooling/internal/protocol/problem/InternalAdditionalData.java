@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,12 @@ package org.gradle.tooling.internal.protocol.problem;
 
 import java.util.Map;
 
-public interface InternalAdditionalData {
+/**
+ * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
+ *
+ * @since 8.6
+ */
 
+public interface InternalAdditionalData {
     Map<String, Object> getAsMap();
 }

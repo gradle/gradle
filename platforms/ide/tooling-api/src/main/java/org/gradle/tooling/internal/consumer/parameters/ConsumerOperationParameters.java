@@ -298,7 +298,8 @@ public class ConsumerOperationParameters implements BuildParameters {
         // this ensures that when multiple requests are issued that are built from the same builder, such requests do not share any state kept in the listener adapters
         // e.g. if the listener adapters do per-request caching, such caching must not leak between different requests built from the same builder
         this.progressListener = new ProgressListenerAdapter(this.legacyProgressListeners);
-        this.buildProgressListener = new FailsafeBuildProgressListenerAdapter(new BuildProgressListenerAdapter(this.progressListeners));
+        this.buildProgressListener = new FailsafeBuildProgressListenerAdapter(
+            new BuildProgressListenerAdapter(this.progressListeners));
     }
 
     private static void validateJavaHome(File javaHome) {

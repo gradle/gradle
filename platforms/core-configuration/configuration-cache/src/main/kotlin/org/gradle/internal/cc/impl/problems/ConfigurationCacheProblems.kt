@@ -21,9 +21,9 @@ import org.gradle.api.logging.Logging
 import org.gradle.api.problems.ProblemGroup
 import org.gradle.api.problems.ProblemSpec
 import org.gradle.api.problems.Severity
+import org.gradle.api.problems.internal.DefaultPropertyTraceData
 import org.gradle.api.problems.internal.GradleCoreProblemGroup
 import org.gradle.api.problems.internal.InternalProblems
-import org.gradle.api.problems.internal.PropertyTraceDataSpec
 import org.gradle.initialization.RootBuildLifecycleListener
 import org.gradle.internal.cc.impl.ConfigurationCacheAction
 import org.gradle.internal.cc.impl.ConfigurationCacheAction.STORE
@@ -206,9 +206,7 @@ class ConfigurationCacheProblems(
             documentOfProblem(problem)
             locationOfProblem(problem)
             severity(severity.toProblemSeverity())
-            additionalData(PropertyTraceDataSpec::class.java) {
-                trace(problem.trace.containingUserCode)
-            }
+            additionalData(DefaultPropertyTraceData(problem.trace.containingUserCode))
         }.also { internalReporter.report(it) }
     }
 

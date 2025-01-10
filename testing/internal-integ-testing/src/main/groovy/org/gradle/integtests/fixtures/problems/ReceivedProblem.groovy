@@ -18,6 +18,7 @@ package org.gradle.integtests.fixtures.problems
 
 import groovy.transform.CompileStatic
 import org.gradle.api.problems.AdditionalData
+import org.gradle.api.problems.DocLink
 import org.gradle.api.problems.FileLocation
 import org.gradle.api.problems.LineInFileLocation
 import org.gradle.api.problems.OffsetInFileLocation
@@ -26,7 +27,6 @@ import org.gradle.api.problems.ProblemGroup
 import org.gradle.api.problems.ProblemId
 import org.gradle.api.problems.ProblemLocation
 import org.gradle.api.problems.Severity
-import org.gradle.api.problems.internal.AdditionalDataBuilderFactory
 import org.gradle.api.problems.internal.InternalDocLink
 import org.gradle.api.problems.internal.InternalProblem
 import org.gradle.api.problems.internal.InternalProblemBuilder
@@ -64,7 +64,7 @@ class ReceivedProblem implements InternalProblem {
         List<ProblemLocation> result = []
         locations.each { location ->
             if (location['pluginId'] != null) {
-                result += new ReceivedPluginIdLocation(location as Map<String, Object>)
+                result += new ReceivedPluginIdLocation(location as Map<String, String>)
             } else if (location['line'] != null) {
                 result += new ReceivedLineInFileLocation(location as Map<String, Object>)
             } else if (location['offset'] != null) {
@@ -99,7 +99,7 @@ class ReceivedProblem implements InternalProblem {
     }
 
     @Override
-    ReceivedProblemDefinition getDefinition() {
+    ProblemDefinition getDefinition() {
         definition
     }
 
@@ -146,7 +146,7 @@ class ReceivedProblem implements InternalProblem {
     }
 
     @Override
-    ReceivedAdditionalData getAdditionalData() {
+    AdditionalData getAdditionalData() {
        additionalData
     }
 
@@ -156,7 +156,7 @@ class ReceivedProblem implements InternalProblem {
     }
 
     @Override
-    InternalProblemBuilder toBuilder(AdditionalDataBuilderFactory additionalDataBuilderFactory) {
+    InternalProblemBuilder toBuilder() {
         throw new UnsupportedOperationException("Not implemented")
     }
 
@@ -182,7 +182,7 @@ class ReceivedProblem implements InternalProblem {
         }
 
         @Override
-        ReceivedDocumentationLink getDocumentationLink() {
+        DocLink getDocumentationLink() {
             documentationLink
         }
     }
@@ -361,7 +361,7 @@ class ReceivedProblem implements InternalProblem {
     static class ReceivedPluginIdLocation implements PluginIdLocation {
         private final String pluginId
 
-        ReceivedPluginIdLocation(Map<String, Object> location) {
+        ReceivedPluginIdLocation(Map<String, String> location) {
             this.pluginId = location['pluginId'] as String
         }
 

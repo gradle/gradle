@@ -35,8 +35,8 @@ import org.gradle.launcher.daemon.client.NotifyDaemonClientExecuter;
 import org.gradle.launcher.exec.BuildExecutor;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.provider.serialization.ClassLoaderCache;
+import org.gradle.tooling.internal.provider.serialization.DefaultPayloadClassLoaderFactory;
 import org.gradle.tooling.internal.provider.serialization.DefaultPayloadClassLoaderRegistry;
-import org.gradle.tooling.internal.provider.serialization.ModelClassLoaderFactory;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.WellKnownClassLoaderRegistry;
 
@@ -75,28 +75,33 @@ public class ConnectionScopeServices implements ServiceRegistrationProvider {
         GlobalUserInputReceiver userInput,
         UserInputReader userInputReader,
         ShutdownCoordinator shutdownCoordinator,
-        NotifyDaemonClientExecuter notifyDaemonClientExecuter) {
-        ClassLoaderCache classLoaderCache = new ClassLoaderCache();
+        NotifyDaemonClientExecuter notifyDaemonClientExecuter
+    ) {
         return new ProviderConnection(
-                serviceRegistry,
-                buildLayoutFactory,
-                daemonClientFactory,
-                buildActionExecuter,
-                new PayloadSerializer(
-                        new WellKnownClassLoaderRegistry(
-                            new ClientSidePayloadClassLoaderRegistry(
-                                new DefaultPayloadClassLoaderRegistry(
-                                    classLoaderCache,
-                                    new ClientSidePayloadClassLoaderFactory(
-                                        new ModelClassLoaderFactory())),
-                                new ClasspathInferer(),
-                                classLoaderCache))),
+            serviceRegistry,
+            buildLayoutFactory,
+            daemonClientFactory,
+            buildActionExecuter,
+            createPayloadSerializer(),
             fileCollectionFactory,
             userInput,
             userInputReader,
             shutdownCoordinator,
             notifyDaemonClientExecuter
         );
+    }
+
+    public static PayloadSerializer createPayloadSerializer() {
+        ClassLoaderCache classLoaderCache = new ClassLoaderCache();
+        return new PayloadSerializer(
+            new WellKnownClassLoaderRegistry(
+                new ClientSidePayloadClassLoaderRegistry(
+                    new DefaultPayloadClassLoaderRegistry(
+                        classLoaderCache,
+                        new ClientSidePayloadClassLoaderFactory(
+                            new DefaultPayloadClassLoaderFactory())),
+                    new ClasspathInferer(),
+                    classLoaderCache)));
     }
 
     @Provides

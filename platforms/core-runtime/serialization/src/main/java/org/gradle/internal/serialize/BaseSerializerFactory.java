@@ -18,6 +18,7 @@ package org.gradle.internal.serialize;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableMap;
+import org.gradle.api.NonNullApi;
 import org.gradle.internal.Cast;
 import org.gradle.internal.hash.HashCode;
 
@@ -28,6 +29,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
 
+@NonNullApi
 public class BaseSerializerFactory {
     public static final Serializer<String> STRING_SERIALIZER = new StringSerializer();
     public static final Serializer<Boolean> BOOLEAN_SERIALIZER = new BooleanSerializer();
