@@ -128,6 +128,13 @@ public interface ProjectState extends ModelContainer<ProjectInternal> {
     void ensureConfigured();
 
     /**
+     * Configures the mutable model for this project, if not already.
+     *
+     * @throws IllegalStateException when the parent of this model is not already configured.
+     */
+    void ensureSelfConfigured();
+
+    /**
      * Configure the mutable model for this project and discovers any registered tasks, if not already done.
      */
     void ensureTasksDiscovered();
