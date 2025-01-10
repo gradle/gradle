@@ -27,6 +27,8 @@ import org.gradle.internal.enterprise.impl.legacy.DefaultBuildScanClock;
 import org.gradle.internal.enterprise.impl.legacy.DefaultBuildScanScopeIds;
 import org.gradle.internal.enterprise.impl.legacy.LegacyGradleEnterprisePluginCheckInService;
 import org.gradle.internal.scan.scopeids.BuildScanScopeIds;
+import org.gradle.internal.scan.time.BuildScanBuildStartedTime;
+import org.gradle.internal.scan.time.BuildScanClock;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 
@@ -43,8 +45,8 @@ public class GradleEnterprisePluginServices extends AbstractGradleModuleServices
         registration.add(DevelocityPluginUnsafeConfigurationService.class, DefaultDevelocityPluginUnsafeConfigurationService.class);
 
         // legacy
-        registration.add(DefaultBuildScanClock.class);
-        registration.add(DefaultBuildScanBuildStartedTime.class);
+        registration.add(BuildScanClock.class, DefaultBuildScanClock.class);
+        registration.add(BuildScanBuildStartedTime.class, DefaultBuildScanBuildStartedTime.class);
     }
 
     @Override
