@@ -14,6 +14,7 @@ dependencies {
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.workers))
     testImplementation(testFixtures(projects.toolchainsJvm))
+    testImplementation(testFixtures(projects.toolchainsJvmShared))
 
     integTestImplementation(projects.fileWatching)
     integTestImplementation(projects.jvmServices)

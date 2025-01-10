@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ import org.gradle.api.GradleException;
 import org.gradle.api.internal.file.FileFactory;
 import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.api.internal.provider.ProviderInternal;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.deprecation.Documentation;
 import org.gradle.internal.deprecation.DocumentedFailure;
@@ -36,7 +35,7 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.internal.install.JavaToolchainProvisioningService;
-import org.gradle.platform.BuildPlatform;
+import org.gradle.jvm.toolchain.internal.install.exceptions.NoToolchainAvailableException;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -49,7 +48,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.Predicate;
 
-@ServiceScope(Scope.Project.class) //TODO #24353: should be much higher scoped, as many other toolchain related services, but is bogged down by the scope of services it depends on
+@ServiceScope({Scope.Global.class, Scope.Project.class})
 public class JavaToolchainQueryService {
 
     private static final class ToolchainLookupKey {
@@ -95,46 +94,42 @@ public class JavaToolchainQueryService {
         }
     };
 
-    private final JavaInstallationRegistry registry;
     private final FileFactory fileFactory;
     private final JvmMetadataDetector detector;
     private final JavaToolchainProvisioningService installService;
     // Map values are either `JavaToolchain` or `Exception`
     private final ConcurrentMap<ToolchainLookupKey, Object> matchingToolchains;
-    private final CurrentJvmToolchainSpec fallbackToolchainSpec;
+    private final JavaToolchainSpec fallbackToolchainSpec;
     private final File currentJavaHome;
-    private final BuildPlatform buildPlatform;
+    private final JavaInstallationRegistry registry;
 
     @Inject
     public JavaToolchainQueryService(
-        JavaInstallationRegistry registry,
         JvmMetadataDetector detector,
         FileFactory fileFactory,
         JavaToolchainProvisioningService provisioningService,
-        ObjectFactory objectFactory,
-        BuildPlatform buildPlatform
+        JavaInstallationRegistry registry,
+        JavaToolchainSpec fallbackToolchainSpec
     ) {
-        this(registry, detector, fileFactory, provisioningService, objectFactory, Jvm.current().getJavaHome(), buildPlatform);
+        this(detector, fileFactory, provisioningService, registry, fallbackToolchainSpec, Jvm.current().getJavaHome());
     }
 
     @VisibleForTesting
     JavaToolchainQueryService(
-        JavaInstallationRegistry registry,
         JvmMetadataDetector detector,
         FileFactory fileFactory,
         JavaToolchainProvisioningService provisioningService,
-        ObjectFactory objectFactory,
-        File currentJavaHome,
-        BuildPlatform buildPlatform
+        JavaInstallationRegistry registry,
+        JavaToolchainSpec fallbackToolchainSpec,
+        File currentJavaHome
     ) {
-        this.registry = registry;
         this.detector = detector;
         this.fileFactory = fileFactory;
         this.installService = provisioningService;
         this.matchingToolchains = new ConcurrentHashMap<>();
-        this.fallbackToolchainSpec = objectFactory.newInstance(CurrentJvmToolchainSpec.class);
+        this.fallbackToolchainSpec = fallbackToolchainSpec;
         this.currentJavaHome = currentJavaHome;
-        this.buildPlatform = buildPlatform;
+        this.registry = registry;
     }
 
     public ProviderInternal<JavaToolchain> findMatchingToolchain(JavaToolchainSpec filter) {
@@ -158,7 +153,7 @@ public class JavaToolchainQueryService {
         }
 
         boolean useFallback = !requestedSpec.isConfigured();
-        JavaToolchainSpecInternal actualSpec = useFallback ? fallbackToolchainSpec : requestedSpec;
+        JavaToolchainSpec actualSpec = useFallback ? fallbackToolchainSpec : requestedSpec;
         // We can't use the key of the fallback toolchain spec, because it is a spec that can match configured requests as well
         JavaToolchainSpecInternal.Key actualSpecKey = useFallback ? FALLBACK_TOOLCHAIN_KEY : requestedSpec.toKey();
         ToolchainLookupKey actualKey = new ToolchainLookupKey(actualSpecKey, requiredCapabilities);
@@ -224,7 +219,7 @@ public class JavaToolchainQueryService {
             // TODO: inform installation process of required capabilities, needs public API change
             installation = installService.tryInstall(spec);
         } catch (ToolchainDownloadFailedException e) {
-            throw new NoToolchainAvailableException(spec, buildPlatform, e);
+            throw new NoToolchainAvailableException(spec, e);
         }
 
         InstallationLocation downloadedInstallation = InstallationLocation.autoProvisioned(installation, "provisioned toolchain");

@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm.toolchain.internal.install;
+/**
+ * The Gradle build configuration resolvers internals.
+ */
+@NonNullApi
+package org.gradle.internal.buildconfiguration.resolvers;
 
-import org.gradle.jvm.toolchain.JavaToolchainSpec;
-import org.gradle.jvm.toolchain.internal.ToolchainDownloadFailedException;
-
-import java.io.File;
-
-public interface JavaToolchainProvisioningService {
-
-    File tryInstall(JavaToolchainSpec spec) throws ToolchainDownloadFailedException;
-
-    boolean isAutoDownloadEnabled();
-
-    boolean hasConfiguredToolchainRepositories();
-}
+import org.gradle.api.NonNullApi;
