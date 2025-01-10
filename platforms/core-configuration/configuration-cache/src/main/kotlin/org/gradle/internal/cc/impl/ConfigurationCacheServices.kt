@@ -24,6 +24,8 @@ import org.gradle.api.internal.tasks.TaskExecutionAccessChecker
 import org.gradle.api.internal.tasks.execution.TaskExecutionAccessListener
 import org.gradle.execution.ExecutionAccessChecker
 import org.gradle.execution.ExecutionAccessListener
+import org.gradle.internal.build.BuildModelControllerServices
+import org.gradle.internal.build.BuildToolingModelControllerFactory
 import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.buildtree.BuildTreeModelControllerServices
@@ -63,8 +65,8 @@ class ConfigurationCacheServices : AbstractGradleModuleServices() {
         registration.run {
             add(BuildNameProvider::class.java)
             add(ConfigurationCacheKey::class.java)
-            add(DefaultBuildModelControllerServices::class.java)
-            add(DefaultBuildToolingModelControllerFactory::class.java)
+            add(BuildModelControllerServices::class.java, DefaultBuildModelControllerServices::class.java)
+            add(BuildToolingModelControllerFactory::class.java, DefaultBuildToolingModelControllerFactory::class.java)
             add(DeprecatedFeaturesListener::class.java)
             add(InputTrackingState::class.java)
             add(InstrumentedExecutionAccessListener::class.java)

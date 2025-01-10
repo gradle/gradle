@@ -17,10 +17,13 @@
 package org.gradle.caching.internal.origin;
 
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.time.Duration;
 import java.util.Properties;
 
+@ServiceScope(Scope.BuildTree.class)
 public class OriginMetadataFactory {
 
     private static final String BUILD_INVOCATION_ID_KEY = "buildInvocationId";
