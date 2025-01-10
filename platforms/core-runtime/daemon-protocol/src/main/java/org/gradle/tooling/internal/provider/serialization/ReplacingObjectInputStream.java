@@ -25,9 +25,9 @@ import java.io.InputStream;
 
 @NonNullApi
 public class ReplacingObjectInputStream extends ClassLoaderObjectInputStream {
-    private final PayloadSerializer payloadSerializer;
+    private final LazyPayloadSerializerContainer payloadSerializer;
 
-    public ReplacingObjectInputStream(InputStream inputSteam, PayloadSerializer payloadSerializer, ClassLoader classLoader) throws IOException {
+    public ReplacingObjectInputStream(InputStream inputSteam, LazyPayloadSerializerContainer payloadSerializer, ClassLoader classLoader) throws IOException {
         super(inputSteam, classLoader);
         this.payloadSerializer = payloadSerializer;
         enableResolveObject(true);
@@ -37,7 +37,7 @@ public class ReplacingObjectInputStream extends ClassLoaderObjectInputStream {
     @Nullable
     protected final Object resolveObject(Object obj) {
         if (obj instanceof StreamDataPlaceHolder) {
-            return payloadSerializer.deserialize(((StreamDataPlaceHolder) obj).getData());
+            return payloadSerializer.get().deserialize(((StreamDataPlaceHolder) obj).getData());
         }
         return obj;
     }

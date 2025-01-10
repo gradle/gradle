@@ -45,6 +45,7 @@ import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.tooling.internal.provider.serialization.ClassLoaderCache;
 import org.gradle.tooling.internal.provider.serialization.DefaultPayloadClassLoaderFactory;
 import org.gradle.tooling.internal.provider.serialization.DefaultPayloadClassLoaderRegistry;
+import org.gradle.tooling.internal.provider.serialization.LazyPayloadSerializerContainer;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.WellKnownClassLoaderRegistry;
 
@@ -107,6 +108,29 @@ public class DaemonClientMessageServices implements ServiceRegistrationProvider 
         return getDaemonConnector(daemonDir, daemonRegistry, outgoingConnector, daemonStarter, listenerManager, progressLoggerFactory, buildActionSerializer);
     }
 
+    @NonNullApi
+    static class DefaultLazyPayloadSerializerContainer implements LazyPayloadSerializerContainer {
+        private PayloadSerializer payloadSerializer;
+
+
+        @Override
+        public PayloadSerializer get() {
+            if (payloadSerializer == null) {
+                ClassLoaderCache classLoaderCache = new ClassLoaderCache();
+                payloadSerializer = new PayloadSerializer(
+                    new WellKnownClassLoaderRegistry(
+                        new ClientSidePayloadClassLoaderRegistry(
+                            new DefaultPayloadClassLoaderRegistry(
+                                classLoaderCache,
+                                new ClientSidePayloadClassLoaderFactory(
+                                    new DefaultPayloadClassLoaderFactory())),
+                            new ClasspathInferer(),
+                            classLoaderCache)));
+            }
+            return payloadSerializer;
+        }
+    }
+
     @Nonnull
     static DaemonConnector getDaemonConnector(
         DaemonDir daemonDir,
@@ -117,16 +141,7 @@ public class DaemonClientMessageServices implements ServiceRegistrationProvider 
         ProgressLoggerFactory progressLoggerFactory,
         Serializer<BuildAction> buildActionSerializer
     ) {
-        ClassLoaderCache classLoaderCache = new ClassLoaderCache();
-        PayloadSerializer pls = new PayloadSerializer(
-            new WellKnownClassLoaderRegistry(
-                new ClientSidePayloadClassLoaderRegistry(
-                    new DefaultPayloadClassLoaderRegistry(
-                        classLoaderCache,
-                        new ClientSidePayloadClassLoaderFactory(
-                            new DefaultPayloadClassLoaderFactory())),
-                    new ClasspathInferer(),
-                    classLoaderCache)));
+        LazyPayloadSerializerContainer lazyPayloadSerializerContainer = new DefaultLazyPayloadSerializerContainer();
         return new DefaultDaemonConnector(
             daemonDir,
             daemonRegistry,
@@ -134,7 +149,7 @@ public class DaemonClientMessageServices implements ServiceRegistrationProvider 
             daemonStarter,
             listenerManager.getBroadcaster(DaemonStartListener.class),
             progressLoggerFactory,
-            DaemonMessageSerializer.create(buildActionSerializer, pls));
+            DaemonMessageSerializer.create(buildActionSerializer, lazyPayloadSerializerContainer));
     }
 
     @Provides

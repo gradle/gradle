@@ -65,7 +65,7 @@ import org.gradle.launcher.daemon.diagnostics.DaemonDiagnostics;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionResult;
 import org.gradle.launcher.exec.DefaultBuildActionParameters;
-import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
+import org.gradle.tooling.internal.provider.serialization.LazyPayloadSerializerContainer;
 import org.gradle.tooling.internal.provider.serialization.ReplacingObjectInputStream;
 import org.gradle.tooling.internal.provider.serialization.ReplacingObjectOutputStream;
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
@@ -86,7 +86,7 @@ import static org.gradle.internal.serialize.BaseSerializerFactory.FILE_SERIALIZE
 import static org.gradle.internal.serialize.BaseSerializerFactory.NO_NULL_STRING_MAP_SERIALIZER;
 
 public class DaemonMessageSerializer {
-    public static Serializer<Message> create(Serializer<BuildAction> buildActionSerializer, PayloadSerializer pls) {
+    public static Serializer<Message> create(Serializer<BuildAction> buildActionSerializer, LazyPayloadSerializerContainer pls) {
         BaseSerializerFactory factory = new BaseSerializerFactory();
         Serializer<LogLevel> logLevelSerializer = factory.getSerializerFor(LogLevel.class);
         Serializer<Throwable> throwableSerializer = factory.getSerializerFor(Throwable.class);
@@ -219,7 +219,7 @@ public class DaemonMessageSerializer {
 
         private final Serializer<Object> serializer;
 
-        public BuildEventSerializer(PayloadSerializer pls) {
+        public BuildEventSerializer(LazyPayloadSerializerContainer pls) {
             serializer = new DefaultSerializer<>(
                 new OutputStreamObjectOutputStreamStreamFactory(pls),
                 new InputStreamObjectInputStreamStreamFactory(pls)
@@ -239,9 +239,9 @@ public class DaemonMessageSerializer {
 
         @NonNullApi
         private static class OutputStreamObjectOutputStreamStreamFactory implements DefaultSerializer.StreamFactory<OutputStream, ObjectOutputStream> {
-            private final PayloadSerializer pls;
+            private final LazyPayloadSerializerContainer pls;
 
-            public OutputStreamObjectOutputStreamStreamFactory(PayloadSerializer pls) {
+            public OutputStreamObjectOutputStreamStreamFactory(LazyPayloadSerializerContainer pls) {
                 this.pls = pls;
             }
 
@@ -253,9 +253,9 @@ public class DaemonMessageSerializer {
 
         @NonNullApi
         private static class InputStreamObjectInputStreamStreamFactory implements DefaultSerializer.StreamFactory<InputStream, ObjectInputStream> {
-            private final PayloadSerializer pls;
+            private final LazyPayloadSerializerContainer pls;
 
-            public InputStreamObjectInputStreamStreamFactory(PayloadSerializer pls) {
+            public InputStreamObjectInputStreamStreamFactory(LazyPayloadSerializerContainer pls) {
                 this.pls = pls;
             }
 

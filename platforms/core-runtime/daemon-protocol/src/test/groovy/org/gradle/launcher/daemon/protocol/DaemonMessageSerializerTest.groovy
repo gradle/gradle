@@ -43,7 +43,7 @@ import org.gradle.tooling.internal.provider.serialization.PayloadSerializerTest
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload
 
 class DaemonMessageSerializerTest extends SerializerSpec {
-    def serializer = DaemonMessageSerializer.create(new DefaultSerializer<BuildAction>(), PayloadSerializerTest.createPayloadSerializer())
+    def serializer = DaemonMessageSerializer.create(new DefaultSerializer<BuildAction>(), { PayloadSerializerTest.createPayloadSerializer() })
 
     def "can serialize BuildEvent messages"() {
         expect:

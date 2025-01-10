@@ -69,6 +69,7 @@ import org.gradle.tooling.internal.provider.action.BuildActionSerializer;
 import org.gradle.tooling.internal.provider.serialization.ClassLoaderCache;
 import org.gradle.tooling.internal.provider.serialization.DefaultPayloadClassLoaderFactory;
 import org.gradle.tooling.internal.provider.serialization.DefaultPayloadClassLoaderRegistry;
+import org.gradle.tooling.internal.provider.serialization.LazyPayloadSerializerContainer;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.WellKnownClassLoaderRegistry;
 
@@ -189,6 +190,23 @@ public class DaemonServices implements ServiceRegistrationProvider {
         return BuildActionSerializer.create();
     }
 
+    static class DaemonLazyPayloadSerializerContainer implements LazyPayloadSerializerContainer {
+        private PayloadSerializer payloadSerializer;
+
+        @Override
+        public PayloadSerializer get() {
+            if (payloadSerializer == null) {
+                ClassLoaderCache classLoaderCache = new ClassLoaderCache();
+                payloadSerializer = new PayloadSerializer(
+                    new WellKnownClassLoaderRegistry(
+                        new DefaultPayloadClassLoaderRegistry(
+                            classLoaderCache,
+                            new DefaultPayloadClassLoaderFactory())));
+            }
+            return payloadSerializer;
+        }
+    }
+
     @Provides
     protected Daemon createDaemon(
         ImmutableList<DaemonCommandAction> actions,
@@ -199,18 +217,13 @@ public class DaemonServices implements ServiceRegistrationProvider {
         DaemonContext daemonContext,
         ListenerManager listenerManager
     ) {
-        ClassLoaderCache classLoaderCache = new ClassLoaderCache();
-        PayloadSerializer pls = new PayloadSerializer(
-            new WellKnownClassLoaderRegistry(
-                new DefaultPayloadClassLoaderRegistry(
-                    classLoaderCache,
-                    new DefaultPayloadClassLoaderFactory())));
+        LazyPayloadSerializerContainer lazyPayloadSerializerContainer = new DaemonLazyPayloadSerializerContainer();
 
         return new Daemon(
             new DaemonTcpServerConnector(
                 executorFactory,
                 inetAddressFactory,
-                DaemonMessageSerializer.create(buildActionSerializer, pls)
+                DaemonMessageSerializer.create(buildActionSerializer, lazyPayloadSerializerContainer)
             ),
             daemonRegistry,
             daemonContext,

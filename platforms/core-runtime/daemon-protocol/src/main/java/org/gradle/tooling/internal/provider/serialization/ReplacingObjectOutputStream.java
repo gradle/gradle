@@ -28,10 +28,10 @@ import java.util.Arrays;
 @NonNullApi
 @SuppressWarnings("all")
 public class ReplacingObjectOutputStream extends ObjectOutputStream {
-    private final PayloadSerializer payloadSerializer;
+    private final LazyPayloadSerializerContainer payloadSerializer;
     private final Class<?>[] classes;
 
-    public ReplacingObjectOutputStream(OutputStream outputStream, PayloadSerializer payloadSerializer, Class<?>... classes) throws IOException {
+    public ReplacingObjectOutputStream(OutputStream outputStream, LazyPayloadSerializerContainer payloadSerializer, Class<?>... classes) throws IOException {
         super(outputStream);
         this.payloadSerializer = payloadSerializer;
         this.classes = classes;
@@ -43,7 +43,7 @@ public class ReplacingObjectOutputStream extends ObjectOutputStream {
     protected final Object replaceObject(Object obj) throws IOException {
         if (isReplaceable(obj)) {
             try {
-                return new StreamDataPlaceHolder(payloadSerializer.serialize(obj));
+                return new StreamDataPlaceHolder(payloadSerializer.get().serialize(obj));
             } catch (UncheckedIOException e) {
                 return null;
             }
