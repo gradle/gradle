@@ -16,7 +16,7 @@
 
 package org.gradle.tooling.internal.adapter
 
-import org.gradle.internal.serialize.Message
+import org.gradle.internal.serialize.MessageSerializer
 import org.gradle.tooling.model.DomainObjectSet
 import org.gradle.tooling.model.UnsupportedMethodException
 import org.gradle.util.Matchers
@@ -567,8 +567,8 @@ class ProtocolToModelAdapterTest extends Specification {
 
     def serialize(Object model) {
         def serialized = new ByteArrayOutputStream()
-        Message.send(model, serialized)
-        return Message.receive(new ByteArrayInputStream(serialized.toByteArray()), getClass().classLoader)
+        MessageSerializer.send(model, serialized)
+        return MessageSerializer.receive(new ByteArrayInputStream(serialized.toByteArray()), getClass().classLoader)
     }
 
     def "unpacks source object from view"() {

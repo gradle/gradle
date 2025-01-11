@@ -18,7 +18,8 @@ package org.gradle.workers.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.jvm.Jvm
-import org.gradle.workers.fixtures.WorkerExecutorFixture
+
+import static org.gradle.workers.fixtures.WorkerExecutorFixture.ISOLATION_MODES
 
 class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
 
@@ -55,6 +56,18 @@ class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
 
             public interface ProblemsWorkerTaskParameter extends WorkParameters { }
         """
+        file('buildSrc/src/main/java/org/gradle/test/SomeData.java') << """
+            package org.gradle.test;
+            import org.gradle.api.problems.AdditionalData;
+
+            public class SomeData implements AdditionalData {
+                String typeName;
+
+                public SomeData(String typeName) {
+                    this.typeName = typeName;
+                }
+            }
+        """
         file('buildSrc/src/main/java/org/gradle/test/ProblemWorkerTask.java') << """
             package org.gradle.test;
 
@@ -82,6 +95,7 @@ class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
                     ProblemId problemId = ProblemId.create("type", "label", ProblemGroup.create("generic", "Generic"));
                     getProblems().getReporter().report(problemId, problem -> problem
                             .stackLocation()
+                            .additionalData(new SomeData("typeName"))
                             .withException(new RuntimeException("Exception message", wrappedException))
                     );
 
@@ -135,7 +149,7 @@ class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
         }
 
         where:
-        isolationMode << WorkerExecutorFixture.ISOLATION_MODES
+        isolationMode << ISOLATION_MODES
     }
 
 }

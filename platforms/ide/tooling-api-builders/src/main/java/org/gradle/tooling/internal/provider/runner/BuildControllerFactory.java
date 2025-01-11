@@ -23,7 +23,7 @@ import org.gradle.internal.buildtree.BuildTreeModelSideEffectExecutor;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.work.WorkerThreadRegistry;
-import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
+import org.gradle.internal.serialize.PayloadSerializer;
 
 @ServiceScope(Scope.BuildTree.class)
 public class BuildControllerFactory {

@@ -19,7 +19,9 @@ package org.gradle.process.internal.worker;
 import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.stream.EncodedStream;
 
+import javax.annotation.Nonnull;
 import java.io.DataInputStream;
+import java.io.IOException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
@@ -34,22 +36,31 @@ public class GradleWorkerMain {
     public void run() throws Exception {
         DataInputStream instr = new DataInputStream(new EncodedStream.EncodedInput(System.in));
 
-        // Read shared packages
-        int sharedPackagesCount = instr.readInt();
-        List<String> sharedPackages = new ArrayList<String>(sharedPackagesCount);
-        for (int i = 0; i < sharedPackagesCount; i++) {
-            sharedPackages.add(instr.readUTF());
-        }
+        List<String> sharedPackages = readSharedPackages(instr);
 
         // Read worker implementation classpath
         int classPathLength = instr.readInt();
+        URL[] implementationClassPath = getImplementationClassPath(classPathLength, instr);
+
+        ClassLoader implementationClassLoader = getImplementationClassLoader(classPathLength, sharedPackages, implementationClassPath);
+
+        @SuppressWarnings("unchecked")
+        Class<? extends Callable<Void>> workerClass = (Class<? extends Callable<Void>>) implementationClassLoader.loadClass("org.gradle.process.internal.worker.child.SystemApplicationClassLoaderWorker").asSubclass(Callable.class);
+        Callable<Void> main = workerClass.getConstructor(DataInputStream.class).newInstance(instr);
+        main.call();
+    }
+
+    @Nonnull
+    private static URL[] getImplementationClassPath(int classPathLength, DataInputStream instr) throws IOException {
         URL[] implementationClassPath = new URL[classPathLength];
         for (int i = 0; i < classPathLength; i++) {
             String url = instr.readUTF();
             implementationClassPath[i] = new URL(url);
         }
+        return implementationClassPath;
+    }
 
-        ClassLoader implementationClassLoader;
+    private ClassLoader getImplementationClassLoader(int classPathLength, List<String> sharedPackages, URL[] implementationClassPath) {
         if (classPathLength > 0) {
             // Set up worker ClassLoader
             FilteringClassLoader.Spec filteringClassLoaderSpec = new FilteringClassLoader.Spec();
@@ -57,16 +68,21 @@ public class GradleWorkerMain {
                 filteringClassLoaderSpec.allowPackage(sharedPackage);
             }
             FilteringClassLoader filteringClassLoader = new FilteringClassLoader(getClass().getClassLoader(), filteringClassLoaderSpec);
-            implementationClassLoader = new URLClassLoader(implementationClassPath, filteringClassLoader);
+            return new URLClassLoader(implementationClassPath, filteringClassLoader);
         } else {
             // If no implementation classpath has been provided, just use the application classloader
-            implementationClassLoader = getClass().getClassLoader();
+            return getClass().getClassLoader();
         }
+    }
 
-        @SuppressWarnings("unchecked")
-        Class<? extends Callable<Void>> workerClass = (Class<? extends Callable<Void>>) implementationClassLoader.loadClass("org.gradle.process.internal.worker.child.SystemApplicationClassLoaderWorker").asSubclass(Callable.class);
-        Callable<Void> main = workerClass.getConstructor(DataInputStream.class).newInstance(instr);
-        main.call();
+    @Nonnull
+    private static List<String> readSharedPackages(DataInputStream instr) throws IOException {
+        int sharedPackagesCount = instr.readInt();
+        List<String> sharedPackages = new ArrayList<String>(sharedPackagesCount);
+        for (int i = 0; i < sharedPackagesCount; i++) {
+            sharedPackages.add(instr.readUTF());
+        }
+        return sharedPackages;
     }
 
     public static void main(String[] args) {

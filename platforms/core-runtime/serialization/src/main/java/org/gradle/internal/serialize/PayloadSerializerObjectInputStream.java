@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.provider.serialization;
-
-import org.gradle.internal.serialize.ExceptionReplacingObjectInputStream;
+package org.gradle.internal.serialize;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -24,7 +22,7 @@ import java.io.ObjectStreamClass;
 import java.lang.reflect.Proxy;
 import java.util.Map;
 
-import static org.gradle.tooling.internal.provider.serialization.PayloadSerializerObjectOutputStream.SAME_CLASSLOADER_TOKEN;
+import static org.gradle.internal.serialize.PayloadSerializerObjectOutputStream.SAME_CLASSLOADER_TOKEN;
 
 class PayloadSerializerObjectInputStream extends ExceptionReplacingObjectInputStream {
     private final Map<Short, ClassLoaderDetails> classLoaderDetails;

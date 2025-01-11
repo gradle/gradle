@@ -17,7 +17,7 @@
 package org.gradle.tooling.internal.provider;
 
 import org.gradle.tooling.internal.protocol.PhasedActionResult;
-import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
+import org.gradle.internal.serialize.SerializedPayload;
 
 import java.io.Serializable;
 

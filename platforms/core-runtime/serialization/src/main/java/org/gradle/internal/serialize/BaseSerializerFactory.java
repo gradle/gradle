@@ -306,14 +306,15 @@ public class BaseSerializerFactory {
     }
 
     private static class ThrowableSerializer extends AbstractSerializer<Throwable> {
+        private final MessageSerializer messageSerializer = new MessageSerializer();
         @Override
         public Throwable read(Decoder decoder) throws Exception {
-            return (Throwable) Message.receive(decoder.getInputStream(), getClass().getClassLoader());
+            return (Throwable) messageSerializer.receive(decoder.getInputStream(), getClass().getClassLoader());
         }
 
         @Override
         public void write(Encoder encoder, Throwable value) throws Exception {
-            Message.send(value, encoder.getOutputStream());
+            messageSerializer.send(value, encoder.getOutputStream());
         }
     }
 }

@@ -44,7 +44,7 @@ abstract class SerializerSpec extends Specification {
         def length = bytes.length
 
         def defaultBytes = new ByteArrayOutputStream()
-        Message.send(value, defaultBytes)
+        new MessageSerializer().send(value, defaultBytes)
         def defaultLength = defaultBytes.size()
 
         println "${length} < ${defaultLength}"

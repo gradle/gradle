@@ -19,7 +19,7 @@ package org.gradle.tooling.internal.provider;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.tooling.internal.protocol.PhasedActionResult;
 import org.gradle.tooling.internal.protocol.PhasedActionResultListener;
-import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
+import org.gradle.internal.serialize.PayloadSerializer;
 
 /**
  * Consumer of events from phased actions. This consumer deserializes the results and forward them to the correct listener.

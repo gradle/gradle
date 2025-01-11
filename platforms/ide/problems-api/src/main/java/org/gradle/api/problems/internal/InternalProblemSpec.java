@@ -37,6 +37,7 @@ public interface InternalProblemSpec extends ProblemSpec {
      *
      * @return this
      */
+    @Override
     InternalProblemSpec additionalData(AdditionalData additionalData);
 
     /**
@@ -63,6 +64,7 @@ public interface InternalProblemSpec extends ProblemSpec {
      * @param problemId the problem id
      * @return this
      */
+    @Override
     InternalProblemSpec id(ProblemId problemId);
 
     /**

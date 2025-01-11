@@ -360,10 +360,10 @@ class MessageTest extends Specification {
 
     private Object transport(Object arg) {
         def outputStream = new ByteArrayOutputStream()
-        Message.send(new TestPayloadMessage(payload: arg), outputStream)
+        MessageSerializer.send(new TestPayloadMessage(payload: arg), outputStream)
 
         def inputStream = new ByteArrayInputStream(outputStream.toByteArray())
-        def message = Message.receive(inputStream, dest)
+        def message = MessageSerializer.receive(inputStream, dest)
         return message.payload
     }
 

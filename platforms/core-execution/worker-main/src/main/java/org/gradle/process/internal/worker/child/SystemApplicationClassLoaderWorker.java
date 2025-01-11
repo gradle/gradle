@@ -133,7 +133,7 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
         return null;
     }
 
-    private File getLastResortErrorLogFile(File workingDirectory) {
+    private static File getLastResortErrorLogFile(File workingDirectory) {
         return new File(workingDirectory, "worker-error-" + new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()) + ".txt");
     }
 
@@ -160,14 +160,14 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
         }
     }
 
-    private void configureLogging(LoggingManagerInternal loggingManager, ObjectConnection connection, WorkerLogEventListener workerLogEventListener) {
+    private static void configureLogging(LoggingManagerInternal loggingManager, ObjectConnection connection, WorkerLogEventListener workerLogEventListener) {
         connection.useParameterSerializers(WorkerLoggingSerializer.create());
         WorkerLoggingProtocol workerLoggingProtocol = connection.addOutgoing(WorkerLoggingProtocol.class);
         workerLogEventListener.setWorkerLoggingProtocol(workerLoggingProtocol);
         loggingManager.addOutputEventListener(workerLogEventListener);
     }
 
-    private void configureWorkerJvmMemoryInfoEvents(ServiceRegistry workerServices, ObjectConnection connection) {
+    private static void configureWorkerJvmMemoryInfoEvents(ServiceRegistry workerServices, ObjectConnection connection) {
         connection.useParameterSerializers(WorkerJvmMemoryInfoSerializer.create());
         final WorkerJvmMemoryInfoProtocol workerJvmMemoryInfoProtocol = connection.addOutgoing(WorkerJvmMemoryInfoProtocol.class);
         workerServices.get(MemoryManager.class).addListener(new JvmMemoryStatusListener() {

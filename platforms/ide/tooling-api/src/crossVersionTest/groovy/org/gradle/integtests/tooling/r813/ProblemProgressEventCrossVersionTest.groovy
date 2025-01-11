@@ -42,6 +42,7 @@ import org.junit.Assume
 import static org.gradle.integtests.fixtures.AvailableJavaHomes.getJdk17
 import static org.gradle.integtests.fixtures.AvailableJavaHomes.getJdk21
 import static org.gradle.integtests.fixtures.AvailableJavaHomes.getJdk8
+import static org.gradle.integtests.tooling.fixture.ProblemsApiGroovyScriptUtils.getGeneralDataString
 import static org.gradle.integtests.tooling.fixture.ProblemsApiGroovyScriptUtils.report
 import static org.gradle.integtests.tooling.r86.ProblemProgressEventCrossVersionTest.getProblemReportTaskString
 import static org.gradle.integtests.tooling.r86.ProblemsServiceModelBuilderCrossVersionTest.getBuildScriptSampleContent
@@ -64,10 +65,6 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         return listener.problems
     }
 
-    def getGeneralDataString() {
-        targetVersion < GradleVersion.version("8.13") ? "org.gradle.api.problems.internal.GeneralDataSpec, data -> data.put('aKey', 'aValue')" : "new org.gradle.api.problems.internal.DefaultGeneralData(['aKey': 'aValue'])"
-    }
-
     def "Problems expose details via Tooling API events with failure"() {
         given:
         withReportProblemTask """
@@ -76,7 +73,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
                 $documentationConfig
                 .lineInFileLocation("/tmp/foo", 1, 2, 3)
                 $detailsConfig
-                .additionalData(${getGeneralDataString()})
+                .additionalData(${getGeneralDataString(targetVersion)})
                 .severity(Severity.WARNING)
                 .solution("try this instead")
             }
@@ -114,7 +111,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
                 $documentationConfig
                 .lineInFileLocation("/tmp/foo", 1, 2, 3)
                 $detailsConfig
-                .additionalData(${getGeneralDataString()})
+                .additionalData(${getGeneralDataString(targetVersion)})
                 .severity(Severity.WARNING)
                 .solution("try this instead")
             }
@@ -265,7 +262,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
                 @TaskAction
                 void run() {
                     getProblems().${report(targetVersion)} {
-                        it.id("id", "shortProblemMessage")
+                        it.${id(targetVersion)}
                         .lineInFileLocation("/tmp/foo", 1, 2, 3)
                         .additionalData(new Object())
                         .severity(Severity.WARNING)
@@ -413,6 +410,98 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         def problems = listener.problems
         validateCompilationProblem(problems, buildFile)
         problems[0].failure == null
+    }
+
+    @TargetGradleVersion(">=8.13")
+    def "can serialize arbitrary additional data in worker"() {
+        given:
+        buildFile """
+            import org.gradle.api.problems.Severity
+            import org.gradle.api.problems.Problems
+            import org.gradle.api.tasks.TaskAction
+            import javax.inject.Inject
+            import org.gradle.workers.WorkAction
+            import org.gradle.workers.WorkParameters
+
+            class SomeData implements AdditionalData {
+                String typeName
+
+                SomeData(String typeName) {
+                    this.typeName = typeName
+                }
+            }
+
+            abstract class MyWorkerAction implements WorkAction<WorkParameters.None> {
+                @Inject
+                protected abstract Problems getProblems();
+
+                @Override
+                void execute() {
+                    println("lineeeeee")
+                    getProblems().${report(targetVersion)} {
+                        it.${id(targetVersion)}
+                        .lineInFileLocation("/tmp/foo", 1, 2, 3)
+//                        .additionalData(new SomeData("typeName"))
+                        .severity(Severity.WARNING)
+                    }
+                }
+            }
+
+            class MyWorkerTask extends DefaultTask {
+                private final WorkerExecutor workerExecutor
+
+                @Inject
+                MyWorkerTask(WorkerExecutor workerExecutor) {
+                    this.workerExecutor = workerExecutor
+                }
+
+                @TaskAction
+                void executeTask() {
+                    workerExecutor.noIsolation().submit(MyWorkerAction) {
+//                        params -> params.message.set("Hello from Worker!")
+                    }
+                }
+            }
+
+            abstract class ProblemReportingTask extends DefaultTask {
+                @Inject
+                protected abstract Problems getProblems();
+
+                @TaskAction
+                void run() {
+                    getProblems().${report(targetVersion)} {
+                        it.${id(targetVersion)}
+                        .lineInFileLocation("/tmp/foo", 1, 2, 3)
+                        .additionalData(new SomeData("typeName"))
+                        .severity(Severity.WARNING)
+                    }
+                }
+            }
+
+            abstract class MyPlugin implements Plugin<Project> {
+                void apply(Project project) {
+                    project.tasks.register("reportProblem", ProblemReportingTask)
+                }
+            }
+
+            tasks.register('myWorkerTask', MyWorkerTask)
+            apply(plugin: MyPlugin)
+       """
+        when:
+
+        def listener = new ProblemProgressListener()
+        withConnection { connection ->
+            connection.newBuild().forTasks('reportProblem', "myWorkerTask")
+                .addProgressListener(listener)
+                .run()
+        }
+        def problems = listener.problems
+
+        then:
+        problems.size() == 2
+        verifyAll(problems[0]) {
+            additionalData.get(SomeData).typeName == 'typeName'
+        }
     }
 
     @TargetGradleVersion("=8.5")
