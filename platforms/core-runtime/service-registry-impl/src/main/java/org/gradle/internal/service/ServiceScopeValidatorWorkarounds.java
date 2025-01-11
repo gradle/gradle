@@ -31,6 +31,10 @@ class ServiceScopeValidatorWorkarounds {
         "org.gradle.cache.internal.ProducerGuard",
         "org.gradle.internal.typeconversion.NotationParser",
 
+        // Problematic with GradleBuild task and CC, because marking it as a service
+        // makes CC skip serialization and instead use service look-up which yield a wrong value for this specially setup task
+        "org.gradle.api.internal.StartParameterInternal",
+
         "org.gradle.nativeplatform.platform.internal.NativePlatforms",
         "org.gradle.nativeplatform.internal.NativePlatformResolver",
         "org.gradle.nativeplatform.internal.DefaultTargetMachineFactory"

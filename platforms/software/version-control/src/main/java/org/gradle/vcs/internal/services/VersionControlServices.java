@@ -120,7 +120,7 @@ public class VersionControlServices extends AbstractGradleModuleServices {
 
         @Provides
         void configure(ServiceRegistration registration) {
-            registration.add(DefaultVersionControlRepositoryFactory.class);
+            registration.add(VersionControlRepositoryConnectionFactory.class, DefaultVersionControlRepositoryFactory.class);
             registration.add(VcsDirectoryLayout.class);
             registration.add(PersistentVcsMetadataCache.class);
         }

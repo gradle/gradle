@@ -17,6 +17,9 @@
 package org.gradle.internal.snapshot.impl;
 
 import org.gradle.internal.serialize.SerializerRegistry;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
+@ServiceScope(Scope.BuildSession.class)
 public interface ValueSnapshotterSerializerRegistry extends SerializerRegistry {
 }

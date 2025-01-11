@@ -15,9 +15,13 @@
  */
 package org.gradle.initialization;
 
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+
 /**
  * A bunch of information about the client used to start this build.
  */
+@ServiceScope(Scope.BuildSession.class)
 public interface BuildClientMetaData {
     /**
      * Appends a message to the given appendable describing how to run the client with the given command-line args.
