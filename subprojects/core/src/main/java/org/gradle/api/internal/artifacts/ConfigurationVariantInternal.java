@@ -30,8 +30,6 @@ public interface ConfigurationVariantInternal extends ConfigurationVariant {
 
     void preventFurtherMutation();
 
-    void setDescription(String description);
-
     DisplayName getDisplayName();
 
     @Override

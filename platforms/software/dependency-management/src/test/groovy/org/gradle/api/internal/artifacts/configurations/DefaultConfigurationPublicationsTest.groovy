@@ -48,7 +48,7 @@ class DefaultConfigurationPublicationsTest extends Specification {
     def publications = new DefaultConfigurationPublications(displayName, artifacts, {
         allArtifacts
     }, parentAttributes, TestUtil.instantiatorFactory().decorateLenient(), artifactNotationParser, capabilityNotationParser, fileCollectionFactory, attributesFactory,
-        TestUtil.domainObjectCollectionFactory(), TestFiles.taskDependencyFactory()
+        TestUtil.domainObjectCollectionFactory(), TestFiles.taskDependencyFactory(), TestUtil.objectFactory()
     )
 
     def setup() {

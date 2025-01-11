@@ -30,6 +30,7 @@ import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.internal.Factory;
 import org.gradle.internal.code.UserCodeApplicationContext;
@@ -68,7 +69,8 @@ public class DefaultResolvableConfiguration extends DefaultConfiguration impleme
         CalculatedValueContainerFactory calculatedValueContainerFactory,
         DefaultConfigurationFactory defaultConfigurationFactory,
         TaskDependencyFactory taskDependencyFactory,
-        InternalProblems problemsService
+        InternalProblems problemsService,
+        ObjectFactory objectFactory
     ) {
         super(
             domainObjectContext,
@@ -95,6 +97,7 @@ public class DefaultResolvableConfiguration extends DefaultConfiguration impleme
             taskDependencyFactory,
             ConfigurationRoles.RESOLVABLE,
             problemsService,
+            objectFactory,
             true
         );
 

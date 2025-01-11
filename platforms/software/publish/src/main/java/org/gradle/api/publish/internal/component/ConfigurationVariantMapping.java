@@ -29,6 +29,7 @@ import org.gradle.api.component.ConfigurationVariantDetails;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.internal.Actions;
 import org.gradle.internal.deprecation.DeprecationLogger;
 
@@ -36,7 +37,6 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.util.HashSet;
 import java.util.Locale;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 
@@ -110,10 +110,13 @@ public class ConfigurationVariantMapping {
     // Cannot be private due to reflective instantiation
     static class DefaultConfigurationVariant implements ConfigurationVariant {
         private final ConfigurationInternal outgoingConfiguration;
+        private final Property<String> description;
 
         @Inject
-        public DefaultConfigurationVariant(ConfigurationInternal outgoingConfiguration) {
+        public DefaultConfigurationVariant(ConfigurationInternal outgoingConfiguration, ObjectFactory objectFactory) {
             this.outgoingConfiguration = outgoingConfiguration;
+            this.description = objectFactory.property(String.class).value(outgoingConfiguration.getName());
+            this.description.finalizeValue();
         }
 
         @Override
@@ -137,8 +140,8 @@ public class ConfigurationVariantMapping {
         }
 
         @Override
-        public Optional<String> getDescription() {
-            return Optional.ofNullable(outgoingConfiguration.getDescription());
+        public Property<String> getDescription() {
+            return description;
         }
 
         @Override

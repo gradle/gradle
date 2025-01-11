@@ -83,7 +83,8 @@ class DefaultConfigurationContainerSpec extends Specification {
         TestUtil.domainObjectCollectionFactory(),
         calculatedValueContainerFactory,
         TestFiles.taskDependencyFactory(),
-        TestUtil.problemsService()
+        TestUtil.problemsService(),
+        TestUtil.objectFactory()
     )
     private DefaultConfigurationContainer configurationContainer = new DefaultConfigurationContainer(
         instantiator,
