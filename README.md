@@ -1,4 +1,4 @@
-<div align="center">
+tab<div align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="images/gradle-white-primary.png" width="700px">
     <img alt="Gradle Logo" src="images/gradle-dark-green-primary.png" width="600px">
@@ -21,7 +21,7 @@
 </div>
 
 
-## 🐘 **Gradle Build Tool** 
+esc## 🐘 **Gradle Build Tool** 
 
 **[Gradle](https://gradle.org/)** is a highly scalable build automation tool designed to handle everything from large, multi-project enterprise builds to quick development tasks across various languages. Gradle’s modular, performance-oriented architecture seamlessly integrates with development environments, making it a go-to solution for building, testing, and deploying applications on **Java**, **Kotlin**, **Scala**, **Android**, **Groovy**, **C++**, and **Swift**.
 
@@ -50,7 +50,7 @@ Starting with Gradle is easy with these essential resources. Follow these to ins
 
 ---
 
-### 🛠 **Seamless IDE & CI Integration**
+tab### 🛠 **Seamless IDE & CI Integration**
 
 Gradle is built to work smoothly with a variety of Integrated Development Environments (IDEs) and Continuous Integration (CI) systems, providing extensive support for a streamlined workflow:
 
