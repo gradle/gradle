@@ -27,6 +27,7 @@ import org.gradle.api.internal.tasks.properties.InspectionScheme;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
+import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.internal.Cast;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.properties.PropertyValue;
@@ -50,12 +51,14 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
 public class DefaultSoftwareFeatureApplicator implements SoftwareFeatureApplicator {
     private final ModelDefaultsApplicator modelDefaultsApplicator;
     private final InspectionScheme inspectionScheme;
+    private final InternalProblems problems;
     private final PluginManagerInternal pluginManager;
     private final Set<AppliedFeature> applied = new HashSet<>();
 
-    public DefaultSoftwareFeatureApplicator(ModelDefaultsApplicator modelDefaultsApplicator, InspectionScheme inspectionScheme, PluginManagerInternal pluginManager) {
+    public DefaultSoftwareFeatureApplicator(ModelDefaultsApplicator modelDefaultsApplicator, InspectionScheme inspectionScheme, InternalProblems problems, PluginManagerInternal pluginManager) {
         this.modelDefaultsApplicator = modelDefaultsApplicator;
         this.inspectionScheme = inspectionScheme;
+        this.problems = problems;
         this.pluginManager = pluginManager;
     }
 
@@ -73,7 +76,7 @@ public class DefaultSoftwareFeatureApplicator implements SoftwareFeatureApplicat
     }
 
     private <T> void applyAndMaybeRegisterExtension(ExtensionAware target, SoftwareTypeImplementation<T> softwareFeature, Plugin<?> plugin) {
-        DefaultTypeValidationContext typeValidationContext = DefaultTypeValidationContext.withRootType(softwareFeature.getPluginClass(), false);
+        DefaultTypeValidationContext typeValidationContext = DefaultTypeValidationContext.withRootType(softwareFeature.getPluginClass(), false, problems);
         ExtensionAddingVisitor<T> extensionAddingVisitor = new ExtensionAddingVisitor<>(target, typeValidationContext);
         inspectionScheme.getPropertyWalker().visitProperties(
             plugin,

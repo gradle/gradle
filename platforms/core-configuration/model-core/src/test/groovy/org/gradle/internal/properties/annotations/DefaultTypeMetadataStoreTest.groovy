@@ -30,6 +30,7 @@ import org.gradle.api.model.ReplacedBy
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.problems.Severity
 import org.gradle.api.problems.internal.GradleCoreProblemGroup
+import org.gradle.api.problems.internal.InternalProblems
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.CompileClasspath
@@ -539,7 +540,7 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
     }
 
     private List<String> collectProblems(TypeMetadata metadata) {
-        def validationContext = DefaultTypeValidationContext.withoutRootType(false)
+        def validationContext = DefaultTypeValidationContext.withoutRootType(false, Stub(InternalProblems.class))
         metadata.visitValidationFailures(null, validationContext)
         return validationContext.problems.collect { normaliseLineSeparators(renderMinimalInformationAbout(it)) }
     }

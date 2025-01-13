@@ -17,7 +17,6 @@
 package org.gradle.tooling.internal.provider.serialization;
 
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.NonNullApi;
 import org.gradle.internal.classloader.ClassLoaderSpec;
 import org.gradle.internal.classloader.ClassLoaderUtils;
 
@@ -53,7 +52,25 @@ public class WellKnownClassLoaderRegistry implements PayloadClassLoaderRegistry 
     @Override
     public SerializeMap newSerializeSession() {
         final SerializeMap delegateSession = delegate.newSerializeSession();
-        return new WellKnownClassLoaderSerializeMap(delegateSession);
+        return new SerializeMap() {
+            final Map<Short, ClassLoaderDetails> knownLoaders = new HashMap<>();
+
+            @Override
+            public short visitClass(Class<?> target) {
+                ClassLoader classLoader = target.getClassLoader();
+                if (classLoader == null || PLATFORM_CLASS_LOADERS.contains(classLoader)) {
+                    knownLoaders.put(PLATFORM_CLASS_LOADER_ID, PLATFORM_CLASS_LOADER_DETAILS);
+                    return PLATFORM_CLASS_LOADER_ID;
+                }
+                return delegateSession.visitClass(target);
+            }
+
+            @Override
+            public void collectClassLoaderDefinitions(Map<Short, ClassLoaderDetails> details) {
+                delegateSession.collectClassLoaderDefinitions(details);
+                details.putAll(knownLoaders);
+            }
+        };
     }
 
     @Override
@@ -104,33 +121,6 @@ public class WellKnownClassLoaderRegistry implements PayloadClassLoaderRegistry 
         @Override
         public String toString() {
             return "{known-class-loader id: " + id + "}";
-        }
-    }
-
-    @NonNullApi
-    private static class WellKnownClassLoaderSerializeMap implements SerializeMap {
-        final Map<Short, ClassLoaderDetails> knownLoaders;
-        private final SerializeMap delegateSession;
-
-        public WellKnownClassLoaderSerializeMap(SerializeMap delegateSession) {
-            this.delegateSession = delegateSession;
-            knownLoaders = new HashMap<>();
-        }
-
-        @Override
-        public short visitClass(Class<?> target) {
-            ClassLoader classLoader = target.getClassLoader();
-            if (classLoader == null || PLATFORM_CLASS_LOADERS.contains(classLoader)) {
-                knownLoaders.put(PLATFORM_CLASS_LOADER_ID, PLATFORM_CLASS_LOADER_DETAILS);
-                return PLATFORM_CLASS_LOADER_ID;
-            }
-            return delegateSession.visitClass(target);
-        }
-
-        @Override
-        public void collectClassLoaderDefinitions(Map<Short, ClassLoaderDetails> details) {
-            delegateSession.collectClassLoaderDefinitions(details);
-            details.putAll(knownLoaders);
         }
     }
 }

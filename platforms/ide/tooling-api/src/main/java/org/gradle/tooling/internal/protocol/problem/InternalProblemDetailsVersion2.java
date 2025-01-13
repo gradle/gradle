@@ -16,11 +16,5 @@
 
 package org.gradle.tooling.internal.protocol.problem;
 
-/**
- * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
- *
- * @since 8.8
- */
-
 public interface InternalProblemDetailsVersion2 {
 }

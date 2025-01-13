@@ -51,6 +51,7 @@ import org.gradle.internal.time.Clock;
 import org.gradle.internal.time.Time;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.context.DaemonRequestContext;
+import org.gradle.launcher.daemon.protocol.DaemonMessageSerializer;
 import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.toolchain.DaemonJavaToolchainQueryService;
@@ -58,8 +59,6 @@ import org.gradle.process.internal.ClientExecHandleBuilderFactory;
 
 import java.io.InputStream;
 import java.util.UUID;
-
-import static org.gradle.launcher.daemon.client.DaemonClientMessageServices.getDaemonConnector;
 
 /**
  * Some support wiring for daemon clients.
@@ -137,16 +136,8 @@ public abstract class DaemonClientServicesSupport implements ServiceRegistration
     }
 
     @Provides
-    DaemonConnector createDaemonConnector(
-        DaemonDir daemonDir,
-        DaemonRegistry daemonRegistry,
-        OutgoingConnector outgoingConnector,
-        DaemonStarter daemonStarter,
-        ListenerManager listenerManager,
-        ProgressLoggerFactory progressLoggerFactory,
-        Serializer<BuildAction> buildActionSerializer
-    ) {
-        return getDaemonConnector(daemonDir, daemonRegistry, outgoingConnector, daemonStarter, listenerManager, progressLoggerFactory, buildActionSerializer);
+    DaemonConnector createDaemonConnector(DaemonDir daemonDir, DaemonRegistry daemonRegistry, OutgoingConnector outgoingConnector, DaemonStarter daemonStarter, ListenerManager listenerManager, ProgressLoggerFactory progressLoggerFactory, Serializer<BuildAction> buildActionSerializer) {
+        return new DefaultDaemonConnector(daemonDir, daemonRegistry, outgoingConnector, daemonStarter, listenerManager.getBroadcaster(DaemonStartListener.class), progressLoggerFactory, DaemonMessageSerializer.create(buildActionSerializer));
     }
 
     @Provides

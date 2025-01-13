@@ -18,9 +18,6 @@ package org.gradle.launcher.daemon.client;
 
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.internal.daemon.client.serialization.ClasspathInferer;
-import org.gradle.internal.daemon.client.serialization.ClientSidePayloadClassLoaderFactory;
-import org.gradle.internal.daemon.client.serialization.ClientSidePayloadClassLoaderRegistry;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.id.UUIDGenerator;
@@ -42,14 +39,7 @@ import org.gradle.launcher.daemon.diagnostics.DaemonStartupInfo;
 import org.gradle.launcher.daemon.protocol.DaemonMessageSerializer;
 import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
-import org.gradle.tooling.internal.provider.serialization.ClassLoaderCache;
-import org.gradle.tooling.internal.provider.serialization.DefaultPayloadClassLoaderFactory;
-import org.gradle.tooling.internal.provider.serialization.DefaultPayloadClassLoaderRegistry;
-import org.gradle.tooling.internal.provider.serialization.LazyPayloadSerializerContainer;
-import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
-import org.gradle.tooling.internal.provider.serialization.WellKnownClassLoaderRegistry;
 
-import javax.annotation.Nonnull;
 import java.util.UUID;
 
 /**
@@ -105,51 +95,7 @@ public class DaemonClientMessageServices implements ServiceRegistrationProvider 
 
     @Provides
     DaemonConnector createDaemonConnector(DaemonDir daemonDir, DaemonRegistry daemonRegistry, OutgoingConnector outgoingConnector, DaemonStarter daemonStarter, ListenerManager listenerManager, ProgressLoggerFactory progressLoggerFactory, Serializer<BuildAction> buildActionSerializer) {
-        return getDaemonConnector(daemonDir, daemonRegistry, outgoingConnector, daemonStarter, listenerManager, progressLoggerFactory, buildActionSerializer);
-    }
-
-    @NonNullApi
-    static class DefaultLazyPayloadSerializerContainer implements LazyPayloadSerializerContainer {
-        private PayloadSerializer payloadSerializer;
-
-
-        @Override
-        public PayloadSerializer get() {
-            if (payloadSerializer == null) {
-                ClassLoaderCache classLoaderCache = new ClassLoaderCache();
-                payloadSerializer = new PayloadSerializer(
-                    new WellKnownClassLoaderRegistry(
-                        new ClientSidePayloadClassLoaderRegistry(
-                            new DefaultPayloadClassLoaderRegistry(
-                                classLoaderCache,
-                                new ClientSidePayloadClassLoaderFactory(
-                                    new DefaultPayloadClassLoaderFactory())),
-                            new ClasspathInferer(),
-                            classLoaderCache)));
-            }
-            return payloadSerializer;
-        }
-    }
-
-    @Nonnull
-    static DaemonConnector getDaemonConnector(
-        DaemonDir daemonDir,
-        DaemonRegistry daemonRegistry,
-        OutgoingConnector outgoingConnector,
-        DaemonStarter daemonStarter,
-        ListenerManager listenerManager,
-        ProgressLoggerFactory progressLoggerFactory,
-        Serializer<BuildAction> buildActionSerializer
-    ) {
-        LazyPayloadSerializerContainer lazyPayloadSerializerContainer = new DefaultLazyPayloadSerializerContainer();
-        return new DefaultDaemonConnector(
-            daemonDir,
-            daemonRegistry,
-            outgoingConnector,
-            daemonStarter,
-            listenerManager.getBroadcaster(DaemonStartListener.class),
-            progressLoggerFactory,
-            DaemonMessageSerializer.create(buildActionSerializer, lazyPayloadSerializerContainer));
+        return new DefaultDaemonConnector(daemonDir, daemonRegistry, outgoingConnector, daemonStarter, listenerManager.getBroadcaster(DaemonStartListener.class), progressLoggerFactory, DaemonMessageSerializer.create(buildActionSerializer));
     }
 
     @Provides

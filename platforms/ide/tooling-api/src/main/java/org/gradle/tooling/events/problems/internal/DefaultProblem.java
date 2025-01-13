@@ -65,13 +65,11 @@ public class DefaultProblem implements Problem {
     }
 
     @Override
-    @Nullable
     public ContextualLabel getContextualLabel() {
         return contextualLabel;
     }
 
     @Override
-    @Nullable
     public Details getDetails() {
         return details;
     }

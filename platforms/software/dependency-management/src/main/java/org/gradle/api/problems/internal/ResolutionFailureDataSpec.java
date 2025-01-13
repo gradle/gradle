@@ -22,7 +22,7 @@ import org.gradle.internal.component.resolution.failure.interfaces.ResolutionFai
  * An {@link AdditionalDataSpec} that produces {@link ResolutionFailureDataSpec} instances
  * from {@link ResolutionFailure}s.
  */
-public interface ResolutionFailureDataSpec {
+public interface ResolutionFailureDataSpec extends AdditionalDataSpec {
     /**
      * Creates a new {@link ResolutionFailureDataSpec} instance from the given {@link ResolutionFailure}.
      *

@@ -16,6 +16,8 @@
 
 package org.gradle.api.problems.internal;
 
+import javax.annotation.Nullable;
+
 public class DefaultDeprecationData implements DeprecationData {
 
     private final Type type;
@@ -27,5 +29,35 @@ public class DefaultDeprecationData implements DeprecationData {
     @Override
     public Type getType() {
         return type;
+    }
+
+    public static AdditionalDataBuilder<DeprecationData> builder(@Nullable DeprecationData from) {
+        if(from == null) {
+            return new DefaultDeprecationDataBuilder();
+        }
+        return new DefaultDeprecationDataBuilder(from);
+    }
+
+    private static class DefaultDeprecationDataBuilder implements DeprecationDataSpec, AdditionalDataBuilder<DeprecationData> {
+
+        private Type type;
+
+        public DefaultDeprecationDataBuilder() {
+            this.type = Type.USER_CODE_DIRECT;
+        }
+        public DefaultDeprecationDataBuilder(DeprecationData from) {
+            this.type = from.getType();
+        }
+
+        @Override
+        public DeprecationDataSpec type(Type type) {
+            this.type = type;
+            return this;
+        }
+
+        @Override
+        public DeprecationData build() {
+            return new DefaultDeprecationData(type);
+        }
     }
 }

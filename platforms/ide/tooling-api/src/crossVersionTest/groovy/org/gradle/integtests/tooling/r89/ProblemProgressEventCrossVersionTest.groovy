@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.tooling.r89
 
-
 import org.gradle.integtests.fixtures.GroovyBuildScriptLanguage
 import org.gradle.integtests.tooling.fixture.ProblemsApiGroovyScriptUtils
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
@@ -33,6 +32,7 @@ import org.gradle.tooling.events.problems.ProblemSummariesEvent
 import org.gradle.tooling.events.problems.Severity
 import org.gradle.tooling.events.problems.SingleProblemEvent
 import org.gradle.tooling.events.problems.TaskPathLocation
+import org.gradle.tooling.events.problems.internal.GeneralData
 import org.gradle.util.GradleVersion
 import org.junit.Assume
 
@@ -95,13 +95,9 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
             locations.size() == 2
             (locations[0] as LineInFileLocation).path == "build file '$buildFile.path'" // FIXME: the path should not contain a prefix nor extra quotes
             (locations[1] as LineInFileLocation).path == "build file '$buildFile.path'"
-            additionalData.getClass().getCanonicalName() == "org.gradle.tooling.events.problems.internal.GeneralData"
+            additionalData instanceof GeneralData
             additionalData.asMap['type'] == 'USER_CODE_DIRECT'
         }
-    }
-
-    def getGeneralDataString() {
-        targetVersion < GradleVersion.version("8.13") ? "org.gradle.api.problems.internal.GeneralDataSpec, data -> data.put('aKey', 'aValue')" : "new org.gradle.api.problems.internal.DefaultGeneralData(['aKey': 'aValue'])"
     }
 
     def "Problems expose details via Tooling API events with failure"() {
@@ -112,7 +108,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
                 $documentationConfig
                 .lineInFileLocation("/tmp/foo", 1, 2, 3)
                 $detailsConfig
-                .additionalData(${getGeneralDataString()})
+                .additionalData(org.gradle.api.problems.internal.GeneralDataSpec, data -> data.put("aKey", "aValue"))
                 .severity(Severity.WARNING)
                 .solution("try this instead")
             }
@@ -151,7 +147,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
                 $documentationConfig
                 .lineInFileLocation("/tmp/foo", 1, 2, 3)
                 $detailsConfig
-                .additionalData(${getGeneralDataString()})
+                .additionalData(org.gradle.api.problems.internal.GeneralDataSpec, data -> data.put("aKey", "aValue"))
                 .severity(Severity.WARNING)
                 .solution("try this instead")
             }
@@ -235,6 +231,11 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         ]
     }
 
+    static void validateCompilationProblem(List<SingleProblemEvent> problems, TestFile buildFile) {
+        problems.size() == 1
+        problems[0].definition.id.displayName == "Could not compile build file '$buildFile.absolutePath'."
+        problems[0].definition.id.group.name == 'compilation'
+    }
 
     def "Property validation failure should produce problem report with domain-specific additional data"() {
         setup:
@@ -271,7 +272,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         then:
         thrown(BuildException)
         listener.problems.size() == 1
-        (listener.problems[0].additionalData).asMap['typeName'] == 'MyTask'
+        (listener.problems[0].additionalData as GeneralData).asMap['typeName']== 'MyTask'
     }
 
     @TargetGradleVersion("=8.6")
@@ -297,11 +298,6 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         failureMessage(problems[0].failure) == null
     }
 
-    static void validateCompilationProblem(List<SingleProblemEvent> problems, TestFile buildFile) {
-        problems.size() == 1
-        problems[0].definition.id.displayName == "Could not compile build file '$buildFile.absolutePath'."
-        problems[0].definition.id.group.name == 'compilation'
-    }
 
     static class ProblemProgressListener implements ProgressListener {
         List<SingleProblemEvent> problems = []

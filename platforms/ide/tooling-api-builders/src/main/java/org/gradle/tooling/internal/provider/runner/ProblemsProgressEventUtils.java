@@ -18,6 +18,7 @@ package org.gradle.tooling.internal.provider.runner;
 
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.NonNullApi;
+import org.gradle.api.problems.AdditionalData;
 import org.gradle.api.problems.DocLink;
 import org.gradle.api.problems.FileLocation;
 import org.gradle.api.problems.GeneralData;
@@ -67,9 +68,8 @@ import org.gradle.tooling.internal.protocol.problem.InternalLocation;
 import org.gradle.tooling.internal.protocol.problem.InternalSeverity;
 import org.gradle.tooling.internal.protocol.problem.InternalSolution;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.io.Serializable;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -210,34 +210,29 @@ public class ProblemsProgressEventUtils {
 
 
     @SuppressWarnings("unchecked")
-    private static InternalAdditionalData toInternalAdditionalData(@Nullable Serializable additionalData) {
+    private static InternalAdditionalData toInternalAdditionalData(@Nullable AdditionalData additionalData) {
         if (additionalData instanceof DeprecationData) {
             // For now, we only expose deprecation data to the tooling API with generic additional data
             DeprecationData data = (DeprecationData) additionalData;
-            return new DefaultAdditionalData(ImmutableMap.of("type", data.getType().name()), null);
+            return new DefaultAdditionalData(ImmutableMap.of("type", data.getType().name()));
         } else if (additionalData instanceof TypeValidationData) {
-            return toInternalAdditionalData((TypeValidationData) additionalData);
+            TypeValidationData data = (TypeValidationData) additionalData;
+            ImmutableMap.Builder<String, Object> builder = ImmutableMap.builder();
+            Optional.ofNullable(data.getPluginId()).ifPresent(pluginId -> builder.put("pluginId", pluginId));
+            Optional.ofNullable(data.getPropertyName()).ifPresent(propertyName -> builder.put("propertyName", propertyName));
+            Optional.ofNullable(data.getParentPropertyName()).ifPresent(parentPropertyName -> builder.put("parentPropertyName", parentPropertyName));
+            Optional.ofNullable(data.getTypeName()).ifPresent(typeName -> builder.put("typeName", typeName));
+            return new DefaultAdditionalData(builder.build());
         } else if (additionalData instanceof GeneralData) {
             GeneralData data = (GeneralData) additionalData;
             return new DefaultAdditionalData(
                 data.getAsMap().entrySet().stream()
                     .filter(entry -> isSupportedType(entry.getValue()))
-                    .collect(toMap(Map.Entry::getKey, Map.Entry::getValue)),
-                data
+                    .collect(toMap(Map.Entry::getKey, Map.Entry::getValue))
             );
         } else {
-            return new DefaultAdditionalData(ImmutableMap.of(), additionalData);
+            return new DefaultAdditionalData(Collections.emptyMap());
         }
-    }
-
-    @Nonnull
-    private static DefaultAdditionalData toInternalAdditionalData(TypeValidationData data) {
-        ImmutableMap.Builder<String, Object> builder = ImmutableMap.builder();
-        Optional.ofNullable(data.getPluginId()).ifPresent(pluginId -> builder.put("pluginId", pluginId));
-        Optional.ofNullable(data.getPropertyName()).ifPresent(propertyName -> builder.put("propertyName", propertyName));
-        Optional.ofNullable(data.getParentPropertyName()).ifPresent(parentPropertyName -> builder.put("parentPropertyName", parentPropertyName));
-        Optional.ofNullable(data.getTypeName()).ifPresent(typeName -> builder.put("typeName", typeName));
-        return new DefaultAdditionalData(builder.build(), data);
     }
 
     private static boolean isSupportedType(Object type) {

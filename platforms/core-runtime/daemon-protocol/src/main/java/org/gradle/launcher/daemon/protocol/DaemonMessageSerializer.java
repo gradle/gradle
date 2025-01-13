@@ -16,9 +16,7 @@
 
 package org.gradle.launcher.daemon.protocol;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.api.logging.LogLevel;
-import org.gradle.api.problems.CustomAdditionalData;
 import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
@@ -65,18 +63,10 @@ import org.gradle.launcher.daemon.diagnostics.DaemonDiagnostics;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionResult;
 import org.gradle.launcher.exec.DefaultBuildActionParameters;
-import org.gradle.tooling.internal.provider.serialization.LazyPayloadSerializerContainer;
-import org.gradle.tooling.internal.provider.serialization.ReplacingObjectInputStream;
-import org.gradle.tooling.internal.provider.serialization.ReplacingObjectOutputStream;
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 import org.gradle.tooling.internal.provider.serialization.SerializedPayloadSerializer;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.OutputStream;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -86,7 +76,7 @@ import static org.gradle.internal.serialize.BaseSerializerFactory.FILE_SERIALIZE
 import static org.gradle.internal.serialize.BaseSerializerFactory.NO_NULL_STRING_MAP_SERIALIZER;
 
 public class DaemonMessageSerializer {
-    public static Serializer<Message> create(Serializer<BuildAction> buildActionSerializer, LazyPayloadSerializerContainer pls) {
+    public static Serializer<Message> create(Serializer<BuildAction> buildActionSerializer) {
         BaseSerializerFactory factory = new BaseSerializerFactory();
         Serializer<LogLevel> logLevelSerializer = factory.getSerializerFor(LogLevel.class);
         Serializer<Throwable> throwableSerializer = factory.getSerializerFor(Throwable.class);
@@ -102,7 +92,7 @@ public class DaemonMessageSerializer {
         registry.register(Finished.class, new FinishedSerializer());
 
         // Build events
-        registry.register(BuildEvent.class, new BuildEventSerializer(pls));
+        registry.register(BuildEvent.class, new BuildEventSerializer());
 
         // Input events
         registry.register(ForwardInput.class, new ForwardInputSerializer());
@@ -216,53 +206,16 @@ public class DaemonMessageSerializer {
     }
 
     private static class BuildEventSerializer implements Serializer<BuildEvent> {
-
-        private final Serializer<Object> serializer;
-
-        public BuildEventSerializer(LazyPayloadSerializerContainer pls) {
-            serializer = new DefaultSerializer<>(
-                new OutputStreamObjectOutputStreamStreamFactory(pls),
-                new InputStreamObjectInputStreamStreamFactory(pls)
-            );
-        }
+        private final Serializer<Object> payloadSerializer = new DefaultSerializer<>();
 
         @Override
         public void write(Encoder encoder, BuildEvent buildEvent) throws Exception {
-            serializer.write(encoder, buildEvent.getPayload());
+            payloadSerializer.write(encoder, buildEvent.getPayload());
         }
 
         @Override
         public BuildEvent read(Decoder decoder) throws Exception {
-            Object read = serializer.read(decoder);
-            return new BuildEvent(read);
-        }
-
-        @NonNullApi
-        private static class OutputStreamObjectOutputStreamStreamFactory implements DefaultSerializer.StreamFactory<OutputStream, ObjectOutputStream> {
-            private final LazyPayloadSerializerContainer pls;
-
-            public OutputStreamObjectOutputStreamStreamFactory(LazyPayloadSerializerContainer pls) {
-                this.pls = pls;
-            }
-
-            @Override
-            public ObjectOutputStream create(OutputStream outputStream, ClassLoader classLoaderNotUsed) throws IOException {
-                return new ReplacingObjectOutputStream(outputStream, pls, CustomAdditionalData.class);
-            }
-        }
-
-        @NonNullApi
-        private static class InputStreamObjectInputStreamStreamFactory implements DefaultSerializer.StreamFactory<InputStream, ObjectInputStream> {
-            private final LazyPayloadSerializerContainer pls;
-
-            public InputStreamObjectInputStreamStreamFactory(LazyPayloadSerializerContainer pls) {
-                this.pls = pls;
-            }
-
-            @Override
-            public ObjectInputStream create(InputStream inputStream, ClassLoader classLoader) throws IOException {
-                return new ReplacingObjectInputStream(inputStream, pls, classLoader);
-            }
+            return new BuildEvent(payloadSerializer.read(decoder));
         }
     }
 

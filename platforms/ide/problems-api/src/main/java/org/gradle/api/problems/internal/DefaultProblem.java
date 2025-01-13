@@ -101,8 +101,8 @@ public class DefaultProblem implements Serializable, InternalProblem {
     }
 
     @Override
-    public InternalProblemBuilder toBuilder() {
-        return new DefaultProblemBuilder(this);
+    public InternalProblemBuilder toBuilder(AdditionalDataBuilderFactory additionalDataBuilderFactory) {
+        return new DefaultProblemBuilder(this, additionalDataBuilderFactory);
     }
 
     private static boolean equals(@Nullable Object a, @Nullable Object b) {

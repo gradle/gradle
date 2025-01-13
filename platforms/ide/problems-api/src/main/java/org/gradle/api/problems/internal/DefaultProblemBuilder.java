@@ -17,6 +17,7 @@
 package org.gradle.api.problems.internal;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.Action;
 import org.gradle.api.problems.AdditionalData;
 import org.gradle.api.problems.DocLink;
 import org.gradle.api.problems.FileLocation;
@@ -49,19 +50,21 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     private Throwable exception;
     private AdditionalData additionalData;
     private boolean collectLocation = false;
+    private final AdditionalDataBuilderFactory additionalDataBuilderFactory;
 
-    public DefaultProblemBuilder() {
+    public DefaultProblemBuilder(AdditionalDataBuilderFactory additionalDataBuilderFactory) {
+        this.additionalDataBuilderFactory = additionalDataBuilderFactory;
         this.additionalData = null;
         this.solutions = new ArrayList<String>();
     }
 
-    public DefaultProblemBuilder(@Nullable ProblemStream problemStream) {
-        this();
+    public DefaultProblemBuilder(@Nullable ProblemStream problemStream, AdditionalDataBuilderFactory additionalDataBuilderFactory) {
+        this(additionalDataBuilderFactory);
         this.problemStream = problemStream;
     }
 
-    public DefaultProblemBuilder(Problem problem) {
-        this();
+    public DefaultProblemBuilder(Problem problem, AdditionalDataBuilderFactory additionalDataBuilderFactory) {
+        this(additionalDataBuilderFactory);
         this.id = problem.getDefinition().getId();
         this.contextualLabel = problem.getContextualLabel();
         this.solutions = new ArrayList<String>(problem.getSolutions());
@@ -82,6 +85,12 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
             return invalidProblem("missing-id", "Problem id must be specified", null);
         } else if (getId().getGroup() == null) {
             return invalidProblem("missing-parent", "Problem id must have a parent", null);
+        }
+
+        if (additionalData instanceof UnsupportedAdditionalDataSpec) {
+            return invalidProblem("unsupported-additional-data", "Unsupported additional data type",
+                "Unsupported additional data type: " + ((UnsupportedAdditionalDataSpec) additionalData).getType().getName() +
+                    ". Supported types are: " + additionalDataBuilderFactory.getSupportedTypes());
         }
 
         Throwable exceptionForProblemInstantiation = getExceptionForProblemInstantiation();
@@ -262,8 +271,14 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
 
     @Override
     @SuppressWarnings("unchecked")
-    public InternalProblemBuilder additionalData(AdditionalData additionalData) {
-        this.additionalData = additionalData;
+    public <U extends AdditionalDataSpec> InternalProblemBuilder additionalData(Class<? extends U> specType, Action<? super U> config) {
+        if (additionalDataBuilderFactory.hasProviderForSpec(specType)) {
+            AdditionalDataBuilder<?> additionalDataBuilder = additionalDataBuilderFactory.createAdditionalDataBuilder(specType, additionalData);
+            config.execute((U) additionalDataBuilder);
+            additionalData = additionalDataBuilder.build();
+        } else {
+            additionalData = new UnsupportedAdditionalDataSpec(specType);
+        }
         return this;
     }
 
@@ -280,5 +295,18 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
 
     public ProblemId getId() {
         return id;
+    }
+
+    private static class UnsupportedAdditionalDataSpec implements AdditionalData {
+
+        private final Class<?> type;
+
+        UnsupportedAdditionalDataSpec(Class<?> type) {
+            this.type = type;
+        }
+
+        public Class<?> getType() {
+            return type;
+        }
     }
 }
