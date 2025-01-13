@@ -90,6 +90,7 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
     private final ManagedExecutor unlockActionExecutor;
 
     private boolean stopped;
+    private boolean listenerFailed;
 
     public DefaultFileLockContentionHandler(ExecutorFactory executorFactory, InetAddressProvider inetAddressProvider) {
         this.inetAddressProvider = inetAddressProvider;
@@ -104,6 +105,8 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
 
     private Runnable listener() {
         return new Runnable() {
+            private int failureCount = 0;
+
             @Override
             public void run() {
                 try {
@@ -144,13 +147,19 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
                                     }
                                     communicator.confirmUnlockRequest(packet.getSocketAddress(), payload.getLockId());
                                 }
+                                // Processed a request so the socket is still working
+                                failureCount = 0;
                             } finally {
                                 lock.unlock();
                             }
                         }
                     } catch (Throwable t) {
-                        // Logging exception here is only needed because by default Gradle does not show the stack trace
-                        LOGGER.error("Problems handling incoming cache access requests.", t);
+                        if (failureCount++ > 100) {
+                            // Something has gone very wrong and we're unable to communicate with other processes
+                            LOGGER.error("Problems handling incoming lock requests.", t);
+                            listenerFailed = true;
+                            return;
+                        }
                     }
                 }
             }
@@ -217,6 +226,11 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
             }
         }
         return pingSentSuccessfully;
+    }
+
+    @Override
+    public boolean isRunning() {
+        return !listenerFailed;
     }
 
     private void assertNotStopped() {
