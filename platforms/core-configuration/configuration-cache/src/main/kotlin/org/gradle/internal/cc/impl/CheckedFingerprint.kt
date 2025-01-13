@@ -23,10 +23,12 @@ import org.gradle.util.Path
 sealed class CheckedFingerprint {
 
     // No fingerprint, which means no cache entry
-    object NotFound : CheckedFingerprint()
+    object NotFound : CheckedFingerprint() {
+        override fun toString(): String = "NotFound"
+    }
 
     // The entry cannot be reused at all and should be recreated from scratch
-    class Invalid(
+    data class Invalid(
         val buildPath: Path,
         val reason: StructuredMessage
     ) : CheckedFingerprint()
@@ -35,13 +37,13 @@ sealed class CheckedFingerprint {
      * The entry can be reused. However, the state of some projects might be invalid and should be recreated.
      */
     // TODO:isolated when keeping multiple entries per key, Gradle should look for the entry with the least number of invalid projects
-    class Valid(
+    data class Valid(
         val entryId: String,
         val invalidProjects: InvalidProjects? = null
     ) : CheckedFingerprint()
 
     // The entry can be reused, however the values for certain projects cannot be reused and should be recreated
-    class InvalidProjects(
+    data class InvalidProjects(
         /**
          * Identity path of the first project for which an invalidation was detected.
          */
