@@ -63,7 +63,7 @@ import org.gradle.internal.service.scopes.WorkerSharedGlobalScopeServices;
 import org.gradle.internal.service.scopes.WorkerSharedProjectScopeServices;
 import org.gradle.internal.service.scopes.WorkerSharedUserHomeScopeServices;
 import org.gradle.internal.state.ManagedFactoryRegistry;
-import org.gradle.process.internal.DefaultClientExecHandleBuilderFactory;
+import org.gradle.process.internal.ClientExecHandleBuilderFactory;
 import org.gradle.process.internal.DefaultExecActionFactory;
 import org.gradle.process.internal.ExecFactory;
 import org.gradle.process.internal.worker.RequestHandler;
@@ -231,7 +231,7 @@ public class WorkerDaemonServer implements RequestHandler<TransportableActionExe
             ExecutorFactory executorFactory,
             TemporaryFileProvider temporaryFileProvider,
             BuildCancellationToken buildCancellationToken,
-            DefaultClientExecHandleBuilderFactory execHandleFactory
+            ClientExecHandleBuilderFactory execHandleFactory
         ) {
             return DefaultExecActionFactory.of(
                 fileResolver,

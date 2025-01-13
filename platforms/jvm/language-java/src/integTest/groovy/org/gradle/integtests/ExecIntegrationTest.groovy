@@ -756,8 +756,8 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
         outputContains("user.dir=${testDirectory.file("a").absolutePath}")
 
         where:
-        method | configuration
-        "exec" | execSpecWithJavaExecutable()
+        method     | configuration
+        "exec"     | execSpecWithJavaExecutable()
         "javaexec" | javaExecSpec()
     }
 
@@ -783,9 +783,31 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
         outputContains("user.dir=${testDirectory.file("a").absolutePath}")
 
         where:
-        method | configuration
-        "exec" | execSpecWithJavaExecutable()
+        method     | configuration
+        "exec"     | execSpecWithJavaExecutable()
         "javaexec" | javaExecSpec()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/31942")
+    def "#task task uses project dir as working dir by default"() {
+        settingsFile << "include 'a'"
+        file("a/build.gradle") << """
+            def execOperations = services.get(ExecOperations)
+            tasks.register("run", $task) {
+                $configuration
+            }
+        """
+
+        when:
+        succeeds("run")
+
+        then:
+        outputContains("user.dir=${testDirectory.file("a").absolutePath}")
+
+        where:
+        task       | configuration
+        "Exec"     | execSpecWithJavaExecutable()
+        "JavaExec" | javaExecSpec()
     }
 
     private static def execSpec(def owner = "") {
