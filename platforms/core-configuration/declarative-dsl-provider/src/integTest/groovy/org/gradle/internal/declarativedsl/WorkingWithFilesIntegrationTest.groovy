@@ -18,14 +18,36 @@ package org.gradle.internal.declarativedsl
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.declarativedsl.settings.SoftwareTypeFixture
-import spock.lang.Ignore
 
 class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements SoftwareTypeFixture {
 
-    def 'can set DirectoryProperty and RegularFileProperty'() {
+    def 'set #name'() {
         given:
         withSoftwareTypePlugins(
-            """
+            extensionClassContent,
+            getProjectPluginThatRegistersItsOwnExtension(true, "extension", null),
+            settingsPluginThatRegistersSoftwareType
+        ).prepareToExecute()
+
+        file("settings.gradle.dcl") << pluginsFromIncludedBuild
+
+        file("build.gradle.dcl") << declarativeScriptThatConfiguresOnlyTestSoftwareType
+
+        when:
+        run(":printTestSoftwareTypeExtensionConfiguration")
+
+        then:
+        assertThatDeclaredValuesAreSetProperly()
+
+        where:
+        extensionClassContent                           | name
+        withFileSystemLocationProperties                | "DirectoryProperty & RegularFileProperty"
+        withPropertiesOfFileSystemLocations             | "Property<Directory> & Property<RegularFile>"
+        withJavaBeanPropertiesOfFileSystemLocations     | "Directory and RegularFile Java Bean properties"
+    }
+
+    static String getWithFileSystemLocationProperties() {
+        """
                 package org.gradle.test;
 
                 import org.gradle.declarative.dsl.model.annotations.Restricted;
@@ -47,27 +69,11 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
                             (getFile().isPresent() ? "file = " + getFile().getOrNull() + "\\n" : "");
                     }
                 }
-            """,
-            getProjectPluginThatRegistersItsOwnExtension(true, "extension", null),
-            settingsPluginThatRegistersSoftwareType
-        ).prepareToExecute()
-
-        file("settings.gradle.dcl") << pluginsFromIncludedBuild
-
-        file("build.gradle.dcl") << declarativeScriptThatConfiguresOnlyTestSoftwareType
-
-        when:
-        run(":printTestSoftwareTypeExtensionConfiguration")
-
-        then:
-        assertThatDeclaredValuesAreSetProperly()
+            """
     }
 
-    @Ignore("Please use the ObjectFactory.fileProperty() method to create a property of type RegularFile.") // TODO
-    def 'can set Property<Directory> and Property<RegularFile> - abstract getter'() {  // TODO: rename/remove?
-        given:
-        withSoftwareTypePlugins(
-            """
+    static String getWithPropertiesOfFileSystemLocations() {
+        """
                 package org.gradle.test;
 
                 import org.gradle.declarative.dsl.model.annotations.Restricted;
@@ -81,57 +87,9 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
 
                 @Restricted
                 public abstract class TestSoftwareTypeExtension {
-                    @Restricted
-                    public abstract Property<Directory> getDir();
 
-                    @Restricted
-                    public abstract Property<RegularFile> getFile();
-
-                    @Override
-                    public String toString() {
-                        return (getDir().isPresent() ? "dir = " + getDir().getOrNull() + "\\\\n" : "") +
-                            (getFile().isPresent() ? "file = " + getFile().getOrNull() + "\\\\n" : "");
-                    }
-                }
-            """,
-            getProjectPluginThatRegistersItsOwnExtension(true, "extension", null),
-            settingsPluginThatRegistersSoftwareType
-        ).prepareToExecute()
-
-        file("settings.gradle.dcl") << pluginsFromIncludedBuild
-
-        file("build.gradle.dcl") << declarativeScriptThatConfiguresOnlyTestSoftwareType
-
-        when:
-        run(":printTestSoftwareTypeExtensionConfiguration")
-
-        then:
-        assertThatDeclaredValuesAreSetProperly()
-    }
-
-    @Ignore("annotation type not applicable to this kind of declaration (@Restricted)") // TODO
-    def 'can set Property<Directory> and Property<RegularFile> - explicit property creation'() {  // TODO: rename/remove?
-        given:
-        withSoftwareTypePlugins(
-            """
-                package org.gradle.test;
-
-                import org.gradle.declarative.dsl.model.annotations.Restricted;
-
-                import org.gradle.api.file.Directory;
-                import org.gradle.api.file.RegularFile;
-                import org.gradle.api.model.ObjectFactory;
-                import org.gradle.api.provider.Property;
-
-                import javax.inject.Inject;
-
-                @Restricted
-                public abstract class TestSoftwareTypeExtension {
-                    @Restricted
-                    public Property<Directory> dir;
-
-                    @Restricted
-                    public Property<RegularFile> file;
+                    private final Property<Directory> dir;
+                    private final Property<RegularFile> file;
 
                     @Inject
                     public TestSoftwareTypeExtension(ObjectFactory objects) {
@@ -139,32 +97,27 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
                         file = objects.fileProperty();
                     }
 
+                    @Restricted
+                    public Property<Directory> getDir() {
+                        return dir;
+                    }
+
+                    @Restricted
+                    public Property<RegularFile> getFile() {
+                        return file;
+                    }
+
                     @Override
                     public String toString() {
-                        return (dir.isPresent() ? "dir = " + dir.getOrNull() + "\\\\n" : "") +
-                            (file.isPresent() ? "file = " + file.getOrNull() + "\\\\n" : "");
+                        return (dir.isPresent() ? "dir = " + dir.getOrNull() + "\\n" : "") +
+                            (file.isPresent() ? "file = " + file.getOrNull() + "\\n" : "");
                     }
                 }
-            """,
-            getProjectPluginThatRegistersItsOwnExtension(true, "extension", null),
-            settingsPluginThatRegistersSoftwareType
-        ).prepareToExecute()
-
-        file("settings.gradle.dcl") << pluginsFromIncludedBuild
-
-        file("build.gradle.dcl") << declarativeScriptThatConfiguresOnlyTestSoftwareType
-
-        when:
-        run(":printTestSoftwareTypeExtensionConfiguration")
-
-        then:
-        assertThatDeclaredValuesAreSetProperly()
+            """
     }
 
-    def 'can set Directory and RegularFile Java Bean properties'() {
-        given:
-        withSoftwareTypePlugins(
-            """
+    static String getWithJavaBeanPropertiesOfFileSystemLocations() {
+        """
                 package org.gradle.test;
 
                 import org.gradle.declarative.dsl.model.annotations.Restricted;
@@ -209,20 +162,7 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
                         return "dir = " + dir + "\\nfile = " + file;
                     }
                 }
-            """,
-            getProjectPluginThatRegistersItsOwnExtension(true, "extension", null),
-            settingsPluginThatRegistersSoftwareType
-        ).prepareToExecute()
-
-        file("settings.gradle.dcl") << pluginsFromIncludedBuild
-
-        file("build.gradle.dcl") << declarativeScriptThatConfiguresOnlyTestSoftwareType
-
-        when:
-        run(":printTestSoftwareTypeExtensionConfiguration")
-
-        then:
-        assertThatDeclaredValuesAreSetProperly()
+            """
     }
 
     static String getPluginsFromIncludedBuild() {
