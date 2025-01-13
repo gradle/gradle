@@ -20,7 +20,7 @@ package org.gradle.internal.cc.impl
 /**
  * A build execution strategy chosen by Configuration Cache
  * that depends on the availability and state of existing cache entries
- * that correspond to the build environement and build parameters of the current invocation.
+ * that correspond to the build environment and build parameters of the current invocation.
  */
 internal sealed class ConfigurationCacheAction {
 
