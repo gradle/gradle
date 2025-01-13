@@ -209,8 +209,8 @@ class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecif
         def plugins = getPluginConfigurationOperationResult(":").getPluginApplicationResults().collect { it.plugin.displayName }
         if (targetVersion >= GradleVersion.version("8.13")) {
             assert plugins == [
-                "org.gradle.software-reporting-tasks",
                 "org.gradle.help-tasks",
+                "org.gradle.software-reporting-tasks",
                 "org.gradle.build-init", "org.gradle.wrapper",
                 "build.gradle", "script.gradle",
                 "org.gradle.java", "org.gradle.api.plugins.JavaBasePlugin",

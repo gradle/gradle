@@ -1,5 +1,6 @@
 plugins {
-    id("gradlebuild.distribution.implementation-java")
+    id("gradlebuild.distribution.api-java")
+    id("gradlebuild.instrumented-java-project")
 }
 
 description = """Reports related to the dependency management functionality used
@@ -22,6 +23,7 @@ dependencies {
     api(projects.dependencyManagement)
     api(projects.enterpriseLogging)
     api(projects.fileCollections)
+    api(projects.internalInstrumentationApi)
     api(projects.jvmServices)
     api(projects.modelCore)
     api(projects.platformBase)
@@ -35,7 +37,6 @@ dependencies {
     api(libs.inject)
 
     implementation(projects.functional)
-    implementation(projects.internalInstrumentationApi)
     implementation(projects.logging)
     implementation(projects.loggingApi)
 
