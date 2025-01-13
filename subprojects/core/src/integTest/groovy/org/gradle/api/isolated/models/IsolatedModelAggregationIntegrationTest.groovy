@@ -30,7 +30,8 @@ class IsolatedModelAggregationIntegrationTest extends AbstractIntegrationSpec {
     def "can aggregate task outputs from all projects and process them in root project task"() {
         settingsFile """
             rootProject.name = "root"
-            include(":sub")
+            include(":sub-one")
+            include(":sub-other")
 
             abstract class SomeTask extends DefaultTask {
                 @Input
@@ -55,7 +56,7 @@ class IsolatedModelAggregationIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-        createDirs("sub")
+        createDirs("sub-one", "sub-other")
 
         buildFile """
             abstract class SummingTask extends DefaultTask {
@@ -88,7 +89,7 @@ class IsolatedModelAggregationIntegrationTest extends AbstractIntegrationSpec {
 
         def outFile = file("build/sum.txt")
         outFile.exists()
-        outFile.text == "7"
+        outFile.text == "20"
     }
 
 }
