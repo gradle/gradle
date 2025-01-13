@@ -47,6 +47,12 @@ public class ConsumerProjectScopeModelBatchProvider<T> extends AbstractMinimalPr
     }
 
     @Override
+    public ExecutionTimeValue<? extends List<T>> calculateExecutionTimeValue() {
+        // TODO: Are there cases, when the evaluated value of the provider can be saved to CC?
+        return ExecutionTimeValue.changingValue(this);
+    }
+
+    @Override
     public Class<List<T>> getType() {
         // TODO: provide the type of the aggregate
         return null;

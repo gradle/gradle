@@ -16,6 +16,7 @@
 
 package org.gradle.internal.isolated.models;
 
+import org.gradle.api.internal.lambdas.SerializableLambdas;
 import org.gradle.api.provider.Provider;
 
 public class DefaultIsolatedModelProducer<T> implements IsolatedModelProducer<T> {
@@ -38,6 +39,6 @@ public class DefaultIsolatedModelProducer<T> implements IsolatedModelProducer<T>
         // Mapping here to enforce task dependencies check,
         // so that task-dependency-carrying properties cannot be evaluated at configuration time
         // TODO:provider-api this should work out of the box for providers
-        return provider.map(it -> it);
+        return provider.map(SerializableLambdas.transformer(it -> it));
     }
 }

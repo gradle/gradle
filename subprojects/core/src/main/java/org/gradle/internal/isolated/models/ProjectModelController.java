@@ -17,6 +17,7 @@
 package org.gradle.internal.isolated.models;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.internal.lambdas.SerializableLambdas;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.model.ObjectFactory;
@@ -75,7 +76,7 @@ public class ProjectModelController {
             }
 
             // Simulating aggregation leniency via list providers
-            Provider<List<T>> listWrappedValueProvider = producerSideProvider.map(ImmutableList::of);
+            Provider<List<T>> listWrappedValueProvider = producerSideProvider.map(SerializableLambdas.transformer(ImmutableList::of));
             if (request.isLenient()) {
                 listWrappedValueProvider = listWrappedValueProvider.orElse(ImmutableList.of());
             }
