@@ -49,9 +49,52 @@ file("system-properties.txt").text = System.getProperties().keySet().join("\\n")
         """
     }
 
-    def "set and additional arguments work well with arguments coming from predefined properties"() {
+    def "set and additional arguments work correctly when overridden from the TAPI connector with predefined values coming from the project gradle properties file"() {
         given:
-        propertiesFile << "org.gradle.jvmargs=${predefinedProperties.collect { "-D$it" }.join(" ")}"
+        def gradlePropertyText = "org.gradle.jvmargs=${predefinedProperties.collect { "-D$it" }.join(" ")}"
+        propertiesFile << gradlePropertyText
+
+        when:
+        withConnection { ProjectConnection connection ->
+            def build = connection
+                .newBuild()
+                .forTasks("help")
+
+            if (setProperties != null) {
+                build.setJvmArguments(setProperties.collect { "-D$it".toString() })
+            }
+            if (additionalProperties != null) {
+                build.addJvmArguments(additionalProperties.collect { "-D$it".toString() })
+            }
+
+            build.run()
+        }
+
+        then:
+        def sysProperties = file("system-properties.txt")
+            .text
+            .split("\n")
+            .findAll {
+                it.startsWith("test-")
+            }
+        sysProperties == expectedSystemProperties
+
+        where:
+        predefinedProperties | setProperties | additionalProperties || expectedSystemProperties
+        ["test-predefined"]  | null          | null                 || ["test-predefined"]
+        ["test-predefined"]  | []            | null                 || []
+        ["test-predefined"]  | ["test-set"]  | []                   || ["test-set"]
+        ["test-predefined"]  | null          | ["test-add"]         || ["test-predefined", "test-add"]
+        ["test-predefined"]  | []            | ["test-add"]         || ["test-add"]
+        ["test-predefined"]  | ["test-set"]  | ["test-add"]         || ["test-set", "test-add"]
+    }
+
+    def "set and additional arguments work correctly when overridden from the TAPI connector with predefined values coming from an isolated user home"() {
+        given:
+        requireIsolatedUserHome()
+        def gradlePropertyText = "org.gradle.jvmargs=${predefinedProperties.collect { "-D$it" }.join(" ")}"
+        def isolatedPropertiesFile = file("user-home-dir").file("gradle.properties")
+        isolatedPropertiesFile << gradlePropertyText
 
         when:
         withConnection { ProjectConnection connection ->
