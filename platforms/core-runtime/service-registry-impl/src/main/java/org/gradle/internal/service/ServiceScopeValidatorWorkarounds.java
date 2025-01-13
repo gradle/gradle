@@ -31,6 +31,8 @@ class ServiceScopeValidatorWorkarounds {
         "org.gradle.cache.internal.ProducerGuard",
         "org.gradle.internal.typeconversion.NotationParser",
 
+        // Avoid annotating services published as public libraries
+        // build-cache-base:
         "org.gradle.caching.internal.origin.OriginMetadataFactory",
 
         // It's supposed to be only in the Settings scope
