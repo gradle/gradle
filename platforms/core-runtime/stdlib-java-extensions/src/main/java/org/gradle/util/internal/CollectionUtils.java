@@ -265,7 +265,16 @@ public abstract class CollectionUtils {
         }
     }
 
-    public static <T> List<T> toList(Iterable<? extends T> things) {
+    /**
+     * Repacks an {@link Iterable} into a {@link List}.
+     * <p>
+     * When the input is a {@link List}, it is returned as is.
+     * Otherwise, the input is iterated and the elements are added to a new {@link List}.
+     *
+     * @param things The things to repack
+     * @return an empty list if the input is null, otherwise {@link List} containing the elements of the input otherwise
+     */
+    public static <T> List<T> toList(@Nullable Iterable<? extends T> things) {
         if (things instanceof List) {
             @SuppressWarnings("unchecked") List<T> castThings = (List<T>) things;
             return castThings;
