@@ -348,23 +348,20 @@ public class ProviderConnection {
         }
 
         // Since 8.13, we split the daemon JVM args into base and additional JVM args (#31462)
-        // When calling the following new methods, the following states can happen:
-        // - incompatible (before 8.13 provider): falling back to old behavior,
-        // - not used: no methods should be called, default daemon JVM arguments are applied
-        // - used:
-        //   - base JVM arguments (if supplied) override the default daemon JVM arguments
-        //   - additional JVM (if supplied) applied on top of the set JVM arguments
+        // When calling the following new method before 8.13 provider, it will fall back to the old behavior.
         try {
             List<String> baseJvmArguments = operationParameters.getBaseJvmArguments();
-            if (baseJvmArguments != null) {
+            // Here, we consider `null` and `[]` as no-op.
+            // See LongRunningOperation.setJvmArguments(java.lang.String...)
+            if (baseJvmArguments != null && !baseJvmArguments.isEmpty()) {
                 daemonParams.setJvmArgs(baseJvmArguments);
             }
             List<String> additionalJvmArguments = operationParameters.getAdditionalJvmArguments();
-            if (additionalJvmArguments != null && !additionalJvmArguments.isEmpty()) {
+            if (additionalJvmArguments != null) {
                 daemonParams.addJvmArgs(additionalJvmArguments);
             }
         } catch (UnsupportedMethodException ex) {
-            // Incompatible provider, falling back to old behavior
+            // See
             List<String> legacyJvmArguments = operationParameters.getJvmArguments();
             if (legacyJvmArguments != null) {
                 daemonParams.setJvmArgs(legacyJvmArguments);

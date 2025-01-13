@@ -140,16 +140,13 @@ public abstract class AbstractLongRunningOperation<T extends AbstractLongRunning
 
     @Override
     public T addJvmArguments(@Nullable Iterable<String> jvmArguments) {
-        operationParamsBuilder.addJvmArguments(CollectionUtils.toList(jvmArguments));
+        operationParamsBuilder.addJvmArguments(rationalizeInput(jvmArguments));
         return getThis();
     }
 
     @Override
     public T setJvmArguments(@Nullable Iterable<String> jvmArguments) {
-        // We want a null->null mapping here, so we can't use the CollectionUtils.toList method
-        if (jvmArguments != null) {
-            operationParamsBuilder.setBaseJvmArguments(CollectionUtils.toList(jvmArguments));
-        }
+        operationParamsBuilder.setBaseJvmArguments(rationalizeInput(jvmArguments));
         return getThis();
     }
 

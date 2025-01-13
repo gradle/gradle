@@ -82,10 +82,10 @@ file("system-properties.txt").text = System.getProperties().keySet().join("\\n")
         where:
         predefinedProperties | setProperties | additionalProperties || expectedSystemProperties
         ["test-predefined"]  | null          | null                 || ["test-predefined"]
-        ["test-predefined"]  | []            | null                 || []
+        ["test-predefined"]  | []            | null                 || ["test-predefined"]
         ["test-predefined"]  | ["test-set"]  | []                   || ["test-set"]
         ["test-predefined"]  | null          | ["test-add"]         || ["test-predefined", "test-add"]
-        ["test-predefined"]  | []            | ["test-add"]         || ["test-add"]
+        ["test-predefined"]  | []            | ["test-add"]         || ["test-predefined", "test-add"]
         ["test-predefined"]  | ["test-set"]  | ["test-add"]         || ["test-set", "test-add"]
     }
 
@@ -124,10 +124,10 @@ file("system-properties.txt").text = System.getProperties().keySet().join("\\n")
         where:
         predefinedProperties | setProperties | additionalProperties || expectedSystemProperties
         ["test-predefined"]  | null          | null                 || ["test-predefined"]
-        ["test-predefined"]  | []            | null                 || []
+        ["test-predefined"]  | []            | null                 || ["test-predefined"]
         ["test-predefined"]  | ["test-set"]  | []                   || ["test-set"]
         ["test-predefined"]  | null          | ["test-add"]         || ["test-predefined", "test-add"]
-        ["test-predefined"]  | []            | ["test-add"]         || ["test-add"]
+        ["test-predefined"]  | []            | ["test-add"]         || ["test-predefined", "test-add"]
         ["test-predefined"]  | ["test-set"]  | ["test-add"]         || ["test-set", "test-add"]
     }
 
