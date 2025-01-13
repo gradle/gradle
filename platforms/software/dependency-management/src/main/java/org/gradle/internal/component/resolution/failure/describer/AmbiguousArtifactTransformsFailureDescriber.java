@@ -35,13 +35,18 @@ import java.util.stream.Collectors;
  * A {@link ResolutionFailureDescriber} that describes an {@link AmbiguousArtifactTransformsFailure}.
  */
 public abstract class AmbiguousArtifactTransformsFailureDescriber extends AbstractResolutionFailureDescriber<AmbiguousArtifactTransformsFailure> {
+    private static final String ARTIFACT_TRANSFORMS_REPORT_SUGGESTION = "Run the :artifactTransforms report to see the available artifact transforms.";
     private static final String AMBIGUOUS_TRANSFORMATION_PREFIX = "Transformation failures are explained in more detail at ";
     private static final String AMBIGUOUS_TRANSFORMATION_SECTION = "sub:transform-ambiguity";
 
     @Override
     public ArtifactSelectionException describeFailure(AmbiguousArtifactTransformsFailure failure) {
         String message = buildFailureMsg(failure);
-        List<String> resolutions = buildResolutions(suggestSpecificDocumentation(AMBIGUOUS_TRANSFORMATION_PREFIX, AMBIGUOUS_TRANSFORMATION_SECTION), suggestReviewAlgorithm());
+        List<String> resolutions = buildResolutions(
+            ARTIFACT_TRANSFORMS_REPORT_SUGGESTION,
+            suggestSpecificDocumentation(AMBIGUOUS_TRANSFORMATION_PREFIX, AMBIGUOUS_TRANSFORMATION_SECTION),
+            suggestReviewAlgorithm()
+        );
         return new ArtifactSelectionException(message, failure, resolutions);
     }
 
