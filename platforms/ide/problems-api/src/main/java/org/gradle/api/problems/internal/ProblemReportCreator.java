@@ -17,10 +17,13 @@
 package org.gradle.api.problems.internal;
 
 import org.gradle.api.problems.Problem;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.io.File;
 import java.util.List;
 
+@ServiceScope(Scope.BuildTree.class)
 public interface ProblemReportCreator {
     /**
      * Stores a new problem in a temporary file that will be added to the final report when #createProblem is called.
