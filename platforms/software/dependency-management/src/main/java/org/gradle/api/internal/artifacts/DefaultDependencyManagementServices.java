@@ -36,6 +36,7 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer;
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationFactory;
+import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationResolverFactory;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyFactory;
 import org.gradle.api.internal.artifacts.dsl.ComponentMetadataHandlerInternal;
@@ -53,7 +54,6 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.GradlePluginVariantsSu
 import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.dsl.dependencies.UnknownProjectFinder;
-import org.gradle.api.internal.artifacts.ivyservice.DefaultConfigurationResolver;
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager;
 import org.gradle.api.internal.artifacts.ivyservice.ResolutionExecutor;
 import org.gradle.api.internal.artifacts.ivyservice.ShortCircuitingResolutionExecutor;
@@ -91,8 +91,6 @@ import org.gradle.api.internal.artifacts.transform.TransformParameterScheme;
 import org.gradle.api.internal.artifacts.transform.TransformRegistrationFactory;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.AttributeDescriberRegistry;
-import org.gradle.api.internal.attributes.AttributeDesugaring;
-import org.gradle.api.internal.attributes.AttributeSchemaServices;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.DefaultAttributesSchema;
@@ -288,6 +286,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             registration.add(GraphVariantSelector.class);
             registration.add(TransformedVariantConverter.class);
             registration.add(ResolutionExecutor.class);
+            registration.add(ShortCircuitingResolutionExecutor.class);
+            registration.add(DefaultConfigurationResolverFactory.class);
             registration.add(ArtifactTypeRegistry.class);
             registration.add(GlobalDependencyResolutionRules.class);
         }
@@ -592,32 +592,6 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             GradlePluginVariantsSupport.configureFailureHandler(handler);
             PlatformSupport.configureFailureHandler(handler);
             return handler;
-        }
-
-        @Provides
-        ConfigurationResolver createConfigurationResolver(
-            RepositoriesSupplier repositoriesSupplier,
-            ResolutionExecutor resolutionExecutor,
-            AttributeDesugaring attributeDesugaring,
-            ArtifactTypeRegistry artifactTypeRegistry,
-            ComponentModuleMetadataHandlerInternal componentModuleMetadataHandler,
-            AttributeSchemaServices attributeSchemaServices,
-            DependencyLockingProvider dependencyLockingProvider
-        ) {
-            ShortCircuitingResolutionExecutor shortCircuitingResolutionExecutor = new ShortCircuitingResolutionExecutor(
-                resolutionExecutor,
-                attributeDesugaring,
-                dependencyLockingProvider
-            );
-
-            return new DefaultConfigurationResolver(
-                repositoriesSupplier,
-                shortCircuitingResolutionExecutor,
-                attributeDesugaring,
-                artifactTypeRegistry,
-                componentModuleMetadataHandler,
-                attributeSchemaServices
-            );
         }
 
         @Provides

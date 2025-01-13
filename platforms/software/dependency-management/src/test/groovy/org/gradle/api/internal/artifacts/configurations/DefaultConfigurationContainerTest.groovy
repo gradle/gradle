@@ -26,7 +26,6 @@ import org.gradle.api.artifacts.DependencyScopeConfiguration
 import org.gradle.api.artifacts.ResolvableConfiguration
 import org.gradle.api.artifacts.UnknownConfigurationException
 import org.gradle.api.internal.CollectionCallbackActionDecorator
-import org.gradle.api.internal.artifacts.ConfigurationResolver
 import org.gradle.api.internal.artifacts.ResolveExceptionMapper
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParserFactory
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultRootComponentMetadataBuilder
@@ -41,19 +40,16 @@ import org.gradle.internal.artifacts.configurations.NoContextRoleBasedConfigurat
 import org.gradle.internal.code.UserCodeApplicationContext
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.model.CalculatedValueContainerFactory
-import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.internal.work.WorkerThreadRegistry
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class DefaultConfigurationContainerTest extends Specification {
 
-    private ConfigurationResolver resolver = Mock(ConfigurationResolver)
+    private ConfigurationResolverFactory resolverFactory = Mock(ConfigurationResolverFactory)
     private ListenerManager listenerManager = Stub(ListenerManager.class)
     private DependencyMetaDataProvider metaDataProvider = Mock(DependencyMetaDataProvider.class)
-    private BuildOperationRunner buildOperationRunner = Mock(BuildOperationRunner)
     private ProjectStateRegistry projectStateRegistry = Mock(ProjectStateRegistry)
     private CollectionCallbackActionDecorator callbackActionDecorator = Mock(CollectionCallbackActionDecorator) {
         decorate(_ as Action) >> { it[0] }
@@ -70,11 +66,10 @@ class DefaultConfigurationContainerTest extends Specification {
     }
     private DefaultConfigurationFactory configurationFactory = new DefaultConfigurationFactory(
         instantiator,
-        resolver,
+        resolverFactory,
         listenerManager,
         StandaloneDomainObjectContext.ANONYMOUS,
         TestFiles.fileCollectionFactory(),
-        buildOperationRunner,
         new PublishArtifactNotationParserFactory(
                 instantiator,
                 metaDataProvider,
@@ -86,7 +81,6 @@ class DefaultConfigurationContainerTest extends Specification {
         new AttributeDesugaring(AttributeTestUtil.attributesFactory()),
         userCodeApplicationContext,
         projectStateRegistry,
-        Mock(WorkerThreadRegistry),
         TestUtil.domainObjectCollectionFactory(),
         calculatedValueContainerFactory,
         TestFiles.taskDependencyFactory(),

@@ -148,12 +148,10 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
         this.initialVisitedArtifacts = partialVisitedArtifacts;
         this.initialVisitedGraph = partialVisitedGraph;
         this.completeGraphResults = calculatedValueContainerFactory.create(Describables.of("complete graph results for", resolutionHost.getDisplayName()), context -> {
-            // TODO: We should acquire the project lock here, since this will resolve a configuration, which requires a project lock.
             fullGraphResults.finalizeIfNotAlready();
             return fullGraphResults.get().getVisitedGraph();
         });
         this.completeArtifactResults = calculatedValueContainerFactory.create(Describables.of("complete artifact results for", resolutionHost.getDisplayName()), context -> {
-            // TODO: We should acquire the project lock here, since this will resolve a configuration, which requires a project lock.
             fullGraphResults.finalizeIfNotAlready();
             return fullGraphResults.get().getVisitedArtifacts();
         });
@@ -341,6 +339,7 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
 
         @Override
         public FileCollectionInternal selectedArtifacts() {
+            // THIS
             return getCompleteTransformDependencies(componentId, fromAttributes);
         }
 
@@ -462,6 +461,7 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
 
         @Override
         public FileCollection selectedArtifacts() {
+            // THIS
             return getCompleteTransformDependencies(componentId, fromAttributes);
         }
 

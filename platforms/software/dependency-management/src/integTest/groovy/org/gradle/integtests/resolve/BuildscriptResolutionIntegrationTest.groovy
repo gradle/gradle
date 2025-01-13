@@ -544,7 +544,6 @@ class BuildscriptResolutionIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         executer.expectDocumentedDeprecationWarning("Mutating configuration container for buildscript of root project 'root' using remove(Object) has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutating_buildscript_configurations")
-        executer.expectDeprecationWarning("Removing a configuration from the container before resolution This behavior has been deprecated. This will fail with an error in Gradle 9.0. Do not remove configurations from the container and resolve them after.")
         succeeds("help")
     }
 
@@ -559,7 +558,6 @@ class BuildscriptResolutionIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         executer.expectDocumentedDeprecationWarning("Mutating configuration container for settings file 'settings.gradle' using remove(Object) has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutating_buildscript_configurations")
-        executer.expectDeprecationWarning("Removing a configuration from the container before resolution This behavior has been deprecated. This will fail with an error in Gradle 9.0. Do not remove configurations from the container and resolve them after.")
         succeeds("help")
     }
 
@@ -595,7 +593,6 @@ class BuildscriptResolutionIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         executer.expectDocumentedDeprecationWarning("Mutating configuration container for script 'foo.gradle' using remove(Object) has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutating_buildscript_configurations")
-        executer.expectDeprecationWarning("Removing a configuration from the container before resolution This behavior has been deprecated. This will fail with an error in Gradle 9.0. Do not remove configurations from the container and resolve them after.")
         succeeds("help")
     }
 

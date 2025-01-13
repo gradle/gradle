@@ -34,7 +34,6 @@ import org.gradle.internal.component.local.model.LocalComponentGraphResolveMetad
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory;
 import org.gradle.internal.component.local.model.LocalVariantGraphResolveState;
-import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.model.ModelContainer;
 
@@ -90,7 +89,7 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
     }
 
     @Override
-    public RootComponentState toRootComponent(String configurationName) {
+    public RootComponentState toRootComponent(ConfigurationInternal configuration) {
         Module module = componentIdentity.getModule();
         String status = module.getStatus();
         ComponentIdentifier componentIdentifier = module.getComponentId();
@@ -106,21 +105,14 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
 
         LocalComponentGraphResolveState rootComponent = getComponentState(owner, metadata);
 
-        // `Lazy` can be removed when we remove `hasRootVariant` below.
-        Lazy<LocalVariantGraphResolveState> rootVariant = Lazy.unsafe().of(() -> {
-            ConfigurationInternal resolvedConf = configurationsProvider.findByName(configurationName);
-            if (resolvedConf == null) {
-                throw new IllegalStateException(String.format("Expected root variant '%s' to be present in %s", configurationName, rootComponent.getId()));
-            }
-            return variantStateBuilder.createRootVariantState(
-                resolvedConf,
-                configurationsProvider,
-                componentIdentifier,
-                new DefaultLocalVariantGraphResolveStateBuilder.DependencyCache(),
-                owner.getModel(),
-                calculatedValueContainerFactory
-            );
-        });
+        LocalVariantGraphResolveState rootVariant = variantStateBuilder.createRootVariantState(
+            configuration,
+            configurationsProvider,
+            componentIdentifier,
+            new DefaultLocalVariantGraphResolveStateBuilder.DependencyCache(),
+            owner.getModel(),
+            calculatedValueContainerFactory
+        );
 
         return new RootComponentState() {
             @Override
@@ -130,12 +122,7 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
 
             @Override
             public LocalVariantGraphResolveState getRootVariant() {
-                return rootVariant.get();
-            }
-
-            @Override
-            public boolean hasRootVariant() {
-                return configurationsProvider.findByName(configurationName) != null;
+                return rootVariant;
             }
         };
     }

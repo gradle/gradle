@@ -20,7 +20,6 @@ import org.gradle.api.artifacts.ConfigurablePublishArtifact;
 import org.gradle.api.artifacts.DependencyResolutionListener;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.DomainObjectContext;
-import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.artifacts.ResolveExceptionMapper;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
@@ -34,10 +33,8 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
-import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
-import org.gradle.internal.work.WorkerThreadRegistry;
 
 /**
  * A concrete {@link DefaultConfiguration} implementation which can change roles.
@@ -48,11 +45,10 @@ public class DefaultUnlockedConfiguration extends DefaultConfiguration {
         DomainObjectContext domainObjectContext,
         String name,
         ConfigurationsProvider configurationsProvider,
-        ConfigurationResolver resolver,
+        ConfigurationResolverFactory resolver,
         ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners,
         Factory<ResolutionStrategyInternal> resolutionStrategyFactory,
         FileCollectionFactory fileCollectionFactory,
-        BuildOperationRunner buildOperationRunner,
         Instantiator instantiator,
         NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser,
         NotationParser<Object, Capability> capabilityNotationParser,
@@ -62,7 +58,6 @@ public class DefaultUnlockedConfiguration extends DefaultConfiguration {
         AttributeDesugaring attributeDesugaring,
         UserCodeApplicationContext userCodeApplicationContext,
         ProjectStateRegistry projectStateRegistry,
-        WorkerThreadRegistry workerThreadRegistry,
         DomainObjectCollectionFactory domainObjectCollectionFactory,
         CalculatedValueContainerFactory calculatedValueContainerFactory,
         DefaultConfigurationFactory defaultConfigurationFactory,
@@ -78,7 +73,6 @@ public class DefaultUnlockedConfiguration extends DefaultConfiguration {
             dependencyResolutionListeners,
             resolutionStrategyFactory,
             fileCollectionFactory,
-            buildOperationRunner,
             instantiator,
             artifactNotationParser,
             capabilityNotationParser,
@@ -88,7 +82,6 @@ public class DefaultUnlockedConfiguration extends DefaultConfiguration {
             attributeDesugaring,
             userCodeApplicationContext,
             projectStateRegistry,
-            workerThreadRegistry,
             domainObjectCollectionFactory,
             calculatedValueContainerFactory,
             defaultConfigurationFactory,

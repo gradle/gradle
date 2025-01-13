@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter;
 
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationsProvider;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.configurations.MutationValidator;
@@ -27,9 +28,9 @@ import org.gradle.internal.component.local.model.LocalVariantGraphResolveState;
 public interface RootComponentMetadataBuilder {
 
     /**
-     * Build the component, caching the result. Then return the component and the variant with the given name.
+     * Build the root component and the root variant required to resolve the given configuration.
      */
-    RootComponentState toRootComponent(String configurationName);
+    RootComponentState toRootComponent(ConfigurationInternal configuration);
 
     /**
      * Create a new builder, that builds a new component with a new identity and configuration set
@@ -50,11 +51,5 @@ public interface RootComponentMetadataBuilder {
         LocalComponentGraphResolveState getRootComponent();
 
         LocalVariantGraphResolveState getRootVariant();
-
-        /**
-         * This should almost always be true, but is only false in cases where we emit a deprecation warning.
-         * This can be removed in Gradle 9.0. Afterward we can always assume the root variant is present.
-         */
-        boolean hasRootVariant();
     }
 }

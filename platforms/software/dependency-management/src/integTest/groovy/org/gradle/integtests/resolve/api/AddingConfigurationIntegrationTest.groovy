@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.util.internal.ToBeImplemented
 
 class AddingConfigurationIntegrationTest extends AbstractIntegrationSpec {
     def "can add configurations" () {
@@ -133,11 +134,11 @@ class AddingConfigurationIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        executer.expectDeprecationWarning("Removing a configuration from the container before resolution This behavior has been deprecated. This will fail with an error in Gradle 9.0. Do not remove configurations from the container and resolve them after.")
         succeeds("help")
     }
 
-    def "removing a configuration with dependencies and resolving it fails"() {
+    @ToBeImplemented
+    def "removing a configuration with dependencies and resolving it succeeds"() {
         given:
         mavenRepo.module("org", "foo", "1.0").publish()
 
@@ -147,13 +148,11 @@ class AddingConfigurationIntegrationTest extends AbstractIntegrationSpec {
             def conf = configurations.create("conf")
             conf.dependencies.add(project.dependencies.create("org:foo:1.0"))
             configurations.remove(conf)
-            conf.files
+//            assert conf.files*.name == ["foo-1.0.jar"]
+            assert conf.files*.name == []
         """
 
-        when:
-        fails("help")
-
-        then:
-        failure.assertHasCause("Expected root variant 'conf' to be present in root project :")
+        expect:
+        succeeds("help")
     }
 }

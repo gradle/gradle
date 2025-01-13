@@ -20,7 +20,6 @@ import org.gradle.api.artifacts.ConfigurablePublishArtifact;
 import org.gradle.api.artifacts.DependencyResolutionListener;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.DomainObjectContext;
-import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.artifacts.ResolveExceptionMapper;
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory;
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParserFactory;
@@ -37,10 +36,8 @@ import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.model.CalculatedValueFactory;
-import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
-import org.gradle.internal.work.WorkerThreadRegistry;
 
 import javax.annotation.concurrent.ThreadSafe;
 import javax.inject.Inject;
@@ -52,11 +49,10 @@ import javax.inject.Inject;
 public class DefaultConfigurationFactory {
 
     private final Instantiator instantiator;
-    private final ConfigurationResolver resolver;
+    private final ConfigurationResolverFactory resolverFactory;
     private final ListenerManager listenerManager;
     private final DomainObjectContext domainObjectContext;
     private final FileCollectionFactory fileCollectionFactory;
-    private final BuildOperationRunner buildOperationRunner;
     private final NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser;
     private final NotationParser<Object, Capability> capabilityNotationParser;
     private final AttributesFactory attributesFactory;
@@ -64,7 +60,6 @@ public class DefaultConfigurationFactory {
     private final AttributeDesugaring attributeDesugaring;
     private final UserCodeApplicationContext userCodeApplicationContext;
     private final ProjectStateRegistry projectStateRegistry;
-    private final WorkerThreadRegistry workerThreadRegistry;
     private final DomainObjectCollectionFactory domainObjectCollectionFactory;
     private final CalculatedValueFactory calculatedValueFactory;
     private final TaskDependencyFactory taskDependencyFactory;
@@ -73,29 +68,26 @@ public class DefaultConfigurationFactory {
     @Inject
     public DefaultConfigurationFactory(
         Instantiator instantiator,
-        ConfigurationResolver resolver,
+        ConfigurationResolverFactory resolverFactory,
         ListenerManager listenerManager,
         DomainObjectContext domainObjectContext,
         FileCollectionFactory fileCollectionFactory,
-        BuildOperationRunner buildOperationRunner,
         PublishArtifactNotationParserFactory artifactNotationParserFactory,
         AttributesFactory attributesFactory,
         ResolveExceptionMapper exceptionMapper,
         AttributeDesugaring attributeDesugaring,
         UserCodeApplicationContext userCodeApplicationContext,
         ProjectStateRegistry projectStateRegistry,
-        WorkerThreadRegistry workerThreadRegistry,
         DomainObjectCollectionFactory domainObjectCollectionFactory,
         CalculatedValueFactory calculatedValueFactory,
         TaskDependencyFactory taskDependencyFactory,
         InternalProblems problemsService
     ) {
         this.instantiator = instantiator;
-        this.resolver = resolver;
+        this.resolverFactory = resolverFactory;
         this.listenerManager = listenerManager;
         this.domainObjectContext = domainObjectContext;
         this.fileCollectionFactory = fileCollectionFactory;
-        this.buildOperationRunner = buildOperationRunner;
         this.artifactNotationParser = artifactNotationParserFactory.create();
         this.capabilityNotationParser = new CapabilityNotationParserFactory(true).create();
         this.attributesFactory = attributesFactory;
@@ -103,7 +95,6 @@ public class DefaultConfigurationFactory {
         this.attributeDesugaring = attributeDesugaring;
         this.userCodeApplicationContext = userCodeApplicationContext;
         this.projectStateRegistry = projectStateRegistry;
-        this.workerThreadRegistry = workerThreadRegistry;
         this.domainObjectCollectionFactory = domainObjectCollectionFactory;
         this.calculatedValueFactory = calculatedValueFactory;
         this.taskDependencyFactory = taskDependencyFactory;
@@ -127,11 +118,10 @@ public class DefaultConfigurationFactory {
             domainObjectContext,
             name,
             configurationsProvider,
-            resolver,
+            resolverFactory,
             dependencyResolutionListeners,
             resolutionStrategyFactory,
             fileCollectionFactory,
-            buildOperationRunner,
             instantiator,
             artifactNotationParser,
             capabilityNotationParser,
@@ -141,7 +131,6 @@ public class DefaultConfigurationFactory {
             attributeDesugaring,
             userCodeApplicationContext,
             projectStateRegistry,
-            workerThreadRegistry,
             domainObjectCollectionFactory,
             calculatedValueFactory,
             this,
@@ -169,11 +158,10 @@ public class DefaultConfigurationFactory {
             domainObjectContext,
             name,
             configurationsProvider,
-            resolver,
+            resolverFactory,
             dependencyResolutionListeners,
             resolutionStrategyFactory,
             fileCollectionFactory,
-            buildOperationRunner,
             instantiator,
             artifactNotationParser,
             capabilityNotationParser,
@@ -183,7 +171,6 @@ public class DefaultConfigurationFactory {
             attributeDesugaring,
             userCodeApplicationContext,
             projectStateRegistry,
-            workerThreadRegistry,
             domainObjectCollectionFactory,
             calculatedValueFactory,
             this,
@@ -210,11 +197,10 @@ public class DefaultConfigurationFactory {
             domainObjectContext,
             name,
             configurationsProvider,
-            resolver,
+            resolverFactory,
             dependencyResolutionListeners,
             resolutionStrategyFactory,
             fileCollectionFactory,
-            buildOperationRunner,
             instantiator,
             artifactNotationParser,
             capabilityNotationParser,
@@ -224,7 +210,6 @@ public class DefaultConfigurationFactory {
             attributeDesugaring,
             userCodeApplicationContext,
             projectStateRegistry,
-            workerThreadRegistry,
             domainObjectCollectionFactory,
             calculatedValueFactory,
             this,
@@ -251,11 +236,10 @@ public class DefaultConfigurationFactory {
             domainObjectContext,
             name,
             configurationsProvider,
-            resolver,
+            resolverFactory,
             dependencyResolutionListeners,
             resolutionStrategyFactory,
             fileCollectionFactory,
-            buildOperationRunner,
             instantiator,
             artifactNotationParser,
             capabilityNotationParser,
@@ -265,7 +249,6 @@ public class DefaultConfigurationFactory {
             attributeDesugaring,
             userCodeApplicationContext,
             projectStateRegistry,
-            workerThreadRegistry,
             domainObjectCollectionFactory,
             calculatedValueFactory,
             this,

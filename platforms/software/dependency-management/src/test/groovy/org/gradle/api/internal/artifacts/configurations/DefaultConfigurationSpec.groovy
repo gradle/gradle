@@ -37,7 +37,7 @@ import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.DomainObjectContext
-import org.gradle.api.internal.artifacts.ConfigurationResolver
+import org.gradle.api.internal.artifacts.ComponentModuleMetadataHandlerInternal
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.artifacts.DefaultExcludeRule
 import org.gradle.api.internal.artifacts.DefaultResolverResults
@@ -46,6 +46,7 @@ import org.gradle.api.internal.artifacts.ResolveExceptionMapper
 import org.gradle.api.internal.artifacts.ResolverResults
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParserFactory
+import org.gradle.api.internal.artifacts.ivyservice.ShortCircuitingResolutionExecutor
 import org.gradle.api.internal.artifacts.ivyservice.TypedResolveException
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor
@@ -57,6 +58,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 import org.gradle.api.internal.artifacts.result.MinimalResolutionResult
 import org.gradle.api.internal.artifacts.result.ResolvedComponentResultInternal
+import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry
 import org.gradle.api.internal.attributes.AttributeDesugaring
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.file.TestFiles
@@ -77,7 +79,7 @@ import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.internal.work.WorkerThreadRegistry
+import org.gradle.test.fixtures.work.TestWorkerLeaseService
 import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.Path
@@ -98,12 +100,25 @@ class DefaultConfigurationSpec extends Specification {
     Instantiator instantiator = TestUtil.instantiatorFactory().decorateLenient()
 
     def configurationsProvider = Mock(ConfigurationsProvider)
-    def resolver = Mock(ConfigurationResolver)
+    def resolutionExecutor = Mock(ShortCircuitingResolutionExecutor)
+    def resolverFactory = new DefaultConfigurationResolverFactory(
+        () -> [],
+        new TestWorkerLeaseService(),
+        resolutionExecutor,
+        new ArtifactTypeRegistry(TestUtil.instantiatorFactory().decorateLenient(), AttributeTestUtil.attributesFactory(), CollectionCallbackActionDecorator.NOOP),
+        Mock(ComponentModuleMetadataHandlerInternal),
+        AttributeTestUtil.services(),
+        TestUtil.calculatedValueContainerFactory(),
+        AttributeTestUtil.attributesFactory(),
+        new TestBuildOperationRunner()
+    )
     def listenerManager = Mock(ListenerManager)
     def metaDataProvider = Mock(DependencyMetaDataProvider)
-    def resolutionStrategy = Mock(ResolutionStrategyInternal)
+    def resolutionStrategy = Mock(ResolutionStrategyInternal) {
+        getCachePolicy() >> Mock(CachePolicy)
+    }
     def attributesFactory = AttributeTestUtil.attributesFactory()
-    def rootComponentMetadataBuilder = Mock(RootComponentMetadataBuilder)
+    def rootComponentMetadataBuilder = Stub(RootComponentMetadataBuilder)
     def projectStateRegistry = Mock(ProjectStateRegistry)
     def domainObjectCollectionCallbackActionDecorator = Mock(CollectionCallbackActionDecorator)
     def userCodeApplicationContext = Mock(UserCodeApplicationContext)
@@ -111,11 +126,8 @@ class DefaultConfigurationSpec extends Specification {
 
     def setup() {
         _ * listenerManager.createAnonymousBroadcaster(DependencyResolutionListener) >> { new AnonymousListenerBroadcast<DependencyResolutionListener>(DependencyResolutionListener, Stub(Dispatch)) }
-        _ * resolver.getAllRepositories() >> []
         _ * domainObjectCollectionCallbackActionDecorator.decorate(_) >> { args -> args[0] }
         _ * userCodeApplicationContext.reapplyCurrentLater(_) >> { args -> args[0] }
-        _ * rootComponentMetadataBuilder.getValidator() >> Mock(MutationValidator)
-        _ * rootComponentMetadataBuilder.newBuilder(_, _) >> rootComponentMetadataBuilder
     }
 
     void defaultValues() {
@@ -314,7 +326,7 @@ class DefaultConfigurationSpec extends Specification {
         def fileSet = [new File("somePath")] as Set
 
         given:
-        resolver.resolveGraph(configuration) >> graphResolved(fileSet)
+        resolutionExecutor.resolveGraph(_, _, _) >> graphResolved(fileSet)
 
         when:
         def resolved = configuration.resolve()
@@ -329,7 +341,7 @@ class DefaultConfigurationSpec extends Specification {
         def failure = new TypedResolveException("dependencies", configuration.getDisplayName(), [])
 
         given:
-        _ * resolver.resolveGraph(_) >> graphResolved(failure)
+        _ * resolutionExecutor.resolveGraph(_, _, _) >> graphResolved(failure)
 
         when:
         ArtifactView lenientView = configuration.getIncoming().artifactView(view -> {
@@ -365,7 +377,7 @@ class DefaultConfigurationSpec extends Specification {
         def failure = new TypedResolveException("dependencies", "configuration ':conf'", [new RuntimeException()])
 
         and:
-        _ * resolver.resolveGraph(_) >> graphResolved(failure)
+        _ * resolutionExecutor.resolveGraph(_, _, _) >> graphResolved(failure)
         _ * resolutionStrategy.resolveGraphToDetermineTaskDependencies() >> true
 
         when:
@@ -381,7 +393,7 @@ class DefaultConfigurationSpec extends Specification {
         def dependency1 = dependency("group1", "name", "version")
         def configuration = conf()
         def fileSet = [new File("somePath")] as Set
-        resolver.resolveGraph(configuration) >> graphResolved(fileSet)
+        resolutionExecutor.resolveGraph(_, _, _) >> graphResolved(fileSet)
 
         when:
         def fileCollection = configuration.fileCollection(dependency1)
@@ -395,7 +407,7 @@ class DefaultConfigurationSpec extends Specification {
         def configuration = conf()
         Spec<Dependency> spec = Mock(Spec)
         def fileSet = [new File("somePath")] as Set
-        resolver.resolveGraph(configuration) >> graphResolved(fileSet)
+        resolutionExecutor.resolveGraph(_, _, _) >> graphResolved(fileSet)
 
         when:
         def fileCollection = configuration.fileCollection(spec)
@@ -409,7 +421,7 @@ class DefaultConfigurationSpec extends Specification {
         def closure = { dep -> dep.group == 'group1' }
         def configuration = conf()
         def fileSet = [new File("somePath")] as Set
-        resolver.resolveGraph(configuration) >> graphResolved(fileSet)
+        resolutionExecutor.resolveGraph(_, _, _) >> graphResolved(fileSet)
 
         when:
         def fileCollection = configuration.fileCollection(closure)
@@ -422,7 +434,7 @@ class DefaultConfigurationSpec extends Specification {
     def filesWithDependencies() {
         def configuration = conf()
         def fileSet = [new File("somePath")] as Set
-        resolver.resolveGraph(configuration) >> graphResolved(fileSet)
+        resolutionExecutor.resolveGraph(_, _, _) >> graphResolved(fileSet)
 
         when:
         def files = configuration.files(Mock(Dependency))
@@ -435,7 +447,7 @@ class DefaultConfigurationSpec extends Specification {
     def filesWithSpec() {
         def configuration = conf()
         def fileSet = [new File("somePath")] as Set
-        resolver.resolveGraph(configuration) >> graphResolved(fileSet)
+        resolutionExecutor.resolveGraph(_, _, _) >> graphResolved(fileSet)
 
         when:
         def files = configuration.files(Mock(Spec))
@@ -449,7 +461,7 @@ class DefaultConfigurationSpec extends Specification {
         def configuration = conf()
         def closure = { dep -> dep.group == 'group1' }
         def fileSet = [new File("somePath")] as Set
-        resolver.resolveGraph(configuration) >> graphResolved(fileSet)
+        resolutionExecutor.resolveGraph(_, _, _) >> graphResolved(fileSet)
 
         when:
         def files = configuration.files(closure)
@@ -462,7 +474,7 @@ class DefaultConfigurationSpec extends Specification {
     def "multiple resolves use cached result"() {
         given:
         def configuration = conf()
-        resolver.resolveGraph(configuration) >> graphResolved()
+        resolutionExecutor.resolveGraph(_, _, _) >> graphResolved()
 
         when:
         def r = configuration.getResolvedConfiguration()
@@ -532,7 +544,7 @@ class DefaultConfigurationSpec extends Specification {
         _ * artifactTaskDependencies.getDependencies(_) >> requiredTasks
 
         and:
-        _ * resolver.resolveBuildDependencies(_, _) >> DefaultResolverResults.buildDependenciesResolved(Stub(VisitedGraphResults), visitedArtifactSet, Mock(ResolverResults.LegacyResolverResults))
+        _ * resolutionExecutor.resolveBuildDependencies(_, _, _) >> DefaultResolverResults.buildDependenciesResolved(Stub(VisitedGraphResults), visitedArtifactSet, Mock(ResolverResults.LegacyResolverResults))
 
         expect:
         configuration.buildDependencies.getDependencies(targetTask) == requiredTasks
@@ -808,7 +820,7 @@ class DefaultConfigurationSpec extends Specification {
         Action<ResolvableDependencies> beforeResolveAction = Mock()
         Action<ResolvableDependencies> afterResolveAction = Mock()
         def config = conf("conf")
-        resolver.resolveGraph(config) >> graphResolved()
+        resolutionExecutor.resolveGraph(_, _, _) >> graphResolved()
         def beforeResolveCalled = false
         def afterResolveCalled = false
 
@@ -827,7 +839,7 @@ class DefaultConfigurationSpec extends Specification {
         copy.files
 
         then:
-        resolver.resolveGraph(copy) >> graphResolved()
+        resolutionExecutor.resolveGraph(_, _, _) >> graphResolved()
         1 * beforeResolveAction.execute(copy.incoming)
         1 * afterResolveAction.execute(copy.incoming)
         beforeResolveCalled
@@ -935,9 +947,8 @@ class DefaultConfigurationSpec extends Specification {
         files.files
 
         then:
-        resolver.resolveGraph(config) >> graphResolved()
-        1 * resolver.getAllRepositories() >> []
-        0 * resolver._
+        resolutionExecutor.resolveGraph(_, _, _) >> graphResolved()
+        0 * resolutionExecutor._
     }
 
     def "notifies beforeResolve action on incoming dependencies set when dependencies are resolved"() {
@@ -951,13 +962,13 @@ class DefaultConfigurationSpec extends Specification {
         config.files
 
         then:
-        resolver.resolveGraph(config) >> graphResolved()
+        resolutionExecutor.resolveGraph(_, _, _) >> graphResolved()
         1 * action.execute(config.incoming)
     }
 
     def "calls beforeResolve closure on incoming dependencies set when dependencies are resolved"() {
         def config = conf("conf")
-        resolver.resolveGraph(config) >> graphResolved()
+        resolutionExecutor.resolveGraph(_, _, _) >> graphResolved()
         def called = false
 
         expect:
@@ -984,14 +995,14 @@ class DefaultConfigurationSpec extends Specification {
         config.files
 
         then:
-        resolver.resolveGraph(config) >> graphResolved()
+        resolutionExecutor.resolveGraph(_, _, _) >> graphResolved()
         1 * action.execute(config.incoming)
 
     }
 
     def "calls afterResolve closure on incoming dependencies set when dependencies are resolved"() {
         def config = conf("conf")
-        resolver.resolveGraph(config) >> graphResolved()
+        resolutionExecutor.resolveGraph(_, _, _) >> graphResolved()
         def called = false
 
         expect:
@@ -1046,7 +1057,7 @@ class DefaultConfigurationSpec extends Specification {
         def result = new MinimalResolutionResult(0, rootSource, ImmutableAttributes.EMPTY)
         def graphResults = new DefaultVisitedGraphResults(result, [] as Set, null)
 
-        resolver.resolveGraph(config) >> DefaultResolverResults.graphResolved(graphResults, visitedArtifacts(), Mock(ResolverResults.LegacyResolverResults))
+        resolutionExecutor.resolveGraph(_, _, _) >> DefaultResolverResults.graphResolved(graphResults, visitedArtifacts(), Mock(ResolverResults.LegacyResolverResults))
 
         when:
         def out = config.incoming.resolutionResult
@@ -1059,7 +1070,7 @@ class DefaultConfigurationSpec extends Specification {
         def parent = conf("parent", ":parent")
         def config = conf("conf")
         config.extendsFrom parent
-        resolver.resolveGraph(config) >> graphResolved()
+        resolutionExecutor.resolveGraph(_, _, _) >> graphResolved()
 
         when:
         config.resolve()
@@ -1075,7 +1086,7 @@ class DefaultConfigurationSpec extends Specification {
 
         when:
         config = conf("conf")
-        resolver.resolveGraph(config) >> graphResolved()
+        resolutionExecutor.resolveGraph(_, _, _) >> graphResolved()
         config.incoming.getResolutionResult().root
 
         then:
@@ -1099,9 +1110,8 @@ class DefaultConfigurationSpec extends Specification {
         config.state == RESOLVED
 
         and:
-        1 * resolver.resolveGraph(config) >> graphResolved()
-        1 * resolver.getAllRepositories() >> []
-        0 * resolver._
+        1 * resolutionExecutor.resolveGraph(_, _, _) >> graphResolved()
+        0 * resolutionExecutor._
     }
 
     def "can determine task dependencies when graph resolution is not"() {
@@ -1115,8 +1125,8 @@ class DefaultConfigurationSpec extends Specification {
 
         then:
         config.state == UNRESOLVED
-        1 * resolver.resolveBuildDependencies(config, _) >> buildDependenciesResolved()
-        0 * resolver._
+        1 * resolutionExecutor.resolveBuildDependencies(_, _, _) >> buildDependenciesResolved()
+        0 * resolutionExecutor._
     }
 
     def "resolving graph for task dependencies, and then resolving it for results does not re-resolve graph"() {
@@ -1131,16 +1141,15 @@ class DefaultConfigurationSpec extends Specification {
         config.state == RESOLVED
 
         and:
-        1 * resolver.resolveGraph(config) >> graphResolved()
-        1 * resolver.getAllRepositories() >> []
-        0 * resolver._
+        1 * resolutionExecutor.resolveGraph(_, _, _) >> graphResolved()
+        0 * resolutionExecutor._
 
         when:
         config.incoming.getResolutionResult().root
 
         then:
         config.state == RESOLVED
-        0 * resolver._
+        0 * resolutionExecutor._
     }
 
     def "resolves graph when result requested after resolving task dependencies"() {
@@ -1154,8 +1163,8 @@ class DefaultConfigurationSpec extends Specification {
 
         then:
         config.state == UNRESOLVED
-        1 * resolver.resolveBuildDependencies(config, _) >> buildDependenciesResolved()
-        0 * resolver._
+        1 * resolutionExecutor.resolveBuildDependencies(_, _, _) >> buildDependenciesResolved()
+        0 * resolutionExecutor._
 
         when:
         config.incoming.getResolutionResult().root
@@ -1164,9 +1173,8 @@ class DefaultConfigurationSpec extends Specification {
         config.state == RESOLVED
 
         and:
-        1 * resolver.resolveGraph(config) >> graphResolved()
-        1 * resolver.getAllRepositories() >> []
-        0 * resolver._
+        1 * resolutionExecutor.resolveGraph(_, _, _) >> graphResolved()
+        0 * resolutionExecutor._
     }
 
     def "resolving configuration for results, and then resolving task dependencies required does not re-resolve graph"() {
@@ -1182,16 +1190,15 @@ class DefaultConfigurationSpec extends Specification {
         config.state == RESOLVED
 
         and:
-        1 * resolver.resolveGraph(config) >> graphResolved()
-        1 * resolver.getAllRepositories() >> []
-        0 * resolver._
+        1 * resolutionExecutor.resolveGraph(_, _, _) >> graphResolved()
+        0 * resolutionExecutor._
 
         when:
         config.getBuildDependencies()
 
         then:
         config.state == RESOLVED
-        0 * resolver._
+        0 * resolutionExecutor._
 
         where:
         graphResolveRequired << [true, false]
@@ -1200,7 +1207,7 @@ class DefaultConfigurationSpec extends Specification {
     def "resolving configuration twice returns the same result objects"() {
         def config = conf("conf")
         when:
-        resolver.resolveGraph(_) >> graphResolved([new File("result")] as Set)
+        resolutionExecutor.resolveGraph(_, _, _) >> graphResolved([new File("result")] as Set)
 
         def previousFiles = config.files
         def previousResolutionResult = config.incoming.resolutionResult
@@ -1216,7 +1223,7 @@ class DefaultConfigurationSpec extends Specification {
         nextResolutionResult.root // forces lazy resolution
 
         then:
-        0 * resolver._
+        0 * resolutionExecutor._
         config.state == RESOLVED
 
         // We get back the same resolution results
@@ -1231,7 +1238,7 @@ class DefaultConfigurationSpec extends Specification {
 
     def "copied configuration is not resolved"() {
         def config = conf("conf")
-        resolver.resolveGraph(config) >> graphResolved()
+        resolutionExecutor.resolveGraph(_, _, _) >> graphResolved()
 
         config.resolutionStrategy
         config.incoming.resolutionResult
@@ -1240,15 +1247,15 @@ class DefaultConfigurationSpec extends Specification {
         def copy = config.copy()
 
         then:
-        1 * resolutionStrategy.copy() >> Mock(ResolutionStrategyInternal)
-        0 * resolver._
+        1 * resolutionStrategy.copy() >> Stub(ResolutionStrategyInternal)
+        0 * resolutionExecutor._
         copy.state == UNRESOLVED
 
         when:
         copy.incoming.resolutionResult.root
 
         then:
-        1 * resolver.resolveGraph(copy) >> graphResolved()
+        1 * resolutionExecutor.resolveGraph(_, _, _) >> graphResolved()
     }
 
     def "provides task dependency from project dependency using 'dependents'"() {
@@ -1262,7 +1269,7 @@ class DefaultConfigurationSpec extends Specification {
 
     def "mutations are prohibited after resolution"() {
         def conf = conf("conf")
-        resolver.resolveGraph(conf) >> graphResolved()
+        resolutionExecutor.resolveGraph(_, _, _) >> graphResolved()
 
         given:
         conf.incoming.getResolutionResult().root
@@ -1355,7 +1362,7 @@ class DefaultConfigurationSpec extends Specification {
 
     def propertyChangeWithNonUnresolvedStateShouldThrowEx() {
         def configuration = conf()
-        resolver.resolveGraph(configuration) >> graphResolved()
+        resolutionExecutor.resolveGraph(_, _, _) >> graphResolved()
 
         given:
         configuration.resolve()
@@ -1548,7 +1555,7 @@ class DefaultConfigurationSpec extends Specification {
         def seenCopied = [] as Set<ResolvableDependencies>
         copied.incoming.beforeResolve { seenCopied.add(it) }
 
-        resolver.resolveGraph(_) >> graphResolved()
+        resolutionExecutor.resolveGraph(_, _, _) >> graphResolved()
 
         when:
         original.getResolvedConfiguration()
@@ -1574,7 +1581,7 @@ class DefaultConfigurationSpec extends Specification {
         def seenCopied = [] as Set<DependencySet>
         copied.withDependencies { seenCopied.add(it) }
 
-        resolver.resolveGraph(_) >> graphResolved()
+        resolutionExecutor.resolveGraph(_, _, _) >> graphResolved()
 
         when:
         original.getResolvedConfiguration()
@@ -1769,18 +1776,16 @@ class DefaultConfigurationSpec extends Specification {
         )
         new DefaultConfigurationFactory(
             DirectInstantiator.INSTANCE,
-            resolver,
+            resolverFactory,
             listenerManager,
             domainObjectContext,
             TestFiles.fileCollectionFactory(),
-            new TestBuildOperationRunner(),
             publishArtifactNotationParser,
             attributesFactory,
             new ResolveExceptionMapper(Mock(DomainObjectContext), Mock(DocumentationRegistry)),
             new AttributeDesugaring(AttributeTestUtil.attributesFactory()),
             userCodeApplicationContext,
             projectStateRegistry,
-            Stub(WorkerThreadRegistry),
             TestUtil.domainObjectCollectionFactory(),
             calculatedValueContainerFactory,
             TestFiles.taskDependencyFactory(),

@@ -54,7 +54,6 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.CompositeDomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.DomainObjectContext;
-import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.artifacts.DefaultDependencyConstraintSet;
 import org.gradle.api.internal.artifacts.DefaultDependencySet;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
@@ -63,6 +62,7 @@ import org.gradle.api.internal.artifacts.ExcludeRuleNotationConverter;
 import org.gradle.api.internal.artifacts.ResolveExceptionMapper;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.dependencies.DependencyConstraintInternal;
+import org.gradle.api.internal.artifacts.ivyservice.CachingDependencyResolver;
 import org.gradle.api.internal.artifacts.ivyservice.ResolutionParameters;
 import org.gradle.api.internal.artifacts.ivyservice.TypedResolveException;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
@@ -70,7 +70,6 @@ import org.gradle.api.internal.artifacts.resolver.DefaultResolutionOutputs;
 import org.gradle.api.internal.artifacts.resolver.ResolutionAccess;
 import org.gradle.api.internal.artifacts.resolver.ResolutionOutputsInternal;
 import org.gradle.api.internal.artifacts.result.DefaultResolutionResult;
-import org.gradle.api.internal.artifacts.result.MinimalResolutionResult;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.AttributesFactory;
@@ -101,17 +100,10 @@ import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.logging.text.TreeFormatter;
-import org.gradle.internal.model.CalculatedModelValue;
-import org.gradle.internal.model.CalculatedValue;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
-import org.gradle.internal.operations.BuildOperationContext;
-import org.gradle.internal.operations.BuildOperationDescriptor;
-import org.gradle.internal.operations.BuildOperationRunner;
-import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.scopes.DetachedDependencyMetadataProvider;
 import org.gradle.internal.typeconversion.NotationParser;
-import org.gradle.internal.work.WorkerThreadRegistry;
 import org.gradle.operations.dependencies.configurations.ConfigurationIdentity;
 import org.gradle.util.Path;
 import org.gradle.util.internal.CollectionUtils;
@@ -134,6 +126,7 @@ import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -148,7 +141,7 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  */
 @SuppressWarnings("rawtypes")
 public abstract class DefaultConfiguration extends AbstractFileCollection implements ConfigurationInternal, MutationValidator, ResettableConfiguration {
-    private final ConfigurationResolver resolver;
+
     private final DefaultDependencySet dependencies;
     private final DefaultDependencyConstraintSet dependencyConstraints;
     private final DefaultDomainObjectSet<Dependency> ownDependencies;
@@ -167,7 +160,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     private DefaultPublishArtifactSet allArtifacts;
     private final ConfigurationResolvableDependencies resolvableDependencies;
     private ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners;
-    private final BuildOperationRunner buildOperationRunner;
     private final Instantiator instantiator;
     private Factory<ResolutionStrategyInternal> resolutionStrategyFactory;
     private ResolutionStrategyInternal resolutionStrategy;
@@ -183,7 +175,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     private final Path identityPath;
     private final Path projectPath;
 
-    // These fields are not covered by mutation lock
     private final String name;
     private final DefaultConfigurationPublications outgoing;
 
@@ -196,7 +187,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     private final Object observationLock = new Object();
     private volatile InternalState observedState = UNRESOLVED;
-    private boolean insideBeforeResolve;
 
     private boolean canBeConsumed;
     private boolean canBeResolved;
@@ -211,20 +201,19 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     private final FreezableAttributeContainer configurationAttributes;
     private final DomainObjectContext domainObjectContext;
     private final AttributesFactory attributesFactory;
+
+    private final ResolveState currentResolveState;
     private final ResolutionAccess resolutionAccess;
     private FileCollectionInternal intrinsicFiles;
 
     private final DisplayName displayName;
     private final UserCodeApplicationContext userCodeApplicationContext;
-    private final WorkerThreadRegistry workerThreadRegistry;
     private final DomainObjectCollectionFactory domainObjectCollectionFactory;
 
     private final AtomicInteger copyCount = new AtomicInteger();
 
     private List<String> declarationAlternatives = ImmutableList.of();
     private List<String> resolutionAlternatives = ImmutableList.of();
-
-    private final CalculatedModelValue<Optional<ResolverResults>> currentResolveState;
 
     private ConfigurationInternal consistentResolutionSource;
     private String consistentResolutionReason;
@@ -238,11 +227,10 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         DomainObjectContext domainObjectContext,
         String name,
         ConfigurationsProvider configurationsProvider,
-        ConfigurationResolver resolver,
+        ConfigurationResolverFactory resolverFactory,
         ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners,
         Factory<ResolutionStrategyInternal> resolutionStrategyFactory,
         FileCollectionFactory fileCollectionFactory,
-        BuildOperationRunner buildOperationRunner,
         Instantiator instantiator,
         NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser,
         NotationParser<Object, Capability> capabilityNotationParser,
@@ -252,7 +240,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         AttributeDesugaring attributeDesugaring,
         UserCodeApplicationContext userCodeApplicationContext,
         ProjectStateRegistry projectStateRegistry,
-        WorkerThreadRegistry workerThreadRegistry,
         DomainObjectCollectionFactory domainObjectCollectionFactory,
         CalculatedValueContainerFactory calculatedValueContainerFactory,
         DefaultConfigurationFactory defaultConfigurationFactory,
@@ -264,18 +251,15 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         super(taskDependencyFactory);
         this.userCodeApplicationContext = userCodeApplicationContext;
         this.projectStateRegistry = projectStateRegistry;
-        this.workerThreadRegistry = workerThreadRegistry;
         this.domainObjectCollectionFactory = domainObjectCollectionFactory;
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
         this.identityPath = domainObjectContext.identityPath(name);
         this.projectPath = domainObjectContext.projectPath(name);
         this.name = name;
         this.configurationsProvider = configurationsProvider;
-        this.resolver = resolver;
         this.resolutionStrategyFactory = resolutionStrategyFactory;
         this.fileCollectionFactory = fileCollectionFactory;
         this.dependencyResolutionListeners = dependencyResolutionListeners;
-        this.buildOperationRunner = buildOperationRunner;
         this.instantiator = instantiator;
         this.attributesFactory = attributesFactory;
         this.domainObjectContext = domainObjectContext;
@@ -285,6 +269,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         this.displayName = Describables.memoize(new ConfigurationDescription(identityPath));
         this.configurationAttributes = new FreezableAttributeContainer(attributesFactory.mutable(), this.displayName);
 
+        this.currentResolveState = new ResolveState(this, resolverFactory, rootComponentMetadataBuilder);
         this.resolutionAccess = new ConfigurationResolutionAccess();
         this.resolvableDependencies = instantiator.newInstance(ConfigurationResolvableDependencies.class, this);
 
@@ -303,7 +288,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
         this.outgoing = instantiator.newInstance(DefaultConfigurationPublications.class, displayName, artifacts, new AllArtifactsProvider(), configurationAttributes, instantiator, artifactNotationParser, capabilityNotationParser, fileCollectionFactory, attributesFactory, domainObjectCollectionFactory, taskDependencyFactory);
         this.rootComponentMetadataBuilder = rootComponentMetadataBuilder;
-        this.currentResolveState = domainObjectContext.getModel().newCalculatedValue(Optional.empty());
         this.defaultConfigurationFactory = defaultConfigurationFactory;
         this.problemsService = problemsService;
 
@@ -328,12 +312,11 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     @Override
     public State getState() {
-        Optional<ResolverResults> currentState = currentResolveState.get();
-        if (!currentState.isPresent()) {
+        ResolverResults resolvedState = currentResolveState.getState();
+        if (resolvedState == null) {
             return State.UNRESOLVED;
         }
 
-        ResolverResults resolvedState = currentState.get();
         if (resolvedState.getVisitedGraph().hasAnyFailure()) {
             return State.RESOLVED_WITH_FAILURES;
         } else if (resolvedState.isFullyResolved()) {
@@ -613,7 +596,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
                 )
             ),
             false,
-            getResolutionHost(),
+            resolutionAccess.getHost(),
             taskDependencyFactory
         );
     }
@@ -649,9 +632,68 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         return resolutionAccess.getResults().getValue().getLegacyResults().getResolvedConfiguration();
     }
 
-    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
-    private static Boolean isFullyResoled(Optional<ResolverResults> currentState) {
-        return currentState.map(ResolverResults::isFullyResolved).orElse(false);
+    /**
+     * Tracks the state of resolution and owns the resolver that can mutate that state.
+     */
+    private static class ResolveState {
+
+        private final ConfigurationInternal configuration;
+        private final ConfigurationResolverFactory resolverFactory;
+        private final RootComponentMetadataBuilder rootComponentMetadataBuilder;
+
+        private CachingDependencyResolver resolver;
+
+        public ResolveState(ConfigurationInternal configuration, ConfigurationResolverFactory resolverFactory, RootComponentMetadataBuilder rootComponentMetadataBuilder) {
+            this.configuration = configuration;
+            this.resolverFactory = resolverFactory;
+            this.rootComponentMetadataBuilder = rootComponentMetadataBuilder;
+        }
+
+        /**
+         * Get the current cached resolve state of the configuration, or null
+         * if the configuration has not been resolved or is in the process of being resolved.
+         */
+        @Nullable
+        public ResolverResults getState() {
+            if (resolver == null) {
+                return null;
+            }
+
+            return resolver.getState();
+        }
+
+        /**
+         * Return true if the configuration has been fully resolved, false
+         * it is unresolved or has only been resolved for build dependencies.
+         */
+        public boolean isFullyResoled() {
+            ResolverResults state = getState();
+            if (state == null) {
+                return false;
+            }
+
+            return state.isFullyResolved();
+        }
+
+        /**
+         * Get the resolver for the configuration.
+         */
+        public CachingDependencyResolver getResolver() {
+            if (resolver == null) {
+                resolver = resolverFactory.forConfiguration(configuration, rootComponentMetadataBuilder);
+            }
+
+            return resolver;
+        }
+
+        /**
+         * Discard any cached resolver state.
+         */
+        public void invalidate() {
+            // Since the resolver caches results, discarding it invalidates any cached results.
+            resolver = null;
+        }
+
     }
 
     private class ConfigurationResolutionAccess implements ResolutionAccess {
@@ -699,134 +741,26 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
             if (getResolutionStrategy().resolveGraphToDetermineTaskDependencies()) {
                 // Force graph resolution as this is required to calculate build dependencies
                 return getValue();
-            } else {
-                return resolveGraphForBuildDependenciesIfRequired();
             }
+
+            return doResolve(CachingDependencyResolver::resolveBuildDependencies);
         }
 
         @Override
         public ResolverResults getValue() {
-            return resolveGraphIfRequired();
+            return doResolve(CachingDependencyResolver::resolveGraph);
         }
 
-    }
+        private ResolverResults doResolve(Function<CachingDependencyResolver, ResolverResults> action) {
+            assertIsResolvable();
+            maybeEmitResolutionDeprecation();
 
-    private ResolverResults resolveGraphIfRequired() {
-        assertIsResolvable();
-        maybeEmitResolutionDeprecation();
-
-        Optional<ResolverResults> currentState = currentResolveState.get();
-        if (isFullyResoled(currentState)) {
-            return currentState.get();
+            try {
+                return action.apply(currentResolveState.getResolver());
+            } catch (Exception e) {
+                throw exceptionMapper.mapFailure(e, "dependencies", displayName.getDisplayName());
+            }
         }
-
-        ResolverResults newState;
-        if (!domainObjectContext.getModel().hasMutableState()) {
-            if (!workerThreadRegistry.isWorkerThread()) {
-                // Error if we are executing in a user-managed thread.
-                throw new IllegalStateException("The configuration " + identityPath.toString() + " was resolved from a thread not managed by Gradle.");
-            } else {
-                DeprecationLogger.deprecateBehaviour("Resolution of the configuration " + identityPath.toString() + " was attempted from a context different than the project context. Have a look at the documentation to understand why this is a problem and how it can be resolved.")
-                    .willBecomeAnErrorInGradle9()
-                    .withUserManual("viewing_debugging_dependencies", "sub:resolving-unsafe-configuration-resolution-errors")
-                    .nagUser();
-                newState = domainObjectContext.getModel().fromMutableState(p -> resolveExclusivelyIfRequired());
-            }
-        } else {
-            newState = resolveExclusivelyIfRequired();
-        }
-
-        return newState;
-    }
-
-    private ResolverResults resolveExclusivelyIfRequired() {
-        return currentResolveState.update(currentState -> {
-            if (isFullyResoled(currentState)) {
-                return currentState;
-            }
-
-            return Optional.of(resolveGraphInBuildOperation());
-        }).get();
-    }
-
-    /**
-     * Must be called from {@link #resolveExclusivelyIfRequired} only.
-     */
-    private ResolverResults resolveGraphInBuildOperation() {
-        return buildOperationRunner.call(new CallableBuildOperation<ResolverResults>() {
-            @Override
-            public ResolverResults call(BuildOperationContext context) {
-                runDependencyActions();
-                runBeforeResolve();
-
-                ResolverResults results;
-                try {
-                    results = resolver.resolveGraph(DefaultConfiguration.this);
-                } catch (Exception e) {
-                    throw exceptionMapper.mapFailure(e, "dependencies", displayName.getDisplayName());
-                }
-
-                // Make the new state visible in case a dependency resolution listener queries the result, which requires the new state
-                currentResolveState.set(Optional.of(results));
-
-                // Mark all affected configurations as observed
-                markParentsObserved(GRAPH_RESOLVED);
-
-                // TODO: Currently afterResolve runs if there are unresolved dependencies, which are
-                //       resolution failures. However, they are not run for other failures.
-                //       We should either _always_ run afterResolve, or only run it if _no_ failure occurred
-                if (!results.getVisitedGraph().getResolutionFailure().isPresent()) {
-                    dependencyResolutionListeners.getSource().afterResolve(getIncoming());
-                }
-
-                // Discard State
-                dependencyResolutionListeners.removeAll();
-                if (resolutionStrategy != null) {
-                    resolutionStrategy.maybeDiscardStateRequiredForGraphResolution();
-                }
-
-                captureBuildOperationResult(context, results);
-                return results;
-            }
-
-            private void captureBuildOperationResult(BuildOperationContext context, ResolverResults results) {
-                results.getVisitedGraph().getResolutionFailure().ifPresent(context::failed);
-                // When dependency resolution has failed, we don't want the build operation listeners to fail as well
-                // because:
-                // 1. the `failed` method will have been called with the user facing error
-                // 2. such an error may still lead to a valid dependency graph
-                MinimalResolutionResult resolutionResult = results.getVisitedGraph().getResolutionResult();
-                context.setResult(new ResolveConfigurationResolutionBuildOperationResult(
-                    resolutionResult.getRootSource(),
-                    resolutionResult.getRequestedAttributes(),
-                    attributesFactory
-                ));
-            }
-
-            @Override
-            public BuildOperationDescriptor.Builder description() {
-                String displayName = "Resolve dependencies of " + identityPath;
-                ProjectIdentity projectId = domainObjectContext.getProjectIdentity();
-                String projectPathString = null;
-                if (!domainObjectContext.isScript()) {
-                    if (projectId != null) {
-                        projectPathString = projectId.getProjectPath().getPath();
-                    }
-                }
-                return BuildOperationDescriptor.displayName(displayName)
-                    .progressDisplayName(displayName)
-                    .details(new ResolveConfigurationResolutionBuildOperationDetails(
-                        getName(),
-                        domainObjectContext.isScript(),
-                        getDescription(),
-                        domainObjectContext.getBuildPath().getPath(),
-                        projectPathString,
-                        isVisible(),
-                        isTransitive(),
-                        resolver.getAllRepositories()
-                    ));
-            }
-        });
     }
 
     @Override
@@ -876,19 +810,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         }
     }
 
-    /**
-     * Run the {@link ResolvableDependencies#beforeResolve(Action)} hook.
-     */
-    private void runBeforeResolve() {
-        DependencyResolutionListener dependencyResolutionListener = dependencyResolutionListeners.getSource();
-        insideBeforeResolve = true;
-        try {
-            dependencyResolutionListener.beforeResolve(getIncoming());
-        } finally {
-            insideBeforeResolve = false;
-        }
-    }
-
     @Override
     public <T> T callAndResetResolutionState(Factory<T> factory) {
         warnOnInvalidInternalAPIUsage("callAndResetResolutionState()", ProperMethodUsage.RESOLVABLE);
@@ -900,37 +821,12 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
             T value = factory.create();
 
             // Reset this configuration to an unresolved state
-            currentResolveState.set(Optional.empty());
+            currentResolveState.invalidate();
 
             return value;
         } finally {
             getResolutionStrategy().setKeepStateRequiredForGraphResolution(false);
         }
-    }
-
-    private ResolverResults resolveGraphForBuildDependenciesIfRequired() {
-        assertIsResolvable();
-        return currentResolveState.update(initial -> {
-            if (!initial.isPresent()) {
-
-                CalculatedValue<ResolverResults> futureCompleteResults = calculatedValueContainerFactory.create(Describables.of("Full results for", getName()), context -> {
-                    Optional<ResolverResults> currentState = currentResolveState.get();
-                    if (!isFullyResoled(currentState)) {
-                        // Do not validate that the current thread holds the project lock.
-                        // TODO: Should instead assert that the results are available and fail if not.
-                        return resolveExclusivelyIfRequired();
-                    }
-                    return currentState.get();
-                });
-
-                try {
-                    return Optional.of(resolver.resolveBuildDependencies(this, futureCompleteResults));
-                } catch (Exception e) {
-                    throw exceptionMapper.mapFailure(e, "dependencies", displayName.getDisplayName());
-                }
-            } // Otherwise, already have a result, so reuse it
-            return initial;
-        }).get();
     }
 
     @Override
@@ -1114,8 +1010,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     @Override
     public boolean isCanBeMutated() {
-        boolean immutable = isObserved() || currentResolveState.get().isPresent();
-        return !immutable;
+        return !isObserved();
     }
 
     @Override
@@ -1294,12 +1189,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     }
 
     @Override
-    public RootComponentMetadataBuilder.RootComponentState toRootComponent() {
-        warnOnInvalidInternalAPIUsage("toRootComponent()", ProperMethodUsage.RESOLVABLE);
-        return rootComponentMetadataBuilder.toRootComponent(getName());
-    }
-
-    @Override
     public DomainObjectContext getDomainObjectContext() {
         return domainObjectContext;
     }
@@ -1390,7 +1279,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
             return;
         }
 
-        if (isFullyResoled(currentResolveState.get())) {
+        if (currentResolveState.isFullyResoled()) {
             throw new InvalidUserDataException(String.format("Cannot change %s of parent of %s after it has been resolved", type, getDisplayName()));
         }
     }
@@ -1402,7 +1291,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
             return;
         }
 
-        if (isFullyResoled(currentResolveState.get())) {
+        if (currentResolveState.isFullyResoled()) {
             // The public result for the configuration has been calculated.
             // It is an error to change anything that would change the dependencies or artifacts
             throw new InvalidUserDataException(String.format("Cannot change %s of dependency %s after it has been resolved.", type, getDisplayName()));
@@ -1410,8 +1299,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
             // The configuration has been used in a resolution, and it is an error for build logic to change any dependencies,
             // exclude rules or parent configurations (values that will affect the resolved graph).
             if (type != MutationType.STRATEGY) {
-                String extraMessage = insideBeforeResolve ? " Use 'defaultDependencies' instead of 'beforeResolve' to specify default dependencies for a configuration." : "";
-                throw new InvalidUserDataException(String.format("Cannot change %s of dependency %s after it has been included in dependency resolution.%s", type, getDisplayName(), extraMessage));
+                throw new InvalidUserDataException(String.format("Cannot change %s of dependency %s after it has been included in dependency resolution.", type, getDisplayName()));
             }
         }
 
@@ -1729,8 +1617,8 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         }
     }
 
-    @VisibleForTesting
-    ListenerBroadcast<DependencyResolutionListener> getDependencyResolutionListeners() {
+    @Override
+    public ListenerBroadcast<DependencyResolutionListener> getDependencyResolutionListeners() {
         return dependencyResolutionListeners;
     }
 
