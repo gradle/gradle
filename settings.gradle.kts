@@ -61,7 +61,6 @@ unassigned {
 unassigned {
     subproject("core")
     subproject("build-events")
-    subproject("diagnostics")
     subproject("composite-builds")
     subproject("core-api")
 }

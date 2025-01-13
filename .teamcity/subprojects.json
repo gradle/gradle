@@ -371,13 +371,6 @@
     "crossVersionTests": false
   },
   {
-    "name": "diagnostics",
-    "path": "subprojects/diagnostics",
-    "unitTests": true,
-    "functionalTests": true,
-    "crossVersionTests": false
-  },
-  {
     "name": "distributions-basics",
     "path": "platforms/core-runtime/distributions-basics",
     "unitTests": false,
