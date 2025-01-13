@@ -19,8 +19,6 @@ import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.util.GradleVersion;
 
-import java.util.List;
-
 import static org.gradle.integtests.fixtures.executer.AbstractGradleExecuter.CliDaemonArgument.NO_DAEMON;
 
 public class DaemonGradleExecuter extends NoDaemonGradleExecuter {
@@ -75,12 +73,11 @@ public class DaemonGradleExecuter extends NoDaemonGradleExecuter {
     }
 
     @Override
-    protected List<String> getAllArgs() {
-        List<String> allArgs = super.getAllArgs();
+    public GradleExecuter reset() {
+        super.reset();
         if (debugMode) {
-            allArgs.add("-Dorg.gradle.debug=true");
-            allArgs.add("-Dorg.gradle.debug.server=false");
+            startBuildProcessInDebugger(true);
         }
-        return allArgs;
+        return this;
     }
 }

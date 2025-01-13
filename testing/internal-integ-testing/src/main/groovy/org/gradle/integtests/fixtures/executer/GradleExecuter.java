@@ -497,6 +497,11 @@ public interface GradleExecuter extends Stoppable {
     GradleExecuter startBuildProcessInDebugger(Action<JavaDebugOptionsInternal> action);
 
     /**
+     * Change the debug options for Gradle build process.
+     */
+    GradleExecuter configureBuildProcessDebugOptions(Action<JavaDebugOptionsInternal> action);
+
+    /**
      * Where possible, starts the Gradle build process in suspended debug mode.
      */
     GradleExecuter startBuildProcessInDebugger(boolean flag);

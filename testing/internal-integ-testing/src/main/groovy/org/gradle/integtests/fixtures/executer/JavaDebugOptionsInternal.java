@@ -22,9 +22,9 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 
 public class JavaDebugOptionsInternal {
     private boolean enabled = false;
-    private String host = "";
+    private String host = "localhost";
     private int port = 5005;
-    private boolean server = true;
+    private boolean server = false;
     private boolean suspend = true;
 
     public JavaDebugOptionsInternal(boolean enabled) {

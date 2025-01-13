@@ -269,6 +269,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         disableToolchainDetection = true;
         debug = new JavaDebugOptionsInternal(Boolean.getBoolean(DEBUG_SYSPROP));
         debugLauncher = new JavaDebugOptionsInternal(Boolean.getBoolean(LAUNCHER_DEBUG_SYSPROP));
+        debugLauncher.setPort(5006);
         profiler = System.getProperty(PROFILE_SYSPROP, "");
         interactive = false;
         checkDeprecations = true;
@@ -419,7 +420,12 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
             executer.withGradleVersionOverride(gradleVersionOverride);
         }
 
-        executer.startBuildProcessInDebugger(opts -> debug.copyTo(opts))
+        executer
+            .configureBuildProcessDebugOptions(opts -> {
+                if (debug.isEnabled()) {
+                    debug.copyTo(opts);
+                }
+            })
             .startLauncherInDebugger(opts -> debugLauncher.copyTo(opts))
             .withProfiler(profiler)
             .withForceInteractive(interactive);
@@ -1493,6 +1499,11 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     @Override
     public GradleExecuter startBuildProcessInDebugger(Action<JavaDebugOptionsInternal> action) {
         debug.setEnabled(true);
+        return configureBuildProcessDebugOptions(action);
+    }
+
+    @Override
+    public GradleExecuter configureBuildProcessDebugOptions(Action<JavaDebugOptionsInternal> action) {
         action.execute(debug);
         return this;
     }
