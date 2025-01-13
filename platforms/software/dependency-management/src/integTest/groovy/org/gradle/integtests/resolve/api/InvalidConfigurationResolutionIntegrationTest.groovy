@@ -76,6 +76,24 @@ class InvalidConfigurationResolutionIntegrationTest extends AbstractIntegrationS
         failure.hasErrorOutput("Dependencies can not be declared against the `compile` configuration.")
     }
 
+    def "failures adding dependencies to resolvable configurations emitted from configure closure are reported"() {
+        given:
+        buildFile << """
+            configurations.resolvable('foo') {
+                dependencies.add(project.dependencies.create('com.example:foo:4.2'))
+            }
+
+            // Realize the configuration
+            configurations.foo
+        """
+
+        when:
+        fails("help")
+
+        then:
+        failure.hasErrorOutput("Dependencies can not be declared against the `foo` configuration.")
+    }
+
     def "fail if a dependency constraint is declared on a configuration which can not be declared against"() {
         given:
         buildFile << """
