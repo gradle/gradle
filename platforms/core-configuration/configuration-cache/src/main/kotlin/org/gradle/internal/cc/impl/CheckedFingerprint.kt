@@ -22,12 +22,16 @@ import org.gradle.util.Path
 
 sealed class CheckedFingerprint {
 
-    // No fingerprint, which means no cache entry
+    /**
+     * No fingerprint, which means no cache entry
+     */
     object NotFound : CheckedFingerprint() {
         override fun toString(): String = "NotFound"
     }
 
-    // The entry cannot be reused at all and should be recreated from scratch
+    /**
+     * The entry cannot be reused at all and should be recreated from scratch
+     */
     data class Invalid(
         val buildPath: Path,
         val reason: StructuredMessage
@@ -42,7 +46,9 @@ sealed class CheckedFingerprint {
         val invalidProjects: InvalidProjects? = null
     ) : CheckedFingerprint()
 
-    // The entry can be reused, however the values for certain projects cannot be reused and should be recreated
+    /**
+     * The entry can be reused, however the values for certain projects cannot be reused and should be recreated
+     */
     data class InvalidProjects(
         /**
          * Identity path of the first project for which an invalidation was detected.
