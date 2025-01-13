@@ -117,6 +117,15 @@ class EdgeState implements DependencyGraphEdge {
         return getSelectedComponent();
     }
 
+    void use(boolean deferSelection) {
+        markUsed();
+        selector.use(deferSelection, isConstraint);
+    }
+
+    void release() {
+        selector.release(isConstraint);
+    }
+
     @Override
     public SelectorState getSelector() {
         return selector;
@@ -176,7 +185,17 @@ class EdgeState implements DependencyGraphEdge {
      * end fail resolution.
      */
     void failWith(Throwable err) {
-        targetNodeSelectionFailure = new ModuleVersionResolveException(dependencyState.getRequested(), err);
+        ComponentSelector selected = selector.getComponentSelector();
+        ComponentSelector requested = dependencyState.getRequested();
+        if (selected.equals(requested)) {
+            targetNodeSelectionFailure = new ModuleVersionResolveException(selected, err);
+        } else {
+            targetNodeSelectionFailure = new ModuleVersionResolveException(
+                selected,
+                () -> String.format("Could not resolve %s (Requested: %s).", selected.getDisplayName(), requested.getDisplayName()),
+                err
+            );
+        }
     }
 
     /**
@@ -256,7 +275,7 @@ class EdgeState implements DependencyGraphEdge {
             attributes = resolveState.getAttributesFactory().concat(attributes, safeGetAttributes());
             targetVariants = dependencyMetadata.selectVariants(resolveState.getVariantSelector(), attributes, targetComponentState, resolveState.getConsumerSchema(), dependencyState.getDependency().getSelector().getCapabilitySelectors());
         } catch (AttributeMergingException mergeError) {
-            targetNodeSelectionFailure = new ModuleVersionResolveException(dependencyState.getRequested(), () -> {
+            targetNodeSelectionFailure = new ModuleVersionResolveException(selector.getComponentSelector(), () -> {
                 Attribute<?> attribute = mergeError.getAttribute();
                 Object constraintValue = mergeError.getLeftValue();
                 Object dependencyValue = mergeError.getRightValue();
@@ -265,7 +284,7 @@ class EdgeState implements DependencyGraphEdge {
             return;
         } catch (Exception t) {
             // Failure to select the target variant/configurations from this component, given the dependency attributes/metadata.
-            targetNodeSelectionFailure = new ModuleVersionResolveException(dependencyState.getRequested(), t);
+            failWith(t);
             return;
         }
         for (VariantGraphResolveState targetVariant : targetVariants.getVariants()) {
@@ -275,7 +294,7 @@ class EdgeState implements DependencyGraphEdge {
     }
 
     private boolean isVirtualDependency() {
-        return selector.getDependencyMetadata() instanceof LenientPlatformDependencyMetadata;
+        return dependencyMetadata instanceof LenientPlatformDependencyMetadata;
     }
 
     @Override
@@ -320,6 +339,8 @@ class EdgeState implements DependencyGraphEdge {
 
     @Override
     public ComponentSelector getRequested() {
+        // TODO: Desugaring should happen on the consuming side by the visitors
+        //  when we are producing the user-facing results.
         return resolveState.desugarSelector(dependencyState.getRequested());
     }
 
