@@ -83,6 +83,22 @@ In this version of Gradle it gets the ability to also access the settings direct
 While this is a non-project specific location, there are uses cases where projects need to be aware of it and resolve file paths relative to it.
 See [`ProjectLayout.getSettingsDirectory()`](org/gradle/api/file/ProjectLayout.html#getSettingsDirectory()).
 
+### Configuration API enhancements
+
+It is now possible to configure a [Configuration](dsl/org.gradle.api.artifacts.Configuration.html) to extend another configuration by supplying a [Provider<Configuration>](dsl/org.gradle.api.provider.Provider.html) as an argument to [extendsFrom](dsl/org.gradle.api.artifacts.Configuration.html#org.gradle.api.artifacts.Configuration:extendsFrom(org.gradle.api.provider.Provider)).
+
+This allows for more flexible configuration hierarchy construction, as the extended configuration can be calculated lazily.
+
+```kotlin
+configurations {
+    resolvable("conf1")
+    resolvable("conf2")
+    resolvable("conf3") {
+        extendsFrom(project.provider { if (x == 1) configurations.getByName("conf1") else configurations.getByName("conf2") })
+    }
+}
+```
+
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
 ==========================================================
