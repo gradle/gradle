@@ -34,6 +34,7 @@ import java.nio.file.Paths
  * Tests that runs a project import to IDE, with an provisioning of the desired version.
  *
  * Provisioned IDEs are cached in the {@link AbstractIdeSyncTest#getIdeHome} directory.
+ * @see <a href="https://github.com/gradle/gradle-ide-starter">gradle-ide-starter</a>
  */
 @Timeout(600)
 @CleanupTestDirectory
