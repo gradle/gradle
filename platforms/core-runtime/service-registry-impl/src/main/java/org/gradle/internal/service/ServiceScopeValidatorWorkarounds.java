@@ -36,6 +36,10 @@ class ServiceScopeValidatorWorkarounds {
         // Because of this, it artificially puts it into the Build-scope to make it available
         "org.gradle.initialization.DefaultProjectDescriptorRegistry",
 
+        // It's supposed to be both in the UserHome and Build scopes
+        // However, with ProjectBuilder based tests it is not available in UserHome scope
+        "org.gradle.internal.classloader.ClasspathHasher",
+
         // Problematic with GradleBuild task and CC, because marking it as a service
         // makes CC skip serialization and instead use service look-up which yield a wrong value for this specially setup task
         "org.gradle.api.internal.StartParameterInternal",
