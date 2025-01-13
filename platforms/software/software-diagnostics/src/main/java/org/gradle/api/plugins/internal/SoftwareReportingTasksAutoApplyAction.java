@@ -30,6 +30,8 @@ import javax.annotation.Nonnull;
 public class SoftwareReportingTasksAutoApplyAction implements ProjectConfigureAction {
     @Override
     public void execute(ProjectInternal project) {
+        // Always apply the help-tasks plugin first, for consistent plugin application order
+        project.getPluginManager().apply("org.gradle.help-tasks");
         project.getPluginManager().apply("org.gradle.software-reporting-tasks");
     }
 }
