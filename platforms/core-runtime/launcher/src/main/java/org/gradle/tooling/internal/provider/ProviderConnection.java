@@ -356,7 +356,7 @@ public class ProviderConnection {
         //   - additional JVM (if supplied) applied on top of the set JVM arguments
         try {
             List<String> baseJvmArguments = operationParameters.getBaseJvmArguments();
-            if (baseJvmArguments != null && !baseJvmArguments.isEmpty()) {
+            if (baseJvmArguments != null) {
                 daemonParams.setJvmArgs(baseJvmArguments);
             }
             List<String> additionalJvmArguments = operationParameters.getAdditionalJvmArguments();
