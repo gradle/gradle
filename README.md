@@ -1,4 +1,4 @@
-<div align="center">
+tab<div align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="images/gradle-white-primary.png" width="700px">
     <img alt="Gradle Logo" src="images/gradle-dark-green-primary.png" width="600px">
@@ -29,7 +29,7 @@
 
 ---
 
-### 🚀 **Getting Started**
+esc### 🚀 **Getting Started**
 
 Starting with Gradle is easy with these essential resources. Follow these to install Gradle, set up initial projects, and explore supported platforms:
 
@@ -50,7 +50,7 @@ Starting with Gradle is easy with these essential resources. Follow these to ins
 
 ---
 
-### 🛠 **Seamless IDE & CI Integration**
+tab### 🛠 **Seamless IDE & CI Integration**
 
 Gradle is built to work smoothly with a variety of Integrated Development Environments (IDEs) and Continuous Integration (CI) systems, providing extensive support for a streamlined workflow:
 
