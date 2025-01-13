@@ -467,7 +467,10 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param name The name of the task to be created
      * @return The newly created task object
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
+     *
+     * @deprecated Use {@link TaskContainer#register(String) tasks.register(String)} instead
      */
+    @Deprecated
     Task task(String name) throws InvalidUserDataException;
 
     /**
@@ -510,7 +513,10 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param name The name of the task to be created
      * @return The newly created task object
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
+     *
+     * @deprecated Use a {@link TaskContainer#register(String, Class, Action) tasks.register} variant instead
      */
+    @Deprecated
     Task task(Map<String, ?> args, String name) throws InvalidUserDataException;
 
     /**
@@ -529,7 +535,10 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param configureClosure The closure to use to configure the created task.
      * @return The newly created task object
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
+     *
+     * @deprecated Use a {@link TaskContainer#register(String, Class, Action) tasks.register} variant instead
      */
+    @Deprecated
     Task task(Map<String, ?> args, String name, Closure configureClosure);
 
     /**
@@ -542,7 +551,10 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param configureClosure The closure to use to configure the created task.
      * @return The newly created task object
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
+     *
+     * @deprecated Use {@link TaskContainer#register(String, Action) tasks.register(String, Action)} instead
      */
+    @Deprecated
     Task task(String name, @DelegatesTo(Task.class) Closure configureClosure);
 
     /**
@@ -557,7 +569,10 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
      * @see TaskContainer#create(String, Action)
      * @since 4.10
+     *
+     * @deprecated Use {@link TaskContainer#register(String, Action) tasks.register(String, Action)} instead
      */
+    @Deprecated
     Task task(String name, Action<? super Task> configureAction);
 
     /**
