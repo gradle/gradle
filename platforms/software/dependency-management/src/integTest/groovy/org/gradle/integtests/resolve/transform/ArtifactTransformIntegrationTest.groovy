@@ -2890,13 +2890,13 @@ To Attributes:
     }
 
     def declareTransform(String transformImplementation) {
-        declareTransform(null, transformImplementation)
+        declareTransform('', transformImplementation)
     }
 
     def declareTransform(String name, String transformImplementation) {
         """
             dependencies {
-                registerTransform(${name != null ? '"' + name + '",' : ''}${transformImplementation}) {
+                registerTransform(${'"' + name + '",'}${transformImplementation}) {
                     from.attribute(artifactType, 'jar')
                     to.attribute(artifactType, 'size')
                 }
