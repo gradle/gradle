@@ -27,19 +27,19 @@ internal sealed class ConfigurationCacheAction {
     /**
      * Configuration cache entry is fully loaded and reused.
      */
-    data class LOAD(val entryId: String) : ConfigurationCacheAction()
+    data class Load(val entryId: String) : ConfigurationCacheAction()
 
     /**
      * Configuration cache entry is loaded and partially reused.
      * The entry will be stored again, incrementally updating parts of state.
      */
-    data class UPDATE(val entryId: String, val invalidProjects: CheckedFingerprint.InvalidProjects) : ConfigurationCacheAction()
+    data class Update(val entryId: String, val invalidProjects: CheckedFingerprint.InvalidProjects) : ConfigurationCacheAction()
 
     /**
      * Configuration cache entry is invalid for the current invocation.
      * The new entry will be stored by the end of the build.
      */
-    object STORE : ConfigurationCacheAction() {
-        override fun toString(): String = "STORE"
+    object Store : ConfigurationCacheAction() {
+        override fun toString(): String = "Store"
     }
 }

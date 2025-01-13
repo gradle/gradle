@@ -26,8 +26,8 @@ import org.gradle.api.problems.internal.GradleCoreProblemGroup
 import org.gradle.api.problems.internal.InternalProblems
 import org.gradle.initialization.RootBuildLifecycleListener
 import org.gradle.internal.cc.impl.ConfigurationCacheAction
-import org.gradle.internal.cc.impl.ConfigurationCacheAction.STORE
-import org.gradle.internal.cc.impl.ConfigurationCacheAction.UPDATE
+import org.gradle.internal.cc.impl.ConfigurationCacheAction.Store
+import org.gradle.internal.cc.impl.ConfigurationCacheAction.Update
 import org.gradle.internal.cc.impl.ConfigurationCacheKey
 import org.gradle.internal.cc.impl.ConfigurationCacheProblemsException
 import org.gradle.internal.cc.impl.TooManyConfigurationCacheProblemsException
@@ -111,7 +111,7 @@ class ConfigurationCacheProblems(
 
     val shouldDiscardEntry: Boolean
         get() {
-            if (cacheAction is ConfigurationCacheAction.LOAD) {
+            if (cacheAction is ConfigurationCacheAction.Load) {
                 return false
             }
             if (isFailingBuildDueToSerializationError) {
@@ -299,9 +299,9 @@ class ConfigurationCacheProblems(
     private
     fun ConfigurationCacheAction.summaryText() =
         when (this) {
-            is ConfigurationCacheAction.LOAD -> "reusing"
-            STORE -> "storing"
-            is UPDATE -> "updating"
+            is ConfigurationCacheAction.Load -> "reusing"
+            Store -> "storing"
+            is Update -> "updating"
         }
 
     private
@@ -329,15 +329,15 @@ class ConfigurationCacheProblems(
             when {
                 isFailingBuildDueToSerializationError && !hasProblems -> log("Configuration cache entry discarded due to serialization error.")
                 isFailingBuildDueToSerializationError -> log("Configuration cache entry discarded with {}.", problemCountString)
-                cacheAction == STORE && discardStateDueToProblems && !hasProblems -> log("Configuration cache entry discarded${incompatibleTasksSummary()}")
-                cacheAction == STORE && discardStateDueToProblems -> log("Configuration cache entry discarded with {}.", problemCountString)
-                cacheAction == STORE && hasTooManyProblems -> log("Configuration cache entry discarded with too many problems ({}).", problemCountString)
-                cacheAction == STORE && !hasProblems -> log("Configuration cache entry stored.")
-                cacheAction == STORE -> log("Configuration cache entry stored with {}.", problemCountString)
-                cacheAction is UPDATE && !hasProblems -> log("Configuration cache entry updated for {}, {} up-to-date.", updatedProjectsString, reusedProjectsString)
-                cacheAction is UPDATE -> log("Configuration cache entry updated for {} with {}, {} up-to-date.", updatedProjectsString, problemCountString, reusedProjectsString)
-                cacheAction is ConfigurationCacheAction.LOAD && !hasProblems -> log("Configuration cache entry reused.")
-                cacheAction is ConfigurationCacheAction.LOAD -> log("Configuration cache entry reused with {}.", problemCountString)
+                cacheAction == Store && discardStateDueToProblems && !hasProblems -> log("Configuration cache entry discarded${incompatibleTasksSummary()}")
+                cacheAction == Store && discardStateDueToProblems -> log("Configuration cache entry discarded with {}.", problemCountString)
+                cacheAction == Store && hasTooManyProblems -> log("Configuration cache entry discarded with too many problems ({}).", problemCountString)
+                cacheAction == Store && !hasProblems -> log("Configuration cache entry stored.")
+                cacheAction == Store -> log("Configuration cache entry stored with {}.", problemCountString)
+                cacheAction is Update && !hasProblems -> log("Configuration cache entry updated for {}, {} up-to-date.", updatedProjectsString, reusedProjectsString)
+                cacheAction is Update -> log("Configuration cache entry updated for {} with {}, {} up-to-date.", updatedProjectsString, problemCountString, reusedProjectsString)
+                cacheAction is ConfigurationCacheAction.Load && !hasProblems -> log("Configuration cache entry reused.")
+                cacheAction is ConfigurationCacheAction.Load -> log("Configuration cache entry reused with {}.", problemCountString)
                 hasTooManyProblems -> log("Too many configuration cache problems found ({}).", problemCountString)
                 hasProblems -> log("Configuration cache problems found ({}).", problemCountString)
                 // else not storing or loading and no problems to report
