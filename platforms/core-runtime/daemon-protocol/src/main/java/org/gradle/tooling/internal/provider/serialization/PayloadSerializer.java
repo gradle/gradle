@@ -16,6 +16,8 @@
 
 package org.gradle.tooling.internal.provider.serialization;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import org.gradle.internal.Cast;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.UncheckedException;
@@ -24,7 +26,6 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.Nullable;
-import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;

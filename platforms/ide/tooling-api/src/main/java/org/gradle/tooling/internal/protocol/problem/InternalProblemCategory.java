@@ -18,12 +18,6 @@ package org.gradle.tooling.internal.protocol.problem;
 
 import java.util.List;
 
-/**
- * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
- *
- * @since 8.6
- */
-
 public interface InternalProblemCategory {
 
     String getNamespace();

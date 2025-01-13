@@ -15,7 +15,6 @@
  */
 package org.gradle.execution;
 
-import com.google.common.collect.ImmutableMap;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -24,7 +23,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.problems.ProblemSpec;
 import org.gradle.api.problems.Severity;
-import org.gradle.api.problems.internal.DefaultGeneralData;
+import org.gradle.api.problems.internal.GeneralDataSpec;
 import org.gradle.api.problems.internal.InternalProblemSpec;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.specs.Spec;
@@ -113,7 +112,7 @@ public class DefaultTaskSelector implements TaskSelector {
     }
 
     private static ProblemSpec configureProblem(ProblemSpec spec, NameMatcher matcher, SelectionContext context) {
-        ((InternalProblemSpec) spec).additionalData(new DefaultGeneralData(ImmutableMap.of("requestedPath", Objects.requireNonNull(context.getOriginalPath().getPath()))));
+        ((InternalProblemSpec) spec).additionalData(GeneralDataSpec.class, data -> data.put("requestedPath", Objects.requireNonNull(context.getOriginalPath().getPath())));
         spec.severity(Severity.ERROR);
         return spec;
     }

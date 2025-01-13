@@ -58,7 +58,7 @@ class FlowParametersInstantiator(
         val problems = ImmutableList.builder<Problem>()
         inspection.propertyWalker.visitProperties(
             parameters,
-            object : ProblemRecordingTypeValidationContext(type, { Optional.empty() }) {
+            object : ProblemRecordingTypeValidationContext(type, { Optional.empty() }, problemsService) {
                 override fun recordProblem(problem: Problem) {
                     problems.add(problem)
                 }

@@ -17,7 +17,6 @@
 package org.gradle.tooling.internal.provider.serialization;
 
 import org.gradle.TaskExecutionRequest;
-import org.gradle.api.NonNullApi;
 import org.gradle.internal.classloader.CachingClassLoader;
 import org.gradle.internal.classloader.ClassLoaderSpec;
 import org.gradle.internal.classloader.FilteringClassLoader;
@@ -27,11 +26,10 @@ import org.gradle.internal.classloader.VisitableURLClassLoader;
 
 import java.util.List;
 
-@NonNullApi
-public class DefaultPayloadClassLoaderFactory implements PayloadClassLoaderFactory {
+public class ModelClassLoaderFactory implements PayloadClassLoaderFactory {
     private final ClassLoader rootClassLoader;
 
-    public DefaultPayloadClassLoaderFactory() {
+    public ModelClassLoaderFactory() {
         ClassLoader parent = getClass().getClassLoader();
         FilteringClassLoader.Spec filterSpec = new FilteringClassLoader.Spec();
         filterSpec.allowPackage("org.gradle.tooling.internal.protocol");

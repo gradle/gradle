@@ -34,5 +34,5 @@ public interface GeneralData extends AdditionalData {
      * @return the data
      * @since 8.13
      */
-    Map<String, Object> getAsMap();
+    Map<String, String> getAsMap();
 }

@@ -612,7 +612,7 @@ public class ValidationProblemSerialization {
         public static final String GENERAL_DATA_DATA = "data";
 
         @Override
-        public void write(JsonWriter out, @Nullable AdditionalData value) throws IOException {
+        public void write(JsonWriter out, AdditionalData value) throws IOException {
             if (value == null) {
                 out.nullValue();
                 return;
@@ -633,20 +633,9 @@ public class ValidationProblemSerialization {
                 out.name(ADDITIONAL_DATA_TYPE).value(GENERAL_DATA);
                 out.name(GENERAL_DATA_DATA);
                 out.beginObject();
-                for (Map.Entry<String, Object> entry : ((GeneralData) value).getAsMap().entrySet()) {
-                    out.name(entry.getKey());
-                    Object v = entry.getValue();
-                    if (v instanceof String) {
-                        out.value((String) v);
-                    } else if (v instanceof Number) {
-                        out.value((Number) v);
-                    } else if (v instanceof Boolean) {
-                        out.value((Boolean) v);
-                    } else if (v == null) {
-                        out.nullValue();
-                    } else {
-                        throw new IllegalArgumentException("Unsupported value type: " + v.getClass().getName());
-                    }
+                Map<String, String> map = ((GeneralData) value).getAsMap();
+                for (String key : map.keySet()) {
+                    out.name(key).value(map.get(key));
                 }
                 out.endObject();
             } else if (value instanceof PropertyTraceData) {
@@ -671,7 +660,7 @@ public class ValidationProblemSerialization {
                 String parentPropertyName = null;
                 String typeName = null;
                 String name;
-                Map<String, Object> generalData = null;
+                Map<String, String> generalData = null;
                 String propertyTrace = null;
 
                 while (in.hasNext()) {
@@ -736,17 +725,7 @@ public class ValidationProblemSerialization {
             }
         }
 
-        private static @Nonnull AdditionalData createAdditionalData(
-            String type,
-            String featureUsage,
-            String pluginId,
-            String propertyName,
-            String methodName,
-            String parentPropertyName,
-            String typeName,
-            Map<String, Object> generalData,
-            String propertyTrace
-        ) {
+        private static @Nonnull AdditionalData createAdditionalData(String type, String featureUsage, String pluginId, String propertyName, String methodName, String parentPropertyName, String typeName, Map<String, String> generalData, String propertyTrace) {
             switch (type) {
                 case DEPRECATION_DATA:
                     return new DefaultDeprecationData(DeprecationData.Type.valueOf(featureUsage));

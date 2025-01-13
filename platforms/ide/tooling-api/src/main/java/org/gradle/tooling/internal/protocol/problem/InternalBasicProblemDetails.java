@@ -21,12 +21,6 @@ import org.gradle.tooling.internal.protocol.InternalProblemDetails;
 import javax.annotation.Nullable;
 import java.util.List;
 
-/**
- * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
- *
- * @since 8.6
- */
-
 public interface InternalBasicProblemDetails extends InternalProblemDetails {
 
     InternalProblemCategory getCategory();

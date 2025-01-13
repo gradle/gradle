@@ -16,10 +16,10 @@
 
 package org.gradle.api.problems.internal
 
-
 import org.gradle.api.problems.ProblemGroup
 import org.gradle.api.problems.ProblemId
 import org.gradle.api.problems.GeneralData
+import org.gradle.internal.problems.NoOpProblemDiagnosticsFactory
 import spock.lang.Specification
 
 import static org.gradle.internal.problems.NoOpProblemDiagnosticsFactory.EMPTY_STREAM
@@ -31,12 +31,14 @@ class DefaultProblemBuilderTest extends Specification {
 
     def "additionalData accepts GeneralDataSpec"() {
         given:
-        def problemBuilder = new DefaultProblemBuilder(EMPTY_STREAM)
+        def problemBuilder = new DefaultProblemBuilder(EMPTY_STREAM, new AdditionalDataBuilderFactory())
 
         when:
         def data = problemBuilder
             .id(problemId)
-            .additionalData(new DefaultGeneralData([:]))
+            .additionalData(GeneralDataSpec, spec -> {
+                spec.put("key", "value")
+            })
             .build().additionalData
 
         then:
@@ -45,12 +47,14 @@ class DefaultProblemBuilderTest extends Specification {
 
     def "additionalData accepts DeprecationDataSpec"() {
         given:
-        def problemBuilder = new DefaultProblemBuilder(EMPTY_STREAM)
+        def problemBuilder = new DefaultProblemBuilder(EMPTY_STREAM, new AdditionalDataBuilderFactory())
 
         when:
         def data = problemBuilder
             .id(problemId)
-            .additionalData(new DefaultDeprecationData(DeprecationData.Type.USER_CODE_INDIRECT))
+            .additionalData(DeprecationDataSpec, spec -> {
+                spec.type(DeprecationData.Type.USER_CODE_INDIRECT)
+            })
             .build().additionalData
 
         then:
@@ -59,12 +63,17 @@ class DefaultProblemBuilderTest extends Specification {
 
     def "additionalData accepts TypeValidationDataSpec"() {
         given:
-        def problemBuilder = new DefaultProblemBuilder(EMPTY_STREAM)
+        def problemBuilder = new DefaultProblemBuilder(EMPTY_STREAM, new AdditionalDataBuilderFactory())
 
         when:
         def data = problemBuilder
             .id(problemId)
-            .additionalData(new DefaultTypeValidationData("pluginId", "propertName", "functionName", "parentPropertyName", "typeName"))
+            .additionalData(TypeValidationDataSpec, spec -> {
+                spec.propertyName("propertyName")
+                spec.parentPropertyName("parentPropertyName")
+                spec.pluginId("pluginId")
+                spec.typeName("typeName")
+            })
             .build().additionalData
 
         then:
@@ -73,12 +82,14 @@ class DefaultProblemBuilderTest extends Specification {
 
     def "additionalData accepts PropertyTraceDataSpec"() {
         given:
-        def problemBuilder = new DefaultProblemBuilder(EMPTY_STREAM)
+        def problemBuilder = new DefaultProblemBuilder(EMPTY_STREAM, new AdditionalDataBuilderFactory())
 
         when:
         def data = problemBuilder
             .id(problemId)
-            .additionalData(new DefaultPropertyTraceData("trace"))
+            .additionalData(PropertyTraceDataSpec, spec -> {
+                spec.trace("trace")
+            })
             .build().additionalData
 
         then:
@@ -88,13 +99,17 @@ class DefaultProblemBuilderTest extends Specification {
 
     def "additionalData fails with invalid type"() {
         given:
-        def problemBuilder = new DefaultProblemBuilder(EMPTY_STREAM)
+        def problemBuilder = new DefaultProblemBuilder(EMPTY_STREAM, new AdditionalDataBuilderFactory())
 
 
         when:
         //noinspection GroovyAssignabilityCheck
         def problem = problemBuilder
             .id(problemId)
+            .additionalData(NoOpProblemDiagnosticsFactory, spec -> {
+                // won't reach here
+
+            })
             .build()
         def data = problem
             .additionalData
@@ -105,7 +120,7 @@ class DefaultProblemBuilderTest extends Specification {
 
     def "can define contextual locations"() {
         given:
-        def problemBuilder = new DefaultProblemBuilder(EMPTY_STREAM)
+        def problemBuilder = new DefaultProblemBuilder(EMPTY_STREAM, new AdditionalDataBuilderFactory())
 
         when:
         //noinspection GroovyAssignabilityCheck

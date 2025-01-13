@@ -22,7 +22,7 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.logging.configuration.WarningMode;
 import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.Problems;
-import org.gradle.api.problems.internal.DefaultDeprecationData;
+import org.gradle.api.problems.internal.DeprecationDataSpec;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblemReporter;
 import org.gradle.api.problems.internal.InternalProblemSpec;
@@ -104,7 +104,12 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
                     .contextualLabel(usage.getSummary())
                     .details(usage.getRemovalDetails())
                     .documentedAt(usage.getDocumentationUrl())
-                    .additionalData(new DefaultDeprecationData(usage.getType().toDeprecationDataType()))
+                    .additionalData(DeprecationDataSpec.class, new Action<DeprecationDataSpec>() {
+                        @Override
+                        public void execute(DeprecationDataSpec data) {
+                            data.type(usage.getType().toDeprecationDataType());
+                        }
+                    })
                     .severity(WARNING);
 
                 addPossibleLocation(diagnostics, problemSpec);

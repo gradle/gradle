@@ -18,24 +18,13 @@ package org.gradle.api.problems.internal;
 
 import org.gradle.api.problems.AdditionalData;
 
-import javax.annotation.Nullable;
-
 /**
  * Additional data type that can be used to attach type validation information to a problem.
  */
 public interface TypeValidationData extends AdditionalData {
-    @Nullable
     String getPluginId();
-
-    @Nullable
     String getPropertyName();
-
-    @Nullable
     String getFunctionName();
-
-    @Nullable
     String getParentPropertyName();
-
-    @Nullable
     String getTypeName();
 }

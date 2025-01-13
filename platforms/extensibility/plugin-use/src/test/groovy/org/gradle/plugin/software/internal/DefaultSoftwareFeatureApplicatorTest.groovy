@@ -23,6 +23,8 @@ import org.gradle.api.internal.plugins.software.SoftwareType
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.properties.InspectionScheme
 import org.gradle.api.plugins.PluginContainer
+import org.gradle.api.problems.internal.AdditionalDataBuilderFactory
+import org.gradle.api.problems.internal.InternalProblems
 import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.properties.PropertyValue
 import org.gradle.internal.properties.bean.PropertyWalker
@@ -32,8 +34,11 @@ class DefaultSoftwareFeatureApplicatorTest extends Specification {
     def target = Mock(ProjectInternal)
     def modelDefaultsApplicator = Mock(ModelDefaultsApplicator)
     def inspectionScheme = Mock(InspectionScheme)
+    def problems = Mock(InternalProblems) {
+        getAdditionalDataBuilderFactory() >> new AdditionalDataBuilderFactory()
+    }
     def pluginManager = Mock(PluginManagerInternal)
-    def applicator = new DefaultSoftwareFeatureApplicator(modelDefaultsApplicator, inspectionScheme, pluginManager)
+    def applicator = new DefaultSoftwareFeatureApplicator(modelDefaultsApplicator, inspectionScheme, problems, pluginManager)
     def plugin = Mock(Plugin)
     def plugins = Mock(PluginContainer)
     def propertyWalker = Mock(PropertyWalker)

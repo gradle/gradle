@@ -33,15 +33,9 @@ import static org.gradle.integtests.fixtures.AvailableJavaHomes.getJdk8
 @ToolingApiVersion(">=8.6")
 class ProblemsServiceModelBuilderCrossVersionTest extends ToolingApiSpecification {
 
-    static String getGeneralDataString(targetVersion) {
-        targetVersion < GradleVersion.version("8.13") ? "org.gradle.api.problems.internal.GeneralDataSpec, data -> data.put('aKey', 'aValue')" : "new org.gradle.api.problems.internal.DefaultGeneralData(['aKey': 'aValue'])"
-    }
-
     static String getBuildScriptSampleContent(boolean pre86api, boolean includeAdditionalMetadata, GradleVersion targetVersion, Integer threshold = 1) {
         def isOlderThan89 = targetVersion < GradleVersion.version("8.9")
-        def additionalDataCall = includeAdditionalMetadata ? isOlderThan89 ? '.additionalData("keyToString", "value")"' : getGeneralDataString(targetVersion) : ""
-        def isOlderThan88 = targetVersion < GradleVersion.version("8.8")
-        def label = isOlderThan88 ? 'label("label").category("testcategory")' : 'id("testcategory", "label")'
+        def additionalDataCall = includeAdditionalMetadata ? isOlderThan89 ? '.additionalData("keyToString", "value")"' : '.additionalData(org.gradle.api.problems.GeneralData) { it.put("keyToString", "value") }' : ""
         """
             import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
             import org.gradle.tooling.provider.model.ToolingModelBuilder

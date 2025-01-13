@@ -219,7 +219,9 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         withReportProblemTask """
             ${problemIdScript()}
             problems.getReporter().report(problemId) {
-                it.additionalData(new org.gradle.api.problems.internal.DefaultGeneralData(["key": "value"]))
+                it.additionalData(org.gradle.api.problems.internal.GeneralDataSpec) {
+                    it.put('key','value')
+                }
             }
         """
 
@@ -230,13 +232,17 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         receivedProblem.additionalData.asMap == ['key': 'value']
     }
 
-    def "new additional data replaces existing one in builder"() {
+    def "cannot set additional data with different type"() {
         given:
         withReportProblemTask """
             ${problemIdScript()}
             problems.getReporter().report(problemId) {
-                it.additionalData(new org.gradle.api.problems.internal.DefaultGeneralData(["key": "value"]))
-                .additionalData(new org.gradle.api.problems.internal.DefaultDeprecationData(org.gradle.api.problems.internal.DeprecationData.Type.USER_CODE_INDIRECT))
+                it.additionalData(org.gradle.api.problems.internal.GeneralDataSpec) {
+                    it.put('key','value')
+                }
+                .additionalData(org.gradle.api.problems.internal.DeprecationDataSpec) {
+                    it.put('key2','value2')
+                }
             }
         """
 
@@ -244,8 +250,33 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         run('reportProblem')
 
         then:
+        thrown(RuntimeException)
+    }
 
-        receivedProblem.additionalData.asMap == ["type": "USER_CODE_INDIRECT"]
+    def "cannot emit a problem with invalid additional data"() {
+        given:
+        buildFile 'class InvalidData implements AdditionalData {}'
+        withReportProblemTask """
+            ${problemIdScript()}
+            problems.getReporter().report(problemId) {
+                it.additionalData(InvalidData) {}
+            }
+        """
+
+        when:
+        run('reportProblem')
+
+        then:
+        verifyAll(receivedProblem) {
+            definition.id.fqid == 'problems-api:unsupported-additional-data'
+            definition.id.displayName == 'Unsupported additional data type'
+            with(oneLocation(LineInFileLocation)) {
+                length == -1
+                column == -1
+                line == 13
+                path == "build file '$buildFile.absolutePath'"
+            }
+        }
     }
 
     def "can throw a problem with a wrapper exception"() {
