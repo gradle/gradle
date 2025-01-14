@@ -18,7 +18,9 @@ package org.gradle.wrapper;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
@@ -51,5 +53,37 @@ public class SystemPropertiesHandler {
             }
         }
         return propertyMap;
+    }
+
+    // TODO (donat) class name is misleading; this method is not about system properties
+    public static List<String> getJvmArgs(File propertiesFile) {
+        List<String> jvmArgList = new ArrayList<String>();
+        if (!propertiesFile.isFile()) {
+            return jvmArgList;
+        }
+        Properties properties = new Properties();
+        try {
+            FileInputStream inStream = new FileInputStream(propertiesFile);
+            try {
+                properties.load(inStream);
+            } finally {
+                inStream.close();
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("Error when loading properties file=" + propertiesFile, e);
+        }
+
+        // TODO (donat) naive implementation; there's probably a snippet dealing with parsing the list of jvmargs in a more dependable way
+        for (Map.Entry<Object, Object> entry : properties.entrySet()) {
+            if ("org.gradle.jvmargs".equals(entry.getKey())) {
+                String jvmargs = entry.getValue().toString(); // TODO (donat) null?
+                for (String s : jvmargs.split(" ")) {
+                    if (s != null && !s.isEmpty()) {
+                        jvmArgList.add(s);
+                    }
+                }
+            }
+        }
+        return jvmArgList;
     }
 }

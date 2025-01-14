@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.tooling.r813
 
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.precondition.Requires
@@ -24,7 +24,6 @@ import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.tooling.ProjectConnection
 
 @ToolingApiVersion(">=8.13")
-@TargetGradleVersion(">=8.13")
 @Requires(
     value = IntegTestPreconditions.NotEmbeddedExecutor,
     reason = "In order to pass JVM arguments to the Gradle daemon, we need to use the external executor."

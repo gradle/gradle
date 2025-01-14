@@ -46,6 +46,8 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
+import static org.gradle.tooling.internal.consumer.DistributionFactory.ZippedDistribution.determineJvmArguments;
+
 /**
  * This is used via reflection from {@code ProviderOperationParameters}.
  */
@@ -455,7 +457,12 @@ public class ConsumerOperationParameters implements BuildParameters {
             List<String> arguments = new ArrayList<>();
             if (baseJvmArguments != null) {
                 arguments.addAll(baseJvmArguments);
+            } else {
+                // read the jvm args from gradle properties
+                // TODO (donat) double-check priority here. Different combinations should be tested
+                arguments.addAll(determineJvmArguments(parameters));
             }
+
             if (additionalJvmArguments != null) {
                 arguments.addAll(additionalJvmArguments);
             }
