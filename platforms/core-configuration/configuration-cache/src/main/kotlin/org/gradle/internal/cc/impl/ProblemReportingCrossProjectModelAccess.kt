@@ -388,7 +388,7 @@ class ProblemReportingCrossProjectModelAccess(
         }
 
         override fun getBuildPath(): Path {
-            shouldNotBeUsed()
+            return delegate.getBuildPath()
         }
 
         override fun isScript(): Boolean {
