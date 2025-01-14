@@ -16,6 +16,7 @@
 
 package org.gradle.internal.isolated.models;
 
+import org.gradle.api.Transformer;
 import org.gradle.api.provider.Provider;
 
 public class DefaultIsolatedModelWork<T> implements IsolatedModelWork<T> {
@@ -31,6 +32,12 @@ public class DefaultIsolatedModelWork<T> implements IsolatedModelWork<T> {
         // Mapping here to enforce task dependencies check,
         // so that task-dependency-carrying properties cannot be evaluated at configuration time
         // TODO:provider-api this should work out of the box for providers
-        return provider.map(it -> it);
+        // NOTE: Using an anonymous inner class as a lambda here breaks CC class encoding
+        return provider.map(new Transformer<T, T>() {
+            @Override
+            public T transform(T it) {
+                return it;
+            }
+        });
     }
 }
