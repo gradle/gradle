@@ -31,7 +31,6 @@ dependencies {
     implementation(projects.classloaders)
     implementation(projects.concurrent)
     implementation(projects.serviceLookup)
-    implementation(projects.stdlibJavaExtensions)
     implementation(projects.fileCollections)
     implementation(projects.logging)
     implementation(projects.loggingApi)
