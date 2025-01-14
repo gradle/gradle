@@ -34,8 +34,8 @@ class DefaultFileLockContentionHandlerTest extends ConcurrentSpecification {
         }
 
         @Override
-        Iterable<InetAddress> getCommunicationAddresses() {
-            return addressFactory.communicationAddresses
+        InetAddress getCommunicationAddress() {
+            return addressFactory.localBindingAddress
         }
     }
     def handler = new DefaultFileLockContentionHandler(executorFactory, addressProvider)

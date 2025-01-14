@@ -102,7 +102,6 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.nio.file.Files;
-import java.util.Collections;
 import java.util.function.Supplier;
 
 import static org.gradle.cache.FileLockManager.LockMode.OnDemand;
@@ -170,9 +169,9 @@ class BuildCacheClientModule extends AbstractModule {
             }
 
             @Override
-            public Iterable<InetAddress> getCommunicationAddresses() {
+            public InetAddress getCommunicationAddress() {
                 try {
-                    return Collections.singleton(InetAddress.getByName(null));
+                    return InetAddress.getByName(null);
                 } catch (UnknownHostException e) {
                     throw new RuntimeException(e);
                 }
