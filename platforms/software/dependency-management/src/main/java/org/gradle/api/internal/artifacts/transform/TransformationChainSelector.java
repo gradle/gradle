@@ -16,7 +16,9 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantSet;
+import org.gradle.api.internal.attributes.AttributeSchemaServices;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.matching.AttributeMatcher;
 import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler;
@@ -37,12 +39,19 @@ import java.util.Optional;
  * <p>
  * It reports any ambiguity failures to the given {@link ResolutionFailureHandler}.
  */
-/* package */ final class TransformationChainSelector {
-    private final ConsumerProvidedVariantFinder transformationChainFinder;
+public final class TransformationChainSelector {
+
+    private final AttributeSchemaServices attributeSchemaServices;
+    private final VariantTransformRegistry transformRegistry;
     private final ResolutionFailureHandler failureHandler;
 
-    public TransformationChainSelector(ConsumerProvidedVariantFinder transformationChainFinder, ResolutionFailureHandler failureHandler) {
-        this.transformationChainFinder = transformationChainFinder;
+    public TransformationChainSelector(
+        AttributeSchemaServices attributeSchemaServices,
+        VariantTransformRegistry transformRegistry,
+        ResolutionFailureHandler failureHandler
+    ) {
+        this.attributeSchemaServices = attributeSchemaServices;
+        this.transformRegistry = transformRegistry;
         this.failureHandler = failureHandler;
     }
 
@@ -55,12 +64,23 @@ import java.util.Optional;
      *
      * @return result of selection, as described
      */
-    public Optional<TransformedVariant> selectTransformationChain(ResolvedVariantSet producer, ImmutableAttributes targetAttributes, AttributeMatcher attributeMatcher) {
+    public Optional<TransformedVariant> selectTransformationChain(
+        ResolvedVariantSet producer,
+        ImmutableAttributes targetAttributes,
+        AttributeMatcher attributeMatcher
+    ) {
         // It's important to note that this produces all COMPATIBLE chains, meaning it's MORE PERMISSIVE than it
         // needs to be.  For example, if libraryelements=classes is requested, and there are 2 chains available
         // that will result in variants that only differ in libraryelements=classes and libraryelements=jar, and
         // these are compatible attribute values, both are returned at this point, despite the exact match being clearly preferable.
-        List<TransformedVariant> candidateChains = transformationChainFinder.findCandidateTransformationChains(producer.getCandidates(), targetAttributes);
+
+        ConsumerProvidedVariantFinder transformationChainFinder = attributeSchemaServices.getTransformSelector(attributeMatcher);
+        List<TransformedVariant> candidateChains = transformationChainFinder.findCandidateTransformationChains(
+            targetAttributes,
+            transformRegistry.getRegistrations(),
+            producer.getCandidates()
+        );
+
         if (candidateChains.size() == 1) {
             return Optional.of(candidateChains.get(0));
         } else if (candidateChains.size() > 1) {
@@ -70,4 +90,5 @@ import java.util.Optional;
             return Optional.empty();
         }
     }
+
 }

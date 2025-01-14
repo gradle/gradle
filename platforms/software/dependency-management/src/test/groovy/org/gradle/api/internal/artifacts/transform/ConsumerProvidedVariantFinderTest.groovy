@@ -16,31 +16,25 @@
 
 package org.gradle.api.internal.artifacts.transform
 
+import com.google.common.collect.ImmutableList
 import org.gradle.api.attributes.AttributeContainer
 import org.gradle.api.internal.artifacts.TransformRegistration
-import org.gradle.api.internal.artifacts.VariantTransformRegistry
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant
 import org.gradle.api.internal.attributes.AttributeContainerInternal
-import org.gradle.api.internal.attributes.AttributeSchemaServices
 import org.gradle.api.internal.attributes.matching.AttributeMatcher
 import org.gradle.util.AttributeTestUtil
+import org.gradle.util.TestUtil
 import spock.lang.Issue
 import spock.lang.Specification
 
 class ConsumerProvidedVariantFinderTest extends Specification {
     def attributeMatcher = Mock(AttributeMatcher)
-    def transformRegistry = Mock(VariantTransformRegistry)
-    def services = Mock(AttributeSchemaServices) {
-        getMatcher(_, _) >> attributeMatcher
-        getSchemaFactory() >> AttributeTestUtil.services().getSchemaFactory()
-    }
-
     ConsumerProvidedVariantFinder transformations = new ConsumerProvidedVariantFinder(
-        transformRegistry,
-        AttributeTestUtil.mutableSchema(),
+        attributeMatcher,
         AttributeTestUtil.attributesFactory(),
-        services
+        TestUtil.inMemoryCacheFactory()
     )
+    def schemaServices = AttributeTestUtil.services()
 
     def "selects transform that can produce variant that is compatible with requested"() {
         def requested = AttributeTestUtil.attributes([usage: "requested"])
@@ -58,10 +52,10 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         def variants = [ sourceVariant, otherVariant ]
 
         given:
-        transformRegistry.registrations >> [transform1, transform2, transform3]
+        def registeredTransforms = createRegisteredTransforms(transform1, transform2, transform3)
 
         when:
-        def result = transformations.findCandidateTransformationChains(variants, requested)
+        def result = transformations.findCandidateTransformationChains(requested, registeredTransforms, variants)
 
         then:
         result.size() == 1
@@ -98,10 +92,10 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         def variants = [ sourceVariant, otherVariant ]
 
         given:
-        transformRegistry.registrations >> [transform1, transform2, transform3, transform4]
+        def registeredTransforms = createRegisteredTransforms(transform1, transform2, transform3, transform4)
 
         when:
-        def result = transformations.findCandidateTransformationChains(variants, requested)
+        def result = transformations.findCandidateTransformationChains(requested, registeredTransforms, variants)
 
         then:
         result.size() == 4
@@ -140,10 +134,10 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         def variants = [ sourceVariant, otherVariant ]
 
         given:
-        transformRegistry.registrations >> [transform1, transform2]
+        def registeredTransforms = createRegisteredTransforms(transform1, transform2)
 
         when:
-        def result = transformations.findCandidateTransformationChains(variants, requested)
+        def result = transformations.findCandidateTransformationChains(requested, registeredTransforms, variants)
 
         then:
         result.size() == 1
@@ -162,10 +156,10 @@ class ConsumerProvidedVariantFinderTest extends Specification {
 
         when:
         def anotherVariants = [
-                variant(otherVariant.getAttributes()),
-                variant(sourceVariant.getAttributes())
+            variant(otherVariant.getAttributes()),
+            variant(sourceVariant.getAttributes())
         ]
-        def result2 = transformations.findCandidateTransformationChains(anotherVariants, requested)
+        def result2 = transformations.findCandidateTransformationChains(requested, registeredTransforms, anotherVariants)
 
         then:
         result2.size() == 1
@@ -213,10 +207,10 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         def transform6 = registration(fromIntermediate2, incompatible2)
 
         given:
-        transformRegistry.registrations >> [transform1, transform2, transform3, transform4, transform5, transform6]
+        def registeredTransforms = createRegisteredTransforms(transform1, transform2, transform3, transform4, transform5, transform6)
 
         when:
-        def result = transformations.findCandidateTransformationChains(variants, requested)
+        def result = transformations.findCandidateTransformationChains(requested, registeredTransforms, variants)
 
         then:
         result.size() == 2
@@ -266,10 +260,10 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         def transform4 = registration(fromOther, compatible2)
 
         given:
-        transformRegistry.registrations >> [transform1, transform2, transform3, transform4]
+        def registeredTransforms = createRegisteredTransforms(transform1, transform2, transform3, transform4)
 
         when:
-        def result = transformations.findCandidateTransformationChains(variants, requested)
+        def result = transformations.findCandidateTransformationChains(requested, registeredTransforms, variants)
 
         then:
         result.size() == 2
@@ -320,10 +314,10 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         def fromIntermediate = AttributeTestUtil.attributesFactory().concat(requested, intermediate)
 
         given:
-        transformRegistry.registrations >> [registrations[registrationsIndex[0]], registrations[registrationsIndex[1]], registrations[registrationsIndex[2]], registrations[registrationsIndex[3]]]
+        def registeredTransforms = createRegisteredTransforms(registrations[registrationsIndex[0]], registrations[registrationsIndex[1]], registrations[registrationsIndex[2]], registrations[registrationsIndex[3]])
 
         when:
-        def result = transformations.findCandidateTransformationChains(variants, requested)
+        def result = transformations.findCandidateTransformationChains(requested, registeredTransforms, variants)
 
         then:
         result.size() == 1
@@ -371,10 +365,10 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         def transform3 = registration(fromIntermediate, compatible)
 
         given:
-        transformRegistry.registrations >> [transform1, transform2, transform3]
+        def registeredTransforms = createRegisteredTransforms(transform1, transform2, transform3)
 
         when:
-        def result = transformations.findCandidateTransformationChains(variants, requested)
+        def result = transformations.findCandidateTransformationChains(requested, registeredTransforms, variants)
 
         then:
         result.size() == 1
@@ -411,10 +405,10 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         def variants = [ sourceVariant ]
 
         given:
-        transformRegistry.registrations >> [transform1, transform2]
+        def registeredTransforms = createRegisteredTransforms(transform1, transform2)
 
         when:
-        def result = transformations.findCandidateTransformationChains(variants, requested)
+        def result = transformations.findCandidateTransformationChains(requested, registeredTransforms, variants)
 
         then:
         result.empty
@@ -440,10 +434,10 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         def variants = [ sourceVariant ]
 
         given:
-        transformRegistry.registrations >> [transform1, transform2]
+        def registeredTransforms = createRegisteredTransforms(transform1, transform2)
 
         when:
-        def result = transformations.findCandidateTransformationChains(variants, requested)
+        def result = transformations.findCandidateTransformationChains(requested, registeredTransforms, variants)
 
         then:
         result.empty
@@ -455,7 +449,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         0 * attributeMatcher._
 
         when:
-        def result2 = transformations.findCandidateTransformationChains(variants, requested)
+        def result2 = transformations.findCandidateTransformationChains(requested, registeredTransforms, variants)
 
         then:
         result2.empty
@@ -478,10 +472,10 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         def finalAttributes = AttributeTestUtil.attributesFactory().concat(sourceVariant.getAttributes().asImmutable(), compatible)
 
         given:
-        transformRegistry.registrations >> [transform1]
+        def registeredTransforms = createRegisteredTransforms(transform1)
 
         when:
-        def result = transformations.findCandidateTransformationChains(variants, requested)
+        def result = transformations.findCandidateTransformationChains(requested, registeredTransforms, variants)
 
         then:
         // sourceVariant transformed by transform1 produces a variant with attributes incompatible with requested
@@ -496,6 +490,45 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         attributeMatcher.isMatchingCandidate(finalAttributes, requested) >> false
 
         0 * attributeMatcher._
+    }
+
+    def "does not calculate chain again when different transform with same attributes are given"() {
+        def requested = AttributeTestUtil.attributes([usage: "requested"])
+
+        def fromSource = AttributeTestUtil.attributes(usage: "fromSource")
+        def compatible = AttributeTestUtil.attributes(usage: "compatible")
+
+        def transform1 = registration(fromSource, compatible)
+        def transform2 = registration(fromSource, compatible)
+
+        def sourceVariant = variant([usage: "source"])
+        def variants = [ sourceVariant ]
+
+        given:
+        def registeredTransforms = createRegisteredTransforms(transform1)
+
+        when:
+        def result = transformations.findCandidateTransformationChains(requested, registeredTransforms, variants)
+
+        then:
+        result.size() == 1
+        assertTransformChain(result.first(), sourceVariant, compatible, transform1)
+        attributeMatcher.isMatchingCandidate(sourceVariant.getAttributes(), fromSource) >> true
+        attributeMatcher.isMatchingCandidate(compatible, requested) >> true
+        0 * attributeMatcher._
+
+        when:
+        registeredTransforms = createRegisteredTransforms(transform2)
+        def result2 = transformations.findCandidateTransformationChains(requested, registeredTransforms, variants)
+
+        then:
+        result2.size() == 1
+        assertTransformChain(result2.first(), sourceVariant, compatible, transform2)
+        0 * attributeMatcher._
+    }
+
+    private RegisteredTransforms createRegisteredTransforms(TransformRegistration... registrations) {
+        return schemaServices.getRegisteredTransforms(ImmutableList.copyOf(registrations))
     }
 
     private void assertTransformChain(TransformedVariant chain, ResolvedVariant source, AttributeContainer finalAttributes, TransformRegistration... registrations) {
