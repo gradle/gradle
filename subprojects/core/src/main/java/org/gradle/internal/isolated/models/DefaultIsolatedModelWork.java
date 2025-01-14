@@ -33,6 +33,7 @@ public class DefaultIsolatedModelWork<T> implements IsolatedModelWork<T> {
         // so that task-dependency-carrying properties cannot be evaluated at configuration time
         // TODO:provider-api this should work out of the box for providers
         // NOTE: Using an anonymous inner class as a lambda here breaks CC class encoding
+        //noinspection Convert2Lambda
         return provider.map(new Transformer<T, T>() {
             @Override
             public T transform(T it) {
