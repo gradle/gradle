@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl.plugins.dsl
 
+import org.gradle.api.JavaVersion
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.support.expectedKotlinDslPluginsVersion
 import org.gradle.test.precondition.Requires
@@ -23,6 +24,7 @@ import org.gradle.test.preconditions.IntegTestPreconditions.NotEmbeddedExecutor
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
+import java.io.File
 
 
 /**
@@ -46,13 +48,15 @@ class KotlinDslPluginCrossVersionSmokeTest : AbstractKotlinIntegrationTest() {
     fun `can run with oldest supported version of kotlin-dsl plugin`() {
 
         withDefaultSettingsIn("buildSrc")
-        withBuildScriptIn("buildSrc", scriptWithKotlinDslPlugin(oldestSupportedKotlinDslPluginVersion)).appendText(
+        val buildScript = withBuildScriptIn("buildSrc", scriptWithKotlinDslPlugin(oldestSupportedKotlinDslPluginVersion))
+        buildScript.appendText(
             """
             tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
                 compilerOptions.freeCompilerArgs.add("-Xskip-metadata-version-check")
             }
             """
         )
+        buildScript.appendJvmTargetCompatibility()
         withFile("buildSrc/src/main/kotlin/some.gradle.kts", """println("some!")""")
 
         withDefaultSettings()
@@ -83,7 +87,7 @@ class KotlinDslPluginCrossVersionSmokeTest : AbstractKotlinIntegrationTest() {
         val previousKotlinLanguageVersion = "1.4"
 
         withDefaultSettingsIn("producer")
-        withBuildScriptIn(
+        val buildScript = withBuildScriptIn(
             "producer",
             """
             plugins {
@@ -101,6 +105,7 @@ class KotlinDslPluginCrossVersionSmokeTest : AbstractKotlinIntegrationTest() {
             }
             """
         )
+        buildScript.appendJvmTargetCompatibility()
         withFile("producer/src/main/kotlin/some.gradle.kts", """println("some!")""")
 
         withDefaultSettings().appendText("""includeBuild("producer")""")
@@ -111,6 +116,24 @@ class KotlinDslPluginCrossVersionSmokeTest : AbstractKotlinIntegrationTest() {
 
         build("help").apply {
             assertThat(output, containsString("some!"))
+        }
+    }
+
+    private fun File.appendJvmTargetCompatibility() {
+        if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_20)) {
+            // Kotlin 1.8.20 that is a dependency of the older kotlin-dsl plugin doesn't work
+            // with Java20+ without setting jvmTarget that is lower than JvmTarget.JVM_20
+            appendText(
+                """
+                tasks.named<JavaCompile>("compileJava") {
+                    options.release = 8
+                }
+                tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+                    compilerOptions {
+                        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_1_8
+                    }
+                }"""
+            )
         }
     }
 
