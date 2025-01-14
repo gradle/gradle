@@ -31,7 +31,7 @@ import javax.annotation.concurrent.ThreadSafe;
 public interface BuildOperationExecutor {
     /**
      * Submits an arbitrary number of runnable operations, created synchronously by the scheduling action, to be executed in the global
-     * build operation thread pool. Operations may execute concurrently. Blocks until all operations are complete.
+     * build operation thread pool constrained to {@link BuildOperationConstraint#MAX_WORKERS}. Operations may execute concurrently. Blocks until all operations are complete.
      *
      * <p>Actions are not permitted to access any mutable project state. Generally, this is preferred.</p>
      */
