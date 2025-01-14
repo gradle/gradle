@@ -89,21 +89,20 @@ As you can see, you can pass strings, `File` instances and `{javaApi}/java/nio/f
 
 In the case of multi-project builds, the `file()` method will always turn relative paths into paths relative to the current project directory, which may be a child project.
 
-=== Using the Settings Directory
+=== Using `ProjectLayout.settingsDirectory()`
 
-Suppose you want to use a path relative to the _settings_ directory.
-In that case, you need to use link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:layout[Project.layout],
-obtain the link:{groovyDslPath}/org.gradle.api.file.ProjectLayout.html#org.gradle.api.file.ProjectLayout:settingsDirectory[ProjectLayout.settingsDirectory] from it
-and construct an absolute path based on that, like so:
+To use a path relative to the _settings_ directory, access the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:layout[`Project.layout`], retrieve the link:{groovyDslPath}/org.gradle.api.file.ProjectLayout.html#org.gradle.api.file.ProjectLayout:settingsDirectory[`settingsDirectory`] from it, and construct an absolute path.
+
+For example:
 
 ====
 include::sample[dir="snippets/files/misc/kotlin/project2",files="build.gradle.kts[tags=using-root-dir-property]"]
 include::sample[dir="snippets/files/misc/groovy/project2",files="build.gradle[tags=using-root-dir-property]"]
 ====
 
-Let's say you're working on a multi-project build in the directory: `dev/projects/AcmeHealth`. +
-The build script above is at: `AcmeHealth/subprojects/AcmePatientRecordLib/build.gradle`. +
-The absolute file path will resolve to: `dev/projects/AcmeHealth/shared/config.xml`.
+Let's say you're working on a multi-project build in the directory: `dev/projects/AcmeHealth`.
+The build script above is at: `AcmeHealth/subprojects/AcmePatientRecordLib/build.gradle`.
+The absolute file path will resolve to: `dev/projects/AcmeHealth/shared/config.xml`:
 
 [source, text]
 ----

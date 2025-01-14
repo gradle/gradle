@@ -46,9 +46,37 @@ Several changes have been made to the incubating <<test_report_aggregation_plugi
 
 The plugins now create a single test results variant for each test suite, containing all test results for the entire suite, instead of one variant for each test target.
 This change allows the aggregation plugins to aggregate test suites with multiple targets, where previously this would result in an ambiguous variant selection error.
+
 In the future, as we continue to develop these plugins, we plan to once again create one results variant per test suite target, allowing test results from certain targets to be explicitly aggregated.
 
-The `testType` property on link:{javadocPath}/org/gradle/testing/jacoco/plugins/JacocoCoverageReport.html[JacocoCoverageReport] and link:{javadocPath}/org/gradle/api/tasks/testing/AggregateTestReport.html[AggregateTestReport] has been removed and replaced with a new `testSuiteName` property.
+The `testType` property on link:{javadocPath}/org/gradle/testing/jacoco/plugins/JacocoCoverageReport.html[JacocoCoverageReport] and link:{javadocPath}/org/gradle/api/tasks/testing/AggregateTestReport.html[AggregateTestReport] has been removed and replaced with a new `testSuiteName` property:
+
+Previously:
+
+[source,kotlin]
+----
+reporting {
+    reports {
+        val testCodeCoverageReport by creating(JacocoCoverageReport::class) {
+            testType = TestSuiteType.UNIT_TEST
+        }
+    }
+}
+----
+
+Now:
+
+[source,kotlin]
+----
+reporting {
+    reports {
+        val testCodeCoverageReport by creating(JacocoCoverageReport::class) {
+            testSuiteName = "test"
+        }
+    }
+}
+----
+
 Similarly, the `testType` property was removed from link:{javadocPath}/org/gradle/api/plugins/jvm/JvmTestSuite.html[JvmTestSuite] and both the `TestSuiteTargetName` and `TestSuiteType` attributes have been removed.
 Test reports and Jacoco reports can now be aggregated between projects by specifying the name of the test suite in the target project to aggregate.
 
