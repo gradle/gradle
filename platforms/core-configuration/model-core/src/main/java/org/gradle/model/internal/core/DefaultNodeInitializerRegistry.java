@@ -20,17 +20,23 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableSortedSet;
-import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import org.gradle.internal.UncheckedException;
 import org.gradle.model.internal.manage.binding.StructBindingsStore;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
-import org.gradle.model.internal.manage.schema.extract.*;
+import org.gradle.model.internal.manage.schema.extract.ManagedImplStructNodeInitializerExtractionStrategy;
+import org.gradle.model.internal.manage.schema.extract.ModelMapNodeInitializerExtractionStrategy;
+import org.gradle.model.internal.manage.schema.extract.ModelSetNodeInitializerExtractionStrategy;
+import org.gradle.model.internal.manage.schema.extract.NodeInitializerExtractionStrategy;
+import org.gradle.model.internal.manage.schema.extract.ScalarCollectionNodeInitializerExtractionStrategy;
+import org.gradle.model.internal.manage.schema.extract.ScalarTypes;
+import org.gradle.model.internal.manage.schema.extract.SpecializedMapNodeInitializerExtractionStrategy;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.model.internal.type.ModelTypes;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
@@ -52,13 +58,13 @@ public class DefaultNodeInitializerRegistry implements NodeInitializerRegistry {
 
     public DefaultNodeInitializerRegistry(ModelSchemaStore schemaStore, StructBindingsStore structBindingsStore) {
         this.schemaStore = schemaStore;
-        this.allStrategies = Lists.newArrayList(
+        this.allStrategies = new ArrayList<>(Arrays.asList(
             new ModelSetNodeInitializerExtractionStrategy(),
             new SpecializedMapNodeInitializerExtractionStrategy(),
             new ModelMapNodeInitializerExtractionStrategy(),
             new ScalarCollectionNodeInitializerExtractionStrategy(),
             new ManagedImplStructNodeInitializerExtractionStrategy(structBindingsStore)
-        );
+        ));
         additionalStrategies = new ArrayList<>();
     }
 

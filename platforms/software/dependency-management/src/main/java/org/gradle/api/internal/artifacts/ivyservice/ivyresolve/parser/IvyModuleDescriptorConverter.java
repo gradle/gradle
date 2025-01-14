@@ -17,8 +17,8 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ListMultimap;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.DependencyArtifactDescriptor;
@@ -105,7 +105,7 @@ public class IvyModuleDescriptorConverter {
         String name = configuration.getName();
         boolean transitive = configuration.isTransitive();
         boolean visible = configuration.getVisibility() == org.apache.ivy.core.module.descriptor.Configuration.Visibility.PUBLIC;
-        List<String> extendsFrom = Lists.newArrayList(configuration.getExtends());
+        List<String> extendsFrom = ImmutableList.copyOf(configuration.getExtends());
         result.add(new Configuration(name, transitive, visible, extendsFrom));
     }
 

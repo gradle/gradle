@@ -52,7 +52,7 @@ public class MissingTaskDependencyDetector {
     }
 
     public void detectMissingDependencies(LocalTaskNode node, TypeValidationContext validationContext) {
-        for (String outputPath : node.getMutationInfo().outputPaths) {
+        for (String outputPath : node.getMutationInfo().getOutputPaths()) {
             inputHierarchy.getNodesAccessing(outputPath).stream()
                 .filter(consumerNode -> hasNoSpecifiedOrder(node, consumerNode))
                 .filter(MissingTaskDependencyDetector::isEnabled)

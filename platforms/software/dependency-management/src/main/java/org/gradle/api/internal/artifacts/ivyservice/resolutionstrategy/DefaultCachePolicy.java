@@ -45,9 +45,9 @@ public class DefaultCachePolicy implements CachePolicy {
     private boolean refresh = false;
 
     public DefaultCachePolicy() {
-        this.dependencyCacheRules = new ArrayList<>();
-        this.moduleCacheRules = new ArrayList<>();
-        this.artifactCacheRules = new ArrayList<>();
+        this.dependencyCacheRules = new ArrayList<>(1);
+        this.moduleCacheRules = new ArrayList<>(1);
+        this.artifactCacheRules = new ArrayList<>(2);
 
         cacheDynamicVersionsFor(SECONDS_IN_DAY, TimeUnit.SECONDS);
         cacheChangingModulesFor(SECONDS_IN_DAY, TimeUnit.SECONDS);

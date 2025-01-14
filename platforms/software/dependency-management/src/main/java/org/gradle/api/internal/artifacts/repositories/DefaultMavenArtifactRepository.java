@@ -203,7 +203,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
     @Override
     public void artifactUrls(Object... urls) {
         invalidateDescriptor();
-        additionalUrls.addAll(Lists.newArrayList(urls));
+        additionalUrls.addAll(ImmutableList.copyOf(urls));
     }
 
     @Override
