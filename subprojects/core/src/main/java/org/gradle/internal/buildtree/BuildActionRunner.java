@@ -29,7 +29,7 @@ import java.util.List;
 /**
  * Responsible for executing a {@link BuildAction} and generating the result.
  */
-@ServiceScope(Scope.Global.class)
+@ServiceScope({Scope.Global.class, Scope.BuildTree.class})
 public interface BuildActionRunner {
     /**
      * Runs the given action, returning a result that describes the build outcome and the result that should be returned to the client.

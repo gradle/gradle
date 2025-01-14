@@ -24,6 +24,8 @@ import org.gradle.api.internal.tasks.testing.report.generic.MetadataRendererRegi
 import org.gradle.internal.logging.ConsoleRenderer;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRunner;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.problems.buildtree.ProblemReporter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,6 +35,9 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -41,6 +46,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Aggregates test results from multiple test executions and generates a report at the end of the build.
  */
 @NonNullApi
+@ServiceScope(Scope.BuildTree.class)
 public class AggregateTestEventReporter implements ProblemReporter, TestExecutionResultsListener {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AggregateTestEventReporter.class);
@@ -106,7 +112,10 @@ public class AggregateTestEventReporter implements ProblemReporter, TestExecutio
      * @return The path to the index file that should be reported to the user.
      */
     private Path generateTestReport(Path reportDirectory) {
-        new GenericTestReportGenerator(results.values(), metadataRendererRegistry).generateReport(buildOperationRunner, buildOperationExecutor, reportDirectory);
+        // Generate a consistent ordering by sorting the Paths
+        List<Path> sortedResults = new ArrayList<>(results.values());
+        sortedResults.sort(Comparator.naturalOrder());
+        new GenericTestReportGenerator(sortedResults, metadataRendererRegistry).generateReport(buildOperationRunner, buildOperationExecutor, reportDirectory);
         return reportDirectory.resolve("index.html");
     }
 

@@ -17,6 +17,8 @@
 package org.gradle.nativeplatform.toolchain.internal.metadata;
 
 import org.gradle.api.Action;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.nativeplatform.toolchain.internal.gcc.metadata.GccMetadata;
 import org.gradle.nativeplatform.toolchain.internal.gcc.metadata.GccMetadataProvider;
 import org.gradle.nativeplatform.toolchain.internal.swift.metadata.SwiftcMetadata;
@@ -29,6 +31,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@ServiceScope(Scope.Build.class)
 public class CompilerMetaDataProviderFactory {
     private final CachingCompilerMetaDataProvider<GccMetadata> gcc;
     private final CachingCompilerMetaDataProvider<GccMetadata> clang;

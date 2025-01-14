@@ -134,7 +134,7 @@ import java.util.List;
 class DependencyManagementBuildScopeServices implements ServiceRegistrationProvider {
     void configure(ServiceRegistration registration) {
         registration.add(TransformStepNodeDependencyResolver.class);
-        registration.add(FileResourceConnector.class);
+        registration.add(FileResourceRepository.class, FileResourceConnector.class);
         registration.add(ResolvedArtifactSetResolver.class);
         registration.add(ExternalModuleComponentResolverFactory.class);
         registration.add(ResolverProviderFactories.class);

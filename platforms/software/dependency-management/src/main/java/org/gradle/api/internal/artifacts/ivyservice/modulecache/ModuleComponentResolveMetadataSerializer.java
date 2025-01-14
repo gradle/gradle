@@ -41,6 +41,8 @@ import org.gradle.internal.resolve.caching.DesugaringAttributeContainerSerialize
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.io.EOFException;
 import java.io.IOException;
@@ -53,6 +55,7 @@ import java.util.Map;
  * This serializer will first transform any {@link  AbstractLazyModuleComponentResolveMetadata lazy} metadata
  * in the {@link AbstractRealisedModuleComponentResolveMetadata realised} version so that the complete state can be serialized.
  */
+@ServiceScope(Scope.Build.class)
 public class ModuleComponentResolveMetadataSerializer extends AbstractSerializer<ModuleComponentResolveMetadata> {
 
     private final RealisedIvyModuleResolveMetadataSerializationHelper ivySerializationHelper;

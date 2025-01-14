@@ -1,6 +1,7 @@
-# See .github/workflows/CheckBadMerge.groovy for explanation
-name: Check bad merge commit
+name: Check commits
 on:
+  merge_group:
+  workflow_dispatch:
   pull_request:
     types:
      - opened
@@ -9,7 +10,8 @@ on:
 permissions: {}
 
 jobs:
-  check_pr_commits:
+  # See .github/workflows/CheckBadMerge.groovy for explanation
+  check_bad_merge:
     if: github.event.pull_request.base.ref == 'master'
     permissions:
       contents: read
@@ -61,3 +63,28 @@ jobs:
               repo: context.repo.repo,
               body: output
             })
+  # check that only released Gradle versions are used in the wrapper
+  check_wrapper:
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Check used wrapper
+        run: |
+          set -eu
+          for commit in $(git rev-list ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }}); do
+              git checkout $commit --quiet --detach
+              WRAPPER_GRADLE_VERSION=$(grep "distributionUrl" gradle/wrapper/gradle-wrapper.properties | sed 's/.*gradle-\(.*\)-[a-z]*\.[a-z]*/\1/')
+              echo "Commit $commit wrapper: $WRAPPER_GRADLE_VERSION"
+              if ! [[ $WRAPPER_GRADLE_VERSION =~ ^[0-9.]+(-(rc|milestone|m)-[0-9]+)?$ ]]; then
+                  RED="\e[31m"
+                  ENDCOLOR="\e[0m"
+                  >&2 echo -e "${RED}Bad wrapper version $WRAPPER_GRADLE_VERSION used in commit $commit.${ENDCOLOR} Please rebase your branch to ensure that each commit uses only released Gradle versions in wrapper (GA, RC or milestone)."
+                  exit 1
+              fi
+          done

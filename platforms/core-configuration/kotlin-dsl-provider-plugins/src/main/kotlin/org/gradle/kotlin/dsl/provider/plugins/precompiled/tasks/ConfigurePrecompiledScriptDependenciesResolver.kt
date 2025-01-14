@@ -83,7 +83,7 @@ fun resolverEnvironmentStringFor(
 private
 fun precompiledScriptPluginImportsFrom(metadataDirFile: File): List<Pair<String, List<String>>> =
     metadataDirFile.run {
-        require(isDirectory)
+        require(isDirectory) { "'$this' is not a directory!" }
         listFilesOrdered().map {
             it.name to it.readLines()
         }

@@ -26,9 +26,12 @@ import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.util.Path;
 
+@ServiceScope({Scope.Build.class, Scope.Project.class})
 public class DefaultProjectDependencyFactory {
     private final Instantiator instantiator;
     private final boolean buildProjectDependencies;

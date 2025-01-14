@@ -24,12 +24,15 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.RunnableBuildOperation;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.Collection;
 
+@ServiceScope(Scope.Build.class)
 public class RuntimeShadedJarFactory {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RuntimeShadedJarFactory.class);

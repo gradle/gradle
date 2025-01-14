@@ -16,10 +16,19 @@
 
 package org.gradle.internal.enterprise.impl;
 
+import org.gradle.internal.enterprise.DevelocityBuildLifecycleService;
+import org.gradle.internal.enterprise.DevelocityPluginUnsafeConfigurationService;
+import org.gradle.internal.enterprise.GradleEnterprisePluginBuildState;
+import org.gradle.internal.enterprise.GradleEnterprisePluginCheckInService;
+import org.gradle.internal.enterprise.GradleEnterprisePluginConfig;
+import org.gradle.internal.enterprise.GradleEnterprisePluginRequiredServices;
 import org.gradle.internal.enterprise.impl.legacy.DefaultBuildScanBuildStartedTime;
 import org.gradle.internal.enterprise.impl.legacy.DefaultBuildScanClock;
 import org.gradle.internal.enterprise.impl.legacy.DefaultBuildScanScopeIds;
 import org.gradle.internal.enterprise.impl.legacy.LegacyGradleEnterprisePluginCheckInService;
+import org.gradle.internal.scan.scopeids.BuildScanScopeIds;
+import org.gradle.internal.scan.time.BuildScanBuildStartedTime;
+import org.gradle.internal.scan.time.BuildScanClock;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 
@@ -29,27 +38,27 @@ public class GradleEnterprisePluginServices extends AbstractGradleModuleServices
     public void registerBuildTreeServices(ServiceRegistration registration) {
         registration.add(GradleEnterpriseAutoAppliedPluginRegistry.class);
         registration.add(GradleEnterprisePluginAutoAppliedStatus.class);
-        registration.add(DefaultGradleEnterprisePluginServiceRef.class);
-        registration.add(DefaultGradleEnterprisePluginBuildState.class);
-        registration.add(DefaultGradleEnterprisePluginConfig.class);
-        registration.add(DefaultGradleEnterprisePluginBackgroundJobExecutors.class);
-        registration.add(DefaultDevelocityPluginUnsafeConfigurationService.class);
+        registration.add(GradleEnterprisePluginServiceRefInternal.class, DefaultGradleEnterprisePluginServiceRef.class);
+        registration.add(GradleEnterprisePluginBuildState.class, DefaultGradleEnterprisePluginBuildState.class);
+        registration.add(GradleEnterprisePluginConfig.class, DefaultGradleEnterprisePluginConfig.class);
+        registration.add(GradleEnterprisePluginBackgroundJobExecutorsInternal.class, DefaultGradleEnterprisePluginBackgroundJobExecutors.class);
+        registration.add(DevelocityPluginUnsafeConfigurationService.class, DefaultDevelocityPluginUnsafeConfigurationService.class);
 
         // legacy
-        registration.add(DefaultBuildScanClock.class);
-        registration.add(DefaultBuildScanBuildStartedTime.class);
+        registration.add(BuildScanClock.class, DefaultBuildScanClock.class);
+        registration.add(BuildScanBuildStartedTime.class, DefaultBuildScanBuildStartedTime.class);
     }
 
     @Override
     public void registerBuildServices(ServiceRegistration registration) {
         registration.add(GradleEnterprisePluginAutoApplicationListener.class);
         registration.add(DefaultGradleEnterprisePluginAdapterFactory.class);
-        registration.add(DefaultGradleEnterprisePluginCheckInService.class);
-        registration.add(DefaultDevelocityBuildLifecycleService.class);
-        registration.add(DefaultGradleEnterprisePluginRequiredServices.class);
+        registration.add(GradleEnterprisePluginCheckInService.class, DefaultGradleEnterprisePluginCheckInService.class);
+        registration.add(DevelocityBuildLifecycleService.class, DefaultDevelocityBuildLifecycleService.class);
+        registration.add(GradleEnterprisePluginRequiredServices.class, DefaultGradleEnterprisePluginRequiredServices.class);
 
         // legacy
-        registration.add(DefaultBuildScanScopeIds.class);
+        registration.add(BuildScanScopeIds.class, DefaultBuildScanScopeIds.class);
         registration.add(LegacyGradleEnterprisePluginCheckInService.class);
     }
 
