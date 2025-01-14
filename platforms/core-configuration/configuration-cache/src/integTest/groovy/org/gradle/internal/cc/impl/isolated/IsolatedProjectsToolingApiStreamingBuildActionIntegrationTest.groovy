@@ -123,7 +123,7 @@ class IsolatedProjectsToolingApiStreamingBuildActionIntegrationTest extends Abst
 
     def "models are streamed on build action partial cache hit"() {
         withSomeToolingModelBuilderPluginInBuildSrc()
-        settingsFile << """
+        settingsFile """
             include("a")
             include("b")
         """
@@ -134,14 +134,12 @@ class IsolatedProjectsToolingApiStreamingBuildActionIntegrationTest extends Abst
             plugins.apply(my.MyPlugin)
         """
 
-        def listener1 = new TestStreamedValueListener()
-        def listener2 = new TestStreamedValueListener()
-        def listener3 = new TestStreamedValueListener()
+        def listener = new TestStreamedValueListener()
 
         when:
         withIsolatedProjects()
         def messages1 = runBuildAction(new StreamCustomModelForEachProject()) {
-            setStreamedValueListener(listener1)
+            setStreamedValueListener(listener)
         }
 
         then:
@@ -154,7 +152,7 @@ class IsolatedProjectsToolingApiStreamingBuildActionIntegrationTest extends Abst
 
         and:
         messages1 == ["It works from project :a", "It works from project :b"]
-        def streamedModels1 = listener1.models as List<SomeToolingModel>
+        def streamedModels1 = listener.models as List<SomeToolingModel>
         streamedModels1.message == ["It works from project :a", "It works from project :b"]
 
         when: "only one project changes"
@@ -163,9 +161,10 @@ class IsolatedProjectsToolingApiStreamingBuildActionIntegrationTest extends Abst
         """
 
         and:
+        listener = new TestStreamedValueListener()
         withIsolatedProjects()
         def messages2 = runBuildAction(new StreamCustomModelForEachProject()) {
-            setStreamedValueListener(listener2)
+            setStreamedValueListener(listener)
         }
 
         then: "only one model is recreated"
@@ -178,13 +177,14 @@ class IsolatedProjectsToolingApiStreamingBuildActionIntegrationTest extends Abst
 
         and: "client receives updated models"
         messages2 == ["It works from project :a", "It works from updated project :b"]
-        def streamedModels2 = listener2.models as List<SomeToolingModel>
+        def streamedModels2 = listener.models as List<SomeToolingModel>
         streamedModels2.message == ["It works from project :a", "It works from updated project :b"]
 
         when: "running without changes after a partial update"
+        listener = new TestStreamedValueListener()
         withIsolatedProjects()
         def messages3 = runBuildAction(new StreamCustomModelForEachProject()) {
-            setStreamedValueListener(listener3)
+            setStreamedValueListener(listener)
         }
 
         then:
@@ -192,7 +192,7 @@ class IsolatedProjectsToolingApiStreamingBuildActionIntegrationTest extends Abst
 
         and: "reused models are still correct after a partial update"
         messages3 == ["It works from project :a", "It works from updated project :b"]
-        def streamedModels3 = listener3.models as List<SomeToolingModel>
+        def streamedModels3 = listener.models as List<SomeToolingModel>
         streamedModels3.message == ["It works from project :a", "It works from updated project :b"]
     }
 
