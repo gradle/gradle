@@ -13,12 +13,16 @@ dependencies {
     api(projects.jvmServices)
     api(projects.toolchainsJvmShared)
     api(projects.stdlibJavaExtensions)
+    api(projects.native)
+    api(projects.serviceProvider)
 
     implementation(projects.baseServices)
     implementation(projects.daemonProtocol)
     implementation(projects.logging)
+    implementation(projects.serviceLookup)
 
     testImplementation(testFixtures(projects.core))
+    testImplementation(testFixtures(projects.toolchainsJvmShared))
 
     testFixturesImplementation(projects.coreApi)
     testFixturesImplementation(projects.internalIntegTesting)

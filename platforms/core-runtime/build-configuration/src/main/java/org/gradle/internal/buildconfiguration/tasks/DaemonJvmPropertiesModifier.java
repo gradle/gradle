@@ -21,20 +21,28 @@ import org.gradle.internal.buildconfiguration.DaemonJvmPropertiesConfigurator;
 import org.gradle.internal.buildconfiguration.DaemonJvmPropertiesDefaults;
 import org.gradle.internal.util.PropertiesUtils;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
-import org.gradle.jvm.toolchain.JvmImplementation;
+import org.gradle.platform.BuildPlatform;
 import org.gradle.util.internal.GFileUtils;
 
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
+import java.util.Map;
 import java.util.Properties;
 
-public class UpdateDaemonJvmModifier {
-    public static void updateJvmCriteria(
+import static org.gradle.internal.buildconfiguration.tasks.DaemonJvmPropertiesUtils.getToolchainUrlPropertyForPlatform;
+
+public class DaemonJvmPropertiesModifier {
+
+    public DaemonJvmPropertiesModifier() {
+    }
+
+    public void updateJvmCriteria(
         File propertiesFile,
         JavaLanguageVersion toolchainVersion,
         @Nullable String toolchainVendor,
-        @Nullable JvmImplementation toolchainImplementation
+        Map<BuildPlatform, URI> downloadUrlsByPlatform
     ) {
         validateToolchainVersion(toolchainVersion);
 
@@ -43,9 +51,11 @@ public class UpdateDaemonJvmModifier {
         if (toolchainVendor != null) {
             daemonJvmProperties.put(DaemonJvmPropertiesDefaults.TOOLCHAIN_VENDOR_PROPERTY, toolchainVendor);
         }
-        if (toolchainImplementation != null) {
-            daemonJvmProperties.put(DaemonJvmPropertiesDefaults.TOOLCHAIN_IMPLEMENTATION_PROPERTY, toolchainImplementation.toString());
-        }
+
+        downloadUrlsByPlatform.forEach((buildPlatform, uri) -> {
+            String toolchainUrlProperty = getToolchainUrlPropertyForPlatform(buildPlatform);
+            daemonJvmProperties.put(toolchainUrlProperty, uri.toString());
+        });
 
         GFileUtils.parentMkdirs(propertiesFile);
         try {

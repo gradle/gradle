@@ -62,6 +62,9 @@ public interface JvmVendor {
                 return UNKNOWN;
             }
             for (KnownJvmVendor jvmVendor : KnownJvmVendor.values()) {
+                if (jvmVendor.name().equals(rawVendor)) {
+                    return jvmVendor;
+                }
                 if (jvmVendor.indicatorString.equals(rawVendor)) {
                     return jvmVendor;
                 }

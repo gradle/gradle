@@ -35,10 +35,10 @@ dependencies {
     api(projects.fileOperations)
     api(projects.jvmServices)
     api(projects.modelCore)
+    api(projects.native)
     api(projects.persistentCache)
     api(projects.platformBase)
     api(projects.processServices)
-    api(projects.platformJvm)
     api(projects.resources)
     api(projects.toolchainsJvmShared)
 
@@ -72,6 +72,7 @@ dependencies {
 
     integTestDistributionRuntimeOnly(projects.distributionsJvm)
     crossVersionTestDistributionRuntimeOnly(projects.distributionsJvm)
+    crossVersionTestImplementation(testFixtures(projects.toolchainsJvmShared))
 }
 
 packageCycles {
