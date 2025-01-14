@@ -233,7 +233,7 @@ public class ConsumerProvidedVariantFinder {
         ) {
             List<ImmutableAttributes> variantAttributes = new ArrayList<>(sources.size());
             for (ResolvedVariant variant : sources) {
-                variantAttributes.add(variant.getAttributes().asImmutable());
+                variantAttributes.add(variant.getAttributes());
             }
             List<CachedVariant> cached = cache.computeIfAbsent(new CacheKey(variantAttributes, requested), key -> action.apply(key.variantAttributes, key.requested));
             List<TransformedVariant> output = new ArrayList<>(cached.size());

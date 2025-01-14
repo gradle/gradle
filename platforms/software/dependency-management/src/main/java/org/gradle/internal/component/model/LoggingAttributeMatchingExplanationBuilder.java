@@ -16,9 +16,9 @@
 package org.gradle.internal.component.model;
 
 import org.gradle.api.attributes.Attribute;
-import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributeValue;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 
@@ -36,32 +36,32 @@ public class LoggingAttributeMatchingExplanationBuilder implements AttributeMatc
     }
 
     @Override
-    public <T extends HasAttributes> void noCandidates(AttributeContainerInternal requested) {
+    public void noCandidates(ImmutableAttributes requested) {
         LOGGER.debug("No candidates for {}. Select nothing.", requested);
     }
 
     @Override
-    public <T extends HasAttributes> void singleMatch(T candidate, Collection<? extends T> candidates, AttributeContainerInternal requested) {
+    public void singleMatch(ImmutableAttributes candidate, Collection<ImmutableAttributes> candidates, AttributeContainerInternal requested) {
         LOGGER.debug("Selected match {} from candidates {} for {}", candidate, candidates, requested);
     }
 
     @Override
-    public <T extends HasAttributes> void candidateDoesNotMatchAttributes(T candidate, AttributeContainerInternal requested) {
+    public void candidateDoesNotMatchAttributes(ImmutableAttributes candidate, AttributeContainerInternal requested) {
         LOGGER.debug("Candidate {} doesn't match attributes {}", candidate, requested);
     }
 
     @Override
-    public <T extends HasAttributes> void candidateAttributeDoesNotMatch(T candidate, Attribute<?> attribute, Object requestedValue, AttributeValue<?> candidateValue) {
+    public void candidateAttributeDoesNotMatch(ImmutableAttributes candidate, Attribute<?> attribute, Object requestedValue, AttributeValue<?> candidateValue) {
         LOGGER.debug("Candidate {} attribute {} value {} doesn't requested value {}", candidate, attribute, candidateValue, requestedValue);
     }
 
     @Override
-    public <T extends HasAttributes> void candidateAttributeMissing(T candidate, Attribute<?> attribute, Object requestedValue) {
+    public void candidateAttributeMissing(ImmutableAttributes candidate, Attribute<?> attribute, Object requestedValue) {
         LOGGER.debug("Candidate {} doesn't have attribute {}", candidate, attribute);
     }
 
     @Override
-    public <T extends HasAttributes> void candidateIsSuperSetOfAllOthers(T candidate) {
+    public void candidateIsSuperSetOfAllOthers(ImmutableAttributes candidate) {
         LOGGER.debug("Candidate {} selected because its attributes are a superset of all other candidate attributes", candidate);
     }
 }
