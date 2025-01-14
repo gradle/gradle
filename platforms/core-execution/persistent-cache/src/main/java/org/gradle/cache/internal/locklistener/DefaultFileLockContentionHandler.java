@@ -52,7 +52,7 @@ import static org.gradle.cache.internal.locklistener.FileLockPacketType.LOCK_REL
  * A Lock Requester will notice that a lock is held by a Lock Holder by failing to lock the lock file.
  * It then turns to this contention via {@link #maybePingOwner(int, long, String, long, FileLockReleasedSignal)}.
  * <p>
- * Both Lock Holder and Lock Requester listen on a socket using {@link FileLockCommunicator}. The messages they
+ * Both Lock Holder and Lock Requester listen on a socket using {@link DefaultFileLockCommunicator}. The messages they
  * exchange contain only the lock id. If this contention handler receives such a message it determines if it
  * is a Lock Holder or a Lock Requester by checking if it knows an action to release the lock (i.e. if start() was
  * called for the lock in question).
@@ -93,9 +93,12 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
     private boolean listenerFailed;
 
     public DefaultFileLockContentionHandler(ExecutorFactory executorFactory, InetAddressProvider inetAddressProvider) {
-        this.inetAddressProvider = inetAddressProvider;
+        this(new DefaultFileLockCommunicator(inetAddressProvider), inetAddressProvider, executorFactory);
+    }
 
-        this.communicator = new FileLockCommunicator(inetAddressProvider);
+    DefaultFileLockContentionHandler(FileLockCommunicator communicator, InetAddressProvider inetAddressProvider, ExecutorFactory executorFactory) {
+        this.communicator = communicator;
+        this.inetAddressProvider = inetAddressProvider;
 
         this.fileLockRequestListener = executorFactory.create("File lock request listener");
         fileLockRequestListener.execute(listener());
