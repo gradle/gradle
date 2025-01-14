@@ -24,6 +24,7 @@ import org.gradle.test.preconditions.IntegTestPreconditions
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
+import java.io.File
 
 
 /**
@@ -50,13 +51,15 @@ class KotlinDslPluginCrossVersionSmokeTest : AbstractKotlinIntegrationTest() {
         executer.requireIsolatedDaemons()
 
         withDefaultSettingsIn("buildSrc")
-        withBuildScriptIn("buildSrc", scriptWithKotlinDslPlugin(oldestSupportedKotlinDslPluginVersion)).appendText(
+        val buildScript = withBuildScriptIn("buildSrc", scriptWithKotlinDslPlugin(oldestSupportedKotlinDslPluginVersion))
+        buildScript.appendText(
             """
             tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
                 compilerOptions.freeCompilerArgs.add("-Xskip-metadata-version-check")
             }
             """
         )
+        buildScript.appendJvmTargetCompatibility()
         withFile("buildSrc/src/main/kotlin/some.gradle.kts", """println("some!")""")
 
         withDefaultSettings()
@@ -65,11 +68,15 @@ class KotlinDslPluginCrossVersionSmokeTest : AbstractKotlinIntegrationTest() {
         expectConventionDeprecations()
         expectKotlinDslAssignmentDeprecationWarning()
 
-        build("help").apply {
+        build("help", "--stacktrace").apply {
 
             assertThat(
                 output,
-                containsString("This version of Gradle expects version '$expectedKotlinDslPluginsVersion' of the `kotlin-dsl` plugin but version '$oldestSupportedKotlinDslPluginVersion' has been applied to project ':buildSrc'. Let Gradle control the version of `kotlin-dsl` by removing any explicit `kotlin-dsl` version constraints from your build logic.")
+                containsString(
+                    "This version of Gradle expects version '$expectedKotlinDslPluginsVersion' of the `kotlin-dsl` plugin " +
+                        "but version '$oldestSupportedKotlinDslPluginVersion' has been applied to project ':buildSrc'. " +
+                        "Let Gradle control the version of `kotlin-dsl` by removing any explicit `kotlin-dsl` version constraints from your build logic."
+                )
             )
 
             assertThat(
@@ -92,7 +99,7 @@ class KotlinDslPluginCrossVersionSmokeTest : AbstractKotlinIntegrationTest() {
         executer.requireIsolatedDaemons()
 
         withDefaultSettingsIn("producer")
-        withBuildScriptIn(
+        val buildScript = withBuildScriptIn(
             "producer",
             """
             plugins {
@@ -110,6 +117,7 @@ class KotlinDslPluginCrossVersionSmokeTest : AbstractKotlinIntegrationTest() {
             }
             """
         )
+        buildScript.appendJvmTargetCompatibility()
         withFile("producer/src/main/kotlin/some.gradle.kts", """println("some!")""")
 
         withDefaultSettings().appendText("""includeBuild("producer")""")
@@ -131,11 +139,8 @@ class KotlinDslPluginCrossVersionSmokeTest : AbstractKotlinIntegrationTest() {
         // This test asserts on a deprecation emitted at classloading time
         executer.requireIsolatedDaemons()
 
-        // Previous versions fail with a kotlin compiler daemon protocol error
-        val testedVersion = "4.0.11"
-
         withDefaultSettingsIn("buildSrc")
-        val buildScript = withBuildScriptIn("buildSrc", scriptWithKotlinDslPlugin(testedVersion))
+        val buildScript = withBuildScriptIn("buildSrc", scriptWithKotlinDslPlugin(oldestSupportedKotlinDslPluginVersion))
         buildScript.appendText(
             """
             tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
@@ -145,21 +150,7 @@ class KotlinDslPluginCrossVersionSmokeTest : AbstractKotlinIntegrationTest() {
             }
             """
         )
-        if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_20)) {
-            // Kotlin 1.8.20 that is a dependency of kotlin-dsl plugin 4.0.2 doesn't work
-            // with Java20+ without setting jvmTarget that is lower than JvmTarget.JVM_20
-            buildScript.appendText(
-                """
-                    tasks.named<JavaCompile>("compileJava") {
-                        options.release = 8
-                    }
-                    tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
-                        compilerOptions {
-                            jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_1_8
-                        }
-                    }"""
-            )
-        }
+        buildScript.appendJvmTargetCompatibility()
         withFile("buildSrc/src/main/kotlin/some.gradle.kts", """println("some!")""")
 
         withDefaultSettings()
@@ -176,12 +167,34 @@ class KotlinDslPluginCrossVersionSmokeTest : AbstractKotlinIntegrationTest() {
         build("help").apply {
             assertThat(
                 output,
-                containsString("This version of Gradle expects version '$expectedKotlinDslPluginsVersion' of the `kotlin-dsl` plugin but version '$testedVersion' has been applied to project ':buildSrc'. Let Gradle control the version of `kotlin-dsl` by removing any explicit `kotlin-dsl` version constraints from your build logic.")
+                containsString(
+                    "This version of Gradle expects version '$expectedKotlinDslPluginsVersion' of the `kotlin-dsl` plugin " +
+                        "but version '$oldestSupportedKotlinDslPluginVersion' has been applied to project ':buildSrc'. " +
+                        "Let Gradle control the version of `kotlin-dsl` by removing any explicit `kotlin-dsl` version constraints from your build logic."
+                )
             )
 
             assertThat(
                 output,
                 containsString("some!")
+            )
+        }
+    }
+
+    private fun File.appendJvmTargetCompatibility() {
+        if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_20)) {
+            // Kotlin 1.8.20 that is a dependency of the older kotlin-dsl plugin doesn't work
+            // with Java20+ without setting jvmTarget that is lower than JvmTarget.JVM_20
+            appendText(
+                """
+                tasks.named<JavaCompile>("compileJava") {
+                    options.release = 8
+                }
+                tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+                    compilerOptions {
+                        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_1_8
+                    }
+                }"""
             )
         }
     }
