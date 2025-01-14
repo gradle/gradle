@@ -19,7 +19,7 @@ package org.gradle.internal.cc.impl.problems
 import com.fasterxml.jackson.core.JsonFactory
 import java.io.Writer
 
-class JsonWriter(private val writer: Writer) {
+open class JsonWriter(private val writer: Writer) {
 
     class JsonObject(val jsonWriter: JsonWriter) : AutoCloseable {
         init {
