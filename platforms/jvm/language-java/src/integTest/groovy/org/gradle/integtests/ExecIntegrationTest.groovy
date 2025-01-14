@@ -734,8 +734,91 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
         "javaexec" | javaExecSpec("spec") | "The Project.javaexec(Action) method" | "ExecOperations.javaexec(Action) or ProviderFactory.javaexec(Action)"
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/31942")
+    @UnsupportedWithConfigurationCache(because = "Uses script or project at execution time")
+    def "project.#method uses project dir as working dir by default"() {
+        settingsFile << "include 'a'"
+        file("a/build.gradle") << """
+            tasks.register("run") {
+                doLast {
+                    project.${method} {
+                        $configuration
+                    }
+                }
+            }
+        """
+
+        when:
+        executer.noDeprecationChecks()
+        succeeds("run")
+
+        then:
+        outputContains("user.dir=${testDirectory.file("a").absolutePath}")
+
+        where:
+        method     | configuration
+        "exec"     | execSpecWithJavaExecutable()
+        "javaexec" | javaExecSpec()
+    }
+
+
+    @Issue("https://github.com/gradle/gradle/issues/31942")
+    def "execOperations.#method uses project dir as working dir by default"() {
+        settingsFile << "include 'a'"
+        file("a/build.gradle") << """
+            def execOperations = services.get(ExecOperations)
+            tasks.register("run") {
+                doLast {
+                    execOperations.${method} {
+                        $configuration
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds("run")
+
+        then:
+        outputContains("user.dir=${testDirectory.file("a").absolutePath}")
+
+        where:
+        method     | configuration
+        "exec"     | execSpecWithJavaExecutable()
+        "javaexec" | javaExecSpec()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/31942")
+    def "#task task uses project dir as working dir by default"() {
+        settingsFile << "include 'a'"
+        file("a/build.gradle") << """
+            def execOperations = services.get(ExecOperations)
+            tasks.register("run", $task) {
+                $configuration
+            }
+        """
+
+        when:
+        succeeds("run")
+
+        then:
+        outputContains("user.dir=${testDirectory.file("a").absolutePath}")
+
+        where:
+        task       | configuration
+        "Exec"     | execSpecWithJavaExecutable()
+        "JavaExec" | javaExecSpec()
+    }
+
     private static def execSpec(def owner = "") {
         "${prop(owner, "commandLine")}(${echoCommandLineArgs("Hello")});"
+    }
+
+    private static def execSpecWithJavaExecutable(def owner = "") {
+        """
+            ${prop(owner, "executable")}(org.gradle.internal.jvm.Jvm.current().getJavaExecutable())
+            ${prop(owner, "args")}('-cp',${javaExecClasspath()}, '${TestJavaMain.name}', "Hello")
+        """
     }
 
     private static def echoCommandLineArgs(String message) {

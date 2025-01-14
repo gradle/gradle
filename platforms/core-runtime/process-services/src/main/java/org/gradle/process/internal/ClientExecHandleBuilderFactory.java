@@ -17,11 +17,21 @@
 package org.gradle.process.internal;
 
 import org.gradle.api.NonNullApi;
+import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 @NonNullApi
 @ServiceScope({Scope.Global.class, Scope.BuildSession.class})
 public interface ClientExecHandleBuilderFactory {
+
+    /**
+     * Returns a new {@link ClientExecHandleBuilder} to build a new {@link ExecHandle}.
+     */
     ClientExecHandleBuilder newExecHandleBuilder();
+
+    /**
+     * Returns a new instance of this factory with the given file resolver.
+     */
+    ClientExecHandleBuilderFactory withFileResolver(PathToFileResolver fileResolver);
 }

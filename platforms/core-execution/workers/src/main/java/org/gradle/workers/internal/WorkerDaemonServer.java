@@ -64,7 +64,6 @@ import org.gradle.internal.service.scopes.WorkerSharedProjectScopeServices;
 import org.gradle.internal.service.scopes.WorkerSharedUserHomeScopeServices;
 import org.gradle.internal.state.ManagedFactoryRegistry;
 import org.gradle.process.internal.ClientExecHandleBuilderFactory;
-import org.gradle.process.internal.DefaultClientExecHandleBuilderFactory;
 import org.gradle.process.internal.DefaultExecActionFactory;
 import org.gradle.process.internal.ExecFactory;
 import org.gradle.process.internal.worker.RequestHandler;
@@ -221,18 +220,6 @@ public class WorkerDaemonServer implements RequestHandler<TransportableActionExe
         @Provides
         protected Instantiator createInstantiator(InstantiatorFactory instantiatorFactory, ServiceRegistry workerProjectScopeServices) {
             return instantiatorFactory.decorateLenient(workerProjectScopeServices);
-        }
-
-        /**
-         * ClientExecHandleFactory is available in global scope, but we need to provide it here to use a build dir based file resolver.
-         */
-        @Provides
-        ClientExecHandleBuilderFactory createExecFactory(
-            FileResolver fileResolver,
-            ExecutorFactory executorFactory,
-            BuildCancellationToken buildCancellationToken
-        ) {
-            return DefaultClientExecHandleBuilderFactory.of(fileResolver, executorFactory, buildCancellationToken);
         }
 
         @Provides
