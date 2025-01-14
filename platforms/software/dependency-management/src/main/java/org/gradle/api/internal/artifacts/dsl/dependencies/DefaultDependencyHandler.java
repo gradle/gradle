@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.dsl.dependencies;
 
+import com.google.common.base.Preconditions;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
@@ -339,7 +340,13 @@ public abstract class DefaultDependencyHandler implements DependencyHandlerInter
 
     @Override
     public <T extends TransformParameters> void registerTransform(Class<? extends TransformAction<T>> actionType, Action<? super TransformSpec<T>> registrationAction) {
-        transforms.registerTransform(actionType, registrationAction);
+        transforms.registerTransform(null, actionType, registrationAction);
+    }
+
+    @Override
+    public <T extends TransformParameters> void registerTransform(String name, Class<? extends TransformAction<T>> actionType, Action<? super TransformSpec<T>> registrationAction) {
+        Preconditions.checkNotNull(name, "Can not register artifact transform with null name.");
+        transforms.registerTransform(name, actionType, registrationAction);
     }
 
     @Override
