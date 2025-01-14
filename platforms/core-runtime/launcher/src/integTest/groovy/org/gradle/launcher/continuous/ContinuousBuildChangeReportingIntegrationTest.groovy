@@ -19,7 +19,6 @@ package org.gradle.launcher.continuous
 import groovy.transform.TupleConstructor
 import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.file.TestFile
 
 import static org.gradle.tooling.internal.provider.continuous.FileEventCollector.SHOW_INDIVIDUAL_CHANGES_LIMIT
@@ -181,14 +180,17 @@ class ContinuousBuildChangeReportingIntegrationTest extends AbstractContinuousIn
         assertReportsChanges([new ChangeEntry("new file", newfile1), new ChangeEntry("modified", inputFiles[2]), new ChangeEntry("deleted", inputFiles[7]), new ChangeEntry("new file", newfile2)], true)
     }
 
-    @ToBeFixedForConfigurationCache(because = "taskGraph.afterTask")
     def "should report changes that happen when the build is executing"() {
         given:
         buildFile << """
-            gradle.taskGraph.afterTask { Task task ->
-                if(task.path == ':theTask' && !file('changetrigged').exists()) {
-                   file('inputDir/input.txt').createNewFile()
-                   file('changetrigged').text = 'done'
+            tasks.named("theTask") {
+                def changeTriggered = file('changetrigged')
+                def inputFile = file('inputDir/input.txt')
+                doLast {
+                    if (!changeTriggered.exists()) {
+                        inputFile.createNewFile()
+                        changeTriggered.text = 'done'
+                    }
                 }
             }
         """
