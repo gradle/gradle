@@ -26,8 +26,8 @@ import org.gradle.internal.time.Clock;
 import org.gradle.tooling.BuildCancelledException;
 import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener;
-import org.gradle.util.internal.DistributionLocator;
 import org.gradle.util.GradleVersion;
+import org.gradle.util.internal.DistributionLocator;
 import org.gradle.wrapper.GradleUserHomeLookup;
 import org.gradle.wrapper.SystemPropertiesHandler;
 import org.gradle.wrapper.WrapperConfiguration;
@@ -37,8 +37,10 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.FileNotFoundException;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CancellationException;
 
@@ -99,7 +101,7 @@ public class DistributionFactory {
         return getDistribution(distUri);
     }
 
-    private static class ZippedDistribution implements Distribution {
+    public static class ZippedDistribution implements Distribution {
         private InstalledDistribution installedDistribution;
         private final WrapperConfiguration wrapperConfiguration;
         private final Clock clock;
@@ -139,7 +141,9 @@ public class DistributionFactory {
             return installedDistribution.getToolingImplementationClasspath(progressLoggerFactory, progressListener, connectionParameters, cancellationToken);
         }
 
-        private Map<String, String> determineSystemProperties(ConnectionParameters connectionParameters) {
+
+        // TODO (donat) we want to do something like this
+        private static Map<String, String> determineSystemProperties(ConnectionParameters connectionParameters) {
             Map<String, String> systemProperties = new HashMap<String, String>();
             for (Map.Entry<Object, Object> entry : System.getProperties().entrySet()) {
                 systemProperties.put(entry.getKey().toString(), entry.getValue() == null ? null : entry.getValue().toString());
@@ -149,14 +153,21 @@ public class DistributionFactory {
             return systemProperties;
         }
 
-        private File determineRootDir(ConnectionParameters connectionParameters) {
+        public static List<String> determineJvmArguments(ConnectionParameters connectionParameters) {
+            List<String> jvmArgs = new ArrayList<>();
+            jvmArgs.addAll(SystemPropertiesHandler.getJvmArgs(new File(determineRootDir(connectionParameters), "gradle.properties")));
+            jvmArgs.addAll(SystemPropertiesHandler.getJvmArgs(new File(determineRealUserHomeDir(connectionParameters), "gradle.properties")));
+            return jvmArgs;
+        }
+
+        private static File determineRootDir(ConnectionParameters connectionParameters) {
             return new BuildLayoutFactory().getLayoutFor(
                 connectionParameters.getProjectDir(),
                 connectionParameters.isSearchUpwards() != null ? connectionParameters.isSearchUpwards() : true
             ).getRootDirectory();
         }
 
-        private File determineRealUserHomeDir(ConnectionParameters connectionParameters) {
+        private static File determineRealUserHomeDir(ConnectionParameters connectionParameters) {
             File distributionBaseDir = connectionParameters.getDistributionBaseDir();
             if (distributionBaseDir != null) {
                 return distributionBaseDir;
