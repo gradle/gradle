@@ -35,7 +35,6 @@ dependencies {
     testImplementation(projects.processServices)
 
     testFixturesApi(projects.fileCollections)
-    testFixturesApi(testFixtures(projects.diagnostics))
     testFixturesApi(testFixtures(projects.modelCore))
 
     testFixturesImplementation(libs.guava)

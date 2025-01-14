@@ -41,6 +41,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
 
     def coreLibsModules = [
         "base-asm",
+        "base-diagnostics",
         "base-services",
         "base-services-groovy",
         "build-cache",
@@ -107,6 +108,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "problems-rendering",
         "process-memory-services",
         "process-services",
+        "report-rendering",
         "resources",
         "runtime-api-info",
         "serialization",
@@ -141,7 +143,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
      * Change this whenever you add or remove subprojects for distribution-packaged plugins (lib/plugins).
      */
     int getPackagedPluginsJarCount() {
-        81
+        80
     }
 
     /**

@@ -43,6 +43,7 @@ class DynamicModulesClassPathProviderTest extends Specification {
         classpath.asFiles.collect { it.name } == [
             "gradle-workers.jar",
             "gradle-dependency-management.jar",
+            "gradle-software-diagnostics.jar",
             "gradle-plugin-use.jar",
             "gradle-instrumentation-declarations.jar",
             "plugin1.jar", "plugin2.jar",
