@@ -17,6 +17,7 @@
 package org.gradle.plugin.software.internal;
 
 import org.gradle.api.Plugin;
+import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -25,5 +26,5 @@ import org.gradle.internal.service.scopes.ServiceScope;
  */
 @ServiceScope({Scope.Build.class, Scope.Project.class})
 public interface ModelDefaultsHandler {
-    <T> void apply(T target, String softwareTypeName, Plugin<?> plugin);
+    <T> void apply(T target, ClassLoaderScope classLoaderScope, String softwareTypeName, Plugin<?> plugin);
 }

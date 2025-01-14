@@ -19,6 +19,8 @@ package org.gradle.api.internal.file
 
 import org.gradle.internal.typeconversion.UnsupportedNotationException
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Specification
@@ -122,6 +124,22 @@ class UriNotationConverterTest extends Specification {
         then:
         UnsupportedNotationException e = thrown()
         showsProperMessage(e, 12)
+    }
+
+    @Requires(UnitTestPreconditions.Windows)
+    def "windows-like paths are treated as non-uris for #hint"() {
+        when:
+        parse(path)
+        then:
+        UnsupportedNotationException e = thrown()
+        showsProperMessage(e, path)
+
+        where:
+        path                        | hint
+        "C:\\some\\file"            | "path without space"
+        "C:\\some\\file with space" | "path with space"
+        "c:/some/file"              | "normalized path without space"
+        "c:/some/file with space"   | "normalized path with space"
     }
 
     def parse(def value) {

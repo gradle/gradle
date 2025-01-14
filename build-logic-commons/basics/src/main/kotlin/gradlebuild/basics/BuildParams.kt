@@ -290,7 +290,7 @@ val Project.performanceBaselines: String?
 
 val Project.performanceChannel: Provider<String>
     get() = environmentVariable(PERFORMANCE_CHANNEL_ENV).orElse(provider {
-        val channelSuffix = if (OperatingSystem.current().isLinux) "" else "-${OperatingSystem.current().familyName.toLowerCase()}"
+        val channelSuffix = if (OperatingSystem.current().isLinux) "" else "-${OperatingSystem.current().familyName.lowercase()}"
         "commits$channelSuffix-${buildBranch.get()}"
      })
 

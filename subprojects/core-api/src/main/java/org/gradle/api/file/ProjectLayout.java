@@ -19,6 +19,7 @@ package org.gradle.api.file;
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.provider.Provider;
+import org.gradle.declarative.dsl.model.annotations.Restricted;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -37,6 +38,7 @@ public interface ProjectLayout {
     /**
      * Returns the project directory.
      */
+    @Restricted
     Directory getProjectDirectory();
 
     /**
@@ -53,6 +55,7 @@ public interface ProjectLayout {
      * @since 8.13
      */
     @Incubating
+    @Restricted
     Directory getSettingsDirectory();
 
     /**
