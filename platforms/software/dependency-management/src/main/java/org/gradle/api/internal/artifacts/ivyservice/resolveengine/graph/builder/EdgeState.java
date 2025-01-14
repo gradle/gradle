@@ -34,7 +34,7 @@ import org.gradle.internal.component.model.VariantGraphResolveState;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 
 import javax.annotation.Nullable;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -49,7 +49,7 @@ class EdgeState implements DependencyGraphEdge {
     private final DependencyMetadata dependencyMetadata;
     private final NodeState from;
     private final ResolveState resolveState;
-    private final List<NodeState> targetNodes = new LinkedList<>();
+    private final List<NodeState> targetNodes = new ArrayList<>();
     private final boolean isTransitive;
     private final boolean isConstraint;
     private final int hashCode;

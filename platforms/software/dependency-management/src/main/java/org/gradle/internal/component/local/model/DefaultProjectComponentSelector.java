@@ -18,7 +18,6 @@ package org.gradle.internal.component.local.model;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.capability.CapabilitySelector;
-import org.gradle.api.internal.artifacts.capability.SpecificCapabilitySelector;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
@@ -26,19 +25,20 @@ import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ProjectComponentIdentifierInternal;
 import org.gradle.api.internal.artifacts.capability.DefaultSpecificCapabilitySelector;
+import org.gradle.api.internal.artifacts.capability.SpecificCapabilitySelector;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.util.Path;
 
 import java.util.List;
-import java.util.Objects;
 
 public class DefaultProjectComponentSelector implements ProjectComponentSelectorInternal {
 
     private final ProjectIdentity projectIdentity;
     private final ImmutableAttributes attributes;
     private final ImmutableSet<CapabilitySelector> capabilitySelectors;
+    private final int hashCode;
 
     public DefaultProjectComponentSelector(
         ProjectIdentity projectIdentity,
@@ -48,6 +48,18 @@ public class DefaultProjectComponentSelector implements ProjectComponentSelector
         this.projectIdentity = projectIdentity;
         this.attributes = attributes;
         this.capabilitySelectors = capabilitySelectors;
+        this.hashCode = computeHashCode(projectIdentity, attributes, capabilitySelectors);
+    }
+
+    private static int computeHashCode(
+        ProjectIdentity projectIdentity,
+        ImmutableAttributes attributes,
+        ImmutableSet<CapabilitySelector> capabilitySelectors
+    ) {
+        int result = projectIdentity.hashCode();
+        result = 31 * result + attributes.hashCode();
+        result = 31 * result + capabilitySelectors.hashCode();
+        return result;
     }
 
     @Override
@@ -137,7 +149,7 @@ public class DefaultProjectComponentSelector implements ProjectComponentSelector
 
     @Override
     public int hashCode() {
-        return Objects.hash(projectIdentity, attributes, capabilitySelectors);
+        return hashCode;
     }
 
     @Override
@@ -177,4 +189,5 @@ public class DefaultProjectComponentSelector implements ProjectComponentSelector
     public ProjectComponentIdentifier toIdentifier() {
         return new DefaultProjectComponentIdentifier(projectIdentity);
     }
+
 }
