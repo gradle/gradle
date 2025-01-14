@@ -49,4 +49,4 @@ By using the Test Reporting API:
 
 For more details on the HTML report itself, see the <<java_testing.adoc#test_reporting,JVM Testing Documentation>>.
 
-For a downloadable example, refer to the link:../samples/custom-test-task.html[Custom Test Task Sample].
+For a downloadable example, refer to the link:../samples/sample_custom_test_task.html[Custom Test Task Sample].
