@@ -21,6 +21,7 @@ import groovy.lang.Closure;
 import groovy.transform.stc.ClosureParams;
 import groovy.transform.stc.SecondParam;
 import groovy.transform.stc.SimpleType;
+import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencyConstraint;
@@ -131,6 +132,7 @@ public class DependenciesExtensionModule {
      * @return the modified dependency
      * @since 8.0
      */
+    @Incubating
     public static Provider<? extends MinimalExternalModuleDependency> call(DependencyModifier self, ProviderConvertible<? extends MinimalExternalModuleDependency> providerConvertibleToDependency) {
         return self.modify(providerConvertibleToDependency);
     }
@@ -202,6 +204,7 @@ public class DependenciesExtensionModule {
      *
      * @param externalModule external module to add as a dependency
      */
+    @Incubating
     public static void call(DependencyCollector self, ProviderConvertible<? extends MinimalExternalModuleDependency> externalModule) {
         self.add(externalModule);
     }
@@ -212,6 +215,7 @@ public class DependenciesExtensionModule {
      * @param externalModule external module to add as a dependency
      * @param configuration an action to configure the dependency
      */
+    @Incubating
     public static void call(DependencyCollector self, ProviderConvertible<? extends MinimalExternalModuleDependency> externalModule, @ClosureParams(value = SimpleType.class, options = "org.gradle.api.artifacts.ExternalModuleDependency") Closure<?> configuration) {
         self.add(externalModule, ConfigureUtil.configureUsing(configuration));
     }
