@@ -40,4 +40,9 @@ public interface FileLockContentionHandler {
      * @return true if the owner was pinged in this call
      */
     boolean maybePingOwner(int port, long lockId, String displayName, long timeElapsed, @Nullable FileLockReleasedSignal signal);
+
+    /**
+     * Returns true if the handler is running and communication with other processes is still possible.
+     */
+    boolean isRunning();
 }
