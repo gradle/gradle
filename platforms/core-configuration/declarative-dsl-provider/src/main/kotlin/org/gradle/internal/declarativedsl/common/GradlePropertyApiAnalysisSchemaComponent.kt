@@ -16,6 +16,8 @@
 
 package org.gradle.internal.declarativedsl.common
 
+import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.Property
 import org.gradle.declarative.dsl.model.annotations.AccessFromCurrentReceiverOnly
 import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl
@@ -115,11 +117,23 @@ class PropertyReturnTypeDiscovery : TypeDiscovery {
 
 
 private
-fun isGradlePropertyType(type: KType): Boolean = type.classifier == Property::class
+val handledPropertyTypes = setOf(Property::class, DirectoryProperty::class, RegularFileProperty::class)
 
 
 private
-fun propertyValueType(type: KType): KType =
-    if (type.classifier == Property::class)
-        type.arguments[0].type ?: error("expected a declared property type") // TODO: is this a user facing error?
-    else type
+fun isGradlePropertyType(type: KType): Boolean = type.classifier in handledPropertyTypes
+
+
+private
+fun propertyValueType(type: KType): KType {
+    fun searchClassHierarchyForPropertyType(type: KType): KType? {
+        return when (val classifier = type.classifier) {
+            Property::class -> type
+            is KClass<*> -> classifier.supertypes.firstOrNull { superType -> searchClassHierarchyForPropertyType(superType) != null }
+            else -> null
+        }
+    }
+
+    val propertyType = searchClassHierarchyForPropertyType(type)
+    return propertyType?.arguments?.get(0)?.type ?: type
+}
