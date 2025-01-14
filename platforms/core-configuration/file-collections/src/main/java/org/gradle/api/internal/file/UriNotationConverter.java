@@ -93,6 +93,6 @@ public class UriNotationConverter implements NotationConverter<Object, URI> {
     }
 
     private static boolean isWindowsRootDirectory(@Nullable String scheme) {
-        return scheme != null && scheme.length() == 2 && Character.isLetter(scheme.charAt(0)) && scheme.charAt(1) == ':' && OperatingSystem.current().isWindows();
+        return scheme != null && scheme.length() == 1 && Character.isLetter(scheme.charAt(0)) && OperatingSystem.current().isWindows();
     }
 }
