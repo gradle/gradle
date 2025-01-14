@@ -16,10 +16,14 @@
 
 package org.gradle.internal.jvm.inspection;
 
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+
 import javax.annotation.Nonnull;
 import java.io.Closeable;
 import java.io.IOException;
 
+@ServiceScope(Scope.Build.class)
 public class InvalidJvmInstallationCacheInvalidator implements Closeable {
 
     @Nonnull

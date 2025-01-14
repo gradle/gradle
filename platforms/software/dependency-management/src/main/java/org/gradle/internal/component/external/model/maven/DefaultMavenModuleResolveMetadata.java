@@ -26,7 +26,7 @@ import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.external.descriptor.MavenScope;
 import org.gradle.internal.component.external.model.AbstractLazyModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.DefaultConfigurationMetadata;
-import org.gradle.internal.component.external.model.ExternalVariantGraphResolveMetadata;
+import org.gradle.internal.component.external.model.ExternalModuleVariantGraphResolveMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
@@ -98,7 +98,7 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
     }
 
     @Override
-    protected Optional<List<? extends ExternalVariantGraphResolveMetadata>> maybeDeriveVariants() {
+    protected Optional<List<? extends ExternalModuleVariantGraphResolveMetadata>> maybeDeriveVariants() {
         return Optional.ofNullable(getDerivedVariants());
     }
 

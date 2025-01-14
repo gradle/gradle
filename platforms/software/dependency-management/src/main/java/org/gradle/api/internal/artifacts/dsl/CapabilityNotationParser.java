@@ -17,6 +17,8 @@
 package org.gradle.api.internal.artifacts.dsl;
 
 import org.gradle.api.capabilities.Capability;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.typeconversion.NotationParser;
 
 /**
@@ -24,5 +26,6 @@ import org.gradle.internal.typeconversion.NotationParser;
  * <p>
  * This concrete type is necessary so that it can be injected into version catalog generated sources.
  */
+@ServiceScope(Scope.Build.class)
 public interface CapabilityNotationParser extends NotationParser<Object, Capability> {
 }

@@ -20,6 +20,7 @@
 
 # In case of running on EC2
 # - we add a TeamCity tag to the build with an instance type of the EC2 instance.
+# - we set GRADLE_RO_DEP_CACHE to '/opt/gradle-cache' if the folder exists.
 
 curl -m 1 -s "http://169.254.169.254/latest/meta-data/instance-id"
 IS_EC2_INSTANCE=$?
@@ -28,5 +29,12 @@ if [ $IS_EC2_INSTANCE -ne 0 ]; then
   exit 0
 fi
 
+# TAG
 EC2_INSTANCE_TYPE=$(curl -s "http://169.254.169.254/latest/meta-data/instance-type")
 echo "##teamcity[addBuildTag '$EC2_INSTANCE_TYPE']"
+
+# READ-ONLY DEPENDENCY CACHE
+if [ -d "/opt/gradle-cache" ]; then
+  echo "##teamcity[setParameter name='env.GRADLE_RO_DEP_CACHE' value='/opt/gradle-cache']"
+  echo "Setting READ_ONLY Gradle cache via env.GRADLE_RO_DEP_CACHE to use /opt/gradle-cache"
+fi

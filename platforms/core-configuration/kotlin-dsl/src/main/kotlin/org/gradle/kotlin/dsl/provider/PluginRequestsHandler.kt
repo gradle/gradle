@@ -19,12 +19,15 @@ package org.gradle.kotlin.dsl.provider
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerInternal
 import org.gradle.api.internal.plugins.PluginAwareInternal
+import org.gradle.internal.service.scopes.Scope
+import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.plugin.management.internal.PluginHandler
 import org.gradle.plugin.management.internal.PluginRequests
 import org.gradle.plugin.use.internal.PluginRequestApplicator
 import javax.inject.Inject
 
 
+@ServiceScope(Scope.Build::class)
 internal
 class PluginRequestsHandler @Inject constructor(
     private val pluginRequestApplicator: PluginRequestApplicator,

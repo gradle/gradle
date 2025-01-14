@@ -57,7 +57,15 @@ public interface InternalProblemSpec extends ProblemSpec {
      */
     InternalProblemSpec documentedAt(@Nullable DocLink doc);
 
-    @Override
+    /**
+     * Defines the context-independent identifier for this problem.
+     * <p>
+     * It is a mandatory property to configure when emitting a problem with {@link ProblemReporter}.
+     * ProblemId instances can be created via {@link ProblemId#create(String, String, ProblemGroup)}.
+     *
+     * @param problemId the problem id
+     * @return this
+     */
     InternalProblemSpec id(ProblemId problemId);
 
     /**

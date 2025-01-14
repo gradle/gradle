@@ -17,10 +17,10 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.internal.artifacts.ComponentMetadataProcessor
 import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
-import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy
-import org.gradle.api.internal.artifacts.configurations.dynamicversion.Expiry
+import org.gradle.api.internal.artifacts.ivyservice.CacheExpirationControl
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.AbstractModuleMetadataCache
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetadataCache
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleRepositoryCaches
@@ -32,12 +32,13 @@ import org.gradle.api.internal.artifacts.repositories.resolver.MetadataFetchingC
 import org.gradle.api.internal.component.ArtifactType
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata
-import org.gradle.internal.component.external.model.ModuleComponentGraphResolveState
+import org.gradle.internal.component.external.model.ExternalModuleComponentGraphResolveState
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata
-import org.gradle.internal.component.external.model.ModuleDependencyMetadata
+import org.gradle.internal.component.external.model.maven.MavenModuleResolveMetadata
 import org.gradle.internal.component.model.ComponentArtifactMetadata
 import org.gradle.internal.component.model.ComponentArtifactResolveMetadata
 import org.gradle.internal.component.model.ComponentOverrideMetadata
+import org.gradle.internal.component.model.DefaultComponentOverrideMetadata
 import org.gradle.internal.component.model.ImmutableModuleSources
 import org.gradle.internal.hash.Hashing
 import org.gradle.internal.resolve.result.BuildableArtifactFileResolveResult
@@ -61,12 +62,12 @@ class CachingModuleComponentRepositoryTest extends Specification {
     def moduleDescriptorCache = Mock(AbstractModuleMetadataCache)
     def moduleArtifactsCache = Mock(AbstractArtifactsCache)
     def artifactAtRepositoryCache = Mock(ModuleArtifactCache)
-    def cachePolicy = Stub(CachePolicy)
+    def cacheExpirationControl = Stub(CacheExpirationControl)
     def metadataProcessor = Stub(ComponentMetadataProcessor)
     def listener = Stub(ChangingValueDependencyResolutionListener)
     def caches = new ModuleRepositoryCaches(moduleResolutionCache, moduleDescriptorCache, moduleArtifactsCache, artifactAtRepositoryCache)
     def resolveStateFactory = DependencyManagementTestUtil.modelGraphResolveFactory()
-    def repo = new CachingModuleComponentRepository(realRepo, caches, resolveStateFactory, cachePolicy, Stub(BuildCommencedTimeProvider), metadataProcessor, listener)
+    def repo = new CachingModuleComponentRepository(realRepo, caches, resolveStateFactory, cacheExpirationControl, Stub(BuildCommencedTimeProvider), metadataProcessor, listener)
 
     def "artifact last modified date is cached - lastModified = #lastModified"() {
         given:
@@ -100,14 +101,14 @@ class CachingModuleComponentRepositoryTest extends Specification {
     }
 
     def "does not use cache when module version listing can be determined locally"() {
-        def dependency = Mock(ModuleDependencyMetadata)
+        def dependency = Mock(ModuleComponentSelector)
         def result = new DefaultBuildableModuleVersionListingResolveResult()
 
         when:
-        repo.localAccess.listModuleVersions(dependency, result)
+        repo.localAccess.listModuleVersions(dependency, DefaultComponentOverrideMetadata.EMPTY, result)
 
         then:
-        realLocalAccess.listModuleVersions(dependency, result) >> {
+        realLocalAccess.listModuleVersions(dependency, _, result) >> {
             result.listed(['a', 'b', 'c'])
         }
         0 * _
@@ -123,7 +124,7 @@ class CachingModuleComponentRepositoryTest extends Specification {
 
         then:
         1 * realLocalAccess.resolveComponentMetaData(componentId, prescribedMetaData, _) >> { id, m, r ->
-            r.resolved(Stub(ModuleComponentResolveMetadata))
+            r.resolved(Stub(MavenModuleResolveMetadata))
         }
         0 * _
     }
@@ -162,7 +163,7 @@ class CachingModuleComponentRepositoryTest extends Specification {
         def module = Mock(ModuleComponentIdentifier)
         def localAccess = repo.localAccess
         realRemoteAccess.estimateMetadataFetchingCost(module) >> remoteAnswer
-        cachePolicy.missingModuleExpiry(_, _) >> Stub(Expiry) {
+        cacheExpirationControl.missingModuleExpiry(_, _) >> Stub(CacheExpirationControl.Expiry) {
             isMustCheck() >> mustRefreshMissingModule
         }
         moduleDescriptorCache.getCachedModuleDescriptor(_, module) >> Stub(ModuleMetadataCache.CachedMetadata) {
@@ -190,11 +191,11 @@ class CachingModuleComponentRepositoryTest extends Specification {
         def module = Mock(ModuleComponentIdentifier)
         def localAccess = repo.localAccess
         realRemoteAccess.estimateMetadataFetchingCost(module) >> remoteAnswer
-        cachePolicy.changingModuleExpiry(_, _, _) >> Stub(Expiry) {
+        cacheExpirationControl.changingModuleExpiry(_, _, _) >> Stub(CacheExpirationControl.Expiry) {
             isMustCheck() >> mustRefreshChangingModule
         }
         moduleDescriptorCache.getCachedModuleDescriptor(_, module) >> Stub(ModuleMetadataCache.CachedMetadata) {
-            getProcessedMetadata(_) >> Stub(ModuleComponentGraphResolveState) {
+            getProcessedMetadata(_) >> Stub(ExternalModuleComponentGraphResolveState) {
                 getMetadata() >> Stub(ModuleComponentResolveMetadata) {
                     isChanging() >> true
                 }
@@ -222,11 +223,11 @@ class CachingModuleComponentRepositoryTest extends Specification {
         def module = Mock(ModuleComponentIdentifier)
         def localAccess = repo.localAccess
         realRemoteAccess.estimateMetadataFetchingCost(module) >> remoteAnswer
-        cachePolicy.moduleExpiry(_, _, _) >> Stub(Expiry) {
+        cacheExpirationControl.moduleExpiry(_, _, _) >> Stub(CacheExpirationControl.Expiry) {
             isMustCheck() >> mustRefreshModule
         }
         moduleDescriptorCache.getCachedModuleDescriptor(_, module) >> Stub(ModuleMetadataCache.CachedMetadata) {
-            getProcessedMetadata(_) >> Stub(ModuleComponentGraphResolveState)
+            getProcessedMetadata(_) >> Stub(ExternalModuleComponentGraphResolveState)
             getAge() >> Duration.ofMillis(100)
         }
 

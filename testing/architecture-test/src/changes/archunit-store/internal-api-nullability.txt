@@ -1,7 +1,5 @@
 Class <org.gradle.api.distribution.internal.DefaultDistribution> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultDistribution.java:0)
 Class <org.gradle.api.distribution.internal.DefaultDistributionContainer> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultDistributionContainer.java:0)
-Class <org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (CachePolicy.java:0)
-Class <org.gradle.api.internal.artifacts.configurations.dynamicversion.Expiry> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (Expiry.java:0)
 Class <org.gradle.api.internal.artifacts.ivyservice.clientmodule.ClientModuleResolver$ClientModuleComponentResolveMetadata> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (ClientModuleResolver.java:0)
 Class <org.gradle.api.internal.artifacts.ivyservice.clientmodule.ClientModuleResolver$ClientModuleConfigurationMetadata> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (ClientModuleResolver.java:0)
 Class <org.gradle.api.internal.artifacts.ivyservice.clientmodule.ClientModuleResolver$ClientModuleDependencyMetadataWrapper> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (ClientModuleResolver.java:0)

@@ -22,7 +22,10 @@ import org.gradle.api.invocation.Gradle;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.cache.CleanupFrequency;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
+@ServiceScope({Scope.UserHome.class, Scope.BuildSession.class, Scope.Settings.class})
 public interface CacheConfigurationsInternal extends CacheConfigurations {
     int DEFAULT_MAX_AGE_IN_DAYS_FOR_RELEASED_DISTS = 30;
     int DEFAULT_MAX_AGE_IN_DAYS_FOR_SNAPSHOT_DISTS = 7;

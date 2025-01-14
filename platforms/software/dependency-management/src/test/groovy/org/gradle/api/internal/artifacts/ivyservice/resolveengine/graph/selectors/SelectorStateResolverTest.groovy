@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.ComponentMetadata
 import org.gradle.api.artifacts.ModuleIdentifier
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ComponentIdentifier
+import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.attributes.AttributeContainer
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
@@ -41,7 +42,7 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentIdenti
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.component.model.ComponentGraphResolveState
 import org.gradle.internal.component.model.ComponentGraphSpecificResolveState
-import org.gradle.internal.component.model.DependencyMetadata
+import org.gradle.internal.component.model.ComponentOverrideMetadata
 import org.gradle.internal.resolve.ModuleVersionNotFoundException
 import org.gradle.internal.resolve.ModuleVersionResolveException
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver
@@ -315,7 +316,7 @@ class SelectorStateResolverTest extends Specification {
      */
     class TestDependencyToComponentIdResolver implements DependencyToComponentIdResolver {
         @Override
-        void resolve(DependencyMetadata dependency, VersionSelector acceptor, VersionSelector rejector, BuildableComponentIdResolveResult result) {
+        void resolve(ComponentSelector selector, ComponentOverrideMetadata overrideMetadata, VersionSelector acceptor, VersionSelector rejector, BuildableComponentIdResolveResult result) {
             if (!acceptor.isDynamic()) {
                 def id = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId(moduleId.group, moduleId.name), acceptor.selector)
                 resolvedOrRejected(id, rejector, result)

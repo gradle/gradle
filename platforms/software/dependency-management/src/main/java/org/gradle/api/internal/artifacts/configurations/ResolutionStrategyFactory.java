@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.configurations;
 
+import org.gradle.StartParameter;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
@@ -26,8 +27,8 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvi
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DefaultDependencySubstitutions;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionsInternal;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.ModuleSelectorNotationConverter;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.StartParameterResolutionOverride;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.CapabilitiesResolutionInternal;
+import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultCachePolicy;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultCapabilitiesResolution;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultResolutionStrategy;
 import org.gradle.api.internal.attributes.AttributesFactory;
@@ -37,7 +38,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
-import org.gradle.vcs.internal.VcsMappingsStore;
+import org.gradle.vcs.internal.VcsResolver;
 
 import javax.inject.Inject;
 
@@ -49,14 +50,14 @@ public class ResolutionStrategyFactory implements Factory<ResolutionStrategyInte
     private final BuildState currentBuild;
     private final Instantiator instantiator;
     private final GlobalDependencyResolutionRules globalDependencySubstitutionRules;
-    private final VcsMappingsStore vcsMappingsStore;
+    private final VcsResolver vcsResolver;
     private final AttributesFactory attributesFactory;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final ComponentSelectorConverter componentSelectorConverter;
     private final DependencyLockingProvider dependencyLockingProvider;
     private final ModuleSelectorNotationConverter moduleSelectorNotationParser;
     private final ObjectFactory objectFactory;
-    private final StartParameterResolutionOverride startParameterResolutionOverride;
+    private final StartParameter startParameter;
     private final NotationParser<Object, Capability> capabilityNotationParser;
     private final NotationParser<Object, ComponentIdentifier> componentIdentifierNotationParser;
 
@@ -65,53 +66,64 @@ public class ResolutionStrategyFactory implements Factory<ResolutionStrategyInte
         BuildState currentBuild,
         Instantiator instantiator,
         GlobalDependencyResolutionRules globalDependencySubstitutionRules,
-        VcsMappingsStore vcsMappingsStore,
+        VcsResolver vcsResolver,
         AttributesFactory attributesFactory,
         ImmutableModuleIdentifierFactory moduleIdentifierFactory,
         ComponentSelectorConverter componentSelectorConverter,
         DependencyLockingProvider dependencyLockingProvider,
         ModuleSelectorNotationConverter moduleSelectorNotationParser,
         ObjectFactory objectFactory,
-        StartParameterResolutionOverride startParameterResolutionOverride
+        StartParameter startParameter
     ) {
         this.currentBuild = currentBuild;
         this.instantiator = instantiator;
         this.globalDependencySubstitutionRules = globalDependencySubstitutionRules;
-        this.vcsMappingsStore = vcsMappingsStore;
+        this.vcsResolver = vcsResolver;
         this.attributesFactory = attributesFactory;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
         this.componentSelectorConverter = componentSelectorConverter;
         this.dependencyLockingProvider = dependencyLockingProvider;
         this.moduleSelectorNotationParser = moduleSelectorNotationParser;
         this.objectFactory = objectFactory;
-        this.startParameterResolutionOverride = startParameterResolutionOverride;
+        this.startParameter = startParameter;
         this.capabilityNotationParser = new CapabilityNotationParserFactory(false).create();
         this.componentIdentifierNotationParser = new ComponentIdentifierParserFactory().create();
     }
 
     @Override
     public ResolutionStrategyInternal create() {
-        CapabilitiesResolutionInternal capabilitiesResolutionInternal = instantiator.newInstance(DefaultCapabilitiesResolution.class,
-            capabilityNotationParser, componentIdentifierNotationParser
+        CapabilitiesResolutionInternal capabilitiesResolutionInternal = instantiator.newInstance(
+            DefaultCapabilitiesResolution.class,
+            capabilityNotationParser,
+            componentIdentifierNotationParser
         );
 
         DependencySubstitutionsInternal dependencySubstitutions = DefaultDependencySubstitutions.forResolutionStrategy(
             currentBuild, moduleSelectorNotationParser, instantiator, objectFactory, attributesFactory, capabilityNotationParser
         );
 
-        ResolutionStrategyInternal resolutionStrategyInternal = instantiator.newInstance(DefaultResolutionStrategy.class,
-            globalDependencySubstitutionRules,
-            vcsMappingsStore,
+        CachePolicy cachePolicy = createCachePolicy(startParameter);
+
+        return instantiator.newInstance(DefaultResolutionStrategy.class,
+            cachePolicy,
             dependencySubstitutions,
+            globalDependencySubstitutionRules,
+            vcsResolver,
             moduleIdentifierFactory,
             componentSelectorConverter,
             dependencyLockingProvider,
             capabilitiesResolutionInternal,
             objectFactory
         );
+    }
 
-        startParameterResolutionOverride.applyToCachePolicy(resolutionStrategyInternal.getCachePolicy());
-
-        return resolutionStrategyInternal;
+    private static CachePolicy createCachePolicy(StartParameter startParameter) {
+        CachePolicy cachePolicy = new DefaultCachePolicy();
+        if (startParameter.isOffline()) {
+            cachePolicy.setOffline();
+        } else if (startParameter.isRefreshDependencies()) {
+            cachePolicy.setRefreshDependencies();
+        }
+        return cachePolicy;
     }
 }

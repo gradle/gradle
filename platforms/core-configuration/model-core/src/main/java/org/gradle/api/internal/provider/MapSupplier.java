@@ -30,7 +30,7 @@ interface MapSupplier<K, V> extends ValueSupplier {
 
     Value<? extends Set<K>> calculateKeys(ValueConsumer consumer);
 
-    MapSupplier<K, V> plus(MapCollector<K, V> collector, boolean ignoreAbsent);
+    MapSupplier<K, V> plus(MapCollector<K, V> collector);
 
     ExecutionTimeValue<? extends Map<K, V>> calculateExecutionTimeValue();
 }

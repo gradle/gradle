@@ -23,6 +23,8 @@ import org.gradle.api.logging.Logging;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.io.NullOutputStream;
 import org.gradle.internal.io.StreamByteBuffer;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.process.ExecResult;
 import org.gradle.process.internal.ExecAction;
 import org.gradle.process.internal.ExecActionFactory;
@@ -34,6 +36,7 @@ import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 
+@ServiceScope(Scope.BuildSession.class)
 public class CommandLineToolVersionLocator extends AbstractVisualStudioVersionLocator implements VisualStudioVersionLocator {
     private static final Logger LOGGER = Logging.getLogger(CommandLineToolVersionLocator.class);
 

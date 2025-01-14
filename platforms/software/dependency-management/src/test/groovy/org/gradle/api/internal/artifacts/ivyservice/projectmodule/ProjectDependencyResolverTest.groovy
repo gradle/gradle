@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule
 
 import org.gradle.api.artifacts.component.ComponentIdentifier
+import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.project.ProjectStateRegistry
@@ -23,7 +24,6 @@ import org.gradle.internal.component.local.model.LocalComponentGraphResolveState
 import org.gradle.internal.component.local.model.TestComponentIdentifiers
 import org.gradle.internal.component.model.ComponentOverrideMetadata
 import org.gradle.internal.component.model.DefaultComponentOverrideMetadata
-import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult
 import spock.lang.Specification
@@ -49,13 +49,10 @@ class ProjectDependencyResolverTest extends Specification {
         def selector = TestComponentIdentifiers.newSelector(":project")
         def componentState = Mock(LocalComponentGraphResolveState)
         def result = Mock(BuildableComponentIdResolveResult)
-        def dependencyMetaData = Stub(DependencyMetadata) {
-            getSelector() >> selector
-        }
         def id = newProjectId(":project")
 
         when:
-        resolver.resolve(dependencyMetaData, null, null, result)
+        resolver.resolve(selector, DefaultComponentOverrideMetadata.EMPTY, null, null, result)
 
         then:
         1 * registry.getComponent(id) >> componentState
@@ -80,10 +77,10 @@ class ProjectDependencyResolverTest extends Specification {
 
     def "doesn't try to resolve non-project dependency"() {
         def result = Mock(BuildableComponentIdResolveResult)
-        def dependencyMetaData = Stub(DependencyMetadata)
+        def selector = Stub(ComponentSelector)
 
         when:
-        resolver.resolve(dependencyMetaData, null, null, result)
+        resolver.resolve(selector, DefaultComponentOverrideMetadata.EMPTY, null, null, result)
 
         then:
         0 * registry.getComponent(_)

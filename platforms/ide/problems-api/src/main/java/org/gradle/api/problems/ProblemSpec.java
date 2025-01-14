@@ -26,19 +26,6 @@ import org.gradle.api.Incubating;
  */
 @Incubating
 public interface ProblemSpec {
-
-    /**
-     * Defines the context-independent identifier for this problem.
-     * <p>
-     * It is a mandatory property to configure when emitting a problem with {@link ProblemReporter}.
-     * ProblemId instances can be created via {@link ProblemId#create(String, String, ProblemGroup)}.
-     *
-     * @param problemId the problem id
-     * @return this
-     * @since 8.13
-     */
-    ProblemSpec id(ProblemId problemId);
-
     /**
      * Declares a short, but context-dependent message for this problem.
      *

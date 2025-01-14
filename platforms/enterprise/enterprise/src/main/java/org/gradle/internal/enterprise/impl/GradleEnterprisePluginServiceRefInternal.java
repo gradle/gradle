@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.component.external.model;
+package org.gradle.internal.enterprise.impl;
 
-import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.internal.enterprise.GradleEnterprisePluginService;
+import org.gradle.internal.enterprise.GradleEnterprisePluginServiceRef;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
-public interface ModuleComponentGraphResolveMetadata extends ExternalComponentGraphResolveMetadata {
+@ServiceScope(Scope.BuildTree.class)
+public interface GradleEnterprisePluginServiceRefInternal extends GradleEnterprisePluginServiceRef {
 
-    @Override
-    ModuleComponentIdentifier getId();
+    void set(GradleEnterprisePluginService service);
 
-    /**
-     * Was the metadata artifact for this component missing? When true, the metadata for this component was generated using some defaults.
-     */
-    boolean isMissing();
 }

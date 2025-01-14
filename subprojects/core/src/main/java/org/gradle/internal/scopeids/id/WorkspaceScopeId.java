@@ -17,6 +17,8 @@
 package org.gradle.internal.scopeids.id;
 
 import org.gradle.internal.id.UniqueId;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
  * The persistent ID of a potential build on disk.
@@ -30,6 +32,7 @@ import org.gradle.internal.id.UniqueId;
  * This ID is persisted in the root build's project cache dir.
  * If this cache directory is destroyed, a new ID will be issued.
  */
+@ServiceScope(Scope.BuildSession.class)
 public final class WorkspaceScopeId extends ScopeId {
 
     public WorkspaceScopeId(UniqueId id) {

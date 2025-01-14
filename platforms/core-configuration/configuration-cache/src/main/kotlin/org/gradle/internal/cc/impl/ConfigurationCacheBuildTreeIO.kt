@@ -28,10 +28,13 @@ import org.gradle.internal.serialize.graph.MutableReadContext
 import org.gradle.internal.serialize.graph.SpecialDecoders
 import org.gradle.internal.serialize.graph.SpecialEncoders
 import org.gradle.internal.serialize.graph.WriteContext
+import org.gradle.internal.service.scopes.Scope
+import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.util.Path
 import java.io.InputStream
 import java.io.OutputStream
 
+@ServiceScope(Scope.Build::class)
 internal
 interface ConfigurationCacheBuildTreeIO : ConfigurationCacheOperationIO {
 

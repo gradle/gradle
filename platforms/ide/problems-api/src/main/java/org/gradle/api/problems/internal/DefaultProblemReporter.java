@@ -18,6 +18,7 @@ package org.gradle.api.problems.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.problems.Problem;
+import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.ProblemSpec;
 import org.gradle.internal.exception.ExceptionAnalyser;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
@@ -53,8 +54,9 @@ public class DefaultProblemReporter implements InternalProblemReporter {
     }
 
     @Override
-    public void report(Action<? super ProblemSpec> spec) {
+    public void report(ProblemId problemId, Action<? super ProblemSpec> spec) {
         DefaultProblemBuilder problemBuilder = createProblemBuilder();
+        problemBuilder.id(problemId);
         spec.execute(problemBuilder);
         report(problemBuilder.build());
     }
@@ -65,8 +67,9 @@ public class DefaultProblemReporter implements InternalProblemReporter {
     }
 
     @Override
-    public RuntimeException throwing(Throwable exception, Action<? super ProblemSpec> spec) {
+    public RuntimeException throwing(Throwable exception, ProblemId problemId, Action<? super ProblemSpec> spec) {
         DefaultProblemBuilder problemBuilder = createProblemBuilder();
+        problemBuilder.id(problemId);
         spec.execute(problemBuilder);
         problemBuilder.withException(exception);
         report(problemBuilder.build());
@@ -97,8 +100,9 @@ public class DefaultProblemReporter implements InternalProblemReporter {
     }
 
     @Override
-    public Problem create(Action<? super ProblemSpec> action) {
+    public Problem create(ProblemId problemId, Action<? super ProblemSpec> action) {
         DefaultProblemBuilder defaultProblemBuilder = createProblemBuilder();
+        defaultProblemBuilder.id(problemId);
         action.execute(defaultProblemBuilder);
         return defaultProblemBuilder.build();
     }

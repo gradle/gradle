@@ -31,7 +31,7 @@ class HierarchicalMutableAttributeContainerTest extends Specification {
     def two = Attribute.of("two", String)
 
     private DefaultMutableAttributeContainer mutable() {
-        return new DefaultMutableAttributeContainer(attributesFactory)
+        return new DefaultMutableAttributeContainer(attributesFactory, AttributeTestUtil.attributeValueIsolator())
     }
 
     def "can override attributes from fallback"() {

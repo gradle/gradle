@@ -16,32 +16,33 @@
 package org.gradle.api.internal.artifacts.repositories.metadata;
 
 import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
-import org.gradle.internal.hash.ChecksumService;
 import org.gradle.api.internal.artifacts.repositories.maven.MavenMetadataLoader;
 import org.gradle.api.internal.artifacts.repositories.resolver.ResourcePattern;
 import org.gradle.api.internal.artifacts.repositories.resolver.VersionLister;
-import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.external.model.maven.MutableMavenModuleResolveMetadata;
+import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
+import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult;
 import org.gradle.internal.resource.local.FileResourceRepository;
 
-import javax.inject.Inject;
 import java.util.List;
-
-import static org.gradle.api.internal.artifacts.repositories.metadata.DefaultArtifactMetadataSource.getPrimaryDependencyArtifact;
 
 public class MavenLocalPomMetadataSource extends DefaultMavenPomMetadataSource {
 
-    @Inject
+    private final MetadataArtifactProvider metadataArtifactProvider;
+
     public MavenLocalPomMetadataSource(MetadataArtifactProvider metadataArtifactProvider, MetaDataParser<MutableMavenModuleResolveMetadata> pomParser, FileResourceRepository fileResourceRepository, MavenMetadataValidator validator, MavenMetadataLoader mavenMetadataLoader, ChecksumService checksumService) {
         super(metadataArtifactProvider, pomParser, fileResourceRepository, validator, mavenMetadataLoader, checksumService);
+        this.metadataArtifactProvider = metadataArtifactProvider;
     }
 
     @Override
-    public void listModuleVersions(ModuleDependencyMetadata dependency, ModuleIdentifier module, List<ResourcePattern> ivyPatterns, List<ResourcePattern> artifactPatterns, VersionLister versionLister, BuildableModuleVersionListingResolveResult result) {
-        IvyArtifactName dependencyArtifact = getPrimaryDependencyArtifact(dependency);
+    public void listModuleVersions(ModuleComponentSelector selector, ComponentOverrideMetadata overrideMetadata, List<ResourcePattern> ivyPatterns, List<ResourcePattern> artifactPatterns, VersionLister versionLister, BuildableModuleVersionListingResolveResult result) {
+        ModuleIdentifier module = selector.getModuleIdentifier();
+        IvyArtifactName dependencyArtifact = metadataArtifactProvider.getMetaDataArtifactName(module.getName());
         versionLister.listVersions(module, dependencyArtifact, artifactPatterns, result);
     }
 }

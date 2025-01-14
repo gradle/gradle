@@ -16,6 +16,7 @@
 
 package org.gradle.internal.component.external.model;
 
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationGraphResolveMetadata;
 
@@ -24,19 +25,28 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Component metadata for external components.
+ * Component metadata for external module components.
  *
  * <p>Like {@link ComponentGraphResolveMetadata}, methods on this interface should be thread safe and fast -- meaning
  * they do not run user code or execute network requests. This is not currently the case. Instead, that logic should
- * be migrated to {@link ExternalComponentGraphResolveState}</p>
+ * be migrated to {@link ExternalModuleComponentGraphResolveState}</p>
  */
-public interface ExternalComponentGraphResolveMetadata extends ComponentGraphResolveMetadata {
+public interface ExternalModuleComponentGraphResolveMetadata extends ComponentGraphResolveMetadata {
+
+    @Override
+    ModuleComponentIdentifier getId();
+
+    /**
+     * Was the metadata artifact for this component missing? When true, the metadata for this component was generated using some defaults.
+     */
+    boolean isMissing();
+
 
     /**
      * Returns the set of variants of this component to use for variant aware resolution of the dependency graph nodes.
      * May be empty, in which case selection falls back to an ecosystem-specific selection strategy.
      */
-    List<? extends ExternalVariantGraphResolveMetadata> getVariantsForGraphTraversal();
+    List<? extends ExternalModuleVariantGraphResolveMetadata> getVariantsForGraphTraversal();
 
     /**
      * Returns the names of all legacy configurations for this component.

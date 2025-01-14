@@ -20,16 +20,17 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedVariantResult;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.internal.Describables;
-import org.gradle.internal.component.external.model.ExternalComponentGraphResolveMetadata;
-import org.gradle.internal.component.external.model.ExternalComponentGraphResolveState;
 import org.gradle.internal.component.external.model.ExternalComponentResolveMetadata;
+import org.gradle.internal.component.external.model.ExternalModuleComponentGraphResolveMetadata;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
+import org.gradle.internal.component.external.model.ExternalModuleComponentGraphResolveState;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.lazy.Lazy;
 
@@ -41,9 +42,13 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Collectors;
 
 /**
- * Default implementation of {@link ExternalComponentGraphResolveState}
+ * Default implementation of {@link ExternalModuleComponentGraphResolveState}
+ * <p>
+ * The aim is to create only a single instance of this type per component and reuse that
+ * for all resolution that happens in a build tree. This isn't quite the case yet.
  */
-public class DefaultExternalComponentGraphResolveState<G extends ExternalComponentGraphResolveMetadata, A extends ExternalComponentResolveMetadata> extends AbstractComponentGraphResolveState<G> implements ExternalComponentGraphResolveState {
+public class DefaultExternalModuleComponentGraphResolveState<G extends ExternalModuleComponentGraphResolveMetadata, A extends ExternalComponentResolveMetadata> extends AbstractComponentGraphResolveState<G> implements ExternalModuleComponentGraphResolveState {
+
     private final ComponentIdGenerator idGenerator;
     private final A legacyMetadata;
 
@@ -56,7 +61,7 @@ public class DefaultExternalComponentGraphResolveState<G extends ExternalCompone
     // The public view of all selectable variants of this component
     private final List<ResolvedVariantResult> selectableVariantResults;
 
-    public DefaultExternalComponentGraphResolveState(long instanceId, G graphMetadata, A legacyMetadata, AttributeDesugaring attributeDesugaring, ComponentIdGenerator idGenerator) {
+    public DefaultExternalModuleComponentGraphResolveState(long instanceId, G graphMetadata, A legacyMetadata, AttributeDesugaring attributeDesugaring, ComponentIdGenerator idGenerator) {
         super(instanceId, graphMetadata, attributeDesugaring);
         this.legacyMetadata = legacyMetadata;
         this.allVariantsForGraphResolution = Lazy.locking().of(() ->
@@ -77,6 +82,11 @@ public class DefaultExternalComponentGraphResolveState<G extends ExternalCompone
                 null
             ))
             .collect(Collectors.toList());
+    }
+
+    @Override
+    public ModuleComponentIdentifier getId() {
+        return getMetadata().getId();
     }
 
     @Override
@@ -103,10 +113,6 @@ public class DefaultExternalComponentGraphResolveState<G extends ExternalCompone
 
     protected ConfigurationGraphResolveState resolveStateFor(ModuleConfigurationMetadata configuration) {
         return variants.computeIfAbsent(configuration, c -> newVariantState(configuration));
-    }
-
-    protected VariantGraphResolveState newResolveStateFor(ModuleConfigurationMetadata configuration) {
-        return newVariantState(configuration);
     }
 
     private DefaultConfigurationGraphResolveState newVariantState(ModuleConfigurationMetadata configuration) {
@@ -227,9 +233,9 @@ public class DefaultExternalComponentGraphResolveState<G extends ExternalCompone
 
     private static class ExternalGraphSelectionCandidates implements GraphSelectionCandidates {
         private final List<? extends VariantGraphResolveState> variants;
-        private final DefaultExternalComponentGraphResolveState<?, ?> component;
+        private final DefaultExternalModuleComponentGraphResolveState<?, ?> component;
 
-        public ExternalGraphSelectionCandidates(DefaultExternalComponentGraphResolveState<?, ?> component) {
+        public ExternalGraphSelectionCandidates(DefaultExternalModuleComponentGraphResolveState<?, ?> component) {
             this.variants = component.allVariantsForGraphResolution.get();
             this.component = component;
         }

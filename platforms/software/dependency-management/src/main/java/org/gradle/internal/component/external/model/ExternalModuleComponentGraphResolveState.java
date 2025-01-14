@@ -22,15 +22,24 @@ import org.gradle.internal.component.model.ComponentGraphResolveState;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * A specialized {@link ComponentGraphResolveState} for external components.
+ * A specialized {@link ComponentGraphResolveState} for external module components.
  *
  * <p>Instances of this type are cached and reused for multiple graph resolutions, possibly in parallel. This means that the implementation must be thread-safe.
  */
 @ThreadSafe
-public interface ModuleComponentGraphResolveState extends ExternalComponentGraphResolveState {
+public interface ExternalModuleComponentGraphResolveState extends ComponentGraphResolveState {
+
+    /**
+     * @deprecated Try to avoid using this. This method exposes legacy stateful metadata. Usages should be
+     * replaced by using the stateful types like {@link ComponentGraphResolveState} and
+     * {@link org.gradle.internal.component.model.ComponentArtifactResolveState}.
+     */
+    @Deprecated
+    ExternalComponentResolveMetadata getLegacyMetadata();
+
     @Override
     ModuleComponentIdentifier getId();
 
     @Override
-    ModuleComponentGraphResolveMetadata getMetadata();
+    ExternalModuleComponentGraphResolveMetadata getMetadata();
 }

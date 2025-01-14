@@ -17,10 +17,13 @@
 package org.gradle.plugin.software.internal;
 
 import org.gradle.api.Plugin;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
  * Applies the model defaults from a given software type to a target object.
  */
+@ServiceScope({Scope.Build.class, Scope.Project.class})
 public interface ModelDefaultsHandler {
     <T> void apply(T target, String softwareTypeName, Plugin<?> plugin);
 }

@@ -17,11 +17,13 @@
 package org.gradle.api.internal.attributes.immutable
 
 import org.gradle.api.attributes.Attribute
+import org.gradle.api.internal.attributes.AttributeValueIsolator
 import org.gradle.api.internal.attributes.DefaultAttributesFactory
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.attributes.AttributesFactory
 import org.gradle.api.internal.model.NamedObjectInstantiator
 import org.gradle.internal.isolation.IsolatableFactory
+import org.gradle.util.AttributeTestUtil
 import org.gradle.util.SnapshotTestUtil
 import org.gradle.util.TestUtil
 
@@ -36,6 +38,7 @@ trait TestsImmutableAttributes {
 
     IsolatableFactory isolatableFactory = SnapshotTestUtil.isolatableFactory()
     NamedObjectInstantiator instantiator = TestUtil.objectInstantiator()
+    AttributeValueIsolator attributeValueIsolator = AttributeTestUtil.attributeValueIsolator()
 
-    AttributesFactory factory = new DefaultAttributesFactory(isolatableFactory, instantiator)
+    AttributesFactory factory = new DefaultAttributesFactory(attributeValueIsolator, isolatableFactory, instantiator)
 }

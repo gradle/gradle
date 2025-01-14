@@ -33,7 +33,7 @@ import org.gradle.api.internal.artifacts.ComponentMetadataProcessorFactory;
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
 import org.gradle.api.internal.artifacts.DefaultResolverResults;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
-import org.gradle.api.internal.artifacts.ResolveContext;
+import org.gradle.api.internal.artifacts.LegacyResolutionParameters;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.internal.artifacts.capability.CapabilitySelectorSerializer;
@@ -240,15 +240,15 @@ public class ResolutionExecutor {
     /**
      * Traverses enough of the graph to calculate the build dependencies of the graph.
      *
-     * @param resolveContext Legacy parameters describing what and how to resolve
+     * @param legacyParams Legacy parameters describing what and how to resolve
      * @param params Immutable thread-safe parameters describing what and how to resolve
-     * @param futureCompleteResults The future value of the output of {@link #resolveGraph(ResolveContext, ResolutionParameters, List)}. See
+     * @param futureCompleteResults The future value of the output of {@link #resolveGraph(LegacyResolutionParameters, ResolutionParameters, List)}. See
      * {@link DefaultTransformUpstreamDependenciesResolver} for why this is needed.
      *
      * @return An immutable result set, containing a subset of the graph that is sufficient to calculate the build dependencies.
      */
     public ResolverResults resolveBuildDependencies(
-        ResolveContext resolveContext,
+        LegacyResolutionParameters legacyParams,
         ResolutionParameters params,
         CalculatedValue<ResolverResults> futureCompleteResults
     ) {
@@ -257,11 +257,11 @@ public class ResolutionExecutor {
         ResolvedLocalComponentsResultGraphVisitor localComponentsVisitor = new ResolvedLocalComponentsResultGraphVisitor(currentBuild, projectStateRegistry);
         DefaultResolvedArtifactsBuilder artifactsBuilder = new DefaultResolvedArtifactsBuilder(buildProjectDependencies);
 
-        ComponentResolvers resolvers = getResolvers(params, resolveContext, Collections.emptyList());
+        ComponentResolvers resolvers = getResolvers(params, legacyParams, Collections.emptyList());
         DependencyGraphVisitor artifactsGraphVisitor = artifactVisitorFor(artifactsBuilder, params.getArtifactTypeRegistry());
 
         ImmutableList<DependencyGraphVisitor> visitors = ImmutableList.of(failureCollector, resolutionResultBuilder, localComponentsVisitor, artifactsGraphVisitor);
-        doResolve(params, resolveContext, ImmutableList.of(), resolvers, IS_LOCAL_EDGE, visitors);
+        doResolve(params, legacyParams, ImmutableList.of(), resolvers, IS_LOCAL_EDGE, visitors);
         localComponentsVisitor.complete(ConfigurationInternal.InternalState.BUILD_DEPENDENCIES_RESOLVED);
 
         Set<UnresolvedDependency> unresolvedDependencies = failureCollector.complete(Collections.emptySet());
@@ -298,14 +298,14 @@ public class ResolutionExecutor {
     /**
      * Traverses the full dependency graph.
      *
-     * @param resolveContext Legacy parameters describing what and how to resolve
+     * @param legacyParams Legacy parameters describing what and how to resolve
      * @param params Immutable thread-safe parameters describing what and how to resolve
      * @param repositories The repositories used to resolve external dependencies
      *
      * @return An immutable result set, containing the full graph of resolved components.
      */
     public ResolverResults resolveGraph(
-        ResolveContext resolveContext,
+        LegacyResolutionParameters legacyParams,
         ResolutionParameters params,
         List<ResolutionAwareRepository> repositories
     ) {
@@ -346,13 +346,13 @@ public class ResolutionExecutor {
             dependencyLockingProvider.confirmNotLocked(params.getDependencyLockingId());
         }
 
-        ComponentResolvers resolvers = getResolvers(params, resolveContext, repositories);
+        ComponentResolvers resolvers = getResolvers(params, legacyParams, repositories);
         CompositeDependencyArtifactsVisitor artifactVisitors = new CompositeDependencyArtifactsVisitor(ImmutableList.of(
             oldModelVisitor, fileDependencyVisitor, artifactsBuilder
         ));
         graphVisitors.add(artifactVisitorFor(artifactVisitors, params.getArtifactTypeRegistry()));
 
-        doResolve(params, resolveContext, getAllVersionLocks(params), resolvers, Specs.satisfyAll(), graphVisitors.build());
+        doResolve(params, legacyParams, getAllVersionLocks(params), resolvers, Specs.satisfyAll(), graphVisitors.build());
         localComponentsVisitor.complete(ConfigurationInternal.InternalState.GRAPH_RESOLVED);
 
         VisitedArtifactResults artifactsResults = artifactsBuilder.complete();
@@ -468,7 +468,7 @@ public class ResolutionExecutor {
      */
     private void doResolve(
         ResolutionParameters params,
-        ResolveContext resolveContext,
+        LegacyResolutionParameters legacyParams,
         ImmutableList<ResolutionParameters.ModuleVersionLock> moduleVersionLocks,
         ComponentResolvers resolvers,
         Spec<DependencyMetadata> edgeFilter,
@@ -488,9 +488,9 @@ public class ResolutionExecutor {
             resolvers.getComponentIdResolver(),
             resolvers.getComponentResolver(),
             params.getModuleReplacements(),
-            resolveContext.getDependencySubstitutionRules(),
+            legacyParams.getDependencySubstitutionRules(),
             params.getModuleConflictResolutionStrategy(),
-            resolveContext.getCapabilityConflictResolutionRules(),
+            legacyParams.getCapabilityConflictResolutionRules(),
             params.isFailingOnDynamicVersions(),
             params.isFailingOnChangingVersions(),
             new CompositeDependencyGraphVisitor(visitors)
@@ -502,7 +502,7 @@ public class ResolutionExecutor {
      */
     private ComponentResolvers getResolvers(
         ResolutionParameters params,
-        ResolveContext resolveContext,
+        LegacyResolutionParameters legacyParams,
         List<ResolutionAwareRepository> repositories
     ) {
         List<ComponentResolvers> resolvers = new ArrayList<>(3);
@@ -514,9 +514,9 @@ public class ResolutionExecutor {
         resolvers.add(externalResolverFactory.createResolvers(
             repositories,
             componentMetadataProcessorFactory,
-            resolveContext.getComponentSelectionRules(),
+            legacyParams.getComponentSelectionRules(),
             params.isDependencyVerificationEnabled(),
-            resolveContext.getCachePolicy(),
+            params.getCacheExpirationControl(),
             // We should not need to know _what_ we're resolving in order to construct a resolver for a set of repositories.
             // The request attributes and schema are used to support filtering components by attributes when using dynamic versions.
             // We should consider just removing that feature and making dynamic version selection dumber.

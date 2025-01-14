@@ -18,11 +18,14 @@ package org.gradle.cache.internal;
 
 import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.internal.GUtil;
 
 import java.io.File;
 import java.util.Properties;
 
+@ServiceScope(Scope.UserHome.class)
 public class LegacyCacheCleanupEnablement {
     public static final String CACHE_CLEANUP_PROPERTY = "org.gradle.cache.cleanup";
 

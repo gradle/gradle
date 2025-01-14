@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ResolutionStrategy;
+import org.gradle.api.internal.artifacts.LegacyResolutionParameters;
 import org.gradle.api.internal.artifacts.configurations.ConflictResolution;
 import org.gradle.api.internal.artifacts.configurations.ResolutionHost;
 import org.gradle.api.internal.artifacts.dsl.ImmutableModuleReplacements;
@@ -41,7 +42,7 @@ import java.util.Set;
  * acquired beforehand.
  * <p>
  * These parameters contain almost all information required to perform a resolution, except for the
- * data still present in {@link org.gradle.api.internal.artifacts.ResolveContext}. The non-migrated
+ * data still present in {@link LegacyResolutionParameters}. The non-migrated
  * data do not yet satisfy the immutability and thread safety requirements of this type, and therefore
  * have not yet been migrated to this class.
  */
@@ -63,6 +64,7 @@ public class ResolutionParameters {
     private final boolean failingOnDynamicVersions;
     private final boolean failingOnChangingVersions;
     private final FailureResolutions failureResolutions;
+    private final CacheExpirationControl cacheExpirationControl;
 
     public ResolutionParameters(
         ResolutionHost resolutionHost,
@@ -80,7 +82,8 @@ public class ResolutionParameters {
         boolean dependencyVerificationEnabled,
         boolean failingOnDynamicVersions,
         boolean failingOnChangingVersions,
-        FailureResolutions failureResolutions
+        FailureResolutions failureResolutions,
+        CacheExpirationControl cacheExpirationControl
     ) {
         this.resolutionHost = resolutionHost;
         this.rootComponent = rootComponent;
@@ -98,6 +101,7 @@ public class ResolutionParameters {
         this.failingOnDynamicVersions = failingOnDynamicVersions;
         this.failingOnChangingVersions = failingOnChangingVersions;
         this.failureResolutions = failureResolutions;
+        this.cacheExpirationControl = cacheExpirationControl;
     }
 
     /**
@@ -284,6 +288,13 @@ public class ResolutionParameters {
          * version conflicts.
          */
         List<String> forVersionConflict(Set<Conflict> conflicts);
+    }
+
+    /**
+     * Controls the caching behavior for external dependencies.
+     */
+    public CacheExpirationControl getCacheExpirationControl() {
+        return cacheExpirationControl;
     }
 
 }

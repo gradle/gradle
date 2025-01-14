@@ -25,6 +25,7 @@ import org.gradle.api.internal.file.DefaultFileOperations;
 import org.gradle.api.internal.file.DefaultFilePropertyFactory;
 import org.gradle.api.internal.file.DefaultFileSystemOperations;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.file.FileFactory;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FilePropertyFactory;
@@ -70,8 +71,8 @@ public class WorkerSharedProjectScopeServices implements ServiceRegistrationProv
     }
 
     void configure(ServiceRegistration registration) {
-        registration.add(DefaultPropertyFactory.class);
-        registration.add(DefaultFilePropertyFactory.class);
+        registration.add(PropertyFactory.class, DefaultPropertyFactory.class);
+        registration.add(FilePropertyFactory.class, FileFactory.class, DefaultFilePropertyFactory.class);
     }
 
     @Provides
@@ -85,7 +86,7 @@ public class WorkerSharedProjectScopeServices implements ServiceRegistrationProv
     }
 
     @Provides
-    protected DefaultFileOperations createFileOperations(
+    protected FileOperations createFileOperations(
             FileResolver fileResolver,
             Instantiator instantiator,
             DirectoryFileTreeFactory directoryFileTreeFactory,

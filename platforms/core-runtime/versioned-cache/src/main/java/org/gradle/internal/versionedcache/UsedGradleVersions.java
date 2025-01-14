@@ -16,10 +16,13 @@
 
 package org.gradle.internal.versionedcache;
 
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.GradleVersion;
 
 import java.util.SortedSet;
 
+@ServiceScope(Scope.UserHome.class)
 public interface UsedGradleVersions {
 
     /**

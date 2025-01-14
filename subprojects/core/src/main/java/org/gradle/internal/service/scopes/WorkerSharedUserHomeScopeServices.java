@@ -16,10 +16,12 @@
 
 package org.gradle.internal.service.scopes;
 
+import org.gradle.cache.GlobalCache;
 import org.gradle.cache.UnscopedCacheBuilderFactory;
 import org.gradle.cache.internal.CacheFactory;
 import org.gradle.cache.internal.DefaultUnscopedCacheBuilderFactory;
 import org.gradle.cache.internal.scopes.DefaultGlobalScopedCacheBuilderFactory;
+import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.initialization.layout.GlobalCacheDir;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.isolation.IsolatableFactory;
@@ -39,7 +41,7 @@ public class WorkerSharedUserHomeScopeServices implements ServiceRegistrationPro
         return new DefaultUnscopedCacheBuilderFactory(cacheFactory);
     }
 
-    @Provides
+    @Provides({GlobalScopedCacheBuilderFactory.class, GlobalCache.class})
     DefaultGlobalScopedCacheBuilderFactory createGlobalScopedCache(GlobalCacheDir globalCacheDir, UnscopedCacheBuilderFactory unscopedCacheBuilderFactory) {
         return new DefaultGlobalScopedCacheBuilderFactory(globalCacheDir.getDir(), unscopedCacheBuilderFactory);
     }

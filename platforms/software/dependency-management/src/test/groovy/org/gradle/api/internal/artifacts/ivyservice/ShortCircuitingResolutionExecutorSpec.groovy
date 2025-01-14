@@ -17,7 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice
 
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
-import org.gradle.api.internal.artifacts.ResolveContext
+import org.gradle.api.internal.artifacts.LegacyResolutionParameters
 import org.gradle.api.internal.artifacts.ResolverResults
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingState
@@ -38,7 +38,7 @@ class ShortCircuitingResolutionExecutorSpec extends Specification {
 
     def lockingState = Mock(DependencyLockingState)
     def lockingProvider = Mock(DependencyLockingProvider)
-    def resolveContext = Mock(ResolveContext)
+    def legacyParams = Mock(LegacyResolutionParameters)
 
     def delegate = Mock(ResolutionExecutor)
     def dependencyResolver = new ShortCircuitingResolutionExecutor(delegate, new AttributeDesugaring(AttributeTestUtil.attributesFactory()), lockingProvider)
@@ -51,7 +51,7 @@ class ShortCircuitingResolutionExecutorSpec extends Specification {
         ResolutionParameters params = paramsWithoutDependencies()
 
         when:
-        def results = dependencyResolver.resolveBuildDependencies(resolveContext, params, Stub(CalculatedValue))
+        def results = dependencyResolver.resolveBuildDependencies(legacyParams, params, Stub(CalculatedValue))
 
         then:
         def visitedArtifacts = results.visitedArtifacts
@@ -73,7 +73,7 @@ class ShortCircuitingResolutionExecutorSpec extends Specification {
         ResolutionParameters params = paramsWithoutDependencies()
 
         when:
-        def results = dependencyResolver.resolveGraph(resolveContext, params, [])
+        def results = dependencyResolver.resolveGraph(legacyParams, params, [])
 
         then:
         results.visitedGraph.resolutionResult.rootSource.get().dependencies.empty
@@ -94,7 +94,7 @@ class ShortCircuitingResolutionExecutorSpec extends Specification {
         ResolutionParameters params = paramsWithoutDependencies()
 
         when:
-        def results = dependencyResolver.resolveGraph(resolveContext, params, [])
+        def results = dependencyResolver.resolveGraph(legacyParams, params, [])
 
         then:
         def resolvedConfig = results.legacyResults.resolvedConfiguration
@@ -114,7 +114,7 @@ class ShortCircuitingResolutionExecutorSpec extends Specification {
         ResolutionParameters params = paramsWithoutDependencies()
 
         when:
-        dependencyResolver.resolveBuildDependencies(resolveContext, params, Stub(CalculatedValue))
+        dependencyResolver.resolveBuildDependencies(legacyParams, params, Stub(CalculatedValue))
 
         then:
 
@@ -128,7 +128,7 @@ class ShortCircuitingResolutionExecutorSpec extends Specification {
         params.dependencyLockingEnabled >> true
 
         when:
-        dependencyResolver.resolveGraph(resolveContext, params, [])
+        dependencyResolver.resolveGraph(legacyParams, params, [])
 
         then:
         1 * lockingProvider.loadLockState('lockedConf', _) >> lockingState
@@ -146,13 +146,13 @@ class ShortCircuitingResolutionExecutorSpec extends Specification {
         params.dependencyLockingEnabled >> true
 
         when:
-        def results = dependencyResolver.resolveGraph(resolveContext, params, repos)
+        def results = dependencyResolver.resolveGraph(legacyParams, params, repos)
 
         then:
         1 * lockingProvider.loadLockState('lockedConf', _) >> lockingState
         1 * lockingState.mustValidateLockState() >> true
         1 * lockingState.lockedDependencies >> [DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId('org', 'foo'), '1.0')]
-        1 * delegate.resolveGraph(resolveContext, params, repos) >> delegateResults
+        1 * delegate.resolveGraph(legacyParams, params, repos) >> delegateResults
         results == delegateResults
     }
 
@@ -162,10 +162,10 @@ class ShortCircuitingResolutionExecutorSpec extends Specification {
         ResolutionParameters params = paramsWithDependencies()
 
         when:
-        def results = dependencyResolver.resolveBuildDependencies(resolveContext, params, Stub(CalculatedValue))
+        def results = dependencyResolver.resolveBuildDependencies(legacyParams, params, Stub(CalculatedValue))
 
         then:
-        1 * delegate.resolveBuildDependencies(resolveContext, params, _) >> delegateResults
+        1 * delegate.resolveBuildDependencies(legacyParams, params, _) >> delegateResults
         results == delegateResults
     }
 
@@ -176,10 +176,10 @@ class ShortCircuitingResolutionExecutorSpec extends Specification {
         List<ResolutionAwareRepository> repos = Mock()
 
         when:
-        def results = dependencyResolver.resolveGraph(resolveContext, params, repos)
+        def results = dependencyResolver.resolveGraph(legacyParams, params, repos)
 
         then:
-        1 * delegate.resolveGraph(resolveContext, params, repos) >> delegateResults
+        1 * delegate.resolveGraph(legacyParams, params, repos) >> delegateResults
         results == delegateResults
     }
 

@@ -21,6 +21,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.Desugar
 import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory;
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory;
 import org.gradle.api.internal.attributes.AttributeSchemaServices;
+import org.gradle.api.internal.attributes.AttributeValueIsolator;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.DefaultAttributesFactory;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchemaFactory;
@@ -37,7 +38,8 @@ public class DependencyManagementBuildSessionScopeServices implements ServiceReg
 
     void configure(ServiceRegistration registration) {
         registration.add(DependenciesAccessorsWorkspaceProvider.class);
-        registration.add(DefaultAttributesFactory.class);
+        registration.add(AttributeValueIsolator.class);
+        registration.add(AttributesFactory.class, DefaultAttributesFactory.class);
         registration.add(DesugaredAttributeContainerSerializer.class);
         registration.add(MavenMutableModuleMetadataFactory.class);
         registration.add(IvyMutableModuleMetadataFactory.class);

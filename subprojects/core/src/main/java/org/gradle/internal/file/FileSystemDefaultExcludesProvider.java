@@ -17,6 +17,8 @@
 package org.gradle.internal.file;
 
 import org.gradle.internal.service.scopes.ListenerService;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.List;
 import java.util.Set;
@@ -25,6 +27,7 @@ import java.util.Set;
  * Provides default excludes for file system traversing
  */
 @ListenerService
+@ServiceScope(Scope.BuildSession.class)
 public interface FileSystemDefaultExcludesProvider {
 
     List<String> getCurrentDefaultExcludes();

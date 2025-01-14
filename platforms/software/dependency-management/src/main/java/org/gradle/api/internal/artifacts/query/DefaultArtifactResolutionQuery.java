@@ -154,7 +154,7 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
             componentMetadataProcessorFactory,
             resolutionStrategy.getComponentSelection(),
             resolutionStrategy.isDependencyVerificationEnabled(),
-            resolutionStrategy.getCachePolicy(),
+            resolutionStrategy.getCachePolicy().asImmutable(),
             ImmutableAttributes.EMPTY,
             null
         );
