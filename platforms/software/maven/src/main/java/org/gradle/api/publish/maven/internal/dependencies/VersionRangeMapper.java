@@ -16,6 +16,10 @@
 
 package org.gradle.api.publish.maven.internal.dependencies;
 
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+
+@ServiceScope(Scope.Build.class)
 public interface VersionRangeMapper {
     String map(String version);
 }

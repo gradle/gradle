@@ -24,6 +24,8 @@ import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.resource.TextFileResourceLoader;
 import org.gradle.internal.resource.TextResource;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.io.File;
 import java.util.List;
@@ -31,6 +33,7 @@ import java.util.List;
 /**
  * Finds and executes all init scripts for a given build.
  */
+@ServiceScope(Scope.Build.class)
 public class InitScriptHandler {
     private final InitScriptProcessor processor;
     private final BuildOperationRunner buildOperationRunner;

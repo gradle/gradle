@@ -16,6 +16,10 @@
 
 package org.gradle.internal.actor;
 
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+
+@ServiceScope(Scope.Build.class)
 public interface ActorFactory {
     /**
      * Creates an asynchronous actor for the given target object.

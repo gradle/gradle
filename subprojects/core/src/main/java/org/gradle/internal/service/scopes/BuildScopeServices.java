@@ -17,6 +17,8 @@
 package org.gradle.internal.service.scopes;
 
 import org.gradle.StartParameter;
+import org.gradle.api.file.ArchiveOperations;
+import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.flow.FlowScope;
 import org.gradle.api.initialization.SharedModelDefaults;
 import org.gradle.api.internal.BuildDefinition;
@@ -38,6 +40,7 @@ import org.gradle.api.internal.file.DefaultArchiveOperations;
 import org.gradle.api.internal.file.DefaultFileOperations;
 import org.gradle.api.internal.file.DefaultFileSystemOperations;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.initialization.BuildLogicBuildQueue;
@@ -53,6 +56,8 @@ import org.gradle.api.internal.plugins.PluginInspector;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.project.DefaultProjectRegistry;
 import org.gradle.api.internal.project.DefaultProjectTaskLister;
+import org.gradle.api.internal.project.HoldsProjectState;
+import org.gradle.api.internal.project.IProjectFactory;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.internal.project.ProjectFactory;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -79,6 +84,7 @@ import org.gradle.api.problems.internal.AdditionalDataBuilderFactory;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.services.internal.BuildServiceProvider;
 import org.gradle.api.services.internal.BuildServiceProviderNagger;
+import org.gradle.api.services.internal.BuildServiceRegistryInternal;
 import org.gradle.api.services.internal.DefaultBuildServicesRegistry;
 import org.gradle.buildinit.specs.internal.BuildInitSpecRegistry;
 import org.gradle.cache.UnscopedCacheBuilderFactory;
@@ -102,6 +108,7 @@ import org.gradle.execution.ProjectConfigurer;
 import org.gradle.execution.plan.DefaultNodeValidator;
 import org.gradle.execution.plan.ExecutionNodeAccessHierarchies;
 import org.gradle.execution.plan.ExecutionPlanFactory;
+import org.gradle.execution.plan.NodeValidator;
 import org.gradle.execution.plan.OrdinalGroupFactory;
 import org.gradle.execution.plan.TaskDependencyResolver;
 import org.gradle.execution.plan.TaskNodeDependencyResolver;
@@ -161,10 +168,12 @@ import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.actor.internal.DefaultActorFactory;
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
 import org.gradle.internal.authentication.DefaultAuthenticationSchemeRegistry;
+import org.gradle.internal.build.BuildIncluder;
 import org.gradle.internal.build.BuildModelControllerServices;
 import org.gradle.internal.build.BuildOperationFiringBuildWorkPreparer;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
+import org.gradle.internal.build.BuildWorkGraphController;
 import org.gradle.internal.build.BuildWorkPreparer;
 import org.gradle.internal.build.DefaultBuildWorkGraphController;
 import org.gradle.internal.build.DefaultBuildWorkPreparer;
@@ -184,6 +193,7 @@ import org.gradle.internal.composite.DefaultBuildIncluder;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.event.ScopedListenerManager;
+import org.gradle.internal.execution.BuildOutputCleanupRegistry;
 import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.WorkExecutionTracker;
@@ -197,6 +207,7 @@ import org.gradle.internal.invocation.DefaultBuildInvocationDetails;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.internal.logging.LoggingManagerInternal;
+import org.gradle.internal.management.ToolchainManagementInternal;
 import org.gradle.internal.model.CalculatedValueFactory;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
@@ -220,6 +231,7 @@ import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.plugin.management.internal.PluginHandler;
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry;
 import org.gradle.plugin.use.internal.PluginRequestApplicator;
+import org.gradle.process.ExecOperations;
 import org.gradle.process.internal.DefaultExecOperations;
 import org.gradle.process.internal.DefaultExecSpecFactory;
 import org.gradle.process.internal.ExecActionFactory;
@@ -244,23 +256,23 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
     void configure(ServiceRegistration registration, ServiceRegistry buildScopeServices, List<GradleModuleServices> serviceProviders) {
         registration.addProvider(new BuildCacheServices());
 
-        registration.add(DefaultExecOperations.class);
-        registration.add(DefaultFileOperations.class);
-        registration.add(DefaultFileSystemOperations.class);
-        registration.add(DefaultArchiveOperations.class);
-        registration.add(ProjectFactory.class);
-        registration.add(DefaultSettingsLoaderFactory.class);
+        registration.add(ExecOperations.class, DefaultExecOperations.class);
+        registration.add(FileOperations.class, DefaultFileOperations.class);
+        registration.add(FileSystemOperations.class, DefaultFileSystemOperations.class);
+        registration.add(ArchiveOperations.class, DefaultArchiveOperations.class);
+        registration.add(IProjectFactory.class, ProjectFactory.class);
+        registration.add(SettingsLoaderFactory.class, DefaultSettingsLoaderFactory.class);
         registration.add(ResolvedBuildLayout.class);
-        registration.add(DefaultNodeValidator.class);
+        registration.add(NodeValidator.class, DefaultNodeValidator.class);
         registration.add(TaskNodeFactory.class);
         registration.add(TaskNodeDependencyResolver.class);
         registration.add(WorkNodeDependencyResolver.class);
         registration.add(TaskDependencyResolver.class);
-        registration.add(DefaultBuildWorkGraphController.class);
-        registration.add(DefaultBuildIncluder.class);
-        registration.add(DefaultScriptClassPathResolver.class);
-        registration.add(DefaultScriptHandlerFactory.class);
-        registration.add(DefaultBuildOutputCleanupRegistry.class);
+        registration.add(BuildWorkGraphController.class, DefaultBuildWorkGraphController.class);
+        registration.add(BuildIncluder.class, DefaultBuildIncluder.class);
+        registration.add(ScriptClassPathResolver.class, DefaultScriptClassPathResolver.class);
+        registration.add(ScriptHandlerFactory.class, DefaultScriptHandlerFactory.class);
+        registration.add(BuildOutputCleanupRegistry.class, HoldsProjectState.class, DefaultBuildOutputCleanupRegistry.class);
 
         supplier.applyServicesTo(registration, buildScopeServices);
 
@@ -754,7 +766,7 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    protected DefaultToolchainManagement createToolchainManagement(ObjectFactory objectFactory) {
+    protected ToolchainManagementInternal createToolchainManagement(ObjectFactory objectFactory) {
         return objectFactory.newInstance(DefaultToolchainManagement.class);
     }
 
@@ -763,7 +775,7 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         return new SharedResourceLeaseRegistry(coordinationService);
     }
 
-    @Provides
+    @Provides({BuildServiceRegistryInternal.class, HoldsProjectState.class})
     protected DefaultBuildServicesRegistry createSharedServiceRegistry(
         BuildState buildState,
         Instantiator instantiator,

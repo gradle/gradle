@@ -17,7 +17,10 @@
 package org.gradle.api.internal.component;
 
 import org.gradle.api.component.Component;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
+@ServiceScope(Scope.Build.class)
 public interface ComponentTypeRegistry {
     ComponentTypeRegistration maybeRegisterComponentType(Class<? extends Component> componentType);
 

@@ -60,6 +60,8 @@ import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.internal.BuildCommencedTimeProvider;
 
 import javax.annotation.Nullable;
@@ -69,6 +71,7 @@ import java.util.Collection;
 /**
  * Creates resolvers that can resolve module components from repositories.
  */
+@ServiceScope(Scope.Build.class)
 public class ExternalModuleComponentResolverFactory {
 
     private final static Logger LOGGER = Logging.getLogger(ExternalModuleComponentResolverFactory.class);

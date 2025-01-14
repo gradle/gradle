@@ -58,6 +58,8 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
 import org.gradle.util.internal.GFileUtils;
@@ -80,6 +82,7 @@ import java.util.List;
 import java.util.Map;
 
 @SuppressWarnings("deprecation")
+@ServiceScope(Scope.Build.class)
 public class DefaultScriptCompilationHandler implements ScriptCompilationHandler {
     private final Logger logger = LoggerFactory.getLogger(DefaultScriptCompilationHandler.class);
     private static final NoOpGroovyResourceLoader NO_OP_GROOVY_RESOURCE_LOADER = new NoOpGroovyResourceLoader();
