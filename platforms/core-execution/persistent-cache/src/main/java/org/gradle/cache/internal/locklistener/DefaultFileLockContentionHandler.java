@@ -154,7 +154,8 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
                             }
                         }
                     } catch (Throwable t) {
-                        if (failureCount++ > 100) {
+                        failureCount++;
+                        if (failureCount >= 100) {
                             // Something has gone very wrong and we're unable to communicate with other processes
                             LOGGER.error("Problems handling incoming lock requests.", t);
                             listenerFailed = true;
