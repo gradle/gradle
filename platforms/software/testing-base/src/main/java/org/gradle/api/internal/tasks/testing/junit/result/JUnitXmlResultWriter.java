@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.testing.junit.result;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
-import org.apache.tools.ant.util.DateUtils;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableFailure;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
@@ -28,11 +27,14 @@ import org.gradle.internal.xml.SimpleXmlWriter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Writer;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static java.time.format.DateTimeFormatter.ISO_INSTANT;
 
 public class JUnitXmlResultWriter {
 
@@ -60,7 +62,7 @@ public class JUnitXmlResultWriter {
                 .attribute("failures", String.valueOf(result.getFailuresCount()))
                 .attribute("errors", "0")
 
-                .attribute("timestamp", DateUtils.format(result.getStartTime(), DateUtils.ISO8601_DATETIME_PATTERN))
+                .attribute("timestamp", ISO_INSTANT.format(Instant.ofEpochMilli(result.getStartTime())))
                 .attribute("hostname", hostName)
                 .attribute("time", String.valueOf(result.getDuration() / 1000.0));
 

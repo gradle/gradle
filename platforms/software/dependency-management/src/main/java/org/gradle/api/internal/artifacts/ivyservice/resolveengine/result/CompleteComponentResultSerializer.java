@@ -38,6 +38,8 @@ import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.ListSerializer;
 import org.gradle.internal.serialize.Serializer;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.inject.Inject;
 import java.util.List;
@@ -46,6 +48,7 @@ import java.util.List;
  * A {@link ComponentResultSerializer} that serializes the complete component result
  * without relying on any external state to be held between serialization and deserialization.
  */
+@ServiceScope(Scope.BuildTree.class)
 public class CompleteComponentResultSerializer implements ComponentResultSerializer {
 
     private final ComponentSelectionReasonSerializer reasonSerializer;

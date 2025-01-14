@@ -21,7 +21,7 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-@ServiceScope(Scope.UserHome.class)
+@ServiceScope({Scope.UserHome.class, Scope.Build.class})
 public interface ClasspathHasher {
     /**
      * Returns a strong hash for a given classpath.

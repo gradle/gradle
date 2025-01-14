@@ -18,10 +18,13 @@ package org.gradle.api.internal.artifacts.dsl.dependencies;
 
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.dsl.DependencyConstraintFactory;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
  * Internal API for dependency constraint creation.
  */
+@ServiceScope(Scope.Build.class)
 public interface DependencyConstraintFactoryInternal extends DependencyConstraintFactory {
     DependencyConstraint createDependencyConstraint(Object dependencyNotation);
 }

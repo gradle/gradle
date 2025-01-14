@@ -18,6 +18,8 @@ package org.gradle.internal.cc.impl
 
 import org.gradle.api.logging.Logging
 import org.gradle.internal.extensions.core.debug
+import org.gradle.internal.service.scopes.Scope
+import org.gradle.internal.service.scopes.ServiceScope
 import java.util.Stack
 
 
@@ -26,6 +28,7 @@ import java.util.Stack
  * A problem is identified using a key object.
  * The implementation should be thread-safe and should support tracking problems in multiple threads, each with its own call stack.
  */
+@ServiceScope(Scope.Build::class)
 interface DynamicCallProblemReporting {
     /**
      * Begin tracking a new dynamic call on the call stack, with no problems reported in it initially.

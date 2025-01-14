@@ -63,7 +63,7 @@ class PerformanceTestBuildTypeTest {
 
         assertEquals(
             listOf(
-                "CAPTURE_EC2_METADATA",
+                "EC2_BUILD_CUSTOMIZATIONS",
                 "KILL_ALL_GRADLE_PROCESSES",
                 "GRADLE_RUNNER",
                 "KILL_PROCESSES_STARTED_BY_GRADLE",

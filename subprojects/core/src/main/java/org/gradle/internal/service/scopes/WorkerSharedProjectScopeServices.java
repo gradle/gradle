@@ -86,7 +86,7 @@ public class WorkerSharedProjectScopeServices implements ServiceRegistrationProv
     }
 
     @Provides
-    protected DefaultFileOperations createFileOperations(
+    protected FileOperations createFileOperations(
             FileResolver fileResolver,
             Instantiator instantiator,
             DirectoryFileTreeFactory directoryFileTreeFactory,

@@ -142,7 +142,7 @@ public class VersionControlServices extends AbstractGradleModuleServices {
 
         @Provides
         void configure(ServiceRegistration registration) {
-            registration.add(VcsResolverFactory.class);
+            registration.add(ResolverProviderFactory.class, VcsResolverFactory.class);
         }
 
         @Provides

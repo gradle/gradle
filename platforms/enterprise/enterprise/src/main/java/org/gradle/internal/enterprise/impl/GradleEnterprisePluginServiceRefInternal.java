@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks;
+package org.gradle.internal.enterprise.impl;
 
-import org.gradle.api.internal.TaskInternal;
+import org.gradle.internal.enterprise.GradleEnterprisePluginService;
+import org.gradle.internal.enterprise.GradleEnterprisePluginServiceRef;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-/**
- * Checks for tasks accessing the model at execution time, which might be a problem that needs reporting e.g. with configuration cache enabled.
- */
-@ServiceScope(Scope.Build.class)
-public interface TaskExecutionAccessChecker {
-    void notifyProjectAccess(TaskInternal task);
-    void notifyTaskDependenciesAccess(TaskInternal task, String invocationDescription);
-    void notifyConventionAccess(TaskInternal task, String invocationDescription);
+@ServiceScope(Scope.BuildTree.class)
+public interface GradleEnterprisePluginServiceRefInternal extends GradleEnterprisePluginServiceRef {
+
+    void set(GradleEnterprisePluginService service);
+
 }

@@ -17,6 +17,8 @@
 package org.gradle.platform;
 
 import org.gradle.api.Incubating;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
  * Information about the machine host Gradle is running on.
@@ -24,6 +26,7 @@ import org.gradle.api.Incubating;
  * @since 7.6
  */
 @Incubating
+@ServiceScope(Scope.Build.class)
 public interface BuildPlatform {
 
     OperatingSystem getOperatingSystem();

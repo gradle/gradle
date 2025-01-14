@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,25 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.initialization;
 
-import org.gradle.initialization.properties.MutableGradleProperties;
+package org.gradle.internal.enterprise.impl;
+
+import org.gradle.internal.enterprise.GradleEnterprisePluginBackgroundJobExecutors;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-import java.io.File;
-
-@ServiceScope(Scope.Build.class)
-public interface IGradlePropertiesLoader {
-
-    String SYSTEM_PROJECT_PROPERTIES_PREFIX = "org.gradle.project.";
-
-    String ENV_PROJECT_PROPERTIES_PREFIX = "ORG_GRADLE_PROJECT_";
+@ServiceScope(Scope.BuildTree.class)
+public interface GradleEnterprisePluginBackgroundJobExecutorsInternal extends GradleEnterprisePluginBackgroundJobExecutors {
 
     /**
-     * Loads the set of Gradle properties.
+     * Shuts the executors down.
+     * All executors immediately stops accepting new jobs. The method blocks until already submitted jobs complete.
      *
-     * @since 6.2
+     * @throws RuntimeException any exception or error thrown by a job is rethrown from this method, potentially wrapped as a RuntimeException
      */
-    MutableGradleProperties loadGradleProperties(File rootDir);
+    void shutdown();
+
 }

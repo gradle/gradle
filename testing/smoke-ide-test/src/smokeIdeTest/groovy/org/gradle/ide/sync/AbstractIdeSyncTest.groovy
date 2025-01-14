@@ -31,16 +31,19 @@ import java.nio.file.Path
 import java.nio.file.Paths
 
 /**
- * Tests that runs a project import to IDEA, with an provisioning of the desired version.
+ * Tests that runs a project import to IDE, with an provisioning of the desired version.
  *
- * Provisioned IDEs are cached in the {@link AbstractIdeaSyncTest#getIdeHome} directory.
+ * Provisioned IDEs are cached in the {@link AbstractIdeSyncTest#getIdeHome} directory.
+ * @see <a href="https://github.com/gradle/gradle-ide-starter">gradle-ide-starter</a>
  */
 @Timeout(600)
 @CleanupTestDirectory
-abstract class AbstractIdeaSyncTest extends Specification {
+abstract class AbstractIdeSyncTest extends Specification {
 
     // https://youtrack.jetbrains.com/articles/IDEA-A-21/IDEA-Latest-Builds-And-Release-Notes
     final static String IDEA_COMMUNITY_VERSION = "2024.3-rc"
+    // https://developer.android.com/studio/archive
+    final static String ANDROID_STUDIO_VERSION = "2024.3.1.6"
 
     @Rule
     final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
@@ -52,17 +55,29 @@ abstract class AbstractIdeaSyncTest extends Specification {
     }
 
     /**
+     * Runs a full sync process for the build-under-test with a given Android Studio version.
+     */
+    protected void androidStudioSync(String version) {
+        ideSync("ai-$version")
+    }
+
+    /**
      * Runs a full sync process for the build-under-test with a given IntelliJ IDEA Community version.
      * <p>
      * The version can be optionally suffixed with a "build type", which is one of {@code release}, {@code rc}, {@code eap}.
      * For instance, {@code 2024.2-eap}. When the build type is not provided, it defaults to {@code release}.
      * <p>
-     * The sync runs as an external process.
-     * The IDE distribution is automatically downloaded if required.
      */
     protected void ideaSync(String version) {
+        ideSync("ic-$version")
+    }
+
+    /**
+     * Runs a full sync with a given IDE as an external process.
+     * The IDE distribution is automatically downloaded if required.
+     */
+    private void ideSync(String ide) {
         def gradleDist = distribution.gradleHomeDir.toPath()
-        def ide = "ic-$version"
         runIdeStarterWith(gradleDist, testDirectory.toPath(), ideHome, ide)
     }
 

@@ -19,7 +19,10 @@ package org.gradle.api.internal.tasks.compile.incremental.analyzer;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassAnalysis;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
+@ServiceScope(Scope.Build.class)
 public interface ClassDependenciesAnalyzer {
     ClassAnalysis getClassAnalysis(HashCode classFileHash, FileTreeElement classFile);
 }

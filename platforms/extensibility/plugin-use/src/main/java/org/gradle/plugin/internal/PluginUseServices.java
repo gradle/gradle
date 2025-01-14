@@ -66,6 +66,7 @@ import org.gradle.plugin.use.internal.DefaultPluginRequestApplicator;
 import org.gradle.plugin.use.internal.InjectedPluginClasspath;
 import org.gradle.plugin.use.internal.PluginDependencyResolutionServices;
 import org.gradle.plugin.use.internal.PluginRepositoryHandlerProvider;
+import org.gradle.plugin.use.internal.PluginRequestApplicator;
 import org.gradle.plugin.use.internal.PluginResolverFactory;
 import org.gradle.plugin.use.resolve.service.internal.ClientInjectedClasspathPluginResolver;
 import org.gradle.plugin.use.resolve.service.internal.DefaultInjectedClasspathPluginResolver;
@@ -123,7 +124,7 @@ public class PluginUseServices extends AbstractGradleModuleServices {
         @Provides
         void configure(ServiceRegistration registration) {
             registration.add(PluginResolverFactory.class);
-            registration.add(DefaultPluginRequestApplicator.class);
+            registration.add(PluginRequestApplicator.class, DefaultPluginRequestApplicator.class);
             registration.add(PluginVersionTracker.class);
         }
 

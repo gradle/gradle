@@ -39,9 +39,12 @@ import org.gradle.internal.declarativedsl.evaluator.schema.InterpretationSchemaB
 import org.gradle.internal.declarativedsl.evaluator.schema.DeclarativeScriptContext
 import org.gradle.internal.declarativedsl.settings.SettingsBlocksCheck
 import org.gradle.internal.declarativedsl.common.UnsupportedSyntaxFeatureCheck
+import org.gradle.internal.service.scopes.Scope
+import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry
 
 
+@ServiceScope(Scope.Build::class)
 interface DeclarativeKotlinScriptEvaluator {
     fun evaluate(
         target: Any,
