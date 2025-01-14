@@ -16,7 +16,10 @@
 package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
+@ServiceScope(Scope.Project.class)
 public interface ArtifactPublicationServices {
     RepositoryHandler createRepositoryHandler();
 }

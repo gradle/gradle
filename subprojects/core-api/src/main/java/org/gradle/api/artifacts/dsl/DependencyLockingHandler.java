@@ -19,12 +19,15 @@ package org.gradle.api.artifacts.dsl;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
  * A {@code DependencyLockingHandler} manages the behaviour and configuration of dependency locking.
  *
  * @since 4.8
  */
+@ServiceScope(Scope.Project.class)
 public interface DependencyLockingHandler {
 
     /**

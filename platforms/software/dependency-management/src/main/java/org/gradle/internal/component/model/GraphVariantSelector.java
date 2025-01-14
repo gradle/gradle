@@ -34,6 +34,8 @@ import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler;
 import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
@@ -50,6 +52,7 @@ import java.util.Set;
  * to allow the caller to handle failures in a consistent way - all matching failures should be reported via
  * calls to that instance.
  */
+@ServiceScope(Scope.Project.class)
 public class GraphVariantSelector {
 
     private final AttributeSchemaServices attributeSchemaServices;
