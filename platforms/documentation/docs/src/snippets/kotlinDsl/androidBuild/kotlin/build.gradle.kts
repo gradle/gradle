@@ -1,8 +1,8 @@
 // tag::android[]
 plugins {
-    id("com.android.application") version "7.3.0" apply false
+    id("com.android.application") version "7.3.1" apply false
 // end::android[]
-    kotlin("android") version "2.0.21" apply false
+    kotlin("android") version "2.1.0" apply false
 // tag::android[]
 }
 // end::android[]
@@ -14,7 +14,7 @@ buildscript {
         gradlePluginPortal()
     }
     dependencies {
-        classpath("com.android.tools.build:gradle:7.3.0")
+        classpath("com.android.tools.build:gradle:7.3.1")
     }
 }
 // end::android-buildscript[]

@@ -21,8 +21,11 @@ import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes
 import org.gradle.api.internal.plugins.software.SoftwareType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.jetbrains.kotlin.config.JvmTarget
 
+@Requires(IntegTestPreconditions.NotEmbeddedExecutor) // TODO temporary until wrapper update
 class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractIntegrationSpec {
     def 'can configure an extension using DependencyCollector in declarative DSL'() {
         given: "a plugin that creates a custom extension using a DependencyCollector"
