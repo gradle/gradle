@@ -39,7 +39,13 @@ import org.gradle.process.internal.worker.RequestHandler;
 import org.gradle.process.internal.worker.WorkerProcessContext;
 import org.gradle.process.internal.worker.child.WorkerLogEventListener;
 import org.gradle.process.internal.worker.problem.WorkerProblemEmitter;
+import org.gradle.tooling.internal.provider.serialization.ClassLoaderCache;
+import org.gradle.tooling.internal.provider.serialization.DefaultPayloadClassLoaderRegistry;
+import org.gradle.tooling.internal.provider.serialization.ModelClassLoaderFactory;
+import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
+import org.gradle.tooling.internal.provider.serialization.WellKnownClassLoaderRegistry;
 
+import javax.annotation.Nonnull;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.concurrent.Callable;
@@ -61,6 +67,16 @@ public class WorkerAction implements Action<WorkerProcessContext>, Serializable,
         this.workerImplementationName = workerImplementation.getName();
     }
 
+    @Nonnull
+    private static PayloadSerializer createPayloadSerializer() {
+        ClassLoaderCache classLoaderCache = new ClassLoaderCache();
+        return new PayloadSerializer(
+            new WellKnownClassLoaderRegistry(
+                new DefaultPayloadClassLoaderRegistry(
+                    classLoaderCache,
+                    new ModelClassLoaderFactory())));
+    }
+
     @Override
     public void execute(WorkerProcessContext workerProcessContext) {
         completed = new CountDownLatch(1);
@@ -76,6 +92,7 @@ public class WorkerAction implements Action<WorkerProcessContext>, Serializable,
             if (instantiatorFactory == null) {
                 instantiatorFactory = new DefaultInstantiatorFactory(new DefaultCrossBuildInMemoryCacheFactory(new DefaultListenerManager(Global.class)), Collections.emptyList(), new OutputPropertyRoleAnnotationHandler(Collections.emptyList()));
             }
+//            instantiatorFactory.
             ServiceRegistry serviceRegistry = ServiceRegistryBuilder.builder()
                 .displayName("worker action services")
                 .parent(parentServices)
@@ -89,8 +106,9 @@ public class WorkerAction implements Action<WorkerProcessContext>, Serializable,
                         null,
                         CurrentBuildOperationRef.instance(),
                         new ExceptionProblemRegistry(),
-                        null
-                    ));
+                        null,
+                        instantiatorFactory.decorateLenient(),
+                        createPayloadSerializer()));
                 })
                 .build();
             Class<?> workerImplementation = Class.forName(workerImplementationName);

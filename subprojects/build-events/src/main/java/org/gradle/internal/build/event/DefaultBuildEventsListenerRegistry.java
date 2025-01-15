@@ -71,6 +71,7 @@ public class DefaultBuildEventsListenerRegistry implements BuildEventsListenerRe
     @GuardedBy("subscriptions")
     private final Map<Provider<?>, AbstractListener<?>> subscriptions = new LinkedHashMap<>();
     private final ExecutorFactory executorFactory;
+    private final BuildProgressListenerAdapter buildProgressListenerAdapter;
 
     public DefaultBuildEventsListenerRegistry(
         BuildEventListenerFactory factory,
@@ -83,6 +84,9 @@ public class DefaultBuildEventsListenerRegistry implements BuildEventsListenerRe
         this.buildOperationListenerManager = buildOperationListenerManager;
         this.executorFactory = executorFactory;
         listenerManager.addListener(new ListenerCleanup());
+
+        buildProgressListenerAdapter = new BuildProgressListenerAdapter(Collections.emptyMap());
+//        new BuildProgressLi
     }
 
     @Override
@@ -291,7 +295,7 @@ public class DefaultBuildEventsListenerRegistry implements BuildEventsListenerRe
             InternalTaskDescriptor providerDescriptor = providerEvent.getDescriptor();
             InternalTaskResult providerResult = providerEvent.getResult();
             DefaultTaskOperationDescriptor descriptor = new DefaultTaskOperationDescriptor(providerDescriptor, null, providerDescriptor.getTaskPath());
-            TaskOperationResult result = BuildProgressListenerAdapter.toTaskResult(providerResult);
+            TaskOperationResult result = buildProgressListenerAdapter.toTaskResult(providerResult);
             DefaultTaskFinishEvent finishEvent = new DefaultTaskFinishEvent(providerEvent.getEventTime(), providerEvent.getDisplayName(), descriptor, result);
             listenerProvider.get().onFinish(finishEvent);
         }

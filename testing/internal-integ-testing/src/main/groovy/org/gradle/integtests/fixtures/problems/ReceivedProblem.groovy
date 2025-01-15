@@ -17,6 +17,7 @@
 package org.gradle.integtests.fixtures.problems
 
 import groovy.transform.CompileStatic
+import org.gradle.api.Action
 import org.gradle.api.problems.AdditionalData
 import org.gradle.api.problems.FileLocation
 import org.gradle.api.problems.LineInFileLocation
@@ -32,6 +33,8 @@ import org.gradle.api.problems.internal.InternalProblem
 import org.gradle.api.problems.internal.InternalProblemBuilder
 import org.gradle.api.problems.internal.PluginIdLocation
 import org.gradle.api.problems.internal.TaskPathLocation
+import org.gradle.internal.reflect.Instantiator
+import org.gradle.tooling.internal.provider.serialization.PayloadSerializer
 
 /*
  * A deserialized representation of a problem received from the build operation trace.
@@ -151,12 +154,22 @@ class ReceivedProblem implements InternalProblem {
     }
 
     @Override
+    Class<? extends AdditionalData> getAdditionalDataType() {
+        return null
+    }
+
+    @Override
+    List<Action<? super AdditionalData>> getAdditionalDataConfigs() {
+        return null
+    }
+
+    @Override
     ReceivedException getException() {
         exception
     }
 
     @Override
-    InternalProblemBuilder toBuilder(AdditionalDataBuilderFactory additionalDataBuilderFactory) {
+    InternalProblemBuilder toBuilder(AdditionalDataBuilderFactory additionalDataBuilderFactory, Instantiator instantiator, PayloadSerializer payloadSerializer) {
         throw new UnsupportedOperationException("Not implemented")
     }
 

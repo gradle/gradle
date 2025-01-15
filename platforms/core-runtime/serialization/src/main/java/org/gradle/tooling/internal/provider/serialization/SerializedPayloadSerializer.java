@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,7 +40,7 @@ public class SerializedPayloadSerializer implements Serializer<SerializedPayload
     public SerializedPayload read(Decoder decoder) throws Exception {
         Object header = javaSerializer.read(decoder);
         int count = decoder.readSmallInt();
-        List<byte[]> chunks = new ArrayList<>(count);
+        List<byte[]> chunks = new ArrayList<byte[]>(count);
         for (int i = 0; i < count; i++) {
             chunks.add(decoder.readBinary());
         }

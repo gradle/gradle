@@ -19,9 +19,11 @@ package org.gradle.api.problems.internal;
 import org.gradle.api.problems.ProblemReporter;
 import org.gradle.internal.exception.ExceptionAnalyser;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.problems.buildtree.ProblemStream;
+import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 
 import javax.annotation.Nonnull;
 
@@ -35,13 +37,25 @@ public class DefaultProblems implements InternalProblems {
     private final AdditionalDataBuilderFactory additionalDataBuilderFactory = new AdditionalDataBuilderFactory();
     private final ExceptionProblemRegistry exceptionProblemRegistry;
     private final ExceptionAnalyser exceptionAnalyser;
+    private final Instantiator instantiator;
+    private final PayloadSerializer payloadSerializer;
 
-    public DefaultProblems(ProblemSummarizer problemSummarizer, ProblemStream problemStream, CurrentBuildOperationRef currentBuildOperationRef, ExceptionProblemRegistry exceptionProblemRegistry, ExceptionAnalyser exceptionAnalyser) {
+    public DefaultProblems(
+        ProblemSummarizer problemSummarizer,
+        ProblemStream problemStream,
+        CurrentBuildOperationRef currentBuildOperationRef,
+        ExceptionProblemRegistry exceptionProblemRegistry,
+        ExceptionAnalyser exceptionAnalyser,
+        Instantiator instantiator,
+        PayloadSerializer payloadSerializer
+    ) {
         this.problemSummarizer = problemSummarizer;
         this.problemStream = problemStream;
         this.currentBuildOperationRef = currentBuildOperationRef;
         this.exceptionProblemRegistry = exceptionProblemRegistry;
         this.exceptionAnalyser = exceptionAnalyser;
+        this.instantiator = instantiator;
+        this.payloadSerializer = payloadSerializer;
         this.internalReporter = createReporter();
     }
 
@@ -52,7 +66,15 @@ public class DefaultProblems implements InternalProblems {
 
     @Nonnull
     private DefaultProblemReporter createReporter() {
-        return new DefaultProblemReporter(problemSummarizer, problemStream, currentBuildOperationRef, additionalDataBuilderFactory, exceptionProblemRegistry, exceptionAnalyser);
+        return new DefaultProblemReporter(
+            problemSummarizer,
+            problemStream,
+            currentBuildOperationRef,
+            additionalDataBuilderFactory,
+            exceptionProblemRegistry,
+            exceptionAnalyser,
+            instantiator,
+            payloadSerializer);
     }
 
     @Override
@@ -63,5 +85,15 @@ public class DefaultProblems implements InternalProblems {
     @Override
     public AdditionalDataBuilderFactory getAdditionalDataBuilderFactory() {
         return additionalDataBuilderFactory;
+    }
+
+    @Override
+    public Instantiator getInstantiator() {
+        return instantiator;
+    }
+
+    @Override
+    public InternalProblemBuilder getProblemBuilder() {
+        return new DefaultProblemBuilder(problemStream, additionalDataBuilderFactory, instantiator, payloadSerializer);
     }
 }

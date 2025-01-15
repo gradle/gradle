@@ -71,8 +71,13 @@ public class ToolingApiBuildEventListenerFactory implements BuildEventListenerFa
         return listeners.build();
     }
 
+    public ProblemsProgressEventUtils createProblemProgressEventUtils() {
+        return new ProblemsProgressEventUtils();
+    }
+
     private ClientBuildEventGenerator createClientBuildEventGenerator(BuildEventSubscriptions subscriptions, BuildEventConsumer consumer, ProgressEventConsumer progressEventConsumer) {
-        BuildOperationListener buildListener = createBuildOperationListener(subscriptions, progressEventConsumer);
+        ProblemsProgressEventUtils problemProgressEventUtils = createProblemProgressEventUtils();
+        BuildOperationListener buildListener = createBuildOperationListener(subscriptions, progressEventConsumer, problemProgressEventUtils);
 
         OperationDependenciesResolver operationDependenciesResolver = new OperationDependenciesResolver();
 
@@ -81,7 +86,7 @@ public class ToolingApiBuildEventListenerFactory implements BuildEventListenerFa
         ProjectConfigurationTracker projectConfigurationTracker = new ProjectConfigurationTracker(ancestryTracker, pluginApplicationTracker);
         TaskOriginTracker taskOriginTracker = new TaskOriginTracker(pluginApplicationTracker);
 
-        TransformOperationMapper transformOperationMapper = new TransformOperationMapper(operationDependenciesResolver);
+        TransformOperationMapper transformOperationMapper = new TransformOperationMapper(operationDependenciesResolver, problemProgressEventUtils);
         operationDependenciesResolver.addLookup(transformOperationMapper);
 
         List<OperationResultPostProcessor> postProcessors = createPostProcessors(subscriptions, consumer);
@@ -95,7 +100,7 @@ public class ToolingApiBuildEventListenerFactory implements BuildEventListenerFa
             new ProjectConfigurationOperationMapper(projectConfigurationTracker),
             taskOperationMapper,
             transformOperationMapper,
-            new WorkItemOperationMapper()
+            new WorkItemOperationMapper(problemProgressEventUtils)
         );
         return new ClientBuildEventGenerator(progressEventConsumer, subscriptions, mappers, buildListener);
     }
@@ -107,8 +112,8 @@ public class ToolingApiBuildEventListenerFactory implements BuildEventListenerFa
             .collect(toImmutableList());
     }
 
-    private BuildOperationListener createBuildOperationListener(BuildEventSubscriptions subscriptions, ProgressEventConsumer progressEventConsumer) {
+    private BuildOperationListener createBuildOperationListener(BuildEventSubscriptions subscriptions, ProgressEventConsumer progressEventConsumer, ProblemsProgressEventUtils problemsProgressEventUtils) {
         // TODO (donat) think of a better name for this class
-        return new ClientForwardingBuildOperationListener(progressEventConsumer, subscriptions, () -> new OperationIdentifier(idFactory.nextId()));
+        return new ClientForwardingBuildOperationListener(progressEventConsumer, subscriptions, () -> new OperationIdentifier(idFactory.nextId()), problemsProgressEventUtils);
     }
 }

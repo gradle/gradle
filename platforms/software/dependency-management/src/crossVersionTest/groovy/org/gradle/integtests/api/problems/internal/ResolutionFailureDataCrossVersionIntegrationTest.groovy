@@ -42,7 +42,7 @@ class ResolutionFailureDataCrossVersionIntegrationTest extends ToolingApiSpecifi
             TestResolutionFailure failure = new TestResolutionFailure()
             getProblems().${report(targetVersion)} {
                 it.${id(targetVersion)}
-                .additionalData(ResolutionFailureDataSpec.class, data -> data.from(failure))
+                .additionalDataInternal(ResolutionFailureDataSpec.class, data -> data.from(failure))
             }
         """
 
@@ -68,7 +68,7 @@ class ResolutionFailureDataCrossVersionIntegrationTest extends ToolingApiSpecifi
 
             getProblems().${report(targetVersion)} {
                it.${id(targetVersion)}
-                .additionalData(ResolutionFailureDataSpec.class, data -> data.from(failure))
+                .additionalData${targetVersion < GradleVersion.version("8.13") ? "" : "Internal"}(ResolutionFailureDataSpec.class, data -> data.from(failure))
             }
         """
 

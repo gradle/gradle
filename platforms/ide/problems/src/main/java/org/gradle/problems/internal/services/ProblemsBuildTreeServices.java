@@ -33,6 +33,7 @@ import org.gradle.internal.exception.ExceptionAnalyser;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.problems.failure.FailureFactory;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.scopes.Scope;
@@ -41,6 +42,7 @@ import org.gradle.problems.buildtree.ProblemStream;
 import org.gradle.problems.internal.NoOpProblemReportCreator;
 import org.gradle.problems.internal.emitters.BuildOperationBasedProblemEmitter;
 import org.gradle.problems.internal.impl.DefaultProblemsReportCreator;
+import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 
 import java.util.Collection;
 
@@ -51,14 +53,18 @@ public class ProblemsBuildTreeServices implements ServiceRegistrationProvider {
         ProblemSummarizer problemSummarizer,
         ProblemStream problemStream,
         ExceptionProblemRegistry exceptionProblemRegistry,
-        ExceptionAnalyser exceptionAnalyser
+        ExceptionAnalyser exceptionAnalyser,
+        Instantiator instantiator,
+        PayloadSerializer payloadSerializer
     ) {
         return new DefaultProblems(
             problemSummarizer,
             problemStream,
             CurrentBuildOperationRef.instance(),
             exceptionProblemRegistry,
-            exceptionAnalyser
+            exceptionAnalyser,
+            instantiator,
+            payloadSerializer
         );
     }
 
@@ -68,11 +74,13 @@ public class ProblemsBuildTreeServices implements ServiceRegistrationProvider {
         CurrentBuildOperationRef currentBuildOperationRef,
         Collection<ProblemEmitter> problemEmitters,
         InternalOptions internalOptions,
-        ProblemReportCreator problemReportCreator
+        ProblemReportCreator problemReportCreator,
+        Instantiator objectFactory,
+        PayloadSerializer payloadSerializer
     ) {
         return new DefaultProblemSummarizer(eventEmitter,
             currentBuildOperationRef,
-            ImmutableList.of(new BuildOperationBasedProblemEmitter(eventEmitter)),
+            ImmutableList.of(new BuildOperationBasedProblemEmitter(eventEmitter, objectFactory, payloadSerializer)),
             internalOptions,
             problemReportCreator);
     }

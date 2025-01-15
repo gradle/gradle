@@ -16,10 +16,13 @@
 
 package org.gradle.api.problems.internal;
 
+import org.gradle.api.Action;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.problems.AdditionalData;
 import org.gradle.api.problems.ProblemDefinition;
 import org.gradle.api.problems.ProblemLocation;
+import org.gradle.internal.reflect.Instantiator;
+import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 
 import javax.annotation.Nullable;
 import java.io.Serializable;
@@ -36,6 +39,9 @@ public class DefaultProblem implements Serializable, InternalProblem {
     private final String details;
     private final Throwable exception;
     private final AdditionalData additionalData;
+    @Nullable
+    private final Class<? extends AdditionalData> additionalDataType;
+    private final List<Action<? super AdditionalData>> additionalDataConfigs;
 
     public DefaultProblem(
         ProblemDefinition problemDefinition,
@@ -45,7 +51,9 @@ public class DefaultProblem implements Serializable, InternalProblem {
         List<ProblemLocation> contextualLocations,
         @Nullable String details,
         @Nullable Throwable exception,
-        @Nullable AdditionalData additionalData
+        @Nullable AdditionalData additionalData,
+        @Nullable Class<? extends AdditionalData> additionalDataType,
+        List<Action<? super AdditionalData>> additionalDataConfigs
     ) {
         this.problemDefinition = problemDefinition;
         this.contextualLabel = contextualLabel;
@@ -55,6 +63,8 @@ public class DefaultProblem implements Serializable, InternalProblem {
         this.details = details;
         this.exception = exception;
         this.additionalData = additionalData;
+        this.additionalDataType = additionalDataType;
+        this.additionalDataConfigs = additionalDataConfigs;
     }
 
     @Override
@@ -101,8 +111,8 @@ public class DefaultProblem implements Serializable, InternalProblem {
     }
 
     @Override
-    public InternalProblemBuilder toBuilder(AdditionalDataBuilderFactory additionalDataBuilderFactory) {
-        return new DefaultProblemBuilder(this, additionalDataBuilderFactory);
+    public InternalProblemBuilder toBuilder(AdditionalDataBuilderFactory additionalDataBuilderFactory, Instantiator instantiator, PayloadSerializer payloadSerializer) {
+        return new DefaultProblemBuilder(this, additionalDataBuilderFactory, instantiator, payloadSerializer);
     }
 
     private static boolean equals(@Nullable Object a, @Nullable Object b) {
@@ -132,4 +142,15 @@ public class DefaultProblem implements Serializable, InternalProblem {
         return Arrays.hashCode(new Object[]{problemDefinition, contextualLabel});
     }
 
+    @Override
+    @Nullable
+    public Class<? extends AdditionalData> getAdditionalDataType() {
+        return additionalDataType;
+    }
+
+    @Override
+    @Nullable
+    public List<Action<? super AdditionalData>> getAdditionalDataConfigs() {
+        return additionalDataConfigs;
+    }
 }

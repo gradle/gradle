@@ -40,4 +40,11 @@ public interface AdditionalData {
      * @since 8.6
      */
     Map<String, Object> getAsMap();
+
+    /**
+     * Returns an instance of the given type that acesses the additional data.
+     *
+     * @since 8.13
+     */
+    <T> T get(Class<T> type);
 }

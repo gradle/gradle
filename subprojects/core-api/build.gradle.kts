@@ -17,6 +17,8 @@ errorprone {
     )
 }
 
+//gradlebuildJava.usedInWorkers()
+
 dependencies {
     compileOnly(libs.jetbrainsAnnotations)
 

@@ -48,6 +48,7 @@ tasks.processResources {
 }
 
 dependencies {
+    api(projects.baseServices)
     api(projects.buildOperations)
     api(projects.buildOption)
     api(projects.concurrent)
@@ -56,6 +57,7 @@ dependencies {
     api(projects.fileTemp)
     api(projects.loggingApi)
     api(projects.problemsApi)
+    api(projects.serialization)
     api(projects.serviceProvider)
     api(projects.stdlibJavaExtensions)
 

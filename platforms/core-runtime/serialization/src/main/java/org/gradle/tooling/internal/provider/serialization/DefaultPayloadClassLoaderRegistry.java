@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 package org.gradle.tooling.internal.provider.serialization;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.Transformer;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.ClassLoaderSpec;
 import org.gradle.internal.classloader.ClassLoaderVisitor;
@@ -59,8 +58,8 @@ public class DefaultPayloadClassLoaderRegistry implements PayloadClassLoaderRegi
     @Override
     public SerializeMap newSerializeSession() {
         return new SerializeMap() {
-            final Map<ClassLoader, Short> classLoaderIds = new HashMap<>();
-            final Map<Short, ClassLoaderDetails> classLoaderDetails = new HashMap<>();
+            final Map<ClassLoader, Short> classLoaderIds = new HashMap<ClassLoader, Short>();
+            final Map<Short, ClassLoaderDetails> classLoaderDetails = new HashMap<Short, ClassLoaderDetails>();
 
             @Override
             public short visitClass(Class<?> target) {
@@ -115,7 +114,9 @@ public class DefaultPayloadClassLoaderRegistry implements PayloadClassLoaderRegi
                         urlClassLoader.addURL(uri.toURL());
                     }
                 }
-            } catch (URISyntaxException | MalformedURLException e) {
+            } catch (URISyntaxException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            } catch (MalformedURLException e) {
                 throw UncheckedException.throwAsUncheckedException(e);
             }
         }
@@ -124,7 +125,7 @@ public class DefaultPayloadClassLoaderRegistry implements PayloadClassLoaderRegi
 
     private static Set<URI> uris(VisitableURLClassLoader classLoader) throws URISyntaxException {
         URL[] urls = classLoader.getURLs();
-        Set<URI> uris = new HashSet<>(urls.length);
+        Set<URI> uris = new HashSet<URI>(urls.length);
         for (URL url : urls) {
             uris.add(url.toURI());
         }
@@ -137,7 +138,7 @@ public class DefaultPayloadClassLoaderRegistry implements PayloadClassLoaderRegi
 
     private static class ClassLoaderSpecVisitor extends ClassLoaderVisitor {
         final ClassLoader classLoader;
-        final List<ClassLoader> parents = new ArrayList<>();
+        final List<ClassLoader> parents = new ArrayList<ClassLoader>();
         ClassLoaderSpec spec;
         URL[] classPath;
 
@@ -165,7 +166,7 @@ public class DefaultPayloadClassLoaderRegistry implements PayloadClassLoaderRegi
         }
     }
 
-    private class ClassLoaderToDetailsTransformer implements Transformer<ClassLoader, ClassLoaderDetails> {
+    private class ClassLoaderToDetailsTransformer implements ClassLoaderCache.Transformer<ClassLoader, ClassLoaderDetails> {
         @Override
         public ClassLoader transform(ClassLoaderDetails details) {
             List<ClassLoader> parents = new ArrayList<ClassLoader>();
@@ -173,7 +174,7 @@ public class DefaultPayloadClassLoaderRegistry implements PayloadClassLoaderRegi
                 parents.add(getClassLoader(parentDetails));
             }
             if (parents.isEmpty()) {
-                parents.add(classLoaderFactory.getClassLoaderFor(SystemClassLoaderSpec.INSTANCE, ImmutableList.of()));
+                parents.add(classLoaderFactory.getClassLoaderFor(SystemClassLoaderSpec.INSTANCE, ImmutableList.<ClassLoader>of()));
             }
 
             LOGGER.info("Creating ClassLoader {} from {} and {}.", details.uuid, details.spec, parents);
@@ -182,7 +183,7 @@ public class DefaultPayloadClassLoaderRegistry implements PayloadClassLoaderRegi
         }
     }
 
-    private class DetailsToClassLoaderTransformer implements Transformer<ClassLoaderDetails, ClassLoader> {
+    private class DetailsToClassLoaderTransformer implements ClassLoaderCache.Transformer<ClassLoaderDetails, ClassLoader> {
         @Override
         public ClassLoaderDetails transform(ClassLoader classLoader) {
             ClassLoaderSpecVisitor visitor = new ClassLoaderSpecVisitor(classLoader);

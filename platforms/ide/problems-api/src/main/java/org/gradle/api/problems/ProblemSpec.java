@@ -16,6 +16,7 @@
 
 package org.gradle.api.problems;
 
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 
 /**
@@ -121,6 +122,20 @@ public interface ProblemSpec {
      * @since 8.6
      */
     ProblemSpec solution(String solution);
+
+    /**
+     * Declares additional data attached to the problem.
+     *
+     * @param type The type of the additional data.
+     * This can be any type that implements {@link AdditionalData} including {@code abstract} classes and interfaces.
+     * This type will be instantiated and provided as an argument for the {@code Action} passed as the second argument.
+     *
+     * @param config The configuration action for the additional data.
+     *
+     * @return this
+     * @since 8.13
+     */
+    <T extends AdditionalData> ProblemSpec additionalData(Class<T> type, Action<? super T> config);
 
     /**
      * The exception causing this problem.
