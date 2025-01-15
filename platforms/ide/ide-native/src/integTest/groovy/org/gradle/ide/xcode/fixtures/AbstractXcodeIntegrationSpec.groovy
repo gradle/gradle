@@ -166,7 +166,7 @@ rootProject.name = "${rootProjectName}"
     void assertTargetIsDynamicLibrary(ProjectFile.PBXTarget target, String expectedProductName, String expectedBinaryName = expectedProductName) {
         target.assertIsDynamicLibrary()
         target.assertProductNameEquals(expectedProductName)
-        target.assertSupportedArchitectures(archName == 'aarch64' ? MachineArchitecture.ARM64 : MachineArchitecture.X86_64)
+        target.assertSupportedArchitectures(archName == 'aarch64' ? MachineArchitecture.AARCH_64 : MachineArchitecture.X86_64)
         assert target.name == expectedProductName
         assert target.productReference.path == sharedLib("build/lib/main/debug/$expectedBinaryName").absolutePath
         assert target.buildArgumentsString == '-Porg.gradle.internal.xcode.bridge.ACTION="${ACTION}" -Porg.gradle.internal.xcode.bridge.PRODUCT_NAME="${PRODUCT_NAME}" -Porg.gradle.internal.xcode.bridge.CONFIGURATION="${CONFIGURATION}" -Porg.gradle.internal.xcode.bridge.BUILT_PRODUCTS_DIR="${BUILT_PRODUCTS_DIR}" :_xcode__${ACTION}_${PRODUCT_NAME}_${CONFIGURATION}'
@@ -184,7 +184,7 @@ rootProject.name = "${rootProjectName}"
     void assertTargetIsStaticLibrary(ProjectFile.PBXTarget target, String expectedProductName, String expectedBinaryName = expectedProductName) {
         target.assertIsStaticLibrary()
         target.assertProductNameEquals(expectedProductName)
-        target.assertSupportedArchitectures(archName == 'aarch64' ? MachineArchitecture.ARM64 : MachineArchitecture.X86_64)
+        target.assertSupportedArchitectures(archName == 'aarch64' ? MachineArchitecture.AARCH_64 : MachineArchitecture.X86_64)
         assert target.name == expectedProductName
         assert target.productReference.path == staticLib("build/lib/main/debug/$expectedBinaryName").absolutePath
         assert target.buildArgumentsString == '-Porg.gradle.internal.xcode.bridge.ACTION="${ACTION}" -Porg.gradle.internal.xcode.bridge.PRODUCT_NAME="${PRODUCT_NAME}" -Porg.gradle.internal.xcode.bridge.CONFIGURATION="${CONFIGURATION}" -Porg.gradle.internal.xcode.bridge.BUILT_PRODUCTS_DIR="${BUILT_PRODUCTS_DIR}" :_xcode__${ACTION}_${PRODUCT_NAME}_${CONFIGURATION}'
@@ -202,7 +202,7 @@ rootProject.name = "${rootProjectName}"
     void assertTargetIsTool(ProjectFile.PBXTarget target, String expectedProductName, String expectedBinaryName = expectedProductName) {
         target.assertIsTool()
         target.assertProductNameEquals(expectedProductName)
-        target.assertSupportedArchitectures(archName == 'aarch64' ? MachineArchitecture.ARM64 : MachineArchitecture.X86_64)
+        target.assertSupportedArchitectures(archName == 'aarch64' ? MachineArchitecture.AARCH_64 : MachineArchitecture.X86_64)
         assert target.name == expectedProductName
         assert target.productReference.path == exe("build/install/main/debug/lib/$expectedBinaryName").absolutePath
         assert target.buildArgumentsString == '-Porg.gradle.internal.xcode.bridge.ACTION="${ACTION}" -Porg.gradle.internal.xcode.bridge.PRODUCT_NAME="${PRODUCT_NAME}" -Porg.gradle.internal.xcode.bridge.CONFIGURATION="${CONFIGURATION}" -Porg.gradle.internal.xcode.bridge.BUILT_PRODUCTS_DIR="${BUILT_PRODUCTS_DIR}" :_xcode__${ACTION}_${PRODUCT_NAME}_${CONFIGURATION}'

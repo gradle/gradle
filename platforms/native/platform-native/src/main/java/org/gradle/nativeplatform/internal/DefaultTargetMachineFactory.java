@@ -81,6 +81,11 @@ public class DefaultTargetMachineFactory implements TargetMachineFactory {
         }
 
         @Override
+        public TargetMachine getAARCH64() {
+            return new TargetMachineImpl(getOperatingSystemFamily(), objectFactory.named(MachineArchitecture.class, MachineArchitecture.AARCH_64));
+        }
+
+        @Override
         public TargetMachine architecture(String architecture) {
             return new TargetMachineImpl(getOperatingSystemFamily(), objectFactory.named(MachineArchitecture.class, architecture));
         }
