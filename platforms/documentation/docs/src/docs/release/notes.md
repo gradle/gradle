@@ -10,7 +10,15 @@
 <meta name="twitter:description" content="Enhanced error and warning reporting, file-system watching on Alpine Linux, and Swift 6 support.">
 <meta name="twitter:image" content="https://gradle.org/images/releases/gradle-8.12.png">
 
-The Gradle team is excited to announce Gradle @version@.
+Gradle @version@ is the first patch release for Gradle 8.12.
+
+It fixes the following issues:
+
+* TODO
+
+We recommend users upgrade to @version@ instead of 8.12.
+
+***
 
 This release improves [error and warning reporting](#error-warning) by summarizing duplicate entries in the Problems API's generated problems report for better readability. The [console output](#build-authoring) is also enhanced when the Problems API is used to fail the build.
 
