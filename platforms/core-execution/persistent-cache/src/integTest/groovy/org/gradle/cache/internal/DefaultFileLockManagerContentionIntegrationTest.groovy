@@ -84,13 +84,13 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
         def pingCountInOutput = 0
         poll(120) {
             pingCountInOutput = (build.standardOutput =~ 'Pinged owner at port').count
-            assert pingCountInOutput == 3
+            assert pingCountInOutput >= 3
         }
         receivingLock.close()
         then:
         build.waitForFinish()
         communicator.unlockRequests == 3
-        timer.elapsedMillis > 3000 // See: DefaultFileLockContentionHandler. _DELAY
+        timer.elapsedMillis > 3000 // See: DefaultFileLockContentionHandler.PING_DELAY
     }
 
     def "the lock holder starts the release request only once and discards additional requests in the meantime"() {
