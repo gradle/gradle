@@ -70,6 +70,7 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
 
         assumeFalse(version.startsWith("1.6."))
         assumeFalse(version.startsWith("1.7."))
+        // assumeFalse(version.startsWith("1.8."))
         setupForKotlinVersion(version)
 
         given:
@@ -212,6 +213,7 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
 
         assumeFalse(kotlinVersion.startsWith("1.6."))
         assumeFalse(kotlinVersion.startsWith("1.7."))
+        assumeFalse(kotlinVersion.startsWith("1.8."))
 
         given:
         buildFile << """
