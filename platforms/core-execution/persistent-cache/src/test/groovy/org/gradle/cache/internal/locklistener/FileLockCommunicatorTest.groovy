@@ -106,7 +106,7 @@ class FileLockCommunicatorTest extends ConcurrentSpecification {
         when:
         def result = communicator.receive()
         then:
-        result.empty
+        !result.isPresent()
     }
 
     def "pinging on a port that nobody listens is safe"() {
