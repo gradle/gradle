@@ -96,6 +96,8 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
                     implementation("org.jetbrains.kotlin:kotlin-test-junit5")
                 }
             }
+
+            $SKIP_METADATA_VERSION_CHECK
         """
 
         ["test", "integTest"].each {
@@ -182,6 +184,8 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
                 implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
                 implementation localGroovy()
             }
+
+            $SKIP_METADATA_VERSION_CHECK
         """
         file("src/main/groovy/Groovy.groovy") << "class Groovy { }"
         file("src/main/kotlin/Kotlin.kt") << "class Kotlin { val groovy = Groovy() }"
@@ -223,6 +227,8 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
             dependencies {
                 implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
             }
+
+            $SKIP_METADATA_VERSION_CHECK
         """
         file("src/main/kotlin/Kotlin.kt") << "class Kotlin { }"
         when:
@@ -240,6 +246,15 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
         where:
         kotlinVersion << TestedVersions.kotlin.versions
     }
+
+    private static String SKIP_METADATA_VERSION_CHECK =
+        """
+        tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+            kotlinOptions {
+                freeCompilerArgs += "-Xskip-metadata-version-check"
+            }
+        }
+        """
 
     @Override
     Map<String, Versions> getPluginsToValidate() {
