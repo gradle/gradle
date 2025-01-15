@@ -46,6 +46,7 @@ import org.gradle.api.attributes.HasConfigurableAttributes;
 import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.internal.artifacts.dependencies.AbstractExternalModuleDependency;
 import org.gradle.api.internal.artifacts.dependencies.DefaultMinimalDependencyVariant;
+import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint;
 import org.gradle.api.internal.artifacts.dsl.DependencyHandlerInternal;
 import org.gradle.api.internal.artifacts.query.ArtifactResolutionQueryFactory;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
@@ -405,12 +406,12 @@ public abstract class DefaultDependencyHandler implements DependencyHandlerInter
     }
 
     @Override
+    @Deprecated
     public Provider<MinimalExternalModuleDependency> variantOf(Provider<MinimalExternalModuleDependency> dependencyProvider, Action<? super ExternalModuleDependencyVariantSpec> variantSpec) {
         return dependencyProvider.map(dep -> {
             DefaultExternalModuleDependencyVariantSpec spec = objects.newInstance(DefaultExternalModuleDependencyVariantSpec.class, objects, dep);
             variantSpec.execute(spec);
-            // TODO: We "lose" endorsingStrictVersions here. We should copy that over to the returned variant.
-            return new DefaultMinimalDependencyVariant(dep, spec.attributesAction, spec.capabilitiesMutator, spec.classifier, spec.artifactType);
+            return new DefaultMinimalDependencyVariant(dep, spec.attributesAction, spec.capabilitiesMutator, spec.classifier, spec.artifactType, spec.endorseStrictVersions);
         });
     }
 
@@ -421,11 +422,12 @@ public abstract class DefaultDependencyHandler implements DependencyHandlerInter
      * @param dependencyProvider the dependency provider
      */
     @Override
+    @Deprecated
     public Provider<MinimalExternalModuleDependency> enforcedPlatform(Provider<MinimalExternalModuleDependency> dependencyProvider) {
         return variantOf(dependencyProvider, spec -> {
             DefaultExternalModuleDependencyVariantSpec defaultSpec = (DefaultExternalModuleDependencyVariantSpec) spec;
-            MutableVersionConstraint versionConstraint = (MutableVersionConstraint) defaultSpec.dep.getVersionConstraint();
-            versionConstraint.strictly(defaultSpec.dep.getVersion());
+            DefaultMutableVersionConstraint versionConstraint = new DefaultMutableVersionConstraint(defaultSpec.dep.getVersionConstraint());
+            versionConstraint.strictly(versionConstraint.getVersion());
             defaultSpec.attributesAction = attrs -> attrs.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.ENFORCED_PLATFORM));
         });
     }
@@ -451,6 +453,7 @@ public abstract class DefaultDependencyHandler implements DependencyHandlerInter
         private Action<ModuleDependencyCapabilitiesHandler> capabilitiesMutator = null;
         private String classifier;
         private String artifactType;
+        private boolean endorseStrictVersions;
 
         @Inject
         public DefaultExternalModuleDependencyVariantSpec(ObjectFactory objects, MinimalExternalModuleDependency dep) {
@@ -460,7 +463,7 @@ public abstract class DefaultDependencyHandler implements DependencyHandlerInter
 
         @Override
         public void platform() {
-            this.dep.endorseStrictVersions();
+            this.endorseStrictVersions = true;
             this.attributesAction = attrs -> attrs.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.REGULAR_PLATFORM));
         }
 

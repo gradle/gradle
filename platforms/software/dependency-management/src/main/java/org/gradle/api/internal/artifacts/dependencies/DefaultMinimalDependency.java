@@ -16,41 +16,27 @@
 package org.gradle.api.internal.artifacts.dependencies;
 
 import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.api.artifacts.MutableVersionConstraint;
+import org.gradle.api.artifacts.VersionConstraint;
 
 import java.io.Serializable;
 
-public class DefaultMinimalDependency extends DefaultExternalModuleDependency implements MinimalExternalModuleDependencyInternal, Serializable {
-    public DefaultMinimalDependency(ModuleIdentifier module, MutableVersionConstraint versionConstraint) {
-        super(module, versionConstraint, null);
+public class DefaultMinimalDependency implements MinimalExternalModuleDependencyInternal, Serializable {
+    private final ModuleIdentifier module;
+    private final VersionConstraint versionConstraint;
+
+    public DefaultMinimalDependency(ModuleIdentifier module, VersionConstraint versionConstraint) {
+        this.module = module;
+        this.versionConstraint = versionConstraint;
     }
 
     @Override
-    public void because(String reason) {
-        validateMutation();
+    public ModuleIdentifier getModule() {
+        return module;
     }
 
     @Override
-    protected void validateMutation() {
-        throw new UnsupportedOperationException("Minimal dependencies are immutable.");
-    }
-
-    @Override
-    protected void validateMutation(Object currentValue, Object newValue) {
-        validateMutation();
-    }
-
-    @Override
-    public void copyTo(AbstractExternalModuleDependency target) {
-        super.copyTo(target);
-    }
-
-    // Intentionally changes to the mutable version.
-    @Override
-    public DefaultMutableMinimalDependency copy() {
-        DefaultMutableMinimalDependency dependency = new DefaultMutableMinimalDependency(getModule(), new DefaultMutableVersionConstraint(getVersionConstraint()), getTargetConfiguration());
-        copyTo(dependency);
-        return dependency;
+    public VersionConstraint getVersionConstraint() {
+        return versionConstraint;
     }
 
     @Override

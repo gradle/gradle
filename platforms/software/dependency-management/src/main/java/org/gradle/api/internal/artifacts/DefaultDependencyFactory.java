@@ -140,6 +140,13 @@ public class DefaultDependencyFactory implements DependencyFactoryInternal {
     }
 
     @Override
+    public ExternalModuleDependency create(MinimalExternalModuleDependency minimalExternalModuleDependency) {
+        ExternalModuleDependency dependency = dependencyNotationParser.getMinimalExternalModuleDependencyNotationParser().parseNotation(minimalExternalModuleDependency);
+        injectServices(dependency);
+        return dependency;
+    }
+
+    @Override
     public FileCollectionDependency create(FileCollection fileCollection) {
         return dependencyNotationParser.getFileCollectionNotationParser().parseNotation(fileCollection);
     }

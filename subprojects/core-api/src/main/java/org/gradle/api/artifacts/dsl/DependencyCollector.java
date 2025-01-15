@@ -17,16 +17,15 @@
 package org.gradle.api.artifacts.dsl;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.FileCollectionDependency;
-import org.gradle.api.artifacts.MinimalExternalModuleDependency;
+import org.gradle.api.artifacts.VersionCatalogBundle;
+import org.gradle.api.artifacts.VersionCatalogLibrary;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.provider.ProviderConvertible;
 
 import java.util.Set;
 
@@ -95,25 +94,21 @@ public interface DependencyCollector {
     void add(FileCollection files, Action<? super FileCollectionDependency> configuration);
 
     /**
-     * Add a dependency.
+     * Add a dependency created from a version catalog library.
      *
-     * @param externalModule external module to add as a dependency
-     *
-     * @since 8.6
+     * @param library the library to add as a dependency
+     * @since 8.13
      */
-    @Incubating
-    void add(ProviderConvertible<? extends MinimalExternalModuleDependency> externalModule);
+    void add(VersionCatalogLibrary library);
 
     /**
-     * Add a dependency and configure it.
+     * Add a dependency created from a version catalog library and configure it.
      *
-     * @param externalModule external module to add as a dependency
+     * @param library the library to add as a dependency
      * @param configuration an action to configure the dependency
-     *
-     * @since 8.6
+     * @since 8.13
      */
-    @Incubating
-    void add(ProviderConvertible<? extends MinimalExternalModuleDependency> externalModule, Action<? super ExternalModuleDependency> configuration);
+    void add(VersionCatalogLibrary library, Action<? super ExternalModuleDependency> configuration);
 
     /**
      * Add a dependency.
@@ -192,63 +187,19 @@ public interface DependencyCollector {
      *
      * @param bundle the bundle to add
      *
-     * @since 8.6
+     * @since 8.13
      */
-    @Incubating
-    <D extends Dependency> void bundle(Iterable<? extends D> bundle);
+    void addBundle(VersionCatalogBundle bundle);
 
     /**
-     * Add a bundle and configure them.
+     * Add a bundle and configure the created dependencies.
      *
      * @param bundle the bundle to add
      * @param configuration an action to configure each dependency in the bundle
      *
-     * @since 8.6
+     * @since 8.13
      */
-    @Incubating
-    <D extends Dependency> void bundle(Iterable<? extends D> bundle, Action<? super D> configuration);
-
-    /**
-     * Add a bundle.
-     *
-     * @param bundle the bundle to add
-     *
-     * @since 8.6
-     */
-    @Incubating
-    <D extends Dependency> void bundle(Provider<? extends Iterable<? extends D>> bundle);
-
-    /**
-     * Add a bundle and configure them.
-     *
-     * @param bundle the bundle to add
-     * @param configuration an action to configure each dependency in the bundle
-     *
-     * @since 8.6
-     */
-    @Incubating
-    <D extends Dependency> void bundle(Provider<? extends Iterable<? extends D>> bundle, Action<? super D> configuration);
-
-    /**
-     * Add a bundle.
-     *
-     * @param bundle the bundle to add
-     *
-     * @since 8.6
-     */
-    @Incubating
-    <D extends Dependency> void bundle(ProviderConvertible<? extends Iterable<? extends D>> bundle);
-
-    /**
-     * Add a bundle and configure them.
-     *
-     * @param bundle the bundle to add
-     * @param configuration an action to configure each dependency in the bundle
-     *
-     * @since 8.6
-     */
-    @Incubating
-    <D extends Dependency> void bundle(ProviderConvertible<? extends Iterable<? extends D>> bundle, Action<? super D> configuration);
+    void addBundle(VersionCatalogBundle bundle, Action<? super ExternalModuleDependency> configuration);
 
     /**
      * Returns all dependencies declared on this collector.

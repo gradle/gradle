@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
+import org.gradle.api.artifacts.VersionCatalogLibrary;
 import org.gradle.api.artifacts.query.ArtifactResolutionQuery;
 import org.gradle.api.artifacts.transform.TransformAction;
 import org.gradle.api.artifacts.transform.TransformParameters;
@@ -628,6 +629,7 @@ public interface DependencyHandler extends ExtensionAware {
      * @return a new dependency provider targeting the configured variant
      * @since 6.8
      */
+    @Deprecated
     Provider<MinimalExternalModuleDependency> variantOf(Provider<MinimalExternalModuleDependency> dependencyProvider, Action<? super ExternalModuleDependencyVariantSpec> variantSpec);
 
     /**
@@ -639,6 +641,7 @@ public interface DependencyHandler extends ExtensionAware {
      * @return a new dependency provider targeting the configured variant
      * @since 7.3
      */
+    @Deprecated
     default Provider<MinimalExternalModuleDependency> variantOf(ProviderConvertible<MinimalExternalModuleDependency> dependencyProviderConvertible,
                                                                 Action<? super ExternalModuleDependencyVariantSpec> variantSpec) {
         return variantOf(dependencyProviderConvertible.asProvider(), variantSpec);
@@ -650,6 +653,7 @@ public interface DependencyHandler extends ExtensionAware {
      * @return a new dependency provider targeting the platform variant of the component
      * @since 6.8
      */
+    @Deprecated
     default Provider<MinimalExternalModuleDependency> platform(Provider<MinimalExternalModuleDependency> dependencyProvider) {
         return variantOf(dependencyProvider, ExternalModuleDependencyVariantSpec::platform);
     }
@@ -660,6 +664,7 @@ public interface DependencyHandler extends ExtensionAware {
      * @return a new dependency provider targeting the platform variant of the component
      * @since 7.3
      */
+    @Deprecated
     default Provider<MinimalExternalModuleDependency> platform(ProviderConvertible<MinimalExternalModuleDependency> dependencyProviderConvertible) {
         return platform(dependencyProviderConvertible.asProvider());
     }
@@ -670,6 +675,7 @@ public interface DependencyHandler extends ExtensionAware {
      * @return a new dependency provider targeting the enforced-platform variant of the component
      * @since 7.3
      */
+    @Deprecated
     Provider<MinimalExternalModuleDependency> enforcedPlatform(Provider<MinimalExternalModuleDependency> dependencyProvider);
 
     /**
@@ -678,6 +684,7 @@ public interface DependencyHandler extends ExtensionAware {
      * @return a new dependency provider targeting the enforced-platform variant of the component
      * @since 7.3
      */
+    @Deprecated
     default Provider<MinimalExternalModuleDependency> enforcedPlatform(ProviderConvertible<MinimalExternalModuleDependency> dependencyProviderConvertible) {
         return enforcedPlatform(dependencyProviderConvertible.asProvider());
     }
@@ -688,6 +695,7 @@ public interface DependencyHandler extends ExtensionAware {
      * @return a new dependency provider targeting the test fixtures of the component
      * @since 6.8
      */
+    @Deprecated
     default Provider<MinimalExternalModuleDependency> testFixtures(Provider<MinimalExternalModuleDependency> dependencyProvider) {
         return variantOf(dependencyProvider, ExternalModuleDependencyVariantSpec::testFixtures);
     }
@@ -698,6 +706,7 @@ public interface DependencyHandler extends ExtensionAware {
      * @return a new dependency provider targeting the test fixtures of the component
      * @since 7.3
      */
+    @Deprecated
     default Provider<MinimalExternalModuleDependency> testFixtures(ProviderConvertible<MinimalExternalModuleDependency> dependencyProviderConvertible) {
         return testFixtures(dependencyProviderConvertible.asProvider());
     }

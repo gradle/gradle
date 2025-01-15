@@ -408,11 +408,9 @@ class DependencyManagementBuildScopeServices implements ServiceRegistrationProvi
         ExecutionEngine executionEngine,
         FeatureFlags featureFlags,
         FileCollectionFactory fileCollectionFactory,
-        AttributesFactory attributesFactory,
-        CapabilityNotationParser capabilityNotationParser,
         InputFingerprinter inputFingerprinter
     ) {
-        return objectFactory.newInstance(DefaultDependenciesAccessors.class, registry, workspace, factory, featureFlags, executionEngine, fileCollectionFactory, inputFingerprinter, attributesFactory, capabilityNotationParser);
+        return objectFactory.newInstance(DefaultDependenciesAccessors.class, registry, workspace, factory, featureFlags, executionEngine, fileCollectionFactory, inputFingerprinter);
     }
 
     @Provides

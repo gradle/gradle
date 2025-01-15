@@ -15,15 +15,21 @@
  */
 package org.gradle.plugin.use;
 
+import org.gradle.api.artifacts.VersionCatalogPlugin;
 import org.gradle.api.artifacts.VersionConstraint;
 
 /**
  * A plugin dependency.
  *
  * @since 7.2
+ * @deprecated The name of this interface is confusing, implying that it is a {@link org.gradle.api.artifacts.Dependency} instance. Use {@link VersionCatalogPlugin} instead.
+ * This interface will be removed in Gradle 9.0.
  */
-public interface PluginDependency {
+@Deprecated
+public interface PluginDependency extends VersionCatalogPlugin {
+    @Override
     String getPluginId();
 
+    @Override
     VersionConstraint getVersion();
 }

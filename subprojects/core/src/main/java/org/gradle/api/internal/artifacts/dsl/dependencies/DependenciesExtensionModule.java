@@ -21,13 +21,14 @@ import groovy.lang.Closure;
 import groovy.transform.stc.ClosureParams;
 import groovy.transform.stc.SecondParam;
 import groovy.transform.stc.SimpleType;
-import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.api.artifacts.ModuleDependency;
+import org.gradle.api.artifacts.VersionCatalogBundle;
+import org.gradle.api.artifacts.VersionCatalogLibrary;
 import org.gradle.api.artifacts.dsl.Dependencies;
 import org.gradle.api.artifacts.dsl.DependencyCollector;
 import org.gradle.api.artifacts.dsl.DependencyFactory;
@@ -35,7 +36,6 @@ import org.gradle.api.artifacts.dsl.DependencyModifier;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.provider.ProviderConvertible;
 import org.gradle.util.internal.CollectionUtils;
 import org.gradle.util.internal.ConfigureUtil;
 
@@ -128,13 +128,12 @@ public class DependenciesExtensionModule {
     /**
      * Modifies a dependency.
      *
-     * @param providerConvertibleToDependency dependency to modify
+     * @param minimalExternalModuleDependency dependency to modify
      * @return the modified dependency
-     * @since 8.0
+     * @since 8.12
      */
-    @Incubating
-    public static Provider<? extends MinimalExternalModuleDependency> call(DependencyModifier self, ProviderConvertible<? extends MinimalExternalModuleDependency> providerConvertibleToDependency) {
-        return self.modify(providerConvertibleToDependency);
+    public static ExternalModuleDependency call(DependencyModifier self, MinimalExternalModuleDependency minimalExternalModuleDependency) {
+        return self.modify(minimalExternalModuleDependency);
     }
 
     /**
@@ -202,22 +201,43 @@ public class DependenciesExtensionModule {
     /**
      * Add a dependency.
      *
-     * @param externalModule external module to add as a dependency
+     * @param library the library to add as a dependency
+     * @since 8.13
      */
-    @Incubating
-    public static void call(DependencyCollector self, ProviderConvertible<? extends MinimalExternalModuleDependency> externalModule) {
-        self.add(externalModule);
+    public static void call(DependencyCollector self, VersionCatalogLibrary library) {
+        self.add(library);
     }
 
     /**
      * Add a dependency.
      *
-     * @param externalModule external module to add as a dependency
+     * @param library the library to add as a dependency
      * @param configuration an action to configure the dependency
+     * @since 8.13
      */
-    @Incubating
-    public static void call(DependencyCollector self, ProviderConvertible<? extends MinimalExternalModuleDependency> externalModule, @ClosureParams(value = SimpleType.class, options = "org.gradle.api.artifacts.ExternalModuleDependency") Closure<?> configuration) {
-        self.add(externalModule, ConfigureUtil.configureUsing(configuration));
+    public static void call(DependencyCollector self, VersionCatalogLibrary library, @ClosureParams(value = SimpleType.class, options = "org.gradle.api.artifacts.ExternalModuleDependency") Closure<?> configuration) {
+        self.add(library, ConfigureUtil.configureUsing(configuration));
+    }
+
+    /**
+     * Add a bundle.
+     *
+     * @param bundle the bundle to add
+     * @since 8.13
+     */
+    public static void call(DependencyCollector self, VersionCatalogBundle bundle) {
+        self.addBundle(bundle);
+    }
+
+    /**
+     * Add a bundle.
+     *
+     * @param bundle the bundle to add
+     * @param configuration an action to configure the created dependencies
+     * @since 8.13
+     */
+    public static void call(DependencyCollector self, VersionCatalogBundle bundle, @ClosureParams(value = SimpleType.class, options = "org.gradle.api.artifacts.ExternalModuleDependency") Closure<?> configuration) {
+        self.addBundle(bundle, ConfigureUtil.configureUsing(configuration));
     }
 
     /**

@@ -23,8 +23,6 @@ import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.provider.Provider;
-import org.gradle.api.provider.ProviderConvertible;
 import org.gradle.declarative.dsl.model.annotations.Restricted;
 
 import javax.annotation.Nullable;
@@ -138,27 +136,14 @@ public interface Dependencies {
     }
 
     /**
-     * Create a {@link DependencyConstraint} from a minimal dependency.
+     * Create a {@link DependencyConstraint} from a version catalog entry.
      *
-     * @param dependencyConstraint dependency constraint to add
+     * @param minimalExternalModuleDependency the version catalog entry to use
      * @return the new dependency constraint
-     * @since 8.7
+     * @since 8.13
      */
-    @Incubating
-    default Provider<? extends DependencyConstraint> constraint(Provider<? extends MinimalExternalModuleDependency> dependencyConstraint) {
-        return dependencyConstraint.map(getDependencyConstraintFactory()::create);
-    }
-
-    /**
-     * Create a {@link DependencyConstraint} from a minimal dependency.
-     *
-     * @param dependencyConstraint dependency constraint to add
-     * @return the new dependency constraint
-     * @since 8.7
-     */
-    @Incubating
-    default Provider<? extends DependencyConstraint> constraint(ProviderConvertible<? extends MinimalExternalModuleDependency> dependencyConstraint) {
-        return constraint(dependencyConstraint.asProvider());
+    default DependencyConstraint constraint(MinimalExternalModuleDependency minimalExternalModuleDependency) {
+        return getDependencyConstraintFactory().create(minimalExternalModuleDependency);
     }
 
     /**

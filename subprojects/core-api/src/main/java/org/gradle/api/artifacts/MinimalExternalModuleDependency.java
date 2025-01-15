@@ -21,9 +21,14 @@ import org.gradle.internal.HasInternalProtocol;
  * The minimal information Gradle needs to address an external module.
  *
  * @since 6.8
+ * @deprecated This interface was made to extend {@link ExternalModuleDependency} in order to work around an issue with the {@link org.gradle.api.artifacts.dsl.DependencyCollector} API.
+ * This issue has been resolved by re-working version catalogs to no longer use a {@link org.gradle.api.provider.Provider}. In order to standardize and make the
+ * version catalog API clearly immutable, this interface will be replaced with {@link VersionCatalogLibrary}, which will not have the troublesome supertype of {@link ExternalModuleDependency}.
+ * This interface will be removed in Gradle 9.0.
  */
+@Deprecated
 @HasInternalProtocol
-public interface MinimalExternalModuleDependency extends ExternalModuleDependency {
+public interface MinimalExternalModuleDependency extends ExternalModuleDependency, VersionCatalogLibrary {
     @Override
     ModuleIdentifier getModule();
     @Override

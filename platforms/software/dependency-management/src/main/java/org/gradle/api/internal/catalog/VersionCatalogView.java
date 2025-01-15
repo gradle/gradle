@@ -17,11 +17,9 @@
 package org.gradle.api.internal.catalog;
 
 import org.gradle.api.artifacts.ExternalModuleDependencyBundle;
-import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.api.artifacts.VersionCatalog;
+import org.gradle.api.artifacts.MinimalExternalModuleDependencyProvider;
 import org.gradle.api.artifacts.VersionConstraint;
-import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParser;
-import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.catalog.AbstractExternalDependencyFactory.BundleFactory;
 import org.gradle.api.internal.catalog.AbstractExternalDependencyFactory.PluginFactory;
 import org.gradle.api.internal.catalog.AbstractExternalDependencyFactory.VersionFactory;
@@ -46,18 +44,16 @@ public class VersionCatalogView implements VersionCatalog {
     public VersionCatalogView(
         DefaultVersionCatalog config,
         ProviderFactory providerFactory,
-        ObjectFactory objects,
-        AttributesFactory attributesFactory,
-        CapabilityNotationParser capabilityNotationParser
+        ObjectFactory objects
     ) {
         this.config = config;
         this.providerFactory = providerFactory;
-        this.dependencyFactory = new DefaultExternalDependencyFactory(config, providerFactory, objects, attributesFactory, capabilityNotationParser);
-        this.bundleFactory = new BundleFactory(objects, providerFactory, config, attributesFactory, capabilityNotationParser);
+        this.dependencyFactory = new DefaultExternalDependencyFactory(config, providerFactory);
+        this.bundleFactory = new BundleFactory(objects, providerFactory, config);
     }
 
     @Override
-    public final Optional<Provider<MinimalExternalModuleDependency>> findLibrary(String alias) {
+    public final Optional<MinimalExternalModuleDependencyProvider> findLibrary(String alias) {
         String normalizedAlias = normalize(alias);
         if (config.hasDependency(normalizedAlias)) {
             return Optional.of(dependencyFactory.create(normalizedAlias));

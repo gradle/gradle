@@ -28,9 +28,7 @@ import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.artifacts.DefaultProjectDependencyFactory;
-import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParser;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
-import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -102,8 +100,6 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
     private final ExecutionEngine engine;
     private final FileCollectionFactory fileCollectionFactory;
     private final InputFingerprinter inputFingerprinter;
-    private final AttributesFactory attributesFactory;
-    private final CapabilityNotationParser capabilityNotationParser;
     private final List<DefaultVersionCatalog> models = new ArrayList<>();
     private final Map<String, Class<? extends ExternalModuleDependencyFactory>> factories = new HashMap<>();
 
@@ -120,9 +116,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         FeatureFlags featureFlags,
         ExecutionEngine engine,
         FileCollectionFactory fileCollectionFactory,
-        InputFingerprinter inputFingerprinter,
-        AttributesFactory attributesFactory,
-        CapabilityNotationParser capabilityNotationParser
+        InputFingerprinter inputFingerprinter
     ) {
         this.classPath = registry.getClassPath("DEPENDENCIES-EXTENSION-COMPILER");
         this.workspace = workspace;
@@ -131,8 +125,6 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         this.engine = engine;
         this.fileCollectionFactory = fileCollectionFactory;
         this.inputFingerprinter = inputFingerprinter;
-        this.attributesFactory = attributesFactory;
-        this.capabilityNotationParser = capabilityNotationParser;
     }
 
     @Inject
@@ -257,7 +249,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
                         Class<? extends ExternalModuleDependencyFactory> factory = loadVersionCatalogFactoryClass(accessorClassNameSuffix(model));
                         if (factory != null) {
                             container.create(model.getName(), factory, model);
-                            catalogs.put(model.getName(), new VersionCatalogView(model, providerFactory, project.getObjects(), attributesFactory, capabilityNotationParser));
+                            catalogs.put(model.getName(), new VersionCatalogView(model, providerFactory, project.getObjects()));
                         }
                     }
                 }

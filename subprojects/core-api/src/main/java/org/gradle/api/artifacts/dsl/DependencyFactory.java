@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.FileCollectionDependency;
 import org.gradle.api.artifacts.ProjectDependency;
+import org.gradle.api.artifacts.VersionCatalogLibrary;
 import org.gradle.api.file.FileCollection;
 import org.gradle.internal.HasInternalProtocol;
 
@@ -77,6 +78,15 @@ public interface DependencyFactory {
      * @return the new dependency
      */
     ExternalModuleDependency create(@Nullable String group, String name, @Nullable String version, @Nullable String classifier, @Nullable String extension);
+
+    /**
+     * Create an {@link ExternalModuleDependency} from a version catalog library.
+     *
+     * @param library the version catalog library
+     * @return the new dependency
+     * @since 8.13
+     */
+    ExternalModuleDependency create(VersionCatalogLibrary library);
 
     /**
      * Create a {@link FileCollectionDependency} from a {@link FileCollection}.

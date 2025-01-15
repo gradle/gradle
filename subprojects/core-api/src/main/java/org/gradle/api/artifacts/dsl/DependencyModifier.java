@@ -16,13 +16,11 @@
 
 package org.gradle.api.artifacts.dsl;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.artifacts.ExternalModuleDependency;
-import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.api.artifacts.ModuleDependency;
+import org.gradle.api.artifacts.VersionCatalogLibrary;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.provider.ProviderConvertible;
 import org.gradle.internal.Cast;
 
 import javax.inject.Inject;
@@ -80,14 +78,14 @@ public abstract class DependencyModifier {
     }
 
     /**
-     * Takes a given {@code Provider} to a {@link MinimalExternalModuleDependency} and modifies the dependency to select the variant of the given module as described in {@link #modify(ModuleDependency)}.
+     * Create an {@link ExternalModuleDependency} from the given version catalog library and modifies it to select the variant of the given module as described in {@link #modify(ModuleDependency)}.
      *
-     * @param providerConvertibleToDependency the provider
-     * @return a provider to the modified dependency
+     * @param library the version catalog library
+     * @return the modified dependency
+     * @since 8.13
      */
-    @Incubating
-    public final Provider<? extends MinimalExternalModuleDependency> modify(ProviderConvertible<? extends MinimalExternalModuleDependency> providerConvertibleToDependency) {
-        return providerConvertibleToDependency.asProvider().map(this::modify);
+    public final ExternalModuleDependency modify(VersionCatalogLibrary library) {
+        return modify(getDependencyFactory().create(library));
     }
 
     /**

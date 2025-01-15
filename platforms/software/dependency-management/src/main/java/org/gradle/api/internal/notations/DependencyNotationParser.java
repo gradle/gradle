@@ -27,9 +27,9 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.artifacts.DefaultProjectDependencyFactory;
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
-import org.gradle.api.internal.artifacts.dependencies.DefaultMutableMinimalDependency;
-import org.gradle.api.internal.artifacts.dependencies.MinimalExternalModuleDependencyInternal;
+import org.gradle.api.internal.artifacts.dependencies.DefaultMinimalDependencyVariant;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal;
+import org.gradle.api.internal.artifacts.dsl.dependencies.ModuleFactoryHelper;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarFactory;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
@@ -53,7 +53,7 @@ public class DependencyNotationParser {
                                                   Interner<String> stringInterner) {
         NotationConverter<String, ? extends ExternalModuleDependency> stringNotationConverter =
             new DependencyStringNotationConverter<>(instantiator, DefaultExternalModuleDependency.class, stringInterner);
-        NotationConverter<MinimalExternalModuleDependency, ? extends MinimalExternalModuleDependency> minimalExternalDependencyNotationConverter =
+        NotationConverter<MinimalExternalModuleDependency, ? extends ExternalModuleDependency> minimalExternalDependencyNotationConverter =
             new MinimalExternalDependencyNotationConverter(instantiator);
         MapNotationConverter<? extends ExternalModuleDependency> mapNotationConverter =
             new DependencyMapNotationConverter<>(instantiator, DefaultExternalModuleDependency.class);
@@ -85,14 +85,14 @@ public class DependencyNotationParser {
 
     private final NotationParser<Object, Dependency> notationParser;
     private final NotationParser<String, ? extends ExternalModuleDependency> stringNotationParser;
-    private final NotationParser<MinimalExternalModuleDependency, ? extends MinimalExternalModuleDependency> minimalExternalModuleDependencyNotationParser;
+    private final NotationParser<MinimalExternalModuleDependency, ? extends ExternalModuleDependency> minimalExternalModuleDependencyNotationParser;
     private final NotationParser<Map<String, ?>, ? extends ExternalModuleDependency> mapNotationParser;
     private final NotationParser<FileCollection, ? extends FileCollectionDependency> fileCollectionNotationParser;
     private final NotationParser<Project, ? extends ProjectDependency> projectNotationParser;
 
     private DependencyNotationParser(NotationParser<Object, Dependency> notationParser,
                                      NotationParser<String, ? extends ExternalModuleDependency> stringNotationParser,
-                                     NotationParser<MinimalExternalModuleDependency, ? extends MinimalExternalModuleDependency> minimalExternalModuleDependencyNotationParser,
+                                     NotationParser<MinimalExternalModuleDependency, ? extends ExternalModuleDependency> minimalExternalModuleDependencyNotationParser,
                                      NotationParser<Map<String, ?>, ? extends ExternalModuleDependency> mapNotationParser,
                                      NotationParser<FileCollection, ? extends FileCollectionDependency> fileCollectionNotationParser,
                                      NotationParser<Project, ? extends ProjectDependency> projectNotationParser
@@ -113,7 +113,7 @@ public class DependencyNotationParser {
         return stringNotationParser;
     }
 
-    public NotationParser<MinimalExternalModuleDependency, ? extends MinimalExternalModuleDependency> getMinimalExternalModuleDependencyNotationParser() {
+    public NotationParser<MinimalExternalModuleDependency, ? extends ExternalModuleDependency> getMinimalExternalModuleDependencyNotationParser() {
         return minimalExternalModuleDependencyNotationParser;
     }
 
@@ -129,7 +129,7 @@ public class DependencyNotationParser {
         return projectNotationParser;
     }
 
-    private static class MinimalExternalDependencyNotationConverter implements NotationConverter<MinimalExternalModuleDependency, MinimalExternalModuleDependency> {
+    private static class MinimalExternalDependencyNotationConverter implements NotationConverter<MinimalExternalModuleDependency, ExternalModuleDependency> {
         private final Instantiator instantiator;
 
         public MinimalExternalDependencyNotationConverter(Instantiator instantiator) {
@@ -137,15 +137,23 @@ public class DependencyNotationParser {
         }
 
         @Override
-        public void convert(MinimalExternalModuleDependency notation, NotationConvertResult<? super MinimalExternalModuleDependency> result) throws TypeConversionException {
-            DefaultMutableMinimalDependency moduleDependency = instantiator.newInstance(DefaultMutableMinimalDependency.class, notation.getModule(), notation.getVersionConstraint(), notation.getTargetConfiguration());
-            MinimalExternalModuleDependencyInternal internal = (MinimalExternalModuleDependencyInternal) notation;
-            internal.copyTo(moduleDependency);
+        public void convert(MinimalExternalModuleDependency notation, NotationConvertResult<? super ExternalModuleDependency> result) throws TypeConversionException {
+            ExternalModuleDependency moduleDependency = instantiator.newInstance(DefaultExternalModuleDependency.class, notation.getModule(), notation.getVersionConstraint(), null);
+            if (notation instanceof DefaultMinimalDependencyVariant) {
+                DefaultMinimalDependencyVariant variant = (DefaultMinimalDependencyVariant) notation;
+                moduleDependency.attributes(variant.getAttributesMutator());
+                moduleDependency.capabilities(variant.getCapabilitiesMutator());
+                ModuleFactoryHelper.addExplicitArtifactsIfDefined(moduleDependency, variant.getArtifactType(), variant.getClassifier());
+                if (variant.isEndorseStrictVersions()) {
+                    moduleDependency.endorseStrictVersions();
+                }
+            }
             result.converted(moduleDependency);
         }
 
         @Override
         public void describe(DiagnosticsVisitor visitor) {
+            visitor.candidate("version catalog entry").example("libs.guava");
         }
     }
 

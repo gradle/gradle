@@ -25,8 +25,8 @@ import org.gradle.api.artifacts.ModuleDependencyCapabilitiesHandler;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.internal.artifacts.DefaultProjectDependencyFactory;
 import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyConstraint;
+import org.gradle.api.internal.artifacts.dependencies.DefaultMinimalDependencyVariant;
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependencyConstraint;
-import org.gradle.api.internal.artifacts.dependencies.DependencyVariant;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
@@ -121,15 +121,18 @@ public class DependencyConstraintNotationParser {
         @Override
         public void convert(MinimalExternalModuleDependency notation, NotationConvertResult<? super DefaultDependencyConstraint> result) throws TypeConversionException {
             DefaultDependencyConstraint dependencyConstraint = instantiator.newInstance(DefaultDependencyConstraint.class, notation.getModule(), notation.getVersionConstraint());
-            if (notation instanceof DependencyVariant) {
+            if (notation instanceof DefaultMinimalDependencyVariant) {
                 dependencyConstraint.setAttributesFactory(attributesFactory);
-                DependencyVariant dependencyVariant = (DependencyVariant) notation;
-                dependencyConstraint.attributes(dependencyVariant::mutateAttributes);
-                dependencyVariant.mutateCapabilities(UnsupportedCapabilitiesHandler.INSTANCE);
+                DefaultMinimalDependencyVariant dependencyVariant = (DefaultMinimalDependencyVariant) notation;
+                dependencyConstraint.attributes(dependencyVariant.getAttributesMutator());
+                dependencyVariant.getCapabilitiesMutator().execute(UnsupportedCapabilitiesHandler.INSTANCE);
                 String classifier = dependencyVariant.getClassifier();
                 String artifactType = dependencyVariant.getArtifactType();
                 if (classifier != null || artifactType != null) {
                     throw new InvalidUserDataException("Classifier and artifact types aren't supported by dependency constraints");
+                }
+                if (dependencyVariant.isEndorseStrictVersions()) {
+                    throw new InvalidUserDataException("Endorsing strict versions isn't supported by dependency constraints");
                 }
             }
             result.converted(dependencyConstraint);

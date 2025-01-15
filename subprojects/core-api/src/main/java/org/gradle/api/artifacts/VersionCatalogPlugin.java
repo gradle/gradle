@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,17 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.artifacts;
 
-import java.util.List;
+import org.gradle.internal.HasInternalProtocol;
 
 /**
- * A bundle is a list of dependencies which are always added together.
+ * Represents a plugin from a {@link VersionCatalog}. It is immutable.
  *
- * @since 6.8
- * @deprecated The name of this interface is confusing, implying that it contains {@link ExternalModuleDependency} instances. Use {@link VersionCatalogBundle} instead. This interface will be removed
- * in Gradle 9.0.
+ * @since 8.13
  */
-@Deprecated
-public interface ExternalModuleDependencyBundle extends List<MinimalExternalModuleDependency>, VersionCatalogBundle {
+@HasInternalProtocol
+public interface VersionCatalogPlugin {
+    /**
+     * The identifier of the plugin.
+     *
+     * @return the plugin identifier
+     * @since 8.13
+     */
+    String getPluginId();
+
+    /**
+     * The version constraint of the plugin.
+     *
+     * @return the version constraint
+     * @since 8.13
+     */
+    VersionConstraint getVersion();
 }

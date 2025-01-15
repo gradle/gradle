@@ -25,8 +25,9 @@ import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.DependencyConstraint
 import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.FileCollectionDependency
-import org.gradle.api.artifacts.MinimalExternalModuleDependency
 import org.gradle.api.artifacts.ModuleDependency
+import org.gradle.api.artifacts.VersionCatalogBundle
+import org.gradle.api.artifacts.VersionCatalogLibrary
 import org.gradle.api.artifacts.dsl.Dependencies
 import org.gradle.api.artifacts.dsl.DependencyCollector
 import org.gradle.api.artifacts.dsl.DependencyFactory
@@ -34,7 +35,6 @@ import org.gradle.api.artifacts.dsl.DependencyModifier
 import org.gradle.api.artifacts.dsl.GradleDependencies
 import org.gradle.api.file.FileCollection
 import org.gradle.api.provider.Provider
-import org.gradle.api.provider.ProviderConvertible
 
 
 /**
@@ -130,10 +130,9 @@ operator fun DependencyModifier.invoke(dependencyNotation: CharSequence): Extern
  * Modifies a dependency to select the variant of the given module.
  *
  * @see DependencyModifier
- * @since 8.0
+ * @since 8.13
  */
-@Incubating
-operator fun DependencyModifier.invoke(dependency: ProviderConvertible<out MinimalExternalModuleDependency>): Provider<out MinimalExternalModuleDependency> = modify(dependency)
+operator fun DependencyModifier.invoke(dependency: VersionCatalogLibrary): ExternalModuleDependency = modify(dependency)
 
 
 /**
@@ -188,22 +187,20 @@ operator fun DependencyCollector.invoke(files: FileCollection, configuration: Ac
 /**
  * Add a dependency.
  *
- * @param externalModule external module to add as a dependency
- * @since 8.6
+ * @param library the library to add as a dependency
+ * @since 8.13
  */
-@Incubating
-operator fun DependencyCollector.invoke(externalModule: ProviderConvertible<out MinimalExternalModuleDependency>) = add(externalModule)
+operator fun DependencyCollector.invoke(library: VersionCatalogLibrary) = add(library)
 
 
 /**
  * Add a dependency.
  *
- * @param externalModule external module to add as a dependency
+ * @param library the library to add as a dependency
  * @param configuration an action to configure the dependency
- * @since 8.6
+ * @since 8.13
  */
-@Incubating
-operator fun DependencyCollector.invoke(externalModule: ProviderConvertible<out MinimalExternalModuleDependency>, configuration: Action<in ExternalModuleDependency>) = add(externalModule, configuration)
+operator fun DependencyCollector.invoke(library: VersionCatalogLibrary, configuration: Action<in ExternalModuleDependency>) = add(library, configuration)
 
 
 /**
@@ -282,3 +279,22 @@ operator fun DependencyCollector.invoke(dependencyConstraint: Provider<out Depen
  */
 @JvmName("invokeConstraint")
 operator fun DependencyCollector.invoke(dependencyConstraint: Provider<out DependencyConstraint>, configuration: Action<in DependencyConstraint>) = addConstraint(dependencyConstraint, configuration)
+
+
+/**
+ * Add a bundle.
+ *
+ * @param bundle the bundle to add
+ * @since 8.13
+ */
+operator fun DependencyCollector.invoke(bundle: VersionCatalogBundle) = addBundle(bundle)
+
+
+/**
+ * Add a bundle.
+ *
+ * @param bundle the bundle to add
+ * @param configuration an action to configure the created dependencies
+ * @since 8.13
+ */
+operator fun DependencyCollector.invoke(bundle: VersionCatalogBundle, configuration: Action<in ExternalModuleDependency>) = addBundle(bundle, configuration)

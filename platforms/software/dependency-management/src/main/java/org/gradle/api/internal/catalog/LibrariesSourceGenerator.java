@@ -21,10 +21,9 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.artifacts.ExternalModuleDependencyBundle;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
+import org.gradle.api.artifacts.MinimalExternalModuleDependencyProvider;
 import org.gradle.api.artifacts.MutableVersionConstraint;
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
-import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParser;
-import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.problems.Problem;
@@ -191,8 +190,12 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
             writeSubAccessorFieldsOf(entryPoints.pluginsEntryPoint, AccessorKind.plugin);
             writeLn();
             writeLn("@Inject");
-            writeLn("public " + className + "(DefaultVersionCatalog config, ProviderFactory providers, ObjectFactory objects, AttributesFactory attributesFactory, CapabilityNotationParser capabilityNotationParser) {");
-            writeLn("    super(config, providers, objects, attributesFactory, capabilityNotationParser);");
+            writeLn("public " + className + "(DefaultVersionCatalog config, ProviderFactory providers, ObjectFactory objects) {");
+            writeLn("    super(config, providers);");
+            writeSubAccessorFieldInitsOf(entryPoints.librariesEntryPoint, AccessorKind.library);
+            writeSubAccessorFieldInitsOf(entryPoints.versionsEntryPoint, AccessorKind.version);
+            writeSubAccessorFieldInitsOf(entryPoints.bundlesEntryPoint, AccessorKind.bundle);
+            writeSubAccessorFieldInitsOf(entryPoints.pluginsEntryPoint, AccessorKind.plugin);
             writeLn("}");
             writeLn();
             writeLibraryAccessors(entryPoints.librariesEntryPoint, deprecated);
@@ -210,6 +213,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
     private void addImports() throws IOException {
         addImport(NonNullApi.class);
         addImport(MinimalExternalModuleDependency.class);
+        addImport(MinimalExternalModuleDependencyProvider.class);
         addImport(PluginDependency.class);
         addImport(ExternalModuleDependencyBundle.class);
         addImport(MutableVersionConstraint.class);
@@ -219,8 +223,6 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         addImport(AbstractExternalDependencyFactory.class);
         addImport(DefaultVersionCatalog.class);
         addImport(Map.class);
-        addImport(AttributesFactory.class);
-        addImport(CapabilityNotationParser.class);
         addImport(Inject.class);
     }
 
@@ -270,7 +272,10 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         indent(() -> {
             writeSubAccessorFieldsOf(classNode, AccessorKind.bundle);
             writeLn();
-            writeLn("public " + bundleClassName + "(ObjectFactory objects, ProviderFactory providers, DefaultVersionCatalog config, AttributesFactory attributesFactory, CapabilityNotationParser capabilityNotationParser) { super(objects, providers, config, attributesFactory, capabilityNotationParser); }");
+            writeLn("public " + bundleClassName + "(ObjectFactory objects, ProviderFactory providers, DefaultVersionCatalog config) {");
+            writeLn("    super(objects, providers, config);");
+            writeSubAccessorFieldInitsOf(classNode, AccessorKind.bundle);
+            writeLn("}");
             writeLn();
             if (isProvider) {
                 String path = classNode.getFullAlias();
@@ -329,7 +334,10 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         indent(() -> {
             writeSubAccessorFieldsOf(classNode, AccessorKind.plugin);
             writeLn();
-            writeLn("public " + pluginClassName + "(ProviderFactory providers, DefaultVersionCatalog config) { super(providers, config); }");
+            writeLn("public " + pluginClassName + "(ProviderFactory providers, DefaultVersionCatalog config) {");
+            writeLn("    super(providers, config);");
+            writeSubAccessorFieldInitsOf(classNode, AccessorKind.plugin);
+            writeLn("}");
             writeLn();
             if (isProvider) {
                 String path = classNode.getFullAlias();
@@ -413,12 +421,23 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
 
     private void writeSubAccessorFieldFor(ClassNode classNode, AccessorKind kind) throws IOException {
         String className = getClassName(classNode);
-        writeLn("private final " + className + " " + kind.accessorVariableNameFor(className) + " = new " + className + "(" + kind.getConstructorParams() + ");");
+        writeLn("private final " + className + " " + kind.accessorVariableNameFor(className) + ";");
+    }
+
+    private void writeSubAccessorFieldInitFor(ClassNode classNode, AccessorKind kind) throws IOException {
+        String className = getClassName(classNode);
+        writeLn("    " + kind.accessorVariableNameFor(className) + " = new " + className + "(" + kind.getConstructorParams() + ");");
     }
 
     private void writeSubAccessorFieldsOf(ClassNode classNode, AccessorKind kind) throws IOException {
         for (ClassNode child : classNode.getChildren()) {
             writeSubAccessorFieldFor(child, kind);
+        }
+    }
+
+    private void writeSubAccessorFieldInitsOf(ClassNode classNode, AccessorKind kind) throws IOException {
+        for (ClassNode child : classNode.getChildren()) {
+            writeSubAccessorFieldInitFor(child, kind);
         }
     }
 
@@ -435,7 +454,10 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         indent(() -> {
             writeSubAccessorFieldsOf(classNode, AccessorKind.library);
             writeLn();
-            writeLn("public " + getClassName(classNode) + "(AbstractExternalDependencyFactory owner) { super(owner); }");
+            writeLn("public " + getClassName(classNode) + "(AbstractExternalDependencyFactory owner) {");
+            writeLn("    super(owner);");
+            writeSubAccessorFieldInitsOf(classNode, AccessorKind.library);
+            writeLn("}");
             writeLn();
             if (isProvider) {
                 String path = classNode.getFullAlias();
@@ -466,7 +488,10 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         writeLn();
         indent(() -> {
             writeSubAccessorFieldsOf(classNode, AccessorKind.version);
-            writeLn("public " + versionsClassName + "(ProviderFactory providers, DefaultVersionCatalog config) { super(providers, config); }");
+            writeLn("public " + versionsClassName + "(ProviderFactory providers, DefaultVersionCatalog config) {");
+            writeLn("    super(providers, config);");
+            writeSubAccessorFieldInitsOf(classNode, AccessorKind.version);
+            writeLn("}");
             writeLn();
             if (isProvider) {
                 String path = classNode.getFullAlias();
@@ -571,7 +596,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         writeLn(" */");
         writeDeprecationAnnotation(deprecated);
         String methodName = asProvider ? "asProvider" : "get" + toJavaName(name);
-        writeLn("public Provider<MinimalExternalModuleDependency> " + methodName + "() {");
+        writeLn("public MinimalExternalModuleDependencyProvider " + methodName + "() {");
         writeDeprecationLog(deprecated);
         writeLn("    return create(\"" + alias + "\");");
         writeLn("}");
@@ -802,7 +827,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
     private enum AccessorKind {
         library("libraries", "owner"),
         version("versions", "providers, config"),
-        bundle("bundles", "objects, providers, config, attributesFactory, capabilityNotationParser"),
+        bundle("bundles", "objects, providers, config"),
         plugin("plugins", "providers, config");
 
         private final String description;

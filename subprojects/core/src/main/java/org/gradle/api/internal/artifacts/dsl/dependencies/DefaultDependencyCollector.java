@@ -135,13 +135,13 @@ public abstract class DefaultDependencyCollector implements DependencyCollector 
     }
 
     @Override
-    public void add(ProviderConvertible<? extends MinimalExternalModuleDependency> externalModule) {
-        doAddLazy(externalModule.asProvider(), null);
+    public void add(MinimalExternalModuleDependency minimalExternalModuleDependency) {
+        doAddEager(dependencyFactory.create(minimalExternalModuleDependency), null);
     }
 
     @Override
-    public void add(ProviderConvertible<? extends MinimalExternalModuleDependency> externalModule, Action<? super ExternalModuleDependency> configuration) {
-        doAddLazy(externalModule.asProvider(), configuration);
+    public void add(MinimalExternalModuleDependency minimalExternalModuleDependency, Action<? super ExternalModuleDependency> configuration) {
+        doAddEager(dependencyFactory.create(minimalExternalModuleDependency), configuration);
     }
 
     @Override

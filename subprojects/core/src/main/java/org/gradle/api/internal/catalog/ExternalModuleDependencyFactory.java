@@ -17,15 +17,26 @@ package org.gradle.api.internal.catalog;
 
 import org.gradle.api.artifacts.ExternalModuleDependencyBundle;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
-import org.gradle.api.provider.Provider;
+import org.gradle.api.artifacts.MinimalExternalModuleDependencyProvider;
+import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.provider.ProviderConvertible;
 import org.gradle.plugin.use.PluginDependency;
 
 public interface ExternalModuleDependencyFactory {
 
-    Provider<MinimalExternalModuleDependency> create(String alias);
+    MinimalExternalModuleDependencyProvider create(String alias);
 
-    interface DependencyNotationSupplier extends ProviderConvertible<MinimalExternalModuleDependency> {
+    interface DependencyNotationSupplier extends ProviderConvertible<MinimalExternalModuleDependency>, MinimalExternalModuleDependency {
+        @Override
+        default VersionConstraint getVersionConstraint() {
+            return asProvider().get().getVersionConstraint();
+        }
+
+        @Override
+        default ModuleIdentifier getModule() {
+            return asProvider().get().getModule();
+        }
     }
 
     interface VersionNotationSupplier extends ProviderConvertible<String> {

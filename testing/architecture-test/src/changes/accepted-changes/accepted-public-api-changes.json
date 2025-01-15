@@ -1,6 +1,15 @@
 {
     "acceptedApiChanges": [
         {
+            "type": "org.gradle.api.artifacts.MinimalExternalModuleDependency",
+            "member": "Method org.gradle.api.artifacts.MinimalExternalModuleDependency.copy()",
+            "acceptation": "Defaulting to-be-removed method, should not affect users as they shouldn\u0027t be extending this interface",
+            "changes": [
+                "Abstract method is now default method",
+                "Deprecated annotation was added"
+            ]
+        },
+        {
             "type": "org.gradle.api.tasks.testing.TestReport",
             "member": "Method org.gradle.api.tasks.testing.TestReport.getBuildOperationExecutor()",
             "acceptation": "Protected methods intende to be overriden by Gradle, not API",
@@ -22,6 +31,14 @@
             "acceptation": "Protected methods intende to be overriden by Gradle, not API",
             "changes": [
                 "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.DependenciesExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.DependenciesExtensionsKt.invoke(org.gradle.api.artifacts.dsl.DependencyCollector,org.gradle.api.artifacts.MinimalExternalModuleDependency)",
+            "acceptation": "This was marked with @since 8.13 but is falsely reported as not",
+            "changes": [
+                "Method added to public class"
             ]
         }
     ]

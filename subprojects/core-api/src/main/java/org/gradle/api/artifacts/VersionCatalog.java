@@ -42,7 +42,9 @@ public interface VersionCatalog extends Named {
      * @param alias the alias of the library
      * @since 7.4
      */
-    Optional<Provider<MinimalExternalModuleDependency>> findLibrary(String alias);
+    // TODO: Replace with VersionCatalogLibrary in Gradle 9.0
+    @SuppressWarnings("deprecation")
+    Optional<? extends MinimalExternalModuleDependencyProvider> findLibrary(String alias);
 
     /**
      * Returns the provider for the corresponding bundle alias.
@@ -51,7 +53,9 @@ public interface VersionCatalog extends Named {
      * </p>
      * @param alias the alias of the bundle
      */
-    Optional<Provider<ExternalModuleDependencyBundle>> findBundle(String alias);
+    // TODO: Replace with VersionCatalogBundle in Gradle 9.0
+    @SuppressWarnings("deprecation")
+    Optional<? extends ExternalModuleDependencyBundleProvider> findBundle(String alias);
 
     /**
      * Returns the version constraint with the corresponding alias in the catalog.
@@ -60,7 +64,7 @@ public interface VersionCatalog extends Named {
      * </p>
      * @param alias the alias of the version
      */
-    Optional<VersionConstraint> findVersion(String alias);
+    Optional<? extends VersionConstraint> findVersion(String alias);
 
     /**
      * Returns the plugin dependency provider for the requested alias.
@@ -71,7 +75,9 @@ public interface VersionCatalog extends Named {
      *
      * @since 7.2
      */
-    Optional<Provider<PluginDependency>> findPlugin(String alias);
+    // TODO: Replace with VersionCatalogPlugin in Gradle 9.0
+    @SuppressWarnings("deprecation")
+    Optional<? extends PluginDependencyProvider> findPlugin(String alias);
 
     /**
      * Returns the list of aliases defined in this version catalog.

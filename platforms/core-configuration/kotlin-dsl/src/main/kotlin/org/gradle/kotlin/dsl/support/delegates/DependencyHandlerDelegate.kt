@@ -149,9 +149,11 @@ abstract class DependencyHandlerDelegate : DependencyHandler {
     override fun testFixtures(notation: Any, configureAction: Action<in Dependency>): Dependency =
         delegate.testFixtures(notation, configureAction)
 
+    @Deprecated("No longer needed as the normal overrides are now used", replaceWith = ReplaceWith("platform(dependencyProvider as Any)"))
     override fun variantOf(dependencyProvider: Provider<MinimalExternalModuleDependency>, variantSpec: Action<in ExternalModuleDependencyVariantSpec>): Provider<MinimalExternalModuleDependency> =
         delegate.variantOf(dependencyProvider, variantSpec)
 
+    @Deprecated("No longer needed as the normal overrides are now used", replaceWith = ReplaceWith("enforcedPlatform(dependencyProvider as Any)"))
     override fun enforcedPlatform(dependencyProvider: Provider<MinimalExternalModuleDependency>): Provider<MinimalExternalModuleDependency> =
         delegate.enforcedPlatform(dependencyProvider)
 }
