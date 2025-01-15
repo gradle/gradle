@@ -27,6 +27,8 @@ import org.gradle.api.internal.file.collections.MinimalFileTree;
 import org.gradle.api.internal.provider.PropertyHost;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.api.model.ManagedObjectCreator;
+import org.gradle.api.model.ManagedObjectProvider;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.Factory;
 import org.gradle.internal.file.PathToFileResolver;
@@ -39,6 +41,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
 
+@ManagedObjectProvider
 @ServiceScope({Scope.Global.class, Scope.BuildTree.class, Scope.Build.class, Scope.Project.class})
 public interface FileCollectionFactory {
     /**
@@ -167,11 +170,13 @@ public interface FileCollectionFactory {
     /**
      * Creates an empty {@link ConfigurableFileCollection} instance.
      */
+    @ManagedObjectCreator
     ConfigurableFileCollection configurableFiles();
 
     /**
      * Creates a {@link ConfigurableFileTree} instance with no base dir specified.
      */
+    @ManagedObjectCreator
     ConfigurableFileTree fileTree();
 
     /**
