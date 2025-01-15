@@ -18,14 +18,20 @@ package org.gradle.api.internal.file;
 
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.model.ManagedObjectCreator;
+import org.gradle.api.model.ManagedObjectProvider;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
+@ManagedObjectProvider
 @ServiceScope({Scope.Global.class, Scope.Project.class})
 public interface FilePropertyFactory {
+
+    @ManagedObjectCreator
     DirectoryProperty newDirectoryProperty();
 
+    @ManagedObjectCreator
     RegularFileProperty newFileProperty();
 
     /**
@@ -37,4 +43,5 @@ public interface FilePropertyFactory {
      * Returns a new FilePropertyFactory configured with the given file resolver.
      */
     FilePropertyFactory withResolver(FileResolver fileResolver);
+
 }
