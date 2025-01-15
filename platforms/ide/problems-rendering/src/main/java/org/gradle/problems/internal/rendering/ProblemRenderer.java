@@ -19,17 +19,13 @@ package org.gradle.problems.internal.rendering;
 import com.google.common.base.Strings;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.problems.Problem;
-import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.util.internal.TextUtil;
 
 import java.io.PrintWriter;
 import java.io.Writer;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @NonNullApi
 public class ProblemRenderer {
@@ -41,25 +37,16 @@ public class ProblemRenderer {
     }
 
     public void render(List<Problem> problems) {
-        Map<ProblemId, List<Problem>> renderingGroups = new HashMap<>();
-        for (Problem problem : problems) {
-            List<Problem> groupedProblems = renderingGroups.computeIfAbsent(
-                problem.getDefinition().getId(),
-                id -> new ArrayList<>()
-            );
-            groupedProblems.add(problem);
-        }
-
-        renderingGroups.forEach((id, groupedProblems) -> renderProblemGroup(output, id, groupedProblems));
+        render(output, problems);
     }
 
     public void render(Problem problem) {
-        this.render(Collections.singletonList(problem));
+        render(Collections.singletonList(problem));
     }
 
-    static void renderProblemGroup(PrintWriter output, ProblemId id, List<Problem> groupedProblems) {
+    private static void render(PrintWriter output, List<Problem> problems) {
         String sep = "";
-        for (Problem problem : groupedProblems) {
+        for (Problem problem : problems) {
             output.printf(sep);
             renderProblem(output, problem);
             sep = "%n";
