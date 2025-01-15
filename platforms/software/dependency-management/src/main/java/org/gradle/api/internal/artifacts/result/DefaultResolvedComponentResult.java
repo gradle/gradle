@@ -199,6 +199,9 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
         }
     }
 
+    /**
+     * Finalize this component, making it immutable and ensuring its contents are stored in memory-efficient data structures.
+     */
     public void complete() {
         dependents = ImmutableSet.copyOf(dependents);
     }

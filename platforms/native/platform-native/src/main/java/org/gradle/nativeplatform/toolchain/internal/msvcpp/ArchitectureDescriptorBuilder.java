@@ -182,7 +182,7 @@ public enum ArchitectureDescriptorBuilder {
     ArchitectureSpecificVisualCpp buildDescriptor(VersionNumber compilerVersion, File basePath, File vsPath) {
         File commonTools = new File(vsPath, PATH_COMMONTOOLS);
         File commonIde = new File(vsPath, PATH_COMMONIDE);
-        List<File> paths = new ArrayList<>();
+        List<File> paths = new ArrayList<>(3);
         paths.add(commonTools);
         paths.add(commonIde);
         File crossCompilePath = getCrossCompilePath(basePath);

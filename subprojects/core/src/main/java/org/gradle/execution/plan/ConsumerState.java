@@ -19,7 +19,7 @@ package org.gradle.execution.plan;
 import java.util.HashSet;
 import java.util.Set;
 
-public class ConsumerState {
+public final class ConsumerState {
 
     private boolean outputProduced = false;
     private final Set<Node> nodesYetToConsumeOutput = new HashSet<>();

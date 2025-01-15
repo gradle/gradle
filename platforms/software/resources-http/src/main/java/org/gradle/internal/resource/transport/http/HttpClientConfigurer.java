@@ -182,25 +182,18 @@ public class HttpClientConfigurer {
     }
 
     private void configureProxy(HttpClientBuilder builder, CredentialsProvider credentialsProvider, HttpSettings httpSettings) {
-        HttpProxySettings.HttpProxy httpProxy = httpSettings.getProxySettings().getProxy();
-        if (httpProxy != null && httpProxy.credentials != null) {
-            AllSchemesAuthentication authentication = getAuthForProxy(httpProxy);
-            useCredentials(credentialsProvider, Collections.singleton(authentication));
-        }
-
-        HttpProxySettings.HttpProxy httpsProxy = httpSettings.getSecureProxySettings().getProxy();
-        if (httpsProxy != null && httpsProxy.credentials != null) {
-            AllSchemesAuthentication authentication = getAuthForProxy(httpsProxy);
-            useCredentials(credentialsProvider, Collections.singleton(authentication));
-        }
+        useCredentialsForProxy(credentialsProvider, httpSettings.getProxySettings().getProxy());
+        useCredentialsForProxy(credentialsProvider, httpSettings.getSecureProxySettings().getProxy());
 
         builder.setRoutePlanner(new SystemDefaultRoutePlanner(ProxySelector.getDefault()));
     }
 
-    private static AllSchemesAuthentication getAuthForProxy(HttpProxySettings.HttpProxy proxy) {
-        AllSchemesAuthentication authentication = new AllSchemesAuthentication(proxy.credentials);
-        authentication.addHost(proxy.host, proxy.port);
-        return authentication;
+    private void useCredentialsForProxy(CredentialsProvider credentialsProvider, HttpProxySettings.HttpProxy httpsProxy) {
+        if (httpsProxy != null && httpsProxy.credentials != null) {
+            AllSchemesAuthentication authentication1 = new AllSchemesAuthentication(httpsProxy.credentials);
+            authentication1.addHost(httpsProxy.host, httpsProxy.port);
+            useCredentials(credentialsProvider, Collections.singleton(authentication1));
+        }
     }
 
     private void useCredentials(CredentialsProvider credentialsProvider, Collection<? extends Authentication> authentications) {

@@ -40,6 +40,11 @@ public class CachingDirectedGraphWalker<N, T> {
     private final DirectedGraphWithEdgeValues<N, T> graph;
     private List<N> startNodes = new ArrayList<N>();
     private Set<NodeDetails<N, T>> strongComponents = new LinkedHashSet<NodeDetails<N, T>>();
+
+    /**
+     * We use an immutable set for cached node values since the cache can become quite large
+     * for very large graphs, and immutable sets are much more memory efficient than LinkedHashSets.
+     */
     private final Map<N, ImmutableSet<T>> cachedNodeValues = new HashMap<N, ImmutableSet<T>>();
 
     public CachingDirectedGraphWalker(DirectedGraph<N, T> graph) {
@@ -162,8 +167,6 @@ public class CachingDirectedGraphWalker<N, T> {
                 } else {
                     // Not part of a strongly connected component or the root of a strongly connected component
                     for (NodeDetails<N, T> componentMember : details.componentMembers) {
-                        // We use an immutable set for cached node values since the cache can become quite large
-                        // for very large graphs, and immutable sets are much more memory efficient than LinkedHashSets.
                         cachedNodeValues.put(componentMember.node, ImmutableSet.copyOf(details.values));
                         componentMember.finished = true;
                         components.remove(componentMember.component);
