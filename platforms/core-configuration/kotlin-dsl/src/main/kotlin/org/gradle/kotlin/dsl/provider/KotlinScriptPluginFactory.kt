@@ -25,9 +25,14 @@ import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.declarativedsl.evaluator.DeclarativeKotlinScriptEvaluator
 import org.gradle.internal.declarativedsl.evaluator.runner.EvaluationResult
+import org.gradle.internal.operations.BuildOperationContext
+import org.gradle.internal.operations.BuildOperationDescriptor
+import org.gradle.internal.operations.BuildOperationRunner
+import org.gradle.internal.operations.CallableBuildOperation
 import org.gradle.kotlin.dsl.accessors.isDclEnabledForScriptTarget
 import org.gradle.kotlin.dsl.execution.EvalOption
 import org.gradle.kotlin.dsl.execution.defaultEvalOptions
+import org.gradle.kotlin.dsl.support.info
 import java.util.EnumSet
 import javax.inject.Inject
 
@@ -35,7 +40,8 @@ import javax.inject.Inject
 @Suppress("unused") // The name of this class is hardcoded in Gradle
 class KotlinScriptPluginFactory @Inject internal constructor(
     private val kotlinScriptEvaluator: KotlinScriptEvaluator,
-    private val declarativeKotlinScriptEvaluator: DeclarativeKotlinScriptEvaluator
+    private val declarativeKotlinScriptEvaluator: DeclarativeKotlinScriptEvaluator,
+    private val buildOperationRunner: BuildOperationRunner
 ) : ScriptPluginFactory {
 
     override fun create(
@@ -46,16 +52,9 @@ class KotlinScriptPluginFactory @Inject internal constructor(
         topLevelScript: Boolean
     ): ScriptPlugin =
         KotlinScriptPlugin(scriptSource) { target ->
-            if (shouldTryDclInterpreterWithScriptTarget(target) && isDclEnabledForScriptTarget(target)) {
-                logger.info("Trying to interpret Kotlin DSL script ${scriptSource.fileName} with DCL")
-                when (val result = declarativeKotlinScriptEvaluator.evaluate(target, scriptSource, targetScope)) {
-                    is EvaluationResult.Evaluated -> {
-                        logger.info("Successfully interpreted Kotlin DSL script ${scriptSource.fileName} with DCL")
-                        targetScope.lock()
-                        return@KotlinScriptPlugin
-                    }
-                    is EvaluationResult.NotEvaluated<*> -> logger.info("Failed to interpret Kotlin DSL script ${scriptSource.fileName} with DCL. Stage failures: ${result.stageFailures}$")
-                }
+
+            if (interpretKotlinScriptWithDCL(target, scriptSource, targetScope)) {
+                return@KotlinScriptPlugin
             }
 
             kotlinScriptEvaluator
@@ -69,6 +68,36 @@ class KotlinScriptPluginFactory @Inject internal constructor(
                     kotlinScriptOptions()
                 )
         }
+
+    private
+    fun interpretKotlinScriptWithDCL(
+        target: Any,
+        scriptSource: ScriptSource,
+        targetScope: ClassLoaderScope
+    ): Boolean = buildOperationRunner.call(object : CallableBuildOperation<Boolean> {
+        override fun call(context: BuildOperationContext): Boolean {
+
+            if (shouldTryDclInterpreterWithScriptTarget(target) && isDclEnabledForScriptTarget(target)) {
+                logger.info { "Trying to interpret Kotlin DSL script ${scriptSource.fileName} with DCL" }
+                when (val result = declarativeKotlinScriptEvaluator.evaluate(target, scriptSource, targetScope)) {
+                    is EvaluationResult.Evaluated -> {
+                        logger.info { "Successfully interpreted Kotlin DSL script ${scriptSource.fileName} with DCL" }
+                        targetScope.lock()
+                        return true
+                    }
+
+                    is EvaluationResult.NotEvaluated<*> -> {
+                        logger.info { "Failed to interpret Kotlin DSL script ${scriptSource.fileName} with DCL. Stage failures: ${result.stageFailures}$" }
+                    }
+                }
+            }
+            return false
+
+        }
+
+        override fun description(): BuildOperationDescriptor.Builder =
+            BuildOperationDescriptor.displayName("Kotlin DSL script as DCL")
+    })
 
     private
     fun kotlinScriptOptions(): EnumSet<EvalOption> =
