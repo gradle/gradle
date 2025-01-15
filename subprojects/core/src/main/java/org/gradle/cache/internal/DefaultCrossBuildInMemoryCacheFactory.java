@@ -33,6 +33,8 @@ import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.Consumer;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -102,22 +104,30 @@ public class DefaultCrossBuildInMemoryCacheFactory implements CrossBuildInMemory
     }
 
     private abstract static class AbstractCrossBuildInMemoryCache<K, V> implements CrossBuildInMemoryCache<K, V>, BuildSessionLifecycleListener {
-        private final Object lock = new Object();
+        private final ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
+        private final Lock readLock = readWriteLock.readLock();
+        private final Lock writeLock = readWriteLock.writeLock();
         private final Map<K, V> valuesForThisSession = new HashMap<>();
 
         @Override
         public void beforeComplete() {
-            synchronized (lock) {
+            writeLock.lock();
+            try {
                 retainValuesFromCurrentSession(valuesForThisSession.values());
                 valuesForThisSession.clear();
+            } finally {
+                writeLock.unlock();
             }
         }
 
         @Override
         public void clear() {
-            synchronized (lock) {
+            writeLock.lock();
+            try {
                 valuesForThisSession.clear();
                 discardRetainedValues();
+            } finally {
+                writeLock.unlock();
             }
         }
 
@@ -133,37 +143,49 @@ public class DefaultCrossBuildInMemoryCacheFactory implements CrossBuildInMemory
         @Nullable
         @Override
         public V getIfPresent(K key) {
-            synchronized (lock) {
+            readLock.lock();
+            try {
                 return getIfPresentWithoutLock(key);
+            } finally {
+                readLock.unlock();
             }
         }
 
         @Override
         public V get(K key, Function<? super K, ? extends V> factory) {
-            synchronized (lock) {
-                V v = getIfPresentWithoutLock(key);
-                if (v != null) {
-                    return v;
+            V cached = getIfPresent(key);
+            if (cached != null) {
+                return cached;
+            }
+
+            writeLock.lock();
+            try {
+                V computedByOtherThread = valuesForThisSession.get(key);
+                if (computedByOtherThread != null) {
+                    return computedByOtherThread;
                 }
 
-                // TODO - do not hold lock while computing value
-                v = factory.apply(key);
-
-                retainValue(key, v);
-
-                // Retain strong reference
-                valuesForThisSession.put(key, v);
-
-                return v;
+                V newValue = factory.apply(key);
+                putWithoutLock(key, newValue);
+                return newValue;
+            } finally {
+                writeLock.unlock();
             }
         }
 
         @Override
         public void put(K key, V value) {
-            synchronized (lock) {
-                retainValue(key, value);
-                valuesForThisSession.put(key, value);
+            writeLock.lock();
+            try {
+                putWithoutLock(key, value);
+            } finally {
+                writeLock.unlock();
             }
+        }
+
+        private void putWithoutLock(K key, V value) {
+            retainValue(key, value);
+            valuesForThisSession.put(key, value);
         }
 
         // Caller must be holding lock
