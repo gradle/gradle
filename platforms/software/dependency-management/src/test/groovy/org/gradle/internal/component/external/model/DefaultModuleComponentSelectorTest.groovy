@@ -21,7 +21,7 @@ import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint
 import org.gradle.api.internal.artifacts.capability.DefaultSpecificCapabilitySelector
-import org.gradle.api.internal.artifacts.capability.DefaultFeatureCapabilitySelector
+import org.gradle.api.internal.artifacts.capability.DefaultSuffixCapabilitySelector
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import spock.lang.Specification
@@ -136,7 +136,7 @@ class DefaultModuleComponentSelectorTest extends Specification {
     def "can create new selector with capabilities"() {
         def capabilitySelectors = ImmutableSet.of(
             new DefaultSpecificCapabilitySelector(new DefaultImmutableCapability("org", "blah", "1")),
-            new DefaultFeatureCapabilitySelector("foo")
+            new DefaultSuffixCapabilitySelector("-foo")
         )
         when:
         def selector = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId('some-group', 'some-name'), v('1.0'), ImmutableAttributes.EMPTY, capabilitySelectors)

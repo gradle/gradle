@@ -79,7 +79,7 @@ public class DefaultJavaFeatureSpec implements FeatureSpec {
         }
 
         if (capabilities.isEmpty()) {
-            capabilities.add(new ProjectDerivedCapability(project, name));
+            capabilities.add(ProjectDerivedCapability.forFeature(project, name));
         }
 
         if (SourceSet.isMain(sourceSet)) {

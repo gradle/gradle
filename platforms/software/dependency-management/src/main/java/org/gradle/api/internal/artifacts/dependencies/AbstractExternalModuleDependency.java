@@ -26,7 +26,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.MutableVersionConstraint;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.internal.artifacts.capability.SpecificCapabilitySelector;
-import org.gradle.api.internal.artifacts.capability.FeatureCapabilitySelector;
+import org.gradle.api.internal.artifacts.capability.SuffixCapabilitySelector;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.ModuleVersionSelectorStrictSpec;
@@ -139,10 +139,10 @@ public abstract class AbstractExternalModuleDependency extends AbstractModuleDep
             .map(c -> {
                 if (c instanceof SpecificCapabilitySelector) {
                     return ((DefaultSpecificCapabilitySelector) c).getBackingCapability();
-                } else if (c instanceof FeatureCapabilitySelector) {
+                } else if (c instanceof SuffixCapabilitySelector) {
                     return new DefaultImmutableCapability(
                         getGroup(),
-                        getName() + "-" + ((FeatureCapabilitySelector) c).getFeatureName(),
+                        getName() + ((SuffixCapabilitySelector) c).getSuffix(),
                         getVersion()
                     );
                 } else {

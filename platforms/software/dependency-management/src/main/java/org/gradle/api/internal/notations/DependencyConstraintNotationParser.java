@@ -154,12 +154,12 @@ public class DependencyConstraintNotationParser {
         }
 
         @Override
-        public void requireFeature(String featureName) {
+        public void requireSuffix(String suffix) {
             throw new InvalidUserDataException("Capabilities are not supported by dependency constraints");
         }
 
         @Override
-        public void requireFeature(Provider<String> featureName) {
+        public void requireSuffix(Provider<String> suffix) {
             throw new InvalidUserDataException("Capabilities are not supported by dependency constraints");
         }
     }

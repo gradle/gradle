@@ -30,14 +30,14 @@ import java.io.IOException;
 public class CapabilitySelectorSerializer implements Serializer<CapabilitySelector> {
 
     private static final int SPECIFIC_CAPABILITY_SELECTOR = 1;
-    private static final int FEATURE_CAPABILITY_SELECTOR = 2;
+    private static final int SUFFIX_CAPABILITY_SELECTOR = 2;
 
     @Override
     public CapabilitySelector read(Decoder decoder) throws IOException {
         int type = decoder.readSmallInt();
         switch (type) {
             case SPECIFIC_CAPABILITY_SELECTOR: return readSpecificCapabilitySelector(decoder);
-            case FEATURE_CAPABILITY_SELECTOR: return readFeatureCapabilitySelector(decoder);
+            case SUFFIX_CAPABILITY_SELECTOR: return readSuffixCapabilitySelector(decoder);
             default: throw new IllegalArgumentException("Unknown capability selector type: " + type);
         }
     }
@@ -49,9 +49,9 @@ public class CapabilitySelectorSerializer implements Serializer<CapabilitySelect
         return new DefaultSpecificCapabilitySelector(new DefaultImmutableCapability(group, name, version));
     }
 
-    private static CapabilitySelector readFeatureCapabilitySelector(Decoder decoder) throws IOException {
+    private static CapabilitySelector readSuffixCapabilitySelector(Decoder decoder) throws IOException {
         String feature = decoder.readString();
-        return new DefaultFeatureCapabilitySelector(feature);
+        return new DefaultSuffixCapabilitySelector(feature);
     }
 
     @Override
@@ -59,9 +59,9 @@ public class CapabilitySelectorSerializer implements Serializer<CapabilitySelect
         if (value instanceof SpecificCapabilitySelector) {
             encoder.writeSmallInt(SPECIFIC_CAPABILITY_SELECTOR);
             writeSpecificCapabilitySelector(encoder, (DefaultSpecificCapabilitySelector) value);
-        } else if (value instanceof FeatureCapabilitySelector) {
-            encoder.writeSmallInt(FEATURE_CAPABILITY_SELECTOR);
-            writeFeatureCapabilitySelector(encoder, (FeatureCapabilitySelector) value);
+        } else if (value instanceof SuffixCapabilitySelector) {
+            encoder.writeSmallInt(SUFFIX_CAPABILITY_SELECTOR);
+            writeSuffixCapabilitySelector(encoder, (SuffixCapabilitySelector) value);
         } else {
             throw new IllegalArgumentException("Unknown capability selector type: " + value.getClass());
         }
@@ -74,7 +74,7 @@ public class CapabilitySelectorSerializer implements Serializer<CapabilitySelect
         encoder.writeNullableString(value.getBackingCapability().getVersion());
     }
 
-    private static void writeFeatureCapabilitySelector(Encoder encoder, FeatureCapabilitySelector value) throws IOException {
-        encoder.writeString(value.getFeatureName());
+    private static void writeSuffixCapabilitySelector(Encoder encoder, SuffixCapabilitySelector value) throws IOException {
+        encoder.writeString(value.getSuffix());
     }
 }

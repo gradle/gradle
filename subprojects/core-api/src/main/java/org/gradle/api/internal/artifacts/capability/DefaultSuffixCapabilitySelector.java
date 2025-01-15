@@ -19,30 +19,30 @@ package org.gradle.api.internal.artifacts.capability;
 import org.gradle.api.internal.capabilities.ImmutableCapability;
 
 /**
- * Default implementation of {@link FeatureCapabilitySelector}.
+ * Default implementation of {@link SuffixCapabilitySelector}.
  */
-public final class DefaultFeatureCapabilitySelector implements CapabilitySelectorInternal, FeatureCapabilitySelector {
+public final class DefaultSuffixCapabilitySelector implements CapabilitySelectorInternal, SuffixCapabilitySelector {
 
-    private final String featureName;
+    private final String suffix;
 
-    public DefaultFeatureCapabilitySelector(String featureName) {
-        this.featureName = featureName;
+    public DefaultSuffixCapabilitySelector(String suffix) {
+        this.suffix = suffix;
     }
 
     @Override
-    public String getFeatureName() {
-        return featureName;
+    public String getSuffix() {
+        return suffix;
     }
 
     @Override
     public boolean matches(String capabilityGroup, String capabilityName, ImmutableCapability implicitCapability) {
         return capabilityGroup.equals(implicitCapability.getGroup()) &&
-            capabilityName.equals(implicitCapability.getName() + "-" + featureName);
+            capabilityName.equals(implicitCapability.getName() + suffix);
     }
 
     @Override
     public String getDisplayName() {
-        return "feature '" + featureName + "'";
+        return "suffix '" + suffix + "'";
     }
 
     @Override
@@ -59,12 +59,12 @@ public final class DefaultFeatureCapabilitySelector implements CapabilitySelecto
             return false;
         }
 
-        DefaultFeatureCapabilitySelector that = (DefaultFeatureCapabilitySelector) o;
-        return featureName.equals(that.featureName);
+        DefaultSuffixCapabilitySelector that = (DefaultSuffixCapabilitySelector) o;
+        return suffix.equals(that.suffix);
     }
 
     @Override
     public int hashCode() {
-        return featureName.hashCode();
+        return suffix.hashCode();
     }
 }

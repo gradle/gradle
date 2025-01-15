@@ -22,7 +22,7 @@ import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.artifacts.DefaultExcludeRule
-import org.gradle.api.internal.artifacts.capability.DefaultFeatureCapabilitySelector
+import org.gradle.api.internal.artifacts.capability.DefaultSuffixCapabilitySelector
 import org.gradle.api.internal.artifacts.capability.DefaultSpecificCapabilitySelector
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory
 import org.gradle.api.internal.attributes.ImmutableAttributes
@@ -343,7 +343,7 @@ abstract class AbstractModuleDependencySpec extends Specification {
     void "copy does not mutate original capabilities"() {
         dependency.capabilities {
             it.requireCapability('org:original:1')
-            it.requireFeature('foo')
+            it.requireSuffix('-foo')
         }
         def originalSelectors = new HashSet<>(dependency.capabilitySelectors)
 
@@ -351,7 +351,7 @@ abstract class AbstractModuleDependencySpec extends Specification {
         def copy = dependency.copy()
         copy.capabilities {
             it.requireCapability('org:copy:1')
-            it.requireFeature('bar')
+            it.requireSuffix('-bar')
         }
 
         then:
@@ -359,7 +359,7 @@ abstract class AbstractModuleDependencySpec extends Specification {
         copy.capabilitySelectors.size() == 4
         copy.capabilitySelectors == (dependency.capabilitySelectors + [
             new DefaultSpecificCapabilitySelector(new DefaultImmutableCapability("org", "copy", "1")),
-            new DefaultFeatureCapabilitySelector("bar")
+            new DefaultSuffixCapabilitySelector("-bar")
         ] as Set)
     }
 
@@ -367,7 +367,7 @@ abstract class AbstractModuleDependencySpec extends Specification {
         when:
         dependency.capabilities {
             it.requireCapability('org:original:1')
-            it.requireFeature('foo')
+            it.requireSuffix('-foo')
         }
 
         then:

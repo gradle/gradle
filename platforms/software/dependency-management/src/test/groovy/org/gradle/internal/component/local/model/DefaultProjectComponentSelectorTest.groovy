@@ -21,7 +21,7 @@ import org.gradle.api.artifacts.component.ProjectComponentSelector
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier
 import org.gradle.api.internal.artifacts.capability.DefaultSpecificCapabilitySelector
-import org.gradle.api.internal.artifacts.capability.DefaultFeatureCapabilitySelector
+import org.gradle.api.internal.artifacts.capability.DefaultSuffixCapabilitySelector
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.internal.component.external.model.DefaultImmutableCapability
@@ -103,7 +103,7 @@ class DefaultProjectComponentSelectorTest extends Specification {
 
     def "feature capability selectors are exposed as selectors but not requested capabilities"() {
         def capabilities = ImmutableSet.of(
-            new DefaultFeatureCapabilitySelector("foo")
+            new DefaultSuffixCapabilitySelector("-foo")
         )
         def identity = new ProjectIdentity(Stub(BuildIdentifier), Path.path(":id:path"), Path.path(":project:path"), "projectName")
         ProjectComponentSelector selector = new DefaultProjectComponentSelector(identity, ImmutableAttributes.EMPTY, capabilities)

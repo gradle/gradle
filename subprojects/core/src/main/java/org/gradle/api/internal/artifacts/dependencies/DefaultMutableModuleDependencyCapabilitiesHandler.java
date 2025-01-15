@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.dependencies;
 import org.gradle.api.artifacts.capability.CapabilitySelector;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.capability.DefaultSpecificCapabilitySelector;
-import org.gradle.api.internal.artifacts.capability.DefaultFeatureCapabilitySelector;
+import org.gradle.api.internal.artifacts.capability.DefaultSuffixCapabilitySelector;
 import org.gradle.api.internal.capabilities.ImmutableCapability;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
@@ -57,13 +57,13 @@ public abstract class DefaultMutableModuleDependencyCapabilitiesHandler implemen
     }
 
     @Override
-    public void requireFeature(String featureName) {
-        getCapabilitySelectors().add(new DefaultFeatureCapabilitySelector(featureName));
+    public void requireSuffix(String suffix) {
+        getCapabilitySelectors().add(new DefaultSuffixCapabilitySelector(suffix));
     }
 
     @Override
-    public void requireFeature(Provider<String> featureName) {
-        getCapabilitySelectors().add(featureName.map(DefaultFeatureCapabilitySelector::new));
+    public void requireSuffix(Provider<String> suffix) {
+        getCapabilitySelectors().add(suffix.map(DefaultSuffixCapabilitySelector::new));
     }
 
     @Override

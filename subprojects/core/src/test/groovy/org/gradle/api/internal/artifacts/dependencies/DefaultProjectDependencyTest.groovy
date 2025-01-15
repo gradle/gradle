@@ -186,7 +186,7 @@ class DefaultProjectDependencyTest extends AbstractProjectBuilderSpec {
         when:
         projectDependency.capabilities {
             it.requireCapability('org:original:1')
-            it.requireFeature('foo')
+            it.requireSuffix('-foo')
         }
 
         then:

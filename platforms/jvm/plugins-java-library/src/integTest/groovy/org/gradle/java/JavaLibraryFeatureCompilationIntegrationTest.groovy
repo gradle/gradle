@@ -693,7 +693,7 @@ class JavaLibraryFeatureCompilationIntegrationTest extends AbstractIntegrationSp
         succeeds("verifyConfigurations")
     }
 
-    def "can depend on a feature using requireFeature"() {
+    def "can depend on a feature using requireSuffix"() {
         settingsFile << """
             include("other")
         """
@@ -722,7 +722,7 @@ class JavaLibraryFeatureCompilationIntegrationTest extends AbstractIntegrationSp
             dependencies {
                 implementation(project(":other")) {
                     capabilities {
-                        requireFeature("foo")
+                        requireSuffix("-foo")
                     }
                 }
             }

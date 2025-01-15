@@ -58,7 +58,7 @@ public interface TestFixturesDependencyModifiers {
          */
         @Override
         protected void modifyImplementation(ModuleDependency dependency) {
-            dependency.capabilities(c -> c.requireFeature(TestFixturesSupport.TEST_FIXTURES_CAPABILITY_FEATURE_NAME));
+            dependency.capabilities(c -> c.requireSuffix(TestFixturesSupport.TEST_FIXTURES_CAPABILITY_SUFFIX));
         }
     }
 }

@@ -21,22 +21,22 @@ import org.gradle.api.artifacts.capability.CapabilitySelector;
 /**
  * A capability selector that dynamically derives the capability
  * to request based on the module coordinates of the component
- * being selected and the name of the feature of the component to depend on.
+ * being selected and a suffix to append to the module name.
  * <p>
- * For example, if this a feature capability selector with feature name 'test-fixtures'
+ * For example, if this a suffix capability selector with suffix '-test-fixtures'
  * is attached to a component selector that resolves to a component with module coordinates
  * 'group:name:version', the resolved capability will be 'group:name-test-fixtures:version'.
  *
  * TODO: Make this public eventually. This was made private while we are
  *       still determining the best way to model these selectors.
  */
-public interface FeatureCapabilitySelector extends CapabilitySelector {
+public interface SuffixCapabilitySelector extends CapabilitySelector {
 
     /**
-     * The name of the feature to select.
+     * The suffix to append to the target component's module name.
      *
-     * @return The feature name
+     * @return The suffix
      */
-    String getFeatureName();
+    String getSuffix();
 
 }

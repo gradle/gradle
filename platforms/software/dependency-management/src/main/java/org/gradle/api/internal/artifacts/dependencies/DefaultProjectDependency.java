@@ -26,7 +26,7 @@ import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.capability.DefaultSpecificCapabilitySelector;
-import org.gradle.api.internal.artifacts.capability.FeatureCapabilitySelector;
+import org.gradle.api.internal.artifacts.capability.SuffixCapabilitySelector;
 import org.gradle.api.internal.artifacts.capability.SpecificCapabilitySelector;
 import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -215,8 +215,8 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
             .map(c -> {
                 if (c instanceof SpecificCapabilitySelector) {
                     return ((DefaultSpecificCapabilitySelector) c).getBackingCapability();
-                } else if (c instanceof FeatureCapabilitySelector) {
-                    return new ProjectDerivedCapability(dependencyProject, ((FeatureCapabilitySelector) c).getFeatureName());
+                } else if (c instanceof SuffixCapabilitySelector) {
+                    return new ProjectDerivedCapability(dependencyProject, ((SuffixCapabilitySelector) c).getSuffix());
                 } else {
                     throw new UnsupportedOperationException("Unsupported capability selector type: " + c.getClass().getName());
                 }

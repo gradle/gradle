@@ -16,7 +16,7 @@
 
 package org.gradle.api.plugins.jvm.internal
 
-import org.gradle.api.internal.artifacts.capability.FeatureCapabilitySelector
+import org.gradle.api.internal.artifacts.capability.SuffixCapabilitySelector
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory
@@ -37,8 +37,8 @@ class TestFixturesDependencyModifiersTest extends Specification {
         then:
         dependency.getCapabilitySelectors().size() == 1
         dependency.getCapabilitySelectors()[0].with {
-            assert it instanceof FeatureCapabilitySelector
-            assert it.featureName == "test-fixtures"
+            assert it instanceof SuffixCapabilitySelector
+            assert it.suffix == "-test-fixtures"
         }
     }
 
@@ -58,8 +58,8 @@ class TestFixturesDependencyModifiersTest extends Specification {
         then:
         dependency.getCapabilitySelectors().size() == 1
         dependency.getCapabilitySelectors()[0].with {
-            assert it instanceof FeatureCapabilitySelector
-            assert it.featureName == "test-fixtures"
+            assert it instanceof SuffixCapabilitySelector
+            assert it.suffix == "-test-fixtures"
         }
 
         0 * _

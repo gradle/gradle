@@ -65,7 +65,7 @@ import javax.inject.Inject;
 import java.util.Map;
 
 import static org.gradle.api.artifacts.type.ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE;
-import static org.gradle.internal.component.external.model.TestFixturesSupport.TEST_FIXTURES_CAPABILITY_FEATURE_NAME;
+import static org.gradle.internal.component.external.model.TestFixturesSupport.TEST_FIXTURES_CAPABILITY_SUFFIX;
 
 public abstract class DefaultDependencyHandler implements DependencyHandlerInternal, MethodMixIn {
     private final ConfigurationContainer configurationContainer;
@@ -392,7 +392,7 @@ public abstract class DefaultDependencyHandler implements DependencyHandlerInter
         if (testFixturesDependency instanceof ModuleDependency) {
             // Changes here may require changes in DefaultExternalModuleDependencyVariantSpec
             ModuleDependency moduleDependency = (ModuleDependency) testFixturesDependency;
-            moduleDependency.capabilities(c -> c.requireFeature(TEST_FIXTURES_CAPABILITY_FEATURE_NAME));
+            moduleDependency.capabilities(c -> c.requireSuffix(TEST_FIXTURES_CAPABILITY_SUFFIX));
         }
         return testFixturesDependency;
     }
@@ -466,7 +466,7 @@ public abstract class DefaultDependencyHandler implements DependencyHandlerInter
 
         @Override
         public void testFixtures() {
-            this.capabilitiesMutator = capabilities -> capabilities.requireFeature(TEST_FIXTURES_CAPABILITY_FEATURE_NAME);
+            this.capabilitiesMutator = capabilities -> capabilities.requireSuffix(TEST_FIXTURES_CAPABILITY_SUFFIX);
         }
 
         @Override
