@@ -198,7 +198,11 @@ val gradleApiKotlinExtensions by tasks.registering(GenerateKotlinExtensionsForGr
 
 apply<KotlinBaseApiPlugin>()
 plugins.withType(KotlinBaseApiPlugin::class) {
-    registerKotlinJvmCompileTask("compileGradleApiKotlinExtensions", "gradle-kotlin-dsl-extensions")
+    @Suppress("DEPRECATION")
+    registerKotlinJvmCompileTask(
+        "compileGradleApiKotlinExtensions",
+        "gradle-kotlin-dsl-extensions"
+    )
 }
 
 val compileGradleApiKotlinExtensions = tasks.named("compileGradleApiKotlinExtensions", KotlinCompile::class) {
