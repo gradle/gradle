@@ -25,7 +25,7 @@ import org.gradle.internal.remote.internal.inet.InetAddressFactory
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 
-@IntegrationTestTimeout(60)
+@IntegrationTestTimeout(120)
 class LockCommunicationSoakTest extends AbstractIntegrationSpec {
     private final BlockingHttpServer blockingServer = new BlockingHttpServer()
     private final TestFile oldBuild = file("old-build").createDir()
@@ -61,13 +61,14 @@ class LockCommunicationSoakTest extends AbstractIntegrationSpec {
                         .withInitialLockMode(org.gradle.cache.FileLockManager.LockMode.OnDemand)
                         .open()
 
-                    ${blockingServer.callFromTaskAction("old-first")}
+                    ${blockingServer.callFromTaskAction("old-before")}
                     println("about to use the cache")
                     cache.useCache {
                         println("Using cache " + cache.baseDir)
-                        ${blockingServer.callFromTaskAction("old-second")}
+                        ${blockingServer.callFromTaskAction("old-acquire")}
                     } as Runnable
 
+                    ${blockingServer.callFromTaskAction("old-close")}
                     cache.close()
                     println("cache closed")
                 }
@@ -102,13 +103,14 @@ class LockCommunicationSoakTest extends AbstractIntegrationSpec {
                         .withInitialLockMode(org.gradle.cache.FileLockManager.LockMode.OnDemand)
                         .open()
 
-                    ${blockingServer.callFromTaskAction("new-first")}
+                    ${blockingServer.callFromTaskAction("new-before")}
                     println("about to use the cache")
                     cache.useCache {
                         println("Using cache " + cache.baseDir)
-                        ${blockingServer.callFromTaskAction("new-second")}
+                        ${blockingServer.callFromTaskAction("new-acquire")}
                     } as Runnable
 
+                    ${blockingServer.callFromTaskAction("new-close")}
                     cache.close()
                     println("cache closed")
                 }
@@ -122,32 +124,42 @@ class LockCommunicationSoakTest extends AbstractIntegrationSpec {
     }
 
     def "lock contention - happy path new to old"() {
-        def aboutToLock = blockingServer.expectAndBlock("new-first")
-        def releaseLock = blockingServer.expectAndBlock("new-second")
-        def aboutToRequest = blockingServer.expectAndBlock("old-first")
-        def acquireLock = blockingServer.expectAndBlock("old-second")
+        def aboutToLock = blockingServer.expectAndBlock("new-before")
+        def releaseLock = blockingServer.expectAndBlock("new-acquire")
+
+        def aboutToRequest = blockingServer.expectAndBlock("old-before")
+        def acquireLock = blockingServer.expectConcurrentAndBlock("old-acquire", "new-close")
+
+        def complete = blockingServer.expectAndBlock("old-close")
 
         expect:
         def newHandle = executer.withTasks('lock').start()
 
+        // wait for new Gradle to start the task
         aboutToLock.waitForAllPendingCalls()
         aboutToLock.releaseAll()
+
+        // wait for new Gradle to acquire the lock
         releaseLock.waitForAllPendingCalls()
 
         // Start the old Gradle to request the same lock
         def oldHandle = oldExecuter.withTasks('lock').start()
+        // wait for old Gradle to start the task
         aboutToRequest.waitForAllPendingCalls()
 
-        // new Gradle should be holding the lock
-
+        // new Gradle should be holding the lock, so release old Gradle
         aboutToRequest.releaseAll()
 
-        // The old Gradle is now waiting to acquire the lock
-        // New Gradle can now release the lock
+        // old Gradle is now waiting to acquire the lock
+        // new Gradle can now release the lock
         releaseLock.releaseAll()
-
-        // Old Gradle should acquire the lock
+        // old Gradle should acquire the lock
         acquireLock.waitForAllPendingCalls()
+        acquireLock.release("old-acquire")
+
+        // Both Gradle instances should now complete
+        complete.waitForAllPendingCalls()
+        complete.releaseAll()
         acquireLock.releaseAll()
 
         newHandle.waitForFinish()
@@ -155,66 +167,87 @@ class LockCommunicationSoakTest extends AbstractIntegrationSpec {
     }
 
     def "lock contention - happy path old to new"() {
-        def aboutToLock = blockingServer.expectAndBlock("old-first")
-        def releaseLock = blockingServer.expectAndBlock("old-second")
-        def aboutToRequest = blockingServer.expectAndBlock("new-first")
-        def acquireLock = blockingServer.expectAndBlock("new-second")
+        def aboutToLock = blockingServer.expectAndBlock("old-before")
+        def releaseLock = blockingServer.expectAndBlock("old-acquire")
+
+        def aboutToRequest = blockingServer.expectAndBlock("new-before")
+        def acquireLock = blockingServer.expectConcurrentAndBlock("new-acquire", "old-close")
+
+        def complete = blockingServer.expectAndBlock("new-close")
 
         expect:
         def oldHandle = oldExecuter.withTasks('lock').start()
 
+        // wait for old Gradle to start the task
         aboutToLock.waitForAllPendingCalls()
         aboutToLock.releaseAll()
+
+        // wait for old Gradle to acquire the lock
         releaseLock.waitForAllPendingCalls()
 
         // Start the new Gradle to request the same lock
         def newHandle = executer.withTasks('lock').start()
+        // wait for new Gradle to start the task
         aboutToRequest.waitForAllPendingCalls()
 
-        // old Gradle should be holding the lock
-
+        // old Gradle should be holding the lock, so release new Gradle
         aboutToRequest.releaseAll()
 
-        // The new Gradle is now waiting to acquire the lock
-        // Old Gradle can now release the lock
+        // new Gradle is now waiting to acquire the lock
+        // old Gradle can now release the lock
         releaseLock.releaseAll()
-
-        // New Gradle should acquire the lock
+        // new Gradle should acquire the lock
         acquireLock.waitForAllPendingCalls()
+        acquireLock.release("new-acquire")
+
+        // Both Gradle instances should now complete
+        complete.waitForAllPendingCalls()
+        complete.releaseAll()
         acquireLock.releaseAll()
 
-        newHandle.waitForFinish()
         oldHandle.waitForFinish()
+        newHandle.waitForFinish()
     }
 
     def "lock contention - poison new"() {
-        def aboutToLock = blockingServer.expectAndBlock("new-first")
-        def releaseLock = blockingServer.expectAndBlock("new-second")
-        def aboutToRequest = blockingServer.expectAndBlock("old-first")
-        def acquireLock = blockingServer.expectAndBlock("old-second")
+        def aboutToLock = blockingServer.expectAndBlock("new-before")
+        def releaseLock = blockingServer.expectAndBlock("new-acquire")
+
+        def aboutToRequest = blockingServer.expectAndBlock("old-before")
+        def acquireLock = blockingServer.expectConcurrentAndBlock("old-acquire", "new-close")
+
+        def complete = blockingServer.expectAndBlock("old-close")
 
         expect:
-        def newHandle = executer.requireIsolatedDaemons().withTasks('lock').start()
+        def newHandle = executer.withTasks('lock').start()
 
+        // wait for new Gradle to start the task
         aboutToLock.waitForAllPendingCalls()
         aboutToLock.releaseAll()
+
+        // wait for new Gradle to acquire the lock
         releaseLock.waitForAllPendingCalls()
 
         // Start the old Gradle to request the same lock
         def oldHandle = oldExecuter.withTasks('lock').start()
+        // wait for old Gradle to start the task
         aboutToRequest.waitForAllPendingCalls()
 
-        // new Gradle should be holding the lock
+        // new Gradle should be holding the lock, so release old Gradle
+        // Try to kill the listener in the lock owner
         poison(file("port").text.toInteger())
-
         aboutToRequest.releaseAll()
 
-        // The old Gradle is now waiting to acquire the lock
-        // New Gradle can now release the lock
+        // old Gradle is now waiting to acquire the lock
+        // new Gradle can now release the lock
         releaseLock.releaseAll()
-
-        // Old Gradle should acquire the lock
+        // old Gradle should acquire the lock
         acquireLock.waitForAllPendingCalls()
+        acquireLock.release("old-acquire")
+
+        // Both Gradle instances should now complete
+        complete.waitForAllPendingCalls()
+        complete.releaseAll()
         acquireLock.releaseAll()
 
         newHandle.waitForFinish()
@@ -222,42 +255,53 @@ class LockCommunicationSoakTest extends AbstractIntegrationSpec {
     }
 
     def "lock contention - poison old"() {
-        def aboutToLock = blockingServer.expectAndBlock("old-first")
-        def releaseLock = blockingServer.expectAndBlock("old-second")
-        def aboutToRequest = blockingServer.expectAndBlock("new-first")
-        def acquireLock = blockingServer.expectAndBlock("new-second")
+        def aboutToLock = blockingServer.expectAndBlock("old-before")
+        def releaseLock = blockingServer.expectAndBlock("old-acquire")
+
+        def aboutToRequest = blockingServer.expectAndBlock("new-before")
+
+        def complete = blockingServer.expectConcurrentAndBlock("old-close")
 
         expect:
-        def oldHandle = oldExecuter.requireIsolatedDaemons().withStackTraceChecksDisabled().withTasks('lock').start()
+        def oldHandle = oldExecuter.withStackTraceChecksDisabled().withTasks('lock').start()
 
+        // wait for old Gradle to start the task
         aboutToLock.waitForAllPendingCalls()
         aboutToLock.releaseAll()
+
+        // wait for old Gradle to acquire the lock
         releaseLock.waitForAllPendingCalls()
 
         // Start the new Gradle to request the same lock
         def newHandle = executer.withTasks('lock').start()
+        // wait for new Gradle to start the task
         aboutToRequest.waitForAllPendingCalls()
 
-        // old Gradle should be holding the lock
+        // old Gradle should be holding the lock, so release new Gradle
+        // Try to kill the listener in the lock owner
         poison(oldBuild.file("port").text.toInteger())
-
         aboutToRequest.releaseAll()
 
-        // The new Gradle is now waiting to acquire the lock
-        // Old Gradle can now release the lock
+        // new Gradle is now waiting to acquire the lock
+        // old Gradle can now release the lock
         releaseLock.releaseAll()
 
-        // New Gradle should acquire the lock
-        acquireLock.waitForAllPendingCalls()
-        acquireLock.releaseAll()
+        // old Gradle will now stick around without releasing the lock
+        complete.waitForAllPendingCalls()
 
-        newHandle.waitForFinish()
+        // new Gradle can never acquire lock because it cannot communicate to old Gradle
+
+        def failure = newHandle.waitForFailure()
+        failure.assertHasCause("Timeout waiting to lock Soak test ")
+
+        complete.releaseAll()
         oldHandle.waitForFinish()
     }
 
     def "lock contention - daemon expires if too many errors are seen"() {
-        def aboutToLock = blockingServer.expectAndBlock("new-first")
-        def releaseLock = blockingServer.expectAndBlock("new-second")
+        def aboutToLock = blockingServer.expectAndBlock("new-before")
+        def releaseLock = blockingServer.expectAndBlock("new-acquire")
+        def complete = blockingServer.expectAndBlock("new-close")
 
         expect:
         def newHandle = executer.requireIsolatedDaemons().withStackTraceChecksDisabled().withTasks('lock').start()
@@ -271,11 +315,12 @@ class LockCommunicationSoakTest extends AbstractIntegrationSpec {
         100.times {
             poison(file("port").text.toInteger())
         }
-        // Need to wait for the daemon expiration cycle to notice that the daemon is in a bad state
-        Thread.sleep(15000)
 
         // New Gradle can now release the lock
         releaseLock.releaseAll()
+
+        // Need to wait for the daemon expiration cycle to notice that the daemon is in a bad state
+        complete.waitForAllPendingCalls()
 
         def failure = newHandle.waitForFailure()
         failure.assertHasDescription("Gradle build daemon has been stopped: Unable to coordinate lock ownership with other builds.")
