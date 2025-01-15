@@ -16,23 +16,24 @@
 
 package org.gradle.cache.internal.locklistener;
 
-import java.net.SocketAddress;
-import java.util.Set;
+import com.google.common.base.Suppliers;
+import org.gradle.api.NonNullApi;
 
-public interface FileLockCommunicator {
-    boolean pingOwner(String pid, int ownerPort, long lockId, String displayName);
+import java.util.function.Supplier;
 
-    FileLockPacket receive() throws GracefullyStoppedException;
+/**
+ * Provides a {@link UnixDomainSocketFileLockCommunicator} that communicates with a Unix domain socket file.
+ */
+@NonNullApi
+public class UnixDomainSocketFileCommunicatorProvider {
 
-    FileLockPacketPayload decode(FileLockPacket receivedPacket);
+    private final Supplier<UnixDomainSocketFileLockCommunicator> communicator;
 
-    void confirmUnlockRequest(SocketAddress address, long lockId);
+    public UnixDomainSocketFileCommunicatorProvider() {
+        communicator = Suppliers.memoize(UnixDomainSocketFileLockCommunicator::new);
+    }
 
-    void confirmLockRelease(Set<SocketAddress> addresses, long lockId);
-
-    void stop();
-
-    int getPort();
-
-    String createFileLockOwnerId(String pid, int port);
+    public UnixDomainSocketFileLockCommunicator getCommunicator() {
+        return communicator.get();
+    }
 }
