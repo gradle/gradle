@@ -344,16 +344,14 @@ Secondary Variants (*)
 --------------------------------------------------
 Variant testResultsElementsForTest (i)
 --------------------------------------------------
-Directory containing binary results of running tests for the test Test Suite's test target.
+Binary results obtained from running all targets in the 'test' Test Suite.
 
 Capabilities
     - org:myLib:1.0 (default capability)
 Attributes
-    - org.gradle.category              = verification
-    - org.gradle.testsuite.name        = test
-    - org.gradle.testsuite.target.name = test
-    - org.gradle.testsuite.type        = unit-test
-    - org.gradle.verificationtype      = test-results
+    - org.gradle.category         = verification
+    - org.gradle.testsuite.name   = test
+    - org.gradle.verificationtype = test-results
 Artifacts
     - $resultsBinPath (artifactType = directory)
 """
@@ -532,16 +530,14 @@ Artifacts
 --------------------------------------------------
 Variant testResultsElementsForTest (i)
 --------------------------------------------------
-Directory containing binary results of running tests for the test Test Suite's test target.
+Binary results obtained from running all targets in the 'test' Test Suite.
 
 Capabilities
     - org:myLib:1.0 (default capability)
 Attributes
-    - org.gradle.category              = verification
-    - org.gradle.testsuite.name        = test
-    - org.gradle.testsuite.target.name = test
-    - org.gradle.testsuite.type        = unit-test
-    - org.gradle.verificationtype      = test-results
+    - org.gradle.category         = verification
+    - org.gradle.testsuite.name   = test
+    - org.gradle.verificationtype = test-results
 Artifacts
     - $resultsBinPath (artifactType = directory)
 """)
@@ -719,16 +715,14 @@ Artifacts
 --------------------------------------------------
 Variant testResultsElementsForTest (i)
 --------------------------------------------------
-Directory containing binary results of running tests for the test Test Suite's test target.
+Binary results obtained from running all targets in the 'test' Test Suite.
 
 Capabilities
     - org:myLib:1.0 (default capability)
 Attributes
-    - org.gradle.category              = verification
-    - org.gradle.testsuite.name        = test
-    - org.gradle.testsuite.target.name = test
-    - org.gradle.testsuite.type        = unit-test
-    - org.gradle.verificationtype      = test-results
+    - org.gradle.category         = verification
+    - org.gradle.testsuite.name   = test
+    - org.gradle.verificationtype = test-results
 Artifacts
     - $resultsBinPath (artifactType = directory)
 """)
@@ -939,16 +933,14 @@ Secondary Variants (*)
 --------------------------------------------------
 Variant testResultsElementsForTest (i)
 --------------------------------------------------
-Directory containing binary results of running tests for the test Test Suite's test target.
+Binary results obtained from running all targets in the 'test' Test Suite.
 
 Capabilities
     - org:myLib:1.0 (default capability)
 Attributes
-    - org.gradle.category              = verification
-    - org.gradle.testsuite.name        = test
-    - org.gradle.testsuite.target.name = test
-    - org.gradle.testsuite.type        = unit-test
-    - org.gradle.verificationtype      = test-results
+    - org.gradle.category         = verification
+    - org.gradle.testsuite.name   = test
+    - org.gradle.verificationtype = test-results
 Artifacts
     - $resultsBinPath (artifactType = directory)
 """)
@@ -1091,16 +1083,14 @@ Secondary Variants (*)
 --------------------------------------------------
 Variant testResultsElementsForTest (i)
 --------------------------------------------------
-Directory containing binary results of running tests for the test Test Suite's test target.
+Binary results obtained from running all targets in the 'test' Test Suite.
 
 Capabilities
     - org:myLib:1.0 (default capability)
 Attributes
-    - org.gradle.category              = verification
-    - org.gradle.testsuite.name        = test
-    - org.gradle.testsuite.target.name = test
-    - org.gradle.testsuite.type        = unit-test
-    - org.gradle.verificationtype      = test-results
+    - org.gradle.category         = verification
+    - org.gradle.testsuite.name   = test
+    - org.gradle.verificationtype = test-results
 Artifacts
     - $resultsBinPath (artifactType = directory)
 """)
@@ -1362,16 +1352,14 @@ Attributes
 --------------------------------------------------
 Variant testResultsElementsForTest (i)
 --------------------------------------------------
-Directory containing binary results of running tests for the test Test Suite's test target.
+Binary results obtained from running all targets in the 'test' Test Suite.
 
 Capabilities
     - org:myLib:1.0 (default capability)
 Attributes
-    - org.gradle.category              = verification
-    - org.gradle.testsuite.name        = test
-    - org.gradle.testsuite.target.name = test
-    - org.gradle.testsuite.type        = unit-test
-    - org.gradle.verificationtype      = test-results
+    - org.gradle.category         = verification
+    - org.gradle.testsuite.name   = test
+    - org.gradle.verificationtype = test-results
 Artifacts
     - $resultsBinPath (artifactType = directory)
 """)

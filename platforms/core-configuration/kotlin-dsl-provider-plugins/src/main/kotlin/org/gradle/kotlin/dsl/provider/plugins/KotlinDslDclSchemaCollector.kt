@@ -29,6 +29,8 @@ import org.gradle.internal.declarativedsl.analysis.dataOfTypeOrNull
 import org.gradle.internal.declarativedsl.evaluator.schema.DeclarativeScriptContext
 import org.gradle.internal.declarativedsl.evaluator.schema.InterpretationSchemaBuilder
 import org.gradle.internal.declarativedsl.evaluator.schema.InterpretationSchemaBuildingResult
+import org.gradle.internal.service.scopes.Scope
+import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.kotlin.dsl.accessors.ContainerElementFactoryEntry
 import org.gradle.kotlin.dsl.accessors.SoftwareTypeEntry
 import org.gradle.kotlin.dsl.support.serviceOf
@@ -72,6 +74,7 @@ internal fun KotlinDslDclSchemaCollector.collectDclSchemaForKotlinDslTarget(targ
 }
 
 
+@ServiceScope(Scope.UserHome::class)
 internal interface KotlinDslDclSchemaCollector {
     fun collectContainerFactories(interpretationSequence: InterpretationSequence, classLoaderScope: ClassLoaderScope): List<ContainerElementFactoryEntry<TypeOf<*>>>
     fun collectSoftwareTypes(softwareTypeRegistry: SoftwareTypeRegistry): List<SoftwareTypeEntry<TypeOf<*>>>

@@ -17,9 +17,12 @@
 package org.gradle.internal.model;
 
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
  * A marker interface for an ObjectFactory that is instantiated with BuildTreeScopeServices.
  */
+@ServiceScope(Scope.BuildTree.class)
 public interface BuildTreeObjectFactory extends ObjectFactory {
 }

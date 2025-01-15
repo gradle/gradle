@@ -16,8 +16,12 @@
 
 package org.gradle.internal.execution.history;
 
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+
 import java.util.Optional;
 
+@ServiceScope(Scope.Build.class)
 public interface ExecutionHistoryStore {
     Optional<PreviousExecutionState> load(String key);
 

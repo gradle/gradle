@@ -18,6 +18,7 @@ package org.gradle.internal.enterprise.impl;
 
 import org.gradle.internal.enterprise.GradleEnterprisePluginBuildState;
 import org.gradle.internal.enterprise.GradleEnterprisePluginConfig;
+import org.gradle.internal.enterprise.GradleEnterprisePluginRequiredServices;
 import org.gradle.internal.enterprise.GradleEnterprisePluginServiceFactory;
 import org.gradle.internal.operations.notify.BuildOperationNotificationListenerRegistrar;
 import org.gradle.internal.service.scopes.Scope;
@@ -27,21 +28,24 @@ import org.gradle.internal.service.scopes.ServiceScope;
 public class DefaultGradleEnterprisePluginAdapterFactory {
 
     private final GradleEnterprisePluginConfig config;
-    private final DefaultGradleEnterprisePluginRequiredServices requiredServices;
+    private final GradleEnterprisePluginRequiredServices requiredServices;
     private final GradleEnterprisePluginBuildState buildState;
-    private final DefaultGradleEnterprisePluginServiceRef pluginServiceRef;
+    private final GradleEnterprisePluginBackgroundJobExecutorsInternal backgroundJobExecutors;
+    private final GradleEnterprisePluginServiceRefInternal pluginServiceRef;
     private final BuildOperationNotificationListenerRegistrar buildOperationNotificationListenerRegistrar;
 
     public DefaultGradleEnterprisePluginAdapterFactory(
         GradleEnterprisePluginConfig config,
-        DefaultGradleEnterprisePluginRequiredServices requiredServices,
+        GradleEnterprisePluginRequiredServices requiredServices,
         GradleEnterprisePluginBuildState buildState,
-        DefaultGradleEnterprisePluginServiceRef pluginServiceRef,
+        GradleEnterprisePluginBackgroundJobExecutorsInternal backgroundJobExecutors,
+        GradleEnterprisePluginServiceRefInternal pluginServiceRef,
         BuildOperationNotificationListenerRegistrar buildOperationNotificationListenerRegistrar
     ) {
         this.config = config;
         this.requiredServices = requiredServices;
         this.buildState = buildState;
+        this.backgroundJobExecutors = backgroundJobExecutors;
         this.pluginServiceRef = pluginServiceRef;
         this.buildOperationNotificationListenerRegistrar = buildOperationNotificationListenerRegistrar;
     }
@@ -52,6 +56,7 @@ public class DefaultGradleEnterprisePluginAdapterFactory {
             config,
             requiredServices,
             buildState,
+            backgroundJobExecutors,
             pluginServiceRef,
             buildOperationNotificationListenerRegistrar
         );

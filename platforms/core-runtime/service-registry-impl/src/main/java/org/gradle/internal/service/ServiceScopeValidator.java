@@ -37,6 +37,7 @@ import static org.gradle.util.internal.CollectionUtils.join;
  * Checks that services are being declared in the correct scope.
  * <p>
  * Only services that are annotated with {@link ServiceScope} are validated.
+ * In {@link #strict}-mode all services must be annotated.
  */
 class ServiceScopeValidator implements AnnotatedServiceLifecycleHandler {
 

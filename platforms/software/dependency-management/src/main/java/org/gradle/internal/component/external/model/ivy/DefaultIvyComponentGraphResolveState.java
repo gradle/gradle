@@ -19,11 +19,11 @@ package org.gradle.internal.component.external.model.ivy;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
-import org.gradle.internal.component.external.model.DefaultModuleComponentGraphResolveState;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentIdGenerator;
 import org.gradle.internal.component.model.ConfigurationGraphResolveState;
 import org.gradle.internal.component.model.ConfigurationMetadata;
+import org.gradle.internal.component.model.DefaultExternalModuleComponentGraphResolveState;
 import org.gradle.internal.component.model.GraphSelectionCandidates;
 import org.gradle.internal.component.model.ModuleConfigurationMetadata;
 import org.gradle.internal.component.model.VariantGraphResolveState;
@@ -36,10 +36,10 @@ import java.util.function.Function;
 /**
  * External component state implementation for ivy components.
  */
-public class DefaultIvyComponentGraphResolveState extends DefaultModuleComponentGraphResolveState<IvyModuleResolveMetadata> implements IvyComponentGraphResolveState {
+public class DefaultIvyComponentGraphResolveState extends DefaultExternalModuleComponentGraphResolveState<IvyModuleResolveMetadata, IvyModuleResolveMetadata> implements IvyComponentGraphResolveState {
 
     public DefaultIvyComponentGraphResolveState(long instanceId, IvyModuleResolveMetadata metadata, AttributeDesugaring attributeDesugaring, ComponentIdGenerator idGenerator) {
-        super(instanceId, metadata, attributeDesugaring, idGenerator);
+        super(instanceId, metadata, metadata, attributeDesugaring, idGenerator);
     }
 
     @Override
@@ -50,7 +50,7 @@ public class DefaultIvyComponentGraphResolveState extends DefaultModuleComponent
     @Nullable
     @Override
     public ConfigurationGraphResolveState getConfiguration(String configurationName) {
-        ModuleConfigurationMetadata configuration = (ModuleConfigurationMetadata) getMetadata().getConfiguration(configurationName);
+        ModuleConfigurationMetadata configuration = getMetadata().getConfiguration(configurationName);
         if (configuration == null) {
             return null;
         } else {

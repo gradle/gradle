@@ -27,7 +27,7 @@
                 <td>reportTask</td>
             </tr>
             <tr>
-                <td>testType</td>
+                <td>testSuiteName</td>
             </tr>
         </table>
     </section>

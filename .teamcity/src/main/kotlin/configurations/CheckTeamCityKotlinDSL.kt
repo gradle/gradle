@@ -17,7 +17,7 @@ class CheckTeamCityKotlinDSL(model: CIBuildModel, stage: Stage) : OsAwareBaseGra
         steps {
             script {
                 name = "RUN_MAVEN_CLEAN_VERIFY"
-                scriptContent = "./mvnw clean verify -Dmaven.repo.local=../build"
+                scriptContent = "./mvnw clean verify -Dmaven.repo.local=../build -Dscan.value.gitCommitId=%build.vcs.number% -Dscan.tag.CI"
                 workingDir = ".teamcity"
             }
             script {

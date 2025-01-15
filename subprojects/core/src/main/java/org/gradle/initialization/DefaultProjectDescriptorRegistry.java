@@ -16,8 +16,11 @@
 package org.gradle.initialization;
 
 import org.gradle.api.internal.project.DefaultProjectRegistry;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.Path;
 
+@ServiceScope(Scope.Settings.class)
 public class DefaultProjectDescriptorRegistry extends DefaultProjectRegistry<DefaultProjectDescriptor> implements ProjectDescriptorRegistry {
 
     @Override

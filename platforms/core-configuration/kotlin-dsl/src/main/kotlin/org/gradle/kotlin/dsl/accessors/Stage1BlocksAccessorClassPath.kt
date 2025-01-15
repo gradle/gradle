@@ -35,6 +35,8 @@ import org.gradle.internal.file.TreeType.DIRECTORY
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.service.scopes.Scope
+import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.internal.snapshot.ValueSnapshot
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.cache.KotlinDslWorkspaceProvider
@@ -54,6 +56,7 @@ import javax.inject.Inject
  * - dependency version catalogs found in this build,
  * - plugin spec builders for all plugin ids found in the `buildSrc` classpath.
  */
+@ServiceScope(Scope.Build::class)
 class Stage1BlocksAccessorClassPathGenerator @Inject internal constructor(
     private val classLoaderHierarchyHasher: ClassLoaderHierarchyHasher,
     private val fileCollectionFactory: FileCollectionFactory,

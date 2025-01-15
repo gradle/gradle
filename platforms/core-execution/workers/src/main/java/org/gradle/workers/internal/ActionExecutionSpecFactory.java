@@ -16,9 +16,12 @@
 
 package org.gradle.workers.internal;
 
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.workers.WorkAction;
 import org.gradle.workers.WorkParameters;
 
+@ServiceScope(Scope.UserHome.class)
 public interface ActionExecutionSpecFactory {
     <T extends WorkParameters> TransportableActionExecutionSpec newTransportableSpec(IsolatedParametersActionExecutionSpec<T> spec);
 

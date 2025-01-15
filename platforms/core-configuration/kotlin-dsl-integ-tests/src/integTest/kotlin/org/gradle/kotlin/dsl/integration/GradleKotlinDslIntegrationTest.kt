@@ -1063,6 +1063,29 @@ class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
+    fun `can use project layout`() {
+        withProjectRoot(newDir("project")) {
+            withBuildScript(
+                """
+                println("Settings dir: " + layout.settingsDirectory)
+                println("Project dir: " + layout.projectDirectory)
+                """
+            )
+        }
+
+        withSettings("""include("project")""")
+
+        val output = build("-q", "build").output
+        assertThat(
+            output,
+            allOf(
+                containsString("Settings dir: $testDirectory"),
+                containsString("Project dir: ${testDirectory.file("project")}")
+            )
+        )
+    }
+
+    @Test
     @LeaksFileHandles
     fun `can apply Groovy script from url`() {
         withOwnGradleUserHomeDir("we need an empty external resource cache") {

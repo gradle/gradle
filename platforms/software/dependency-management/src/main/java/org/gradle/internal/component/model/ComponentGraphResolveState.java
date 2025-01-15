@@ -16,9 +16,7 @@
 
 package org.gradle.internal.component.model;
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.internal.capabilities.ImmutableCapability;
 
@@ -83,12 +81,6 @@ public interface ComponentGraphResolveState {
      * @return true when this instance is ad hoc, false when this instance is not ad hoc and can be cached.
      */
     boolean isAdHoc();
-
-    /**
-     * When this component is a lenient platform, create a copy with the given ids. Otherwise, returns {@code null}.
-     */
-    @Nullable
-    ComponentGraphResolveState maybeAsLenientPlatform(ModuleComponentIdentifier componentIdentifier, ModuleVersionIdentifier moduleVersionIdentifier);
 
     /**
      * Creates the state that can be used for artifact resolution for this component instance.

@@ -22,7 +22,7 @@ import org.gradle.api.problems.ProblemId;
 import javax.annotation.Nullable;
 import java.io.Serializable;
 
-public class DefaultProblemId implements ProblemId, Serializable {
+public class DefaultProblemId extends ProblemId implements Serializable {
 
     private final String id;
     private final String displayName;

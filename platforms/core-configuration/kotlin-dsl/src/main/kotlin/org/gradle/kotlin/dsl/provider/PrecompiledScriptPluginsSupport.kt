@@ -20,6 +20,8 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.provider.Provider
+import org.gradle.internal.service.scopes.Scope
+import org.gradle.internal.service.scopes.ServiceScope
 
 import java.io.File
 
@@ -32,6 +34,7 @@ import java.io.File
  *
  * This needs to be cross-version compatible.
  */
+@ServiceScope(Scope.UserHome::class)
 interface PrecompiledScriptPluginsSupport {
 
     fun enableOn(target: Target): Boolean

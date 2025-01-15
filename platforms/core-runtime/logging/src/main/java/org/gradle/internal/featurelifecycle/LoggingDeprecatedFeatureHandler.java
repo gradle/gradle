@@ -20,13 +20,13 @@ import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.logging.configuration.WarningMode;
+import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.internal.DeprecationDataSpec;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblemReporter;
 import org.gradle.api.problems.internal.InternalProblemSpec;
 import org.gradle.api.problems.internal.InternalProblems;
-import org.gradle.api.problems.internal.Problem;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.deprecation.DeprecatedFeatureUsage;
 import org.gradle.internal.logging.LoggingConfigurationBuildOptions;
@@ -55,7 +55,7 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
     private static final DocumentationRegistry DOCUMENTATION_REGISTRY = new DocumentationRegistry();
     private static final Logger LOGGER = LoggerFactory.getLogger(LoggingDeprecatedFeatureHandler.class);
     private static final String ELEMENT_PREFIX = "\tat ";
-    private static final String RUN_WITH_STACKTRACE_INFO = "\t(Run with --stacktrace to get the full stack trace of this deprecation warning.)";
+    private static final String RUN_WITH_STACKTRACE_INFO = "\t(Run with -D" + ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME + "=true to print the full stack trace for this deprecation warning.)";
     private static boolean traceLoggingEnabled;
 
     private final Set<String> loggedMessages = new CopyOnWriteArraySet<String>();
@@ -95,7 +95,7 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
 
     private void reportDeprecation(final DeprecatedFeatureUsage usage, final ProblemDiagnostics diagnostics) {
         InternalProblemReporter reporter = ((InternalProblems) problemsService).getInternalReporter();
-        Problem problem = reporter.create(new Action<InternalProblemSpec>() {
+        Problem problem = reporter.internalCreate(new Action<InternalProblemSpec>() {
             @Override
             public void execute(InternalProblemSpec builder) {
                 InternalProblemSpec problemSpec = builder

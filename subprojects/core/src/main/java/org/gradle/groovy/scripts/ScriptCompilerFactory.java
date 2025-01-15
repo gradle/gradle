@@ -15,9 +15,13 @@
  */
 package org.gradle.groovy.scripts;
 
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+
 /**
  * A factory for script compilers.
  */
+@ServiceScope(Scope.Build.class)
 public interface ScriptCompilerFactory {
     /**
      * Creates a compiler for the given source. The returned compiler can be used to compile the script into various

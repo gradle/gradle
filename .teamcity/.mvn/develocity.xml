@@ -16,11 +16,25 @@
 
 <develocity>
     <server>
-        <url>https://develocity.grdev.net</url>
+        <url>https://ge.gradle.org</url>
     </server>
     <buildScan>
         <publishing>
             <onlyIf>true</onlyIf>
         </publishing>
+        <values>
+            <value>
+                <name>PartOf</name>
+                <value>QuickFeedbackLinuxOnly</value>
+            </value>
+            <value>
+                <name>PartOf</name>
+                <value>QuickFeedback</value>
+            </value>
+            <value>
+                <name>PartOf</name>
+                <value>PullRequestFeedback</value>
+            </value>
+        </values>
     </buildScan>
 </develocity>

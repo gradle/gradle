@@ -21,6 +21,7 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProject
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.publish.internal.component.DefaultSoftwareComponentFactory;
 import org.gradle.api.publish.internal.mapping.DefaultDependencyCoordinateResolverFactory;
+import org.gradle.api.publish.internal.mapping.DependencyCoordinateResolverFactory;
 import org.gradle.api.publish.internal.validation.DuplicatePublicationTracker;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
@@ -32,7 +33,7 @@ public class PublishServices extends AbstractGradleModuleServices {
     public void registerBuildServices(ServiceRegistration registration) {
         registration.add(DefaultProjectDependencyPublicationResolver.class);
         registration.add(DuplicatePublicationTracker.class);
-        registration.add(DefaultDependencyCoordinateResolverFactory.class);
+        registration.add(DependencyCoordinateResolverFactory.class, DefaultDependencyCoordinateResolverFactory.class);
     }
 
     @Override

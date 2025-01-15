@@ -19,12 +19,15 @@ import groovy.lang.Closure;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.dsl.DependencyFactory;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.Map;
 
 /**
  * Internal API for dependency creation.
  */
+@ServiceScope({Scope.Build.class, Scope.Project.class})
 public interface DependencyFactoryInternal extends DependencyFactory {
     //for gradle distribution specific dependencies
     enum ClassPathNotation {

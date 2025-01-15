@@ -23,11 +23,14 @@ import org.gradle.api.artifacts.ResolvedModuleVersion;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.internal.serialize.Serializer;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.util.internal.BuildCommencedTimeProvider;
 
 import java.time.Duration;
 
+@ServiceScope(Scope.Build.class)
 public class ComponentMetadataSupplierRuleExecutor extends CrossBuildCachingRuleExecutor<ModuleVersionIdentifier, ComponentMetadataSupplierDetails, ComponentMetadata> {
     private final static Transformer<String, ModuleVersionIdentifier> KEY_TO_SNAPSHOTTABLE = Object::toString;
 

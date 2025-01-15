@@ -16,8 +16,12 @@
 
 package org.gradle.process.internal.worker.child;
 
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+
 import java.io.File;
 
+@ServiceScope(Scope.BuildSession.class)
 public interface WorkerDirectoryProvider {
     /**
      * Returns a File object representing the working directory for workers.

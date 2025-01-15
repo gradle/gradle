@@ -234,7 +234,7 @@ class ScopedServiceRegistryTest extends Specification {
 
     static class BrokenScopedServiceRegistry extends ScopedServiceRegistry {
         BrokenScopedServiceRegistry() {
-            super(Scope.Build, "broken service registry")
+            super(Scope.Build, false, "broken service registry")
         }
 
         @Provides

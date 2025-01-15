@@ -243,6 +243,8 @@ include::scala_plugin.adoc[leveloffset=+2]
 == **INTEGRATION**
 
 include::third_party_integration.adoc[leveloffset=2]
+include::tooling_api.adoc[leveloffset=2]
+include::test_reporting_api.adoc[leveloffset=2]
 
 [[part:reference]]
 == **REFERENCE**

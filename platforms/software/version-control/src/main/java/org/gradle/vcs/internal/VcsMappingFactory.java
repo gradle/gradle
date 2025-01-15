@@ -17,7 +17,10 @@
 package org.gradle.vcs.internal;
 
 import org.gradle.api.artifacts.component.ComponentSelector;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
+@ServiceScope(Scope.BuildTree.class)
 public interface VcsMappingFactory {
     VcsMappingInternal create(ComponentSelector selector);
 }

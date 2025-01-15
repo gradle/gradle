@@ -31,6 +31,8 @@ import org.gradle.internal.fingerprint.LineEndingSensitivity;
 import org.gradle.internal.fingerprint.classpath.impl.DefaultClasspathFingerprinter;
 import org.gradle.internal.fingerprint.classpath.impl.DefaultCompileClasspathFingerprinter;
 import org.gradle.internal.fingerprint.hashing.FileSystemLocationSnapshotHasher;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.Collection;
 import java.util.List;
@@ -43,6 +45,7 @@ import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static java.util.Arrays.stream;
 import static org.gradle.internal.execution.impl.FingerprinterRegistration.registration;
 
+@ServiceScope(Scope.BuildSession.class)
 public class FileCollectionFingerprinterRegistrations {
     private final Set<FingerprinterRegistration> registrants;
 

@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal;
 
-import org.gradle.api.problems.internal.DocLink;
+import org.gradle.api.problems.DocLink;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.GradleVersion;

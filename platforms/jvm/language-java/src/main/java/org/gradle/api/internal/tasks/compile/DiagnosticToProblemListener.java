@@ -25,12 +25,13 @@ import com.sun.tools.javac.util.JavacMessages;
 import com.sun.tools.javac.util.Log;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.api.problems.Problem;
+import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.ProblemSpec;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblemReporter;
-import org.gradle.api.problems.internal.Problem;
 
 import javax.tools.Diagnostic;
 import javax.tools.DiagnosticListener;
@@ -81,8 +82,13 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
                 break;
         }
 
-        Problem reportedProblem = problemReporter.create(spec -> buildProblem(diagnostic, spec));
+        Problem reportedProblem = problemReporter.create(id(diagnostic), spec -> buildProblem(diagnostic, spec));
         problemsReported.add(reportedProblem);
+    }
+
+    private static ProblemId id(Diagnostic<? extends JavaFileObject> diagnostic) {
+        String idName = diagnostic.getCode().replace('.', '-');
+        return ProblemId.create(idName, mapKindToDisplayName(diagnostic.getKind()), GradleCoreProblemGroup.compilation().java());
     }
 
     /**
@@ -155,18 +161,12 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
     void buildProblem(Diagnostic<? extends JavaFileObject> diagnostic, ProblemSpec spec) {
         Severity severity = mapKindToSeverity(diagnostic.getKind());
         spec.severity(severity);
-        addId(spec, diagnostic);
         addFormattedMessage(spec, diagnostic);
         addDetails(spec, diagnostic);
         addLocations(spec, diagnostic);
         if (severity == Severity.ERROR) {
             spec.solution(CompilationFailedException.RESOLUTION_MESSAGE);
         }
-    }
-
-    private static void addId(ProblemSpec spec, Diagnostic<? extends JavaFileObject> diagnostic) {
-        String idName = diagnostic.getCode().replace('.', '-');
-        spec.id(idName, mapKindToDisplayName(diagnostic.getKind()), GradleCoreProblemGroup.compilation().java());
     }
 
     private void addFormattedMessage(ProblemSpec spec, Diagnostic<? extends JavaFileObject> diagnostic) {

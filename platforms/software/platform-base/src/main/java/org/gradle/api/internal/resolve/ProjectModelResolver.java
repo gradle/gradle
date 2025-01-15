@@ -16,11 +16,14 @@
 package org.gradle.api.internal.resolve;
 
 import org.gradle.api.UnknownProjectException;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.model.internal.registry.ModelRegistry;
 
 /**
  * Locates another project within the multi-project build, and provides access to its model registry in a usable state.
  */
+@ServiceScope(Scope.Build.class)
 public interface ProjectModelResolver {
     ModelRegistry resolveProjectModel(String path) throws UnknownProjectException;
 }

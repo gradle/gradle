@@ -19,8 +19,11 @@ package org.gradle.api.internal.plugins;
 import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.api.Plugin;
 import org.gradle.internal.Cast;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 
+@ServiceScope(Scope.Build.class)
 @ThreadSafe
 public class PluginInspector {
 

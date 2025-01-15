@@ -16,9 +16,7 @@
 
 package org.gradle.internal.component.model;
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedVariantResult;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
@@ -76,12 +74,6 @@ public abstract class AbstractComponentGraphResolveState<T extends ComponentGrap
 
     protected AttributeDesugaring getAttributeDesugaring() {
         return attributeDesugaring;
-    }
-
-    @Nullable
-    @Override
-    public ComponentGraphResolveState maybeAsLenientPlatform(ModuleComponentIdentifier componentIdentifier, ModuleVersionIdentifier moduleVersionIdentifier) {
-        return null;
     }
 
     @Override

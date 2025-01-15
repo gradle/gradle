@@ -34,7 +34,7 @@ import java.io.File;
 import java.net.URI;
 import java.util.Map;
 
-@ServiceScope(Scope.Build.class)
+@ServiceScope({Scope.Build.class, Scope.Project.class})
 public interface FileOperations {
     File file(Object path);
 

@@ -1,6 +1,14 @@
 <meta property="og:image" content="" />
-<meta property="og:type"  content="website" />
-<meta property="og:title" content="" />
+<meta property="og:type"  content="article" />
+<meta property="og:title" content="Gradle X Release Notes" />
+<meta property="og:site_name" content="Gradle Release Notes">
+<meta property="og:description" content="TBD">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@gradle">
+<meta name="twitter:creator" content="@gradle">
+<meta name="twitter:title" content="Gradle X Release Notes">
+<meta name="twitter:description" content="TBD">
+<meta name="twitter:image" content="">
 
 The Gradle team is excited to announce Gradle @version@.
 

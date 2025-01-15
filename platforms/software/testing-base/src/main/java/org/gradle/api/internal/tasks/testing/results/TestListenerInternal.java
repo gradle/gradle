@@ -19,13 +19,16 @@ package org.gradle.api.internal.tasks.testing.results;
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
+import org.gradle.api.tasks.testing.TestMetadataEvent;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.internal.service.scopes.EventScope;
 import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.StatefulListener;
 
 @UsedByScanPlugin
+@StatefulListener
 @EventScope(Scope.Build.class)
 public interface TestListenerInternal {
     void started(TestDescriptorInternal testDescriptor, TestStartEvent startEvent);
@@ -33,4 +36,6 @@ public interface TestListenerInternal {
     void completed(TestDescriptorInternal testDescriptor, TestResult testResult, TestCompleteEvent completeEvent);
 
     void output(TestDescriptorInternal testDescriptor, TestOutputEvent event);
+
+    void metadata(TestDescriptorInternal testDescriptor, TestMetadataEvent event);
 }

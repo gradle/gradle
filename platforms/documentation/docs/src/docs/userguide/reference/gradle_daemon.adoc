@@ -251,7 +251,7 @@ This will be added in a future release.
 [[sec:tools_and_ides]]
 == Tools & IDEs
 
-The <<third_party_integration.adoc#embedding,Gradle Tooling API>> used by IDEs and other tools to integrate with Gradle _always_ uses the Gradle Daemon to execute builds.
+The <<tooling_api.adoc#embedding,Gradle Tooling API>> used by IDEs and other tools to integrate with Gradle _always_ uses the Gradle Daemon to execute builds.
 If you execute Gradle builds from within your IDE, you already use the Gradle Daemon.
 There is no need to enable it for your environment.
 

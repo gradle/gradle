@@ -18,6 +18,7 @@ package org.gradle.api.plugins.jvm;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.testing.base.TestSuiteTarget;
@@ -35,4 +36,10 @@ public interface JvmTestSuiteTarget extends TestSuiteTarget, Named {
      * @return provider to the test task
      */
     TaskProvider<Test> getTestTask();
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    DirectoryProperty getBinaryResultsDirectory();
 }

@@ -18,6 +18,8 @@ package org.gradle.workers.internal;
 
 import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.work.ConditionalExecutionQueue;
 import org.gradle.internal.work.ConditionalExecutionQueueFactory;
 
@@ -25,6 +27,7 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 @ThreadSafe
+@ServiceScope(Scope.BuildSession.class)
 public class WorkerExecutionQueueFactory implements Factory<ConditionalExecutionQueue<DefaultWorkResult>>, Stoppable {
     public static final String QUEUE_DISPLAY_NAME = "WorkerExecutor Queue";
     private final ConditionalExecutionQueueFactory conditionalExecutionQueueFactory;

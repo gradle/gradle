@@ -16,6 +16,9 @@
 
 package org.gradle.api.problems.internal;
 
+import org.gradle.api.problems.FileLocation;
+import org.gradle.api.problems.LineInFileLocation;
+
 public class DefaultLineInFileLocation extends DefaultFileLocation implements LineInFileLocation {
 
     private final int line;

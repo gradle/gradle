@@ -24,7 +24,7 @@ import org.gradle.tooling.provider.model.internal.BuildScopeToolingModelBuilderR
 public class ToolingNativeServices extends AbstractGradleModuleServices {
     @Override
     public void registerBuildServices(ServiceRegistration registration) {
-        registration.add(ToolingModelRegistration.class);
+        registration.add(BuildScopeToolingModelBuilderRegistryAction.class, ToolingModelRegistration.class);
     }
 
     public static class ToolingModelRegistration implements BuildScopeToolingModelBuilderRegistryAction {

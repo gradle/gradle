@@ -17,7 +17,10 @@
 package org.gradle.caching.http.internal;
 
 import org.apache.http.HttpRequest;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
+@ServiceScope(Scope.Build.class)
 @FunctionalInterface
 public interface HttpBuildCacheRequestCustomizer {
     void customize(HttpRequest request);

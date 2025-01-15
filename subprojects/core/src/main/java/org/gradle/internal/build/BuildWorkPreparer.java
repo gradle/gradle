@@ -19,9 +19,12 @@ package org.gradle.internal.build;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.execution.plan.ExecutionPlan;
 import org.gradle.execution.plan.FinalizedExecutionPlan;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.function.Consumer;
 
+@ServiceScope(Scope.Build.class)
 public interface BuildWorkPreparer {
     /**
      * Creates a new, empty plan.

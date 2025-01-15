@@ -18,10 +18,10 @@ package org.gradle.api.tasks.compile
 
 import org.gradle.api.JavaVersion
 import org.gradle.api.internal.tasks.compile.DiagnosticToProblemListener
+import org.gradle.api.problems.FileLocation
+import org.gradle.api.problems.LineInFileLocation
+import org.gradle.api.problems.OffsetInFileLocation
 import org.gradle.api.problems.Severity
-import org.gradle.api.problems.internal.FileLocation
-import org.gradle.api.problems.internal.LineInFileLocation
-import org.gradle.api.problems.internal.OffsetInFileLocation
 import org.gradle.api.tasks.compile.fixtures.ProblematicClassGenerator
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
@@ -526,7 +526,7 @@ ${fooFileLocation}:9: warning: [cast] redundant cast to $expectedType
     ) {
         assert problem.contextualLabel != null, "Expected contextual label to be non-null, but was null"
 
-        def locations = problem.originLocations
+        def locations = problem.originLocations + problem.contextualLocations
         // We use this counter to assert that we have visited all locations
         def assertedLocationCount = 1
 

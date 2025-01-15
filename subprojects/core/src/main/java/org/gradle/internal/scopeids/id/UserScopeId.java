@@ -17,6 +17,8 @@
 package org.gradle.internal.scopeids.id;
 
 import org.gradle.internal.id.UniqueId;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
  * A persistent ID of a user.
@@ -29,6 +31,7 @@ import org.gradle.internal.id.UniqueId;
  * If this directory is destroyed, or a build is run with a different gradle user home,
  * a new ID will be issued.
  */
+@ServiceScope(Scope.BuildSession.class)
 public final class UserScopeId extends ScopeId {
 
     public UserScopeId(UniqueId id) {

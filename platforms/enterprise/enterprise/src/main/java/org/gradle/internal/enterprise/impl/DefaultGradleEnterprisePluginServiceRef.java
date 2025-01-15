@@ -17,13 +17,13 @@
 package org.gradle.internal.enterprise.impl;
 
 import org.gradle.internal.enterprise.GradleEnterprisePluginService;
-import org.gradle.internal.enterprise.GradleEnterprisePluginServiceRef;
 
-public class DefaultGradleEnterprisePluginServiceRef implements GradleEnterprisePluginServiceRef {
+public class DefaultGradleEnterprisePluginServiceRef implements GradleEnterprisePluginServiceRefInternal {
 
     private GradleEnterprisePluginService service;
 
-    void set(GradleEnterprisePluginService service) {
+    @Override
+    public void set(GradleEnterprisePluginService service) {
         this.service = service;
     }
 

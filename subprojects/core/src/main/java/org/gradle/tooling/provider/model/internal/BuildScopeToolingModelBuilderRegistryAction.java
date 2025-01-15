@@ -16,6 +16,8 @@
 package org.gradle.tooling.provider.model.internal;
 
 import org.gradle.api.Action;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
 
 /**
@@ -23,5 +25,6 @@ import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
  *
  * @since 4.0
  */
+@ServiceScope(Scope.Build.class)
 public interface BuildScopeToolingModelBuilderRegistryAction extends Action<ToolingModelBuilderRegistry> {
 }

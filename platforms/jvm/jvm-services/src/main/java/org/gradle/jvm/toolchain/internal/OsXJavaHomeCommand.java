@@ -16,9 +16,13 @@
 
 package org.gradle.jvm.toolchain.internal;
 
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+
 import java.io.File;
 import java.util.Set;
 
+@ServiceScope(Scope.Build.class)
 public interface OsXJavaHomeCommand {
     Set<File> findJavaHomes();
 }

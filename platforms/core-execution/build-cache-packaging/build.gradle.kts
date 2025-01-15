@@ -11,10 +11,10 @@ dependencies {
     api(projects.files)
     api(projects.hashing)
     api(projects.snapshots)
+    api(projects.stdlibJavaExtensions)
 
     api(libs.guava)
 
-    implementation(projects.stdlibJavaExtensions)
     implementation(libs.commonsCompress)
     implementation(libs.commonsIo)
     implementation(libs.jsr305)

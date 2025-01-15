@@ -17,7 +17,10 @@
 package org.gradle.process.internal.worker;
 
 import org.gradle.api.Action;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
+@ServiceScope(Scope.UserHome.class)
 public interface WorkerProcessFactory {
     /**
      * Creates a builder for workers that will run the given action. The worker action is serialized to the worker process and executed.

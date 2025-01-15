@@ -18,7 +18,10 @@ package org.gradle.internal.scopeids;
 
 import org.gradle.internal.scopeids.id.UserScopeId;
 import org.gradle.internal.scopeids.id.WorkspaceScopeId;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
+@ServiceScope(Scope.BuildSession.class)
 public interface PersistentScopeIdLoader {
 
     UserScopeId getUser();

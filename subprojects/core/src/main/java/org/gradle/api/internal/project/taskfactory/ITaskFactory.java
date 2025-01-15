@@ -18,9 +18,12 @@ package org.gradle.api.internal.project.taskfactory;
 import org.gradle.api.Task;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.instantiation.InstantiationScheme;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.Nullable;
 
+@ServiceScope({Scope.Build.class, Scope.Project.class})
 public interface ITaskFactory {
     ITaskFactory createChild(ProjectInternal project, InstantiationScheme instantiationScheme);
 

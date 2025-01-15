@@ -19,6 +19,8 @@ package org.gradle.api.internal.project;
 import groovy.lang.MissingPropertyException;
 import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.internal.metaobject.DynamicObject;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.Nullable;
 import java.util.Map;
@@ -26,6 +28,7 @@ import java.util.Map;
 /**
  * Encapsulates the implementations of the common ways to interact with a {@link DynamicObject}.
  */
+@ServiceScope(Scope.Build.class)
 public interface DynamicLookupRoutine {
     @Nullable Object property(DynamicObject receiver, String propertyName) throws MissingPropertyException;
     @Nullable Object findProperty(DynamicObject receiver, String propertyName);

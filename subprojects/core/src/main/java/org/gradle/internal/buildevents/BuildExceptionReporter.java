@@ -24,8 +24,8 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
-import org.gradle.api.problems.internal.Problem;
-import org.gradle.api.problems.internal.ProblemLookup;
+import org.gradle.api.problems.Problem;
+import org.gradle.api.problems.internal.ProblemLocator;
 import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
@@ -106,12 +106,12 @@ public class BuildExceptionReporter implements Action<Throwable> {
         buildFinished(result, t -> Collections.emptyList());
     }
 
-    public void buildFinished(BuildResult result, ProblemLookup problemLookup) {
+    public void buildFinished(BuildResult result, ProblemLocator problemLocator) {
         Throwable failure = result.getFailure();
         if (failure == null) {
             return;
         }
-        execute(failure, problemLookup);
+        execute(failure, problemLocator);
     }
 
     @Override
@@ -119,15 +119,15 @@ public class BuildExceptionReporter implements Action<Throwable> {
         execute(failure, t -> Collections.emptyList());
     }
 
-    public void execute(@Nonnull Throwable failure, ProblemLookup problemLookup) {
+    public void execute(@Nonnull Throwable failure, ProblemLocator problemLocator) {
         if (failure instanceof MultipleBuildFailures) {
-            renderMultipleBuildExceptions((MultipleBuildFailures) failure, problemLookup);
+            renderMultipleBuildExceptions((MultipleBuildFailures) failure, problemLocator);
         } else {
-            renderSingleBuildException(failure, problemLookup);
+            renderSingleBuildException(failure, problemLocator);
         }
     }
 
-    private void renderMultipleBuildExceptions(MultipleBuildFailures failure, ProblemLookup problemLookup) {
+    private void renderMultipleBuildExceptions(MultipleBuildFailures failure, ProblemLocator problemLocator) {
         String message = failure.getMessage();
         List<? extends Throwable> flattenedFailures = failure.getCauses();
         StyledTextOutput output = textOutputFactory.create(BuildExceptionReporter.class, LogLevel.ERROR);
@@ -137,7 +137,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
 
         for (int i = 0; i < flattenedFailures.size(); i++) {
             Throwable cause = flattenedFailures.get(i);
-            FailureDetails details = constructFailureDetails("Task", cause, problemLookup);
+            FailureDetails details = constructFailureDetails("Task", cause, problemLocator);
 
             output.println();
             output.withStyle(Failure).format("%s: ", i + 1);
@@ -151,9 +151,9 @@ public class BuildExceptionReporter implements Action<Throwable> {
         }
     }
 
-    private void renderSingleBuildException(Throwable failure, ProblemLookup problemLookup) {
+    private void renderSingleBuildException(Throwable failure, ProblemLocator problemLocator) {
         StyledTextOutput output = textOutputFactory.create(BuildExceptionReporter.class, LogLevel.ERROR);
-        FailureDetails details = constructFailureDetails("Build", failure, problemLookup);
+        FailureDetails details = constructFailureDetails("Build", failure, problemLocator);
 
         output.println();
         output.withStyle(Failure).text("FAILURE: ");
@@ -189,14 +189,14 @@ public class BuildExceptionReporter implements Action<Throwable> {
         }
     }
 
-    private FailureDetails constructFailureDetails(String granularity, Throwable failure, ProblemLookup problemLookup) {
+    private FailureDetails constructFailureDetails(String granularity, Throwable failure, ProblemLocator problemLocator) {
         FailureDetails details = new FailureDetails(failure, getShowStackTraceOption());
         details.summary.format("%s failed with an exception.", granularity);
 
-        fillInFailureResolution(details, problemLookup);
+        fillInFailureResolution(details, problemLocator);
 
         if (failure instanceof ContextAwareException) {
-            ((ContextAwareException) failure).accept(new ExceptionFormattingVisitor(details, problemLookup));
+            ((ContextAwareException) failure).accept(new ExceptionFormattingVisitor(details, problemLocator));
         } else {
             details.appendDetails();
         }
@@ -206,15 +206,15 @@ public class BuildExceptionReporter implements Action<Throwable> {
 
     private static class ExceptionFormattingVisitor extends ExceptionContextVisitor {
         private final FailureDetails failureDetails;
-        private final ProblemLookup problemLookup;
+        private final ProblemLocator problemLocator;
 
         private final Set<Throwable> printedNodes = new HashSet<>();
         private int depth;
         private int suppressedDuplicateBranchCount;
 
-        private ExceptionFormattingVisitor(FailureDetails failureDetails, ProblemLookup problemLookup) {
+        private ExceptionFormattingVisitor(FailureDetails failureDetails, ProblemLocator problemLocator) {
             this.failureDetails = failureDetails;
-            this.problemLookup = problemLookup;
+            this.problemLocator = problemLocator;
         }
 
         @Override
@@ -232,9 +232,9 @@ public class BuildExceptionReporter implements Action<Throwable> {
         public void node(Throwable node) {
             if (shouldBePrinted(node)) {
                 printedNodes.add(node);
-                if (null == node.getCause() || isUsefulMessage(getMessage(node, problemLookup))) {
+                if (null == node.getCause() || isUsefulMessage(getMessage(node, problemLocator))) {
                     LinePrefixingStyledTextOutput output = getLinePrefixingStyledTextOutput(failureDetails);
-                    renderStyledError(node, output, problemLookup);
+                    renderStyledError(node, output, problemLocator);
                 }
             } else {
                 // Only increment the suppressed branch count for the ultimate cause of the failure, which has no cause itself
@@ -317,18 +317,18 @@ public class BuildExceptionReporter implements Action<Throwable> {
         }
     }
 
-    private void fillInFailureResolution(FailureDetails details, ProblemLookup problemLookup) {
+    private void fillInFailureResolution(FailureDetails details, ProblemLocator problemLocator) {
         ContextImpl context = new ContextImpl(details.resolution);
         if (details.failure instanceof FailureResolutionAware) {
             ((FailureResolutionAware) details.failure).appendResolutions(context);
         }
-        getResolutions(details.failure, problemLookup).stream()
+        getResolutions(details.failure, problemLocator).stream()
             .distinct()
             .forEach(resolution ->
                 context.appendResolution(output ->
                     output.text(join("\n " + LINE_PREFIX_LENGTH_SPACES, resolution.split("\n"))))
             );
-        boolean shouldDisplayGenericResolutions = !hasCauseAncestry(details.failure, NonGradleCause.class) && !hasProblemReportsWithSolutions(details.failure, problemLookup);
+        boolean shouldDisplayGenericResolutions = !hasCauseAncestry(details.failure, NonGradleCause.class) && !hasProblemReportsWithSolutions(details.failure, problemLocator);
         if (details.exceptionStyle == ExceptionStyle.NONE && shouldDisplayGenericResolutions) {
             context.appendResolution(output ->
                 runWithOption(output, STACKTRACE_LONG_OPTION, " option to get the stack trace.")
@@ -358,7 +358,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
         }
     }
 
-    private static boolean hasProblemReportsWithSolutions(Throwable throwable, ProblemLookup problemLookup) {
+    private static boolean hasProblemReportsWithSolutions(Throwable throwable, ProblemLocator problemLookup) {
         Optional<String> solution = problemLookup.findAll(throwable).stream().flatMap(p -> p.getSolutions().stream()).findFirst();
         if (solution.isPresent()) {
             return true;
@@ -367,7 +367,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
         }
     }
 
-    private static boolean hasProblemReportsWithSolutions(List<? extends Throwable> throwables, ProblemLookup problemLookup) {
+    private static boolean hasProblemReportsWithSolutions(List<? extends Throwable> throwables, ProblemLocator problemLookup) {
         return throwables.stream().anyMatch(t -> hasProblemReportsWithSolutions(t, problemLookup));
     }
 
@@ -377,20 +377,20 @@ public class BuildExceptionReporter implements Action<Throwable> {
         output.text(text);
     }
 
-    private static List<String> getResolutions(Throwable throwable, ProblemLookup problemLookup) {
+    private static List<String> getResolutions(Throwable throwable, ProblemLocator problemLocator) {
         ImmutableList.Builder<String> resolutions = ImmutableList.builder();
 
         if (throwable instanceof ResolutionProvider) {
             resolutions.addAll(((ResolutionProvider) throwable).getResolutions());
         }
 
-        Collection<Problem> all = problemLookup.findAll(throwable);
+        Collection<Problem> all = problemLocator.findAll(throwable);
         for (Problem problem : all) {
             resolutions.addAll(problem.getSolutions());
         }
 
         for (Throwable cause : getCauses(throwable)) {
-            resolutions.addAll(getResolutions(cause, problemLookup));
+            resolutions.addAll(getResolutions(cause, problemLocator));
         }
 
         return resolutions.build();
@@ -418,11 +418,11 @@ public class BuildExceptionReporter implements Action<Throwable> {
         resolution.text(".");
     }
 
-    private static String getMessage(Throwable throwable, ProblemLookup problemLookup) {
+    private static String getMessage(Throwable throwable, ProblemLocator problemLocator) {
         try {
             String msg = throwable instanceof CompilationFailedIndicator ? ((CompilationFailedIndicator) throwable).getShortMessage() : throwable.getMessage();
             StringBuilder builder = new StringBuilder(msg == null ? "" : msg);
-            Collection<Problem> problems = problemLookup.findAll(throwable);
+            Collection<Problem> problems = problemLocator.findAll(throwable);
             if (!problems.isEmpty()) {
                 builder.append(System.lineSeparator());
                 StringWriter problemWriter = new StringWriter();
@@ -495,11 +495,11 @@ public class BuildExceptionReporter implements Action<Throwable> {
         }
     }
 
-    static void renderStyledError(Throwable failure, StyledTextOutput details, ProblemLookup problemLookup) {
+    static void renderStyledError(Throwable failure, StyledTextOutput details, ProblemLocator problemLocator) {
         if (failure instanceof StyledException) {
             ((StyledException) failure).render(details);
         } else {
-            details.text(getMessage(failure, problemLookup));
+            details.text(getMessage(failure, problemLocator));
         }
     }
 

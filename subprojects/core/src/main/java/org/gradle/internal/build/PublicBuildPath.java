@@ -17,6 +17,8 @@
 package org.gradle.internal.build;
 
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.Path;
 
 /**
@@ -24,6 +26,7 @@ import org.gradle.util.Path;
  *
  * Usages of {@link GradleInternal#getIdentityPath()} should be migrated to this type, to avoid unnecessary penetration of GradleInternal.
  */
+@ServiceScope(Scope.Build.class)
 public interface PublicBuildPath {
 
     /**

@@ -22,10 +22,13 @@ import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.List;
 import java.util.Map;
 
+@ServiceScope(Scope.Build.class)
 public interface DependenciesAccessors {
     void generateAccessors(List<VersionCatalogBuilder> builders, ClassLoaderScope classLoaderScope, Settings settings);
     void createExtensions(ProjectInternal project);

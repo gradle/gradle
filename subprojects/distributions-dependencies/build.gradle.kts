@@ -20,7 +20,7 @@ val antVersion = "1.10.15"
 // subprojects/base-services/src/main/java/org/gradle/internal/classanalysis/AsmConstants.java
 // when upgrading ASM.
 val asmVersion = "9.7"
-val awsS3Version = "1.12.651"
+val awsS3Version = "1.12.780"
 val bouncycastleVersion = "1.78.1"
 val jacksonVersion = "2.16.1"
 val jaxbVersion = "3.0.0"
@@ -180,6 +180,7 @@ dependencies {
         api(libs.bytebuddyAgent)        { version { strictly(bytebuddyVersion) }}
         api(libs.cglib)                 { version { strictly("3.2.6") }}
         api(libs.compileTesting)        { version { strictly("0.21.0")}}
+        api(libs.dockerJavaApi)         { version { strictly("3.4.0")}}
         api(libs.equalsverifier)        { version { strictly("2.1.6") }}
         api(libs.guice)                 { version { strictly("5.1.0") }}
         api(libs.httpmime)              { version { strictly("4.5.10") }}
@@ -221,8 +222,8 @@ dependencies {
         api(libs.sshdOsgi)              { version { rejectAll(); because("It contains sshd-core and sshd-common classes") }}
         api(libs.sshdScp)               { version { strictly(sshdVersion) }}
         api(libs.sshdSftp)              { version { strictly(sshdVersion) }}
-        api(libs.testcontainers)        { version { strictly("1.12.5") }}
-        api(libs.testcontainersSpock)   { version { strictly("1.12.5") }}
+        api(libs.testcontainers)        { version { strictly("1.20.4") }}
+        api(libs.testcontainersSpock)   { version { strictly("1.20.4") }}
         api(libs.typesafeConfig)        { version { strictly("1.3.3") }}
         api(libs.xerces)                { version { strictly("2.12.0") }}
         api(libs.xmlunit)               { version { strictly("1.6") }}

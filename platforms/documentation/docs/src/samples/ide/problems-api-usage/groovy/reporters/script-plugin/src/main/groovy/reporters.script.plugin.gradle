@@ -1,3 +1,5 @@
+import org.gradle.api.problems.ProblemGroup
+import org.gradle.api.problems.ProblemId
 import org.gradle.api.problems.Problems
 import org.gradle.api.problems.Severity
 
@@ -6,19 +8,18 @@ interface Injected {
 }
 
 def problems = project.objects.newInstance(Injected).getProblems()
+def problemGroup = ProblemGroup.create("root", "Root Group")
 
-problems.getReporter().reporting {
-    it.id('adhoc-script-deprecation', 'Deprecated script plugin')
-        .contextualLabel("Deprecated script plugin 'demo-script-plugin'")
+problems.getReporter().report(ProblemId.create('adhoc-script-deprecation', 'Deprecated script plugin', problemGroup)) {
+    it.contextualLabel("Deprecated script plugin 'demo-script-plugin'")
         .severity(Severity.WARNING)
         .solution("Please use 'standard-plugin-2' instead of this plugin")
 }
 
 tasks.register('warningTask') {
     doLast {
-        problems.getReporter().reporting {
-            it.id('adhoc-task-deprecation', 'Deprecated task')
-                .contextualLabel("Task 'warningTask' is deprecated")
+        problems.getReporter().report(ProblemId.create('adhoc-task-deprecation', 'Deprecated task', problemGroup)) {
+            it.contextualLabel("Task 'warningTask' is deprecated")
                 .severity(Severity.WARNING)
                 .solution("Please use 'warningTask2' instead of this task")
         }
@@ -27,11 +28,9 @@ tasks.register('warningTask') {
 
 tasks.register('failingTask') {
     doLast {
-        problems.getReporter().throwing {
-            it.id('broken-task', 'Task should not be called')
-                .contextualLabel("Task 'failingTask' should not be called")
+        problems.getReporter().throwing(new RuntimeException("The 'failingTask' should not be called"), ProblemId.create('broken-task', 'Task should not be called', problemGroup)) {
+            it.contextualLabel("Task 'failingTask' should not be called")
                 .severity(Severity.ERROR)
-                .withException(new RuntimeException("The 'failingTask' should not be called"))
                 .solution("Please use 'successfulTask' instead of this task")
         }
     }

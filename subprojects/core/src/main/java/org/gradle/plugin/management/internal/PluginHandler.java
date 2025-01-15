@@ -17,6 +17,8 @@
 package org.gradle.plugin.management.internal;
 
 import org.gradle.api.initialization.Settings;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.plugin.management.internal.argumentloaded.ArgumentSourcedPluginHandler;
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginHandler;
 
@@ -24,6 +26,7 @@ import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginHandler;
  * Combines the functionality of {@link AutoAppliedPluginHandler} and {@link ArgumentSourcedPluginHandler}
  * and provides a single mechanism for consolidating all explicit and implicit plugin requests.
  */
+@ServiceScope(Scope.Build.class)
 public interface PluginHandler extends AutoAppliedPluginHandler, ArgumentSourcedPluginHandler {
     /**
      * Returns all plugin requests that should be applied to the given target, including

@@ -132,4 +132,8 @@ public class DefaultImmutableVersionConstraint extends AbstractVersionConstraint
     public static ImmutableVersionConstraint of() {
         return EMPTY;
     }
+
+    public static ImmutableVersionConstraint strictly(String version) {
+        return new DefaultImmutableVersionConstraint("", version, version, ImmutableList.of(), null);
+    }
 }

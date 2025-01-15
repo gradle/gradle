@@ -15,6 +15,10 @@
  */
 package org.gradle.nativeplatform.internal.resolve;
 
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+
+@ServiceScope(Scope.Build.class)
 public interface NativeDependencyResolver {
     void resolve(NativeBinaryResolveResult resolution);
 }

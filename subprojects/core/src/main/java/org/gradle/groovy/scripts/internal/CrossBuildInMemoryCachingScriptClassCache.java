@@ -24,7 +24,10 @@ import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Cast;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
+@ServiceScope(Scope.UserHome.class)
 public class CrossBuildInMemoryCachingScriptClassCache {
     private final CrossBuildInMemoryCache<ScriptCacheKey, CachedCompiledScript> cachedCompiledScripts;
 

@@ -19,13 +19,15 @@ plugins {
 }
 
 dependencies {
-    api(projects.serviceProvider)
     api(projects.core)
     api(projects.coreApi)
     api(projects.declarativeDslApi)
     api(projects.declarativeDslCore)
     api(projects.declarativeDslEvaluator)
     api(projects.declarativeDslToolingModels)
+    api(projects.serviceProvider)
+    api(projects.stdlibJavaExtensions)
+
     api(libs.kotlinStdlib)
     api(libs.inject)
 
@@ -35,7 +37,6 @@ dependencies {
     implementation(projects.messaging)
     implementation(projects.resources)
     implementation(projects.serviceLookup)
-    implementation(projects.stdlibJavaExtensions)
     implementation(libs.guava)
     implementation(libs.kotlinReflect)
 

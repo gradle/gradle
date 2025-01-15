@@ -408,7 +408,7 @@ trait SoftwareTypeFixture {
                     System.out.println("Applying " + getClass().getSimpleName());
                     ${implementationTypeClassName} extension = getTestSoftwareTypeExtension();
 
-                    ${conventions}
+                    ${conventions == null ? "" : conventions}
                     target.getTasks().register("print${implementationTypeClassName}Configuration", DefaultTask.class, task -> {
                         task.doLast("print restricted extension content", t -> {
                             System.out.println(extension);
@@ -421,12 +421,12 @@ trait SoftwareTypeFixture {
 
     static String getProjectPluginThatRegistersItsOwnExtension(
         boolean shouldRegisterExtension = true,
-        String extension = "extension"
+        String extension = "extension",
+        String conventions = testSoftwareTypeExtensionConventions
     ) {
         String implementationTypeClassName = "TestSoftwareTypeExtension"
         String softwareTypePluginClassName = "SoftwareTypeImplPlugin"
         String softwareType = "testSoftwareType"
-        String conventions = testSoftwareTypeExtensionConventions
         String extensionRegistration = shouldRegisterExtension ? """target.getExtensions().add("${softwareType}", ${extension});""" : ""
         return """
             package org.gradle.test;
@@ -453,7 +453,7 @@ trait SoftwareTypeFixture {
                     ${implementationTypeClassName} extension = getTestSoftwareTypeExtension();
                     ${extensionRegistration}
 
-                    ${conventions}
+                    ${conventions == null ? "" : conventions}
                     target.getTasks().register("print${implementationTypeClassName}Configuration", DefaultTask.class, task -> {
                         task.doLast("print restricted extension content", t -> {
                             System.out.println(extension);

@@ -281,7 +281,16 @@ class DefaultProjectSpec extends Specification {
             @Provides
             DefaultProjectLayout createProjectLayout(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory) {
                 def filePropertyFactory = new DefaultFilePropertyFactory(PropertyHost.NO_OP, fileResolver, fileCollectionFactory)
-                return new DefaultProjectLayout(fileResolver.resolve("."), fileResolver, DefaultTaskDependencyFactory.withNoAssociatedProject(), PatternSets.getNonCachingPatternSetFactory(), PropertyHost.NO_OP, fileCollectionFactory, filePropertyFactory, filePropertyFactory)
+                return new DefaultProjectLayout(
+                    fileResolver.resolve("."),
+                    fileResolver.resolve("."),
+                    fileResolver,
+                    DefaultTaskDependencyFactory.withNoAssociatedProject(),
+                    PatternSets.getNonCachingPatternSetFactory(),
+                    PropertyHost.NO_OP,
+                    fileCollectionFactory,
+                    filePropertyFactory,
+                    filePropertyFactory)
             }
         })
 
@@ -303,7 +312,7 @@ class DefaultProjectSpec extends Specification {
         }
 
         def scriptResolution = Stub(ProjectScopedScriptResolution) {
-            resolveScriptsForProject(_, _, _, _) >> { identityPath, buildPath, projectPath, action -> action.get() }
+            resolveScriptsForProject(_, _) >> { project, action -> action.get() }
         }
 
         def instantiator = TestUtil.instantiatorFactory().decorateLenient(serviceRegistry)

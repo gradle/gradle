@@ -26,11 +26,14 @@ import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.serialize.Serializer;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.util.internal.BuildCommencedTimeProvider;
 
 import java.time.Duration;
 
+@ServiceScope(Scope.Build.class)
 public class ComponentMetadataRuleExecutor extends CrossBuildCachingRuleExecutor<ModuleComponentResolveMetadata, ComponentMetadataContext, ModuleComponentResolveMetadata> {
 
     private static final String CACHE_ID = "md-rule";

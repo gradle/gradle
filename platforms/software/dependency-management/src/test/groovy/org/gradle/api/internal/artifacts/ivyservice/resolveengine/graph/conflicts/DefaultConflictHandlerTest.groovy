@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts
 
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
-import org.gradle.api.internal.artifacts.dsl.ModuleReplacementsData
+import org.gradle.api.internal.artifacts.dsl.ImmutableModuleReplacements
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ConflictResolverDetails
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleConflictResolver
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ComponentState
@@ -29,7 +29,7 @@ import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.n
 class DefaultConflictHandlerTest extends Specification {
 
     def resolver = Mock(ModuleConflictResolver)
-    def replacements = Mock(ModuleReplacementsData)
+    def replacements = Mock(ImmutableModuleReplacements)
     @Subject handler = new DefaultConflictHandler(resolver, replacements)
     def details = Mock(ConflictResolverDetails)
 
@@ -61,7 +61,7 @@ class DefaultConflictHandlerTest extends Specification {
         def a = candidate("org", "a", "1", "2")
         def b = candidate("org", "b", "1")
 
-        replacements.getReplacementFor(DefaultModuleIdentifier.newId("org", "a")) >> new ModuleReplacementsData.Replacement(DefaultModuleIdentifier.newId("org", "b"), null)
+        replacements.getReplacementFor(DefaultModuleIdentifier.newId("org", "a")) >> new ImmutableModuleReplacements.Replacement(DefaultModuleIdentifier.newId("org", "b"), null)
 
         when:
         def aX = handler.registerCandidate(a)

@@ -17,11 +17,14 @@
 package org.gradle.internal.execution;
 
 import org.gradle.api.file.FileCollection;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 
 /**
  * Service for snapshotting {@link FileCollection}s.
  */
+@ServiceScope({Scope.UserHome.class, Scope.BuildSession.class})
 public interface FileCollectionSnapshotter {
     interface Result {
         FileSystemSnapshot getSnapshot();

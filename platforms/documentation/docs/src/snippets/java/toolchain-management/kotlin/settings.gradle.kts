@@ -1,5 +1,5 @@
 plugins {
-    id("org.gradle.toolchains.foojay-resolver") version("0.8.0")
+    id("org.gradle.toolchains.foojay-resolver").version("0.9.0")
 }
 
 import org.gradle.api.Plugin

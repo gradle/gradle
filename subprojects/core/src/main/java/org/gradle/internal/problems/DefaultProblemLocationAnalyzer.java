@@ -26,6 +26,8 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.problems.failure.Failure;
 import org.gradle.internal.problems.failure.InternalStackTraceClassifier;
 import org.gradle.internal.problems.failure.StackFramePredicate;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.problems.Location;
 
 import javax.annotation.Nullable;
@@ -37,6 +39,7 @@ import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+@ServiceScope(Scope.BuildTree.class)
 public class DefaultProblemLocationAnalyzer implements ProblemLocationAnalyzer, ClassLoaderScopeRegistryListener, Closeable {
 
     private static final StackFramePredicate GRADLE_CODE = (frame, relevance) -> InternalStackTraceClassifier.isGradleCall(frame.getClassName());

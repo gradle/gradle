@@ -25,6 +25,8 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.internal.GroovyScriptClassCompiler.GroovyScriptCompilationAndInstrumentation.GroovyScriptCompilationOutput;
 import org.gradle.internal.Pair;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.model.internal.asm.AsmConstants;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.classpath.ClassData;
@@ -69,6 +71,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * A {@link ScriptClassCompiler} which compiles scripts to a cache directory, and loads them from there.
  */
+@ServiceScope(Scope.Build.class)
 public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable {
     private static final Object[] EMPTY_OBJECT_ARRAY = new Object[0];
     private static final String CLASSPATH_PROPERTY_NAME = "classpath";

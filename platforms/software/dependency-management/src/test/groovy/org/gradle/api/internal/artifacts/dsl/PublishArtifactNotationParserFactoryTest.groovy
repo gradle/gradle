@@ -255,7 +255,7 @@ class PublishArtifactNotationParserFactoryTest extends Specification {
 
         then:
         def e = thrown(UnsupportedNotationException)
-        e.message.startsWith("Cannot convert the provided notation to a File or URI: broken.")
+        e.message.startsWith("Cannot convert the provided notation to a File: broken.")
     }
 
     def createArtifactFromFileInMap() {

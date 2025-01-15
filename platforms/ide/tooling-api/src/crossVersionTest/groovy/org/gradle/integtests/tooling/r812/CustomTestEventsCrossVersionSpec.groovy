@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.tooling.r812
 
-
 import org.gradle.integtests.tooling.TestEventsFixture
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
@@ -27,7 +26,7 @@ import org.gradle.tooling.events.OperationType
 
 // Proper test display names were implemented in Gradle 8.8
 @ToolingApiVersion(">=8.8")
-@TargetGradleVersion(">=8.12")
+@TargetGradleVersion(">=8.13")
 class CustomTestEventsCrossVersionSpec extends ToolingApiSpecification implements TestEventsFixture {
     ProgressEvents events = ProgressEvents.create()
 
@@ -45,9 +44,16 @@ class CustomTestEventsCrossVersionSpec extends ToolingApiSpecification implement
                 @Inject
                 abstract TestEventReporterFactory getTestEventReporterFactory()
 
+                @Inject
+                abstract ProjectLayout getLayout()
+
                 @TaskAction
                 void runTests() {
-                    try (def reporter = getTestEventReporterFactory().createTestEventReporter("Custom test root")) {
+                    try (def reporter = testEventReporterFactory.createTestEventReporter(
+                        "Custom test root",
+                        getLayout().getBuildDirectory().dir("test-results/Custom test root").get(),
+                        getLayout().getBuildDirectory().dir("reports/tests/Custom test root").get()
+                    )) {
                         reporter.started(Instant.now())
                         try (def myTest = reporter.reportTest("MyTestInternal", "My test!")) {
                             myTest.started(Instant.now())
@@ -93,9 +99,16 @@ class CustomTestEventsCrossVersionSpec extends ToolingApiSpecification implement
                 @Inject
                 abstract TestEventReporterFactory getTestEventReporterFactory()
 
+                @Inject
+                abstract ProjectLayout getLayout()
+
                 @TaskAction
                 void runTests() {
-                    try (def reporter = getTestEventReporterFactory().createTestEventReporter("Custom test root")) {
+                    try (def reporter = testEventReporterFactory.createTestEventReporter(
+                        "Custom test root",
+                        getLayout().getBuildDirectory().dir("test-results/Custom test root").get(),
+                        getLayout().getBuildDirectory().dir("reports/tests/Custom test root").get()
+                    )) {
                         reporter.started(Instant.now())
                         try (def mySuite = reporter.reportTestGroup("My Suite")) {
                             mySuite.started(Instant.now())
@@ -147,9 +160,16 @@ class CustomTestEventsCrossVersionSpec extends ToolingApiSpecification implement
                 @Inject
                 abstract TestEventReporterFactory getTestEventReporterFactory()
 
+                @Inject
+                abstract ProjectLayout getLayout()
+
                 @TaskAction
                 void runTests() {
-                    try (def reporter = getTestEventReporterFactory().createTestEventReporter("Custom test root")) {
+                    try (def reporter = testEventReporterFactory.createTestEventReporter(
+                        "Custom test root",
+                        getLayout().getBuildDirectory().dir("test-results/Custom test root").get(),
+                        getLayout().getBuildDirectory().dir("reports/tests/Custom test root").get()
+                    )) {
                         reporter.started(Instant.now())
                         try (def mySuite = reporter.reportTestGroup("My Suite")) {
                             mySuite.started(Instant.now())

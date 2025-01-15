@@ -16,10 +16,13 @@
 
 package org.gradle.plugin.use.resolve.service.internal;
 
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.plugin.use.resolve.internal.PluginResolver;
 
 import java.util.Collection;
 
+@ServiceScope(Scope.Build.class)
 public interface ClientInjectedClasspathPluginResolver {
     ClientInjectedClasspathPluginResolver EMPTY = dest -> { };
 

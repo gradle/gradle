@@ -12,7 +12,6 @@ errorprone {
 }
 
 dependencies {
-    api(projects.serviceProvider)
     api(projects.baseServices)
     api(projects.core)
     api(projects.coreApi)
@@ -22,13 +21,14 @@ dependencies {
     api(projects.logging)
     api(projects.loggingApi)
     api(projects.modelCore)
+    api(projects.serviceProvider)
+    api(projects.stdlibJavaExtensions)
 
     api(libs.groovy)
     api(libs.inject)
     api(libs.jsr305)
 
     implementation(projects.serviceLookup)
-    implementation(projects.stdlibJavaExtensions)
     implementation(projects.baseServicesGroovy) {
         because("Required for Specs")
     }

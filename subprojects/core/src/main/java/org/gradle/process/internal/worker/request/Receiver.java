@@ -17,7 +17,8 @@
 package org.gradle.process.internal.worker.request;
 
 import org.gradle.api.NonNullApi;
-import org.gradle.api.problems.internal.Problem;
+import org.gradle.api.problems.Problem;
+import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.api.problems.internal.ProblemTaskPathTracker;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.dispatch.StreamCompletion;
@@ -126,7 +127,7 @@ public class Receiver implements ResponseProtocol, StreamCompletion, StreamFailu
 
     @Override
     public void reportProblem(Problem problem, OperationIdentifier id) {
-        problem = this.taskPath == null ? problem : problem.toBuilder(null).taskPathLocation(this.taskPath).build();
+        problem = this.taskPath == null ? problem : ((InternalProblem) problem).toBuilder(null).taskPathLocation(this.taskPath).build();
         problemProtocol.reportProblem(problem, id);
     }
 

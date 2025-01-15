@@ -24,7 +24,7 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val groovyGroup = if (isBundleGroovy4) "org.apache.groovy" else "org.codehaus.groovy"
 
     val configurationCacheReportVersion = "1.23"
-    val gradleIdeStarterVersion = "0.3"
+    val gradleIdeStarterVersion = "0.5"
     val kotlinVersion = "2.0.21"
 
     fun futureKotlin(module: String) = "org.jetbrains.kotlin:kotlin-$module:$kotlinVersion"
@@ -175,6 +175,7 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val bytebuddyAgent = "net.bytebuddy:byte-buddy-agent"
     val cglib = "cglib:cglib"
     val compileTesting = "com.google.testing.compile:compile-testing"
+    val dockerJavaApi = "com.github.docker-java:docker-java-api"
     val equalsverifier = "nl.jqno.equalsverifier:equalsverifier"
     val hikariCP = "com.zaxxer:HikariCP"
     val guice = "com.google.inject:guice"

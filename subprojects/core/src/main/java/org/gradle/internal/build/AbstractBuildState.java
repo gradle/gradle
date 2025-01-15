@@ -54,7 +54,7 @@ public abstract class AbstractBuildState implements BuildState, Closeable {
     private CloseableServiceRegistry prepareServices(BuildTreeState buildTree, BuildDefinition buildDefinition, BuildModelControllerServices.Supplier supplier) {
         return ServiceRegistryBuilder.builder()
             .displayName("Build-scoped services")
-            .scope(Scope.Build.class)
+            .scopeStrictly(Scope.Build.class)
             .parent(buildTree.getServices())
             .provider(prepareServicesProvider(buildDefinition, supplier))
             .build();

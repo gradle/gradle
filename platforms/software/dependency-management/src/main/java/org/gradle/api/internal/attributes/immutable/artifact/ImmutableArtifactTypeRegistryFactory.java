@@ -22,11 +22,14 @@ import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.model.InMemoryCacheFactory;
 import org.gradle.internal.model.InMemoryInterner;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
  * Creates and interns {@link ImmutableArtifactTypeRegistry} instances
  * from {@link ArtifactTypeRegistry} instances.
  */
+@ServiceScope(Scope.BuildSession.class)
 public class ImmutableArtifactTypeRegistryFactory {
 
     private final AttributesFactory attributesFactory;

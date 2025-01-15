@@ -38,6 +38,7 @@ interface DeferredRootBuildGradle {
 }
 
 
+@ServiceScope(Scope.BuildTree::class)
 internal
 class DefaultDeferredRootBuildGradle : DeferredRootBuildGradle {
 
