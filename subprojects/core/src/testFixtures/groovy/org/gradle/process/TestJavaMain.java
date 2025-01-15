@@ -42,6 +42,8 @@ public class TestJavaMain {
 
         System.out.println("PROPERTIES:");
         printMap(System.getProperties(), "test.");
+
+        System.out.println("user.dir=" + System.getProperty("user.dir"));
     }
 
     private static void printMap(Map<?, ?> items, String prefix) {
