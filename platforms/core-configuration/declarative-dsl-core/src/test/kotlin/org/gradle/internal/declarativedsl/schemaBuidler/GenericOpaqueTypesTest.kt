@@ -34,8 +34,8 @@ import org.junit.jupiter.api.assertThrows
 class GenericOpaqueTypesTest {
     @Test
     fun `imports generic type parameters and their usages`() {
-        val idFun = schemaWithList.typeFor<Schema>().singleFunctionNamed("id").function
-        with(SchemaTypeRefContext(schemaWithList)) {
+        val idFun = schemaWithCollections.typeFor<Schema>().singleFunctionNamed("id").function
+        with(SchemaTypeRefContext(schemaWithCollections)) {
             val returnValue = resolveRef(idFun.semantics.returnValueType)
             assertIs<DataType.TypeVariableUsage>(returnValue)
             val parameterType = resolveRef(idFun.parameters.single().type)
@@ -45,8 +45,8 @@ class GenericOpaqueTypesTest {
 
     @Test
     fun `correctly imports a list return type`() {
-        val myListOfFun = schemaWithList.typeFor<Schema>().singleFunctionNamed("myListOf").function
-        with(SchemaTypeRefContext(schemaWithList)) {
+        val myListOfFun = schemaWithCollections.typeFor<Schema>().singleFunctionNamed("myListOf").function
+        with(SchemaTypeRefContext(schemaWithCollections)) {
             val listType = resolveRef(myListOfFun.returnValueType) as DataType.ParameterizedTypeInstance
             assertIs<DataType.ParameterizedTypeInstance>(listType)
             val listTypeArgument = resolveRef((listType.typeArguments[0] as ConcreteTypeArgument).type) as DataType.TypeVariableUsage
@@ -54,6 +54,40 @@ class GenericOpaqueTypesTest {
             val listTypeSignature = listType.typeSignature
             assertSame(schema.genericSignaturesByFqName[listType.name], listTypeSignature)
             assertEquals("E", listTypeSignature.typeParameters.single().name)
+        }
+    }
+
+    @Test
+    fun `correctly imports a list of lists type`() {
+        val function = schemaWithCollections.typeFor<Schema>().singleFunctionNamed("factoryFunctionTakingListOfLists")
+        with(SchemaTypeRefContext(schemaWithCollections)) {
+            val parameterType = resolveRef(function.function.parameters.single().type)
+            assertIs<DataType.ParameterizedTypeInstance>(parameterType)
+            assertEquals(List::class.qualifiedName, parameterType.typeSignature.name.qualifiedName)
+
+            val typeArg = resolveRef((parameterType.typeArguments.single() as ConcreteTypeArgument).type)
+            assertIs<DataType.ParameterizedTypeInstance>(typeArg)
+            assertEquals(List::class.qualifiedName, typeArg.typeSignature.name.qualifiedName)
+
+            val valueType = resolveRef((typeArg.typeArguments.single() as ConcreteTypeArgument).type)
+            assertIs<DataType.StringDataType>(valueType)
+        }
+    }
+
+    @Test
+    fun `correctly imports a map type`() {
+        val myMapFunction = schemaWithCollections.typeFor<Schema>().singleFunctionNamed("myMap")
+        with(SchemaTypeRefContext(schemaWithCollections)) {
+            val returnType = resolveRef(myMapFunction.function.returnValueType)
+            assertIs<DataType.ParameterizedTypeInstance>(returnType)
+
+            assertEquals(Map::class.qualifiedName, returnType.typeSignature.name.qualifiedName)
+            assertIs<DataType.IntDataType>(resolveRef((returnType.typeArguments.first() as ConcreteTypeArgument).type))
+
+            val valueType = resolveRef((returnType.typeArguments.last() as ConcreteTypeArgument).type)
+            assertIs<DataType.ParameterizedTypeInstance>(valueType)
+            assertEquals(GenericType::class.qualifiedName, valueType.typeSignature.name.qualifiedName)
+            assertIs<DataType.StringDataType>(resolveRef((valueType.typeArguments.single() as ConcreteTypeArgument).type))
         }
     }
 
@@ -70,7 +104,7 @@ class GenericOpaqueTypesTest {
         )
     }
 
-    private val schemaWithList get() = schemaFromTypes(Schema::class, listOf(Schema::class, List::class))
+    private val schemaWithCollections get() = schemaFromTypes(Schema::class, listOf(Schema::class, List::class, GenericType::class))
 
     @Suppress("unused")
     class Schema {
@@ -79,6 +113,12 @@ class GenericOpaqueTypesTest {
 
         @Restricted
         fun <T> myListOf(t1: T, t2: T): List<T> = listOf(t1, t2)
+
+        @Restricted
+        fun factoryFunctionTakingListOfLists(listOfLists: List<List<String>>): String = listOfLists.joinToString()
+
+        @Restricted
+        fun myMap(): Map<Int, GenericType<String>> = emptyMap()
     }
 
     @Suppress("unused")
