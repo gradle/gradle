@@ -42,3 +42,8 @@ The previous step will help you identify potential problems by issuing deprecati
 === Deprecations
 
 === Potential breaking changes
+
+==== Removed incubating method `ObjectFactory#dependencyCollector()`
+
+The incubating `ObjectFactory#dependencyCollector()` method has been removed.
+DependencyCollectors can still be instantiated within Gradle managed objects.
