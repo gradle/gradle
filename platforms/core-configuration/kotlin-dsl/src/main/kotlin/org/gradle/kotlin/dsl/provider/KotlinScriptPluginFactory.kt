@@ -25,10 +25,8 @@ import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.declarativedsl.evaluator.DeclarativeKotlinScriptEvaluator
 import org.gradle.internal.declarativedsl.evaluator.runner.EvaluationResult
-import org.gradle.internal.operations.BuildOperationContext
-import org.gradle.internal.operations.BuildOperationDescriptor
+import org.gradle.internal.extensions.core.callableBuildOperation
 import org.gradle.internal.operations.BuildOperationRunner
-import org.gradle.internal.operations.CallableBuildOperation
 import org.gradle.kotlin.dsl.accessors.isDclEnabledForScriptTarget
 import org.gradle.kotlin.dsl.execution.EvalOption
 import org.gradle.kotlin.dsl.execution.defaultEvalOptions
@@ -53,8 +51,10 @@ class KotlinScriptPluginFactory @Inject internal constructor(
     ): ScriptPlugin =
         KotlinScriptPlugin(scriptSource) { target ->
 
-            if (interpretKotlinScriptWithDCL(target, scriptSource, targetScope)) {
-                return@KotlinScriptPlugin
+            if (shouldTryDclInterpreterWithScriptTarget(target)) {
+                if (interpretKotlinScriptWithDCL(target, scriptSource, targetScope)) {
+                    return@KotlinScriptPlugin
+                }
             }
 
             kotlinScriptEvaluator
@@ -74,30 +74,22 @@ class KotlinScriptPluginFactory @Inject internal constructor(
         target: Any,
         scriptSource: ScriptSource,
         targetScope: ClassLoaderScope
-    ): Boolean = buildOperationRunner.call(object : CallableBuildOperation<Boolean> {
-        override fun call(context: BuildOperationContext): Boolean {
+    ): Boolean = buildOperationRunner.call(
+        callableBuildOperation("Kotlin DSL script as DCL") {
+            logger.info { "Trying to interpret Kotlin DSL script ${scriptSource.fileName} with DCL" }
+            when (val result = declarativeKotlinScriptEvaluator.evaluate(target, scriptSource, targetScope)) {
+                is EvaluationResult.Evaluated -> {
+                    logger.info { "Successfully interpreted Kotlin DSL script ${scriptSource.fileName} with DCL" }
+                    targetScope.lock()
+                    true
+                }
 
-            if (shouldTryDclInterpreterWithScriptTarget(target) && isDclEnabledForScriptTarget(target)) {
-                logger.info { "Trying to interpret Kotlin DSL script ${scriptSource.fileName} with DCL" }
-                when (val result = declarativeKotlinScriptEvaluator.evaluate(target, scriptSource, targetScope)) {
-                    is EvaluationResult.Evaluated -> {
-                        logger.info { "Successfully interpreted Kotlin DSL script ${scriptSource.fileName} with DCL" }
-                        targetScope.lock()
-                        return true
-                    }
-
-                    is EvaluationResult.NotEvaluated<*> -> {
-                        logger.info { "Failed to interpret Kotlin DSL script ${scriptSource.fileName} with DCL. Stage failures: ${result.stageFailures}$" }
-                    }
+                is EvaluationResult.NotEvaluated<*> -> {
+                    logger.info { "Failed to interpret Kotlin DSL script ${scriptSource.fileName} with DCL. Stage failures: ${result.stageFailures}$" }
+                    false
                 }
             }
-            return false
-
-        }
-
-        override fun description(): BuildOperationDescriptor.Builder =
-            BuildOperationDescriptor.displayName("Kotlin DSL script as DCL")
-    })
+        })
 
     private
     fun kotlinScriptOptions(): EnumSet<EvalOption> =
@@ -116,7 +108,7 @@ class KotlinScriptPluginFactory @Inject internal constructor(
      * for any target other than [Project] (which is single-stage in DCL and is thus safe).
      */
     private fun shouldTryDclInterpreterWithScriptTarget(target: Any) =
-        target is Project
+        target is Project && isDclEnabledForScriptTarget(target)
 }
 
 

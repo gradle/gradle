@@ -43,6 +43,7 @@ import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.caching.CachingDisabledReason
 import org.gradle.internal.execution.caching.CachingDisabledReasonCategory
 import org.gradle.internal.execution.history.OverlappingOutputs
+import org.gradle.internal.extensions.core.callableBuildOperation
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.instrumentation.reporting.PropertyUpgradeReportConfig
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
@@ -161,7 +162,7 @@ class StandardKotlinScriptEvaluator(
 
     private
     val interpreter by lazy {
-        when(propertyUpgradeReportConfig.isEnabled) {
+        when (propertyUpgradeReportConfig.isEnabled) {
             true -> Interpreter(InterpreterHostWithoutInMemoryCache(gradlePropertiesController))
             false -> Interpreter(InterpreterHost(gradlePropertiesController))
         }
@@ -282,33 +283,37 @@ class StandardKotlinScriptEvaluator(
             compilationClassPath: ClassPath,
             accessorsClassPath: ClassPath,
             initializer: (File) -> Unit
-        ): File = try {
-            val output = executionEngineFor(scriptHost)
-                .createRequest(
-                    KotlinScriptCompilationAndInstrumentation(
-                        scriptHost.scriptSource,
-                        programId,
-                        compilationClassPath,
-                        accessorsClassPath,
-                        initializer,
-                        classpathHasher,
-                        workspaceProvider,
-                        fileCollectionFactory,
-                        inputFingerprinter,
-                        internalOptions,
-                        transformFactoryForLegacy,
-                        gradleCoreTypeRegistry,
-                        propertyUpgradeReportConfig
-                    )
-                )
-                .execute()
-                .getOutputAs(Output::class.java)
-                .get()
-            propertyUpgradeReportConfig.reportCollector.collect(output.propertyUpgradeReport)
-            output.instrumentedOutput
-        } catch (e: CacheOpenException) {
-            throw e.cause as? ScriptCompilationException ?: e
-        }
+        ): File = buildOperationRunner.call(
+            callableBuildOperation("Retrieve cached Kotlin script") {
+                try {
+                    val output = executionEngineFor(scriptHost)
+                        .createRequest(
+                            KotlinScriptCompilationAndInstrumentation(
+                                scriptHost.scriptSource,
+                                programId,
+                                compilationClassPath,
+                                accessorsClassPath,
+                                initializer,
+                                classpathHasher,
+                                workspaceProvider,
+                                fileCollectionFactory,
+                                inputFingerprinter,
+                                internalOptions,
+                                transformFactoryForLegacy,
+                                gradleCoreTypeRegistry,
+                                propertyUpgradeReportConfig
+                            )
+                        )
+                        .execute()
+                        .getOutputAs(Output::class.java)
+                        .get()
+                    propertyUpgradeReportConfig.reportCollector.collect(output.propertyUpgradeReport)
+                    output.instrumentedOutput
+                } catch (e: CacheOpenException) {
+                    throw e.cause as? ScriptCompilationException ?: e
+                }
+            }
+        )
 
         override fun compilationClassPathOf(classLoaderScope: ClassLoaderScope): ClassPath =
             classPathProvider.compilationClassPathOf(classLoaderScope)
