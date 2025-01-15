@@ -30,6 +30,11 @@ import org.gradle.initialization.ClassLoaderScopeOrigin
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.exceptions.LocationAwareException
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.operations.BuildOperationContext
+import org.gradle.internal.operations.BuildOperationDescriptor
+import org.gradle.internal.operations.BuildOperationRunner
+import org.gradle.internal.operations.CallableBuildOperation
+import org.gradle.internal.operations.RunnableBuildOperation
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.kotlin.dsl.support.KotlinCompilerOptions
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
@@ -39,6 +44,8 @@ import org.gradle.kotlin.dsl.support.serviceRegistryOf
 import org.gradle.plugin.management.internal.PluginRequests
 import java.io.File
 import java.lang.reflect.InvocationTargetException
+import java.util.Optional
+import kotlin.jvm.optionals.getOrNull
 
 
 /**
@@ -70,6 +77,8 @@ internal
 class Interpreter(val host: Host) {
 
     interface Host {
+
+        val buildOperationRunner: BuildOperationRunner
 
         fun cachedClassFor(
             programId: ProgramId
@@ -182,7 +191,13 @@ class Interpreter(val host: Host) {
             )
 
         val cachedProgram =
-            host.cachedClassFor(programId)
+            host.buildOperationRunner.call(object : CallableBuildOperation<Optional<CompiledScript>> {
+                override fun description(): BuildOperationDescriptor.Builder =
+                    BuildOperationDescriptor.displayName("Cache class for program")
+
+                override fun call(context: BuildOperationContext) =
+                    host.cachedClassFor(programId).let { Optional.ofNullable(it) }
+            }).getOrNull()
 
         val scriptHost =
             scriptHostFor(programTarget, target, scriptSource, scriptHandler, targetScope, baseScope)
@@ -196,22 +211,43 @@ class Interpreter(val host: Host) {
         }
 
         val specializedProgram =
-            emitSpecializedProgramFor(
-                scriptHost,
-                scriptSource,
-                programId,
-                targetScope,
-                baseScope,
-                programKind,
-                programTarget
-            )
+            host.buildOperationRunner.call(object : CallableBuildOperation<CompiledScript> {
+                override fun description(): BuildOperationDescriptor.Builder =
+                    BuildOperationDescriptor.displayName("Emit specialized program for script")
 
-        host.cache(
-            specializedProgram,
-            programId
-        )
+                override fun call(context: BuildOperationContext): CompiledScript {
+                    return emitSpecializedProgramFor(
+                        scriptHost,
+                        scriptSource,
+                        programId,
+                        targetScope,
+                        baseScope,
+                        programKind,
+                        programTarget
+                    )
+                }
+            })
 
-        programHost.eval(specializedProgram, scriptHost)
+        host.buildOperationRunner.run(object : RunnableBuildOperation {
+            override fun description(): BuildOperationDescriptor.Builder =
+                BuildOperationDescriptor.displayName("Cache specialized program for script")
+
+            override fun run(context: BuildOperationContext) {
+                host.cache(
+                    specializedProgram,
+                    programId
+                )
+            }
+        })
+
+        host.buildOperationRunner.run(object : RunnableBuildOperation {
+            override fun description(): BuildOperationDescriptor.Builder =
+                BuildOperationDescriptor.displayName("Evaluate specialized program for script")
+
+            override fun run(context: BuildOperationContext) {
+                programHost.eval(specializedProgram, scriptHost)
+            }
+        })
     }
 
     private

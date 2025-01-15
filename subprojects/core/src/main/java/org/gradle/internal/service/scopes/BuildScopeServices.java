@@ -561,7 +561,8 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
             loggingManagerFactory,
             pluginHandler,
             pluginRequestApplicator,
-            compileOperationFactory
+            compileOperationFactory,
+            buildOperationRunner
         );
         ScriptPluginFactorySelector scriptPluginFactorySelector = new ScriptPluginFactorySelector(defaultScriptPluginFactory, instantiator, buildOperationRunner, userCodeApplicationContext, listenerManager.getBroadcaster(ScriptSourceListener.class));
         defaultScriptPluginFactory.setScriptPluginFactory(scriptPluginFactorySelector);
