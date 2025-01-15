@@ -1,3 +1,12 @@
 {
-    "acceptedApiChanges": []
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.nativeplatform.TargetMachineBuilder",
+            "member": "Method org.gradle.nativeplatform.TargetMachineBuilder.getARM64()",
+            "acceptation": "Adds a binary-compatible default method for selecting the stable ARM64 target architecture.",
+            "changes": [
+                "Method now provides default implementation"
+            ]
+        }
+    ]
 }

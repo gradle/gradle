@@ -21,6 +21,7 @@ import org.gradle.nativeplatform.MachineArchitecture
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.util.internal.GUtil
+import spock.lang.Issue
 
 abstract class AbstractCppComponentIntegrationTest extends AbstractNativeLanguageComponentIntegrationTest {
     def "can build on current operating system family and architecture when explicitly specified"() {
@@ -34,6 +35,29 @@ abstract class AbstractCppComponentIntegrationTest extends AbstractNativeLanguag
         expect:
         succeeds taskNameToAssembleDevelopmentBinary
         result.assertTasksExecuted(tasksToAssembleDevelopmentBinary, ":$taskNameToAssembleDevelopmentBinary")
+    }
+
+    @Issue("https://github.com/gradle/gradle-native/issues/1118")
+    def "can select ARM64 as target architecture"() {
+        given:
+        makeSingleProject()
+        componentUnderTest.writeToProject(testDirectory)
+
+        and:
+        buildFile << configureTargetMachines("machines.${currentHostOperatingSystemFamilyDsl}.ARM64")
+        buildFile << """
+            tasks.register("printTargetMachine") {
+                def targetMachines = ${componentUnderTestDsl}.targetMachines
+                doLast {
+                    def targetMachine = targetMachines.get().iterator().next()
+                    println("target machine: " + targetMachine.operatingSystemFamily.name + "/" + targetMachine.architecture.name)
+                }
+            }
+        """
+
+        expect:
+        succeeds "printTargetMachine"
+        outputContains("target machine: ${currentOsFamilyName}/${MachineArchitecture.ARM64}")
     }
 
     def "assemble task warns when current operating system family is excluded"() {

@@ -16,6 +16,8 @@
 
 package org.gradle.nativeplatform.internal
 
+import org.gradle.nativeplatform.MachineArchitecture
+import org.gradle.nativeplatform.OperatingSystemFamily
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -34,13 +36,30 @@ class DefaultTargetMachineFactoryTest extends Specification {
         targetMachines == [windows1, linux1] as Set
     }
 
+    def "can create an ARM64 target machine for #operatingSystemName"() {
+        when:
+        def targetMachine = factory."$operatingSystemProperty".ARM64
+
+        then:
+        targetMachine.operatingSystemFamily.name == operatingSystemName
+        targetMachine.architecture.name == MachineArchitecture.ARM64
+
+        where:
+        operatingSystemProperty | operatingSystemName
+        "windows"               | OperatingSystemFamily.WINDOWS
+        "linux"                 | OperatingSystemFamily.LINUX
+        "macOS"                 | OperatingSystemFamily.MACOS
+    }
+
     def "same target machine are equals"() {
         expect:
         factory.windows == factory.windows
         factory.linux == factory.linux
         factory.macOS == factory.macOS
         factory.windows.x86 == factory.windows.x86
+        factory.windows.ARM64 == factory.windows.ARM64
         factory.linux.x86_64 == factory.linux.x86_64
+        factory.linux.ARM64 == factory.linux.ARM64
         factory.windows.architecture("arm") == factory.windows.architecture("arm")
         factory.os("fushia").architecture("arm") == factory.os("fushia").architecture("arm")
     }
@@ -51,6 +70,8 @@ class DefaultTargetMachineFactoryTest extends Specification {
         factory.linux != factory.macOS
         factory.macOS != factory.windows
         factory.windows.x86 != factory.windows.x86_64
+        factory.linux.ARM64 != factory.linux.x86_64
+        factory.windows.ARM64 != factory.windows.x86_64
         factory.linux.x86 != factory.windows.x86
         factory.windows.architecture("arm") != factory.windows.architecture("leg")
         factory.os("fushia").architecture("arm") != factory.os("helenOS").architecture("arm")
