@@ -23,11 +23,19 @@ import org.gradle.internal.build.event.BuildEventListenerFactory;
 import org.gradle.internal.build.event.BuildEventSubscriptions;
 import org.gradle.internal.build.event.OperationResultPostProcessor;
 import org.gradle.internal.build.event.OperationResultPostProcessorFactory;
+import org.gradle.internal.daemon.client.serialization.ClasspathInferer;
+import org.gradle.internal.daemon.client.serialization.ClientSidePayloadClassLoaderFactory;
+import org.gradle.internal.daemon.client.serialization.ClientSidePayloadClassLoaderRegistry;
 import org.gradle.internal.operations.BuildOperationAncestryTracker;
 import org.gradle.internal.operations.BuildOperationIdFactory;
 import org.gradle.internal.operations.BuildOperationListener;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.tooling.events.OperationType;
+import org.gradle.tooling.internal.provider.serialization.ClassLoaderCache;
+import org.gradle.tooling.internal.provider.serialization.DefaultPayloadClassLoaderRegistry;
+import org.gradle.tooling.internal.provider.serialization.ModelClassLoaderFactory;
+import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
+import org.gradle.tooling.internal.provider.serialization.WellKnownClassLoaderRegistry;
 
 import java.util.List;
 
@@ -71,8 +79,23 @@ public class ToolingApiBuildEventListenerFactory implements BuildEventListenerFa
         return listeners.build();
     }
 
+    public static ProblemsProgressEventUtils createProblemProgressEventUtils() {
+        ClassLoaderCache classLoaderCache = new ClassLoaderCache();
+        PayloadSerializer payloadSerializer = new PayloadSerializer(
+            new WellKnownClassLoaderRegistry(
+                new ClientSidePayloadClassLoaderRegistry(
+                    new DefaultPayloadClassLoaderRegistry(
+                        classLoaderCache,
+                        new ClientSidePayloadClassLoaderFactory(
+                            new ModelClassLoaderFactory())),
+                    new ClasspathInferer(),
+                    classLoaderCache)));
+        return new ProblemsProgressEventUtils(payloadSerializer);
+    }
+
     private ClientBuildEventGenerator createClientBuildEventGenerator(BuildEventSubscriptions subscriptions, BuildEventConsumer consumer, ProgressEventConsumer progressEventConsumer) {
-        BuildOperationListener buildListener = createBuildOperationListener(subscriptions, progressEventConsumer);
+        ProblemsProgressEventUtils problemProgressEventUtils = createProblemProgressEventUtils();
+        BuildOperationListener buildListener = createBuildOperationListener(subscriptions, progressEventConsumer, problemProgressEventUtils);
 
         OperationDependenciesResolver operationDependenciesResolver = new OperationDependenciesResolver();
 
@@ -81,7 +104,7 @@ public class ToolingApiBuildEventListenerFactory implements BuildEventListenerFa
         ProjectConfigurationTracker projectConfigurationTracker = new ProjectConfigurationTracker(ancestryTracker, pluginApplicationTracker);
         TaskOriginTracker taskOriginTracker = new TaskOriginTracker(pluginApplicationTracker);
 
-        TransformOperationMapper transformOperationMapper = new TransformOperationMapper(operationDependenciesResolver);
+        TransformOperationMapper transformOperationMapper = new TransformOperationMapper(operationDependenciesResolver, problemProgressEventUtils);
         operationDependenciesResolver.addLookup(transformOperationMapper);
 
         List<OperationResultPostProcessor> postProcessors = createPostProcessors(subscriptions, consumer);
@@ -95,7 +118,7 @@ public class ToolingApiBuildEventListenerFactory implements BuildEventListenerFa
             new ProjectConfigurationOperationMapper(projectConfigurationTracker),
             taskOperationMapper,
             transformOperationMapper,
-            new WorkItemOperationMapper()
+            new WorkItemOperationMapper(problemProgressEventUtils)
         );
         return new ClientBuildEventGenerator(progressEventConsumer, subscriptions, mappers, buildListener);
     }
@@ -107,8 +130,8 @@ public class ToolingApiBuildEventListenerFactory implements BuildEventListenerFa
             .collect(toImmutableList());
     }
 
-    private BuildOperationListener createBuildOperationListener(BuildEventSubscriptions subscriptions, ProgressEventConsumer progressEventConsumer) {
+    private BuildOperationListener createBuildOperationListener(BuildEventSubscriptions subscriptions, ProgressEventConsumer progressEventConsumer, ProblemsProgressEventUtils problemsProgressEventUtils) {
         // TODO (donat) think of a better name for this class
-        return new ClientForwardingBuildOperationListener(progressEventConsumer, subscriptions, () -> new OperationIdentifier(idFactory.nextId()));
+        return new ClientForwardingBuildOperationListener(progressEventConsumer, subscriptions, () -> new OperationIdentifier(idFactory.nextId()), problemsProgressEventUtils);
     }
 }

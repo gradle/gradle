@@ -18,6 +18,7 @@ package org.gradle.internal.reflect.validation;
 
 import org.gradle.api.Action;
 import org.gradle.api.NonNullApi;
+import org.gradle.api.problems.AdditionalData;
 import org.gradle.api.problems.DocLink;
 import org.gradle.api.problems.ProblemGroup;
 import org.gradle.api.problems.ProblemId;
@@ -105,6 +106,11 @@ class DelegatingProblemBuilder implements InternalProblemBuilder {
     @Override
     public InternalProblemBuilder solution(@Nullable String solution) {
         return validateDelegate(delegate.solution(solution));
+    }
+
+    @Override
+    public InternalProblemBuilder additionalData(AdditionalData additionalData) {
+        return validateDelegate(delegate.additionalData(additionalData));
     }
 
     @Override

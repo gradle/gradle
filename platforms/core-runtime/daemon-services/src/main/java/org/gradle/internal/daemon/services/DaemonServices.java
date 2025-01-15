@@ -36,6 +36,7 @@ public class DaemonServices extends AbstractGradleModuleServices {
     public void registerGlobalServices(ServiceRegistration registration) {
         registration.add(UserInputReader.class, DefaultUserInputReader.class);
         registration.add(ClassLoaderCache.class, ClassLoaderCache.class);
+//        registration.addProvider(new DaemonGradleUserHomeServices());
     }
 
     @Override

@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.problems.AdditionalData;
@@ -34,14 +35,17 @@ import org.gradle.api.problems.internal.DefaultProblemProgressDetails;
 import org.gradle.api.problems.internal.DefaultProblemsSummaryProgressDetails;
 import org.gradle.api.problems.internal.DeprecationData;
 import org.gradle.api.problems.internal.PluginIdLocation;
+import org.gradle.api.problems.internal.ProblemLocator;
 import org.gradle.api.problems.internal.ProblemSummaryData;
 import org.gradle.api.problems.internal.TaskPathLocation;
 import org.gradle.api.problems.internal.TypeValidationData;
+import org.gradle.internal.build.event.types.AbstractOperationResult;
 import org.gradle.internal.build.event.types.DefaultAdditionalData;
 import org.gradle.internal.build.event.types.DefaultContextualLabel;
 import org.gradle.internal.build.event.types.DefaultDetails;
 import org.gradle.internal.build.event.types.DefaultDocumentationLink;
 import org.gradle.internal.build.event.types.DefaultFailure;
+import org.gradle.internal.build.event.types.DefaultFailureResult;
 import org.gradle.internal.build.event.types.DefaultProblemDefinition;
 import org.gradle.internal.build.event.types.DefaultProblemDescriptor;
 import org.gradle.internal.build.event.types.DefaultProblemDetails;
@@ -52,6 +56,8 @@ import org.gradle.internal.build.event.types.DefaultProblemSummary;
 import org.gradle.internal.build.event.types.DefaultProblemsSummariesDetails;
 import org.gradle.internal.build.event.types.DefaultSeverity;
 import org.gradle.internal.build.event.types.DefaultSolution;
+import org.gradle.internal.build.event.types.DefaultSuccessResult;
+import org.gradle.internal.operations.OperationFinishEvent;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.tooling.internal.protocol.InternalFailure;
 import org.gradle.tooling.internal.protocol.InternalProblemDefinition;
@@ -67,6 +73,8 @@ import org.gradle.tooling.internal.protocol.problem.InternalDocumentationLink;
 import org.gradle.tooling.internal.protocol.problem.InternalLocation;
 import org.gradle.tooling.internal.protocol.problem.InternalSeverity;
 import org.gradle.tooling.internal.protocol.problem.InternalSolution;
+import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
+import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
@@ -79,16 +87,19 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
 import static java.util.stream.Collectors.toMap;
 
 @NonNullApi
+@SuppressWarnings("unused")
 public class ProblemsProgressEventUtils {
 
     private static final InternalSeverity ADVICE = new DefaultSeverity(0);
     private static final InternalSeverity WARNING = new DefaultSeverity(1);
     private static final InternalSeverity ERROR = new DefaultSeverity(2);
+    private final PayloadSerializer payloadSerizalizer;
 
-    private ProblemsProgressEventUtils() {
+    public ProblemsProgressEventUtils(PayloadSerializer payloadSerializer) {
+        this.payloadSerizalizer = payloadSerializer;
     }
 
-    static InternalProblemEventVersion2 createProblemEvent(OperationIdentifier buildOperationId, DefaultProblemProgressDetails details, Supplier<OperationIdentifier> operationIdentifierSupplier) {
+    InternalProblemEventVersion2 createProblemEvent(OperationIdentifier buildOperationId, DefaultProblemProgressDetails details, Supplier<OperationIdentifier> operationIdentifierSupplier) {
         Problem problem = details.getProblem();
         return new DefaultProblemEvent(
             createDefaultProblemDescriptor(buildOperationId, operationIdentifierSupplier),
@@ -96,7 +107,7 @@ public class ProblemsProgressEventUtils {
         );
     }
 
-    static InternalProblemEventVersion2 createProblemSummaryEvent(@Nullable OperationIdentifier buildOperationId, DefaultProblemsSummaryProgressDetails details, Supplier<OperationIdentifier> operationIdentifierSupplier) {
+    InternalProblemEventVersion2 createProblemSummaryEvent(@Nullable OperationIdentifier buildOperationId, DefaultProblemsSummaryProgressDetails details, Supplier<OperationIdentifier> operationIdentifierSupplier) {
         return createProblemSummaryEvent(buildOperationId, details.getProblemIdCounts(), operationIdentifierSupplier);
     }
 
@@ -124,7 +135,7 @@ public class ProblemsProgressEventUtils {
             parentBuildOperationId);
     }
 
-    static DefaultProblemDetails createDefaultProblemDetails(Problem problem) {
+    DefaultProblemDetails createDefaultProblemDetails(Problem problem) {
         return new DefaultProblemDetails(
             toInternalDefinition(problem.getDefinition()),
             toInternalDetails(problem.getDetails()),
@@ -210,11 +221,12 @@ public class ProblemsProgressEventUtils {
 
 
     @SuppressWarnings("unchecked")
-    private static InternalAdditionalData toInternalAdditionalData(@Nullable AdditionalData additionalData) {
+    private InternalAdditionalData toInternalAdditionalData(@Nullable AdditionalData additionalData) {
         if (additionalData instanceof DeprecationData) {
             // For now, we only expose deprecation data to the tooling API with generic additional data
             DeprecationData data = (DeprecationData) additionalData;
-            return new DefaultAdditionalData(ImmutableMap.of("type", data.getType().name()));
+            SerializedPayload payload = payloadSerizalizer.serialize(additionalData);
+            return new DefaultAdditionalData(ImmutableMap.of("type", data.getType().name()), payload);
         } else if (additionalData instanceof TypeValidationData) {
             TypeValidationData data = (TypeValidationData) additionalData;
             ImmutableMap.Builder<String, Object> builder = ImmutableMap.builder();
@@ -222,20 +234,44 @@ public class ProblemsProgressEventUtils {
             Optional.ofNullable(data.getPropertyName()).ifPresent(propertyName -> builder.put("propertyName", propertyName));
             Optional.ofNullable(data.getParentPropertyName()).ifPresent(parentPropertyName -> builder.put("parentPropertyName", parentPropertyName));
             Optional.ofNullable(data.getTypeName()).ifPresent(typeName -> builder.put("typeName", typeName));
-            return new DefaultAdditionalData(builder.build());
+            SerializedPayload payload = payloadSerizalizer.serialize(additionalData);
+            return new DefaultAdditionalData(builder.build(), payload);
         } else if (additionalData instanceof GeneralData) {
             GeneralData data = (GeneralData) additionalData;
+            SerializedPayload payload = payloadSerizalizer.serialize(additionalData);
             return new DefaultAdditionalData(
                 data.getAsMap().entrySet().stream()
                     .filter(entry -> isSupportedType(entry.getValue()))
-                    .collect(toMap(Map.Entry::getKey, Map.Entry::getValue))
+                    .collect(toMap(Map.Entry::getKey, Map.Entry::getValue)),
+                payload
             );
         } else {
-            return new DefaultAdditionalData(Collections.emptyMap());
+            SerializedPayload payload = payloadSerizalizer.serialize(additionalData);
+            return new DefaultAdditionalData(Collections.emptyMap(), payload);
         }
     }
 
     private static boolean isSupportedType(Object type) {
         return type instanceof String;
     }
+
+    AbstractOperationResult toOperationResult(OperationFinishEvent result) {
+        return toOperationResult(result, t -> ImmutableList.of());
+    }
+
+    AbstractOperationResult toOperationResult(OperationFinishEvent result, @Nullable ProblemLocator problemLocator) {
+        Throwable failure = result.getFailure();
+        long startTime = result.getStartTime();
+        long endTime = result.getEndTime();
+        if (failure != null) {
+            if (problemLocator != null) {
+                InternalFailure rootFailure = DefaultFailure.fromThrowable(failure, problemLocator, problem -> createDefaultProblemDetails(problem));
+                return new DefaultFailureResult(startTime, endTime, Collections.singletonList(rootFailure));
+            } else {
+                return new DefaultFailureResult(startTime, endTime, Collections.singletonList(DefaultFailure.fromThrowable(failure)));
+            }
+        }
+        return new DefaultSuccessResult(startTime, endTime);
+    }
+
 }

@@ -276,8 +276,15 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
     private final ListenerBroadcast<ProgressListener> rootBuildListeners = new ListenerBroadcast<>(ProgressListener.class);
 
     private final Map<Object, OperationDescriptor> descriptorCache = new HashMap<>();
+//    private final PayloadSerializer payloadSerializer;
 
-    BuildProgressListenerAdapter(Map<OperationType, List<ProgressListener>> listeners) {
+    public BuildProgressListenerAdapter(Map<OperationType, List<ProgressListener>> listeners) {
+//        ClassLoaderCache classLoaderCache = new ClassLoaderCache();
+//        payloadSerializer = new PayloadSerializer(
+//            new WellKnownClassLoaderRegistry(
+//                new DefaultPayloadClassLoaderRegistry(
+//                    classLoaderCache,
+//                    new ModelClassLoaderFactory())));
 
         testProgressListeners.addAll(getOrDefault(listeners, OperationType.TEST));
         taskProgressListeners.addAll(getOrDefault(listeners, OperationType.TASK));
@@ -729,7 +736,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
     }
 
     @Nonnull
-    private static DefaultProblemsOperationContext toSingleProblemContextDetail(InternalProblemContextDetails details) {
+    private DefaultProblemsOperationContext toSingleProblemContextDetail(InternalProblemContextDetails details) {
         if (details instanceof InternalProblemContextDetailsV2) {
             InternalProblemContextDetailsV2 detailsV2 = (InternalProblemContextDetailsV2) details;
             return new DefaultProblemsOperationContext(
@@ -752,7 +759,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         }
     }
 
-    private static List<ProblemContext> toProblemContextDetails(List<InternalProblemContextDetails> problems) {
+    private List<ProblemContext> toProblemContextDetails(List<InternalProblemContextDetails> problems) {
         ImmutableList.Builder<ProblemContext> result = builderWithExpectedSize(problems.size());
         for (InternalProblemContextDetails problem : problems) {
             result.add(toSingleProblemContextDetail(problem));
@@ -926,7 +933,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         return new DefaultTestOutputOperationDescriptor(descriptor, parent, destination, message);
     }
 
-    private static Problem toProblem(InternalBasicProblemDetails basicProblemDetails) {
+    private Problem toProblem(InternalBasicProblemDetails basicProblemDetails) {
         return new DefaultProblem(
             toProblemDefinition(basicProblemDetails.getLabel(), basicProblemDetails.getCategory(), basicProblemDetails.getSeverity(), basicProblemDetails.getDocumentationLink()),
             toContextualLabel(basicProblemDetails.getLabel().getLabel()),
@@ -939,7 +946,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         );
     }
 
-    private static Problem toProblem(InternalBasicProblemDetailsVersion3 basicProblemDetails) {
+    private Problem toProblem(InternalBasicProblemDetailsVersion3 basicProblemDetails) {
         List<InternalLocation> originLocations;
         List<InternalLocation> contextualLocations;
         if (basicProblemDetails instanceof InternalBasicProblemDetailsVersion4) {
@@ -1003,8 +1010,15 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         return new DefaultProblemGroup(problemGroup.getName(), problemGroup.getDisplayName(), problemGroup.getParent() == null ? null : toProblemGroup(problemGroup.getParent()));
     }
 
-    private static AdditionalData toAdditionalData(InternalAdditionalData additionalData) {
-        return new GeneralData(additionalData.getAsMap());
+    private AdditionalData toAdditionalData(InternalAdditionalData additionalData) {
+//        if (additionalData instanceof InternalPayloadSerializedAdditionalData) {
+//            SerializedPayload payload = ((InternalPayloadSerializedAdditionalData) additionalData).get();
+//            if (payload != null) {
+//                Object object = payloadSerializer.deserialize(payload);
+//                return new GeneralData(additionalData.getAsMap(), object);
+//            }
+//        }
+        return new GeneralData(additionalData.getAsMap(), null);
     }
 
     private static ContextualLabel toContextualLabel(@Nullable InternalContextualLabel contextualLabel) {
@@ -1115,7 +1129,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         }
     }
 
-    public static @Nullable TaskOperationResult toTaskResult(InternalTaskResult result) {
+    public @Nullable TaskOperationResult toTaskResult(InternalTaskResult result) {
         if (result instanceof InternalTaskSuccessResult) {
             InternalTaskSuccessResult successResult = (InternalTaskSuccessResult) result;
             if (result instanceof InternalJavaCompileTaskOperationResult) {
@@ -1147,7 +1161,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         return TaskExecutionDetails.unsupported();
     }
 
-    private static @Nullable WorkItemOperationResult toWorkItemResult(InternalOperationResult result) {
+    private @Nullable WorkItemOperationResult toWorkItemResult(InternalOperationResult result) {
         if (result instanceof InternalSuccessResult) {
             return new DefaultWorkItemSuccessResult(result.getStartTime(), result.getEndTime());
         } else if (result instanceof InternalFailureResult) {
@@ -1157,7 +1171,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         }
     }
 
-    private static @Nullable ProjectConfigurationOperationResult toProjectConfigurationResult(InternalProjectConfigurationResult result) {
+    private @Nullable ProjectConfigurationOperationResult toProjectConfigurationResult(InternalProjectConfigurationResult result) {
         if (result instanceof InternalSuccessResult) {
             return new DefaultProjectConfigurationSuccessResult(result.getStartTime(), result.getEndTime(), toPluginApplicationResults(result.getPluginApplicationResults()));
         } else if (result instanceof InternalFailureResult) {
@@ -1190,7 +1204,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         }
     }
 
-    private static @Nullable TransformOperationResult toTransformResult(InternalOperationResult result) {
+    private @Nullable TransformOperationResult toTransformResult(InternalOperationResult result) {
         if (result instanceof InternalSuccessResult) {
             return new DefaultTransformSuccessResult(result.getStartTime(), result.getEndTime());
         } else if (result instanceof InternalFailureResult) {
@@ -1200,7 +1214,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         }
     }
 
-    private static @Nullable OperationResult toResult(InternalOperationResult result) {
+    private @Nullable OperationResult toResult(InternalOperationResult result) {
         if (result instanceof InternalSuccessResult) {
             return new DefaultOperationSuccessResult(result.getStartTime(), result.getEndTime());
         } else if (result instanceof InternalFailureResult) {
@@ -1210,7 +1224,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         }
     }
 
-    private static List<Failure> toFailures(List<? extends InternalFailure> causes) {
+    private List<Failure> toFailures(List<? extends InternalFailure> causes) {
         if (causes == null) {
             return null;
         }
@@ -1224,14 +1238,14 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         return failures;
     }
 
-    private static Failure toFailure(InternalBasicProblemDetails problemDetails) {
+    private Failure toFailure(InternalBasicProblemDetails problemDetails) {
         if (!(problemDetails instanceof InternalBasicProblemDetailsVersion2)) {
             return null;
         }
         return toFailure(((InternalBasicProblemDetailsVersion2) problemDetails).getFailure());
     }
 
-    private static Failure toFailure(InternalFailure origFailure) {
+    private Failure toFailure(InternalFailure origFailure) {
         if (origFailure == null) {
             return null;
         }

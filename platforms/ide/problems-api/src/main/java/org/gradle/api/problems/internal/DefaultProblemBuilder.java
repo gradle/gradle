@@ -282,6 +282,14 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
         return this;
     }
 
+
+    @Override
+    public InternalProblemBuilder additionalData(AdditionalData additionalData) {
+        this.additionalData = additionalData;
+        return this;
+    }
+
+
     @Override
     public InternalProblemBuilder withException(Throwable t) {
         this.exception = t;

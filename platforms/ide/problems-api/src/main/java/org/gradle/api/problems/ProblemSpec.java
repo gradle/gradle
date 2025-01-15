@@ -123,6 +123,15 @@ public interface ProblemSpec {
     ProblemSpec solution(String solution);
 
     /**
+     * A description of how to solve this problem.
+     *
+     * @param additionalData the solution.
+     * @return this
+     * @since 8.13
+     */
+    ProblemSpec additionalData(AdditionalData additionalData);
+
+    /**
      * The exception causing this problem.
      *
      * @param t the exception.
