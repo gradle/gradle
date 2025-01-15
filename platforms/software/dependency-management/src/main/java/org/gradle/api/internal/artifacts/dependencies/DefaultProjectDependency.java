@@ -30,7 +30,6 @@ import org.gradle.api.internal.artifacts.capability.FeatureCapabilitySelector;
 import org.gradle.api.internal.artifacts.capability.SpecificCapabilitySelector;
 import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.internal.component.external.model.ProjectDerivedCapability;
@@ -40,7 +39,6 @@ import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.util.internal.GUtil;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collections;
 import java.util.List;
@@ -51,17 +49,7 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
     private final boolean buildProjectDependencies;
     private final TaskDependencyFactory taskDependencyFactory;
 
-    @SuppressWarnings("unused") // Called reflectively by instantiator
     public DefaultProjectDependency(ProjectInternal dependencyProject, boolean buildProjectDependencies, TaskDependencyFactory taskDependencyFactory) {
-        this(dependencyProject, null, buildProjectDependencies, taskDependencyFactory);
-    }
-
-    public DefaultProjectDependency(ProjectInternal dependencyProject, boolean buildProjectDependencies) {
-        this(dependencyProject, null, buildProjectDependencies, DefaultTaskDependencyFactory.withNoAssociatedProject());
-    }
-
-    public DefaultProjectDependency(ProjectInternal dependencyProject, @Nullable String configuration, boolean buildProjectDependencies, TaskDependencyFactory taskDependencyFactory) {
-        super(configuration);
         this.dependencyProject = dependencyProject;
         this.buildProjectDependencies = buildProjectDependencies;
         this.taskDependencyFactory = taskDependencyFactory;
@@ -138,7 +126,7 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
 
     @Override
     public ProjectDependency copy() {
-        DefaultProjectDependency copiedProjectDependency = new DefaultProjectDependency(dependencyProject, getTargetConfiguration(), buildProjectDependencies, taskDependencyFactory);
+        DefaultProjectDependency copiedProjectDependency = new DefaultProjectDependency(dependencyProject, buildProjectDependencies, taskDependencyFactory);
         copyTo(copiedProjectDependency);
         return copiedProjectDependency;
     }
