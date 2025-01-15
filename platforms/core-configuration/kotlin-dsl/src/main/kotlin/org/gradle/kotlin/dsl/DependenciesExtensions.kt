@@ -32,6 +32,7 @@ import org.gradle.api.artifacts.dsl.DependencyCollector
 import org.gradle.api.artifacts.dsl.DependencyFactory
 import org.gradle.api.artifacts.dsl.DependencyModifier
 import org.gradle.api.artifacts.dsl.GradleDependencies
+import org.gradle.api.artifacts.dsl.SingleArgumentDependencyModifier
 import org.gradle.api.file.FileCollection
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderConvertible
@@ -64,6 +65,7 @@ class DependenciesExtensions {
     interface MyDependencies : GradleDependencies {
         val implementation: DependencyCollector
         val testFixtures: DependencyModifier
+        val feature: SingleArgumentDependencyModifier<String>
         operator fun invoke(action: Action<in MyDependencies>)
     }
 
@@ -85,6 +87,9 @@ class DependenciesExtensions {
 
             // Modify a dependency to select test fixtures
             implementation(testFixtures("org:foo:1.0")) // is getImplementation().add(getTestFixtures().modify("org:foo:1.0"))
+
+            // Modify a dependency to select an arbitrary feature by name
+            implementation(feature("org:foo:1.0", "featureName")) // is getImplementation().add(getFeature().modify("org:foo:1.0", "featureName))
 
             // Add a constraint by String
             implementation(constraint("org:foo:1.0")) // is getImplementation().addConstraint(constraint("org:foo:1.0"))
@@ -142,6 +147,46 @@ operator fun DependencyModifier.invoke(dependency: ProviderConvertible<out Minim
  * @since 8.0
  */
 operator fun DependencyModifier.invoke(dependency: Provider<out ModuleDependency>): Provider<out ModuleDependency> = modify(dependency)
+
+
+/**
+ * Modifies a dependency using a single argument to select the variant of the given module.
+ *
+ * @see SingleArgumentDependencyModifier
+ *
+ * @since 8.13
+ */
+operator fun <D : ModuleDependency, T: Any> SingleArgumentDependencyModifier<T>.invoke(dependency: D, argument: T): D = modify(dependency, argument)
+
+
+/**
+ * Modifies a dependency using a single argument to select the variant of the given module.
+ *
+ * @see SingleArgumentDependencyModifier
+ *
+ * @since 8.13
+ */
+operator fun <T: Any> SingleArgumentDependencyModifier<T>.invoke(dependencyNotation: CharSequence, argument: T): ExternalModuleDependency = modify(dependencyNotation, argument)
+
+
+/**
+ * Modifies a dependency using a single argument to select the variant of the given module.
+ *
+ * @see SingleArgumentDependencyModifier
+ *
+ * @since 8.13
+ */
+operator fun <T: Any> SingleArgumentDependencyModifier<T>.invoke(dependency: ProviderConvertible<out MinimalExternalModuleDependency>, argument: T): Provider<out MinimalExternalModuleDependency> = modify(dependency, argument)
+
+
+/**
+ * Modifies a dependency using a single argument to select the variant of the given module.
+ *
+ * @see SingleArgumentDependencyModifier
+ *
+ * @since 8.13
+ */
+operator fun <T: Any> SingleArgumentDependencyModifier<T>.invoke(dependency: Provider<out ModuleDependency>, argument: T): Provider<out ModuleDependency> = modify(dependency, argument)
 
 
 /**

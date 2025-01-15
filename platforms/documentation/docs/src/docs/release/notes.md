@@ -133,6 +133,69 @@ try (GroupTestEventReporter outer = root.reportTestGroup("OuterNestingSuite")) {
 
 Nested events are reflected in the HTML test reports, providing clear traceability.
 
+#### Dependency declaration improvements
+
+The `requireFeature` functionality added in Gradle 8.11 has been renamed to `requireSuffix`, 
+allowing any arbitrary suffix to be appended to the coordinates of a module as a capability.
+
+The `feature` terminology has been repurposed as a shorthand to a new dependency modifier, similar to `textFixtures`,
+allowing a dependency on a feature of a dependency to be declared. 
+
+The `feature` dependency modifier automatically converts the camel case feature name (`featureName`) to the kebob-case suffix (`-feature-name`).
+
+Given some feature declared in a Java project:
+```groovy
+plugins {
+    id("java-library")
+}
+
+java {
+    registerFeature("featureName") {
+        usingSourceSet(sourceSets.create("featureName"))
+    }
+}
+```
+
+The feature dependency modifier can be used to declare a dependency on the feature:
+
+```groovy
+import jdk.jfr.Frequency
+
+plugins {
+    id("java-library")
+}
+
+dependencies {
+    implementation(feature(project(":other"), "featureName"))
+}
+
+testing.suites.test {
+    dependencies {
+        implementation(feature(project(":other"), "featureName"))
+    }
+}
+
+// The above are shorthand for the following:
+
+dependencies {
+    implementation(project(":other")) {
+        capabilities {
+            requireSuffix("-feature-name")
+        }
+    }
+}
+
+testing.suites.test {
+    dependencies {
+        implementation(project(":other")) {
+            capabilities {
+                requireSuffix("-feature-name")
+            }
+        }
+    }
+}
+```
+
 <a name="error-warning"></a>
 ### Error and warning reporting improvements
 

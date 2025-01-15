@@ -31,6 +31,7 @@ import org.gradle.api.artifacts.dsl.Dependencies;
 import org.gradle.api.artifacts.dsl.DependencyCollector;
 import org.gradle.api.artifacts.dsl.DependencyFactory;
 import org.gradle.api.artifacts.dsl.DependencyModifier;
+import org.gradle.api.artifacts.dsl.SingleArgumentDependencyModifier;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
@@ -43,13 +44,15 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * This file is used to add <a href="https://groovy-lang.org/metaprogramming.html#_extension_modules">Groovy Extension Module</a> to {@link DependencyCollector} and {@link DependencyModifier} to make the Groovy DSL more idiomatic.
+ * This file is used to add <a href="https://groovy-lang.org/metaprogramming.html#_extension_modules">Groovy Extension Module</a> to
+ * {@link DependencyCollector}, {@link DependencyModifier}, and {@link SingleArgumentDependencyModifier} to make the Groovy DSL more idiomatic.
  * <p>
  * These extension methods allow an interface to implement a dependencies block in the Groovy DSL by
  * <ul>
  * <li>exposing an instance of {@link DependencyCollector} to add dependencies without explicitly calling {@link DependencyCollector#add(Dependency)}</li>
  * <li>exposing an instance of {@link DependencyCollector} to add dependencies without explicitly calling {@link DependencyCollector#addConstraint(DependencyConstraint)} or {@link DependencyCollector#addConstraint(Provider)}</li>
  * <li>exposing an instance of {@link DependencyModifier} to modify dependencies without explicitly calling {@link DependencyModifier#modify(ModuleDependency)}</li>
+ * <li>exposing an instance of {@link SingleArgumentDependencyModifier} to modify dependencies without explicitly calling {@link SingleArgumentDependencyModifier#modify(ModuleDependency, Object)}</li>
  * </ul>
  *
  * <p>
@@ -58,6 +61,7 @@ import java.util.Set;
  *
  * <p>
  * There are {@code call(...)} equivalents for all the {@code modify(...)} methods in {@link DependencyModifier}.
+ * There are {@code call(...)} equivalents for all the {@code modify(...)} methods in {@link SingleArgumentDependencyModifier}.
  * </p>
  *
  * @see Dependencies
@@ -155,6 +159,63 @@ public class DependenciesExtensionModule {
      */
     public static <D extends ModuleDependency> D call(DependencyModifier self, D dependency) {
         return self.modify(dependency);
+    }
+
+    /**
+     * Modifies a dependency using a single argument modifier.
+     *
+     * @param dependency dependency to modify
+     * @param argument the argument to pass to the modifier
+     *
+     * @return the modified dependency
+     *
+     * @since 8.13
+     */
+    public static <D extends ModuleDependency, T> D call(SingleArgumentDependencyModifier<T> self, D dependency, T argument) {
+        return self.modify(dependency, argument);
+    }
+
+    /**
+     * Modifies a dependency using a single argument modifier.
+     *
+     * @param dependencyNotation dependency to modify
+     * @param argument the argument to pass to the modifier
+     *
+     * @return the modified dependency
+     * @see DependencyFactory#create(CharSequence) Valid dependency notation for this method
+     *
+     * @since 8.13
+     */
+    public static <T> ExternalModuleDependency call(SingleArgumentDependencyModifier<T> self, CharSequence dependencyNotation, T argument) {
+        return self.modify(dependencyNotation, argument);
+    }
+
+    /**
+     * Modifies a dependency using a single argument modifier.
+     *
+     * @param providerConvertibleToDependency dependency to modify
+     * @param argument the argument to pass to the modifier
+     *
+     * @return the modified dependency
+     *
+     * @since 8.13
+     */
+    public static <T> Provider<? extends MinimalExternalModuleDependency> call(SingleArgumentDependencyModifier<T> self, ProviderConvertible<? extends MinimalExternalModuleDependency> providerConvertibleToDependency, T argument) {
+        return self.modify(providerConvertibleToDependency, argument);
+    }
+
+    /**
+     * Modifies a dependency using a single argument modifier.
+     *
+     * @param providerToDependency dependency to modify
+     * @param argument the argument to pass to the modifier
+     *
+     * @return the modified dependency
+     *
+     * @since 8.13
+     */
+    public static <D extends ModuleDependency, T> Provider<D> call(SingleArgumentDependencyModifier<T> self, Provider<D> providerToDependency, T argument) {
+        return self.modify(providerToDependency, argument);
     }
 
     /**

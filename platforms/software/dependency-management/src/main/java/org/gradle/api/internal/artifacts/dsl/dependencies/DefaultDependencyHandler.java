@@ -59,6 +59,7 @@ import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.metaobject.MethodAccess;
 import org.gradle.internal.metaobject.MethodMixIn;
 import org.gradle.util.internal.ConfigureUtil;
+import org.gradle.util.internal.TextUtil;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -402,6 +403,24 @@ public abstract class DefaultDependencyHandler implements DependencyHandlerInter
         Dependency testFixturesDependency = testFixtures(notation);
         configureAction.execute(testFixturesDependency);
         return testFixturesDependency;
+    }
+
+    @Override
+    public Dependency feature(Object notation, String featureName) {
+        Dependency featureDependency = create(notation);
+        if (featureDependency instanceof ModuleDependency) {
+            // Changes here may require changes in DefaultExternalModuleDependencyVariantSpec
+            ModuleDependency moduleDependency = (ModuleDependency) featureDependency;
+            moduleDependency.capabilities(c -> c.requireSuffix("-" + TextUtil.camelToKebabCase(featureName)));
+        }
+        return featureDependency;
+    }
+
+    @Override
+    public Dependency feature(Object notation, String featureName, Action<? super Dependency> configureAction) {
+        Dependency featureDependency = feature(notation, featureName);
+        configureAction.execute(featureDependency);
+        return featureDependency;
     }
 
     @Override
