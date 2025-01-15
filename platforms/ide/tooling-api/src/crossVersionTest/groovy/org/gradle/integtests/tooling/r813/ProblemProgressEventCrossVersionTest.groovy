@@ -55,6 +55,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         withConnection { connection ->
             connection.newBuild().forTasks('reportProblem')
                 .addProgressListener(listener)
+//                .setJvmArguments("-agentlib:jdwp=transport=dt_socket,server=n,suspend=y,address=localhost:5006")
                 .run()
         }
         return listener.problems
@@ -106,7 +107,8 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
                 $documentationConfig
                 .lineInFileLocation("/tmp/foo", 1, 2, 3)
                 $detailsConfig
-                .additionalData(org.gradle.api.problems.internal.GeneralDataSpec, data -> data.put("aKey", "aValue"))
+//                .additionalData(org.gradle.api.problems.internal.GeneralDataSpec, data -> data.put("aKey", "aValue"))
+                .additionalData(new SomeData("asdf"))
                 .severity(Severity.WARNING)
                 .solution("try this instead")
             }
@@ -222,7 +224,6 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
                 .setStandardError(System.err)
                 .setStandardOutput(System.out)
                 .addArguments("--info")
-
                 .run()
         }
 

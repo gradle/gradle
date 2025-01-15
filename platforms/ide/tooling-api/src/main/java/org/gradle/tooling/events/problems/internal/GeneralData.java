@@ -25,13 +25,19 @@ import java.util.Map;
 public class GeneralData implements AdditionalData, Serializable {
 
     private final Map<String, Object> additionalData;
+    private final Object data;
 
-    public GeneralData(Map<String, Object> additionalData) {
+    public GeneralData(Map<String, Object> additionalData, Object data) {
         this.additionalData = ImmutableMap.copyOf(additionalData);
+        this.data = data;
     }
 
     @Override
     public Map<String, Object> getAsMap() {
         return additionalData;
+    }
+
+    public Object getData() {
+        return data;
     }
 }

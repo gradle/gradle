@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.provider.serialization;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.TaskExecutionRequest;
 import org.gradle.internal.classloader.CachingClassLoader;
 import org.gradle.internal.classloader.ClassLoaderSpec;
@@ -24,6 +25,9 @@ import org.gradle.internal.classloader.MultiParentClassLoader;
 import org.gradle.internal.classloader.SystemClassLoaderSpec;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
 
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URL;
 import java.util.List;
 
 public class ModelClassLoaderFactory implements PayloadClassLoaderFactory {
@@ -60,6 +64,23 @@ public class ModelClassLoaderFactory implements PayloadClassLoaderFactory {
             FilteringClassLoader.Spec clSpec = (FilteringClassLoader.Spec) spec;
             return new FilteringClassLoader(parent, clSpec);
         }
+        if (spec instanceof ClientOwnedClassLoaderSpec) {
+            ClientOwnedClassLoaderSpec clSpec = (ClientOwnedClassLoaderSpec) spec;
+            return new VisitableURLClassLoader(clSpec.getClass().getName(), parent, convertToURLs(clSpec));
+        }
         throw new IllegalArgumentException(String.format("Don't know how to create a ClassLoader from spec %s", spec));
+    }
+
+    private static List<URL> convertToURLs(ClientOwnedClassLoaderSpec clSpec) {
+        List<URI> classpath = clSpec.getClasspath();
+        ImmutableList.Builder<URL> builder = ImmutableList.builderWithExpectedSize(classpath.size());
+        for (URI uri : classpath) {
+            try {
+                builder.add(uri.toURL());
+            } catch (MalformedURLException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return builder.build();
     }
 }

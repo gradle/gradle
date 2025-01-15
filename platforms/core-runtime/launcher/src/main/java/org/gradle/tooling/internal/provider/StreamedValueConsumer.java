@@ -17,6 +17,11 @@
 package org.gradle.tooling.internal.provider;
 
 import org.gradle.initialization.BuildEventConsumer;
+import org.gradle.internal.build.event.types.DefaultProblemDetails;
+import org.gradle.internal.build.event.types.DefaultProblemEvent;
+import org.gradle.tooling.internal.protocol.problem.InternalAdditionalData;
+import org.gradle.tooling.internal.protocol.problem.InternalPayloadSerializedAdditionalData;
+import org.gradle.tooling.internal.protocol.problem.InternalProblemDetailsVersion2;
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.StreamedValue;
@@ -35,10 +40,23 @@ public class StreamedValueConsumer implements BuildEventConsumer {
 
     @Override
     public void dispatch(Object message) {
+//        System.out.println(message);
         if (message instanceof StreamedValue) {
             StreamedValue value = (StreamedValue) message;
             Object deserializedValue = payloadSerializer.deserialize(value.getSerializedModel());
             providerParameters.onStreamedValue(deserializedValue);
+        } else if (message instanceof DefaultProblemEvent) {
+            DefaultProblemEvent problemEvent = (DefaultProblemEvent) message;
+            InternalProblemDetailsVersion2 details = problemEvent.getDetails();
+            if (details instanceof DefaultProblemDetails) {
+                InternalAdditionalData additionalData = ((DefaultProblemDetails) details).getAdditionalData();
+                if (additionalData instanceof InternalPayloadSerializedAdditionalData) {
+                    Object deserialize = payloadSerializer.deserialize(((InternalPayloadSerializedAdditionalData) additionalData).get());
+                    System.out.println(deserialize);
+                }
+//                providerParameters.onProblemDetails(((DefaultProblemDetails) details).get());
+            }
+            delegate.dispatch(message);
         } else {
             delegate.dispatch(message);
         }

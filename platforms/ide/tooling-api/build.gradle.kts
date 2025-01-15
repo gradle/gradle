@@ -44,6 +44,7 @@ dependencies {
     api(projects.baseServices)
     api(projects.buildOperations)
     api(projects.concurrent)
+    api(projects.daemonProtocol)
     api(projects.enterpriseLogging)
     api(projects.stdlibJavaExtensions)
     api(projects.logging)
@@ -75,7 +76,7 @@ dependencies {
     }
 
     testImplementation(projects.buildEvents)
-    
+
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.logging))
     testImplementation(testFixtures(projects.dependencyManagement))
