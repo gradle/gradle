@@ -39,7 +39,9 @@ class KotlinMultiplatformPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
         replaceCssSupportBlocksInBuildFile(kotlinVersionNumber)
 
         when:
-        def result = kgpRunner(false, kotlinVersionNumber, ':tasks').build()
+        def result = kgpRunner(false, kotlinVersionNumber, ':tasks')
+            .expectLegacyDeprecationWarning("The Configuration.getTaskDependencyFromProjectDependency(boolean, String) method has been deprecated. This is scheduled to be removed in Gradle 10.0. This method has been removed without replacement. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_10.html#deprecate_getTaskDependencyFromProjectDependency")
+            .build()
 
         then:
         result.task(':tasks').outcome == SUCCESS
@@ -109,7 +111,9 @@ class KotlinMultiplatformPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
         def kotlinVersionNumber = VersionNumber.parse(kotlinVersion)
 
         when:
-        def result = kgpRunner(false, kotlinVersionNumber, ':tasks').build()
+        def result = kgpRunner(false, kotlinVersionNumber, ':tasks')
+            .expectLegacyDeprecationWarning("The Configuration.getTaskDependencyFromProjectDependency(boolean, String) method has been deprecated. This is scheduled to be removed in Gradle 10.0. This method has been removed without replacement. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_10.html#deprecate_getTaskDependencyFromProjectDependency")
+            .build()
 
         then:
         result.task(':tasks').outcome == SUCCESS

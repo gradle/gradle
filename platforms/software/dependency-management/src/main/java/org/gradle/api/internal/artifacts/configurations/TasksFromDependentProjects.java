@@ -30,7 +30,7 @@ import org.gradle.util.Path;
 import javax.annotation.Nullable;
 import java.util.Set;
 
-class TasksFromDependentProjects implements TaskDependencyContainerInternal {
+public class TasksFromDependentProjects implements TaskDependencyContainerInternal {
 
     private final String taskName;
     private final String configurationName;
