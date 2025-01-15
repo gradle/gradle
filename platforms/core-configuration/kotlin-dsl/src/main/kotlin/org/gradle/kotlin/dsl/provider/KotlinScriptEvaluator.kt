@@ -50,6 +50,7 @@ import org.gradle.internal.operations.BuildOperationContext
 import org.gradle.internal.operations.BuildOperationDescriptor
 import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.operations.CallableBuildOperation
+import org.gradle.internal.operations.RunnableBuildOperation
 import org.gradle.internal.scripts.BuildScriptCompilationAndInstrumentation
 import org.gradle.internal.scripts.BuildScriptCompilationAndInstrumentation.Output
 import org.gradle.internal.scripts.CompileScriptBuildOperationType.Details
@@ -129,18 +130,25 @@ class StandardKotlinScriptEvaluator(
         topLevelScript: Boolean,
         options: EvalOptions
     ) {
-        withOptions(options) {
-            interpreter.eval(
-                target,
-                scriptSource,
-                scriptSourceHasher.hash(scriptSource),
-                scriptHandler,
-                targetScope,
-                baseScope,
-                topLevelScript,
-                options
-            )
-        }
+        buildOperationRunner.run(object : RunnableBuildOperation {
+            override fun description(): BuildOperationDescriptor.Builder =
+                BuildOperationDescriptor.displayName("Evaluate Kotlin script")
+
+            override fun run(context: BuildOperationContext) {
+                withOptions(options) {
+                    interpreter.eval(
+                        target,
+                        scriptSource,
+                        scriptSourceHasher.hash(scriptSource),
+                        scriptHandler,
+                        targetScope,
+                        baseScope,
+                        topLevelScript,
+                        options
+                    )
+                }
+            }
+        })
     }
 
     private
@@ -161,7 +169,7 @@ class StandardKotlinScriptEvaluator(
 
     private
     val interpreter by lazy {
-        when(propertyUpgradeReportConfig.isEnabled) {
+        when (propertyUpgradeReportConfig.isEnabled) {
             true -> Interpreter(InterpreterHostWithoutInMemoryCache(gradlePropertiesController))
             false -> Interpreter(InterpreterHost(gradlePropertiesController))
         }
@@ -181,6 +189,9 @@ class StandardKotlinScriptEvaluator(
     inner class InterpreterHost(
         gradleProperties: GradlePropertiesController,
     ) : Interpreter.Host {
+
+        override val buildOperationRunner: BuildOperationRunner
+            get() = this@StandardKotlinScriptEvaluator.buildOperationRunner
 
         override val compilerOptions: KotlinCompilerOptions =
             kotlinCompilerOptions(gradleProperties)

@@ -33,6 +33,10 @@ import org.gradle.groovy.scripts.internal.CompileOperation;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Factory;
 import org.gradle.internal.logging.LoggingManagerInternal;
+import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationRunner;
+import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.service.CloseableServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
@@ -49,12 +53,13 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
     private final PluginHandler pluginHandler;
     private final PluginRequestApplicator pluginRequestApplicator;
     private final CompileOperationFactory compileOperationFactory;
+    private final BuildOperationRunner buildOperationRunner;
     private ScriptPluginFactory scriptPluginFactory;
 
     public DefaultScriptPluginFactory(
         ServiceRegistry scriptServices, ScriptCompilerFactory scriptCompilerFactory, Factory<LoggingManagerInternal> loggingFactoryManager,
         PluginHandler pluginHandler, PluginRequestApplicator pluginRequestApplicator,
-        CompileOperationFactory compileOperationFactory
+        CompileOperationFactory compileOperationFactory, BuildOperationRunner buildOperationRunner
     ) {
         this.scriptServices = scriptServices;
         this.scriptCompilerFactory = scriptCompilerFactory;
@@ -62,6 +67,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
         this.pluginHandler = pluginHandler;
         this.pluginRequestApplicator = pluginRequestApplicator;
         this.compileOperationFactory = compileOperationFactory;
+        this.buildOperationRunner = buildOperationRunner;
         this.scriptPluginFactory = this;
     }
 
@@ -111,6 +117,32 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
 
             ScriptCompiler compiler = scriptCompilerFactory.createCompiler(scriptSource);
 
+            buildOperationRunner.run(new RunnableBuildOperation() {
+                @Override
+                public void run(BuildOperationContext context) {
+                    passOne(target, initialPassScriptTarget, compiler, services);
+                }
+
+                @Override
+                public BuildOperationDescriptor.Builder description() {
+                    return BuildOperationDescriptor.displayName("Apply script header");
+                }
+            });
+
+            buildOperationRunner.run(new RunnableBuildOperation() {
+                @Override
+                public void run(BuildOperationContext context) {
+                    passTwo(target, compiler, services);
+                }
+
+                @Override
+                public BuildOperationDescriptor.Builder description() {
+                    return BuildOperationDescriptor.displayName("Apply script body");
+                }
+            });
+        }
+
+        private void passOne(Object target, ScriptTarget initialPassScriptTarget, ScriptCompiler compiler, CloseableServiceRegistry services) {
             // Pass 1, extract plugin requests and plugin repositories and execute buildscript {}, ignoring (i.e. not even compiling) anything else
             CompileOperation<?> initialOperation = compileOperationFactory.getPluginsBlockCompileOperation(initialPassScriptTarget);
             Class<? extends BasicScript> scriptType = initialPassScriptTarget.getScriptClass();
@@ -121,14 +153,16 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             PluginRequests initialPluginRequests = getInitialPluginRequests(initialRunner);
             PluginRequests allPluginRequests = pluginHandler.getAllPluginRequests(initialPluginRequests, target);
             pluginRequestApplicator.applyPlugins(allPluginRequests, scriptHandler, pluginManager, targetScope);
+        }
 
+        private void passTwo(Object target, ScriptCompiler compiler, CloseableServiceRegistry services) {
             // Pass 2, compile everything except buildscript {}, pluginManagement{}, and plugin requests, then run
             final ScriptTarget scriptTarget = secondPassTarget(target);
-            scriptType = scriptTarget.getScriptClass();
+            Class<? extends BasicScript> secondPassScripType = scriptTarget.getScriptClass();
 
             CompileOperation<BuildScriptData> operation = compileOperationFactory.getScriptCompileOperation(scriptSource, scriptTarget);
 
-            final ScriptRunner<? extends BasicScript, BuildScriptData> runner = compiler.compile(scriptType, target, targetScope, operation, ClosureCreationInterceptingVerifier.INSTANCE);
+            final ScriptRunner<? extends BasicScript, BuildScriptData> runner = compiler.compile(secondPassScripType, target, targetScope, operation, ClosureCreationInterceptingVerifier.INSTANCE);
             if (scriptTarget.getSupportsMethodInheritance() && runner.getHasMethods()) {
                 BasicScript script = runner.getScript();
                 script.init(scriptTarget, scriptServices);
