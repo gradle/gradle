@@ -23,9 +23,9 @@ import org.gradle.declarative.dsl.schema.SchemaFunction
 import org.gradle.internal.declarativedsl.schemaBuilder.ConfigureLambdaHandler
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
+import kotlin.reflect.KTypeParameter
 import kotlin.reflect.full.instanceParameter
 import kotlin.reflect.full.memberFunctions
-import kotlin.reflect.javaType
 
 
 interface RuntimeFunctionResolver {
@@ -61,12 +61,17 @@ class MemberFunctionResolver(private val configureLambdaHandler: ConfigureLambda
 
     }
 
-    @OptIn(ExperimentalStdlibApi::class)
     private fun parametersMatch(function: KFunction<*>, schemaFunction: SchemaFunction): Boolean {
         val actualParameters = function.parameters.subList(if (function.instanceParameter == null) 0 else 1, function.parameters.size)
         return if (actualParameters.size == schemaFunction.parameters.size) {
             actualParameters.zip(schemaFunction.parameters).all { (kp, dp) ->
-                kp.type.javaType.typeName == dp.type.typeName()
+                when (val classifier = kp.type.classifier) {
+                    is KTypeParameter -> (dp.type as? DataTypeRef.Type)?.dataType is DataType.TypeVariableUsage
+                    // Just matching the classifier might be enough as overloads that only differ in generics are not allowed in Java
+                    // TODO: they are allowed in Kotlin
+                    is KClass<*> -> classifier.qualifiedName == dp.type.typeName()
+                    else -> false
+                }
             }
         } else {
             false
@@ -75,11 +80,13 @@ class MemberFunctionResolver(private val configureLambdaHandler: ConfigureLambda
 
     private fun DataTypeRef.typeName(): String = when (this) {
         is DataTypeRef.Name -> fqName.qualifiedName
+        is DataTypeRef.NameWithArgs -> fqName.qualifiedName
         is DataTypeRef.Type -> when (dataType) {
-            is DataType.ClassDataType -> (dataType as DataType.ClassDataType).javaTypeName
-            is DataType.ConstantType<*> -> (dataType as DataType.ConstantType<*>).constantType.name
+            is DataType.ClassDataType -> (dataType as DataType.ClassDataType).name.qualifiedName
+            is DataType.ConstantType<*> -> (dataType as DataType.ConstantType<*>).constantType.kotlin.qualifiedName ?: "<no name>"
             is DataType.NullType -> error("function parameter type should never be NULL")
             is DataType.UnitType -> error("function parameter type should never be UNIT")
+            is DataType.TypeVariableUsage -> TODO()
         }
     }
 }
