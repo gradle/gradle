@@ -16,7 +16,6 @@
 
 package org.gradle.ide.visualstudio.internal;
 
-import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Transformer;
@@ -43,6 +42,7 @@ import org.gradle.util.internal.VersionNumber;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -160,7 +160,7 @@ public class NativeSpecVisualStudioTargetBinary implements VisualStudioTargetBin
     public List<String> getVariantDimensions() {
         List<String> dimensions = binary.getNamingScheme().getVariantDimensions();
         if (dimensions.isEmpty()) {
-            return Lists.newArrayList(binary.getBuildType().getName());
+            return Collections.singletonList(binary.getBuildType().getName());
         } else {
             return dimensions;
         }

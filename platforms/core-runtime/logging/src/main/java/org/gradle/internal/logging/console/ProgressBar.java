@@ -16,7 +16,7 @@
 
 package org.gradle.internal.logging.console;
 
-import com.google.common.collect.Lists;
+import com.google.common.collect.ImmutableList;
 import org.gradle.internal.logging.events.StyledTextOutputEvent;
 import org.gradle.internal.logging.format.TersePrettyDurationFormatter;
 import org.gradle.internal.logging.text.StyledTextOutput;
@@ -107,7 +107,7 @@ public class ProgressBar {
                 + (timerEnabled ? " [" + elapsedTimeStr + "]" : ""));
 
             lastElapsedTimeStr = elapsedTimeStr;
-            formatted = Lists.newArrayList(
+            formatted = ImmutableList.of(
                 new StyledTextOutputEvent.Span(StyledTextOutput.Style.Header, statusPrefix),
                 new StyledTextOutputEvent.Span(failing ? StyledTextOutput.Style.FailureHeader : StyledTextOutput.Style.SuccessHeader, coloredProgress),
                 new StyledTextOutputEvent.Span(StyledTextOutput.Style.Header, statusSuffix));
