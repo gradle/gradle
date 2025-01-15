@@ -22,6 +22,8 @@ import org.gradle.api.internal.tasks.compile.HasCompileOptions;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.compile.AbstractCompile;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
  * This class exposes a number of internal utilities for use by Gradle JVM plugins that use
@@ -29,6 +31,7 @@ import org.gradle.api.tasks.compile.AbstractCompile;
  * not available in the {@code platform-jvm} project and would otherwise be located on the
  * {@link JvmPluginServices} type.
  */
+@ServiceScope(Scope.Project.class)
 public interface JvmLanguageUtilities {
     /**
      * Configures a configuration so that its exposed target jvm version is inferred from

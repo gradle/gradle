@@ -112,6 +112,8 @@ import org.gradle.internal.model.CalculatedValue;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.resolve.resolver.ResolvedVariantCache;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.inject.Inject;
 import java.util.ArrayList;
@@ -134,6 +136,7 @@ import java.util.Set;
  *     </li>
  * </ul>
  */
+@ServiceScope(Scope.Project.class)
 public class ResolutionExecutor {
 
     private static final Spec<DependencyMetadata> IS_LOCAL_EDGE = element -> element.getSelector() instanceof ProjectComponentSelector;

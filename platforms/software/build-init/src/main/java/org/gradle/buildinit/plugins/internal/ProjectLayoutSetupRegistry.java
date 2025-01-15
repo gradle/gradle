@@ -19,6 +19,8 @@ import org.gradle.api.GradleException;
 import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
 import org.gradle.buildinit.plugins.internal.modifiers.Language;
 import org.gradle.internal.logging.text.TreeFormatter;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -26,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+@ServiceScope(Scope.Project.class)
 public class ProjectLayoutSetupRegistry {
     private final Map<String, BuildInitializer> registeredProjectDescriptors = new TreeMap<>();
     private final BuildGenerator defaultType;
