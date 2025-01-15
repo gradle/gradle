@@ -124,6 +124,7 @@ file("system-properties.txt").text = System.getProperties().keySet().join("\\n")
             .findAll {
                 it.startsWith("test-")
             }
+            .toSet()
     }
 
 }
