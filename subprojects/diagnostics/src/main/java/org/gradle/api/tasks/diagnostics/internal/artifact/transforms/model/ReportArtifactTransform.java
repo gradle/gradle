@@ -18,15 +18,12 @@ package org.gradle.api.tasks.diagnostics.internal.artifact.transforms.model;
 
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 
-import javax.annotation.Nullable;
-import java.util.Optional;
-
 /**
  * Lightweight, immutable model of an Artifact Transform for reporting.
  */
 public final class ReportArtifactTransform {
-    @Nullable
-    private final String name;
+    private final String displayName;
+    private final boolean isAutomaticallyNamed;
 
     private final Class<?> transformClass;
     private final ImmutableAttributes fromAttributes;
@@ -34,12 +31,21 @@ public final class ReportArtifactTransform {
 
     private final boolean cacheable;
 
-    public ReportArtifactTransform(@Nullable String name, Class<?> transformClass, ImmutableAttributes fromAttributes, ImmutableAttributes toAttributes, boolean cacheable) {
-        this.name = name;
+    public ReportArtifactTransform(String displayName, boolean isAutomaticallyNamed, Class<?> transformClass, ImmutableAttributes fromAttributes, ImmutableAttributes toAttributes, boolean cacheable) {
+        this.displayName = displayName;
+        this.isAutomaticallyNamed = isAutomaticallyNamed;
         this.transformClass = transformClass;
         this.fromAttributes = fromAttributes;
         this.toAttributes = toAttributes;
         this.cacheable = cacheable;
+    }
+
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    public boolean isAutomaticallyNamed() {
+        return isAutomaticallyNamed;
     }
 
     public Class<?> getTransformClass() {
@@ -56,13 +62,5 @@ public final class ReportArtifactTransform {
 
     public boolean isCacheable() {
         return cacheable;
-    }
-
-    public boolean isNamed() {
-        return name != null;
-    }
-
-    public Optional<String> getName() {
-        return Optional.ofNullable(name);
     }
 }

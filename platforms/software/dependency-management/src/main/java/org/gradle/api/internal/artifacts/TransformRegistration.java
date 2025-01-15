@@ -16,17 +16,26 @@
 
 package org.gradle.api.internal.artifacts;
 
+import org.gradle.api.Describable;
 import org.gradle.api.internal.artifacts.transform.TransformStep;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 
 /**
  * Registration of an artifact transform.
  */
-public interface TransformRegistration {
+public interface TransformRegistration extends Describable {
     /**
      * Name of the transform.
      */
     String getName();
+
+    /**
+     * Whether a name was explicitly provided when registering this transform.
+     *
+     * @return {@code true} if the name was <strong>NOT</strong> provided and was generated automatically;
+     *  {@code false} if this transform was explicitly named
+     */
+    boolean isAutomaticallyNamed();
 
     /**
      * Attributes that match the variant that is consumed.
@@ -42,4 +51,13 @@ public interface TransformRegistration {
      * Transform step for artifacts of the variant.
      */
     TransformStep getTransformStep();
+
+    @Override
+    default String getDisplayName() {
+        if (isAutomaticallyNamed()) {
+            return "Unnamed transform";
+        } else {
+            return "Transform '" + getName() + "'";
+        }
+    }
 }

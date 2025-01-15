@@ -97,7 +97,7 @@ public class DefaultTransformRegistrationFactory implements TransformRegistratio
     }
 
     @Override
-    public TransformRegistration create(@Nullable String name, ImmutableAttributes from, ImmutableAttributes to, Class<? extends TransformAction<?>> implementation, @Nullable TransformParameters parameterObject) {
+    public TransformRegistration create(String name, boolean isAutomaticallyNamed, ImmutableAttributes from, ImmutableAttributes to, Class<? extends TransformAction<?>> implementation, @Nullable TransformParameters parameterObject) {
         TypeMetadata actionMetadata = actionMetadataStore.getTypeMetadata(implementation);
         boolean cacheable = implementation.isAnnotationPresent(CacheableTransform.class);
         InternalProblems problems = (InternalProblems) internalServices.get(InternalProblems.class);
@@ -154,18 +154,19 @@ public class DefaultTransformRegistrationFactory implements TransformRegistratio
             internalServices
         );
 
-        return new DefaultTransformRegistration(name, from, to, new TransformStep(transform, transformInvocationFactory, owner, inputFingerprinter));
+        return new DefaultTransformRegistration(name, isAutomaticallyNamed, from, to, new TransformStep(transform, transformInvocationFactory, owner, inputFingerprinter));
     }
 
     private static class DefaultTransformRegistration implements TransformRegistration {
-        @Nullable
         private final String name;
+        private final boolean isAutomaticallyNamed;
         private final ImmutableAttributes from;
         private final ImmutableAttributes to;
         private final TransformStep transformStep;
 
-        public DefaultTransformRegistration(@Nullable String name, ImmutableAttributes from, ImmutableAttributes to, TransformStep transformStep) {
+        public DefaultTransformRegistration(String name, boolean isAutomaticallyNamed, ImmutableAttributes from, ImmutableAttributes to, TransformStep transformStep) {
             this.name = name;
+            this.isAutomaticallyNamed = isAutomaticallyNamed;
             this.from = from;
             this.to = to;
             this.transformStep = transformStep;
@@ -188,13 +189,17 @@ public class DefaultTransformRegistrationFactory implements TransformRegistratio
 
         @Override
         public String toString() {
-            return transformStep + (name != null ? " " + name : " transform") + " from " + from + " to " + to;
+            return "transform '" + name + "'";
         }
 
-        @Nullable
         @Override
         public String getName() {
             return name;
+        }
+
+        @Override
+        public boolean isAutomaticallyNamed() {
+            return isAutomaticallyNamed;
         }
     }
 

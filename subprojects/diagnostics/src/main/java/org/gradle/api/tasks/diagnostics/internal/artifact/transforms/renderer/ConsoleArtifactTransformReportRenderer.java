@@ -23,7 +23,6 @@ import org.gradle.api.tasks.diagnostics.internal.artifact.transforms.model.Repor
 import org.gradle.api.tasks.diagnostics.internal.artifact.transforms.spec.ArtifactTransformReportSpec;
 import org.gradle.internal.logging.text.StyledTextOutput;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 /**
@@ -70,14 +69,13 @@ public final class ConsoleArtifactTransformReportRenderer extends AbstractArtifa
         newLine();
     }
 
-    @SuppressWarnings("OptionalGetWithoutIsPresent")
     private void writeArtifactTransformNameHeader(ReportArtifactTransform artifactTransform) {
         printHeader(() -> {
-            output.style(StyledTextOutput.Style.Normal).text("Transform ");
-            if (artifactTransform.isNamed()) {
-                output.style(StyledTextOutput.Style.Identifier).println(artifactTransform.getName().get());
+            output.style(StyledTextOutput.Style.Identifier).text(artifactTransform.getDisplayName());
+            if (artifactTransform.isAutomaticallyNamed()) {
+                output.style(StyledTextOutput.Style.Description).println(" (u)");
             } else {
-                output.style(StyledTextOutput.Style.Description).println("(u)");
+                output.println();
             }
         });
     }
@@ -93,6 +91,7 @@ public final class ConsoleArtifactTransformReportRenderer extends AbstractArtifa
         }
     }
 
+    @SuppressWarnings("CodeBlock2Expr")
     private void writeAttributes(ReportArtifactTransform artifactTransform) {
         Integer maxNameLength = Streams.concat(artifactTransform.getFromAttributes().keySet().stream(), artifactTransform.getToAttributes().keySet().stream())
             .map(a -> a.getName().length())
@@ -114,16 +113,12 @@ public final class ConsoleArtifactTransformReportRenderer extends AbstractArtifa
     }
 
     private void writeLegend(List<ReportArtifactTransform> configs) {
-        boolean hasUnnamed = !configs.stream().allMatch(ReportArtifactTransform::isNamed);
-        boolean hasCacheable = configs.stream().anyMatch(ReportArtifactTransform::isCacheable);
-
         output.style(StyledTextOutput.Style.Info);
+        boolean hasUnnamed = configs.stream().anyMatch(ReportArtifactTransform::isAutomaticallyNamed);
         if (hasUnnamed) {
             output.println("(u) Unnamed artifact transform. Providing a name as the first argument to registerTransform() will make them easier to identify.");
         }
-        if (hasCacheable) {
-            output.println("(c) Artifact transform has a type marked with @CacheableTransform. Asserts the transformation is idempotent and results can be reused without rerunning the transform.");
-        }
+        output.println("(c) Artifact transform uses a type annotated with @CacheableTransform. This asserts the transformation is idempotent and results can be reused without rerunning the transform.");
     }
 
     private void writeCompleteAbsenceOfResults(ArtifactTransformReportModel model, boolean searchingByType) {
@@ -143,16 +138,9 @@ public final class ConsoleArtifactTransformReportRenderer extends AbstractArtifa
     }
 
     private void printSection(String title, Runnable action) {
-        printSection(title, null, action);
-    }
-
-    private void printSection(String title, @Nullable String description, Runnable action) {
         indent(false);
         output.style(StyledTextOutput.Style.Description).text(title);
         output.style(StyledTextOutput.Style.Normal);
-        if (description != null) {
-            output.text(" : " + description);
-        }
         try {
             depth++;
             newLine();

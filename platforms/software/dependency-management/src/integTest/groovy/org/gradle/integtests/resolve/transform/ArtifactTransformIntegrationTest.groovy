@@ -2593,7 +2593,7 @@ Found the following transformation chains:
 
         then:
         result.groupedOutput.task(":app:artifactTransforms").assertOutputContains("""--------------------------------------------------
-Transform test
+Transform 'test'
 --------------------------------------------------
 Type: FileSizer
 From Attributes:
@@ -2607,7 +2607,7 @@ To Attributes:
 
         then:
         result.groupedOutput.task(":lib:artifactTransforms").assertOutputContains("""--------------------------------------------------
-Transform test
+Transform 'test'
 --------------------------------------------------
 Type: FileSizer
 From Attributes:

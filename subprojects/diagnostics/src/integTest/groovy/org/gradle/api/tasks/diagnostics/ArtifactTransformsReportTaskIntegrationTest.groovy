@@ -55,7 +55,7 @@ class ArtifactTransformsReportTaskIntegrationTest extends AbstractIntegrationSpe
 
         then:
         result.groupedOutput.task(":artifactTransforms").assertOutputContains("""--------------------------------------------------
-Transform (u)
+Unnamed transform (u)
 --------------------------------------------------
 Type: EmptyTransform
 From Attributes:
@@ -66,6 +66,7 @@ To Attributes:
     - shape = circle
 
 (u) Unnamed artifact transform. Providing a name as the first argument to registerTransform() will make them easier to identify.
+(c) Artifact transform uses a type annotated with @CacheableTransform. This asserts the transformation is idempotent and results can be reused without rerunning the transform.
 """)
     }
 
@@ -94,7 +95,7 @@ To Attributes:
 
         then:
         result.groupedOutput.task(":artifactTransforms").assertOutputContains("""--------------------------------------------------
-Transform (u)
+Unnamed transform (u)
 --------------------------------------------------
 Type: EmptyTransform
 From Attributes:
@@ -103,7 +104,7 @@ To Attributes:
     - color = red
 
 --------------------------------------------------
-Transform (u)
+Unnamed transform (u)
 --------------------------------------------------
 Type: OtherTransform (c)
 From Attributes:
@@ -112,7 +113,7 @@ To Attributes:
     - shape = circle
 
 (u) Unnamed artifact transform. Providing a name as the first argument to registerTransform() will make them easier to identify.
-(c) Artifact transform has a type marked with @CacheableTransform. Asserts the transformation is idempotent and results can be reused without rerunning the transform.
+(c) Artifact transform uses a type annotated with @CacheableTransform. This asserts the transformation is idempotent and results can be reused without rerunning the transform.
 """)
     }
 
@@ -140,7 +141,7 @@ To Attributes:
 
         then:
         result.groupedOutput.task(":artifactTransforms").assertOutputContains("""--------------------------------------------------
-Transform (u)
+Unnamed transform (u)
 --------------------------------------------------
 Type: EmptyTransform (c)
 From Attributes:
@@ -149,7 +150,7 @@ To Attributes:
     - color = red
 
 --------------------------------------------------
-Transform myTransform
+Transform 'myTransform'
 --------------------------------------------------
 Type: EmptyTransform (c)
 From Attributes:
@@ -158,7 +159,7 @@ To Attributes:
     - shape = circle
 
 (u) Unnamed artifact transform. Providing a name as the first argument to registerTransform() will make them easier to identify.
-(c) Artifact transform has a type marked with @CacheableTransform. Asserts the transformation is idempotent and results can be reused without rerunning the transform.
+(c) Artifact transform uses a type annotated with @CacheableTransform. This asserts the transformation is idempotent and results can be reused without rerunning the transform.
 """)
     }
 
@@ -197,7 +198,7 @@ To Attributes:
 
         then:
         result.groupedOutput.task(":artifactTransforms").assertOutputContains("""--------------------------------------------------
-Transform (u)
+Unnamed transform (u)
 --------------------------------------------------
 Type: EmptyTransform
 From Attributes:
@@ -206,7 +207,7 @@ To Attributes:
     - color = red
 
 --------------------------------------------------
-Transform To Purple
+Transform 'To Purple'
 --------------------------------------------------
 Type: EmptyTransform
 From Attributes:
@@ -215,6 +216,7 @@ To Attributes:
     - color = purple
 
 (u) Unnamed artifact transform. Providing a name as the first argument to registerTransform() will make them easier to identify.
+(c) Artifact transform uses a type annotated with @CacheableTransform. This asserts the transformation is idempotent and results can be reused without rerunning the transform.
 """)
     }
 

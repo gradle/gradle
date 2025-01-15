@@ -24,5 +24,10 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import javax.annotation.Nullable;
 
 public interface TransformRegistrationFactory {
-    TransformRegistration create(@Nullable String name, ImmutableAttributes from, ImmutableAttributes to, Class<? extends TransformAction<?>> implementation, @Nullable TransformParameters parameterObject);
+    /**
+     * Creates a new transform registration.
+     *
+     * @param isAutomaticallyNamed {@code true} if the name was generated automatically; {@code false} if the author explicitly named the transform
+     */
+    TransformRegistration create(String name, boolean isAutomaticallyNamed, ImmutableAttributes from, ImmutableAttributes to, Class<? extends TransformAction<?>> implementation, @Nullable TransformParameters parameterObject);
 }

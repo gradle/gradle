@@ -110,7 +110,7 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
             registrationAction.execute(registration);
             registration.validateAttributes();
 
-            TransformRegistration finalizedRegistration = registrationFactory.create(registration.name, registration.from.asImmutable(), registration.to.asImmutable(), actionType, parameterObject);
+            TransformRegistration finalizedRegistration = registrationFactory.create(registration.name, isAutomaticallyNamed, registration.from.asImmutable(), registration.to.asImmutable(), actionType, parameterObject);
             registeredTransforms.put(registration.name, finalizedRegistration);
         } catch (Exception e) {
             throw new VariantTransformConfigurationException(buildFailureToRegisterMsg(name, registration, actionType), e, documentationRegistry);

@@ -47,7 +47,8 @@ public abstract class ArtifactTransformReportModelFactory {
     private ReportArtifactTransform convertArtifactTransform(TransformRegistration transformRegistration) {
         Transform transform = transformRegistration.getTransformStep().getTransform();
         return new ReportArtifactTransform(
-            transformRegistration.getName(),
+            transformRegistration.getDisplayName(),
+            transformRegistration.isAutomaticallyNamed(),
             transform.getImplementationClass(),
             transform.getFromAttributes(),
             transform.getToAttributes(),
