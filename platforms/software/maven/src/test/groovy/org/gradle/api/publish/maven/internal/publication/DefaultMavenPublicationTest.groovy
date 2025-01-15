@@ -25,6 +25,7 @@ import org.gradle.api.artifacts.ExternalDependency
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.PublishArtifact
+import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.attributes.Category
 import org.gradle.api.component.ComponentWithVariants
 import org.gradle.api.file.FileCollection
@@ -43,6 +44,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.attributes.AttributesFactory
 import org.gradle.api.internal.component.DefaultSoftwareComponentVariant
 import org.gradle.api.internal.component.SoftwareComponentInternal
+import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.publish.internal.PublicationArtifactInternal
 import org.gradle.api.publish.internal.PublicationInternal
@@ -421,9 +423,10 @@ class DefaultMavenPublicationTest extends Specification {
     def "maps project dependency to maven dependency"() {
         given:
         def publication = createPublication()
+        def buildTreePath = Mock(Path)
+        def projectIdentity = new ProjectIdentity(Mock(BuildIdentifier), buildTreePath, buildTreePath, "foo")
         def projectDependency = Mock(ProjectDependencyInternal) {
-            getDependencyProject() >> Mock(Project)
-            getIdentityPath() >> Mock(Path)
+            getTargetProjectIdentity() >> projectIdentity
         }
 
         and:
@@ -433,7 +436,7 @@ class DefaultMavenPublicationTest extends Specification {
         projectDependency.getArtifacts() >> []
         projectDependency.getGroup() >> "pub-group"
         projectDependency.getName() >> "pub-name"
-        projectDependencyResolver.resolveComponent(ModuleVersionIdentifier, projectDependency.identityPath) >> DefaultModuleVersionIdentifier.newId("pub-group", "pub-name", "pub-version")
+        projectDependencyResolver.resolveComponent(ModuleVersionIdentifier, buildTreePath) >> DefaultModuleVersionIdentifier.newId("pub-group", "pub-name", "pub-version")
 
         when:
         publication.from(componentWithDependency(projectDependency))
@@ -453,8 +456,10 @@ class DefaultMavenPublicationTest extends Specification {
     def "ignores self project dependency"() {
         given:
         def publication = createPublication()
+        def buildTreePath = Mock(Path)
+        def projectIdentity = new ProjectIdentity(Mock(BuildIdentifier), buildTreePath, buildTreePath, "foo")
         def projectDependency = Mock(ProjectDependencyInternal) {
-            getIdentityPath() >> Mock(Path)
+            getTargetProjectIdentity() >> projectIdentity
         }
 
         and:
@@ -462,7 +467,7 @@ class DefaultMavenPublicationTest extends Specification {
         projectDependency.getAttributes() >> ImmutableAttributes.EMPTY
         projectDependency.capabilitySelectors >> ([] as Set)
         projectDependency.getArtifacts() >> []
-        projectDependencyResolver.resolveComponent(ModuleVersionIdentifier, projectDependency.identityPath) >> DefaultModuleVersionIdentifier.newId("group", "name", "version")
+        projectDependencyResolver.resolveComponent(ModuleVersionIdentifier, buildTreePath) >> DefaultModuleVersionIdentifier.newId("group", "name", "version")
 
         when:
         publication.from(componentWithDependency(projectDependency))

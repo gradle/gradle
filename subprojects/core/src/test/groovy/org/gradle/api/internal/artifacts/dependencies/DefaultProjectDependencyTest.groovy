@@ -18,12 +18,16 @@ package org.gradle.api.internal.artifacts.dependencies
 
 import org.gradle.api.artifacts.ExternalDependency
 import org.gradle.api.artifacts.ProjectDependency
+import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.artifacts.dsl.DependencyFactory
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.internal.component.resolution.failure.exception.VariantSelectionByNameException
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
+import org.gradle.util.Path
 
 import static org.gradle.api.internal.artifacts.dependencies.AbstractModuleDependencySpec.assertDeepCopy
 import static org.gradle.util.Matchers.strictlyEqual
@@ -217,7 +221,13 @@ class DefaultProjectDependencyTest extends AbstractProjectBuilderSpec {
         def base = new DefaultProjectDependency(project, "conf1", true, TestFiles.taskDependencyFactory())
         def differentConf = new DefaultProjectDependency(project, "conf2", true, TestFiles.taskDependencyFactory())
         def differentBuildDeps = new DefaultProjectDependency(project, "conf1", false, TestFiles.taskDependencyFactory())
-        def differentProject = new DefaultProjectDependency(Mock(ProjectInternal), "conf1", true, TestFiles.taskDependencyFactory())
+
+        def otherProject = Mock(ProjectInternal) {
+            getOwner() >> Mock(ProjectState) {
+                getIdentity() >> new ProjectIdentity(Mock(BuildIdentifier), Path.path(":foo"), Path.path(":foo"), "foo")
+            }
+        }
+        def differentProject = new DefaultProjectDependency(otherProject, "conf1", true, TestFiles.taskDependencyFactory())
 
         then:
         base != differentConf

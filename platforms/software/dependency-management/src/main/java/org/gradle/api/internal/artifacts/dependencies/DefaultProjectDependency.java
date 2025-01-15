@@ -38,7 +38,6 @@ import org.gradle.internal.component.resolution.failure.exception.VariantSelecti
 import org.gradle.internal.component.resolution.failure.type.ConfigurationNotConsumableFailure;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.internal.deprecation.DeprecationLogger;
-import org.gradle.util.Path;
 import org.gradle.util.internal.GUtil;
 
 import javax.annotation.Nullable;
@@ -100,11 +99,6 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
     }
 
     @Override
-    public Path getIdentityPath() {
-        return dependencyProject.getIdentityPath();
-    }
-
-    @Override
     public ProjectIdentity getTargetProjectIdentity() {
         return dependencyProject.getOwner().getIdentity();
     }
@@ -159,7 +153,7 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
     @Deprecated
     public Set<File> resolve(boolean transitive) {
 
-        DeprecationLogger.deprecate("Directly resolving the files of project dependency '" + getIdentityPath() + "'")
+        DeprecationLogger.deprecate("Directly resolving the files of project dependency '" + getTargetProjectIdentity().getBuildTreePath() + "'")
             .withAdvice("Add the dependency to a resolvable configuration and resolve the configuration.")
             .willBecomeAnErrorInGradle9()
             .withUpgradeGuideSection(8, "deprecate_self_resolving_dependency")
@@ -191,7 +185,7 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
     @Deprecated
     public TaskDependencyInternal getBuildDependencies() {
 
-        DeprecationLogger.deprecate("Accessing the build dependencies of project dependency '" + getIdentityPath() + "'")
+        DeprecationLogger.deprecate("Accessing the build dependencies of project dependency '" + getTargetProjectIdentity().getBuildTreePath() + "'")
             .withAdvice("Add the dependency to a resolvable configuration and use the configuration to track task dependencies.")
             .willBecomeAnErrorInGradle9()
             .withUpgradeGuideSection(8, "deprecate_self_resolving_dependency")
@@ -246,7 +240,7 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
             return false;
         }
 
-        return getIdentityPath().equals(that.getIdentityPath());
+        return getTargetProjectIdentity().equals(that.getTargetProjectIdentity());
     }
 
     @Override
@@ -259,7 +253,7 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
         }
 
         DefaultProjectDependency that = (DefaultProjectDependency) o;
-        if (!this.getIdentityPath().equals(that.getIdentityPath())) {
+        if (!this.getTargetProjectIdentity().equals(that.getTargetProjectIdentity())) {
             return false;
         }
         if (getTargetConfiguration() != null ? !this.getTargetConfiguration().equals(that.getTargetConfiguration())
@@ -280,7 +274,7 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
 
     @Override
     public int hashCode() {
-        int hashCode = getIdentityPath().hashCode();
+        int hashCode = getTargetProjectIdentity().hashCode();
         if (getTargetConfiguration() != null) {
             hashCode = 31 * hashCode + getTargetConfiguration().hashCode();
         }

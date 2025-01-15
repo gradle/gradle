@@ -68,7 +68,7 @@ public class VersionMappingComponentDependencyResolver implements ComponentDepen
 
     @Override
     public ResolvedCoordinates resolveComponentCoordinates(ProjectDependency dependency) {
-        Path identityPath = ((ProjectDependencyInternal) dependency).getIdentityPath();
+        Path identityPath = ((ProjectDependencyInternal) dependency).getTargetProjectIdentity().getBuildTreePath();
         ModuleVersionIdentifier coordinates = projectDependencyResolver.resolveComponent(ModuleVersionIdentifier.class, identityPath);
         ModuleVersionIdentifier resolved = maybeResolveVersion(coordinates.getGroup(), coordinates.getName(), identityPath);
         return ResolvedCoordinates.create(resolved != null ? resolved : coordinates);
