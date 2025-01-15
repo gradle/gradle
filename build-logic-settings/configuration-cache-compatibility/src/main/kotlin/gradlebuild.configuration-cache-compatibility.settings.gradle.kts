@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,15 @@
  */
 import org.gradle.api.internal.plugins.DslObject
 
-val unsupportedTasksPredicate: (Task) -> Boolean = { task: Task ->
-    when {
+run {
+
+    fun String.startsWithAnyOf(vararg prefixes: String): Boolean =
+        prefixes.any { prefix -> startsWith(prefix) }
+
+    fun Task.typeSimpleName(): String =
+        DslObject(this).declaredType.simpleName
+
+    fun isIncompatible(task: Task): Boolean = when {
 
         // Working tasks that would otherwise be matched by filters below
         task.name in listOf(
@@ -36,10 +43,12 @@ val unsupportedTasksPredicate: (Task) -> Boolean = { task: Task ->
             "dependantComponents",
             "model",
         ) -> true
+
         task.name.startsWithAnyOf(
             "publish",
             "idea",
         ) -> true
+
         task is GradleBuild -> true
 
         // gradle/gradle build tasks
@@ -47,11 +56,12 @@ val unsupportedTasksPredicate: (Task) -> Boolean = { task: Task ->
             "updateInitPluginTemplateVersionFile",
             "resolveAllDependencies",
         ) -> true
+
         task.name.endsWith("Wrapper") -> true
         task.name in listOf("docs", "stageDocs", "serveDocs") -> true
         task.name.startsWith("userguide") -> true
         task.name == "samplesMultiPage" -> true
-        task.typeSimpleName in listOf(
+        task.typeSimpleName() in listOf(
             "KtsProjectGeneratorTask",
             "JavaExecProjectGeneratorTask",
             "JvmProjectGeneratorTask",
@@ -84,6 +94,7 @@ val unsupportedTasksPredicate: (Task) -> Boolean = { task: Task ->
             "ripples",
             "aggregateAdvice",
         ) -> true
+
         task.name.startsWithAnyOf(
             "advice",
             "analyzeClassUsage",
@@ -103,17 +114,13 @@ val unsupportedTasksPredicate: (Task) -> Boolean = { task: Task ->
 
         else -> false
     }
-}
 
-gradle.taskGraph.whenReady {
-    allTasks.filter(unsupportedTasksPredicate).forEach { task ->
-        task.notCompatibleWithConfigurationCache("Task is not compatible with the configuration cache")
+    gradle.lifecycle.beforeProject {
+        tasks.configureEach {
+            val task = this
+            if (isIncompatible(task)) {
+                task.notCompatibleWithConfigurationCache("Task is not compatible with the configuration cache")
+            }
+        }
     }
 }
-
-
-fun String.startsWithAnyOf(vararg prefixes: String): Boolean =
-    prefixes.any { prefix -> startsWith(prefix) }
-
-val Task.typeSimpleName: String
-    get() = DslObject(this).declaredType.simpleName

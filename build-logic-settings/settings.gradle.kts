@@ -45,5 +45,6 @@ plugins {
 }
 
 include("build-environment")
+include("configuration-cache-compatibility")
 
 rootProject.name = "build-logic-settings"
