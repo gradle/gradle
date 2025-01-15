@@ -90,7 +90,7 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
     private final ManagedExecutor unlockActionExecutor;
 
     private boolean stopped;
-    private boolean listenerFailed;
+    private volatile boolean listenerFailed;
 
     public DefaultFileLockContentionHandler(ExecutorFactory executorFactory, InetAddressProvider inetAddressProvider) {
         this(new DefaultFileLockCommunicator(inetAddressProvider), inetAddressProvider, executorFactory);
