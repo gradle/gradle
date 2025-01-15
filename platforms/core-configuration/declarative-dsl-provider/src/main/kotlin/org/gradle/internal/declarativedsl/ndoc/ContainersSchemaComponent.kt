@@ -49,15 +49,17 @@ import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeCustomAccessors
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeFunctionResolver
 import org.gradle.internal.declarativedsl.schemaBuilder.DataSchemaBuilder
 import org.gradle.internal.declarativedsl.schemaBuilder.FunctionExtractor
+import org.gradle.internal.declarativedsl.schemaBuilder.SchemaBuildingHost
+import org.gradle.internal.declarativedsl.schemaBuilder.SchemaBuildingTags
 import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery
 import org.gradle.internal.declarativedsl.schemaBuilder.annotationsWithGetters
-import org.gradle.internal.declarativedsl.schemaBuilder.toDataTypeRef
+import org.gradle.internal.declarativedsl.schemaBuilder.inContextOfModelMember
+import org.gradle.internal.declarativedsl.schemaBuilder.withTag
 import org.gradle.internal.declarativedsl.utils.DclContainerMemberExtractionUtils.elementFactoryFunctionNameFromElementType
 import org.gradle.internal.declarativedsl.utils.DclContainerMemberExtractionUtils.elementTypeFromNdocContainerType
 import java.util.Locale
 import kotlin.reflect.KCallable
 import kotlin.reflect.KClass
-import kotlin.reflect.KClassifier
 import kotlin.reflect.KFunction
 import kotlin.reflect.KProperty
 import kotlin.reflect.KType
@@ -87,11 +89,13 @@ internal class ContainersSchemaComponent : AnalysisSchemaComponent, ObjectConver
     override fun functionExtractors(): List<FunctionExtractor> = listOf(
         // For subtypes of NDOC<T>, generate the element factory function as a member:
         object : FunctionExtractor {
-            override fun memberFunctions(kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex) =
+            override fun memberFunctions(host: SchemaBuildingHost, kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<SchemaMemberFunction> =
                 if (kClass.isSubclassOf(NamedDomainObjectContainer::class) && kClass != NamedDomainObjectContainer::class) {
                     val elementType = elementTypeFromNdocContainerType(kClass.starProjectedType)
                     if (elementType != null) {
-                        listOf(newElementFactoryFunction(kClass.toDataTypeRef(), elementType, inContext = kClass))
+                        host.withTag(SchemaBuildingTags.elementTypeOfContainerSubtype(kClass)) {
+                            listOf(newElementFactoryFunction(host, host.containerTypeRef(kClass), elementType, kClass))
+                        }
                     } else emptyList()
                 } else emptyList()
         },
@@ -99,22 +103,25 @@ internal class ContainersSchemaComponent : AnalysisSchemaComponent, ObjectConver
         // For all types, if they have an NDOC-typed property, add a configuring function for it. Also, maybe generate a synthetic type
         // for NDOC<T> (if it is not a real subtype of NDOC<T>) which will be the configuring function's receiver:
         object : FunctionExtractor {
-            override fun memberFunctions(kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<SchemaMemberFunction> {
+            override fun memberFunctions(host: SchemaBuildingHost, kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<SchemaMemberFunction> {
                 val containerProperties = containerProperties(kClass)
 
                 containerProperties.forEach { containerProperty ->
-                    containerByAccessorId[containerProperty.accessorId()] = containerProperty
+                    containerByAccessorId[containerProperty.accessorId(host)] = containerProperty
                 }
 
                 return containerProperties.map { containerProperty ->
-                    val containerType = containerProperty.containerType
-                    val containerTypeRef = if (containerType.classifier == NamedDomainObjectContainer::class) {
-                        val typeId = ndocTypeId(containerProperty.originDeclaration.callable, containerProperty.elementType)
-                        preIndex.getOrRegisterSyntheticType(typeId, containerProperty::generateSyntheticContainerType).ref
-                    } else containerType.toDataTypeRef()
-                        ?: throw DeclarativeDslInterpretationException("Cannot use $containerType as a container type in ${containerProperty.originDeclaration.callable}")
+                    host.withTag(SchemaBuildingTags.namedDomainObjectContainer(containerProperty.name)) {
+                        val containerType = containerProperty.containerType
+                        val containerTypeRef = if (containerType.classifier == NamedDomainObjectContainer::class) {
+                            val typeId = ndocTypeId(host, containerProperty.elementType)
+                            preIndex.getOrRegisterSyntheticType(typeId) { containerProperty.generateSyntheticContainerType(host) }.ref
+                        } else host.inContextOfModelMember(containerProperty.originDeclaration.callable) {
+                            host.modelTypeRef(containerType)
+                        }
 
-                    containerProperty.containerConfiguringFunction(kClass, containerTypeRef)
+                        containerProperty.containerConfiguringFunction(host, kClass, containerTypeRef)
+                    }
                 }
             }
         }
@@ -137,7 +144,7 @@ internal class ContainersSchemaComponent : AnalysisSchemaComponent, ObjectConver
         object : RuntimeCustomAccessors {
             override fun getObjectFromCustomAccessor(receiverObject: Any, accessor: ConfigureAccessor.Custom): InstanceAndPublicType {
                 val callable = containerByAccessorId[accessor.customAccessorIdentifier]?.originDeclaration?.callable ?: return InstanceAndPublicType.NULL
-                return InstanceAndPublicType.of(callable.call(receiverObject),  callable.returnType.jvmErasure)
+                return InstanceAndPublicType.of(callable.call(receiverObject), callable.returnType.jvmErasure)
             }
         }
     )
@@ -158,8 +165,8 @@ internal class ContainersSchemaComponent : AnalysisSchemaComponent, ObjectConver
         }
     )
 
-    private fun newElementFactoryFunction(receiverTypeRef: DataTypeRef, elementKType: KType, inContext: Any): DataMemberFunction {
-        val elementFactoryFunction = elementFactoryFunction(receiverTypeRef, elementKType, inContext)
+    private fun newElementFactoryFunction(host: SchemaBuildingHost, receiverTypeRef: DataTypeRef, elementKType: KType, inContext: Any): DataMemberFunction {
+        val elementFactoryFunction = elementFactoryFunction(host, receiverTypeRef, elementKType, inContext)
         elementFactoryFunctions.add(elementFactoryFunction)
         elementPublicTypes[elementFactoryFunction] = elementKType.jvmErasure
         return elementFactoryFunction
@@ -172,33 +179,34 @@ internal class ContainersSchemaComponent : AnalysisSchemaComponent, ObjectConver
         val elementType: KType,
         val originDeclaration: ContainerPropertyDeclaration
     ) {
-        fun syntheticTypeName() = DefaultFqName.parse(NamedDomainObjectContainer::class.qualifiedName!! + "\$of\$" + elementTypeName().replace(".", "_"))
+        fun syntheticTypeName(host: SchemaBuildingHost) =
+            DefaultFqName.parse(NamedDomainObjectContainer::class.qualifiedName!! + "\$of\$" + elementTypeName(host).replace(".", "_"))
 
-        private fun elementTypeName() = dataTypeRefName(elementType.classifier!!)
+        private fun elementTypeName(host: SchemaBuildingHost) = dataTypeRefName(host, elementType)
 
-        private fun syntheticContainerTypeRef() = DataTypeRefInternal.DefaultName(syntheticTypeName())
+        private fun syntheticContainerTypeRef(host: SchemaBuildingHost) = DataTypeRefInternal.DefaultName(syntheticTypeName(host))
 
-        fun containerConfiguringFunction(ownerType: KClass<*>, containerTypeRef: DataTypeRef) = DefaultDataMemberFunction(
-            ownerType.toDataTypeRef(),
+        fun containerConfiguringFunction(host: SchemaBuildingHost, ownerType: KClass<*>, containerTypeRef: DataTypeRef) = DefaultDataMemberFunction(
+            host.containerTypeRef(ownerType),
             name,
             emptyList(),
             false,
             FunctionSemanticsInternal.DefaultAccessAndConfigure(
-                ConfigureAccessorInternal.DefaultCustom(containerTypeRef, accessorId()),
+                ConfigureAccessorInternal.DefaultCustom(containerTypeRef, accessorId(host)),
                 DefaultUnit,
                 DefaultRequired
             )
         )
 
-        fun accessorId() = "container:${dataTypeRefName(ownerType)}:$name"
+        fun accessorId(host: SchemaBuildingHost) = "container:${dataTypeRefName(host, ownerType.starProjectedType)}:$name"
 
-        fun generateSyntheticContainerType(): DataClass = DefaultDataClass(
-            syntheticTypeName(),
+        fun generateSyntheticContainerType(host: SchemaBuildingHost): DataClass = DefaultDataClass(
+            syntheticTypeName(host),
             NamedDomainObjectContainer::class.java.name,
             listOfNotNull((elementType.classifier as? KClass<*>)?.java?.name),
             emptySet(),
             emptyList(),
-            listOf(newElementFactoryFunction(syntheticContainerTypeRef(), elementType, inContext = originDeclaration.callable)),
+            listOf(newElementFactoryFunction(host, syntheticContainerTypeRef(host), elementType, inContext = originDeclaration.callable)),
             emptyList()
         )
     }
@@ -227,8 +235,8 @@ internal class ContainersSchemaComponent : AnalysisSchemaComponent, ObjectConver
         return (propertiesFromMemberProperties + propertiesFromMemberFunctions).distinctBy { it.name }
     }
 
-    private fun ndocTypeId(context: KCallable<*>, elementType: KType): String {
-        val elementTypeName = elementType.classifier?.let { dataTypeRefName(it) } ?: throw DeclarativeDslInterpretationException("Non-class container element type $elementType in $context")
+    private fun ndocTypeId(host: SchemaBuildingHost, elementType: KType): String {
+        val elementTypeName = dataTypeRefName(host, elementType)
         return "\$ndocOf_$elementTypeName"
     }
 
@@ -239,11 +247,12 @@ internal class ContainersSchemaComponent : AnalysisSchemaComponent, ObjectConver
 }
 
 private fun elementFactoryFunction(
+    host: SchemaBuildingHost,
     receiverTypeRef: DataTypeRef,
     elementType: KType,
     context: Any
 ): DataMemberFunction {
-    val elementTypeRef = elementType.toDataTypeRef() as? DataTypeRef.Name
+    val elementTypeRef = host.modelTypeRef(elementType) as? DataTypeRef.Name
         ?: throw DeclarativeDslInterpretationException("Cannot use $elementType as container element type in $context")
 
     val elementFactoryName = elementFactoryFunctionNameFromElementType(elementType)
@@ -265,7 +274,7 @@ private fun elementFactoryFunction(
 }
 
 
-private fun dataTypeRefName(it: KClassifier) = (it.toDataTypeRef() as DataTypeRef.Name).fqName.toString()
+private fun dataTypeRefName(host: SchemaBuildingHost, it: KType) = (host.modelTypeRef(it) as DataTypeRef.Name).fqName.toString()
 
 private fun isPublicAndNotInternal(member: KCallable<*>): Boolean =
     member.visibility == KVisibility.PUBLIC &&

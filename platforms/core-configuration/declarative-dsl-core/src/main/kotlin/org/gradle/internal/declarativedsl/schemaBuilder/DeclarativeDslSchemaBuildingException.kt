@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.declarativedsl.analysis
+package org.gradle.internal.declarativedsl.schemaBuilder
 
-open class DeclarativeDslInterpretationException(message: String) : RuntimeException(message)
+import org.gradle.internal.declarativedsl.analysis.DeclarativeDslInterpretationException
+
+class DeclarativeDslSchemaBuildingException(message: String, context: List<SchemaBuildingContextElement>) :
+    DeclarativeDslInterpretationException(message + context.asReversed().joinToString("\n", "\n") { "  in ${it.userRepresentation}" })
 
 internal
-fun interpretationFailure(message: String): Nothing = throw DeclarativeDslInterpretationException(message)
+fun SchemaBuildingHost.schemaBuildingFailure(message: String): Nothing = throw DeclarativeDslSchemaBuildingException(message, context)
 
-internal
-fun interpretationCheck(value: Boolean, lazyMessage: () -> String) {
-    if (!value) {
-        interpretationFailure(lazyMessage())
-    }
-}
+
