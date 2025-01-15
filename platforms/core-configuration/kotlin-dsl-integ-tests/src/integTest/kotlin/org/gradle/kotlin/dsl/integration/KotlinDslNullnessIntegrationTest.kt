@@ -27,10 +27,28 @@ class KotlinDslNullnessIntegrationTest : AbstractKotlinIntegrationTest() {
 
     @Test
     fun `Provider#map works with a null return value in script`() {
-        withBuildScript("""
+        withBuildScript(
+            """
             provider { "thing" }.map { null }
-        """)
+        """
+        )
         build("help")
+    }
+
+    @Test
+    fun `Provider#map works with a null return value in a precompiled script`() {
+        withKotlinDslPlugin()
+
+        withFile(
+            "src/main/kotlin/code.gradle.kts",
+            """
+            provider { "thing" }.map { null }
+            """
+        )
+
+        val result = build("classes")
+
+        result.assertTaskExecuted(":compileKotlin")
     }
 
     @Test
@@ -62,11 +80,30 @@ class KotlinDslNullnessIntegrationTest : AbstractKotlinIntegrationTest() {
 
     @Test
     fun `Provider#flatMap works with a null return value in script`() {
-        withBuildScript("""
+        withBuildScript(
+            """
             val providerA: Provider<String> = provider { "thing" }.flatMap { provider { null } }
             val providerB: Provider<String> = provider { "thing" }.flatMap { null }
-        """)
+        """
+        )
         build("help")
+    }
+
+    @Test
+    fun `Provider#flatMap works with a null return value in a precompiled script`() {
+        withKotlinDslPlugin()
+
+        withFile(
+            "src/main/kotlin/code.gradle.kts",
+            """
+            val providerA: Provider<String> = provider { "thing" }.flatMap { provider { null } }
+            val providerB: Provider<String> = provider { "thing" }.flatMap { null }
+            """
+        )
+
+        val result = build("classes")
+
+        result.assertTaskExecuted(":compileKotlin")
     }
 
     @Test
@@ -101,12 +138,32 @@ class KotlinDslNullnessIntegrationTest : AbstractKotlinIntegrationTest() {
 
     @Test
     fun `CopySpec#filter works with a null return value in script`() {
-        withBuildScript("""
+        withBuildScript(
+            """
             fun eliminateEverything(spec: CopySpec) {
                 spec.filter { null }
             }
-        """)
+        """
+        )
         build("help")
+    }
+
+    @Test
+    fun `CopySpec#filter works with a null return value in a precompiled script`() {
+        withKotlinDslPlugin()
+
+        withFile(
+            "src/main/kotlin/code.gradle.kts",
+            """
+            fun eliminateEverything(spec: CopySpec) {
+                spec.filter { null }
+            }
+            """
+        )
+
+        val result = build("classes")
+
+        result.assertTaskExecuted(":compileKotlin")
     }
 
     @Test
