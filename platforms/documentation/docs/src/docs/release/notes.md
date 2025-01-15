@@ -173,6 +173,12 @@ The following are the features that have been promoted in this Gradle release.
 ### Example promoted
 -->
 
+### Strongly-typed `dependencies` block API
+The [strongly-typed `dependencies` block API](userguide/implementing_gradle_plugins_binary.html#custom_dependencies_blocks) introduced in Gradle 7.6 
+is now partially stable. Version catalog dependencies remain under review for potential changes.
+
+This API enables plugin authors to create custom DSL-like `dependencies` blocks, similar to the top-level `dependencies` block in a build script.
+
 ## Fixed issues
 
 <!--
