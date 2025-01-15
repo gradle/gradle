@@ -2630,8 +2630,7 @@ To Attributes:
         fails "tasks"
 
         then:
-        failure.assertHasCause("Could not register artifact transform 'test' (from {artifactType=jar} to {artifactType=size}).")
-        failure.assertHasCause("There is already a transform registered with the name 'test' in this project.")
+        failure.assertHasCause("There is already a transform registered with the name 'test' in this project.  Transform names, if provided, must be unique within a project.")
     }
 
     def "transforms can't explicitly supply a null name"() {
@@ -2651,7 +2650,7 @@ To Attributes:
         fails "tasks"
 
         then:
-        failure.assertHasCause("Can not register artifact transform with null name.")
+        failure.assertHasCause("When providing a name for a transform, it must be non-null.")
     }
 
     def "can resolve transformed variant during configuration time"() {
@@ -2890,7 +2889,14 @@ To Attributes:
     }
 
     def declareTransform(String transformImplementation) {
-        declareTransform('', transformImplementation)
+        """
+            dependencies {
+                registerTransform($transformImplementation) {
+                    from.attribute(artifactType, 'jar')
+                    to.attribute(artifactType, 'size')
+                }
+            }
+        """
     }
 
     def declareTransform(String name, String transformImplementation) {

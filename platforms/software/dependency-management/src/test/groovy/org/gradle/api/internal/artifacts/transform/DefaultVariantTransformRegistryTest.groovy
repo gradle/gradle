@@ -17,13 +17,14 @@
 package org.gradle.api.internal.artifacts.transform
 
 import com.google.common.collect.ImmutableSet
+import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.transform.InputArtifact
 import org.gradle.api.artifacts.transform.InputArtifactDependencies
 import org.gradle.api.artifacts.transform.TransformAction
 import org.gradle.api.artifacts.transform.TransformOutputs
 import org.gradle.api.artifacts.transform.TransformParameters
-import org.gradle.api.artifacts.transform.VariantTransformConfigurationException
 import org.gradle.api.attributes.Attribute
+import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.DynamicObjectAware
 import org.gradle.api.internal.file.FileCollectionFactory
@@ -40,7 +41,6 @@ import org.gradle.internal.isolation.TestIsolatableFactory
 import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.internal.properties.bean.PropertyWalker
 import org.gradle.internal.service.ServiceLookup
-import org.gradle.internal.service.ServiceRegistry
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.ProjectBuilderImpl
 import org.gradle.util.AttributeTestUtil
@@ -71,6 +71,10 @@ class DefaultVariantTransformRegistryTest extends Specification {
     def classLoaderHierarchyHasher = Mock(ClassLoaderHierarchyHasher)
     def calculatedValueContainerFactory = TestUtil.calculatedValueContainerFactory()
     def attributesFactory = AttributeTestUtil.attributesFactory()
+    def serviceLookup = Stub(ServiceLookup) {
+        get(InternalProblems) >> Mock(InternalProblems)
+        get(DocumentationRegistry) >> new DocumentationRegistry()
+    }
     def registryFactory = new DefaultTransformRegistrationFactory(
         new TestBuildOperationRunner(),
         isolatableFactory,
@@ -91,11 +95,9 @@ class DefaultVariantTransformRegistryTest extends Specification {
             ),
             inspectionScheme
         ),
-        Stub(ServiceLookup) {
-            get(InternalProblems) >> Mock(InternalProblems)
-        }
+        serviceLookup
     )
-    def registry = new DefaultVariantTransformRegistry(instantiatorFactory, attributesFactory, Stub(ServiceRegistry), registryFactory, instantiatorFactory.injectScheme())
+    def registry = new DefaultVariantTransformRegistry(instantiatorFactory, attributesFactory, serviceLookup, registryFactory, instantiatorFactory.injectScheme(), new DocumentationRegistry())
 
     def "setup"() {
         _ * classLoaderHierarchyHasher.getClassLoaderHash(_) >> TestHashCodes.hashCodeFrom(123)
@@ -142,41 +144,41 @@ class DefaultVariantTransformRegistryTest extends Specification {
 
         then:
         def e = thrown(VariantTransformConfigurationException)
-        e.message == 'Could not register artifact transform DefaultVariantTransformRegistryTest.UnspecifiedTestTransform.'
+        e.message == "Could not register unnamed artifact transform DefaultVariantTransformRegistryTest.UnspecifiedTestTransform."
         e.cause.message == 'Could not create the parameters for DefaultVariantTransformRegistryTest.UnspecifiedTestTransform: must use a sub-type of TransformParameters as the parameters type. Use TransformParameters.None as the parameters type for implementations that do not take parameters.'
     }
 
     def "cannot configure parameters for parameterless action"() {
         when:
         registry.registerTransform(ParameterlessTestTransform) {
-            it.from.attribute(TEST_ATTRIBUTE, "FROM")
-            it.to.attribute(TEST_ATTRIBUTE, "TO")
+            it.from.attribute(TEST_ATTRIBUTE, "from")
+            it.to.attribute(TEST_ATTRIBUTE, "to")
             it.parameters {
             }
         }
 
         then:
         def e = thrown(VariantTransformConfigurationException)
-        e.message == 'Could not register artifact transform DefaultVariantTransformRegistryTest.ParameterlessTestTransform (from {TEST=FROM} to {TEST=TO}).'
+        e.message == "Could not register unnamed artifact transform DefaultVariantTransformRegistryTest.ParameterlessTestTransform (from {TEST=from} to {TEST=to})."
         e.cause.message == 'Cannot configure parameters for artifact transform without parameters.'
     }
 
     def "cannot query parameters object for parameterless action"() {
         when:
         registry.registerTransform(ParameterlessTestTransform) {
-            it.from.attribute(TEST_ATTRIBUTE, "FROM")
-            it.to.attribute(TEST_ATTRIBUTE, "TO")
+            it.from.attribute(TEST_ATTRIBUTE, "from")
+            it.to.attribute(TEST_ATTRIBUTE, "to")
             it.parameters
         }
 
         then:
         def e = thrown(VariantTransformConfigurationException)
-        e.message == 'Could not register artifact transform DefaultVariantTransformRegistryTest.ParameterlessTestTransform (from {TEST=FROM} to {TEST=TO}).'
+        e.message == "Could not register unnamed artifact transform DefaultVariantTransformRegistryTest.ParameterlessTestTransform (from {TEST=from} to {TEST=to})."
         e.cause.message == 'Cannot query parameters for artifact transform without parameters.'
     }
 
     def "delegates are DSL decorated but not extensible when registering with config object"() {
-        def registration
+        def registration = null
 
         when:
         registry.registerTransform(TestTransform) {
@@ -202,7 +204,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
 
         then:
         def e = thrown(VariantTransformConfigurationException)
-        e.message == 'Could not register artifact transform DefaultVariantTransformRegistryTest.TestTransform (from {TEST=from} to {TEST=to}).'
+        e.message == "Could not register unnamed artifact transform DefaultVariantTransformRegistryTest.TestTransform (from {TEST=from} to {TEST=to})."
         e.cause == failure
     }
 
@@ -217,7 +219,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
 
         then:
         def e = thrown(VariantTransformConfigurationException)
-        e.message == 'Could not register artifact transform DefaultVariantTransformRegistryTest.TestTransform (from {TEST=from}).'
+        e.message == "Could not register unnamed artifact transform DefaultVariantTransformRegistryTest.TestTransform (from {TEST=from})."
         e.cause == failure
     }
 
@@ -232,7 +234,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
 
         then:
         def e = thrown(VariantTransformConfigurationException)
-        e.message == 'Could not register artifact transform DefaultVariantTransformRegistryTest.TestTransform (to {TEST=to}).'
+        e.message == "Could not register unnamed artifact transform DefaultVariantTransformRegistryTest.TestTransform (to {TEST=to})."
         e.cause == failure
     }
 
@@ -246,7 +248,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
 
         then:
         def e = thrown(VariantTransformConfigurationException)
-        e.message == 'Could not register artifact transform DefaultVariantTransformRegistryTest.TestTransform.'
+        e.message == "Could not register unnamed artifact transform DefaultVariantTransformRegistryTest.TestTransform."
         e.cause == failure
     }
 
@@ -264,7 +266,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
 
         then:
         def e = thrown(VariantTransformConfigurationException)
-        e.message == 'Could not register artifact transform DefaultVariantTransformRegistryTest.TestTransform (from {TEST=from} to {TEST=to}).'
+        e.message == "Could not register unnamed artifact transform DefaultVariantTransformRegistryTest.TestTransform (from {TEST=from} to {TEST=to})."
         e.cause == failure
     }
 
@@ -276,7 +278,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
 
         then:
         def e = thrown(VariantTransformConfigurationException)
-        e.message == "Could not register artifact transform DefaultVariantTransformRegistryTest.TestTransform (from {} to {TEST=to})."
+        e.message == "Could not register unnamed artifact transform DefaultVariantTransformRegistryTest.TestTransform (to {TEST=to})."
         e.cause.message == "At least one 'from' attribute must be provided."
     }
 
@@ -288,7 +290,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
 
         then:
         def e = thrown(VariantTransformConfigurationException)
-        e.message == "Could not register artifact transform DefaultVariantTransformRegistryTest.TestTransform (from {TEST=from} to {})."
+        e.message == "Could not register unnamed artifact transform DefaultVariantTransformRegistryTest.TestTransform (from {TEST=from})."
         e.cause.message == "At least one 'to' attribute must be provided."
     }
 
@@ -303,7 +305,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
 
         then:
         def e = thrown(VariantTransformConfigurationException)
-        e.message == "Could not register artifact transform DefaultVariantTransformRegistryTest.TestTransform (from {TEST=from, from2=from} to {TEST=to, other=12})."
+        e.message == "Could not register unnamed artifact transform DefaultVariantTransformRegistryTest.TestTransform (from {TEST=from, from2=from} to {TEST=to, other=12})."
         e.cause.message == "Each 'to' attribute must be included as a 'from' attribute."
     }
 
@@ -321,8 +323,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
 
         then:
         def e = thrown(VariantTransformConfigurationException)
-        e.message == "Could not register artifact transform 'test' (from {TEST=from2} to {TEST=to2})."
-        e.cause.message == "There is already a transform registered with the name 'test' in this project."
+        e.message == "There is already a transform registered with the name 'test' in this project.  Transform names, if provided, must be unique within a project."
     }
 
     def "fails when using duplicate name when registering transform even if using separate types"() {
@@ -339,12 +340,66 @@ class DefaultVariantTransformRegistryTest extends Specification {
 
         then:
         def e = thrown(VariantTransformConfigurationException)
-        e.message == "Could not register artifact transform 'test' (from {TEST=from2} to {TEST=to2})."
-        e.cause.message == "There is already a transform registered with the name 'test' in this project."
+        e.message == "There is already a transform registered with the name 'test' in this project.  Transform names, if provided, must be unique within a project."
+    }
+
+    def "fails when providing null name when registering transform"() {
+        when:
+        registry.registerTransform(null, TestTransform) {
+            it.from.attribute(TEST_ATTRIBUTE, "from")
+            it.to.attribute(TEST_ATTRIBUTE, "to")
+        }
+
+        then:
+        def e = thrown(NullPointerException)
+        e.message == "When providing a name for a transform, it must be non-null."
+    }
+
+    def "fails when providing empty name when registering transform"() {
+        when:
+        registry.registerTransform("", TestTransform) {
+            it.from.attribute(TEST_ATTRIBUTE, "from")
+            it.to.attribute(TEST_ATTRIBUTE, "to")
+        }
+
+        then:
+        def e = thrown(InvalidUserDataException)
+        e.message == "The transform name must not be empty. Please use a valid Gradle name."
+    }
+
+    def "fails when providing invalid identifier for name when registering transform: #identifier"() {
+        when:
+        registry.registerTransform(identifier, TestTransform) {
+            it.from.attribute(TEST_ATTRIBUTE, "from")
+            it.to.attribute(TEST_ATTRIBUTE, "to")
+        }
+
+        then:
+        def e = thrown(InvalidUserDataException)
+        e.message == "The transform name '$identifier' must not contain any of the following characters: [/, \\, :, <, >, \", ?, *, |]. Please use a valid Gradle name."
+
+        where:
+        identifier << ["?", "<id>", "\\name", "not/allowed"]
+    }
+
+    def "fails when including 'unnamedTransform' in name when registering transform: #identifier"() {
+        when:
+        registry.registerTransform(identifier, TestTransform) {
+            it.from.attribute(TEST_ATTRIBUTE, "from")
+            it.to.attribute(TEST_ATTRIBUTE, "to")
+        }
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message == "The provided name for a transform must not contain 'unnamedTransform'."
+
+        where:
+        identifier << ["unnamedTransform", "unnamedTransform34", "myUnnamedTransform", "someUNNAMEDTransform"]
     }
 
     static abstract class TestTransform implements TransformAction<Parameters> {
         static class Parameters implements TransformParameters {
+            @SuppressWarnings('unused')
             String value
         }
 

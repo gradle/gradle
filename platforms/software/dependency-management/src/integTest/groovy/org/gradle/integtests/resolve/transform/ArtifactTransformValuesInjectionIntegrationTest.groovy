@@ -893,7 +893,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
 
         then:
         failure.assertHasDescription("A problem occurred evaluating root project")
-        failure.assertHasCause("Could not register artifact transform MakeGreen (from {color=blue} to {color=green})")
+        failure.assertHasCause("Could not register unnamed artifact transform MakeGreen (from {color=blue} to {color=green})")
         failure.assertHasCause("Cannot use @InputArtifact annotation on property 'input' of type ${typeName}. Allowed property types: org.gradle.api.provider.Provider<org.gradle.api.file.FileSystemLocation>.")
 
         where:
@@ -934,7 +934,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
 
         then:
         failure.assertHasDescription("A problem occurred evaluating root project")
-        failure.assertHasCause("Could not register artifact transform MakeGreen (from {color=blue} to {color=green})")
+        failure.assertHasCause("Could not register unnamed artifact transform MakeGreen (from {color=blue} to {color=green})")
         failure.assertHasCause("Cannot use @InputArtifactDependencies annotation on property 'dependencies' of type ${propertyType.name}. Allowed property types: org.gradle.api.file.FileCollection.")
 
         where:

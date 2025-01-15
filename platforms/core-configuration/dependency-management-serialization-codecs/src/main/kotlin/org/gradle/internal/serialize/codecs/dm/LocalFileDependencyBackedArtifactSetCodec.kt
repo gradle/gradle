@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.FileCollectionDependency
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.transform.TransformAction
 import org.gradle.api.artifacts.transform.TransformParameters
+import org.gradle.api.artifacts.transform.TransformSpec
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE
 import org.gradle.api.internal.artifacts.TransformRegistration
 import org.gradle.api.internal.artifacts.VariantTransformRegistry
@@ -341,11 +342,15 @@ class FixedFileMetadata(
 
 private
 object EmptyVariantTransformRegistry : VariantTransformRegistry {
-    override fun <T : TransformParameters?> registerTransform(name: String?, actionType: Class<out TransformAction<T>>, registrationAction: Action<in org.gradle.api.artifacts.transform.TransformSpec<T>>) {
-        throw UnsupportedOperationException("Should not be called")
+    override fun <T : TransformParameters?> registerTransform(actionType: Class<out TransformAction<T>>, registrationAction: Action<in TransformSpec<T>>) {
+        throw UnsupportedOperationException("Can't add transforms to empty registry")
     }
 
-    override fun getRegistrations(): MutableList<TransformRegistration> {
-        throw UnsupportedOperationException("Should not be called")
+    override fun <T : TransformParameters?> registerTransform(name: String, actionType: Class<out TransformAction<T>>, registrationAction: Action<in org.gradle.api.artifacts.transform.TransformSpec<T>>) {
+        throw UnsupportedOperationException("Can't add transforms to empty registry")
+    }
+
+    override fun getRegistrations(): Set<TransformRegistration> {
+        return emptySet()
     }
 }

@@ -340,12 +340,12 @@ public abstract class DefaultDependencyHandler implements DependencyHandlerInter
 
     @Override
     public <T extends TransformParameters> void registerTransform(Class<? extends TransformAction<T>> actionType, Action<? super TransformSpec<T>> registrationAction) {
-        transforms.registerTransform(null, actionType, registrationAction);
+        transforms.registerTransform(actionType, registrationAction);
     }
 
     @Override
     public <T extends TransformParameters> void registerTransform(String name, Class<? extends TransformAction<T>> actionType, Action<? super TransformSpec<T>> registrationAction) {
-        Preconditions.checkNotNull(name, "Can not register artifact transform with null name.");
+        Preconditions.checkNotNull(name, "When providing a name for a transform, it must be non-null.");
         transforms.registerTransform(name, actionType, registrationAction);
     }
 
