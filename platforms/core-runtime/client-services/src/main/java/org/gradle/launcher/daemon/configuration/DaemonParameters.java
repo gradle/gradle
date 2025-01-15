@@ -172,6 +172,10 @@ public class DaemonParameters {
         return systemProperties;
     }
 
+    public void addJvmArgs(Iterable<String> jvmArgs) {
+        jvmOptions.jvmArgs(jvmArgs);
+    }
+
     public void setJvmArgs(Iterable<String> jvmArgs) {
         jvmOptions.setAllJvmArgs(jvmArgs);
     }
