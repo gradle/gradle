@@ -18,14 +18,14 @@ package org.gradle.integtests.fixtures.logging
 import org.gradle.exemplar.executor.ExecutionMetadata
 import org.gradle.exemplar.test.normalizer.OutputNormalizer
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.platform.internal.DefaultBuildPlatform
+import org.gradle.jvm.toolchain.internal.CurrentBuildPlatform;
 
 /**
  * This normalizer converts toolchain error message so it doesn't contain platform-specific information.
  */
 class PlatformInOutputNormalizer implements OutputNormalizer {
     def static internalOs = OperatingSystem.current()
-    def static os = DefaultBuildPlatform.getOperatingSystem(internalOs)
+    def static os = CurrentBuildPlatform.getOperatingSystem(internalOs)
     def static arch = getArchitectureString()
 
     private static getArchitectureString() {

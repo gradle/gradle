@@ -16,7 +16,6 @@
 
 package org.gradle.jvm.internal.services;
 
-import net.rubygrapefruit.platform.SystemInfo;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.temp.GradleUserHomeTemporaryFileProvider;
@@ -42,6 +41,7 @@ import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 import org.gradle.jvm.toolchain.JavaToolchainResolverRegistry;
 import org.gradle.jvm.toolchain.JvmToolchainManagement;
 import org.gradle.jvm.toolchain.internal.AsdfInstallationSupplier;
+import org.gradle.jvm.toolchain.internal.CurrentBuildPlatform;
 import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainResolverRegistry;
 import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainResolverService;
 import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainService;
@@ -63,19 +63,12 @@ import org.gradle.jvm.toolchain.internal.WindowsInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.install.DefaultJavaToolchainProvisioningService;
 import org.gradle.jvm.toolchain.internal.install.DefaultJdkCacheDirectory;
 import org.gradle.jvm.toolchain.internal.install.SecureFileDownloader;
-import org.gradle.platform.BuildPlatform;
-import org.gradle.platform.internal.DefaultBuildPlatform;
 import org.gradle.process.internal.ClientExecHandleBuilderFactory;
 
 import java.util.List;
 
 public class ToolchainsJvmServices extends AbstractGradleModuleServices {
     protected static class BuildServices implements ServiceRegistrationProvider {
-
-        @Provides
-        protected BuildPlatform createBuildPlatform(ObjectFactory objectFactory, SystemInfo systemInfo, OperatingSystem operatingSystem) {
-            return objectFactory.newInstance(DefaultBuildPlatform.class, systemInfo, operatingSystem);
-        }
 
         @Provides
         protected JavaToolchainResolverRegistryInternal createJavaToolchainResolverRegistry(
@@ -117,6 +110,11 @@ public class ToolchainsJvmServices extends AbstractGradleModuleServices {
             registration.add(InstallationSupplier.class, OsXInstallationSupplier.class);
             registration.add(InstallationSupplier.class, WindowsInstallationSupplier.class);
         }
+    }
+
+    @Override
+    public void registerGlobalServices(ServiceRegistration registration) {
+        registration.add(CurrentBuildPlatform.class);
     }
 
     @Override

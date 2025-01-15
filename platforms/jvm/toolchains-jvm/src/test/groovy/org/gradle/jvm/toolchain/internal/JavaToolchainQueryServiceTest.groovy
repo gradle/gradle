@@ -16,6 +16,7 @@
 
 package org.gradle.jvm.toolchain.internal
 
+import net.rubygrapefruit.platform.SystemInfo
 import org.gradle.api.GradleException
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.jvm.Jvm
@@ -25,13 +26,12 @@ import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
 import org.gradle.internal.jvm.inspection.JvmMetadataDetector
 import org.gradle.internal.jvm.inspection.JvmToolchainMetadata
 import org.gradle.internal.jvm.inspection.JvmVendor
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.jvm.toolchain.JavaToolchainSpec
 import org.gradle.jvm.toolchain.JvmImplementation
 import org.gradle.jvm.toolchain.JvmVendorSpec
 import org.gradle.jvm.toolchain.internal.install.JavaToolchainProvisioningService
-import org.gradle.platform.Architecture
-import org.gradle.platform.BuildPlatform
 import org.gradle.util.TestUtil
 import spock.lang.Issue
 import spock.lang.Specification
@@ -549,17 +549,9 @@ class JavaToolchainQueryServiceTest extends Specification {
         JavaToolchainProvisioningService provisioningService,
         File currentJavaHome = Jvm.current().getJavaHome()
     ) {
-        def buildPlatform = new BuildPlatform() {
-            @Override
-            org.gradle.platform.OperatingSystem getOperatingSystem() {
-                return org.gradle.platform.OperatingSystem.LINUX
-            }
-
-            @Override
-            Architecture getArchitecture() {
-                return Architecture.X86_64
-            }
-        }
+        def systemInfo = Mock(SystemInfo)
+        systemInfo.getArchitecture() >> SystemInfo.Architecture.amd64
+        def buildPlatform = new CurrentBuildPlatform(systemInfo, OperatingSystem.LINUX)
         new JavaToolchainQueryService(registry, detector, TestFiles.fileFactory(), provisioningService, TestUtil.objectFactory(), currentJavaHome, buildPlatform)
     }
 }
