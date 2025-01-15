@@ -35,6 +35,7 @@ import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.FinalizableValue;
@@ -59,6 +60,7 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
     private final AttributesFactory attributesFactory;
     private final DomainObjectCollectionFactory domainObjectCollectionFactory;
     private final TaskDependencyFactory taskDependencyFactory;
+    private final ObjectFactory objectFactory;
     private NamedDomainObjectContainer<ConfigurationVariant> variants;
     private ConfigurationVariantFactory variantFactory;
     private DomainObjectSet<Capability> capabilities;
@@ -75,7 +77,8 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
         FileCollectionFactory fileCollectionFactory,
         AttributesFactory attributesFactory,
         DomainObjectCollectionFactory domainObjectCollectionFactory,
-        TaskDependencyFactory taskDependencyFactory
+        TaskDependencyFactory taskDependencyFactory,
+        ObjectFactory objectFactory
     ) {
         this.displayName = displayName;
         this.artifacts = artifacts;
@@ -88,6 +91,7 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
         this.attributesFactory = attributesFactory;
         this.domainObjectCollectionFactory = domainObjectCollectionFactory;
         this.taskDependencyFactory = taskDependencyFactory;
+        this.objectFactory = objectFactory;
         this.attributes = attributesFactory.mutable(parentAttributes);
     }
 
@@ -205,7 +209,7 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
         public ConfigurationVariant create(String name) {
             if (canCreate) {
                 return instantiator.newInstance(
-                    DefaultVariant.class, displayName, name, parentAttributes, artifactNotationParser, fileCollectionFactory, attributesFactory, domainObjectCollectionFactory, taskDependencyFactory
+                    DefaultVariant.class, displayName, name, parentAttributes, artifactNotationParser, fileCollectionFactory, attributesFactory, domainObjectCollectionFactory, taskDependencyFactory, objectFactory
                 );
             } else {
                 throw new InvalidUserCodeException("Cannot create variant '" + name + "' after dependency " + displayName + " has been resolved");

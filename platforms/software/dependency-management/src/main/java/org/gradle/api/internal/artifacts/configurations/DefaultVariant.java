@@ -31,14 +31,14 @@ import org.gradle.api.internal.attributes.FreezableAttributeContainer;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.Factory;
 import org.gradle.internal.typeconversion.NotationParser;
 
-import javax.annotation.Nullable;
 import java.util.List;
-import java.util.Optional;
 
 public class DefaultVariant implements ConfigurationVariantInternal {
     private final Describable parentDisplayName;
@@ -46,8 +46,8 @@ public class DefaultVariant implements ConfigurationVariantInternal {
     private final FreezableAttributeContainer attributes;
     private final NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser;
     private final PublishArtifactSet artifacts;
+    private final Property<String> description;
     private Factory<List<PublishArtifact>> lazyArtifacts;
-    @Nullable private String description;
 
     public DefaultVariant(Describable parentDisplayName,
                           String name,
@@ -56,22 +56,19 @@ public class DefaultVariant implements ConfigurationVariantInternal {
                           FileCollectionFactory fileCollectionFactory,
                           AttributesFactory cache,
                           DomainObjectCollectionFactory domainObjectCollectionFactory,
-                          TaskDependencyFactory taskDependencyFactory) {
+                          TaskDependencyFactory taskDependencyFactory,
+                          ObjectFactory objectFactory) {
         this.parentDisplayName = parentDisplayName;
         this.name = name;
         this.attributes = new FreezableAttributeContainer(cache.mutable(parentAttributes), parentDisplayName);
         this.artifactNotationParser = artifactNotationParser;
+        this.description = objectFactory.property(String.class);
         artifacts = new DefaultPublishArtifactSet(getDisplayName(), domainObjectCollectionFactory.newDomainObjectSet(PublishArtifact.class), fileCollectionFactory, taskDependencyFactory);
     }
 
     @Override
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    @Override
-    public Optional<String> getDescription() {
-        return Optional.ofNullable(description);
+    public Property<String> getDescription() {
+        return description;
     }
 
     @Override
@@ -128,6 +125,8 @@ public class DefaultVariant implements ConfigurationVariantInternal {
 
     @Override
     public void preventFurtherMutation() {
+        description.finalizeValueOnRead();
+        description.disallowChanges();
         attributes.freeze();
     }
 }

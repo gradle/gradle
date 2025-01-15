@@ -31,6 +31,7 @@ import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.internal.Factory;
 import org.gradle.internal.code.UserCodeApplicationContext;
@@ -69,6 +70,7 @@ public class DefaultConfigurationFactory {
     private final CalculatedValueFactory calculatedValueFactory;
     private final TaskDependencyFactory taskDependencyFactory;
     private final InternalProblems problemsService;
+    private final ObjectFactory objectFactory;
 
     @Inject
     public DefaultConfigurationFactory(
@@ -88,7 +90,8 @@ public class DefaultConfigurationFactory {
         DomainObjectCollectionFactory domainObjectCollectionFactory,
         CalculatedValueFactory calculatedValueFactory,
         TaskDependencyFactory taskDependencyFactory,
-        InternalProblems problemsService
+        InternalProblems problemsService,
+        ObjectFactory objectFactory
     ) {
         this.instantiator = instantiator;
         this.resolver = resolver;
@@ -97,6 +100,7 @@ public class DefaultConfigurationFactory {
         this.fileCollectionFactory = fileCollectionFactory;
         this.buildOperationRunner = buildOperationRunner;
         this.artifactNotationParser = artifactNotationParserFactory.create();
+        this.objectFactory = objectFactory;
         this.capabilityNotationParser = new CapabilityNotationParserFactory(true).create();
         this.attributesFactory = attributesFactory;
         this.exceptionContextualizer = exceptionMapper;
@@ -147,7 +151,8 @@ public class DefaultConfigurationFactory {
             this,
             taskDependencyFactory,
             role,
-            problemsService
+            problemsService,
+            objectFactory
         );
         instance.addMutationValidator(rootComponentMetadataBuilder.getValidator());
         return instance;
@@ -188,7 +193,8 @@ public class DefaultConfigurationFactory {
             calculatedValueFactory,
             this,
             taskDependencyFactory,
-            problemsService
+            problemsService,
+            objectFactory
         );
         instance.addMutationValidator(rootComponentMetadataBuilder.getValidator());
         return instance;
@@ -229,7 +235,8 @@ public class DefaultConfigurationFactory {
             calculatedValueFactory,
             this,
             taskDependencyFactory,
-            problemsService
+            problemsService,
+            objectFactory
         );
         instance.addMutationValidator(rootComponentMetadataBuilder.getValidator());
         return instance;
@@ -270,7 +277,8 @@ public class DefaultConfigurationFactory {
             calculatedValueFactory,
             this,
             taskDependencyFactory,
-            problemsService
+            problemsService,
+            objectFactory
         );
         instance.addMutationValidator(rootComponentMetadataBuilder.getValidator());
         return instance;
