@@ -168,7 +168,7 @@ class TestUtil {
 
     static StateTransitionControllerFactory stateTransitionControllerFactory() {
         def buildOperationsParameters = new DefaultBuildOperationsParameters(new CrossBuildSessionParameters(new StartParameterInternal()))
-        return new StateTransitionControllerFactory(new TestWorkerLeaseService(), new TestBuildOperationRunner(), buildOperationsParameters)
+        return new StateTransitionControllerFactory(new TestWorkerLeaseService(), buildOperationsParameters, new TestBuildOperationRunner())
     }
 
     private static ServiceRegistry createServices(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Action<ServiceRegistration> registrations = {}) {
