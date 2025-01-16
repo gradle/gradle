@@ -24,7 +24,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
  * A persistent ID of a user.
  *
  * It is effectively the Gradle user home dir.
- * That is, two builds by the same operating system user, potentially of different “projects”,
+ * That is, two builds by the same operating system user, potentially of different "projects",
  * share the same user ID.
  *
  * This ID is persisted in the Gradle user home dir.

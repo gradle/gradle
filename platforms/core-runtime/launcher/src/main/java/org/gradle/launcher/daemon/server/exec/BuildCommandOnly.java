@@ -38,7 +38,7 @@ public abstract class BuildCommandOnly implements DaemonCommandAction {
     }
 
     /**
-     * Note that the build param is the same object as execution.getCommand(), just “pre casted”.
+     * Note that the build param is the same object as execution.getCommand(), just "pre casted".
      */
     protected void doBuild(DaemonCommandExecution execution, Build build) {}
 }

@@ -57,7 +57,7 @@ public abstract class ConfigurationTargetIdentifier {
     /**
      * Returns null if the thing is of an unknown type.
      * This can happen with {@code apply(from: "foo", to: someTask)},
-     * where “to” can be absolutely anything.
+     * where "to" can be absolutely anything.
      */
     @Nullable
     public static ConfigurationTargetIdentifier of(Object any) {

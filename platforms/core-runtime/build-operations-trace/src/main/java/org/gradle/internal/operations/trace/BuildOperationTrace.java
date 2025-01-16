@@ -106,7 +106,7 @@ import static org.gradle.internal.Cast.uncheckedCast;
  * The generation of trees can be very memory hungry and thus can be disabled with
  * {@code -Dorg.gradle.internal.operations.trace.tree=false}.
  * </p>
- * The “trace” produced here is different to the trace produced by Gradle Profiler.
+ * The "trace" produced here is different to the trace produced by Gradle Profiler.
  * There, the focus is analyzing the performance profile.
  * Here, the focus is debugging/developing the information structure of build operations.
  *

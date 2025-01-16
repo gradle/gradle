@@ -35,9 +35,9 @@ public interface TestTaskReports extends ReportContainer<Report> {
     DirectoryReport getHtml();
 
     /**
-     * The test results in “JUnit XML” format.
+     * The test results in "JUnit XML" format.
      *
-     * @return The test results in “JUnit XML” format
+     * @return The test results in "JUnit XML" format
      */
     @Internal
     JUnitXmlReport getJunitXml();
