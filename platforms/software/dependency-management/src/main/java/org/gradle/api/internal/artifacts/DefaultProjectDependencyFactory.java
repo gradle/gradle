@@ -21,7 +21,6 @@ import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency;
 import org.gradle.api.internal.attributes.AttributesFactory;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
@@ -57,12 +56,6 @@ public class DefaultProjectDependencyFactory {
         this.attributesFactory = attributesFactory;
         this.taskDependencyFactory = taskDependencyFactory;
         this.projectStateRegistry = projectStateRegistry;
-    }
-
-    public ProjectDependency create(ProjectInternal project, String configuration) {
-        DefaultProjectDependency projectDependency = instantiator.newInstance(DefaultProjectDependency.class, project, configuration, buildProjectDependencies, taskDependencyFactory);
-        injectServices(projectDependency);
-        return projectDependency;
     }
 
     public ProjectDependency create(Project project) {
