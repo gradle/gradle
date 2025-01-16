@@ -20,7 +20,6 @@ package org.gradle.problems.internal.rendering
 import org.gradle.api.problems.ProblemGroup
 import org.gradle.api.problems.internal.AdditionalDataBuilderFactory
 import org.gradle.api.problems.internal.DefaultProblemBuilder
-import org.gradle.api.problems.internal.DefaultProblemGroup
 import org.gradle.api.problems.internal.GradleCoreProblemGroup
 import spock.lang.Issue
 import spock.lang.Specification
