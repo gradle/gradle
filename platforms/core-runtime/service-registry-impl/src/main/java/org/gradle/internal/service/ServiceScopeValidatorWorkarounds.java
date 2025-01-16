@@ -49,13 +49,7 @@ class ServiceScopeValidatorWorkarounds {
 
         "org.gradle.nativeplatform.platform.internal.NativePlatforms",
         "org.gradle.nativeplatform.internal.NativePlatformResolver",
-        "org.gradle.nativeplatform.internal.DefaultTargetMachineFactory",
-
-        // Problematic with UpdateDaemonJvm task and CC, because marked as a service
-        // This is a data class, but declared as a service for ease of injection
-        // It also is becoming a task input for daemon toolchain
-        // Tried using Factory<BuildPlatform> and it would work but would require all consumers to declare they need the factory
-        "org.gradle.platform.BuildPlatform"
+        "org.gradle.nativeplatform.internal.DefaultTargetMachineFactory"
     ));
 
     public static boolean shouldSuppressValidation(Class<?> serviceType) {
