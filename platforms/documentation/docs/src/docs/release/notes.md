@@ -10,7 +10,15 @@
 <meta name="twitter:description" content="TBD">
 <meta name="twitter:image" content="https://gradle.org/images/releases/gradle-8.13.png">
 
-The Gradle team is excited to announce Gradle @version@.
+Gradle @version@ is the first patch release for Gradle 8.12.
+
+It fixes the following issues:
+
+* TODO
+
+We recommend users upgrade to @version@ instead of 8.12.
+
+***
 
 This release features [1](), [2](), ... [n](), and more.
 
