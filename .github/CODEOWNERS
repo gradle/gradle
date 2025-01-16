@@ -15,7 +15,7 @@
 
 # Build infrastructure
 .teamcity/                                  @gradle/bt-developer-productivity
-.github/                                    @gradle/bt-developer-productivity @gradle/bt-support # This might need to be more finegrained in the future
+.github/                                    @gradle/bt-developer-productivity @gradle/bt-product-operations # This might need to be more finegrained in the future
 /build-logic/                               @gradle/bt-developer-productivity
 /build-logic-commons/                       @gradle/bt-developer-productivity
 /build-logic-settings/                      @gradle/bt-developer-productivity
@@ -30,12 +30,12 @@ testing/internal-performance-testing/       @gradle/bt-developer-productivity
 testing/internal-testing/                   @gradle/bt-developer-productivity
 
 # Release coordination
-subprojects/core-platform/              @gradle/bt-support
-subprojects/distributions-dependencies/ @gradle/bt-support
-subprojects/distributions-full/         @gradle/bt-support
-testing/performance/                    @gradle/bt-support
-testing/smoke-test/                     @gradle/bt-support
-testing/soak/                           @gradle/bt-support
+subprojects/core-platform/              @gradle/bt-product-operations
+subprojects/distributions-dependencies/ @gradle/bt-product-operations
+subprojects/distributions-full/         @gradle/bt-product-operations
+testing/performance/                    @gradle/bt-product-operations
+testing/smoke-test/                     @gradle/bt-product-operations
+testing/soak/                           @gradle/bt-product-operations
 
 # Cross-cutting architecture checks and decisions
 .github/CODEOWNERS                          @gradle/bt-architecture-council
@@ -88,7 +88,7 @@ platforms/core-execution/snapshots/                         @gradle/bt-execution
 
 # Develocity integration
 platforms/enterprise/                                   @gradle/bt-build-scan
-platforms/enterprise/enterprise/                        @gradle/bt-build-scan @gradle/dv-testing-team @ldaley
+platforms/enterprise/enterprise/                        @gradle/bt-build-scan @gradle/dv-testing-team
 platforms/enterprise/enterprise-logging/                @gradle/bt-build-scan @gradle/dv-testing-team
 platforms/enterprise/enterprise-operations/             @gradle/bt-build-scan
 platforms/enterprise/enterprise-plugin-performance/     @gradle/bt-build-scan
