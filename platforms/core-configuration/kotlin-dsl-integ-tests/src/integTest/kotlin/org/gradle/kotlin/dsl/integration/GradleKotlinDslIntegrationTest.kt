@@ -1189,7 +1189,7 @@ class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
 
                 @TaskAction
                 fun action() {
-                    val modelName = KotlinBuildScriptModel::class.qualifiedName
+                    val modelName = KotlinBuildScriptModel::class.qualifiedName!!
                     val builder = builderRegistry.getBuilder(modelName)
                     val model = builder.buildAll(modelName, project) as KotlinBuildScriptModel
                     if (model.classPath.any { it.name.startsWith("gradle-kotlin-dsl") }) {
