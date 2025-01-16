@@ -327,7 +327,7 @@ public abstract class GenerateXcodeProjectFileTask extends PropertyListGenerator
             return "i386";
         } else if (architectureName.equals(MachineArchitecture.X86_64)) {
             return "x86_64";
-        } else if (architectureName.equals(MachineArchitecture.AARCH_64)) {
+        } else if (architectureName.equals(MachineArchitecture.ARM64)) {
             return "arm64e";
         }
 

@@ -35,7 +35,7 @@ public interface TargetMachineBuilder extends TargetMachine {
     /**
      * Returns a {@link TargetMachine} for the operating system of this machine and the ARM 64-bit architecture
      */
-    TargetMachine getAARCH64();
+    TargetMachine getARM64();
 
     /**
      * Returns a {@link TargetMachine} for the operating system of this machine and the specified architecture.
