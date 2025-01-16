@@ -84,6 +84,7 @@ import org.gradle.tooling.internal.provider.connection.ProviderOperationParamete
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 import org.gradle.tooling.internal.provider.test.ProviderInternalTestExecutionRequest;
+import org.gradle.tooling.model.UnsupportedMethodException;
 import org.gradle.tooling.model.build.BuildEnvironment;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.internal.GUtil;
@@ -346,10 +347,25 @@ public class ProviderConnection {
             daemonParams.setBaseDir(operationParameters.getDaemonBaseDir());
         }
 
-        //override the params with the explicit settings provided by the tooling api
-        List<String> jvmArguments = operationParameters.getJvmArguments();
-        if (jvmArguments != null) {
-            daemonParams.setJvmArgs(jvmArguments);
+        // Since 8.13, we split the daemon JVM args into base and additional JVM args (#31462)
+        // When calling the following new method before 8.13 provider, it will fall back to the old behavior.
+        try {
+            List<String> baseJvmArguments = operationParameters.getBaseJvmArguments();
+            // Here, we consider `null` and `[]` as no-op.
+            // See LongRunningOperation.setJvmArguments(java.lang.String...)
+            if (baseJvmArguments != null && !baseJvmArguments.isEmpty()) {
+                daemonParams.setJvmArgs(baseJvmArguments);
+            }
+            List<String> additionalJvmArguments = operationParameters.getAdditionalJvmArguments();
+            if (additionalJvmArguments != null) {
+                daemonParams.addJvmArgs(additionalJvmArguments);
+            }
+        } catch (UnsupportedMethodException ex) {
+            // If we get an exception, we are dealing with an older provider.
+            List<String> legacyJvmArguments = operationParameters.getJvmArguments();
+            if (legacyJvmArguments != null) {
+                daemonParams.setJvmArgs(legacyJvmArguments);
+            }
         }
 
         daemonParams.setRequestedJvmCriteriaFromMap(properties.getDaemonJvmProperties());

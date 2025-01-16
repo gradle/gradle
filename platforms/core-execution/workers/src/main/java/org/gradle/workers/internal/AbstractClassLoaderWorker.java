@@ -16,7 +16,6 @@
 
 package org.gradle.workers.internal;
 
-import com.google.common.collect.Lists;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
@@ -28,6 +27,7 @@ import org.gradle.workers.WorkAction;
 import org.gradle.workers.WorkParameters;
 
 import javax.annotation.Nullable;
+import java.util.Collections;
 
 import static org.gradle.internal.classloader.ClassLoaderUtils.executeInClassloader;
 
@@ -41,7 +41,7 @@ public abstract class AbstractClassLoaderWorker implements RequestHandler<Transp
             workServices,
             instantiatorFactory,
             new IsolationScheme<>(Cast.uncheckedCast(WorkAction.class), WorkParameters.class, WorkParameters.None.class),
-            Lists.newArrayList(IsolatedAntBuilder.class));
+            Collections.singletonList(IsolatedAntBuilder.class));
     }
 
     public DefaultWorkResult executeInClassLoader(TransportableActionExecutionSpec spec, ClassLoader workerClassLoader) {

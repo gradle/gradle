@@ -16,7 +16,7 @@
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp.version;
 
-import com.google.common.collect.Lists;
+import com.google.common.collect.ImmutableList;
 import com.google.gson.stream.JsonReader;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -59,7 +59,7 @@ public class CommandLineToolVersionLocator extends AbstractVisualStudioVersionLo
 
         File vswhereBinary = vswhereLocator.getVswhereInstall();
         if (vswhereBinary != null) {
-            List<String> args = Lists.newArrayList("-all", "-legacy", "-format", "json", "-utf8");
+            List<String> args = ImmutableList.of("-all", "-legacy", "-format", "json", "-utf8");
             String json = getVswhereOutput(vswhereBinary, args);
             installs.addAll(parseJson(json));
         }
