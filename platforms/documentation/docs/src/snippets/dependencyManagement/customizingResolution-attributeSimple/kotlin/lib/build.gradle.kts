@@ -43,3 +43,31 @@ dependencies {
     }
 }
 // end::custom-attributes[]
+
+// tag::attribute-compatibility[]
+// Define the attribute you want to apply compatibility rules to (JavaLanguageVersion in this case)
+val javaLanguageVersionAttribute = Attribute.of("JavaLanguageVersion", Integer::class.java)
+
+// Register the compatibility rule for the JavaLanguageVersion attribute
+dependencies {
+    configurations {
+        named("myConfig") {
+            attributes {
+                // Define which attribute to apply compatibility rules to
+                attribute(javaLanguageVersionAttribute, 11) // Java version 11 for example
+            }
+        }
+    }
+}
+
+// Register a compatibility rule using `attributeMatchingStrategy`
+configurations.all {
+    resolutionStrategy.attributeMatchingStrategy(javaLanguageVersionAttribute) { version ->
+        when (version) {
+            8 -> CompatibilityResult.compatible() // Compatible with Java 8
+            11 -> CompatibilityResult.compatible() // Compatible with Java 11
+            else -> CompatibilityResult.incompatible("Unsupported Java version")
+        }
+    }
+}
+// end::attribute-compatibility[]

@@ -34,13 +34,13 @@ The following services are available for injection:
 7. <<archiveoperations,`ArchiveOperations`>> - Allows a task to run operations on archive files such as ZIP or TAR files.
 8. <<execoperations,`ExecOperations`>> - Allows a task to run external processes with dedicated support for running external `java` programs.
 9. <<toolingmodelbuilderregistry,`ToolingModelBuilderRegistry`>> - Allows a plugin to registers a Gradle tooling API model.
-10. `TestEventReporterFactory`
+10. <<testeventreporterfactory,`TestEventReporterFactory`>> - Allows a plugin to access Gradle's test events and its corresponding API.
 
 Out of the above, `ProjectLayout` and `WorkerExecutor` services are only available for injection in project plugins.
 `BuildLayout` is only available in settings plugins and settings files.
 `ProjectLayout` is unavailable in Worker API actions.
 
-WARNING: While `TaskContainer`, `PluginManager`, and other services provided via `@Provides` are also injectable; you should avoid injecting types not listed above.
+WARNING: While `TaskContainer`, `PluginManager`, and other services are also injectable; you should avoid injecting types not listed above.
 
 [[objectfactory]]
 == 1. `ObjectFactory`

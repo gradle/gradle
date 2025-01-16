@@ -319,8 +319,8 @@ Attributes let the engine select _compatible variants_.
 There are cases where a producer may not have _exactly_ what the consumer requests but has a variant that can be used.
 
 ====
-include::sample[dir="snippets/dependencyManagement/customizingResolution-attributeSimple/kotlin",files="lib/build.gradle.kts[tags=attribute-strategy]"]
-include::sample[dir="snippets/dependencyManagement/customizingResolution-attributeSimple/groovy",files="lib/build.gradle[tags=attribute-strategy]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-attributeSimple/kotlin",files="lib/build.gradle.kts[tags=attribute-compatibility]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-attributeSimple/groovy",files="lib/build.gradle[tags=attribute-compatibility]"]
 ====
 1. **Attribute Definition**: Define the attribute you want to apply compatibility rules to. In this case, `JavaLanguageVersion`.
 2. **Register Compatibility Rule**: Use the `attributeMatchingStrategy` to specify how to handle compatibility for the defined attribute. For instance, you can define which versions of the attribute are compatible.
