@@ -81,8 +81,8 @@ public class DefaultTargetMachineFactory implements TargetMachineFactory {
         }
 
         @Override
-        public TargetMachine getAARCH64() {
-            return new TargetMachineImpl(getOperatingSystemFamily(), objectFactory.named(MachineArchitecture.class, MachineArchitecture.AARCH_64));
+        public TargetMachine getARM64() {
+            return new TargetMachineImpl(getOperatingSystemFamily(), objectFactory.named(MachineArchitecture.class, MachineArchitecture.ARM64));
         }
 
         @Override

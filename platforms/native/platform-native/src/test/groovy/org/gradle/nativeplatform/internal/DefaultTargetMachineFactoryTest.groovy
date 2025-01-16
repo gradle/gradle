@@ -40,9 +40,9 @@ class DefaultTargetMachineFactoryTest extends Specification {
         factory.linux == factory.linux
         factory.macOS == factory.macOS
         factory.windows.x86 == factory.windows.x86
-        factory.windows.AARCH64 == factory.windows.AARCH64
+        factory.windows.ARM64 == factory.windows.ARM64
         factory.linux.x86_64 == factory.linux.x86_64
-        factory.linux.AARCH64 == factory.linux.AARCH64
+        factory.linux.ARM64 == factory.linux.ARM64
         factory.windows.architecture("arm") == factory.windows.architecture("arm")
         factory.os("fushia").architecture("arm") == factory.os("fushia").architecture("arm")
     }
@@ -53,8 +53,8 @@ class DefaultTargetMachineFactoryTest extends Specification {
         factory.linux != factory.macOS
         factory.macOS != factory.windows
         factory.windows.x86 != factory.windows.x86_64
-        factory.linux.AARCH64 != factory.linux.x86_64
-        factory.windows.AARCH64 != factory.windows.x86_64
+        factory.linux.ARM64 != factory.linux.x86_64
+        factory.windows.ARM64 != factory.windows.x86_64
         factory.linux.x86 != factory.windows.x86
         factory.windows.architecture("arm") != factory.windows.architecture("leg")
         factory.os("fushia").architecture("arm") != factory.os("helenOS").architecture("arm")

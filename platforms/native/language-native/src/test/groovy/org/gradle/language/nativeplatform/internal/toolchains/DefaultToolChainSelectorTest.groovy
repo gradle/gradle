@@ -92,7 +92,7 @@ class DefaultToolChainSelectorTest extends Specification {
         architecture << [
                 MachineArchitecture.X86,
                 MachineArchitecture.X86_64,
-                MachineArchitecture.AARCH_64
+                MachineArchitecture.ARM64
         ]
     }
 

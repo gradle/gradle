@@ -50,5 +50,5 @@ public abstract class MachineArchitecture implements Named {
      *
      * @since 7.6
      */
-    public static final String AARCH_64 = "aarch64";
+    public static final String ARM64 = "aarch64";
 }
