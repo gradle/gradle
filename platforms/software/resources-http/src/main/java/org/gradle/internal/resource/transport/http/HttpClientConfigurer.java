@@ -15,7 +15,6 @@
  */
 package org.gradle.internal.resource.transport.http;
 
-import com.google.common.collect.Lists;
 import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
@@ -183,19 +182,18 @@ public class HttpClientConfigurer {
     }
 
     private void configureProxy(HttpClientBuilder builder, CredentialsProvider credentialsProvider, HttpSettings httpSettings) {
-        HttpProxySettings.HttpProxy httpProxy = httpSettings.getProxySettings().getProxy();
-        HttpProxySettings.HttpProxy httpsProxy = httpSettings.getSecureProxySettings().getProxy();
+        useCredentialsForProxy(credentialsProvider, httpSettings.getProxySettings().getProxy());
+        useCredentialsForProxy(credentialsProvider, httpSettings.getSecureProxySettings().getProxy());
 
-        for (HttpProxySettings.HttpProxy proxy : Lists.newArrayList(httpProxy, httpsProxy)) {
-            if (proxy != null) {
-                if (proxy.credentials != null) {
-                    AllSchemesAuthentication authentication = new AllSchemesAuthentication(proxy.credentials);
-                    authentication.addHost(proxy.host, proxy.port);
-                    useCredentials(credentialsProvider, Collections.singleton(authentication));
-                }
-            }
-        }
         builder.setRoutePlanner(new SystemDefaultRoutePlanner(ProxySelector.getDefault()));
+    }
+
+    private void useCredentialsForProxy(CredentialsProvider credentialsProvider, HttpProxySettings.HttpProxy httpsProxy) {
+        if (httpsProxy != null && httpsProxy.credentials != null) {
+            AllSchemesAuthentication authentication1 = new AllSchemesAuthentication(httpsProxy.credentials);
+            authentication1.addHost(httpsProxy.host, httpsProxy.port);
+            useCredentials(credentialsProvider, Collections.singleton(authentication1));
+        }
     }
 
     private void useCredentials(CredentialsProvider credentialsProvider, Collection<? extends Authentication> authentications) {

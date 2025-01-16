@@ -16,7 +16,6 @@
 
 package org.gradle.nativeplatform.test.xctest.plugins;
 
-import com.google.common.collect.Lists;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Dependency;
@@ -211,9 +210,13 @@ public abstract class XCTestConventionPlugin implements Plugin<Project> {
                     File frameworkDir = new File(platformSdkPath, "Developer/Library/Frameworks");
                     // Since Xcode 11/12, the XCTest framework is being replaced by a different library that's available in the sdk root
                     File extraInclude = new File(platformSdkPath, "Developer/usr/lib");
-                    return Lists.newArrayList("-F" + frameworkDir.getAbsolutePath(), "-L", extraInclude.getAbsolutePath(), "-framework", "XCTest",
-                            "-Xlinker", "-rpath", "-Xlinker", "@executable_path/../Frameworks",
-                            "-Xlinker", "-rpath", "-Xlinker", "@loader_path/../Frameworks");
+                    return Arrays.asList(
+                        "-F" + frameworkDir.getAbsolutePath(),
+                        "-L", extraInclude.getAbsolutePath(),
+                        "-framework", "XCTest",
+                        "-Xlinker", "-rpath", "-Xlinker", "@executable_path/../Frameworks",
+                        "-Xlinker", "-rpath", "-Xlinker", "@loader_path/../Frameworks"
+                    );
                 }));
 
                 task.source(binary.getObjects());

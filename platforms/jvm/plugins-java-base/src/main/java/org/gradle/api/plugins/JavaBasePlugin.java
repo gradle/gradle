@@ -16,7 +16,7 @@
 
 package org.gradle.api.plugins;
 
-import com.google.common.collect.Lists;
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -28,10 +28,10 @@ import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.internal.IConventionAware;
-import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationCreationRequest;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRole;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
+import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationCreationRequest;
 import org.gradle.api.internal.artifacts.configurations.UsageDescriber;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.plugins.DslObject;
@@ -497,9 +497,10 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
 
         @Override
         public void failOnInabilityToMutateUsage() {
-            List<String> resolutions = Lists.newArrayList(
+            List<String> resolutions = ImmutableList.of(
                 RoleBasedConfigurationCreationRequest.getDefaultReservedNameAdvice(getConfigurationName()),
-                getUsageMutationAdvice());
+                getUsageMutationAdvice()
+            );
             throw new UnmodifiableUsageException(getConfigurationName(), resolutions);
         }
 

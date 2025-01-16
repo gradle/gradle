@@ -16,6 +16,8 @@
 
 package org.gradle.integtests.tooling.r813
 
+
+import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.GroovyBuildScriptLanguage
 import org.gradle.integtests.tooling.fixture.ProblemsApiGroovyScriptUtils
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
@@ -23,6 +25,8 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.r85.CustomModel
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.Failure
 import org.gradle.tooling.events.ProgressEvent
@@ -256,6 +260,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
     }
 
     @TargetGradleVersion("=8.5")
+    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "No problem for exceptions in 8.5"() {
         // serialization of exceptions is not working in 8.5 (Gson().toJson() fails)
         withReportProblemTask """
@@ -269,7 +274,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         withConnection {
             it.newBuild()
                 .forTasks(":reportProblem")
-                .setJavaHome(jdk17.javaHome)
+                .setJavaHome(AvailableJavaHomes.differentJdk.javaHome)
                 .addProgressListener(listener)
                 .run()
         }
