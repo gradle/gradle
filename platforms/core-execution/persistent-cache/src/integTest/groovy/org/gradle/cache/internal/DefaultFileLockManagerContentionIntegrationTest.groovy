@@ -117,11 +117,10 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
         // simulate additional requests
         def socket = new DatagramSocket(0, addressFactory.wildcardBindingAddress)
         (1..500).each {
-            addressFactory.communicationAddresses.each { address ->
-                byte[] bytes = [1, 0, 0, 0, 0, 0, 0, 0, 0]
-                DatagramPacket confirmPacket = new DatagramPacket(bytes, bytes.length, address, receivingSocket.localPort)
-                socket.send(confirmPacket)
-            }
+            def address = addressFactory.localBindingAddress
+            byte[] bytes = [1, 0, 0, 0, 0, 0, 0, 0, 0]
+            DatagramPacket confirmPacket = new DatagramPacket(bytes, bytes.length, address, receivingSocket.localPort)
+            socket.send(confirmPacket)
         }
 
         then:
@@ -316,7 +315,7 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
     }
 
     void assertConfirmationCount(GradleHandle build, DatagramSocket socket = receivingSocket, FileLock lock = receivingLock) {
-        assert (build.standardOutput =~ "Gradle process at port ${socket.localPort} confirmed unlock request for lock with id ${lock.lockId}.").count == addressFactory.communicationAddresses.size()
+        assert (build.standardOutput =~ "Gradle process at port ${socket.localPort} confirmed unlock request for lock with id ${lock.lockId}.").count == 1
     }
 
     void assertReleaseSignalTriggered(GradleHandle build, FileLock lock = receivingLock) {
@@ -375,8 +374,8 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
             }
 
             @Override
-            Iterable<InetAddress> getCommunicationAddresses() {
-                return addressFactory.communicationAddresses
+            InetAddress getCommunicationAddress() {
+                return addressFactory.localBindingAddress
             }
         })
         def fileLockManager = new DefaultFileLockManager(new ProcessMetaDataProvider() {
