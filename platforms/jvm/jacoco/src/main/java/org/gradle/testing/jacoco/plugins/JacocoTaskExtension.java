@@ -128,7 +128,7 @@ public abstract class JacocoTaskExtension {
         this.destinationFile.set(destinationFile);
     }
 
-    public void setDestinationFile(File destinationFile) {
+    public void setDestinationFile(@Nullable File destinationFile) {
         this.destinationFile.set(destinationFile);
     }
 
