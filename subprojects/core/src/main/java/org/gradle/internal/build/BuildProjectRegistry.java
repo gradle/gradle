@@ -36,11 +36,6 @@ public interface BuildProjectRegistry {
     Set<? extends ProjectState> getAllProjects();
 
     /**
-     * Returns the number of projects in this build.
-     */
-    int getTotalProjectCount();
-
-    /**
      * Locates a project of this build, failing if the project is not present.
      *
      * @param projectPath The path relative to the root project of this build.
