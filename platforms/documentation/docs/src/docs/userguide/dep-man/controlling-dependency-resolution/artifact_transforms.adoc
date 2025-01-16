@@ -15,7 +15,7 @@
 [[artifact-transforms]]
 = Artifact Transforms
 
-What if you want to makes changes to the files contained in one of your dependencies before you use it?
+What if you want to make changes to the files contained in one of your dependencies before you use it?
 
 For example, you might want to unzip a compressed file, adjust the contents of a JAR, or delete unnecessary files from a dependency that contains multiple files prior to using the result in a task.
 
@@ -176,6 +176,55 @@ In such cases, Gradle can transform one variant's artifacts into another "virtua
 IMPORTANT: Gradle will not attempt to select or run Artifact Transforms when a variant of the dependency matching the requested attributes already exists.
 
 For example, if the requested variant is `java-api,classes`, but the dependency only has `java-api,jar`, Gradle can potentially transform the `JAR` file into a `classes` directory by unzipping it using an Artifact Transform that is registered with these attributes.
+
+TIP: Gradle applies transformations to artifacts, not variants!
+
+== Using Artifact Transforms with Artifact Views
+
+To leverage <<artifact_views.adoc#artifact_views,Artifact Views>> for Artifact Transforms, you can configure a custom `ArtifactView` to access the transformed artifacts.
+This allows you to apply transformations to the artifacts in the view and further process or consume them.
+Typically, `artifactView` is used with a specific transform type to modify or manipulate the artifacts as they are resolved.
+
+The example below demonstrates how to define a custom artifact transform (`TestTransform`), register it, and then use it to manipulate artifacts, allowing the consumer configuration to resolve transformed artifacts (`stub`).
+
+[source,groovy]
+----
+abstract class TestTransform : TransformAction<TransformParameters.None> {
+    @get:InputArtifact
+    abstract val inputArtifact: Provider<FileSystemLocation>
+
+    override fun transform(outputs: TransformOutputs) {
+        outputs.file("stub").createNewFile()
+    }
+}
+
+project.dependencies.registerTransform(TestTransform::class.java) {
+    from.attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, "jar")
+    to.attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, "stub")
+}
+
+val consumer = configurations.create("consumer") {
+    isCanBeConsumed = false
+    isCanBeResolved = true
+    isTransitive = false
+
+    dependencies.add(project.dependencies.create("org.gradle.profiler:gradle-profiler:0.21.0"))
+
+    attributes {
+        attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, "stub")
+    }
+}
+
+val resolvedArtifactType = consumer.incoming.artifacts.resolvedArtifacts.map {
+    it.single().variant.attributes.getAttribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE)
+}
+
+tasks.register("testArtifact") {
+    doLast {
+        println(resolvedArtifactType.get())
+    }
+}
+----
 
 [[sec:artifact-transform-chains]]
 == Understanding Artifact Transforms Chains
