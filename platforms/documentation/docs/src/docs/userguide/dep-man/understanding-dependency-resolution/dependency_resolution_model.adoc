@@ -142,9 +142,9 @@ If all versions have qualifiers, Gradle will consider the qualifier's order, pre
 
 Gradle uses **variants** and **capabilities** to define what a module *provides*.
 
-<<variant-attributes.adoc#variant-attributes,Variants>> are essentially different forms of a dependency, often based on factors such as platform (e.g., JVM or Android), or configuration (e.g., compile, runtime).
+<<variant_attributes.adoc#variant-attributes,Variants>> are essentially different forms of a dependency, often based on factors such as platform (e.g., JVM or Android), or configuration (e.g., compile, runtime).
 
-<<variant-attributes.adoc#variant-attributes,Capabilities>> are a way to express mutually exclusive variants of a dependency.
+<<variant_attributes.adoc#variant-attributes,Capabilities>> are a way to express mutually exclusive variants of a dependency.
 
 <<component_capabilities.adoc#sec:selecting-between-candidates,Conflicts>> arise in the following scenarios:
 

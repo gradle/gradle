@@ -436,7 +436,7 @@ include::sample[dir="snippets/dependencyManagement/customizingResolution-ivyMeta
 ====
 
 The rule creates an `apiElements` variant based on the `compile` configuration and a `runtimeElements` variant based on the `default` configuration of each ivy module.
-For each variant, it sets the corresponding <<#sec:variant-aware-matching,Java ecosystem attributes>>.
+For each variant, it sets the corresponding <<variant_model.adoc#sec:variant-aware-matching,Java ecosystem attributes>>.
 Dependencies and artifacts of the variants are taken from the underlying configurations.
 If not all consumed Ivy modules follow this pattern, the rule can be adjusted or only applied to a selected set of modules.
 
