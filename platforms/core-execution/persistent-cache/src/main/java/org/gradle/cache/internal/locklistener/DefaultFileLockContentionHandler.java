@@ -86,8 +86,10 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
 
     private final FileLockCommunicator communicator;
     private final InetAddressProvider inetAddressProvider;
-    private final ManagedExecutor fileLockRequestListener;
-    private final ManagedExecutor unlockActionExecutor;
+    private final ExecutorFactory executorFactory;
+
+    private ManagedExecutor fileLockRequestListener;
+    private ManagedExecutor unlockActionExecutor;
 
     private boolean stopped;
     private volatile boolean listenerFailed;
@@ -99,11 +101,7 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
     DefaultFileLockContentionHandler(FileLockCommunicator communicator, InetAddressProvider inetAddressProvider, ExecutorFactory executorFactory) {
         this.communicator = communicator;
         this.inetAddressProvider = inetAddressProvider;
-
-        this.fileLockRequestListener = executorFactory.create("File lock request listener");
-        fileLockRequestListener.execute(listener());
-
-        this.unlockActionExecutor = executorFactory.create("File lock release action executor");
+        this.executorFactory = executorFactory;
     }
 
     private Runnable listener() {
@@ -194,6 +192,14 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
     public void start(long lockId, Consumer<FileLockReleasedSignal> whenContended) {
         lock.lock();
         try {
+            // First time use, start up the executors that deal with lock contention
+            if (unlockActionExecutor == null) {
+                unlockActionExecutor = executorFactory.create("File lock release action executor");
+            }
+            if (fileLockRequestListener == null) {
+                fileLockRequestListener = executorFactory.create("File lock request listener");
+                fileLockRequestListener.execute(listener());
+            }
             lockReleasedSignals.remove(lockId);
             unlocksRequestedFrom.remove(lockId);
             unlocksConfirmedFrom.remove(lockId);
@@ -264,8 +270,13 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
         } finally {
             lock.unlock();
         }
-        fileLockRequestListener.stop();
-        unlockActionExecutor.stop();
+
+        if (unlockActionExecutor != null) {
+            unlockActionExecutor.stop();
+        }
+        if (fileLockRequestListener != null) {
+            fileLockRequestListener.stop();
+        }
     }
 
     @Override

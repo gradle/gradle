@@ -41,7 +41,7 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
     def addressFactory = new InetAddressFactory()
 
     FileLockContentionHandler receivingFileLockContentionHandler
-    CountingFileLockCommunicator communicator
+    TestableFileLockCommunicator communicator
     FileLock receivingLock
 
     def setup() {
@@ -75,21 +75,34 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
 
     def "the lock holder is not hammered with ping requests for the shared lock"() {
         given:
-        setupLockOwner()
+        setupLockOwner({
+            it.trigger()
+        })
 
         when:
+        // for the lock holder, do not respond to messages for a bit
+        communicator.allowCommunication = false
+
+        // spin up a client to request the same lock
         def build = executer.withTasks("lock").start()
         def timer = Time.startTimer()
 
+        // once we've seen a few pings, allow the lock holder to respond
         def pingCountInOutput = 0
         poll(120) {
             pingCountInOutput = (build.standardOutput =~ 'Pinged owner at port').count
             assert pingCountInOutput >= 3
         }
+        // lock holder will respond and release the lock
+        communicator.allowCommunication = true
         receivingLock.close()
         then:
         build.waitForFinish()
-        communicator.unlockRequests == 3
+        // If the lock requestor went wild, we would see lots of ping counts or lots of total messages
+        communicator.totalMessages == pingCountInOutput
+        communicator.totalMessages < 50 // sanity check that we didn't send too many pings
+        // Sanity check that we waited at least some time before releasing the lock
+        // IOW, we don't want to see 3 pings in ~milliseconds and call this test valid
         timer.elapsedMillis > 3000 // See: DefaultFileLockContentionHandler.PING_DELAY
     }
 
@@ -330,7 +343,7 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
             }
         }
 
-        communicator = new CountingFileLockCommunicator(new DefaultFileLockCommunicator(inetAddressProvider))
+        communicator = new TestableFileLockCommunicator(new DefaultFileLockCommunicator(inetAddressProvider))
 
         receivingFileLockContentionHandler = new DefaultFileLockContentionHandler(communicator, inetAddressProvider, new DefaultExecutorFactory())
         def fileLockManager = new DefaultFileLockManager(new ProcessMetaDataProvider() {

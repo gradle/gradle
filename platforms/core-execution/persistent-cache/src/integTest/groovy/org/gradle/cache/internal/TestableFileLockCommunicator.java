@@ -18,7 +18,6 @@ package org.gradle.cache.internal;
 
 import org.gradle.cache.internal.locklistener.FileLockCommunicator;
 import org.gradle.cache.internal.locklistener.FileLockPacketPayload;
-import org.gradle.cache.internal.locklistener.FileLockPacketType;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -27,14 +26,23 @@ import java.net.SocketAddress;
 import java.util.Optional;
 import java.util.Set;
 
-public class CountingFileLockCommunicator implements FileLockCommunicator {
+public class TestableFileLockCommunicator implements FileLockCommunicator {
     private final FileLockCommunicator delegate;
 
+    private boolean allowCommunication = true;
     private int totalMessages = 0;
-    private int unlockRequests = 0;
 
-    public CountingFileLockCommunicator(FileLockCommunicator delegate) {
+    public TestableFileLockCommunicator(FileLockCommunicator delegate) {
         this.delegate = delegate;
+    }
+
+    /**
+     * Simulates a lock contention handler that does not respond to messages quickly enough
+     *
+     * @param allowCommunication true if we should respond to messages
+     */
+    public void setAllowCommunication(boolean allowCommunication) {
+        this.allowCommunication = allowCommunication;
     }
 
     @Override
@@ -44,18 +52,20 @@ public class CountingFileLockCommunicator implements FileLockCommunicator {
 
     @Override
     public Optional<DatagramPacket> receive() throws IOException {
-        return delegate.receive();
+        Optional<DatagramPacket> result = delegate.receive();
+        if (result.isPresent()) {
+            totalMessages++;
+        }
+        if (allowCommunication) {
+            return result;
+        }
+        // Drop the message on the floor so we don't respond to it
+        return Optional.empty();
     }
 
     @Override
     public FileLockPacketPayload decode(DatagramPacket receivedPacket) {
-        totalMessages++;
-
-        FileLockPacketPayload payload = delegate.decode(receivedPacket);
-        if (payload.getType() == FileLockPacketType.UNLOCK_REQUEST) {
-            unlockRequests++;
-        }
-        return payload;
+        return delegate.decode(receivedPacket);
     }
 
     @Override
@@ -76,10 +86,6 @@ public class CountingFileLockCommunicator implements FileLockCommunicator {
     @Override
     public int getPort() {
         return delegate.getPort();
-    }
-
-    public int getUnlockRequests() {
-        return unlockRequests;
     }
 
     public int getTotalMessages() {
