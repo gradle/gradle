@@ -104,10 +104,15 @@ public class DefaultCrossBuildInMemoryCacheFactory implements CrossBuildInMemory
     }
 
     private abstract static class AbstractCrossBuildInMemoryCache<K, V> implements CrossBuildInMemoryCache<K, V>, BuildSessionLifecycleListener {
-        private final ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
-        private final Lock readLock = readWriteLock.readLock();
-        private final Lock writeLock = readWriteLock.writeLock();
         private final Map<K, V> valuesForThisSession = new HashMap<>();
+        private final Lock readLock;
+        private final Lock writeLock;
+
+        protected AbstractCrossBuildInMemoryCache() {
+            ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
+            readLock = readWriteLock.readLock();
+            writeLock = readWriteLock.writeLock();
+        }
 
         @Override
         public void beforeComplete() {
