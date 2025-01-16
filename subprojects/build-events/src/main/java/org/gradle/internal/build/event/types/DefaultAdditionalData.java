@@ -19,7 +19,6 @@ package org.gradle.internal.build.event.types;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.NonNullApi;
 import org.gradle.tooling.internal.protocol.problem.InternalPayloadSerializedAdditionalData;
-import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 
 import java.io.Serializable;
 import java.util.Map;
@@ -28,9 +27,9 @@ import java.util.Map;
 public class DefaultAdditionalData implements InternalPayloadSerializedAdditionalData, Serializable {
 
     private final Map<String, Object> additionalData;
-    private final SerializedPayload payload;
+    private final Object payload;
 
-    public DefaultAdditionalData(Map<String, Object> additionalData, SerializedPayload payload) {
+    public DefaultAdditionalData(Map<String, Object> additionalData, Object payload) {
         this.additionalData = ImmutableMap.copyOf(additionalData);
         this.payload = payload;
     }
@@ -41,7 +40,7 @@ public class DefaultAdditionalData implements InternalPayloadSerializedAdditiona
     }
 
     @Override
-    public SerializedPayload get() {
+    public Object get() {
         return payload;
     }
 }

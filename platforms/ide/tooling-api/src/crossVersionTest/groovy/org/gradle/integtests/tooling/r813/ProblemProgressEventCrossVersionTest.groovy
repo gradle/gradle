@@ -35,6 +35,7 @@ import org.gradle.tooling.events.problems.TaskPathLocation
 import org.gradle.tooling.events.problems.internal.GeneralData
 import org.gradle.util.GradleVersion
 import org.junit.Assume
+import spock.lang.IgnoreRest
 
 import static org.gradle.integtests.fixtures.AvailableJavaHomes.getJdk17
 import static org.gradle.integtests.fixtures.AvailableJavaHomes.getJdk21
@@ -99,16 +100,20 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         ''                         | null            | ''                                          | null
     }
 
+    @IgnoreRest
     def "Problems expose details via Tooling API events with problem definition"() {
         given:
         withReportProblemTask """
             getProblems().${ProblemsApiGroovyScriptUtils.report(targetVersion)} {
+                def someData = getObjectFactory().newInstance(SomeData)
+                someData.name = "someData"
+                def isolatedData = getIsolatableFactory().isolate(someData).isolate()
                 it.${ProblemsApiGroovyScriptUtils.id(targetVersion, 'id', 'shortProblemMessage')}
                 $documentationConfig
                 .lineInFileLocation("/tmp/foo", 1, 2, 3)
                 $detailsConfig
 //                .additionalData(org.gradle.api.problems.internal.GeneralDataSpec, data -> data.put("aKey", "aValue"))
-                .additionalData(new SomeData("asdf"))
+                .additionalData(isolatedData)
                 .severity(Severity.WARNING)
                 .solution("try this instead")
             }

@@ -16,9 +16,7 @@
 
 package org.gradle.tooling.internal.protocol.problem;
 
-import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
-
 public interface InternalPayloadSerializedAdditionalData extends InternalAdditionalData {
 
-    SerializedPayload get();
+    Object get();
 }

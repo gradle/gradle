@@ -222,10 +222,10 @@ public class ProblemsProgressEventUtils {
 
     @SuppressWarnings("unchecked")
     private InternalAdditionalData toInternalAdditionalData(@Nullable AdditionalData additionalData) {
+        SerializedPayload payload = null; //payloadSerizalizer.serialize(additionalData);
         if (additionalData instanceof DeprecationData) {
             // For now, we only expose deprecation data to the tooling API with generic additional data
             DeprecationData data = (DeprecationData) additionalData;
-            SerializedPayload payload = payloadSerizalizer.serialize(additionalData);
             return new DefaultAdditionalData(ImmutableMap.of("type", data.getType().name()), payload);
         } else if (additionalData instanceof TypeValidationData) {
             TypeValidationData data = (TypeValidationData) additionalData;
@@ -234,11 +234,9 @@ public class ProblemsProgressEventUtils {
             Optional.ofNullable(data.getPropertyName()).ifPresent(propertyName -> builder.put("propertyName", propertyName));
             Optional.ofNullable(data.getParentPropertyName()).ifPresent(parentPropertyName -> builder.put("parentPropertyName", parentPropertyName));
             Optional.ofNullable(data.getTypeName()).ifPresent(typeName -> builder.put("typeName", typeName));
-            SerializedPayload payload = payloadSerizalizer.serialize(additionalData);
             return new DefaultAdditionalData(builder.build(), payload);
         } else if (additionalData instanceof GeneralData) {
             GeneralData data = (GeneralData) additionalData;
-            SerializedPayload payload = payloadSerizalizer.serialize(additionalData);
             return new DefaultAdditionalData(
                 data.getAsMap().entrySet().stream()
                     .filter(entry -> isSupportedType(entry.getValue()))
@@ -246,8 +244,7 @@ public class ProblemsProgressEventUtils {
                 payload
             );
         } else {
-            SerializedPayload payload = payloadSerizalizer.serialize(additionalData);
-            return new DefaultAdditionalData(Collections.emptyMap(), payload);
+            return new DefaultAdditionalData(Collections.emptyMap(), additionalData);
         }
     }
 

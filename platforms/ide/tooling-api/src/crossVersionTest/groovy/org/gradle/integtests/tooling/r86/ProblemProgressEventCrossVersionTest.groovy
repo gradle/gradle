@@ -39,21 +39,24 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         """
             import org.gradle.api.problems.Severity
             import org.gradle.api.problems.AdditionalData
+            import org.gradle.internal.isolation.IsolatableFactory
 
-            class SomeData implements AdditionalData, Serializable {
-               String name
-               public SomeData(String name) {
-                   this.name = name
-               }
+            interface SomeData extends AdditionalData {
 
-                public String getName(){
-                    return name
-                }
+                String getName()
+
+                void setName(String name)
             }
 
             abstract class ProblemReportingTask extends DefaultTask {
                 @Inject
                 protected abstract Problems getProblems();
+
+                @Inject
+                protected abstract ObjectFactory getObjectFactory();
+
+                @Inject
+                protected abstract IsolatableFactory getIsolatableFactory();
 
                 @TaskAction
                 void run() {
