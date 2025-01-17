@@ -31,6 +31,7 @@ import org.gradle.profiler.result.BuildInvocationResult;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -63,7 +64,7 @@ public class MavenBuildExperimentRunner extends AbstractBuildExperimentRunner {
             );
             Consumer<BuildInvocationResult> resultConsumer = consumerFor(scenarioDefinition, results, scenarioReporter);
             scenarioInvoker.run(scenarioDefinition, invocationSettings, resultConsumer);
-        } catch (IOException e) {
+        } catch (IOException | InterruptedException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         } finally {
             try {
@@ -93,6 +94,7 @@ public class MavenBuildExperimentRunner extends AbstractBuildExperimentRunner {
             experimentSpec.getDisplayName(),
             experimentSpec.getDisplayName(),
             arguments,
+            Collections.emptyMap(),
             experimentSpec.getBuildMutators().stream()
                 .map(mutatorFunction -> mutatorFunction.apply(invocationSettings))
                 .collect(Collectors.toList()),
