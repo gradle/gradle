@@ -94,7 +94,6 @@ platforms/enterprise/enterprise-operations/             @gradle/bt-build-scan
 platforms/enterprise/enterprise-plugin-performance/     @gradle/bt-build-scan
 
 # JVM platform
-build-logic/java-api-extractor              @gradle/bt-jvm
 platforms/jvm/                              @gradle/bt-jvm
 subprojects/plugins/                        @gradle/bt-jvm
 

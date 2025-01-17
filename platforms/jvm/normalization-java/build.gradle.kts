@@ -21,7 +21,7 @@ dependencies {
 
     api(libs.jsr305)
     api(libs.guava)
-    api("org.gradle:java-api-extractor")
+    api(libs.javaAbiExtractor)
 
     implementation(projects.functional)
 

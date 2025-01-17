@@ -75,7 +75,7 @@ dependencies {
     }
 
     testImplementation(projects.buildEvents)
-    
+
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.logging))
     testImplementation(testFixtures(projects.dependencyManagement))

@@ -75,7 +75,8 @@ abstract class PackageListGenerator : DefaultTask() {
 
         // Things we do want to shade despite being covered by excludes
         val DEFAULT_INCLUDES: List<String> = listOf(
-            "org/gradle/fileevents"
+            "org/gradle/fileevents",
+            "org/gradle/internal/tools/api",
         )
 
         @Throws(IOException::class)

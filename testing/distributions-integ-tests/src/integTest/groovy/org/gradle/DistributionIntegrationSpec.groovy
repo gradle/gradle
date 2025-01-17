@@ -91,7 +91,6 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "instrumentation-reporting",
         "internal-instrumentation-api",
         "io",
-        "java-api-extractor",
         "jvm-services",
         "launcher",
         "logging",
@@ -264,6 +263,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
                 && !it.name.startsWith("gradle-api-metadata")
                 && !it.name.startsWith("gradle-kotlin-dsl")
                 && !it.name.startsWith("gradle-fileevents")
+                && !it.name.startsWith("java-abi-extractor")
         }
 
         def prefixedCoreLibNames = coreLibsModules.collect { "gradle-$it" }

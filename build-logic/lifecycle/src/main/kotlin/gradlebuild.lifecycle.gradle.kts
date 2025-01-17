@@ -130,9 +130,6 @@ fun TaskContainer.registerPublishBuildLogicTasks() {
     register("publishBuildLogic") {
         description = "Publish subprojects in build-logic"
         group = "build"
-        dependsOn(
-            gradle.includedBuild("build-logic").task(":java-api-extractor:publish")
-        )
     }
 }
 
