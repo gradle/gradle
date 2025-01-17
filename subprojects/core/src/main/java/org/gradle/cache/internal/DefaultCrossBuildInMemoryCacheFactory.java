@@ -147,18 +147,9 @@ public class DefaultCrossBuildInMemoryCacheFactory implements CrossBuildInMemory
         public V get(K key, Function<? super K, ? extends V> factory) {
             return valuesForThisSession.computeIfAbsent(key, k -> {
                 V retained = maybeGetRetainedValue(k);
-                if (retained != null) {
-                    return Lazy.unsafe().of(() -> retained);
-                }
-                return Lazy.locking().of(() -> {
-                    V newValue = factory.apply(k);
-                    if (newValue == null) {
-                        // Factory should never produce null
-                        throw new IllegalStateException("Factory '" + factory + "' failed to produce a value for key '" + key + "'!");
-                    }
-                    retainValue(k, newValue);
-                    return newValue;
-                });
+                return retained != null
+                    ? Lazy.unsafe().of(() -> retained)
+                    : Lazy.locking().of(() -> produceAndRetain(factory, k));
             }).get();
         }
 
@@ -168,6 +159,16 @@ public class DefaultCrossBuildInMemoryCacheFactory implements CrossBuildInMemory
                 retainValue(key, value);
                 return value;
             }));
+        }
+
+        private V produceAndRetain(Function<? super K, ? extends V> factory, K k) {
+            V newValue = factory.apply(k);
+            if (newValue == null) {
+                // Factory should never produce null
+                throw new IllegalStateException("Factory '" + factory + "' failed to produce a value for key '" + k + "'!");
+            }
+            retainValue(k, newValue);
+            return newValue;
         }
     }
 
