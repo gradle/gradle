@@ -18,7 +18,6 @@ package org.gradle.internal.snapshot.impl;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.attributes.Attribute;
 import org.gradle.internal.Cast;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.isolation.Isolatable;
@@ -91,9 +90,6 @@ abstract class AbstractValueProcessor {
         if (valueClass.isArray()) {
             return processArray(value, visitor);
         }
-        if (value instanceof Attribute) {
-            return visitor.attributeValue((Attribute<?>) value);
-        }
         if (value instanceof Managed) {
             return processManaged((Managed) value, visitor);
         }
@@ -110,6 +106,9 @@ abstract class AbstractValueProcessor {
 
         // Pluggable serialization
         for (ValueSnapshotterSerializerRegistry registry : valueSnapshotterSerializerRegistryList) {
+            if (registry.canIsolate(valueClass)) {
+                return visitor.fromIsolatable(registry.buildIsolated(value));
+            }
             if (registry.canSerialize(valueClass)) {
                 return gradleSerialization(value, registry.build(valueClass), visitor);
             }
@@ -186,7 +185,7 @@ abstract class AbstractValueProcessor {
     }
 
     private static <T> T gradleSerialization(Object value, Serializer<?> serializer, ValueVisitor<T> visitor) {
-        return visitor.gradleSerialized(value, gradleSerialized(value, serializer));
+        return visitor.gradleSerialized(value, gradleSerialized(value, serializer), serializer);
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
@@ -247,8 +246,6 @@ abstract class AbstractValueProcessor {
 
         T hashCode(HashCode value);
 
-        T attributeValue(Attribute<?> value);
-
         T managedValue(Managed value, T state);
 
         T managedImmutableValue(Managed managed);
@@ -271,7 +268,7 @@ abstract class AbstractValueProcessor {
 
         T properties(ImmutableList<MapEntrySnapshot<T>> elements);
 
-        T gradleSerialized(Object value, byte[] serializedValue);
+        T gradleSerialized(Object value, byte[] serializedValue, Serializer<?> serializer);
 
         T javaSerialized(Object value, byte[] serializedValue);
     }

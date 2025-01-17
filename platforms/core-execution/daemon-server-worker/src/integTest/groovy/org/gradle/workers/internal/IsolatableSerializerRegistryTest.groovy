@@ -39,13 +39,13 @@ class IsolatableSerializerRegistryTest extends Specification {
     def classLoaderHasher = Stub(ClassLoaderHierarchyHasher) {
         getClassLoaderHash(_) >> TestHashCodes.hashCodeFrom(123)
     }
-    IsolatableFactory isolatableFactory = new DefaultIsolatableFactory(classLoaderHasher, managedFactoryRegistry)
+    IsolatableFactory isolatableFactory = new DefaultIsolatableFactory(classLoaderHasher, managedFactoryRegistry, [])
     InstantiatorFactory instantiatorFactory = TestUtil.instantiatorFactory()
     ServiceLookup services = ServiceRegistryBuilder.builder().provider { registration ->
         registration.add(InstantiatorFactory, instantiatorFactory)
     }.build()
 
-    def serializer = IsolatableSerializerRegistry.create(classLoaderHasher, managedFactoryRegistry)
+    def serializer = IsolatableSerializerRegistry.create(managedFactoryRegistry)
     def outputStream = new ByteArrayOutputStream()
     def encoder = new KryoBackedEncoder(outputStream)
 

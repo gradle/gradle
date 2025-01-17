@@ -27,15 +27,16 @@ errorprone {
 }
 
 dependencies {
-    api(projects.serviceLookup)
-    api(projects.stdlibJavaExtensions)
     api(projects.baseServices)
     api(projects.coreApi)
+    api(projects.dependencyManagementBase)
     api(projects.languageJvm)
     api(projects.modelCore)
     api(projects.platformJvm)
-    api(projects.testingJvm)
+    api(projects.serviceLookup)
+    api(projects.stdlibJavaExtensions)
     api(projects.testSuitesBase)
+    api(projects.testingJvm)
 
     api(libs.inject)
 

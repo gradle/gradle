@@ -45,7 +45,7 @@ import java.util.function.Consumer
 
 class DefaultBuildServicesRegistryTest extends Specification {
     def listenerManager = new DefaultListenerManager(Scope.Build)
-    def isolatableFactory = new DefaultIsolatableFactory(null, TestUtil.managedFactoryRegistry())
+    def isolatableFactory = new DefaultIsolatableFactory(null, TestUtil.managedFactoryRegistry(), [])
     def leaseRegistry = Stub(SharedResourceLeaseRegistry)
     def buildIdentifier = Mock(BuildIdentifier)
     def services = TestUtil.createTestServices { registrations ->

@@ -127,6 +127,7 @@ import org.gradle.internal.serialize.codecs.dm.transform.TransformStepSpecCodec
 import org.gradle.internal.serialize.codecs.dm.transform.TransformedArtifactCodec
 import org.gradle.internal.serialize.codecs.dm.transform.TransformedExternalArtifactSetCodec
 import org.gradle.internal.serialize.codecs.dm.transform.TransformedProjectArtifactSetCodec
+import org.gradle.internal.serialize.codecs.dm.unsupportedDependencyManagementTypes
 import org.gradle.internal.serialize.codecs.stdlib.ProxyCodec
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.codecs.BeanCodec
@@ -186,6 +187,7 @@ class Codecs(
     init {
         fun makeUserTypeBindings(providersBlock: BindingsBuilder.() -> Unit) = Bindings.of {
             unsupportedTypes()
+            unsupportedDependencyManagementTypes()
 
             baseTypes()
 

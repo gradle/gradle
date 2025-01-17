@@ -19,6 +19,7 @@ import org.gradle.api.Describable;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.provider.Provider;
+import org.gradle.internal.isolation.Isolatable;
 
 import javax.annotation.Nullable;
 import java.util.Map;
@@ -83,6 +84,12 @@ public class FreezableAttributeContainer implements AttributeContainerInternal {
     @Override
     public <T> T getAttribute(Attribute<T> key) {
         return delegate.getAttribute(key);
+    }
+
+    @Nullable
+    @Override
+    public <T> Isolatable<T> getAttributeValue(Attribute<T> key) {
+        return delegate.getAttributeValue(key);
     }
 
     @Override

@@ -39,8 +39,7 @@ class DefaultIsolatableFactoryTest extends Specification {
         getClassLoaderHash(_) >> TestHashCodes.hashCodeFrom(123)
     }
     def managedFactoryRegistry = Mock(ManagedFactoryRegistry)
-    def snapshotter = new DefaultValueSnapshotter([], classLoaderHasher)
-    def isolatableFactory = new DefaultIsolatableFactory(classLoaderHasher, managedFactoryRegistry)
+    def isolatableFactory = new DefaultIsolatableFactory(classLoaderHasher, managedFactoryRegistry, [])
 
     def "creates isolated string"() {
         expect:

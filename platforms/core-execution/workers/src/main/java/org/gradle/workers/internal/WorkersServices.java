@@ -25,7 +25,6 @@ import org.gradle.initialization.layout.ProjectCacheDir;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.logging.LoggingManagerInternal;
@@ -88,9 +87,12 @@ public class WorkersServices extends AbstractGradleModuleServices {
         WorkerDaemonClientCancellationHandler createWorkerDaemonClientSessionHandler(WorkerDaemonClientsManager workerDaemonClientsManager, BuildCancellationToken buildCancellationToken) {
             return new WorkerDaemonClientCancellationHandler(workerDaemonClientsManager, buildCancellationToken);
         }
-    }
 
-    private static class GradleUserHomeServices implements ServiceRegistrationProvider {
+        @Provides
+        ActionExecutionSpecFactory createActionExecutionSpecFactory(IsolatableFactory isolatableFactory, IsolatableSerializerRegistry serializerRegistry) {
+            return new DefaultActionExecutionSpecFactory(isolatableFactory, serializerRegistry);
+        }
+
         @Provides
         WorkerDaemonClientsManager createWorkerDaemonClientsManager(WorkerProcessFactory workerFactory,
                                                                     LoggingManagerInternal loggingManager,
@@ -101,6 +103,9 @@ public class WorkersServices extends AbstractGradleModuleServices {
                                                                     ActionExecutionSpecFactory actionExecutionSpecFactory) {
             return new WorkerDaemonClientsManager(new WorkerDaemonStarter(workerFactory, loggingManager, classPathRegistry, actionExecutionSpecFactory), listenerManager, loggingManager, memoryManager, memoryInfo);
         }
+    }
+
+    private static class GradleUserHomeServices implements ServiceRegistrationProvider {
 
         @Provides
         ClassLoaderStructureProvider createClassLoaderStructureProvider(ClassLoaderRegistry classLoaderRegistry) {
@@ -108,13 +113,8 @@ public class WorkersServices extends AbstractGradleModuleServices {
         }
 
         @Provides
-        IsolatableSerializerRegistry createIsolatableSerializerRegistry(ClassLoaderHierarchyHasher classLoaderHierarchyHasher, ManagedFactoryRegistry managedFactoryRegistry) {
-            return new IsolatableSerializerRegistry(classLoaderHierarchyHasher, managedFactoryRegistry);
-        }
-
-        @Provides
-        ActionExecutionSpecFactory createActionExecutionSpecFactory(IsolatableFactory isolatableFactory, IsolatableSerializerRegistry serializerRegistry) {
-            return new DefaultActionExecutionSpecFactory(isolatableFactory, serializerRegistry);
+        IsolatableSerializerRegistry createIsolatableSerializerRegistry(ManagedFactoryRegistry managedFactoryRegistry) {
+            return new IsolatableSerializerRegistry(managedFactoryRegistry);
         }
     }
 

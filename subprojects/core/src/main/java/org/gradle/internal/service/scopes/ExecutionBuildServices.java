@@ -111,8 +111,7 @@ public class ExecutionBuildServices implements ServiceRegistrationProvider {
         return new DefaultExecutionHistoryStore(
             executionHistoryCacheAccess,
             inMemoryCacheDecoratorFactory,
-            stringInterner,
-            classLoaderHasher
+            stringInterner
         );
     }
 

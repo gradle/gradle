@@ -20,6 +20,7 @@ import com.google.common.collect.Sets;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.provider.Provider;
+import org.gradle.internal.isolation.Isolatable;
 
 import javax.annotation.Nullable;
 import java.util.Comparator;
@@ -34,11 +35,11 @@ import java.util.TreeMap;
  * forwarded to the primary container.
  */
 final class HierarchicalMutableAttributeContainer extends AbstractAttributeContainer {
-    private final AttributesFactory attributesFactory;
+    private final BaseAttributesFactory attributesFactory;
     private final AttributeContainerInternal fallback;
     private final AttributeContainerInternal primary;
 
-    HierarchicalMutableAttributeContainer(AttributesFactory attributesFactory, AttributeContainerInternal fallback, AttributeContainerInternal primary) {
+    HierarchicalMutableAttributeContainer(BaseAttributesFactory attributesFactory, AttributeContainerInternal fallback, AttributeContainerInternal primary) {
         this.attributesFactory = attributesFactory;
         this.fallback = fallback;
         this.primary = primary;
@@ -63,12 +64,12 @@ final class HierarchicalMutableAttributeContainer extends AbstractAttributeConta
 
     @Nullable
     @Override
-    public <T> T getAttribute(Attribute<T> key) {
-        T attribute = primary.getAttribute(key);
+    public <T> Isolatable<T> getAttributeValue(Attribute<T> key) {
+        Isolatable<T> attribute = primary.getAttributeValue(key);
         if (attribute != null) {
             return attribute;
         }
-        return fallback.getAttribute(key);
+        return fallback.getAttributeValue(key);
     }
 
     @Override

@@ -85,6 +85,7 @@ dependencies {
     api(projects.concurrent)
     api(projects.coreApi)
     api(projects.declarativeDslApi)
+    api(projects.dependencyManagementBase)
     api(projects.enterpriseLogging)
     api(projects.enterpriseOperations)
     api(projects.execution)
@@ -131,8 +132,8 @@ dependencies {
     api(libs.nativePlatform)
 
     implementation(projects.buildOperationsTrace)
-    implementation(projects.io)
     implementation(projects.inputTracking)
+    implementation(projects.io)
     implementation(projects.modelGroovy)
     implementation(projects.problemsRendering)
     implementation(projects.serviceRegistryBuilder)

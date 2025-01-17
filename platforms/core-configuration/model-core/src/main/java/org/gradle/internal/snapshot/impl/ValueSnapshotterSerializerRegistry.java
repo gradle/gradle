@@ -16,10 +16,32 @@
 
 package org.gradle.internal.snapshot.impl;
 
+import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.serialize.SerializerRegistry;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 @ServiceScope(Scope.BuildSession.class)
 public interface ValueSnapshotterSerializerRegistry extends SerializerRegistry {
+
+    /**
+     * Return true if a type of the given class can be isolated by this serializer registry.
+     *
+     * @param valueClass The type to isolate.
+     *
+     * @return True if the type can be isolated, false otherwise.
+     */
+    boolean canIsolate(Class<?> valueClass);
+
+    /**
+     * Isolate the given object.
+     *
+     * @param baseType The object to isolate.
+     *
+     * @return The isolated object.
+     *
+     * @param <T> The type of the object.
+     */
+    <T> Isolatable<T> buildIsolated(T baseType);
+
 }

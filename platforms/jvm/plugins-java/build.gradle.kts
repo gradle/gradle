@@ -14,9 +14,10 @@ dependencies {
     api(libs.inject)
 
     implementation(projects.baseServices)
+    implementation(projects.dependencyManagementBase)
     implementation(projects.execution)
-    implementation(projects.languageJvm)
     implementation(projects.ivy)
+    implementation(projects.languageJvm)
     implementation(projects.maven)
     implementation(projects.modelCore)
     implementation(projects.serviceLookup)
@@ -25,8 +26,10 @@ dependencies {
     implementation(projects.platformBase)
     implementation(projects.platformJvm)
     implementation(projects.pluginsJavaBase)
-    implementation(projects.testingJvm)
+    implementation(projects.serviceLookup)
+    implementation(projects.stdlibJavaExtensions)
     implementation(projects.testSuitesBase)
+    implementation(projects.testingJvm)
 
     runtimeOnly(projects.dependencyManagement)
     runtimeOnly(projects.testingBase)

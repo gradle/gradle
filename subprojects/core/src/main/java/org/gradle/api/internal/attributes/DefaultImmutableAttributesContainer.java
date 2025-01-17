@@ -129,12 +129,13 @@ final class DefaultImmutableAttributesContainer implements ImmutableAttributes, 
 
     @Override
     public <T> T getAttribute(Attribute<T> key) {
-        Isolatable<T> isolatable = getIsolatableAttribute(key);
+        Isolatable<T> isolatable = getAttributeValue(key);
         return isolatable == null ? null : isolatable.isolate();
     }
 
     @Nullable
-    protected <T> Isolatable<T> getIsolatableAttribute(Attribute<T> key) {
+    @Override
+    public <T> Isolatable<T> getAttributeValue(Attribute<T> key) {
         DefaultImmutableAttributesContainer attributes = hierarchy.get(key);
         return Cast.uncheckedCast(attributes == null ? null : attributes.value);
     }
@@ -163,8 +164,8 @@ final class DefaultImmutableAttributesContainer implements ImmutableAttributes, 
     }
 
     @Override
-    public Object get() {
-        return value.isolate();
+    public Isolatable<Object> getIsolatableValue() {
+        return Cast.uncheckedNonnullCast(value);
     }
 
     @Nullable

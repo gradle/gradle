@@ -24,10 +24,12 @@ import org.gradle.api.artifacts.result.ComponentSelectionDescriptor;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
+import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.capability.CapabilitySelectorSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AttributeContainerSerializer;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AttributeIsolator;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.CapabilitySerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentIdentifierSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorFactory;
@@ -41,7 +43,7 @@ import org.gradle.api.internal.artifacts.metadata.ComponentFileArtifactIdentifie
 import org.gradle.api.internal.artifacts.metadata.ModuleComponentFileArtifactIdentifierSerializer;
 import org.gradle.api.internal.artifacts.metadata.PublishArtifactLocalArtifactMetadataSerializer;
 import org.gradle.api.internal.artifacts.metadata.TransformedComponentFileArtifactIdentifierSerializer;
-import org.gradle.api.internal.attributes.AttributesFactory;
+import org.gradle.api.internal.attributes.BaseAttributesFactory;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.internal.Cast;
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactIdentifier;
@@ -51,6 +53,8 @@ import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier
 import org.gradle.internal.component.local.model.OpaqueComponentArtifactIdentifier;
 import org.gradle.internal.component.local.model.PublishArtifactLocalArtifactMetadata;
 import org.gradle.internal.component.local.model.TransformedComponentFileArtifactIdentifier;
+import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
+import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.resolve.caching.DesugaringAttributeContainerSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.DefaultSerializerRegistry;
@@ -63,7 +67,7 @@ import java.util.List;
 
 public class DependencyManagementValueSnapshotterSerializerRegistry extends DefaultSerializerRegistry implements ValueSnapshotterSerializerRegistry {
 
-    private static final List<Class<?>> SUPPORTED_TYPES = ImmutableList.of(
+    private static final List<Class<?>> SUPPORTED_SERIALIZATION_TYPES = ImmutableList.of(
         Capability.class,
         ModuleVersionIdentifier.class,
         PublishArtifactLocalArtifactMetadata.class,
@@ -80,13 +84,18 @@ public class DependencyManagementValueSnapshotterSerializerRegistry extends Defa
         ResolvedComponentResult.class
     );
 
+    private final AttributeIsolator attributeIsolator;
+
     public DependencyManagementValueSnapshotterSerializerRegistry(
         ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-        AttributesFactory attributesFactory,
+        BaseAttributesFactory attributesFactory,
         NamedObjectInstantiator namedObjectInstantiator,
-        ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory
+        ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory,
+        ClassLoaderHierarchyHasher classLoaderHasher
     ) {
         super(true);
+
+        this.attributeIsolator = new AttributeIsolator(classLoaderHasher);
 
         CapabilitySelectorSerializer capabilitySelectorSerializer = new CapabilitySelectorSerializer();
         ComponentIdentifierSerializer componentIdentifierSerializer = new ComponentIdentifierSerializer();
@@ -126,12 +135,29 @@ public class DependencyManagementValueSnapshotterSerializerRegistry extends Defa
     }
 
     private static Class<?> baseTypeOf(Class<?> type) {
-        for (Class<?> supportedType : SUPPORTED_TYPES) {
+        for (Class<?> supportedType : SUPPORTED_SERIALIZATION_TYPES) {
             if (supportedType.isAssignableFrom(type)) {
                 return supportedType;
             }
         }
         return type;
+    }
+
+    @Override
+    public boolean canIsolate(Class<?> valueClass) {
+        if (valueClass.isAssignableFrom(Attribute.class)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    @Override
+    public <T> Isolatable<T> buildIsolated(T baseType) {
+        if (baseType instanceof Attribute) {
+            return Cast.uncheckedNonnullCast(attributeIsolator.isolate(Cast.uncheckedNonnullCast(baseType)));
+        }
+        throw new IllegalArgumentException("Don't know how to serialize objects of type " + baseType.getClass().getName());
     }
 
     /**

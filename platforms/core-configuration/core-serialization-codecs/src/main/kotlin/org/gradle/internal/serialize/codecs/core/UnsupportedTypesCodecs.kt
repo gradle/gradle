@@ -19,33 +19,17 @@ package org.gradle.internal.serialize.codecs.core
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ArtifactView
 import org.gradle.api.artifacts.ConfigurationContainer
-import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.DependencyConstraintSet
 import org.gradle.api.artifacts.DependencySet
-import org.gradle.api.artifacts.LenientConfiguration
 import org.gradle.api.artifacts.ResolutionStrategy
 import org.gradle.api.artifacts.ResolvableDependencies
-import org.gradle.api.artifacts.ResolvedArtifact
-import org.gradle.api.artifacts.ResolvedConfiguration
-import org.gradle.api.artifacts.ResolvedDependency
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler
-import org.gradle.api.artifacts.dsl.ComponentModuleMetadataHandler
 import org.gradle.api.artifacts.dsl.DependencyConstraintHandler
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.artifacts.dsl.DependencyLockingHandler
 import org.gradle.api.artifacts.dsl.RepositoryHandler
-import org.gradle.api.artifacts.query.ArtifactResolutionQuery
-import org.gradle.api.artifacts.repositories.ArtifactRepository
-import org.gradle.api.artifacts.result.ArtifactResolutionResult
-import org.gradle.api.artifacts.result.ArtifactResult
-import org.gradle.api.artifacts.result.ComponentArtifactsResult
 import org.gradle.api.artifacts.result.ResolutionResult
-import org.gradle.api.artifacts.result.UnresolvedComponentResult
 import org.gradle.api.artifacts.type.ArtifactTypeContainer
-import org.gradle.api.attributes.AttributeMatchingStrategy
-import org.gradle.api.attributes.AttributesSchema
-import org.gradle.api.attributes.CompatibilityRuleChain
-import org.gradle.api.attributes.DisambiguationRuleChain
 import org.gradle.api.initialization.Settings
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.project.IsolatedProject
@@ -105,33 +89,17 @@ fun BindingsBuilder.unsupportedTypes() {
     // Dependency Resolution Types
     bind(unsupported<ConfigurationContainer>())
     bind(unsupported<ResolutionStrategy>())
-    bind(unsupported<ResolvedConfiguration>())
-    bind(unsupported<LenientConfiguration>())
     bind(unsupported<ResolvableDependencies>())
     bind(unsupported<ResolutionResult>())
     bind(unsupported<DependencyConstraintSet>())
     bind(unsupported<RepositoryHandler>())
-    bind(unsupported<ArtifactRepository>())
     bind(unsupported<DependencyHandler>())
     bind(unsupported<DependencyConstraintHandler>())
     bind(unsupported<ComponentMetadataHandler>())
-    bind(unsupported<ComponentModuleMetadataHandler>())
     bind(unsupported<ArtifactTypeContainer>())
-    bind(unsupported<AttributesSchema>())
-    bind(unsupported<AttributeMatchingStrategy<*>>())
-    bind(unsupported<CompatibilityRuleChain<*>>())
-    bind(unsupported<DisambiguationRuleChain<*>>())
-    bind(unsupported<ArtifactResolutionQuery>())
     bind(unsupported<DependencySet>())
-    bind(unsupported<Dependency>())
     bind(unsupported<DependencyLockingHandler>())
-    bind(unsupported<ResolvedDependency>())
-    bind(unsupported<ResolvedArtifact>())
     bind(unsupported<ArtifactView>())
-    bind(unsupported<ArtifactResolutionResult>())
-    bind(unsupported<ComponentArtifactsResult>())
-    bind(unsupported<UnresolvedComponentResult>())
-    bind(unsupported<ArtifactResult>())
 
     // Publishing types
     bind(unsupported<Publication>())

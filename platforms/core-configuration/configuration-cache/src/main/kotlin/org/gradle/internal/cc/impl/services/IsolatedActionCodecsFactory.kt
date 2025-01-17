@@ -39,6 +39,7 @@ import org.gradle.internal.serialize.codecs.core.jos.ExternalizableCodec
 import org.gradle.internal.serialize.codecs.core.jos.JavaObjectSerializationCodec
 import org.gradle.internal.serialize.codecs.core.jos.JavaSerializationEncodingLookup
 import org.gradle.internal.serialize.codecs.core.unsupportedTypes
+import org.gradle.internal.serialize.codecs.dm.unsupportedDependencyManagementTypes
 import org.gradle.internal.serialize.codecs.stdlib.ProxyCodec
 import org.gradle.internal.serialize.graph.codecs.BeanCodec
 import org.gradle.internal.serialize.graph.codecs.Bindings
@@ -88,6 +89,7 @@ class IsolatedActionCodecsFactory(
     private
     fun BindingsBuilder.allUnsupportedTypes() {
         unsupportedTypes()
+        unsupportedDependencyManagementTypes()
         unsupportedProviderTypes()
         unsupported<FileCollection>()
     }

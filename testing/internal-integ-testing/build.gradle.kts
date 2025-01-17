@@ -25,6 +25,7 @@ dependencies {
     api(projects.core)
     api(projects.coreApi)
     api(projects.dependencyManagement)
+    api(projects.dependencyManagementBase)
     api(projects.hashing)
     api(projects.internalTesting) {
         because("Part of the public API")

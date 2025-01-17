@@ -29,7 +29,6 @@ import org.gradle.internal.resource.ExternalResource
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.AttributeTestUtil
-import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -119,7 +118,7 @@ class GradleModuleMetadataParserTest extends Specification {
     final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     def identifierFactory = new DefaultImmutableModuleIdentifierFactory()
-    def parser = new GradleModuleMetadataParser(AttributeTestUtil.attributesFactory(), identifierFactory, TestUtil.objectInstantiator())
+    def parser = new GradleModuleMetadataParser(AttributeTestUtil.attributesFactory(), identifierFactory)
 
     VersionConstraint emptyConstraint() {
         DefaultImmutableVersionConstraint.of()

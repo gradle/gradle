@@ -25,14 +25,15 @@ dependencies {
     api(projects.core)
     api(projects.coreApi)
     api(projects.dependencyManagement)
+    api(projects.dependencyManagementBase)
 
     api(libs.guava)
     api(libs.inject)
 
-    implementation(projects.stdlibJavaExtensions)
     implementation(projects.loggingApi)
     implementation(projects.platformBase)
     implementation(projects.platformJvm)
+    implementation(projects.stdlibJavaExtensions)
 
     runtimeOnly(libs.groovy)
 

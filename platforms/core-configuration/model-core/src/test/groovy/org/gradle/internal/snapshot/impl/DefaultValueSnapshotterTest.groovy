@@ -20,6 +20,7 @@ import org.gradle.api.Named
 import org.gradle.api.internal.provider.Providers
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.TestHashCodes
+import org.gradle.internal.isolation.Isolatable
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.DefaultSerializerRegistry
 import org.gradle.internal.serialize.Encoder
@@ -39,7 +40,7 @@ class DefaultValueSnapshotterTest extends Specification {
         register(GradleBean, new GradleBeanSerializer())
     }
     def snapshotter = new DefaultValueSnapshotter([valueSnapshotSerializerRegistry], classLoaderHasher)
-    def isolatableFactory = new DefaultIsolatableFactory(classLoaderHasher, managedFactoryRegistry)
+    def isolatableFactory = new DefaultIsolatableFactory(classLoaderHasher, managedFactoryRegistry, [])
 
     def "creates snapshot for string"() {
         expect:
@@ -725,6 +726,15 @@ class DefaultValueSnapshotterTest extends Specification {
     }
 
     class TestValueSnapshotSerializerRegistry extends DefaultSerializerRegistry implements ValueSnapshotterSerializerRegistry {
+        @Override
+        boolean canIsolate(Class<?> valueClass) {
+            return false
+        }
+
+        @Override
+        <T> Isolatable<T> buildIsolated(T baseType) {
+            throw new UnsupportedOperationException()
+        }
     }
 
     def "creates snapshot for gradle serialized type"() {

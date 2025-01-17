@@ -33,6 +33,7 @@ dependencies {
     api(projects.platformNative)
     api(projects.serviceProvider)
 
+    implementation(projects.dependencyManagementBase)
     implementation(projects.modelCore)
     implementation(projects.testingNative)
     implementation(projects.loggingApi)

@@ -26,10 +26,11 @@ import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.result.ResolvedComponentResultInternal;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributeValue;
-import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.AttributesFactory;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Actions;
+import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.operations.trace.CustomOperationTraceSerialization;
 
 import javax.annotation.Nullable;
@@ -125,6 +126,12 @@ class ResolveConfigurationResolutionBuildOperationResult implements ResolveConfi
         @Override
         public <T> T getAttribute(Attribute<T> key) {
             return getDesugared().getAttribute(key);
+        }
+
+        @Nullable
+        @Override
+        public <T> Isolatable<T> getAttributeValue(Attribute<T> key) {
+            return getDesugared().getAttributeValue(key);
         }
 
         @Override

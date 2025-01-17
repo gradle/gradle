@@ -26,6 +26,7 @@ dependencies {
     api(libs.jsr305)
 
     implementation(projects.daemonServerWorker)
+    implementation(projects.dependencyManagementBase)
     implementation(projects.loggingApi)
     implementation(projects.modelCore)
     implementation(projects.platformBase)

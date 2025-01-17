@@ -10,18 +10,20 @@ gradlebuildJava {
 }
 
 dependencies {
-    api(projects.serialization)
-    api(projects.serviceLookup)
-    api(projects.stdlibJavaExtensions)
-    api(projects.coreApi)
-    api(projects.hashing)
     api(projects.baseServices)
+    api(projects.coreApi)
     api(projects.files)
     api(projects.functional)
+    api(projects.hashing)
     api(projects.messaging)
     api(projects.modelReflect)
     api(projects.persistentCache)
+    api(projects.resources)
+    api(projects.serialization)
+    api(projects.serviceLookup)
     api(projects.snapshots)
+    api(projects.stdlibJavaExtensions)
+
     api(libs.asm)
     api(libs.jsr305)
     api(libs.inject)

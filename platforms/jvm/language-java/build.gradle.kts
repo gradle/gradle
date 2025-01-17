@@ -29,6 +29,7 @@ dependencies {
     api(projects.coreApi)
     api(projects.daemonServerWorker)
     api(projects.dependencyManagement)
+    api(projects.dependencyManagementBase)
     api(projects.fileCollections)
     api(projects.fileOperations)
     api(projects.files)

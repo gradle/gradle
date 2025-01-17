@@ -42,7 +42,7 @@ import java.util.function.Consumer;
 
 import static java.util.Comparator.comparingInt;
 
-@ServiceScope(Scope.UserHome.class)
+@ServiceScope(Scope.BuildSession.class)
 public class WorkerDaemonClientsManager implements Stoppable {
 
     private static final Logger LOGGER = Logging.getLogger(WorkerDaemonClientsManager.class);

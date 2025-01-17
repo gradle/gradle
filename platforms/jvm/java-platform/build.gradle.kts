@@ -34,6 +34,7 @@ dependencies {
     implementation(projects.baseServices)
     implementation(projects.core)
     implementation(projects.dependencyManagement)
+    implementation(projects.dependencyManagementBase)
     implementation(projects.ivy)
     implementation(projects.stdlibJavaExtensions)
     implementation(projects.maven)

@@ -37,7 +37,8 @@ class SnapshotTestUtil {
     static IsolatableFactory isolatableFactory() {
         return new DefaultIsolatableFactory(
             classLoaderHierarchyHasher(),
-            new DefaultManagedFactoryRegistry(null)
+            new DefaultManagedFactoryRegistry(null),
+            []
         )
     }
 

@@ -17,8 +17,7 @@
 package org.gradle.api.internal.attributes;
 
 import org.gradle.api.attributes.Attribute;
-
-import javax.annotation.Nullable;
+import org.gradle.internal.isolation.Isolatable;
 
 /**
  * Represents an optional attribute value, as found in an attribute container. There are 3 possible cases:
@@ -38,15 +37,14 @@ public interface AttributeValue<T> {
             return false;
         }
 
-        @Nullable
         @Override
         public <S> S coerce(Attribute<S> type) {
             throw new UnsupportedOperationException("coerce() should not be called on a missing attribute value");
         }
 
         @Override
-        public Object get() {
-            throw new UnsupportedOperationException("get() should not be called on a missing attribute value");
+        public Isolatable<Object> getIsolatableValue() {
+            throw new UnsupportedOperationException("getIsolatableValue() should not be called on a missing attribute value");
         }
     };
 
@@ -61,7 +59,16 @@ public interface AttributeValue<T> {
      * Returns the value of this attribute.
      * @return the value of this attribute. Throws an error if called on a missing or unknown attribute value.
      */
-    T get();
+    default T get() {
+        return getIsolatableValue().isolate();
+    }
+
+    /**
+     * Returns the value of this attribute as an {@link Isolatable}.
+     *
+     * @return the value of this attribute. Throws an error if called on a missing or unknown attribute value.
+     */
+    Isolatable<T> getIsolatableValue();
 
     /**
      * Coerces this value to the type of the other attribute, so it can be compared

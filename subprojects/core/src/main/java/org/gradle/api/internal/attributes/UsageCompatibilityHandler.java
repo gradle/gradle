@@ -21,49 +21,38 @@ import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.internal.isolation.Isolatable;
-import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.snapshot.impl.CoercingStringValueSnapshot;
 
 class UsageCompatibilityHandler {
-    private final IsolatableFactory isolatableFactory;
     private final NamedObjectInstantiator instantiator;
 
-    UsageCompatibilityHandler(IsolatableFactory isolatableFactory, NamedObjectInstantiator instantiator) {
-        this.isolatableFactory = isolatableFactory;
+    UsageCompatibilityHandler(NamedObjectInstantiator instantiator) {
         this.instantiator = instantiator;
     }
 
-    public <T> ImmutableAttributes doConcat(DefaultAttributesFactory factory, ImmutableAttributes node, Attribute<T> key, Isolatable<T> value) {
+    public <T> ImmutableAttributes doConcat(DefaultBaseAttributesFactory factory, ImmutableAttributes node, Attribute<T> key, Isolatable<T> value) {
         assert key.getName().equals(Usage.USAGE_ATTRIBUTE.getName()) : "Should only be invoked for 'org.gradle.usage', got '" + key.getName() + "'";
         // Replace deprecated usage values
         String val;
-        boolean typedUsage = false;
         if (value instanceof CoercingStringValueSnapshot) {
             val = ((CoercingStringValueSnapshot) value).getValue();
         } else {
-            typedUsage = true;
             val = value.isolate().toString();
         }
         // TODO Add a deprecation warning in Gradle 6.0
         if (val.endsWith("-jars")) {
-            return doConcatWithReplacement(factory, node, key, typedUsage, val.replace("-jars", ""), LibraryElements.JAR);
+            return doConcatWithReplacement(factory, node, val.replace("-jars", ""), LibraryElements.JAR);
         } else if (val.endsWith("-classes")) {
-            return doConcatWithReplacement(factory, node, key, typedUsage, val.replace("-classes", ""), LibraryElements.CLASSES);
+            return doConcatWithReplacement(factory, node, val.replace("-classes", ""), LibraryElements.CLASSES);
         } else if (val.endsWith("-resources")) {
-            return doConcatWithReplacement(factory, node, key, typedUsage, val.replace("-resources", ""), LibraryElements.RESOURCES);
+            return doConcatWithReplacement(factory, node, val.replace("-resources", ""), LibraryElements.RESOURCES);
         } else {
             return factory.doConcatIsolatable(node, key, value);
         }
-
     }
 
-    private <T> ImmutableAttributes doConcatWithReplacement(DefaultAttributesFactory factory, ImmutableAttributes node, Attribute<T> key, boolean typedUsage, String usage, String libraryElements) {
-        if (typedUsage) {
-            ImmutableAttributes usageNode = factory.doConcatIsolatable(node, key, isolatableFactory.isolate(instantiator.named(Usage.class, usage)));
-            return factory.doConcatIsolatable(usageNode, LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, isolatableFactory.isolate(instantiator.named(LibraryElements.class, libraryElements)));
-        } else {
-            ImmutableAttributes usageNode = factory.doConcatIsolatable(node, key, new CoercingStringValueSnapshot(usage, instantiator));
-            return factory.doConcatIsolatable(usageNode, Attribute.of(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE.getName(), String.class), new CoercingStringValueSnapshot(libraryElements, instantiator));
-        }
+    private ImmutableAttributes doConcatWithReplacement(DefaultBaseAttributesFactory factory, ImmutableAttributes node, String usage, String libraryElements) {
+        ImmutableAttributes usageNode = factory.doConcatIsolatable(node, Attribute.of(Usage.USAGE_ATTRIBUTE.getName(), String.class), new CoercingStringValueSnapshot(usage, instantiator));
+        return factory.doConcatIsolatable(usageNode, Attribute.of(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE.getName(), String.class), new CoercingStringValueSnapshot(libraryElements, instantiator));
     }
 }

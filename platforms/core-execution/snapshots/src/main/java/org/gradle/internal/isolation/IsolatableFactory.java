@@ -32,7 +32,7 @@ import javax.annotation.Nullable;
  *
  * @see org.gradle.internal.snapshot.ValueSnapshotter
  */
-@ServiceScope(Scope.UserHome.class)
+@ServiceScope(Scope.BuildSession.class)
 public interface IsolatableFactory {
     /**
      * Creates an {@link Isolatable} that reflects the <em>current</em> state of the given value. Any changes made to the value will not be visible to the {@link Isolatable} and vice versa.

@@ -22,11 +22,9 @@ import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenUniqueSnapshotComponentIdentifier;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.internal.component.external.model.ComponentVariant;
 import org.gradle.internal.component.external.model.MutableComponentVariant;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
-import org.gradle.internal.snapshot.impl.CoercingStringValueSnapshot;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,11 +35,9 @@ public class GradleModuleMetadataCompatibilityConverter {
     private static final Attribute<String> LIBRARY_ELEMENTS_STRING_ATTRIBUTE = Attribute.of(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE.getName(), String.class);
 
     private final AttributesFactory attributesFactory;
-    private final NamedObjectInstantiator instantiator;
 
-    public GradleModuleMetadataCompatibilityConverter(AttributesFactory attributesFactory, NamedObjectInstantiator instantiator) {
+    public GradleModuleMetadataCompatibilityConverter(AttributesFactory attributesFactory) {
         this.attributesFactory = attributesFactory;
-        this.instantiator = instantiator;
     }
 
     public void process(MutableModuleComponentResolveMetadata metaDataFromResource) {
@@ -84,11 +80,11 @@ public class GradleModuleMetadataCompatibilityConverter {
             if (attributes.contains(USAGE_STRING_ATTRIBUTE)) {
                 String attributeValue = attributes.getAttribute(USAGE_STRING_ATTRIBUTE);
                 if (attributeValue.endsWith("-jars")) {
-                    updatedAttributes = attributesFactory.concat(updatedAttributes, USAGE_STRING_ATTRIBUTE, new CoercingStringValueSnapshot(attributeValue.replace("-jars", ""), instantiator));
+                    updatedAttributes = attributesFactory.concat(updatedAttributes, USAGE_STRING_ATTRIBUTE, attributeValue.replace("-jars", ""));
                 }
             }
             if (!updatedAttributes.isEmpty() && !attributes.contains(LIBRARY_ELEMENTS_STRING_ATTRIBUTE)) {
-                updatedAttributes = attributesFactory.concat(updatedAttributes, LIBRARY_ELEMENTS_STRING_ATTRIBUTE, new CoercingStringValueSnapshot(LibraryElements.JAR, instantiator));
+                updatedAttributes = attributesFactory.concat(updatedAttributes, LIBRARY_ELEMENTS_STRING_ATTRIBUTE, LibraryElements.JAR);
             }
             if (!updatedAttributes.isEmpty()) {
                 updatedAttributes = attributesFactory.concat(attributes, updatedAttributes);

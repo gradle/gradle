@@ -18,7 +18,6 @@ package org.gradle.internal.snapshot.impl
 
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSet
-import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.serialize.InputStreamBackedDecoder
@@ -33,7 +32,7 @@ class SnapshotSerializerTest extends Specification {
     def encoder = new OutputStreamBackedEncoder(output)
 
     @Subject
-    def serializer = new SnapshotSerializer(Mock(ClassLoaderHierarchyHasher))
+    def serializer = new SnapshotSerializer()
 
     def "serializes serialized properties"() {
         def original = snapshot("x".bytes)
